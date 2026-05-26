@@ -4,21 +4,35 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
-import * as Effect from 'effect/Effect';
-import type { DocumentSymbol } from 'vscode-languageserver-protocol';
-import { nls } from '../../../messages/nls';
-import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
-import { AA_CLASS_REST_ANNOTATIONS } from '../../../settings';
-import { telemetryService } from '../../../telemetry/telemetryService';
-import GenerationInteractionLogger from '../../generationInteractionLogger';
-import {
+import type {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   ApexOASMethodDetail,
-  PromptGenerationResult,
-  PromptGenerationStrategyBid
+  PromptGenerationResult
 } from '../../schemas';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Chunk from 'effect/Chunk';
+import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
+import * as Option from 'effect/Option';
+import * as Schedule from 'effect/Schedule';
+import * as Stream from 'effect/Stream';
+import * as vscode from 'vscode';
+
+const keepOrLog =
+  (label: string) =>
+  <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+    effect.pipe(
+      Effect.map(Option.some),
+      Effect.catchAll(e => Effect.logDebug(`${label} failed with error ${String(e)}`).pipe(Effect.as(Option.none<A>())))
+    );
+import type { DocumentSymbol } from 'vscode-languageserver-protocol';
+import { APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../../constants';
+import { InvalidJsonDocument, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';
+import { nls } from '../../../messages/nls';
+import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
+import { LLMService } from '../../../services/llmService';
+import { AA_CLASS_REST_ANNOTATIONS } from '../../../settings';
 import { buildClassPrompt, generatePromptForMethod } from '../buildPromptUtils';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '../constants';
 import {
@@ -29,222 +43,204 @@ import {
   formatUrlPath,
   updateOperationIds
 } from '../formatUtils';
-import {
-  GenerationStrategy,
-  StrategyTelemetry,
-  getLLMServiceInterface,
-  getOutputTokenLimit,
-  getPromptTokenCount
-} from '../generationStrategy';
+import { StrategyTelemetry } from '../generationStrategy';
 import { openAPISchemaV3Guided } from '../openapi3.schema';
-
-const gil = GenerationInteractionLogger.getInstance();
 
 const STRATEGY_NAME = 'ApexRest';
 const BETA_INFO = 'OpenAPI documents generated from Apex classes using Apex REST annotations are in beta.';
 
-const resolveLLMResponses = async (serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> => {
-  const methodNames = Array.from(serviceRequests.keys());
-  const serviceResponses = await Promise.allSettled(Array.from(serviceRequests.values()));
-  return new Map(
-    methodNames.map((methodName, index) => {
-      const result = serviceResponses[index];
-      if (result.status === 'fulfilled') {
-        gil.addRawResponse(result.value);
-        return [methodName, result.value];
-      }
-      gil.addRawResponse(`Promise ${index} rejected with reason: ${JSON.stringify(result.reason)}`);
-      console.log(`Promise ${index} rejected with reason:`, result.reason);
-      return [methodName, ''];
-    })
-  );
+type GenState = {
+  readonly servicePrompts: Map<string, string>;
+  readonly methodsDocSymbolMap: Map<string, DocumentSymbol>;
+  readonly methodsContextMap: Map<string, ApexOASMethodDetail>;
+  readonly biddedCallCount: number;
+  readonly maxBudget: number;
 };
 
-export const createApexRestStrategy = async (
+const buildGenState = Effect.fn('ApexOas.ApexRest.buildGenState')(function* (
   metadata: ApexClassOASEligibleResponse,
-  context: ApexClassOASGatherContextResponse
-): Promise<GenerationStrategy> => {
-  const sourceText = await readFile(metadata.resourceUri.fsPath);
-  const classPrompt = buildClassPrompt(context.classDetail);
-  const restResourceAnnotation = context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name));
-  const urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${context.classDetail.name}/`;
-  const oasSchema = JSON.stringify(openAPISchemaV3Guided);
-  const outputTokenLimit = getOutputTokenLimit();
-
+  context: ApexClassOASGatherContextResponse,
+  classPrompt: string,
+  sourceText: string
+) {
+  const list = (metadata.symbols ?? []).filter(s => s.isApexOasEligible);
   const methodsDocSymbolMap = new Map<string, DocumentSymbol>();
   const methodsContextMap = new Map<string, ApexOASMethodDetail>();
-  const serviceRequests = new Map<string, Promise<string>>();
-  const servicePrompts = new Map<string, string>();
-  let serviceResponses = new Map<string, string>();
-
-  let biddedCallCount = 0;
-  let maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
-  let resolutionAttempts = 0;
-
-  const lock = Effect.runSync(Effect.makeSemaphore(1));
-  const incrementResolutionAttempts = () =>
-    Effect.runPromise(
-      lock.withPermits(1)(
-        Effect.sync(() => {
-          resolutionAttempts++;
-        })
-      )
-    );
-
-  const prevalidateLLMResponse = (): string[] => {
-    const validResponses: string[] = [];
-    for (const [methodName, response] of serviceResponses) {
-      if (response === '') {
-        console.log(`LLM response for ${methodName} is empty.`);
-        continue;
-      }
-      try {
-        const cleanedResponse = cleanupGeneratedDoc(response);
-        gil.addCleanedResponse(cleanedResponse);
-        try {
-          const parsed = parseOASDocFromJson(cleanedResponse);
-          // remove unrelated methods
-          excludeUnrelatedMethods(parsed, methodName, methodsContextMap);
-          // remove non-2xx responses
-          excludeNon2xxResponses(parsed);
-          // make sure parameters in path are in the request path, and the request path starts with the urlMapping
-          const parametersInPath = extractParametersInPath(parsed);
-          if (parsed.paths) {
-            for (const [path, methods] of Object.entries(parsed.paths)) {
-              const validatedPath = formatUrlPath(parametersInPath, urlMapping);
-              delete parsed.paths[path];
-              parsed.paths[validatedPath] = methods;
-            }
-          }
-          // update operationId with the methodName
-          if (parsed.paths) {
-            updateOperationIds(parsed, methodName);
-          }
-          gil.addYamlParseResult(JSON.stringify(parsed));
-          validResponses.push(JSON.stringify(parsed));
-        } catch (e) {
-          gil.addYamlParseResult(`JSON parse failed with error ${e}`);
-          console.debug(`JSON parse failed with error ${e}`);
-        }
-      } catch (e) {
-        gil.addCleanedResponse(`Cleanup failed with error ${e}`);
-      }
+  list.forEach(symbol => {
+    methodsDocSymbolMap.set(symbol.docSymbol.name, symbol.docSymbol);
+    const methodDetail = context.methods.find(m => m.name === symbol.docSymbol.name);
+    if (methodDetail) {
+      methodsContextMap.set(symbol.docSymbol.name, methodDetail);
     }
-    return validResponses;
+  });
+  const initial: GenState = {
+    servicePrompts: new Map(),
+    methodsDocSymbolMap,
+    methodsContextMap,
+    biddedCallCount: 0,
+    maxBudget: SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR
   };
-
-  const executeWithRetry = async (fn: () => Promise<string>, retryLimit: number): Promise<string> => {
-    let attempts = 0;
-    while (attempts < retryLimit) {
-      await incrementResolutionAttempts();
-      try {
-        const response = await fn();
-        // Extract result if response is an object with result property, otherwise use as-is
-        const result =
-          typeof response === 'object' && response !== null && 'result' in response
-            ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-              (response as { result: string }).result
-            : response;
-        // Return the result; cleanup and validation will happen in prevalidateLLMResponse
-        return result;
-      } catch (error) {
-        attempts++;
-        telemetryService.sendException(
-          'OasLlmResultFailedParse',
-          `attempt: ${attempts} of ${retryLimit}: ${error instanceof Error ? error.message : String(error)}`
+  const inputs = yield* Effect.forEach(
+    list,
+    symbol =>
+      Effect.gen(function* () {
+        const methodName = symbol.docSymbol.name;
+        const input = yield* generatePromptForMethod(
+          methodName,
+          sourceText,
+          methodsDocSymbolMap,
+          methodsContextMap,
+          classPrompt
         );
-        if (attempts >= retryLimit) {
-          throw new Error(
-            `Failed after ${retryLimit} attempts: ${error instanceof Error ? error.message : String(error)}`
-          );
+        return { methodName, input, tokenCount: Math.floor(input.length / 4) };
+      }),
+    { concurrency: 'unbounded' }
+  );
+  return inputs.reduce<GenState>((acc, { methodName, input, tokenCount }) => {
+    if (acc.biddedCallCount === 0 && acc.maxBudget === 0) return acc;
+    if (tokenCount > PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
+      return { ...acc, servicePrompts: new Map(), biddedCallCount: 0, maxBudget: 0 };
+    }
+    const currentBudget = Math.floor((PROMPT_TOKEN_MAX_LIMIT - tokenCount) * IMPOSED_FACTOR);
+    const next = new Map(acc.servicePrompts);
+    next.set(methodName, input);
+    return {
+      ...acc,
+      servicePrompts: next,
+      biddedCallCount: acc.biddedCallCount + 1,
+      maxBudget: Math.min(acc.maxBudget, currentBudget)
+    };
+  }, initial);
+});
+
+const prevalidateLLMResponse = Effect.fn('ApexOas.ApexRest.prevalidateLLMResponse')(function* (
+  responses: ReadonlyMap<string, string>,
+  methodsContextMap: Map<string, ApexOASMethodDetail>,
+  urlMapping: string
+) {
+  const chunk = yield* Stream.fromIterable(responses.entries()).pipe(
+    Stream.filterEffect(([methodName, response]) =>
+      response === ''
+        ? Effect.logDebug(`LLM response for ${methodName} is empty.`).pipe(Effect.as(false))
+        : Effect.succeed(true)
+    ),
+    Stream.mapEffect(([methodName, response]) =>
+      cleanupGeneratedDoc(response).pipe(
+        Effect.tap(cleaned => Effect.logDebug({ event: 'cleanedResponse', cleaned })),
+        Effect.map(cleaned => [methodName, cleaned] as const),
+        keepOrLog('Cleanup')
+      )
+    ),
+    Stream.filterMap(identity),
+    Stream.mapEffect(([methodName, cleaned]) =>
+      Effect.try({
+        try: () => parseOASDocFromJson(cleaned),
+        catch: e => new InvalidJsonDocument({ message: `JSON parse failed: ${String(e)}` })
+      }).pipe(
+        Effect.map(parsed => [methodName, parsed] as const),
+        keepOrLog('JSON parse')
+      )
+    ),
+    Stream.filterMap(identity),
+    Stream.mapEffect(([methodName, parsed]) =>
+      Effect.gen(function* () {
+        yield* excludeUnrelatedMethods(parsed, methodName, methodsContextMap);
+        excludeNon2xxResponses(parsed);
+        const parametersInPath = extractParametersInPath(parsed);
+        if (parsed.paths) {
+          Object.entries(parsed.paths).forEach(([p, methods]) => {
+            const validatedPath = formatUrlPath(parametersInPath, urlMapping);
+            delete parsed.paths[p];
+            parsed.paths[validatedPath] = methods;
+          });
+          updateOperationIds(parsed, methodName);
         }
-      }
-    }
-    throw new Error('Unexpected error in executeWithRetry');
+        const stringified = JSON.stringify(parsed);
+        yield* Effect.logDebug({ event: 'yamlParseResult', parsed: stringified });
+        return stringified;
+      })
+    ),
+    Stream.runCollect
+  );
+  return Chunk.toReadonlyArray(chunk);
+});
+
+const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(function* (
+  prompt: string,
+  tokenLimit: number,
+  onAttempt: () => void
+) {
+  return yield* LLMService.callLLM(prompt, undefined, tokenLimit).pipe(
+    Effect.tapBoth({
+      onSuccess: () => Effect.sync(onAttempt),
+      onFailure: () => Effect.sync(onAttempt)
+    }),
+    Effect.retry(Schedule.recurs(2)),
+    Effect.mapError(cause => new LLMRetriesExhausted({ message: `Failed after retries: ${String(cause)}` }))
+  );
+});
+
+export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRestStrategy')(function* (
+  metadata: ApexClassOASEligibleResponse,
+  context: ApexClassOASGatherContextResponse
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const sourceText = yield* api.services.FsService.readFile(metadata.resourceUri.fsPath);
+  const classPrompt = buildClassPrompt(context.classDetail);
+  const restResourceAnnotation = context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name));
+
+  const urlMapping: string = restResourceAnnotation?.parameters.urlMapping ?? `/${context.classDetail.name}/`;
+  const oasSchema = JSON.stringify(openAPISchemaV3Guided);
+  const outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
+
+  const genState = yield* buildGenState(metadata, context, classPrompt, sourceText);
+  // eslint-disable-next-line functional/no-let
+  let llmCallCount = 0;
+  const incrementLlmCallCount = () => {
+    llmCallCount++;
   };
 
-  const resolveOASContent = async (): Promise<string[]> => {
-    try {
-      const llmService = await getLLMServiceInterface();
-      for (const [methodName, prompt] of servicePrompts) {
-        if (prompt?.length > 0) {
-          gil.addPrompt(prompt);
-          serviceRequests.set(
-            methodName,
-            executeWithRetry(() => llmService.callLLM(prompt, undefined, outputTokenLimit), 3)
-          );
-        }
-      }
-      serviceResponses = await resolveLLMResponses(serviceRequests);
-      return prevalidateLLMResponse();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(errorMessage);
-    }
+  const bid = () => {
+    // First check if the class has valid REST annotations; if missing, the strategy declines via a zero bid
+    const result: PromptGenerationResult = hasValidRestAnnotations(context)
+      ? { maxBudget: genState.maxBudget, callCounts: genState.biddedCallCount }
+      : { maxBudget: 0, callCounts: 0 };
+    return Effect.succeed({ result });
   };
 
-  const generate = async (): Promise<PromptGenerationResult> => {
-    const list = (metadata.symbols ?? []).filter(s => s.isApexOasEligible);
-    for (const symbol of list) {
-      const methodName = symbol.docSymbol.name;
-      methodsDocSymbolMap.set(methodName, symbol.docSymbol);
-      const methodDetail = context.methods.find(m => m.name === methodName);
-      if (methodDetail) {
-        methodsContextMap.set(methodName, methodDetail);
-      }
-
-      const input = await generatePromptForMethod(
-        methodName,
-        sourceText,
-        methodsDocSymbolMap,
-        methodsContextMap,
-        classPrompt
-      );
-      const tokenCount = getPromptTokenCount(input);
-      if (tokenCount <= PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
-        servicePrompts.set(methodName, input);
-        biddedCallCount++;
-        const currentBudget = Math.floor((PROMPT_TOKEN_MAX_LIMIT - tokenCount) * IMPOSED_FACTOR);
-        if (currentBudget < maxBudget) {
-          maxBudget = currentBudget;
-        }
-      } else {
-        // as long as there is one failure, the strategy will be considered failed
-        servicePrompts.clear();
-        biddedCallCount = 0;
-        maxBudget = 0;
-        return { maxBudget: 0, callCounts: 0 };
-      }
+  const generateOAS = Effect.fn('ApexOas.ApexRest.generateOAS')(function* () {
+    const promptEntries = Array.from(genState.servicePrompts.entries()).filter(([, p]) => p?.length > 0);
+    yield* Effect.forEach(promptEntries, ([, prompt]) => Effect.logDebug({ event: 'prompt', prompt }));
+    const responses = yield* Effect.forEach(
+      promptEntries,
+      ([methodName, prompt]) =>
+        callLLMWithRetry(prompt, outputTokenLimit, incrementLlmCallCount).pipe(
+          Effect.tap(raw => Effect.logDebug({ event: 'rawResponse', methodName, raw })),
+          Effect.map(raw => [methodName, raw] as const),
+          Effect.catchAll(error =>
+            Effect.gen(function* () {
+              yield* Effect.logDebug({ event: 'rawResponseRejected', methodName, error: String(error) });
+              return [methodName, ''] as const;
+            })
+          )
+        ),
+      { concurrency: 'unbounded' }
+    );
+    const responseMap = new Map(responses);
+    const validResponses = yield* prevalidateLLMResponse(responseMap, genState.methodsContextMap, urlMapping);
+    if (validResponses.length === 0) {
+      return yield* new OasGenerationFailed({ message: nls.localize('no_oas_generated') });
     }
-    return { maxBudget, callCounts: biddedCallCount };
-  };
-
-  const bid = async (): Promise<PromptGenerationStrategyBid> => {
-    // First check if the class has valid REST annotations
-    if (!hasValidRestAnnotations(context)) {
-      return { result: { maxBudget: 0, callCounts: 0 } };
-    }
-    const generationResult = await generate();
-    return { result: generationResult };
-  };
-
-  const generateOAS = async (): Promise<string> => {
-    const oas = await resolveOASContent();
-    if (oas.length > 0) {
-      try {
-        return combineYamlByMethod(oas, context.classDetail.name);
-      } catch (e) {
-        throw new Error(nls.localize('failed_to_combine_oas', e));
-      }
-    }
-    throw new Error(nls.localize('no_oas_generated'));
-  };
+    return yield* combineYamlByMethod(validResponses, context.classDetail.name).pipe(
+      Effect.mapError(e => new OasGenerationFailed({ message: nls.localize('failed_to_combine_oas', String(e)) }))
+    );
+  });
 
   const getTelemetry = (): StrategyTelemetry => ({
     strategyName: STRATEGY_NAME,
-    biddedCallCount,
-    llmCallCount: resolutionAttempts,
-    generationSize: maxBudget,
+    biddedCallCount: genState.biddedCallCount,
+    llmCallCount,
+    generationSize: genState.maxBudget,
     outputTokenLimit
   });
 
@@ -258,4 +254,4 @@ export const createApexRestStrategy = async (
     generateOAS,
     getTelemetry
   };
-};
+});

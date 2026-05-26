@@ -4,10 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
-import * as vscode from 'vscode';
-import { APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../constants';
-import { PromptGenerationStrategyBid } from '../schemas';
+import type { LLMCallFailed, LLMRetriesExhausted, MethodNotFoundInDocSymbols, OasGenerationFailed } from '../../errors';
+import type { LLMService } from '../../services/llmService';
+import type { PromptGenerationStrategyBid } from '../schemas';
+import type { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type * as Effect from 'effect/Effect';
+import type { ConnectionService } from 'salesforcedx-vscode-services';
 
 export type StrategyTelemetry = {
   strategyName: string;
@@ -24,15 +26,11 @@ export type GenerationStrategy = {
   readonly strategyName: string;
   readonly betaInfo?: string;
   readonly openAPISchema: string | undefined;
-  bid: () => Promise<PromptGenerationStrategyBid>;
-  generateOAS: () => Promise<string>;
+  bid: () => Effect.Effect<PromptGenerationStrategyBid, never, never>;
+  generateOAS: () => Effect.Effect<
+    string,
+    OasGenerationFailed | LLMRetriesExhausted | LLMCallFailed | MethodNotFoundInDocSymbols,
+    LLMService | ExtensionProviderService | ConnectionService
+  >;
   getTelemetry: () => StrategyTelemetry;
 };
-
-export const getPromptTokenCount = (prompt: string): number => Math.floor(prompt.length / 4);
-
-export const getLLMServiceInterface = (): Promise<LLMServiceInterface> =>
-  ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex-oas');
-
-export const getOutputTokenLimit = (): number =>
-  vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);

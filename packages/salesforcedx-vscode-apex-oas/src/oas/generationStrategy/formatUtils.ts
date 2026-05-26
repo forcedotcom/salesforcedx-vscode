@@ -4,17 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
+import { MethodNotFoundInDocSymbols } from '../../errors';
 import { nls } from '../../messages/nls';
 import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
-import { ApexOASMethodDetail, HttpRequestMethod, httpMethodMap } from '../schemas';
+import { ApexOASMethodDetail, httpMethodMap } from '../schemas';
 
 export const formatUrlPath = (parametersInPath: string[], urlMapping: string): string => {
-  let updatedPath = urlMapping.replace(/\/$|\/\*$/, '').trim() || '';
-  parametersInPath.forEach(parameter => {
-    updatedPath += `/{${parameter}}`;
-  });
+  const base = urlMapping.replace(/\/$|\/\*$/, '').trim();
+  const updatedPath = [base, ...parametersInPath.map(p => `{${p}}`)].join('/');
   return updatedPath !== '' ? updatedPath : '/';
 };
 
@@ -28,49 +28,49 @@ export const excludeNon2xxResponses = (oas: OpenAPIV3.Document) => {
     path: '$.paths.*.*.responses',
     json: oas,
     callback: operation => {
-      for (const [statusCode] of Object.entries(operation)) {
-        if (!statusCode.startsWith('2')) {
+      Object.keys(operation)
+        .filter(statusCode => !statusCode.startsWith('2'))
+        .forEach(statusCode => {
           delete operation[statusCode];
-        }
-      }
+        });
     }
   });
 };
 
 // This check is compromised for TDX http deliverables
-export const excludeUnrelatedMethods = (
+/** side effect: mutates the input OAS document */
+export const excludeUnrelatedMethods = Effect.fn('ApexOas.Format.excludeUnrelatedMethods')(function* (
   oas: OpenAPIV3.Document,
   methodName: string,
   methodsContextMap: Map<string, ApexOASMethodDetail>
-) => {
-  const httpMethod = getMethodTypeFromAnnotation(methodName, methodsContextMap);
+) {
+  const httpMethod = yield* getMethodTypeFromAnnotation(methodName, methodsContextMap);
 
   JSONPath({
     path: '$.paths.*', // Access each method under each path
     json: oas,
     callback: (operation, _type, _fullPath) => {
-      for (const [method] of Object.entries(operation)) {
-        if (method !== httpMethod) {
+      Object.keys(operation)
+        .filter(method => method !== httpMethod)
+        .forEach(method => {
           delete operation[method];
-        }
-      }
+        });
     }
   });
-};
+});
 
-export const getMethodTypeFromAnnotation = (
+export const getMethodTypeFromAnnotation = Effect.fn('ApexOas.Format.getMethodTypeFromAnnotation')(function* (
   methodName: string,
   methodsContextMap: Map<string, ApexOASMethodDetail>
-): HttpRequestMethod => {
+) {
   const methodContext = methodsContextMap.get(methodName);
-  if (methodContext) {
-    const httpMethodAnnotation = methodContext.annotations.find(a => Object.keys(httpMethodMap).includes(a.name));
-    if (httpMethodAnnotation) {
-      return httpMethodMap[httpMethodAnnotation.name];
-    }
-  }
-  throw new Error(nls.localize('method_not_found_in_doc_symbols', methodName));
-};
+  const httpMethodAnnotation = methodContext?.annotations.find(a => Object.keys(httpMethodMap).includes(a.name));
+  return httpMethodAnnotation
+    ? httpMethodMap[httpMethodAnnotation.name]
+    : yield* new MethodNotFoundInDocSymbols({
+        message: nls.localize('method_not_found_in_doc_symbols', methodName)
+      });
+});
 
 export const updateOperationIds = (oas: OpenAPIV3.Document, methodName: string) => {
   JSONPath({
@@ -84,7 +84,10 @@ export const updateOperationIds = (oas: OpenAPIV3.Document, methodName: string) 
   });
 };
 
-export const combineYamlByMethod = (docs: string[], className: string) => {
+export const combineYamlByMethod = Effect.fn('ApexOas.Format.combineYamlByMethod')(function* (
+  docs: readonly string[],
+  className: string
+) {
   const combined: OpenAPIV3.Document = {
     openapi: '3.0.0',
     servers: [
@@ -101,29 +104,26 @@ export const combineYamlByMethod = (docs: string[], className: string) => {
     paths: {}
   };
 
-  for (const doc of docs) {
-    try {
-      const cleanedOASDoc = cleanupGeneratedDoc(doc);
+  yield* Effect.forEach(docs, doc =>
+    Effect.gen(function* () {
+      const cleanedOASDoc = yield* cleanupGeneratedDoc(doc);
       const parsed = parseOASDocFromJson(cleanedOASDoc);
 
       // Merge paths
       if (parsed.paths) {
-        for (const [path, methods] of Object.entries(parsed.paths)) {
+        Object.entries(parsed.paths).forEach(([path, methods]) => {
           combined.paths[path] ??= {};
           Object.assign(combined.paths[path], methods);
-        }
+        });
       }
       // Merge components
       if (parsed.components?.schemas && combined.components?.schemas) {
-        for (const [schema, definition] of Object.entries(parsed.components.schemas)) {
-          combined.components.schemas[schema] ??= definition;
-        }
+        Object.entries(parsed.components.schemas).forEach(([schema, definition]) => {
+          combined.components!.schemas![schema] ??= definition;
+        });
       }
-    } catch (e) {
-      console.debug(e);
-      throw e;
-    }
-  }
+    })
+  );
 
   return JSON.stringify(combined);
-};
+});

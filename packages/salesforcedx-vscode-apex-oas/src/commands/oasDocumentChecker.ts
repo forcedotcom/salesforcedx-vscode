@@ -4,142 +4,108 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { notificationService, readFile, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import type { URI } from 'vscode-uri';
+import { OasValidationFailed } from '../errors';
 import { nls } from '../messages/nls';
+import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import {
   checkIfESRIsDecomposed,
   createProblemTabEntriesForOasDocument,
   isValidRegistrationProviderType,
-  processOasDocumentFromYaml
+  parseOASDocFromYaml
 } from '../oasUtils';
-import { telemetryService } from '../telemetry/telemetryService';
 
-// This class runs the validation and correction logic on Oas Documents
-class OasDocumentChecker {
-  private isESRDecomposed: boolean = false;
-  private static _instance: OasDocumentChecker;
-
-  private constructor() {}
-
-  public static get Instance() {
-    // Do you need arguments? Make it a regular static method instead.
-    return this._instance || (this._instance = new this());
-  }
-
-  public async initialize(extensionContext: vscode.ExtensionContext) {
-    await WorkspaceContextUtil.getInstance().initialize(extensionContext);
-    this.isESRDecomposed = await checkIfESRIsDecomposed();
-  }
-
-  /**
-   * Validates an OpenAPI Document.
-   * @param isClass - Indicates if the action is for a class or a method.
-   */
-  public validateOasDocument = async (sourceUri: URI | URI[]): Promise<void> => {
-    try {
-      await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: nls.localize('running_validations_on_oas_document'),
-          cancellable: true
-        },
-        async () => {
-          if (Array.isArray(sourceUri)) {
-            throw nls.localize('invalid_file_for_generating_oas_doc');
-          }
-
-          const fullPath = sourceUri ? sourceUri.fsPath : (vscode.window.activeTextEditor?.document.uri.fsPath ?? '');
-
-          // Step 1: Validate eligibility
-          if (!(await isFilePathEligible(fullPath))) {
-            throw nls.localize('invalid_file_for_generating_oas_doc');
-          }
-          // Step 2: Extract openAPI document if embedded inside xml
-          let openApiDocument: string;
-          if (fullPath.endsWith('.xml')) {
-            const xmlContent = await readFile(fullPath);
-            const parser = new XMLParser();
-            const jsonObj = parser.parse(xmlContent);
-            openApiDocument = jsonObj.ExternalServiceRegistration?.schema;
-            if (!openApiDocument) {
-              throw nls.localize('no_oas_doc_in_file');
-            }
-          } else {
-            openApiDocument = await readFile(fullPath);
-          }
-          // Step 3: Process the OAS document
-          const processedOasResult = await processOasDocumentFromYaml(openApiDocument, {
-            context: undefined,
-            eligibleResult: undefined,
-            isRevalidation: true
-          });
-
-          // Step 4: Report/Refresh problems found
-          createProblemTabEntriesForOasDocument(fullPath, processedOasResult, this.isESRDecomposed);
-
-          // Step 5: Notify Success
-          notificationService.showInformationMessage(
-            nls.localize('check_openapi_doc_succeeded', path.basename(fullPath))
-          );
-          telemetryService.sendEventData('OasValidationSucceeded');
-        }
-      );
-    } catch (error) {
-      void handleError(error, 'OasValidationFailed');
+const ensureValidRegistrationProviderType = Effect.fn('ApexOas.OasChecker.ensureValidRegistrationProviderType')(
+  function* (xmlFilePath: string) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const xmlContent = yield* api.services.FsService.readFile(xmlFilePath).pipe(Effect.catchAll(() => Effect.void));
+    if (!xmlContent) {
+      return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
     }
-  };
-}
+    const parser = new XMLParser();
+    const jsonObj = parser.parse(xmlContent);
+    const registrationProviderType = jsonObj.ExternalServiceRegistration?.registrationProviderType;
+    if (
+      !isValidRegistrationProviderType(
+        typeof registrationProviderType === 'string' ? registrationProviderType : undefined
+      )
+    ) {
+      return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
+    }
+  }
+);
 
 /**
- * Checks if the file path is eligible for OAS validation.
+ * Checks if the file path is eligible for OAS validation, failing with OasValidationFailed when not.
  */
-const isFilePathEligible = async (fullPath: string): Promise<boolean> => {
-  // check if yaml or xml, else return false
+const ensureFilePathEligible = Effect.fn('ApexOas.OasChecker.ensureFilePathEligible')(function* (fullPath: string) {
   if (!(fullPath.endsWith('.yaml') || fullPath.endsWith('.externalServiceRegistration-meta.xml'))) {
-    return false;
+    return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
   }
-
-  // find the associated xml file
   const xmlFilePath = fullPath.endsWith('.xml')
     ? fullPath
     : path.join(
         path.dirname(fullPath),
         `${path.basename(fullPath).split('.')[0]}.externalServiceRegistration-meta.xml`
       );
-
-  return hasValidRegistrationProviderType(xmlFilePath);
-};
+  yield* ensureValidRegistrationProviderType(xmlFilePath);
+});
 
 /**
- * Handles errors by showing a notification and sending telemetry data.
- * @param error - The error to handle.
- * @param telemetryEvent - The telemetry event name.
+ * Validates an OpenAPI Document.
  */
-const handleError = (error: unknown, telemetryEvent: string): void => {
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  notificationService.showErrorMessage(`${nls.localize('check_openapi_doc_failed')}: ${errorMessage}`);
-  telemetryService.sendException(telemetryEvent, errorMessage);
-};
-
-const hasValidRegistrationProviderType = async (xmlFilePath: string): Promise<boolean> => {
-  try {
-    const xmlContent = await readFile(xmlFilePath);
-    const parser = new XMLParser();
-    const jsonObj = parser.parse(xmlContent);
-    const registrationProviderType = jsonObj.ExternalServiceRegistration?.registrationProviderType;
-    return isValidRegistrationProviderType(
-      typeof registrationProviderType === 'string' ? registrationProviderType : undefined
-    );
-  } catch {
-    return false;
+export const validateOpenApiDocument = Effect.fn('ApexOas.Command.validateOpenApiDocument')(function* (
+  sourceUri: URI | URI[]
+) {
+  if (Array.isArray(sourceUri)) {
+    return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
   }
-};
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fsService = api.services.FsService;
+  const fullPath = sourceUri
+    ? sourceUri.fsPath
+    : yield* api.services.EditorService.getActiveEditorUri().pipe(
+        Effect.map(uri => uri.fsPath),
+        Effect.catchTag('NoActiveEditorError', () => Effect.succeed(''))
+      );
 
-export const validateOpenApiDocument = async (sourceUri: URI | URI[]): Promise<void> => {
-  const oasDocumentChecker = OasDocumentChecker.Instance;
-  await oasDocumentChecker.validateOasDocument(sourceUri);
-};
+  // Step 1: Validate eligibility
+  yield* ensureFilePathEligible(fullPath);
+
+  // Step 2: Extract openAPI document if embedded inside xml
+  const openApiDocument = yield* Effect.gen(function* () {
+    if (fullPath.endsWith('.xml')) {
+      const xmlContent = yield* fsService.readFile(fullPath);
+      const parser = new XMLParser();
+      const jsonObj = parser.parse(xmlContent);
+      const schema: unknown = jsonObj.ExternalServiceRegistration?.schema;
+      return typeof schema === 'string' ? schema : undefined;
+    }
+    return yield* fsService.readFile(fullPath);
+  });
+
+  if (!openApiDocument) {
+    return yield* new OasValidationFailed({ message: nls.localize('no_oas_doc_in_file') });
+  }
+
+  // Step 3: Process the OAS document
+  const isESRDecomposed = yield* checkIfESRIsDecomposed();
+  const processedOasResult = yield* processOasDocument(parseOASDocFromYaml(openApiDocument), {
+    context: undefined,
+    eligibleResult: undefined,
+    isRevalidation: true
+  });
+
+  // Step 4: Report/Refresh problems found
+  createProblemTabEntriesForOasDocument(fullPath, processedOasResult, isESRDecomposed);
+
+  // Step 5: Notify Success
+  yield* Effect.promise(() =>
+    vscode.window.showInformationMessage(nls.localize('check_openapi_doc_succeeded', path.basename(fullPath)))
+  );
+});

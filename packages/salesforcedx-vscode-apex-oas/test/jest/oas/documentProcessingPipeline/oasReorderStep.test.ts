@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import { oasReorderStep } from '../../../../src/oas/documentProcessorPipeline/oasReorderStep';
 import { ProcessorInputOutput } from '../../../../src/oas/documentProcessorPipeline/processorStep';
 
@@ -23,7 +24,7 @@ describe('oasReorderStep', () => {
       context: undefined
     };
 
-    const output = await oasReorderStep.process(input);
+    const output = await Effect.runPromise(oasReorderStep(input));
 
     expect(Object.keys(output.openAPIDoc.info)).toEqual(['title', 'version', 'description']);
   });
@@ -57,8 +58,8 @@ describe('oasReorderStep', () => {
       context: undefined
     };
 
-    const output = await oasReorderStep.process(input);
-    expect(Object.keys(output.openAPIDoc.paths['/examplePath']?.get as any)).toEqual([
+    const output = await Effect.runPromise(oasReorderStep(input));
+    expect(Object.keys(output.openAPIDoc.paths['/examplePath']?.get as object)).toEqual([
       'summary',
       'description',
       'operationId',
@@ -66,7 +67,7 @@ describe('oasReorderStep', () => {
       'requestBody',
       'responses'
     ]);
-    expect(Object.keys(output.openAPIDoc.paths['/examplePath']?.get?.requestBody as any)).toEqual([
+    expect(Object.keys(output.openAPIDoc.paths['/examplePath']?.get?.requestBody as object)).toEqual([
       'description',
       'required',
       'content'
@@ -102,9 +103,9 @@ describe('oasReorderStep', () => {
       context: undefined
     };
 
-    const output = await oasReorderStep.process(input);
+    const output = await Effect.runPromise(oasReorderStep(input));
 
-    expect(Object.keys(output.openAPIDoc.paths['/examplePath'] as any)).toEqual(['description', 'get', 'post']);
+    expect(Object.keys(output.openAPIDoc.paths['/examplePath'] as object)).toEqual(['description', 'get', 'post']);
   });
 
   it('does not modify paths without description', async () => {
@@ -129,9 +130,9 @@ describe('oasReorderStep', () => {
       context: undefined
     };
 
-    const output = await oasReorderStep.process(input);
+    const output = await Effect.runPromise(oasReorderStep(input));
 
-    expect(Object.keys(output.openAPIDoc.paths['/anotherPath'] as any)).toEqual(['post']);
+    expect(Object.keys(output.openAPIDoc.paths['/anotherPath'] as object)).toEqual(['post']);
   });
 
   it('handles empty paths gracefully', async () => {
@@ -148,7 +149,7 @@ describe('oasReorderStep', () => {
       context: undefined
     };
 
-    const output = await oasReorderStep.process(input);
+    const output = await Effect.runPromise(oasReorderStep(input));
 
     expect(output.openAPIDoc.paths).toEqual({});
   });

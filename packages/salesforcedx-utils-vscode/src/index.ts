@@ -40,7 +40,6 @@ export {
   writeFile
 } from './helpers/fs';
 export { fileExtensionsMatch, getTestResultsFolder, projectPaths, TOOLS } from './helpers/paths';
-export { extractJson, getJsonCandidate, getMessageFromError, identifyJsonTypeInString } from './helpers/utils';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
 export type { SharedAuthState } from './helpers/authUtils';

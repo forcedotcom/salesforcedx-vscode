@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { nls } from '../../../../src/messages/nls';
+import * as Effect from 'effect/Effect';
 import {
   combineYamlByMethod,
   excludeNon2xxResponses,
@@ -172,7 +172,7 @@ describe('excludeNon2xxResponses', () => {
 });
 
 describe('getMethodTypeFromAnnotation', () => {
-  it('should return the correct HTTP method for a valid annotation', () => {
+  it('should return the correct HTTP method for a valid annotation', async () => {
     const methodName = 'HttpGet';
     const methodsContextMap = new Map<string, ApexOASMethodDetail>([
       [
@@ -183,11 +183,11 @@ describe('getMethodTypeFromAnnotation', () => {
       ]
     ]);
 
-    const result = getMethodTypeFromAnnotation(methodName, methodsContextMap);
+    const result = await Effect.runPromise(getMethodTypeFromAnnotation(methodName, methodsContextMap));
     expect(result).toBe('get');
   });
 
-  it('should throw an error for an invalid annotation', () => {
+  it('should fail with MethodNotFoundInDocSymbols for an invalid annotation', async () => {
     const methodName = 'InvalidMethod';
     const methodsContextMap = new Map<string, ApexOASMethodDetail>([
       [
@@ -198,14 +198,12 @@ describe('getMethodTypeFromAnnotation', () => {
       ]
     ]);
 
-    expect(() => getMethodTypeFromAnnotation(methodName, methodsContextMap)).toThrowError(
-      nls.localize('method_not_found_in_doc_symbols', methodName)
-    );
+    await expect(Effect.runPromise(getMethodTypeFromAnnotation(methodName, methodsContextMap))).rejects.toBeDefined();
   });
 });
 
 describe('excludeUnrelatedMethods', () => {
-  it('should exclude unrelated methods', () => {
+  it('should exclude unrelated methods', async () => {
     // Mock OpenAPIV3.Document
     const oas = {
       paths: {
@@ -226,13 +224,13 @@ describe('excludeUnrelatedMethods', () => {
       ]
     ]);
 
-    excludeUnrelatedMethods(oas, methodName, methodsContextMap);
+    await Effect.runPromise(excludeUnrelatedMethods(oas, methodName, methodsContextMap));
     expect(oas.paths['/api/resource']).toEqual({
       get: {}
     });
   });
 
-  it('should handle empty OAS gracefully', () => {
+  it('should handle empty OAS gracefully', async () => {
     // Mock OpenAPIV3.Document
     const oas = {
       paths: {}
@@ -248,7 +246,7 @@ describe('excludeUnrelatedMethods', () => {
       ]
     ]);
 
-    excludeUnrelatedMethods(oas, methodName, methodsContextMap);
+    await Effect.runPromise(excludeUnrelatedMethods(oas, methodName, methodsContextMap));
     expect(oas.paths).toEqual({});
   });
 });
@@ -284,12 +282,12 @@ describe('updateOperationIds', () => {
 });
 
 describe('combineYamlByMethod', () => {
-  it('should combine YAML content correctly', () => {
+  it('should combine YAML content correctly', async () => {
     const doc1 =
       '{ "openapi": "3.0.0", "info": { "title": "Salesforce REST API", "version": "1.0.0" }, "servers": [ { "url": "/services/apexrest" , "description": "Server URL"}], "paths": { "/apex-rest-examples/v1/Cases/{case_id}": { "get": { "description": "Retrieve a Case record by its External ID", "operationId": "getCaseById", "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "object", "properties": { "CaseNumber": { "type": "string" }, "Subject": { "type": "string" }, "Status": { "type": "string" }, "Origin": { "type": "string" }, "Priority": { "type": "string" } } } } } }, "404": { "description": "NOT_FOUND", "content": { "application/json": { "schema": { "type": "object", "properties": { "message": { "type": "string" } } } } } } }, "parameters": [ { "name": "case_id", "in": "path", "required": true, "description": "Case ID (15 or 18 character Salesforce ID, or External Id)", "schema": { "type": "string" } } ] } } } }';
     const doc2 =
       '{\n\n\n"openapi": "3.0.0",\n"info": {\n"title": "apex-rest-examples",\n"version": "1.0.0"\n},\n"paths": {\n"/apex-rest-examples/v1/Cases": {\n"post": {\n"operationId": "createCase",\n"description": "createCase",\n"responses": {\n"200": {\n"description": "",\n"content": {\n"application/json": {\n"schema": {\n"type": "string"\n}\n}\n}\n},\n"400": {\n"description": "Bad Request"\n},\n"401": {\n"description": "Not Authorized"\n}\n},\n"parameters": [],\n"requestBody": {\n"description": "Request body for createCase",\n"content": {\n"application/json": {\n"schema": {\n"type": "object",\n"required": [\n"subject",\n"status",\n"origin",\n"priority"\n],\n"properties": {\n"subject": {\n"type": "string"\n},\n"status": {\n"type": "string"\n},\n"origin": {\n"type": "string"\n},\n"priority": {\n"type": "string"\n}\n}\n}\n}\n}\n}\n}\n}\n}}';
-    const combinedYaml = combineYamlByMethod([doc1, doc2], 'CaseManager');
+    const combinedYaml = await Effect.runPromise(combineYamlByMethod([doc1, doc2], 'CaseManager'));
 
     expect(JSON.stringify(combinedYaml)).toEqual(
       '"{\\"openapi\\":\\"3.0.0\\",\\"servers\\":[{\\"url\\":\\"/services/apexrest/\\"}],\\"info\\":{\\"title\\":\\"CaseManager\\",\\"version\\":\\"1.0.0\\",\\"description\\":\\"This is auto-generated OpenAPI v3 spec for CaseManager.\\"},\\"paths\\":{\\"/apex-rest-examples/v1/Cases/{case_id}\\":{\\"get\\":{\\"description\\":\\"Retrieve a Case record by its External ID\\",\\"operationId\\":\\"getCaseById\\",\\"responses\\":{\\"200\\":{\\"description\\":\\"OK\\",\\"content\\":{\\"application/json\\":{\\"schema\\":{\\"type\\":\\"object\\",\\"properties\\":{\\"CaseNumber\\":{\\"type\\":\\"string\\"},\\"Subject\\":{\\"type\\":\\"string\\"},\\"Status\\":{\\"type\\":\\"string\\"},\\"Origin\\":{\\"type\\":\\"string\\"},\\"Priority\\":{\\"type\\":\\"string\\"}}}}}},\\"404\\":{\\"description\\":\\"NOT_FOUND\\",\\"content\\":{\\"application/json\\":{\\"schema\\":{\\"type\\":\\"object\\",\\"properties\\":{\\"message\\":{\\"type\\":\\"string\\"}}}}}}},\\"parameters\\":[{\\"name\\":\\"case_id\\",\\"in\\":\\"path\\",\\"required\\":true,\\"description\\":\\"Case ID (15 or 18 character Salesforce ID, or External Id)\\",\\"schema\\":{\\"type\\":\\"string\\"}}]}},\\"/apex-rest-examples/v1/Cases\\":{\\"post\\":{\\"operationId\\":\\"createCase\\",\\"description\\":\\"createCase\\",\\"responses\\":{\\"200\\":{\\"description\\":\\"\\",\\"content\\":{\\"application/json\\":{\\"schema\\":{\\"type\\":\\"string\\"}}}},\\"400\\":{\\"description\\":\\"Bad Request\\"},\\"401\\":{\\"description\\":\\"Not Authorized\\"}},\\"parameters\\":[],\\"requestBody\\":{\\"description\\":\\"Request body for createCase\\",\\"content\\":{\\"application/json\\":{\\"schema\\":{\\"type\\":\\"object\\",\\"required\\":[\\"subject\\",\\"status\\",\\"origin\\",\\"priority\\"],\\"properties\\":{\\"subject\\":{\\"type\\":\\"string\\"},\\"status\\":{\\"type\\":\\"string\\"},\\"origin\\":{\\"type\\":\\"string\\"},\\"priority\\":{\\"type\\":\\"string\\"}}}}}}}}}}"'

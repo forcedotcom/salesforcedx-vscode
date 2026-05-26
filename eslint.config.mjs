@@ -586,6 +586,7 @@ export default [
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
@@ -710,7 +711,9 @@ export default [
       'functional/no-let': 'off',
       'functional/no-loop-statements': 'off',
       'functional/prefer-property-signatures': 'off',
-      'import/no-extraneous-dependencies': 'off'
+      'import/no-extraneous-dependencies': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/array-type': 'off'
     }
   },
   // i18n TS plugin - node:fs; type assertions; triple-slash for tsserverlibrary

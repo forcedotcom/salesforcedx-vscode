@@ -18,8 +18,10 @@ npx effect-language-service diagnostics --file <path>
 npx effect-language-service diagnostics --project tsconfig.json
 ```
 
-- Run when editing Effect code; fix reported issues (e.g. `unnecessaryFailYieldableError` → yield error directly)
-- `effect-language-service quickfixes` shows proposed code changes
+- The PostToolUse `verify-on-edit.sh` hook auto-runs `--file <edited>` on every `.ts` Edit/Write and surfaces output as `followup_message`. Address what it reports.
+- **Address warnings AND messages, not just errors.** Common findings: `effectFnOpportunity` (gen→fn), `unnecessaryFailYieldableError` (yield error directly), `effectSucceedWithVoid` (`Effect.succeed(undefined)` → `Effect.void`), `globalErrorInEffectCatch`/`Failure` (use tagged error, not `new Error`).
+- After a batch of edits, run `--project tsconfig.json` for the affected package to catch cross-file issues.
+- `effect-language-service quickfixes` shows proposed code changes.
 
 ## Quick Reference: Critical Rules
 

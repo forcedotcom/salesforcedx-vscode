@@ -5,12 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  getMessageFromError,
-  notificationService,
-  PostconditionChecker,
-  readDirectory
-} from '@salesforce/salesforcedx-utils-vscode';
+import { getMessageFromError } from '@salesforce/effect-ext-utils';
+import { notificationService, PostconditionChecker, readDirectory } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../../messages';
 import { ContinueOrCancel, getComponentPath, isContinue, OneOrMany } from '../../util';
 import { isComponentName } from '../../util/types';

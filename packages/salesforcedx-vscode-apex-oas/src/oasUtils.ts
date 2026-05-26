@@ -6,85 +6,22 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
-import {
-  getJsonCandidate,
-  identifyJsonTypeInString,
-  workspaceUtils,
-  createDirectory,
-  readDirectory,
-  readFile,
-  stat,
-  writeFile
-} from '@salesforce/salesforcedx-utils-vscode';
+import type { ApexClassOASGatherContextResponse } from './oas/schemas';
+import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
-import { getVscodeCoreExtension } from './coreExtensionUtils';
-import { OasProcessor } from './oas/documentProcessorPipeline/oasProcessor';
-import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
-import GenerationInteractionLogger from './oas/generationInteractionLogger';
+import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
+import { oasDiagnosticCollection, ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import { AA_CLASS_REST_ANNOTATIONS } from './settings';
 
 const AA_METHOD_REST_ANNOTATIONS = new Set(['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete']);
 
 const DOT_SFDX = '.sfdx';
-
-const TEMPLATES_DIR = path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX, 'resources', 'templates');
-
-const gil = GenerationInteractionLogger.getInstance();
-
-/**
- * Processes an OAS document from a YAML string.
- * @param {string} oasDoc - The OAS document as a YAML string.
- * @param {object} [options] - Options for processing the OAS document.
- * @param {ApexClassOASGatherContextResponse} [options.context] - The context for the OAS document.
- * @param {ApexClassOASEligibleResponse} [options.eligibleResult] - The eligible result for the OAS document.
- * @param {boolean} [options.isRevalidation] - Whether the document is being revalidated.
- * @param {string} [options.betaInfo] - Beta information for the document.
- * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
- */
-export const processOasDocumentFromYaml = async (
-  oasDoc: string,
-  options?: {
-    context?: ApexClassOASGatherContextResponse;
-    eligibleResult?: ApexClassOASEligibleResponse;
-    isRevalidation?: boolean;
-    betaInfo?: string;
-  }
-): Promise<ProcessorInputOutput> => processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), options);
-
-/**
- * Processes an OAS document.
- * @param {string} oasDoc - The OAS document as a string.
- * @param {object} [options] - Options for processing the OAS document.
- * @param {ApexClassOASGatherContextResponse} [options.context] - The context for the OAS document.
- * @param {ApexClassOASEligibleResponse} [options.eligibleResult] - The eligible result for the OAS document.
- * @param {boolean} [options.isRevalidation] - Whether the document is being revalidated.
- * @param {string} [options.betaInfo] - Beta information for the document.
- * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
- * @throws Will throw an error if the document is invalid for processing.
- */
-export const processOasDocument = async (
-  oasDoc: string,
-  options?: {
-    context?: ApexClassOASGatherContextResponse;
-    eligibleResult?: ApexClassOASEligibleResponse;
-    isRevalidation?: boolean;
-    betaInfo?: string;
-  }
-): Promise<ProcessorInputOutput> => {
-  const parsed = parseOASDocFromJson(oasDoc);
-
-  const oasProcessor = new OasProcessor(parsed, options);
-
-  const processResult = await oasProcessor.process();
-
-  return processResult;
-};
 
 /**
  * Creates problem tab entries for an OAS document.
@@ -98,7 +35,7 @@ export const createProblemTabEntriesForOasDocument = (
   isESRDecomposed: boolean
 ): void => {
   const uri = URI.file(fullPath);
-  OasProcessor.diagnosticCollection.clear();
+  oasDiagnosticCollection.clear();
 
   const adjustErrors = processedOasResult.errors.map(result => {
     // if embedded inside of ESR.xml then position is hardcoded because of `apexActionController.createESRObject`
@@ -113,28 +50,26 @@ export const createProblemTabEntriesForOasDocument = (
     return new vscode.Diagnostic(range, result.message, result.severity);
   });
 
-  gil.addDiagnostics(adjustErrors);
-
   const mulesoftExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
   if (!mulesoftExtension?.isActive) {
-    OasProcessor.diagnosticCollection.set(uri, adjustErrors);
+    oasDiagnosticCollection.set(uri, adjustErrors);
   }
 };
 
 /**
- * Reads sfdx-project.json and checks if decomposeExternalServiceRegistrationBeta is enabled.
- * @returns {Promise<boolean>} - True if sfdx-project.json contains decomposeExternalServiceRegistrationBeta.
+ * Detects ESR decomposition by inspecting the SDR registry's ExternalServiceRegistration type.
+ * When `decomposeExternalServiceRegistrationBeta` preset is enabled (via sfdx-project.json
+ * sourceBehaviorOptions), the registry entry gains `children` and `strategies.decomposition === 'topLevel'`.
+ * Source: node_modules/@salesforce/source-deploy-retrieve/.../decomposeExternalServiceRegistrationBeta.json
  */
-export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const sfdxProjectJson = await vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance();
-
-  if (sfdxProjectJson?.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
-    return true;
-  }
-
-  return false;
-};
+export const checkIfESRIsDecomposed = Effect.fn('ApexOas.checkIfESRIsDecomposed')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registryAccess = yield* api.services.MetadataRegistryService.getRegistryAccess();
+  return yield* Effect.try(() => {
+    const esrType = registryAccess.getTypeByName('ExternalServiceRegistration');
+    return Boolean(esrType.children) || esrType.strategies?.decomposition === 'topLevel';
+  }).pipe(Effect.catchAll(() => Effect.succeed(false)));
+});
 
 /**
  * Strips markdown code fences from a string if present.
@@ -151,21 +86,14 @@ const stripMarkdownCodeFences = (doc: string): string => {
 /**
  * Cleans up a generated document by extracting the JSON string.
  * @param {string} doc - The document to clean up.
- * @returns {string} - The cleaned-up JSON string.
- * @throws Will throw an error if the document is not a valid JSON object.
+ * @returns Effect yielding the cleaned-up JSON string, or InvalidJsonDocument if not a valid JSON object.
  */
-export const cleanupGeneratedDoc = (doc: string): string => {
+export const cleanupGeneratedDoc = Effect.fn('ApexOas.cleanupGeneratedDoc')(function* (doc: string) {
   // First, strip markdown code fences if present
   const strippedDoc = stripMarkdownCodeFences(doc);
-
-  if (identifyJsonTypeInString(strippedDoc) === 'object') {
-    const jsonCandidate = getJsonCandidate(strippedDoc);
-    if (jsonCandidate) {
-      return jsonCandidate;
-    }
-  }
-  throw new Error('The document is not a valid JSON object.');
-};
+  const jsonCandidate = identifyJsonTypeInString(strippedDoc) === 'object' ? getJsonCandidate(strippedDoc) : undefined;
+  return jsonCandidate ?? (yield* new InvalidJsonDocument({ message: 'The document is not a valid JSON object.' }));
+});
 
 /**
  * Parses an OAS document from a JSON string.
@@ -192,57 +120,76 @@ type EjsTemplateKey = keyof typeof PROMPT_TEMPLATES;
  * @param {string} src - The source directory.
  * @param {string} dest - The destination directory.
  */
-const copyDirectorySync = async (src: string, dest: string) => {
-  await createDirectory(dest);
-
-  const entries = await readDirectory(src);
-
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry);
-    const destPath = path.join(dest, entry);
-
-    if ((await stat(srcPath))?.type === vscode.FileType.Directory) {
-      await copyDirectorySync(srcPath, destPath);
-    } else {
-      const content = await readFile(srcPath);
-      await writeFile(destPath, content);
-    }
+const copyDirectory = Effect.fn('ApexOas.Templates.copyDirectory')(function* (src: string, dest: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fsService = api.services.FsService;
+  // eslint-disable-next-line functional/no-let -- iterative BFS avoids recursive Effect.fn R-channel poisoning
+  let queue: readonly (readonly [string, string])[] = [[src, dest] as const];
+  // eslint-disable-next-line functional/no-loop-statements -- iterative BFS replaces recursion that poisons TS R-channel inference
+  while (queue.length > 0) {
+    const next: (readonly [string, string])[] = [];
+    yield* Effect.forEach(
+      queue,
+      ([s, d]) =>
+        Effect.gen(function* () {
+          yield* fsService.createDirectory(d);
+          const entries = yield* fsService.readDirectoryWithTypes(s);
+          yield* Effect.forEach(
+            entries,
+            entry => {
+              const name = path.basename(entry.uri.fsPath);
+              const srcPath = path.join(s, name);
+              const destPath = path.join(d, name);
+              if (entry.type === vscode.FileType.Directory) {
+                next.push([srcPath, destPath] as const);
+                return Effect.void;
+              }
+              return fsService
+                .readFile(srcPath)
+                .pipe(Effect.flatMap(content => fsService.writeFile(destPath, content)));
+            },
+            { concurrency: 'unbounded', discard: true }
+          );
+        }),
+      { concurrency: 'unbounded', discard: true }
+    );
+    queue = next;
   }
-};
+});
 
 /**
  * Resolves the template directory URI.
  * @returns {Promise<URI>} - The URI of the template directory.
  */
-const resolveTemplateDir = async (): Promise<URI> => {
+const resolveTemplateDir = Effect.fn('ApexOas.Templates.resolveTemplateDir')(function* () {
   const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
   const ext = vscode.extensions.getExtension(VSCODE_APEX_EXTENSION_NAME);
   if (!ext) {
-    throw new Error(`Unable to find extension ${VSCODE_APEX_EXTENSION_NAME}`);
+    return yield* new ApexExtensionUnavailable({
+      message: `Unable to find extension ${VSCODE_APEX_EXTENSION_NAME}`
+    });
   }
   const extensionDir = ext.extensionUri;
   if (logLevel !== 'fatal') {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+    const templatesDir = path.join(workspaceInfo.fsPath, DOT_SFDX, 'resources', 'templates');
     // copy contents of extensionDir to TEMPLATES_DIR
-    await copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
-    return URI.file(path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX));
+    yield* copyDirectory(path.join(extensionDir.fsPath, 'resources', 'templates'), templatesDir);
+    return URI.file(path.join(workspaceInfo.fsPath, DOT_SFDX));
   }
   return extensionDir;
-};
+});
 
 /**
- * Helper functions for EJS templates.
+ * Gets the template path for a given key.
+ * @param {EjsTemplateKey} key - The key for the template.
+ * @returns {Promise<URI>} - The URI of the template path.
  */
-export const ejsTemplateHelpers = {
-  /**
-   * Gets the template path for a given key.
-   * @param {EjsTemplateKey} key - The key for the template.
-   * @returns {Promise<URI>} - The URI of the template path.
-   */
-  getTemplatePath: async (key: EjsTemplateKey): Promise<URI> => {
-    const baseExtensionPath = await resolveTemplateDir();
-    return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
-  }
-};
+export const getTemplatePath = Effect.fn('ApexOas.Templates.getTemplatePath')(function* (key: EjsTemplateKey) {
+  const baseExtensionPath = yield* resolveTemplateDir();
+  return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
+});
 
 /**
  * Summarizes diagnostics by severity.

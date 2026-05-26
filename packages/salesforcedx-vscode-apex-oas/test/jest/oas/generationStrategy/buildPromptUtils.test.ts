@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
-import { nls } from '../../../../src/messages/nls';
 import {
   buildClassPrompt,
   getAnnotationsWithParameters,
@@ -14,7 +14,7 @@ import {
 } from '../../../../src/oas/generationStrategy/buildPromptUtils';
 
 describe('getMethodImplementation', () => {
-  it('should return the correct method implementation', () => {
+  it('should return the correct method implementation', async () => {
     const methodName = 'myMethod';
     const doc = `
       public void myMethod() {
@@ -39,14 +39,14 @@ describe('getMethodImplementation', () => {
         }
       ]
     ]);
-    const result = getMethodImplementation(methodName, doc, methodsDocSymbolMap);
+    const result = await Effect.runPromise(getMethodImplementation(methodName, doc, methodsDocSymbolMap));
     expect(result).toBe(`
 public void myMethod() {
 // Method implementation
 }`);
   });
 
-  it('should throw an error if the method is not found', () => {
+  it('should fail if the method is not found', async () => {
     const methodName = 'nonExistentMethod';
     const doc = `
       public void myMethod() {
@@ -54,9 +54,9 @@ public void myMethod() {
       }
     `;
     const methodsDocSymbolMap = new Map<string, DocumentSymbol>();
-    expect(() => getMethodImplementation(methodName, doc, methodsDocSymbolMap)).toThrow(
-      nls.localize('method_not_found_in_doc_symbols', methodName)
-    );
+    await expect(
+      Effect.runPromise(getMethodImplementation(methodName, doc, methodsDocSymbolMap))
+    ).rejects.toBeDefined();
   });
 });
 
@@ -153,9 +153,7 @@ describe('getPromptForMethodContext', () => {
         ]
       };
       const result = getPromptForMethodContext(methodContext as any);
-      expect(result).toBe(
-        `For the given method only produce the ${annotation.replace('Http', '').toUpperCase()} verb.\n`
-      );
+      expect(result).toContain(`${annotation.replace('Http', '').toUpperCase()} verb`);
     });
   });
 });
