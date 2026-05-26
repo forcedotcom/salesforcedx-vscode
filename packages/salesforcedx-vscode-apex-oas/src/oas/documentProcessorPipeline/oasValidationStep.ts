@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ProcessorInputOutput } from './processorStep';
 import { Spectral } from '@stoplight/spectral-core';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
-import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 import ruleset from './ruleset.spectral';
 
 const mapSeverity = (severity: number): vscode.DiagnosticSeverity => {
@@ -26,28 +27,22 @@ const mapSeverity = (severity: number): vscode.DiagnosticSeverity => {
   }
 };
 
-export const oasValidationStep: ProcessorStep = {
-  process: async (input: ProcessorInputOutput): Promise<ProcessorInputOutput> => {
-    const spectral = new Spectral();
-    spectral.setRuleset(ruleset);
-
-    // Run validation using Spectral
-    await spectral.run(stringify(input.openAPIDoc)).then(results => {
-      const diagnostics: vscode.Diagnostic[] = results.map(result => {
-        const range = new vscode.Range(
+export const oasValidationStep = Effect.fn('ApexOas.Process.oasValidation')(function* (input: ProcessorInputOutput) {
+  const spectral = new Spectral();
+  spectral.setRuleset(ruleset);
+  const results = yield* Effect.promise(() => spectral.run(stringify(input.openAPIDoc)));
+  const diagnostics = results.map(
+    result =>
+      new vscode.Diagnostic(
+        new vscode.Range(
           result.range.start.line,
           result.range.start.character,
           result.range.end.line,
           result.range.end.character
-        );
-
-        return new vscode.Diagnostic(range, result.message, mapSeverity(result.severity));
-      });
-
-      input.errors = [...input.errors, ...diagnostics];
-    });
-
-    // Return the input for future processing
-    return input;
-  }
-};
+        ),
+        result.message,
+        mapSeverity(result.severity)
+      )
+  );
+  return { ...input, errors: [...input.errors, ...diagnostics] };
+});

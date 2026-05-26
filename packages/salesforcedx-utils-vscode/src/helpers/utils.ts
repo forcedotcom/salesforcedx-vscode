@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const getJsonCandidate = (str: string): string | null => {
+export const getJsonCandidate = (str: string): string | undefined => {
   const firstCurly = str.indexOf('{');
   const lastCurly = str.lastIndexOf('}');
   const firstSquare = str.indexOf('[');
@@ -15,22 +15,19 @@ export const getJsonCandidate = (str: string): string | null => {
   const isObject = firstCurly !== -1 && lastCurly !== -1 && firstCurly < lastCurly;
   const isArray = firstSquare !== -1 && lastSquare !== -1 && firstSquare < lastSquare;
 
-  let jsonCandidate: string | null = null;
-
   if (isObject && isArray) {
     // If both are present, pick the one that appears first
-    jsonCandidate =
-      firstCurly < firstSquare ? str.slice(firstCurly, lastCurly + 1) : str.slice(firstSquare, lastSquare + 1);
+    return firstCurly < firstSquare ? str.slice(firstCurly, lastCurly + 1) : str.slice(firstSquare, lastSquare + 1);
   } else if (isObject) {
-    jsonCandidate = str.slice(firstCurly, lastCurly + 1);
+    return str.slice(firstCurly, lastCurly + 1);
   } else if (isArray) {
-    jsonCandidate = str.slice(firstSquare, lastSquare + 1);
+    return str.slice(firstSquare, lastSquare + 1);
   }
-  return jsonCandidate;
+  return undefined;
 };
 
 export const identifyJsonTypeInString = (str: string): 'object' | 'array' | 'primitive' | 'none' => {
-  const jsonCandidate: string | null = getJsonCandidate(str.trim()); // Remove leading/trailing whitespace
+  const jsonCandidate = getJsonCandidate(str.trim()); // Remove leading/trailing whitespace
 
   // Check if the JSON candidate is a valid object or array
   if (jsonCandidate) {
@@ -78,7 +75,7 @@ export const identifyJsonTypeInString = (str: string): 'object' | 'array' | 'pri
 export const extractJson = <T = any>(str: string): T => {
   const trimmedString = str.trim(); // Remove leading/trailing whitespace
 
-  const jsonCandidate: string | null = getJsonCandidate(trimmedString);
+  const jsonCandidate = getJsonCandidate(trimmedString);
   const jsonType = identifyJsonTypeInString(trimmedString);
 
   if (!jsonCandidate || jsonType === 'none' || jsonType === 'primitive') {

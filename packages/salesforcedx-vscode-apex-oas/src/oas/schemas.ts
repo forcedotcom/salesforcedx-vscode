@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable barrel-files/avoid-barrel-files -- intentional re-export of upstream Apex types alongside locally-defined types */
+
 // Re-export all OAS types from the Apex extension - no duplication!
 export type {
   ApexClassOASEligibleRequest,
   ApexClassOASEligibleResponse,
-  ApexClassOASEligibleResponses,
   ApexOASEligiblePayload,
   ApexClassOASGatherContextResponse,
   ApexOASClassDetail,
@@ -47,21 +48,3 @@ export const httpMethodMap: Record<string, HttpRequestMethod> = {
   HttpPatch: 'patch',
   HttpDelete: 'delete'
 } as const;
-
-export type OASGenerationCommandProperties = {
-  isClass: string;
-  overwrite: string;
-  strategy: string;
-};
-
-export type OASGenerationCommandMeasure = {
-  llmCallCount?: number;
-  biddedCallCount?: number;
-  generationSize?: number;
-  generationDuration?: number;
-  documentTtlProblems?: number;
-  documentErrors?: number;
-  documentWarnings?: number;
-  documentInfo?: number;
-  documentHints?: number;
-};

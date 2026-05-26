@@ -4,28 +4,32 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as ejs from 'ejs';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
+import { MethodNotFoundInDocSymbols } from '../../errors';
 import { nls } from '../../messages/nls';
-import { ejsTemplateHelpers } from '../../oasUtils';
+import { getTemplatePath } from '../../oasUtils';
 import { ApexAnnotationDetail, ApexOASClassDetail, ApexOASMethodDetail } from '../schemas';
 
-export const getMethodImplementation = (
+export const getMethodImplementation = Effect.fn('ApexOas.Prompt.getMethodImplementation')(function* (
   methodName: string,
   doc: string,
   methodsDocSymbolMap: Map<string, DocumentSymbol>
-): string => {
+) {
   const methodSymbol = methodsDocSymbolMap.get(methodName);
-  if (methodSymbol) {
-    const startLine = methodSymbol.range.start.line;
-    const endLine = methodSymbol.range.end.line;
-    const lines = doc.split('\n').map(line => line.trim());
-    return lines.slice(startLine - 1, endLine + 1).join('\n');
-  } else {
-    throw new Error(nls.localize('method_not_found_in_doc_symbols', methodName));
+  if (!methodSymbol) {
+    return yield* new MethodNotFoundInDocSymbols({
+      message: nls.localize('method_not_found_in_doc_symbols', methodName)
+    });
   }
-};
+  const startLine = methodSymbol.range.start.line;
+  const endLine = methodSymbol.range.end.line;
+  const lines = doc.split('\n').map(line => line.trim());
+  return lines.slice(startLine - 1, endLine + 1).join('\n');
+});
 
 export const getAnnotationsWithParameters = (annotations: ApexAnnotationDetail[]): string =>
   annotations
@@ -58,54 +62,36 @@ export const buildClassPrompt = (classDetail: ApexOASClassDetail): string =>
     '' // for an extra newline at the end
   ].join('\n');
 
-export const getPromptForMethodContext = (methodContext: ApexOASMethodDetail | undefined): string => {
-  if (!methodContext) return '';
-  let methodContextPrompt = '';
-  methodContext.annotations.forEach(annotation => {
-    switch (annotation.name) {
-      case 'HttpGet':
-        methodContextPrompt += 'For the given method only produce the GET verb.\n';
-        break;
-      case 'HttpPatch':
-        methodContextPrompt += 'For the given method only produce the PATCH verb.\n';
-        break;
-      case 'HttpPost':
-        methodContextPrompt += 'For the given method only produce the POST verb.\n';
-        break;
-      case 'HttpPut':
-        methodContextPrompt += 'For the given method only produce the PUT verb.\n';
-        break;
-      case 'HttpDelete':
-        methodContextPrompt += 'For the given method only produce the DELETE verb.\n';
-        break;
-    }
-  });
-  return methodContextPrompt;
+const HTTP_VERB_PROMPT: Record<string, string> = {
+  HttpGet: nls.localize('http_verb_prompt_get'),
+  HttpPatch: nls.localize('http_verb_prompt_patch'),
+  HttpPost: nls.localize('http_verb_prompt_post'),
+  HttpPut: nls.localize('http_verb_prompt_put'),
+  HttpDelete: nls.localize('http_verb_prompt_delete')
 };
 
-export const generatePromptForMethod = async (
+export const getPromptForMethodContext = (methodContext: ApexOASMethodDetail | undefined): string =>
+  methodContext?.annotations
+    .map(a => HTTP_VERB_PROMPT[a.name])
+    .filter(isNotUndefined)
+    .join('\n') ?? '';
+
+export const generatePromptForMethod = Effect.fn('ApexOas.Prompt.generatePromptForMethod')(function* (
   methodName: string,
   docText: string,
   methodsDocSymbolMap: Map<string, DocumentSymbol>,
   methodsContextMap: Map<string, ApexOASMethodDetail>,
   classPrompt: string
-): Promise<string> => {
-  const templatePath = await ejsTemplateHelpers.getTemplatePath('METHOD_BY_METHOD');
-
-  const methodImplementation = getMethodImplementation(methodName, docText, methodsDocSymbolMap);
+) {
+  const templatePath = yield* getTemplatePath('METHOD_BY_METHOD');
+  const methodImplementation = yield* getMethodImplementation(methodName, docText, methodsDocSymbolMap);
   const methodContext = methodsContextMap.get(methodName);
   const additionalUserPrompts = getPromptForMethodContext(methodContext);
-  try {
-    const templateContent = await readFile(templatePath.fsPath);
-    const renderedTemplate = ejs.render(templateContent, {
-      classPrompt,
-      methodImplementation,
-      additionalUserPrompts
-    });
-
-    return renderedTemplate;
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
-};
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const templateContent = yield* api.services.FsService.readFile(templatePath.fsPath);
+  return ejs.render(templateContent, {
+    classPrompt,
+    methodImplementation,
+    additionalUserPrompts
+  });
+});

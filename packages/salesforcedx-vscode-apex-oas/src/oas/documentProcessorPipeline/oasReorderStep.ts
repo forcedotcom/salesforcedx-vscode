@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
+/* eslint-disable @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any -- generic key-reordering helpers operate on heterogeneous OpenAPI nodes */
 
+import type { ProcessorInputOutput } from './processorStep';
+import * as Effect from 'effect/Effect';
 import type { OpenAPIV3 } from 'openapi-types';
-import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 const REQUEST_BODY_KEYS_ORDER = ['description', 'required', 'content'];
 const OPERATION_KEYS_ORDER = ['summary', 'description', 'operationId', 'parameters', 'requestBody', 'responses'];
@@ -19,42 +20,39 @@ const reorderKeys = (obj: Record<string, any>, keyOrder: string[]): Record<strin
   if (!obj || typeof obj !== 'object') return obj;
   const orderedEntries = keyOrder.filter(key => key in obj).map(key => [key, obj[key]]);
   const remainingEntries = Object.entries(obj).filter(([key]) => !keyOrder.includes(key));
-
   return Object.fromEntries([...orderedEntries, ...remainingEntries]);
 };
 
-export const oasReorderStep: ProcessorStep = {
-  // OOPS: returns a Promise to satisfy the interface.
-  process: (input: ProcessorInputOutput): Promise<ProcessorInputOutput> => {
-    const oas = input.openAPIDoc;
-
-    // Reorder info section in top level
-    const infoSection = oas.info;
-    oas.info = reorderKeys(infoSection, INFO_KEYS_ORDER) as OpenAPIV3.InfoObject;
-
-    oas.paths = Object.fromEntries(
-      Object.entries(oas.paths).map(([path, pathItem]) => {
-        if (!pathItem) return [path, pathItem];
-        const pathObj: Record<string, any> = pathItem;
-        Object.entries(pathObj).map(([method, operation]) => {
-          if (operation && typeof operation === 'object') {
-            const requestBody = (operation as OpenAPIV3.OperationObject).requestBody as OpenAPIV3.RequestBodyObject;
-            // Reorder request body inside the operation object
-            if (requestBody && typeof requestBody === 'object') {
-              (operation as OpenAPIV3.OperationObject).requestBody = reorderKeys(
-                requestBody,
-                REQUEST_BODY_KEYS_ORDER
-              ) as OpenAPIV3.RequestBodyObject;
-            }
-            // Reorder operations inside the path object
-            pathObj[method] = reorderKeys(operation, OPERATION_KEYS_ORDER);
-          }
-        });
-        // Reorder the entire path object
-        return [path, reorderKeys(pathObj, PATH_KEYS_ORDER) as OpenAPIV3.PathsObject];
-      })
-    );
-
-    return Promise.resolve(input);
-  }
+const reorderOperation = (operation: OpenAPIV3.OperationObject): Record<string, any> => {
+  const requestBody = operation.requestBody as OpenAPIV3.RequestBodyObject | undefined;
+  const reorderedRequestBody =
+    requestBody && typeof requestBody === 'object'
+      ? (reorderKeys(requestBody, REQUEST_BODY_KEYS_ORDER) as OpenAPIV3.RequestBodyObject)
+      : requestBody;
+  const withReorderedRequestBody = reorderedRequestBody
+    ? { ...operation, requestBody: reorderedRequestBody }
+    : operation;
+  return reorderKeys(withReorderedRequestBody as Record<string, any>, OPERATION_KEYS_ORDER);
 };
+
+const reorderPathItem = (pathItem: OpenAPIV3.PathItemObject): OpenAPIV3.PathItemObject => {
+  const reorderedMethods = Object.fromEntries(
+    Object.entries(pathItem).map(([method, operation]) =>
+      operation && typeof operation === 'object'
+        ? [method, reorderOperation(operation as OpenAPIV3.OperationObject)]
+        : [method, operation]
+    )
+  );
+  return reorderKeys(reorderedMethods, PATH_KEYS_ORDER) as OpenAPIV3.PathItemObject;
+};
+
+export const oasReorderStep = Effect.fn('ApexOas.Process.oasReorder')(function* (input: ProcessorInputOutput) {
+  const oas = input.openAPIDoc;
+  const reorderedInfo = reorderKeys(oas.info, INFO_KEYS_ORDER) as OpenAPIV3.InfoObject;
+  const reorderedPaths = Object.fromEntries(
+    Object.entries(oas.paths).map(([path, pathItem]) =>
+      pathItem ? [path, reorderPathItem(pathItem)] : [path, pathItem]
+    )
+  );
+  return { ...input, openAPIDoc: { ...oas, info: reorderedInfo, paths: reorderedPaths } };
+});

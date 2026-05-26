@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { ProcessorInputOutput } from './processorStep';
+import * as Effect from 'effect/Effect';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
-import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 
 const getPathsToFix = (yaml: OpenAPIV3.Document): Record<string, string> => {
   const paths = JSONPath<Record<string, OpenAPIV3.PathItemObject>>({
@@ -17,7 +18,7 @@ const getPathsToFix = (yaml: OpenAPIV3.Document): Record<string, string> => {
 
   return Object.keys(paths)
     .filter(path => path.match(/\{[^}]+}/))
-    .reduce<Record<string, string>>((acc, path, index, thePaths) => {
+    .reduce<Record<string, string>>((acc, path, _index, thePaths) => {
       const toPath = thePaths[0];
       acc[path] = toPath;
       return acc;
@@ -66,11 +67,11 @@ const resolvePathsThatAreSemanticallyEqual = (doc: OpenAPIV3.Document): OpenAPIV
     }
   });
 
-  doc.paths = newPaths;
-  return doc;
+  return { ...doc, paths: newPaths };
 };
 
-export const reconcileDuplicateSemanticPathsStep: ProcessorStep = {
-  process: (input: ProcessorInputOutput): Promise<ProcessorInputOutput> =>
-    Promise.resolve({ ...input, openAPIDoc: resolvePathsThatAreSemanticallyEqual(input.openAPIDoc) })
-};
+export const reconcileDuplicateSemanticPathsStep = Effect.fn('ApexOas.Process.reconcileDuplicateSemanticPaths')(
+  function* (input: ProcessorInputOutput) {
+    return { ...input, openAPIDoc: resolvePathsThatAreSemanticallyEqual(input.openAPIDoc) };
+  }
+);

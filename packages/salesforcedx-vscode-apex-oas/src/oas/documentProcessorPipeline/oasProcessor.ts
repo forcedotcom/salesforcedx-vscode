@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
+import * as Effect from 'effect/Effect';
 import type { OpenAPIV3 } from 'openapi-types';
-import * as vscode from 'vscode';
-import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
-import { createBetaInfoInjectionStep } from './betaInfoInjectionStep';
+import { betaInfoInjectionStep } from './betaInfoInjectionStep';
 import { methodValidationStep } from './methodValidationStep';
 import { oasReorderStep } from './oasReorderStep';
 import { oasValidationStep } from './oasValidationStep';
-import { Pipeline } from './pipeline';
-import { ProcessorInputOutput } from './processorStep';
 import { propertyCorrectionStep } from './propertyCorrectionStep';
 import { reconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
@@ -24,38 +22,25 @@ type ProcessOasDocumentOptions = {
   betaInfo?: string;
 };
 
-export class OasProcessor {
-  private document: OpenAPIV3.Document;
-  private options?: ProcessOasDocumentOptions;
-  public static diagnosticCollection: vscode.DiagnosticCollection =
-    vscode.languages.createDiagnosticCollection('OAS Validations');
-  constructor(document: OpenAPIV3.Document, options?: ProcessOasDocumentOptions) {
-    this.document = document;
-    this.options = options;
-  }
-
-  public async process(): Promise<ProcessorInputOutput> {
-    const pipeline = !this.options?.isRevalidation
-      ? new Pipeline(propertyCorrectionStep)
-          .addStep(createBetaInfoInjectionStep(this.options?.betaInfo))
-          .addStep(reconcileDuplicateSemanticPathsStep)
-          .addStep(methodValidationStep)
-          .addStep(oasValidationStep)
-          .addStep(oasReorderStep)
-      : new Pipeline(reconcileDuplicateSemanticPathsStep)
-          .addStep(methodValidationStep)
-          .addStep(oasValidationStep)
-          .addStep(oasReorderStep);
-
-    console.log('Executing pipeline with input:');
-    console.log('document: ', this.document);
-    const output = await pipeline.execute({
-      openAPIDoc: this.document,
-      errors: [],
-      eligibilityResult: this.options?.eligibleResult,
-      context: this.options?.context
-    });
-    console.log('Pipeline output:', output);
-    return output;
-  }
-}
+export const processOasDocument = Effect.fn('ApexOas.Process.run')(function* (
+  document: OpenAPIV3.Document,
+  options?: ProcessOasDocumentOptions
+) {
+  return yield* Effect.succeed({
+    openAPIDoc: document,
+    errors: [],
+    eligibilityResult: options?.eligibleResult,
+    context: options?.context
+  }).pipe(
+    Effect.tap(() => Effect.logDebug({ event: 'pipelineInput', document })),
+    Effect.flatMap(io => (options?.isRevalidation === true ? Effect.succeed(io) : propertyCorrectionStep(io))),
+    Effect.flatMap(io =>
+      options?.isRevalidation === true ? Effect.succeed(io) : betaInfoInjectionStep(options?.betaInfo)(io)
+    ),
+    Effect.flatMap(reconcileDuplicateSemanticPathsStep),
+    Effect.flatMap(methodValidationStep),
+    Effect.flatMap(oasValidationStep),
+    Effect.flatMap(oasReorderStep),
+    Effect.tap(output => Effect.logDebug({ event: 'pipelineOutput', output }))
+  );
+});
