@@ -24,10 +24,12 @@ import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';
 import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
-import OasProcessor from './oas/documentProcessorPipeline';
+import { OasProcessor } from './oas/documentProcessorPipeline/oasProcessor';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
-import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
+import { AA_CLASS_REST_ANNOTATIONS } from './settings';
+
+const AA_METHOD_REST_ANNOTATIONS = new Set(['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete']);
 
 const DOT_SFDX = '.sfdx';
 
@@ -278,22 +280,18 @@ export const getCurrentTimestamp = (): string => {
  * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
  * @returns {boolean} - True if the class has RestResource annotation.
  */
-const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean => {
-  const validClassAnnotations = retrieveAAClassRestAnnotations();
-  return context.classDetail.annotations.some(a => validClassAnnotations.includes(a.name));
-};
+const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.classDetail.annotations.some(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name));
 
 /**
  * Checks if any method has HTTP REST annotations.
  * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
  * @returns {boolean} - True if any method has HTTP REST annotations.
  */
-const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
-  const validMethodAnnotations = retrieveAAMethodRestAnnotations();
-  return context.methods.some(method =>
-    method.annotations.some(annotation => validMethodAnnotations.includes(annotation.name))
+const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.methods.some(method =>
+    method.annotations.some(annotation => AA_METHOD_REST_ANNOTATIONS.has(annotation.name))
   );
-};
 
 /**
  * Checks if a class has valid REST annotations.

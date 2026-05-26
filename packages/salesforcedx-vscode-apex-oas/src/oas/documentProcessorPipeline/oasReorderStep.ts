@@ -23,10 +23,9 @@ const reorderKeys = (obj: Record<string, any>, keyOrder: string[]): Record<strin
   return Object.fromEntries([...orderedEntries, ...remainingEntries]);
 };
 
-export class OasReorderStep implements ProcessorStep {
-  // OOPS: is async to satisfy the interface.
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+export const oasReorderStep: ProcessorStep = {
+  // OOPS: returns a Promise to satisfy the interface.
+  process: (input: ProcessorInputOutput): Promise<ProcessorInputOutput> => {
     const oas = input.openAPIDoc;
 
     // Reorder info section in top level
@@ -56,6 +55,6 @@ export class OasReorderStep implements ProcessorStep {
       })
     );
 
-    return input;
+    return Promise.resolve(input);
   }
-}
+};

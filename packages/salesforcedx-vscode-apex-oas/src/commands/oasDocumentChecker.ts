@@ -9,14 +9,14 @@ import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { nls } from '../messages';
+import { nls } from '../messages/nls';
 import {
   checkIfESRIsDecomposed,
   createProblemTabEntriesForOasDocument,
   isValidRegistrationProviderType,
   processOasDocumentFromYaml
 } from '../oasUtils';
-import { telemetryService } from '../telemetry';
+import { telemetryService } from '../telemetry/telemetryService';
 
 // This class runs the validation and correction logic on Oas Documents
 class OasDocumentChecker {
@@ -55,7 +55,7 @@ class OasDocumentChecker {
           const fullPath = sourceUri ? sourceUri.fsPath : (vscode.window.activeTextEditor?.document.uri.fsPath ?? '');
 
           // Step 1: Validate eligibility
-          if (!(await this.isFilePathEligible(fullPath))) {
+          if (!(await isFilePathEligible(fullPath))) {
             throw nls.localize('invalid_file_for_generating_oas_doc');
           }
           // Step 2: Extract openAPI document if embedded inside xml
@@ -89,60 +89,55 @@ class OasDocumentChecker {
         }
       );
     } catch (error) {
-      void this.handleError(error, 'OasValidationFailed');
-    }
-  };
-
-  /**
-   * Handles errors by showing a notification and sending telemetry data.
-   * @param error - The error to handle.
-   * @param telemetryEvent - The telemetry event name.
-   */
-  private handleError = (error: unknown, telemetryEvent: string): void => {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    notificationService.showErrorMessage(`${nls.localize('check_openapi_doc_failed')}: ${errorMessage}`);
-    telemetryService.sendException(telemetryEvent, errorMessage);
-  };
-
-  /**
-   * Checks if the file path is eligible for OAS validation.
-   */
-  private async isFilePathEligible(fullPath: string): Promise<boolean> {
-    // check if yaml or xml, else return false
-    if (!(fullPath.endsWith('.yaml') || fullPath.endsWith('.externalServiceRegistration-meta.xml'))) {
-      return false;
-    }
-
-    let xmlFilePath: string;
-
-    if (fullPath.endsWith('.xml')) {
-      xmlFilePath = fullPath;
-    } else if (fullPath.endsWith('.yaml')) {
-      // find the associated xml file
-      const className = path.basename(fullPath).split('.')[0];
-      const dirName = path.dirname(fullPath);
-      xmlFilePath = path.join(dirName, `${className}.externalServiceRegistration-meta.xml`);
-    } else {
-      return false;
-    }
-
-    return this.hasValidRegistrationProviderType(xmlFilePath);
-  }
-
-  private hasValidRegistrationProviderType = async (xmlFilePath: string): Promise<boolean> => {
-    try {
-      const xmlContent = await readFile(xmlFilePath);
-      const parser = new XMLParser();
-      const jsonObj = parser.parse(xmlContent);
-      const registrationProviderType = jsonObj.ExternalServiceRegistration?.registrationProviderType;
-      return isValidRegistrationProviderType(
-        typeof registrationProviderType === 'string' ? registrationProviderType : undefined
-      );
-    } catch {
-      return false;
+      void handleError(error, 'OasValidationFailed');
     }
   };
 }
+
+/**
+ * Checks if the file path is eligible for OAS validation.
+ */
+const isFilePathEligible = async (fullPath: string): Promise<boolean> => {
+  // check if yaml or xml, else return false
+  if (!(fullPath.endsWith('.yaml') || fullPath.endsWith('.externalServiceRegistration-meta.xml'))) {
+    return false;
+  }
+
+  // find the associated xml file
+  const xmlFilePath = fullPath.endsWith('.xml')
+    ? fullPath
+    : path.join(
+        path.dirname(fullPath),
+        `${path.basename(fullPath).split('.')[0]}.externalServiceRegistration-meta.xml`
+      );
+
+  return hasValidRegistrationProviderType(xmlFilePath);
+};
+
+/**
+ * Handles errors by showing a notification and sending telemetry data.
+ * @param error - The error to handle.
+ * @param telemetryEvent - The telemetry event name.
+ */
+const handleError = (error: unknown, telemetryEvent: string): void => {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  notificationService.showErrorMessage(`${nls.localize('check_openapi_doc_failed')}: ${errorMessage}`);
+  telemetryService.sendException(telemetryEvent, errorMessage);
+};
+
+const hasValidRegistrationProviderType = async (xmlFilePath: string): Promise<boolean> => {
+  try {
+    const xmlContent = await readFile(xmlFilePath);
+    const parser = new XMLParser();
+    const jsonObj = parser.parse(xmlContent);
+    const registrationProviderType = jsonObj.ExternalServiceRegistration?.registrationProviderType;
+    return isValidRegistrationProviderType(
+      typeof registrationProviderType === 'string' ? registrationProviderType : undefined
+    );
+  } catch {
+    return false;
+  }
+};
 
 export const validateOpenApiDocument = async (sourceUri: URI | URI[]): Promise<void> => {
   const oasDocumentChecker = OasDocumentChecker.Instance;

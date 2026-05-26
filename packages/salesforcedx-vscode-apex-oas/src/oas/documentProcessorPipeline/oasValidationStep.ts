@@ -11,8 +11,23 @@ import { stringify } from 'yaml';
 import { ProcessorInputOutput, ProcessorStep } from './processorStep';
 import ruleset from './ruleset.spectral';
 
-export class OasValidationStep implements ProcessorStep {
-  public async process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
+const mapSeverity = (severity: number): vscode.DiagnosticSeverity => {
+  switch (severity) {
+    case 0:
+      return vscode.DiagnosticSeverity.Error; // Spectral severity 0 = Error
+    case 1:
+      return vscode.DiagnosticSeverity.Warning; // Spectral severity 1 = Warning
+    case 2:
+      return vscode.DiagnosticSeverity.Information; // Spectral severity 2 = Info
+    case 3:
+      return vscode.DiagnosticSeverity.Hint; // Spectral severity 3 = Hint
+    default:
+      return vscode.DiagnosticSeverity.Information;
+  }
+};
+
+export const oasValidationStep: ProcessorStep = {
+  process: async (input: ProcessorInputOutput): Promise<ProcessorInputOutput> => {
     const spectral = new Spectral();
     spectral.setRuleset(ruleset);
 
@@ -26,7 +41,7 @@ export class OasValidationStep implements ProcessorStep {
           result.range.end.character
         );
 
-        return new vscode.Diagnostic(range, result.message, this.mapSeverity(result.severity));
+        return new vscode.Diagnostic(range, result.message, mapSeverity(result.severity));
       });
 
       input.errors = [...input.errors, ...diagnostics];
@@ -35,19 +50,4 @@ export class OasValidationStep implements ProcessorStep {
     // Return the input for future processing
     return input;
   }
-
-  private mapSeverity(severity: number): vscode.DiagnosticSeverity {
-    switch (severity) {
-      case 0:
-        return vscode.DiagnosticSeverity.Error; // Spectral severity 0 = Error
-      case 1:
-        return vscode.DiagnosticSeverity.Warning; // Spectral severity 1 = Warning
-      case 2:
-        return vscode.DiagnosticSeverity.Information; // Spectral severity 2 = Info
-      case 3:
-        return vscode.DiagnosticSeverity.Hint; // Spectral severity 3 = Hint
-      default:
-        return vscode.DiagnosticSeverity.Information;
-    }
-  }
-}
+};

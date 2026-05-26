@@ -5,11 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const retrieveAAClassRestAnnotations = (): string[] =>
-  // Return the REST annotation name that should be present on the class
-  ['RestResource'];
-
-export const retrieveAAMethodRestAnnotations = (): string[] => {
-  const httpAnnotations = ['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete'];
-  return httpAnnotations;
-};
+// REST annotation names that should be present on the class
+export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];

@@ -20,7 +20,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
-import { nls } from '../messages';
+import { nls } from '../messages/nls';
 import {
   createProblemTabEntriesForOasDocument,
   getCurrentTimestamp,
@@ -37,6 +37,159 @@ export type FullPath = [originalPath: string, newPath: string];
 const isOperationObject = (op: unknown): op is OpenAPIV3.OperationObject =>
   typeof op === 'object' && op !== null && 'operationId' in op;
 
+/**
+ * Determines the provider type based on the annotations in the context.
+ * @param context - The context containing class and method details with annotations
+ * @returns
+ * "ApexRest" if class has RestResource annotation and methods have Http* annotations,
+ * "AuraEnabled" if no class annotation and methods have AuraEnabled annotations,
+ * or undefined if neither pattern matches
+ */
+const determineProviderType = (context?: ProcessorInputOutput['context']): string | undefined => {
+  if (!context) return undefined;
+  // ApexRest: has class RestResource annotation AND at least one Http* method annotation
+  if (hasValidRestAnnotations(context)) return 'ApexRest';
+  // AuraEnabled: no class annotation AND at least one AuraEnabled method annotation
+  if (hasAuraFrameworkCapability(context)) return 'AuraEnabled';
+  return undefined;
+};
+
+/**
+ * Cleans a description string by normalizing newlines and whitespace.
+ * @param description The description to clean
+ * @returns A cleaned description string
+ */
+const cleanDescription = (description: string): string =>
+  // First normalize newlines to \n and clean up excessive whitespace
+  description
+    .replaceAll('\r\n', '\n') // Normalize Windows line endings
+    .replaceAll('\r', '\n') // Normalize Mac line endings
+    .replaceAll(/\n\s*\n/g, '\n') // Replace multiple newlines with single newline
+    .replaceAll(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space
+    .trim();
+
+/**
+ * Cleans the OpenAPI document by processing description fields and other string values.
+ * @param doc The OpenAPI document to clean
+ * @returns A cleaned copy of the document
+ */
+const cleanOasDocument = (doc: OpenAPIV3.Document): OpenAPIV3.Document => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const cleaned = JSON.parse(JSON.stringify(doc)); // Deep clone the document
+
+  // Clean all description fields in the document
+  const descriptionPaths = [
+    '$.info.description',
+    '$.paths[*][*].description',
+    '$.paths[*].description',
+    '$.paths[*][*].responses[*].description',
+    '$.paths[*][*].parameters[*].description',
+    '$.paths[*][*].requestBody.description',
+    '$.components.schemas[*].description'
+  ];
+
+  descriptionPaths.forEach(jsonPath => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const items = JSONPath<{ description: string }[]>({ path: jsonPath, json: cleaned });
+    items.forEach(item => {
+      if (item && typeof item === 'object' && item.description) {
+        item.description = cleanDescription(item.description);
+      }
+    });
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return cleaned;
+};
+
+/**
+ * Handles the scenario where an ESR file already exists.
+ * @returns A string indicating the user's choice: 'overwrite', 'merge', or 'cancel'.
+ */
+export const handleExistingESR = async (): Promise<string> =>
+  (await vscode.window.showWarningMessage(
+    nls.localize('file_exists'),
+    { modal: true },
+    nls.localize('overwrite'),
+    nls.localize('merge')
+  )) ?? 'cancel';
+
+export const getFolderForArtifact = async (): Promise<string | undefined> => {
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  try {
+    const registryAccess = new vscodeCoreExtension.exports.services.RegistryAccess();
+    const esrDefaultDirectoryName = registryAccess.getTypeByName('ExternalServiceRegistration').directoryName;
+    if (esrDefaultDirectoryName) {
+      const defaultESRFolder = path.join(
+        workspaceUtils.getRootWorkspacePath(),
+        'force-app',
+        'main',
+        'default',
+        esrDefaultDirectoryName
+      );
+      const folderUri = await vscode.window.showInputBox({
+        prompt: nls.localize('select_folder_for_oas'),
+        value: defaultESRFolder
+      });
+      return folderUri ? path.resolve(folderUri) : undefined;
+    }
+    return undefined;
+  } catch {
+    throw new Error(nls.localize('registry_access_failed'));
+  }
+};
+
+/**
+ * Checks if the ESR file already exists and prompts the user on what to do.
+ * @param filename
+ * @returns Promise<[string, string, boolean]> - [className.externalServiceRegistration-meta.xml, the file name of the generated ESR, a boolean indicating if the file already exists]
+ */
+export const pathExists = async (filename: string): Promise<FullPath> => {
+  // Step 1: Prompt for Folder
+  const folder = await getFolderForArtifact();
+  if (!folder) {
+    throw new Error(nls.localize('no_folder_selected'));
+  }
+
+  // Step 2: Verify folder exists and if not create it
+  await createDirectory(folder);
+
+  // Step 3: Check if File Exists
+  const fullPath = path.join(folder, filename);
+  if (await fileOrFolderExists(fullPath)) {
+    const whatToDo = await handleExistingESR();
+    if (whatToDo === 'cancel') {
+      throw new Error(nls.localize('operation_cancelled'));
+    } else if (whatToDo === nls.localize('merge')) {
+      const currentTimestamp = getCurrentTimestamp();
+      const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
+      const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
+      const esrFilesForMergeFolder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
+      await createDirectory(esrFilesForMergeFolder);
+      const newFullPath = path.join(esrFilesForMergeFolder, newFileName);
+      return [fullPath, newFullPath];
+    }
+  }
+  return [fullPath, fullPath];
+};
+
+/**
+ * Builds the YAML file for the ESR using safeOasSpec as the contents.
+ * @param esrXmlPath - The path to the ESR XML file.
+ * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
+ */
+export const buildESRYaml = async (esrXmlPath: string, safeOasSpec: string): Promise<void> => {
+  const gil = GenerationInteractionLogger.getInstance();
+  gil.addFinalDoc(safeOasSpec);
+  const esrYamlPath = replaceXmlToYaml(esrXmlPath);
+  try {
+    await writeFile(esrYamlPath, safeOasSpec);
+    console.log(`File created at ${esrYamlPath}`);
+  } catch (err) {
+    throw new Error('Error writing file:', err);
+  }
+};
+
 /*
  * Handles the creation and management of External Service Registration (ESR) metadata.
  * This includes saving OpenAPI specifications as ESR metadata, managing named credentials,
@@ -44,7 +197,6 @@ const isOperationObject = (op: unknown): op is OpenAPIV3.OperationObject =>
  */
 export class ExternalServiceRegistrationManager {
   private isESRDecomposed = false;
-  private gil = GenerationInteractionLogger.getInstance();
   private oasSpec?: OpenAPIV3.Document;
   private overwrite = false;
   private originalPath: string = '';
@@ -67,32 +219,6 @@ export class ExternalServiceRegistrationManager {
   }
 
   /**
-   * Determines the provider type based on the annotations in the context.
-   * @param context - The context containing class and method details with annotations
-   * @returns
-   * "ApexRest" if class has RestResource annotation and methods have Http* annotations,
-   * "AuraEnabled" if no class annotation and methods have AuraEnabled annotations,
-   * or undefined if neither pattern matches
-   */
-  private determineProviderType(context?: ProcessorInputOutput['context']): string | undefined {
-    if (!context) {
-      return undefined;
-    }
-
-    // ApexRest: has class RestResource annotation AND at least one Http* method annotation
-    if (hasValidRestAnnotations(context)) {
-      return 'ApexRest';
-    }
-
-    // AuraEnabled: no class annotation AND at least one AuraEnabled method annotation
-    if (hasAuraFrameworkCapability(context)) {
-      return 'AuraEnabled';
-    }
-
-    return undefined;
-  }
-
-  /**
    * Generates the ESR metadata document.
    * This method handles the process of reading existing ESR content,
    * updating it with the new OpenAPI specification, and writing it back to the file system.
@@ -111,7 +237,7 @@ export class ExternalServiceRegistrationManager {
     orgApiVersion?: number
   ): Promise<void> {
     this.initialize(isESRDecomposed, processedOasResult, fullPath, orgApiVersion);
-    this.providerType = this.determineProviderType(processedOasResult.context);
+    this.providerType = determineProviderType(processedOasResult.context);
 
     const existingContent = (await fileOrFolderExists(this.newPath)) ? await readFile(this.newPath) : undefined;
 
@@ -169,7 +295,7 @@ export class ExternalServiceRegistrationManager {
     const operations = this.getOperationsFromYaml();
 
     // Clean the OpenAPI document before stringifying
-    const cleanedOasSpec = this.oasSpec ? this.cleanOasDocument(this.oasSpec) : {};
+    const cleanedOasSpec = this.oasSpec ? cleanOasDocument(this.oasSpec) : {};
 
     const safeOasSpec = stringify(cleanedOasSpec, null, {
       singleQuote: false, // Disable single quotes entirely
@@ -187,7 +313,7 @@ export class ExternalServiceRegistrationManager {
       jsonObj = parser.parse(existingContent);
       if (this.isESRDecomposed) {
         jsonObj = esrObject;
-        await this.buildESRYaml(this.newPath, safeOasSpec);
+        await buildESRYaml(this.newPath, safeOasSpec);
       } else {
         if (jsonObj.ExternalServiceRegistration?.schema) {
           jsonObj.ExternalServiceRegistration.schema = safeOasSpec;
@@ -198,7 +324,7 @@ export class ExternalServiceRegistrationManager {
       jsonObj.ExternalServiceRegistration.operations = operations;
     } else {
       jsonObj = esrObject;
-      if (this.isESRDecomposed) await this.buildESRYaml(this.newPath, safeOasSpec);
+      if (this.isESRDecomposed) await buildESRYaml(this.newPath, safeOasSpec);
     }
 
     const builder = new XMLBuilder({ ignoreAttributes: false, format: true, processEntities: false });
@@ -279,22 +405,6 @@ export class ExternalServiceRegistrationManager {
   }
 
   /**
-   * Builds the YAML file for the ESR using safeOasSpec as the contents.
-   * @param esrXmlPath - The path to the ESR XML file.
-   * @param safeOasSpec - The contents of the OAS doc that will be written to the YAML file.
-   */
-  public async buildESRYaml(esrXmlPath: string, safeOasSpec: string) {
-    this.gil.addFinalDoc(safeOasSpec);
-    const esrYamlPath = replaceXmlToYaml(esrXmlPath);
-    try {
-      await writeFile(esrYamlPath, safeOasSpec);
-      console.log(`File created at ${esrYamlPath}`);
-    } catch (err) {
-      throw new Error('Error writing file:', err);
-    }
-  }
-
-  /**
    * Opens a diff editor for the original and new ESR files.
    * @param originalFilePath The file path of the original ESR file.
    * @param newFilePath The file path of the new ESR file.
@@ -313,126 +423,6 @@ export class ExternalServiceRegistrationManager {
         );
       }
     }
-  }
-
-  /**
-   * Checks if the ESR file already exists and prompts the user on what to do.
-   * @param filename
-   * @returns Promise<[string, string, boolean]> - [className.externalServiceRegistration-meta.xml, the file name of the generated ESR, a boolean indicating if the file already exists]
-   */
-  public pathExists = async (filename: string): Promise<FullPath> => {
-    // Step 1: Prompt for Folder
-    const folder = await this.getFolderForArtifact();
-    if (!folder) {
-      throw new Error(nls.localize('no_folder_selected'));
-    }
-
-    // Step 2: Verify folder exists and if not create it
-    await createDirectory(folder);
-
-    // Step 3: Check if File Exists
-    const fullPath = path.join(folder, filename);
-    if (await fileOrFolderExists(fullPath)) {
-      const whatToDo = await this.handleExistingESR();
-      if (whatToDo === 'cancel') {
-        throw new Error(nls.localize('operation_cancelled'));
-      } else if (whatToDo === nls.localize('merge')) {
-        const currentTimestamp = getCurrentTimestamp();
-        const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
-        const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
-        const esrFilesForMergeFolder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
-        await createDirectory(esrFilesForMergeFolder);
-        const newFullPath = path.join(esrFilesForMergeFolder, newFileName);
-        return [fullPath, newFullPath];
-      }
-    }
-    return [fullPath, fullPath];
-  };
-
-  /**
-   * Handles the scenario where an ESR file already exists.
-   * @returns A string indicating the user's choice: 'overwrite', 'merge', or 'cancel'.
-   */
-  private handleExistingESR = async (): Promise<string> =>
-    (await vscode.window.showWarningMessage(
-      nls.localize('file_exists'),
-      { modal: true },
-      nls.localize('overwrite'),
-      nls.localize('merge')
-    )) ?? 'cancel';
-
-  public getFolderForArtifact = async (): Promise<string | undefined> => {
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    try {
-      const registryAccess = new vscodeCoreExtension.exports.services.RegistryAccess();
-      const esrDefaultDirectoryName = registryAccess.getTypeByName('ExternalServiceRegistration').directoryName;
-      if (esrDefaultDirectoryName) {
-        const defaultESRFolder = path.join(
-          workspaceUtils.getRootWorkspacePath(),
-          'force-app',
-          'main',
-          'default',
-          esrDefaultDirectoryName
-        );
-        const folderUri = await vscode.window.showInputBox({
-          prompt: nls.localize('select_folder_for_oas'),
-          value: defaultESRFolder
-        });
-        return folderUri ? path.resolve(folderUri) : undefined;
-      }
-      return undefined;
-    } catch {
-      throw new Error(nls.localize('registry_access_failed'));
-    }
-  };
-
-  /**
-   * Cleans the OpenAPI document by processing description fields and other string values.
-   * @param doc The OpenAPI document to clean
-   * @returns A cleaned copy of the document
-   */
-  private cleanOasDocument(doc: OpenAPIV3.Document): OpenAPIV3.Document {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const cleaned = JSON.parse(JSON.stringify(doc)); // Deep clone the document
-
-    // Clean all description fields in the document
-    const descriptionPaths = [
-      '$.info.description',
-      '$.paths[*][*].description',
-      '$.paths[*].description',
-      '$.paths[*][*].responses[*].description',
-      '$.paths[*][*].parameters[*].description',
-      '$.paths[*][*].requestBody.description',
-      '$.components.schemas[*].description'
-    ];
-
-    descriptionPaths.forEach(jsonPath => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const items = JSONPath<{ description: string }[]>({ path: jsonPath, json: cleaned });
-      items.forEach(item => {
-        if (item && typeof item === 'object' && item.description) {
-          item.description = this.cleanDescription(item.description);
-        }
-      });
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return cleaned;
-  }
-
-  /**
-   * Cleans a description string by normalizing newlines and whitespace.
-   * @param description The description to clean
-   * @returns A cleaned description string
-   */
-  private cleanDescription(description: string): string {
-    // First normalize newlines to \n and clean up excessive whitespace
-    return description
-      .replaceAll('\r\n', '\n') // Normalize Windows line endings
-      .replaceAll('\r', '\n') // Normalize Mac line endings
-      .replaceAll(/\n\s*\n/g, '\n') // Replace multiple newlines with single newline
-      .replaceAll(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space
-      .trim();
   }
 }
 

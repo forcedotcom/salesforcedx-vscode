@@ -6,7 +6,7 @@
  */
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
-import { nls } from '../../messages';
+import { nls } from '../../messages/nls';
 import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
 import { ApexOASMethodDetail, HttpRequestMethod, httpMethodMap } from '../schemas';
 

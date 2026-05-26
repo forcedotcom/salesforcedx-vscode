@@ -7,7 +7,7 @@
 import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as ejs from 'ejs';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
-import { nls } from '../../messages';
+import { nls } from '../../messages/nls';
 import { ejsTemplateHelpers, EjsTemplatesEnum } from '../../oasUtils';
 import { ApexAnnotationDetail, ApexOASClassDetail, ApexOASMethodDetail } from '../schemas';
 

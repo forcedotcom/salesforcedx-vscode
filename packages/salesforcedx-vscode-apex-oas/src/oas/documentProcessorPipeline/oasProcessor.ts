@@ -8,14 +8,14 @@
 import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
-import { BetaInfoInjectionStep } from './betaInfoInjectionStep';
-import { MethodValidationStep } from './methodValidationStep';
-import { OasReorderStep } from './oasReorderStep';
-import { OasValidationStep } from './oasValidationStep';
+import { createBetaInfoInjectionStep } from './betaInfoInjectionStep';
+import { methodValidationStep } from './methodValidationStep';
+import { oasReorderStep } from './oasReorderStep';
+import { oasValidationStep } from './oasValidationStep';
 import { Pipeline } from './pipeline';
 import { ProcessorInputOutput } from './processorStep';
-import { PropertyCorrectionStep } from './propertyCorrectionStep';
-import { ReconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
+import { propertyCorrectionStep } from './propertyCorrectionStep';
+import { reconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
 type ProcessOasDocumentOptions = {
   context?: ApexClassOASGatherContextResponse;
@@ -36,16 +36,16 @@ export class OasProcessor {
 
   public async process(): Promise<ProcessorInputOutput> {
     const pipeline = !this.options?.isRevalidation
-      ? new Pipeline(new PropertyCorrectionStep())
-          .addStep(new BetaInfoInjectionStep(this.options?.betaInfo))
-          .addStep(new ReconcileDuplicateSemanticPathsStep())
-          .addStep(new MethodValidationStep())
-          .addStep(new OasValidationStep())
-          .addStep(new OasReorderStep())
-      : new Pipeline(new ReconcileDuplicateSemanticPathsStep())
-          .addStep(new MethodValidationStep())
-          .addStep(new OasValidationStep())
-          .addStep(new OasReorderStep());
+      ? new Pipeline(propertyCorrectionStep)
+          .addStep(createBetaInfoInjectionStep(this.options?.betaInfo))
+          .addStep(reconcileDuplicateSemanticPathsStep)
+          .addStep(methodValidationStep)
+          .addStep(oasValidationStep)
+          .addStep(oasReorderStep)
+      : new Pipeline(reconcileDuplicateSemanticPathsStep)
+          .addStep(methodValidationStep)
+          .addStep(oasValidationStep)
+          .addStep(oasReorderStep);
 
     console.log('Executing pipeline with input:');
     console.log('document: ', this.document);

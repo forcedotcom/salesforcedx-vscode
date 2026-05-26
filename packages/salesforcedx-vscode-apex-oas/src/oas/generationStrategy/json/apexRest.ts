@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { readFile } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
-import { nls } from '../../../messages';
+import { nls } from '../../../messages/nls';
 import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
-import { retrieveAAClassRestAnnotations } from '../../../settings';
-import { telemetryService } from '../../../telemetry';
+import { AA_CLASS_REST_ANNOTATIONS } from '../../../settings';
+import { telemetryService } from '../../../telemetry/telemetryService';
 import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
   ApexClassOASEligibleResponse,
@@ -28,66 +29,71 @@ import {
   formatUrlPath,
   updateOperationIds
 } from '../formatUtils';
-import { GenerationStrategy } from '../generationStrategy';
+import {
+  GenerationStrategy,
+  StrategyTelemetry,
+  getLLMServiceInterface,
+  getOutputTokenLimit,
+  getPromptTokenCount
+} from '../generationStrategy';
 import { openAPISchemaV3Guided } from '../openapi3.schema';
 
 const gil = GenerationInteractionLogger.getInstance();
 
-export class ApexRestStrategy extends GenerationStrategy {
-  private methodsDocSymbolMap: Map<string, DocumentSymbol>;
-  private methodsContextMap: Map<string, ApexOASMethodDetail>;
-  private urlMapping: string;
+const STRATEGY_NAME = 'ApexRest';
+const BETA_INFO = 'OpenAPI documents generated from Apex classes using Apex REST annotations are in beta.';
 
-  constructor(metadata: ApexClassOASEligibleResponse, context: ApexClassOASGatherContextResponse, sourceText: string) {
-    super(
-      metadata,
-      context,
-      'ApexRest',
-      0,
-      SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR,
-      'OpenAPI documents generated from Apex classes using Apex REST annotations are in beta.'
+const resolveLLMResponses = async (serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> => {
+  const methodNames = Array.from(serviceRequests.keys());
+  const serviceResponses = await Promise.allSettled(Array.from(serviceRequests.values()));
+  return new Map(
+    methodNames.map((methodName, index) => {
+      const result = serviceResponses[index];
+      if (result.status === 'fulfilled') {
+        gil.addRawResponse(result.value);
+        return [methodName, result.value];
+      }
+      gil.addRawResponse(`Promise ${index} rejected with reason: ${JSON.stringify(result.reason)}`);
+      console.log(`Promise ${index} rejected with reason:`, result.reason);
+      return [methodName, ''];
+    })
+  );
+};
+
+export const createApexRestStrategy = async (
+  metadata: ApexClassOASEligibleResponse,
+  context: ApexClassOASGatherContextResponse
+): Promise<GenerationStrategy> => {
+  const sourceText = await readFile(metadata.resourceUri.fsPath);
+  const classPrompt = buildClassPrompt(context.classDetail);
+  const restResourceAnnotation = context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name));
+  const urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${context.classDetail.name}/`;
+  const oasSchema = JSON.stringify(openAPISchemaV3Guided);
+  const outputTokenLimit = getOutputTokenLimit();
+
+  const methodsDocSymbolMap = new Map<string, DocumentSymbol>();
+  const methodsContextMap = new Map<string, ApexOASMethodDetail>();
+  const serviceRequests = new Map<string, Promise<string>>();
+  const servicePrompts = new Map<string, string>();
+  let serviceResponses = new Map<string, string>();
+
+  let biddedCallCount = 0;
+  let maxBudget = SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR;
+  let resolutionAttempts = 0;
+
+  const lock = Effect.runSync(Effect.makeSemaphore(1));
+  const incrementResolutionAttempts = () =>
+    Effect.runPromise(
+      lock.withPermits(1)(
+        Effect.sync(() => {
+          resolutionAttempts++;
+        })
+      )
     );
-    this.methodsDocSymbolMap = new Map();
-    this.methodsContextMap = new Map();
-    this.sourceText = sourceText;
-    this.classPrompt = buildClassPrompt(this.context.classDetail);
-    const restResourceAnnotation = this.context.classDetail.annotations.find(a =>
-      retrieveAAClassRestAnnotations().includes(a.name)
-    );
-    this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
-    this.oasSchema = JSON.stringify(openAPISchemaV3Guided);
-  }
 
-  public static async initialize(
-    metadata: ApexClassOASEligibleResponse,
-    context: ApexClassOASGatherContextResponse
-  ): Promise<ApexRestStrategy> {
-    const sourceText = await readFile(metadata.resourceUri.fsPath);
-    const strategy = new ApexRestStrategy(metadata, context, sourceText);
-    return strategy;
-  }
-
-  public async resolveLLMResponses(serviceRequests: Map<string, Promise<string>>): Promise<Map<string, string>> {
-    const methodNames = Array.from(serviceRequests.keys());
-    const serviceResponses = await Promise.allSettled(Array.from(serviceRequests.values()));
-    return new Map(
-      methodNames.map((methodName, index) => {
-        const result = serviceResponses[index];
-        if (result.status === 'fulfilled') {
-          gil.addRawResponse(result.value);
-          return [methodName, result.value];
-        } else {
-          gil.addRawResponse(`Promise ${index} rejected with reason: ${JSON.stringify(result.reason)}`);
-          console.log(`Promise ${index} rejected with reason:`, result.reason);
-          return [methodName, ''];
-        }
-      })
-    );
-  }
-
-  private prevalidateLLMResponse(): string[] {
+  const prevalidateLLMResponse = (): string[] => {
     const validResponses: string[] = [];
-    for (const [methodName, response] of this.serviceResponses) {
+    for (const [methodName, response] of serviceResponses) {
       if (response === '') {
         console.log(`LLM response for ${methodName} is empty.`);
         continue;
@@ -98,14 +104,14 @@ export class ApexRestStrategy extends GenerationStrategy {
         try {
           const parsed = parseOASDocFromJson(cleanedResponse);
           // remove unrelated methods
-          excludeUnrelatedMethods(parsed, methodName, this.methodsContextMap);
+          excludeUnrelatedMethods(parsed, methodName, methodsContextMap);
           // remove non-2xx responses
           excludeNon2xxResponses(parsed);
           // make sure parameters in path are in the request path, and the request path starts with the urlMapping
           const parametersInPath = extractParametersInPath(parsed);
           if (parsed.paths) {
             for (const [path, methods] of Object.entries(parsed.paths)) {
-              const validatedPath = formatUrlPath(parametersInPath, this.urlMapping);
+              const validatedPath = formatUrlPath(parametersInPath, urlMapping);
               delete parsed.paths[path];
               parsed.paths[validatedPath] = methods;
             }
@@ -124,58 +130,13 @@ export class ApexRestStrategy extends GenerationStrategy {
         gil.addCleanedResponse(`Cleanup failed with error ${e}`);
       }
     }
-
     return validResponses;
-  }
+  };
 
-  public async generateOAS(): Promise<string> {
-    const oas = await this.resolveOASContent();
-    if (oas.length > 0) {
-      try {
-        const combinedText = combineYamlByMethod(oas, this.context.classDetail.name);
-        return combinedText;
-      } catch (e) {
-        throw new Error(nls.localize('failed_to_combine_oas', e));
-      }
-    } else {
-      throw new Error(nls.localize('no_oas_generated'));
-    }
-  }
-
-  private async resolveOASContent(): Promise<string[]> {
-    try {
-      const llmService = await this.getLLMServiceInterface();
-
-      for (const [methodName, prompt] of this.servicePrompts) {
-        if (prompt?.length > 0) {
-          gil.addPrompt(prompt);
-          this.serviceRequests.set(
-            methodName,
-            this.executeWithRetry(
-              () =>
-                this.includesOASSchema()
-                  ? llmService.callLLM(prompt, undefined, this.outputTokenLimit, {
-                      parameters: { guided_json: this.oasSchema }
-                    })
-                  : llmService.callLLM(prompt, undefined, this.outputTokenLimit),
-              3
-            )
-          );
-        }
-      }
-
-      this.serviceResponses = await this.resolveLLMResponses(this.serviceRequests);
-      return this.prevalidateLLMResponse();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(errorMessage);
-    }
-  }
-
-  private async executeWithRetry(fn: () => Promise<string>, retryLimit: number): Promise<string> {
+  const executeWithRetry = async (fn: () => Promise<string>, retryLimit: number): Promise<string> => {
     let attempts = 0;
     while (attempts < retryLimit) {
-      await this.incrementResolutionAttempts();
+      await incrementResolutionAttempts();
       try {
         const response = await fn();
         // Extract result if response is an object with result property, otherwise use as-is
@@ -200,68 +161,101 @@ export class ApexRestStrategy extends GenerationStrategy {
       }
     }
     throw new Error('Unexpected error in executeWithRetry');
-  }
+  };
 
-  public async bid(): Promise<PromptGenerationStrategyBid> {
-    // First check if the class has valid REST annotations
-    if (!hasValidRestAnnotations(this.context)) {
-      return {
-        result: {
-          maxBudget: 0,
-          callCounts: 0
+  const resolveOASContent = async (): Promise<string[]> => {
+    try {
+      const llmService = await getLLMServiceInterface();
+      for (const [methodName, prompt] of servicePrompts) {
+        if (prompt?.length > 0) {
+          gil.addPrompt(prompt);
+          serviceRequests.set(
+            methodName,
+            executeWithRetry(() => llmService.callLLM(prompt, undefined, outputTokenLimit), 3)
+          );
         }
-      };
+      }
+      serviceResponses = await resolveLLMResponses(serviceRequests);
+      return prevalidateLLMResponse();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(errorMessage);
     }
+  };
 
-    const generationResult = await this.generate();
-    return {
-      result: generationResult
-    };
-  }
-
-  private async generate(): Promise<PromptGenerationResult> {
-    const list = (this.metadata.symbols ?? []).filter(s => s.isApexOasEligible);
+  const generate = async (): Promise<PromptGenerationResult> => {
+    const list = (metadata.symbols ?? []).filter(s => s.isApexOasEligible);
     for (const symbol of list) {
       const methodName = symbol.docSymbol.name;
-      this.methodsDocSymbolMap.set(methodName, symbol.docSymbol);
-      const methodDetail = this.context.methods.find(m => m.name === methodName);
+      methodsDocSymbolMap.set(methodName, symbol.docSymbol);
+      const methodDetail = context.methods.find(m => m.name === methodName);
       if (methodDetail) {
-        this.methodsContextMap.set(methodName, methodDetail);
+        methodsContextMap.set(methodName, methodDetail);
       }
 
       const input = await generatePromptForMethod(
         methodName,
-        this.sourceText,
-        this.methodsDocSymbolMap,
-        this.methodsContextMap,
-        this.classPrompt
+        sourceText,
+        methodsDocSymbolMap,
+        methodsContextMap,
+        classPrompt
       );
-      const tokenCount = this.getPromptTokenCount(input);
+      const tokenCount = getPromptTokenCount(input);
       if (tokenCount <= PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
-        this.servicePrompts.set(methodName, input);
-        this.biddedCallCount++;
+        servicePrompts.set(methodName, input);
+        biddedCallCount++;
         const currentBudget = Math.floor((PROMPT_TOKEN_MAX_LIMIT - tokenCount) * IMPOSED_FACTOR);
-        if (currentBudget < this.maxBudget) {
-          this.maxBudget = currentBudget;
+        if (currentBudget < maxBudget) {
+          maxBudget = currentBudget;
         }
       } else {
         // as long as there is one failure, the strategy will be considered failed
-        this.servicePrompts.clear();
-        this.biddedCallCount = 0;
-        this.maxBudget = 0;
-        return {
-          maxBudget: 0,
-          callCounts: 0
-        };
+        servicePrompts.clear();
+        biddedCallCount = 0;
+        maxBudget = 0;
+        return { maxBudget: 0, callCounts: 0 };
       }
     }
-    return {
-      maxBudget: this.maxBudget,
-      callCounts: this.biddedCallCount
-    };
-  }
+    return { maxBudget, callCounts: biddedCallCount };
+  };
 
-  public get openAPISchema(): string {
-    return this.oasSchema;
-  }
-}
+  const bid = async (): Promise<PromptGenerationStrategyBid> => {
+    // First check if the class has valid REST annotations
+    if (!hasValidRestAnnotations(context)) {
+      return { result: { maxBudget: 0, callCounts: 0 } };
+    }
+    const generationResult = await generate();
+    return { result: generationResult };
+  };
+
+  const generateOAS = async (): Promise<string> => {
+    const oas = await resolveOASContent();
+    if (oas.length > 0) {
+      try {
+        return combineYamlByMethod(oas, context.classDetail.name);
+      } catch (e) {
+        throw new Error(nls.localize('failed_to_combine_oas', e));
+      }
+    }
+    throw new Error(nls.localize('no_oas_generated'));
+  };
+
+  const getTelemetry = (): StrategyTelemetry => ({
+    strategyName: STRATEGY_NAME,
+    biddedCallCount,
+    llmCallCount: resolutionAttempts,
+    generationSize: maxBudget,
+    outputTokenLimit
+  });
+
+  return {
+    strategyName: STRATEGY_NAME,
+    betaInfo: BETA_INFO,
+    get openAPISchema() {
+      return oasSchema;
+    },
+    bid,
+    generateOAS,
+    getTelemetry
+  };
+};

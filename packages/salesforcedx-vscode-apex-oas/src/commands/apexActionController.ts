@@ -10,8 +10,8 @@ import { getOrgApiVersion, notificationService, WorkspaceContextUtil } from '@sa
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
-import { nls } from '../messages';
-import { ExternalServiceRegistrationManager, FullPath } from '../oas/externalServiceRegistrationManager';
+import { nls } from '../messages/nls';
+import { ExternalServiceRegistrationManager, FullPath, pathExists } from '../oas/externalServiceRegistrationManager';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import {
   BidRule,
@@ -19,14 +19,14 @@ import {
   BID_RULES
 } from '../oas/promptGenerationOrchestrator';
 import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics, hasMixedFrameworks } from '../oasUtils';
-import { telemetryService } from '../telemetry';
-import { MetadataOrchestrator } from './metadataOrchestrator';
+import { telemetryService } from '../telemetry/telemetryService';
+import { gatherContext, validateMetadata } from './metadataOrchestrator';
 
 export class ApexActionController {
   private isESRDecomposed: boolean = false;
   private gil = GenerationInteractionLogger.getInstance();
   private esrHandler: ExternalServiceRegistrationManager;
-  constructor(private metadataOrchestrator: MetadataOrchestrator) {
+  constructor() {
     this.esrHandler = new ExternalServiceRegistrationManager();
   }
 
@@ -80,7 +80,7 @@ export class ApexActionController {
         async progress => {
           // Step 1: Validate eligibility
           progress.report({ message: nls.localize('validate_eligibility') });
-          eligibilityResult = await this.metadataOrchestrator.validateMetadata(sourceUri, !isClass);
+          eligibilityResult = await validateMetadata(sourceUri, !isClass);
           if (!eligibilityResult) {
             throw new Error(nls.localize('class_validation_failed', type));
           }
@@ -89,7 +89,7 @@ export class ApexActionController {
 
           // Step 2: Gather context
           progress.report({ message: nls.localize('gathering_context') });
-          context = await this.metadataOrchestrator.gatherContext(sourceUri);
+          context = await gatherContext(sourceUri);
           if (!context) {
             throw new Error(nls.localize('cannot_gather_context'));
           }
@@ -105,7 +105,7 @@ export class ApexActionController {
           const generationOrchestrator = new GenerationOrchestrator(eligibilityResult, context);
 
           // Step 4: Get the strategy
-          const strategy = await generationOrchestrator.selectStrategyByBidRule(this.getBidRule());
+          const strategy = await generationOrchestrator.selectStrategyByBidRule(getBidRule());
 
           // Step 5: Determine filename
           name = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
@@ -113,18 +113,21 @@ export class ApexActionController {
 
           // Step 6: Check if the file already exists
           progress.report({ message: nls.localize('get_document_path') });
-          fullPath = await this.esrHandler.pathExists(openApiFileName);
+          fullPath = await pathExists(openApiFileName);
           if (!fullPath) throw new Error(nls.localize('full_path_failed'));
 
           // Step 7: Use the strategy to generate the OAS
           const generationStartTime = globalThis.performance.now();
           const openApiDocument = await strategy.generateOAS();
           const generationHrDuration = globalThis.performance.now() - generationStartTime;
+          const telemetry = strategy.getTelemetry();
           this.gil.addPostGenDoc(openApiDocument);
-          this.gil.addGenerationStrategy(this.getBidRule() ?? 'MANUAL');
-          this.gil.addOutputTokenLimit(strategy!.outputTokenLimit);
-          if (strategy!.includeOASSchema && strategy!.openAPISchema) {
-            this.gil.addGuidedJson(strategy!.openAPISchema);
+          this.gil.addGenerationStrategy(getBidRule() ?? 'MANUAL');
+          if (telemetry.outputTokenLimit !== undefined) {
+            this.gil.addOutputTokenLimit(telemetry.outputTokenLimit);
+          }
+          if (telemetry.guidedJson) {
+            this.gil.addGuidedJson(telemetry.guidedJson);
           }
 
           // Step 8: Get org version for conditional beta info and active property
@@ -149,16 +152,16 @@ export class ApexActionController {
           props = {
             isClass: `${isClass}`,
             overwrite: `${overwrite}`,
-            strategy: generationOrchestrator.strategy?.strategyName ?? 'unknown'
+            strategy: telemetry.strategyName
           };
 
           const [errors, warnings, infos, hints, total] = summarizeDiagnostics(processedOasResult.errors);
 
           measures = {
             generationDuration: generationHrDuration,
-            biddedCallCount: generationOrchestrator.strategy?.biddedCallCount,
-            llmCallCount: generationOrchestrator.strategy?.resolutionAttempts,
-            generationSize: generationOrchestrator.strategy?.maxBudget,
+            biddedCallCount: telemetry.biddedCallCount,
+            llmCallCount: telemetry.llmCallCount,
+            generationSize: telemetry.generationSize,
             documentTtlProblems: total,
             documentErrors: errors,
             documentWarnings: warnings,
@@ -185,31 +188,24 @@ export class ApexActionController {
         telemetryService.sendCommandEvent(createdMessage, startTime, props, measures);
       }
     } catch (error) {
-      void this.handleError(error, `OASDocumentFor${type}CreationFailed`);
+      void handleError(error, `OASDocumentFor${type}CreationFailed`);
     }
     await this.gil.writeLogs();
   };
-
-  /**
-   * Handles errors by showing a notification and sending telemetry data.
-   * @param error - The error to handle.
-   * @param telemetryEvent - The telemetry event name.
-   */
-  private handleError = async (error: unknown, telemetryEvent: string): Promise<void> => {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    await notificationService.showErrorMessage(`${nls.localize('create_openapi_doc_failed')}: ${errorMessage}`);
-    telemetryService.sendException(telemetryEvent, errorMessage);
-  };
-
-  private isBidRule(value: unknown): value is BidRule {
-    return typeof value === 'string' && value in BID_RULES;
-  }
-
-  private getBidRule(): BidRule {
-    const currentBidRule = vscode.workspace
-      .getConfiguration()
-      .get('salesforcedx-vscode-apex-oas.generation_strategy', BID_RULES.LEAST_CALLS);
-
-    return this.isBidRule(currentBidRule) ? currentBidRule : BID_RULES.LEAST_CALLS;
-  }
 }
+
+const getBidRule = (): BidRule => {
+  const currentBidRule = vscode.workspace
+    .getConfiguration()
+    .get('salesforcedx-vscode-apex-oas.generation_strategy', BID_RULES.LEAST_CALLS);
+
+  return isBidRule(currentBidRule) ? currentBidRule : BID_RULES.LEAST_CALLS;
+};
+
+const handleError = async (error: unknown, telemetryEvent: string): Promise<void> => {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  await notificationService.showErrorMessage(`${nls.localize('create_openapi_doc_failed')}: ${errorMessage}`);
+  telemetryService.sendException(telemetryEvent, errorMessage);
+};
+
+const isBidRule = (value: unknown): value is BidRule => typeof value === 'string' && value in BID_RULES;

@@ -4,16 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { OasReorderStep } from '../../../../src/oas/documentProcessorPipeline/oasReorderStep';
+import { oasReorderStep } from '../../../../src/oas/documentProcessorPipeline/oasReorderStep';
 import { ProcessorInputOutput } from '../../../../src/oas/documentProcessorPipeline/processorStep';
 
-describe('OasReorderStep', () => {
-  let processor: OasReorderStep;
-
-  beforeEach(() => {
-    processor = new OasReorderStep();
-  });
-
+describe('oasReorderStep', () => {
   it('reorders info section attributes', async () => {
     const input: ProcessorInputOutput = {
       errors: [],
@@ -29,7 +23,7 @@ describe('OasReorderStep', () => {
       context: undefined
     };
 
-    const output = await processor.process(input);
+    const output = await oasReorderStep.process(input);
 
     expect(Object.keys(output.openAPIDoc.info)).toEqual(['title', 'version', 'description']);
   });
@@ -63,7 +57,7 @@ describe('OasReorderStep', () => {
       context: undefined
     };
 
-    const output = await processor.process(input);
+    const output = await oasReorderStep.process(input);
     expect(Object.keys(output.openAPIDoc.paths['/examplePath']?.get as any)).toEqual([
       'summary',
       'description',
@@ -108,7 +102,7 @@ describe('OasReorderStep', () => {
       context: undefined
     };
 
-    const output = await processor.process(input);
+    const output = await oasReorderStep.process(input);
 
     expect(Object.keys(output.openAPIDoc.paths['/examplePath'] as any)).toEqual(['description', 'get', 'post']);
   });
@@ -135,7 +129,7 @@ describe('OasReorderStep', () => {
       context: undefined
     };
 
-    const output = await processor.process(input);
+    const output = await oasReorderStep.process(input);
 
     expect(Object.keys(output.openAPIDoc.paths['/anotherPath'] as any)).toEqual(['post']);
   });
@@ -154,7 +148,7 @@ describe('OasReorderStep', () => {
       context: undefined
     };
 
-    const output = await processor.process(input);
+    const output = await oasReorderStep.process(input);
 
     expect(output.openAPIDoc.paths).toEqual({});
   });

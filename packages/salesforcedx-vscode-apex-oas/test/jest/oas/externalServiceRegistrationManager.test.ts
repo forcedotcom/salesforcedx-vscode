@@ -11,11 +11,14 @@ import { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getVscodeCoreExtension } from '../../../src/coreExtensionUtils';
-import { nls } from '../../../src/messages';
+import { nls } from '../../../src/messages/nls';
 import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
 import {
+  buildESRYaml,
   ExternalServiceRegistrationManager,
   FullPath,
+  getFolderForArtifact,
+  handleExistingESR,
   replaceXmlToYaml
 } from '../../../src/oas/externalServiceRegistrationManager';
 import * as oasUtils from '../../../src/oasUtils';
@@ -24,6 +27,7 @@ import { createProblemTabEntriesForOasDocument } from '../../../src/oasUtils';
 jest.mock('../../../src/coreExtensionUtils');
 
 class MockRegistryAccess {
+  // eslint-disable-next-line class-methods-use-this -- mocked per-test
   public getTypeByName() {
     // will be mocked in tests
   }
@@ -283,7 +287,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
   it('should handle existing ESR file', async () => {
     (vscode.window.showWarningMessage as jest.Mock).mockResolvedValue('merge');
-    const result = await esrHandler['handleExistingESR']();
+    const result = await handleExistingESR();
 
     expect(result).toBe('merge');
   });
@@ -305,7 +309,7 @@ describe('ExternalServiceRegistrationManager', () => {
         .mockImplementation(() => ({ directoryName: mockDirectoryName }));
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(mockFolderPath);
 
-      const result = await esrHandler.getFolderForArtifact();
+      const result = await getFolderForArtifact();
 
       expect(result).toBe(path.resolve(mockFolderPath));
       expect(vscode.window.showInputBox).toHaveBeenCalledWith({
@@ -319,7 +323,7 @@ describe('ExternalServiceRegistrationManager', () => {
         .spyOn(MockRegistryAccess.prototype, 'getTypeByName')
         .mockImplementation(() => ({ directoryName: 'externalServiceRegistrations' }));
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(undefined);
-      const result = await esrHandler.getFolderForArtifact();
+      const result = await getFolderForArtifact();
       expect(result).toBeUndefined();
     });
 
@@ -327,9 +331,7 @@ describe('ExternalServiceRegistrationManager', () => {
       jest.spyOn(MockRegistryAccess.prototype, 'getTypeByName').mockImplementation(() => {
         throw new Error('fail');
       });
-      await expect(esrHandler.getFolderForArtifact()).rejects.toThrow(
-        'Failed to retrieve ESR directory name from the registry.'
-      );
+      await expect(getFolderForArtifact()).rejects.toThrow('Failed to retrieve ESR directory name from the registry.');
     });
   });
 
@@ -619,7 +621,7 @@ describe('ExternalServiceRegistrationManager', () => {
       const esrXmlPath = '/path/to/esr.externalServiceRegistration-meta.xml';
       const safeOasSpec = 'safeOasSpec';
 
-      await esrHandler.buildESRYaml(esrXmlPath, safeOasSpec);
+      await buildESRYaml(esrXmlPath, safeOasSpec);
 
       expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(URI.file('/path/to/esr.yaml'), expect.any(Uint8Array));
     });

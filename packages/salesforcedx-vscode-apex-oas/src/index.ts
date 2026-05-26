@@ -9,18 +9,17 @@ import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { ApexActionController, createApexActionFromClass, validateOpenApiDocument } from './commands';
-import { MetadataOrchestrator } from './commands/metadataOrchestrator';
+import { ApexActionController } from './commands/apexActionController';
+import { createApexActionFromClass } from './commands/createApexAction';
+import { validateOpenApiDocument } from './commands/oasDocumentChecker';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
-import { nls } from './messages';
+import { nls } from './messages/nls';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
-import { telemetryService } from './telemetry';
-
-const metadataOrchestrator = new MetadataOrchestrator();
+import { telemetryService } from './telemetry/telemetryService';
 
 // Apex Action Controller
-export const apexActionController = new ApexActionController(metadataOrchestrator);
+export const apexActionController = new ApexActionController();
 
 export const activate = async (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));

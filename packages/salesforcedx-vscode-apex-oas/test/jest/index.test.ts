@@ -30,21 +30,24 @@ if (!(vscode.Disposable as any).from) {
 jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(() => Promise.resolve());
 jest.spyOn(vscode.commands, 'registerCommand').mockImplementation(() => ({ dispose: jest.fn() }) as any);
 
-jest.mock('../../src/telemetry', () => ({
+jest.mock('../../src/telemetry/telemetryService', () => ({
   getTelemetryService: jest.fn(() => mockTelemetryService),
-  setTelemetryService: jest.fn()
+  setTelemetryService: jest.fn(),
+  telemetryService: mockTelemetryService
 }));
 
-jest.mock('../../src/commands', () => ({
-  createApexActionFromClass: jest.fn(),
-  validateOpenApiDocument: jest.fn(),
+jest.mock('../../src/commands/apexActionController', () => ({
   ApexActionController: jest.fn().mockImplementation(() => ({
     initialize: jest.fn().mockResolvedValue(undefined)
   }))
 }));
 
-jest.mock('../../src/commands/metadataOrchestrator', () => ({
-  MetadataOrchestrator: jest.fn().mockImplementation(() => ({}))
+jest.mock('../../src/commands/createApexAction', () => ({
+  createApexActionFromClass: jest.fn()
+}));
+
+jest.mock('../../src/commands/oasDocumentChecker', () => ({
+  validateOpenApiDocument: jest.fn()
 }));
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({

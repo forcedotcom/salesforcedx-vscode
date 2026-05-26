@@ -12,32 +12,18 @@ type ExtendedInfoObject = OpenAPIV3.InfoObject & {
   [key: `x-${string}`]: string;
 };
 
-export class BetaInfoInjectionStep implements ProcessorStep {
-  private betaInfo: string | undefined;
-
-  constructor(betaInfo: string | undefined) {
-    this.betaInfo = betaInfo;
-  }
-
-  public process(input: ProcessorInputOutput): Promise<ProcessorInputOutput> {
-    const modifiedOASDoc = this.injectBetaInfo(input.openAPIDoc);
-
-    return new Promise(resolve => {
-      resolve({ ...input, openAPIDoc: modifiedOASDoc });
-    });
-  }
-
-  private injectBetaInfo(oasDoc: OpenAPIV3.Document<{}>): OpenAPIV3.Document<{}> {
-    const info = oasDoc.info || {};
+export const createBetaInfoInjectionStep = (betaInfo: string | undefined): ProcessorStep => ({
+  process: (input: ProcessorInputOutput): Promise<ProcessorInputOutput> => {
+    const info = input.openAPIDoc.info || {};
     const updatedInfo: ExtendedInfoObject = { ...info };
 
-    if (this.betaInfo) {
-      updatedInfo['x-betaInfo'] = this.betaInfo;
+    if (betaInfo) {
+      updatedInfo['x-betaInfo'] = betaInfo;
     }
 
-    return {
-      ...oasDoc,
-      info: updatedInfo
-    };
+    return Promise.resolve({
+      ...input,
+      openAPIDoc: { ...input.openAPIDoc, info: updatedInfo }
+    });
   }
-}
+});

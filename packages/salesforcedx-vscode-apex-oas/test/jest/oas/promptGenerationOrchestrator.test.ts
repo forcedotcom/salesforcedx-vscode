@@ -4,14 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
 import { URI } from 'vscode-uri';
 import GenerationInteractionLogger from '../../../src/oas/generationInteractionLogger';
+import type { GenerationStrategy, StrategyTelemetry } from '../../../src/oas/generationStrategy/generationStrategy';
 import {
   GenerationStrategyType,
   initializeAndBid
 } from '../../../src/oas/generationStrategy/generationStrategyFactory';
-import { BID_RULES, PromptGenerationOrchestrator } from '../../../src/oas/promptGenerationOrchestrator';
+import {
+  applyRule,
+  BID_RULES,
+  getLeastCallsStrategy,
+  getMostCallsStrategy,
+  PromptGenerationOrchestrator
+} from '../../../src/oas/promptGenerationOrchestrator';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -37,6 +43,24 @@ jest.mock('../../../src/oas/generationInteractionLogger', () => {
     }
   };
 });
+
+const buildTelemetry = (overrides: Partial<StrategyTelemetry> = {}): StrategyTelemetry => ({
+  strategyName: 'ApexRest',
+  biddedCallCount: 0,
+  llmCallCount: 0,
+  generationSize: 0,
+  outputTokenLimit: 1000,
+  ...overrides
+});
+
+const buildMockStrategy = (overrides: Partial<StrategyTelemetry> = {}): jest.Mocked<GenerationStrategy> =>
+  ({
+    generateOAS: jest.fn(),
+    bid: jest.fn(),
+    openAPISchema: undefined,
+    strategyName: overrides.strategyName ?? 'ApexRest',
+    getTelemetry: jest.fn().mockReturnValue(buildTelemetry(overrides))
+  }) as any;
 
 describe('PromptGenerationOrchestrator', () => {
   let orchestrator: PromptGenerationOrchestrator;
@@ -72,7 +96,7 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
-      const result = orchestrator['getLeastCallsStrategy'](bids);
+      const result = getLeastCallsStrategy(bids);
       expect(result).toBe('ApexRest');
     });
 
@@ -82,7 +106,7 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 2, maxBudget: 100 } }]
       ]);
 
-      const result = orchestrator['getLeastCallsStrategy'](bids);
+      const result = getLeastCallsStrategy(bids);
       expect(result).toBe('ApexRest');
     });
 
@@ -92,13 +116,13 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
-      const result = orchestrator['getLeastCallsStrategy'](bids);
+      const result = getLeastCallsStrategy(bids);
       expect(result).toBeUndefined();
     });
 
     it('should return undefined for empty bids map', () => {
       const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>();
-      const result = orchestrator['getLeastCallsStrategy'](bids);
+      const result = getLeastCallsStrategy(bids);
       expect(result).toBeUndefined();
     });
   });
@@ -110,7 +134,7 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 1, maxBudget: 100 } }]
       ]);
 
-      const result = orchestrator['getMostCallsStrategy'](bids);
+      const result = getMostCallsStrategy(bids);
       expect(result).toBe('ApexRest');
     });
 
@@ -120,7 +144,7 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 5, maxBudget: 100 } }]
       ]);
 
-      const result = orchestrator['getMostCallsStrategy'](bids);
+      const result = getMostCallsStrategy(bids);
       expect(result).toBe('ApexRest');
     });
 
@@ -130,13 +154,13 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
-      const result = orchestrator['getMostCallsStrategy'](bids);
+      const result = getMostCallsStrategy(bids);
       expect(result).toBeUndefined();
     });
 
     it('should return undefined for empty bids map', () => {
       const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>();
-      const result = orchestrator['getMostCallsStrategy'](bids);
+      const result = getMostCallsStrategy(bids);
       expect(result).toBeUndefined();
     });
   });
@@ -148,7 +172,7 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
-      const result = orchestrator['applyRule'](BID_RULES.LEAST_CALLS, bids);
+      const result = applyRule(BID_RULES.LEAST_CALLS, bids);
       expect(result).toBe('ApexRest');
     });
 
@@ -158,13 +182,13 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
-      const result = orchestrator['applyRule'](BID_RULES.MOST_CALLS, bids);
+      const result = applyRule(BID_RULES.MOST_CALLS, bids);
       expect(result).toBe('ApexRest');
     });
 
     it('should throw error for unknown bid rule', () => {
       const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>();
-      expect(() => orchestrator['applyRule']('UNKNOWN_RULE' as any, bids)).toThrow();
+      expect(() => applyRule('UNKNOWN_RULE' as any, bids)).toThrow();
     });
   });
 
@@ -173,27 +197,8 @@ describe('PromptGenerationOrchestrator', () => {
     let mockStrategyAuraEnabled: jest.Mocked<GenerationStrategy>;
 
     beforeEach(() => {
-      mockStrategyApexRest = {
-        generateOAS: jest.fn(),
-        bid: jest.fn(),
-        outputTokenLimit: 1000,
-        includeOASSchema: false,
-        openAPISchema: undefined,
-        strategyName: 'ApexRest',
-        metadata: mockMetadata,
-        context: mockContext
-      } as any;
-
-      mockStrategyAuraEnabled = {
-        generateOAS: jest.fn(),
-        bid: jest.fn(),
-        outputTokenLimit: 1000,
-        includeOASSchema: false,
-        openAPISchema: undefined,
-        strategyName: 'AuraEnabled',
-        metadata: mockMetadata,
-        context: mockContext
-      } as any;
+      mockStrategyApexRest = buildMockStrategy({ strategyName: 'ApexRest' });
+      mockStrategyAuraEnabled = buildMockStrategy({ strategyName: 'AuraEnabled' });
 
       jest.clearAllMocks();
     });
@@ -267,16 +272,8 @@ describe('PromptGenerationOrchestrator', () => {
     let mockStrategy: jest.Mocked<GenerationStrategy>;
 
     beforeEach(() => {
-      mockStrategy = {
-        generateOAS: jest.fn().mockResolvedValue('{"openapi": "3.0.0"}'),
-        bid: jest.fn(),
-        outputTokenLimit: 1000,
-        includeOASSchema: false,
-        openAPISchema: undefined,
-        strategyName: 'ApexRest',
-        metadata: mockMetadata,
-        context: mockContext
-      } as any;
+      mockStrategy = buildMockStrategy();
+      mockStrategy.generateOAS = jest.fn().mockResolvedValue('{"openapi": "3.0.0"}');
 
       (oasUtils.cleanupGeneratedDoc as jest.Mock).mockImplementation((doc: string) => doc);
       jest.clearAllMocks();
@@ -321,9 +318,8 @@ describe('PromptGenerationOrchestrator', () => {
       await expect(orchestrator.generateOASWithSelectedStrategy()).rejects.toThrow();
     });
 
-    it('should include guided JSON when strategy has OAS schema', async () => {
-      mockStrategy.includeOASSchema = true;
-      mockStrategy.openAPISchema = '{"schema": "test"}';
+    it('should include guided JSON when telemetry has guidedJson', async () => {
+      mockStrategy.getTelemetry = jest.fn().mockReturnValue(buildTelemetry({ guidedJson: '{"schema": "test"}' }));
       orchestrator.strategy = mockStrategy;
 
       await orchestrator.generateOASWithSelectedStrategy();
@@ -332,8 +328,7 @@ describe('PromptGenerationOrchestrator', () => {
       expect(gil.addGuidedJson).toHaveBeenCalledWith('{"schema": "test"}');
     });
 
-    it('should not include guided JSON when strategy does not have OAS schema', async () => {
-      mockStrategy.includeOASSchema = false;
+    it('should not include guided JSON when telemetry has no guidedJson', async () => {
       orchestrator.strategy = mockStrategy;
 
       await orchestrator.generateOASWithSelectedStrategy();

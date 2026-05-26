@@ -10,37 +10,34 @@ import {
   ApexClassOASGatherContextResponse,
   PromptGenerationStrategyBid
 } from '../schemas';
-import { ApexRestStrategy } from './json/apexRest';
-import { AuraEnabledStrategy } from './json/auraEnabledStrategy';
+import { GenerationStrategy } from './generationStrategy';
+import { createApexRestStrategy } from './json/apexRest';
+import { createAuraEnabledStrategy } from './json/auraEnabledStrategy';
 
 export type GenerationStrategyType = 'ApexRest' | 'AuraEnabled';
-
-export type StrategyTypes = ApexRestStrategy | AuraEnabledStrategy;
 
 export const initializeAndBid = async (
   metadata: ApexClassOASEligibleResponse,
   context: ApexClassOASGatherContextResponse
 ): Promise<{
-  strategies: Map<GenerationStrategyType, StrategyTypes>;
+  strategies: Map<GenerationStrategyType, GenerationStrategy>;
   bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>;
 }> => {
   // Initialize strategies
-  const strategies = new Map<GenerationStrategyType, StrategyTypes>();
-  const apexRestStrategy = await ApexRestStrategy.initialize(metadata, context);
-  const auraEnabledStrategy = await AuraEnabledStrategy.initialize(metadata, context);
+  const strategies = new Map<GenerationStrategyType, GenerationStrategy>();
+  const apexRestStrategy = await createApexRestStrategy(metadata, context);
+  const auraEnabledStrategy = await createAuraEnabledStrategy(context);
 
   strategies.set('ApexRest', apexRestStrategy);
   strategies.set('AuraEnabled', auraEnabledStrategy);
 
   // Get bids from all strategies
-  const bidPromises = Array.from(strategies.entries())
-    .filter(([_, strategy]) => strategy)
-    .map(
-      async ([strategyName, strategy]): Promise<[GenerationStrategyType, PromptGenerationStrategyBid]> => [
-        strategyName,
-        await strategy.bid()
-      ]
-    );
+  const bidPromises = Array.from(strategies.entries()).map(
+    async ([strategyName, strategy]): Promise<[GenerationStrategyType, PromptGenerationStrategyBid]> => [
+      strategyName,
+      await strategy.bid()
+    ]
+  );
 
   const bidResults = await Promise.all(bidPromises);
   const bids = new Map(bidResults);
