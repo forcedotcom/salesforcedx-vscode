@@ -45,6 +45,11 @@ const EXTENSION_LEVEL_KEY = 'extensionLevelNotifications';
 const GLOBAL_SECTION = 'salesforcedx-vscode-services';
 const GLOBAL_KEY = 'notifications';
 
+const inspectExplicit = (section: string, key: string): CommandNotificationMode | undefined => {
+  const i = vscode.workspace.getConfiguration(section).inspect<CommandNotificationMode>(key);
+  return i?.workspaceFolderValue ?? i?.workspaceValue ?? i?.globalValue;
+};
+
 /**
  * Creates a notification mode API bound to a specific extension's settings sections.
  *
@@ -58,15 +63,11 @@ export const createNotificationMode = <CommandKey extends string>(
   statusBarName: string
 ): NotificationModeApi<CommandKey> => {
   const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
-  const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode => {
-    const commandLevel = vscode.workspace.getConfiguration(commandLevelSection).get<CommandNotificationMode>(command);
-    if (commandLevel !== undefined) return commandLevel;
-    const extensionLevel = vscode.workspace
-      .getConfiguration(extensionSection)
-      .get<CommandNotificationMode>(EXTENSION_LEVEL_KEY);
-    if (extensionLevel !== undefined) return extensionLevel;
-    return vscode.workspace.getConfiguration(GLOBAL_SECTION).get<CommandNotificationMode>(GLOBAL_KEY, 'toast');
-  };
+
+  const getCommandNotificationMode = (command: CommandKey): CommandNotificationMode =>
+    inspectExplicit(commandLevelSection, command) ??
+    inspectExplicit(extensionSection, EXTENSION_LEVEL_KEY) ??
+    vscode.workspace.getConfiguration(GLOBAL_SECTION).get<CommandNotificationMode>(GLOBAL_KEY, 'toast');
 
   return {
     showSuccessNotification: (command: CommandKey, message: string): void => {
