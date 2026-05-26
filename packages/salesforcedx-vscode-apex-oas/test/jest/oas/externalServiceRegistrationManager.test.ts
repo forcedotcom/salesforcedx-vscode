@@ -215,15 +215,15 @@ describe('ExternalServiceRegistrationManager', () => {
       (vscode.window.showQuickPick as jest.Mock).mockResolvedValue('TestCredential');
       jest.spyOn(vscode.workspace.fs, 'stat').mockRejectedValue(new Error('File not found'));
       jest.spyOn(esrHandler, 'initialize' as any);
-      jest.spyOn(esrHandler, 'writeAndOpenEsrFile').mockResolvedValue();
-      jest.spyOn(esrHandler, 'displayFileDifferences').mockResolvedValue();
+      jest.spyOn(esrHandler, 'writeAndOpenEsrFile' as any).mockResolvedValue(undefined);
+      jest.spyOn(esrHandler, 'displayFileDifferences' as any).mockResolvedValue(undefined);
       jest.spyOn(oasUtils, 'createProblemTabEntriesForOasDocument').mockImplementation();
 
       await esrHandler.generateEsrMD(true, processedOasResult, fullPath);
 
       expect(esrHandler['initialize']).toHaveBeenCalledWith(true, processedOasResult, fullPath, undefined);
-      expect(esrHandler.writeAndOpenEsrFile).toHaveBeenCalled();
-      expect(esrHandler.displayFileDifferences).toHaveBeenCalled();
+      expect(esrHandler['writeAndOpenEsrFile']).toHaveBeenCalled();
+      expect(esrHandler['displayFileDifferences']).toHaveBeenCalled();
       expect(createProblemTabEntriesForOasDocument).toHaveBeenCalledWith(fullPath[1], processedOasResult, true);
     });
 
@@ -231,15 +231,15 @@ describe('ExternalServiceRegistrationManager', () => {
       (vscode.window.showQuickPick as jest.Mock).mockResolvedValue('TestCredential');
       jest.spyOn(vscode.workspace.fs, 'stat').mockRejectedValue(new Error('File not found'));
       jest.spyOn(esrHandler, 'initialize' as any);
-      jest.spyOn(esrHandler, 'writeAndOpenEsrFile').mockResolvedValue();
-      jest.spyOn(esrHandler, 'displayFileDifferences').mockResolvedValue();
+      jest.spyOn(esrHandler, 'writeAndOpenEsrFile' as any).mockResolvedValue(undefined);
+      jest.spyOn(esrHandler, 'displayFileDifferences' as any).mockResolvedValue(undefined);
       jest.spyOn(oasUtils, 'createProblemTabEntriesForOasDocument').mockImplementation();
 
       await esrHandler.generateEsrMD(true, processedOasResult, fullPath, 65.0);
 
       expect(esrHandler['initialize']).toHaveBeenCalledWith(true, processedOasResult, fullPath, 65.0);
-      expect(esrHandler.writeAndOpenEsrFile).toHaveBeenCalled();
-      expect(esrHandler.displayFileDifferences).toHaveBeenCalled();
+      expect(esrHandler['writeAndOpenEsrFile']).toHaveBeenCalled();
+      expect(esrHandler['displayFileDifferences']).toHaveBeenCalled();
       expect(createProblemTabEntriesForOasDocument).toHaveBeenCalledWith(fullPath[1], processedOasResult, true);
     });
   });
@@ -250,7 +250,7 @@ describe('ExternalServiceRegistrationManager', () => {
     it('displayFileDifferences composed', async () => {
       esrHandler['initialize'](false, processedOasResult, [xmlOriginal, xmlNew]);
 
-      await esrHandler.displayFileDifferences();
+      await esrHandler['displayFileDifferences']();
 
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
         'vscode.diff',
@@ -265,7 +265,7 @@ describe('ExternalServiceRegistrationManager', () => {
       const yamlNew = '/path/to/new.yaml';
       esrHandler['initialize'](true, processedOasResult, [xmlOriginal, xmlNew]);
 
-      await esrHandler.displayFileDifferences();
+      await esrHandler['displayFileDifferences']();
 
       expect(vscode.commands.executeCommand).toHaveBeenNthCalledWith(
         1,
@@ -343,7 +343,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
     // Test with org < 66.0 - operations should be included
     esrHandler['initialize'](false, processedOasResult, fullPath, 65.0);
-    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
+    const result = esrHandler['createESRObject'](description, className, safeOasSpec, operations);
 
     expect(result).toHaveProperty('ExternalServiceRegistration');
     expect(result.ExternalServiceRegistration).toHaveProperty('description', description);
@@ -363,7 +363,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
     // Test with org >= 66.0 - operations should be undefined
     await esrHandler['initialize'](false, processedOasResult, fullPath, 66.0);
-    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
+    const result = esrHandler['createESRObject'](description, className, safeOasSpec, operations);
 
     expect(result).toHaveProperty('ExternalServiceRegistration');
     expect(result.ExternalServiceRegistration).toHaveProperty('description', description);
@@ -384,7 +384,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
     // Test with undefined orgApiVersion - treated as GA (>= 66.0)
     await esrHandler['initialize'](false, processedOasResult, fullPath);
-    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
+    const result = esrHandler['createESRObject'](description, className, safeOasSpec, operations);
 
     expect(result).toHaveProperty('ExternalServiceRegistration');
     // When orgApiVersion is undefined, status and namedCredential should be undefined
@@ -394,7 +394,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
   it('extractInfoProperties', async () => {
     await esrHandler['initialize'](true, processedOasResult, fullPath);
-    const result = esrHandler.extractInfoProperties();
+    const result = esrHandler['extractInfoProperties']();
 
     expect(result).toEqual({
       description: 'oas description'
@@ -404,28 +404,28 @@ describe('ExternalServiceRegistrationManager', () => {
   describe('getOperationsFromYaml', () => {
     it('should set active to true for orgs < 66.0', async () => {
       await esrHandler['initialize'](true, processedOasResult, fullPath, 65.0);
-      const result = esrHandler.getOperationsFromYaml();
+      const result = esrHandler['getOperationsFromYaml']();
 
       expect(result).toEqual([{ active: true, name: 'getPets' }]);
     });
 
     it('should set active to true when orgApiVersion is undefined', async () => {
       await esrHandler['initialize'](true, processedOasResult, fullPath);
-      const result = esrHandler.getOperationsFromYaml();
+      const result = esrHandler['getOperationsFromYaml']();
 
       expect(result).toEqual([{ active: true, name: 'getPets' }]);
     });
 
     it('should return empty array for orgs >= 66.0', async () => {
       await esrHandler['initialize'](true, processedOasResult, fullPath, 66.0);
-      const result = esrHandler.getOperationsFromYaml();
+      const result = esrHandler['getOperationsFromYaml']();
 
       expect(result).toEqual([]);
     });
 
     it('should return empty array for orgs > 66.0', async () => {
       await esrHandler['initialize'](true, processedOasResult, fullPath, 67.0);
-      const result = esrHandler.getOperationsFromYaml();
+      const result = esrHandler['getOperationsFromYaml']();
 
       expect(result).toEqual([]);
     });
@@ -439,7 +439,7 @@ describe('ExternalServiceRegistrationManager', () => {
         ['/path/to/test.externalServiceRegistration-meta.xml', '/path/to/test.externalServiceRegistration-meta.xml'],
         65.0
       );
-      const result = await esrHandler.buildESRXml(undefined);
+      const result = await esrHandler['buildESRXml'](undefined);
 
       expect(result).toContain('<ExternalServiceRegistration');
       expect(result).toContain('<operations>');
@@ -461,7 +461,7 @@ describe('ExternalServiceRegistrationManager', () => {
         '/path/to/test.externalServiceRegistration-meta.xml',
         '/path/to/test.externalServiceRegistration-meta.xml'
       ]);
-      const result = await esrHandler.buildESRXml(undefined);
+      const result = await esrHandler['buildESRXml'](undefined);
 
       // When orgApiVersion is undefined, it's treated as GA (>= 66.0), so operations should be removed
       expect(result).not.toContain('<operations>');
@@ -478,7 +478,7 @@ describe('ExternalServiceRegistrationManager', () => {
         ['/path/to/test.externalServiceRegistration-meta.xml', '/path/to/test.externalServiceRegistration-meta.xml'],
         66.0
       );
-      const result = await esrHandler.buildESRXml(undefined);
+      const result = await esrHandler['buildESRXml'](undefined);
 
       // Verify operations section is not in XML
       expect(result).not.toContain('<operations>');
@@ -498,7 +498,7 @@ describe('ExternalServiceRegistrationManager', () => {
         ['/path/to/test.externalServiceRegistration-meta.xml', '/path/to/test.externalServiceRegistration-meta.xml'],
         67.0
       );
-      const result = await esrHandler.buildESRXml(undefined);
+      const result = await esrHandler['buildESRXml'](undefined);
 
       // Verify operations section is not in XML
       expect(result).not.toContain('<operations>');
@@ -530,7 +530,7 @@ describe('ExternalServiceRegistrationManager', () => {
         ['/path/to/test.externalServiceRegistration-meta.xml', '/path/to/test.externalServiceRegistration-meta.xml'],
         65.0
       );
-      const result = await esrHandler.buildESRXml(existingXml);
+      const result = await esrHandler['buildESRXml'](existingXml);
 
       const parser = new XMLParser({ ignoreAttributes: false });
       const parsed = parser.parse(result) as ParsedXml;
@@ -560,7 +560,7 @@ describe('ExternalServiceRegistrationManager', () => {
         ['/path/to/test.externalServiceRegistration-meta.xml', '/path/to/test.externalServiceRegistration-meta.xml'],
         66.0
       );
-      const result = await esrHandler.buildESRXml(existingXml);
+      const result = await esrHandler['buildESRXml'](existingXml);
 
       // Verify operations section is removed from XML
       expect(result).not.toContain('<operations>');
@@ -578,7 +578,7 @@ describe('ExternalServiceRegistrationManager', () => {
         ['/path/to/test.externalServiceRegistration-meta.xml', '/path/to/test.externalServiceRegistration-meta.xml'],
         65.0
       );
-      const result = await esrHandler.buildESRXml(undefined);
+      const result = await esrHandler['buildESRXml'](undefined);
 
       // Verify XML contains operation elements with active attribute
       expect(result).toContain('<operations>');
@@ -602,7 +602,7 @@ describe('ExternalServiceRegistrationManager', () => {
         ['/path/to/test.externalServiceRegistration-meta.xml', '/path/to/test.externalServiceRegistration-meta.xml'],
         66.0
       );
-      const result = await esrHandler.buildESRXml(undefined);
+      const result = await esrHandler['buildESRXml'](undefined);
 
       // Verify XML does not contain operations section
       expect(result).not.toContain('<operations>');
@@ -654,7 +654,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
       // Composed mode (isESRDecomposed = false) - YAML is embedded in XML schema
       await esrHandler['initialize'](false, processedOasResultWithBeta, fullPath, 65.0);
-      const xmlResult = await esrHandler.buildESRXml(undefined);
+      const xmlResult = await esrHandler['buildESRXml'](undefined);
 
       // Parse XML to extract schema content
       const parser = new XMLParser({ ignoreAttributes: false });
@@ -692,7 +692,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
       // Composed mode (isESRDecomposed = false) - YAML is embedded in XML schema
       await esrHandler['initialize'](false, processedOasResultWithoutBeta, fullPath, 66.0);
-      const xmlResult = await esrHandler.buildESRXml(undefined);
+      const xmlResult = await esrHandler['buildESRXml'](undefined);
 
       // Parse XML to extract schema content
       const parser = new XMLParser({ ignoreAttributes: false });
@@ -734,7 +734,7 @@ describe('ExternalServiceRegistrationManager', () => {
         '/path/to/new.externalServiceRegistration-meta.xml'
       ];
       await esrHandler['initialize'](true, processedOasResultWithBeta, decomposedFullPath, 65.0);
-      await esrHandler.buildESRXml(undefined);
+      await esrHandler['buildESRXml'](undefined);
 
       // Find the YAML file that was written
       const writeFileCalls = (vscode.workspace.fs.writeFile as jest.Mock).mock.calls as [URI, Uint8Array][];
@@ -782,7 +782,7 @@ describe('ExternalServiceRegistrationManager', () => {
         '/path/to/new.externalServiceRegistration-meta.xml'
       ];
       await esrHandler['initialize'](true, processedOasResultWithoutBeta, decomposedFullPath, 66.0);
-      await esrHandler.buildESRXml(undefined);
+      await esrHandler['buildESRXml'](undefined);
 
       // Find the YAML file that was written
       const writeFileCalls = (vscode.workspace.fs.writeFile as jest.Mock).mock.calls as [URI, Uint8Array][];
@@ -824,7 +824,7 @@ describe('ExternalServiceRegistrationManager', () => {
 
       // Composed mode with undefined orgApiVersion
       await esrHandler['initialize'](false, processedOasResultWithoutBeta, fullPath);
-      const xmlResult = await esrHandler.buildESRXml(undefined);
+      const xmlResult = await esrHandler['buildESRXml'](undefined);
 
       // Parse XML to extract schema content
       const parser = new XMLParser({ ignoreAttributes: false });

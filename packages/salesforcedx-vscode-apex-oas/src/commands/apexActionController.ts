@@ -13,11 +13,7 @@ import type { URI } from 'vscode-uri';
 import { nls } from '../messages/nls';
 import { ExternalServiceRegistrationManager, FullPath, pathExists } from '../oas/externalServiceRegistrationManager';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
-import {
-  BidRule,
-  PromptGenerationOrchestrator as GenerationOrchestrator,
-  BID_RULES
-} from '../oas/promptGenerationOrchestrator';
+import { BidRule, PromptGenerationOrchestrator as GenerationOrchestrator } from '../oas/promptGenerationOrchestrator';
 import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics, hasMixedFrameworks } from '../oasUtils';
 import { telemetryService } from '../telemetry/telemetryService';
 import { gatherContext, validateMetadata } from './metadataOrchestrator';
@@ -197,9 +193,9 @@ export class ApexActionController {
 const getBidRule = (): BidRule => {
   const currentBidRule = vscode.workspace
     .getConfiguration()
-    .get('salesforcedx-vscode-apex-oas.generation_strategy', BID_RULES.LEAST_CALLS);
+    .get<BidRule>('salesforcedx-vscode-apex-oas.generation_strategy', 'LEAST_CALLS');
 
-  return isBidRule(currentBidRule) ? currentBidRule : BID_RULES.LEAST_CALLS;
+  return isBidRule(currentBidRule) ? currentBidRule : 'LEAST_CALLS';
 };
 
 const handleError = async (error: unknown, telemetryEvent: string): Promise<void> => {
@@ -208,4 +204,4 @@ const handleError = async (error: unknown, telemetryEvent: string): Promise<void
   telemetryService.sendException(telemetryEvent, errorMessage);
 };
 
-const isBidRule = (value: unknown): value is BidRule => typeof value === 'string' && value in BID_RULES;
+const isBidRule = (value: unknown): value is BidRule => value === 'LEAST_CALLS' || value === 'MOST_CALLS';

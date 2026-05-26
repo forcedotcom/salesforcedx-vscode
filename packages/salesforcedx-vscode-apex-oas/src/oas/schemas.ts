@@ -17,12 +17,7 @@ export type {
   ApexAnnotationDetail
 } from 'salesforcedx-vscode-apex';
 
-export enum ApexOASResource {
-  class = 'CLASS',
-  multiClass = 'MULTI CLASSES',
-  singleMethodOrProp = 'METHOD or PROPERTY',
-  folder = 'FOLDER'
-}
+export type ApexOASResource = 'CLASS' | 'MULTI CLASSES' | 'METHOD or PROPERTY' | 'FOLDER';
 
 export type ApexOASInfo = {
   description: string;

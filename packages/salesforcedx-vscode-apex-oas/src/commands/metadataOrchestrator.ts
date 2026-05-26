@@ -155,10 +155,10 @@ const validateEligibility = async (
 const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): ApexOASResource => {
   const payload = requestPayload.payload;
   if (payload.length > 1) {
-    return ApexOASResource.multiClass;
+    return 'MULTI CLASSES';
   } else {
     const request = payload[0];
-    if (!request.includeAllMethods && !request.includeAllProperties) return ApexOASResource.singleMethodOrProp;
-    return !request.resourceUri?.fsPath.endsWith('.cls') ? ApexOASResource.folder : ApexOASResource.class;
+    if (!request.includeAllMethods && !request.includeAllProperties) return 'METHOD or PROPERTY';
+    return !request.resourceUri?.fsPath.endsWith('.cls') ? 'FOLDER' : 'CLASS';
   }
 };

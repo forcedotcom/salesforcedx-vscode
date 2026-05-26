@@ -8,7 +8,7 @@ import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as ejs from 'ejs';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { nls } from '../../messages/nls';
-import { ejsTemplateHelpers, EjsTemplatesEnum } from '../../oasUtils';
+import { ejsTemplateHelpers } from '../../oasUtils';
 import { ApexAnnotationDetail, ApexOASClassDetail, ApexOASMethodDetail } from '../schemas';
 
 export const getMethodImplementation = (
@@ -90,7 +90,7 @@ export const generatePromptForMethod = async (
   methodsContextMap: Map<string, ApexOASMethodDetail>,
   classPrompt: string
 ): Promise<string> => {
-  const templatePath = await ejsTemplateHelpers.getTemplatePath(EjsTemplatesEnum.METHOD_BY_METHOD);
+  const templatePath = await ejsTemplateHelpers.getTemplatePath('METHOD_BY_METHOD');
 
   const methodImplementation = getMethodImplementation(methodName, docText, methodsDocSymbolMap);
   const methodContext = methodsContextMap.get(methodName);

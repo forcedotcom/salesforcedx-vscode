@@ -13,7 +13,6 @@ import {
 } from '../../../src/oas/generationStrategy/generationStrategyFactory';
 import {
   applyRule,
-  BID_RULES,
   getLeastCallsStrategy,
   getMostCallsStrategy,
   PromptGenerationOrchestrator
@@ -172,7 +171,7 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
-      const result = applyRule(BID_RULES.LEAST_CALLS, bids);
+      const result = applyRule('LEAST_CALLS', bids);
       expect(result).toBe('ApexRest');
     });
 
@@ -182,7 +181,7 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
 
-      const result = applyRule(BID_RULES.MOST_CALLS, bids);
+      const result = applyRule('MOST_CALLS', bids);
       expect(result).toBe('ApexRest');
     });
 
@@ -215,7 +214,7 @@ describe('PromptGenerationOrchestrator', () => {
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
 
-      const result = await orchestrator.selectStrategyByBidRule(BID_RULES.LEAST_CALLS);
+      const result = await orchestrator.selectStrategyByBidRule('LEAST_CALLS');
 
       expect(initializeAndBid).toHaveBeenCalledWith(mockMetadata, mockContext);
       expect(result).toBe(mockStrategyApexRest);
@@ -234,7 +233,7 @@ describe('PromptGenerationOrchestrator', () => {
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
 
-      const result = await orchestrator.selectStrategyByBidRule(BID_RULES.MOST_CALLS);
+      const result = await orchestrator.selectStrategyByBidRule('MOST_CALLS');
 
       expect(initializeAndBid).toHaveBeenCalledWith(mockMetadata, mockContext);
       expect(result).toBe(mockStrategyAuraEnabled);
@@ -253,7 +252,7 @@ describe('PromptGenerationOrchestrator', () => {
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
 
-      await expect(orchestrator.selectStrategyByBidRule(BID_RULES.LEAST_CALLS)).rejects.toThrow();
+      await expect(orchestrator.selectStrategyByBidRule('LEAST_CALLS')).rejects.toThrow();
     });
 
     it('should throw error when selected strategy is not found', async () => {
@@ -264,7 +263,7 @@ describe('PromptGenerationOrchestrator', () => {
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
 
-      await expect(orchestrator.selectStrategyByBidRule(BID_RULES.LEAST_CALLS)).rejects.toThrow();
+      await expect(orchestrator.selectStrategyByBidRule('LEAST_CALLS')).rejects.toThrow();
     });
   });
 
@@ -301,14 +300,14 @@ describe('PromptGenerationOrchestrator', () => {
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
 
-      const result = await orchestrator.generateOASWithSelectedStrategy(BID_RULES.LEAST_CALLS);
+      const result = await orchestrator.generateOASWithSelectedStrategy('LEAST_CALLS');
 
       expect(initializeAndBid).toHaveBeenCalled();
       expect(mockStrategy.generateOAS).toHaveBeenCalled();
       expect(oasUtils.cleanupGeneratedDoc).toHaveBeenCalled();
       const gil = GenerationInteractionLogger.getInstance();
       expect(gil.addPostGenDoc).toHaveBeenCalled();
-      expect(gil.addGenerationStrategy).toHaveBeenCalledWith(BID_RULES.LEAST_CALLS);
+      expect(gil.addGenerationStrategy).toHaveBeenCalledWith('LEAST_CALLS');
       expect(result).toBe('{"openapi": "3.0.0"}');
     });
 

@@ -265,7 +265,7 @@ export class ExternalServiceRegistrationManager {
    * @param updatedContent - The content to be written to the file.
    * @throws Will throw an error if the file write or document open operation fails.
    */
-  public async writeAndOpenEsrFile(updatedContent: string) {
+  private async writeAndOpenEsrFile(updatedContent: string) {
     try {
       await writeFile(this.newPath, updatedContent);
       const newDocument = await vscode.workspace.openTextDocument(this.newPath);
@@ -284,7 +284,7 @@ export class ExternalServiceRegistrationManager {
    * @param existingContent - The existing XML content, if any.
    * @param namedCredential - The named credential to be used.
    */
-  public async buildESRXml(existingContent: string | undefined): Promise<string> {
+  private async buildESRXml(existingContent: string | undefined): Promise<string> {
     const baseName = path.basename(this.newPath).split('.')[0];
     const className = this.newPath.includes('esr_files_for_merge')
       ? // The class name is the part before the second to last underscore
@@ -340,7 +340,7 @@ export class ExternalServiceRegistrationManager {
    * @param operations - The operations defined in the ESR.
    * @returns An object representing the ESR.
    */
-  public createESRObject(
+  private createESRObject(
     description: string,
     className: string,
     safeOasSpec: string,
@@ -373,7 +373,7 @@ export class ExternalServiceRegistrationManager {
    * Extracts the description and version properties from the OpenAPI specification.
    * @returns An object containing the description and version properties.
    */
-  public extractInfoProperties(): ApexOASInfo {
+  private extractInfoProperties(): ApexOASInfo {
     return {
       description: this.oasSpec?.info?.description ?? ''
     };
@@ -383,7 +383,7 @@ export class ExternalServiceRegistrationManager {
    * Extracts the operations from the OpenAPI specification.
    * @returns An array of ExternalServiceOperation objects.
    */
-  public getOperationsFromYaml(): ExternalServiceOperation[] | [] {
+  private getOperationsFromYaml(): ExternalServiceOperation[] | [] {
     // For orgs < 66.0: active = true (default behavior)
     // For orgs >= 66.0: active = false (operations not activated by default)
     const active = this.orgApiVersion === undefined || this.orgApiVersion < 66.0;
@@ -410,7 +410,7 @@ export class ExternalServiceRegistrationManager {
    * @param newFilePath The file path of the new ESR file.
    * @param isESRDecomposed Indicates if ESR decomposition is enabled.
    */
-  public async displayFileDifferences(): Promise<void> {
+  private async displayFileDifferences(): Promise<void> {
     if (!this.overwrite) {
       await openDiffFile(this.originalPath, this.newPath, 'Manual Diff of ESR XML Files');
 

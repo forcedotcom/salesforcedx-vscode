@@ -187,10 +187,6 @@ const PROMPT_TEMPLATES = {
 
 type EjsTemplateKey = keyof typeof PROMPT_TEMPLATES;
 
-export enum EjsTemplatesEnum {
-  METHOD_BY_METHOD = 'METHOD_BY_METHOD'
-}
-
 /**
  * Copies the contents of a directory recursively.
  * @param {string} src - The source directory.

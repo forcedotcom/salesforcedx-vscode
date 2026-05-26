@@ -15,12 +15,7 @@ import {
   PromptGenerationStrategyBid
 } from './schemas';
 
-export const BID_RULES = {
-  LEAST_CALLS: 'LEAST_CALLS',
-  MOST_CALLS: 'MOST_CALLS'
-} as const;
-
-export type BidRule = keyof typeof BID_RULES;
+export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -50,9 +45,9 @@ export const applyRule = (
   bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
 ): GenerationStrategyType | undefined => {
   switch (rule) {
-    case BID_RULES.LEAST_CALLS:
+    case 'LEAST_CALLS':
       return getLeastCallsStrategy(bids);
-    case BID_RULES.MOST_CALLS:
+    case 'MOST_CALLS':
       return getMostCallsStrategy(bids);
     default:
       throw new Error(nls.localize('unknown_bid_rule', rule));
