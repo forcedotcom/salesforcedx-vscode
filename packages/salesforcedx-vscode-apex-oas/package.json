@@ -30,7 +30,6 @@
   "activationEvents": [],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.20.0",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -72,7 +71,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile"
       ],

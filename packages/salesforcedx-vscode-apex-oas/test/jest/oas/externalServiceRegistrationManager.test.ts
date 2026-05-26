@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { XMLParser } from 'fast-xml-parser';
@@ -26,6 +25,8 @@ import {
   replaceXmlToYaml
 } from '../../../src/oas/externalServiceRegistrationManager';
 
+const fakeWorkspace = path.join('test', 'workspace');
+
 const buildExtensionProviderLayer = (registryAccess: any) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
@@ -34,7 +35,7 @@ const buildExtensionProviderLayer = (registryAccess: any) =>
           getRegistryAccess: () => Effect.succeed(registryAccess)
         },
         WorkspaceService: {
-          getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: workspaceUtils.getRootWorkspacePath() })
+          getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: fakeWorkspace })
         }
       }
     } as any)
@@ -76,12 +77,6 @@ const buildCtx = (overrides: Partial<EsrContext> = {}): EsrContext => ({
 });
 
 describe('externalServiceRegistrationManager', () => {
-  const fakeWorkspace = path.join('test', 'workspace');
-
-  beforeEach(() => {
-    jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
-  });
-
   it('handleExistingESR returns the warning message selection', async () => {
     (vscode.window.showWarningMessage as jest.Mock).mockResolvedValue('merge');
     const result = await handleExistingESR();
@@ -92,13 +87,7 @@ describe('externalServiceRegistrationManager', () => {
     it('returns the selected folder path', async () => {
       const mockDirectoryName = 'externalServiceRegistrations';
       const mockFolderPath = '/path/to/folder';
-      const mockDefaultESRFolder = path.join(
-        workspaceUtils.getRootWorkspacePath(),
-        'force-app',
-        'main',
-        'default',
-        mockDirectoryName
-      );
+      const mockDefaultESRFolder = path.join(fakeWorkspace, 'force-app', 'main', 'default', mockDirectoryName);
 
       (vscode.window.showInputBox as jest.Mock).mockResolvedValue(mockFolderPath);
 
