@@ -27,9 +27,7 @@
   "categories": [
     "Programming Languages"
   ],
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": [],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",

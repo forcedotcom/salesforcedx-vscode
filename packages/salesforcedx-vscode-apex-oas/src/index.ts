@@ -13,7 +13,6 @@ import { ApexActionController, createApexActionFromClass, validateOpenApiDocumen
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { nls } from './messages';
-import { checkIfESRIsDecomposed } from './oasUtils';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { telemetryService } from './telemetry';
@@ -32,37 +31,15 @@ export const activate = async (context: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-oas')(function* (
   context: vscode.ExtensionContext
 ) {
-  // Check if Einstein GPT extension (A4V) is installed and active
-  const einsteinGptExtension = vscode.extensions.getExtension('salesforce.salesforcedx-einstein-gpt');
-  if (!einsteinGptExtension) {
-    console.log('Einstein GPT extension not found. OAS extension will not activate.');
-    return;
-  }
-
   const vscodeCoreExtension = yield* Effect.promise(() => getVscodeCoreExtension());
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
 
-  // Workspace Context
   yield* Effect.promise(() => workspaceContext.initialize(context));
   yield* Effect.promise(() => WorkspaceContextUtil.getInstance().initialize(context));
 
-  // Initialize the apexActionController
   yield* Effect.promise(() => apexActionController.initialize(context));
 
-  // Initialize if ESR xml is decomposed
-  const isEsrDecomposed = yield* Effect.promise(() => checkIfESRIsDecomposed());
-  void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', isEsrDecomposed);
-
-  // Set context based on mulesoft extension
-  const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
-  yield* Effect.promise(() =>
-    vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', !muleDxApiExtension?.isActive)
-  );
-
-  // Only register commands if Einstein GPT extension is active
-  if (einsteinGptExtension.isActive) {
-    context.subscriptions.push(registerCommands());
-  }
+  context.subscriptions.push(registerCommands());
 });
 
 const registerCommands = (): vscode.Disposable => {
