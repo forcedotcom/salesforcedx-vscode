@@ -43,11 +43,12 @@ Use the **filter** box on the Testing view:
 | In-workspace tests only | `@in-workspace` (classes that map to local project files).              |
 | Org-only tests          | `@org-only` (deployed to org, not present locally).                     |
 | Suites only             | `@test-suite`                                                           |
+| Stale tests             | `@stale` (results restored from previous session or code changed since last run). |
 | Exclude matches         | Prefix with `!` (e.g. `!@org-only` or `!Heavy` to hide matching items). |
 
 Combine as needed for your VS Code version’s filter rules.
 
-When a filter narrows what you see, VS Code may pass only the **visible** tests in the run request for the default profile’s toolbar **Run**, so that subset runs instead of every in-workspace test. The secondary profile **SFDX: Run All Apex Tests in Org** (dropdown) always runs the full org regardless of filter.
+When a filter narrows what you see, VS Code may pass only the **visible** tests in the run request for the default profile’s toolbar **Run**, so that subset runs instead of every in-workspace test. The secondary profile **SFDX: Run All Apex Tests in Org** (dropdown) always runs the full org regardless of filter. Use **Re-run Stale** profiles to run only outdated tests.
 
 ## See results in the Test Results tab
 
@@ -59,6 +60,29 @@ After a run:
 
 Re-running clears prior result decorations until the new run completes; use **Refresh** on the controller if the tree looks out of sync with the org.
 
+## Stale results, sessions, and refresh
+
+Results are stored on disk and persist across sessions. On load or **Refresh**, recent results (< 24 hours) are restored:
+
+- **Pre-session results** appear dimmed and tagged `@stale` — not run this session.
+- **Current-session results** appear at full brightness — run since IDE opened.
+
+Running a test removes its `@stale` tag and restores full brightness. Use the **Re-run Stale** run profiles to re-execute only outdated tests.
+
+Disable restoration via setting: `salesforcedx-vscode-apex-testing.restore-previous-results`.
+
+## Deploy changes and test freshness
+
+When you deploy an Apex class containing tests, the extension detects the change and marks all methods in that class as `@stale`. This happens automatically — no refresh needed.
+
+The dimmed appearance and `@stale` tag signal code changed since the test last ran. Run affected tests (or use **Re-run Stale In-Workspace Tests**) to validate deployed changes.
+
+## Clear test results and history
+
+Test Explorer's built-in **Clear All Results** (`...` menu) removes pass/fail icons from tree but keeps result files on disk — subsequent **Refresh** restores them.
+
+To permanently remove stored results, run **SFDX: Clear Apex Test Results** from Command Palette. This deletes result files so they won't be restored on refresh or reload.
+
 ## Related commands
 
-From the Command Palette: **Run Apex Tests**, **Run Apex Test Class**, **Run Apex Test Method**, **Run Apex Test Suite**, plus suite create/add. The explorer is the main place to browse, filter, and pick what to run.
+From the Command Palette: **Run Apex Tests**, **Run Apex Test Class**, **Run Apex Test Method**, **Run Apex Test Suite**, **Clear Apex Test Results**, plus suite create/add. The explorer is the main place to browse, filter, and pick what to run.

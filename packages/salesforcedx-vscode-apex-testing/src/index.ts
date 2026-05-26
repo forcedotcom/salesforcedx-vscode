@@ -187,6 +187,9 @@ const registerCommands = (): vscode.Disposable => {
   const apexTestRefreshCmd = vscode.commands.registerCommand('sf.apex.test.refresh', async () => {
     await getTestController().refresh();
   });
+  const apexTestClearResultsCmd = vscode.commands.registerCommand('sf.apex.test.results.clear', async () => {
+    await getTestController().clearResults();
+  });
   const apexTestingWalkthroughOpenCmd = vscode.commands.registerCommand('sf.apex.testing.walkthrough.open', () =>
     vscode.commands.executeCommand(
       'workbench.action.openWalkthrough',
@@ -213,6 +216,7 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteAddCmd,
     openOrgOnlyTestCmd,
     apexTestRefreshCmd,
+    apexTestClearResultsCmd,
     apexTestingWalkthroughOpenCmd
   );
 };

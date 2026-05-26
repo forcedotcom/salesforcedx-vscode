@@ -1,4 +1,4 @@
-# 66.12.2 - May 21, 2026
+# 66.12.3 - May 22, 2026
 
 ## Added
 
@@ -8,14 +8,14 @@
 
 ## Fixed
 
-#### salesforcedx-vscode-lwc
-
-- We fixed an issue where LWC HTML completions, hover, and diagnostics were not working because required modules were missing from the packaged extension. ([PR #7331](https://github.com/forcedotcom/salesforcedx-vscode/pull/7331))
-
 #### salesforcedx-vscode-apex
 
 - We fixed an unhandled "Channel has been closed" exception that could occur during Apex Language Server restart. ([PR #7314](https://github.com/forcedotcom/salesforcedx-vscode/pull/7314))
 
+#### salesforcedx-vscode-org
+
+- We fixed an issue where the source tracking status bar didn't refresh after switching orgs via the org picker. ([PR #7328](https://github.com/forcedotcom/salesforcedx-vscode/pull/7328))
+
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #7293](https://github.com/forcedotcom/salesforcedx-vscode/pull/7293), [PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322), [PR #7325](https://github.com/forcedotcom/salesforcedx-vscode/pull/7325))
+- We made some under the hood changes. ([PR #7293](https://github.com/forcedotcom/salesforcedx-vscode/pull/7293), [PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322), [PR #7325](https://github.com/forcedotcom/salesforcedx-vscode/pull/7325), [PR #7331](https://github.com/forcedotcom/salesforcedx-vscode/pull/7331), [PR #7336](https://github.com/forcedotcom/salesforcedx-vscode/pull/7336))

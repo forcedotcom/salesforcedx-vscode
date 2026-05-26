@@ -120,7 +120,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
-    this.checkCliTelemetry()
+    await this.checkCliTelemetry()
       .then(cliEnabled => {
         this.setCliTelemetryEnabled(this.isTelemetryExtensionConfigurationEnabled() && cliEnabled);
       })

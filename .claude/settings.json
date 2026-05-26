@@ -1,9 +1,62 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
+      "Bash(${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('sources',['?']\\)[:3]\\)\")",
       "Bash(git commit -m ' *)",
       "Bash(python3 -c ' *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-no-verify.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/mark-edit.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/verify-on-edit.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/verify-stop.sh"
+          }
+        ]
+      }
     ]
   }
 }

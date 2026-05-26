@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.12.2",
+  "version": "66.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -47,9 +47,10 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "66.12.2"
+    "salesforcedx-vscode-services": "*"
   },
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "compile": "wireit",
     "lint": "wireit",

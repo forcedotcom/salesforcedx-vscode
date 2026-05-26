@@ -769,6 +769,8 @@ export default [
       'local/package-json-extension-icon': 'error',
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
+      'local/package-json-no-default-true': 'error',
+      'local/package-json-require-root-install': 'error',
       'local/package-json-view-refs': 'error',
       'local/package-json-salesforce-dep-versions': 'error'
     }
