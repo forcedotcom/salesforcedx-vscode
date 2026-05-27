@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -33,5 +33,11 @@ export const simpleAccountResourceClassText = [
   '    Account result = [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
   '    return result;',
   '  }',
+  '}'
+].join('\n');
+
+export const ineligibleApexClassText = [
+  'public with sharing class IneligibleApexClass {',
+  '  public IneligibleApexClass() {}',
   '}'
 ].join('\n');

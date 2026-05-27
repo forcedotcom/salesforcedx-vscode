@@ -12,6 +12,7 @@
     <active>true</active>
   </operations>
   <registrationProvider>SimpleAccountResource</registrationProvider>
+  <registrationProviderAsset>SimpleAccountResource</registrationProviderAsset>
   <registrationProviderType>ApexRest</registrationProviderType>
   <namedCredential>null</namedCredential>
 </ExternalServiceRegistration>

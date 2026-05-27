@@ -165,7 +165,6 @@ describe('selectStrategyByBidRule', () => {
   };
 
   // initializeAndBid is mocked, so the `R` channel is empty at runtime; cast away the static service requirements.
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const runSelect = (rule: 'LEAST_CALLS' | 'MOST_CALLS') =>
     Effect.runPromise(
       selectStrategyByBidRule(mockMetadata, mockContext, rule) as Effect.Effect<GenerationStrategy, unknown, never>

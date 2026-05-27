@@ -43,9 +43,11 @@
     "yaml": "^2.8.2"
   },
   "devDependencies": {
+    "@salesforce/playwright-vscode-ext": "*",
     "@types/ejs": "3.1.5",
     "openapi-types": "12.1.3",
     "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-services": "*",
     "vscode-languageserver-protocol": "3.17.5"
   },
   "extensionDependencies": [
@@ -63,7 +65,9 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug"
   },
   "wireit": {
     "compile": {
@@ -145,6 +149,33 @@
       "dependencies": [
         "vscode:bundle"
       ]
+    },
+    "test:desktop": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-apex:vscode:bundle",
+        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-core:vscode:bundle",
+        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     }
   },
   "packaging": {

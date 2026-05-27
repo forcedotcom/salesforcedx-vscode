@@ -3,11 +3,6 @@ name: Apex End to End Tests
 on:
   workflow_dispatch:
     inputs:
-      # createOasDoc:
-      #   description: 'Create OAS Doc'
-      #   required: false
-      #   default: true
-      #   type: boolean
       apexLsp:
         description: 'Apex LSP'
         required: false
@@ -40,11 +35,6 @@ on:
 
   workflow_call:
     inputs:
-      # createOasDoc:
-      #   description: 'Create OAS Doc'
-      #   required: false
-      #   default: true
-      #   type: boolean
       apexLsp:
         description: 'Apex LSP'
         required: false
@@ -76,16 +66,6 @@ on:
         type: string
 
 jobs:
-  # createOasDoc:
-  #   if: ${{ inputs.createOasDoc }}
-  #   uses: ./.github/workflows/runE2ETest.yml
-  #   secrets: inherit
-  #   with:
-  #     testToRun: 'createOasDoc.e2e.js'
-  #     vscodeVersion: ${{ inputs.vscodeVersion }}
-  #     runId: ${{ inputs.runId }}
-  #     os: '["ubuntu-latest"]'
-
   apexLSP:
     if: ${{ inputs.apexLsp }}
     uses: ./.github/workflows/runE2ETest.yml
