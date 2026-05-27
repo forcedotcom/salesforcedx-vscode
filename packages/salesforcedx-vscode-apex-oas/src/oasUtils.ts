@@ -14,14 +14,12 @@ import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';
-import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
+import { OAS_EXTENSION_ID } from './constants';
 import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
 import { oasDiagnosticCollection, ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import { AA_CLASS_REST_ANNOTATIONS } from './settings';
 
 const AA_METHOD_REST_ANNOTATIONS = new Set(['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete']);
-
-const DOT_SFDX = '.sfdx';
 
 /**
  * Creates problem tab entries for an OAS document.
@@ -116,69 +114,17 @@ const PROMPT_TEMPLATES = {
 type EjsTemplateKey = keyof typeof PROMPT_TEMPLATES;
 
 /**
- * Copies the contents of a directory recursively.
- * @param {string} src - The source directory.
- * @param {string} dest - The destination directory.
- */
-const copyDirectory = Effect.fn('ApexOas.Templates.copyDirectory')(function* (src: string, dest: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = api.services.FsService;
-  // eslint-disable-next-line functional/no-let -- iterative BFS avoids recursive Effect.fn R-channel poisoning
-  let queue: readonly (readonly [string, string])[] = [[src, dest] as const];
-  // eslint-disable-next-line functional/no-loop-statements -- iterative BFS replaces recursion that poisons TS R-channel inference
-  while (queue.length > 0) {
-    const next: (readonly [string, string])[] = [];
-    yield* Effect.forEach(
-      queue,
-      ([s, d]) =>
-        Effect.gen(function* () {
-          yield* fsService.createDirectory(d);
-          const entries = yield* fsService.readDirectoryWithTypes(s);
-          yield* Effect.forEach(
-            entries,
-            entry => {
-              const name = path.basename(entry.uri.fsPath);
-              const srcPath = path.join(s, name);
-              const destPath = path.join(d, name);
-              if (entry.type === vscode.FileType.Directory) {
-                next.push([srcPath, destPath] as const);
-                return Effect.void;
-              }
-              return fsService
-                .readFile(srcPath)
-                .pipe(Effect.flatMap(content => fsService.writeFile(destPath, content)));
-            },
-            { concurrency: 'unbounded', discard: true }
-          );
-        }),
-      { concurrency: 'unbounded', discard: true }
-    );
-    queue = next;
-  }
-});
-
-/**
  * Resolves the template directory URI.
  * @returns {Promise<URI>} - The URI of the template directory.
  */
 const resolveTemplateDir = Effect.fn('ApexOas.Templates.resolveTemplateDir')(function* () {
-  const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
-  const ext = vscode.extensions.getExtension(VSCODE_APEX_EXTENSION_NAME);
+  const ext = vscode.extensions.getExtension(OAS_EXTENSION_ID);
   if (!ext) {
     return yield* new ApexExtensionUnavailable({
-      message: `Unable to find extension ${VSCODE_APEX_EXTENSION_NAME}`
+      message: `Unable to find extension ${OAS_EXTENSION_ID}`
     });
   }
-  const extensionDir = ext.extensionUri;
-  if (logLevel !== 'fatal') {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-    const templatesDir = path.join(workspaceInfo.fsPath, DOT_SFDX, 'resources', 'templates');
-    // copy contents of extensionDir to TEMPLATES_DIR
-    yield* copyDirectory(path.join(extensionDir.fsPath, 'resources', 'templates'), templatesDir);
-    return URI.file(path.join(workspaceInfo.fsPath, DOT_SFDX));
-  }
-  return extensionDir;
+  return ext.extensionUri;
 });
 
 /**
