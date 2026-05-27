@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
-import { SettingsService } from '../../../src/vscode/settingsService';
+import { SettingsError, SettingsService } from '../../../src/vscode/settingsService';
 
 const runAccessToken = () =>
   Effect.runPromiseExit(
@@ -83,9 +85,10 @@ describe('SettingsService.getAccessToken', () => {
 
     expect(exit._tag).toBe('Failure');
     if (exit._tag === 'Failure') {
-      const text = JSON.stringify(exit.cause);
-      expect(text).toContain('accessToken');
-      expect(text).toContain('MissingSettingsError');
+      const failure = Option.getOrThrow(Cause.failureOption(exit.cause));
+      expect(failure).toBeInstanceOf(SettingsError);
+      expect((failure as SettingsError)._tag).toBe('MissingSettingsError');
+      expect((failure as SettingsError).key).toBe('accessToken');
     }
   });
 });
