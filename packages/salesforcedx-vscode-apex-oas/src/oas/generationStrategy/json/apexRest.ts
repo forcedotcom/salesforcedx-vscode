@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { PromptGenerationResult } from '../../schemas';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -35,7 +35,6 @@ import {
   formatUrlPath,
   updateOperationIds
 } from '../formatUtils';
-import { StrategyTelemetry } from '../generationStrategy';
 
 type GenState = {
   readonly servicePrompts: Map<string, string>;
@@ -231,21 +230,19 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
     if (validResponses.length === 0) {
       return yield* new OasGenerationFailed({ message: nls.localize('no_oas_generated') });
     }
+    yield* annotateRootSpan({
+      strategyName: 'ApexRest',
+      biddedCallCount: genState.biddedCallCount,
+      llmCallCount,
+      generationSize: genState.maxBudget
+    });
     return yield* combineYamlByMethod(validResponses, context.classDetail.name).pipe(
       Effect.mapError(e => new OasGenerationFailed({ message: nls.localize('failed_to_combine_oas', String(e)) }))
     );
   });
 
-  const getTelemetry = (): StrategyTelemetry => ({
-    biddedCallCount: genState.biddedCallCount,
-    llmCallCount,
-    generationSize: genState.maxBudget
-  });
-
   return {
-    strategyName: 'ApexRest',
     bid,
-    generateOAS,
-    getTelemetry
+    generateOAS
   };
 });

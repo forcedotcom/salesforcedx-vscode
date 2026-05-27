@@ -11,19 +11,11 @@ import type { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type * as Effect from 'effect/Effect';
 import type { ConnectionService } from 'salesforcedx-vscode-services';
 
-export type StrategyTelemetry = {
-  biddedCallCount: number;
-  llmCallCount: number;
-  generationSize: number;
-};
-
 export type GenerationStrategy = {
-  readonly strategyName: string;
   bid: () => Effect.Effect<PromptGenerationStrategyBid, never, never>;
   generateOAS: () => Effect.Effect<
     string,
     OasGenerationFailed | LLMRetriesExhausted | LLMCallFailed | MethodNotFoundInDocSymbols,
     LLMService | ExtensionProviderService | ConnectionService
   >;
-  getTelemetry: () => StrategyTelemetry;
 };

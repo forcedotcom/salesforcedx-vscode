@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { annotateRootSpan } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
@@ -39,9 +40,7 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   }
 
   // Step 3-4: Select the generation strategy by bid rule
-  const strategy = yield* selectStrategyByBidRule(eligibilityResult, context).pipe(
-    Effect.tap(s => Effect.annotateCurrentSpan('strategy', s.strategyName))
-  );
+  const strategy = yield* selectStrategyByBidRule(eligibilityResult, context);
 
   // Step 5: Determine filename
   const name = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
@@ -52,7 +51,6 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
 
   // Step 7: Use the strategy to generate the OAS
   const openApiDocument = yield* strategy.generateOAS();
-  const telemetry = strategy.getTelemetry();
 
   // Step 8: Process the OAS document
   const processedOasResult = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
@@ -69,11 +67,8 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   const overwrite = fullPath[0] === fullPath[1];
   const [errors, warnings, infos, hints, total] = summarizeDiagnostics(processedOasResult.errors);
 
-  yield* Effect.annotateCurrentSpan({
+  yield* annotateRootSpan({
     overwrite,
-    biddedCallCount: telemetry.biddedCallCount,
-    llmCallCount: telemetry.llmCallCount,
-    generationSize: telemetry.generationSize,
     documentTtlProblems: total,
     documentErrors: errors,
     documentWarnings: warnings,

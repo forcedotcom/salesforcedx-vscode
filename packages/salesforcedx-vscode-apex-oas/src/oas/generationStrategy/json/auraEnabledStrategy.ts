@@ -5,19 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { GenerationStrategy, StrategyTelemetry } from '../generationStrategy';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { GenerationStrategy } from '../generationStrategy';
+import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { OasGenerationFailed } from '../../../errors';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
 import { IMPOSED_FACTOR, SUM_TOKEN_MAX_LIMIT } from '../constants';
-
-const getTelemetry = (): StrategyTelemetry => ({
-  biddedCallCount: 0,
-  llmCallCount: 0,
-  generationSize: 0
-});
 
 export const createAuraEnabledStrategy = async (
   context: ApexClassOASGatherContextResponse
@@ -44,6 +38,9 @@ export const createAuraEnabledStrategy = async (
       });
       return JSON.stringify(result);
     },
+    Effect.tap(() =>
+      annotateRootSpan({ strategyName: 'AuraEnabled', biddedCallCount: 0, llmCallCount: 0, generationSize: 0 })
+    ),
     Effect.catchAll(cause =>
       cause instanceof OasGenerationFailed
         ? Effect.fail(cause)
@@ -54,9 +51,7 @@ export const createAuraEnabledStrategy = async (
   );
 
   return {
-    strategyName: 'AuraEnabled',
     bid,
-    generateOAS,
-    getTelemetry
+    generateOAS
   };
 };
