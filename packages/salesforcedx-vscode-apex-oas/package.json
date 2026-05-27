@@ -162,13 +162,13 @@
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
+        "vscode:package:legacy",
+        "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
-        "../salesforcedx-vscode-apex:vscode:bundle",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
-        "../salesforcedx-vscode-core:vscode:bundle",
-        "../salesforcedx-vscode-metadata:vscode:bundle",
+        "../salesforcedx-vscode-apex:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-metadata:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
