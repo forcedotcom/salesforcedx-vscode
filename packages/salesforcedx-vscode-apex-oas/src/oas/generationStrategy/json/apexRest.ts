@@ -36,7 +36,6 @@ import {
   updateOperationIds
 } from '../formatUtils';
 import { StrategyTelemetry } from '../generationStrategy';
-import { openAPISchemaV3Guided } from '../openapi3.schema';
 
 const STRATEGY_NAME = 'ApexRest';
 
@@ -194,7 +193,6 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   const urlMapping =
     context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name))?.parameters.urlMapping ??
     `/${context.classDetail.name}/`;
-  const oasSchema = JSON.stringify(openAPISchemaV3Guided);
   const outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
 
   const genState = yield* buildGenState(metadata, context, classPrompt, sourceText);
@@ -249,9 +247,6 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
 
   return {
     strategyName: STRATEGY_NAME,
-    get openAPISchema() {
-      return oasSchema;
-    },
     bid,
     generateOAS,
     getTelemetry

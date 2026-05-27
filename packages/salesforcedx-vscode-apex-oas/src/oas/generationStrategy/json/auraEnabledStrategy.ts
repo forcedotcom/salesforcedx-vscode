@@ -24,9 +24,6 @@ const getTelemetry = (): StrategyTelemetry => ({
 export const createAuraEnabledStrategy = async (
   context: ApexClassOASGatherContextResponse
 ): Promise<GenerationStrategy> => {
-  // eslint-disable-next-line functional/no-let
-  let oasSchema = '';
-
   const bid = () => {
     const shouldBid = hasAuraFrameworkCapability(context);
     return Effect.succeed({
@@ -47,8 +44,7 @@ export const createAuraEnabledStrategy = async (
         catch: cause =>
           new OasGenerationFailed({ message: `Failed to fetch OAS specification from org: ${String(cause)}` })
       });
-      oasSchema = JSON.stringify(result);
-      return oasSchema;
+      return JSON.stringify(result);
     },
     Effect.catchAll(cause =>
       cause instanceof OasGenerationFailed
@@ -61,9 +57,6 @@ export const createAuraEnabledStrategy = async (
 
   return {
     strategyName: STRATEGY_NAME,
-    get openAPISchema() {
-      return oasSchema;
-    },
     bid,
     generateOAS,
     getTelemetry

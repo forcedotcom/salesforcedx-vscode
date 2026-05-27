@@ -23,7 +23,6 @@ export type StrategyTelemetry = {
 
 export type GenerationStrategy = {
   readonly strategyName: string;
-  readonly openAPISchema: string | undefined;
   bid: () => Effect.Effect<PromptGenerationStrategyBid, never, never>;
   generateOAS: () => Effect.Effect<
     string,

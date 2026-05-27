@@ -148,7 +148,6 @@ describe('selectStrategyByBidRule', () => {
   const buildMockStrategy = (strategyName: string): GenerationStrategy =>
     ({
       strategyName,
-      openAPISchema: undefined,
       bid: jest.fn(),
       generateOAS: jest.fn(),
       getTelemetry: jest.fn()
