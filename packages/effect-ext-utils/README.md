@@ -23,8 +23,14 @@ npm install @salesforce/effect-ext-utils
 ## Usage
 
 ```typescript
-import {} from /* utilities */ '@salesforce/effect-ext-utils';
+import { annotateRootSpan } from '@salesforce/effect-ext-utils';
+
+// Annotates the trace's root span instead of the current one. Useful when the
+// annotation needs to reach App Insights / O11y (which only ingest top-level spans).
+yield * annotateRootSpan({ orgId, featureFlag: 'enabled' });
 ```
+
+Signature mirrors `Effect.annotateCurrentSpan` — both `(key, value)` and record overloads. The helper walks `Span.parent` to find the trace root, no-ops with a debug log if there is no current span or the chain dead-ends at a non-Effect (External) span.
 
 ## License
 
