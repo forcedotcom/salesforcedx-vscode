@@ -4,27 +4,16 @@
 
 #### salesforcedx-vscode-apex-testing
 
-- Incremental test tree update on deploy and restore previous results - W-22400699 ([PR #7300](https://github.com/forcedotcom/salesforcedx-vscode/pull/7300))
+- The Apex Test Explorer now performs an incremental update when you deploy a class instead of clearing the entire test tree. Only the deployed class is refreshed at method granularity, and existing results are preserved and marked stale so you don't lose context from your last run. ([PR #7300](https://github.com/forcedotcom/salesforcedx-vscode/pull/7300))
 
-#### salesforcedx-vscode-core
-
-- Add orgEdition to telemetry properties - W-22583951 ([PR #7343](https://github.com/forcedotcom/salesforcedx-vscode/pull/7343))
-
-#### salesforcedx-vscode-lwc
-
-- Incremental test tree update on deploy and restore previous results - W-22400699 ([PR #7300](https://github.com/forcedotcom/salesforcedx-vscode/pull/7300))
+- We added a new setting, **Restore Previous Results**, that restores your Apex test results when you reload the workspace (results from the last 24 hours, marked stale). Use the **Don't Restore Again** action to disable it for a workspace. ([PR #7300](https://github.com/forcedotcom/salesforcedx-vscode/pull/7300))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex-log
 
-- Allow user to select their trace flag debug level when creating instead of defaulting to ReplayDebuggerLevels - W-22364952 ([PR #7330](https://github.com/forcedotcom/salesforcedx-vscode/pull/7330))
+- When you click the **Create trace flag for current user** code lens, you can now choose a debug level from a dropdown instead of being defaulted to `ReplayDebuggerLevels`. ([PR #7330](https://github.com/forcedotcom/salesforcedx-vscode/pull/7330), [ISSUE #7262](https://github.com/forcedotcom/salesforcedx-vscode/issues/7262))
 
-#### salesforcedx-vscode-apex-replay-debugger
+## Under the Hood
 
-- Allow user to select their trace flag debug level when creating instead of defaulting to ReplayDebuggerLevels - W-22364952 ([PR #7330](https://github.com/forcedotcom/salesforcedx-vscode/pull/7330))
-
-#### salesforcedx-vscode-services
-
-- Allow user to select their trace flag debug level when creating instead of defaulting to ReplayDebuggerLevels - W-22364952 ([PR #7330](https://github.com/forcedotcom/salesforcedx-vscode/pull/7330))
-
+- We made some under the hood changes. ([PR #7343](https://github.com/forcedotcom/salesforcedx-vscode/pull/7343))
