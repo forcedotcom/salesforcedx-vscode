@@ -17,7 +17,11 @@ import {
 } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 
-const FALLBACK_API_VERSION = '64.0';
+const FALLBACK_API_VERSION = '67.0';
+
+/* In web (Code Builder) mode authentication is managed by the host environment;
+   the extension uses this sentinel rather than reading from settings. */
+const WEB_MANAGED_TOKEN = 'web-console-managed-token';
 
 export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettingsError', {
   cause: S.Unknown,
@@ -98,6 +102,9 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     });
 
     const getAccessToken = Effect.fn('SettingsService.getAccessToken')(function* () {
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        return yield* Effect.succeed(WEB_MANAGED_TOKEN);
+      }
       return yield* Effect.try({
         try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY)?.trim(),
         catch: error => {
