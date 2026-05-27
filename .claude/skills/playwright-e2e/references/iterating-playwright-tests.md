@@ -50,3 +50,5 @@ https://github.com/redhat-developer/vscode-extension-tester - pageObject/Selecto
 - TS extension activation: `Error: Activating extension 'vscode.typescript-language-features'`
 - **All installed extensions temporarily disabled** (other extensions, not ours) - expected notification
 - VS Code 1.116+ / `@vscode/test-electron`: `cannot change enablement of github copilot chat extension` — workbench Copilot Chat toggle in test env; non-critical (`helpers.ts` `NON_CRITICAL_ERROR_PATTERNS`)
+- `UtilityProcessWorker` — Electron utility process worker startup noise on macOS desktop tests (incidental, non-critical)
+- `File Watcher (universal)` — File watcher system startup noise on macOS desktop tests (incidental, non-critical)

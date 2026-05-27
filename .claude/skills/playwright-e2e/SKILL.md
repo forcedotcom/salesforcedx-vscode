@@ -65,6 +65,10 @@ Look for the required org aliases (e.g., `minimalTestOrg`, `nonTrackingTestOrg`,
 
 When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never block >30s. Use `is_background: true` so tests run while the AI continues. Check terminal output or `output_file` later.
 
+## Apex OAS E2E Tests
+
+Playwright desktop tests live in `packages/salesforcedx-vscode-apex-oas/test/playwright/specs/` with dedicated CI workflow `.github/workflows/apexOasE2E.yml` (macOS + ubuntu, desktop only). Specs share one MINIMAL_ORG_ALIAS scratch org and are serialized via `workers: 1` in `playwright.config.desktop.ts`. Tests that deploy ESR metadata requiring API >=66 call `setWorkspaceApiVersion()` to bump the fixture's default sourceApiVersion (64.0 → 66.0). Specs that click modal-dialog buttons require `window.dialogStyle: custom` in the fixture's `userSettings`. The OAS package depends on `salesforce.salesforcedx-einstein-gpt` (A4V); install it via the desktop fixture's pre-launch step.
+
 ## Running Full E2E Test Suite
 
 See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 9 packages in correct dependency order with failure analysis.
