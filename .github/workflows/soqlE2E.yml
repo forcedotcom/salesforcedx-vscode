@@ -82,7 +82,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npm i -g @salesforce/cli@latest-rc
+          command: npm i -g @salesforce/cli
           retry_wait_seconds: 30
 
       - name: Auth to dev hub (global)
@@ -212,7 +212,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npm i -g @salesforce/cli@latest-rc
+          command: npm i -g @salesforce/cli
           retry_wait_seconds: 30
 
       - name: Auth to dev hub (global)
