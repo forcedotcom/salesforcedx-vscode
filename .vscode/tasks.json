@@ -127,6 +127,23 @@
       "args": ["run", "watch"],
       "isBackground": false,
       "problemMatcher": "$tsc-watch"
+    },
+    {
+      "label": "Start Grafana LGTM",
+      "type": "shell",
+      "command": "docker inspect --format='{{.State.Running}}' lgtm 2>/dev/null | grep -q true || docker start lgtm 2>/dev/null || docker run -d --name lgtm -p 3000:3000 -p 3100:3100 -p 3200:3200 -p 4317:4317 -p 4318:4318 grafana/otel-lgtm",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Grafana and Bundle",
+      "dependsOn": ["Start Grafana LGTM", "Compile and Bundle"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
     }
   ],
   "inputs": [

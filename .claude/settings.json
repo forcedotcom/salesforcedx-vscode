@@ -18,7 +18,12 @@
       "Bash(${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('sources',['?']\\)[:3]\\)\")",
       "Bash(git commit -m ' *)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(ls *~/.sf/vscode-spans*)",
+      "Bash(tail *~/.sf/vscode-spans*)",
+      "Bash(wc -l *~/.sf/vscode-spans*)",
+      "Bash(grep *~/.sf/vscode-spans*)",
+      "Bash(head *~/.sf/vscode-spans*)"
     ]
   },
   "hooks": {
