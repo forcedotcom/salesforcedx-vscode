@@ -24,16 +24,16 @@ One test per file. Many steps allowed.
 
 ## File System and VS Code API
 
-**NEVER use Node.js fs/path or VS Code API** - desktop only, not web
+**NEVER use Node.js fs/path or VS Code API** unless test is desktop-only (`.headless.spec.ts` or desktop fixture only)
 
-**Use UI interactions:**
+**For cross-platform (web + desktop) tests, use UI interactions:**
 
 - Quick Open: `@salesforce/playwright-vscode-ext` `openFileByName` — palette "Go to File…" (web + desktop); VS Code 1.116+ rows often `basename` + segments + trailing `file results` — match logic `packages/playwright-vscode-ext/src/utils/fileHelpers.ts`
 - `Control+Home`, `Control+s` - navigate and save
 - `page.keyboard.type()` - edit content
 - Monaco editor selectors - interact with editor
 
-Tests must work identically in web and desktop.
+**Desktop-only tests** (`.headless.spec.ts` file naming or `createDesktopTest` fixture) may poll fs directly for durable success signals (e.g., `waitForEsrFile` checks on-disk artifacts) instead of flaky UI toast assertions.
 
 ## Web headless (`createHeadlessServer`)
 

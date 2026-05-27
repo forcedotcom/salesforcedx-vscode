@@ -78,6 +78,14 @@ To run only your new test in CI while iterating:
 3. **Optional** — skip org setup steps not needed for your test (e.g. minimal/non-tracking orgs)
 4. **Restore** — remove branch from `branches-ignore`, remove `--grep`, uncomment skipped steps
 
+## Reliable Assertions for Async Operations
+
+For desktop-only tests, prefer durable success signals over flaky UI assertions:
+
+- **Avoid**: `vscode.window.showInformationMessage` toasts auto-dismiss in seconds; `notification-list-item` assertions are racy
+- **Prefer**: Poll on-disk artifacts (e.g., generated files) with exponential backoff. Example: `waitForEsrFile` checks `fs.access` repeatedly until artifact appears or timeout.
+- Pattern: Create a helper that polls `fs.access` or `fs.stat` with `Date.now() < deadline` loop; throw on timeout with clear error message
+
 ## References
 
 - https://playwright.dev/docs - Playwright docs
