@@ -9,31 +9,39 @@ import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
 import { appendFileSync, mkdirSync } from 'node:fs';
+import { hostname } from 'node:os';
 import { join } from 'node:path';
-import { serializeSpanForFile } from './spanUtils';
+import { serializeSpanOtlp } from './spanUtils';
 
 const SPANS_DIR = join(Global.SF_DIR, 'vscode-spans');
 
-/** Span exporter that appends simplified JSON lines to ~/.sf/vscode-spans/node-{extensionName}-{timestamp}.jsonl */
-export class FileSpanExporterNode implements SpanExporter {
-  private readonly filePath: string;
+// eslint-disable-next-line functional/no-let -- lazily initialized shared path
+let sharedFilePath: string | undefined;
 
-  constructor(extensionName: string) {
+export const getOtlpFilePath = (): string => {
+  if (!sharedFilePath) {
     mkdirSync(SPANS_DIR, { recursive: true });
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
-    this.filePath = join(SPANS_DIR, `node-${extensionName}-${timestamp}.jsonl`);
+    sharedFilePath = join(SPANS_DIR, `${timestamp}.jsonl`);
   }
+  return sharedFilePath;
+};
+
+/** Span exporter that writes normalized OTLP spans (one per line) to ~/.sf/vscode-spans/otlp-{timestamp}.jsonl */
+export class OtlpFileSpanExporterNode implements SpanExporter {
+  private readonly env = { hostname: hostname(), processId: String(process.pid) };
 
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
-    const lines = spans.map(serializeSpanForFile).join('\n') + (spans.length > 0 ? '\n' : '');
-    if (!lines) {
+    if (spans.length === 0) {
       resultCallback({ code: ExportResultCode.SUCCESS });
       return;
     }
+
     const result: ExportResult = (() => {
       // eslint-disable-next-line functional/no-try-statements -- sync fs op, no Effect in exporter
       try {
-        appendFileSync(this.filePath, lines);
+        const lines = spans.map(span => serializeSpanOtlp(span, this.env)).join('\n');
+        appendFileSync(getOtlpFilePath(), `${lines}\n`);
         return { code: ExportResultCode.SUCCESS };
       } catch (error) {
         return { code: ExportResultCode.FAILED, error };
