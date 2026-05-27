@@ -6,7 +6,7 @@
  */
 
 import type { ProcessorInputOutput } from './processorStep';
-import { Spectral } from '@stoplight/spectral-core';
+import { ISpectralDiagnostic, Spectral } from '@stoplight/spectral-core';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
@@ -27,22 +27,21 @@ const mapSeverity = (severity: number): vscode.DiagnosticSeverity => {
   }
 };
 
+const resultToDiagnostic = (result: ISpectralDiagnostic): vscode.Diagnostic =>
+  new vscode.Diagnostic(
+    new vscode.Range(
+      result.range.start.line,
+      result.range.start.character,
+      result.range.end.line,
+      result.range.end.character
+    ),
+    result.message,
+    mapSeverity(result.severity)
+  );
+
 export const oasValidationStep = Effect.fn('ApexOas.Process.oasValidation')(function* (input: ProcessorInputOutput) {
   const spectral = new Spectral();
   spectral.setRuleset(ruleset);
-  const results = yield* Effect.promise(() => spectral.run(stringify(input.openAPIDoc)));
-  const diagnostics = results.map(
-    result =>
-      new vscode.Diagnostic(
-        new vscode.Range(
-          result.range.start.line,
-          result.range.start.character,
-          result.range.end.line,
-          result.range.end.character
-        ),
-        result.message,
-        mapSeverity(result.severity)
-      )
-  );
+  const diagnostics = (yield* Effect.promise(() => spectral.run(stringify(input.openAPIDoc)))).map(resultToDiagnostic);
   return { ...input, errors: [...input.errors, ...diagnostics] };
 });
