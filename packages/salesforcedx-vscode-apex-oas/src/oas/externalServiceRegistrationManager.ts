@@ -8,6 +8,7 @@
 import type { ProcessorInputOutput } from './documentProcessorPipeline/processorStep';
 import type { ApexOASInfo, ExternalServiceOperation } from './schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
@@ -17,7 +18,6 @@ import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
-import { EsrPathResolutionFailed, EsrWriteFailed } from '../errors';
 import { nls } from '../messages/nls';
 import {
   createProblemTabEntriesForOasDocument,
@@ -25,6 +25,16 @@ import {
   hasValidRestAnnotations,
   hasAuraFrameworkCapability
 } from '../oasUtils';
+
+/** @ExportTaggedError */
+export class EsrWriteFailed extends Data.TaggedError('EsrWriteFailed')<{
+  readonly message: string;
+}> {}
+
+/** @ExportTaggedError */
+export class EsrPathResolutionFailed extends Data.TaggedError('EsrPathResolutionFailed')<{
+  readonly message: string;
+}> {}
 
 export type FullPath = [originalPath: string, newPath: string];
 

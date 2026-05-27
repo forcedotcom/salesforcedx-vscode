@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
+import type { ApexOASMethodDetail } from 'salesforcedx-vscode-apex';
 import {
   combineYamlByMethod,
   excludeNon2xxResponses,
@@ -14,7 +15,6 @@ import {
   getMethodTypeFromAnnotation,
   updateOperationIds
 } from '../../../../src/oas/generationStrategy/formatUtils';
-import { ApexOASMethodDetail } from '../../../../src/oas/schemas';
 
 describe('formatUrlPath', () => {
   it('should format the URL path correctly with parameters', () => {

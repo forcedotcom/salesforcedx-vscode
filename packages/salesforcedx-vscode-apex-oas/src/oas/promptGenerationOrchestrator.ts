@@ -4,16 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
-import { StrategyNotQualified } from '../errors';
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import * as vscode from 'vscode';
 import { nls } from '../messages/nls';
-import { GenerationStrategy } from './generationStrategy/generationStrategy';
 import { GenerationStrategyType, initializeAndBid } from './generationStrategy/generationStrategyFactory';
-import {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  PromptGenerationStrategyBid
-} from './schemas';
+import { PromptGenerationStrategyBid } from './schemas';
+
+/** @ExportTaggedError */
+export class StrategyNotQualified extends Data.TaggedError('StrategyNotQualified')<{
+  readonly message: string;
+}> {}
 
 export type BidRule = 'LEAST_CALLS' | 'MOST_CALLS';
 
@@ -49,15 +51,23 @@ export const applyRule = (rule: BidRule, bids: Map<GenerationStrategyType, Promp
   }
 };
 
+const isBidRule = (value: unknown): value is BidRule => value === 'LEAST_CALLS' || value === 'MOST_CALLS';
+
+const getBidRule = (): BidRule => {
+  const currentBidRule = vscode.workspace
+    .getConfiguration()
+    .get<BidRule>('salesforcedx-vscode-apex-oas.generation_strategy', 'LEAST_CALLS');
+  return isBidRule(currentBidRule) ? currentBidRule : 'LEAST_CALLS';
+};
+
 export const selectStrategyByBidRule = Effect.fn('ApexOas.Strategy.bid')(function* (
   metadata: ApexClassOASEligibleResponse,
-  context: ApexClassOASGatherContextResponse,
-  rule: BidRule
+  context: ApexClassOASGatherContextResponse
 ) {
   const { strategies, bids } = yield* initializeAndBid(metadata, context).pipe(
     Effect.mapError(cause => new StrategyNotQualified({ message: `Strategy initialization failed: ${String(cause)}` }))
   );
-  const selectedStrategyType = yield* applyRule(rule, bids);
-  const strategy: GenerationStrategy | undefined = strategies.get(selectedStrategyType);
+  const selectedStrategyType = yield* applyRule(getBidRule(), bids);
+  const strategy = strategies.get(selectedStrategyType);
   return strategy ?? (yield* new StrategyNotQualified({ message: nls.localize('strategy_not_qualified') }));
 });

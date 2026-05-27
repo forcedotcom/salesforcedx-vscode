@@ -5,19 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable barrel-files/avoid-barrel-files -- intentional re-export of upstream Apex types alongside locally-defined types */
-
-// Re-export all OAS types from the Apex extension - no duplication!
-export type {
-  ApexClassOASEligibleRequest,
-  ApexClassOASEligibleResponse,
-  ApexOASEligiblePayload,
-  ApexClassOASGatherContextResponse,
-  ApexOASClassDetail,
-  ApexOASMethodDetail,
-  ApexAnnotationDetail
-} from 'salesforcedx-vscode-apex';
-
 export type ApexOASResource = 'CLASS' | 'MULTI CLASSES' | 'METHOD or PROPERTY' | 'FOLDER';
 
 export type ApexOASInfo = {

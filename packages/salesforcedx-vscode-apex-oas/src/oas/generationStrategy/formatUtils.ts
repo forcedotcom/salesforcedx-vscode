@@ -7,10 +7,11 @@
 import * as Effect from 'effect/Effect';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
+import type { ApexOASMethodDetail } from 'salesforcedx-vscode-apex';
 import { MethodNotFoundInDocSymbols } from '../../errors';
 import { nls } from '../../messages/nls';
 import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
-import { ApexOASMethodDetail, httpMethodMap } from '../schemas';
+import { httpMethodMap } from '../schemas';
 
 export const formatUrlPath = (parametersInPath: string[], urlMapping: string): string => {
   const base = urlMapping.replace(/\/$|\/\*$/, '').trim();

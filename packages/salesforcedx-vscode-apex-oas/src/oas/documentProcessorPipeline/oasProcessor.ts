@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 import * as Effect from 'effect/Effect';
 import type { OpenAPIV3 } from 'openapi-types';
-import { betaInfoInjectionStep } from './betaInfoInjectionStep';
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { methodValidationStep } from './methodValidationStep';
 import { oasReorderStep } from './oasReorderStep';
 import { oasValidationStep } from './oasValidationStep';
@@ -19,7 +18,6 @@ type ProcessOasDocumentOptions = {
   context?: ApexClassOASGatherContextResponse;
   eligibleResult?: ApexClassOASEligibleResponse;
   isRevalidation?: boolean;
-  betaInfo?: string;
 };
 
 export const processOasDocument = Effect.fn('ApexOas.Process.run')(function* (
@@ -34,9 +32,6 @@ export const processOasDocument = Effect.fn('ApexOas.Process.run')(function* (
   }).pipe(
     Effect.tap(() => Effect.logDebug({ event: 'pipelineInput', document })),
     Effect.flatMap(io => (options?.isRevalidation === true ? Effect.succeed(io) : propertyCorrectionStep(io))),
-    Effect.flatMap(io =>
-      options?.isRevalidation === true ? Effect.succeed(io) : betaInfoInjectionStep(options?.betaInfo)(io)
-    ),
     Effect.flatMap(reconcileDuplicateSemanticPathsStep),
     Effect.flatMap(methodValidationStep),
     Effect.flatMap(oasValidationStep),

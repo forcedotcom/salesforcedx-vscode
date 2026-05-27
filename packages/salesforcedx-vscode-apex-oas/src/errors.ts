@@ -16,27 +16,6 @@ export class ApexLspRequestFailed extends Data.TaggedError('ApexLspRequestFailed
   readonly cause?: unknown;
 }> {}
 
-export class ClassNotEligible extends Data.TaggedError('ClassNotEligible')<{
-  readonly message: string;
-}> {}
-
-export class MixedFrameworksNotAllowed extends Data.TaggedError('MixedFrameworksNotAllowed')<{
-  readonly message: string;
-}> {}
-
-export class ContextGatheringFailed extends Data.TaggedError('ContextGatheringFailed')<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
-export class ResourceUriUnresolved extends Data.TaggedError('ResourceUriUnresolved')<{
-  readonly message: string;
-}> {}
-
-export class StrategyNotQualified extends Data.TaggedError('StrategyNotQualified')<{
-  readonly message: string;
-}> {}
-
 export class LLMCallFailed extends Data.TaggedError('LLMCallFailed')<{
   readonly message: string;
   readonly cause?: unknown;
@@ -47,14 +26,6 @@ export class LLMRetriesExhausted extends Data.TaggedError('LLMRetriesExhausted')
 }> {}
 
 export class OasGenerationFailed extends Data.TaggedError('OasGenerationFailed')<{
-  readonly message: string;
-}> {}
-
-export class EsrWriteFailed extends Data.TaggedError('EsrWriteFailed')<{
-  readonly message: string;
-}> {}
-
-export class EsrPathResolutionFailed extends Data.TaggedError('EsrPathResolutionFailed')<{
   readonly message: string;
 }> {}
 

@@ -6,11 +6,11 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import type { ApexClassOASGatherContextResponse } from './oas/schemas';
 import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
+import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';

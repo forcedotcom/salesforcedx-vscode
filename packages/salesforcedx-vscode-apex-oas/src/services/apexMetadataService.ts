@@ -32,15 +32,20 @@ const getApexExtension = Effect.fn('ApexOas.Lsp.getApexExtension')(function* () 
   return apexExtension;
 });
 
+const getClient = Effect.fn('ApexOas.Lsp.getClient')(function* () {
+  const ext = yield* getApexExtension();
+  const client = ext.exports.languageClientManager.getClientInstance();
+  if (!client) {
+    return yield* new ApexLspRequestFailed({ message: 'Apex language client is not available' });
+  }
+  return client;
+});
+
 export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('ApexMetadataService', {
   accessors: true,
   effect: Effect.gen(function* () {
     const isOpenAPIEligible = Effect.fn('ApexOas.Lsp.isOpenAPIEligible')(function* (requests: ApexOASEligiblePayload) {
-      const ext = yield* getApexExtension();
-      const client = ext.exports.languageClientManager.getClientInstance();
-      if (!client) {
-        return yield* new ApexLspRequestFailed({ message: 'Apex language client is not available' });
-      }
+      const client = yield* getClient();
       return yield* Effect.tryPromise({
         try: () => client.isOpenAPIEligible(requests),
         catch: cause =>
@@ -55,11 +60,7 @@ export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('
     });
 
     const gatherOpenAPIContext = Effect.fn('ApexOas.Lsp.gatherOpenAPIContext')(function* (sourceUri: URI | URI[]) {
-      const ext = yield* getApexExtension();
-      const client = ext.exports.languageClientManager.getClientInstance();
-      if (!client) {
-        return yield* new ApexLspRequestFailed({ message: 'Apex language client is not available' });
-      }
+      const client = yield* getClient();
       return yield* Effect.tryPromise({
         try: async (): Promise<ApexClassOASGatherContextResponse> => client.gatherOpenAPIContext(sourceUri),
         catch: cause =>

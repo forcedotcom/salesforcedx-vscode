@@ -6,7 +6,11 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { ApexOASClassDetail, ApexOASMethodDetail, ApexClassOASGatherContextResponse } from '../../../src/oas/schemas';
+import type {
+  ApexClassOASGatherContextResponse,
+  ApexOASClassDetail,
+  ApexOASMethodDetail
+} from 'salesforcedx-vscode-apex';
 import {
   hasValidRestAnnotations,
   hasAuraFrameworkCapability,

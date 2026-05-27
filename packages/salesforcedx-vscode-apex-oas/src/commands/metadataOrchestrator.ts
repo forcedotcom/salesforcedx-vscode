@@ -4,19 +4,32 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type {
-  ApexClassOASEligibleRequest,
-  ApexClassOASEligibleResponse,
-  ApexOASEligiblePayload,
-  ApexOASResource
-} from '../oas/schemas';
+import type { ApexOASResource } from '../oas/schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
+import type { ApexClassOASEligibleRequest, ApexOASEligiblePayload } from 'salesforcedx-vscode-apex';
 import type { URI } from 'vscode-uri';
-import { ApexLspRequestFailed, ClassNotEligible, ContextGatheringFailed, ResourceUriUnresolved } from '../errors';
+import { ApexLspRequestFailed } from '../errors';
 import { nls } from '../messages/nls';
 import { ApexMetadataService } from '../services/apexMetadataService';
+
+/** @ExportTaggedError */
+export class ClassNotEligible extends Data.TaggedError('ClassNotEligible')<{
+  readonly message: string;
+}> {}
+
+/** @ExportTaggedError */
+export class ContextGatheringFailed extends Data.TaggedError('ContextGatheringFailed')<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
+/** @ExportTaggedError */
+export class ResourceUriUnresolved extends Data.TaggedError('ResourceUriUnresolved')<{
+  readonly message: string;
+}> {}
 
 const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): ApexOASResource => {
   const payload = requestPayload.payload;
@@ -104,8 +117,7 @@ export const validateMetadata = Effect.fn('ApexOas.Metadata.validate')(function*
       message: nls.localize('apex_class_not_valid', path.basename(first.resourceUri.fsPath, '.cls'))
     });
   }
-  const result: ApexClassOASEligibleResponse = first;
-  return result;
+  return first;
 });
 
 export const gatherContext = Effect.fn('ApexOas.Metadata.gatherContext')(function* (sourceUri: URI | URI[]) {

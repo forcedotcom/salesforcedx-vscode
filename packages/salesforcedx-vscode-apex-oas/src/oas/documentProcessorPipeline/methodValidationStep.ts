@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ApexClassOASEligibleResponse } from '../schemas';
 import type { ProcessorInputOutput } from './processorStep';
 import * as Effect from 'effect/Effect';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
+import type { ApexClassOASEligibleResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { OasValidationFailed } from '../../errors';
 import { nls } from '../../messages/nls';

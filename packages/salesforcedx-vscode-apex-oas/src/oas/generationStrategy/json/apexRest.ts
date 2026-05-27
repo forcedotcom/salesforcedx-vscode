@@ -4,12 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  ApexOASMethodDetail,
-  PromptGenerationResult
-} from '../../schemas';
+import type { PromptGenerationResult } from '../../schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
@@ -17,15 +12,12 @@ import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
+import type {
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse,
+  ApexOASMethodDetail
+} from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
-
-const keepOrLog =
-  (label: string) =>
-  <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-    effect.pipe(
-      Effect.map(Option.some),
-      Effect.catchAll(e => Effect.logDebug(`${label} failed with error ${String(e)}`).pipe(Effect.as(Option.none<A>())))
-    );
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../../constants';
 import { InvalidJsonDocument, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';
@@ -47,7 +39,6 @@ import { StrategyTelemetry } from '../generationStrategy';
 import { openAPISchemaV3Guided } from '../openapi3.schema';
 
 const STRATEGY_NAME = 'ApexRest';
-const BETA_INFO = 'OpenAPI documents generated from Apex classes using Apex REST annotations are in beta.';
 
 type GenState = {
   readonly servicePrompts: Map<string, string>;
@@ -57,31 +48,34 @@ type GenState = {
   readonly maxBudget: number;
 };
 
+const keepOrLog =
+  (label: string) =>
+  <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+    effect.pipe(
+      Effect.map(Option.some),
+      Effect.catchAll(e => Effect.logDebug(`${label} failed with error ${String(e)}`).pipe(Effect.as(Option.none<A>())))
+    );
+
 const buildGenState = Effect.fn('ApexOas.ApexRest.buildGenState')(function* (
   metadata: ApexClassOASEligibleResponse,
   context: ApexClassOASGatherContextResponse,
   classPrompt: string,
   sourceText: string
 ) {
-  const list = (metadata.symbols ?? []).filter(s => s.isApexOasEligible);
   const methodsDocSymbolMap = new Map<string, DocumentSymbol>();
   const methodsContextMap = new Map<string, ApexOASMethodDetail>();
-  list.forEach(symbol => {
-    methodsDocSymbolMap.set(symbol.docSymbol.name, symbol.docSymbol);
-    const methodDetail = context.methods.find(m => m.name === symbol.docSymbol.name);
-    if (methodDetail) {
-      methodsContextMap.set(symbol.docSymbol.name, methodDetail);
-    }
-  });
-  const initial: GenState = {
-    servicePrompts: new Map(),
-    methodsDocSymbolMap,
-    methodsContextMap,
-    biddedCallCount: 0,
-    maxBudget: SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR
-  };
+  (metadata.symbols ?? [])
+    .filter(s => s.isApexOasEligible)
+    .forEach(symbol => {
+      methodsDocSymbolMap.set(symbol.docSymbol.name, symbol.docSymbol);
+      const methodDetail = context.methods.find(m => m.name === symbol.docSymbol.name);
+      if (methodDetail) {
+        methodsContextMap.set(symbol.docSymbol.name, methodDetail);
+      }
+    });
+
   const inputs = yield* Effect.forEach(
-    list,
+    (metadata.symbols ?? []).filter(s => s.isApexOasEligible),
     symbol =>
       Effect.gen(function* () {
         const methodName = symbol.docSymbol.name;
@@ -96,21 +90,30 @@ const buildGenState = Effect.fn('ApexOas.ApexRest.buildGenState')(function* (
       }),
     { concurrency: 'unbounded' }
   );
-  return inputs.reduce<GenState>((acc, { methodName, input, tokenCount }) => {
-    if (acc.biddedCallCount === 0 && acc.maxBudget === 0) return acc;
-    if (tokenCount > PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
-      return { ...acc, servicePrompts: new Map(), biddedCallCount: 0, maxBudget: 0 };
+  return inputs.reduce<GenState>(
+    (acc, { methodName, input, tokenCount }) => {
+      if (acc.biddedCallCount === 0 && acc.maxBudget === 0) return acc;
+      if (tokenCount > PROMPT_TOKEN_MAX_LIMIT * IMPOSED_FACTOR) {
+        return { ...acc, servicePrompts: new Map(), biddedCallCount: 0, maxBudget: 0 };
+      }
+      const currentBudget = Math.floor((PROMPT_TOKEN_MAX_LIMIT - tokenCount) * IMPOSED_FACTOR);
+      const next = new Map(acc.servicePrompts);
+      next.set(methodName, input);
+      return {
+        ...acc,
+        servicePrompts: next,
+        biddedCallCount: acc.biddedCallCount + 1,
+        maxBudget: Math.min(acc.maxBudget, currentBudget)
+      };
+    },
+    {
+      servicePrompts: new Map(),
+      methodsDocSymbolMap,
+      methodsContextMap,
+      biddedCallCount: 0,
+      maxBudget: SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR
     }
-    const currentBudget = Math.floor((PROMPT_TOKEN_MAX_LIMIT - tokenCount) * IMPOSED_FACTOR);
-    const next = new Map(acc.servicePrompts);
-    next.set(methodName, input);
-    return {
-      ...acc,
-      servicePrompts: next,
-      biddedCallCount: acc.biddedCallCount + 1,
-      maxBudget: Math.min(acc.maxBudget, currentBudget)
-    };
-  }, initial);
+  );
 });
 
 const prevalidateLLMResponse = Effect.fn('ApexOas.ApexRest.prevalidateLLMResponse')(function* (
@@ -187,9 +190,10 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const sourceText = yield* api.services.FsService.readFile(metadata.resourceUri.fsPath);
   const classPrompt = buildClassPrompt(context.classDetail);
-  const restResourceAnnotation = context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name));
 
-  const urlMapping: string = restResourceAnnotation?.parameters.urlMapping ?? `/${context.classDetail.name}/`;
+  const urlMapping =
+    context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name))?.parameters.urlMapping ??
+    `/${context.classDetail.name}/`;
   const oasSchema = JSON.stringify(openAPISchemaV3Guided);
   const outputTokenLimit = vscode.workspace.getConfiguration().get(APEX_OAS_OUTPUT_TOKEN_LIMIT, 750);
 
@@ -237,7 +241,6 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   });
 
   const getTelemetry = (): StrategyTelemetry => ({
-    strategyName: STRATEGY_NAME,
     biddedCallCount: genState.biddedCallCount,
     llmCallCount,
     generationSize: genState.maxBudget,
@@ -246,7 +249,6 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
 
   return {
     strategyName: STRATEGY_NAME,
-    betaInfo: BETA_INFO,
     get openAPISchema() {
       return oasSchema;
     },

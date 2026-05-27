@@ -5,34 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
-import { MixedFrameworksNotAllowed } from '../errors';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationManager';
-import { BidRule, selectStrategyByBidRule } from '../oas/promptGenerationOrchestrator';
+import { selectStrategyByBidRule } from '../oas/promptGenerationOrchestrator';
 import { checkIfESRIsDecomposed, hasMixedFrameworks, parseOASDocFromJson, summarizeDiagnostics } from '../oasUtils';
 import { gatherContext, validateMetadata } from './metadataOrchestrator';
 
-const getBidRule = (): BidRule => {
-  const currentBidRule = vscode.workspace
-    .getConfiguration()
-    .get<BidRule>('salesforcedx-vscode-apex-oas.generation_strategy', 'LEAST_CALLS');
-  return isBidRule(currentBidRule) ? currentBidRule : 'LEAST_CALLS';
-};
-
-const isBidRule = (value: unknown): value is BidRule => value === 'LEAST_CALLS' || value === 'MOST_CALLS';
+/** @ExportTaggedError */
+export class MixedFrameworksNotAllowed extends Data.TaggedError('MixedFrameworksNotAllowed')<{
+  readonly message: string;
+}> {}
 
 /**
  * Creates an OpenAPI Document.
  */
 export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(function* (sourceUri: URI | URI[]) {
-  const command = 'SFDX: Create OpenAPI Document from This Class';
-  const bidRule = getBidRule();
-
   // Step 1: Validate eligibility
   const eligibilityResult = yield* validateMetadata(sourceUri);
 
@@ -46,7 +39,9 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   }
 
   // Step 3-4: Select the generation strategy by bid rule
-  const strategy = yield* selectStrategyByBidRule(eligibilityResult, context, bidRule);
+  const strategy = yield* selectStrategyByBidRule(eligibilityResult, context).pipe(
+    Effect.tap(s => Effect.annotateCurrentSpan('strategy', s.strategyName))
+  );
 
   // Step 5: Determine filename
   const name = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
@@ -63,8 +58,7 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   const processedOasResult = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
     context,
     eligibleResult: eligibilityResult,
-    isRevalidation: false,
-    betaInfo: undefined
+    isRevalidation: false
   });
 
   // Step 9: Write OpenAPI Document to File
@@ -77,7 +71,6 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
 
   yield* Effect.annotateCurrentSpan({
     overwrite,
-    strategy: telemetry.strategyName,
     biddedCallCount: telemetry.biddedCallCount,
     llmCallCount: telemetry.llmCallCount,
     generationSize: telemetry.generationSize,
@@ -86,7 +79,7 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
     documentWarnings: warnings,
     documentInfo: infos,
     documentHints: hints,
-    command
+    command: 'SFDX: Create OpenAPI Document from This Class'
   });
 
   // Step 12: Notify Success — overwrite means user replaced the original ESR; otherwise a merge file was emitted alongside

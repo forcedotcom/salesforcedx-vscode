@@ -12,7 +12,6 @@ import type * as Effect from 'effect/Effect';
 import type { ConnectionService } from 'salesforcedx-vscode-services';
 
 export type StrategyTelemetry = {
-  strategyName: string;
   biddedCallCount: number;
   llmCallCount: number;
   generationSize: number;
@@ -24,7 +23,6 @@ export type StrategyTelemetry = {
 
 export type GenerationStrategy = {
   readonly strategyName: string;
-  readonly betaInfo?: string;
   readonly openAPISchema: string | undefined;
   bid: () => Effect.Effect<PromptGenerationStrategyBid, never, never>;
   generateOAS: () => Effect.Effect<

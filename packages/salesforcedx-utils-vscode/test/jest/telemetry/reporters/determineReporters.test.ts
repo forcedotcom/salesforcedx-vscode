@@ -187,9 +187,8 @@ describe('initializeO11yReporter', () => {
   });
 
   it('should add O11yReporter to reporters if initialized', async () => {
-    const { initializeO11yReporter, determineReporters: reImportedDetermineReporters } = await import(
-      '../../../../src/telemetry/reporters/determineReporters'
-    );
+    const { initializeO11yReporter, determineReporters: reImportedDetermineReporters } =
+      await import('../../../../src/telemetry/reporters/determineReporters');
     const webUserId = 'test-webUserId';
     await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
     const config = {

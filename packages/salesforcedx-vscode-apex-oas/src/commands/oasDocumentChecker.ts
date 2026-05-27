@@ -41,6 +41,19 @@ const ensureValidRegistrationProviderType = Effect.fn('ApexOas.OasChecker.ensure
 );
 
 /**
+ * Reads the OAS document from disk. For .xml files, extracts the embedded `schema` field;
+ * for other (yaml) files, returns the file contents directly.
+ */
+const extractOpenApiDocument = Effect.fn('ApexOas.OasChecker.extractOpenApiDocument')(function* (fullPath: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const content = yield* api.services.FsService.readFile(fullPath);
+  if (!fullPath.endsWith('.xml')) return content;
+  const jsonObj = new XMLParser().parse(content);
+  const schema: unknown = jsonObj.ExternalServiceRegistration?.schema;
+  return typeof schema === 'string' ? schema : undefined;
+});
+
+/**
  * Checks if the file path is eligible for OAS validation, failing with OasValidationFailed when not.
  */
 const ensureFilePathEligible = Effect.fn('ApexOas.OasChecker.ensureFilePathEligible')(function* (fullPath: string) {
@@ -66,7 +79,6 @@ export const validateOpenApiDocument = Effect.fn('ApexOas.Command.validateOpenAp
     return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
   }
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = api.services.FsService;
   const fullPath = sourceUri
     ? sourceUri.fsPath
     : yield* api.services.EditorService.getActiveEditorUri().pipe(
@@ -78,16 +90,7 @@ export const validateOpenApiDocument = Effect.fn('ApexOas.Command.validateOpenAp
   yield* ensureFilePathEligible(fullPath);
 
   // Step 2: Extract openAPI document if embedded inside xml
-  const openApiDocument = yield* Effect.gen(function* () {
-    if (fullPath.endsWith('.xml')) {
-      const xmlContent = yield* fsService.readFile(fullPath);
-      const parser = new XMLParser();
-      const jsonObj = parser.parse(xmlContent);
-      const schema: unknown = jsonObj.ExternalServiceRegistration?.schema;
-      return typeof schema === 'string' ? schema : undefined;
-    }
-    return yield* fsService.readFile(fullPath);
-  });
+  const openApiDocument = yield* extractOpenApiDocument(fullPath);
 
   if (!openApiDocument) {
     return yield* new OasValidationFailed({ message: nls.localize('no_oas_doc_in_file') });

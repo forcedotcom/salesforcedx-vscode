@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
 import * as factory from '../../../src/oas/generationStrategy/generationStrategyFactory';
@@ -15,11 +17,7 @@ import {
   getMostCallsStrategy,
   selectStrategyByBidRule
 } from '../../../src/oas/promptGenerationOrchestrator';
-import {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  PromptGenerationStrategyBid
-} from '../../../src/oas/schemas';
+import { PromptGenerationStrategyBid } from '../../../src/oas/schemas';
 
 const buildBids = (entries: Array<[GenerationStrategyType, number]>) =>
   new Map<GenerationStrategyType, PromptGenerationStrategyBid>(
@@ -150,7 +148,6 @@ describe('selectStrategyByBidRule', () => {
   const buildMockStrategy = (strategyName: string): GenerationStrategy =>
     ({
       strategyName,
-      betaInfo: undefined,
       openAPISchema: undefined,
       bid: jest.fn(),
       generateOAS: jest.fn(),
@@ -165,10 +162,15 @@ describe('selectStrategyByBidRule', () => {
   };
 
   // initializeAndBid is mocked, so the `R` channel is empty at runtime; cast away the static service requirements.
-  const runSelect = (rule: 'LEAST_CALLS' | 'MOST_CALLS') =>
-    Effect.runPromise(
-      selectStrategyByBidRule(mockMetadata, mockContext, rule) as Effect.Effect<GenerationStrategy, unknown, never>
+  const runSelect = (rule: 'LEAST_CALLS' | 'MOST_CALLS') => {
+    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+      get: () => rule,
+      update: jest.fn()
+    } as unknown as vscode.WorkspaceConfiguration);
+    return Effect.runPromise(
+      selectStrategyByBidRule(mockMetadata, mockContext) as Effect.Effect<GenerationStrategy, unknown, never>
     );
+  };
 
   afterEach(() => {
     jest.restoreAllMocks();

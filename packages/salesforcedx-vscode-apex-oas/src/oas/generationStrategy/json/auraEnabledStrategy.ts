@@ -5,16 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ApexClassOASGatherContextResponse } from '../../schemas';
 import type { GenerationStrategy, StrategyTelemetry } from '../generationStrategy';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { OasGenerationFailed } from '../../../errors';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
 import { IMPOSED_FACTOR, SUM_TOKEN_MAX_LIMIT } from '../constants';
 
 const STRATEGY_NAME = 'AuraEnabled';
-const BETA_INFO = 'OpenAPI documents generated from Apex classes using @AuraEnabled annotations are in beta.';
+
+const getTelemetry = (): StrategyTelemetry => ({
+  biddedCallCount: 0,
+  llmCallCount: 0,
+  generationSize: 0
+});
 
 export const createAuraEnabledStrategy = async (
   context: ApexClassOASGatherContextResponse
@@ -54,16 +59,8 @@ export const createAuraEnabledStrategy = async (
     )
   );
 
-  const getTelemetry = (): StrategyTelemetry => ({
-    strategyName: STRATEGY_NAME,
-    biddedCallCount: 0,
-    llmCallCount: 0,
-    generationSize: 0
-  });
-
   return {
     strategyName: STRATEGY_NAME,
-    betaInfo: BETA_INFO,
     get openAPISchema() {
       return oasSchema;
     },
