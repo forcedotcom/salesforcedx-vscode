@@ -32,48 +32,6 @@ const updatePackageVersions = nextVersion => {
   });
 };
 
-// Update cross-package dependency version specifiers to match the new version.
-// Finds all workspace package names, then rewrites any dependency reference to
-// those names so the version tracks the monorepo release instead of falling
-// back to the public registry.
-const updateInternalDependencyVersions = (currentVersion, nextVersion) => {
-  const packagesDir = path.join(__dirname, '..', 'packages');
-
-  const workspacePackageNames = new Set(
-    fs
-      .readdirSync(packagesDir)
-      .filter(dir => fs.existsSync(path.join(packagesDir, dir, 'package.json')))
-      .map(dir => {
-        const pkgJson = JSON.parse(fs.readFileSync(path.join(packagesDir, dir, 'package.json'), 'utf8'));
-        return pkgJson.name;
-      })
-      .filter(Boolean)
-  );
-
-  fs.readdirSync(packagesDir).forEach(pkg => {
-    const pkgPath = path.join(packagesDir, pkg, 'package.json');
-    if (!fs.existsSync(pkgPath)) return;
-
-    const pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-    let changed = false;
-
-    for (const depField of ['dependencies', 'devDependencies', 'peerDependencies']) {
-      if (!pkgJson[depField]) continue;
-      for (const [name, version] of Object.entries(pkgJson[depField])) {
-        if (workspacePackageNames.has(name) && version === currentVersion) {
-          pkgJson[depField][name] = nextVersion;
-          changed = true;
-        }
-      }
-    }
-
-    if (changed) {
-      fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2) + '\n');
-      logger.info(`Updated internal dependency references in ${pkg} to ${nextVersion}`);
-    }
-  });
-};
-
 function getReleaseVersion() {
   const currentVersion = require('../packages/salesforcedx-vscode/package.json').version;
   let [version, major, minor, patch] = currentVersion.match(/^(\d+)\.?(\d+)\.?(\*|\d+)$/);
@@ -139,9 +97,7 @@ execSync('git clean -xfd -e node_modules');
 
 // Update version in all package.json files
 logger.info(`Updating package versions to ${nextVersion}...`);
-const currentVersion = require('../packages/salesforcedx-vscode/package.json').version;
 updatePackageVersions(nextVersion);
-updateInternalDependencyVersions(currentVersion, nextVersion);
 
 // Add all package.json version update changes
 execSync(`git add "**/package.json"`);

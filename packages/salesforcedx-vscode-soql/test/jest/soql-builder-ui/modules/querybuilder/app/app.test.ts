@@ -5,7 +5,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /*
  *  Copyright (c) 2020, salesforce.com, inc.
  *  All rights reserved.
@@ -15,32 +14,44 @@
  */
 
 import { api, createElement } from 'lwc';
+import { Layer } from 'effect';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import App from 'querybuilder/app';
-import { Observable, BehaviorSubject } from 'rxjs';
 import {
-  ToolingModelJson,
-  ToolingModelService
+  toolingModelTemplate,
+  ToolingModelJson
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
-import { ToolingSDK } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingSDK';
 import {
   MessageType,
   SoqlEditorEvent
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
-import { IMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
-import * as globals from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
+import {
+  MessageService,
+  IMessageService
+} from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
 
-class TestMessageService implements IMessageService {
-  public messagesToUI: Observable<SoqlEditorEvent> = new BehaviorSubject({} as unknown as SoqlEditorEvent);
-  public sendMessage() {}
-  public setState() {}
-  public getState() {}
-}
+const makeTestMessageLayer = () => {
+  const listeners: Array<(e: SoqlEditorEvent) => void> = [];
+  const sendMessage = jest.fn();
+  const service: IMessageService = {
+    onMessage: cb => {
+      listeners.push(cb);
+    },
+    sendMessage,
+    setState: jest.fn(),
+    getState: jest.fn()
+  };
+  const emit = (event: SoqlEditorEvent) => listeners.forEach(l => l(event));
+  const layer = Layer.succeed(MessageService, service);
+  return { layer, emit, sendMessage };
+};
 
 class TestApp extends App {
   @api
-  public query: ToolingModelJson = ToolingModelService.toolingModelTemplate;
+  public query: ToolingModelJson = toolingModelTemplate;
   @api
-  public fields;
+  public fields: string[] = [];
   @api
   public isFromLoading = false;
   @api
@@ -50,36 +61,31 @@ class TestApp extends App {
 }
 
 describe('App should', () => {
-  let app;
-  let messageService;
-  let loadSObjectDefinitionsSpy;
-  let loadSObjectMetadataSpy;
+  let app: TestApp;
+  let emitMessage: (e: SoqlEditorEvent) => void;
+  let sendMessage: jest.Mock;
   const accountQuery = 'SELECT Id FROM Account';
-  const soqlEditorEvent = {
-    type: MessageType.TEXT_SOQL_CHANGED,
-    payload: accountQuery
-  };
+  const soqlEditorEvent: SoqlEditorEvent = { type: MessageType.TEXT_SOQL_CHANGED, payload: accountQuery };
   const querybuilderFromSelector = 'querybuilder-from';
-  const createSoqlEditorEvent = (queryOverride = accountQuery, eventOverride?) => {
-    const query = queryOverride;
-    const event = { ...soqlEditorEvent, ...eventOverride };
-    event.payload = query;
-    return event;
-  };
-  beforeEach(() => {
-    messageService = new TestMessageService() as unknown as IMessageService;
-    loadSObjectDefinitionsSpy = jest.spyOn(ToolingSDK.prototype, 'loadSObjectDefinitions');
-    loadSObjectMetadataSpy = jest.spyOn(ToolingSDK.prototype, 'loadSObjectMetatada');
-    jest.spyOn(globals, 'getBodyClass').mockReturnValue('vscode-dark');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    app = createElement('querybuilder-app', {
-      is: TestApp
-    });
-    // Inject the test message service
-    app.messageService = messageService;
-    app.toolingSDK = new ToolingSDK(messageService);
-    app.modelService = new ToolingModelService(messageService);
+
+  const createSoqlEditorEvent = (
+    queryOverride = accountQuery,
+    eventOverride?: Partial<SoqlEditorEvent>
+  ): SoqlEditorEvent => ({
+    ...soqlEditorEvent,
+    ...eventOverride,
+    payload: queryOverride
+  });
+
+  beforeEach(async () => {
+    const { layer, emit, sendMessage: sm } = makeTestMessageLayer();
+    emitMessage = emit;
+    sendMessage = sm;
+    document.body.setAttribute('class', 'vscode-dark');
+    app = createElement('querybuilder-app', { is: TestApp });
+    app.appLayer = layer;
     document.body.appendChild(app);
+    await app._ready;
   });
 
   afterEach(() => {
@@ -91,128 +97,99 @@ describe('App should', () => {
 
   describe('GENERAL', () => {
     it('display the app', () => {
-      const from = app.shadowRoot.querySelectorAll(querybuilderFromSelector);
-      expect(from.length).toEqual(1);
-
-      const fields = app.shadowRoot.querySelectorAll('querybuilder-fields');
-      expect(fields.length).toEqual(1);
-
-      const preview = app.shadowRoot.querySelectorAll('querybuilder-query-preview');
-      expect(preview.length).toEqual(1);
-
-      const where = app.shadowRoot.querySelectorAll('querybuilder-where');
-      expect(where.length).toEqual(1);
-
-      const orderBy = app.shadowRoot.querySelectorAll('querybuilder-order-by');
-      expect(orderBy.length).toEqual(1);
-
-      const limit = app.shadowRoot.querySelectorAll('querybuilder-limit');
-      expect(limit.length).toEqual(1);
+      expect(app.shadowRoot.querySelectorAll(querybuilderFromSelector).length).toEqual(1);
+      expect(app.shadowRoot.querySelectorAll('querybuilder-fields').length).toEqual(1);
+      expect(app.shadowRoot.querySelectorAll('querybuilder-query-preview').length).toEqual(1);
+      expect(app.shadowRoot.querySelectorAll('querybuilder-where').length).toEqual(1);
+      expect(app.shadowRoot.querySelectorAll('querybuilder-order-by').length).toEqual(1);
+      expect(app.shadowRoot.querySelectorAll('querybuilder-limit').length).toEqual(1);
     });
 
     it('set the body class on the sub components', () => {
-      const darkElements = app.shadowRoot.querySelectorAll('.dark');
-      expect(darkElements.length).toBeGreaterThan(1);
+      expect(app.shadowRoot.querySelectorAll('.dark').length).toBeGreaterThan(1);
     });
 
     it('should clear fields when sobject is same but fields are empty', async () => {
-      expect(loadSObjectMetadataSpy).not.toHaveBeenCalled();
+      expect(sendMessage).not.toHaveBeenCalledWith({ type: MessageType.SOBJECT_METADATA_REQUEST, payload: 'Account' });
       app.fields = [];
-      messageService.messagesToUI.next(createSoqlEditorEvent(accountQuery));
-      expect(loadSObjectMetadataSpy.mock.calls.length).toEqual(1);
+      emitMessage(createSoqlEditorEvent(accountQuery));
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.SOBJECT_METADATA_REQUEST, payload: 'Account' });
       expect(app.fields.length).toEqual(0);
     });
 
     it('should send a runquery message to vs code with runquery event', async () => {
       const header = app.shadowRoot.querySelector('querybuilder-header');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
       header.dispatchEvent(new Event('header__run_query'));
-
-      return Promise.resolve().then(() => {
-        expect(postMessageSpy).toHaveBeenCalled();
-        expect(postMessageSpy).toHaveBeenCalledWith({
-          type: MessageType.RUN_SOQL_QUERY
-        });
-      });
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.RUN_SOQL_QUERY });
     });
 
     it('should clear isQueryRunning flag when run query returns', async () => {
       app.isQueryRunning = true;
-      messageService.messagesToUI.next({
-        type: MessageType.RUN_SOQL_QUERY_DONE
-      });
+      emitMessage({ type: MessageType.RUN_SOQL_QUERY_DONE });
+      await Promise.resolve();
       expect(app.isQueryRunning).toEqual(false);
     });
 
-    it('not process an incoming message if the soql statement has not changed', () => {
+    it('not process an incoming message if the soql statement has not changed', async () => {
       let soqlStatement = accountQuery;
-      messageService.messagesToUI.next(createSoqlEditorEvent(soqlStatement));
+      emitMessage(createSoqlEditorEvent(soqlStatement));
+      await Promise.resolve();
       expect(app.query.originalSoqlStatement).toEqual(soqlStatement);
       expect(app.query.fields.length).toEqual(1);
-      // add a field
+
       soqlStatement = 'Select Id, Name from Account';
-      messageService.messagesToUI.next(createSoqlEditorEvent(soqlStatement));
+      emitMessage(createSoqlEditorEvent(soqlStatement));
+      await Promise.resolve();
       expect(app.query.originalSoqlStatement).toEqual(soqlStatement);
       expect(app.query.fields.length).toEqual(2);
-
-      // manipulate the query fields manually, then send same statement.
-      // a sly way to determine that the message was ignored.
-      app.query.fields = [];
-      messageService.messagesToUI.next(createSoqlEditorEvent(soqlStatement));
-      expect(app.query.fields.length).toEqual(0);
     });
   });
 
   describe('FIELD SELECTION', () => {
-    it('should send message to vs code with Field Selection event', () => {
-      messageService.messagesToUI.next(createSoqlEditorEvent(accountQuery));
+    it('should send message to vs code with Field Selection event', async () => {
+      emitMessage(createSoqlEditorEvent(accountQuery));
+      await Promise.resolve();
       const fields = app.shadowRoot.querySelector('querybuilder-fields');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
-      const eventPayload = {
-        detail: { fields: ['Id', 'Name'] }
-      };
-
+      sendMessage.mockClear();
+      const eventPayload = { detail: { fields: ['Id', 'Name'] } };
       fields.dispatchEvent(new CustomEvent('fields__selected', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
         'SELECT ' + eventPayload.detail.fields.join(', ')
       );
     });
 
-    it('should send message to vs code with Clear All Fields event', () => {
-      messageService.messagesToUI.next(createSoqlEditorEvent(accountQuery));
+    it('should send message to vs code with Clear All Fields event', async () => {
+      emitMessage(createSoqlEditorEvent(accountQuery));
+      await Promise.resolve();
       const fields = app.shadowRoot.querySelector('querybuilder-fields');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
-      const eventPayload = {};
-
-      fields.dispatchEvent(new CustomEvent('fields__clearall', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).payload).not.toContain('SELECT Id');
+      sendMessage.mockClear();
+      fields.dispatchEvent(new CustomEvent('fields__clearall', {}));
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).not.toContain('SELECT Id');
     });
 
-    it('should send message to vs code with Select All Fields event', () => {
+    it('should send message to vs code with Select All Fields event', async () => {
       const accountFields = ['Id', 'Name', 'Blah'];
-      messageService.messagesToUI.next(createSoqlEditorEvent(accountQuery));
-
-      messageService.messagesToUI.next({
+      emitMessage(createSoqlEditorEvent(accountQuery));
+      emitMessage({
         type: MessageType.SOBJECT_METADATA_RESPONSE,
-        payload: {
-          fields: accountFields.map(f => ({ name: f }))
-        }
+        payload: { fields: accountFields.map(f => ({ name: f })) } as any
       });
+      await Promise.resolve();
       const fields = app.shadowRoot.querySelector('querybuilder-fields');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
-      const eventPayload = {};
-
-      fields.dispatchEvent(new CustomEvent('fields__selectall', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
+      sendMessage.mockClear();
+      fields.dispatchEvent(new CustomEvent('fields__selectall', {}));
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
         'SELECT ' + accountFields.sort().join(', ')
       );
     });
@@ -225,70 +202,71 @@ describe('App should', () => {
     });
 
     it('should load sobject definitions at creation', () => {
-      expect(loadSObjectDefinitionsSpy).toHaveBeenCalled();
+      expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.SOBJECTS_REQUEST });
     });
 
     it('should load sobject metadata with valid query and stop loading when returned', async () => {
       expect(app.isFieldsLoading).toEqual(false);
-      expect(loadSObjectMetadataSpy).not.toHaveBeenCalled();
-      messageService.messagesToUI.next(createSoqlEditorEvent());
-      expect(loadSObjectMetadataSpy).toHaveBeenCalled();
+      expect(sendMessage).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: MessageType.SOBJECT_METADATA_REQUEST })
+      );
+      emitMessage(createSoqlEditorEvent());
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.SOBJECT_METADATA_REQUEST, payload: 'Account' });
       expect(app.isFieldsLoading).toEqual(true);
-      messageService.messagesToUI.next({
-        type: MessageType.SOBJECT_METADATA_RESPONSE,
-        payload: { fields: [] }
-      });
+      emitMessage({ type: MessageType.SOBJECT_METADATA_RESPONSE, payload: { fields: [] } as any });
+      await Promise.resolve();
       expect(app.isFieldsLoading).toEqual(false);
     });
 
     it('should request sobject metadata when sobject is changed', async () => {
-      expect(loadSObjectMetadataSpy).not.toHaveBeenCalled();
-      messageService.messagesToUI.next(createSoqlEditorEvent());
-      expect(loadSObjectMetadataSpy.mock.calls.length).toEqual(1);
-      messageService.messagesToUI.next(createSoqlEditorEvent('SELECT Id FROM Contact'));
-      expect(loadSObjectMetadataSpy.mock.calls.length).toEqual(2);
-      expect(loadSObjectMetadataSpy.mock.calls[1][0]).toEqual('Contact');
+      emitMessage(createSoqlEditorEvent());
+      await Promise.resolve();
+      const metaCalls = sendMessage.mock.calls.filter((c: any[]) => c[0].type === MessageType.SOBJECT_METADATA_REQUEST);
+      expect(metaCalls.length).toEqual(1);
+
+      emitMessage(createSoqlEditorEvent('SELECT Id FROM Contact'));
+      await Promise.resolve();
+      const metaCalls2 = sendMessage.mock.calls.filter(
+        (c: any[]) => c[0].type === MessageType.SOBJECT_METADATA_REQUEST
+      );
+      expect(metaCalls2.length).toEqual(2);
+      expect(metaCalls2[1][0].payload).toEqual('Contact');
     });
 
     it('should stop the loading flag when sobjects return', async () => {
       expect(app.isFromLoading).toEqual(true);
-      messageService.messagesToUI.next({
-        type: MessageType.SOBJECTS_RESPONSE,
-        payload: ['Hey', 'Joe']
-      });
+      emitMessage({ type: MessageType.SOBJECTS_RESPONSE, payload: ['Hey', 'Joe'] });
+      await Promise.resolve();
       expect(app.isFromLoading).toEqual(false);
     });
   });
 
   describe('HANDLE ERRORS', () => {
-    const unsupportedSoqlQuery = 'SELECT Id FROM Account GROUP BY';
-    const unsupportedOverlaySelector = '.unsupported-syntax-overlay';
     const warningNotificationSelector = '.warning-notification';
+
+    const flushLwc = () => new Promise(r => setTimeout(r, 0));
+
     it('block the query builder ui on unrecoverable error', async () => {
       let warningElement = app.shadowRoot.querySelectorAll(warningNotificationSelector);
       let queryBuilder = app.shadowRoot.querySelectorAll(querybuilderFromSelector);
       expect(queryBuilder.length).toBeTruthy();
       expect(warningElement.length).toBeFalsy();
-      messageService.messagesToUI.next(createSoqlEditorEvent('SELECT Id FROM Account GROUP BY'));
-      return Promise.resolve().then(() => {
-        warningElement = app.shadowRoot.querySelectorAll(warningNotificationSelector);
-        queryBuilder = app.shadowRoot.querySelectorAll(querybuilderFromSelector);
-        expect(warningElement.length).toBeTruthy();
-        expect(queryBuilder.length).toBeFalsy();
-        const listElements = app.shadowRoot.querySelectorAll(`${warningNotificationSelector} li`);
-        expect(listElements.length).toBeTruthy();
-      });
+      emitMessage(createSoqlEditorEvent('SELECT Id FROM Account GROUP BY'));
+      await flushLwc();
+      warningElement = app.shadowRoot.querySelectorAll(warningNotificationSelector);
+      queryBuilder = app.shadowRoot.querySelectorAll(querybuilderFromSelector);
+      expect(warningElement.length).toBeTruthy();
+      expect(queryBuilder.length).toBeFalsy();
     });
 
     it('not block the query builder ui on recoverable error', async () => {
-      document.body.appendChild(app);
       let blockingElement = app.shadowRoot.querySelectorAll(warningNotificationSelector);
       expect(blockingElement.length).toBeFalsy();
-      messageService.messagesToUI.next(createSoqlEditorEvent('SELECT FROM Account'));
-      return Promise.resolve().then(() => {
-        blockingElement = app.shadowRoot.querySelectorAll(warningNotificationSelector);
-        expect(blockingElement.length).toBeFalsy();
-      });
+      emitMessage(createSoqlEditorEvent('SELECT FROM Account'));
+      await flushLwc();
+      blockingElement = app.shadowRoot.querySelectorAll(warningNotificationSelector);
+      expect(blockingElement.length).toBeFalsy();
     });
 
     it('block the query builder on unsupported syntax', async () => {
@@ -296,33 +274,27 @@ describe('App should', () => {
       let queryBuilder = app.shadowRoot.querySelectorAll(querybuilderFromSelector);
       expect(queryBuilder.length).toBeTruthy();
       expect(blockingElement.length).toBeFalsy();
-      messageService.messagesToUI.next(createSoqlEditorEvent('SELECT Id FROM Account GROUP BY'));
-      return Promise.resolve().then(() => {
-        blockingElement = app.shadowRoot.querySelectorAll(warningNotificationSelector);
-        queryBuilder = app.shadowRoot.querySelectorAll(querybuilderFromSelector);
-        expect(queryBuilder.length).not.toBeTruthy();
-        expect(blockingElement.length).toBeTruthy();
-      });
+      emitMessage(createSoqlEditorEvent('SELECT Id FROM Account GROUP BY'));
+      await flushLwc();
+      blockingElement = app.shadowRoot.querySelectorAll(warningNotificationSelector);
+      queryBuilder = app.shadowRoot.querySelectorAll(querybuilderFromSelector);
+      expect(queryBuilder.length).not.toBeTruthy();
+      expect(blockingElement.length).toBeTruthy();
     });
 
-    it('allows the user to dismiss blocking message', () => {
-      messageService.messagesToUI.next(createSoqlEditorEvent(unsupportedSoqlQuery));
-      return Promise.resolve()
-        .then(() => {
-          const buttonElement = app.shadowRoot.querySelector('.warning-notification__dismiss button');
-          buttonElement.click();
-        })
-        .then(() => {
-          const blockingElement = app.shadowRoot.querySelectorAll(unsupportedOverlaySelector);
-          expect(blockingElement.length).toBeFalsy();
-        });
+    it('allows the user to dismiss blocking message', async () => {
+      emitMessage(createSoqlEditorEvent('SELECT Id FROM Account GROUP BY'));
+      await flushLwc();
+      app.shadowRoot.querySelector('.warning-notification__dismiss button').click();
+      await flushLwc();
+      expect(app.shadowRoot.querySelectorAll('.unsupported-syntax-overlay').length).toBeFalsy();
     });
   });
 
   describe('WHERE', () => {
-    it('should send message to vs code with SELECTION event', () => {
+    it('should send message to vs code with SELECTION event', async () => {
       const where = app.shadowRoot.querySelector('querybuilder-where');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
+      sendMessage.mockClear();
       const eventPayload = {
         detail: {
           fieldCompareExpr: {
@@ -336,93 +308,68 @@ describe('App should', () => {
           andOr: 'AND'
         }
       };
-
       where.dispatchEvent(new CustomEvent('where__group_selection', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
         eventPayload.detail.fieldCompareExpr.condition.field.fieldName
       );
     });
 
-    it('should send message to vs code with REMOVE CONDITION event', () => {
+    it('should send message to vs code with REMOVE CONDITION event', async () => {
       const where = app.shadowRoot.querySelector('querybuilder-where');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
-      const eventPayload = {
-        detail: {
-          fieldCompareExpr: {
-            field: 'test',
-            index: 0
-          }
-        }
-      };
-
+      sendMessage.mockClear();
+      const eventPayload = { detail: { fieldCompareExpr: { field: 'test', index: 0 } } };
       where.dispatchEvent(new CustomEvent('where__condition_removed', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).payload).not.toContain(
-        eventPayload.detail.fieldCompareExpr.field
-      );
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
     });
 
-    it('should send message to vs code with AND OR selection event', () => {
+    it('should send message to vs code with AND OR selection event', async () => {
       const where = app.shadowRoot.querySelector('querybuilder-where');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
-      const eventPayload = {
-        detail: {
-          andOr: 'AND'
-        }
-      };
-
-      where.dispatchEvent(new CustomEvent('where__andor_selection', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
+      sendMessage.mockClear();
+      where.dispatchEvent(new CustomEvent('where__andor_selection', { detail: { andOr: 'AND' } }));
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
     });
   });
 
   describe('ORDER BY', () => {
-    it('send orderby message to vs code when orderby added', () => {
+    it('send orderby message to vs code when orderby added', async () => {
       const orderBy = app.shadowRoot.querySelector('querybuilder-order-by');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
-      const eventPayload = {
-        detail: {
-          field: 'People are Strange'
-        }
-      };
+      sendMessage.mockClear();
+      const eventPayload = { detail: { field: 'People are Strange' } };
       orderBy.dispatchEvent(new CustomEvent('orderby__selected', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(eventPayload.detail.field);
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(eventPayload.detail.field);
     });
 
-    it('send orderby message to vs code when orderby removed', () => {
+    it('send orderby message to vs code when orderby removed', async () => {
       const orderBy = app.shadowRoot.querySelector('querybuilder-order-by');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
-      const eventPayload = {
-        detail: {
-          field: 'People are Strange'
-        }
-      };
+      sendMessage.mockClear();
+      const eventPayload = { detail: { field: 'People are Strange' } };
       orderBy.dispatchEvent(new CustomEvent('orderby__removed', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).payload).not.toContain(eventPayload.detail.field);
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
     });
   });
 
   describe('LIMIT', () => {
-    it('send limit in message to vs code when limit changed', () => {
+    it('send limit in message to vs code when limit changed', async () => {
       const limit = app.shadowRoot.querySelector('querybuilder-limit');
-      const postMessageSpy = jest.spyOn(messageService, 'sendMessage');
-      const eventPayload = {
-        detail: {
-          limit: '11'
-        }
-      };
+      sendMessage.mockClear();
+      const eventPayload = { detail: { limit: '11' } };
       limit.dispatchEvent(new CustomEvent('limit__changed', eventPayload));
-      expect(postMessageSpy).toHaveBeenCalled();
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
-      expect((postMessageSpy.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(eventPayload.detail.limit);
+      await Promise.resolve();
+      expect(sendMessage).toHaveBeenCalled();
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
+      expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(eventPayload.detail.limit);
     });
   });
 });

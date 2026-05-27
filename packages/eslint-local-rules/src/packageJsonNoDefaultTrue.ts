@@ -53,7 +53,9 @@ const ALLOWED_DEFAULT_TRUE_SETTINGS = new Set([
   // metadata (1 setting)
   'salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection',
   // apex (1 setting)
-  'salesforcedx-vscode-apex.advanced.lspParityCapabilities'
+  'salesforcedx-vscode-apex.advanced.lspParityCapabilities',
+  // apex-testing (1 setting)
+  'salesforcedx-vscode-apex-testing.restore-previous-results'
 ]);
 
 /**

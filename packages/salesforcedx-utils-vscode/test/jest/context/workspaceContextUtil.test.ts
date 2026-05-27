@@ -137,6 +137,38 @@ describe('WorkspaceContextUtil', () => {
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 
+  it('should populate orgEdition from auth fields when available', async () => {
+    getConnectionMock.mockReturnValue({
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
+      getAuthInfoFields: () => ({ orgId: dummyOrgId, orgEdition: 'Developer Edition' })
+    });
+
+    await workspaceContextUtil.initialize(context);
+
+    expect(workspaceContextUtil.orgEdition).toEqual('Developer Edition');
+  });
+
+  it('should leave orgEdition undefined when not in auth fields', async () => {
+    getConnectionMock.mockReturnValue({
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
+      getAuthInfoFields: () => ({ orgId: dummyOrgId })
+    });
+
+    await workspaceContextUtil.initialize(context);
+
+    expect(workspaceContextUtil.orgEdition).toBeUndefined();
+  });
+
+  it('should reset orgEdition to undefined when no target org', async () => {
+    workspaceContextUtil._orgEdition = 'Enterprise Edition';
+    getUsernameOrAliasStub.mockReturnValue(undefined);
+
+    const handler = mockWatcher.onDidChange.mock.calls[0][0];
+    await handler();
+
+    expect(workspaceContextUtil.orgEdition).toBeUndefined();
+  });
+
   it('should set _orgId to an empty string and log a message if there was a problem getting the connection', async () => {
     const dummyErrorMessage = 'There was a problem getting the connection.';
     const logMock = jest.spyOn(console, 'log');
