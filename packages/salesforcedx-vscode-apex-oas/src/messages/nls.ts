@@ -6,6 +6,7 @@
  */
 
 import { createNls } from '@salesforce/vscode-i18n';
+import { EXTENSION_NAME } from '../constants';
 import { messages as enMessages } from './i18n';
 
-export const nls = createNls({ instanceName: 'salesforcedx-vscode-apex-oas', messages: enMessages });
+export const nls = createNls({ instanceName: EXTENSION_NAME, messages: enMessages });

@@ -10,6 +10,7 @@ import { ISpectralDiagnostic, Spectral } from '@stoplight/spectral-core';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
+import { SpectralRunFailed } from '../../errors';
 import ruleset from './ruleset.spectral';
 
 const mapSeverity = (severity: number): vscode.DiagnosticSeverity => {
@@ -42,6 +43,9 @@ const resultToDiagnostic = (result: ISpectralDiagnostic): vscode.Diagnostic =>
 export const oasValidationStep = Effect.fn('ApexOas.Process.oasValidation')(function* (input: ProcessorInputOutput) {
   const spectral = new Spectral();
   spectral.setRuleset(ruleset);
-  const diagnostics = (yield* Effect.promise(() => spectral.run(stringify(input.openAPIDoc)))).map(resultToDiagnostic);
+  const diagnostics = (yield* Effect.tryPromise({
+    try: () => spectral.run(stringify(input.openAPIDoc)),
+    catch: cause => new SpectralRunFailed({ cause })
+  })).map(resultToDiagnostic);
   return { ...input, errors: [...input.errors, ...diagnostics] };
 });

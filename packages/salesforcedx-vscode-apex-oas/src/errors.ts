@@ -33,6 +33,10 @@ export class OasValidationFailed extends Data.TaggedError('OasValidationFailed')
   readonly message: string;
 }> {}
 
+export class SpectralRunFailed extends Data.TaggedError('SpectralRunFailed')<{
+  readonly cause: unknown;
+}> {}
+
 export class MethodNotFoundInDocSymbols extends Data.TaggedError('MethodNotFoundInDocSymbols')<{
   readonly message: string;
 }> {}
