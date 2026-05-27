@@ -13,8 +13,6 @@ import { OasGenerationFailed } from '../../../errors';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
 import { IMPOSED_FACTOR, SUM_TOKEN_MAX_LIMIT } from '../constants';
 
-const STRATEGY_NAME = 'AuraEnabled';
-
 const getTelemetry = (): StrategyTelemetry => ({
   biddedCallCount: 0,
   llmCallCount: 0,
@@ -56,7 +54,7 @@ export const createAuraEnabledStrategy = async (
   );
 
   return {
-    strategyName: STRATEGY_NAME,
+    strategyName: 'AuraEnabled',
     bid,
     generateOAS,
     getTelemetry

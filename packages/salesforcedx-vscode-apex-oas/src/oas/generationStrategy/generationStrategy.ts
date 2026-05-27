@@ -15,10 +15,6 @@ export type StrategyTelemetry = {
   biddedCallCount: number;
   llmCallCount: number;
   generationSize: number;
-  outputTokenLimit?: number;
-  // TODO: Remove this once we have a proper way to include the OAS schema
-  // guidedJson should be wired to vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, false)
-  guidedJson?: string;
 };
 
 export type GenerationStrategy = {

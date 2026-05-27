@@ -37,8 +37,6 @@ import {
 } from '../formatUtils';
 import { StrategyTelemetry } from '../generationStrategy';
 
-const STRATEGY_NAME = 'ApexRest';
-
 type GenState = {
   readonly servicePrompts: Map<string, string>;
   readonly methodsDocSymbolMap: Map<string, DocumentSymbol>;
@@ -241,12 +239,11 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   const getTelemetry = (): StrategyTelemetry => ({
     biddedCallCount: genState.biddedCallCount,
     llmCallCount,
-    generationSize: genState.maxBudget,
-    outputTokenLimit
+    generationSize: genState.maxBudget
   });
 
   return {
-    strategyName: STRATEGY_NAME,
+    strategyName: 'ApexRest',
     bid,
     generateOAS,
     getTelemetry
