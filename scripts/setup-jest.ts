@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 class EventEmitter {
   private listeners: any[] = [];
   constructor() {}
@@ -13,7 +19,7 @@ class Uri {
   public query: string;
   public fragment: string;
 
-  public constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
+  constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
     this.scheme = scheme;
     this.authority = authority;
     this.path = path;
@@ -23,9 +29,9 @@ class Uri {
 
   public static parse = jest.fn() as jest.MockedFunction<(value: string) => Uri>;
 
-  public static file = jest.fn((path: string): Uri => {
-    return new Uri('file', '', path, '', '');
-  }) as jest.MockedFunction<(path: string) => Uri>;
+  public static file = jest.fn((path: string): Uri => new Uri('file', '', path, '', '')) as jest.MockedFunction<
+    (path: string) => Uri
+  >;
 
   public static joinPath = jest.fn((...paths: string[]): Uri => {
     const joined = paths.join('/');
@@ -154,7 +160,7 @@ const getMockVSCode = () => {
       joinPath: Uri.joinPath
     },
     Position: class {
-      public constructor(
+      constructor(
         public line: number,
         public character: number
       ) {}
@@ -167,7 +173,7 @@ const getMockVSCode = () => {
     Range: class {
       public start: any;
       public end: any;
-      public constructor(startOrLine: any, startCharOrEnd?: any, endLine?: any, endChar?: any) {
+      constructor(startOrLine: any, startCharOrEnd?: any, endLine?: any, endChar?: any) {
         // Support both forms: Range(start, end) and Range(startLine, startChar, endLine, endChar)
         if (endLine !== undefined && endChar !== undefined) {
           // 4-parameter form: Range(startLine, startChar, endLine, endChar)
@@ -181,13 +187,13 @@ const getMockVSCode = () => {
       }
     },
     RelativePattern: class {
-      public constructor(
+      constructor(
         public base: any,
         public pattern: string
       ) {}
     },
     Location: class {
-      public constructor(
+      constructor(
         public uri: Uri,
         public range: Range
       ) {}
@@ -195,21 +201,21 @@ const getMockVSCode = () => {
     TestMessage: class {
       public message: string;
       public location?: Location;
-      public constructor(message: string) {
+      constructor(message: string) {
         this.message = message;
         this.location = undefined;
       }
     },
     TestTag: class {
       public id: string;
-      public constructor(id: string) {
+      constructor(id: string) {
         this.id = id;
       }
     },
     TestItem: class {
       public label: string;
       public uri?: Uri;
-      public constructor(label: string, uri?: Uri) {
+      constructor(label: string, uri?: Uri) {
         this.label = label;
         this.uri = uri;
       }
@@ -267,18 +273,16 @@ const getMockVSCode = () => {
     Selection: class {
       public anchor: any;
       public active: any;
-      public constructor(anchor: any, active: any) {
+      constructor(anchor: any, active: any) {
         this.anchor = anchor;
         this.active = active;
       }
     },
     workspace: {
-      getConfiguration: () => {
-        return {
-          get: () => true,
-          update: jest.fn()
-        };
-      },
+      getConfiguration: () => ({
+        get: () => true,
+        update: jest.fn()
+      }),
       onDidChangeConfiguration: jest.fn(),
       findFiles: jest.fn().mockResolvedValue([]),
       createFileSystemWatcher: jest.fn().mockReturnValue({
@@ -307,38 +311,38 @@ const getMockVSCode = () => {
       registerFileSystemProvider: jest.fn()
     },
     CompletionItem: class {
-      public constructor(label: string) {}
+      constructor(label: string) {}
     },
     CodeLens: class {
-      public constructor(range: Range) {}
+      constructor(range: Range) {}
     },
     DocumentLink: class {
-      public constructor(range: Range, target?: Uri) {}
+      constructor(range: Range, target?: Uri) {}
     },
     CodeAction: class {
-      public constructor(title: string, data?: any) {}
+      constructor(title: string, data?: any) {}
     },
     Diagnostic: class {
-      public constructor(range: Range, message: string, severity?: any) {}
+      constructor(range: Range, message: string, severity?: any) {}
     },
     FileType: {
       File: 1,
       Directory: 2
     },
     CallHierarchyItem: class {
-      public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
+      constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
     },
     TypeHierarchyItem: class {
-      public constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
+      constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
     },
     SymbolInformation: class {
-      public constructor(name: string, kind: any, range: Range, uri?: Uri, containerName?: string) {}
+      constructor(name: string, kind: any, range: Range, uri?: Uri, containerName?: string) {}
     },
     InlayHint: class {
-      public constructor(position: any, label: any, kind?: any) {}
+      constructor(position: any, label: any, kind?: any) {}
     },
     CancellationError: class {
-      public constructor() {}
+      constructor() {}
     },
     LanguageStatusSeverity,
     TreeItemCollapsibleState,
@@ -383,13 +387,7 @@ const getMockVSCode = () => {
   return vscodeMock;
 };
 
-jest.mock(
-  'vscode',
-  () => {
-    return getMockVSCode();
-  },
-  { virtual: true }
-);
+jest.mock('vscode', () => getMockVSCode(), { virtual: true });
 
 beforeEach(() => {
   // resetMocks=true wipes mock implementations, so re-apply default mocks here.
