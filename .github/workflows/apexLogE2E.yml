@@ -102,6 +102,8 @@ jobs:
       - name: Create scratch org
         if: steps.try-run.outcome == 'failure'
         shell: bash
+        env:
+          SF_TEMP_SHOW_SECRETS: true
         run: |
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
@@ -230,6 +232,8 @@ jobs:
       - name: Create scratch org
         if: steps.try-run.outcome == 'failure'
         shell: bash
+        env:
+          SF_TEMP_SHOW_SECRETS: true
         run: |
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
