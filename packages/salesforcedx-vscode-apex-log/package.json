@@ -141,7 +141,7 @@
       ]
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "command": "dpdm -T --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
       "dependencies": [
         "compile"
       ],
