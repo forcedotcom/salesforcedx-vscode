@@ -34,7 +34,7 @@ export const createDreamhouseOrg = async (): Promise<OrgAuthResult> => {
     { cwd: repoDir, env }
   );
 
-  const authFields = extractAuthFields(createStdout);
+  const authFields = await extractAuthFields(createStdout, DREAMHOUSE_ORG_ALIAS);
 
   await execAsync('sf project deploy start', { cwd: repoDir });
   await execAsync('sf org assign permset -n dreamhouse -o dreamhouse', { cwd: repoDir });
