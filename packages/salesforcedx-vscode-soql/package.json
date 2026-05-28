@@ -50,7 +50,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
-    "@lwc/eslint-plugin-lwc": "^3.3.0",
+    "@lwc/eslint-plugin-lwc": "^3.5.0",
     "@lwc/jest-preset": "^19.0.0",
     "@lwc/rollup-plugin": "^9.0.0",
     "@lwc/synthetic-shadow": "^9.1.1",
