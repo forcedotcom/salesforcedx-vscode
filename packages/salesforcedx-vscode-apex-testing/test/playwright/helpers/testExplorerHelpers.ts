@@ -12,18 +12,17 @@ import { messages } from '../../../src/messages/i18n';
 export const TEST_EXPLORER_PANEL = '[id="workbench.view.extension.test"]';
 export const TEST_EXPLORER_TREE_ITEM = '[role="treeitem"]';
 export const TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]';
-export const LOCAL_NAMESPACE_LABEL = messages.test_explorer_local_namespace_label;
-export const UNPACKAGED_METADATA_LABEL = messages.test_explorer_unpackaged_metadata_label;
+const LOCAL_NAMESPACE_LABEL = messages.test_explorer_local_namespace_label;
+const UNPACKAGED_METADATA_LABEL = messages.test_explorer_unpackaged_metadata_label;
 
 // Built-in VS Code commands triggered via the Command Palette.
-export const CMD_FOCUS_TEST_EXPLORER = 'Testing: Focus on Test Explorer View';
+const CMD_FOCUS_TEST_EXPLORER = 'Testing: Focus on Test Explorer View';
 export const CMD_REFRESH_TESTS = 'Test: Refresh Tests';
 export const CMD_RUN_ALL_TESTS = 'Test: Run All Tests';
-export const CMD_RELOAD_WINDOW = 'Developer: Reload Window';
 export const CMD_TOGGLE_MAXIMIZED_PANEL = 'View: Toggle Maximized Panel';
 
 // Test Controller ID matches `TEST_CONTROLLER_ID` in `src/views/testController.ts`.
-export const APEX_TEST_CONTROLLER_ID = 'sf.apex.testController';
+const APEX_TEST_CONTROLLER_ID = 'sf.apex.testController';
 export const STALE_FILTER_TAG = `@${APEX_TEST_CONTROLLER_ID}:stale`;
 export const STALE_AUTOCOMPLETE_OPTION = `${APEX_TEST_CONTROLLER_ID}:stale`;
 
@@ -32,7 +31,7 @@ export const STALE_AUTOCOMPLETE_OPTION = `${APEX_TEST_CONTROLLER_ID}:stale`;
  * 400ms settle window matches the working pattern from prior test history (CI runs with
  * this pattern reliably reach the expanded state — see [run](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/26587894571)).
  */
-export const expandTreeRow = async (panel: Locator, rowLabel: string): Promise<void> => {
+const expandTreeRow = async (panel: Locator, rowLabel: string): Promise<void> => {
   const row = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: rowLabel });
   await row.waitFor({ state: 'visible', timeout: 15_000 });
   const twistie = row.locator('.monaco-tl-twistie');
@@ -58,7 +57,7 @@ export const expandTreeRow = async (panel: Locator, rowLabel: string): Promise<v
   }
 };
 
-export const expandNamespaceAndPackage = async (panel: Locator): Promise<void> => {
+const expandNamespaceAndPackage = async (panel: Locator): Promise<void> => {
   await expandTreeRow(panel, LOCAL_NAMESPACE_LABEL);
   await panel
     .locator(TEST_EXPLORER_TREE_ITEM)
@@ -99,17 +98,23 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
 };
 
 export const focusAndTypeInFilter = async (page: Page, text: string): Promise<void> => {
-  // Desktop uses a Monaco editor (data-uri="testing:filter"), web uses a plain input
+  // Desktop uses a Monaco editor (data-uri="testing:filter") backed by a hidden
+  // <textarea>; web uses a plain input. The Monaco view-lines layer intercepts
+  // pointer events, so click the wrapper (force) and drive keys via page.keyboard
+  // (focused on the hidden textarea). On macOS Ctrl+A is bound to "cursor home"
+  // in Monaco, not select-all, so use Home → Shift+End → Delete to clear.
   const monacoFilter = page.locator(`${EDITOR}[data-uri="testing:filter"]`);
   const inputFilter = page.locator('input[placeholder*="Filter"][placeholder*="@tag"]');
   if (await monacoFilter.isVisible().catch(() => false)) {
-    await monacoFilter.click();
+    await monacoFilter.click({ force: true });
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Shift+End');
+    await page.keyboard.press('Delete');
+    if (text) await page.keyboard.type(text);
   } else {
     await inputFilter.waitFor({ state: 'visible', timeout: 10_000 });
-    await inputFilter.click();
+    await inputFilter.fill(text);
   }
-  await page.keyboard.press('ControlOrMeta+a');
-  await (text ? page.keyboard.type(text) : page.keyboard.press('Delete'));
 };
 
 export const clearFilter = async (page: Page): Promise<void> => {

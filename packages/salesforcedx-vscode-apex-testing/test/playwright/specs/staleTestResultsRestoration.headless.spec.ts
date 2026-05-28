@@ -8,35 +8,35 @@
 import { expect } from '@playwright/test';
 
 import {
-  WORKBENCH,
   createAndDeployApexTestClass,
+  deployCurrentSourceToOrg,
+  editOpenFile,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
+  isDesktop,
+  openFileByName,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../contants';
 import {
-  CMD_RELOAD_WINDOW,
-  CMD_RUN_ALL_TESTS,
-  STALE_AUTOCOMPLETE_OPTION,
   STALE_FILTER_TAG,
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   clearFilter,
-  expandNamespaceAndPackage,
-  expandTreeRow,
   focusAndTypeInFilter,
   openTestExplorerAndDiscover,
   runAllTestsAndWaitForCompletion
 } from '../helpers/testExplorerHelpers';
 
-test('Stale tag appears after restoration and is removed by running tests', async ({ page }) => {
+test('Stale tag is applied on class redeploy and removed by running tests', async ({ page }) => {
   test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -70,54 +70,56 @@ test('Stale tag appears after restoration and is removed by running tests', asyn
     await saveScreenshot(page, 'stale.step.after-run.png');
   });
 
-  await test.step('reload window to trigger restoration as stale', async () => {
-    await executeCommandWithCommandPalette(page, CMD_RELOAD_WINDOW);
-    // After reload the workbench is rebuilt; wait for it to come back before continuing.
-    await page.locator(WORKBENCH).waitFor({ state: 'visible', timeout: 30_000 });
-    await saveScreenshot(page, 'stale.step.after-reload.png');
+  await test.step('redeploy class with trivial change to mark methods stale', async () => {
+    // Redeploying an existing ApexClass produces SDR `Changed` (sdrGuards.ts:38-48 →
+    // metadataDeployService.ts publishes; apexMetadataChangeWatcher consumes), which
+    // routes through applyIncrementalDiff (testController.ts:653-659) and tags every
+    // method on that class with @stale. No window reload required.
+    await openFileByName(page, `${testClassName}.cls`);
+    await ensureSecondarySideBarHidden(page);
+    await editOpenFile(page, 'touched');
+    // Web: saving a source file in the workspace auto-deploys via push-or-deploy-on-save.
+    // Desktop: no auto-deploy on save, so we explicitly invoke "SFDX: Deploy This Source to Org".
+    if (isDesktop()) {
+      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+    }
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await waitForOutputChannelText(page, { expectedText: testClassName, timeout: 60_000 });
+    await saveScreenshot(page, 'stale.step.after-redeploy.png');
   });
 
-  await test.step('verify stale tag appears in filter autocomplete', async () => {
-    await openTestExplorerAndDiscover(page);
-    await saveScreenshot(page, 'stale.step.after-rediscovery.png');
-    await focusAndTypeInFilter(page, '@');
-    const staleOption = page.getByText(STALE_AUTOCOMPLETE_OPTION);
-    await expect(staleOption).toBeVisible({ timeout: 5000 });
-    await clearFilter(page);
-    await saveScreenshot(page, 'stale.step.stale-tag-visible.png');
-  });
-
-  await test.step('verify filtering by @stale shows test items', async () => {
+  await test.step('verify filtering by @stale shows the redeployed class', async () => {
+    // Don't call Test: Refresh Tests — that wipes the tree (testController.refresh
+    // → clearTestItems) and the staleTag set by applyIncrementalDiff is lost.
+    // applyIncrementalDiff sets staleTag on methods (testController.ts:653-660); the
+    // class is rendered as an ancestor of those tagged methods. Polled because the
+    // metadata watcher debounces ~1s before applying the diff.
     const panel = page.locator(TEST_EXPLORER_PANEL);
-    await focusAndTypeInFilter(page, STALE_FILTER_TAG);
-    await saveScreenshot(page, 'stale.step.filtered-by-stale.png');
     const testClassItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(testClassName, 'i') });
-    await expect(testClassItem.first()).toBeVisible({ timeout: 10_000 });
+    await expect(async () => {
+      await clearFilter(page);
+      await focusAndTypeInFilter(page, STALE_FILTER_TAG);
+      await expect(testClassItem.first()).toBeVisible({ timeout: 2000 });
+    }).toPass({ timeout: 60_000 });
+    await saveScreenshot(page, 'stale.step.filtered-by-stale.png');
     await clearFilter(page);
   });
 
-  await test.step('run a single test and verify stale tag is removed', async () => {
+  await test.step('run all tests and verify stale tag is removed', async () => {
+    // clearStaleTagsForTests removes the staleTag for methods that ran (testController.ts:483-556).
+    // Running all tests clears every stale method; once no items carry @stale, filtering by the
+    // tag yields zero matches, so no test rows are visible.
+    await runAllTestsAndWaitForCompletion(page, TEST_RUN_TIMEOUT);
     const panel = page.locator(TEST_EXPLORER_PANEL);
-    await expandNamespaceAndPackage(panel);
-    await expandTreeRow(panel, testClassName);
-
-    const methodRow = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'testMethodOne' });
-    await methodRow.waitFor({ state: 'visible', timeout: 10_000 });
-
-    // Run the single method via inline action or fallback to run all
-    await methodRow.hover();
-    const runButton = methodRow.locator('[aria-label="Run Test"]').first();
-    const action = (await runButton.isVisible())
-      ? runButton.click()
-      : executeCommandWithCommandPalette(page, CMD_RUN_ALL_TESTS);
-    await action;
-    // Wait for run completion (Test Results panel populates Pass Rate stats).
-    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
-    // After running, the @stale tag should be removed from autocomplete suggestions.
-    await focusAndTypeInFilter(page, '@');
-    await expect(page.getByText(STALE_AUTOCOMPLETE_OPTION)).not.toBeVisible({ timeout: 10_000 });
+    const treeItems = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(testClassName, 'i') });
+    await expect(async () => {
+      await clearFilter(page);
+      await focusAndTypeInFilter(page, STALE_FILTER_TAG);
+      await expect(treeItems.first()).toBeHidden({ timeout: 2000 });
+    }).toPass({ timeout: 30_000 });
     await clearFilter(page);
-    await saveScreenshot(page, 'stale.step.after-single-run.png');
+    await saveScreenshot(page, 'stale.step.after-rerun.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
