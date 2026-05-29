@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { execSync, spawn } from 'child_process';
-import { mkdirSync } from 'fs';
-import { join } from 'path';
 import { glob } from 'glob';
+import { execSync, spawn } from 'node:child_process';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 type WorkflowRun = {
   databaseId: number;
@@ -47,7 +47,7 @@ const getCurrentBranch = (): string => {
       throw new Error('No branch checked out');
     }
     return branch;
-  } catch (error) {
+  } catch {
     console.error('No branch checked out. Please checkout a branch first.');
     process.exit(1);
   }
@@ -81,8 +81,8 @@ const prioritizeWorkflows = (workflows: WorkflowRun[]): WorkflowRun[] => {
     .slice(0, 1);
 };
 
-const watchWorkflow = (runId: number): Promise<void> => {
-  return new Promise((resolve, reject) => {
+const watchWorkflow = (runId: number): Promise<void> =>
+  new Promise((resolve, reject) => {
     const child = spawn('gh', ['run', 'watch', String(runId)], {
       stdio: 'inherit'
     });
@@ -99,14 +99,13 @@ const watchWorkflow = (runId: number): Promise<void> => {
       reject(error);
     });
   });
-};
 
 const checkWorkflowStatus = (runId: number): WorkflowStatus => {
   try {
     const output = execSync(`gh run view ${runId} --json status,conclusion`, { encoding: 'utf-8' });
     return JSON.parse(output) as WorkflowStatus;
   } catch (error) {
-    console.error(`Failed to check workflow status:`, error instanceof Error ? error.message : String(error));
+    console.error('Failed to check workflow status:', error instanceof Error ? error.message : String(error));
     return { status: 'completed', conclusion: null };
   }
 };
@@ -125,8 +124,8 @@ const monitorWorkflows = async (workflows: WorkflowRun[]): Promise<WorkflowRun[]
 
     try {
       await watchWorkflow(workflow.databaseId);
-    } catch (error) {
-      console.log(`Watch command completed or timed out, checking status...`);
+    } catch {
+      console.log('Watch command completed or timed out, checking status...');
     }
 
     // Poll until completed
@@ -144,9 +143,7 @@ const monitorWorkflows = async (workflows: WorkflowRun[]): Promise<WorkflowRun[]
   return workflows;
 };
 
-const sanitizeWorkflowName = (name: string): string => {
-  return name.replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+/g, '-');
-};
+const sanitizeWorkflowName = (name: string): string => name.replaceAll(/[^a-zA-Z0-9-]/g, '-').replaceAll(/-+/g, '-');
 
 const downloadArtifacts = (runId: number, branch: string, workflowName: string): string | undefined => {
   const sanitizedName = sanitizeWorkflowName(workflowName);
@@ -155,7 +152,7 @@ const downloadArtifacts = (runId: number, branch: string, workflowName: string):
   try {
     // Check if artifacts exist
     const artifactsOutput = execSync(`gh run view ${runId} --json artifacts`, { encoding: 'utf-8' });
-    const artifacts = JSON.parse(artifactsOutput) as { artifacts: Array<{ name: string }> };
+    const artifacts = JSON.parse(artifactsOutput) as { artifacts: { name: string }[] };
 
     if (!artifacts.artifacts || artifacts.artifacts.length === 0) {
       console.log('No artifacts available for this workflow run.');
@@ -174,7 +171,7 @@ const downloadArtifacts = (runId: number, branch: string, workflowName: string):
 
     return artifactDir;
   } catch (error) {
-    console.error(`Failed to download artifacts:`, error instanceof Error ? error.message : String(error));
+    console.error('Failed to download artifacts:', error instanceof Error ? error.message : String(error));
     console.log(`Try manual download: gh run download ${runId}`);
     return undefined;
   }
