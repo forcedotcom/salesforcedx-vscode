@@ -150,7 +150,55 @@ find ~/Downloads/v<version> -type f -name "*.vsix" -exec <binary> --install-exte
 
 User should reload VS Code and run a few commands to validate.
 
-## Step 9 — Slack post
+## Step 9 — Confirm manual testing is complete
+
+### 9a — Create the Quip testing document
+
+Quip cannot be accessed programmatically from this skill, so the user must create the document. Tell the user:
+
+> Create a new Quip testing document from the team's release-testing template and name it **Release Testing v\<version\>** (e.g. `Release Testing v66.13.0`), where `<version>` matches the GH release tag.
+
+Use the version captured from `gh release view v<version>` in Step 7 (or `detect-state.ts` `version` field) so the title matches the published tag exactly. Wait for the user to confirm the doc is created and shared with the team before continuing.
+
+### 9b — Run smoke checks
+
+Tell the user: "Let me know when you've finished manually testing the installed vsixes (logged in the Quip doc) and you're ready to publish to the Microsoft Marketplace and Open VSX."
+
+Suggested smoke checks the user may run before confirming:
+
+- Authorize an org / set a default org
+- Deploy and retrieve metadata
+- Run an Apex test from the Test Explorer
+- Open SOQL Builder and run a query
+- Open the Org Browser
+
+Do not proceed until the user explicitly confirms testing is complete.
+
+## Step 10 — Approve marketplace publishes
+
+After the GitHub Release is created in Step 7, `publishVSCode.yml` (Microsoft Marketplace) and `publishOpenVSX.yml` (Open VSX) auto-trigger on the `release: [released]` event. Both are gated by the `publish` GitHub Environment and wait for manual approval.
+
+Once the user confirms readiness in Step 9, list the pending runs:
+
+```sh
+gh run list --workflow=publishVSCode.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
+gh run list --workflow=publishOpenVSX.yml -L 1 --json databaseId,status,url --repo forcedotcom/salesforcedx-vscode
+```
+
+Print both run URLs and tell the user to approve each pending deployment in the GitHub UI (Actions → run → Review pending deployments → Approve and deploy). Approval cannot be performed by the same identity that triggered the run, so the user must do this themselves.
+
+After approval, monitor each run to completion:
+
+```sh
+gh run watch <databaseId> --repo forcedotcom/salesforcedx-vscode
+```
+
+Verify the extensions are live before continuing:
+
+- Microsoft Marketplace: https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode
+- Open VSX: https://open-vsx.org/extension/salesforce/salesforcedx-vscode
+
+## Step 11 — Slack post
 
 Compose the post from `packages/salesforcedx-vscode/CHANGELOG.md` (top section). Format:
 
@@ -171,3 +219,4 @@ Show the composed post to the user in a fenced code block.
 - All `gh` commands include `--repo forcedotcom/salesforcedx-vscode`
 - Never push to a release branch without explicit user approval of the diff
 - Never dispatch `prerelease.yml` without explicit user signal
+- Never instruct the user to approve marketplace publishes until they confirm manual testing of the installed vsixes is complete
