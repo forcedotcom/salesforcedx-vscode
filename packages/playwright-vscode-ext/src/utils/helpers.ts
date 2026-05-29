@@ -95,7 +95,12 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'GenOpAgentConfig', // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
   'DEP0005', // Node.js Buffer() deprecation warning from transitive dependencies (non-critical)
   'UtilityProcessWorker', // Electron utility process worker SIGSEGV/code-11 noise on macOS desktop tests
-  'File Watcher (universal)' // VS Code file watcher restarts after the worker crash above (paired noise)
+  'File Watcher (universal)', // VS Code file watcher restarts after the worker crash above (paired noise)
+  // VS Code 1.119+ web: workbench tries to instantiate agentHostSandboxForwarder which requires a
+  // remote connection that doesn't exist in @vscode/test-web. Tracked upstream:
+  // https://github.com/microsoft/vscode/issues/318222
+  'agentHostSandboxForwarder',
+  'Remote agent host is not enabled'
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [

@@ -18,11 +18,6 @@ on:
         required: false
         default: true
         type: boolean
-      trailApexReplayDebugger:
-        description: 'Trail Apex Replay Debugger'
-        required: false
-        default: false
-        type: boolean
       vscodeVersion:
         description: 'VSCode Version'
         required: false
@@ -49,11 +44,6 @@ on:
         description: 'Run Apex Tests'
         required: false
         default: true
-        type: boolean
-      trailApexReplayDebugger:
-        description: 'Trail Apex Replay Debugger'
-        required: false
-        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
@@ -90,14 +80,5 @@ jobs:
     secrets: inherit
     with:
       testToRun: 'runApexTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  trailApexReplayDebugger:
-    if: ${{ inputs.trailApexReplayDebugger }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'trailApexReplayDebugger.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}

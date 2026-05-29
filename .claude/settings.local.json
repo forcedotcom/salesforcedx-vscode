@@ -18,39 +18,5 @@
       "Stop",
       "PreToolUse"
     ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cd $(git rev-parse --show-toplevel) && .claude/hooks/mark-edit.sh"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash(git * --no-verify *)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cd $(git rev-parse --show-toplevel) && .claude/hooks/block-no-verify.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cd $(git rev-parse --show-toplevel) && .claude/hooks/verify-stop.sh"
-          }
-        ]
-      }
-    ]
   }
 }
