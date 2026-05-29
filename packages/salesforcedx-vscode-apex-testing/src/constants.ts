@@ -22,6 +22,9 @@ export const TEST_ID_PREFIXES = {
 
 export const SUITE_PARENT_ID = 'apex-test-suites-parent';
 
+/** Maximum age for test result files to be considered recent (24 hours). */
+export const RESULT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 /** Namespace key for classes with no namespace (Local Namespace) */
 export const LOCAL_NAMESPACE_KEY = 'local';
 

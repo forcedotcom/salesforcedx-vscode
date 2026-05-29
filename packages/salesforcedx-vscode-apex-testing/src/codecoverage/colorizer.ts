@@ -8,11 +8,12 @@
 import { CodeCoverageResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { Range, TextDocument, TextEditor, window, workspace } from 'vscode';
+import { FileType, Range, TextDocument, TextEditor, window, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { IS_TEST_REG_EXP } from '../constants';
+import { IS_TEST_REG_EXP, RESULT_MAX_AGE_MS } from '../constants';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
+import * as settings from '../settings';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
@@ -42,57 +43,89 @@ type CoverageItem = {
   lines: { [key: string]: number };
 };
 
-const fileExists = async (uri: URI): Promise<boolean> => {
-  try {
-    await workspace.fs.stat(uri);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 const readFileUri = async (uri: URI): Promise<string> => {
   const data = await workspace.fs.readFile(uri);
   return new TextDecoder().decode(data);
 };
 
-const getTestRunId = async (apexTestResultsUri: URI): Promise<string> => {
-  const testRunIdUri = Utils.joinPath(apexTestResultsUri, 'test-run-id.txt');
-  if (!(await fileExists(testRunIdUri))) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
-  }
-  return (await readFileUri(testRunIdUri)).trim();
-};
-
-const getCoverageData = async (): Promise<CoverageItem[] | CodeCoverageResult[]> => {
+const getCoverageData = async (): Promise<(CoverageItem | CodeCoverageResult)[]> => {
   if (!workspace.workspaceFolders?.[0]?.uri) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
   const apexTestResultsUri = await getTestResultsFolder();
-  const testRunId = await getTestRunId(apexTestResultsUri);
-  const testResultUri = Utils.joinPath(apexTestResultsUri, `test-result-${testRunId}.json`);
 
-  if (!(await fileExists(testResultUri))) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
+  let entries: [string, FileType][];
+  try {
+    entries = await workspace.fs.readDirectory(apexTestResultsUri);
+  } catch {
+    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
-  const testResultOutput = await readFileUri(testResultUri);
+
+  const resultNames = entries
+    .filter(
+      ([name, type]) =>
+        type === FileType.File &&
+        name.startsWith('test-result') &&
+        name.endsWith('.json') &&
+        !name.endsWith('-codecoverage.json')
+    )
+    .map(([name]) => name);
+  resultNames.sort();
+
+  if (resultNames.length === 0) {
+    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
+  }
+
+  const now = Date.now();
+  const recentNames: string[] = [];
+  for (const name of resultNames) {
+    const uri = Utils.joinPath(apexTestResultsUri, name);
+    try {
+      const stat = await workspace.fs.stat(uri);
+      if (now - stat.mtime <= RESULT_MAX_AGE_MS) {
+        recentNames.push(name);
+      }
+    } catch {
+      // Skip files we can't stat
+    }
+  }
+
+  if (recentNames.length === 0) {
+    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
+  }
+
+  // When restore-previous-results is disabled, only use the most recent file
+  const filesToRead = settings.retrieveRestorePreviousResults() ? recentNames : [recentNames.at(-1)!];
+
   type TestResultWithCoverage = {
     codecoverage?: CodeCoverageResult[];
     coverage?: { coverage: CodeCoverageResult[] };
   };
-  // JSON.parse returns any; shape is validated before use
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
-  const testResult = JSON.parse(testResultOutput) as TestResultWithCoverage;
-  if (testResult.coverage === undefined && testResult.codecoverage === undefined) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
+  const coverageByName = new Map<string, CoverageItem | CodeCoverageResult>();
+
+  for (const name of filesToRead) {
+    const uri = Utils.joinPath(apexTestResultsUri, name);
+    try {
+      const content = await readFileUri(uri);
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
+      const testResult = JSON.parse(content) as TestResultWithCoverage;
+      const items: (CoverageItem | CodeCoverageResult)[] | undefined =
+        testResult.codecoverage ?? testResult.coverage?.coverage;
+      if (items) {
+        for (const item of items) {
+          coverageByName.set(item.name, item);
+        }
+      }
+    } catch {
+      // Skip files we can't read or parse
+    }
   }
-  if (testResult.codecoverage !== undefined) {
-    return testResult.codecoverage;
+
+  if (coverageByName.size === 0) {
+    throw new Error(nls.localize('colorizer_no_code_coverage_in_recent_results'));
   }
-  if (testResult.coverage !== undefined) {
-    return testResult.coverage.coverage;
-  }
-  throw new Error(nls.localize('colorizer_no_code_coverage_on_test_results', testRunId));
+
+  return [...coverageByName.values()];
 };
 
 /** Use document.uri.path for Web/Desktop compatibility (fsPath may be empty in Web for some schemes). */
