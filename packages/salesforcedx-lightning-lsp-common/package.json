@@ -112,7 +112,7 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "ejs": "^3.1.10",
     "minimatch": "^9.0.5",
     "tiny-jsonc": "^1.0.2",
