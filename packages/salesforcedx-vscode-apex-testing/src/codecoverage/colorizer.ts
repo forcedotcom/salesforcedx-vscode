@@ -13,23 +13,12 @@ import { URI, Utils } from 'vscode-uri';
 import { IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
+import { getTestResultsFolder } from '../utils/pathHelpers';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
 const SFDX_FOLDER = '.sfdx';
-const TOOLS = 'tools';
-const TEST_RESULTS = 'testresults';
-const APEX = 'apex';
 const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
-
-/** Path segment for apex test results (works in Desktop and Web). */
-const getApexTestResultsUri = (): URI => {
-  const folder = workspace.workspaceFolders?.[0]?.uri;
-  if (!folder) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
-  }
-  return Utils.joinPath(folder, SFDX_FOLDER, TOOLS, TEST_RESULTS, APEX);
-};
 
 const getLineRange = (document: TextDocument, lineNumber: number): Range => {
   const adjustedLineNumber = lineNumber - 1;
@@ -67,8 +56,7 @@ const readFileUri = async (uri: URI): Promise<string> => {
   return new TextDecoder().decode(data);
 };
 
-const getTestRunId = async (): Promise<string> => {
-  const apexTestResultsUri = getApexTestResultsUri();
+const getTestRunId = async (apexTestResultsUri: URI): Promise<string> => {
   const testRunIdUri = Utils.joinPath(apexTestResultsUri, 'test-run-id.txt');
   if (!(await fileExists(testRunIdUri))) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
@@ -77,8 +65,11 @@ const getTestRunId = async (): Promise<string> => {
 };
 
 const getCoverageData = async (): Promise<CoverageItem[] | CodeCoverageResult[]> => {
-  const testRunId = await getTestRunId();
-  const apexTestResultsUri = getApexTestResultsUri();
+  if (!workspace.workspaceFolders?.[0]?.uri) {
+    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
+  }
+  const apexTestResultsUri = await getTestResultsFolder();
+  const testRunId = await getTestRunId(apexTestResultsUri);
   const testResultUri = Utils.joinPath(apexTestResultsUri, `test-result-${testRunId}.json`);
 
   if (!(await fileExists(testResultUri))) {

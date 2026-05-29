@@ -11,10 +11,15 @@ jest.mock('../../../src/services/extensionProvider', () => ({
   })
 }));
 
+jest.mock('../../../src/utils/pathHelpers', () => ({
+  getTestResultsFolder: jest.fn()
+}));
+
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { CodeCoverageHandler } from '../../../src/codecoverage/colorizer';
 import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
+import { getTestResultsFolder } from '../../../src/utils/pathHelpers';
 
 describe('CodeCoverageHandler', () => {
   let mockStatusBar: StatusBarToggle;
@@ -84,6 +89,9 @@ describe('CodeCoverageHandler', () => {
         configurable: true,
         writable: true
       });
+      (getTestResultsFolder as jest.Mock).mockResolvedValue(
+        URI.file('/workspace/project/.sfdx/tools/testresults/apex/00DQI00000NGcnN2AT')
+      );
       jest.spyOn(vscode.workspace.fs, 'stat').mockRejectedValue(new Error('no file'));
       jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
         get: jest.fn().mockReturnValue(false)
@@ -93,6 +101,51 @@ describe('CodeCoverageHandler', () => {
       await handler.toggleCoverage();
 
       expect(mockStatusBar.toggle).toHaveBeenCalledWith(true);
+    });
+
+    it('reads test-run-id.txt from the org-scoped folder returned by getTestResultsFolder', async () => {
+      (mockStatusBar as { isHighlightingEnabled: boolean }).isHighlightingEnabled = false;
+      const orgScopedFolder = URI.file('/workspace/project/.sfdx/tools/testresults/apex/00DQI00000NGcnN2AT');
+      const workspaceFolders = [
+        { uri: URI.file('/workspace/project'), name: 'project', index: 0 }
+      ] as vscode.WorkspaceFolder[];
+      Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+        value: workspaceFolders,
+        configurable: true,
+        writable: true
+      });
+      (getTestResultsFolder as jest.Mock).mockResolvedValue(orgScopedFolder);
+
+      const testRunId = '707QI00001AMz3r';
+      const expectedTestRunIdUri = Utils.joinPath(orgScopedFolder, 'test-run-id.txt');
+      const expectedResultUri = Utils.joinPath(orgScopedFolder, `test-result-${testRunId}.json`);
+      const statSpy = jest.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({} as vscode.FileStat);
+      jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
+        if (uri.path === expectedTestRunIdUri.path) {
+          return Promise.resolve(new TextEncoder().encode(testRunId));
+        }
+        if (uri.path === expectedResultUri.path) {
+          return Promise.resolve(new TextEncoder().encode(JSON.stringify({ codecoverage: [] })));
+        }
+        return Promise.reject(new Error(`unexpected read: ${uri.path}`));
+      });
+
+      Object.defineProperty(mockEditor.document, 'uri', {
+        value: URI.file('/workspace/project/force-app/main/default/classes/MyClass.cls'),
+        configurable: true,
+        writable: true
+      });
+      jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+        get: jest.fn().mockReturnValue(false)
+      } as unknown as vscode.WorkspaceConfiguration);
+      jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined as unknown as vscode.MessageItem);
+
+      await handler.toggleCoverage();
+
+      expect(getTestResultsFolder).toHaveBeenCalled();
+      const statPaths = statSpy.mock.calls.map(([uri]) => (uri as URI).path);
+      expect(statPaths).toContain(expectedTestRunIdUri.path);
+      expect(statPaths).not.toContain('/workspace/project/.sfdx/tools/testresults/apex/test-run-id.txt');
     });
   });
 });
