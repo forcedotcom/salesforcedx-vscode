@@ -1,18 +1,4 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh",
-            "args": []
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh)",
@@ -33,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/block-no-verify.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-no-verify.sh"
           }
         ]
       }
@@ -44,11 +30,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/mark-edit.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh"
           },
           {
             "type": "command",
-            "command": ".claude/hooks/verify-on-edit.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/mark-edit.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-edit.sh"
           }
         ]
       }
@@ -58,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/verify-stop.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-stop.sh"
           }
         ]
       }

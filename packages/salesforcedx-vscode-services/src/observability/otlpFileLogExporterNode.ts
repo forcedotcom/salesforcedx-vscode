@@ -54,4 +54,9 @@ export class OtlpFileLogExporterNode implements LogRecordExporter {
   public shutdown(): Promise<void> {
     return Promise.resolve();
   }
+
+  // eslint-disable-next-line class-methods-use-this -- LogRecordExporter interface requires forceFlush
+  public forceFlush(): Promise<void> {
+    return Promise.resolve();
+  }
 }

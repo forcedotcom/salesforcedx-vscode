@@ -37,7 +37,8 @@ import {
 } from './commands/traceflags/traceflagsCommands';
 import { createLogAutoCollect } from './logs/logAutoCollect';
 import { CurrentTraceFlags } from './services/apexLogState';
-import { buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
+import { buildAllServicesLayer } from './services/extensionProvider';
+import { getRuntime, setAllServicesLayer } from './services/runtime';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
