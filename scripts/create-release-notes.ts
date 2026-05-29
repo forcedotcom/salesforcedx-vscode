@@ -1,6 +1,12 @@
-import * as changeLogGeneratorUtils from './change-log-generator-utils';
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { execSync } from 'node:child_process';
 import * as constants from './change-log-constants';
-import { execSync } from 'child_process';
+import * as changeLogGeneratorUtils from './change-log-generator-utils';
 
 const [_, __, releaseOverride] = process.argv;
 
@@ -38,7 +44,7 @@ function getPreviousRemoteReleaseBranch(): string {
   logger('\nStep 2: Getting latest tag to compare last published version');
   // Match only top-level extension release tags (e.g. v66.5.4), excluding
   // subpackage tags like `vscode-i18n-v66.7.0` or `soql-common-v2.0.0`.
-  const latestReleasedTag = execSync(`git describe --tags --abbrev=0 --match 'v[0-9]*'`, {
+  const latestReleasedTag = execSync("git describe --tags --abbrev=0 --match 'v[0-9]*'", {
     encoding: 'utf8'
   }).trim();
   const latestReleasedBranchName = `${constants.REMOTE_RELEASE_BRANCH_PREFIX_NO_VERSION}/${latestReleasedTag}`;
@@ -79,7 +85,7 @@ if (process.env.GITHUB_ACTIONS) {
   //this will use VS Code instead
   try {
     execSync(`code-insiders ${constants.CHANGE_LOG_PATH}`);
-  } catch (error) {
+  } catch {
     execSync(`code ${constants.CHANGE_LOG_PATH}`);
   }
 }
