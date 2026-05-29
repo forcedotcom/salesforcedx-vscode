@@ -42,6 +42,8 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -173,6 +175,8 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}

@@ -26,6 +26,7 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../contants';
+import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 
 /** Run Create Apex Test Suite via command palette: type suite name, select one class, confirm. */
 const createApexTestSuiteViaPalette = async (
@@ -191,7 +192,7 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   await test.step('verify test suite execution output', async () => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
-    await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
+    await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     await saveScreenshot(page, 'step.verify-run.output-open.png');
     await waitForOutputChannelText(page, { expectedText: '=== Test Results', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.verify-run.results-visible.png');

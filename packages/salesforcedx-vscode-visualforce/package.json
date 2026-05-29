@@ -30,7 +30,7 @@
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "vscode-css-languageservice": "^6.3.7",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",

@@ -27,6 +27,7 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../contants';
+import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 
 test('Run Apex Tests via Command Palette: run all, then run single class', async ({ page }) => {
   test.setTimeout(TEST_RUN_TIMEOUT);
@@ -90,7 +91,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
-    await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
+    await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     await saveScreenshot(page, 'step.run-single.output-open.png');
     await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.run-single.results-visible.png');
@@ -117,7 +118,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
-    await executeCommandWithCommandPalette(page, 'View: Toggle Maximized Panel');
+    await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     await saveScreenshot(page, 'step.run-all.output-open.png');
     await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.run-all.results-visible.png');
