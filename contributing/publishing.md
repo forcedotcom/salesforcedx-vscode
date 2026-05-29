@@ -100,6 +100,10 @@ If you need to promote without a new release (e.g., re-promoting an existing ver
 
 Full details on the CBW release lifecycle, CDN caching, and rollback procedures are in [code-builder-web/docs/application-lifecycle.md](https://github.com/forcedotcom/code-builder-web/blob/main/docs/application-lifecycle.md).
 
+## Closing Shipped GitHub Issues
+
+After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SKILL.md) Claude skill to close open GitHub issues whose linked GUS work items are closed and whose issue numbers appear in the published `CHANGELOG.md`.
+
 ## Troubleshooting
 
 - 401 errors on publish? You probably need to update the VSCE PAT. https://salesforce.quip.com/E8GWA5TuI8jp
