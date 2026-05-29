@@ -138,8 +138,10 @@ for (const pkgName of workspacePackageNames) {
 writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf-8');
 
 // Run npm install (will install other dependencies, but skip the local ones)
+// --ignore-scripts skips preinstall/postinstall — they reference monorepo paths
+// (../../scripts/...) that don't exist in this temp build directory.
 logger('executing npm install');
-execSync('npm install --no-audit --no-fund', { stdio: 'inherit', cwd });
+execSync('npm install --no-audit --no-fund --ignore-scripts', { stdio: 'inherit', cwd });
 
 // Don't restore workspace packages to dependencies - they're already in node_modules
 // This prevents npm prune (run by vsce package) from trying to validate them against the registry

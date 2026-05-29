@@ -7,9 +7,14 @@
 import * as path from 'node:path';
 import * as xml2js from 'xml2js';
 
+/** One `<labels>` block from CustomLabels.labels-meta.xml (xml2js shape with explicitArray: false). */
+interface CustomLabelBlock {
+  fullName: string;
+}
+
 interface CustomLabelsXml {
   CustomLabels?: {
-    labels?: { fullName: string[] }[];
+    labels?: CustomLabelBlock | CustomLabelBlock[];
   };
 }
 
@@ -24,7 +29,11 @@ const isCustomLabelsXml = (value: unknown): value is CustomLabelsXml => {
   if (typeof cl !== 'object' || cl === null) {
     return false;
   }
-  return !('labels' in cl) || Array.isArray(cl.labels);
+  if (!('labels' in cl)) {
+    return true;
+  }
+  const labels = cl.labels;
+  return typeof labels === 'object' && labels !== null;
 };
 
 const metaRegex = new RegExp(/(?<name>[\w.-]+)\.(?<type>\w.+)-meta$/);
@@ -87,12 +96,14 @@ export const fromMeta = (metaFilename: string): Typing => {
 
 // Utility function to generate declarations from custom labels
 export const declarationsFromCustomLabels = async (xmlDocument: string | Buffer): Promise<string> => {
-  const parsed: unknown = await new xml2js.Parser().parseStringPromise(xmlDocument);
+  const parsed: unknown = await new xml2js.Parser({ explicitArray: false }).parseStringPromise(xmlDocument);
   if (!isCustomLabelsXml(parsed) || !parsed.CustomLabels?.labels) {
     return '';
   }
-  const declarations: string[] = parsed.CustomLabels.labels.map(label => declaration('customLabel', label.fullName[0]));
-  return declarations.join('\n');
+  const labelsNode = parsed.CustomLabels.labels;
+  return (Array.isArray(labelsNode) ? labelsNode : [labelsNode])
+    .map(label => declaration('customLabel', label.fullName))
+    .join('\n');
 };
 
 // Utility function to get declaration for a Typing object

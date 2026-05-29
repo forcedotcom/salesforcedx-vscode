@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode",
+  "private": true,
   "displayName": "Salesforce Extension Pack",
   "description": "Extensions for developing on the Salesforce Platform",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -14,13 +15,14 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.9.0",
+  "version": "66.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
   },
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"

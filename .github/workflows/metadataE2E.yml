@@ -201,6 +201,7 @@ jobs:
       NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
+      E2E_FROM_VSIX: 1
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -487,6 +488,7 @@ jobs:
       NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
+      E2E_FROM_VSIX: 1
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}

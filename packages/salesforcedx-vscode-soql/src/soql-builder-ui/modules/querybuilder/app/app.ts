@@ -6,43 +6,42 @@
  *
  */
 
-import { LightningElement, track } from 'lwc';
+import { LightningElement, api, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import { messages } from 'querybuilder/messages';
+import { Effect, Layer, ManagedRuntime, Stream } from 'effect';
 import { ToolingSDK } from '../services/toolingSDK';
-import { VscodeMessageService } from '../services/message/vscodeMessageService';
-
-import { ToolingModelService } from '../services/toolingModelService';
-import { IMessageService } from '../services/message/iMessageService';
+import { ToolingModelService, toolingModelTemplate } from '../services/toolingModelService';
+import { MessageService, IMessageService } from '../services/message/iMessageService';
+import { VscodeMessageServiceLive } from '../services/message/vscodeMessageService';
 import {
   MessageType,
   SoqlEditorEvent
 } from '../services/message/soqlEditorEvent';
+import { IndexableArray } from '../services/lwcUtils';
 import {
   recoverableErrors,
   recoverableFieldErrors,
   recoverableFromErrors,
   recoverableLimitErrors
 } from '../error/errorModel';
-import { getBodyClass } from '../services/globals';
 import { ToolingModelJson } from '../services/model';
 import { lwcIndexableArray } from '../services/lwcUtils';
 
 export default class App extends LightningElement {
   @track
-  public query: ToolingModelJson = ToolingModelService.toolingModelTemplate;
+  public query: ToolingModelJson = toolingModelTemplate;
 
   @track
   public sObjects: string[] = [];
   @track
   public fields: string[] = [];
-  public toolingSDK: ToolingSDK;
-  public modelService: ToolingModelService;
-  public messageService: IMessageService;
   public theme = 'light';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public sobjectMetadata: any;
-  public notifications = [];
+  public notifications: IndexableArray<string> = [];
 
   public get shouldBlockQueryBuilder(): boolean {
     return (
@@ -78,50 +77,102 @@ export default class App extends LightningElement {
   public isQueryPlanRunning = false;
   public dismissNotifications = false;
 
-  public constructor() {
-    super();
-    this.messageService = new VscodeMessageService();
-    this.toolingSDK = new ToolingSDK(this.messageService);
-    this.modelService = new ToolingModelService(this.messageService);
+  // Override in tests to inject a different MessageService layer
+  @api
+  public appLayer: Layer.Layer<MessageService> = VscodeMessageServiceLive;
+
+  @api
+  public _ready: Promise<void> | undefined;
+
+  private _messageService: IMessageService | undefined;
+  private _toolingSDK: ToolingSDK | undefined;
+  private _modelService: ToolingModelService | undefined;
+  private _runtime: { dispose: () => Promise<void> } | undefined;
+
+  public async connectedCallback(): Promise<void> {
+    this._ready = this._init();
+    await this._ready;
   }
 
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return */
-  public connectedCallback(): void {
-    this.modelService.UIModel.subscribe(this.uiModelSubscriber.bind(this));
+  public disconnectedCallback(): void {
+    void this._runtime?.dispose();
+  }
 
-    this.toolingSDK.sobjects.subscribe((objs: string[]) => {
-      this.isFromLoading = false;
-      this.sObjects = objs;
-    });
+  private async _init(): Promise<void> {
+    const self = this;
+    const runtime = ManagedRuntime.make(
+      Layer.mergeAll(
+        self.appLayer,
+        Layer.provide(ToolingSDK.Default, self.appLayer),
+        Layer.provide(ToolingModelService.Default, self.appLayer)
+      )
+    );
+    self._runtime = runtime;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.toolingSDK.sobjectMetadata.subscribe((sobjectMetadata: any) => {
-      this.isFieldsLoading = false;
-      this.fields =
-        sobjectMetadata && sobjectMetadata.fields
-          ? sobjectMetadata.fields.map((f) => f.name).sort()
-          : [];
-      this.sobjectMetadata = sobjectMetadata;
-    });
+    await runtime.runPromise(
+      Effect.gen(function* () {
+        self._messageService = yield* MessageService;
+        self._toolingSDK = yield* ToolingSDK;
+        self._modelService = yield* ToolingModelService;
 
-    this.toolingSDK.queryRunState.subscribe(() => {
-      this.isQueryRunning = false;
-    });
+        const sdk = self._toolingSDK;
+        const model = self._modelService;
 
-    this.toolingSDK.queryPlanRunState.subscribe(() => {
-      this.isQueryPlanRunning = false;
-    });
+        yield* Effect.forkDaemon(
+          Stream.runForEach(model.UIModel, (newQuery: ToolingModelJson) =>
+            Effect.sync(() => self.uiModelSubscriber(newQuery))
+          )
+        );
 
-    this.toolingSDK.noDefaultOrg.subscribe((hasNoDefaultOrg: boolean) => {
-      this.hasNoDefaultOrg = hasNoDefaultOrg;
-    });
+        yield* Effect.forkDaemon(
+          Stream.runForEach(sdk.sobjects.changes.pipe(Stream.drop(1)), (objs: string[]) =>
+            Effect.sync(() => {
+              self.isFromLoading = false;
+              self.sObjects = objs;
+            })
+          )
+        );
 
-    this.loadSObjectDefinitions();
-    this.modelService.restoreViewState();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        yield* Effect.forkDaemon(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          Stream.runForEach(sdk.sobjectMetadata.changes.pipe(Stream.drop(1)), (meta: any) =>
+            Effect.sync(() => {
+              self.isFieldsLoading = false;
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-explicit-any
+              self.fields = meta && meta.fields ? meta.fields.map((f: any) => f.name).sort() : [];
+              self.sobjectMetadata = meta;
+            })
+          )
+        );
+
+        yield* Effect.forkDaemon(
+          Stream.runForEach(sdk.queryRunState.changes.pipe(Stream.drop(1)), () =>
+            Effect.sync(() => { self.isQueryRunning = false; })
+          )
+        );
+
+        yield* Effect.forkDaemon(
+          Stream.runForEach(sdk.queryPlanRunState.changes.pipe(Stream.drop(1)), () =>
+            Effect.sync(() => { self.isQueryPlanRunning = false; })
+          )
+        );
+
+        yield* Effect.forkDaemon(
+          Stream.runForEach(sdk.noDefaultOrg.changes.pipe(Stream.drop(1)), (hasNoDefaultOrg: boolean) =>
+            Effect.sync(() => { self.hasNoDefaultOrg = hasNoDefaultOrg; })
+          )
+        );
+
+        self.isFromLoading = true;
+        sdk.loadSObjectDefinitions();
+        model.restoreViewState();
+      })
+    );
   }
 
   public renderedCallback(): void {
-    const themeClass = getBodyClass();
+    const themeClass = window.document.body.getAttribute('class') ?? '';
     if (themeClass.indexOf('vscode-dark') > -1) {
       this.theme = 'dark';
     } else if (themeClass.indexOf('vscode-high-contrast') > -1) {
@@ -129,10 +180,10 @@ export default class App extends LightningElement {
     }
   }
 
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   public uiModelSubscriber(newQuery: ToolingModelJson): void {
     // only re-render if incoming soql statement is different
     if (this.query.originalSoqlStatement !== newQuery.originalSoqlStatement) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.notifications = lwcIndexableArray<string>([
         ...this.inspectUnsupported(newQuery.unsupported),
         ...this.inspectErrors(newQuery.errors)
@@ -141,27 +192,17 @@ export default class App extends LightningElement {
       this.query = newQuery;
     }
   }
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return */
-
-  public loadSObjectDefinitions(): void {
-    this.isFromLoading = true;
-    this.toolingSDK.loadSObjectDefinitions();
-  }
 
   public loadSObjectMetadata(newQuery: ToolingModelJson): void {
     const previousSObject = this.query ? this.query.sObject : '';
     const newSObject = newQuery.sObject;
-    // if empty sobject, clear fields
     if (!newSObject.length) {
       this.fields = [];
       return;
     }
-    // if empty previous sobject or else new sobject does not match previous
     if (previousSObject.length === 0 || previousSObject !== newSObject) {
       this.onSObjectChanged(newSObject);
-    }
-    // if no fields have been downloaded yet
-    else if (
+    } else if (
       previousSObject === newSObject &&
       this.fields.length === 0 &&
       this.isFieldsLoading === false
@@ -176,7 +217,7 @@ export default class App extends LightningElement {
     this.hasRecoverableFromError = false;
     this.hasRecoverableLimitError = false;
     this.hasUnrecoverableError = false;
-    const messages = [];
+    const messages: unknown[] = [];
     errors.forEach((error) => {
       if (recoverableErrors[error.type]) {
         this.hasRecoverableError = true;
@@ -197,65 +238,66 @@ export default class App extends LightningElement {
     return messages;
   }
 
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return*/
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access*/
   public inspectUnsupported(unsupported: JsonMap[]): any {
     const filteredUnsupported = unsupported
       // this reason is often associated with a parse error, so snuffing it out instead of double notifications
-      .filter(
-        (unsup) => unsup.reason.reasonCode !== 'unmodeled:empty-condition'
-      )
-      .map((unsup) => {
-        return unsup.reason.message;
-      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((unsup: any) => unsup?.reason?.reasonCode !== 'unmodeled:empty-condition')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((unsup: any) => unsup?.reason?.message);
     this.hasUnsupportedMessage = filteredUnsupported.length > 0;
     return filteredUnsupported;
   }
+
   /* ---- SOBJECT HANDLERS ---- */
   public handleObjectChange(e: CustomEvent): void {
     const selectedSObjectName = e.detail.selectedSobject;
     this.onSObjectChanged(selectedSObjectName);
-    // when triggered by the ui, send message
-    this.modelService.setSObject(selectedSObjectName);
+    this._modelService?.setSObject(selectedSObjectName);
   }
 
   public onSObjectChanged(sobjectName: string): void {
     if (sobjectName) {
       this.fields = [];
       this.isFieldsLoading = true;
-      this.toolingSDK.loadSObjectMetatada(sobjectName);
+      this._toolingSDK?.loadSObjectMetadata(sobjectName);
     }
   }
+
   /* ---- FIELD HANDLERS ---- */
   public handleFieldSelected(e: CustomEvent): void {
-    this.modelService.setFields(e.detail.fields);
+    this._modelService?.setFields(e.detail.fields);
   }
   public handleFieldSelectAll(): void {
-    this.modelService.setFields(this.fields);
+    this._modelService?.setFields(this.fields);
   }
   public handleFieldClearAll(): void {
-    this.modelService.setFields([]);
+    this._modelService?.setFields([]);
   }
 
   /* ---- ORDER BY HANDLERS ---- */
   public handleOrderBySelected(e: CustomEvent): void {
-    this.modelService.addUpdateOrderByField(e.detail);
+    this._modelService?.addUpdateOrderByField(e.detail);
   }
   public handleOrderByRemoved(e: CustomEvent): void {
-    this.modelService.removeOrderByField(e.detail.field);
+    this._modelService?.removeOrderByField(e.detail.field);
   }
+
   /* ---- LIMIT HANDLERS ---- */
   public handleLimitChanged(e: CustomEvent): void {
-    this.modelService.changeLimit(e.detail.limit);
+    this._modelService?.changeLimit(e.detail.limit);
   }
+
   /* ---- WHERE HANDLERS ---- */
   public handleWhereSelection(e: CustomEvent): void {
-    this.modelService.upsertWhereFieldExpr(e.detail);
+    this._modelService?.upsertWhereFieldExpr(e.detail);
   }
   public handleAndOrSelection(e: CustomEvent): void {
-    this.modelService.setAndOr(e.detail);
+    this._modelService?.setAndOr(e.detail);
   }
   public handleRemoveWhereCondition(e: CustomEvent): void {
-    this.modelService.removeWhereFieldCondition(e.detail);
+    this._modelService?.removeWhereFieldCondition(e.detail);
   }
 
   /* ---- MISC HANDLERS ---- */
@@ -265,7 +307,7 @@ export default class App extends LightningElement {
 
   public handleSetDefaultOrg(): void {
     const setDefaultOrgEvent: SoqlEditorEvent = { type: MessageType.SET_DEFAULT_ORG };
-    this.messageService.sendMessage(setDefaultOrgEvent);
+    this._messageService?.sendMessage(setDefaultOrgEvent);
   }
 
   public get i18n() {
@@ -279,12 +321,12 @@ export default class App extends LightningElement {
   public handleRunQuery(): void {
     this.isQueryRunning = true;
     const runQueryEvent: SoqlEditorEvent = { type: MessageType.RUN_SOQL_QUERY };
-    this.messageService.sendMessage(runQueryEvent);
+    this._messageService?.sendMessage(runQueryEvent);
   }
 
   public handleGetQueryPlan(): void {
     this.isQueryPlanRunning = true;
     const planEvent: SoqlEditorEvent = { type: MessageType.GET_QUERY_PLAN };
-    this.messageService.sendMessage(planEvent);
+    this._messageService?.sendMessage(planEvent);
   }
 }

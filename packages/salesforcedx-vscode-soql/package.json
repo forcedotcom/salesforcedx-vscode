@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-soql",
+  "private": true,
   "displayName": "SOQL",
   "description": "Provides code-editing features for SOQL",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -9,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.9.0",
+  "version": "66.13.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +35,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.28.0",
+    "@salesforce/core": "^8.31.0",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.20.0",
     "@salesforce/soql-common": "*",
@@ -47,7 +48,6 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.28.0",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.3.0",
@@ -66,16 +66,15 @@
     "@salesforce/ts-types": "^2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "immutable": "^5.1.5",
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
-    "rxjs": "^7.8.2",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
@@ -265,14 +264,17 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-metadata:vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -438,6 +440,12 @@
           "type": "boolean",
           "default": false,
           "description": "%soql_validation_flag%"
+        },
+        "salesforcedx-vscode-soql.maxQueryLimit": {
+          "type": "integer",
+          "default": 50000,
+          "minimum": 1,
+          "description": "%soql_max_query_limit%"
         }
       }
     },

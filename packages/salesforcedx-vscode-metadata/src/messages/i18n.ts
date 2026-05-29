@@ -36,6 +36,8 @@ export const messages = {
   source_tracking_status_bar_view_changes: 'View Changes',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
   source_tracking_status_bar_refreshing: 'Refreshing source tracking...',
+  source_tracking_conflict_detection_disabled_tooltip:
+    'Conflict detection is disabled. Local and remote change tracking is not active. Enable it in settings: `salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection`',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
@@ -56,6 +58,7 @@ export const messages = {
   project_deploy_start_ignore_conflicts_default_org_text: 'SFDX: Push Source to Default Org and Ignore Conflicts',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
+  parameter_gatherer_enter_project_name: 'Enter project name',
   no_remote_changes_to_retrieve: 'No remote changes to retrieve.',
   no_local_changes_to_deploy: 'No local changes to deploy.',
   command_succeeded_text: '%s succeeded.',
@@ -74,7 +77,26 @@ export const messages = {
   manifest_file_name_empty_error: 'File name cannot be empty',
   manifest_file_name_format_error:
     'File name must start with a letter and contain only alphanumeric characters and underscores',
+  project_generate_text: 'SFDX: Create Project',
+  project_generate_open_dialog_create_label: 'Create Project',
+  project_generate_standard_template_display_text: 'Standard',
+  project_generate_empty_template_display_text: 'Empty',
+  project_generate_analytics_template_display_text: 'Analytics',
+  project_generate_react_b2e_template_display_text: 'React Internal App',
+  project_generate_react_b2x_template_display_text: 'React External App',
+  project_generate_agent_template_display_text: 'Agent',
+  project_generate_empty_template: 'Empty project template',
+  project_generate_standard_template: 'Standard project template',
+  project_generate_analytics_template: 'Analytics project template',
+  project_generate_react_b2e_template:
+    'For employees signing in with Salesforce credentials (B2E). Sample app: Property Management App.',
+  project_generate_react_b2x_template:
+    'For customers or partners signing in outside your org (B2C). Sample app: Property Rental App.',
+  project_generate_agent_template: 'Agent project template',
   project_generate_manifest_text: 'SFDX: Generate Manifest File',
+  analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
+  analytics_template_name_text: 'template name',
+  analytics_output_dir_prompt: 'Select Analytics template output directory',
   generate_manifest_select_file_or_directory:
     'You can run SFDX: Generate Manifest File only on a source file or directory.',
   source_diff_unsupported_type: 'Diff for this metadata type is currently not supported',
@@ -106,7 +128,7 @@ export const messages = {
   conflict_detect_no_conflicts: 'No conflicts',
   conflict_detect_no_differences: 'No differences',
   conflict_detection_enabled_description:
-    "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
+    'When enabled, the system will check for conflicts before deploying/retrieving.',
 
   // Preparation phase progress
   preparing_deployment: 'Preparing deployment...',

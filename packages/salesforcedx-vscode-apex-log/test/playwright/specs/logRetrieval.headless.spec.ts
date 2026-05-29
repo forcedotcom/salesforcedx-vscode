@@ -14,6 +14,7 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
+  removeAllDebugLevels,
   saveScreenshot,
   selectFirstQuickInputOption,
   setupConsoleMonitoring,
@@ -39,6 +40,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
   await test.step('setup minimal org auth', async () => {
     await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
+    await removeAllDebugLevels(page);
   });
 
   await test.step('turn on trace flag (SOAP execAnon no longer creates trace; logGet needs ApexLog records)', async () => {

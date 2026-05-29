@@ -6,11 +6,16 @@
     "packages/salesforcedx-visualforce-markup-language-server/src/beautify/**",
     "packages/*/**/__tests__/fixtures/**",
     ".github/actions/*/lib/**",
+    "scripts/validation-utils.js",
     "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/model.ts",
-    "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts"
+    "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts",
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/error/errorModel.ts"
   ],
   "tags": ["-ExportTaggedError"],
   "workspaces": {
+    "packages/salesforcedx-vscode-soql": {
+      "entry": ["src/index.ts", "src/soql-builder-ui/index.ts", "src/soql-builder-ui/modules/querybuilder/app/app.ts"]
+    },
     "packages/salesforcedx-aura-language-server": {
       "entry": ["src/index.ts", "src/server.ts"]
     },

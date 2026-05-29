@@ -1,5 +1,6 @@
 {
   "name": "salesforcedx-vscode-core",
+  "private": true,
   "displayName": "Salesforce CLI",
   "description": "Provides integration with the Salesforce CLI",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -14,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.9.0",
+  "version": "66.13.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,7 +28,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.28.0",
+    "@salesforce/core": "^8.31.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/salesforcedx-utils": "*",
@@ -73,6 +74,7 @@
     }
   },
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:prepublish": "npm prune --production",
     "vscode:package:legacy": "wireit",
@@ -171,15 +173,18 @@
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
       },
       "dependencies": [
-        "vscode:bundle",
-        "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-metadata:vscode:bundle",
-        "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "vscode:package:legacy",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-metadata:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -209,10 +214,6 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "sf.analytics.generate.template",
-          "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sf:project_opened"
-        },
-        {
           "command": "sf.rename.lightning.component",
           "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
@@ -227,32 +228,12 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.analytics.generate.template",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.config.list",
           "when": "sf:project_opened"
         },
         {
           "command": "sf.alias.list",
           "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.project.generate",
-          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.agent.generate.project",
-          "when": "false"
-        },
-        {
-          "command": "sf.nativemobile.generate.project",
-          "when": "false"
-        },
-        {
-          "command": "sf.project.generate.with.manifest",
-          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.rename.lightning.component",
@@ -270,32 +251,12 @@
         "title": "%open_documentation_text%"
       },
       {
-        "command": "sf.analytics.generate.template",
-        "title": "%analytics_generate_template_text%"
-      },
-      {
         "command": "sf.config.list",
         "title": "%config_list_text%"
       },
       {
         "command": "sf.alias.list",
         "title": "%alias_list_text%"
-      },
-      {
-        "command": "sf.project.generate",
-        "title": "%project_generate_text%"
-      },
-      {
-        "command": "sf.agent.generate.project",
-        "title": "%agent_generate_project_text%"
-      },
-      {
-        "command": "sf.nativemobile.generate.project",
-        "title": "%nativemobile_generate_project_text%"
-      },
-      {
-        "command": "sf.project.generate.with.manifest",
-        "title": "%project_generate_with_manifest_text%"
       },
       {
         "command": "sf.rename.lightning.component",

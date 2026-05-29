@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
-import { hasRootWorkspace, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
 import { execSync } from 'node:child_process';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -69,6 +69,7 @@ export class LanguageClientManager {
   private statusBarItem: ApexLSPStatusBarItem | undefined;
   private isRestarting: boolean = false;
   private restartTimeout: NodeJS.Timeout | undefined;
+  private outputChannel: vscode.OutputChannel | undefined;
 
   private readonly RESTART_OPTIONS = {
     cleanAndRestart: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
@@ -108,6 +109,11 @@ export class LanguageClientManager {
 
   public setStatus(status: ClientStatus, message: string): void {
     this.status = new LanguageClientStatus(status, message);
+  }
+
+  public disposeOutputChannel(): void {
+    this.outputChannel?.dispose();
+    this.outputChannel = undefined;
   }
 
   public async getLineBreakpointInfo(): Promise<LineBreakpointInfo[]> {
@@ -242,6 +248,7 @@ export class LanguageClientManager {
           `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
         );
       }
+
       if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
         await this.removeApexDB();
       }
@@ -255,8 +262,10 @@ export class LanguageClientManager {
       this.restartTimeout = setTimeout(() => {
         void (async () => {
           try {
-            // Dispose of the old output channel before restarting the client
-            alc.outputChannel?.dispose();
+            // Dispose the old client after stopping but before creating the new one.
+            // This deregisters providers, watchers, and middleware that would otherwise
+            // attempt to use the closed channel during the restart gap.
+            await alc.dispose();
             await this.createLanguageClient(extensionContext, statusBarInstance);
           } catch (error) {
             // Log any errors that occur during client creation
@@ -300,8 +309,12 @@ export class LanguageClientManager {
   ): Promise<void> {
     const telemetryService = getTelemetryService();
     try {
-      const langClientStartTime = TimingUtils.getCurrentTime();
-      this.setClientInstance(await languageServer.createLanguageServer(extensionContext));
+      const langClientStartTime = globalThis.performance.now();
+
+      // Create or reuse the output channel to avoid duplicates on restart
+      this.outputChannel ??= vscode.window.createOutputChannel(nls.localize('client_name'));
+
+      this.setClientInstance(await languageServer.createLanguageServer(extensionContext, this.outputChannel));
 
       const languageClient = this.getClientInstance();
 
@@ -317,7 +330,7 @@ export class LanguageClientManager {
         });
 
         await languageClient.start();
-        const startTime = TimingUtils.getElapsedTime(langClientStartTime);
+        const startTime = globalThis.performance.now() - langClientStartTime;
         telemetryService.sendEventData('apexLSPStartup', undefined, {
           activationTime: startTime
         });

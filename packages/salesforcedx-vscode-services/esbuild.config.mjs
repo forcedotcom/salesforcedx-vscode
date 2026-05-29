@@ -33,6 +33,7 @@ const copyTemplates = copy({
   resolveFrom: 'cwd',
   globbyOptions: { dot: true },
   assets: [
+    { from: [`${templatesBase}/analytics/**/*`], to: ['./dist/templates/analytics'] },
     { from: [`${templatesBase}/apexclass/**/*`], to: ['./dist/templates/apexclass'] },
     { from: [`${templatesBase}/apextrigger/**/*`], to: ['./dist/templates/apextrigger'] },
     { from: [`${templatesBase}/lightningapp/**/*`], to: ['./dist/templates/lightningapp'] },
@@ -40,6 +41,7 @@ const copyTemplates = copy({
     { from: [`${templatesBase}/lightningcomponent/aura/**/*`], to: ['./dist/templates/lightningcomponent/aura'] },
     { from: [`${templatesBase}/lightningevent/**/*`], to: ['./dist/templates/lightningevent'] },
     { from: [`${templatesBase}/lightninginterface/**/*`], to: ['./dist/templates/lightninginterface'] },
+    { from: [`${templatesBase}/project/**/*`], to: ['./dist/templates/project'] },
     { from: [`${templatesBase}/staticresource/**/*`], to: ['./dist/templates/staticresource'] },
     { from: [`${templatesBase}/visualforcepage/**/*`], to: ['./dist/templates/visualforcepage'] },
     { from: [`${templatesBase}/visualforcecomponent/**/*`], to: ['./dist/templates/visualforcecomponent'] }
@@ -79,12 +81,19 @@ const buildWebConfig = async () => {
       });
       const orgDisplayResponse = JSON.parse(stdout);
       const orgData = orgDisplayResponse.result;
-      const ORG_DISPLAY_KEYS = ['instanceUrl', 'accessToken', 'apiVersion'];
+      const ORG_DISPLAY_KEYS = ['instanceUrl', 'apiVersion'];
 
-      if (ORG_DISPLAY_KEYS.every(k => orgData[k])) {
-        ORG_DISPLAY_KEYS.forEach(key => {
+      const { stdout: tokenStdout } = await execAsync(
+        `sf org auth show-access-token -o ${process.env.ESBUILD_WEB_ORG_ALIAS} --json`,
+        { env: { ...process.env, NO_COLOR: '1' } }
+      );
+      orgData.accessToken = JSON.parse(tokenStdout).result.accessToken;
+
+      const ALL_KEYS = [...ORG_DISPLAY_KEYS, 'accessToken'];
+      if (ALL_KEYS.every(k => orgData[k])) {
+        ALL_KEYS.forEach(key => {
           const fullKey = Object.keys(pkg.contributes?.configuration?.properties ?? {})
-            .filter(k => ORG_DISPLAY_KEYS.includes(k.split('.')[1]))
+            .filter(k => ALL_KEYS.includes(k.split('.')[1]))
             .find(k => k.endsWith(`.${key}`));
           if (fullKey) configMap[fullKey] = orgData[key];
         });

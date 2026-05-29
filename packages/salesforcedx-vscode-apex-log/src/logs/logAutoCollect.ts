@@ -31,10 +31,10 @@ const isAfterTraceFlagStart =
     return userStart === undefined || st >= userStart;
   };
 
-const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs')(function* (
-  knownIdsRef: Ref.Ref<Set<string>>,
-  collectorRef: SubscriptionRef.SubscriptionRef<LogCollectorState>
-) {
+const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* (knownIdsRef: Ref.Ref<Set<string>>, collectorRef: SubscriptionRef.SubscriptionRef<LogCollectorState>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const knownIds = yield* Ref.get(knownIdsRef);
 

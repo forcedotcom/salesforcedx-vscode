@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
 import { TestRunner } from '../testRunner';
@@ -100,7 +99,7 @@ export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
   if (typeof sfDebugSessionId === 'string') {
-    debugSessionStartTimes.set(sfDebugSessionId, TimingUtils.getCurrentTime());
+    debugSessionStartTimes.set(sfDebugSessionId, globalThis.performance.now());
   }
 };
 
@@ -112,9 +111,11 @@ export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => 
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
   const startTime = typeof sfDebugSessionId === 'string' ? debugSessionStartTimes.get(sfDebugSessionId) : undefined;
-  if (Array.isArray(startTime)) {
-    telemetryService.sendCommandEvent(LWC_TEST_DEBUG_LOG_NAME, startTime, {
-      workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
-    });
+  if (typeof startTime === 'number') {
+    telemetryService.sendEventData(
+      LWC_TEST_DEBUG_LOG_NAME,
+      { workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry() },
+      { executionTime: globalThis.performance.now() - startTime }
+    );
   }
 };

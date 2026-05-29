@@ -12,7 +12,7 @@
     "@vscode/test-web": "^0.0.78"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.28.0"
+    "@salesforce/core": "^8.31.0"
   },
   "scripts": {
     "compile": "wireit",
@@ -73,6 +73,9 @@
     "test:desktop": {
       "env": {
         "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }

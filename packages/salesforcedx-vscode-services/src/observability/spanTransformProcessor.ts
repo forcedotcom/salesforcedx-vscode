@@ -37,10 +37,11 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
 type TelemetryAttribute = [string, string | undefined];
 
 const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unknown): TelemetryAttribute[] => {
-  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource, webUserId, cliId } = getDefaultOrgRef().pipe(
-    Effect.flatMap(ref => SubscriptionRef.get(ref)),
-    Effect.runSync
-  );
+  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource, webUserId, cliId, orgEdition } =
+    getDefaultOrgRef().pipe(
+      Effect.flatMap(ref => SubscriptionRef.get(ref)),
+      Effect.runSync
+    );
   const commonAttrs: TelemetryAttribute[] = [];
   if (typeof extensionName === 'string') {
     commonAttrs.push(['common.extname', extensionName]);
@@ -58,8 +59,14 @@ const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unkno
     ['tracksSource', optionalBooleanToString(tracksSource)],
     ['userId', cliId],
     ['webUserId', webUserId],
+    ['orgEdition', orgEdition],
     ['telemetryTag', workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')]
   ];
+};
+
+export const isInternalUser = (uiKindString: string | undefined): string | undefined => {
+  if (uiKindString !== 'Desktop') return undefined;
+  return (os?.hostname?.() ?? '').endsWith('internal.salesforce.com') ? 'true' : 'false';
 };
 
 const getPermanentAttributes = () => {
@@ -70,6 +77,7 @@ const getPermanentAttributes = () => {
     ['common.vscodesessionid', sessionId],
     ['common.vscodeuikind', uiKindString],
     ['common.vscodeversion', version],
+    ['common.isInternal', isInternalUser(uiKindString)],
     // things that only make sense on desktop
     ...((uiKindString === 'Desktop'
       ? [

@@ -22,6 +22,7 @@ This extension provides Apex test execution and management features for VS Code.
 - `sf.apex.test.suite.run` - Run Apex Test Suite
 - `sf.apex.test.suite.create` - Create Apex Test Suite
 - `sf.apex.test.suite.add` - Add Tests to Apex Test Suite
+- `sf.apex.test.results.clear` - Clear Apex Test Results (removes stored result files)
 - `sf.apex.testing.walkthrough.open` - Open Apex Test Explorer Walkthrough (Getting Started)
 
 ## Requirements
@@ -37,6 +38,7 @@ This extension provides Apex test execution and management features for VS Code.
 - `salesforcedx-vscode-apex-testing.testCoverageThresholdPercent`: Coverage threshold
 - `salesforcedx-vscode-apex-testing.retrieve-test-code-coverage`: Retrieve code coverage
 - `salesforcedx-vscode-apex-testing.disable-warnings-for-missing-coverage`: Disable coverage warnings
+- `salesforcedx-vscode-apex-testing.restore-previous-results`: Restore test results from most recent run when test explorer loads (default: true)
 
 ## User guide
 
