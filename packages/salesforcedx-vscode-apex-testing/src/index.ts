@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -187,6 +187,9 @@ const registerCommands = (): vscode.Disposable => {
   const apexTestRefreshCmd = vscode.commands.registerCommand('sf.apex.test.refresh', async () => {
     await getTestController().refresh();
   });
+  const apexTestClearResultsCmd = vscode.commands.registerCommand('sf.apex.test.results.clear', async () => {
+    await getTestController().clearResults();
+  });
   const apexTestingWalkthroughOpenCmd = vscode.commands.registerCommand('sf.apex.testing.walkthrough.open', () =>
     vscode.commands.executeCommand(
       'workbench.action.openWalkthrough',
@@ -213,6 +216,7 @@ const registerCommands = (): vscode.Disposable => {
     apexTestSuiteAddCmd,
     openOrgOnlyTestCmd,
     apexTestRefreshCmd,
+    apexTestClearResultsCmd,
     apexTestingWalkthroughOpenCmd
   );
 };

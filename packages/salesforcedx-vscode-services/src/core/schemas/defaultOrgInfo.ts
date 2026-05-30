@@ -20,5 +20,6 @@ export const DefaultOrgInfoSchema = Schema.Struct({
   // the actual userID from the salesforce org
   userId: Schema.optional(Schema.String),
   cliId: Schema.optional(Schema.String),
-  webUserId: Schema.optional(Schema.String)
+  webUserId: Schema.optional(Schema.String),
+  orgEdition: Schema.optional(Schema.String)
 });

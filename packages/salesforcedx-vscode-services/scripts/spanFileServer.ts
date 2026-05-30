@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -16,6 +16,7 @@ const PORT = 3003;
 const SPANS_DIR = join(homedir(), '.sf', 'vscode-spans');
 
 const filePaths = new Map<string, string>();
+const otlpFilePathHolder: { value: string | undefined } = { value: undefined };
 
 const getFilePath = (extensionName: string): string => {
   const existing = filePaths.get(extensionName);
@@ -24,6 +25,14 @@ const getFilePath = (extensionName: string): string => {
   const path = join(SPANS_DIR, `web-${extensionName}-${timestamp}.jsonl`);
   filePaths.set(extensionName, path);
   return path;
+};
+
+const getOtlpFilePath = (): string => {
+  if (!otlpFilePathHolder.value) {
+    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+    otlpFilePathHolder.value = join(SPANS_DIR, `otlp-${timestamp}.jsonl`);
+  }
+  return otlpFilePathHolder.value;
 };
 
 const corsHeaders = {
@@ -43,8 +52,8 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
     return;
   }
 
-  if (req.method !== 'POST' || req.url !== '/spans') {
-    send(res, 404, JSON.stringify({ error: 'POST /spans only' }));
+  if (req.method !== 'POST' || (req.url !== '/spans' && req.url !== '/otlp-spans')) {
+    send(res, 404, JSON.stringify({ error: 'POST /spans or /otlp-spans only' }));
     return;
   }
 
@@ -53,6 +62,12 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
   req.on('end', () => {
     try {
       const body = Buffer.concat(chunks).toString();
+
+      if (req.url === '/otlp-spans') {
+        handleOtlpSpans(body, res);
+        return;
+      }
+
       const parsed = JSON.parse(body) as { extensionName?: string; spans?: string[] };
       const { extensionName, spans } = parsed;
 
@@ -71,6 +86,21 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
       send(res, 400, JSON.stringify({ error: String(error) }));
     }
   });
+};
+
+const handleOtlpSpans = (body: string, res: http.ServerResponse): void => {
+  const parsed = JSON.parse(body) as { lines?: string[] };
+  const { lines } = parsed;
+
+  if (!Array.isArray(lines)) {
+    send(res, 400, JSON.stringify({ error: 'Expected { lines: string[] }' }));
+    return;
+  }
+
+  mkdirSync(SPANS_DIR, { recursive: true });
+  const content = lines.filter((l): l is string => typeof l === 'string').join('\n') + (lines.length > 0 ? '\n' : '');
+  if (content) appendFileSync(getOtlpFilePath(), content);
+  send(res, 200, JSON.stringify({ success: true }));
 };
 
 const server = http.createServer(handleRequest);

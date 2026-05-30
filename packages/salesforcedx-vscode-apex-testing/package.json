@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.12.3",
+  "version": "66.13.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -32,17 +32,18 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/types": "^1.7.1",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "66.12.3"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
@@ -271,6 +272,7 @@
     "menus": {
       "view/title": [],
       "view/item/context": [],
+      "testing/test/context": [],
       "explorer/context": [],
       "commandPalette": [
         {
@@ -316,6 +318,10 @@
         {
           "command": "sf.apex.test.refresh",
           "when": "false"
+        },
+        {
+          "command": "sf.apex.test.results.clear",
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.apex.testing.walkthrough.open",
@@ -367,6 +373,10 @@
       {
         "command": "sf.apex.test.refresh",
         "title": "%apex_test_refresh_title%"
+      },
+      {
+        "command": "sf.apex.test.results.clear",
+        "title": "%apex_test_clear_results_text%"
       },
       {
         "command": "sf.apex.testing.walkthrough.open",
@@ -433,6 +443,33 @@
               "image": "images/walkthrough/view-test-results.png",
               "altText": "%apex_testing_walkthrough_step5_alt%"
             }
+          },
+          {
+            "id": "stale-results",
+            "title": "%apex_testing_walkthrough_step6_title%",
+            "description": "%apex_testing_walkthrough_step6_description%",
+            "media": {
+              "markdown": "images/walkthrough/stale-results.md"
+            }
+          },
+          {
+            "id": "deploy-freshness",
+            "title": "%apex_testing_walkthrough_step7_title%",
+            "description": "%apex_testing_walkthrough_step7_description%",
+            "media": {
+              "markdown": "images/walkthrough/deploy-freshness.md"
+            }
+          },
+          {
+            "id": "clear-results",
+            "title": "%apex_testing_walkthrough_step8_title%",
+            "description": "%apex_testing_walkthrough_step8_description%",
+            "media": {
+              "markdown": "images/walkthrough/clear-results.md"
+            },
+            "completionEvents": [
+              "onCommand:sf.apex.test.results.clear"
+            ]
           }
         ]
       }
@@ -496,6 +533,11 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_disable_warnings_for_missing_coverage%"
+        },
+        "salesforcedx-vscode-apex-testing.restore-previous-results": {
+          "type": "boolean",
+          "default": true,
+          "description": "%apex_restore_previous_results_description%"
         }
       }
     }

@@ -5,6 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "lint": "wireit",
     "copy:files": "wireit",
     "compile": "wireit",

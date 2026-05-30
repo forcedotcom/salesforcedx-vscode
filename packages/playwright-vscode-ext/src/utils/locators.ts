@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -47,3 +47,9 @@ export const SETTINGS_SEARCH_INPUT = [
 
 /** VS Code context menu container */
 export const CONTEXT_MENU = '.monaco-menu';
+
+/**
+ * Code lens interactive element — desktop (Electron) renders as `<a>` inside
+ * `.codelens-decoration`; web (Chromium) renders as `<button>` directly.
+ */
+export const CODELENS_ITEM = '.codelens-decoration a, .codelens-decoration button';

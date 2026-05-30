@@ -1,36 +1,70 @@
 ---
 name: span-file-export
-description: Use file-based span export for AI consumption. Where it lives, how to enable/clear, settings for Node and Web. Use when enabling span file dump, debugging traces for AI, or configuring local observability.
+description: Use file-based span/log export for AI consumption. Where it lives, how to enable/clear, record format for Node and Web. Use when enabling span file dump, debugging traces for AI, or configuring local observability.
 ---
 
-# Span File Export
+# Span & Log File Export
 
-Local span export to `~/.sf/vscode-spans/` for AI consumers. Simplified flat JSON Lines format.
+Local OTLP export to `~/.sf/vscode-spans/` for AI consumers. Spans and log records interleaved in one JSONL file.
 
-## Choose One: OTLP vs File
+## Settings Required
 
-- **OTLP** (`enableLocalTraces`): Grafana/Jaeger UI — for humans
-- **File** (`enableFileTraces`): `.jsonl` on disk — for AI agents, Cursor
+| Setting | Default | Purpose |
+|---------|---------|---------|
+| `salesforcedx-vscode-salesforcedx.enableFileTraces` | `false` | Enables file capture (spans + logs) |
+| `salesforcedx-vscode-salesforcedx.logLevel` | `error` | Minimum log level for exported records. Set to `info` or `debug` to see most logs. |
+| `SF_LOG_LEVEL` env var | — | Fallback when VS Code setting unset (`fatal` maps to `error`) |
 
-Use only one at a time.
+Reload the window after changing — the SDK layer is built at activation time.
 
 ## Where It Lives
 
-All spans in one directory: `~/.sf/vscode-spans/`
+All records in one directory: `~/.sf/vscode-spans/`
 
-| Prefix | Path pattern |
-|--------|--------------|
-| Node | `node-{extensionName}-{ISO-timestamp}.jsonl` |
-| Web | `web-{extensionName}-{ISO-timestamp}.jsonl` |
+Filename pattern: `{ISO-timestamp}.jsonl` (e.g., `2026-05-22T15-33-01-398Z.jsonl`)
 
-Find latest: `ls -lt ~/.sf/vscode-spans/`
+Find latest: `ls -lt ~/.sf/vscode-spans/ | head -1`
+
+## Record Format
+
+Each line is independent JSON. Discriminate on `"kind"` field.
+
+### Spans (`kind: "span"`)
+
+```jsonl
+{"kind":"span","traceId":"abc123","spanId":"def456","parentSpanId":"","name":"ConnectionService.getConnection","spanKind":1,"startTimeUnixNano":"1779461510277547833","endTimeUnixNano":"1779461510278117291","attributes":{"orgId":"00D..."},"events":[],"links":[],"status":{"code":1,"message":""},"resource":{"attributes":{"extension.name":"salesforcedx-vscode-core","service.name":"salesforcedx-vscode-core"}},"instrumentationScope":{"name":"salesforcedx-vscode-core","version":"2026-03-02T01:00.304Z"}}
+```
+
+| Field | Notes |
+|-------|-------|
+| `parentSpanId: ""` | Root span (top of trace tree) |
+| `status.code` | 1=OK, 2=ERROR |
+| `spanKind` | OTEL SpanKind enum +1 (1=INTERNAL, 2=SERVER, 3=CLIENT) |
+| `resource.attributes["extension.name"]` | Which extension emitted it |
+| Duration (ms) | `(endTimeUnixNano - startTimeUnixNano) / 1_000_000` |
+
+### Logs (`kind: "log"`)
+
+```jsonl
+{"kind":"log","timestamp":"1779463981397000000","severityText":"WARN","severityNumber":30000,"body":"UserIdNotFoundError: Could not determine user ID","traceId":"b4d710...","spanId":"706dfc...","attributes":{"fiberId":"#295"}}
+```
+
+| Field | Notes |
+|-------|-------|
+| `traceId` + `spanId` | Correlates to parent span active when log was emitted |
+| `severityText` | INFO, WARN, ERROR (filtered by `logLevel` setting) |
+| `body` | String or array (multiple log args) |
+| `timestamp` | Nanoseconds since epoch |
+
+Only log records at or above the configured `logLevel` are emitted.
 
 ## Enable (Desktop)
 
-Settings → search `enableFileTraces` → check, or:
-
 ```json
-{ "salesforcedx-vscode-salesforcedx.enableFileTraces": true }
+{
+  "salesforcedx-vscode-salesforcedx.enableFileTraces": true,
+  "salesforcedx-vscode-salesforcedx.logLevel": "info"
+}
 ```
 
 ## Enable (Web / run:web)
@@ -39,26 +73,19 @@ Web POSTs to local span file server (port 3003). Server must be running.
 
 1. Start server: `npm run spans:server -w salesforcedx-vscode-services`
 2. Add to `.esbuild-web-extra-settings.json` at repo root (gitignored):
-
-```json
-{ "salesforcedx-vscode-salesforcedx.enableFileTraces": true }
-```
-
+   ```json
+   { "salesforcedx-vscode-salesforcedx.enableFileTraces": true }
+   ```
 3. Run `npm run run:web -w packages/<extension>`
-4. If settings don't appear: `rm -rf packages/salesforcedx-vscode-services/.wireit packages/salesforcedx-vscode-services/dist`
-
-`test:web` and `test:desktop` can auto-start the span file server via wireit service dep (when configured in script dependencies).
 
 ## Clear
 
-`rm ~/.sf/vscode-spans/*` or `rm -rf ~/.sf/vscode-spans/`
+`rm ~/.sf/vscode-spans/*`
 
-## Format
+## Trace Correlation
 
-Simplified flat JSON — one object per line:
+Logs reference the span that was active when they were emitted via `traceId` + `spanId`. To reconstruct an operation:
 
-```jsonl
-{"name":"deploy","traceId":"abc","spanId":"def","parentSpanId":"","durationMs":1234,"status":"OK","startTime":"2026-02-25T10:30:00.000Z","attributes":{"componentCount":"5"}}
-```
-
-Parse with `JSON.parse` per line.
+1. Find all spans with a given `traceId`
+2. Build tree using `parentSpanId` → children
+3. Find logs with the same `traceId` — they belong to the span matching their `spanId`

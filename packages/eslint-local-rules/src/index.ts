@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -23,6 +23,8 @@ import { packageJsonCommandRefs } from './packageJsonCommandRefs';
 import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
 import { packageJsonIconPaths } from './packageJsonIconPaths';
+import { packageJsonNoDefaultTrue } from './packageJsonNoDefaultTrue';
+import { packageJsonRequireRootInstall } from './packageJsonRequireRootInstall';
 import { packageJsonSalesforceDepVersions } from './packageJsonSalesforceDepVersions';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
 import { queryBuilderHtmlI18nKeys } from './queryBuilderHtmlI18nKeys';
@@ -56,6 +58,8 @@ const plugin = {
     'package-json-extension-icon': packageJsonExtensionIcon,
     'package-json-icon-paths': packageJsonIconPaths,
     'package-json-command-refs': packageJsonCommandRefs,
+    'package-json-no-default-true': packageJsonNoDefaultTrue,
+    'package-json-require-root-install': packageJsonRequireRootInstall,
     'package-json-salesforce-dep-versions': packageJsonSalesforceDepVersions,
     'package-json-view-refs': packageJsonViewRefs,
     'vscodeignore-contributes-conflict': vscodeignoreContributesConflict,

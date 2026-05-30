@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -34,7 +34,7 @@ export const createDreamhouseOrg = async (): Promise<OrgAuthResult> => {
     { cwd: repoDir, env }
   );
 
-  const authFields = extractAuthFields(createStdout);
+  const authFields = await extractAuthFields(createStdout, DREAMHOUSE_ORG_ALIAS);
 
   await execAsync('sf project deploy start', { cwd: repoDir });
   await execAsync('sf org assign permset -n dreamhouse -o dreamhouse', { cwd: repoDir });

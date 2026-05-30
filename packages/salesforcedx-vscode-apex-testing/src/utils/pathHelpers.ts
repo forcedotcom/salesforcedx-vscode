@@ -8,6 +8,8 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI, Utils } from 'vscode-uri';
+import { getDefaultOrgInfo } from '../coreExtensionUtils';
+import { resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryStore';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
 const STATE_FOLDER = '.sfdx';
@@ -15,14 +17,21 @@ const TOOLS = 'tools';
 const TEST_RESULTS = 'testresults';
 const TEST_TYPE = 'apex';
 
-/** Gets the apex test results folder URI and creates it if it doesn't exist. Uses workspace URI from WorkspaceService. */
-export const getTestResultsFolder = async (): Promise<URI> =>
+/** Gets the org-scoped apex test results folder URI and creates it if it doesn't exist. */
+export const getTestResultsFolder = async (): Promise<URI> => {
+  const orgInfo = await getDefaultOrgInfo();
+  const orgKey = resolveDiscoveryOrgKey(orgInfo);
+  return getTestResultsFolderForOrg(orgKey);
+};
+
+/** Gets the apex test results folder URI for a specific org and creates it if it doesn't exist. */
+const getTestResultsFolderForOrg = async (orgKey: string): Promise<URI> =>
   getApexTestingRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const workspaceService = yield* api.services.WorkspaceService;
       const workspace = yield* workspaceService.getWorkspaceInfoOrThrow();
-      const folderUri = Utils.joinPath(workspace.uri, STATE_FOLDER, TOOLS, TEST_RESULTS, TEST_TYPE);
+      const folderUri = Utils.joinPath(workspace.uri, STATE_FOLDER, TOOLS, TEST_RESULTS, TEST_TYPE, orgKey);
       yield* api.services.FsService.createDirectory(folderUri).pipe(
         Effect.tapError(error => Effect.logError(error)),
         Effect.catchAll(() => Effect.void)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -263,7 +263,7 @@ const getTracksSourceFromOrg = (conn: Connection) =>
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
 const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection) {
   const aliasService = yield* AliasService;
-  const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
+  const { orgId, devHubUsername, isScratch, isSandbox, tracksSource, orgEdition } = conn.getAuthInfoFields();
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
   const orgIdChanged = existingOrgInfo.orgId !== orgId;
@@ -325,7 +325,8 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       webUserId,
       aliases,
       username,
-      ...(typeof cliId === 'string' ? { cliId } : {})
+      ...(typeof cliId === 'string' ? { cliId } : {}),
+      ...(typeof orgEdition === 'string' ? { orgEdition } : {})
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
   );
 
