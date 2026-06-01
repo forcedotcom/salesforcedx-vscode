@@ -19,7 +19,6 @@
   "project_retrieve_start_ignore_conflicts_default_org_text": "SFDX: Pull Source from Default Org and Ignore Conflicts",
   "refresh_components_text": "SFDX: コンポーネントを更新",
   "refresh_types_text": "SFDX: メタデータ型を更新",
-  "rename_lightning_component_text": "SFDX: Rename Component",
   "retrieve_and_open_display_text": "ソースを取得して開く",
   "retrieve_display_text": "組織からソースを取得",
   "retrieve_this_source_text": "SFDX: このソースを組織から取得",

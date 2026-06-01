@@ -242,6 +242,10 @@
       {
         "command": "sf.internal.lightning.generate.interface",
         "title": "%lightning_generate_interface_text%"
+      },
+      {
+        "command": "sf.lightning.aura.rename",
+        "title": "%rename_lightning_component_text%"
       }
     ],
     "menus": {
@@ -277,6 +281,10 @@
         {
           "command": "sf.internal.lightning.generate.interface",
           "when": "false"
+        },
+        {
+          "command": "sf.lightning.aura.rename",
+          "when": "false"
         }
       ],
       "explorer/context": [
@@ -311,6 +319,10 @@
         {
           "command": "sf.internal.lightning.generate.interface",
           "when": "explorerResourceIsFolder && sf:internal_dev"
+        },
+        {
+          "command": "sf.lightning.aura.rename",
+          "when": "sf:project_opened && resource =~ /.*\\/aura\\/.*(\\/[^\\/]+\\.(cmp|app|css|js|svg|design|auradoc|evt|xml))?$/"
         }
       ]
     },
