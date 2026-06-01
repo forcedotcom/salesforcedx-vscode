@@ -8,6 +8,7 @@
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
+import * as Fiber from 'effect/Fiber';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -181,6 +182,42 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           return self.pipe(Effect.ensuring(Effect.sync(resolve)));
         });
 
+    /** Pipeable operator: ties a cancellable vscode progress notification to an Effect.
+     * The progress shows a Cancel button; clicking it interrupts the inner effect and surfaces a
+     * {@link UserCancellationError}. */
+    const withCancellableProgress =
+      (title: string) =>
+      <A, E, R>(self: Effect.Effect<A, E, R>) =>
+        Effect.suspend(() => {
+          const { promise, resolve } = Promise.withResolvers<void>();
+          const userCancelled = { value: false };
+          return Effect.forkDaemon(self).pipe(
+            Effect.tap(fiber =>
+              Effect.sync(() => {
+                void vscode.window.withProgress(
+                  { location: vscode.ProgressLocation.Notification, title, cancellable: true },
+                  (_progress, token) => {
+                    token.onCancellationRequested(() => {
+                      userCancelled.value = true;
+                      Effect.runFork(Fiber.interrupt(fiber));
+                    });
+                    return promise;
+                  }
+                );
+              })
+            ),
+            Effect.flatMap(fiber => Fiber.join(fiber)),
+            Effect.ensuring(Effect.sync(resolve)),
+            Effect.catchAllCause(cause =>
+              userCancelled.value
+                ? Effect.fail<UserCancellationError | E>(
+                    new UserCancellationError({ message: 'User cancelled progress' })
+                  )
+                : Effect.failCause<UserCancellationError | E>(cause)
+            )
+          );
+        });
+
     return {
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
        * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
@@ -191,7 +228,10 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       /** Prompt user to select output directory from available package directories, or choose a custom one. */
       promptForOutputDir,
       /** Pipeable operator: ties a vscode progress notification lifetime to an Effect. */
-      withProgress
+      withProgress,
+      /** Pipeable operator: ties a cancellable vscode progress notification lifetime to an Effect.
+       * Clicking Cancel interrupts the inner effect and surfaces a {@link UserCancellationError}. */
+      withCancellableProgress
     };
   })
 }) {}

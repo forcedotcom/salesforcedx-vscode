@@ -220,10 +220,6 @@
       ],
       "commandPalette": [
         {
-          "command": "sf.package.install",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
           "command": "sf.open.documentation",
           "when": "sf:project_opened"
         },
@@ -242,10 +238,6 @@
       ]
     },
     "commands": [
-      {
-        "command": "sf.package.install",
-        "title": "%package_install_text%"
-      },
       {
         "command": "sf.open.documentation",
         "title": "%open_documentation_text%"
