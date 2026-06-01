@@ -1,19 +1,26 @@
-# 66.13.0 - May 27, 2026
+# 66.14.0 - June 3, 2026
 
 ## Added
 
-#### salesforcedx-vscode-apex-testing
+#### docs
 
-- The Apex Test Explorer now performs an incremental update when you deploy a class instead of clearing the entire test tree. Only the deployed class is refreshed at method granularity, and existing results are preserved and marked stale so you don't lose context from your last run. ([PR #7300](https://github.com/forcedotcom/salesforcedx-vscode/pull/7300))
+- Add OTLP file span exporter for offline trace capture - W-22416598 W-22601459 ([PR #7305](https://github.com/forcedotcom/salesforcedx-vscode/pull/7305))
 
-- We added a new setting, **Restore Previous Results**, that restores your Apex test results when you reload the workspace (results from the last 24 hours, marked stale). Use the **Don't Restore Again** action to disable it for a workspace. ([PR #7300](https://github.com/forcedotcom/salesforcedx-vscode/pull/7300))
+#### salesforcedx-vscode-services
+
+- Add OTLP file span exporter for offline trace capture - W-22416598 W-22601459 ([PR #7305](https://github.com/forcedotcom/salesforcedx-vscode/pull/7305))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex-log
+#### salesforcedx-vscode-apex-testing
 
-- When you click the **Create trace flag for current user** code lens, you can now choose a debug level from a dropdown instead of being defaulted to `ReplayDebuggerLevels`. ([PR #7330](https://github.com/forcedotcom/salesforcedx-vscode/pull/7330), [ISSUE #7262](https://github.com/forcedotcom/salesforcedx-vscode/issues/7262))
+- Read apex test results from org-scoped folder in colorizer - W-22717485 ([PR #7360](https://github.com/forcedotcom/salesforcedx-vscode/pull/7360))
 
-## Under the Hood
+#### salesforcedx-vscode-services
 
-- We made some under the hood changes. ([PR #7343](https://github.com/forcedotcom/salesforcedx-vscode/pull/7343))
+- Honor custom metadata templates in TemplateService - W-22563778 ([PR #7333](https://github.com/forcedotcom/salesforcedx-vscode/pull/7333))
+
+#### salesforcedx-vscode-soql
+
+- Add release-publishing skill ([PR #7366](https://github.com/forcedotcom/salesforcedx-vscode/pull/7366))
+
