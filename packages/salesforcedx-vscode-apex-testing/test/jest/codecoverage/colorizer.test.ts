@@ -316,6 +316,56 @@ describe('CodeCoverageHandler', () => {
         (settings.retrieveRestorePreviousResults as jest.Mock).mockReturnValue(true);
       });
 
+      it('picks newest file by mtime when filenames are not chronologically sortable', async () => {
+        // Apex test-result filenames embed Salesforce 18-char run IDs that are not
+        // chronologically sortable, so alphabetical order can disagree with mtime.
+        (settings.retrieveRestorePreviousResults as jest.Mock).mockReturnValue(false);
+        const olderMtime = now - 1000 * 60 * 60 * 2; // 2 hours ago
+        const newerMtime = now - 1000 * 60; // 1 minute ago
+        jest.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
+          ['test-result-707xx0000099999.json', vscode.FileType.File], // alphabetically last, but older
+          ['test-result-707xx0000011111.json', vscode.FileType.File] // alphabetically first, but newer
+        ]);
+        jest.spyOn(vscode.workspace.fs, 'stat').mockImplementation((uri: URI) => {
+          if (uri.path.endsWith('test-result-707xx0000099999.json')) {
+            return Promise.resolve({ mtime: olderMtime } as vscode.FileStat);
+          }
+          return Promise.resolve({ mtime: newerMtime } as vscode.FileStat);
+        });
+        const readCalls: string[] = [];
+        jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation((uri: URI) => {
+          readCalls.push(uri.path);
+          if (uri.path.endsWith('test-result-707xx0000011111.json')) {
+            return Promise.resolve(
+              new TextEncoder().encode(
+                JSON.stringify({ codecoverage: [{ name: 'ClassA', coveredLines: [1, 2, 3], uncoveredLines: [] }] })
+              )
+            );
+          }
+          if (uri.path.endsWith('test-result-707xx0000099999.json')) {
+            return Promise.resolve(
+              new TextEncoder().encode(
+                JSON.stringify({ codecoverage: [{ name: 'ClassA', coveredLines: [1], uncoveredLines: [2, 3] }] })
+              )
+            );
+          }
+          return Promise.reject(new Error(`unexpected read: ${uri.path}`));
+        });
+
+        await handler.toggleCoverage();
+
+        // The alphabetically-last file (99999) is older — it must NOT be read.
+        // The alphabetically-first file (11111) is newer — it must be the one used.
+        expect(readCalls.some(p => p.endsWith('test-result-707xx0000099999.json'))).toBe(false);
+        expect(readCalls.some(p => p.endsWith('test-result-707xx0000011111.json'))).toBe(true);
+        const calls = (mockEditor.setDecorations as jest.Mock).mock.calls;
+        const coveredRanges = calls[0][1] as vscode.Range[];
+        const uncoveredRanges = calls[1][1] as vscode.Range[];
+        expect(coveredRanges).toHaveLength(3);
+        expect(uncoveredRanges).toHaveLength(0);
+        (settings.retrieveRestorePreviousResults as jest.Mock).mockReturnValue(true);
+      });
+
       it('throws when files exist but none contain coverage keys', async () => {
         jest
           .spyOn(vscode.workspace.fs, 'readDirectory')

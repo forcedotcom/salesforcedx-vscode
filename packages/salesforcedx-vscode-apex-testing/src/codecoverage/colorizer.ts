@@ -70,32 +70,38 @@ const getCoverageData = async (): Promise<(CoverageItem | CodeCoverageResult)[]>
         !name.endsWith('-codecoverage.json')
     )
     .map(([name]) => name);
-  resultNames.sort();
 
   if (resultNames.length === 0) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
 
   const now = Date.now();
-  const recentNames: string[] = [];
+  const recentEntries: { name: string; mtime: number }[] = [];
   for (const name of resultNames) {
     const uri = Utils.joinPath(apexTestResultsUri, name);
     try {
       const stat = await workspace.fs.stat(uri);
       if (now - stat.mtime <= RESULT_MAX_AGE_MS) {
-        recentNames.push(name);
+        recentEntries.push({ name, mtime: stat.mtime });
       }
     } catch {
       // Skip files we can't stat
     }
   }
 
-  if (recentNames.length === 0) {
+  if (recentEntries.length === 0) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
 
+  // Sort oldest-first by mtime: filenames contain non-monotonic test-run IDs, so
+  // alphabetical order doesn't match chronological order. Last-write-wins aggregation
+  // and the .at(-1) fallback below both depend on chronological order.
+  recentEntries.sort((a, b) => a.mtime - b.mtime);
+
   // When restore-previous-results is disabled, only use the most recent file
-  const filesToRead = settings.retrieveRestorePreviousResults() ? recentNames : [recentNames.at(-1)!];
+  const filesToRead = settings.retrieveRestorePreviousResults()
+    ? recentEntries.map(e => e.name)
+    : [recentEntries.at(-1)!.name];
 
   type TestResultWithCoverage = {
     codecoverage?: CodeCoverageResult[];
