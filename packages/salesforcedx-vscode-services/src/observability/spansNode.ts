@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -64,9 +64,7 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
       ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : [])
     ],
     logRecordProcessor: [
-      ...(getFileTracesEnabled()
-        ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())]
-        : [])
+      ...(getFileTracesEnabled() ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())] : [])
     ]
   })).pipe(
     Layer.merge(Logger.minimumLogLevel(getLogLevel())),
@@ -76,10 +74,7 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
             // OTLPTraceExporter reads OTEL_EXPORTER_OTLP_ENDPOINT internally; OtlpLogger does not, so we resolve it here
             url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'http://localhost:4318'}/v1/logs`,
             resource: { serviceName: extensionName, serviceVersion: extensionVersion }
-          }).pipe(
-            Layer.provide(FetchHttpClient.layer),
-            Layer.provide(OtlpSerialization.layerJson)
-          )
+          }).pipe(Layer.provide(FetchHttpClient.layer), Layer.provide(OtlpSerialization.layerJson))
         : Layer.empty
     )
   );

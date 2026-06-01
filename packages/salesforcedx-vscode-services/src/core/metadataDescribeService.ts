@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import type { Connection } from '@salesforce/core';
+import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
@@ -20,7 +21,7 @@ import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
-import { FilePropertiesSchema } from './schemas/fileProperties';
+import { FilePropertiesByFullName, FilePropertiesSchema } from './schemas/fileProperties';
 import { unknownToErrorCause } from './shared';
 
 const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
@@ -176,8 +177,9 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         Effect.tap(result => Effect.annotateCurrentSpan({ result })),
         Effect.withSpan('listMetadata (API call)'),
         Effect.map(ensureArray),
-        Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
         Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
+        Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
+        Effect.map(Arr.dedupeAdjacentWith(FilePropertiesByFullName)),
         Effect.mapError(e => {
           const { cause } = unknownToErrorCause(e);
           return new ListMetadataError({
