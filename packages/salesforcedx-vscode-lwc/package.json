@@ -340,7 +340,12 @@
       "test": []
     },
     "menus": {
-      "editor/context": [],
+      "editor/context": [
+        {
+          "command": "sf.lightning.lwc.rename",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+\\/[^\\/]+\\.(html|css|js|ts|xml|svg)$/"
+        }
+      ],
       "editor/title": [
         {
           "command": "sf.lightning.lwc.test.editorTitle.run",

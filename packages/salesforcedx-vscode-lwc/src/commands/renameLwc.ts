@@ -23,7 +23,13 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForLwcName } from './promptForLwcName';
 
-export const renameLwcCommand = Effect.fn('renameLwcCommand')(function* (sourceUri?: URI) {
+/** Explorer context-menu dispatch passes (clickedUri, selectedUris[]). For compact folders the
+ * clickedUri is the visual chain's deepest *displayed* segment, not the actual leaf — the bundle
+ * URI is in selectedUris[0]. Prefer the selected URI when present. */
+export const renameLwcCommand = Effect.fn('renameLwcCommand')(function* (
+  sourceUri?: URI,
+  selectedUris?: readonly URI[]
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = yield* api.services.FsService;
   const editorService = yield* api.services.EditorService;
@@ -31,7 +37,11 @@ export const renameLwcCommand = Effect.fn('renameLwcCommand')(function* (sourceU
   const componentSetService = yield* api.services.ComponentSetService;
   const lightningComponentService = yield* api.services.LightningComponentService;
 
-  const resolvedSource = yield* promptService.considerUndefinedAsCancellation(sourceUri);
+  const resolvedSource = yield* promptService.considerUndefinedAsCancellation(
+    selectedUris?.[0] ??
+      sourceUri ??
+      (yield* editorService.getActiveEditorUri().pipe(Effect.option, Effect.map(Option.getOrUndefined)))
+  );
   const bundleUri = yield* Option.match(getBundleUri(resolvedSource), {
     onNone: () =>
       Effect.fail(

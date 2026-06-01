@@ -324,6 +324,12 @@
           "command": "sf.lightning.aura.rename",
           "when": "sf:project_opened && resource =~ /.*\\/aura\\/.*(\\/[^\\/]+\\.(cmp|app|css|js|svg|design|auradoc|evt|xml))?$/"
         }
+      ],
+      "editor/context": [
+        {
+          "command": "sf.lightning.aura.rename",
+          "when": "sf:project_opened && resource =~ /.*\\/aura\\/[^\\/]+\\/[^\\/]+\\.(cmp|app|css|js|svg|design|auradoc|evt|xml)$/"
+        }
       ]
     },
     "configuration": {
