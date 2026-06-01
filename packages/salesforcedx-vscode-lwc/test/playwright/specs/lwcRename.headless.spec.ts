@@ -11,6 +11,7 @@ import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -59,6 +60,8 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
 
   await test.step('rename the bundle via explorer context menu', async () => {
     await executeExplorerContextMenuCommand(page, oldName, packageNls.rename_lightning_component_text);
+    // Wait for the input box (showInputBox) to take focus before typing.
+    await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
     await saveScreenshot(page, 'rename.context-menu-fired.png');
 
     // Input box is pre-filled with the old name; select all + type new name
@@ -78,6 +81,25 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     const oldFolder = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`^${oldName}$`, 'i') });
     await expect(oldFolder).toHaveCount(0, { timeout: 5000 });
     await saveScreenshot(page, 'rename.verify-tree.png');
+  });
+
+  // Follow-up: rename again via editor context menu. The renamed bundle's main file is in the active editor.
+  const finalName = `renameLwcFinal${Date.now()}`;
+  await test.step('rename again via editor context menu', async () => {
+    await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.js`);
+    await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.type(finalName);
+    await page.keyboard.press('Enter');
+    await saveScreenshot(page, 'rename.editor-menu-fired.png');
+  });
+
+  await test.step('verify second rename', async () => {
+    const finalFolder = page
+      .locator('[role="treeitem"]')
+      .filter({ hasText: new RegExp(`^${finalName}$`, 'i') })
+      .first();
+    await expect(finalFolder).toBeVisible({ timeout: 10_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

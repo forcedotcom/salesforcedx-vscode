@@ -8,12 +8,14 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  activeQuickInputWidget,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
   closeWelcomeTabs,
   executeCommandWithCommandPalette,
+  executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   validateNoCriticalErrors,
   saveScreenshot,
@@ -51,7 +53,12 @@ test.describe('Aura Rename (Desktop Only)', () => {
     });
 
     await test.step('rename via explorer context menu', async () => {
-      await executeExplorerContextMenuCommand(page, oldName, packageNls.rename_lightning_component_text);
+      await executeExplorerContextMenuCommand(
+        page,
+        new RegExp(`^${oldName}$`),
+        packageNls.rename_lightning_component_text
+      );
+      await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
       await saveScreenshot(page, 'auraRename.menu-fired.png');
       await page.keyboard.press('ControlOrMeta+a');
       await page.keyboard.type(newName);
@@ -68,6 +75,25 @@ test.describe('Aura Rename (Desktop Only)', () => {
 
       const oldFolder = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`^${oldName}$`, 'i') });
       await expect(oldFolder).toHaveCount(0, { timeout: 5000 });
+    });
+
+    // Follow-up: rename again via editor context menu. The renamed bundle's main file is in the active editor.
+    const finalName = `RenameAuraFinal${Date.now()}`;
+    await test.step('rename again via editor context menu', async () => {
+      await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.cmp`);
+      await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
+      await page.keyboard.press('ControlOrMeta+a');
+      await page.keyboard.type(finalName);
+      await page.keyboard.press('Enter');
+      await saveScreenshot(page, 'auraRename.editor-menu-fired.png');
+    });
+
+    await test.step('verify second rename', async () => {
+      const finalFolder = page
+        .locator('[role="treeitem"]')
+        .filter({ hasText: new RegExp(`^${finalName}$`, 'i') })
+        .first();
+      await expect(finalFolder).toBeVisible({ timeout: 10_000 });
     });
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);
