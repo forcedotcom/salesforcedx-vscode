@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Equivalence from 'effect/Equivalence';
 import * as S from 'effect/Schema';
 
 /** Schema for FileProperties (metadata.list result) */
@@ -21,3 +22,9 @@ export const FilePropertiesSchema = S.Struct({
   manageableState: S.optional(S.String),
   namespacePrefix: S.optional(S.String)
 });
+
+/** Equivalence for FileProperties keyed on fullName — for deduping listMetadata results. */
+export const FilePropertiesByFullName = Equivalence.mapInput(
+  Equivalence.string,
+  (fp: S.Schema.Type<typeof FilePropertiesSchema>) => fp.fullName
+);
