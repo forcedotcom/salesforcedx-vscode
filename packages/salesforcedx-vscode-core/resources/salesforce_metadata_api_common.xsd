@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-05-17T13:39:18.695Z
+Generated on: 2026-05-31T13:40:49.023Z
 Total metadata types: 1571
 -->
 <xsd:schema
@@ -17154,7 +17154,7 @@ Total metadata types: 1571
      </xsd:element>
      <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The type of the conversation message constant primitive value. Valid values are: ImageAsset Text Url</xsd:documentation>
+       <xsd:documentation>Required. The type of the conversation message constant primitive value. Valid values are: FileAsset ImageAsset Text Url</xsd:documentation>
        <xsd:appinfo>Type: ConversationMessageConstantValueType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -17206,6 +17206,12 @@ Total metadata types: 1571
       <xsd:annotation>
        <xsd:documentation>An array of constants that defines the messaging components. Constants support multiple data types, including text, URL, and image.</xsd:documentation>
        <xsd:appinfo>Type: ConversationMessageConstant[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="contentCategory" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the business intent of the Conversation Message Definition. Valid values are: AccountUpdate Authentication Feedback OrderUpdate PromotionalOutreach Reminder Response</xsd:documentation>
+       <xsd:appinfo>Type: ConversationMessageContentCategory (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -30473,6 +30479,12 @@ Total metadata types: 1571
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="executionMode" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the execution mode for the expression set definition.Valid values are: Cloud Local</xsd:documentation>
+       <xsd:appinfo>Type: ExpsSetExecutionMode (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="executionScale" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies the scale of the inputs that an expression set processes. The scale determines where the expression set is executed. Valid values are: High Low Available in API version 61.0 and later.</xsd:documentation>
@@ -30481,7 +30493,7 @@ Total metadata types: 1571
      </xsd:element>
      <xsd:element name="interfaceSourceType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The interface source type designed by the consuming cloud that&apos;s making a customized expression set builder available to its users. Valid values are: Constraint (Available in API version 62.0 and later). DiscoveryProcedure (Available in API version 61.0 and later). EventOrchestration (Available in API version 61.0 and later). ItServiceManagement (Available in API version 65.0 and later). PricingProcedure QualificationProcedure RatingDiscoveryProcedure (Available in API version 61.0 and later). Sample Available in API version 59.0 and later.</xsd:documentation>
+       <xsd:documentation>The interface source type designed by the consuming cloud that&apos;s making a customized expression set builder available to its users. Valid values are: Bre Constraint (Available in API version 62.0 and later). DiscoveryProcedure (Available in API version 61.0 and later). EventOrchestration (Available in API version 61.0 and later). GpaCalculationProcedure (Available in API version 67.0 and later). IntelligentDecisionStudio (Available in API version 67.0 and later). ItServiceManagement (Available in API version 65.0 and later). PricingProcedure QualificationProcedure RatingDiscoveryProcedure (Available in API version 61.0 and later). RatingProcedure (Available in API version 67.0 and later). Sample Available in API version 59.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ExpsSetInterfaceSourceType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30493,7 +30505,7 @@ Total metadata types: 1571
      </xsd:element>
      <xsd:element name="processType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The process type that uses the expression set rule. Valid values are: Bre GpaCalculation InsuranceClaimProcessing—Available in API version 65.0 and later. ItServiceManagement—Available in API version 65.0 and later. PlanCostCalculation RatingDiscovery StudentInformationSystem—Available in API version 65.0 and later. StudentSuccess When Business Rules Engine is enabled for a Salesforce instance, the default value is &apos;Bre’. Other process types are available to you depending on your industry solution and permission sets.</xsd:documentation>
+       <xsd:documentation>The process type that uses the expression set rule. Valid values are: Bre GpaCalculation InsuranceClaimProcessing—Available in API version 65.0 and later. ItServiceManagement—Available in API version 65.0 and later. PlanCostCalculation RatingDiscovery StudentInformationSystem—Available in API version 65.0 and later. StudentSuccess When Business Rules Engine is enabled for a Salesforce instance, the default value is Bre. Other process types are available to you depending on your industry solution and permission sets.</xsd:documentation>
        <xsd:appinfo>Type: ExpsSetProcessType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30507,6 +30519,12 @@ Total metadata types: 1571
       <xsd:annotation>
        <xsd:documentation>Defines whether an expression set is a template or not.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The type of the expression set definition.Valid values are: Custom Standard</xsd:documentation>
+       <xsd:appinfo>Type: ExpsSetType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="usageSubType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -30558,10 +30576,22 @@ Total metadata types: 1571
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="interfaceSourceType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The interface source type designed by the consuming cloud that&apos;s making a customized expression set builder available to its users. Valid values are: Bre Constraint DiscoveryProcedure EventOrchestration GpaCalculationProcedure IntelligentDecisionStudio ItServiceManagement PricingProcedure QualificationProcedure RatingDiscoveryProcedure RatingProcedure Sample Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: ExpsSetInterfaceSourceType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The UI label of an expression set definition.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="processType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The process type that uses the expression set rule. Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: ExpsSetProcessType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="rank" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
@@ -30584,7 +30614,7 @@ Total metadata types: 1571
      </xsd:element>
      <xsd:element name="status" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The status of an expression set definition. Possible values are: Active Draft Inactive InvalidDraft Obsolete</xsd:documentation>
+       <xsd:documentation>Required. The status of an expression set definition. Valid values are: Active Draft Inactive InvalidDraft Obsolete</xsd:documentation>
        <xsd:appinfo>Type: ExpsSetStatus (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30780,7 +30810,7 @@ Total metadata types: 1571
  </xsd:complexType>
  <xsd:complexType name="ExpressionSetVariableField">
   <xsd:annotation>
-   <xsd:documentation>Represents a definition of a field in an object that is used as a variable in an expression set.</xsd:documentation>
+   <xsd:documentation>Represents a definition of a field in an object that&apos;s used as a variable in an expression set.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_expressionsetdefinition.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -30800,7 +30830,7 @@ Total metadata types: 1571
      </xsd:element>
      <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Represents an array of fields in an object that is used as a variable in an expression set.</xsd:documentation>
+       <xsd:documentation>Represents an array of fields in an object that&apos;s used as a variable in an expression set.</xsd:documentation>
        <xsd:appinfo>Type: ExpressionSetVariableField []</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30843,7 +30873,7 @@ Total metadata types: 1571
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Specifies the type of action this step executes.Valid values are: AiAcceleratorSubscriberChurnPrediction ApexAction ApexListAction (Available in API version 64.0 and later.) AssetDiscovery AssignBadgeToMember AssignParameterValues AssignmentElement AssignmentRuleCustomUser (Available in API version 65.0 and later.) AssignmentRuleCustomQueue (Available in API version 65.0 and later.) AteprlRecordCreator (Available in API version 65.0 and later.) BaseRate BindingObjectRateAdjustmentResolution (Available in API version 64.0 and later.) BindingObjectRateCardEntryResolution (Available in API version 64.0 and later.) BreAggregator BreAggregatorAssignment BreakdownLineMapping (Available in API version 64.0 and later.) CalculateQuantity (Available in API version 64.0 and later.) ChangeMemberTier CheckMemberBadgeAssignment CommercePricing (Available in API version 62.0 and later.) CommitmentAdjustment (Available in API version 65.0 and later.) ComplianceCheck ComplianceControlLog (Available in API version 62.0 and later.) Constraint (Available in API version 64.0 and later.) CreditPoints Crud DebitPoints DerivedPricing DiscountDistributionService DiscoverySettings (Available in API version 64.0 and later.) DynamicRulesExecutor (Available in API version 65.0 and later.) EvaluateCategoryDisqualification (Available in API version 62.0 and later.) EvaluateCategoryQualification (Available in API version 62.0 and later.) FormulaBasedRating (Available in API version 62.0 and later.) FormulaBasedPricing GetCustomerPromotionAttrValue (Available in API version 64.0 and later.) GetMemberAttributesValues GetMemberPointBalance GetMemberPromotions GetMemberTier GetOutputsFromDecisionMatrix GetOutputsFromDecisionTable GroupingAndAggregateRating (Available in API version 62.0 and later.) IncreaseUsageForCumulativePromotion IntegrationOrchestration IssueExtendedReward (Available in API version 64.0 and later.) IssueVoucher ManualRatingDiscount (Available in API version 62.0 and later.) MapProduct MinimumPrice (Available in API version 62.0 and later.) MultiRecipientProductQualification (Available in API version 64.0 and later.) NegotiatedBaseRate (Available in API version 64.0 and later.) NegotiatedRateCardEntryResolution (Available in API version 64.0 and later.) NegotiatedTierAdjustment (Available in API version 64.0 and later.) NegotiatedVolumeAdjustment (Available in API version 64.0 and later.) PriceGuidance (Available in API version 64.0 and later.) PriceRevision (Available in API version 65.0 and later.) PricingPropagation (Available in API version 65.0 and later.) PricingSettings PromotionsDiscount PromotionExecution (Available in API version 65.0 and later.) RateAdjustmentByAttributeResolution (Available in API version 62.0 and later.) RateAdjustmentByTierResolution (Available in API version 62.0 and later.) RateAdjustmentMatrix (Available in API version 62.0 and later.) RateAssignment (Available in API version 62.0 and later.) RateCardEntryResolution (Available in API version 62.0 and later.) RateCardResolution (Available in API version 62.0 and later.) RatingAttributeDiscount RatingBreakdownLineMapping (Available in API version 65.0 and later.) RatingRoundingValues (Available in API version 62.0 and later.) RatingSetting RatingTierDiscount RatingVolumeDiscount RecordAction RoundingValues RuleFetch RunFlow RunProgramProcess SampleCustomElementWithExpressionAndListFilter StopPricing StopRating (Available in API version 62.0 and later.) TermGpaCalculation (Available in API version 64.0 and later.) TermGpaReporting (Available in API version 64.0 and later.) TestCustomElement UpdateCurrentValueForMemberAttribute UpdateCustomerPromotionAttrValue (Available in API version 64.0 and later.) UpdatePointBalance UpdateUsageForCumulativePromotion UpsertRecord (Available in API version 64.0 and later.) VolumeTierDiscount</xsd:documentation>
+       <xsd:documentation>Specifies the type of action this step executes.Valid values are: AiAcceleratorSubscriberChurnPrediction ApexAction ApexListAction (Available in API version 64.0 and later.) AssetDiscovery AssignBadgeToMember AssignParameterValues AssignmentElement AssignmentRuleCustomQueue (Available in API version 65.0 and later.) AssignmentRuleCustomUser (Available in API version 65.0 and later.) AteprlRecordCreator (Available in API version 65.0 and later.) AttributeAdjustmentMatrix AttributeDiscount AutomatedClaimsProcessingValidation BaseRate BindingObjectRateAdjustmentResolution (Available in API version 64.0 and later.) BindingObjectRateCardEntryResolution (Available in API version 64.0 and later.) BreAggregator BreAggregatorAssignment BreakdownLineMapping (Available in API version 64.0 and later.) BundleDiscount CalculateQuantity (Available in API version 64.0 and later.) ChangeMemberTier CheckMemberBadgeAssignment CommercePricing (Available in API version 62.0 and later.) CommitmentAdjustment (Available in API version 65.0 and later.) ComplianceCheck ComplianceControlLog (Available in API version 62.0 and later.) Constraint (Available in API version 64.0 and later.) CreditPoints Crud DebitPoints DerivedPricing DiscountDistributionService DiscoverySettings (Available in API version 64.0 and later.) DynamicRulesExecutor (Available in API version 65.0 and later.) EvaluateCategoryDisqualification (Available in API version 62.0 and later.) EvaluateCategoryQualification (Available in API version 62.0 and later.) EvaluateDisqualification EvaluateQualification FormulaBasedPricing FormulaBasedRating (Available in API version 62.0 and later.) GetCustomerPromotionAttrValue (Available in API version 64.0 and later.) GetMemberAttributesValues GetMemberPartnerLinkageStatus GetMemberPointBalance GetMemberPromotions GetMemberTier GetOutputsFromDecisionMatrix GetOutputsFromDecisionTable GetUserData GroupingAndAggregatePricing GroupingAndAggregateRating (Available in API version 62.0 and later.) IncreaseUsageForCumulativePromotion IntegrationOrchestration InterNodeDataCopy IssueExtendedReward (Available in API version 64.0 and later.) IssueVoucher ListGroup ListGroupCalculation ListPrice ManualDiscount ManualRatingDiscount (Available in API version 62.0 and later.) MapProduct MinimumPrice (Available in API version 62.0 and later.) MultiRecipientProductQualification (Available in API version 64.0 and later.) NegotiatedBaseRate (Available in API version 64.0 and later.) NegotiatedRateCardEntryResolution (Available in API version 64.0 and later.) NegotiatedTierAdjustment (Available in API version 64.0 and later.) NegotiatedVolumeAdjustment (Available in API version 64.0 and later.) PredictiveAI PriceAdjustmentMatrix PriceGuidance (Available in API version 64.0 and later.) PriceRevision (Available in API version 65.0 and later.) PricingPropagation (Available in API version 65.0 and later.) PricingSettings PromotionExecution (Available in API version 65.0 and later.) PromotionsDiscount Proration RateAdjustmentByAttributeResolution (Available in API version 62.0 and later.) RateAdjustmentByTierResolution (Available in API version 62.0 and later.) RateAdjustmentMatrix (Available in API version 62.0 and later.) RateAssignment (Available in API version 62.0 and later.) RateCardEntryResolution (Available in API version 62.0 and later.) RateCardResolution (Available in API version 62.0 and later.) RatingAttributeDiscount RatingBreakdownLineMapping (Available in API version 65.0 and later.) RatingRoundingValues (Available in API version 62.0 and later.) RatingSetting RatingTierDiscount RatingVolumeDiscount RecordAction RecordAlert RedeemVoucher RoundingValues RuleFetch RunFlow RunProgramProcess SampleBusinessElementWithContext SampleCustomElementWithExpressionAndListFilter SampleDynamicCustomElement SampleJavaBasedTaxCalculatorCustomElement SampleTaxCalculatorCustomElement SendMail StopPricing StopRating (Available in API version 62.0 and later.) SubscriptionPricing TermGpaCalculation (Available in API version 64.0 and later.) TermGpaReporting (Available in API version 64.0 and later.) TestCustomElement UpdateCurrentValueForMemberAttribute UpdateCustomerPromotionAttrValue (Available in API version 64.0 and later.) UpdatePointBalance UpdateUsageForCumulativePromotion UpsertRecord (Available in API version 64.0 and later.) VolumeDiscount VolumeTierDiscount</xsd:documentation>
        <xsd:appinfo>Type: BusinessKnowledgeModel (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30899,6 +30929,12 @@ Total metadata types: 1571
       <xsd:annotation>
        <xsd:documentation>List of the token resource mappings of the failed explainability message template. Valid values are: expressionSetMessageToken resourceReference Available in API version 59.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ExplainabilityMessageTemplateTokenMapping (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="hasNestedExplainability" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the step has nested explainability ( ) or not ( ). Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -30975,7 +31011,7 @@ Total metadata types: 1571
      </xsd:element>
      <xsd:element name="stepType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Specifies the type of step in an expression set definition version. Valid values are: AdvancedCondition Branch BusinessKnowledgeModel Condition DefaultPath SubExpression</xsd:documentation>
+       <xsd:documentation>Required. Specifies the type of step in an expression set definition version. Valid values are: AdvancedCondition AdvancedListFilter (Available in API version 67.0 and later). Branch BusinessKnowledgeModel Condition DefaultPath ListFilter (Available in API version 67.0 and later). ListGroup (Available in API version 67.0 and later). SubExpression</xsd:documentation>
        <xsd:appinfo>Type: ExpsSetStepType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -31024,7 +31060,7 @@ Total metadata types: 1571
      </xsd:element>
      <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>Represents an array of fields in an object that is used as a variable in an expression set.</xsd:documentation>
+       <xsd:documentation>Represents an array of fields in an object that&apos;s used as a variable in an expression set.</xsd:documentation>
        <xsd:appinfo>Type: ExpressionSetVariableField []</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -36426,7 +36462,7 @@ Total metadata types: 1571
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assignToReference" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Specifies the variable to which you want to assign the output parameter value.</xsd:documentation>
+       <xsd:documentation>Required. Specifies the variable that you want to assign the target output value to.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -36544,7 +36580,7 @@ Total metadata types: 1571
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assignToReference" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Specifies the variable to which you want to assign the output parameter value.</xsd:documentation>
+       <xsd:documentation>Required. Specifies the variable that you want to assign the target output value to.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -36594,7 +36630,7 @@ Total metadata types: 1571
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assignToReference" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Reference to the variable to which you want to apply the specified operator.</xsd:documentation>
+       <xsd:documentation>Specifies the variable that you want to assign the target output value to.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -46980,9 +47016,9 @@ Total metadata types: 1571
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="ai_Beta" minOccurs="0" maxOccurs="unbounded" type="xsd:base64Binary">
+     <xsd:element name="ai" minOccurs="0" maxOccurs="unbounded" type="xsd:base64Binary">
       <xsd:annotation>
-       <xsd:documentation>An internal AI description of the Lightning web component. This description is supported only in orgs that have Setup with Agentforce (Beta) enabled. This description enables Agentforce to analyze the component for inclusion in agent-generated Lightning pages. For more information, see Configure a Component for Use in Setup with Agentforce (Beta). Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:documentation>An internal AI description of the Lightning web component. This description is supported only in orgs that have Setup with Agentforce enabled. This description enables Agentforce to analyze the component for inclusion in agent-generated Lightning pages. For more information, see Configure a Component for Use in Setup with Agentforce. Available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: base64Binary</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
