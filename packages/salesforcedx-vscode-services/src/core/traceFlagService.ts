@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as ParseResult from 'effect/ParseResult';
@@ -34,6 +36,45 @@ import {
   type TraceFlagLogType
 } from './schemas/traceFlagSchemas';
 import { unknownToErrorCause } from './shared';
+
+/** Adaptive cache TTL ladder: 30s → 60s → 120s → 5min (capped). 4 steps by design. Failures not cached. @W-22390896 */
+export const ADAPTIVE_TTL_SEQUENCE_MS = [30_000, 60_000, 120_000, 300_000] as const;
+export const adaptiveTtl = (consecutiveNoChange: number): Duration.Duration =>
+  Duration.millis(ADAPTIVE_TTL_SEQUENCE_MS[Math.min(consecutiveNoChange, ADAPTIVE_TTL_SEQUENCE_MS.length - 1)]);
+
+/** Order-independent identity hash on id|expiration|debugLevel|active — SOQL reorderings don't reset TTL. */
+const tfHash = (tf: TraceFlagItem): string =>
+  `${tf.id}|${tf.expirationDate.getTime()}|${tf.debugLevelId ?? ''}|${tf.isActive ? 1 : 0}`;
+export const tfArrayHash = (arr: readonly TraceFlagItem[]): string => arr.map(tfHash).toSorted().join(';');
+export const tfOptionHash = (o: Option.Option<TraceFlagItem>): string => (Option.isSome(o) ? tfHash(o.value) : '');
+
+/** `prior === undefined` ⇒ no prior yet ⇒ never same (counter starts fresh at 0). */
+export const isSameTfArray = (prior: readonly TraceFlagItem[] | undefined, fresh: readonly TraceFlagItem[]): boolean =>
+  prior !== undefined && tfArrayHash(prior) === tfArrayHash(fresh);
+export const isSameTfOption = (
+  prior: Option.Option<TraceFlagItem> | undefined,
+  fresh: Option.Option<TraceFlagItem>
+): boolean => prior !== undefined && tfOptionHash(prior) === tfOptionHash(fresh);
+
+type AdaptiveCacheState<T> = { lastResult: T; consecutiveNoChange: number };
+
+/** Counter+TTL evolution: same result → counter += 1; otherwise → counter = 0. Exported for unit tests. */
+export const computeAdaptiveTtl = <T>(
+  prior: { lastResult: T; consecutiveNoChange: number } | undefined,
+  fresh: T,
+  isSame: (prior: T | undefined, fresh: T) => boolean
+): { newCount: number; ttl: Duration.Duration } => {
+  const same = isSame(prior?.lastResult, fresh);
+  const newCount = same && prior ? prior.consecutiveNoChange + 1 : 0;
+  return { newCount, ttl: adaptiveTtl(newCount) };
+};
+
+/** Narrow a string to TraceFlagLogType without using `as` (repo lint rule disallows type assertions). */
+const parseLogType = (s: string): TraceFlagLogType => {
+  if (s === 'USER_DEBUG') return 'USER_DEBUG';
+  if (s === 'CLASS_TRACING') return 'CLASS_TRACING';
+  return 'DEVELOPER_LOG';
+};
 
 const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 const VISUALFORCE_DEBUG_LEVEL = 'FINER';
@@ -73,7 +114,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     const connectionService = yield* ConnectionService;
     const traceFlagsChanged = yield* PubSub.sliding<TraceFlagItem[]>(1);
 
-    const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
+    const getTraceFlagsImpl = Effect.fn('TraceFlagService.getTraceFlagsImpl')(function* () {
       const conn = yield* connectionService.getConnection();
       const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName, TracedEntityId
         FROM TraceFlag`;
@@ -162,7 +203,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       );
     });
 
-    const getTraceFlagForUser = Effect.fn('TraceFlagService.getTraceFlagForUser')(function* (
+    const getTraceFlagForUserImpl = Effect.fn('TraceFlagService.getTraceFlagForUserImpl')(function* (
       userId: string,
       logType: TraceFlagLogType = 'DEVELOPER_LOG'
     ) {
@@ -224,6 +265,90 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
         : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
     });
 
+    /* Adaptive TTL state: per-cache last-result + consecutive-no-change count. Service-instance scoped. */
+    const allTraceFlagsAdaptive = new Map<'all', AdaptiveCacheState<TraceFlagItem[]>>();
+    const traceFlagForUserAdaptive = new Map<string, AdaptiveCacheState<Option.Option<TraceFlagItem>>>();
+
+    /** Computes next TTL via `computeAdaptiveTtl` and updates state map in place. */
+    const bumpAdaptiveState = <K, T>(
+      stateMap: Map<K, AdaptiveCacheState<T>>,
+      key: K,
+      fresh: T,
+      isSame: (prior: T | undefined, fresh: T) => boolean
+    ): Duration.Duration => {
+      const { newCount, ttl } = computeAdaptiveTtl(stateMap.get(key), fresh, isSame);
+      stateMap.set(key, { lastResult: fresh, consecutiveNoChange: newCount });
+      return ttl;
+    };
+
+    /* Cached entries embed their adaptive TTL so Cache.makeWith's per-entry timeToLive(exit) can extract it. */
+    type EntryAll = { readonly value: TraceFlagItem[]; readonly ttl: Duration.Duration };
+    type EntryForUser = { readonly value: Option.Option<TraceFlagItem>; readonly ttl: Duration.Duration };
+
+    const allTraceFlagsCache = yield* Cache.makeWith({
+      capacity: 1,
+      lookup: (_key: 'all') =>
+        getTraceFlagsImpl().pipe(
+          Effect.map(
+            (value): EntryAll => ({
+              value,
+              ttl: bumpAdaptiveState(allTraceFlagsAdaptive, 'all', value, isSameTfArray)
+            })
+          )
+        ),
+      timeToLive: Exit.match({
+        onSuccess: (entry: EntryAll) => entry.ttl,
+        onFailure: () => Duration.zero
+      })
+    });
+
+    const traceFlagForUserCache = yield* Cache.makeWith({
+      capacity: 64,
+      lookup: (key: string) => {
+        const sepIdx = key.indexOf('::');
+        const userId = key.slice(0, sepIdx);
+        const logType = parseLogType(key.slice(sepIdx + 2));
+        return getTraceFlagForUserImpl(userId, logType).pipe(
+          Effect.map(
+            (value): EntryForUser => ({
+              value,
+              ttl: bumpAdaptiveState(traceFlagForUserAdaptive, key, value, isSameTfOption)
+            })
+          )
+        );
+      },
+      timeToLive: Exit.match({
+        onSuccess: (entry: EntryForUser) => entry.ttl,
+        onFailure: () => Duration.zero
+      })
+    });
+
+    const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
+      const entry = yield* allTraceFlagsCache.get('all');
+      return entry.value;
+    });
+
+    const getTraceFlagForUser = Effect.fn('TraceFlagService.getTraceFlagForUser')(function* (
+      userId: string,
+      logType: TraceFlagLogType = 'DEVELOPER_LOG'
+    ) {
+      const entry = yield* traceFlagForUserCache.get(`${userId}::${logType}`);
+      return entry.value;
+    });
+
+    /**
+     * Drops both caches AND resets adaptive TTL state. Called synchronously inside every
+     * mutating method BEFORE PubSub.publish, so subscribers read fresh data on the next call.
+     */
+    const invalidateTraceFlagCaches = Effect.all([
+      allTraceFlagsCache.invalidateAll,
+      traceFlagForUserCache.invalidateAll,
+      Effect.sync(() => {
+        allTraceFlagsAdaptive.clear();
+        traceFlagForUserAdaptive.clear();
+      })
+    ]);
+
     const createTraceFlag = Effect.fn('TraceFlagService.createTraceFlag')(function* (
       userId: string,
       debugLevelId: string,
@@ -243,6 +368,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      yield* invalidateTraceFlagCaches;
       const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
       yield* PubSub.publish(traceFlagsChanged, flags);
       return result.success && result.id ? result.id : undefined;
@@ -288,6 +414,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      yield* invalidateTraceFlagCaches;
       const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
       yield* PubSub.publish(traceFlagsChanged, flags);
     });
@@ -304,6 +431,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      yield* invalidateTraceFlagCaches;
       const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
       yield* PubSub.publish(traceFlagsChanged, flags);
     });
@@ -327,6 +455,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           });
         }
       });
+      yield* invalidateTraceFlagCaches;
       const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
       yield* PubSub.publish(traceFlagsChanged, flags);
     });
@@ -376,7 +505,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
     const cleanupExpired = Effect.fn('TraceFlagService.cleanupExpired')(function* () {
       const userId = yield* getUserIdOrFail;
-      const existing = yield* getTraceFlagForUser(userId);
+      // Cleanup must see fresh server state; bypass cache to avoid stale-read decisions.
+      const existing = yield* getTraceFlagForUserImpl(userId, 'DEVELOPER_LOG');
       return yield* Option.match(existing, {
         onNone: () => Effect.succeed(false),
         onSome: tf =>
@@ -400,7 +530,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       cleanupExpired,
       getOrCreateDebugLevel,
       getUserId,
-      traceFlagsChanged
+      traceFlagsChanged,
+      /** Drops both caches — used by the apex-log scheduler on org switch. @W-22390896 */
+      invalidateCaches: invalidateTraceFlagCaches
     };
   })
 }) {}

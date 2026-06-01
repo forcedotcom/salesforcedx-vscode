@@ -19,5 +19,6 @@
   "apexLog.command.traceFlagsDeleteForId": "SFDX: Remove Trace Flag",
   "apexLog.command.traceFlagsChangeDebugLevel": "SFDX: Change Trace Flag Debug Level",
   "apexLog.command.traceFlagsCreateLogLevel": "SFDX: Create Debug Level",
-  "apexLog.command.traceFlagsDeleteDebugLevelForId": "SFDX: Remove Debug Level"
+  "apexLog.command.traceFlagsDeleteDebugLevelForId": "SFDX: Remove Debug Level",
+  "apexLog.configuration.traceFlagPollingInterval.description": "Interval in minutes between background TraceFlag polls (expired trace flag cleanup). Set to 0 to disable background polling entirely (manual trace flag commands still work). Default 5 minutes; min 1, max 60."
 }

@@ -10,8 +10,25 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
+import * as vscode from 'vscode';
 
-/** Runs trace flag cleanup every 5 minutes and immediately on each org connection. Forks and runs until extension scope closes. */
+const DEFAULT_POLL_INTERVAL_MINUTES = 5;
+const MIN_POLL_INTERVAL_MINUTES = 1;
+const MAX_POLL_INTERVAL_MINUTES = 60;
+
+/** Read `salesforcedx.traceFlagPollingInterval`; `0` disables background polling, otherwise clamped to [min, max]. */
+const getTraceFlagPollingIntervalMinutes = (): number => {
+  const raw = vscode.workspace
+    .getConfiguration('salesforcedx')
+    .get<number>('traceFlagPollingInterval', DEFAULT_POLL_INTERVAL_MINUTES);
+  if (raw === 0) return 0;
+  return Math.max(MIN_POLL_INTERVAL_MINUTES, Math.min(MAX_POLL_INTERVAL_MINUTES, raw));
+};
+
+/**
+ * Runs trace flag cleanup on each org connection AND on a user-configurable polling interval (default 5 min).
+ * Forks and runs until extension scope closes. `salesforcedx.traceFlagPollingInterval=0` disables the recurring poll.
+ */
 export const traceFlagCleanupScheduler = Effect.fn('traceFlagCleanupScheduler')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const traceFlagService = yield* api.services.TraceFlagService;
@@ -21,15 +38,23 @@ export const traceFlagCleanupScheduler = Effect.fn('traceFlagCleanupScheduler')(
     Effect.catchAll(() => Effect.void)
   );
 
-  // Run once each time a new org is connected (catches pre-provisioned expired flags like SFDC_DevConsole).
+  // On org switch: drop prior-org caches, then cleanup pre-provisioned expired flags. @W-22390896
   yield* Effect.fork(
     targetOrgRef.changes.pipe(
       Stream.map(orgInfo => orgInfo.orgId),
       Stream.changes,
-      Stream.runForEach(() => cleanup)
+      Stream.runForEach(() => traceFlagService.invalidateCaches.pipe(Effect.zipRight(cleanup)))
     )
   );
 
-  yield* Effect.fork(Stream.fromSchedule(Schedule.fixed(Duration.minutes(5))).pipe(Stream.runForEach(() => cleanup)));
+  const intervalMinutes = getTraceFlagPollingIntervalMinutes();
+  yield* intervalMinutes > 0
+    ? Effect.fork(
+        Stream.fromSchedule(Schedule.fixed(Duration.minutes(intervalMinutes))).pipe(Stream.runForEach(() => cleanup))
+      )
+    : Effect.logInfo(
+        'salesforcedx.traceFlagPollingInterval=0 — background trace flag polling disabled (per-org-connect cleanup still runs)'
+      );
+
   yield* Effect.sleep(Duration.infinity);
 });

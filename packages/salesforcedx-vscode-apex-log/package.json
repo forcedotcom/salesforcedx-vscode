@@ -282,6 +282,13 @@
           "minimum": 1,
           "maximum": 1440,
           "description": "%apexLog.configuration.traceFlagsDefaultDurationMinutes.description%"
+        },
+        "salesforcedx.traceFlagPollingInterval": {
+          "type": "number",
+          "default": 5,
+          "minimum": 0,
+          "maximum": 60,
+          "description": "%apexLog.configuration.traceFlagPollingInterval.description%"
         }
       }
     },

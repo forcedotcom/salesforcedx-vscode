@@ -91,10 +91,7 @@ const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(funct
   });
 });
 
-/**
- * Virtual document provider for trace flags. Fetches from org on demand; no file on disk.
- * Documents are read-only.
- */
+/** Virtual document provider for trace flags. Read-only; fetches from org on demand. */
 class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvider {
   private readonly _onDidChange = new vscode.EventEmitter<URI>();
 
@@ -114,8 +111,14 @@ class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvid
     );
   }
 
+  /** Ask VS Code to re-render; skip if no editor has the doc open. @W-22390896 */
   public refresh(orgId: string): void {
-    this._onDidChange.fire(createTraceFlagsUri(orgId));
+    const uri = createTraceFlagsUri(orgId);
+    const uriString = uri.toString();
+    if (!vscode.workspace.textDocuments.some(d => d.uri.toString() === uriString)) {
+      return;
+    }
+    this._onDidChange.fire(uri);
   }
 }
 
