@@ -9,11 +9,14 @@ The test types from most preferred to least preferred are:
 
 1. Unit Tests - jest: Found under the test/jest directory.
    - `npm run test`
-1. End to End Tests - RedHat vscode-extension-tester: Found under the packages/salesforcedx-vscode-automation-tests directory.
+1. End to End Tests - Playwright: Found in each extension's test/playwright directory.
+   - Run spec-by-spec via IDE or via `npm run playwright` in the extension package
+1. Legacy End to End Tests - RedHat vscode-extension-tester: Found under the packages/salesforcedx-vscode-automation-tests directory (being phased out in favor of Playwright).
    - `npm run automation-test`
 
 To run all unit tests, execute `npm run compile && npm run test` from the root folder.
-Instructions for how to run E2E tests locally and on GHA are located in [e2e-instructions.md](./e2e-instructions.md).
+Instructions for running Playwright E2E tests locally are in [.claude/skills/playwright-e2e/SKILL.md](../.claude/skills/playwright-e2e/SKILL.md).
+Legacy RedHat/WDIO setup and instructions are in [e2e-instructions.md](./e2e-instructions.md).
 
 ### Unit Tests
 
