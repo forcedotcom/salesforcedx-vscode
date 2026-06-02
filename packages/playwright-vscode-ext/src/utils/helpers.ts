@@ -473,6 +473,9 @@ export const waitForWorkspaceReady = async (page: Page, timeout = 30_000): Promi
 
 export const typingSpeed = 50; // ms
 
+/** Escape regex metacharacters in `s` so it can be embedded in a `RegExp`. */
+export const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /** Returns true if running on desktop (Electron), regardless of platform */
 export const isDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1';
 

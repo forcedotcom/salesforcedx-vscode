@@ -31,21 +31,20 @@ test('Run Apex Tests via code lens: Run All Tests, then Run Test (single method)
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  let testClassName: string;
+  const testClassName = `CodeLensTestClass${Date.now()}`;
+  const testClassContent = [
+    '@isTest',
+    `public class ${testClassName} {`,
+    '    @isTest',
+    '    static void validateSayHello() {',
+    "        System.assertEquals(1, 1, 'Basic assertion should pass');",
+    '    }',
+    '}'
+  ].join('\n');
 
   await test.step('setup minimal org with one Apex test class', async () => {
     await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
-    testClassName = `CodeLensTestClass${Date.now()}`;
-    const testClassContent = [
-      '@isTest',
-      `public class ${testClassName} {`,
-      '    @isTest',
-      '    static void validateSayHello() {',
-      "        System.assertEquals(1, 1, 'Basic assertion should pass');",
-      '    }',
-      '}'
-    ].join('\n');
     await createAndDeployApexTestClass(page, testClassName, testClassContent);
     await saveScreenshot(page, 'setup.code-lens-class-created.png');
   });

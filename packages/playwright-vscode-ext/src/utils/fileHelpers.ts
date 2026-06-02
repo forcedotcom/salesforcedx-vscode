@@ -21,6 +21,7 @@ import {
   closeWelcomeTabs,
   disableMonacoAutoClosing,
   ensureSecondarySideBarHidden,
+  escapeRegExp,
   isDesktop,
   selectFirstQuickInputOption,
   waitForVSCodeWorkbench,
@@ -222,8 +223,6 @@ export const openFileFromExplorerTree = async (
   const editor = page.locator(EDITOR_WITH_URI).first();
   await editor.waitFor({ state: 'visible', timeout: 15_000 });
 };
-
-const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * Open a file using Quick Open.
