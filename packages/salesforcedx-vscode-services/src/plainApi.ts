@@ -6,16 +6,20 @@
  */
 
 import type { DefaultOrgInfo } from './core/schemas/defaultOrgInfoPlain';
+import type { FilePropertiesPlain } from './core/schemas/fileProperties';
 import type { TraceFlagItem } from './core/schemas/traceFlagSchemas';
 import type { Connection, SfProject } from '@salesforce/core';
 import type { ComponentSet, DeployResult, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { ChangeResult } from '@salesforce/source-tracking';
 import type { CreateOutput, TemplateType } from '@salesforce/templates';
+import type * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { DescribeMetadataObject } from 'jsforce/lib/api/metadata/schema';
 import type * as vscode from 'vscode';
 import { EventEmitter } from 'vscode';
 import type { URI } from 'vscode-uri';
@@ -36,18 +40,10 @@ import { ChannelService } from './vscode/channelService';
 import { EditorService } from './vscode/editorService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
-import { WorkspaceService } from './vscode/workspaceService';
+import { WorkspaceService, type WorkspaceInfo } from './vscode/workspaceService';
 
 export type { DefaultOrgInfo } from './core/schemas/defaultOrgInfoPlain';
-
-export type WorkspaceInfo = {
-  uri: URI;
-  path: string;
-  fsPath: string;
-  isEmpty: boolean;
-  isVirtualFs: boolean;
-  cwd: string;
-};
+export type { WorkspaceInfo } from './vscode/workspaceService';
 
 type CreateParams<T extends TemplateType = TemplateType> = {
   cwd: string;
@@ -56,8 +52,7 @@ type CreateParams<T extends TemplateType = TemplateType> = {
   options: TemplateOptionsFor<T>;
 };
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface PlainServicesApi {
+export type PlainServicesApi = {
   readonly getConnection: () => Promise<Connection>;
   readonly getTargetOrgInfo: () => Promise<DefaultOrgInfo>;
   readonly invalidateCachedConnections: () => Promise<void>;
@@ -101,26 +96,8 @@ export interface PlainServicesApi {
   readonly appendToChannel: (message: string) => void;
   readonly clearChannel: () => void;
 
-  readonly describe: () => Promise<unknown[]>;
-  readonly listMetadata: (
-    type: string,
-    folder?: string
-  ) => Promise<
-    readonly {
-      readonly type: string;
-      readonly id?: string;
-      readonly createdByName?: string;
-      readonly createdDate?: string;
-      readonly lastModifiedDate?: string;
-      readonly lastModifiedByName?: string;
-      readonly createdById?: string;
-      readonly lastModifiedById?: string;
-      readonly fileName?: string;
-      readonly fullName?: string;
-      readonly manageableState?: string;
-      readonly namespacePrefix?: string;
-    }[]
-  >;
+  readonly describe: () => Promise<DescribeMetadataObject[]>;
+  readonly listMetadata: (type: string, folder?: string) => Promise<readonly FilePropertiesPlain[]>;
 
   readonly deploy: (components: ComponentSet) => Promise<DeployResult>;
 
@@ -134,7 +111,7 @@ export interface PlainServicesApi {
   readonly hasTracking: () => Promise<boolean>;
   readonly getLocalChangesAsComponentSet: () => Promise<ComponentSet[]>;
   readonly getRemoteNonDeletesAsComponentSet: (options: { applyIgnore: boolean }) => Promise<ComponentSet>;
-  readonly getConflicts: () => Promise<unknown[]>;
+  readonly getConflicts: () => Promise<ChangeResult[]>;
   readonly checkConflicts: () => Promise<void>;
 
   readonly createFromTemplate: <T extends TemplateType>(params: CreateParams<T>) => Promise<CreateOutput>;
@@ -153,7 +130,7 @@ export interface PlainServicesApi {
   readonly getComponentSetFromUris: (uris: readonly URI[]) => Promise<ComponentSet>;
   readonly getComponentSetFromManifest: (manifestUri: URI) => Promise<ComponentSet>;
   readonly getComponentSetFromProjectDirectories: () => Promise<ComponentSet>;
-}
+};
 
 const toError = (failure: unknown): Error => {
   if (failure instanceof Error) return failure;
@@ -166,9 +143,9 @@ const toError = (failure: unknown): Error => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyContext = any;
+type ServicesContext = Context.Context<any>;
 
-const run = <A, E, R>(builtContext: AnyContext, effect: Effect.Effect<A, E, R>): Promise<A> =>
+const run = <A, E, R>(builtContext: ServicesContext, effect: Effect.Effect<A, E, R>): Promise<A> =>
   Effect.runPromise(
     effect.pipe(
       Effect.provide(Layer.succeedContext(builtContext)),
@@ -177,7 +154,7 @@ const run = <A, E, R>(builtContext: AnyContext, effect: Effect.Effect<A, E, R>):
   );
 
 export const createPlainServicesApi = (
-  builtContext: AnyContext,
+  builtContext: ServicesContext,
   extensionScope: Scope.CloseableScope
 ): PlainServicesApi => {
   const orgChangeEmitter = new EventEmitter<DefaultOrgInfo>();
@@ -190,8 +167,7 @@ export const createPlainServicesApi = (
         const ref = yield* getDefaultOrgRef();
         yield* ref.changes.pipe(
           Stream.drop(1),
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          Stream.runForEach(info => Effect.sync(() => orgChangeEmitter.fire(info as DefaultOrgInfo)))
+          Stream.runForEach(info => Effect.sync(() => orgChangeEmitter.fire(info)))
         );
       }),
       extensionScope
@@ -232,15 +208,13 @@ export const createPlainServicesApi = (
       Effect.runPromise(
         Effect.gen(function* () {
           const ref = yield* getDefaultOrgRef();
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          return (yield* SubscriptionRef.get(ref)) as DefaultOrgInfo;
+          return yield* SubscriptionRef.get(ref);
         })
       ),
     invalidateCachedConnections: () => run(builtContext, ConnectionService.invalidateCachedConnections()),
     onDidChangeTargetOrg: orgChangeEmitter.event,
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    getWorkspaceInfo: () => run(builtContext, WorkspaceService.getWorkspaceInfo()) as Promise<WorkspaceInfo>,
+    getWorkspaceInfo: () => run(builtContext, WorkspaceService.getWorkspaceInfo()),
 
     isSalesforceProject: () => run(builtContext, ProjectService.isSalesforceProject()),
     getSfProject: () => run(builtContext, ProjectService.getSfProject()),

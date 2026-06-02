@@ -5,17 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type DefaultOrgInfo = {
-  aliases?: string[];
-  orgId?: string;
-  devHubOrgId?: string;
-  username?: string;
-  alias?: string;
-  devHubUsername?: string;
-  tracksSource?: boolean;
-  isScratch?: boolean;
-  isSandbox?: boolean;
-  userId?: string;
-  cliId?: string;
-  webUserId?: string;
-};
+import type { DefaultOrgInfoSchema } from './defaultOrgInfo';
+
+export type DefaultOrgInfo = typeof DefaultOrgInfoSchema.Type;
