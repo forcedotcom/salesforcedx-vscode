@@ -23,7 +23,6 @@ import {
   configListCommand,
   initSObjectDefinitions,
   openDocumentation,
-  packageInstall,
   renameLightningComponent
 } from './commands';
 import { SfCommandletExecutor } from './commands/util';
@@ -49,7 +48,6 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
-    vscode.commands.registerCommand('sf.package.install', packageInstall),
     registerGetTelemetryServiceCommand()
   );
 
