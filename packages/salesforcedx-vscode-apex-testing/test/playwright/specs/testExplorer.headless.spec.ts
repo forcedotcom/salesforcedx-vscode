@@ -15,7 +15,8 @@ import {
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
@@ -95,6 +96,24 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
       .first();
     await expect(testClassItem).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'step.test-class-found.png');
+  });
+
+  await test.step('run all tests on a class via Test Explorer tree-item action', async () => {
+    // Hover the test class row to reveal inline action buttons, then click "Run Test".
+    const classRow = page.locator(`.monaco-list-row[role="treeitem"][aria-label*="${testClassName}"]`).first();
+    await classRow.waitFor({ state: 'visible', timeout: 30_000 });
+    await classRow.hover();
+    const runTestAction = classRow.locator('a[aria-label="Run Test"]').first();
+    await runTestAction.waitFor({ state: 'visible', timeout: 10_000 });
+    await runTestAction.click();
+    await saveScreenshot(page, 'step.class-run-action-clicked.png');
+
+    await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+
+    // Test Results panel re-renders Pass Rate after the new run completes.
+    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
+    await expect(page.getByText(testClassName).first()).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
+    await saveScreenshot(page, 'step.class-run-done.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
