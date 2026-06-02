@@ -45,5 +45,6 @@
   "sobject_refresh_output_custom": "Custom sObjects",
   "sobject_refresh_output_standard": "Standard sObjects",
   "project_info_text": "SFDX: Generate Project Info",
-  "open_button": "Open"
+  "open_button": "Open",
+  "package_install_text": "SFDX: Install Package"
 }

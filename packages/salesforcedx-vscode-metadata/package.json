@@ -36,6 +36,7 @@
   "devDependencies": {
     "@salesforce/source-deploy-retrieve": "^12.32.5",
     "@salesforce/source-tracking": "^7.8.16",
+    "@salesforce/types": "^1.7.1",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -477,6 +478,10 @@
         {
           "command": "sf.metadata.project.info",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.package.install",
+          "when": "sf:project_opened && sf:has_target_org"
         }
       ],
       "editor/context": [
@@ -672,6 +677,10 @@
       {
         "command": "sf.metadata.project.info",
         "title": "%project_info_text%"
+      },
+      {
+        "command": "sf.package.install",
+        "title": "%package_install_text%"
       }
     ]
   }
