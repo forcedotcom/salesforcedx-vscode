@@ -48,5 +48,8 @@ export const messages: Partial<Record<MessageKey, string>> = {
   package_install_succeeded_message: 'パッケージ %s が正常にインストールされました。',
   package_install_cancelled_message:
     'ポーリングをキャンセルしました。インストールはサーバー上で続行されます。リクエスト ID: %s',
-  package_install_failed_message: 'パッケージのインストールに失敗しました: %s'
+  package_install_failed_message: 'パッケージのインストールに失敗しました: %s',
+  package_install_not_found:
+    'パッケージが見つかりません [%s]。リクエストされたパッケージはまだ存在しないか、削除されています。最近作成されたパッケージバージョンの場合は、数分後にもう一度お試しいただくか、パッケージの公開元にお問い合わせください。',
+  package_install_verifying_progress: 'パッケージ %s の存在を確認中...'
 };

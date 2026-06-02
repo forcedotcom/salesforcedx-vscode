@@ -164,7 +164,10 @@ export const messages = {
   package_install_submitted_message: 'Package install request submitted. Request Id: %s',
   package_install_succeeded_message: 'Package %s installed successfully.',
   package_install_cancelled_message: 'Polling cancelled. Install continues on the server. Request Id: %s',
-  package_install_failed_message: 'Package install failed: %s'
+  package_install_failed_message: 'Package install failed: %s',
+  package_install_not_found:
+    "Package Not Found [%s]. The requested package doesn't yet exist or has been deleted. If this is a recently created package version, please try again in a few minutes or contact the package publisher.",
+  package_install_verifying_progress: 'Checking that package %s exists...'
 } as const;
 
 export type MessageKey = keyof typeof messages;
