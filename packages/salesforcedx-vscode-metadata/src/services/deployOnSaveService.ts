@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -52,7 +52,10 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 
 /** Deploy queued files using MetadataDeployService */
 
-const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (uris: readonly URI[]) {
+const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* (uris: readonly URI[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, componentSetService, sourceTrackingService] = yield* Effect.all(
     [api.services.ChannelService, api.services.ComponentSetService, api.services.SourceTrackingService],

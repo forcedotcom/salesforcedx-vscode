@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -73,6 +73,12 @@ export class WorkspaceContext {
       if (orgShape !== 'Undefined') {
         WorkspaceContextUtil.getInstance().orgShape = orgShape;
         WorkspaceContextUtil.getInstance().devHubId = undefined;
+        try {
+          const connection = await WorkspaceContextUtil.getInstance().getConnection();
+          WorkspaceContextUtil.getInstance().orgEdition = connection.getAuthInfoFields().orgEdition;
+        } catch {
+          /* best effort — orgEdition may not yet be populated */
+        }
       }
       if (orgShape === 'Scratch') {
         const devHubId = await getDevHubIdFromScratchOrg(username);

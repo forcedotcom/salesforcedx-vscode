@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -17,7 +17,7 @@ export type TestResultStatus = 'passed' | 'failed' | 'skipped' | 'unknown';
  * Test Result type contains the test result status.
  * For now, failure messages are stored in DiagnosticCollection instead of here.
  */
-export type TestResult = {
+type TestResult = {
   status: TestResultStatus;
 };
 
@@ -109,7 +109,7 @@ type LwcJestTestResultStatus = 'passed' | 'failed' | 'pending' | 'skipped' | 'to
 /**
  * Jest Test File Result
  */
-type LwcJestTestFileResult = {
+export type LwcJestTestFileResult = {
   status: 'passed' | 'failed';
   startTime: number;
   endTime: number;
@@ -120,7 +120,7 @@ type LwcJestTestFileResult = {
 /**
  * Jest Test Assertion Result
  */
-type LwcJestTestAssertionResult = {
+export type LwcJestTestAssertionResult = {
   status: LwcJestTestResultStatus;
   title: string;
   ancestorTitles: string[];
@@ -130,4 +130,5 @@ type LwcJestTestAssertionResult = {
     column: number;
     line: number;
   };
+  duration?: number;
 };

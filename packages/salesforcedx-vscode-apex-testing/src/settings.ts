@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -30,3 +30,12 @@ export const retrievePerformanceThreshold = (): number =>
 
 export const retrieveCoverageThreshold = (): number =>
   vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<number>('testCoverageThresholdPercent', 75);
+
+export const retrieveRestorePreviousResults = (): boolean =>
+  vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<boolean>('restore-previous-results', true);
+
+export const disableRestorePreviousResults = async (): Promise<void> => {
+  await vscode.workspace
+    .getConfiguration(APEX_TESTING_CONFIGURATION_NAME)
+    .update('restore-previous-results', false, vscode.ConfigurationTarget.Workspace);
+};

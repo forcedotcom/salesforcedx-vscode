@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -19,14 +19,20 @@ import { testResultsWatcher } from './testResultsWatcher';
 export type TestRunType = 'run' | 'debug' | 'watch';
 
 /**
- * Returns relative path for Jest runTestsByPath on Windows
- * or absolute path on other systems
- * @param cwd
- * @param testFsPath
+ * Returns the path to pass to Jest's --runTestsByPath.
+ * On Windows, relative paths are required. On macOS, /var/folders is a symlink to
+ * /private/var/folders; Jest resolves rootDir via realpathSync so the path must use
+ * the realpath prefix. Strip the leading /private prefix via string replacement rather
+ * than fs.realpathSync (which is banned for web-extension compatibility).
  */
 const normalizeRunTestsByPath = (cwd: string, testFsPath: string) => {
   if (process.platform.startsWith('win32')) {
     return path.relative(cwd, testFsPath);
+  }
+  // /var/folders on macOS is a fixed symlink to /private/var/folders.
+  // Add /private prefix so the path matches Jest's realpathSync-resolved rootDir.
+  if (process.platform === 'darwin' && testFsPath.startsWith('/var/')) {
+    return `/private${testFsPath}`;
   }
   return testFsPath;
 };
@@ -160,11 +166,14 @@ export class TestRunner {
       const taskName = this.getTaskName();
       const sfTask = taskService.createTask(this.testRunId, taskName, workspaceFolder, command, args);
       if (this.logName) {
+        const logName = this.logName;
         const startTime = globalThis.performance.now();
         sfTask.onDidEnd(() => {
-          telemetryService.sendCommandEvent(this.logName, startTime, {
-            workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
-          });
+          telemetryService.sendEventData(
+            logName,
+            { workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry() },
+            { executionTime: globalThis.performance.now() - startTime }
+          );
         });
       }
       return sfTask.execute();

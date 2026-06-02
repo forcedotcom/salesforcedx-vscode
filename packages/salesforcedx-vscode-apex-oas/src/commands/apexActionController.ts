@@ -1,16 +1,12 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import type { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
-import {
-  getOrgApiVersion,
-  notificationService,
-  WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode';
+import { getOrgApiVersion, notificationService, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';

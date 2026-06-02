@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.10.1",
+  "version": "66.14.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -29,20 +29,22 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "@salesforce/vscode-i18n": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "@salesforce/source-tracking": "^7.8.11",
+    "@salesforce/source-tracking": "^7.8.16",
+    "@salesforce/types": "^1.7.1",
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "66.10.1"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
@@ -351,6 +353,11 @@
           "minimum": 0,
           "description": "%source_tracking_polling_interval_description%"
         },
+        "salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "%source_tracking_enable_conflict_detection_description%"
+        },
         "salesforcedx-vscode-metadata.showSuccessNotification": {
           "type": "boolean",
           "default": false,
@@ -471,6 +478,10 @@
         {
           "command": "sf.metadata.project.info",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.package.install",
+          "when": "sf:project_opened && sf:has_target_org"
         }
       ],
       "editor/context": [
@@ -666,6 +677,10 @@
       {
         "command": "sf.metadata.project.info",
         "title": "%project_info_text%"
+      },
+      {
+        "command": "sf.package.install",
+        "title": "%package_install_text%"
       }
     ]
   }

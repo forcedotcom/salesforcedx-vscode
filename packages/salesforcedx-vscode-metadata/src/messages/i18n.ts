@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -36,6 +36,8 @@ export const messages = {
   source_tracking_status_bar_view_changes: 'View Changes',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
   source_tracking_status_bar_refreshing: 'Refreshing source tracking...',
+  source_tracking_conflict_detection_disabled_tooltip:
+    'Conflict detection is disabled. Local and remote change tracking is not active. Enable it in settings: `salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection`',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   deploy_this_source_text: 'SFDX: Deploy This Source to Org',
   deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
@@ -126,7 +128,7 @@ export const messages = {
   conflict_detect_no_conflicts: 'No conflicts',
   conflict_detect_no_differences: 'No differences',
   conflict_detection_enabled_description:
-    "When enabled, check for conflicts before deploy/retrieve on orgs that don't support source tracking. Orgs with tracking always check conflicts.",
+    'When enabled, the system will check for conflicts before deploying/retrieving.',
 
   // Preparation phase progress
   preparing_deployment: 'Preparing deployment...',
@@ -147,7 +149,25 @@ export const messages = {
   project_info_text: 'SFDX: Generate Project Info',
   project_info_written_message: 'Project info written to .sf/project-info.md',
   project_info_gathering_progress: 'Gathering project info...',
-  open_button: 'Open'
+  open_button: 'Open',
+
+  // Package install
+  package_install_text: 'SFDX: Install Package',
+  package_install_id_prompt: 'Enter the ID of the package to install',
+  package_install_id_placeholder: '04t...',
+  package_install_id_validation: 'Package ID should be a 15 or 18 character Id that starts with 04t',
+  package_install_key_prompt: 'Installation key for key-protected package (leave blank for unprotected packages)',
+  package_install_poll_prompt: 'Wait for package installation to complete?',
+  package_install_poll_yes: 'Yes',
+  package_install_poll_no: 'No',
+  package_install_polling_progress: 'Installing package %s...',
+  package_install_submitted_message: 'Package install request submitted. Request Id: %s',
+  package_install_succeeded_message: 'Package %s installed successfully.',
+  package_install_cancelled_message: 'Polling cancelled. Install continues on the server. Request Id: %s',
+  package_install_failed_message: 'Package install failed: %s',
+  package_install_not_found:
+    "Package Not Found [%s]. The requested package doesn't yet exist or has been deleted. If this is a recently created package version, please try again in a few minutes or contact the package publisher.",
+  package_install_verifying_progress: 'Checking that package %s exists...'
 } as const;
 
 export type MessageKey = keyof typeof messages;

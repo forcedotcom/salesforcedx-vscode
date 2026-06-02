@@ -1,5 +1,7 @@
 # Publishing
 
+> For an automated, agent-assisted walkthrough of these steps, see [.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md).
+
 This is a guide for publishing to the Visual Studio Code Marketplace and the Open VSX Registry. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the extensions through the .vsix files.
 
 # Goal
@@ -37,6 +39,8 @@ If no changes were made the previous week, then the release can be skipped (no a
 The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The workflow will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
 
 The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
+
+For format, polish rules, and conventions, see [.claude/skills/changelog/SKILL.md](../.claude/skills/changelog/SKILL.md).
 
 ## Merging the Release Branch into Main
 
@@ -99,6 +103,10 @@ To disable the automatic trigger, set repo variable `CBW_TRIGGER_ENABLED=false` 
 If you need to promote without a new release (e.g., re-promoting an existing version), use the [promote.yml](https://github.com/forcedotcom/code-builder-web/actions/workflows/promote.yml) workflow directly and select the version to promote to `prd`.
 
 Full details on the CBW release lifecycle, CDN caching, and rollback procedures are in [code-builder-web/docs/application-lifecycle.md](https://github.com/forcedotcom/code-builder-web/blob/main/docs/application-lifecycle.md).
+
+## Closing Shipped GitHub Issues
+
+After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SKILL.md) Claude skill to close open GitHub issues whose linked GUS work items are closed and whose issue numbers appear in the published `CHANGELOG.md`.
 
 ## Troubleshooting
 

@@ -2,7 +2,21 @@ name: Services E2E (Playwright)
 
 on:
   workflow_dispatch:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for E2E (e.g. 1.119.0). Empty uses repo variable
+          PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
   workflow_call:
+    inputs:
+      vscode_version:
+        description: 'VS Code version for E2E (e.g. 1.119.0). Empty uses repo variable
+          PLAYWRIGHT_VSCODE_VERSION.'
+        required: false
+        type: string
+        default: ''
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
@@ -28,6 +42,8 @@ jobs:
     env:
       MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}

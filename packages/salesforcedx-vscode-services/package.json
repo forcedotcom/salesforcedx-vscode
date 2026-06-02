@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.10.1",
+  "version": "66.14.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -29,36 +29,35 @@
   ],
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
-    "@effect/opentelemetry": "0.61.0",
-    "@effect/platform": "^0.94.5",
-    "@opentelemetry/api": "1.9.0",
-    "@opentelemetry/core": "2.0.1",
-    "@opentelemetry/exporter-trace-otlp-http": "0.214.0",
-    "@opentelemetry/resources": "2.2.0",
-    "@opentelemetry/sdk-logs": "0.203.0",
-    "@opentelemetry/sdk-metrics": "2.5.0",
-    "@opentelemetry/sdk-trace-base": "2.6.1",
-    "@opentelemetry/sdk-trace-node": "2.2.0",
-    "@opentelemetry/sdk-trace-web": "2.7.0",
-    "@salesforce/core": "^8.28.0",
+    "@effect/opentelemetry": "0.63.0",
+    "@effect/platform": "^0.96.1",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/core": "2.7.1",
+    "@opentelemetry/exporter-trace-otlp-http": "0.218.0",
+    "@opentelemetry/resources": "2.7.1",
+    "@opentelemetry/sdk-logs": "0.218.0",
+    "@opentelemetry/sdk-metrics": "2.7.1",
+    "@opentelemetry/sdk-trace-base": "2.7.1",
+    "@opentelemetry/sdk-trace-node": "2.7.1",
+    "@opentelemetry/sdk-trace-web": "2.7.1",
+    "@salesforce/core": "^8.31.0",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "@salesforce/source-tracking": "^7.8.11",
-    "@salesforce/templates": "^66.7.11",
+    "@salesforce/source-tracking": "^7.8.16",
+    "@salesforce/templates": "^66.9.1",
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "jsforce": "^3.10.2",
-    "o11y_schema": "^260.44.0",
+    "o11y_schema": "^260.65.0",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@types/node": "^20.0.0",
-    "jsforce": "^3.9.4",
     "svgtofont": "^3.5.0"
   },
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "build:icons": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",
@@ -330,7 +329,19 @@
         "salesforcedx-vscode-salesforcedx.enableFileTraces": {
           "type": "boolean",
           "default": false,
-          "description": "%configuration.otelFile.description%"
+          "description": "%configuration.otelOtlpFile.description%"
+        },
+        "salesforcedx-vscode-salesforcedx.logLevel": {
+          "type": "string",
+          "default": "error",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ],
+          "description": "%configuration.logLevel.description%"
         }
       }
     },

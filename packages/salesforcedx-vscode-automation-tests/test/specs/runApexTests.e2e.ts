@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -45,7 +45,7 @@ import {
   getTestResultsTabText,
   verifyTestItems,
   verifyTestItemsIconColor
-} from '../utils/apexTestsHelper';
+} from '../utils/testsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -296,7 +296,7 @@ describe('Run Apex Tests', () => {
     expect(tabLabel).to.match(/Preview test-result-[a-zA-Z0-9]+\.md/);
 
     // Verify test results in the Test Results tab (xterm terminal)
-    const testResultsText = await getTestResultsTabText();
+    const testResultsText = await getTestResultsTabText('Apex Testing');
     const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -340,7 +340,7 @@ describe('Run Apex Tests', () => {
     expect(notificationFound).to.equal(true);
 
     // Verify test results in the Test Results tab
-    const testResultsText = await getTestResultsTabText();
+    const testResultsText = await getTestResultsTabText('Apex Testing');
     const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -380,7 +380,7 @@ describe('Run Apex Tests', () => {
     expect(notificationFound).to.equal(true);
 
     // Verify test results in the Test Results tab
-    const testResultsText = await getTestResultsTabText();
+    const testResultsText = await getTestResultsTabText('Apex Testing');
     const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',

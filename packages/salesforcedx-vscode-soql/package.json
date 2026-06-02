@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.10.1",
+  "version": "66.14.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,9 +35,9 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.28.0",
+    "@salesforce/core": "^8.31.0",
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
@@ -48,10 +48,9 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.28.0",
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
-    "@lwc/eslint-plugin-lwc": "^3.3.0",
+    "@lwc/eslint-plugin-lwc": "^3.5.0",
     "@lwc/jest-preset": "^19.0.0",
     "@lwc/rollup-plugin": "^9.0.0",
     "@lwc/synthetic-shadow": "^9.1.1",
@@ -67,16 +66,15 @@
     "@salesforce/ts-types": "^2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "immutable": "^5.1.5",
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
-    "rxjs": "^7.8.2",
-    "salesforcedx-vscode-services": "66.10.1"
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",

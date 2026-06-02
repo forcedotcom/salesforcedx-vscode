@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.10.1",
+  "version": "66.14.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,26 +28,27 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.28.0",
+    "@salesforce/core": "^8.31.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "@vscode/debugprotocol": "1.68.0",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "sanitize-filename": "^1.6.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "salesforcedx-vscode-apex": "66.10.1",
-    "salesforcedx-vscode-core": "66.10.1"
+    "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:bundle:build": "wireit",
     "vscode:prepublish": "npm prune --production",

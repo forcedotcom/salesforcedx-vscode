@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -135,6 +135,38 @@ describe('WorkspaceContextUtil', () => {
     expect(workspaceContextUtil.orgId).toEqual(dummyOrgId);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
+  });
+
+  it('should populate orgEdition from auth fields when available', async () => {
+    getConnectionMock.mockReturnValue({
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
+      getAuthInfoFields: () => ({ orgId: dummyOrgId, orgEdition: 'Developer Edition' })
+    });
+
+    await workspaceContextUtil.initialize(context);
+
+    expect(workspaceContextUtil.orgEdition).toEqual('Developer Edition');
+  });
+
+  it('should leave orgEdition undefined when not in auth fields', async () => {
+    getConnectionMock.mockReturnValue({
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
+      getAuthInfoFields: () => ({ orgId: dummyOrgId })
+    });
+
+    await workspaceContextUtil.initialize(context);
+
+    expect(workspaceContextUtil.orgEdition).toBeUndefined();
+  });
+
+  it('should reset orgEdition to undefined when no target org', async () => {
+    workspaceContextUtil._orgEdition = 'Enterprise Edition';
+    getUsernameOrAliasStub.mockReturnValue(undefined);
+
+    const handler = mockWatcher.onDidChange.mock.calls[0][0];
+    await handler();
+
+    expect(workspaceContextUtil.orgEdition).toBeUndefined();
   });
 
   it('should set _orgId to an empty string and log a message if there was a problem getting the connection', async () => {

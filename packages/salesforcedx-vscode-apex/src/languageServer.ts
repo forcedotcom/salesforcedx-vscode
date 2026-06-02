@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -135,10 +135,18 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
 
 const protocol2CodeConverter = (value: string) => URI.parse(value);
 
-export const createLanguageServer = async (extensionContext: vscode.ExtensionContext): Promise<ApexLanguageClient> => {
+export const createLanguageServer = async (
+  extensionContext: vscode.ExtensionContext,
+  outputChannel?: vscode.OutputChannel
+): Promise<ApexLanguageClient> => {
   const telemetryService = getTelemetryService();
   const server = await createServer(extensionContext);
-  const client = new ApexLanguageClient('apex', nls.localize('client_name'), server, await buildClientOptions());
+  const client = new ApexLanguageClient(
+    'apex',
+    nls.localize('client_name'),
+    server,
+    await buildClientOptions(outputChannel)
+  );
 
   client.onTelemetry((data: { properties?: Record<string, string>; measures?: Record<string, number> }) => {
     if (isApexLspTelemetryAllowed(data.properties)) {
@@ -149,7 +157,7 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
   return client;
 };
 
-const buildClientOptions = async (): Promise<ApexLanguageClientOptions> => {
+const buildClientOptions = async (outputChannel?: vscode.OutputChannel): Promise<ApexLanguageClientOptions> => {
   const soqlExtensionInstalled = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql') !== undefined;
   const lspParityCapabilities = vscode.workspace
     .getConfiguration()
@@ -178,7 +186,7 @@ const buildClientOptions = async (): Promise<ApexLanguageClientOptions> => {
     ? Object.fromEntries(LSP_PARITY_PROVIDERS.map(provider => [provider, () => null]))
     : {};
 
-  return {
+  const options: ApexLanguageClientOptions = {
     // Register the server for Apex documents
     documentSelector: [
       { language: 'apex', scheme: 'file' },
@@ -205,6 +213,13 @@ const buildClientOptions = async (): Promise<ApexLanguageClientOptions> => {
     },
     errorHandler: new ApexErrorHandler()
   };
+
+  // Reuse existing output channel if provided to avoid creating duplicates on restart
+  if (outputChannel) {
+    options.outputChannel = outputChannel;
+  }
+
+  return options;
 };
 
 const provideCodeLenses = async (

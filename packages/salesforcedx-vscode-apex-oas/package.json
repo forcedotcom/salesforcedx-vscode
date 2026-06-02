@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.10.1",
+  "version": "66.14.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,7 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.21.0",
     "@stoplight/spectral-functions": "1.10.1",
@@ -47,12 +47,12 @@
     "yaml": "^2.8.2"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.28.0",
+    "@salesforce/core": "^8.31.0",
     "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "openapi-types": "12.1.3",
-    "salesforcedx-vscode-apex": "66.10.1",
-    "salesforcedx-vscode-core": "66.10.1",
+    "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-core": "*",
     "vscode-languageserver-protocol": "3.17.5"
   },
   "extensionDependencies": [
@@ -62,6 +62,7 @@
     "salesforce.salesforcedx-einstein-gpt"
   ],
   "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

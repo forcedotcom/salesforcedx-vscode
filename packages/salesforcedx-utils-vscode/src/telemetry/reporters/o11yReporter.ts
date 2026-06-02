@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -121,6 +121,7 @@ export class O11yReporter
       const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
       const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
       const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
+      const orgEdition = WorkspaceContextUtil.getInstance().orgEdition ?? '';
 
       // Add webUserId field to customDimensions
       let props = properties
@@ -128,7 +129,7 @@ export class O11yReporter
         : { ...this.aggregateLoggingProperties() };
       props = this.applyTelemetryTag(
         orgId
-          ? { ...props, orgId, orgShape, devHubId, webUserId: this.webUserId }
+          ? { ...props, orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}), webUserId: this.webUserId }
           : { ...props, webUserId: this.webUserId }
       );
 
@@ -162,9 +163,10 @@ export class O11yReporter
       const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
       const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
       const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
+      const orgEdition = WorkspaceContextUtil.getInstance().orgEdition ?? '';
 
       // Add webUserId field to customDimensions
-      const baseProps = { orgId, orgShape, devHubId };
+      const baseProps = { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) };
       const props = this.applyTelemetryTag({
         ...baseProps,
         ...this.aggregateLoggingProperties(),

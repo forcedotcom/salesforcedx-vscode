@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -111,9 +111,11 @@ export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => 
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
   const startTime = typeof sfDebugSessionId === 'string' ? debugSessionStartTimes.get(sfDebugSessionId) : undefined;
-  if (Array.isArray(startTime)) {
-    telemetryService.sendCommandEvent(LWC_TEST_DEBUG_LOG_NAME, startTime, {
-      workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
-    });
+  if (typeof startTime === 'number') {
+    telemetryService.sendEventData(
+      LWC_TEST_DEBUG_LOG_NAME,
+      { workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry() },
+      { executionTime: globalThis.performance.now() - startTime }
+    );
   }
 };

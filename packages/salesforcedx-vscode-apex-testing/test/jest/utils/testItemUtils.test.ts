@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -469,7 +469,7 @@ describe('testItemUtils', () => {
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
       const classItem = createMockTestItem('class:MyClass', 'MyClass', [methodItem]);
       const packageItem = createMockTestItem('package:local:unpackaged', '(Unpackaged Metadata)', [classItem]);
-      const namespaceItem = createMockTestItem('namespace:local', 'Local Namespace', [packageItem]);
+      const namespaceItem = createMockTestItem('namespace:local', '(Local Namespace)', [packageItem]);
       const request = {
         include: [namespaceItem]
       } as unknown as vscode.TestRunRequest;

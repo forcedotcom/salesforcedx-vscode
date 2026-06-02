@@ -22,6 +22,7 @@
     "intf",
     "LIVESHARE",
     "NPMJS",
+    "Pipeable",
     "QUEUEABLE",
     "quickpick",
     "salesforcedx",

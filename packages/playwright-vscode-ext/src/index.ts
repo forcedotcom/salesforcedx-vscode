@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -22,6 +22,7 @@ export {
   isMacDesktop,
   isWindowsDesktop,
   validateNoCriticalErrors,
+  removeAllDebugLevels,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,
@@ -54,7 +55,8 @@ export {
   APEX_TRACE_FLAG_STATUS_BAR,
   NOTIFICATION_LIST_ITEM,
   SETTINGS_SEARCH_INPUT,
-  CONTEXT_MENU
+  CONTEXT_MENU,
+  CODELENS_ITEM
 } from './utils/locators';
 
 export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';

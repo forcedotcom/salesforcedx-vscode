@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -14,6 +14,7 @@ import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { nls } from '../messages';
 import { getDetectConflictsForDeployAndRetrieve } from '../settings/deployOnSaveSettings';
 import { detectConflictsFromTracking } from './conflictDetection';
+import { isConflictDetectionEnabled } from './conflictDetectionSettings';
 import { detectConflictsFromTimestamps } from './conflictDetectionTimestamp';
 import { ConflictsDetectedError } from './conflictErrors';
 import { getConflictStateRef } from './conflictTreeProvider';
@@ -31,6 +32,13 @@ export const detectConflicts = Effect.fn('detectConflicts')(function* (
   componentSet: NonEmptyComponentSet,
   operationType: 'deploy' | 'retrieve' | 'delete'
 ) {
+  // Check if conflict detection is disabled via settings
+  const conflictDetectionEnabled = yield* isConflictDetectionEnabled();
+  if (!conflictDetectionEnabled) {
+    // Skip all conflict detection when disabled
+    return;
+  }
+
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 

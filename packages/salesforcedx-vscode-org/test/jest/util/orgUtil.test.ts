@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -22,9 +22,14 @@ import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
+import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import * as extensionProvider from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
-import { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias } from '../../../src/util/orgUtil';
+import {
+  checkForSoonToBeExpiredOrgs,
+  setTargetOrgOrAlias,
+  updateConfigAndStateAggregators
+} from '../../../src/util/orgUtil';
 
 describe('orgUtil tests', () => {
   let showWarningMessageSpy: jest.SpyInstance;
@@ -391,5 +396,67 @@ describe('testing setTargetOrgOrAlias', () => {
 
     expect(writeCallOrder).toBeLessThan(reloadCallOrder);
     expect(reloadCallOrder).toBeLessThan(clearInstanceCallOrder);
+  });
+});
+
+describe('updateConfigAndStateAggregators', () => {
+  let getConnectionMock: jest.Mock;
+  let invalidateCachedConnectionsMock: jest.Mock;
+  let invalidateConfigAggregatorMock: jest.Mock;
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    resetOrgRuntimeForTesting();
+
+    jest.spyOn(ConfigAggregatorProvider, 'getInstance').mockReturnValue({
+      reloadConfigAggregators: jest.fn()
+    } as any);
+    jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
+    (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+
+    getConnectionMock = jest.fn().mockReturnValue(Effect.succeed({}));
+    invalidateCachedConnectionsMock = jest.fn().mockReturnValue(Effect.void);
+    invalidateConfigAggregatorMock = jest.fn().mockReturnValue(Effect.void);
+
+    const mockServicesApi = {
+      services: {
+        ConfigService: {
+          invalidateConfigAggregator: invalidateConfigAggregatorMock
+        },
+        ConnectionService: {
+          getConnection: getConnectionMock,
+          invalidateCachedConnections: invalidateCachedConnectionsMock
+        }
+      }
+    } as unknown as SalesforceVSCodeServicesApi;
+
+    const layer = Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+    });
+
+    resetOrgRuntimeForTesting();
+    setAllServicesLayer(layer as ReturnType<typeof extensionProvider.buildAllServicesLayer>);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    resetOrgRuntimeForTesting();
+  });
+
+  it('should call getConnection after invalidating caches to refresh TargetOrgRef', async () => {
+    await updateConfigAndStateAggregators();
+
+    expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
+    expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
+    expect(getConnectionMock).toHaveBeenCalled();
+  });
+
+  it('should not throw when getConnection fails', async () => {
+    getConnectionMock.mockReturnValue(Effect.fail(new Error('No target org configured')));
+
+    await expect(updateConfigAndStateAggregators()).resolves.toBeUndefined();
+    expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
+    expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
+    expect(getConnectionMock).toHaveBeenCalled();
   });
 });

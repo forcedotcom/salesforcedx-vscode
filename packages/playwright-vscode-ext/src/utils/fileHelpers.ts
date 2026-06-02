@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -333,7 +333,10 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 
 /** Edit the currently open file by adding a comment at the top */
 export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<void> => {
-  const editor = page.locator(EDITOR_WITH_URI).first();
+  // Exclude internal Monaco editors (e.g. Test Explorer filter at data-uri="testing:filter",
+  // output channels at "output-*"). When the Test Explorer is open, plain `.monaco-editor[data-uri]`
+  // matches the filter first and keyboard input lands there instead of the source file.
+  const editor = page.locator(`${EDITOR_WITH_URI}:not([data-uri^="testing:"]):not([data-uri^="output-"])`).first();
   await editor.waitFor({ state: 'visible' });
 
   // Wait for editor content to render (at least one line visible)

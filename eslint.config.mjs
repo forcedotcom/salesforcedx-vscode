@@ -31,6 +31,8 @@ const localRules = localRulesPlugin.rules;
 const localProcessors = localRulesPlugin.processors;
 const localPlugin = { processors: localProcessors, rules: localRules };
 
+const currentYear = new Date().getFullYear();
+
 export default [
   {
     ignores: [
@@ -205,8 +207,8 @@ export default [
         [
           '',
           {
-            pattern: ' \\* Copyright \\(c\\) \\d{4}, salesforce\\.com, inc\\.',
-            template: ' * Copyright (c) 2026, salesforce.com, inc.'
+            pattern: ` \\* Copyright \\(c\\) ${currentYear}, salesforce\\.com, inc\\.`,
+            template: ` * Copyright (c) ${currentYear}, salesforce.com, inc.`
           },
           ' * All rights reserved.',
           ' * Licensed under the BSD 3-Clause license.',
@@ -769,13 +771,15 @@ export default [
       'local/package-json-extension-icon': 'error',
       'local/package-json-icon-paths': 'error',
       'local/package-json-command-refs': 'error',
+      'local/package-json-no-default-true': 'error',
+      'local/package-json-require-root-install': 'error',
       'local/package-json-view-refs': 'error',
       'local/package-json-salesforce-dep-versions': 'error'
     }
   },
   {
     files: ['packages/*/.vscodeignore'],
-    ignores: ['packages/salesforcedx-vscode-lwc/.vscodeignore'],
+    ignores: [],
     plugins: {
       local: localPlugin
     },

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,8 +8,10 @@ import { Indexer } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { parse } from 'jest-editor-support';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+
 import { LwcJestTestResults, RawTestResult, TestCaseInfo, TestFileInfo, TestResultStatus } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
+import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import {
   extractPositionFromFailureMessage,
   IExtendedParseResults,
@@ -235,7 +237,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   public updateTestResults(testResults: LwcJestTestResults) {
     testResults.testResults.forEach(testResult => {
       const { name, status: testFileStatus, assertionResults } = testResult;
-      const testFsPath = URI.file(name).fsPath;
+      const testFsPath = normalizeJestFsPath(URI.file(name).fsPath);
       const testFileInfo = this.testFileInfoMap.get(testFsPath) ?? this.indexTestFile(testFsPath);
       const testFileResultStatus: TestResultStatus =
         testFileStatus === 'passed' ? 'passed' : testFileStatus === 'failed' ? 'failed' : 'unknown';

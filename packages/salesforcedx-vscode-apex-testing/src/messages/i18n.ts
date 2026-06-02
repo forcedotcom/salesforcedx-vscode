@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -38,9 +38,11 @@ export const messages = {
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex Testing',
   configuration_title: 'Salesforce Apex Testing Configuration',
-  run_tests_workspace_default_title: 'Run In-Workspace Tests',
-  run_tests_title: 'Run All Tests in Org',
-  debug_tests_title: 'Debug Tests',
+  run_tests_workspace_default_title: 'SFDX: Run Apex Tests in Workspace',
+  run_tests_title: 'SFDX: Run All Apex Tests in Org',
+  debug_tests_title: 'SFDX: Debug Apex Tests',
+  run_stale_workspace_tests_title: 'Re-run Stale In-Workspace Tests',
+  run_stale_org_tests_title: 'Re-run Stale Org Tests',
   test_view_name: 'Apex Tests',
   apex_test_suites_parent_text: 'Apex Test Suites',
   apex_testing_vfs_org_badge_text: 'ORG',
@@ -64,7 +66,6 @@ export const messages = {
   apex_test_connection_not_initialized_message: 'Connection not initialized. Call ensureInitialized() first.',
   apex_test_populate_suite_items_failed_message: 'Failed to populate suite items: %s',
   apex_test_debug_failed_message: 'Debug failed: %s',
-  apex_test_update_results_failed_message: 'Failed to update test results: %s',
   apex_test_discovery_partial_warning:
     'Test discovery encountered URL length limits. Some tests may not be visible. Try refreshing or filtering by namespace.',
   apex_test_error_unknown_exception_message:
@@ -92,22 +93,26 @@ export const messages = {
   apex_test_failed_execution_message: '%s failed to run',
   apex_class_source_hidden:
     "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
-  test_explorer_local_namespace_label: 'Local Namespace',
+  test_explorer_local_namespace_label: '(Local Namespace)',
   test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
   test_explorer_1gp_package_label: '%s (1GP)',
+  test_explorer_managed_package_label: '%s (Managed Package)',
   colorizer_no_code_coverage_current_file:
     'No code coverage information was found for file %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_no_code_coverage_on_project:
     'No test run information was found for this project. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
-  colorizer_no_code_coverage_on_test_results:
-    'No code coverage information was found for test run %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
+  colorizer_no_code_coverage_in_recent_results:
+    'No code coverage information was found in recent test results. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
   colorizer_out_of_sync_code_coverage_data:
     'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
   colorizer_coverage_apply_failed_message: 'Code coverage could not be applied. %s',
   apex_test_suite_name_input_prompt: 'Enter desired Apex test suite name:',
   apex_test_aggregate_failed_message: '%s test(s) failed',
-  apex_test_failed_no_details_message: 'Test failed'
+  apex_test_failed_no_details_message: 'Test failed',
+  apex_test_results_restored_message:
+    'Test results restored from %s previous run(s), most recent: %s. Re-enable via setting: salesforcedx-vscode-apex-testing.restore-previous-results',
+  apex_test_results_restored_disable_action: "Don't Restore Again"
 } as const;
 
 export type MessageKey = keyof typeof messages;

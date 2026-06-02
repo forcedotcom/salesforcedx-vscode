@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -29,7 +29,7 @@ import {
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
-import { expandTestExplorerNamespaceAndPackage, findTestItemByName, verifyTestItems } from '../utils/apexTestsHelper';
+import { expandTestExplorerNamespaceAndPackage, findTestItemByName, verifyTestItems } from '../utils/testsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 

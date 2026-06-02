@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -169,7 +169,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       const conn = yield* connectionService.getConnection();
       const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
         FROM TraceFlag
-        WHERE LogType='${logType}' AND TracedEntityId='${userId}' AND DebugLevel.DeveloperName='${REPLAY_DEBUGGER_LEVELS}'`;
+        WHERE LogType='${logType}' AND TracedEntityId='${userId}'
+        ORDER BY ExpirationDate DESC LIMIT 1`;
       const result = yield* Effect.tryPromise({
         try: () => conn.tooling.query<ToolingTraceFlagRecord>(query),
         catch: error => {
@@ -336,12 +337,12 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       logType: TraceFlagLogType = 'DEVELOPER_LOG',
       existingDebugLevelId?: string
     ) {
+      const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
       const existing = yield* getTraceFlagForUser(userId, logType);
 
       return yield* Option.match(existing, {
         onNone: () =>
           Effect.gen(function* () {
-            const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
             const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
             if (!traceFlagId) {
               return yield* new TraceFlagCreateError({ message: 'Create returned no ID' });
@@ -350,15 +351,24 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           }),
         onSome: traceFlag =>
           Effect.gen(function* () {
-            const expirationDate = traceFlag.expirationDate;
+            if (traceFlag.expirationDate < new Date()) {
+              yield* deleteTraceFlag(traceFlag.id);
+              const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
+              if (!traceFlagId) {
+                return yield* new TraceFlagCreateError({ message: 'Create returned no ID' });
+              }
+              return { created: true, traceFlagId };
+            }
             const validExpiration =
-              expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
-                ? expirationDate
+              traceFlag.expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
+                ? traceFlag.expirationDate
                 : calculateExpirationDate(new Date(), duration);
-            yield* updateTraceFlag(traceFlag.id, {
-              debugLevelId: traceFlag.debugLevelId,
-              expirationDate: validExpiration
-            });
+            if (debugLevelId !== traceFlag.debugLevelId) {
+              yield* changeTraceFlagDebugLevel(traceFlag.id, debugLevelId);
+            }
+            if (validExpiration.getTime() !== traceFlag.expirationDate.getTime()) {
+              yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
+            }
             return { created: false, traceFlagId: traceFlag.id };
           })
       });

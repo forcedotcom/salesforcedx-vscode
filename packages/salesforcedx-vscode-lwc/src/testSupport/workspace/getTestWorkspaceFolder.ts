@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -24,6 +24,9 @@ export const getTestWorkspaceFolder = (testUri?: URI) => {
     const errorMessage = nls.localize('no_workspace_folder_found_for_test_text');
     console.error(errorMessage);
     vscode.window.showErrorMessage(errorMessage);
-    telemetryService.sendException('lwc_test_no_workspace_folder_found_for_test', errorMessage);
+    telemetryService.sendEventData('exception', {
+      name: 'lwc_test_no_workspace_folder_found_for_test',
+      message: errorMessage
+    });
   }
 };

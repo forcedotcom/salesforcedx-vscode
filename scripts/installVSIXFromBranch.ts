@@ -1,12 +1,12 @@
 #! /usr/bin/env node
-/**
- * Copyright (c) 2025, salesforce.com, inc.
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- **/
-import { execSync } from 'child_process';
-import { existsSync, rmSync } from 'fs';
+ */
+import { execSync } from 'node:child_process';
+import { existsSync, rmSync } from 'node:fs';
 
 type WorkflowRun = {
   databaseId: string;
@@ -41,7 +41,7 @@ logger('Hello easier VSIX testing!');
 logger('==========================\n');
 
 if (existsSync(SAVE_DIRECTORY)) {
-  logger(`Deleting previous VSIX files. \n`);
+  logger('Deleting previous VSIX files. \n');
   rmSync(SAVE_DIRECTORY, { recursive: true, force: true });
 }
 
@@ -79,7 +79,7 @@ if (vsixFiles.length > 0) {
   try {
     logger('\n');
     execSync(`${IDE} --uninstall-extension salesforce.salesforcedx-einstein-gpt`, { stdio: 'inherit' });
-  } catch (error) {
+  } catch {
     logger('Agentforce Vibes was not installed, continuing...');
   }
 
@@ -87,7 +87,7 @@ if (vsixFiles.length > 0) {
   try {
     logger('\n');
     execSync(`${IDE} --uninstall-extension salesforce.sfdx-code-analyzer-vscode`, { stdio: 'inherit' });
-  } catch (error) {
+  } catch {
     logger('code-analyzer was not installed, continuing...');
   }
 
@@ -96,7 +96,7 @@ if (vsixFiles.length > 0) {
     try {
       logger('\n');
       execSync(`${IDE} --uninstall-extension ${extensionId}`, { stdio: 'inherit' });
-    } catch (error) {
+    } catch {
       logger(`${extensionId} couldn't be uninstalled, continuing...`);
     }
   });

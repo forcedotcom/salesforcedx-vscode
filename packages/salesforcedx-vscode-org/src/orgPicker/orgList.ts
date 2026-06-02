@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -266,7 +266,10 @@ type OrgTypeFromInfo = 'Scratch' | 'Sandbox' | 'Org';
 const getOrgTypeFromInfo = (orgInfo: typeof DefaultOrgInfoSchema.Type): OrgTypeFromInfo =>
   orgInfo.isScratch ? 'Scratch' : orgInfo.isSandbox ? 'Sandbox' : 'Org';
 
-const getStatusBarContent = Effect.fn('updateTargetOrgDisplay')(function* (orgInfo: typeof DefaultOrgInfoSchema.Type) {
+const getStatusBarContent = Effect.fn('updateTargetOrgDisplay', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* (orgInfo: typeof DefaultOrgInfoSchema.Type) {
   const { username, aliases, isScratch } = orgInfo;
   if (!username) {
     return {

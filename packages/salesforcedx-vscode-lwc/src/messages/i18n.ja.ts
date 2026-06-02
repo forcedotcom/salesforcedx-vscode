@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -18,8 +18,10 @@ import { MessageKey } from './i18n';
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-  lightning_lwc_test_navigate_to_test: 'SFDX: Lightning Web Component テストへ移動',
   no_workspace_folder_found_for_test_text: 'このテストのワークスペースフォルダを特定できませんでした',
+  lwc_test_controller_label: 'LWC テスト',
+  lwc_test_run_profile_title: 'SFDX: すべての LWC テストを実行',
+  lwc_test_debug_profile_title: 'SFDX: すべての LWC テストをデバッグ',
   run_test_title: 'テストを実行',
   debug_test_title: 'テストをデバッグ',
   run_all_tests_title: 'すべてのテストを実行',

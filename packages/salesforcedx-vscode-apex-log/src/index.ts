@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -37,7 +37,8 @@ import {
 } from './commands/traceflags/traceflagsCommands';
 import { createLogAutoCollect } from './logs/logAutoCollect';
 import { CurrentTraceFlags } from './services/apexLogState';
-import { buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
+import { buildAllServicesLayer } from './services/extensionProvider';
+import { getRuntime, setAllServicesLayer } from './services/runtime';
 import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';

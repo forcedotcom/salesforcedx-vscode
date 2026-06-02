@@ -9,11 +9,13 @@ Prereq: authenticated Dev Hub (`sf org login web --set-default-dev-hub` or simil
 ## Dreamhouse
 
 - **Alias:** `orgBrowserDreamhouseTestOrg` (override: `DREAMHOUSE_ORG_ALIAS`)
-- **Used by:** org-browser, metadata (org picker tests)
+- **Used by:** org-browser, metadata (org picker tests); also the recommended org for `ESBUILD_WEB_ORG_ALIAS` web bundle testing
 - **Script:** `./packages/salesforcedx-vscode-org-browser/scripts/create-e2e-scratch-org.sh` (from repo root)
 - **Custom alias:** `DREAMHOUSE_ORG_ALIAS=myAlias ./packages/salesforcedx-vscode-org-browser/scripts/create-e2e-scratch-org.sh`
 - **Run org-browser tests:** `DREAMHOUSE_ORG_ALIAS=myAlias npm run test:web -w salesforcedx-vscode-org-browser`
+- **Web bundle local dev:** `ESBUILD_WEB_ORG_ALIAS=orgBrowserDreamhouseTestOrg npm run run:web -w packages/salesforcedx-vscode-services`
 - Script clones dreamhouse-lwc, creates scratch org, deploys metadata, assigns permset. Matches `.github/workflows/orgBrowserE2E.yml`.
+- **Recreate:** just re-run the script — it creates a fresh org each time. Previous org is not deleted automatically.
 
 ## Minimal
 

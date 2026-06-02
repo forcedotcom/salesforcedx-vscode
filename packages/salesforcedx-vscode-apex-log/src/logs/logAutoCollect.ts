@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -31,10 +31,10 @@ const isAfterTraceFlagStart =
     return userStart === undefined || st >= userStart;
   };
 
-const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs')(function* (
-  knownIdsRef: Ref.Ref<Set<string>>,
-  collectorRef: SubscriptionRef.SubscriptionRef<LogCollectorState>
-) {
+const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* (knownIdsRef: Ref.Ref<Set<string>>, collectorRef: SubscriptionRef.SubscriptionRef<LogCollectorState>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const knownIds = yield* Ref.get(knownIdsRef);
 

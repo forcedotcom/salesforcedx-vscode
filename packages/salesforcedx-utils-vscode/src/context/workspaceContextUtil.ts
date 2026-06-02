@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -45,6 +45,7 @@ export class WorkspaceContextUtil {
   protected _orgId?: string;
   protected _orgShape?: OrgShape;
   protected _devHubId?: string;
+  protected _orgEdition?: string;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
@@ -185,7 +186,9 @@ export class WorkspaceContextUtil {
       this._alias = targetOrgOrAlias !== this._username ? targetOrgOrAlias : undefined;
       try {
         const connection = await this.getConnection();
-        this._orgId = connection?.getAuthInfoFields().orgId;
+        const authFields = connection?.getAuthInfoFields();
+        this._orgId = authFields?.orgId;
+        this._orgEdition = authFields?.orgEdition;
       } catch (error: unknown) {
         this._orgId = '';
         if (error instanceof Error) {
@@ -200,6 +203,7 @@ export class WorkspaceContextUtil {
       this._username = undefined;
       this._alias = undefined;
       this._orgId = undefined;
+      this._orgEdition = undefined;
     }
 
     this.onOrgChangeEmitter.fire({
@@ -234,5 +238,13 @@ export class WorkspaceContextUtil {
 
   public set devHubId(id: string | undefined) {
     this._devHubId = id;
+  }
+
+  public get orgEdition(): string | undefined {
+    return this._orgEdition;
+  }
+
+  public set orgEdition(edition: string | undefined) {
+    this._orgEdition = edition;
   }
 }

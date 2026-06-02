@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -180,7 +180,8 @@ describe('Language Client Manager', () => {
       // Setup mocks
       mockExtensionContext = {} as vscode.ExtensionContext;
       mockClient = {
-        stop: jest.fn().mockResolvedValue(undefined)
+        stop: jest.fn().mockResolvedValue(undefined),
+        dispose: jest.fn()
       } as unknown as ApexLanguageClient;
 
       // Create a proper mock for the status bar with the restarting method

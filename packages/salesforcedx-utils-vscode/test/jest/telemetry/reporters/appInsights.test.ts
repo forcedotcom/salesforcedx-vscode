@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -62,6 +62,28 @@ describe('AppInsights', () => {
       expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
+    });
+
+    it('should include orgEdition in event properties when available', () => {
+      getInstanceMock.mockReturnValue({
+        devHubId: '',
+        orgId: dummyOrgId,
+        orgShape: 'Production',
+        orgEdition: 'Enterprise Edition'
+      });
+
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, 'test-webUser', false);
+      (appInsights as any).userOptIn = true;
+      (appInsights as any).appInsightsClient = {
+        trackException: trackExceptionMock,
+        trackEvent: trackEventMock
+      };
+
+      appInsights.sendTelemetryEvent('Test Event', {}, {});
+
+      const eventProps = trackEventMock.mock.calls[0][0].properties;
+      expect(eventProps.orgEdition).toBe('Enterprise Edition');
+      expect(eventProps.orgId).toBe(dummyOrgId);
     });
   });
 

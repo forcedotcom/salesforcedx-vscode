@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getRootWorkspacePath } from '../..';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
+import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 
 /**
  * Represents a telemetry file that logs telemetry events by appending to a local file.
@@ -32,7 +33,8 @@ export class TelemetryFile implements TelemetryReporter {
     properties?: { [key: string]: string },
     measurements?: { [key: string]: number }
   ): void {
-    void this.writeToFile(eventName, { ...properties, ...measurements });
+    const baseProps = this.getBaseProps();
+    void this.writeToFile(eventName, { ...baseProps, ...properties, ...measurements });
   }
 
   public sendExceptionEvent(
@@ -70,6 +72,16 @@ export class TelemetryFile implements TelemetryReporter {
     const content = `${JSON.stringify({ timestamp, command, data }, null, 2)},`;
     this.buffer += content;
     await this.flushBuffer();
+  }
+
+  private getBaseProps(): Record<string, string> {
+    try {
+      const context = WorkspaceContextUtil.getInstance();
+      const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = context;
+      return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
+    } catch {
+      return {};
+    }
   }
 
   private async flushBuffer(): Promise<void> {

@@ -87,13 +87,21 @@ const expandWebExplorerSegments = async (page: Page, pathSegments: string[]): Pr
 };
 
 /**
- * LWC files sit under `force-app/main/default/lwc/<bundle>/`. Collapsed parents keep leaf rows out of the tree, so
- * expand the path before single-clicking a file.
+ * LWC files sit under `force-app/main/default/lwc/<bundle>/`. Jest test files additionally live under
+ * `__tests__/` inside the bundle. Expand the path before single-clicking a file.
  */
 const expandExplorerPathToLwcFile = async (page: Page, fileName: string): Promise<void> => {
+  const isTestFile = fileName.endsWith('.test.js') || fileName.endsWith('.test.ts');
   const dot = fileName.lastIndexOf('.');
-  const bundleDir = dot === -1 ? fileName : fileName.slice(0, dot);
-  await expandWebExplorerSegments(page, ['force-app', 'main', 'default', 'lwc', bundleDir]);
+  const base = dot === -1 ? fileName : fileName.slice(0, dot);
+  if (isTestFile) {
+    // e.g. "lwc1.test.js" → bundleDir = "lwc1", then expand into __tests__
+    const secondDot = base.lastIndexOf('.');
+    const bundleDir = secondDot === -1 ? base : base.slice(0, secondDot);
+    await expandWebExplorerSegments(page, ['force-app', 'main', 'default', 'lwc', bundleDir, '__tests__']);
+  } else {
+    await expandWebExplorerSegments(page, ['force-app', 'main', 'default', 'lwc', base]);
+  }
 };
 
 /**

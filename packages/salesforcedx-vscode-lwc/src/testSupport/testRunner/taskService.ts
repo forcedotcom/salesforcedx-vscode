@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -142,7 +142,14 @@ class TaskService {
     }
     const taskShellExecution = new vscode.ShellExecution(cmd, args, taskShellExecutionOptions);
     const task = new vscode.Task(taskDefinition, taskScope, taskName, taskSource, taskShellExecution);
-    task.presentationOptions.clear = true;
+    task.presentationOptions = {
+      reveal: vscode.TaskRevealKind.Never,
+      focus: false,
+      echo: false,
+      panel: vscode.TaskPanelKind.Shared,
+      clear: true,
+      showReuseMessage: false
+    };
 
     const sfTask = new SfTask(task);
     this.createdTasks.set(taskId, sfTask);
