@@ -347,7 +347,11 @@ export const replaceLineInOpenFile = async (page: Page, lineNumber: number, newT
   await page.keyboard.type(String(lineNumber));
   await page.keyboard.press('Enter');
 
-  // Select entire line and replace
+  // Select entire line and replace.
+  // VS Code's `Home` is "smart Home": first press moves to first non-whitespace, second press
+  // moves to column 0. Press twice so the selection covers leading whitespace too — otherwise
+  // typing `\t\t\t...` would double-indent.
+  await page.keyboard.press('Home');
   await page.keyboard.press('Home');
   await page.keyboard.press('Shift+End');
   await page.keyboard.press('Delete');

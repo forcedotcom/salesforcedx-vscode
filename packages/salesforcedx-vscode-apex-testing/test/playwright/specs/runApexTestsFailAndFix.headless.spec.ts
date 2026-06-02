@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { expect, type Page } from '@playwright/test';
 import {
   acceptNotification,
   clearOutputChannel,
@@ -71,7 +72,7 @@ const ACCOUNT_SERVICE_TEST_CONTENT = [
 
 const REPORT_NOTIFICATION_PATTERN = /Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/;
 
-const runAccountServiceTestViaPalette = async (page: import('@playwright/test').Page): Promise<void> => {
+const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
   await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
@@ -132,6 +133,16 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
     await saveScreenshot(page, 'step.fail.assert-failed.png');
     // Restore panel before continuing
     await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
+    // Clear all notifications so the failing run's "Apex test report is ready" toast doesn't
+    // get re-matched (and possibly re-clicked) when we verify the passing-run notification.
+    await executeCommandWithCommandPalette(page, 'Notifications: Clear All Notifications');
+  });
+
+  await test.step('clear Salesforce Metadata channel before redeploy', async () => {
+    // Clear so the wait below sees only the redeploy's output, not the previous deploys'.
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
   });
 
   await test.step('open AccountService.cls and fix bug on line 6', async () => {
@@ -144,10 +155,12 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
     if (isDesktop()) {
       await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
     } else {
-      // Web: save-on-deploy already triggered by replaceLineInOpenFile's File: Save
+      // Web: save-on-deploy already triggered by replaceLineInOpenFile's File: Save.
+      // Wait for the deploy completion line — same signal desktop uses — instead of just the
+      // class name (which would also match the prior AccountServiceTest deploy line).
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Metadata');
-      await waitForOutputChannelText(page, { expectedText: 'AccountService', timeout: TEST_RUN_TIMEOUT });
+      await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: TEST_RUN_TIMEOUT });
     }
     await saveScreenshot(page, 'step.fix.redeployed.png');
   });
@@ -165,7 +178,6 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
 
   await test.step('verify passing test output and Open Report flow', async () => {
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
-    await waitForNotification(page, REPORT_NOTIFICATION_PATTERN, { timeout: 60_000 });
 
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
@@ -179,8 +191,13 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
     await saveScreenshot(page, 'step.pass.results-visible.png');
     await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
 
-    // Verify Open Report action works (markdown preview opens)
-    await acceptNotification(page, REPORT_NOTIFICATION_PATTERN, 'Open Report', { timeout: 10_000 });
+    // Verify Open Report action works (markdown preview opens). acceptNotification waits for the
+    // notification internally — no separate waitForNotification call needed.
+    await acceptNotification(page, REPORT_NOTIFICATION_PATTERN, 'Open Report', { timeout: 60_000 });
+    // Confirm a markdown preview tab opened for the test-result-*.md report.
+    await expect(page.getByRole('tab', { name: /test-result-[a-zA-Z0-9]+\.md/ }).first()).toBeVisible({
+      timeout: 10_000
+    });
     await saveScreenshot(page, 'step.pass.open-report-clicked.png');
   });
 
