@@ -36,16 +36,15 @@ import {
 import { expect } from 'chai';
 import { InputBox, QuickOpenBox } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
-import { expandTestExplorerNamespaceAndPackage, findTestItemByName, getTestResultsTabText } from '../utils/testsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 // Tests for Run Apex Tests. Cases already covered by Playwright specs in
 // packages/salesforcedx-vscode-apex-testing/test/playwright/specs have been removed:
-// command-palette runs, palette-driven Test Sidebar run-all, the class-level Test Sidebar
-// tree-item action-button run, and Apex Test Suite create/add/run. What remains are cases
-// without Playwright coverage: code-lens runs, the method-level Test Sidebar tree-item
-// action-button run, and the failing-test-then-fix scenario.
+// command-palette runs, palette-driven Test Sidebar run-all, both Test Sidebar
+// tree-item action-button runs (class & method), and Apex Test Suite create/add/run.
+// What remains are cases without Playwright coverage: code-lens runs and the
+// failing-test-then-fix scenario.
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
@@ -154,46 +153,6 @@ describe('Run Apex Tests', () => {
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
-  });
-
-  it('Run Single Test via the Test Sidebar', async () => {
-    logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
-
-    // Expand namespace/package so test classes and methods are visible (grouping: Namespace → Package → Class → Method)
-    await expandTestExplorerNamespaceAndPackage();
-
-    // Find and click on the test method in the Test Explorer
-    await pause(Duration.seconds(5)); // Wait for the tests to load
-    const testMethodItem = await findTestItemByName('validateSayHello');
-    await pause(Duration.seconds(5));
-    await testMethodItem.click();
-
-    // Click Run Test action on the test method
-    const runTestAction = await testMethodItem.getActionButton('Run Test');
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(runTestAction).to.not.be.undefined;
-    await runTestAction!.click();
-
-    // Verify success notification
-    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
-
-    // Verify the test report notification appears
-    const notificationFound = await verifyNotificationWithRetry(
-      /Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/,
-      Duration.seconds(30)
-    );
-    expect(notificationFound).to.equal(true);
-
-    // Verify test results in the Test Results tab
-    const testResultsText = await getTestResultsTabText('Apex Testing');
-    const expectedTextsInTestResultsTab = [
-      '=== Test Summary',
-      'Outcome              Passed',
-      'Tests Ran            1',
-      'Pass Rate            100%',
-      'ExampleApexClass2Test.validateSayHello  Pass'
-    ];
-    await verifyOutputPanelText(testResultsText, expectedTextsInTestResultsTab);
   });
 
   it('Run a test that fails and fix it', async () => {

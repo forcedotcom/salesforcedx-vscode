@@ -114,5 +114,22 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await saveScreenshot(page, 'step.class-run-done.png');
   });
 
+  await test.step('run a single test method via Test Explorer tree-item action', async () => {
+    // Expand the class row to reveal its test methods.
+    const classRow = findTestExplorerItem(page, testClassName);
+    await classRow.locator('.monaco-tl-twistie').click({ force: true });
+    const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
+    await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
+    await clickTreeItemAction(methodRow, 'Run Test');
+    await saveScreenshot(page, 'step.method-run-action-clicked.png');
+
+    await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
+    await expect(page.getByText(`${testClassName}.shouldDiscoverThisTest`).first()).toBeVisible({
+      timeout: TEST_RUN_TIMEOUT
+    });
+    await saveScreenshot(page, 'step.method-run-done.png');
+  });
+
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
