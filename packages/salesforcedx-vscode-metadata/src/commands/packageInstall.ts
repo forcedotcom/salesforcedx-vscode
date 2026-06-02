@@ -73,6 +73,21 @@ const gatherPollChoice = Effect.fn('packageInstall.gatherPollChoice')(function* 
   return choice === yes;
 });
 
+const verifyPackageAvailable = Effect.fn('packageInstall.verifyPackageAvailable')(function* (packageId: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const conn = yield* api.services.ConnectionService.getConnection();
+  const result = yield* Effect.tryPromise({
+    try: () => conn.tooling.query<{ Id: string }>(`SELECT Id FROM SubscriberPackageVersion WHERE Id ='${packageId}'`),
+    catch: e => new PackageInstallFailedError({ message: e instanceof Error ? e.message : String(e) })
+  });
+  if (result.records.length === 0) {
+    return yield* new PackageInstallFailedError({
+      message: nls.localize('package_install_not_found', packageId)
+    });
+  }
+  return packageId;
+});
+
 const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(function* (params: {
   readonly packageId: string;
   readonly installationKey: Option.Option<string>;
@@ -154,13 +169,20 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 
-  const packageId = yield* gatherPackageId();
-  const installationKey = yield* gatherInstallationKey();
-  const shouldPoll = yield* gatherPollChoice();
-
-  yield* Effect.annotateCurrentSpan('packageId', packageId);
-  yield* Effect.annotateCurrentSpan('hasInstallationKey', Option.isSome(installationKey));
-  yield* Effect.annotateCurrentSpan('shouldPoll', shouldPoll);
+  const packageId = yield* gatherPackageId().pipe(
+    Effect.flatMap(id =>
+      verifyPackageAvailable(id).pipe(
+        promptService.withProgress(nls.localize('package_install_verifying_progress', id))
+      )
+    ),
+    Effect.tap(id => Effect.annotateCurrentSpan('packageId', id))
+  );
+  const installationKey = yield* gatherInstallationKey().pipe(
+    Effect.tap(key => Effect.annotateCurrentSpan('hasInstallationKey', Option.isSome(key)))
+  );
+  const shouldPoll = yield* gatherPollChoice().pipe(
+    Effect.tap(choice => Effect.annotateCurrentSpan('shouldPoll', choice))
+  );
 
   const requestId = yield* submitInstallRequest({ packageId, installationKey });
 
@@ -182,12 +204,13 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
         )
       )
     ),
-    Effect.catchTag('UserCancellationError', () =>
+    // custom message to make it clear how cancellation works
+    Effect.tapErrorTag('UserCancellationError', () =>
       Effect.promise(() =>
         Promise.resolve(
           vscode.window.showInformationMessage(nls.localize('package_install_cancelled_message', requestId))
         )
-      ).pipe(Effect.asVoid)
+      )
     )
   );
 });
