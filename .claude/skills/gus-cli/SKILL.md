@@ -137,6 +137,14 @@ Use to pick the right Epic\_\_c when creating work. Query epics first; match by 
 
 When unsure which epic: ask the user.
 
+## `[ai-auto]` tag
+
+`[ai-auto]` in `Subject__c` or `Details__c` opts a WI into the [auto-build-wi workflow](../../workflows/auto-build-wi.js) (claim → plan → build → review → draft PR). See [workflows/README.md](../../workflows/README.md).
+
+- Add only on explicit user request; prefer `Subject__c`
+- Skip for WIs needing design/coordination
+- Query: `(Subject__c LIKE '%[ai-auto]%' OR Details__c LIKE '%[ai-auto]%')`
+
 ## Compound workflows
 
 **Create a WI from this PR**
