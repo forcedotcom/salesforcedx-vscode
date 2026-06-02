@@ -21,10 +21,8 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
-  acceptNotification,
   attemptToFindOutputPanelText,
   clearOutputView,
-  clickFilePathOkButton,
   dismissAllNotifications,
   executeQuickPick,
   getTextEditor,
@@ -36,20 +34,17 @@ import {
   zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
+import { InputBox, QuickOpenBox } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
-import {
-  expandTestExplorerNamespaceAndPackage,
-  findCheckboxElement,
-  findTestItemByName,
-  getTestResultsTabText,
-  verifyTestItems,
-  verifyTestItemsIconColor
-} from '../utils/testsHelper';
+import { expandTestExplorerNamespaceAndPackage, findTestItemByName, getTestResultsTabText } from '../utils/testsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
-/** Progress notification from metadata deploy (`deploying_one_component` / `deploying_n_components`). */
+// Tests for Run Apex Tests. Cases already covered by Playwright specs in
+// packages/salesforcedx-vscode-apex-testing/test/playwright/specs have been removed:
+// command-palette runs, palette-driven Test Sidebar run-all, and Apex Test Suite create/add/run.
+// What remains are cases without Playwright coverage: code-lens runs, Test Sidebar tree-item
+// action-button runs (class & method), and the failing-test-then-fix scenario.
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
@@ -83,16 +78,9 @@ describe('Run Apex Tests', () => {
       'RunApexTests - Error creating Apex class 2 and test'
     );
 
-    // Create Apex class 3 and test
-    await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass3', classesFolderPath),
-      2,
-      'RunApexTests - Error creating Apex class 3 and test'
-    );
-
     await dismissAllNotifications();
     await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
-    await waitForNotificationToGoAway(/Deploying 6 components/i, Duration.TEN_MINUTES);
+    await waitForNotificationToGoAway(/Deploying 4 components/i, Duration.TEN_MINUTES);
   });
 
   beforeEach(function () {
@@ -165,151 +153,6 @@ describe('Run Apex Tests', () => {
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
-  });
-
-  it('Run All Tests via Command Palette', async () => {
-    logTestStart(testSetup, 'Run All Tests via Command Palette');
-    // Clear the Output view.
-    await dismissAllNotifications();
-    await clearOutputView(Duration.seconds(2));
-
-    // Run SFDX: Run Apex tests.
-    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(15));
-
-    // Select the "All Tests" option
-    await prompt.selectQuickPick('All Tests');
-    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
-
-    await pause(Duration.seconds(10)); // Remove this once we have a way to wait for the tests to finish running
-
-    // Verify test results are listed on vscode's Output section
-    // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
-    const expectedTexts = [
-      '=== Test Summary',
-      'Outcome              Passed',
-      'Tests Ran            3',
-      'Pass Rate            100%',
-      'TEST NAME',
-      'ExampleApexClass1Test.validateSayHello  Pass',
-      'ExampleApexClass2Test.validateSayHello  Pass',
-      'ExampleApexClass3Test.validateSayHello  Pass',
-      'Ended SFDX: Run Apex Tests'
-    ];
-
-    await verifyOutputPanelText(outputPanelText, expectedTexts);
-  });
-
-  it('Run Single Class via Command Palette', async () => {
-    logTestStart(testSetup, 'Run Single Class via Command Palette');
-    // Clear the Output view.
-    await dismissAllNotifications();
-    await clearOutputView(Duration.seconds(2));
-
-    // Run SFDX: Run Apex tests.
-    prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(15));
-
-    // Select the "ExampleApexClass1Test" file
-    await prompt.selectQuickPick('ExampleApexClass1Test');
-    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
-
-    // Verify test results are listed on vscode's Output section
-    // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
-    const expectedTexts = [
-      '=== Test Summary',
-      'Outcome              Passed',
-      'Tests Ran            1',
-      'Pass Rate            100%',
-      'TEST NAME',
-      'ExampleApexClass1Test.validateSayHello  Pass',
-      'Ended SFDX: Run Apex Tests'
-    ];
-    await verifyOutputPanelText(outputPanelText, expectedTexts);
-  });
-
-  it('Run All tests via Test Sidebar', async () => {
-    logTestStart(testSetup, 'Run All tests via Test Sidebar');
-
-    await retryOperation(
-      async () => {
-        await executeQuickPick('View: Hide Secondary Side Bar');
-      },
-      3,
-      'RunApexTests - Error closing chat'
-    );
-
-    // Open the Test Sidebar - now uses VS Code's native Test Explorer
-    await retryOperation(
-      async () => {
-        await executeQuickPick('Testing: Focus on Test Explorer View');
-      },
-      3,
-      'RunApexTests - Error focusing on test explorer view'
-    );
-
-    await retryOperation(
-      async () => executeQuickPick('Test: Refresh Tests', Duration.seconds(1)),
-      3,
-      'RunApexTests - Error refreshing test explorer'
-    );
-    await pause(Duration.seconds(20)); // Wait for the tests to load
-
-    // Expand namespace/package so test classes are visible (grouping: Namespace → Package → Class → Method)
-    await expandTestExplorerNamespaceAndPackage();
-
-    // Verify the expected test items appear
-    const expectedTestNames = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
-    const testItems = await verifyTestItems(expectedTestNames);
-
-    // Clear the Output view.
-    await dismissAllNotifications();
-    await clearOutputView(Duration.seconds(2));
-
-    // Click the run tests button on the top right corner of the Test sidebar
-    await retryOperation(
-      async () => await executeQuickPick('Test: Run All Tests', Duration.seconds(1)),
-      3,
-      'RunApexTests - Error running all tests'
-    );
-
-    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
-
-    // Verify the test report notification appears with dynamic runId
-    const notificationFound = await verifyNotificationWithRetry(
-      /Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/,
-      Duration.seconds(30)
-    );
-    expect(notificationFound).to.equal(true);
-
-    // Click "Open Report" button on the notification (use partial match for the notification text)
-    const accepted = await acceptNotification('Apex test report is ready:', 'Open Report', Duration.seconds(5));
-    expect(accepted).to.equal(true);
-    await pause(Duration.seconds(3));
-
-    // Verify the markdown preview tab opens (tab label contains "Preview test-result-*.md")
-    const previewTab = await getWorkbench().findElement(By.css('div.tab-label[aria-label*="Preview test-result-"]'));
-    const tabLabel = await previewTab.getAttribute('aria-label');
-    expect(tabLabel).to.match(/Preview test-result-[a-zA-Z0-9]+\.md/);
-
-    // Verify test results in the Test Results tab (xterm terminal)
-    const testResultsText = await getTestResultsTabText('Apex Testing');
-    const expectedTextsInTestResultsTab = [
-      '=== Test Summary',
-      'Outcome              Passed',
-      'Tests Ran            3',
-      'Pass Rate            100%',
-      'ExampleApexClass1Test.validateSayHello  Pass',
-      'ExampleApexClass2Test.validateSayHello  Pass',
-      'ExampleApexClass3Test.validateSayHello  Pass'
-    ];
-    await verifyOutputPanelText(testResultsText, expectedTextsInTestResultsTab);
-
-    // Verify the tests that are passing are showing the right icon in Test Explorer
-    await verifyTestItemsIconColor(testItems, 'testPass');
   });
 
   it('Run All Tests on a Class via the Test Sidebar', async () => {
@@ -454,83 +297,6 @@ describe('Run Apex Tests', () => {
       'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(testResultsText, expectedTexts);
-  });
-
-  it('Create Apex Test Suite', async () => {
-    logTestStart(testSetup, 'Create Apex Test Suite');
-    // Run SFDX: Create Apex Test Suite.
-    prompt = await executeQuickPick('SFDX: Create Apex Test Suite', Duration.seconds(2));
-
-    // Set the name of the new Apex Test Suite
-    await prompt.setText('ApexTestSuite');
-    await prompt.confirm();
-    await pause(Duration.seconds(2));
-
-    // Choose tests that will belong to the new Apex Test Suite
-    await prompt.setText('ExampleApexClass1Test');
-    const checkbox = await findCheckboxElement(prompt);
-    await checkbox.click();
-    await clickFilePathOkButton();
-
-    // Look for the success notification that appears which says, "SFDX: Create Apex Test Suite successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Create Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
-  });
-
-  it('Add test to Apex Test Suite', async () => {
-    logTestStart(testSetup, 'Add test to Apex Test Suite');
-    // Run SFDX: Add Tests to Apex Test Suite.
-    prompt = await executeQuickPick('SFDX: Add Tests to Apex Test Suite', Duration.seconds(1));
-
-    // Select the suite recently created called ApexTestSuite
-    await prompt.selectQuickPick('ApexTestSuite');
-    await pause(Duration.seconds(2));
-
-    // Choose tests that will belong to the already created Apex Test Suite
-    await prompt.setText('ExampleApexClass2Test');
-
-    await retryOperation(
-      async () => {
-        const checkbox = await findCheckboxElement(prompt);
-        await checkbox.click();
-      },
-      2,
-      'RunApexTests - Error clicking checkbox'
-    );
-    await clickFilePathOkButton();
-
-    // Look for the success notification that appears which says, "SFDX: Add Tests to Apex Test Suite successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Add Tests to Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
-  });
-
-  it('Run Apex Test Suite', async () => {
-    logTestStart(testSetup, 'Run Apex Test Suite');
-    // Clear the Output view.
-    await dismissAllNotifications();
-    await clearOutputView(Duration.seconds(2));
-
-    // Run SFDX: Run Apex Test Suite.
-    await executeQuickPick('SFDX: Run Apex Test Suite', Duration.seconds(1));
-
-    // Select the suite recently created called ApexTestSuite
-    await prompt.selectQuickPick('ApexTestSuite');
-    // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
-
-    // Verify test results are listed on vscode's Output section
-    // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
-    const expectedTexts = [
-      '=== Test Summary',
-      'TEST NAME',
-      'Outcome              Passed',
-      'Tests Ran            2',
-      'Pass Rate            100%',
-      'TEST NAME',
-      'ExampleApexClass1Test.validateSayHello  Pass',
-      'ExampleApexClass2Test.validateSayHello  Pass',
-      'Ended SFDX: Run Apex Tests'
-    ];
-    await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
 
   after('Tear down and clean up the testing environment', async () => {
