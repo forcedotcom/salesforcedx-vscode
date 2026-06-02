@@ -331,6 +331,32 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   }
 };
 
+/**
+ * Replace the entire contents of `lineNumber` (1-based) in the active editor with `newText` and save.
+ * Uses `Go to Line/Column...` palette command to position the caret, then selects the line via
+ * `Home` + `Shift+End` and types the replacement.
+ */
+export const replaceLineInOpenFile = async (page: Page, lineNumber: number, newText: string): Promise<void> => {
+  const editor = page.locator(`${EDITOR_WITH_URI}:not([data-uri^="testing:"]):not([data-uri^="output-"])`).first();
+  await editor.waitFor({ state: 'visible' });
+  await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+  await editor.click();
+
+  // Open Go to Line/Column palette, type the line number, confirm
+  await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+  await page.keyboard.type(String(lineNumber));
+  await page.keyboard.press('Enter');
+
+  // Select entire line and replace
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Shift+End');
+  await page.keyboard.press('Delete');
+  await page.keyboard.type(newText);
+
+  await executeCommandWithCommandPalette(page, 'File: Save');
+  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+};
+
 /** Edit the currently open file by adding a comment at the top */
 export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<void> => {
   // Exclude internal Monaco editors (e.g. Test Explorer filter at data-uri="testing:filter",
