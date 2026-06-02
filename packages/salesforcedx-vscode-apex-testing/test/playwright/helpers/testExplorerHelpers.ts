@@ -97,6 +97,26 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
   await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout });
 };
 
+/**
+ * Test Explorer tree row by display name. The Test Explorer renders rows as ARIA treeitems
+ * whose accessible name embeds the display label, so getByRole('treeitem', { name: ... })
+ * matches a class or method node by substring.
+ */
+export const findTestExplorerItem = (page: Page, name: string): Locator => page.getByRole('treeitem', { name }).first();
+
+/**
+ * Hovers a Test Explorer tree row to reveal inline actions, then clicks the named action
+ * (e.g. `Run Test`, `Debug Test`). VS Code renders inline actions with the action label as
+ * `aria-label`; the underlying ARIA role differs between desktop and web (`link` vs `button`),
+ * so we match on aria-label rather than role.
+ */
+export const clickTreeItemAction = async (treeItem: Locator, actionLabel: string): Promise<void> => {
+  await treeItem.hover();
+  const action = treeItem.locator(`[aria-label="${actionLabel}"]`).first();
+  await action.waitFor({ state: 'visible', timeout: 10_000 });
+  await action.click();
+};
+
 export const focusAndTypeInFilter = async (page: Page, text: string): Promise<void> => {
   // Desktop uses a Monaco editor (data-uri="testing:filter") backed by a hidden
   // <textarea>; web uses a plain input. The Monaco view-lines layer intercepts

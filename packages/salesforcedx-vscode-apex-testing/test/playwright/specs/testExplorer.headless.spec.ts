@@ -27,6 +27,8 @@ import {
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   TEST_RESULTS_TAB,
+  clickTreeItemAction,
+  findTestExplorerItem,
   openTestExplorerAndDiscover
 } from '../helpers/testExplorerHelpers';
 
@@ -99,13 +101,9 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
   });
 
   await test.step('run all tests on a class via Test Explorer tree-item action', async () => {
-    // Hover the test class row to reveal inline action buttons, then click "Run Test".
-    const classRow = page.locator(`.monaco-list-row[role="treeitem"][aria-label*="${testClassName}"]`).first();
+    const classRow = findTestExplorerItem(page, testClassName);
     await classRow.waitFor({ state: 'visible', timeout: 30_000 });
-    await classRow.hover();
-    const runTestAction = classRow.locator('a[aria-label="Run Test"]').first();
-    await runTestAction.waitFor({ state: 'visible', timeout: 10_000 });
-    await runTestAction.click();
+    await clickTreeItemAction(classRow, 'Run Test');
     await saveScreenshot(page, 'step.class-run-action-clicked.png');
 
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
