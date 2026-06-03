@@ -28,7 +28,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.21",
+    "@salesforce/apex-node": "^8.4.27",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
