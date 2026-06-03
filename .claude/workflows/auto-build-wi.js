@@ -907,7 +907,7 @@ Steps:
 1. cd ${wt}
 2. git add .claude/plans/${chosen.name}.md
 3. If 'git diff --cached --quiet' returns 0 (nothing staged), skip the commit and return {ok: true, detail: "no-op (plan unchanged)"}.
-4. Else: git commit -m "chore: plan for ${chosen.name}" and return {ok: true, detail: "committed"}.`,
+4. Else commit with subject "chore: plan for ${chosen.name}". Use a HEREDOC so the Co-Authored-By trailer with YOUR actual model name is preserved (the same trailer you append on any normal commit). Return {ok: true, detail: "committed"}.`,
   { schema: OK_SCHEMA, label: `commit-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', model: 'haiku' }
 )
 
