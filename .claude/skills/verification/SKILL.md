@@ -33,3 +33,4 @@ Include verification steps after the "actual" todos. Follow this checklist.
 - `@.claude/skills/ts4023-effect-errors/` — TS4023
 - `@.claude/skills/ts1261-filename-casing/` — TS1261
 - `@.claude/skills/playwright-e2e/` — Playwright E2E
+- `effect-advocate` subagent — invoke after Effect-related changes to flag missed Effect idioms (schemas, Option, retry/timeout/cache, services reuse).

@@ -24,12 +24,21 @@ Interact with Gus (Salesforce Agile Accelerator org) via sf CLI. Requires alias 
 2. If missing: instruct user `sf org login web -a gus`
 3. All commands use `-o gus`
 
-## User ID
+## Runner identity
 
-- From step 1: gus entry `value` = username
-- `sf data query --query "SELECT Id FROM User WHERE Username = '<username>' LIMIT 1" -o gus --result-format json`
-- User Id = `result.records[0].Id`
-- **Reuse from earlier in conversation** if already looked up this session; don't re-query
+Cache: `$HOME/.claude/runner-identity.json` — `{userId, username, ownerPrefix, slackId, githubLogin}`.
+
+1. `sf alias list --json` → entry `/^gus$/i`. Missing → `sf org login web -a gus`. Value = `currentUsername`.
+2. Cache hit (file exists, all 5 fields, `cached.username === currentUsername`) → use it.
+3. Miss → resolve:
+   - `sf data query --query "SELECT Id FROM User WHERE Username = '<currentUsername>' LIMIT 1" -o gus --result-format json` → `userId`
+   - Match `currentUsername` to ## Team members row → `githubLogin`, `slackId`. `ownerPrefix` = initials lowercase (`Shane McLaughlin` → `sm`; one-word → first 2 chars).
+   - Not in table → caller's error.
+   - `mkdir -p $HOME/.claude && write JSON`.
+
+Invalidate: alias change auto-detects. Manual: `rm $HOME/.claude/runner-identity.json`.
+
+Same session: reuse conversation value; don't re-read.
 
 ## Constants
 
@@ -136,6 +145,14 @@ Use to pick the right Epic\_\_c when creating work. Query epics first; match by 
 - Feature-area backlogs; use Name to match
 
 When unsure which epic: ask the user.
+
+## `[ai-auto]` tag
+
+`[ai-auto]` in `Subject__c` or `Details__c` opts a WI into the [auto-build-wi workflow](../../workflows/auto-build-wi.js) (claim → plan → build → review → draft PR). See [workflows/README.md](../../workflows/README.md).
+
+- Add only on explicit user request; prefer `Subject__c`
+- Skip for WIs needing design/coordination
+- Query: `(Subject__c LIKE '%[ai-auto]%' OR Details__c LIKE '%[ai-auto]%')`
 
 ## Compound workflows
 

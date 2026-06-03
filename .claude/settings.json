@@ -1,4 +1,5 @@
 {
+  "enableWorkflows": true,
   "permissions": {
     "allow": [
       "Bash(${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh)",
@@ -9,7 +10,24 @@
       "Bash(tail *~/.sf/vscode-spans*)",
       "Bash(wc -l *~/.sf/vscode-spans*)",
       "Bash(grep *~/.sf/vscode-spans*)",
-      "Bash(head *~/.sf/vscode-spans*)"
+      "Bash(head *~/.sf/vscode-spans*)",
+      "Bash(sf:*)",
+      "Bash(gh:*)",
+      "Bash(git worktree:*)",
+      "Bash(git fetch:*)",
+      "Bash(git push:*)",
+      "Bash(git merge:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(npm install)",
+      "Bash(npm install --no-audit --no-fund)",
+      "Bash(ls .claude/skills*)",
+      "mcp__slack__slack_send_message"
     ]
   },
   "hooks": {

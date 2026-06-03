@@ -8,6 +8,8 @@ version: 1.2.0
 
 This skill enforces opinionated, consistent patterns for Effect-TS codebases.
 
+For diff/plan review against these patterns, invoke the `effect-advocate` subagent (`.claude/agents/effect-advocate.md`).
+
 ## Effect LS diagnostics (agent usage)
 
 Cursor's `read_lints` does not surface Effect Language Server diagnostics. Use the CLI:
