@@ -49,7 +49,7 @@ const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string =>
     ? `Operation LIKE '%${options.operationContains.replaceAll("'", "''")}%'`
     : undefined;
   const startTimeCondition = options?.startTimeAfter ? `StartTime >= ${options.startTimeAfter}` : undefined;
-  const conditions = [userIdCondition, operationCondition, startTimeCondition].filter((c): c is string => Boolean(c));
+  const conditions = [userIdCondition, operationCondition, startTimeCondition].filter(Boolean);
   const where = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
   return `${BASE_SELECT}${where} ORDER BY StartTime DESC LIMIT ${limit}`;
 };
