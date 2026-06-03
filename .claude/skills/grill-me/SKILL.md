@@ -5,11 +5,11 @@ description: Grilling session that challenges your plan against the existing dom
 
 <what-to-do>
 
-Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
+Interview relentlessly until shared understanding. Walk each branch of the design tree; resolve dependencies one at a time. Recommend an answer per question.
 
-Ask the questions one at a time, waiting for feedback on each question before continuing.
+One question at a time. Wait for feedback.
 
-If a question can be answered by exploring the codebase, explore the codebase instead.
+If a question is answerable by reading code, read code instead of asking.
 
 </what-to-do>
 
@@ -17,72 +17,70 @@ If a question can be answered by exploring the codebase, explore the codebase in
 
 ## Domain awareness
 
-During codebase exploration, also look for existing documentation:
+Look for existing docs.
 
 ### File structure
 
-Most repos have a single context:
+Single-context (most repos):
 
 ```
 /
 ├── CONTEXT.md
-├── docs/
-│   └── adr/
-│       ├── 0001-event-sourced-orders.md
-│       └── 0002-postgres-for-write-model.md
+├── docs/adr/
+│   ├── 0001-event-sourced-orders.md
+│   └── 0002-postgres-for-write-model.md
 └── src/
 ```
 
-If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The map points to where each one lives:
+Multi-context (root `CONTEXT-MAP.md` exists):
 
 ```
 /
 ├── CONTEXT-MAP.md
-├── docs/
-│   └── adr/                          ← system-wide decisions
-├── src/
-│   ├── ordering/
-│   │   ├── CONTEXT.md
-│   │   └── docs/adr/                 ← context-specific decisions
-│   └── billing/
-│       ├── CONTEXT.md
-│       └── docs/adr/
+├── docs/adr/                ← system-wide
+└── src/
+    ├── ordering/
+    │   ├── CONTEXT.md
+    │   └── docs/adr/        ← context-specific
+    └── billing/
+        ├── CONTEXT.md
+        └── docs/adr/
 ```
 
-Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+Create lazily — only when there's something to write.
 
 ## During the session
 
 ### Challenge against the glossary
 
-When the user uses a term that conflicts with the existing language in `CONTEXT.md`, call it out immediately. "Your glossary defines 'cancellation' as X, but you seem to mean Y — which is it?"
+Term conflicts with existing `CONTEXT.md` → call out: "glossary defines 'cancellation' as X, you mean Y — which?"
 
 ### Sharpen fuzzy language
 
-When the user uses vague or overloaded terms, propose a precise canonical term. "You're saying 'account' — do you mean the Customer or the User? Those are different things."
+Vague/overloaded term → propose canonical: "'account' — Customer or User?"
 
 ### Discuss concrete scenarios
 
-When domain relationships are being discussed, stress-test them with specific scenarios. Invent scenarios that probe edge cases and force the user to be precise about the boundaries between concepts.
+Probe edge cases. Force precision on boundaries.
 
 ### Cross-reference with code
 
-When the user states how something works, check whether the code agrees. If you find a contradiction, surface it: "Your code cancels entire Orders, but you just said partial cancellation is possible — which is right?"
+User states behavior → verify in code. Surface contradictions: "code cancels whole Orders, you said partial — which?"
 
 ### Update CONTEXT.md inline
 
-When a term is resolved, update `CONTEXT.md` right there. Don't batch these up — capture them as they happen. Use the format in [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md).
+Term resolved → update immediately. Don't batch. Format: [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md).
 
-`CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
+`CONTEXT.md` = glossary only. No specs, scratch, implementation decisions.
 
 ### Offer ADRs sparingly
 
-Only offer to create an ADR when all three are true:
+Offer iff all three:
 
-1. **Hard to reverse** — the cost of changing your mind later is meaningful
-2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
-3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
+1. Hard to reverse
+2. Surprising without context
+3. Real trade-off (genuine alternatives existed)
 
-If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
+Else skip. Format: [ADR-FORMAT.md](./ADR-FORMAT.md).
 
 </supporting-info>
