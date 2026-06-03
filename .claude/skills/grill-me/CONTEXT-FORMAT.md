@@ -5,7 +5,7 @@
 ```md
 # {Context Name}
 
-{1-2 sentences: what this context is, why it exists.}
+{1-2 sentences: what, why.}
 
 ## Language
 
@@ -24,15 +24,14 @@ _Avoid_: Client, buyer, account
 
 ## Rules
 
-- **Be opinionated.** Multiple words for same concept → pick one, list rest under `_Avoid_`.
-- **Tight definitions.** 1-2 sentences max. Define what it IS, not what it does.
-- **Project-specific terms only.** General programming concepts (timeouts, error types, utility patterns) don't belong even if used heavily. Test: unique to this context, or general programming?
-- **Group under subheadings** when natural clusters emerge. Single cluster → flat list fine.
+- Opinionated. Synonyms → pick one, others under `_Avoid_`.
+- Tight: 1-2 sentences. What it IS, not what it does.
+- Project-specific terms only. General programming concepts (timeouts, error types, utility patterns) don't belong. Test: unique to this context, or general?
+- Group under subheadings when clusters emerge. Single cluster → flat fine.
 
-## Single vs multi-context repos
+## Single vs multi-context
 
-- Single context: one root `CONTEXT.md`.
-- Multi-context: root `CONTEXT-MAP.md` lists contexts + relationships:
+Single → one root `CONTEXT.md`. Multi → root `CONTEXT-MAP.md` lists contexts + relationships:
 
 ```md
 # Context Map
@@ -50,14 +49,12 @@ _Avoid_: Client, buyer, account
 - **AI tooling → Ordering**: `auto-build-wi.js` opens PRs against ordering
 ```
 
-Contexts can live anywhere a coherent vocabulary does — per package, plus
-non-source dirs like `.claude/` and `.github/`. Pick narrowest scope that
-owns the term.
+Contexts go wherever coherent vocabulary lives — packages, plus `.claude/`, `.github/`. Narrowest scope owning the term.
 
 Inference:
 
-- `CONTEXT-MAP.md` exists → read it for contexts
+- `CONTEXT-MAP.md` exists → read it
 - Only root `CONTEXT.md` → single context
 - Neither → create root `CONTEXT.md` lazily on first term
 
-Multi-context → infer which one applies. Unclear → ask.
+Multi-context, unclear → ask.
