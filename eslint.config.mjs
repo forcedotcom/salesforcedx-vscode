@@ -165,6 +165,7 @@ export default [
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-array-reverse': 'error',
       'unicorn/no-array-sort': 'error',
+      'unicorn/no-empty-file': 'error',
       'unicorn/no-immediate-mutation': 'error',
       'unicorn/no-instanceof-builtins': 'error',
       'unicorn/no-single-promise-in-promise-methods': 'error',
