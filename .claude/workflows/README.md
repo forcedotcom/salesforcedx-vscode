@@ -46,13 +46,20 @@ If any of these can't be resolved, the tick exits early with `identity-failed`.
             │            │           │           │      │ Fix CI  │ DM | e2e fix | code fix
             │            │           │           │      └─────────┘
             ▼            │           ▼           ▼
-       ┌─────────┐       │      (re-enter      (let
-       │Finalize │       │       builder)     gha-rerun
-       │ ready   │       │                    work)
-       └────┬────┘       │
-            │            │
+            │            │      (re-enter      (let
+            │            │       builder)     gha-rerun
+            │            │                    work)
             └──────┬─────┘
                    ▼
+        ┌────────────────────┐
+        │ Keep in-flight     │  fetch + merge origin/develop into each
+        │ current            │  in-flight worktree; push if non-empty
+        └────────┬───────────┘
+                 ▼
+        ┌────────────────────┐
+        │  Finalize ready    │
+        └────────┬───────────┘
+                 ▼
         ┌────────────────────┐
         │ at cap?            │── yes ──▶ exit
         └────────┬───────────┘

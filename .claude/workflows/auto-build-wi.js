@@ -4,9 +4,11 @@ export const meta = {
   whenToUse: 'Run on a schedule via /loop (e.g. /loop 10m /auto-build-wi). Each tick monitors in-flight WIs and may claim a new one.',
   phases: [
     { title: 'Resolve identity' },
+    { title: 'Ensure daemons' },
     { title: 'Monitor in-flight' },
     { title: 'Triage failures' },
     { title: 'Fix CI failures' },
+    { title: 'Keep in-flight current' },
     { title: 'Finalize ready' },
     { title: 'Pick candidate' },
     { title: 'Claim + worktree' },
@@ -22,6 +24,19 @@ const MAX_IN_FLIGHT = (args && args.maxInFlight) || 5
 const SMALL_DIFF_LINES = 20
 const ALWAYS_APPLICABLE_SKILLS = ['typescript', 'concise', 'paths']
 const SKILLS_DIR = '.claude/skills'
+// Skills not relevant to code review of a diff — operational workflows or environmental setup.
+const REVIEW_SKILL_DENYLIST = [
+  'changelog',
+  'feature-branch',
+  'grill-me',
+  'gus-cli',
+  'merge-conflicts',
+  'pr-draft',
+  'release',
+  'shipped-issues',
+  'query-app-insights',
+  'span-file-export',
+]
 const REVIEW_CHANNEL_ID = 'C054SJJAB24'
 const PROJECT_ROOT = '/Users/shane.mclaughlin/eng/forcedotcom/vscode-auto'
 
@@ -71,6 +86,7 @@ const PR_STATE_SCHEMA = {
     isDraft: { type: ['boolean', 'null'] },
     failedJobs: { type: 'array', items: { type: 'string' } },
     failedLogsExcerpt: { type: ['string', 'null'] },
+    maxRunAttempt: { type: ['number', 'null'] },
   },
 }
 
@@ -198,6 +214,28 @@ const THERMO_SCHEMA = {
   },
 }
 
+const PLAN_ADVERSARY_SCHEMA = {
+  type: 'object',
+  required: ['findings'],
+  properties: {
+    verdict: { enum: ['LGTM', 'concerns', 'blocking'] },
+    findings: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['severity', 'claim'],
+        properties: {
+          severity: { enum: ['critical', 'high', 'medium', 'low'] },
+          section: { type: ['string', 'null'] },
+          claim: { type: 'string' },
+          evidence: { type: ['string', 'null'] },
+          suggestion: { type: ['string', 'null'] },
+        },
+      },
+    },
+  },
+}
+
 const FIXER_SCHEMA = {
   type: 'object',
   required: ['fixedCount', 'remaining'],
@@ -281,15 +319,37 @@ if (identity.error || !identity.userId) {
 
 log(`runner: ${identity.username} (${identity.ownerPrefix}, ${identity.githubLogin})`)
 
+phase('Ensure daemons')
+
+await agent(
+  `Ensure the gha-rerun daemon is running.
+
+Read .claude/skills/gha-rerun/SKILL.md (and .claude/commands/gha-rerun.md if present) to learn the launcher and how to detect a running daemon (process name, lock file, or state file). Check current state:
+- If running: return {ok: true, detail: "already-running"}.
+- If not: invoke the launcher per the skill, verify it's running, and return {ok: true, detail: "started"}.
+- If launch fails: return {ok: false, detail: "<reason>"}.
+
+Do not configure or rerun anything else. The daemon owns rerun budget; this step just keeps it alive.`,
+  { schema: OK_SCHEMA, label: 'ensure-gha-rerun-daemon', phase: 'Ensure daemons', model: 'sonnet' }
+)
+
 phase('Monitor in-flight')
 
 const inFlight = await agent(
   `Query GUS for in-flight ai-auto work items assigned to userId ${identity.userId}.
 
-Run:
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c = 'In Progress' AND (Subject__c LIKE '%[ai-auto]%' OR Details__c LIKE '%[ai-auto]%')" -o gus --result-format json
+Run a BROAD query — any active status that could plausibly be in-flight, so we never lose track of a WI whose status drifted:
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready','In Progress','Ready for Review','QA In Progress','Fixed','Waiting') AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
 
-For each record returned, parse Details__c for a "PR: <url>" line. Return one entry per record with wiId=Id, name=Name, subject=Subject__c, details=Details__c, prUrl=<extracted or null>, storyPoints=Story_Points__c, createdDate=CreatedDate.
+Then filter the records: KEEP only those whose Details__c contains a GitHub PR URL (substring "github.com/forcedotcom/salesforcedx-vscode/pull/"). Those are the truly in-flight WIs — they have an open PR. Drop the rest (those are candidates, handled later).
+
+For each kept record, extract the PR URL from Details__c. Match ANY of these patterns (HTML or plain):
+- A literal "PR: https://github.com/forcedotcom/salesforcedx-vscode/pull/<n>" anywhere in Details__c
+- An anchor tag <a href="https://github.com/forcedotcom/salesforcedx-vscode/pull/<n>">...</a> anywhere in Details__c
+- Any https://github.com/forcedotcom/salesforcedx-vscode/pull/<n> URL string in Details__c
+Take the LAST match (most recent).
+
+Return one entry per kept record with wiId=Id, name=Name, subject=Subject__c, details=Details__c, prUrl=<extracted>, storyPoints=Story_Points__c, createdDate=CreatedDate.
 
 Return ONLY the structured result.`,
   { schema: WI_LIST_SCHEMA, label: 'query-in-flight', phase: 'Monitor in-flight', model: 'haiku' }
@@ -315,8 +375,8 @@ Run:
   - 'no-pr' if gh fails to find the PR
   - 'green' if every check has conclusion SUCCESS or NEUTRAL or SKIPPED
   - 'running' if any check is IN_PROGRESS or QUEUED or PENDING
-  - 'failed' otherwise
-- If state is 'failed', collect failed job names. Run 'gh run view --log-failed <runId>' for the most recent failed run linked to the PR head SHA, capture last ~100 lines as failedLogsExcerpt.
+  - 'failed' otherwise (any FAILURE, CANCELLED, TIMED_OUT, etc., with NO IN_PROGRESS/QUEUED/PENDING remaining)
+- If state is 'failed', collect failed job names. Run 'gh run view --log-failed <runId>' for the most recent failed/cancelled run linked to the PR head SHA, capture last ~100 lines as failedLogsExcerpt. Also gather the maximum 'run_attempt' across the workflow runs for the PR head SHA (gh api repos/forcedotcom/salesforcedx-vscode/actions/runs?head_sha=<sha> → max .run_attempt). Return that as maxRunAttempt.
 
 Return ONLY the structured result.`,
       { schema: PR_STATE_SCHEMA, label: `check-pr-${wi.name}`, phase: 'Monitor in-flight', model: 'sonnet' }
@@ -329,19 +389,12 @@ Return ONLY the structured result.`,
     if (prState.state === 'green') return { ...result, decision: 'finalize' }
     if (prState.state === 'running') return { ...result, decision: 'wait' }
     if (prState.state === 'no-pr') return { ...result, decision: 'no-pr-restart' }
-    // failed
-    const ghaStatus = await agent(
-      `Check whether the gha-rerun daemon is running and whether it has retries left for PR ${wi.prUrl}.
-
-Read .claude/skills/gha-rerun/SKILL.md (if present) and the gha-rerun command at .claude/commands/gha-rerun.md or similar. Inspect the daemon's state file (commonly under ~/.claude/daemons/ or similar — discover from skill docs). For the PR's most recent failed run, determine the GitHub run_attempt count. gha-rerun's budget is 3 attempts, so attemptsRemaining = max(0, 3 - run_attempt).
-
-If the daemon isn't running, START IT (invoke the gha-rerun launcher per the skill).
-
-Return {ok: true, detail: "remaining=<n>, daemonRunning=true|started"} where detail includes attemptsRemaining as a number string. If attemptsRemaining > 0, prefix detail with "wait:". If 0, prefix "exhausted:".`,
-      { schema: OK_SCHEMA, label: `gha-status-${wi.name}`, phase: 'Monitor in-flight', model: 'sonnet' }
-    )
-    const exhausted = ghaStatus.detail && ghaStatus.detail.startsWith('exhausted:')
-    return { ...result, decision: exhausted ? 'triage' : 'wait' }
+    // state === 'failed': all checks settled, at least one not green.
+    // The gha-rerun daemon owns the rerun budget (max 3 attempts per its skill).
+    // If maxRunAttempt < 3, the daemon will rerun soon → wait.
+    // If maxRunAttempt >= 3, reruns are exhausted → triage and iterate on the diff.
+    const attempt = typeof prState.maxRunAttempt === 'number' ? prState.maxRunAttempt : 0
+    return { ...result, decision: attempt >= 3 ? 'triage' : 'wait' }
   }
 )
 
@@ -389,7 +442,7 @@ Return ONLY the structured result.`,
 
 Slack ID: ${identity.slackId}
 Use mcp__slack__slack_send_message to send a DM with content:
-"⚠️ ${r.wi.name} CI failed (gha-rerun exhausted, route=${r.triage.route}): ${r.triage.summary}\nPR: ${r.wi.prUrl}"
+"⚠️ ${r.wi.name} CI failed after rerun budget exhausted (route=${r.triage.route}): ${r.triage.summary}\nPR: ${r.wi.prUrl}"
 
 Return {ok: true} on success.`,
           { schema: OK_SCHEMA, label: `dm-${r.wi.name}`, phase: 'Fix CI failures', model: 'haiku' }
@@ -427,6 +480,36 @@ Return {status: 'done', commits} or {status: 'stuck', reason}.`,
         { schema: BUILD_SCHEMA, label: `code-fix-${r.wi.name}`, phase: 'Fix CI failures', isolation: 'worktree' }
       )
     })
+  )
+}
+
+const toRefresh = monitorOutcomes.filter(
+  r => r && (r.decision === 'wait' || r.decision === 'finalize') && r.wi.prUrl
+)
+if (toRefresh.length) {
+  phase('Keep in-flight current')
+  await parallel(
+    toRefresh.map(r => () =>
+      agent(
+        `Keep WI ${r.wi.name}'s branch current with origin/develop.
+
+Worktree: ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)}
+Branch: ${branchName(identity.ownerPrefix, r.wi.name, r.wi.subject)}
+PR: ${r.wi.prUrl}
+
+Steps (idempotent; skip work if already current):
+1. Reattach worktree if missing: 'git worktree add <path> <branch>'.
+2. cd worktree && git fetch origin develop
+3. If 'git rev-list --count HEAD..origin/develop' is 0, return {ok: true, detail: "already current"}.
+4. git merge origin/develop --no-edit
+5. Conflicts → apply .claude/skills/merge-conflicts/SKILL.md best-effort. Unresolvable → 'git merge --abort' and DM ${identity.slackId} via mcp__slack__slack_send_message: "⚠️ ${r.wi.name} merge conflict with develop — manual intervention needed\\nWorktree: <path>\\nPR: ${r.wi.prUrl}". Return {ok: false, detail: "merge-conflict-unresolved"}.
+6. If package-lock.json changed, run 'npm install'.
+7. git push
+
+Return {ok: true, detail: "<n> commits merged"} or {ok: false, detail}.`,
+        { schema: OK_SCHEMA, label: `refresh-${r.wi.name}`, phase: 'Keep in-flight current', isolation: 'worktree' }
+      )
+    )
   )
 }
 
@@ -485,9 +568,11 @@ if (toRestart.length) {
     `Query claim candidates for userId ${identity.userId}.
 
 Run:
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready') AND (Subject__c LIKE '%[ai-auto]%' OR Details__c LIKE '%[ai-auto]%') ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
 
 Map each record to wiId, name, subject, details, storyPoints, createdDate. prUrl is null for candidates.
+
+CRITICAL filter: EXCLUDE any record whose Details__c contains the string "github.com/forcedotcom/salesforcedx-vscode/pull/". A PR URL in Details means a prior tick already opened a PR — this WI is in flight even if the Status field disagrees, and re-claiming it would clobber the existing PR. Drop those records before returning.
 
 Return ONLY the structured result.`,
     { schema: WI_LIST_SCHEMA, label: 'query-candidates', phase: 'Pick candidate', model: 'haiku' }
@@ -498,6 +583,24 @@ Return ONLY the structured result.`,
     log('no candidates — nothing to do')
     return { exited: 'idle', inFlight: stillInFlight }
   }
+
+  // Belt-and-suspenders: also filter in code in case the agent missed any.
+  const inFlightWiIds = new Set(inFlightWis.map(w => w.wiId))
+  const filteredCandidates = candidateList.filter(c => {
+    if (inFlightWiIds.has(c.wiId)) return false
+    const d = c.details || ''
+    if (d.includes('github.com/forcedotcom/salesforcedx-vscode/pull/')) {
+      log(`excluding ${c.name}: Details already contains a PR URL`)
+      return false
+    }
+    return true
+  })
+  if (!filteredCandidates.length) {
+    log('no candidates after PR-URL filter — nothing to do')
+    return { exited: 'idle', inFlight: stillInFlight }
+  }
+  candidateList.length = 0
+  candidateList.push(...filteredCandidates)
 
   if (candidateList.length === 1) {
     chosen = candidateList[0]
@@ -598,11 +701,13 @@ ${chosen.details || '(empty)'}
 Available skills (read each .claude/skills/<name>/SKILL.md frontmatter as needed to choose relevant ones):
 ${skillList.join(', ')}
 
+BEFORE doing anything else, Read ${wt}/.claude/skills/concise/SKILL.md and apply that style to every word you write in the plan file: fragments/bullets, not full sentences; remove words without altering meaning; cut repetition; shorter synonyms.
+
 Restart-aware: this may be a re-run after a prior crash. First check whether ${wt}/.claude/plans/${chosen.name}.md already exists AND is tracked in git ('git ls-files --error-unmatch .claude/plans/${chosen.name}.md' from ${wt}). If it exists and is tracked, treat the plan as already authored — read it, return {verdict: 'plan', plan: {phases, skills, verification}} reflecting its contents, do NOT rewrite the file.
 
 Otherwise:
 1. Decide if the WI is implementable: can you name (a) what files/area to touch and (b) a definition of done? If either is genuinely unknowable, return {verdict: 'blocked', blocked: {questions: [...]}} with concrete questions.
-2. Otherwise, write the plan to ${wt}/.claude/plans/${chosen.name}.md following the concise skill (.claude/skills/concise/SKILL.md). Sections: Context, Phases (each phase = one commit; include commit message), Skills to apply, Verification (excluding things covered by e2e tests on the branch — note which are e2e-covered).
+2. Otherwise, write the plan to ${wt}/.claude/plans/${chosen.name}.md in the concise style you just read. Sections: Context, Phases (each phase = one commit; include commit message), Skills to apply, Verification (excluding things covered by e2e tests on the branch — note which are e2e-covered).
 3. Return {verdict: 'plan', plan: {phases, skills, verification}}.
 
 Do not commit yet.`,
@@ -628,8 +733,10 @@ Return {ok: true}.`,
 const planReview = await agent(
   `Review the plan at ${wt}/.claude/plans/${chosen.name}.md.
 
+BEFORE judging, Read ${wt}/.claude/skills/concise/SKILL.md so 'concise style' is concrete to you.
+
 Enforce:
-- concise skill style (.claude/skills/concise/SKILL.md)
+- concise skill style (the rules you just read)
 - Each phase has a clear commit message
 - Verification section exists and notes which items are e2e-covered
 - Skills list is non-empty and includes typescript
@@ -648,23 +755,57 @@ Return {verdict: 'plan'} when done.`,
   )
 }
 
-const effectPlanReview = await agent(
-  `Review the plan at ${wt}/.claude/plans/${chosen.name}.md (mode: plan review). Identify Effect-TS smells the plan would introduce — hand-rolled retry/timeout/cache, untyped errors, ad-hoc PubSub, services that already exist in salesforcedx-vscode-services, etc.
+const [effectPlanReview, e2ePlanReview, adversaryPlanReview] = await parallel([
+  () =>
+    agent(
+      `Review the plan at ${wt}/.claude/plans/${chosen.name}.md (mode: plan review). Identify Effect-TS smells the plan would introduce — hand-rolled retry/timeout/cache, untyped errors, ad-hoc PubSub, services that already exist in salesforcedx-vscode-services, etc.
 
 Return ONLY the structured result.`,
-  { schema: EFFECT_ADVOCATE_SCHEMA, label: `effect-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', agentType: 'effect-advocate' }
-)
+      { schema: EFFECT_ADVOCATE_SCHEMA, label: `effect-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', agentType: 'effect-advocate' }
+    ),
+  () =>
+    agent(
+      `Review the plan at ${wt}/.claude/plans/${chosen.name}.md for e2e test coverage adequacy.
 
-const planMustFindings = (effectPlanReview.findings || []).filter(f => f.severity === 'must')
-if (planMustFindings.length) {
+WI Subject: ${chosen.subject}
+WI Details:
+${chosen.details || '(empty)'}
+
+Return ONLY the structured result.`,
+      { schema: EFFECT_ADVOCATE_SCHEMA, label: `e2e-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', agentType: 'e2e-advocate' }
+    ),
+  () =>
+    agent(
+      `Adversarially review the plan at ${wt}/.claude/plans/${chosen.name}.md.
+
+WI Subject: ${chosen.subject}
+WI Details:
+${chosen.details || '(empty)'}
+
+Return ONLY the structured result.`,
+      { schema: PLAN_ADVERSARY_SCHEMA, label: `adversary-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', agentType: 'plan-adversary' }
+    ),
+])
+
+const effectMust = (effectPlanReview && effectPlanReview.findings || []).filter(f => f.severity === 'must')
+const e2eMust = (e2ePlanReview && e2ePlanReview.findings || []).filter(f => f.severity === 'must')
+const adversaryBlocking = (adversaryPlanReview && adversaryPlanReview.findings || []).filter(f => f.severity === 'critical' || f.severity === 'high')
+
+const advocateRevisions = [
+  ...effectMust.map(f => `[effect] ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`),
+  ...e2eMust.map(f => `[e2e] ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`),
+  ...adversaryBlocking.map(f => `[adversary:${f.severity}] ${f.claim}${f.suggestion ? ' — ' + f.suggestion : ''}${f.evidence ? ' [' + f.evidence + ']' : ''}`),
+]
+
+if (advocateRevisions.length) {
   await agent(
-    `Revise the plan at ${wt}/.claude/plans/${chosen.name}.md to address these effect-advocate 'must' findings before implementation. The plan must reflect the Effect-TS approach, not work around it.
+    `Revise the plan at ${wt}/.claude/plans/${chosen.name}.md to address these advocate findings before implementation. The plan must reflect the right approach (Effect idioms, e2e coverage, adversarial concerns), not work around them.
 
 Findings:
-${planMustFindings.map(f => `- ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`).join('\n')}
+${advocateRevisions.map(r => `- ${r}`).join('\n')}
 
 Return {verdict: 'plan'} when done.`,
-    { schema: PLAN_SCHEMA, label: `plan-effect-revise-${chosen.name}`, phase: 'Plan', isolation: 'worktree' }
+    { schema: PLAN_SCHEMA, label: `plan-advocate-revise-${chosen.name}`, phase: 'Plan', isolation: 'worktree' }
   )
 }
 
@@ -726,7 +867,7 @@ const lineCount = Number(lineCountStr) || 0
 const skillsToCheck =
   lineCount < SMALL_DIFF_LINES
     ? skillList.filter(s => ALWAYS_APPLICABLE_SKILLS.includes(s))
-    : skillList
+    : skillList.filter(s => !REVIEW_SKILL_DENYLIST.includes(s))
 
 log(`diff: ${lineCount} lines; checking ${skillsToCheck.length} skills`)
 
@@ -824,8 +965,15 @@ Steps:
    - Footer: '🤖 Generated by auto-build pipeline. Original WI: <gus link>'
 5. Create draft PR: gh pr create --draft --title "<title>" --body "<body>" --base develop
 6. Take the PR URL from gh's output.
-7. Append "PR: <url>" to the WI Details__c via gus-cli (read existing Details__c first, then update preserving prior content).
-8. Ensure /gha-rerun daemon is running (read .claude/skills/gha-rerun/SKILL.md or .claude/commands/gha-rerun.md and start the daemon if not running).
+7. Append a PR link to the WI Details__c. CRITICAL: do NOT replace Details__c — read it first, then APPEND.
+   a. Fetch existing: \`sf data query --query "SELECT Details__c FROM ADM_Work__c WHERE Id = '${chosen.wiId}'" -o gus --result-format json\`. Parse \`result.records[0].Details__c\` (may be null/empty).
+   b. If existing already contains this exact PR URL, skip the update (idempotent — return success).
+   c. Compose new value = (existing || "") + '<p><strong>PR:</strong> <a href="<prUrl>">#<prNumber></a></p>'. Use this exact HTML so the monitor can re-extract the URL.
+   d. Write via --flags-dir to handle quotes safely:
+      - mkdir -p /tmp/gus-flags-${chosen.name}
+      - Write a SINGLE-LINE file at /tmp/gus-flags-${chosen.name}/values. Format: Details__c="<NEW_VALUE>" using double-quotes around the value. Inside the value, all HTML attribute quotes must remain as plain double-quotes (the file uses single-quote-shell-escaping at the sf CLI layer; per gus-cli skill, single-line values with double-quote outer + literal double-quote inner work). If the existing Details__c contains a literal " character that would break the value file, fall back to appending using the plain-text form: Details__c='<existing-stripped>\\nPR: <prUrl>' but log a warning that the original HTML was lossy.
+      - sf data update record -s ADM_Work__c -i ${chosen.wiId} -o gus --flags-dir /tmp/gus-flags-${chosen.name}
+   e. Verify: re-query Details__c and confirm BOTH (i) the new PR URL is present AND (ii) at least one original Goal/Done-when/Why marker from the prior content is still present. If either check fails, do NOT claim success — log the failure detail and return so the workflow retries next tick.
 
 Return {prUrl, prNumber}.`,
   { schema: PR_DRAFT_SCHEMA, label: `pr-${chosen.name}`, phase: 'Draft PR', isolation: 'worktree', model: 'sonnet' }
