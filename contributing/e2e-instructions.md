@@ -1,4 +1,6 @@
-# Running E2E Tests
+# Running E2E Tests (Legacy RedHat/WDIO Framework)
+
+**Note:** This guide covers the legacy RedHat vscode-extension-tester framework. We're migrating to Playwright. For new e2e tests, see [.claude/skills/playwright-e2e/SKILL.md](../.claude/skills/playwright-e2e/SKILL.md).
 
 ## Prerequisites
 
