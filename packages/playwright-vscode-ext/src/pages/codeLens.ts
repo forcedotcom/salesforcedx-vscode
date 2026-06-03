@@ -19,26 +19,11 @@ import { executeCommandWithCommandPalette } from './commands';
  * methods sharing the same lens label (e.g. several `Run Test` lenses), the caller must scope
  * the search themselves — this helper does not disambiguate by line/method.
  *
- * Implementation: Code lenses (especially Apex) can take a while to appear after the editor opens
- * or after the active group changes (e.g. when the output panel was just opened). Steps:
- * 1. When `apex` is true, wait up to 120s for the Apex Language Status "Indexing complete"
- * indicator before scanning for lenses (CI Apex LSP startup can take 60-120s on a cold cache).
- * 2. Focus the active editor group so lenses render (output/terminal can steal focus).
- * 3. Wait for the lens text and click it.
+ * Apex callers should pass a longer `timeout` (e.g. 180_000) — Apex LSP indexing on cold CI
+ * caches can take 60-120s before code lenses resolve.
  */
-export const clickCodeLens = async (
-  page: Page,
-  text: string,
-  opts?: { timeout?: number; apex?: boolean }
-): Promise<void> => {
-  const { timeout = 60_000, apex = false } = opts ?? {};
-
-  if (apex) {
-    // Apex LSP indexing on cold CI caches can outlast a 60s lens-visibility wait. Block on the
-    // status bar "Indexing complete" indicator so lenses are ready before we scan for them.
-    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ }).first();
-    await indexingComplete.waitFor({ state: 'visible', timeout: 120_000 });
-  }
+export const clickCodeLens = async (page: Page, text: string, opts?: { timeout?: number }): Promise<void> => {
+  const { timeout = 60_000 } = opts ?? {};
 
   // Ensure an editor is the active part of the workbench (output/terminal panels can steal focus).
   // No-op if already focused; "View: Focus Active Editor Group" exists in all VS Code versions.

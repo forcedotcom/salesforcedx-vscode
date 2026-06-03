@@ -56,7 +56,7 @@ test('Run Apex Tests via code lens: Run All Tests, then Run Test (single method)
   });
 
   await test.step('click Run All Tests code lens (class-level)', async () => {
-    await clickCodeLens(page, 'Run All Tests', { apex: true });
+    await clickCodeLens(page, 'Run All Tests', { timeout: 180_000 });
     await saveScreenshot(page, 'step.run-all.code-lens-clicked.png');
   });
 
@@ -83,7 +83,7 @@ test('Run Apex Tests via code lens: Run All Tests, then Run Test (single method)
   });
 
   await test.step('click Run Test code lens (method-level)', async () => {
-    await clickCodeLens(page, 'Run Test', { apex: true });
+    await clickCodeLens(page, 'Run Test', { timeout: 180_000 });
     await saveScreenshot(page, 'step.run-single.code-lens-clicked.png');
   });
 
