@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type {
+  IServicesContract,
+  IServicesContractExtensions,
+  IServicesEvents,
+  IServicesSyncMethods,
+  PromisifiedContract
+} from './contract';
 import type { DefaultOrgInfo } from './core/schemas/defaultOrgInfoPlain';
-import type { FilePropertiesPlain } from './core/schemas/fileProperties';
 import type { TraceFlagItem, TraceFlagLogType } from './core/schemas/traceFlagSchemas';
-import type { Connection, SfProject } from '@salesforce/core';
-import type { ComponentSet, DeployResult, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
-import type { ChangeResult } from '@salesforce/source-tracking';
-import type { CreateOutput, TemplateType } from '@salesforce/templates';
+import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
+import type { TemplateType } from '@salesforce/templates';
 import type * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -19,7 +23,6 @@ import * as Option from 'effect/Option';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DescribeMetadataObject } from 'jsforce/lib/api/metadata/schema';
 import type * as vscode from 'vscode';
 import { EventEmitter } from 'vscode';
 import type { URI } from 'vscode-uri';
@@ -40,7 +43,7 @@ import { ChannelService } from './vscode/channelService';
 import { EditorService } from './vscode/editorService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
-import { WorkspaceService, type WorkspaceInfo } from './vscode/workspaceService';
+import { WorkspaceService } from './vscode/workspaceService';
 
 export type { DefaultOrgInfo } from './core/schemas/defaultOrgInfoPlain';
 export type { WorkspaceInfo } from './vscode/workspaceService';
@@ -52,85 +55,25 @@ type CreateParams<T extends TemplateType = TemplateType> = {
   options: TemplateOptionsFor<T>;
 };
 
-export type PlainServicesApi = {
-  readonly getConnection: () => Promise<Connection>;
-  readonly getTargetOrgInfo: () => Promise<DefaultOrgInfo>;
-  readonly invalidateCachedConnections: () => Promise<void>;
-  readonly onDidChangeTargetOrg: vscode.Event<DefaultOrgInfo>;
-
-  readonly getWorkspaceInfo: () => Promise<WorkspaceInfo>;
-
-  readonly isSalesforceProject: () => Promise<boolean>;
-  readonly getSfProject: () => Promise<SfProject>;
-  readonly isInPackageDirectories: (uri: URI) => Promise<boolean>;
-
-  readonly getSettingsValue: <T>(section: string, key: string, defaultValue?: T) => Promise<T | undefined>;
-  readonly setSettingsValue: (section: string, key: string, value: unknown) => Promise<void>;
-  readonly getApiVersion: () => Promise<string>;
-
-  readonly getTargetDevHub: () => Promise<string | undefined>;
-  readonly unsetTargetOrg: () => Promise<void>;
-  readonly unsetTargetDevHub: () => Promise<void>;
-
-  readonly getAllAliases: () => Promise<Record<string, string>>;
-  readonly getUsernameFromAlias: (alias: string) => Promise<string | undefined>;
-
-  readonly readFile: (filePath: string | URI) => Promise<string>;
-  readonly writeFile: (filePath: string | URI, content: string) => Promise<void>;
-  readonly fileOrFolderExists: (filePath: string | URI) => Promise<boolean>;
-  readonly findFiles: (
-    include: vscode.GlobPattern,
-    exclude?: vscode.GlobPattern | null,
-    maxResults?: number
-  ) => Promise<URI[]>;
-  readonly isDirectory: (path: string | URI) => Promise<boolean>;
-  readonly isFile: (path: string | URI) => Promise<boolean>;
-  readonly createDirectory: (dirPath: string | URI) => Promise<void>;
-  readonly deleteFile: (filePath: string) => Promise<void>;
-  readonly readDirectory: (dirPath: string | URI) => Promise<URI[]>;
-
-  readonly getActiveEditorUri: () => Promise<URI>;
-  readonly getActiveEditorText: (selection?: boolean) => Promise<string>;
-  readonly onDidChangeActiveEditor: vscode.Event<vscode.TextEditor | undefined>;
-
-  readonly appendToChannel: (message: string) => void;
-  readonly clearChannel: () => void;
-
-  readonly describe: () => Promise<DescribeMetadataObject[]>;
-  readonly listMetadata: (type: string, folder?: string) => Promise<readonly FilePropertiesPlain[]>;
-
-  readonly deploy: (components: ComponentSet) => Promise<DeployResult>;
-
-  readonly retrieve: (members: MetadataMember[], options?: SourceTrackingOptions) => Promise<RetrieveResult>;
-  readonly retrieveComponentSet: (components: ComponentSet, options?: SourceTrackingOptions) => Promise<RetrieveResult>;
-  readonly retrieveComponentSetToDirectory: (
-    components: NonEmptyComponentSet,
-    outputPath: URI
-  ) => Promise<RetrieveResult>;
-
-  readonly hasTracking: () => Promise<boolean>;
-  readonly getLocalChangesAsComponentSet: () => Promise<ComponentSet[]>;
-  readonly getRemoteNonDeletesAsComponentSet: (options: { applyIgnore: boolean }) => Promise<ComponentSet>;
-  readonly getConflicts: () => Promise<ChangeResult[]>;
-  readonly checkConflicts: () => Promise<void>;
-
-  readonly createFromTemplate: <T extends TemplateType>(params: CreateParams<T>) => Promise<CreateOutput>;
-
-  readonly getTraceFlags: () => Promise<TraceFlagItem[]>;
-  readonly ensureTraceFlag: (
-    userId: string,
-    duration?: number,
-    logType?: TraceFlagLogType,
-    existingDebugLevelId?: string
-  ) => Promise<{ created: boolean; traceFlagId: string }>;
-  readonly onDidChangeTraceFlags: vscode.Event<TraceFlagItem[]>;
-
-  readonly simpleExec: (command: string, parse?: (stdout: string) => string) => Promise<string>;
-
-  readonly getComponentSetFromUris: (uris: readonly URI[]) => Promise<ComponentSet>;
-  readonly getComponentSetFromManifest: (manifestUri: URI) => Promise<ComponentSet>;
-  readonly getComponentSetFromProjectDirectories: () => Promise<ComponentSet>;
-};
+/**
+ * PlainServicesApi provides Promise-based wrappers for the Effect services.
+ *
+ * Composed of:
+ * 1. PromisifiedContract<IServicesContract> - Core methods (~30 methods)
+ * 2. PromisifiedContract<IServicesContractExtensions> - Extended methods with specialized signatures
+ * 3. Event handlers from IServicesEvents
+ * 4. Synchronous methods from IServicesSyncMethods
+ *
+ * All parts are enforced by the contract interfaces in contract.ts
+ */
+export type PlainServicesApi = PromisifiedContract<IServicesContract> &
+  PromisifiedContract<IServicesContractExtensions> &
+  IServicesSyncMethods & {
+    // Event handlers (vscode.Event wrapper around contract event types)
+    readonly onDidChangeTargetOrg: vscode.Event<IServicesEvents['onDidChangeTargetOrg']>;
+    readonly onDidChangeActiveEditor: vscode.Event<IServicesEvents['onDidChangeActiveEditor']>;
+    readonly onDidChangeTraceFlags: vscode.Event<IServicesEvents['onDidChangeTraceFlags']>;
+  };
 
 const toError = (failure: unknown): Error => {
   if (failure instanceof Error) return failure;
