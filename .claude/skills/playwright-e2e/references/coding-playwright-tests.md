@@ -75,9 +75,9 @@ Prefer `package.nls.json` for command titles instead of hardcoded strings.
 
 ## Clicking Code Lenses
 
-Use `clickCodeLens(page, text, opts?)` for Apex and non-Apex code lens actions.
+Use `clickCodeLens(page, text, opts?)` for code lens actions.
 
-- **Apex callers** — pass `{ apex: true }` (waits up to 120s for Apex Language Server "Indexing complete" before scanning for lenses; cold CI caches can outlast a standard 60s lens-visibility wait)
-- **Non-Apex callers** — omit `apex` option (skips the indexing wait)
+- Signature: `clickCodeLens(page, text, opts?: { timeout?: number })`
+- **Apex callers** — pass longer timeout (e.g. `{ timeout: 180_000 }`) to account for Apex Language Server indexing
 - Helper returns on first lens with visible text matching (whitespace-tolerant exact match)
 - Limitation: can't disambiguate multiple lenses with identical labels in same file — caller must scope the search (e.g. navigate to specific line first)
