@@ -7,6 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
+import { createNonTrackingOrg } from '../orgs/nonTrackingScratchOrgSetup';
 import { executeCommandWithCommandPalette, verifyCommandExists } from '../pages/commands';
 import {
   clearOutputChannel,
@@ -150,15 +151,6 @@ export const deployCurrentSourceToOrg = async (
 
   await verifyCommandExists(page, 'SFDX: Deploy This Source to Org', 30_000);
   await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
-
-  // If conflict detection is enabled (default for source-tracked orgs) and a previous deploy left
-  // remote tracking state, VS Code shows a modal with "Override Conflicts and Deploy" / "View
-  // Conflicts and Cancel Deploy" / "Cancel". We always want to override on test re-runs to make
-  // forward progress. Best-effort: if the dialog isn't present, skip silently.
-  const overrideButton = page.getByRole('button', { name: /Override Conflicts and Deploy/i }).first();
-  if (await overrideButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await overrideButton.click({ timeout: 5000 });
-  }
 
   const deployingNotification = page
     .locator(NOTIFICATION_LIST_ITEM)
@@ -402,14 +394,11 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
   await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 };
 
-/**
- * Setup minimal org + auth with workbench loading in parallel.
- * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
- * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
- * @param checkWelcomeTabs When true (default), close welcome tabs. Set to false to skip.
- */
-export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
-  const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
+const finishOrgAndAuthSetup = async (
+  page: Page,
+  createResult: Awaited<ReturnType<typeof createMinimalOrg>>,
+  checkWelcomeTabs: boolean
+): Promise<void> => {
   if (checkWelcomeTabs) {
     // On web the Welcome tab always appears at startup — wait for it before closing so we don't
     // return early (count=0) and let it pop up mid-test. On desktop, workbench.startupEditor:none
@@ -425,6 +414,27 @@ export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true
   await saveScreenshot(page, 'setup.after-workbench.png');
   await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   await saveScreenshot(page, 'setup.after-auth-fields.png');
+};
+
+/**
+ * Setup minimal org + auth with workbench loading in parallel.
+ * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
+ * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
+ * @param checkWelcomeTabs When true (default), close welcome tabs. Set to false to skip.
+ */
+export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
+  const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
+  await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
+};
+
+/**
+ * Setup non-tracking org + auth with workbench loading in parallel. Use for tests that exercise
+ * deploy/retrieve but never need source-tracking commands (Push/Pull) — eliminates the
+ * "Override Conflicts and Deploy" modal that source-tracked orgs surface on rerun.
+ */
+export const setupNonTrackingOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
+  const [createResult] = await Promise.all([createNonTrackingOrg(), waitForVSCodeWorkbench(page)]);
+  await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
 };
 
 /** Create an Apex test class and deploy it to the org. */

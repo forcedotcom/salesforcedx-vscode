@@ -15,7 +15,7 @@ import {
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForOutputChannelText,
@@ -42,8 +42,8 @@ test('Run Apex Tests via code lens: Run All Tests, then Run Test (single method)
     '}'
   ].join('\n');
 
-  await test.step('setup minimal org with one Apex test class', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with one Apex test class', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     await createAndDeployApexTestClass(page, testClassName, testClassContent);
     await saveScreenshot(page, 'setup.code-lens-class-created.png');
@@ -56,7 +56,7 @@ test('Run Apex Tests via code lens: Run All Tests, then Run Test (single method)
   });
 
   await test.step('click Run All Tests code lens (class-level)', async () => {
-    await clickCodeLens(page, 'Run All Tests');
+    await clickCodeLens(page, 'Run All Tests', { apex: true });
     await saveScreenshot(page, 'step.run-all.code-lens-clicked.png');
   });
 
@@ -83,7 +83,7 @@ test('Run Apex Tests via code lens: Run All Tests, then Run Test (single method)
   });
 
   await test.step('click Run Test code lens (method-level)', async () => {
-    await clickCodeLens(page, 'Run Test');
+    await clickCodeLens(page, 'Run Test', { apex: true });
     await saveScreenshot(page, 'step.run-single.code-lens-clicked.png');
   });
 

@@ -22,7 +22,7 @@ import {
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForNotification,
@@ -87,8 +87,8 @@ test('Run Apex Tests: fail then fix via deploy and redeploy', async ({ page }) =
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup minimal org', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
   });
 

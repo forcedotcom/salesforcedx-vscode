@@ -16,7 +16,7 @@ import {
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForOutputChannelText,
@@ -104,8 +104,8 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   let testClassName2: string;
   let testSuiteName: string;
 
-  await test.step('setup minimal org with two Apex test classes', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with two Apex test classes', async () => {
+    await setupNonTrackingOrgAndAuth(page);
 
     testClassName1 = `SuiteTestClass1${Date.now()}`;
     const testClassContent1 = [

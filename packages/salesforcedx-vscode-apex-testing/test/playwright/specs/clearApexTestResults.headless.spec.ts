@@ -13,7 +13,7 @@ import {
   executeCommandWithCommandPalette,
   saveScreenshot,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
@@ -37,8 +37,8 @@ test('Clear Apex Test Results removes result files', async ({ page }) => {
 
   let testClassName: string;
 
-  await test.step('setup minimal org with Apex test class', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with Apex test class', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     testClassName = `ClearTestClass${Date.now()}`;
     const testClassContent = [

@@ -40,6 +40,7 @@ export {
   editAndSaveOpenFile as editOpenFile,
   replaceLineInOpenFile,
   setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
