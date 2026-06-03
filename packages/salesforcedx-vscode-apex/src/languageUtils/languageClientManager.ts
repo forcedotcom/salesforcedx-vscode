@@ -200,7 +200,6 @@ export class LanguageClientManager {
             restartBehavior
           );
           return this.RESTART_OPTIONS.cleanAndRestart;
-        case 'prompt':
         default:
           const promptItems: RestartQuickPickItem[] = [
             { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
