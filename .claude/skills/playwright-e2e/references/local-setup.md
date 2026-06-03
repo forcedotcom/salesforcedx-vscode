@@ -32,7 +32,7 @@ cd /tmp/minimal-project && sf org create scratch -d -w 10 -a minimalTestOrg --ed
 ## Non-tracking
 
 - **Alias:** `nonTrackingTestOrg` (override: `NON_TRACKING_ORG_ALIAS`)
-- **Used by:** metadata (non-tracking UI tests), apex-testing (Apex code lens & test runner)
+- **Used by:** metadata (non-tracking UI tests)
 - **No script.** Tests call `createNonTrackingOrg()` — creates org on first run if missing. Or create manually (same as minimal + `--no-track-source`):
 
 ```bash
@@ -42,5 +42,3 @@ cd /tmp/non-tracking-project && sf org create scratch -d -w 10 -a nonTrackingTes
 ```
 
 **Note:** Non-tracking test skips on web locally — requires Dev Hub aliased as `hub`. Desktop and CI work.
-
-**Why apex-testing uses non-tracking:** Apex tests can run repeatedly on the same org. Source-tracked orgs surface "Override Conflicts and Deploy" modals when remote tracking state diverges from local after reruns.
