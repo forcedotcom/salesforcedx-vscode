@@ -31,6 +31,10 @@ There are two ways to consume this extension's API:
 1. **Plain API (recommended for most consumers)** — Promise-based, no framework dependencies
 2. **Effect-based API** — full power of Effect-TS for extensions already using Effect
 
+**Dependency Management**: This extension handles all internal dependencies (like `@salesforce/core` and `@salesforce/source-deploy-retrieve`). When you migrate to using this extension's API, you can remove those packages from your own extension's dependencies — the services extension manages them for you.
+
+**Migration Help**: Use the `/services-extension-consumption` skill in this repository to help migrate your extension to consume these services.
+
 ### Plain API (No Effect Dependencies)
 
 The simplest way to consume services. No need to add `effect` as a dependency or learn Effect-TS patterns.

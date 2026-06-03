@@ -7,7 +7,7 @@
 
 import type { DefaultOrgInfo } from './core/schemas/defaultOrgInfoPlain';
 import type { FilePropertiesPlain } from './core/schemas/fileProperties';
-import type { TraceFlagItem } from './core/schemas/traceFlagSchemas';
+import type { TraceFlagItem, TraceFlagLogType } from './core/schemas/traceFlagSchemas';
 import type { Connection, SfProject } from '@salesforce/core';
 import type { ComponentSet, DeployResult, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import type { ChangeResult } from '@salesforce/source-tracking';
@@ -120,7 +120,7 @@ export type PlainServicesApi = {
   readonly ensureTraceFlag: (
     userId: string,
     duration?: number,
-    logType?: string,
+    logType?: TraceFlagLogType,
     existingDebugLevelId?: string
   ) => Promise<{ created: boolean; traceFlagId: string }>;
   readonly onDidChangeTraceFlags: vscode.Event<TraceFlagItem[]>;
@@ -142,6 +142,10 @@ const toError = (failure: unknown): Error => {
   return new Error(String(failure));
 };
 
+// Using `any` here because a specific union type causes the generic `run` function's
+// Effect.provide to fail type checking - it can't unify the provided context with the
+// effect's requirements. The `any` is contained within this module and the public API
+// is fully typed, so this is a safe compromise.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ServicesContext = Context.Context<any>;
 
@@ -161,6 +165,18 @@ export const createPlainServicesApi = (
   const editorChangeEmitter = new EventEmitter<vscode.TextEditor | undefined>();
   const traceFlagChangeEmitter = new EventEmitter<TraceFlagItem[]>();
 
+  // Dispose emitters when the extension scope closes
+  void Effect.runPromise(
+    Scope.addFinalizer(
+      extensionScope,
+      Effect.sync(() => {
+        orgChangeEmitter.dispose();
+        editorChangeEmitter.dispose();
+        traceFlagChangeEmitter.dispose();
+      })
+    )
+  );
+
   void Effect.runPromise(
     Effect.forkIn(
       Effect.gen(function* () {
@@ -179,10 +195,7 @@ export const createPlainServicesApi = (
       Effect.gen(function* () {
         const editorService = yield* EditorService;
         yield* Stream.fromPubSub(editorService.pubsub).pipe(
-          Stream.runForEach(editor =>
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            Effect.sync(() => editorChangeEmitter.fire(editor as vscode.TextEditor | undefined))
-          )
+          Stream.runForEach(editor => Effect.sync(() => editorChangeEmitter.fire(editor)))
         );
       }).pipe(Effect.provide(Layer.succeedContext(builtContext))),
       extensionScope
@@ -304,12 +317,8 @@ export const createPlainServicesApi = (
       run(builtContext, TemplateService.create(params)),
 
     getTraceFlags: () => run(builtContext, TraceFlagService.getTraceFlags()),
-    ensureTraceFlag: (userId: string, duration?: number, logType?: string, existingDebugLevelId?: string) =>
-      run(
-        builtContext,
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        TraceFlagService.ensureTraceFlag(userId, duration as never, logType as never, existingDebugLevelId)
-      ),
+    ensureTraceFlag: (userId: string, duration?: number, logType?: TraceFlagLogType, existingDebugLevelId?: string) =>
+      run(builtContext, TraceFlagService.ensureTraceFlag(userId, duration, logType, existingDebugLevelId)),
     onDidChangeTraceFlags: traceFlagChangeEmitter.event,
 
     simpleExec: (command: string, parse?: (stdout: string) => string) =>
