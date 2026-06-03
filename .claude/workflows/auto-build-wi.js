@@ -8,6 +8,7 @@ export const meta = {
     { title: 'Monitor in-flight' },
     { title: 'Triage failures' },
     { title: 'Fix CI failures' },
+    { title: 'Close merged WIs' },
     { title: 'Keep in-flight current' },
     { title: 'Open for review' },
     { title: 'Peer approve' },
@@ -58,7 +59,7 @@ const PR_STATE_SCHEMA = {
   type: 'object',
   required: ['state'],
   properties: {
-    state: { enum: ['green', 'failed', 'running', 'no-pr'] },
+    state: { enum: ['green', 'failed', 'running', 'no-pr', 'merged', 'closed'] },
     prUrl: { type: ['string', 'null'] },
     prNumber: { type: ['number', 'null'] },
     isDraft: { type: ['boolean', 'null'] },
@@ -407,6 +408,10 @@ const monitorOutcomes = await pipeline(
 
 Run:
 - gh pr view ${wi.prUrl} --json state,isDraft,number,statusCheckRollup
+- FIRST check the top-level .state field (PR lifecycle state, NOT to be confused with row .state):
+  - "MERGED" → return state='merged' (no need to inspect statusCheckRollup)
+  - "CLOSED" → return state='closed'
+  - "OPEN" → continue to check evaluation below
 - Parse statusCheckRollup. Two row shapes exist:
   - CheckRun rows expose .conclusion (SUCCESS/FAILURE/NEUTRAL/SKIPPED/CANCELLED/TIMED_OUT) and .status (COMPLETED/IN_PROGRESS/QUEUED/PENDING)
   - StatusContext rows expose .state (SUCCESS/FAILURE/PENDING/EXPECTED/ERROR) only — no .conclusion
@@ -426,6 +431,9 @@ Return ONLY the structured result.`,
   async result => {
     if (!result || result.action === 'no-pr-restart') return result
     const { wi, prState } = result
+    if (prState.state === 'merged' || prState.state === 'closed') {
+      return { ...result, decision: 'close-wi' }
+    }
     if (prState.state === 'green') return { ...result, decision: 'finalize' }
     if (prState.state === 'running') return { ...result, decision: 'wait' }
     if (prState.state === 'no-pr') return { ...result, decision: 'no-pr-restart' }
@@ -443,6 +451,27 @@ const toTriage = monitorOutcomes.filter(r => r && r.decision === 'triage')
 const toRestart = monitorOutcomes.filter(
   r => r && (r.decision === 'no-pr-restart' || r.action === 'no-pr-restart')
 )
+const toCloseWi = monitorOutcomes.filter(r => r && r.decision === 'close-wi')
+
+if (toCloseWi.length) {
+  phase('Close merged WIs')
+  await parallel(
+    toCloseWi.map(r => () =>
+      agent(
+        `WI ${r.wi.name} has its PR (${r.wi.prUrl}) ${r.prState.state} on GitHub. Close out.
+
+Steps (idempotent):
+1. If WI Status__c is not already a closed terminal value, update:
+   sf data update record -s ADM_Work__c -i ${r.wi.wiId} -o gus -v "Status__c='Closed'"
+2. Remove worktree if present: 'git worktree remove ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)} --force'.
+3. Delete local branch if present: from ${PROJECT_ROOT}, 'git branch -D ${branchName(identity.ownerPrefix, r.wi.name, r.wi.subject)}' (ignore failure if branch doesn't exist).
+
+Return {ok: true, detail} summarizing changes.`,
+        { schema: OK_SCHEMA, label: `close-${r.wi.name}`, phase: 'Close merged WIs', model: 'haiku' }
+      )
+    )
+  )
+}
 
 if (toTriage.length) {
   phase('Triage failures')
@@ -524,7 +553,7 @@ Return {status: 'done', commits} or {status: 'stuck', reason}.`,
 }
 
 const toRefresh = monitorOutcomes.filter(
-  r => r && (r.decision === 'wait' || r.decision === 'finalize') && r.wi.prUrl
+  r => r && r.decision === 'wait' && r.wi.prUrl
 )
 if (toRefresh.length) {
   phase('Keep in-flight current')
