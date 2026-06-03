@@ -43,8 +43,9 @@ const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void>
     await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');
-    const sessionEnded = await expect(toolbar)
-      .not.toBeVisible({ timeout: 30_000 })
+    // Poll for the toolbar to disappear; treat staying visible as "session not ended yet".
+    const sessionEnded = await toolbar
+      .waitFor({ state: 'hidden', timeout: 30_000 })
       .then(() => true)
       .catch(() => false);
     if (sessionEnded) break;

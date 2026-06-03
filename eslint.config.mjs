@@ -556,7 +556,8 @@ export default [
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
       'no-param-reassign': 'off',
-      'local/no-duplicate-playwright-locators': 'error'
+      'local/no-duplicate-playwright-locators': 'error',
+      'local/no-swallowed-rejection': 'error'
     }
   },
   {

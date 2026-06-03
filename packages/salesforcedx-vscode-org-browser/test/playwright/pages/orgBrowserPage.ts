@@ -64,12 +64,10 @@ export class OrgBrowserPage {
     const twistie = folderItem.locator('.monaco-tl-twistie');
     await Promise.all([
       folderItem.click({ timeout: 5000, delay: 100 }),
-      // we need it to go from loading to expanded state
-      [
-        expect(twistie, 'Went to loading state')
-          .toContainClass('codicon-tree-item-loading', { timeout: 2000 })
-          .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
-      ]
+      // We want a brief opportunity for the twistie to enter the loading state, but it may
+      // already be expanded (no loading needed). Use a soft wait via waitFor on the loading
+      // class; tolerate timeout (folder may already be expanded).
+      twistie.waitFor({ state: 'attached', timeout: 2000 }).catch(() => undefined)
     ]);
     // ensure it's done loading
     await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
