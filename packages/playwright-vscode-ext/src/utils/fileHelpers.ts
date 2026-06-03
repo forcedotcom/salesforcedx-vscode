@@ -151,6 +151,15 @@ export const deployCurrentSourceToOrg = async (
   await verifyCommandExists(page, 'SFDX: Deploy This Source to Org', 30_000);
   await executeCommandWithCommandPalette(page, 'SFDX: Deploy This Source to Org');
 
+  // If conflict detection is enabled (default for source-tracked orgs) and a previous deploy left
+  // remote tracking state, VS Code shows a modal with "Override Conflicts and Deploy" / "View
+  // Conflicts and Cancel Deploy" / "Cancel". We always want to override on test re-runs to make
+  // forward progress. Best-effort: if the dialog isn't present, skip silently.
+  const overrideButton = page.getByRole('button', { name: /Override Conflicts and Deploy/i }).first();
+  if (await overrideButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await overrideButton.click({ timeout: 5000 });
+  }
+
   const deployingNotification = page
     .locator(NOTIFICATION_LIST_ITEM)
     .filter({ hasText: /Deploying/i })
