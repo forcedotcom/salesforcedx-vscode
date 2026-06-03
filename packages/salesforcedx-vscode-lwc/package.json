@@ -366,7 +366,16 @@
       "editor/title/context": [],
       "view/title": [],
       "view/item/context": [],
-      "explorer/context": [],
+			"explorer/context": [
+				{
+				  "command": "sf.metadata.lightning.generate.lwc",
+				  "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
+				},
+				{
+				  "command": "sf.internal.lightning.generate.lwc",
+				  "when": "explorerResourceIsFolder && sf:internal_dev"
+				}
+			],
       "commandPalette": [
         {
           "command": "sf.metadata.lightning.generate.lwc",
