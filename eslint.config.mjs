@@ -188,6 +188,7 @@ export default [
       'unicorn/prefer-export-from': 'error',
       'unicorn/prefer-includes': 'error',
       'unicorn/prefer-modern-math-apis': 'error',
+      'unicorn/prefer-native-coercion-functions': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/prefer-object-from-entries': 'error',
       'unicorn/prefer-optional-catch-binding': 'error',
