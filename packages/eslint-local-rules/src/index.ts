@@ -13,6 +13,7 @@ import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
+import { noSwallowedRejection } from './noSwallowedRejection';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
@@ -44,6 +45,7 @@ const plugin = {
     'no-direct-services-imports': noDirectServicesImports,
     'no-effect-fn-wrapper': noEffectFnWrapper,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
+    'no-swallowed-rejection': noSwallowedRejection,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
