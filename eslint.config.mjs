@@ -182,6 +182,7 @@ export default [
       'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-at': 'error',
       'unicorn/prefer-array-find': 'error',
+      'unicorn/prefer-array-flat': 'error',
       'unicorn/prefer-class-fields': 'error',
       'unicorn/prefer-date-now': 'error',
       'unicorn/prefer-export-from': 'error',
