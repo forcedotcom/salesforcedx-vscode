@@ -39,16 +39,20 @@ _Avoid_: Client, buyer, account
 
 ## Contexts
 
-- [Ordering](./src/ordering/CONTEXT.md) — receives/tracks customer orders
-- [Billing](./src/billing/CONTEXT.md) — invoices, payments
-- [Fulfillment](./src/fulfillment/CONTEXT.md) — picking, shipping
+- [Ordering](./packages/ordering/CONTEXT.md) — receives/tracks customer orders
+- [Billing](./packages/billing/CONTEXT.md) — invoices, payments
+- [AI tooling](./.claude/CONTEXT.md) — skills, workflows, commands
+- [CI](./.github/CONTEXT.md) — GitHub Actions
 
 ## Relationships
 
 - **Ordering → Fulfillment**: `OrderPlaced` events trigger picking
-- **Fulfillment → Billing**: `ShipmentDispatched` events trigger invoicing
-- **Ordering ↔ Billing**: shared `CustomerId`, `Money` types
+- **AI tooling → Ordering**: `auto-build-wi.js` opens PRs against ordering
 ```
+
+Contexts can live anywhere a coherent vocabulary does — per package, plus
+non-source dirs like `.claude/` and `.github/`. Pick narrowest scope that
+owns the term.
 
 Inference:
 

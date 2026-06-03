@@ -9,7 +9,8 @@ export const meta = {
     { title: 'Triage failures' },
     { title: 'Fix CI failures' },
     { title: 'Keep in-flight current' },
-    { title: 'Finalize ready' },
+    { title: 'Open for review' },
+    { title: 'Peer approve' },
     { title: 'Pick candidate' },
     { title: 'Claim + worktree' },
     { title: 'Plan' },
@@ -276,6 +277,27 @@ const OK_SCHEMA = {
   properties: { ok: { type: 'boolean' }, detail: { type: ['string', 'null'] } },
 }
 
+const PEER_APPROVE_CANDIDATES_SCHEMA = {
+  type: 'object',
+  required: ['candidates'],
+  properties: {
+    candidates: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['wiId', 'name', 'subject', 'prUrl', 'ownerUserId'],
+        properties: {
+          wiId: { type: 'string' },
+          name: { type: 'string' },
+          subject: { type: 'string' },
+          prUrl: { type: 'string' },
+          ownerUserId: { type: 'string' },
+        },
+      },
+    },
+  },
+}
+
 const slugify = s =>
   String(s)
     .toLowerCase()
@@ -325,7 +347,7 @@ Read .claude/skills/gha-rerun/SKILL.md (and .claude/commands/gha-rerun.md if pre
 - If launch fails: return {ok: false, detail: "<reason>"}.
 
 Do not configure or rerun anything else. The daemon owns rerun budget; this step just keeps it alive.`,
-  { schema: OK_SCHEMA, label: 'ensure-gha-rerun-daemon', phase: 'Ensure daemons', model: 'sonnet' }
+  { schema: OK_SCHEMA, label: 'ensure-gha-rerun-daemon', phase: 'Ensure daemons', model: 'haiku' }
 )
 
 phase('Monitor in-flight')
@@ -333,8 +355,8 @@ phase('Monitor in-flight')
 const inFlight = await agent(
   `Query GUS for in-flight ai-auto work items assigned to userId ${identity.userId}.
 
-Run a BROAD query — any active status that could plausibly be in-flight, so we never lose track of a WI whose status drifted:
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready','In Progress','Ready for Review','QA In Progress','Fixed','Waiting') AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
+In-flight = Status__c 'In Progress'. Once a WI advances past 'In Progress' (to 'Ready for Review' / 'Fixed' / 'Waiting'), the runner is done — peer-approve handles 'Ready for Review' from the other side, and 'Fixed'/'Waiting' belong to humans.
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c = 'In Progress' AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
 
 Then filter the records: KEEP only those whose Details__c contains a GitHub PR URL (substring "github.com/forcedotcom/salesforcedx-vscode/pull/"). Those are the truly in-flight WIs — they have an open PR. Drop the rest (those are candidates, handled later).
 
@@ -509,11 +531,11 @@ Return {ok: true, detail: "<n> commits merged"} or {ok: false, detail}.`,
 }
 
 if (toFinalize.length) {
-  phase('Finalize ready')
+  phase('Open for review')
   await parallel(
     toFinalize.map(r => () =>
       agent(
-        `Finalize WI ${r.wi.name} as Ready for Review.
+        `Open WI ${r.wi.name} for review (CI is green; transition In Progress → Ready for Review).
 
 PR: ${r.wi.prUrl}
 Worktree: ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)}
@@ -521,9 +543,11 @@ Runner userId: ${identity.userId}
 Runner GitHub login: ${identity.githubLogin}
 Runner Slack ID: ${identity.slackId}
 
-Steps (idempotent — check current state before each mutation):
-1. If PR is still draft, 'gh pr ready ${r.wi.prUrl}'.
-2. If WI status != 'Ready for Review', update:
+Monitor only enters this phase when WI is 'In Progress' — no need to re-check status.
+
+Steps (idempotent):
+1. If PR is still draft: 'gh pr ready ${r.wi.prUrl}'.
+2. Advance WI status:
    sf data update record -s ADM_Work__c -i ${r.wi.wiId} -o gus -v "Status__c='Ready for Review' QA_Engineer__c='${identity.userId}'"
 3. Reviewer reassignment per pr-draft skill (read .claude/skills/pr-draft/SKILL.md):
    - gh pr view ${r.wi.prUrl} --json reviewRequests --jq '.reviewRequests[].login'
@@ -531,11 +555,83 @@ Steps (idempotent — check current state before each mutation):
    - 'gh pr edit ${r.wi.prUrl} --add-reviewer ${identity.githubLogin}' (if not already)
 4. Slack post in #ide-exp-code-review (channel ${REVIEW_CHANNEL_ID}) tagging the runner:
    "<@${identity.slackId}> PR ready for review: <${r.wi.prUrl}|PR> (${r.wi.name})"
-   Use mcp__slack__slack_send_message. Only post if you actually changed the WI status this call — otherwise skip the post (idempotency).
+   Use mcp__slack__slack_send_message.
 5. Remove the worktree: 'git worktree remove ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)} --force' (if present).
 
 Return {ok: true, detail} where detail summarizes what changed.`,
-        { schema: OK_SCHEMA, label: `finalize-${r.wi.name}`, phase: 'Finalize ready', model: 'sonnet' }
+        { schema: OK_SCHEMA, label: `open-review-${r.wi.name}`, phase: 'Open for review', model: 'sonnet' }
+      )
+    )
+  )
+}
+
+phase('Peer approve')
+
+const peerApproveCandidates = await agent(
+  `Find ai-auto WIs ready for peer-approve by this runner.
+
+Runner userId: ${identity.userId}
+
+Run:
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Assignee__c FROM ADM_Work__c WHERE Status__c = 'Ready for Review' AND Assignee__c != '${identity.userId}' AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
+
+For each record:
+- Extract a GitHub PR URL from Details__c. Match patterns (HTML or plain): "PR: https://github.com/forcedotcom/salesforcedx-vscode/pull/<n>", anchor href, or any pull URL. Take the LAST match.
+- Skip records with no extractable PR URL.
+
+Return one entry per record with PR URL: {wiId, name, subject, prUrl, ownerUserId: Assignee__c}.
+
+Return ONLY the structured result.`,
+  { schema: PEER_APPROVE_CANDIDATES_SCHEMA, label: 'peer-approve-query', phase: 'Peer approve', model: 'haiku' }
+)
+
+const peerCandidates = (peerApproveCandidates && peerApproveCandidates.candidates) || []
+log(`peer-approve candidates: ${peerCandidates.length}`)
+
+if (peerCandidates.length) {
+  await parallel(
+    peerCandidates.map(c => () =>
+      agent(
+        `Evaluate WI ${c.name} (PR ${c.prUrl}) for peer-approve. Owner userId: ${c.ownerUserId}. Runner: ${identity.username} (userId ${identity.userId}, GitHub ${identity.githubLogin}, Slack ${identity.slackId}).
+
+Magic string: a PR comment matching line-anchored regex /^\\/ai-auto approve\\b/m authored by the PR owner, posted at-or-after the current head SHA's commit timestamp.
+
+Steps (idempotent — every step skips if already done):
+
+1. Resolve owner GitHub login from gus-cli team table (read .claude/skills/gus-cli/SKILL.md if needed):
+   sf data query --query "SELECT Github_Username__c FROM ADM_Scrum_Team_Member__c WHERE Id = '${c.ownerUserId}'" -o gus --result-format json
+   If the team row is missing or has no Github_Username__c, ABORT with {ok: false, detail: "owner not in team table"}.
+
+2. Resolve PR head SHA + commit timestamp + author:
+   gh pr view ${c.prUrl} --json headRefOid,author,isDraft,state,commits
+   - If isDraft=true, state!='OPEN', or PR is closed/merged → skip: {ok: true, detail: "pr-not-eligible"}.
+   - If author.login != owner GitHub login (mismatch between WI Assignee and PR author) → skip: {ok: true, detail: "owner/author mismatch"}.
+   - Get head SHA's authoredDate from commits[].oid==headRefOid → committedDate (or use 'gh api repos/forcedotcom/salesforcedx-vscode/commits/<sha>' → .commit.committer.date).
+
+3. Fetch issue comments:
+   gh api repos/forcedotcom/salesforcedx-vscode/issues/<prNumber>/comments --paginate
+   Filter to comments where:
+   - user.login == owner GitHub login
+   - body matches /^\\/ai-auto approve\\b/m (line-anchored, multiline)
+   - created_at >= head SHA committed date
+   If none → skip: {ok: true, detail: "no-magic-string"}.
+
+4. Idempotency: check existing reviews:
+   gh api repos/forcedotcom/salesforcedx-vscode/pulls/<prNumber>/reviews --paginate
+   If runner (${identity.githubLogin}) already has an APPROVED review with commit_id == head SHA → skip: {ok: true, detail: "already-approved"}.
+
+5. Submit approval:
+   gh pr review ${c.prUrl} --approve --body "Peer-approved on behalf of @<ownerLogin> per /ai-auto approve"
+
+6. Update WI Status__c to 'Fixed' — only if current is 'Ready for Review' (forward-only):
+   sf data query --query "SELECT Status__c FROM ADM_Work__c WHERE Id = '${c.wiId}'" -o gus --result-format json
+   If Status__c == 'Ready for Review':
+     sf data update record -s ADM_Work__c -i ${c.wiId} -o gus -v "Status__c='Fixed'"
+
+The owner gets GitHub's native approval notification — no Slack DM (it would look like a DM from the runner machine).
+
+Return {ok: true, detail: "<approved | skip reason>"} or {ok: false, detail}.`,
+        { schema: OK_SCHEMA, label: `peer-approve-${c.name}`, phase: 'Peer approve', model: 'sonnet' }
       )
     )
   )

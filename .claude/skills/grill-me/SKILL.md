@@ -17,18 +17,17 @@ If a question is answerable by reading code, read code instead of asking.
 
 ## Domain awareness
 
-Look for existing docs.
+Look for existing docs. Start with root `CONTEXT-MAP.md` if present —
+it lists every context and where each one lives.
 
 ### File structure
 
-Single-context (most repos):
+Single-context:
 
 ```
 /
 ├── CONTEXT.md
 ├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
 └── src/
 ```
 
@@ -38,16 +37,21 @@ Multi-context (root `CONTEXT-MAP.md` exists):
 /
 ├── CONTEXT-MAP.md
 ├── docs/adr/                ← system-wide
-└── src/
-    ├── ordering/
-    │   ├── CONTEXT.md
-    │   └── docs/adr/        ← context-specific
-    └── billing/
-        ├── CONTEXT.md
-        └── docs/adr/
+├── .claude/CONTEXT.md       ← AI tooling (skills, workflows, commands)
+├── .github/CONTEXT.md       ← GitHub Actions / workflow YAML
+└── packages/
+    ├── ordering/CONTEXT.md
+    └── billing/CONTEXT.md
 ```
 
-Create lazily — only when there's something to write.
+Contexts live wherever a coherent vocabulary does — per package, plus
+non-source directories like `.claude/` (AI tooling) and `.github/` (CI).
+Pick the narrowest scope that owns the term.
+
+Create lazily — only when there's something to write. First new context
+in a single-context repo → also create `CONTEXT-MAP.md` and move the
+existing root `CONTEXT.md` content into the appropriate scoped file
+if it doesn't actually belong at root.
 
 ## During the session
 
