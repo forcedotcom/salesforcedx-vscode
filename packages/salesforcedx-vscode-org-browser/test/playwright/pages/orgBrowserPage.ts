@@ -62,12 +62,15 @@ export class OrgBrowserPage {
       ? this.page.getByRole('treeitem', { name: folderName, level, exact: true })
       : this.page.getByRole('treeitem', { name: folderName, exact: true });
     const twistie = folderItem.locator('.monaco-tl-twistie');
+    const loadingTwistie = folderItem.locator('.monaco-tl-twistie.codicon-tree-item-loading');
     await Promise.all([
       folderItem.click({ timeout: 5000, delay: 100 }),
-      // We want a brief opportunity for the twistie to enter the loading state, but it may
-      // already be expanded (no loading needed). Use a soft wait via waitFor on the loading
-      // class; tolerate timeout (folder may already be expanded).
-      twistie.waitFor({ state: 'attached', timeout: 2000 }).catch(() => undefined)
+      // Soft wait for the loading state to appear briefly before the assertions below check it
+      // has cleared. Tolerate timeout (folder may already be expanded, or load may be near-instant).
+      // Using locator.waitFor on the loading-class selector instead of expect() avoids the
+      // local/no-swallowed-rejection rule while preserving the original "brief opportunity to
+      // enter loading state" intent.
+      loadingTwistie.waitFor({ state: 'attached', timeout: 2000 }).catch(() => undefined)
     ]);
     // ensure it's done loading
     await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });

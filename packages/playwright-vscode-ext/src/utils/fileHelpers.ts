@@ -207,12 +207,12 @@ export const openFileFromExplorerTree = async (
     await folderItem.scrollIntoViewIfNeeded().catch(() => {});
     // Double-click reliably expands in VS Code's Explorer; single click only selects.
     await folderItem.dblclick({ timeout: 5000 }).catch(() => {});
-    // Wait for expansion using a polling getAttribute (soft check; not all rows expose this).
-    const deadline = Date.now() + 5000;
-    while (Date.now() < deadline) {
-      if ((await folderItem.getAttribute('aria-expanded').catch(() => undefined)) === 'true') break;
-      await page.waitForTimeout(100);
-    }
+    // Wait for expansion via locator.waitFor on aria-expanded selector (soft; not all rows
+    // expose this attribute, so tolerate timeout).
+    await folderItem
+      .and(page.locator('[aria-expanded="true"]'))
+      .waitFor({ state: 'attached', timeout: 5000 })
+      .catch(() => undefined);
   }
 
   const fileItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(fileName)}$`) }).first();
@@ -327,12 +327,11 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     const selected = await sourceTab.getAttribute('aria-selected').catch(() => null);
     if (selected !== 'true') {
       await sourceTab.click({ timeout: 5000 }).catch(() => {});
-      // Wait for selection using polling getAttribute (soft check; tab may detach).
-      const tabDeadline = Date.now() + 5000;
-      while (Date.now() < tabDeadline) {
-        if ((await sourceTab.getAttribute('aria-selected').catch(() => undefined)) === 'true') break;
-        await page.waitForTimeout(100);
-      }
+      // Wait for selection via locator.waitFor on aria-selected selector (soft; tab may detach).
+      await sourceTab
+        .and(page.locator('[aria-selected="true"]'))
+        .waitFor({ state: 'attached', timeout: 5000 })
+        .catch(() => undefined);
     }
   }
 };
