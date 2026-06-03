@@ -54,29 +54,6 @@ const IDENTITY_SCHEMA = {
   },
 }
 
-const WI_LIST_SCHEMA = {
-  type: 'object',
-  required: ['wis'],
-  properties: {
-    wis: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['wiId', 'name', 'subject'],
-        properties: {
-          wiId: { type: 'string' },
-          name: { type: 'string' },
-          subject: { type: 'string' },
-          details: { type: 'string' },
-          storyPoints: { type: ['number', 'null'] },
-          createdDate: { type: 'string' },
-          prUrl: { type: ['string', 'null'] },
-        },
-      },
-    },
-  },
-}
-
 const PR_STATE_SCHEMA = {
   type: 'object',
   required: ['state'],
@@ -277,25 +254,49 @@ const OK_SCHEMA = {
   properties: { ok: { type: 'boolean' }, detail: { type: ['string', 'null'] } },
 }
 
-const PEER_APPROVE_CANDIDATES_SCHEMA = {
+const WI_RECORDS_SCHEMA = {
   type: 'object',
-  required: ['candidates'],
+  required: ['records'],
   properties: {
-    candidates: {
+    records: {
       type: 'array',
       items: {
         type: 'object',
-        required: ['wiId', 'name', 'subject', 'prUrl', 'ownerUserId'],
+        required: ['Id', 'Name'],
         properties: {
-          wiId: { type: 'string' },
-          name: { type: 'string' },
-          subject: { type: 'string' },
-          prUrl: { type: 'string' },
-          ownerUserId: { type: 'string' },
+          Id: { type: 'string' },
+          Name: { type: 'string' },
+          Subject__c: { type: ['string', 'null'] },
+          Details__c: { type: ['string', 'null'] },
+          Status__c: { type: ['string', 'null'] },
+          Story_Points__c: { type: ['number', 'null'] },
+          CreatedDate: { type: ['string', 'null'] },
+          Assignee__c: { type: ['string', 'null'] },
         },
       },
     },
   },
+}
+
+const SKILL_LIST_SCHEMA = {
+  type: 'object',
+  required: ['skills'],
+  properties: { skills: { type: 'array', items: { type: 'string' } } },
+}
+
+const DIFF_RAW_SCHEMA = {
+  type: 'object',
+  required: ['shortstat', 'files'],
+  properties: {
+    shortstat: { type: 'string' },
+    files: { type: 'array', items: { type: 'string' } },
+  },
+}
+
+const FILES_SCHEMA = {
+  type: 'object',
+  required: ['files'],
+  properties: { files: { type: 'array', items: { type: 'string' } } },
 }
 
 const slugify = s =>
@@ -312,6 +313,33 @@ const worktreePath = (ownerPrefix, wiName, subject) =>
 
 const branchName = (ownerPrefix, wiName, subject) =>
   `${ownerPrefix}/${wiName}-${slugify(subject)}`
+
+const PR_URL_RE = /https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+/g
+
+const extractPrUrl = details => {
+  const m = String(details || '').match(PR_URL_RE)
+  return m ? m[m.length - 1] : null
+}
+
+const hasPrUrl = details =>
+  String(details || '').includes('github.com/forcedotcom/salesforcedx-vscode/pull/')
+
+const mapWiRecord = r => ({
+  wiId: r.Id,
+  name: r.Name,
+  subject: r.Subject__c || '',
+  details: r.Details__c || '',
+  storyPoints: typeof r.Story_Points__c === 'number' ? r.Story_Points__c : null,
+  createdDate: r.CreatedDate || '',
+  prUrl: extractPrUrl(r.Details__c),
+})
+
+const parseShortstatLines = shortstat => {
+  // e.g. " 3 files changed, 12 insertions(+), 4 deletions(-)"
+  const ins = (shortstat.match(/(\d+)\s+insertion/) || [0, 0])[1]
+  const del = (shortstat.match(/(\d+)\s+deletion/) || [0, 0])[1]
+  return Number(ins) + Number(del)
+}
 
 phase('Resolve identity')
 
@@ -352,27 +380,18 @@ Do not configure or rerun anything else. The daemon owns rerun budget; this step
 
 phase('Monitor in-flight')
 
-const inFlight = await agent(
-  `Query GUS for in-flight ai-auto work items assigned to userId ${identity.userId}.
+const inFlightRaw = await agent(
+  `Run this SOQL and return the raw records array.
 
-In-flight = Status__c 'In Progress'. Once a WI advances past 'In Progress' (to 'Ready for Review' / 'Fixed' / 'Waiting'), the runner is done — peer-approve handles 'Ready for Review' from the other side, and 'Fixed'/'Waiting' belong to humans.
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c = 'In Progress' AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('In Progress', 'Ready for Review') AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
 
-Then filter the records: KEEP only those whose Details__c contains a GitHub PR URL (substring "github.com/forcedotcom/salesforcedx-vscode/pull/"). Those are the truly in-flight WIs — they have an open PR. Drop the rest (those are candidates, handled later).
-
-For each kept record, extract the PR URL from Details__c. Match ANY of these patterns (HTML or plain):
-- A literal "PR: https://github.com/forcedotcom/salesforcedx-vscode/pull/<n>" anywhere in Details__c
-- An anchor tag <a href="https://github.com/forcedotcom/salesforcedx-vscode/pull/<n>">...</a> anywhere in Details__c
-- Any https://github.com/forcedotcom/salesforcedx-vscode/pull/<n> URL string in Details__c
-Take the LAST match (most recent).
-
-Return one entry per kept record with wiId=Id, name=Name, subject=Subject__c, details=Details__c, prUrl=<extracted>, storyPoints=Story_Points__c, createdDate=CreatedDate.
-
-Return ONLY the structured result.`,
-  { schema: WI_LIST_SCHEMA, label: 'query-in-flight', phase: 'Monitor in-flight', model: 'haiku' }
+Return {records: <result.records as-is>}. No filtering, no transformation.`,
+  { schema: WI_RECORDS_SCHEMA, label: 'query-in-flight', phase: 'Monitor in-flight', model: 'haiku' }
 )
 
-const inFlightWis = inFlight.wis || []
+const inFlightWis = (inFlightRaw.records || [])
+  .map(mapWiRecord)
+  .filter(w => w.prUrl)
 log(`in-flight: ${inFlightWis.length} WI(s)`)
 
 const monitorOutcomes = await pipeline(
@@ -388,11 +407,15 @@ const monitorOutcomes = await pipeline(
 
 Run:
 - gh pr view ${wi.prUrl} --json state,isDraft,number,statusCheckRollup
-- Parse statusCheckRollup. Determine overall state:
+- Parse statusCheckRollup. Two row shapes exist:
+  - CheckRun rows expose .conclusion (SUCCESS/FAILURE/NEUTRAL/SKIPPED/CANCELLED/TIMED_OUT) and .status (COMPLETED/IN_PROGRESS/QUEUED/PENDING)
+  - StatusContext rows expose .state (SUCCESS/FAILURE/PENDING/EXPECTED/ERROR) only — no .conclusion
+  Treat each row's effective outcome as: row.conclusion ?? row.state. A null on both = treat as PENDING.
+- Determine overall state:
   - 'no-pr' if gh fails to find the PR
-  - 'green' if every check has conclusion SUCCESS or NEUTRAL or SKIPPED
-  - 'running' if any check is IN_PROGRESS or QUEUED or PENDING
-  - 'failed' otherwise (any FAILURE, CANCELLED, TIMED_OUT, etc., with NO IN_PROGRESS/QUEUED/PENDING remaining)
+  - 'running' if ANY row is IN_PROGRESS / QUEUED / PENDING / EXPECTED (or has no resolved outcome)
+  - 'green' if every row resolves to SUCCESS / NEUTRAL / SKIPPED
+  - 'failed' otherwise (any FAILURE / CANCELLED / TIMED_OUT / ERROR, with NO running rows remaining)
 - If state is 'failed', collect failed job names. Run 'gh run view --log-failed <runId>' for the most recent failed/cancelled run linked to the PR head SHA, capture last ~100 lines as failedLogsExcerpt. Also gather the maximum 'run_attempt' across the workflow runs for the PR head SHA (gh api repos/forcedotcom/salesforcedx-vscode/actions/runs?head_sha=<sha> → max .run_attempt). Return that as maxRunAttempt.
 
 Return ONLY the structured result.`,
@@ -559,7 +582,7 @@ Steps (idempotent):
 5. Remove the worktree: 'git worktree remove ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)} --force' (if present).
 
 Return {ok: true, detail} where detail summarizes what changed.`,
-        { schema: OK_SCHEMA, label: `open-review-${r.wi.name}`, phase: 'Open for review', model: 'sonnet' }
+        { schema: OK_SCHEMA, label: `open-review-${r.wi.name}`, phase: 'Open for review', model: 'haiku' }
       )
     )
   )
@@ -567,25 +590,24 @@ Return {ok: true, detail} where detail summarizes what changed.`,
 
 phase('Peer approve')
 
-const peerApproveCandidates = await agent(
-  `Find ai-auto WIs ready for peer-approve by this runner.
+const peerApproveRaw = await agent(
+  `Run this SOQL and return the raw records array.
 
-Runner userId: ${identity.userId}
-
-Run:
 sf data query --query "SELECT Id, Name, Subject__c, Details__c, Assignee__c FROM ADM_Work__c WHERE Status__c = 'Ready for Review' AND Assignee__c != '${identity.userId}' AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
 
-For each record:
-- Extract a GitHub PR URL from Details__c. Match patterns (HTML or plain): "PR: https://github.com/forcedotcom/salesforcedx-vscode/pull/<n>", anchor href, or any pull URL. Take the LAST match.
-- Skip records with no extractable PR URL.
-
-Return one entry per record with PR URL: {wiId, name, subject, prUrl, ownerUserId: Assignee__c}.
-
-Return ONLY the structured result.`,
-  { schema: PEER_APPROVE_CANDIDATES_SCHEMA, label: 'peer-approve-query', phase: 'Peer approve', model: 'haiku' }
+Return {records: <result.records as-is>}. No filtering, no transformation.`,
+  { schema: WI_RECORDS_SCHEMA, label: 'peer-approve-query', phase: 'Peer approve', model: 'haiku' }
 )
 
-const peerCandidates = (peerApproveCandidates && peerApproveCandidates.candidates) || []
+const peerCandidates = (peerApproveRaw.records || [])
+  .map(r => ({
+    wiId: r.Id,
+    name: r.Name,
+    subject: r.Subject__c || '',
+    prUrl: extractPrUrl(r.Details__c),
+    ownerUserId: r.Assignee__c || '',
+  }))
+  .filter(c => c.prUrl && c.ownerUserId)
 log(`peer-approve candidates: ${peerCandidates.length}`)
 
 if (peerCandidates.length) {
@@ -655,56 +677,54 @@ if (toRestart.length) {
 
   phase('Pick candidate')
 
-  const candidates = await agent(
-    `Query claim candidates for userId ${identity.userId}.
+  const candidatesRaw = await agent(
+    `Run this SOQL and return the raw records array.
 
-Run:
 sf data query --query "SELECT Id, Name, Subject__c, Details__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
 
-Map each record to wiId, name, subject, details, storyPoints, createdDate. prUrl is null for candidates.
-
-CRITICAL filter: EXCLUDE any record whose Details__c contains the string "github.com/forcedotcom/salesforcedx-vscode/pull/". A PR URL in Details means a prior tick already opened a PR — this WI is in flight even if the Status field disagrees, and re-claiming it would clobber the existing PR. Drop those records before returning.
-
-Return ONLY the structured result.`,
-    { schema: WI_LIST_SCHEMA, label: 'query-candidates', phase: 'Pick candidate', model: 'haiku' }
+Return {records: <result.records as-is>}. No filtering, no transformation.`,
+    { schema: WI_RECORDS_SCHEMA, label: 'query-candidates', phase: 'Pick candidate', model: 'haiku' }
   )
 
-  const candidateList = candidates.wis || []
+  const inFlightWiIds = new Set(inFlightWis.map(w => w.wiId))
+  const candidateList = (candidatesRaw.records || [])
+    .map(mapWiRecord)
+    .filter(c => {
+      if (inFlightWiIds.has(c.wiId)) return false
+      if (hasPrUrl(c.details)) {
+        log(`excluding ${c.name}: Details already contains a PR URL`)
+        return false
+      }
+      return true
+    })
+
   if (!candidateList.length) {
     log('no candidates — nothing to do')
     return { exited: 'idle', inFlight: stillInFlight }
   }
 
-  // Belt-and-suspenders: also filter in code in case the agent missed any.
-  const inFlightWiIds = new Set(inFlightWis.map(w => w.wiId))
-  const filteredCandidates = candidateList.filter(c => {
-    if (inFlightWiIds.has(c.wiId)) return false
-    const d = c.details || ''
-    if (d.includes('github.com/forcedotcom/salesforcedx-vscode/pull/')) {
-      log(`excluding ${c.name}: Details already contains a PR URL`)
-      return false
-    }
-    return true
-  })
-  if (!filteredCandidates.length) {
-    log('no candidates after PR-URL filter — nothing to do')
-    return { exited: 'idle', inFlight: stillInFlight }
-  }
-  candidateList.length = 0
-  candidateList.push(...filteredCandidates)
-
   if (candidateList.length === 1) {
     chosen = candidateList[0]
     log(`single candidate: ${chosen.name}`)
   } else {
-    const inFlightFiles = await agent(
-      `Collect changed file paths from in-flight PRs to avoid overlap when picking.
-
-In-flight PR URLs: ${inFlightWis.filter(w => w.prUrl).map(w => w.prUrl).join(' ') || '(none)'}
-
-For each, run 'gh pr diff <url> --name-only' and aggregate the union of file paths. Return {ok: true, detail: "<comma-separated paths or 'none'>"}.`,
-      { schema: OK_SCHEMA, label: 'in-flight-files', phase: 'Pick candidate', model: 'haiku' }
-    )
+    const inFlightUrls = inFlightWis.filter(w => w.prUrl).map(w => w.prUrl)
+    const inFlightFiles = inFlightUrls.length
+      ? await parallel(
+          inFlightUrls.map(url => () =>
+            agent(
+              `Run 'gh pr diff ${url} --name-only' and return {files: [<one path per line>]}.`,
+              { schema: FILES_SCHEMA, label: `pr-files-${url.split('/').pop()}`, phase: 'Pick candidate', model: 'haiku' }
+            )
+          )
+        )
+      : []
+    const inFlightFileList = [
+      ...new Set(
+        (inFlightFiles || [])
+          .filter(Boolean)
+          .flatMap(d => d.files || [])
+      ),
+    ]
     const pick = await agent(
       `Pick the next WI to work on from these candidates.
 
@@ -712,7 +732,7 @@ Candidates (JSON):
 ${JSON.stringify(candidateList, null, 2)}
 
 Files already touched by in-flight PRs (avoid overlap when possible):
-${inFlightFiles.detail || 'none'}
+${inFlightFileList.join(', ') || 'none'}
 
 Selection rules (in order):
 1. Honor explicit dependencies in WI text ("blocked by W-XXX", "depends on W-XXX", "after W-XXX merges") — pick a WI whose dependencies are satisfied; defer ones that aren't.
@@ -750,7 +770,7 @@ Steps (idempotent):
 3. cd ${wt} && npm install.
 
 Return {ok: false, detail} on failure, else {ok: true, detail: "reattached"}.`,
-      { schema: OK_SCHEMA, label: `restart-${chosen.name}`, phase: 'Claim + worktree', model: 'sonnet' }
+      { schema: OK_SCHEMA, label: `restart-${chosen.name}`, phase: 'Claim + worktree', model: 'haiku' }
     )
   : await agent(
       `Claim WI ${chosen.name} (${chosen.wiId}) and set up the worktree.
@@ -764,7 +784,7 @@ Steps:
 3. cd ${wt} && npm install (deps may differ from origin/develop's lockfile and hooks need them).
 
 If any step fails, return {ok: false, detail: "<reason>"}. On success {ok: true, detail: "claimed"}.`,
-      { schema: OK_SCHEMA, label: `claim-${chosen.name}`, phase: 'Claim + worktree', model: 'sonnet' }
+      { schema: OK_SCHEMA, label: `claim-${chosen.name}`, phase: 'Claim + worktree', model: 'haiku' }
     )
 
 if (!claimed.ok) {
@@ -775,12 +795,10 @@ if (!claimed.ok) {
 phase('Plan')
 
 const skillNames = await agent(
-  `List skill directory names under ${SKILLS_DIR} (one per line, no other output).
-
-Run 'ls -1 ${SKILLS_DIR}' from ${PROJECT_ROOT}. Return {ok: true, detail: "<comma-separated names>"}.`,
-  { schema: OK_SCHEMA, label: 'list-skills', phase: 'Plan', model: 'haiku' }
+  `Run 'ls -1 ${SKILLS_DIR}' from ${PROJECT_ROOT} and return {skills: [<one entry per line, no blanks>]}.`,
+  { schema: SKILL_LIST_SCHEMA, label: 'list-skills', phase: 'Plan', model: 'haiku' }
 )
-const skillList = (skillNames.detail || '').split(/[,\n]/).map(s => s.trim()).filter(Boolean)
+const skillList = (skillNames.skills || []).map(s => s.trim()).filter(Boolean)
 
 const planResult = await agent(
   `Plan implementation for WI ${chosen.name} in worktree ${wt}.
@@ -943,18 +961,15 @@ Return {ok: true}.`,
 phase('Review')
 
 const diffInfo = await agent(
-  `Get diff stats for the branch in ${wt}.
-
-Run from ${wt}:
+  `From ${wt}, run both:
 - git diff --shortstat origin/develop...HEAD
 - git diff --name-only origin/develop...HEAD
 
-Return {ok: true, detail: "<lineCount>::<comma-separated files>"} where lineCount is the total of insertions+deletions parsed from --shortstat (or 0 if none).`,
-  { schema: OK_SCHEMA, label: `diff-${chosen.name}`, phase: 'Review', isolation: 'worktree', model: 'haiku' }
+Return {shortstat: "<raw stdout of --shortstat, may be empty>", files: [<one path per line of --name-only>]}.`,
+  { schema: DIFF_RAW_SCHEMA, label: `diff-${chosen.name}`, phase: 'Review', isolation: 'worktree', model: 'haiku' }
 )
 
-const [lineCountStr] = (diffInfo.detail || '0::').split('::')
-const lineCount = Number(lineCountStr) || 0
+const lineCount = parseShortstatLines(diffInfo.shortstat || '')
 const skillsToCheck =
   lineCount < SMALL_DIFF_LINES
     ? skillList.filter(s => ALWAYS_APPLICABLE_SKILLS.includes(s))
@@ -1028,7 +1043,7 @@ Steps:
 5. If package-lock.json changed in the merge, run 'npm install'.
 6. If the merge ran cleanly with no conflicts, no commit needed beyond the merge commit git already made.
 Return {ok: true} on success.`,
-  { schema: OK_SCHEMA, label: `merge-${chosen.name}`, phase: 'Fix review findings', isolation: 'worktree', model: 'sonnet' }
+  { schema: OK_SCHEMA, label: `merge-${chosen.name}`, phase: 'Fix review findings', isolation: 'worktree', model: 'haiku' }
 )
 
 phase('Draft PR')

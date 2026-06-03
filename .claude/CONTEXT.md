@@ -21,6 +21,24 @@ gus-cli team list, comment timestamp ≥ current head SHA commit timestamp
 
 _Avoid_: "approved" comment, "lgtm" comment.
 
+## Review thread
+
+GitHub line-anchored PR review comment, part of a submitted review (not
+pending). Has `isResolved` state. Sole input to the comment-handling phase
+of `auto-build-wi.js` — issue-level PR comments and bot comments are out
+of scope. Runner never replies; addresses by code change + resolve, or
+bounces to human via 😕 reaction (see [[bounce-reaction]]).
+
+_Avoid_: "PR comment" (ambiguous with issue comments), "review feedback".
+
+## Bounce reaction
+
+😕 (`confused`) reaction by runner on the first comment of a [[review-thread]].
+Marker: "runner saw this thread, couldn't address it, DM'd human owner."
+Dedup signal — runner skips threads it has 😕'd. Re-engage trigger: any
+non-runner reply in the thread after the reaction's `created_at` causes
+runner to remove its own 😕 next tick, re-entering the thread for triage.
+
 ## Peer approve
 
 Phase in `auto-build-wi.js`. Per tick: scan ai-auto WIs in `Ready for Review`
