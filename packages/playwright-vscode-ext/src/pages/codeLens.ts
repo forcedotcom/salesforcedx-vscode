@@ -7,7 +7,8 @@
 
 import { type Page } from '@playwright/test';
 import { escapeRegExp } from '../utils/helpers';
-import { CODELENS_ITEM } from '../utils/locators';
+import { CODELENS_ITEM, EDITOR_WITH_URI } from '../utils/locators';
+import { executeCommandWithCommandPalette } from './commands';
 
 /**
  * Click the first code lens whose visible text matches `text` (whitespace-tolerant exact match).
@@ -17,9 +18,23 @@ import { CODELENS_ITEM } from '../utils/locators';
  * Limitation: returns the *first* matching lens in DOM order. For files with multiple test
  * methods sharing the same lens label (e.g. several `Run Test` lenses), the caller must scope
  * the search themselves — this helper does not disambiguate by line/method.
+ *
+ * Implementation: Code lenses (especially Apex) can take a while to appear after the editor opens
+ * or after the active group changes (e.g. when the output panel was just opened). Focus the
+ * active editor group via the command palette before scanning so lenses render, and tolerate
+ * slow Apex LSP startup by retrying the visibility wait.
  */
 export const clickCodeLens = async (page: Page, text: string, opts?: { timeout?: number }): Promise<void> => {
   const { timeout = 60_000 } = opts ?? {};
+  // Ensure an editor is the active part of the workbench (output/terminal panels can steal focus).
+  // No-op if already focused; "View: Focus Active Editor Group" exists in all VS Code versions.
+  await executeCommandWithCommandPalette(page, 'View: Focus Active Editor Group').catch(() => {});
+  await page
+    .locator(EDITOR_WITH_URI)
+    .first()
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .catch(() => {});
+
   // Allow leading/trailing whitespace inside the codelens decoration (Monaco occasionally
   // wraps the link text with separator spans), so anchored `^...$` doesn't fail spuriously.
   const lens = page

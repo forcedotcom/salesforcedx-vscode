@@ -155,9 +155,11 @@ export const deployCurrentSourceToOrg = async (
     .locator(NOTIFICATION_LIST_ITEM)
     .filter({ hasText: /Deploying/i })
     .first();
-  await expect(deployingNotification, 'Deploy progress notification should appear').toBeVisible({ timeout: 30_000 });
 
   if (waitViaOutputChannel) {
+    // The "Deploying" toast can flash and dismiss too quickly to catch reliably (especially on
+    // fast deploys / CI). When we have a deterministic completion signal in the output channel,
+    // skip the strict notification wait and just rely on "Deployed Source".
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', deployCompleteTimeoutMs);
     await waitForOutputChannelText(page, {
@@ -165,6 +167,9 @@ export const deployCurrentSourceToOrg = async (
       timeout: deployCompleteTimeoutMs
     });
   } else {
+    await expect(deployingNotification, 'Deploy progress notification should appear').toBeVisible({
+      timeout: 30_000
+    });
     await expect(deployingNotification).not.toBeVisible({
       timeout: deployCompleteTimeoutMs
     });
