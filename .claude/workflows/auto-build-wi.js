@@ -294,21 +294,16 @@ const branchName = (ownerPrefix, wiName, subject) =>
 phase('Resolve identity')
 
 const identity = await agent(
-  `Resolve the runner's identity for the auto-build pipeline.
+  `Resolve runner identity per .claude/skills/gus-cli/SKILL.md → ## Runner identity.
 
-Steps:
-1. Run 'sf alias list --json'. Find the entry whose alias matches /^gus$/i. If missing, return {error: "no gus alias — run 'sf org login web -a gus'"} and stop.
-2. Take the alias's value (the username). Query GUS:
-   sf data query --query "SELECT Id FROM User WHERE Username = '<username>' LIMIT 1" -o gus --result-format json
-   Take result.records[0].Id → userId.
-3. Read .claude/skills/gus-cli/SKILL.md. Find the "Team members" table. Locate the row whose username (alias value) matches. Extract:
-   - the row's Id (must equal userId — sanity-check)
-   - GitHub login
-   - Slack ID
-   - owner prefix: derive from Name column as initials lowercase (e.g. "Shane McLaughlin" → "sm", "Daphne Yang" → "dy"). Two letters preferred; for one-word names use first 2 letters.
-4. If username doesn't appear in the table, return {error: "runner '<username>' not in gus-cli Team members table"}.
+Schema: {userId, username, ownerPrefix, slackId, githubLogin}.
 
-Return ONLY the structured result. Do not log progress narration.`,
+1. 'sf alias list --json' → /^gus$/i. Missing → {error: "no gus alias — run 'sf org login web -a gus'"}. Value = currentUsername.
+2. Read $HOME/.claude/runner-identity.json. Hit (all 5 fields, username matches) → return cached. Stop.
+3. Miss → resolve per skill: query userId, match team table for githubLogin/slackId/ownerPrefix. Sanity-check team row Id == userId; mismatch → {error: "team table Id != User query Id"}. Not in table → {error: "runner '<currentUsername>' not in gus-cli Team members"}.
+4. mkdir -p $HOME/.claude; write JSON. Write failure non-fatal — still return object.
+
+Structured result only.`,
   { schema: IDENTITY_SCHEMA, label: 'resolve-identity', model: 'haiku' }
 )
 
