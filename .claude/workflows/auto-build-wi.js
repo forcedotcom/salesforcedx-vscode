@@ -678,16 +678,32 @@ if (toRestart.length) {
   phase('Pick candidate')
 
   const candidatesRaw = await agent(
-    `Run this SOQL and return the raw records array.
+    `Run EXACTLY ONE SOQL query — the one below — and return its records.
 
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Assignee__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
 
-Return {records: <result.records as-is>}. No filtering, no transformation.`,
+Return {records: <result.records, verbatim>}.
+
+HARD RULES:
+- Do NOT run any other queries. If this query returns zero records, return {records: []}. An empty result is a valid, expected outcome — not a problem to investigate.
+- Do NOT modify the WHERE clause, drop filters, or broaden the search.
+- Do NOT add, remove, or transform fields in the records.`,
     { schema: WI_RECORDS_SCHEMA, label: 'query-candidates', phase: 'Pick candidate', model: 'haiku' }
   )
 
   const inFlightWiIds = new Set(inFlightWis.map(w => w.wiId))
-  const candidateList = (candidatesRaw.records || [])
+  const validStatuses = new Set(['New', 'Ready'])
+  const rawRecords = candidatesRaw.records || []
+  const offSpec = rawRecords.filter(
+    r => r.Assignee__c !== identity.userId || !validStatuses.has(r.Status__c)
+  )
+  if (offSpec.length) {
+    log(
+      `query-candidates returned ${offSpec.length}/${rawRecords.length} record(s) outside the WHERE clause — agent went off-script. Dropping all results.`
+    )
+  }
+  const filteredRecords = offSpec.length ? [] : rawRecords
+  const candidateList = filteredRecords
     .map(mapWiRecord)
     .filter(c => {
       if (inFlightWiIds.has(c.wiId)) return false
