@@ -14,5 +14,7 @@ export const extensionPackageJsonSchema = z.object({
   o11yUploadEndpoint: z.string().optional(),
   // original o11y (that is, sending most events and having them end up in splunk)
   enableO11y: z.stringbool().optional(),
-  productFeatureId: z.string().startsWith('aJC').optional()
+  productFeatureId: z.string().startsWith('aJC').optional(),
+  // Enable routing Effect spans to App Insights customEvents table via LogRecords
+  enableCustomEventsFromSpans: z.boolean().optional()
 });

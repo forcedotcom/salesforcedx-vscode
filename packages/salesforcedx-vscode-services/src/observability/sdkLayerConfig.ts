@@ -12,13 +12,17 @@ export type SdkLayerConfig = {
   extensionVersion: string;
   o11yEndpoint?: string;
   productFeatureId?: string;
+  enableCustomEventsFromSpans?: boolean; // Emit LogRecords for customEvents table routing
+  connectionString?: string; // Consumer's App Insights key (overrides DEFAULT_AI_CONNECTION_STRING)
 };
 
 export const getSdkLayerConfigFromContext = (context: ExtensionContext): SdkLayerConfig => ({
   extensionName: context.extension.packageJSON.name,
   extensionVersion: context.extension.packageJSON.version,
   o11yEndpoint: process.env.O11Y_ENDPOINT ?? context.extension.packageJSON?.o11yUploadEndpoint,
-  productFeatureId: context.extension.packageJSON?.productFeatureId
+  productFeatureId: context.extension.packageJSON?.productFeatureId,
+  enableCustomEventsFromSpans: context.extension.packageJSON?.enableCustomEventsFromSpans,
+  connectionString: context.extension.packageJSON?.aiKey
 });
 export const isExtensionContext = (input: SdkLayerConfig | vscode.ExtensionContext): input is vscode.ExtensionContext =>
   'extension' in input;

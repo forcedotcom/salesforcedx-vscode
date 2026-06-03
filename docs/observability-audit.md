@@ -32,16 +32,17 @@
 | Exporter | Gated By | Destination | Filtering |
 |----------|----------|-------------|-----------|
 | ConsoleSpanExporter | `enableConsoleTraces` | stdout | None |
-| FilteredAzureMonitorTraceExporter | `telemetry.enabled` | Azure App Insights | Top-level + command spans only |
+| FilteredAzureMonitorTraceExporter | `telemetry.enabled` | Azure App Insights (traces) | Top-level + command spans only |
+| SpanToCustomEventProcessor + AzureMonitorLogExporter | `enableCustomEventsFromSpans` | Azure App Insights (customEvents) | Top-level + command spans only |
 | O11ySpanExporter | `o11yEndpoint` + telemetry | Salesforce O11y | Top-level spans only |
 | OTLPTraceExporter | `enableLocalTraces` | `localhost:4318` | None |
 | OtlpFileSpanExporterNode | `enableFileTraces` | `~/.sf/vscode-spans/*.jsonl` | None |
 
-All wrapped in `SpanTransformProcessor` which enriches top-level spans with org, user, VS Code, and system metadata.
+All wrapped in `SpanTransformProcessor` which enriches top-level spans with org, user, VS Code, and system metadata. `SpanToCustomEventProcessor` emits LogRecords with `microsoft.custom_event.name` attribute, triggering customEvents table routing.
 
 ### Span Exporters (Web — `spansWeb.ts`)
 
-Same set minus Azure (uses custom `ApplicationInsightsWebExporter`), plus `OtlpFileSpanExporterWeb` (POSTs to localhost:3003).
+Same set minus Azure (uses custom `ApplicationInsightsWebExporter` for traces), plus `OtlpFileSpanExporterWeb` (POSTs to localhost:3003). When `enableCustomEventsFromSpans` is true, `SpanToCustomEventProcessor` and `AzureMonitorLogExporter` route LogRecords to customEvents table (matching Node behavior).
 
 ---
 
@@ -62,10 +63,11 @@ Effect.logInfo("message")
 
 ### Log Exporters (Node only)
 
-| Exporter | Gated By | Destination |
-|----------|----------|-------------|
-| OTLPLogExporter | `enableLocalTraces` | `localhost:4318/v1/logs` |
-| OtlpFileLogExporterNode | `enableFileTraces` | `~/.sf/vscode-spans/*.jsonl` (same file as spans) |
+| Exporter | Gated By | Destination | Purpose |
+|----------|----------|-------------|---------|
+| AzureMonitorLogExporter | `enableCustomEventsFromSpans` + telemetry | Azure App Insights (customEvents) | Routes LogRecords with "microsoft.custom_event.name" to customEvents table |
+| OTLPLogExporter | `enableLocalTraces` | `localhost:4318/v1/logs` | Local debugging (all logs) |
+| OtlpFileLogExporterNode | `enableFileTraces` | `~/.sf/vscode-spans/*.jsonl` (same file as spans) | Offline trace capture (all logs) |
 
 ### Log Level Control
 
@@ -73,9 +75,9 @@ Effect.logInfo("message")
 - Env var fallback: `SF_LOG_LEVEL` (fatal→error mapping)
 - Applied via `Logger.minimumLogLevel(getLogLevel())`
 
-### Web: NO log export configured
+### Web: Log export configured for customEvents
 
-`spansWeb.ts` has no `logRecordProcessor` — logs on web go nowhere.
+`spansWeb.ts` now includes log export: when `enableCustomEventsFromSpans` is true, LogRecords are routed to Azure App Insights customEvents table (matching Node behavior). Previously, web logs went nowhere.
 
 ---
 
@@ -107,23 +109,22 @@ Effect.logInfo("message")
 
 | # | Gap | Impact |
 |---|-----|--------|
-| 1 | **No production log export** | Azure App Insights and O11y receive spans but NOT logs. Trace-to-logs correlation impossible in production. |
-| 2 | **Web has no log export** | `spansWeb.ts` omits `logRecordProcessor` entirely. Web logs go nowhere. |
+| 1 | **Limited production log export** | LogRecords only exported to customEvents table when `enableCustomEventsFromSpans` is true. Standard Effect.log* calls still don't export to production (only file/OTLP debug exporters). |
 
 ### Severity: MEDIUM
 
 | # | Gap | Impact |
 |---|-----|--------|
-| 3 | **TraceContextLogProcessor shim** | Works but is a workaround. `OtlpLogger` handles this natively without `@opentelemetry/sdk-logs` dependency. |
-| 4 | **No metrics** | Zero latency/throughput observability beyond span durations. |
-| 5 | **Log level default is `error`** | Most Effect.log/logInfo/logWarning calls never emit. Useful for prod noise reduction but means file/OTLP export is sparse unless user changes setting. |
+| 2 | **TraceContextLogProcessor shim** | Works but is a workaround. `OtlpLogger` handles this natively without `@opentelemetry/sdk-logs` dependency. |
+| 3 | **No metrics** | Zero latency/throughput observability beyond span durations. |
+| 4 | **Log level default is `error`** | Most Effect.log/logInfo/logWarning calls never emit. Useful for prod noise reduction but means file/OTLP export is sparse unless user changes setting. |
 
 ### Severity: LOW
 
 | # | Gap | Impact |
 |---|-----|--------|
-| 6 | **No log filtering by span validity** | Spans filtered (top-level/command only for prod), but logs are unfiltered — potential noise. |
-| 7 | **Duplicate trace context** | traceId/spanId appear in both `attributes` AND `spanContext` after shim — slightly wasteful on wire. |
+| 5 | **No log filtering by span validity** | Spans filtered (top-level/command only for prod), but logs are unfiltered — potential noise. |
+| 6 | **Duplicate trace context** | traceId/spanId appear in both `attributes` AND `spanContext` after shim — slightly wasteful on wire. |
 
 ---
 
@@ -164,7 +165,7 @@ OtlpLogger.layer({ url: "http://localhost:4318/v1/logs", resource: {...} })
 
 3. **Keep file export via current approach** — `OtlpLogger` doesn't have file export built in, so `OtlpFileLogExporterNode` remains useful for offline capture.
 
-4. **Add web log export** — Mirror the Node `logRecordProcessor` setup in `spansWeb.ts`.
+4. ~~**Add web log export**~~ **DONE** — Web now routes customEvents-tagged LogRecords via `AzureMonitorLogExporter`.
 
 5. **Lower default log level for dev** — Consider `info` when `enableFileTraces` or `enableLocalTraces` is active, so developers see useful logs without manual setting changes.
 
@@ -175,13 +176,15 @@ OtlpLogger.layer({ url: "http://localhost:4318/v1/logs", resource: {...} })
 | File | Role |
 |------|------|
 | `packages/salesforcedx-vscode-services/src/observability/spansNode.ts` | NodeSdk layer: span + log processors |
-| `packages/salesforcedx-vscode-services/src/observability/spansWeb.ts` | WebSdk layer: span processors only |
+| `packages/salesforcedx-vscode-services/src/observability/spansWeb.ts` | WebSdk layer: span + log processors (customEvents routing) |
+| `packages/salesforcedx-vscode-services/src/observability/spanToCustomEventProcessor.ts` | Span → LogRecord converter (emits "microsoft.custom_event.name" for routing) |
 | `packages/salesforcedx-vscode-services/src/observability/localTracing.ts` | Settings readers + log level |
 | `packages/salesforcedx-vscode-services/src/observability/traceContextLogProcessor.ts` | Shim: attributes → spanContext |
 | `packages/salesforcedx-vscode-services/src/observability/otlpFileLogExporterNode.ts` | File-based log export |
 | `packages/salesforcedx-vscode-services/src/observability/otlpFileSpanExporterNode.ts` | File-based span export |
 | `packages/salesforcedx-vscode-services/src/observability/spanTransformProcessor.ts` | Span metadata enrichment |
 | `packages/salesforcedx-vscode-services/src/observability/spanUtils.ts` | Span serialization |
+| `packages/salesforcedx-utils-vscode/src/telemetry/schema.ts` | Extension package.json schema (enableCustomEventsFromSpans, aiKey) |
 | `node_modules/@effect/opentelemetry/src/Logger.ts` | Effect → OTEL bridge (attributes path) |
 | `node_modules/@effect/opentelemetry/src/OtlpLogger.ts` | Effect-native OTLP logger (native correlation) |
 | `.vscode/launch.json` | Grafana launch configs with OTEL_EXPORTER_OTLP_ENDPOINT |

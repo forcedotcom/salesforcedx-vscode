@@ -41,6 +41,25 @@ flowchart TD
 
 Keeping the stream, exporter callback, and logging/failure telemetry in the same pipeline satisfies the SpanExporter contract while still letting the existing `exportSpan` helper handle per-span telemetry.
 
+### Custom Events Table Routing
+
+When `enableCustomEventsFromSpans` is set to `true`, the SDK routes top-level spans to the App Insights **customEvents** table instead of the standard traces table. This is useful for migrations from the old TelemetryService API to Effect-based observability, allowing dashboards built on customEvents to continue working.
+
+**How it works:**
+
+1. `SpanToCustomEventProcessor` intercepts span completion and emits an OTEL LogRecord with the special attribute `microsoft.custom_event.name` (set to the span name).
+2. `AzureMonitorLogExporter` detects this attribute and routes the LogRecord to the customEvents table.
+3. Span attributes and duration are included as customDimensions and measurements.
+
+**Configuration:** Enable in your extension's `package.json`:
+
+```json
+{
+  "enableCustomEventsFromSpans": true,
+  "aiKey": "your-app-insights-key"  // optional: overrides default connection string
+}
+```
+
 ## Usage with Code Examples
 
 ### Effect Span/Fn Options

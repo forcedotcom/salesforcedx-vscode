@@ -17,10 +17,12 @@ import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
+import { AzureMonitorLogExporterWrapper } from './azureMonitorLogExporterWrapper';
 import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled, getLogLevel } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { OtlpFileLogExporterNode } from './otlpFileLogExporterNode';
 import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
+import { SpanToCustomEventProcessor } from './spanToCustomEventProcessor';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
 
@@ -30,8 +32,18 @@ class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
   }
 }
 
-export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
-  NodeSdk.layer(() => ({
+export const NodeSdkLayerFor = ({
+  extensionName,
+  extensionVersion,
+  o11yEndpoint,
+  productFeatureId,
+  enableCustomEventsFromSpans,
+  connectionString
+}: SdkLayerConfig) => {
+  // Use consumer's connection string if provided, otherwise fall back to services package default
+  const effectiveConnectionString = connectionString ?? DEFAULT_AI_CONNECTION_STRING;
+
+  return NodeSdk.layer(() => ({
     resource: {
       serviceName: extensionName,
       //manually bump this to cause rebuilds/bust cache
@@ -47,7 +59,7 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
         ? [
             new SpanTransformProcessor(
               new FilteredAzureMonitorTraceExporter({
-                connectionString: DEFAULT_AI_CONNECTION_STRING,
+                connectionString: effectiveConnectionString,
                 storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
               }),
               {
@@ -61,9 +73,22 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
-      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : [])
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : []),
+      // SpanProcessor that emits LogRecords for customEvents table routing
+      ...(enableCustomEventsFromSpans ? [new SpanToCustomEventProcessor()] : [])
     ],
     logRecordProcessor: [
+      // Azure Monitor log exporter routes LogRecords with "microsoft.custom_event.name" to customEvents table
+      ...(enableCustomEventsFromSpans && isTelemetryExtensionConfigurationEnabled()
+        ? [
+            new SimpleLogRecordProcessor(
+              new AzureMonitorLogExporterWrapper({
+                connectionString: effectiveConnectionString,
+                storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
+              })
+            )
+          ]
+        : []),
       ...(getFileTracesEnabled() ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())] : [])
     ]
   })).pipe(
@@ -78,3 +103,4 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint,
         : Layer.empty
     )
   );
+};

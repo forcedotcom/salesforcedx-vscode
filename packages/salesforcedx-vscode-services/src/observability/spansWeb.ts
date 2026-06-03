@@ -7,16 +7,29 @@
 import type { SdkLayerConfig } from './sdkLayerConfig';
 import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
-import { isTelemetryExtensionConfigurationEnabled } from './appInsights';
+import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
+import { AzureMonitorLogExporterWrapper } from './azureMonitorLogExporterWrapper';
 import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
+import { SpanToCustomEventProcessor } from './spanToCustomEventProcessor';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
-export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
-  WebSdk.layer(() => ({
+export const WebSdkLayerFor = ({
+  extensionName,
+  extensionVersion,
+  o11yEndpoint,
+  productFeatureId,
+  enableCustomEventsFromSpans,
+  connectionString
+}: SdkLayerConfig) => {
+  // Use consumer's connection string if provided, otherwise fall back to services package default
+  const effectiveConnectionString = connectionString ?? DEFAULT_AI_CONNECTION_STRING;
+
+  return WebSdk.layer(() => ({
     resource: {
       serviceName: extensionName,
       //manually bump this to cause rebuilds/bust cache
@@ -37,6 +50,21 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
-      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterWeb())] : [])
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterWeb())] : []),
+      // SpanProcessor that emits LogRecords for customEvents table routing
+      ...(enableCustomEventsFromSpans ? [new SpanToCustomEventProcessor()] : [])
+    ],
+    logRecordProcessor: [
+      // Azure Monitor log exporter routes LogRecords with "microsoft.custom_event.name" to customEvents table
+      ...(enableCustomEventsFromSpans && isTelemetryExtensionConfigurationEnabled()
+        ? [
+            new SimpleLogRecordProcessor(
+              new AzureMonitorLogExporterWrapper({
+                connectionString: effectiveConnectionString
+              })
+            )
+          ]
+        : [])
     ]
   }));
+};
