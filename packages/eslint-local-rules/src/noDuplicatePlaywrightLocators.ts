@@ -243,10 +243,15 @@ const isConstantImported = (ast: TSESTree.Program, constantName: string, expecte
 /** Calculate relative import path from file to locators */
 const getImportPath = (filePath: string, repoRoot: string): string => {
   const locatorsDir = path.join(repoRoot, 'packages', 'playwright-vscode-ext', 'src', 'utils');
-  const fileDir = path.dirname(path.resolve(filePath));
+  const playwrightPackageDir = path.resolve(repoRoot, 'packages', 'playwright-vscode-ext');
+  const resolvedFilePath = path.resolve(filePath);
+  const fileDir = path.dirname(resolvedFilePath);
   const relativePath = path.relative(fileDir, path.resolve(locatorsDir));
 
-  return filePath.includes('playwright-vscode-ext')
+  // Check if file is inside packages/playwright-vscode-ext directory
+  const isInsidePlaywrightPackage = resolvedFilePath.startsWith(playwrightPackageDir + path.sep);
+
+  return isInsidePlaywrightPackage
     ? (() => {
         const normalized = relativePath.split(path.sep).join('/');
         return normalized === '' || normalized === '.' ? './locators' : `${normalized}/locators`;

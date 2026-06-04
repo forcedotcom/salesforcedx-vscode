@@ -141,12 +141,11 @@ const x = 1;`
       filename: testFile('packages/playwright-vscode-ext/src/pages/test.ts'),
       errors: [
         {
-          messageId: 'useConstant'
-          // Don't check importPath - it varies based on test environment path resolution
+          messageId: 'useConstant',
+          data: { constantName: 'EDITOR', importPath: '@salesforcedx/playwright-vscode-ext/utils/locators' }
         }
       ],
-      // Output path varies based on test environment - verify it imports EDITOR and replaces the string
-      output: `import { EDITOR } from '../../../../playwright-vscode-ext/src/utils/locators';
+      output: `import { EDITOR } from '@salesforcedx/playwright-vscode-ext/utils/locators';
 page.locator(EDITOR);`
     },
     {
