@@ -182,9 +182,22 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await saveScreenshot(page, 'step.pass.test-started.png');
     });
 
-    await test.step('verify passing test output and Open Report flow', async () => {
+    await test.step('verify passing run report notification and Open Report flow', async () => {
       await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
 
+      // Click Open Report on the report-ready toast BEFORE doing any palette/maximize ops.
+      // Palette opens/closes and a maximized output panel can hide or collapse the toast,
+      // after which the locator never matches. acceptNotification waits for the notification
+      // internally — no separate waitForNotification call needed.
+      await acceptNotification(page, REPORT_NOTIFICATION_PATTERN, 'Open Report', { timeout: 60_000 });
+      // Confirm a markdown preview tab opened for the test-result-*.md report.
+      await expect(page.getByRole('tab', { name: /test-result-[a-zA-Z0-9]+\.md/ }).first()).toBeVisible({
+        timeout: 10_000
+      });
+      await saveScreenshot(page, 'step.pass.open-report-clicked.png');
+    });
+
+    await test.step('verify passing run output channel content', async () => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
@@ -196,15 +209,6 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
       await saveScreenshot(page, 'step.pass.results-visible.png');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-
-      // Verify Open Report action works (markdown preview opens). acceptNotification waits for the
-      // notification internally — no separate waitForNotification call needed.
-      await acceptNotification(page, REPORT_NOTIFICATION_PATTERN, 'Open Report', { timeout: 60_000 });
-      // Confirm a markdown preview tab opened for the test-result-*.md report.
-      await expect(page.getByRole('tab', { name: /test-result-[a-zA-Z0-9]+\.md/ }).first()).toBeVisible({
-        timeout: 10_000
-      });
-      await saveScreenshot(page, 'step.pass.open-report-clicked.png');
     });
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);
