@@ -63,6 +63,7 @@ const PR_STATE_SCHEMA = {
     prUrl: { type: ['string', 'null'] },
     prNumber: { type: ['number', 'null'] },
     isDraft: { type: ['boolean', 'null'] },
+    mergeable: { type: ['string', 'null'] },
     failedJobs: { type: 'array', items: { type: 'string' } },
     failedLogsExcerpt: { type: ['string', 'null'] },
     maxRunAttempt: { type: ['number', 'null'] },
@@ -330,6 +331,7 @@ const mapWiRecord = r => ({
   name: r.Name,
   subject: r.Subject__c || '',
   details: r.Details__c || '',
+  status: r.Status__c || '',
   storyPoints: typeof r.Story_Points__c === 'number' ? r.Story_Points__c : null,
   createdDate: r.CreatedDate || '',
   prUrl: extractPrUrl(r.Details__c),
@@ -407,11 +409,12 @@ const monitorOutcomes = await pipeline(
       `Check PR state for ${wi.prUrl}.
 
 Run:
-- gh pr view ${wi.prUrl} --json state,isDraft,number,statusCheckRollup
+- gh pr view ${wi.prUrl} --json state,isDraft,number,mergeable,statusCheckRollup
 - FIRST check the top-level .state field (PR lifecycle state, NOT to be confused with row .state):
   - "MERGED" → return state='merged' (no need to inspect statusCheckRollup)
   - "CLOSED" → return state='closed'
   - "OPEN" → continue to check evaluation below
+- Capture .mergeable verbatim into the result's mergeable field (string: "MERGEABLE" / "CONFLICTING" / "UNKNOWN").
 - Parse statusCheckRollup. Two row shapes exist:
   - CheckRun rows expose .conclusion (SUCCESS/FAILURE/NEUTRAL/SKIPPED/CANCELLED/TIMED_OUT) and .status (COMPLETED/IN_PROGRESS/QUEUED/PENDING)
   - StatusContext rows expose .state (SUCCESS/FAILURE/PENDING/EXPECTED/ERROR) only — no .conclusion
@@ -446,7 +449,9 @@ Return ONLY the structured result.`,
   }
 )
 
-const toFinalize = monitorOutcomes.filter(r => r && r.decision === 'finalize')
+const toFinalize = monitorOutcomes.filter(
+  r => r && r.decision === 'finalize' && r.wi.status === 'In Progress'
+)
 const toTriage = monitorOutcomes.filter(r => r && r.decision === 'triage')
 const toRestart = monitorOutcomes.filter(
   r => r && (r.decision === 'no-pr-restart' || r.action === 'no-pr-restart')
@@ -553,7 +558,11 @@ Return {status: 'done', commits} or {status: 'stuck', reason}.`,
 }
 
 const toRefresh = monitorOutcomes.filter(
-  r => r && r.decision === 'wait' && r.wi.prUrl
+  r =>
+    r &&
+    r.wi.prUrl &&
+    (r.decision === 'wait' ||
+      (r.prState && r.prState.mergeable === 'CONFLICTING' && r.decision !== 'close-wi'))
 )
 if (toRefresh.length) {
   phase('Keep in-flight current')
@@ -1119,7 +1128,9 @@ Steps:
 7. Append a PR link to the WI Details__c. CRITICAL: do NOT replace Details__c — read it first, then APPEND.
    a. Fetch existing: \`sf data query --query "SELECT Details__c FROM ADM_Work__c WHERE Id = '${chosen.wiId}'" -o gus --result-format json\`. Parse \`result.records[0].Details__c\` (may be null/empty).
    b. If existing already contains this exact PR URL, skip the update (idempotent — return success).
-   c. Compose new value = (existing || "") + '<p><strong>PR:</strong> <a href="<prUrl>">#<prNumber></a></p>'. Use this exact HTML so the monitor can re-extract the URL.
+   c. Compose new value: take the existing Details__c (or empty string if null), then concatenate this exact HTML snippet, with PR_URL replaced by the actual URL string from gh (e.g. https://github.com/forcedotcom/salesforcedx-vscode/pull/7382) and PR_NUMBER replaced by the integer:
+        <p><strong>PR:</strong> <a href="PR_URL">#PR_NUMBER</a></p>
+      VERIFY before writing: the substring 'href="https://github.com/forcedotcom/salesforcedx-vscode/pull/' must appear in your new value. If 'href=""' appears anywhere in the appended snippet, you have failed substitution — abort and return {prUrl, prNumber} only after fixing it. Do NOT preserve angle-bracket placeholders like <prUrl> or <prNumber> in the output.
    d. Write via --flags-dir to handle quotes safely:
       - mkdir -p /tmp/gus-flags-${chosen.name}
       - Write a SINGLE-LINE file at /tmp/gus-flags-${chosen.name}/values. Format: Details__c="<NEW_VALUE>" using double-quotes around the value. Inside the value, all HTML attribute quotes must remain as plain double-quotes (the file uses single-quote-shell-escaping at the sf CLI layer; per gus-cli skill, single-line values with double-quote outer + literal double-quote inner work). If the existing Details__c contains a literal " character that would break the value file, fall back to appending using the plain-text form: Details__c='<existing-stripped>\\nPR: <prUrl>' but log a warning that the original HTML was lossy.

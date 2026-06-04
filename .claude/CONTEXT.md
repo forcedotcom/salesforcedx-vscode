@@ -39,6 +39,17 @@ Dedup signal — runner skips threads it has 😕'd. Re-engage trigger: any
 non-runner reply in the thread after the reaction's `created_at` causes
 runner to remove its own 😕 next tick, re-entering the thread for triage.
 
+## Adopted PR
+
+Community PR replayed onto our branch via `/adopt-pr <PR#>`. User's commits
+cherry-picked onto fresh `develop` branch (Author preserved). New GUS WI:
+runner = `Assignee__c` + `QA_Engineer__c`. Subject excludes `[ai-auto]` —
+no auto-build-wi handoff; the slash command runs full pipeline synchronously
+end-to-end. Original PR closed with cross-link comment after new PR opens.
+New PR body includes `Co-authored-by:` trailer for GitHub credit.
+
+_Avoid_: "imported PR", "rebased PR" (rebase implies merge-base preserved).
+
 ## Peer approve
 
 Phase in `auto-build-wi.js`. Per tick: scan ai-auto WIs in `Ready for Review`
