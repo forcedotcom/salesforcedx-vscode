@@ -8,25 +8,12 @@
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
-/** Check if an expression is a call to nls.localize() */
-const isNlsLocalizeCall = (expr: TSESTree.Expression): boolean =>
-  expr.type === AST_NODE_TYPES.CallExpression &&
-  expr.callee.type === AST_NODE_TYPES.MemberExpression &&
-  expr.callee.object.type === AST_NODE_TYPES.Identifier &&
-  expr.callee.object.name === 'nls' &&
-  expr.callee.property.type === AST_NODE_TYPES.Identifier &&
-  expr.callee.property.name === 'localize';
-
-/** Check if an expression is a string literal or template literal without nls.localize() */
-const isStringLiteralOrTemplateWithoutNls = (expr: TSESTree.Expression): boolean => {
-  if (expr.type === AST_NODE_TYPES.Literal && typeof expr.value === 'string') {
-    return true;
-  }
-  if (expr.type === AST_NODE_TYPES.TemplateLiteral) {
-    return !expr.expressions.some(isNlsLocalizeCall);
-  }
-  return false;
-};
+import {
+  findVarInitInScope,
+  isNlsLocalizeCall,
+  isStringLiteralOrTemplateWithoutNls,
+  isVscodeWindowMethodCall
+} from './astUtils';
 
 export const noVscodeMessageLiterals = RuleCreator.withoutDocs({
   meta: {
@@ -44,25 +31,15 @@ export const noVscodeMessageLiterals = RuleCreator.withoutDocs({
   defaultOptions: [],
   create: context => ({
     CallExpression: (node: TSESTree.CallExpression): void => {
-      // Type guard: Check if this is vscode.window.show*Message
+      if (!isVscodeWindowMethodCall(node, /^show(Information|Warning|Error)Message$/)) return;
       if (node.callee.type !== AST_NODE_TYPES.MemberExpression) return;
-      if (node.callee.object.type !== AST_NODE_TYPES.MemberExpression) return;
-
-      const vscodeObj = node.callee.object;
-      if (vscodeObj.object.type !== AST_NODE_TYPES.Identifier) return;
-      if (vscodeObj.object.name !== 'vscode') return;
-      if (vscodeObj.property.type !== AST_NODE_TYPES.Identifier) return;
-      if (vscodeObj.property.name !== 'window') return;
       if (node.callee.property.type !== AST_NODE_TYPES.Identifier) return;
 
       const methodName = node.callee.property.name;
-      if (!/^show(Information|Warning|Error)Message$/.test(methodName)) return;
 
-      // Check first argument
       const firstArg = node.arguments[0];
-      if (!firstArg) return; // No arguments, let TypeScript handle this error
+      if (!firstArg) return;
 
-      // Disallow string literals
       if (firstArg.type === AST_NODE_TYPES.Literal && typeof firstArg.value === 'string') {
         context.report({
           node: firstArg,
@@ -72,10 +49,8 @@ export const noVscodeMessageLiterals = RuleCreator.withoutDocs({
         return;
       }
 
-      // Disallow template literals UNLESS they contain nls.localize() calls
       if (firstArg.type === AST_NODE_TYPES.TemplateLiteral) {
-        const hasNlsLocalize = firstArg.expressions.some(isNlsLocalizeCall);
-        if (!hasNlsLocalize) {
+        if (!firstArg.expressions.some(isNlsLocalizeCall)) {
           context.report({
             node: firstArg,
             messageId: 'noLiteral',
@@ -85,31 +60,14 @@ export const noVscodeMessageLiterals = RuleCreator.withoutDocs({
         return;
       }
 
-      // Check if argument is an identifier (variable) - track back to definition
       if (firstArg.type === AST_NODE_TYPES.Identifier) {
-        // Traverse scopes from innermost to outermost to find variable definition
-        let currentScope: ReturnType<typeof context.sourceCode.getScope> | null = context.sourceCode.getScope(node);
-        while (currentScope) {
-          const variable = currentScope.variables.find(v => v.name === firstArg.name);
-          if (variable?.defs[0]) {
-            const def = variable.defs[0];
-            const defNode = def.node;
-            // Check if it's a VariableDeclarator (const/let/var declarations)
-            if (defNode.type === AST_NODE_TYPES.VariableDeclarator && defNode.init) {
-              if (isStringLiteralOrTemplateWithoutNls(defNode.init)) {
-                context.report({
-                  node: firstArg,
-                  messageId: 'noLiteral',
-                  data: { method: methodName }
-                });
-                return;
-              }
-            }
-            // Found the variable but it's not a string literal - stop searching
-            return;
-          }
-          // Move to parent scope
-          currentScope = currentScope.upper;
+        const init = findVarInitInScope(context, node, firstArg.name);
+        if (init && isStringLiteralOrTemplateWithoutNls(init)) {
+          context.report({
+            node: firstArg,
+            messageId: 'noLiteral',
+            data: { method: methodName }
+          });
         }
       }
     }
