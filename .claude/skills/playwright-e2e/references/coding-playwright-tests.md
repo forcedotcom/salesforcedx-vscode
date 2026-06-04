@@ -38,7 +38,7 @@ Tests must work identically in web and desktop.
 ## Web headless (`createHeadlessServer`)
 
 - Virtual `folderPath` mount: Node `fs` does not see project files; use `folderUri` (`file://…`) or `.vscode/vscode-extension-test-disk-root.txt` (disk root) when services must resolve `SfProject` — see JSDoc on `packages/playwright-vscode-ext/src/web/createHeadlessServer.ts`
-- Load extra extensions via `additionalExtensionDirs` (e.g. metadata for LWC create). **Web** `headlessServer` + **desktop** fixture: empty `lwc/` + CustomLabels + empty `snippetsE2E` (snippet specs); other bundles via **SFDX: Create Lightning Web Component**.
+- Load extra extensions via `additionalExtensionDirs` (e.g. metadata for LWC create). **Web** `headlessServer`: metadata + apex-log only (no core/apex, desktop only). **Desktop** fixture: metadata + apex-log + apex + core (core required for apex-testing UI features).
 - LWC LSP ready (`waitForLwcLspReady` in `salesforcedx-vscode-lwc` `test/playwright/utils/lwcUtils.ts`): **web** — `LWC Extension` output line `LWC Language Server: indexing complete`; **desktop** — Editor Language Status / legacy status text `Indexing complete` (language status item often missing on web)
 
 ## Virtualized DOM

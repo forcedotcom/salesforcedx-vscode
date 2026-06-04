@@ -13,7 +13,12 @@ import { createDesktopTest, NON_TRACKING_ORG_ALIAS } from '@salesforce/playwrigh
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: NON_TRACKING_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
+  additionalExtensionDirs: [
+    'salesforcedx-vscode-core',
+    'salesforcedx-vscode-metadata',
+    'salesforcedx-vscode-apex-log',
+    'salesforcedx-vscode-apex'
+  ],
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,
@@ -23,7 +28,12 @@ export const desktopTest = createDesktopTest({
 
 export const noOrgDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
+  additionalExtensionDirs: [
+    'salesforcedx-vscode-core',
+    'salesforcedx-vscode-metadata',
+    'salesforcedx-vscode-apex-log',
+    'salesforcedx-vscode-apex'
+  ],
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,
@@ -34,7 +44,12 @@ export const noOrgDesktopTest = createDesktopTest({
 export const emptyWorkspaceDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   emptyWorkspace: true,
-  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log'],
+  additionalExtensionDirs: [
+    'salesforcedx-vscode-core',
+    'salesforcedx-vscode-metadata',
+    'salesforcedx-vscode-apex-log',
+    'salesforcedx-vscode-apex'
+  ],
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,

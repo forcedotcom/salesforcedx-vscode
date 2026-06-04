@@ -201,8 +201,10 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -225,8 +227,10 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-apex:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
