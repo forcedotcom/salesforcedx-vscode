@@ -32,8 +32,6 @@ export const noVscodeMessageLiterals = RuleCreator.withoutDocs({
   create: context => ({
     CallExpression: (node: TSESTree.CallExpression): void => {
       if (!isVscodeWindowMethodCall(node, /^show(Information|Warning|Error)Message$/)) return;
-      if (node.callee.type !== AST_NODE_TYPES.MemberExpression) return;
-      if (node.callee.property.type !== AST_NODE_TYPES.Identifier) return;
 
       const methodName = node.callee.property.name;
 

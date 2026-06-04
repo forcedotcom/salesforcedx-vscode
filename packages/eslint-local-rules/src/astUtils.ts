@@ -30,11 +30,19 @@ export const isStringLiteralOrTemplateWithoutNls = (expr: TSESTree.Expression): 
   return false;
 };
 
+/** A `CallExpression` whose callee is a `MemberExpression` with an `Identifier` property. */
+export type VscodeWindowMethodCall = TSESTree.CallExpression & {
+  callee: TSESTree.MemberExpression & { property: TSESTree.Identifier };
+};
+
 /**
  * Check if `node` is a member call on `vscode.window.<methodName>` or `window.<methodName>`.
- * `methodName` may be a string (exact match) or RegExp (pattern match).
+ * `methodName` may be a string (exact match) or RegExp (pattern match — anchor the regex if needed; partial matches are allowed).
  */
-export const isVscodeWindowMethodCall = (node: TSESTree.CallExpression, methodName: string | RegExp): boolean => {
+export const isVscodeWindowMethodCall = (
+  node: TSESTree.CallExpression,
+  methodName: string | RegExp
+): node is VscodeWindowMethodCall => {
   if (node.callee.type !== AST_NODE_TYPES.MemberExpression) return false;
   const callee = node.callee;
   if (callee.property.type !== AST_NODE_TYPES.Identifier) return false;
@@ -57,13 +65,11 @@ export const isVscodeWindowMethodCall = (node: TSESTree.CallExpression, methodNa
 };
 
 /** Find a property by name in an ObjectExpression */
-export const findObjectProperty = (obj: TSESTree.ObjectExpression, name: string): TSESTree.Property | undefined => {
-  const p = obj.properties.find(
-    prop =>
+export const findObjectProperty = (obj: TSESTree.ObjectExpression, name: string): TSESTree.Property | undefined =>
+  obj.properties.find(
+    (prop): prop is TSESTree.Property =>
       prop.type === AST_NODE_TYPES.Property && prop.key.type === AST_NODE_TYPES.Identifier && prop.key.name === name
   );
-  return p?.type === AST_NODE_TYPES.Property ? p : undefined;
-};
 
 /**
  * Walk scope chain from `node` outward looking for a VariableDeclarator named `name`.
