@@ -15,7 +15,8 @@ import {
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
@@ -26,6 +27,8 @@ import {
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   TEST_RESULTS_TAB,
+  clickTreeItemAction,
+  findTestExplorerItem,
   openTestExplorerAndDiscover
 } from '../helpers/testExplorerHelpers';
 
@@ -95,6 +98,37 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
       .first();
     await expect(testClassItem).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'step.test-class-found.png');
+  });
+
+  await test.step('run all tests on a class via Test Explorer tree-item action', async () => {
+    const classRow = findTestExplorerItem(page, testClassName);
+    await classRow.waitFor({ state: 'visible', timeout: 30_000 });
+    await clickTreeItemAction(classRow, 'Run Test');
+    await saveScreenshot(page, 'step.class-run-action-clicked.png');
+
+    await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+
+    // Test Results panel re-renders Pass Rate after the new run completes.
+    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
+    await expect(page.getByText(testClassName).first()).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
+    await saveScreenshot(page, 'step.class-run-done.png');
+  });
+
+  await test.step('run a single test method via Test Explorer tree-item action', async () => {
+    // Expand the class row to reveal its test methods.
+    const classRow = findTestExplorerItem(page, testClassName);
+    await classRow.locator('.monaco-tl-twistie').click({ force: true });
+    const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
+    await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
+    await clickTreeItemAction(methodRow, 'Run Test');
+    await saveScreenshot(page, 'step.method-run-action-clicked.png');
+
+    await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
+    await expect(page.getByText(`${testClassName}.shouldDiscoverThisTest`).first()).toBeVisible({
+      timeout: TEST_RUN_TIMEOUT
+    });
+    await saveScreenshot(page, 'step.method-run-done.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

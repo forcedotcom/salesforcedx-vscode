@@ -152,7 +152,7 @@ export class LogContext {
   }
 
   public copyStateForHeapDump(): void {
-    this.backupStackFrameInfos = JSON.parse(JSON.stringify(this.stackFrameInfos));
+    this.backupStackFrameInfos = structuredClone(this.stackFrameInfos);
     this.backupFrameHandles = this.frameHandles.copy();
     this.backupRefsMap = new Map<string, ApexVariableContainer>();
     this.backupVariableHandles = new Handles<ApexVariableContainer>();
