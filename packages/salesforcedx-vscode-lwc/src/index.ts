@@ -128,6 +128,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
     createLwcCommand(outputDirParam)
   );
+  yield* registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
+    createLwcCommand(sourceUri, { internal: true })
+  );
   yield* Effect.forkDaemon(startLwcFileWatcher());
   // Creates resources for js-meta.xml to work
   yield* activateMetaSupport(extensionContext.extensionUri);
