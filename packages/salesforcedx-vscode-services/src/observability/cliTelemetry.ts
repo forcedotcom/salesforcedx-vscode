@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 
 // Schema for sf telemetry --json output
@@ -36,9 +37,10 @@ const fetchCliIdFromCli = () => {
   );
 };
 
-/** Get the CLI ID from sf telemetry. Cached permanently. Returns undefined on web  */
+/** Get the CLI ID from sf telemetry. Cached permanently. Returns Option.none() on web or when CLI unavailable. */
 export const getCliId = () =>
   (process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(undefined) : fetchCliIdFromCli()).pipe(
     Effect.cached,
-    Effect.flatten
+    Effect.flatten,
+    Effect.map(Option.fromNullable)
   );

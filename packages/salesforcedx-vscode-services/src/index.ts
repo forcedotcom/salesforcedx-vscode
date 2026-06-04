@@ -36,6 +36,7 @@ import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
+import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { TerminalService } from './terminal/terminalService';
@@ -213,11 +214,13 @@ export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated after FS setup */
 const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
-  context: vscode.ExtensionContext
+  _context: vscode.ExtensionContext
 ) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
+  // seed populates defaultOrgRef.cliId before connectionService and core can read it
+  yield* seedTelemetryIdentities();
   // do this first to prevent Connection issues.
-  yield* updateTelemetryUserIds(context);
+  yield* updateTelemetryUserIds();
   const scope = yield* getExtensionScope();
 
   if (process.env.ESBUILD_PLATFORM === 'web') {

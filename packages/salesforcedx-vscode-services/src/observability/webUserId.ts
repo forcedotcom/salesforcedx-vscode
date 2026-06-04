@@ -6,16 +6,16 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { ExtensionContext } from 'vscode';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 
 // Telemetry globalState keys (matching @salesforce/salesforcedx-utils-vscode constants)
-const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
-const TELEMETRY_GLOBAL_WEB_USER_ID = 'telemetryWebUserId';
+export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
+export const TELEMETRY_GLOBAL_WEB_USER_ID = 'telemetryWebUserId';
 export const UNAUTHENTICATED_USER = 'UNAUTHENTICATED_USER';
 
 /**
@@ -42,19 +42,19 @@ export const setWebUserId = (orgId: string, userId: string) =>
     return webUserId;
   });
 
-/** Updates telemetry user IDs (userId and webUserId) in defaultOrgRef from ExtensionContext globalState */
-export const updateTelemetryUserIds = Effect.fn('updateTelemetryUserIds')(function* (
-  extensionContext: ExtensionContext
-) {
-  const userId = extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID);
-  const webUserId = extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID);
+/** Mirrors webUserId from ExtensionContext globalState into defaultOrgRef. cliId is owned by seedTelemetryIdentities. */
+export const updateTelemetryUserIds = Effect.fn('updateTelemetryUserIds')(function* () {
+  const contextService = yield* ExtensionContextService;
+  const extensionContext = yield* contextService.getContext;
+  const webUserIdOption = Option.fromNullable(
+    extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID)
+  );
 
   const existingOrgInfo = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-  const updated = {
-    ...existingOrgInfo,
-    ...(userId ? { userId } : {}),
-    ...(webUserId ? { webUserId } : {})
-  };
+  const updated = Option.match(webUserIdOption, {
+    onNone: () => existingOrgInfo,
+    onSome: webUserId => ({ ...existingOrgInfo, webUserId })
+  });
 
   // Only update if values actually changed
   if (!Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
