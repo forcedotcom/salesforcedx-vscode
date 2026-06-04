@@ -1367,9 +1367,6 @@ export class ApexDebug extends LoggingDebugSession {
         this.handleSystemWarning(message);
         break;
       }
-      case 'LogLine':
-      case 'OrgChange':
-      case 'Ready':
       default: {
         break;
       }
