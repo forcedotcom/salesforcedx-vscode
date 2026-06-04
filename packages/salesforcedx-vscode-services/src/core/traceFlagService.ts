@@ -87,7 +87,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       getDefaultOrgRef().pipe(
         Effect.flatMap(ref =>
           ref.changes.pipe(
-            Stream.map(info => `${info.orgId ?? ''}|${info.username ?? ''}`),
+            Stream.map(info => info.orgId),
             Stream.changes,
             Stream.drop(1),
             Stream.runForEach(() => idNameCache.invalidateAll)
