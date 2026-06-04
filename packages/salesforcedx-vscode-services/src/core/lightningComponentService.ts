@@ -39,32 +39,46 @@ export class LightningComponentService extends Effect.Service<LightningComponent
     effect: Effect.gen(function* () {
       const fs = yield* FsService;
 
-      /** Stream the immediate children of `bundleUri`, recursing into a top-level `__tests__/` if present. */
-      const bundleEntries = (bundleUri: URI) =>
+      /** Stream the immediate children of `bundleUri`, recursing into a top-level `__tests__/` if present.
+       * Each emitted entry is tagged so callers can apply different match rules to test files vs. bundle
+       * top-level files (test files use a fuzzy substring match; top-level files use a strict pattern). */
+      const bundleEntries = (bundleUri: URI): Stream.Stream<{ uri: URI; inTests: boolean }, unknown> =>
         Stream.unwrap(
           Effect.map(fs.readDirectory(bundleUri), top =>
             Stream.fromIterable(top).pipe(
               Stream.flatMap(child =>
                 Utils.basename(child) === TEST_FOLDER
-                  ? Stream.unwrap(Effect.map(fs.readDirectory(child), Stream.fromIterable))
-                  : Stream.make(child)
+                  ? Stream.unwrap(
+                      Effect.map(fs.readDirectory(child), tests =>
+                        Stream.fromIterable(tests.map(uri => ({ uri, inTests: true })))
+                      )
+                    )
+                  : Stream.make({ uri: child, inTests: false })
               )
             )
           )
         );
 
-      /** Rename all files in the bundle (and __tests__) that match the bundle's name pattern, then
-       * rename the bundle directory itself. Returns the new bundle URI. */
+      /** Rename matching files in the bundle (and __tests__), then rename the bundle directory. Returns the new URI.
+       * Match rules:
+       * Top-level bundle files: strict pattern (e.g. `<oldName>.html`, `<oldName>Controller.js`).
+       * `__tests__/` files: any file whose name contains `<oldName>` (case-sensitive substring) —
+       * covers `<oldName>.test.js`, `<oldName>.small.test.js`, `<oldName>.foo.bar.test.js`, etc.
+       * Without this, files like `propertyTile.small.test.js` are left behind on rename, leaving
+       * the bundle in a half-renamed state. */
       const renameBundle = Effect.fn('LightningComponentService.renameBundle')(function* (params: RenameBundleParams) {
         const { bundleUri, oldName, newName, kind } = params;
         const oldPattern = bundleFilePattern(oldName, kind);
 
         yield* bundleEntries(bundleUri).pipe(
-          Stream.filter(child => oldPattern.test(Utils.basename(child))),
-          Stream.runForEach(child => {
-            const name = Utils.basename(child);
-            const newChild = Utils.joinPath(Utils.dirname(child), name.replace(oldName, newName));
-            return fs.rename(child.toString(), newChild.toString());
+          Stream.filter(({ uri, inTests }) => {
+            const name = Utils.basename(uri);
+            return inTests ? name.includes(oldName) : oldPattern.test(name);
+          }),
+          Stream.runForEach(({ uri }) => {
+            const name = Utils.basename(uri);
+            const newChild = Utils.joinPath(Utils.dirname(uri), name.replaceAll(oldName, newName));
+            return fs.rename(uri.toString(), newChild.toString());
           })
         );
 
