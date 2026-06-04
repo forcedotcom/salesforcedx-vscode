@@ -98,7 +98,7 @@ const exportSpan = (span: ReadableSpan) =>
       parentID: span.parentSpanContext?.spanId
     };
 
-    const { userId, webUserId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+    const { userId, cliId, webUserId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
 
     const props = {
       ...convertAttributes(span.resource.attributes),
@@ -110,6 +110,7 @@ const exportSpan = (span: ReadableSpan) =>
       startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
       endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000),
       ...(userId ? { userId } : {}),
+      ...(cliId ? { cliId } : {}),
       ...(webUserId ? { webUserId } : {})
     };
 
