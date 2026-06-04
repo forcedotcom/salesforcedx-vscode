@@ -222,7 +222,7 @@ const isConstantImported = (ast: TSESTree.Program, constantName: string, expecte
       const isLocatorsImport =
         sourceValue === expectedImportPath ||
         sourceValue.includes('locators') ||
-        sourceValue === '@salesforcedx/vscode-playwright/utils/locators' ||
+        sourceValue === '@salesforcedx/playwright-vscode-ext/utils/locators' ||
         sourceValue.endsWith('/locators') ||
         sourceValue.endsWith('./locators') ||
         sourceValue.endsWith('../locators') ||
@@ -251,7 +251,7 @@ const getImportPath = (filePath: string, repoRoot: string): string => {
         const normalized = relativePath.split(path.sep).join('/');
         return normalized === '' || normalized === '.' ? './locators' : `${normalized}/locators`;
       })()
-    : '@salesforcedx/vscode-playwright/utils/locators';
+    : '@salesforcedx/playwright-vscode-ext/utils/locators';
 };
 
 /** Create fixes for adding import statement */
@@ -287,7 +287,8 @@ const createImportFixes = (
       stmt.type === AST_NODE_TYPES.ImportDeclaration &&
       stmt.source.type === AST_NODE_TYPES.Literal &&
       typeof stmt.source.value === 'string' &&
-      (stmt.source.value.includes('locators') || stmt.source.value === '@salesforcedx/vscode-playwright/utils/locators')
+      (stmt.source.value.includes('locators') ||
+        stmt.source.value === '@salesforcedx/playwright-vscode-ext/utils/locators')
   );
 
   if (existingLocatorsImport) {
