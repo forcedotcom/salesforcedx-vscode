@@ -691,6 +691,15 @@ export default [
     }
   },
   {
+    // HashableUri must always be imported from the services root (no test exemption).
+    // Applies in src and test directories alike, except inside the services package.
+    files: ['packages/**/src/**/*.ts', 'packages/**/test/**/*.ts'],
+    ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      'local/no-direct-hashableuri-imports': 'error'
+    }
+  },
+  {
     // Relaxed rules for test files
     files: [
       'packages/**/test/**/*.ts',
