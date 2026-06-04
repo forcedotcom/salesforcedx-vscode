@@ -27,14 +27,19 @@ type UriChange = Parameters<URI['with']>[0];
 const hasObjectProp = <K extends string>(u: unknown, key: K): u is Record<K, object> =>
   u !== null && typeof u === 'object' && key in u && typeof Object(u)[key] === 'object' && Object(u)[key] !== null;
 
-/** Structural cross-bundle check: any value with a `uri` field that looks like a URI. */
+/**
+ * Structural cross-bundle check: any value with a `uri` field that looks like a URI AND carries
+ * Effect's `Equal.symbol` method. Requiring `Equal.symbol` keeps the Equal contract symmetric:
+ * a plain `{uri}` literal would not satisfy `Hash.hash` requirements, so we must reject it here.
+ */
 const isHashableUriShape = (u: unknown): u is HashableUri =>
-  hasObjectProp(u, 'uri') && typeof Object(u.uri).scheme === 'string';
+  hasObjectProp(u, 'uri') && typeof Object(u.uri).scheme === 'string' && typeof Object(u)[Equal.symbol] === 'function';
 
 const fromUri = (uri: URI): HashableUri => {
   // Normalize Windows drive letters to lowercase — VS Code URIs may have /C:/ or /c:/
   // depending on the source (context menu, readDirectory, workspace folder, etc.).
   // Consistent lowercase ensures HashSet comparisons work regardless of origin.
+  // Gated on file scheme; non-file URIs do not use drive letters.
   const normalized =
     uri.scheme === 'file' && /^\/[A-Z]:/.test(uri.path)
       ? uri.with({ path: uri.path.replace(/^\/[A-Z]:/, m => m.toLowerCase()) })
@@ -47,12 +52,10 @@ const fromUri = (uri: URI): HashableUri => {
   return self;
 };
 
-type WithFn = {
+const withFn: {
   (change: UriChange): (self: HashableUri) => HashableUri;
   (self: HashableUri, change: UriChange): HashableUri;
-};
-
-const withFn: WithFn = dual(2, (self: HashableUri, change: UriChange): HashableUri => fromUri(self.uri.with(change)));
+} = dual(2, (self: HashableUri, change: UriChange): HashableUri => fromUri(self.uri.with(change)));
 
 export const HashableUri = {
   fromUri,
