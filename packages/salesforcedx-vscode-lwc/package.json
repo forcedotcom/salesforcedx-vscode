@@ -375,6 +375,14 @@
         {
           "command": "sf.lightning.lwc.rename",
           "when": "sf:project_opened && resource =~ /.*\\/lwc\\/.*(\\/[^\\/]+\\.(html|css|js|ts|xml|svg))?$/"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
+        },
+        {
+          "command": "sf.internal.lightning.generate.lwc",
+          "when": "explorerResourceIsFolder && sf:internal_dev"
         }
       ],
       "commandPalette": [
