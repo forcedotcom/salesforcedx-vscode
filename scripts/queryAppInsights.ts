@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 type AppInsightsQueryResponse = {
-  tables: Array<{
+  tables: {
     name: string;
-    columns: Array<{ name: string; type: string }>;
+    columns: { name: string; type: string }[];
     rows: unknown[][];
-  }>;
+  }[];
   error?: {
     code: string;
     message: string;
@@ -95,9 +95,7 @@ const queryAppInsights = async (kqlQuery: string): Promise<QueryResult> => {
   }
 };
 
-const testConnection = async (): Promise<QueryResult> => {
-  return queryAppInsights('customEvents | take 1');
-};
+const testConnection = async (): Promise<QueryResult> => queryAppInsights('customEvents | take 1');
 
 if (require.main === module) {
   const args = process.argv.slice(2);

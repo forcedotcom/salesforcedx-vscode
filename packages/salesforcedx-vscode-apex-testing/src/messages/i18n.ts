@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -66,7 +66,6 @@ export const messages = {
   apex_test_connection_not_initialized_message: 'Connection not initialized. Call ensureInitialized() first.',
   apex_test_populate_suite_items_failed_message: 'Failed to populate suite items: %s',
   apex_test_debug_failed_message: 'Debug failed: %s',
-  apex_test_update_results_failed_message: 'Failed to update test results: %s',
   apex_test_discovery_partial_warning:
     'Test discovery encountered URL length limits. Some tests may not be visible. Try refreshing or filtering by namespace.',
   apex_test_error_unknown_exception_message:
@@ -102,8 +101,8 @@ export const messages = {
     'No code coverage information was found for file %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_no_code_coverage_on_project:
     'No test run information was found for this project. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
-  colorizer_no_code_coverage_on_test_results:
-    'No code coverage information was found for test run %s. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
+  colorizer_no_code_coverage_in_recent_results:
+    'No code coverage information was found in recent test results. Set "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
   colorizer_out_of_sync_code_coverage_data:
     'It looks like this file has been updated. To update your code coverage numbers, run the tests in this file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',

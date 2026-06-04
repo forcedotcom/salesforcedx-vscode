@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
-export const PKG_ID_PREFIX = '04t';
 
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 export const TELEMETRY_OPT_OUT_LINK = 'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';

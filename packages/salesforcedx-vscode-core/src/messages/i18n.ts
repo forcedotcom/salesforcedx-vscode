@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -16,9 +16,6 @@
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
-  parameter_gatherer_enter_package_id: 'Enter the ID of the package to install',
-  parameter_gatherer_enter_installation_key_if_necessary:
-    'Enter the installation key, if required, or leave the field blank',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
@@ -39,7 +36,6 @@ export const messages = {
   config_list_table_title: 'List Config',
   config_list_no_results: 'No results found',
   alias_list_text: 'SFDX: List All Aliases',
-  package_install_text: 'SFDX: Install Package',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
@@ -375,8 +371,6 @@ export const messages = {
   WorkflowFlowAutomation: 'Workflow Flow Automations',
   XOrgHub: 'X Org Hubs',
 
-  package_id_validation_error: 'Package ID should be a 15 or 18 character Id that starts with 04t',
-  package_id_gatherer_placeholder: '04t...',
   rename_lightning_component: 'SFDX: Rename Component',
   component_input_dup_error: 'Component name is already in use in LWC or Aura',
   rename_component_input_dup_file_name_error:

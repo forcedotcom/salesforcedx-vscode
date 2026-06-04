@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -127,6 +127,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
     createLwcCommand(outputDirParam)
+  );
+  yield* registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
+    createLwcCommand(sourceUri, { internal: true })
   );
   yield* Effect.forkDaemon(startLwcFileWatcher());
   // Creates resources for js-meta.xml to work

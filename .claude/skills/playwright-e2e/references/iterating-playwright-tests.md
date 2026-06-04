@@ -20,6 +20,19 @@ WIREIT_CACHE=none npm run test:desktop -w <package> -- --retries 0 test/playwrig
 
 **Port conflict (web):** If a previous web server is still on port 3001, playwright fails immediately with `http://localhost:3001 is already used`. Fix: `lsof -ti :3001 | xargs kill -9`
 
+**Running from inside VS Code (agent shells):** When the shell inherits the VS Code extension host environment, `test:desktop` fails immediately with `Electron: bad option: --no-sandbox` / `--disable-workspace-trust` because `ELECTRON_RUN_AS_NODE=1` and `VSCODE_*` vars are set. Strip them on the command:
+
+```bash
+env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE \
+    -u VSCODE_PID -u VSCODE_IPC_HOOK -u VSCODE_NLS_CONFIG \
+    -u VSCODE_HANDLES_UNCAUGHT_ERRORS -u VSCODE_CWD \
+    -u VSCODE_CRASH_REPORTER_PROCESS_TYPE -u VSCODE_ESM_ENTRYPOINT \
+    -u VSCODE_CLI -u VSCODE_CODE_CACHE_PATH -u VSCODE_L10N_BUNDLE_LOCATION \
+    WIREIT_CACHE=none npm run test:desktop -w <package> -- --retries 0 <spec>
+```
+
+`unset` in a separate bash call won't help — each Bash tool invocation is a fresh shell.
+
 3. edit github workflows if needed
 4. CI (windows, gha) - see `analyze-e2e.md` for monitoring and analyzing results
 

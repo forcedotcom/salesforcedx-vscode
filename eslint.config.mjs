@@ -31,6 +31,8 @@ const localRules = localRulesPlugin.rules;
 const localProcessors = localRulesPlugin.processors;
 const localPlugin = { processors: localProcessors, rules: localRules };
 
+const currentYear = new Date().getFullYear();
+
 export default [
   {
     ignores: [
@@ -163,10 +165,12 @@ export default [
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-array-reverse': 'error',
       'unicorn/no-array-sort': 'error',
+      'unicorn/no-empty-file': 'error',
       'unicorn/no-immediate-mutation': 'error',
       'unicorn/no-instanceof-builtins': 'error',
-      'unicorn/no-typeof-undefined': 'error',
+      'unicorn/no-single-promise-in-promise-methods': 'error',
       'unicorn/no-static-only-class': 'error',
+      'unicorn/no-typeof-undefined': 'error',
       'unicorn/no-unused-properties': 'error',
       'unicorn/no-useless-collection-argument': 'error',
       'unicorn/no-useless-error-capture-stack-trace': 'error',
@@ -175,14 +179,19 @@ export default [
       'unicorn/no-useless-length-check': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
       'unicorn/no-useless-spread': 'error',
+      'unicorn/no-useless-switch-case': 'error',
       'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-at': 'error',
       'unicorn/prefer-array-find': 'error',
+      'unicorn/prefer-array-flat': 'error',
+      'unicorn/prefer-array-flat-map': 'error',
+      'unicorn/prefer-array-some': 'error',
       'unicorn/prefer-class-fields': 'error',
       'unicorn/prefer-date-now': 'error',
       'unicorn/prefer-export-from': 'error',
       'unicorn/prefer-includes': 'error',
       'unicorn/prefer-modern-math-apis': 'error',
+      'unicorn/prefer-native-coercion-functions': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/prefer-object-from-entries': 'error',
       'unicorn/prefer-optional-catch-binding': 'error',
@@ -191,6 +200,7 @@ export default [
       'unicorn/prefer-single-call': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
+      'unicorn/prefer-structured-clone': 'error',
       'unicorn/prefer-ternary': ['error'],
       'unicorn/prefer-simple-condition-first': 'error',
       'unicorn/filename-case': [
@@ -205,8 +215,8 @@ export default [
         [
           '',
           {
-            pattern: ' \\* Copyright \\(c\\) \\d{4}, salesforce\\.com, inc\\.',
-            template: ' * Copyright (c) 2026, salesforce.com, inc.'
+            pattern: ` \\* Copyright \\(c\\) ${currentYear}, salesforce\\.com, inc\\.`,
+            template: ` * Copyright (c) ${currentYear}, salesforce.com, inc.`
           },
           ' * All rights reserved.',
           ' * Licensed under the BSD 3-Clause license.',

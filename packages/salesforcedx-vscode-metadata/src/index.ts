@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -16,6 +16,7 @@ import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
 import { deployManifestCommand } from './commands/deployManifest';
 import { deployActiveEditorCommand, deploySourcePathsCommand } from './commands/deploySourcePath';
 import { generateManifestCommand } from './commands/generateManifest';
+import { packageInstallCommand } from './commands/packageInstall';
 import { projectDeployStartCommand } from './commands/projectDeployStart';
 import { sfProjectGenerateCommand } from './commands/projectGenerate';
 import { projectInfoCommand } from './commands/projectInfo';
@@ -110,7 +111,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand('sf.conflict.diff', conflictDiffCommandEffect),
       registerCommand('sf.conflict.open', conflictOpenCommandEffect),
       registerCommand('sf.metadata.view.conflicts', () => openConflictViewCommand()),
-      registerCommand('sf.metadata.project.info', projectInfoCommand)
+      registerCommand('sf.metadata.project.info', projectInfoCommand),
+      registerCommand('sf.package.install', packageInstallCommand)
     ],
     { concurrency: 'unbounded' }
   );

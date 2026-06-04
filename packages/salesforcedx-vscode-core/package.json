@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.13.0",
+  "version": "66.14.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "@salesforce/templates": "^66.7.13",
+    "@salesforce/templates": "^66.9.1",
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -220,10 +220,6 @@
       ],
       "commandPalette": [
         {
-          "command": "sf.package.install",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
           "command": "sf.open.documentation",
           "when": "sf:project_opened"
         },
@@ -242,10 +238,6 @@
       ]
     },
     "commands": [
-      {
-        "command": "sf.package.install",
-        "title": "%package_install_text%"
-      },
       {
         "command": "sf.open.documentation",
         "title": "%open_documentation_text%"
