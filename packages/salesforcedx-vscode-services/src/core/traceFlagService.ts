@@ -23,6 +23,7 @@ import {
   TraceFlagUpdateError,
   UserIdNotFoundError
 } from '../errors/traceFlagErrors';
+import { getExtensionScope } from '../vscode/extensionScope';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import {
@@ -82,18 +83,17 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       lookup: () => Effect.die('idNameCache.lookup should never be called — use getOption + set')
     });
 
-    // Invalidate cache when default org identity (orgId/username) changes.
-    yield* Effect.forkDaemon(
-      getDefaultOrgRef().pipe(
-        Effect.flatMap(ref =>
-          ref.changes.pipe(
-            Stream.map(info => info.orgId),
-            Stream.changes,
-            Stream.drop(1),
-            Stream.runForEach(() => idNameCache.invalidateAll)
-          )
+    // Invalidate cache when default org identity (orgId) changes. Fiber tied to the extension scope.
+    yield* getDefaultOrgRef().pipe(
+      Effect.flatMap(ref =>
+        ref.changes.pipe(
+          Stream.map(info => info.orgId),
+          Stream.changes,
+          Stream.drop(1),
+          Stream.runForEach(() => idNameCache.invalidateAll)
         )
-      )
+      ),
+      Effect.forkIn(yield* getExtensionScope())
     );
 
     const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
