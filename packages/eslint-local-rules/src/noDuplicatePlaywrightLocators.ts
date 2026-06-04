@@ -222,7 +222,7 @@ const isConstantImported = (ast: TSESTree.Program, constantName: string, expecte
       const isLocatorsImport =
         sourceValue === expectedImportPath ||
         sourceValue.includes('locators') ||
-        sourceValue === '@salesforcedx/playwright-vscode-ext/utils/locators' ||
+        sourceValue === '@salesforce/playwright-vscode-ext' ||
         sourceValue.endsWith('/locators') ||
         sourceValue.endsWith('./locators') ||
         sourceValue.endsWith('../locators') ||
@@ -256,7 +256,7 @@ const getImportPath = (filePath: string, repoRoot: string): string => {
         const normalized = relativePath.split(path.sep).join('/');
         return normalized === '' || normalized === '.' ? './locators' : `${normalized}/locators`;
       })()
-    : '@salesforcedx/playwright-vscode-ext/utils/locators';
+    : '@salesforce/playwright-vscode-ext';
 };
 
 /** Create fixes for adding import statement */
@@ -292,8 +292,7 @@ const createImportFixes = (
       stmt.type === AST_NODE_TYPES.ImportDeclaration &&
       stmt.source.type === AST_NODE_TYPES.Literal &&
       typeof stmt.source.value === 'string' &&
-      (stmt.source.value.includes('locators') ||
-        stmt.source.value === '@salesforcedx/playwright-vscode-ext/utils/locators')
+      (stmt.source.value.includes('locators') || stmt.source.value === '@salesforce/playwright-vscode-ext')
   );
 
   if (existingLocatorsImport) {
@@ -318,7 +317,7 @@ export const noDuplicatePlaywrightLocators = RuleCreator.withoutDocs({
     type: 'problem',
     docs: {
       description:
-        'Disallow string literals that duplicate selector values from playwright-vscode-ext/src/utils/locators.ts - use exported constants instead'
+        'Disallow string literals that duplicate selector values from @salesforce/playwright-vscode-ext - use exported constants instead'
     },
     schema: [],
     fixable: 'code',

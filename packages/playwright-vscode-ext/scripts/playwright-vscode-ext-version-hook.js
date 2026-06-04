@@ -14,13 +14,7 @@ exports.preVersionGeneration = proposedVersion => {
     return proposedVersion;
   }
   const { version } = require('../package.json');
-  // Strip any prerelease/build suffix (e.g. `1.0.0-beta` -> `1.0.0`) before bumping.
-  const core = version.split(/[-+]/)[0];
-  const parts = core.split('.').map(Number);
-  if (parts.length !== 3 || parts.some(Number.isNaN)) {
-    throw new Error(`Cannot parse semver core from version "${version}"`);
-  }
-  const [major, minor, patch] = parts;
+  const [major, minor, patch] = version.split('.').map(Number);
   if (releaseType === 'major') return `${major + 1}.0.0`;
   if (releaseType === 'minor') return `${major}.${minor + 1}.0`;
   return `${major}.${minor}.${patch + 1}`;

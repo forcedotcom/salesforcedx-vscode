@@ -15,13 +15,7 @@ This package provides reusable building blocks for authoring Playwright tests ag
 npm install --save-dev @salesforce/playwright-vscode-ext @playwright/test
 ```
 
-If you use the desktop fixtures (which create or reuse Salesforce scratch orgs), also install `@salesforce/core`:
-
-```bash
-npm install --save-dev @salesforce/core
-```
-
-`@salesforce/core` is declared as an optional peer dependency. Tests that only use the web/headless fixtures or the type-only exports do not need it.
+If you use the desktop fixtures or settings APIs (which work with Salesforce scratch orgs), you will need `@salesforce/core` types to resolve. Consumers using only web/headless fixtures or type-only exports do not need it; others should ensure `@salesforce/core` is installed in their project (as a dependency or dev dependency).
 
 ## Usage
 

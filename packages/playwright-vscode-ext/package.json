@@ -13,8 +13,8 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/playwright-vscode-ext",
-  "main": "./out/index.js",
-  "types": "./out/index.d.ts",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
   "exports": {
     ".": {
       "types": "./out/index.d.ts",
@@ -26,28 +26,16 @@
     "out/**/*.js.map",
     "out/**/*.d.ts",
     "out/**/*.d.ts.map",
-    "CHANGELOG.md",
     "LICENSE.txt",
     "README.md"
   ],
   "publishConfig": {
     "access": "public"
   },
-  "engines": {
-    "vscode": "^1.90.0"
-  },
   "dependencies": {
     "@playwright/test": "^1.57.0",
     "@vscode/test-electron": "2.5.2",
     "@vscode/test-web": "^0.0.78"
-  },
-  "peerDependencies": {
-    "@salesforce/core": "^8.31.0"
-  },
-  "peerDependenciesMeta": {
-    "@salesforce/core": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@salesforce/core": "^8.31.0"
