@@ -8,7 +8,8 @@
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
-const HASHABLE_URI_DEEP_PATH = /salesforcedx-vscode-services\/(src\/)?vscode\/hashableUri$/;
+const HASHABLE_URI_DEEP_PATH =
+  /(?:salesforcedx-vscode-services|salesforcedx-vscode-services\/[^"']*)?\/(src|lib)\/vscode\/hashableUri$|salesforcedx-vscode-services\/vscode\/hashableUri$/;
 
 const isHashableUriDeepImport = (source: TSESTree.StringLiteral | TSESTree.TemplateLiteral): boolean => {
   if (source.type === AST_NODE_TYPES.Literal && typeof source.value === 'string') {
