@@ -25,16 +25,25 @@ npm install --save-dev @salesforce/core
 
 ## Usage
 
-```typescript
-import { test, expect } from '@salesforce/playwright-vscode-ext';
+The package exports factories and helpers that compose with `@playwright/test`. For example, build a desktop test suite by combining the `createDesktopTest` factory with helpers and locators:
 
-test('opens the command palette', async ({ vscodePage }) => {
-  await vscodePage.commandPalette.run('Developer: Reload Window');
-  await expect(vscodePage.workbench.title).toBeVisible();
+```typescript
+import { expect } from '@playwright/test';
+import { createDesktopTest, openCommandPalette, WORKBENCH } from '@salesforce/playwright-vscode-ext';
+
+const test = createDesktopTest({
+  extensionDirs: ['salesforcedx-vscode-core']
+});
+
+test('opens the command palette', async ({ vscodeApp }) => {
+  await openCommandPalette(vscodeApp);
+  await expect(vscodeApp.locator(WORKBENCH)).toBeVisible();
 });
 ```
 
-See the [package source](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/playwright-vscode-ext) for the full set of exports and example configurations.
+See the [package source](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/playwright-vscode-ext) for the full set of exports, web/headless config factories (`createWebConfig`, `createHeadlessServer`), and example configurations.
+
+> Note: the desktop test factory (`createDesktopTest`) currently assumes a monorepo layout where extension VSIX paths are resolved relative to a repo root containing `packages/`. It is primarily intended for use inside the `salesforcedx-vscode` monorepo; external consumers should use the web/headless and helper exports.
 
 ## Repository
 
