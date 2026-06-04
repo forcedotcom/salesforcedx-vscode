@@ -27,6 +27,10 @@ on:
         default: false
         type: boolean
 
+concurrency:
+  group: publish-playwright-vscode-ext
+  cancel-in-progress: false
+
 jobs:
   create-release:
     name: Create Release
@@ -39,7 +43,7 @@ jobs:
       - name: Get Github user info
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag == ''
         id: github-user-info
-        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@b1f70470a9da194c0feb1ca77c1a6951f1d49f74 # main
         with:
           SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
 
@@ -75,7 +79,6 @@ jobs:
         with:
           name: ${{ steps.changelog.outputs.tag }}
           tag: ${{ steps.changelog.outputs.tag }}
-          commit: develop
           body: ${{ steps.changelog.outputs.clean_changelog }}
           token: ${{ secrets.IDEE_GH_TOKEN }}
           skipIfReleaseExists: true
@@ -98,7 +101,7 @@ jobs:
     name: Build and publish to npm
     needs: create-release
     if: needs.create-release.outputs.tag != ''
-    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@b1f70470a9da194c0feb1ca77c1a6951f1d49f74 # main
     with:
       githubTag: ${{ needs.create-release.outputs.tag }}
       packageManager: npm

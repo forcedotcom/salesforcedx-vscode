@@ -26,6 +26,7 @@
     "out/**/*.js.map",
     "out/**/*.d.ts",
     "out/**/*.d.ts.map",
+    "CHANGELOG.md",
     "LICENSE.txt",
     "README.md"
   ],
