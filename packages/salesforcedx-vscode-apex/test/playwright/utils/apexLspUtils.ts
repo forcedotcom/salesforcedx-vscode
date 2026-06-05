@@ -21,7 +21,10 @@ import { existsSync, readdirSync } from 'node:fs';
 import * as path from 'node:path';
 
 const APEX_LANGUAGE_SERVER_CHANNEL = 'Apex Language Server';
-const RESTART_COMMAND = 'Restart Apex Language Server';
+// `package.nls.json#apex_language_server_restart` — palette command title.
+const RESTART_COMMAND = 'SFDX: Restart Apex Language Server';
+// Hover-action link title (no SFDX prefix; the language status item registers the action with this label).
+const RESTART_LINK_TITLE = 'Restart Apex Language Server';
 const RESTART_ONLY_LABEL = 'Restart Only';
 const CLEAN_AND_RESTART_LABEL = 'Clean Apex DB and Restart';
 const STANDARD_APEX_LIBRARY = 'StandardApexLibrary';
@@ -77,7 +80,7 @@ const clickApexLspRestartAction = async (page: Page): Promise<void> => {
   const statusButton = getApexLanguageStatusButton(page, /Apex/);
   await statusButton.first().click();
   // The link inside the hover renders with the action title.
-  const restartLink = page.getByRole('link', { name: new RegExp(RESTART_COMMAND, 'i') }).first();
+  const restartLink = page.getByRole('link', { name: new RegExp(RESTART_LINK_TITLE, 'i') }).first();
   await restartLink.waitFor({ state: 'visible', timeout: 10000 });
   await restartLink.click();
 };
