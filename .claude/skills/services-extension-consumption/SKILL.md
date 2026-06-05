@@ -149,6 +149,7 @@ Cross-extension / `executeCommand`: `vscode.commands.executeCommand('sf.org.logi
 Accessor pattern: call methods directly, don't assign to variable first.
 
 - [ChannelService](references/channel-service.md) - Output channel
+- [ComponentSetService](references/component-set-service.md) - Build component sets (source, manifest, URIs)
 - [MediaService](references/media-service.md) - Icons (ICONS) and NLS descriptions
 - [WorkspaceService](references/workspace-service.md) - Workspace info
 - [ConnectionService](references/connection-service.md) - Org connections

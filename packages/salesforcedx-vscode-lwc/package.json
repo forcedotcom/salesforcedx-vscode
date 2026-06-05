@@ -340,7 +340,12 @@
       "test": []
     },
     "menus": {
-      "editor/context": [],
+      "editor/context": [
+        {
+          "command": "sf.lightning.lwc.rename",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+\\/[^\\/]+\\.(html|css|js|ts|xml|svg)$/"
+        }
+      ],
       "editor/title": [
         {
           "command": "sf.lightning.lwc.test.editorTitle.run",
@@ -368,6 +373,10 @@
       "view/item/context": [],
       "explorer/context": [
         {
+          "command": "sf.lightning.lwc.rename",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/.*(\\/[^\\/]+\\.(html|css|js|ts|xml|svg))?$/"
+        },
+        {
           "command": "sf.metadata.lightning.generate.lwc",
           "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
         },
@@ -380,6 +389,10 @@
         {
           "command": "sf.metadata.lightning.generate.lwc",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.lightning.lwc.rename",
+          "when": "false"
         },
         {
           "command": "sf.internal.lightning.generate.lwc",
@@ -427,6 +440,10 @@
       {
         "command": "sf.internal.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
+      },
+      {
+        "command": "sf.lightning.lwc.rename",
+        "title": "%rename_lightning_component_text%"
       },
       {
         "command": "sf.lightning.lwc.test.file.debug",

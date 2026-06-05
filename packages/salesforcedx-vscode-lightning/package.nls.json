@@ -9,5 +9,6 @@
   "lightning_generate_app_text": "SFDX: Create Aura App",
   "lightning_generate_aura_component_text": "SFDX: Create Aura Component",
   "lightning_generate_event_text": "SFDX: Create Aura Event",
-  "lightning_generate_interface_text": "SFDX: Create Aura Interface"
+  "lightning_generate_interface_text": "SFDX: Create Aura Interface",
+  "rename_lightning_component_text": "SFDX: Rename Component"
 }

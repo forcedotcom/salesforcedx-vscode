@@ -11,12 +11,12 @@ import {
   OrgUserInfo,
   WorkspaceContextUtil,
   UserService,
-  refreshAllExtensionReporters,
-  getDevHubIdFromScratchOrg
+  refreshAllExtensionReporters
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
+import { getDevHubIdFromScratchOrg } from '../util/orgShapeUtil';
 import { getOrgShape } from './workspaceOrgShape';
 
 /**
