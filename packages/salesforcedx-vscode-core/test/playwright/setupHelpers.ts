@@ -19,7 +19,6 @@ import {
   saveScreenshot
 } from '@salesforce/playwright-vscode-ext';
 import { OUTPUT_CHANNEL } from './constants';
-import packageNls from '../../package.nls.json';
 
 type OrgAuthResult = Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>;
 
@@ -33,7 +32,7 @@ export const setupWorkbenchSettingsAndOutputChannel = async (page: Page): Promis
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
   await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-  await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
+  await verifyCommandExists(page, 'SFDX: Create Apex Class', 120_000);
 
   // Open output panel and select Salesforce CLI channel
   await ensureOutputPanelOpen(page);
