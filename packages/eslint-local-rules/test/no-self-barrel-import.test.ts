@@ -35,6 +35,14 @@ ruleTester.run('no-self-barrel-import', noSelfBarrelImport, {
     {
       code: `import { foo } from '../../..';`,
       errors: [{ messageId: 'noSelfBarrel', data: { source: '../../..' } }]
+    },
+    {
+      code: `export { foo } from '..';`,
+      errors: [{ messageId: 'noSelfBarrel', data: { source: '..' } }]
+    },
+    {
+      code: `export * from '.';`,
+      errors: [{ messageId: 'noSelfBarrel', data: { source: '.' } }]
     }
   ]
 });
