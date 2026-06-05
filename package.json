@@ -128,6 +128,7 @@
     "changelog": "ts-node ./scripts/create-release-notes.ts",
     "clean": "npm run clean -ws --if-present && git clean -xfd",
     "clean:build": "node scripts/clean-build-artifacts.js",
+    "clean:spans": "shx rm -rf ~/.sf/vscode-spans && shx mkdir -p ~/.sf/vscode-spans",
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
     "compile": "wireit",
     "compile:github-actions": "wireit",

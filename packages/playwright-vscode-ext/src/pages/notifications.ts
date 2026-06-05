@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, type Page } from '@playwright/test';
+import { expect, type Page, type Locator } from '@playwright/test';
 import { NOTIFICATION_LIST_ITEM } from '../utils/locators';
 
 /**
@@ -24,4 +24,34 @@ export const waitForRunApexTestsProgressNotificationGone = async (
   await expect(async () => {
     expect(await progressWithCancel.count()).toBe(0);
   }).toPass({ timeout });
+};
+
+/**
+ * Wait for a notification matching `pattern` (regex against the notification text) to appear.
+ * Returns the notification locator so callers can act on it (e.g. click an action button).
+ */
+export const waitForNotification = async (
+  page: Page,
+  pattern: RegExp,
+  opts?: { timeout?: number }
+): Promise<Locator> => {
+  const { timeout = 60_000 } = opts ?? {};
+  const notification = page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: pattern }).first();
+  await expect(notification, `Notification matching ${pattern} should appear`).toBeVisible({ timeout });
+  return notification;
+};
+
+/**
+ * Wait for a notification matching `pattern` and click the named action button on it (e.g. `Open Report`).
+ */
+export const acceptNotification = async (
+  page: Page,
+  pattern: RegExp,
+  buttonName: string,
+  opts?: { timeout?: number }
+): Promise<void> => {
+  const notification = await waitForNotification(page, pattern, opts);
+  const button = notification.getByRole('button', { name: buttonName });
+  await button.waitFor({ state: 'visible', timeout: 5000 });
+  await button.click({ timeout: 5000 });
 };
