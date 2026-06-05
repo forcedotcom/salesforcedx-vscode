@@ -5,30 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 
 const mockRunPromise = jest.fn();
 jest.mock('../../../src/services/runtime', () => ({
   getRuntime: () => ({ runPromise: mockRunPromise })
 }));
 
+const getOrgShapeMock = jest.fn();
+jest.mock('../../../src/context/workspaceOrgShape', () => ({
+  getOrgShape: (...args: any[]) => getOrgShapeMock(...args)
+}));
+
 describe('workspaceContext', () => {
   describe('handleOrgShapeChange', () => {
-    jest.mock('../../../src/context', () => ({
-      workspaceContextUtils: {
-        getOrgShape: jest.fn(),
-        OrgShape: {
-          Undefined: 'Undefined',
-          Scratch: 'Scratch',
-          Sandbox: 'Sandbox',
-          Production: 'Production'
-        }
-      }
-    }));
-
     const mockOrgUserInfo: OrgUserInfo = { username: 'test-username' };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
-    let getOrgShapeMock: jest.SpyInstance;
 
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
@@ -49,7 +41,7 @@ describe('workspaceContext', () => {
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
 
-      getOrgShapeMock = jest.spyOn(workspaceContextUtils, 'getOrgShape').mockResolvedValue('Undefined');
+      getOrgShapeMock.mockResolvedValue('Undefined');
 
       mockRunPromise.mockResolvedValue(undefined);
     });

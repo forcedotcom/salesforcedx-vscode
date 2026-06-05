@@ -16,8 +16,8 @@ import {
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
-import { workspaceContextUtils } from '.';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
+import { getOrgShape } from './workspaceOrgShape';
 
 const getConnectionEffect = Effect.fn('workspaceContext.getConnection')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -74,7 +74,7 @@ export class WorkspaceContext {
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
     const { username } = orgInfo;
     if (username !== undefined) {
-      const orgShape = await workspaceContextUtils.getOrgShape(username);
+      const orgShape = await getOrgShape(username);
       if (orgShape !== 'Undefined') {
         WorkspaceContextUtil.getInstance().orgShape = orgShape;
         WorkspaceContextUtil.getInstance().devHubId = undefined;

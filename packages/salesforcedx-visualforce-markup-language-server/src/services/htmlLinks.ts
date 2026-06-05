@@ -6,8 +6,8 @@
 
 import { Range, TextDocument, DocumentLink } from 'vscode-languageserver-types';
 import { URI } from 'vscode-uri';
-import { DocumentContext } from '..';
 import { createScanner, TokenType } from '../parser/htmlScanner';
+import { DocumentContext } from './documentContext';
 
 function stripQuotes(url: string): string {
   return url.replace(/^'([^']*)'$/, (substr, match1) => match1).replace(/^"([^"]*)"$/, (substr, match1) => match1);
