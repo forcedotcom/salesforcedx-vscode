@@ -25,14 +25,16 @@ const EXAMPLE_CLASS_META = [
   '</ApexClass>'
 ].join('\n');
 
+// Layout is load-bearing: spec navigates to 5:20 for Go to Definition (lands inside
+// `ExampleClass`) and types autocompletion content into the blank line 7 — keep line 7 blank.
 const EXAMPLE_CLASS_TEST = [
   '@IsTest',
   'public class ExampleClassTest {',
   '\t@IsTest',
   '\tstatic void validateSayHello() {',
   "\t\tString result = ExampleClass.SayHello('Cody');",
-  '',
   "\t\tSystem.assertEquals('Hello, Cody!', result, 'SayHello should greet the name');",
+  '',
   '\t}',
   '}'
 ].join('\n');

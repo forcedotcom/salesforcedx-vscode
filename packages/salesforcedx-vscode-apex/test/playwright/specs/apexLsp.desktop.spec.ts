@@ -22,7 +22,7 @@ import { test } from '../fixtures';
 import { waitForApexLspReady } from '../utils/apexLspUtils';
 
 test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, workspaceDir }) => {
-  test.setTimeout(360000);
+  // timeout comes from playwright.config.desktop.ts (timeout: 360_000)
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -36,7 +36,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
 
   await test.step('Go to Definition from ExampleClassTest into ExampleClass', async () => {
     await openFileByName(page, 'ExampleClassTest.cls');
-    // Position caret on `SayHello` reference (line 5, col 20 in the seeded test class)
+    // Position caret on the `ExampleClass` reference (line 5, col 20 in the seeded test class)
     await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
     await page.keyboard.type('5:20');
     await page.keyboard.press('Enter');
