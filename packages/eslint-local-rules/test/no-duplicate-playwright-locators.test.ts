@@ -23,7 +23,7 @@ ruleTester.run('no-duplicate-playwright-locators', noDuplicatePlaywrightLocators
       filename: testFile('packages/test-package/test/playwright/test.spec.ts')
     },
     {
-      code: `import { EDITOR } from '@salesforcedx/vscode-playwright/utils/locators';
+      code: `import { EDITOR } from '@salesforce/playwright-vscode-ext';
 page.locator(EDITOR);`,
       filename: testFile('packages/test-package/test/playwright/test.spec.ts')
     },
@@ -53,10 +53,10 @@ page.locator(selector);`,
       errors: [
         {
           messageId: 'useConstant',
-          data: { constantName: 'EDITOR', importPath: '@salesforcedx/vscode-playwright/utils/locators' }
+          data: { constantName: 'EDITOR', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
-      output: `import { EDITOR } from '@salesforcedx/vscode-playwright/utils/locators';
+      output: `import { EDITOR } from '@salesforce/playwright-vscode-ext';
 page.locator(EDITOR);`
     },
     {
@@ -65,23 +65,23 @@ page.locator(EDITOR);`
       errors: [
         {
           messageId: 'useConstant',
-          data: { constantName: 'WORKBENCH', importPath: '@salesforcedx/vscode-playwright/utils/locators' }
+          data: { constantName: 'WORKBENCH', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
-      output: `import { WORKBENCH } from '@salesforcedx/vscode-playwright/utils/locators';
+      output: `import { WORKBENCH } from '@salesforce/playwright-vscode-ext';
 page.locator(WORKBENCH);`
     },
     {
-      code: `import { EDITOR } from '@salesforcedx/vscode-playwright/utils/locators';
+      code: `import { EDITOR } from '@salesforce/playwright-vscode-ext';
 page.locator('.monaco-workbench');`,
       filename: testFile('packages/test-package/test/playwright/test.spec.ts'),
       errors: [
         {
           messageId: 'useConstant',
-          data: { constantName: 'WORKBENCH', importPath: '@salesforcedx/vscode-playwright/utils/locators' }
+          data: { constantName: 'WORKBENCH', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
-      output: `import { EDITOR, WORKBENCH } from '@salesforcedx/vscode-playwright/utils/locators';
+      output: `import { EDITOR, WORKBENCH } from '@salesforce/playwright-vscode-ext';
 page.locator(WORKBENCH);`
     },
     {
@@ -90,10 +90,10 @@ page.locator(WORKBENCH);`
       errors: [
         {
           messageId: 'useConstant',
-          data: { constantName: 'TAB', importPath: '@salesforcedx/vscode-playwright/utils/locators' }
+          data: { constantName: 'TAB', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
-      output: `import { TAB } from '@salesforcedx/vscode-playwright/utils/locators';
+      output: `import { TAB } from '@salesforce/playwright-vscode-ext';
 page.locator(TAB);`
     },
     {
@@ -102,10 +102,10 @@ page.locator(TAB);`
       errors: [
         {
           messageId: 'useConstant',
-          data: { constantName: 'QUICK_INPUT_WIDGET', importPath: '@salesforcedx/vscode-playwright/utils/locators' }
+          data: { constantName: 'QUICK_INPUT_WIDGET', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
-      output: `import { QUICK_INPUT_WIDGET } from '@salesforcedx/vscode-playwright/utils/locators';
+      output: `import { QUICK_INPUT_WIDGET } from '@salesforce/playwright-vscode-ext';
 page.locator(QUICK_INPUT_WIDGET);`
     },
     {
@@ -115,11 +115,11 @@ page.locator('.monaco-editor');`,
       errors: [
         {
           messageId: 'useConstant',
-          data: { constantName: 'EDITOR', importPath: '@salesforcedx/vscode-playwright/utils/locators' }
+          data: { constantName: 'EDITOR', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
       output: `import { someOther } from './other';
-import { EDITOR } from '@salesforcedx/vscode-playwright/utils/locators';
+import { EDITOR } from '@salesforce/playwright-vscode-ext';
 page.locator(EDITOR);`
     },
     {
@@ -129,10 +129,10 @@ const x = 1;`,
       errors: [
         {
           messageId: 'useConstant',
-          data: { constantName: 'EDITOR', importPath: '@salesforcedx/vscode-playwright/utils/locators' }
+          data: { constantName: 'EDITOR', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
-      output: `import { EDITOR } from '@salesforcedx/vscode-playwright/utils/locators';
+      output: `import { EDITOR } from '@salesforce/playwright-vscode-ext';
 page.locator(EDITOR);
 const x = 1;`
     },
@@ -141,12 +141,11 @@ const x = 1;`
       filename: testFile('packages/playwright-vscode-ext/src/pages/test.ts'),
       errors: [
         {
-          messageId: 'useConstant'
-          // Don't check importPath - it varies based on test environment path resolution
+          messageId: 'useConstant',
+          data: { constantName: 'EDITOR', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
-      // Output path varies based on test environment - verify it imports EDITOR and replaces the string
-      output: `import { EDITOR } from '../../../../playwright-vscode-ext/src/utils/locators';
+      output: `import { EDITOR } from '@salesforce/playwright-vscode-ext';
 page.locator(EDITOR);`
     },
     {
@@ -155,10 +154,10 @@ page.locator(EDITOR);`
       errors: [
         {
           messageId: 'useConstant',
-          data: { constantName: 'EDITOR', importPath: '@salesforcedx/vscode-playwright/utils/locators' }
+          data: { constantName: 'EDITOR', importPath: '@salesforce/playwright-vscode-ext' }
         }
       ],
-      output: `import { EDITOR } from '@salesforcedx/vscode-playwright/utils/locators';
+      output: `import { EDITOR } from '@salesforce/playwright-vscode-ext';
 page.locator(\`\${EDITOR}[data-uri*="package.xml"]\`);`
     }
   ]
