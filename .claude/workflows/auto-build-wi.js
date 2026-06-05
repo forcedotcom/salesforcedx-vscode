@@ -23,6 +23,10 @@ export const meta = {
   ],
 }
 
+// =====================================================================
+// CONSTANTS
+// =====================================================================
+
 const MAX_IN_FLIGHT = (args && args.maxInFlight) || 5
 const SMALL_DIFF_LINES = 20
 const ALWAYS_APPLICABLE_SKILLS = ['typescript', 'concise', 'paths']
@@ -41,17 +45,22 @@ const REVIEW_SKILL_DENYLIST = [
   'span-file-export',
 ]
 const REVIEW_CHANNEL_ID = 'C054SJJAB24'
-const PROJECT_ROOT = '/Users/shane.mclaughlin/eng/forcedotcom/vscode-auto'
+const PR_URL_RE = /https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+/g
+
+// =====================================================================
+// SCHEMAS
+// =====================================================================
 
 const IDENTITY_SCHEMA = {
   type: 'object',
-  required: ['userId', 'username', 'ownerPrefix', 'slackId', 'githubLogin'],
+  required: ['userId', 'username', 'ownerPrefix', 'slackId', 'githubLogin', 'projectRoot'],
   properties: {
     userId: { type: 'string' },
     username: { type: 'string' },
     ownerPrefix: { type: 'string' },
     slackId: { type: 'string' },
     githubLogin: { type: 'string' },
+    projectRoot: { type: 'string' },
     error: { type: 'string' },
   },
 }
@@ -302,6 +311,10 @@ const FILES_SCHEMA = {
   properties: { files: { type: 'array', items: { type: 'string' } } },
 }
 
+// =====================================================================
+// HELPERS
+// =====================================================================
+
 const slugify = s =>
   String(s)
     .toLowerCase()
@@ -311,13 +324,18 @@ const slugify = s =>
     .slice(0, 40)
     .replace(/-+$/g, '')
 
-const worktreePath = (ownerPrefix, wiName, subject) =>
-  `${PROJECT_ROOT}/../vscode-auto-wt/${ownerPrefix}-${wiName}-${slugify(subject)}`
+const projectBasename = projectRoot => projectRoot.replace(/\/+$/, '').split('/').pop()
+
+const worktreePath = (identity, wiName, subject) =>
+  `${identity.projectRoot}/../${projectBasename(identity.projectRoot)}-wt/${identity.ownerPrefix}-${wiName}-${slugify(subject)}`
 
 const branchName = (ownerPrefix, wiName, subject) =>
   `${ownerPrefix}/${wiName}-${slugify(subject)}`
 
-const PR_URL_RE = /https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+/g
+const pathsFor = (identity, wi) => ({
+  wt: worktreePath(identity, wi.name, wi.subject),
+  branch: branchName(identity.ownerPrefix, wi.name, wi.subject),
+})
 
 const extractPrUrl = details => {
   const m = String(details || '').match(PR_URL_RE)
@@ -345,54 +363,58 @@ const parseShortstatLines = shortstat => {
   return Number(ins) + Number(del)
 }
 
-phase('Resolve identity')
+const classifyMonitor = monitorOutcomes => ({
+  toFinalize: monitorOutcomes.filter(
+    r => r && r.decision === 'finalize' && r.wi.status === 'In Progress'
+  ),
+  toTriage: monitorOutcomes.filter(r => r && r.decision === 'triage'),
+  toRestart: monitorOutcomes.filter(
+    r => r && (r.decision === 'no-pr-restart' || r.action === 'no-pr-restart')
+  ),
+  toCloseWi: monitorOutcomes.filter(r => r && r.decision === 'close-wi'),
+  toRefresh: monitorOutcomes.filter(
+    r =>
+      r &&
+      r.wi.prUrl &&
+      (r.decision === 'wait' ||
+        (r.prState && r.prState.mergeable === 'CONFLICTING' && r.decision !== 'close-wi'))
+  ),
+})
 
-const identity = await agent(
-  `Resolve runner identity per .claude/skills/gus-cli/SKILL.md → ## Runner identity.
+// =====================================================================
+// PROMPTS
+// =====================================================================
 
-Schema: {userId, username, ownerPrefix, slackId, githubLogin}.
+const identityPrompt = `Resolve runner identity per .claude/skills/gus-cli/SKILL.md → ## Runner identity.
 
-1. 'sf alias list --json' → /^gus$/i. Missing → {error: "no gus alias — run 'sf org login web -a gus'"}. Value = currentUsername.
-2. Read $HOME/.claude/runner-identity.json. Hit (all 5 fields, username matches) → return cached. Stop.
-3. Miss → resolve per skill: query userId, match team table for githubLogin/slackId/ownerPrefix. Sanity-check team row Id == userId; mismatch → {error: "team table Id != User query Id"}. Not in table → {error: "runner '<currentUsername>' not in gus-cli Team members"}.
-4. mkdir -p $HOME/.claude; write JSON. Write failure non-fatal — still return object.
+Schema: {userId, username, ownerPrefix, slackId, githubLogin, projectRoot}.
 
-Structured result only.`,
-  { schema: IDENTITY_SCHEMA, label: 'resolve-identity', model: 'haiku' }
-)
+1. Capture currentProjectRoot = 'pwd' (the workflow runs from the project root). Strip trailing slashes.
+2. 'sf alias list --json' → /^gus$/i. Missing → {error: "no gus alias — run 'sf org login web -a gus'"}. Value = currentUsername.
+3. Read $HOME/.claude/runner-identity.json. Cache hit requires: all 6 fields present, cached username == currentUsername, AND cached projectRoot exists as a directory ('test -d "<cached.projectRoot>"'). On hit, return cached. Stop.
+4. Miss → resolve per skill: query userId, match team table for githubLogin/slackId/ownerPrefix. Sanity-check team row Id == userId; mismatch → {error: "team table Id != User query Id"}. Not in table → {error: "runner '<currentUsername>' not in gus-cli Team members"}. Set projectRoot = currentProjectRoot.
+5. mkdir -p $HOME/.claude; write JSON (all 6 fields). Write failure non-fatal — still return object.
 
-if (identity.error || !identity.userId) {
-  log(`identity resolution failed: ${identity.error || 'unknown'} — exiting`)
-  return { exited: 'identity-failed', error: identity.error }
-}
+Structured result only.`
 
-log(`runner: ${identity.username} (${identity.ownerPrefix}, ${identity.githubLogin})`)
-
-phase('Ensure daemons')
-
-await agent(
-  `Ensure the gha-rerun daemon is running.
+const ensureGhaRerunPrompt = `Ensure the gha-rerun daemon is running.
 
 Read .claude/skills/gha-rerun/SKILL.md (and .claude/commands/gha-rerun.md if present) to learn the launcher and how to detect a running daemon (process name, lock file, or state file). Check current state:
 - If running: return {ok: true, detail: "already-running"}.
 - If not: invoke the launcher per the skill, verify it's running, and return {ok: true, detail: "started"}.
 - If launch fails: return {ok: false, detail: "<reason>"}.
 
-Do not configure or rerun anything else. The daemon owns rerun budget; this step just keeps it alive.`,
-  { schema: OK_SCHEMA, label: 'ensure-gha-rerun-daemon', phase: 'Ensure daemons', model: 'haiku' }
-)
+Do not configure or rerun anything else. The daemon owns rerun budget; this step just keeps it alive.`
 
-phase('Reap stranded worktrees')
-
-await agent(
+const reapWorktreesPrompt = identity =>
   `Reap worktrees + branches for WIs whose PRs are already merged/closed (e.g. user merged manually and the WI dropped out of the in-flight query).
 
-Run from ${PROJECT_ROOT}:
+Run from ${identity.projectRoot}:
 
 1. List worktrees: 'git worktree list --porcelain'. Parse into entries.
 2. For each entry, find its branch (porcelain 'branch refs/heads/<name>' line). Skip:
-   - The main worktree (path == ${PROJECT_ROOT})
-   - Any worktree under '${PROJECT_ROOT}/.claude/worktrees/' (workflow-isolation worktrees, not WI worktrees)
+   - The main worktree (path == ${identity.projectRoot})
+   - Any worktree under '${identity.projectRoot}/.claude/worktrees/' (workflow-isolation worktrees, not WI worktrees)
    - Any worktree whose branch does NOT start with '${identity.ownerPrefix}/W-'
 3. For each remaining (path, branch), find a PR: 'gh pr list --head <branch> --state all --json number,state,url --limit 1'.
    - No PR found → leave it alone (still being built).
@@ -401,36 +423,17 @@ Run from ${PROJECT_ROOT}:
      b. 'git branch -D <branch>'              (ignore failure)
    - PR state == 'OPEN' → leave it alone.
 
-Return {ok: true, detail: '<n reaped>: <comma-separated branch names>'} or {ok: true, detail: 'none'} when nothing to reap. Never error out — partial progress is fine.`,
-  { schema: OK_SCHEMA, label: 'reap-stranded-worktrees', phase: 'Reap stranded worktrees', model: 'haiku' }
-)
+Return {ok: true, detail: '<n reaped>: <comma-separated branch names>'} or {ok: true, detail: 'none'} when nothing to reap. Never error out — partial progress is fine.`
 
-phase('Monitor in-flight')
-
-const inFlightRaw = await agent(
+const inFlightQueryPrompt = identity =>
   `Run this SOQL and return the raw records array.
 
 sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('In Progress', 'Ready for Review') AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
 
-Return {records: <result.records as-is>}. No filtering, no transformation.`,
-  { schema: WI_RECORDS_SCHEMA, label: 'query-in-flight', phase: 'Monitor in-flight', model: 'haiku' }
-)
+Return {records: <result.records as-is>}. No filtering, no transformation.`
 
-const inFlightWis = (inFlightRaw.records || [])
-  .map(mapWiRecord)
-  .filter(w => w.prUrl)
-log(`in-flight: ${inFlightWis.length} WI(s)`)
-
-const monitorOutcomes = await pipeline(
-  inFlightWis,
-  async wi => {
-    if (!wi.prUrl) {
-      // Edge case: claim happened in a prior tick but PR was never created (build crashed).
-      // Treat as a builder restart.
-      return { wi, action: 'no-pr-restart' }
-    }
-    const prState = await agent(
-      `Check PR state for ${wi.prUrl}.
+const checkPrStatePrompt = wi =>
+  `Check PR state for ${wi.prUrl}.
 
 Run:
 - gh pr view ${wi.prUrl} --json state,isDraft,number,mergeable,statusCheckRollup
@@ -450,70 +453,30 @@ Run:
   - 'failed' otherwise (any FAILURE / CANCELLED / TIMED_OUT / ERROR, with NO running rows remaining)
 - If state is 'failed', collect failed job names. Run 'gh run view --log-failed <runId>' for the most recent failed/cancelled run linked to the PR head SHA, capture last ~100 lines as failedLogsExcerpt. Also gather the maximum 'run_attempt' across the workflow runs for the PR head SHA (gh api repos/forcedotcom/salesforcedx-vscode/actions/runs?head_sha=<sha> → max .run_attempt). Return that as maxRunAttempt.
 
-Return ONLY the structured result.`,
-      { schema: PR_STATE_SCHEMA, label: `check-pr-${wi.name}`, phase: 'Monitor in-flight', model: 'sonnet' }
-    )
-    return { wi, prState, action: 'evaluate' }
-  },
-  async result => {
-    if (!result || result.action === 'no-pr-restart') return result
-    const { wi, prState } = result
-    if (prState.state === 'merged' || prState.state === 'closed') {
-      return { ...result, decision: 'close-wi' }
-    }
-    if (prState.state === 'green') return { ...result, decision: 'finalize' }
-    if (prState.state === 'running') return { ...result, decision: 'wait' }
-    if (prState.state === 'no-pr') return { ...result, decision: 'no-pr-restart' }
-    // state === 'failed': all checks settled, at least one not green.
-    // The gha-rerun daemon owns the rerun budget (max 3 attempts per its skill).
-    // If maxRunAttempt < 3, the daemon will rerun soon → wait.
-    // If maxRunAttempt >= 3, reruns are exhausted → triage and iterate on the diff.
-    const attempt = typeof prState.maxRunAttempt === 'number' ? prState.maxRunAttempt : 0
-    return { ...result, decision: attempt >= 3 ? 'triage' : 'wait' }
-  }
-)
+Return ONLY the structured result.`
 
-const toFinalize = monitorOutcomes.filter(
-  r => r && r.decision === 'finalize' && r.wi.status === 'In Progress'
-)
-const toTriage = monitorOutcomes.filter(r => r && r.decision === 'triage')
-const toRestart = monitorOutcomes.filter(
-  r => r && (r.decision === 'no-pr-restart' || r.action === 'no-pr-restart')
-)
-const toCloseWi = monitorOutcomes.filter(r => r && r.decision === 'close-wi')
-
-if (toCloseWi.length) {
-  phase('Close merged WIs')
-  await parallel(
-    toCloseWi.map(r => () =>
-      agent(
-        `WI ${r.wi.name} has its PR (${r.wi.prUrl}) ${r.prState.state} on GitHub. Close out.
+const closeMergedPrompt = (r, identity) => {
+  const { wt, branch } = pathsFor(identity, r.wi)
+  return `WI ${r.wi.name} has its PR (${r.wi.prUrl}) ${r.prState.state} on GitHub. Close out.
 
 Steps (idempotent):
 1. If WI Status__c is not already a closed terminal value, update:
    sf data update record -s ADM_Work__c -i ${r.wi.wiId} -o gus -v "Status__c='Closed'"
-2. Remove worktree if present: 'git worktree remove ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)} --force'.
-3. Delete local branch if present: from ${PROJECT_ROOT}, 'git branch -D ${branchName(identity.ownerPrefix, r.wi.name, r.wi.subject)}' (ignore failure if branch doesn't exist).
+2. Remove worktree if present: 'git worktree remove ${wt} --force'.
+3. Delete local branch if present: from ${identity.projectRoot}, 'git branch -D ${branch}' (ignore failure if branch doesn't exist).
 
-Return {ok: true, detail} summarizing changes.`,
-        { schema: OK_SCHEMA, label: `close-${r.wi.name}`, phase: 'Close merged WIs', model: 'haiku' }
-      )
-    )
-  )
+Return {ok: true, detail} summarizing changes.`
 }
 
-if (toTriage.length) {
-  phase('Triage failures')
-  const triaged = await parallel(
-    toTriage.map(r => () =>
-      agent(
-        `Triage CI failure on PR ${r.wi.prUrl} for WI ${r.wi.name}.
+const triageCiPrompt = (r, identity) => {
+  const { wt } = pathsFor(identity, r.wi)
+  return `Triage CI failure on PR ${r.wi.prUrl} for WI ${r.wi.name}.
 
 Failed jobs: ${(r.prState.failedJobs || []).join(', ')}
 Log excerpt:
 ${r.prState.failedLogsExcerpt || '(none)'}
 
-Worktree path: ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)}
+Worktree path: ${wt}
 
 Tasks:
 1. Reattach to the worktree (recreate via 'git worktree add <path> <branch>' if missing; run 'npm install' if package-lock.json differs).
@@ -524,32 +487,21 @@ Tasks:
    - 'code-bug' if the failure indicates a real bug in the source under change (cross-OS path bug, runtime mismatch, logic bug, etc.)
    - 'unknown' if you cannot decide
 
-Return ONLY the structured result.`,
-        { schema: TRIAGE_SCHEMA, label: `triage-${r.wi.name}`, phase: 'Triage failures' }
-      ).then(triage => ({ ...r, triage }))
-    )
-  )
+Return ONLY the structured result.`
+}
 
-  phase('Fix CI failures')
-  await parallel(
-    triaged.filter(Boolean).map(r => async () => {
-      const wt = worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)
-      if (r.triage.route === 'flake-or-infra' || r.triage.route === 'unknown') {
-        await agent(
-          `DM the runner about a CI failure that needs human attention.
+const dmCiFailurePrompt = (r, identity) =>
+  `DM the runner about a CI failure that needs human attention.
 
 Slack ID: ${identity.slackId}
 Use mcp__slack__slack_send_message to send a DM with content:
 "⚠️ ${r.wi.name} CI failed after rerun budget exhausted (route=${r.triage.route}): ${r.triage.summary}\nPR: ${r.wi.prUrl}"
 
-Return {ok: true} on success.`,
-          { schema: OK_SCHEMA, label: `dm-${r.wi.name}`, phase: 'Fix CI failures', model: 'haiku' }
-        )
-        return
-      }
-      if (r.triage.route === 'e2e-test-issue') {
-        await agent(
-          `Fix an e2e test failure in worktree ${wt} for WI ${r.wi.name}.
+Return {ok: true} on success.`
+
+const e2eFixPrompt = (r, identity) => {
+  const { wt } = pathsFor(identity, r.wi)
+  return `Fix an e2e test failure in worktree ${wt} for WI ${r.wi.name}.
 
 Use the analyze-e2e command and the playwright-e2e skill. Inspect failing job logs (gh run view --log-failed) and the e2e test code in the worktree. Make the fix, commit with message "fix(e2e): <brief> - ${r.wi.name}", and push.
 
@@ -557,14 +509,12 @@ Failed jobs: ${(r.prState.failedJobs || []).join(', ')}
 Log excerpt:
 ${r.prState.failedLogsExcerpt || '(none)'}
 
-Return {status: 'done', commits: [<sha>], reason?} on success or {status: 'stuck', reason} otherwise.`,
-          { schema: BUILD_SCHEMA, label: `e2e-fix-${r.wi.name}`, phase: 'Fix CI failures', isolation: 'worktree' }
-        )
-        return
-      }
-      // code-bug → run builder with failure context
-      await agent(
-        `Fix a code bug exposed by CI in worktree ${wt} for WI ${r.wi.name}.
+Return {status: 'done', commits: [<sha>], reason?} on success or {status: 'stuck', reason} otherwise.`
+}
+
+const codeFixPrompt = (r, identity) => {
+  const { wt } = pathsFor(identity, r.wi)
+  return `Fix a code bug exposed by CI in worktree ${wt} for WI ${r.wi.name}.
 
 Read the original plan at .claude/plans/${r.wi.name}.md. The failure indicates the code under change is wrong (cross-OS, cross-runtime, or logic bug).
 
@@ -574,29 +524,15 @@ ${r.prState.failedLogsExcerpt || '(none)'}
 
 Apply the appropriate skills (read frontmatter from .claude/skills/*/SKILL.md to pick relevant ones; always apply: typescript, paths). Repo hooks run on tool calls and will surface compile/lint/dead-code/LSP issues — use that signal to drive correctness; don't run your own retry loop. Commit each logical fix as a separate commit. Push when done.
 
-Return {status: 'done', commits} or {status: 'stuck', reason}.`,
-        { schema: BUILD_SCHEMA, label: `code-fix-${r.wi.name}`, phase: 'Fix CI failures', isolation: 'worktree' }
-      )
-    })
-  )
+Return {status: 'done', commits} or {status: 'stuck', reason}.`
 }
 
-const toRefresh = monitorOutcomes.filter(
-  r =>
-    r &&
-    r.wi.prUrl &&
-    (r.decision === 'wait' ||
-      (r.prState && r.prState.mergeable === 'CONFLICTING' && r.decision !== 'close-wi'))
-)
-if (toRefresh.length) {
-  phase('Keep in-flight current')
-  await parallel(
-    toRefresh.map(r => () =>
-      agent(
-        `Keep WI ${r.wi.name}'s branch current with origin/develop.
+const refreshBranchPrompt = (r, identity) => {
+  const { wt, branch } = pathsFor(identity, r.wi)
+  return `Keep WI ${r.wi.name}'s branch current with origin/develop.
 
-Worktree: ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)}
-Branch: ${branchName(identity.ownerPrefix, r.wi.name, r.wi.subject)}
+Worktree: ${wt}
+Branch: ${branch}
 PR: ${r.wi.prUrl}
 
 Steps (idempotent; skip work if already current):
@@ -608,22 +544,15 @@ Steps (idempotent; skip work if already current):
 6. If package-lock.json changed, run 'npm install'.
 7. git push
 
-Return {ok: true, detail: "<n> commits merged"} or {ok: false, detail}.`,
-        { schema: OK_SCHEMA, label: `refresh-${r.wi.name}`, phase: 'Keep in-flight current', isolation: 'worktree' }
-      )
-    )
-  )
+Return {ok: true, detail: "<n> commits merged"} or {ok: false, detail}.`
 }
 
-if (toFinalize.length) {
-  phase('Open for review')
-  await parallel(
-    toFinalize.map(r => () =>
-      agent(
-        `Open WI ${r.wi.name} for review (CI is green; transition In Progress → Ready for Review).
+const openReviewPrompt = (r, identity) => {
+  const { wt } = pathsFor(identity, r.wi)
+  return `Open WI ${r.wi.name} for review (CI is green; transition In Progress → Ready for Review).
 
 PR: ${r.wi.prUrl}
-Worktree: ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)}
+Worktree: ${wt}
 Runner userId: ${identity.userId}
 Runner GitHub login: ${identity.githubLogin}
 Runner Slack ID: ${identity.slackId}
@@ -641,42 +570,20 @@ Steps (idempotent):
 4. Slack post in #ide-exp-code-review (channel ${REVIEW_CHANNEL_ID}) tagging the runner:
    "<@${identity.slackId}> PR ready for review: <${r.wi.prUrl}|PR> (${r.wi.name})"
    Use mcp__slack__slack_send_message.
-5. Remove the worktree: 'git worktree remove ${worktreePath(identity.ownerPrefix, r.wi.name, r.wi.subject)} --force' (if present).
+5. Remove the worktree: 'git worktree remove ${wt} --force' (if present).
 
-Return {ok: true, detail} where detail summarizes what changed.`,
-        { schema: OK_SCHEMA, label: `open-review-${r.wi.name}`, phase: 'Open for review', model: 'haiku' }
-      )
-    )
-  )
+Return {ok: true, detail} where detail summarizes what changed.`
 }
 
-phase('Peer approve')
-
-const peerApproveRaw = await agent(
+const peerApproveQueryPrompt = identity =>
   `Run this SOQL and return the raw records array.
 
 sf data query --query "SELECT Id, Name, Subject__c, Details__c, Assignee__c FROM ADM_Work__c WHERE Status__c = 'Ready for Review' AND Assignee__c != '${identity.userId}' AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
 
-Return {records: <result.records as-is>}. No filtering, no transformation.`,
-  { schema: WI_RECORDS_SCHEMA, label: 'peer-approve-query', phase: 'Peer approve', model: 'haiku' }
-)
+Return {records: <result.records as-is>}. No filtering, no transformation.`
 
-const peerCandidates = (peerApproveRaw.records || [])
-  .map(r => ({
-    wiId: r.Id,
-    name: r.Name,
-    subject: r.Subject__c || '',
-    prUrl: extractPrUrl(r.Details__c),
-    ownerUserId: r.Assignee__c || '',
-  }))
-  .filter(c => c.prUrl && c.ownerUserId)
-log(`peer-approve candidates: ${peerCandidates.length}`)
-
-if (peerCandidates.length) {
-  await parallel(
-    peerCandidates.map(c => () =>
-      agent(
-        `Evaluate WI ${c.name} (PR ${c.prUrl}) for peer-approve. Owner userId: ${c.ownerUserId}. Runner: ${identity.username} (userId ${identity.userId}, GitHub ${identity.githubLogin}, Slack ${identity.slackId}).
+const peerApprovePrompt = (c, identity) =>
+  `Evaluate WI ${c.name} (PR ${c.prUrl}) for peer-approve. Owner userId: ${c.ownerUserId}. Runner: ${identity.username} (userId ${identity.userId}, GitHub ${identity.githubLogin}, Slack ${identity.slackId}).
 
 Magic string: a PR comment matching line-anchored regex /^\\/ai-auto approve\\b/m authored by the PR owner, posted at-or-after the current head SHA's commit timestamp.
 
@@ -714,33 +621,10 @@ Steps (idempotent — every step skips if already done):
 
 The owner gets GitHub's native approval notification — no Slack DM (it would look like a DM from the runner machine).
 
-Return {ok: true, detail: "<approved | skip reason>"} or {ok: false, detail}.`,
-        { schema: OK_SCHEMA, label: `peer-approve-${c.name}`, phase: 'Peer approve', model: 'sonnet' }
-      )
-    )
-  )
-}
+Return {ok: true, detail: "<approved | skip reason>"} or {ok: false, detail}.`
 
-// Decide whether to restart a stuck in-flight WI, claim a new one, or exit.
-const stillInFlight = inFlightWis.length - toFinalize.length // optimistic; some finalizers may have failed
-
-let chosen
-let isRestart = false
-
-if (toRestart.length) {
-  chosen = toRestart[0].wi
-  isRestart = true
-  log(`restarting stuck in-flight WI ${chosen.name} (no PR)`)
-} else {
-  if (stillInFlight >= MAX_IN_FLIGHT) {
-    log(`at cap (${stillInFlight}/${MAX_IN_FLIGHT}); not claiming new WI`)
-    return { exited: 'at-cap', inFlight: stillInFlight, finalized: toFinalize.length }
-  }
-
-  phase('Pick candidate')
-
-  const candidatesRaw = await agent(
-    `Run EXACTLY ONE SOQL query — the one below — and return its records.
+const candidatesQueryPrompt = identity =>
+  `Run EXACTLY ONE SOQL query — the one below — and return its records.
 
 sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Assignee__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
 
@@ -749,62 +633,13 @@ Return {records: <result.records, verbatim>}.
 HARD RULES:
 - Do NOT run any other queries. If this query returns zero records, return {records: []}. An empty result is a valid, expected outcome — not a problem to investigate.
 - Do NOT modify the WHERE clause, drop filters, or broaden the search.
-- Do NOT add, remove, or transform fields in the records.`,
-    { schema: WI_RECORDS_SCHEMA, label: 'query-candidates', phase: 'Pick candidate', model: 'haiku' }
-  )
+- Do NOT add, remove, or transform fields in the records.`
 
-  const inFlightWiIds = new Set(inFlightWis.map(w => w.wiId))
-  const validStatuses = new Set(['New', 'Ready'])
-  const rawRecords = candidatesRaw.records || []
-  const offSpec = rawRecords.filter(
-    r => r.Assignee__c !== identity.userId || !validStatuses.has(r.Status__c)
-  )
-  if (offSpec.length) {
-    log(
-      `query-candidates returned ${offSpec.length}/${rawRecords.length} record(s) outside the WHERE clause — agent went off-script. Dropping all results.`
-    )
-  }
-  const filteredRecords = offSpec.length ? [] : rawRecords
-  const candidateList = filteredRecords
-    .map(mapWiRecord)
-    .filter(c => {
-      if (inFlightWiIds.has(c.wiId)) return false
-      if (hasPrUrl(c.details)) {
-        log(`excluding ${c.name}: Details already contains a PR URL`)
-        return false
-      }
-      return true
-    })
+const prFilesPrompt = url =>
+  `Run 'gh pr diff ${url} --name-only' and return {files: [<one path per line>]}.`
 
-  if (!candidateList.length) {
-    log('no candidates — nothing to do')
-    return { exited: 'idle', inFlight: stillInFlight }
-  }
-
-  if (candidateList.length === 1) {
-    chosen = candidateList[0]
-    log(`single candidate: ${chosen.name}`)
-  } else {
-    const inFlightUrls = inFlightWis.filter(w => w.prUrl).map(w => w.prUrl)
-    const inFlightFiles = inFlightUrls.length
-      ? await parallel(
-          inFlightUrls.map(url => () =>
-            agent(
-              `Run 'gh pr diff ${url} --name-only' and return {files: [<one path per line>]}.`,
-              { schema: FILES_SCHEMA, label: `pr-files-${url.split('/').pop()}`, phase: 'Pick candidate', model: 'haiku' }
-            )
-          )
-        )
-      : []
-    const inFlightFileList = [
-      ...new Set(
-        (inFlightFiles || [])
-          .filter(Boolean)
-          .flatMap(d => d.files || [])
-      ),
-    ]
-    const pick = await agent(
-      `Pick the next WI to work on from these candidates.
+const pickWiPrompt = (candidateList, inFlightFileList) =>
+  `Pick the next WI to work on from these candidates.
 
 Candidates (JSON):
 ${JSON.stringify(candidateList, null, 2)}
@@ -818,28 +653,18 @@ Selection rules (in order):
 3. Prefer smaller Story_Points (null treated as 5).
 4. Tie-break by oldest CreatedDate.
 
-Return ONLY {wiId, reason}.`,
-      { schema: PICKER_SCHEMA, label: 'pick-wi', phase: 'Pick candidate', model: 'sonnet' }
-    )
-    chosen = candidateList.find(c => c.wiId === pick.wiId) || candidateList[0]
-    log(`picked ${chosen.name}: ${pick.reason}`)
-  }
-}
+Return ONLY {wiId, reason}.`
 
-phase('Claim + worktree')
-
-const wt = worktreePath(identity.ownerPrefix, chosen.name, chosen.subject)
-const branch = branchName(identity.ownerPrefix, chosen.name, chosen.subject)
-
-const claimed = isRestart
-  ? await agent(
-      `Reattach the worktree for in-flight WI ${chosen.name} that has no PR yet (build crashed in a prior tick). WI is already 'In Progress' — do not change its Status.
+const claimOrRestartPrompt = (chosen, identity, isRestart) => {
+  const { wt, branch } = pathsFor(identity, chosen)
+  if (isRestart) {
+    return `Reattach the worktree for in-flight WI ${chosen.name} that has no PR yet (build crashed in a prior tick). WI is already 'In Progress' — do not change its Status.
 
 Worktree: ${wt}
 Branch: ${branch}
 
 Steps (idempotent):
-1. From ${PROJECT_ROOT}: 'git fetch origin develop'.
+1. From ${identity.projectRoot}: 'git fetch origin develop'.
 2. Ensure a worktree is checked out at ${wt} for ${branch}:
    - If ${wt} already exists, leave it alone (skip to step 3).
    - Else if branch exists locally ('git rev-parse --verify ${branch}'): 'git worktree add ${wt} ${branch}'.
@@ -847,39 +672,27 @@ Steps (idempotent):
    - Else (no branch anywhere): 'git worktree add -b ${branch} ${wt} origin/develop --no-track'.
 3. cd ${wt} && npm install.
 
-Return {ok: false, detail} on failure, else {ok: true, detail: "reattached"}.`,
-      { schema: OK_SCHEMA, label: `restart-${chosen.name}`, phase: 'Claim + worktree', model: 'haiku' }
-    )
-  : await agent(
-      `Claim WI ${chosen.name} (${chosen.wiId}) and set up the worktree.
+Return {ok: false, detail} on failure, else {ok: true, detail: "reattached"}.`
+  }
+  return `Claim WI ${chosen.name} (${chosen.wiId}) and set up the worktree.
 
 Steps:
 1. Update WI:
    sf data update record -s ADM_Work__c -i ${chosen.wiId} -o gus -v "Status__c='In Progress'"
-2. From ${PROJECT_ROOT}, run:
+2. From ${identity.projectRoot}, run:
    git fetch origin develop
    git worktree add -b ${branch} ${wt} origin/develop --no-track
 3. cd ${wt} && npm install (deps may differ from origin/develop's lockfile and hooks need them).
 
-If any step fails, return {ok: false, detail: "<reason>"}. On success {ok: true, detail: "claimed"}.`,
-      { schema: OK_SCHEMA, label: `claim-${chosen.name}`, phase: 'Claim + worktree', model: 'haiku' }
-    )
-
-if (!claimed.ok) {
-  log(`${isRestart ? 'restart' : 'claim'} failed: ${claimed.detail}`)
-  return { exited: isRestart ? 'restart-failed' : 'claim-failed', error: claimed.detail }
+If any step fails, return {ok: false, detail: "<reason>"}. On success {ok: true, detail: "claimed"}.`
 }
 
-phase('Plan')
+const listSkillsPrompt = identity =>
+  `Run 'ls -1 ${SKILLS_DIR}' from ${identity.projectRoot} and return {skills: [<one entry per line, no blanks>]}.`
 
-const skillNames = await agent(
-  `Run 'ls -1 ${SKILLS_DIR}' from ${PROJECT_ROOT} and return {skills: [<one entry per line, no blanks>]}.`,
-  { schema: SKILL_LIST_SCHEMA, label: 'list-skills', phase: 'Plan', model: 'haiku' }
-)
-const skillList = (skillNames.skills || []).map(s => s.trim()).filter(Boolean)
-
-const planResult = await agent(
-  `Plan implementation for WI ${chosen.name} in worktree ${wt}.
+const planPrompt = (chosen, identity, skillList) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Plan implementation for WI ${chosen.name} in worktree ${wt}.
 
 WI Subject: ${chosen.subject}
 WI Details:
@@ -897,13 +710,12 @@ Otherwise:
 2. Otherwise, write the plan to ${wt}/.claude/plans/${chosen.name}.md in the concise style you just read. Sections: Context, Phases (each phase = one commit; include commit message), Skills to apply, Verification (excluding things covered by e2e tests on the branch — note which are e2e-covered).
 3. Return {verdict: 'plan', plan: {phases, skills, verification}}.
 
-Do not commit yet.`,
-  { schema: PLAN_SCHEMA, label: `plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree' }
-)
+Do not commit yet.`
+}
 
-if (planResult.verdict === 'blocked') {
-  await agent(
-    `Bounce WI ${chosen.name} to Waiting and DM the runner.
+const bouncePlanPrompt = (chosen, planResult, identity) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Bounce WI ${chosen.name} to Waiting and DM the runner.
 
 Steps:
 1. Update WI:
@@ -911,14 +723,12 @@ Steps:
 2. DM ${identity.slackId} via mcp__slack__slack_send_message:
    "🚧 ${chosen.name} bounced to Waiting (plan blocked): ${chosen.subject}\\nQuestions:\\n${(planResult.blocked && planResult.blocked.questions || []).map(q => `• ${q}`).join('\\n')}\\nRun /grill-me to refine."
 3. Remove worktree: 'git worktree remove ${wt} --force'.
-Return {ok: true}.`,
-    { schema: OK_SCHEMA, label: `bounce-${chosen.name}`, phase: 'Plan', model: 'haiku' }
-  )
-  return { exited: 'plan-blocked', wi: chosen.name }
+Return {ok: true}.`
 }
 
-const planReview = await agent(
-  `Review the plan at ${wt}/.claude/plans/${chosen.name}.md.
+const planReviewPrompt = (chosen, identity) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Review the plan at ${wt}/.claude/plans/${chosen.name}.md.
 
 BEFORE judging, Read ${wt}/.claude/skills/concise/SKILL.md so 'concise style' is concrete to you.
 
@@ -928,89 +738,70 @@ Enforce:
 - Verification section exists and notes which items are e2e-covered
 - Skills list is non-empty and includes typescript
 
-Return {approved: true} or {approved: false, revisions: [...]}.`,
-  { schema: PLAN_REVIEW_SCHEMA, label: `plan-review-${chosen.name}`, phase: 'Plan', isolation: 'worktree', model: 'sonnet' }
-)
-
-if (!planReview.approved) {
-  await agent(
-    `Revise the plan at ${wt}/.claude/plans/${chosen.name}.md addressing:
-${(planReview.revisions || []).map(r => `- ${r}`).join('\n')}
-
-Return {verdict: 'plan'} when done.`,
-    { schema: PLAN_SCHEMA, label: `plan-revise-${chosen.name}`, phase: 'Plan', isolation: 'worktree', model: 'sonnet' }
-  )
+Return {approved: true} or {approved: false, revisions: [...]}.`
 }
 
-const [effectPlanReview, e2ePlanReview, adversaryPlanReview] = await parallel([
-  () =>
-    agent(
-      `Review the plan at ${wt}/.claude/plans/${chosen.name}.md (mode: plan review). Identify Effect-TS smells the plan would introduce — hand-rolled retry/timeout/cache, untyped errors, ad-hoc PubSub, services that already exist in salesforcedx-vscode-services, etc.
+const planRevisePrompt = (chosen, identity, revisions) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Revise the plan at ${wt}/.claude/plans/${chosen.name}.md addressing:
+${(revisions || []).map(r => `- ${r}`).join('\n')}
 
-Return ONLY the structured result.`,
-      { schema: EFFECT_ADVOCATE_SCHEMA, label: `effect-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', agentType: 'effect-advocate' }
-    ),
-  () =>
-    agent(
-      `Review the plan at ${wt}/.claude/plans/${chosen.name}.md for e2e test coverage adequacy.
+Return {verdict: 'plan'} when done.`
+}
 
-WI Subject: ${chosen.subject}
-WI Details:
-${chosen.details || '(empty)'}
+const effectPlanReviewPrompt = (chosen, identity) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Review the plan at ${wt}/.claude/plans/${chosen.name}.md (mode: plan review). Identify Effect-TS smells the plan would introduce — hand-rolled retry/timeout/cache, untyped errors, ad-hoc PubSub, services that already exist in salesforcedx-vscode-services, etc.
 
-Return ONLY the structured result.`,
-      { schema: EFFECT_ADVOCATE_SCHEMA, label: `e2e-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', agentType: 'e2e-advocate' }
-    ),
-  () =>
-    agent(
-      `Adversarially review the plan at ${wt}/.claude/plans/${chosen.name}.md.
+Return ONLY the structured result.`
+}
+
+const e2ePlanReviewPrompt = (chosen, identity) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Review the plan at ${wt}/.claude/plans/${chosen.name}.md for e2e test coverage adequacy.
 
 WI Subject: ${chosen.subject}
 WI Details:
 ${chosen.details || '(empty)'}
 
-Return ONLY the structured result.`,
-      { schema: PLAN_ADVERSARY_SCHEMA, label: `adversary-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', agentType: 'plan-adversary' }
-    ),
-])
+Return ONLY the structured result.`
+}
 
-const effectMust = (effectPlanReview && effectPlanReview.findings || []).filter(f => f.severity === 'must')
-const e2eMust = (e2ePlanReview && e2ePlanReview.findings || []).filter(f => f.severity === 'must')
-const adversaryBlocking = (adversaryPlanReview && adversaryPlanReview.findings || []).filter(f => f.severity === 'critical' || f.severity === 'high')
+const adversaryPlanReviewPrompt = (chosen, identity) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Adversarially review the plan at ${wt}/.claude/plans/${chosen.name}.md.
 
-const advocateRevisions = [
-  ...effectMust.map(f => `[effect] ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`),
-  ...e2eMust.map(f => `[e2e] ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`),
-  ...adversaryBlocking.map(f => `[adversary:${f.severity}] ${f.claim}${f.suggestion ? ' — ' + f.suggestion : ''}${f.evidence ? ' [' + f.evidence + ']' : ''}`),
-]
+WI Subject: ${chosen.subject}
+WI Details:
+${chosen.details || '(empty)'}
 
-if (advocateRevisions.length) {
-  await agent(
-    `Revise the plan at ${wt}/.claude/plans/${chosen.name}.md to address these advocate findings before implementation. The plan must reflect the right approach (Effect idioms, e2e coverage, adversarial concerns), not work around them.
+Return ONLY the structured result.`
+}
+
+const planAdvocateRevisePrompt = (chosen, identity, advocateRevisions) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Revise the plan at ${wt}/.claude/plans/${chosen.name}.md to address these advocate findings before implementation. The plan must reflect the right approach (Effect idioms, e2e coverage, adversarial concerns), not work around them.
 
 Findings:
 ${advocateRevisions.map(r => `- ${r}`).join('\n')}
 
-Return {verdict: 'plan'} when done.`,
-    { schema: PLAN_SCHEMA, label: `plan-advocate-revise-${chosen.name}`, phase: 'Plan', isolation: 'worktree' }
-  )
+Return {verdict: 'plan'} when done.`
 }
 
-await agent(
-  `Commit the plan file in ${wt} — only if there is something to commit.
+const commitPlanPrompt = (chosen, identity) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Commit the plan file in ${wt} — only if there is something to commit.
 
 Steps:
 1. cd ${wt}
 2. git add .claude/plans/${chosen.name}.md
 3. If 'git diff --cached --quiet' returns 0 (nothing staged), skip the commit and return {ok: true, detail: "no-op (plan unchanged)"}.
-4. Else commit with subject "chore: plan for ${chosen.name}". Use a HEREDOC so the Co-Authored-By trailer with YOUR actual model name is preserved (the same trailer you append on any normal commit). Return {ok: true, detail: "committed"}.`,
-  { schema: OK_SCHEMA, label: `commit-plan-${chosen.name}`, phase: 'Plan', isolation: 'worktree', model: 'haiku' }
-)
+4. Else commit with subject "chore: plan for ${chosen.name}". Use a HEREDOC so the Co-Authored-By trailer with YOUR actual model name is preserved (the same trailer you append on any normal commit). Return {ok: true, detail: "committed"}.`
+}
 
-phase('Build')
-
-const buildResult = await agent(
-  `Build WI ${chosen.name} per the plan at ${wt}/.claude/plans/${chosen.name}.md.
+const buildPrompt = (chosen, identity) => {
+  const { wt } = pathsFor(identity, chosen)
+  return `Build WI ${chosen.name} per the plan at ${wt}/.claude/plans/${chosen.name}.md.
 
 Operate inside ${wt}. Execute each plan phase end-to-end and commit per the plan's commit-message boundaries (one commit per phase). Apply the skills listed in the plan.
 
@@ -1018,47 +809,29 @@ Repo hooks run on tool calls and will surface compile / lint / dead-code / LSP /
 
 If 'package-lock.json' changes during build, re-run 'npm install'.
 
-Return {status: 'done', commits: [<shas>]} on success.`,
-  { schema: BUILD_SCHEMA, label: `build-${chosen.name}`, phase: 'Build', isolation: 'worktree' }
-)
+Return {status: 'done', commits: [<shas>]} on success.`
+}
 
-if (buildResult.status === 'stuck') {
-  await agent(
-    `Bounce WI ${chosen.name} to Waiting (build stuck) and DM the runner. Worktree stays for human takeover.
+const bounceBuildPrompt = (chosen, buildResult, identity) => {
+  const { wt, branch } = pathsFor(identity, chosen)
+  return `Bounce WI ${chosen.name} to Waiting (build stuck) and DM the runner. Worktree stays for human takeover.
 
 Steps:
 1. Update WI: sf data update record -s ADM_Work__c -i ${chosen.wiId} -o gus -v "Status__c='Waiting'"
 2. DM ${identity.slackId} via mcp__slack__slack_send_message:
    "⚠️ ${chosen.name} build stuck: ${(buildResult.reason || '').replace(/"/g, "'")}\\nWorktree: ${wt}\\nBranch: ${branch}"
-Return {ok: true}.`,
-    { schema: OK_SCHEMA, label: `bounce-build-${chosen.name}`, phase: 'Build', model: 'haiku' }
-  )
-  return { exited: 'build-stuck', wi: chosen.name, reason: buildResult.reason }
+Return {ok: true}.`
 }
 
-phase('Review')
-
-const diffInfo = await agent(
+const diffPrompt = wt =>
   `From ${wt}, run both:
 - git diff --shortstat origin/develop...HEAD
 - git diff --name-only origin/develop...HEAD
 
-Return {shortstat: "<raw stdout of --shortstat, may be empty>", files: [<one path per line of --name-only>]}.`,
-  { schema: DIFF_RAW_SCHEMA, label: `diff-${chosen.name}`, phase: 'Review', isolation: 'worktree', model: 'haiku' }
-)
+Return {shortstat: "<raw stdout of --shortstat, may be empty>", files: [<one path per line of --name-only>]}.`
 
-const lineCount = parseShortstatLines(diffInfo.shortstat || '')
-const skillsToCheck =
-  lineCount < SMALL_DIFF_LINES
-    ? skillList.filter(s => ALWAYS_APPLICABLE_SKILLS.includes(s))
-    : skillList.filter(s => !REVIEW_SKILL_DENYLIST.includes(s))
-
-log(`diff: ${lineCount} lines; checking ${skillsToCheck.length} skills`)
-
-const skillFindings = await parallel(
-  skillsToCheck.map(skill => () =>
-    agent(
-      `Decide if skill '${skill}' applies to the current branch's diff in ${wt}.
+const skillDetectPrompt = (skill, wt) =>
+  `Decide if skill '${skill}' applies to the current branch's diff in ${wt}.
 
 Read .claude/skills/${skill}/SKILL.md.
 Examine: git diff origin/develop...HEAD (run from ${wt}).
@@ -1067,27 +840,17 @@ Answer:
 - applies: true if the diff intersects this skill's domain
 - findings: concrete code-level changes that would improve the code per this skill, severity-graded. If applies but no actionable findings, return findings: [].
 
-Return ONLY the structured result.`,
-      { schema: SKILL_DETECT_SCHEMA, label: `skill-${skill}`, phase: 'Review', isolation: 'worktree', model: 'sonnet' }
-    )
-  )
-)
+Return ONLY the structured result.`
 
-const thermo = await agent(
+const thermoPrompt = wt =>
   `Run a thermonuclear code-quality review on the diff in ${wt}.
 
-Read and apply .claude/skills/thermonuclear-code-quality-review/SKILL.md. Examine 'git diff origin/develop...HEAD'. Return severity-graded findings only — file:line evidence required.`,
-  { schema: THERMO_SCHEMA, label: `thermo-${chosen.name}`, phase: 'Review', isolation: 'worktree' }
-)
+Read and apply .claude/skills/thermonuclear-code-quality-review/SKILL.md. Examine 'git diff origin/develop...HEAD'. Return severity-graded findings only — file:line evidence required.`
 
-const effectDiffReview = await agent(
-  `Review the diff in ${wt} (mode: diff review). Examine 'git diff origin/develop...HEAD'.`,
-  { schema: EFFECT_ADVOCATE_SCHEMA, label: `effect-diff-${chosen.name}`, phase: 'Review', isolation: 'worktree', agentType: 'effect-advocate' }
-)
+const effectDiffReviewPrompt = wt =>
+  `Review the diff in ${wt} (mode: diff review). Examine 'git diff origin/develop...HEAD'.`
 
-phase('Fix review findings')
-
-const fixerResult = await agent(
+const fixerPrompt = (wt, skillFindings, skillsToCheck, thermo, effectDiffReview) =>
   `Apply review findings to the code in ${wt}.
 
 Skill findings (per-skill JSON):
@@ -1106,11 +869,9 @@ Rules:
 
 Group commits logically: e.g. one commit "fix: critical/high review findings", one "refactor: medium/low review findings". If nothing to fix, return {fixedCount: 0, remaining: [...]}.
 
-Return ONLY the structured result.`,
-  { schema: FIXER_SCHEMA, label: `fix-${chosen.name}`, phase: 'Fix review findings', isolation: 'worktree' }
-)
+Return ONLY the structured result.`
 
-await agent(
+const mergeDevelopPrompt = wt =>
   `Merge origin/develop into the branch in ${wt}.
 
 Steps:
@@ -1120,14 +881,11 @@ Steps:
 4. If conflicts, apply .claude/skills/merge-conflicts/SKILL.md best-effort. If unresolvable: 'git merge --abort' and return {ok: false, detail: "merge-conflict-unresolved"}.
 5. If package-lock.json changed in the merge, run 'npm install'.
 6. If the merge ran cleanly with no conflicts, no commit needed beyond the merge commit git already made.
-Return {ok: true} on success.`,
-  { schema: OK_SCHEMA, label: `merge-${chosen.name}`, phase: 'Fix review findings', isolation: 'worktree', model: 'haiku' }
-)
+Return {ok: true} on success.`
 
-phase('Draft PR')
-
-const prResult = await agent(
-  `Push the branch and open a draft PR for WI ${chosen.name}.
+const draftPrPrompt = (chosen, identity, fixerResult) => {
+  const { wt, branch } = pathsFor(identity, chosen)
+  return `Push the branch and open a draft PR for WI ${chosen.name}.
 
 Worktree: ${wt}
 Branch: ${branch}
@@ -1161,9 +919,572 @@ Steps:
       - sf data update record -s ADM_Work__c -i ${chosen.wiId} -o gus --flags-dir /tmp/gus-flags-${chosen.name}
    e. Verify: re-query Details__c and confirm BOTH (i) the new PR URL is present AND (ii) at least one original Goal/Done-when/Why marker from the prior content is still present. If either check fails, do NOT claim success — log the failure detail and return so the workflow retries next tick.
 
-Return {prUrl, prNumber}.`,
-  { schema: PR_DRAFT_SCHEMA, label: `pr-${chosen.name}`, phase: 'Draft PR', isolation: 'worktree', model: 'sonnet' }
-)
+Return {prUrl, prNumber}.`
+}
+
+// =====================================================================
+// PHASE FUNCTIONS
+// =====================================================================
+
+const resolveIdentity = async () => {
+  phase('Resolve identity')
+  return await agent(identityPrompt, {
+    schema: IDENTITY_SCHEMA,
+    label: 'resolve-identity',
+    model: 'haiku',
+  })
+}
+
+const ensureDaemons = async () => {
+  phase('Ensure daemons')
+  await agent(ensureGhaRerunPrompt, {
+    schema: OK_SCHEMA,
+    label: 'ensure-gha-rerun-daemon',
+    phase: 'Ensure daemons',
+    model: 'haiku',
+  })
+}
+
+const reapStrandedWorktrees = async identity => {
+  phase('Reap stranded worktrees')
+  await agent(reapWorktreesPrompt(identity), {
+    schema: OK_SCHEMA,
+    label: 'reap-stranded-worktrees',
+    phase: 'Reap stranded worktrees',
+    model: 'haiku',
+  })
+}
+
+const monitorInFlight = async identity => {
+  phase('Monitor in-flight')
+
+  const inFlightRaw = await agent(inFlightQueryPrompt(identity), {
+    schema: WI_RECORDS_SCHEMA,
+    label: 'query-in-flight',
+    phase: 'Monitor in-flight',
+    model: 'haiku',
+  })
+
+  const inFlightWis = (inFlightRaw.records || []).map(mapWiRecord).filter(w => w.prUrl)
+  log(`in-flight: ${inFlightWis.length} WI(s)`)
+
+  const monitorOutcomes = await pipeline(
+    inFlightWis,
+    async wi => {
+      if (!wi.prUrl) {
+        // Edge case: claim happened in a prior tick but PR was never created (build crashed).
+        // Treat as a builder restart.
+        return { wi, action: 'no-pr-restart' }
+      }
+      const prState = await agent(checkPrStatePrompt(wi), {
+        schema: PR_STATE_SCHEMA,
+        label: `check-pr-${wi.name}`,
+        phase: 'Monitor in-flight',
+        model: 'sonnet',
+      })
+      return { wi, prState, action: 'evaluate' }
+    },
+    async result => {
+      if (!result || result.action === 'no-pr-restart') return result
+      const { prState } = result
+      if (prState.state === 'merged' || prState.state === 'closed') {
+        return { ...result, decision: 'close-wi' }
+      }
+      if (prState.state === 'green') return { ...result, decision: 'finalize' }
+      if (prState.state === 'running') return { ...result, decision: 'wait' }
+      if (prState.state === 'no-pr') return { ...result, decision: 'no-pr-restart' }
+      // state === 'failed': all checks settled, at least one not green.
+      // The gha-rerun daemon owns the rerun budget (max 3 attempts per its skill).
+      // If maxRunAttempt < 3, the daemon will rerun soon → wait.
+      // If maxRunAttempt >= 3, reruns are exhausted → triage and iterate on the diff.
+      const attempt = typeof prState.maxRunAttempt === 'number' ? prState.maxRunAttempt : 0
+      return { ...result, decision: attempt >= 3 ? 'triage' : 'wait' }
+    }
+  )
+
+  return { inFlightWis, monitorOutcomes }
+}
+
+const closeMergedWis = async (toCloseWi, identity) => {
+  phase('Close merged WIs')
+  await parallel(
+    toCloseWi.map(r => () =>
+      agent(closeMergedPrompt(r, identity), {
+        schema: OK_SCHEMA,
+        label: `close-${r.wi.name}`,
+        phase: 'Close merged WIs',
+        model: 'haiku',
+      })
+    )
+  )
+}
+
+const triageAndFixCi = async (toTriage, identity) => {
+  phase('Triage failures')
+  const triaged = await parallel(
+    toTriage.map(r => () =>
+      agent(triageCiPrompt(r, identity), {
+        schema: TRIAGE_SCHEMA,
+        label: `triage-${r.wi.name}`,
+        phase: 'Triage failures',
+      }).then(triage => ({ ...r, triage }))
+    )
+  )
+
+  phase('Fix CI failures')
+  await parallel(
+    triaged.filter(Boolean).map(r => async () => {
+      if (r.triage.route === 'flake-or-infra' || r.triage.route === 'unknown') {
+        await agent(dmCiFailurePrompt(r, identity), {
+          schema: OK_SCHEMA,
+          label: `dm-${r.wi.name}`,
+          phase: 'Fix CI failures',
+          model: 'haiku',
+        })
+        return
+      }
+      if (r.triage.route === 'e2e-test-issue') {
+        await agent(e2eFixPrompt(r, identity), {
+          schema: BUILD_SCHEMA,
+          label: `e2e-fix-${r.wi.name}`,
+          phase: 'Fix CI failures',
+          isolation: 'worktree',
+        })
+        return
+      }
+      // code-bug → run builder with failure context
+      await agent(codeFixPrompt(r, identity), {
+        schema: BUILD_SCHEMA,
+        label: `code-fix-${r.wi.name}`,
+        phase: 'Fix CI failures',
+        isolation: 'worktree',
+      })
+    })
+  )
+}
+
+const keepInFlightCurrent = async (toRefresh, identity) => {
+  phase('Keep in-flight current')
+  await parallel(
+    toRefresh.map(r => () =>
+      agent(refreshBranchPrompt(r, identity), {
+        schema: OK_SCHEMA,
+        label: `refresh-${r.wi.name}`,
+        phase: 'Keep in-flight current',
+        isolation: 'worktree',
+      })
+    )
+  )
+}
+
+const openForReview = async (toFinalize, identity) => {
+  phase('Open for review')
+  await parallel(
+    toFinalize.map(r => () =>
+      agent(openReviewPrompt(r, identity), {
+        schema: OK_SCHEMA,
+        label: `open-review-${r.wi.name}`,
+        phase: 'Open for review',
+        model: 'haiku',
+      })
+    )
+  )
+}
+
+const peerApprove = async identity => {
+  phase('Peer approve')
+
+  const peerApproveRaw = await agent(peerApproveQueryPrompt(identity), {
+    schema: WI_RECORDS_SCHEMA,
+    label: 'peer-approve-query',
+    phase: 'Peer approve',
+    model: 'haiku',
+  })
+
+  const peerCandidates = (peerApproveRaw.records || [])
+    .map(r => ({
+      wiId: r.Id,
+      name: r.Name,
+      subject: r.Subject__c || '',
+      prUrl: extractPrUrl(r.Details__c),
+      ownerUserId: r.Assignee__c || '',
+    }))
+    .filter(c => c.prUrl && c.ownerUserId)
+  log(`peer-approve candidates: ${peerCandidates.length}`)
+
+  if (!peerCandidates.length) return
+
+  await parallel(
+    peerCandidates.map(c => () =>
+      agent(peerApprovePrompt(c, identity), {
+        schema: OK_SCHEMA,
+        label: `peer-approve-${c.name}`,
+        phase: 'Peer approve',
+        model: 'sonnet',
+      })
+    )
+  )
+}
+
+const pickCandidate = async (identity, inFlightWis) => {
+  phase('Pick candidate')
+
+  const candidatesRaw = await agent(candidatesQueryPrompt(identity), {
+    schema: WI_RECORDS_SCHEMA,
+    label: 'query-candidates',
+    phase: 'Pick candidate',
+    model: 'haiku',
+  })
+
+  const inFlightWiIds = new Set(inFlightWis.map(w => w.wiId))
+  const validStatuses = new Set(['New', 'Ready'])
+  const rawRecords = candidatesRaw.records || []
+  const offSpec = rawRecords.filter(
+    r => r.Assignee__c !== identity.userId || !validStatuses.has(r.Status__c)
+  )
+  if (offSpec.length) {
+    log(
+      `query-candidates returned ${offSpec.length}/${rawRecords.length} record(s) outside the WHERE clause — agent went off-script. Dropping all results.`
+    )
+  }
+  const filteredRecords = offSpec.length ? [] : rawRecords
+  const candidateList = filteredRecords.map(mapWiRecord).filter(c => {
+    if (inFlightWiIds.has(c.wiId)) return false
+    if (hasPrUrl(c.details)) {
+      log(`excluding ${c.name}: Details already contains a PR URL`)
+      return false
+    }
+    return true
+  })
+
+  if (!candidateList.length) return null
+
+  if (candidateList.length === 1) {
+    log(`single candidate: ${candidateList[0].name}`)
+    return candidateList[0]
+  }
+
+  const inFlightUrls = inFlightWis.filter(w => w.prUrl).map(w => w.prUrl)
+  const inFlightFiles = inFlightUrls.length
+    ? await parallel(
+        inFlightUrls.map(url => () =>
+          agent(prFilesPrompt(url), {
+            schema: FILES_SCHEMA,
+            label: `pr-files-${url.split('/').pop()}`,
+            phase: 'Pick candidate',
+            model: 'haiku',
+          })
+        )
+      )
+    : []
+  const inFlightFileList = [
+    ...new Set((inFlightFiles || []).filter(Boolean).flatMap(d => d.files || [])),
+  ]
+
+  const pick = await agent(pickWiPrompt(candidateList, inFlightFileList), {
+    schema: PICKER_SCHEMA,
+    label: 'pick-wi',
+    phase: 'Pick candidate',
+    model: 'sonnet',
+  })
+  const chosen = candidateList.find(c => c.wiId === pick.wiId) || candidateList[0]
+  log(`picked ${chosen.name}: ${pick.reason}`)
+  return chosen
+}
+
+const claimOrRestart = async (chosen, identity, isRestart) => {
+  phase('Claim + worktree')
+  return await agent(claimOrRestartPrompt(chosen, identity, isRestart), {
+    schema: OK_SCHEMA,
+    label: `${isRestart ? 'restart' : 'claim'}-${chosen.name}`,
+    phase: 'Claim + worktree',
+    model: 'haiku',
+  })
+}
+
+const runPlan = async (chosen, identity) => {
+  phase('Plan')
+
+  const skillNames = await agent(listSkillsPrompt(identity), {
+    schema: SKILL_LIST_SCHEMA,
+    label: 'list-skills',
+    phase: 'Plan',
+    model: 'haiku',
+  })
+  const skillList = (skillNames.skills || []).map(s => s.trim()).filter(Boolean)
+
+  const planResult = await agent(planPrompt(chosen, identity, skillList), {
+    schema: PLAN_SCHEMA,
+    label: `plan-${chosen.name}`,
+    phase: 'Plan',
+    isolation: 'worktree',
+  })
+
+  return { planResult, skillList }
+}
+
+const bounceBlockedPlan = async (chosen, planResult, identity) => {
+  await agent(bouncePlanPrompt(chosen, planResult, identity), {
+    schema: OK_SCHEMA,
+    label: `bounce-${chosen.name}`,
+    phase: 'Plan',
+    model: 'haiku',
+  })
+}
+
+const reviewAndCommitPlan = async (chosen, identity) => {
+  const planReview = await agent(planReviewPrompt(chosen, identity), {
+    schema: PLAN_REVIEW_SCHEMA,
+    label: `plan-review-${chosen.name}`,
+    phase: 'Plan',
+    isolation: 'worktree',
+    model: 'sonnet',
+  })
+
+  if (!planReview.approved) {
+    await agent(planRevisePrompt(chosen, identity, planReview.revisions), {
+      schema: PLAN_SCHEMA,
+      label: `plan-revise-${chosen.name}`,
+      phase: 'Plan',
+      isolation: 'worktree',
+      model: 'sonnet',
+    })
+  }
+
+  const [effectPlanReview, e2ePlanReview, adversaryPlanReview] = await parallel([
+    () =>
+      agent(effectPlanReviewPrompt(chosen, identity), {
+        schema: EFFECT_ADVOCATE_SCHEMA,
+        label: `effect-plan-${chosen.name}`,
+        phase: 'Plan',
+        isolation: 'worktree',
+        agentType: 'effect-advocate',
+      }),
+    () =>
+      agent(e2ePlanReviewPrompt(chosen, identity), {
+        schema: EFFECT_ADVOCATE_SCHEMA,
+        label: `e2e-plan-${chosen.name}`,
+        phase: 'Plan',
+        isolation: 'worktree',
+        agentType: 'e2e-advocate',
+      }),
+    () =>
+      agent(adversaryPlanReviewPrompt(chosen, identity), {
+        schema: PLAN_ADVERSARY_SCHEMA,
+        label: `adversary-plan-${chosen.name}`,
+        phase: 'Plan',
+        isolation: 'worktree',
+        agentType: 'plan-adversary',
+      }),
+  ])
+
+  const effectMust = ((effectPlanReview && effectPlanReview.findings) || []).filter(
+    f => f.severity === 'must'
+  )
+  const e2eMust = ((e2ePlanReview && e2ePlanReview.findings) || []).filter(
+    f => f.severity === 'must'
+  )
+  const adversaryBlocking = ((adversaryPlanReview && adversaryPlanReview.findings) || []).filter(
+    f => f.severity === 'critical' || f.severity === 'high'
+  )
+
+  const advocateRevisions = [
+    ...effectMust.map(f => `[effect] ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`),
+    ...e2eMust.map(f => `[e2e] ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`),
+    ...adversaryBlocking.map(
+      f =>
+        `[adversary:${f.severity}] ${f.claim}${f.suggestion ? ' — ' + f.suggestion : ''}${f.evidence ? ' [' + f.evidence + ']' : ''}`
+    ),
+  ]
+
+  if (advocateRevisions.length) {
+    await agent(planAdvocateRevisePrompt(chosen, identity, advocateRevisions), {
+      schema: PLAN_SCHEMA,
+      label: `plan-advocate-revise-${chosen.name}`,
+      phase: 'Plan',
+      isolation: 'worktree',
+    })
+  }
+
+  await agent(commitPlanPrompt(chosen, identity), {
+    schema: OK_SCHEMA,
+    label: `commit-plan-${chosen.name}`,
+    phase: 'Plan',
+    isolation: 'worktree',
+    model: 'haiku',
+  })
+}
+
+const runBuild = async (chosen, identity) => {
+  phase('Build')
+  return await agent(buildPrompt(chosen, identity), {
+    schema: BUILD_SCHEMA,
+    label: `build-${chosen.name}`,
+    phase: 'Build',
+    isolation: 'worktree',
+  })
+}
+
+const bounceStuckBuild = async (chosen, buildResult, identity) => {
+  await agent(bounceBuildPrompt(chosen, buildResult, identity), {
+    schema: OK_SCHEMA,
+    label: `bounce-build-${chosen.name}`,
+    phase: 'Build',
+    model: 'haiku',
+  })
+}
+
+const runReview = async (chosen, identity, skillList) => {
+  phase('Review')
+  const { wt } = pathsFor(identity, chosen)
+
+  const diffInfo = await agent(diffPrompt(wt), {
+    schema: DIFF_RAW_SCHEMA,
+    label: `diff-${chosen.name}`,
+    phase: 'Review',
+    isolation: 'worktree',
+    model: 'haiku',
+  })
+
+  const lineCount = parseShortstatLines(diffInfo.shortstat || '')
+  const skillsToCheck =
+    lineCount < SMALL_DIFF_LINES
+      ? skillList.filter(s => ALWAYS_APPLICABLE_SKILLS.includes(s))
+      : skillList.filter(s => !REVIEW_SKILL_DENYLIST.includes(s))
+
+  log(`diff: ${lineCount} lines; checking ${skillsToCheck.length} skills`)
+
+  const skillFindings = await parallel(
+    skillsToCheck.map(skill => () =>
+      agent(skillDetectPrompt(skill, wt), {
+        schema: SKILL_DETECT_SCHEMA,
+        label: `skill-${skill}`,
+        phase: 'Review',
+        isolation: 'worktree',
+        model: 'sonnet',
+      })
+    )
+  )
+
+  const thermo = await agent(thermoPrompt(wt), {
+    schema: THERMO_SCHEMA,
+    label: `thermo-${chosen.name}`,
+    phase: 'Review',
+    isolation: 'worktree',
+  })
+
+  const effectDiffReview = await agent(effectDiffReviewPrompt(wt), {
+    schema: EFFECT_ADVOCATE_SCHEMA,
+    label: `effect-diff-${chosen.name}`,
+    phase: 'Review',
+    isolation: 'worktree',
+    agentType: 'effect-advocate',
+  })
+
+  phase('Fix review findings')
+
+  const fixerResult = await agent(
+    fixerPrompt(wt, skillFindings, skillsToCheck, thermo, effectDiffReview),
+    {
+      schema: FIXER_SCHEMA,
+      label: `fix-${chosen.name}`,
+      phase: 'Fix review findings',
+      isolation: 'worktree',
+    }
+  )
+
+  await agent(mergeDevelopPrompt(wt), {
+    schema: OK_SCHEMA,
+    label: `merge-${chosen.name}`,
+    phase: 'Fix review findings',
+    isolation: 'worktree',
+    model: 'haiku',
+  })
+
+  return fixerResult
+}
+
+const draftPr = async (chosen, identity, fixerResult) => {
+  phase('Draft PR')
+  return await agent(draftPrPrompt(chosen, identity, fixerResult), {
+    schema: PR_DRAFT_SCHEMA,
+    label: `pr-${chosen.name}`,
+    phase: 'Draft PR',
+    isolation: 'worktree',
+    model: 'sonnet',
+  })
+}
+
+// =====================================================================
+// ORCHESTRATION
+// =====================================================================
+
+const identity = await resolveIdentity()
+if (identity.error || !identity.userId) {
+  log(`identity resolution failed: ${identity.error || 'unknown'} — exiting`)
+  return { exited: 'identity-failed', error: identity.error }
+}
+log(`runner: ${identity.username} (${identity.ownerPrefix}, ${identity.githubLogin})`)
+
+await ensureDaemons()
+await reapStrandedWorktrees(identity)
+
+const { inFlightWis, monitorOutcomes } = await monitorInFlight(identity)
+const { toFinalize, toTriage, toRestart, toCloseWi, toRefresh } = classifyMonitor(monitorOutcomes)
+
+if (toCloseWi.length) await closeMergedWis(toCloseWi, identity)
+if (toTriage.length) await triageAndFixCi(toTriage, identity)
+if (toRefresh.length) await keepInFlightCurrent(toRefresh, identity)
+if (toFinalize.length) await openForReview(toFinalize, identity)
+await peerApprove(identity)
+
+// Decide whether to restart a stuck in-flight WI, claim a new one, or exit.
+const stillInFlight = inFlightWis.length - toFinalize.length // optimistic; some finalizers may have failed
+
+let chosen
+let isRestart = false
+
+if (toRestart.length) {
+  chosen = toRestart[0].wi
+  isRestart = true
+  log(`restarting stuck in-flight WI ${chosen.name} (no PR)`)
+} else {
+  if (stillInFlight >= MAX_IN_FLIGHT) {
+    log(`at cap (${stillInFlight}/${MAX_IN_FLIGHT}); not claiming new WI`)
+    return { exited: 'at-cap', inFlight: stillInFlight, finalized: toFinalize.length }
+  }
+  chosen = await pickCandidate(identity, inFlightWis)
+  if (!chosen) {
+    log('no candidates — nothing to do')
+    return { exited: 'idle', inFlight: stillInFlight }
+  }
+}
+
+const claimed = await claimOrRestart(chosen, identity, isRestart)
+if (!claimed.ok) {
+  log(`${isRestart ? 'restart' : 'claim'} failed: ${claimed.detail}`)
+  return {
+    exited: isRestart ? 'restart-failed' : 'claim-failed',
+    error: claimed.detail,
+  }
+}
+
+const { planResult, skillList } = await runPlan(chosen, identity)
+if (planResult.verdict === 'blocked') {
+  await bounceBlockedPlan(chosen, planResult, identity)
+  return { exited: 'plan-blocked', wi: chosen.name }
+}
+await reviewAndCommitPlan(chosen, identity)
+
+const buildResult = await runBuild(chosen, identity)
+if (buildResult.status === 'stuck') {
+  await bounceStuckBuild(chosen, buildResult, identity)
+  return { exited: 'build-stuck', wi: chosen.name, reason: buildResult.reason }
+}
+
+const fixerResult = await runReview(chosen, identity, skillList)
+
+const prResult = await draftPr(chosen, identity, fixerResult)
 
 log(`opened draft PR ${prResult.prUrl} for ${chosen.name}`)
 return {
