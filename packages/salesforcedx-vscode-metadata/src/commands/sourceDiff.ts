@@ -61,8 +61,8 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
       () =>
         void vscode.commands.executeCommand(
           'vscode.diff',
-          firstPair.remoteUri.toUri(),
-          firstPair.localUri.toUri(),
+          firstPair.remoteUri.uri,
+          firstPair.localUri.uri,
           nls.localize('source_diff_title', 'remote', firstPair.fileName, firstPair.fileName)
         )
     );
@@ -119,7 +119,9 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
         const errorMessage = error instanceof Error ? error.message : String(error);
         yield* channelService.appendToChannel(`Diff failed: ${errorMessage}`);
         yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-        yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('source_diff_failed', errorMessage)));
+        yield* Effect.sync(() => {
+          void vscode.window.showErrorMessage(nls.localize('source_diff_failed', errorMessage));
+        });
       }).pipe(Effect.asVoid)
     )
   );
