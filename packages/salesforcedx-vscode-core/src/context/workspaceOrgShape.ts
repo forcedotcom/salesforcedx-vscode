@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgShape, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { OrgShape } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
@@ -25,13 +26,12 @@ export const shapeFrom = (info: OrgShapeInfo): OrgShape => {
 };
 
 const getOrgShapeEffect = Effect.fn('workspaceOrgShape.getOrgShape')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  if (isEmpty) return 'Undefined';
   const info = yield* getDefaultOrgInfo();
   return shapeFrom(info);
 });
 
-export const getOrgShape = async (_username: string): Promise<OrgShape> => {
-  if (!workspaceUtils.hasRootWorkspace()) return 'Undefined';
-  return getRuntime().runPromise(
-    getOrgShapeEffect().pipe(Effect.catchAll(() => Effect.succeed<OrgShape>('Undefined')))
-  );
-};
+export const getOrgShape = async (_username: string): Promise<OrgShape> =>
+  getRuntime().runPromise(getOrgShapeEffect().pipe(Effect.catchAll(() => Effect.succeed<OrgShape>('Undefined'))));
