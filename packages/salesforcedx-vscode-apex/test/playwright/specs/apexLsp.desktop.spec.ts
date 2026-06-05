@@ -12,6 +12,7 @@ import {
   EDITOR_WITH_URI,
   executeCommandWithCommandPalette,
   openFileByName,
+  openFileFromExplorerTree,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -35,7 +36,9 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
   });
 
   await test.step('Go to Definition from ExampleClassTest into ExampleClass', async () => {
-    await openFileByName(page, 'ExampleClassTest.cls');
+    // Use Explorer tree instead of Quick Open — VS Code's file-search index may not have
+    // discovered the pre-seeded file yet (only "recently opened" files appear reliably).
+    await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['classes']);
     // Position caret on the `ExampleClass` reference (line 5, col 20 in the seeded test class)
     await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
     await page.keyboard.type('5:20');
@@ -49,7 +52,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
   });
 
   await test.step('Autocompletion suggests SayHello and inserts call', async () => {
-    await openFileByName(page, 'ExampleClassTest.cls');
+    await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['classes']);
     // Insert "\tExampleClass.say" at line 7 col 1, mirroring the WDIO sequence (apexLsp.e2e.ts:155).
     await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
     await page.keyboard.type('7:1');
