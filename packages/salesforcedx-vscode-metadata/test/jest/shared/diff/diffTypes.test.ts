@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { HashableUri } from 'salesforcedx-vscode-services';
+import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
 import { URI } from 'vscode-uri';
 import { createDiffFilePair, isDiffFilePair } from '../../../../src/shared/diff/diffTypes';
 
