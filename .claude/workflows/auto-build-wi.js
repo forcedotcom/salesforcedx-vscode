@@ -18,6 +18,7 @@ export const meta = {
     { title: 'Plan' },
     { title: 'Build' },
     { title: 'Review' },
+    { title: 'Verify findings' },
     { title: 'Fix review findings' },
     { title: 'Draft PR' },
   ],
@@ -245,6 +246,20 @@ const FIXER_SCHEMA = {
   },
 }
 
+const VERIFY_SCHEMA = {
+  type: 'object',
+  required: ['verdict', 'severity', 'rationale'],
+  properties: {
+    // confirmed: premise verified, keep as-is.
+    // downgraded: real but lower severity than claimed.
+    // dropped: premise false, or already-covered (e.g. CI runs it), or zero affected consumers.
+    verdict: { enum: ['confirmed', 'downgraded', 'dropped'] },
+    severity: { enum: ['critical', 'high', 'medium', 'low'] },
+    rationale: { type: 'string' },
+    evidence: { type: ['string', 'null'] },
+  },
+}
+
 const PR_DRAFT_SCHEMA = {
   type: 'object',
   required: ['prUrl', 'prNumber'],
@@ -363,6 +378,43 @@ const parseShortstatLines = shortstat => {
   return Number(ins) + Number(del)
 }
 
+// Severity rank for sorting/threshold logic. effect 'must'/'should'/'consider'
+// map to critical/high/medium upstream before reaching here.
+const SEVERITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 }
+
+// Flatten every review source (per-skill, thermo, effect-advocate) into one
+// uniform {source, severity, file, line, claim} list the verifier can chew on.
+const normalizeFindings = (skillFindings, skillsToCheck, thermo, effectDiffReview) => {
+  const effectSeverity = s => (s === 'must' ? 'critical' : s === 'should' ? 'high' : 'medium')
+  const skill = skillFindings
+    .map((r, i) => ({ r, name: skillsToCheck[i] }))
+    .filter(({ r }) => r && r.applies)
+    .flatMap(({ r, name }) =>
+      (r.findings || []).map(f => ({
+        source: `skill:${name}`,
+        severity: f.severity,
+        file: f.file ?? null,
+        line: f.line ?? null,
+        claim: f.suggestion,
+      }))
+    )
+  const thermoF = ((thermo && thermo.findings) || []).map(f => ({
+    source: 'thermo',
+    severity: f.severity,
+    file: f.file ?? null,
+    line: f.line ?? null,
+    claim: `${f.claim}${f.evidence ? ` [${f.evidence}]` : ''}`,
+  }))
+  const effectF = ((effectDiffReview && effectDiffReview.findings) || []).map(f => ({
+    source: 'effect',
+    severity: effectSeverity(f.severity),
+    file: f.file ?? null,
+    line: f.line ?? null,
+    claim: `${f.suggestion}${f.citation ? ` [${f.citation}]` : ''}`,
+  }))
+  return [...skill, ...thermoF, ...effectF]
+}
+
 const classifyMonitor = monitorOutcomes => ({
   toFinalize: monitorOutcomes.filter(
     r => r && r.decision === 'finalize' && r.wi.status === 'In Progress'
@@ -428,7 +480,7 @@ Return {ok: true, detail: '<n reaped>: <comma-separated branch names>'} or {ok: 
 const inFlightQueryPrompt = identity =>
   `Run this SOQL and return the raw records array.
 
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('In Progress', 'Ready for Review') AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('In Progress', 'Ready for Review', 'Fixed') AND Subject__c LIKE '%[ai-auto]%'" -o gus --result-format json
 
 Return {records: <result.records as-is>}. No filtering, no transformation.`
 
@@ -850,22 +902,37 @@ Read and apply .claude/skills/thermonuclear-code-quality-review/SKILL.md. Examin
 const effectDiffReviewPrompt = wt =>
   `Review the diff in ${wt} (mode: diff review). Examine 'git diff origin/develop...HEAD'.`
 
-const fixerPrompt = (wt, skillFindings, skillsToCheck, thermo, effectDiffReview) =>
+const verifyFindingPrompt = (wt, finding) =>
+  `Adversarially verify ONE code-review finding against the diff in ${wt}. Default to skepticism: a finding survives only if its premise is demonstrably true AND acting on it adds value beyond what CI/automation already provides.
+
+Finding (source: ${finding.source}):
+${JSON.stringify({ severity: finding.severity, file: finding.file, line: finding.line, claim: finding.claim }, null, 2)}
+
+Establish the premise with EVIDENCE, not assumption. Read the cited file:line and 'git diff origin/develop...HEAD' in ${wt}.
+
+Verdict rules:
+- **dropped** if ANY of:
+  - The premise is false (cited code doesn't do what the finding claims).
+  - It only asks to RUN tests/checks that CI already runs on the PR. CI runs Playwright e2e (with retries) and the stop-hook chain (compile/lint/knip/effect-LS/unit) as gating checks — re-running them by hand before merge is redundant. Inspect '.github/workflows/' in ${wt} to confirm what CI covers; a "run X before merge" finding where X is a gating CI job → dropped.
+  - It claims a BREAKING API change / removed export / dead code. PROVE affected consumers exist before keeping it. Read .claude/skills/external-consumers/SKILL.md and run its gh searches across org:forcedotcom and org:salesforcecli for the exact removed symbol AND its public-export form (e.g. workspaceContextUtils.<name>). Discount false positives (unrelated same-named symbols, the ci-testing mirror repo, the export site itself, plan/doc files). Zero real consumers → dropped (note "removed unused export, no consumers" for the PR body instead).
+- **downgraded** if the premise holds but the real severity is lower than claimed (e.g. theoretical edge, no user-facing impact).
+- **confirmed** only if premise verified and the fix adds genuine value.
+
+Return ONLY the structured result. 'severity' = the corrected severity (== claimed if confirmed). 'evidence' = file:line or gh-search summary that grounds the verdict.`
+
+const fixerPrompt = (wt, verifiedFindings) =>
   `Apply review findings to the code in ${wt}.
 
-Skill findings (per-skill JSON):
-${JSON.stringify(skillFindings.filter(Boolean).map((r, i) => ({ skill: skillsToCheck[i], ...r })), null, 2)}
+Each finding was already adversarially verified — premise confirmed, severity corrected, false/redundant/no-consumer findings already removed. 'verifiedSeverity' is authoritative; 'rationale'/'evidence' explain why it survived.
 
-Thermonuclear findings:
-${JSON.stringify(thermo.findings, null, 2)}
-
-Effect-advocate findings (severity mapping: 'must' = critical, 'should' = high, 'consider' = medium):
-${JSON.stringify(effectDiffReview.findings || [], null, 2)}
+Verified findings (JSON):
+${JSON.stringify(verifiedFindings, null, 2)}
 
 Rules:
-- Auto-apply ALL critical and high severity findings (this includes every effect-advocate 'must' and 'should').
+- Auto-apply ALL critical and high severity findings.
 - Auto-apply medium / low when the fix is cheap and clearly correct.
 - Surface the rest in 'remaining' with note + severity for the PR body.
+- A finding may carry a 'prBodyNote' (e.g. "removed unused export, no consumers") instead of a code change — pass those straight into 'remaining' so they land in the PR body, no edit needed.
 
 Group commits logically: e.g. one commit "fix: critical/high review findings", one "refactor: medium/low review findings". If nothing to fix, return {fixedCount: 0, remaining: [...]}.
 
@@ -1381,17 +1448,55 @@ const runReview = async (chosen, identity, skillList) => {
     agentType: 'effect-advocate',
   })
 
+  // Verify every finding before fixing: each gets an adversarial verifier that
+  // proves the premise (reads cited code; gh-searches consumers for breaking/
+  // dead-code claims; checks CI coverage for "run X before merge" claims) and
+  // returns confirmed / downgraded / dropped. Kills false positives, redundant
+  // CI re-runs, and zero-consumer "breaking changes" before they reach the fixer.
+  phase('Verify findings')
+
+  const rawFindings = normalizeFindings(skillFindings, skillsToCheck, thermo, effectDiffReview)
+  log(`verifying ${rawFindings.length} raw finding(s)`)
+
+  const verdicts = await parallel(
+    rawFindings.map((finding, i) => () =>
+      agent(verifyFindingPrompt(wt, finding), {
+        schema: VERIFY_SCHEMA,
+        label: `verify-${finding.source}-${i}`,
+        phase: 'Verify findings',
+        isolation: 'worktree',
+        model: 'sonnet',
+      }).then(v => (v ? { finding, ...v } : null))
+    )
+  )
+
+  const verifiedFindings = verdicts
+    .filter(Boolean)
+    .filter(v => v.verdict !== 'dropped')
+    .map(v => ({
+      source: v.finding.source,
+      file: v.finding.file,
+      line: v.finding.line,
+      claim: v.finding.claim,
+      verifiedSeverity: v.severity,
+      rationale: v.rationale,
+      evidence: v.evidence ?? null,
+    }))
+    .sort((a, b) => SEVERITY_RANK[a.verifiedSeverity] - SEVERITY_RANK[b.verifiedSeverity])
+
+  const droppedCount = verdicts.filter(Boolean).filter(v => v.verdict === 'dropped').length
+  log(
+    `verified: ${verifiedFindings.length} kept, ${droppedCount} dropped (${verdicts.filter(Boolean).filter(v => v.verdict === 'downgraded').length} downgraded)`
+  )
+
   phase('Fix review findings')
 
-  const fixerResult = await agent(
-    fixerPrompt(wt, skillFindings, skillsToCheck, thermo, effectDiffReview),
-    {
-      schema: FIXER_SCHEMA,
-      label: `fix-${chosen.name}`,
-      phase: 'Fix review findings',
-      isolation: 'worktree',
-    }
-  )
+  const fixerResult = await agent(fixerPrompt(wt, verifiedFindings), {
+    schema: FIXER_SCHEMA,
+    label: `fix-${chosen.name}`,
+    phase: 'Fix review findings',
+    isolation: 'worktree',
+  })
 
   await agent(mergeDevelopPrompt(wt), {
     schema: OK_SCHEMA,
