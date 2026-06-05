@@ -5,75 +5,59 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Equal from 'effect/Equal';
+import { dual } from 'effect/Function';
 import * as Hash from 'effect/Hash';
 import { URI } from 'vscode-uri';
 
-/** it's vscode-uri but add Effect's hash/equal interface so we can more easily dedupe them  (hashMap, hashSet) */
-export class HashableUri extends URI {
-  protected constructor(scheme: string, authority?: string, path?: string, query?: string, fragment?: string) {
-    super(scheme, authority, path, query, fragment);
-  }
+/**
+ * Wraps a `vscode-uri` `URI` with Effect's `Hash`/`Equal` interfaces so values can be
+ * deduped in `HashMap`/`HashSet`. Uses a structural Equal so cross-bundle comparisons
+ * work (each extension bundles its own `vscode-uri`, so subclass `instanceof` checks fail).
+ *
+ * Access the underlying URI via `.uri`. Use `HashableUri.fromUri` to construct.
+ */
+export type HashableUri = {
+  readonly uri: URI;
+  readonly [Hash.symbol]: () => number;
+  readonly [Equal.symbol]: (that: unknown) => boolean;
+};
 
-  public static fromUri(uri: URI): HashableUri {
-    // Normalize Windows drive letters to lowercase — VS Code URIs may have /C:/ or /c:/
-    // depending on the source (context menu, readDirectory, workspace folder, etc.).
-    // Consistent lowercase ensures HashSet comparisons work regardless of origin.
-    const path = /^\/[A-Z]:/.test(uri.path) ? uri.path.replace(/^\/[A-Z]:/, m => m.toLowerCase()) : uri.path;
-    return new HashableUri(uri.scheme, uri.authority, path, uri.query, uri.fragment);
-  }
+type UriChange = Parameters<URI['with']>[0];
 
-  public [Equal.symbol](that: Equal.Equal): boolean {
-    return (
-      that instanceof URI &&
-      this.scheme === that.scheme &&
-      this.authority === that.authority &&
-      this.path === that.path &&
-      this.query === that.query &&
-      this.fragment === that.fragment
-    );
-  }
+const hasObjectProp = <K extends string>(u: unknown, key: K): u is Record<K, object> =>
+  u !== null && typeof u === 'object' && key in u && typeof Object(u)[key] === 'object' && Object(u)[key] !== null;
 
-  public [Hash.symbol](): number {
-    const hashes = [this.scheme, this.authority, this.path, this.query, this.fragment].map(Hash.hash);
-    return hashes.slice(1).reduce((acc, h) => (acc * 31) ^ h, hashes[0]);
-  }
+/**
+ * Structural cross-bundle check: any value with a `uri` field that looks like a URI AND carries
+ * Effect's `Equal.symbol` method. Requiring `Equal.symbol` keeps the Equal contract symmetric:
+ * a plain `{uri}` literal would not satisfy `Hash.hash` requirements, so we must reject it here.
+ */
+const isHashableUriShape = (u: unknown): u is HashableUri =>
+  hasObjectProp(u, 'uri') && typeof Object(u.uri).scheme === 'string' && typeof Object(u)[Equal.symbol] === 'function';
 
-  public with(change: {
-    scheme?: string;
-    authority?: string | null;
-    path?: string | null;
-    query?: string | null;
-    fragment?: string | null;
-  }): HashableUri {
-    return HashableUri.fromUri(super.with(change));
-  }
+const fromUri = (uri: URI): HashableUri => {
+  // Normalize Windows drive letters to lowercase — VS Code URIs may have /C:/ or /c:/
+  // depending on the source (context menu, readDirectory, workspace folder, etc.).
+  // Consistent lowercase ensures HashSet comparisons work regardless of origin.
+  // Gated on file scheme; non-file URIs do not use drive letters.
+  const normalized =
+    uri.scheme === 'file' && /^\/[A-Z]:/.test(uri.path)
+      ? uri.with({ path: uri.path.replace(/^\/[A-Z]:/, m => m.toLowerCase()) })
+      : uri;
+  const self: HashableUri = {
+    uri: normalized,
+    [Hash.symbol]: () => Hash.string(normalized.toString()),
+    [Equal.symbol]: (that: unknown) => isHashableUriShape(that) && normalized.toString() === that.uri.toString()
+  };
+  return self;
+};
 
-  public static file(path: string): HashableUri {
-    return HashableUri.fromUri(URI.file(path));
-  }
+const withFn: {
+  (change: UriChange): (self: HashableUri) => HashableUri;
+  (self: HashableUri, change: UriChange): HashableUri;
+} = dual(2, (self: HashableUri, change: UriChange): HashableUri => fromUri(self.uri.with(change)));
 
-  public static parse(value: string, _strict?: boolean): HashableUri {
-    return HashableUri.fromUri(URI.parse(value, _strict));
-  }
-
-  public static from(components: {
-    scheme: string;
-    authority?: string;
-    path?: string;
-    query?: string;
-    fragment?: string;
-  }): HashableUri {
-    return HashableUri.fromUri(URI.from(components));
-  }
-
-  /** Strip HashableUri subclass back to a plain URI for RPC serialization (e.g. vscode.diff) */
-  public toUri(): URI {
-    return URI.from({
-      scheme: this.scheme,
-      authority: this.authority,
-      path: this.path,
-      query: this.query,
-      fragment: this.fragment
-    });
-  }
-}
+export const HashableUri = {
+  fromUri,
+  with: withFn
+};

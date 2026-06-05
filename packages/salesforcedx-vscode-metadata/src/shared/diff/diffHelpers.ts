@@ -92,14 +92,14 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
         Stream.mapEffect(p => fsService.toUri(p).pipe(Effect.map(uri => fsService.HashableUri.fromUri(uri)))),
         Stream.filter(u => !localUriFilter || HashSet.has(localUriFilter, u)),
         Stream.filterMap(localUri =>
-          Option.fromNullable(byBasename.get(Utils.basename(localUri))).pipe(
+          Option.fromNullable(byBasename.get(Utils.basename(localUri.uri))).pipe(
             Option.map(remotePath => ({ localUri, remotePath }))
           )
         ),
         Stream.mapEffect(({ localUri, remotePath }) =>
           fsService.toUri(remotePath).pipe(
             Effect.map(uri => fsService.HashableUri.fromUri(uri)),
-            Effect.map(remoteUri => createDiffFilePair({ localUri, remoteUri, fileName: Utils.basename(localUri) }))
+            Effect.map(remoteUri => createDiffFilePair({ localUri, remoteUri, fileName: Utils.basename(localUri.uri) }))
           )
         )
       );
@@ -113,7 +113,7 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
 export const filesAreNotIdentical = Effect.fn('filesAreNotIdentical')(function* (pair: DiffFilePair) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [buffer1, buffer2] = (yield* Effect.all(
-    [api.services.FsService.readFile(pair.remoteUri.toUri()), api.services.FsService.readFile(pair.localUri.toUri())],
+    [api.services.FsService.readFile(pair.remoteUri.uri), api.services.FsService.readFile(pair.localUri.uri)],
     { concurrency: 'unbounded' }
   ).pipe(
     Effect.tapError(e => Effect.logWarning('filesAreNotIdentical: readFile failed, skipping pair', e)),

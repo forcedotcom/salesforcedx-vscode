@@ -90,7 +90,7 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
 
   if (conflictingPaths.size === 0) return [] satisfies DiffFilePair[];
 
-  const conflictPairs = HashSet.filter(pairsSet, pair => conflictingPaths.has(pair.localUri.path));
+  const conflictPairs = HashSet.filter(pairsSet, pair => conflictingPaths.has(pair.localUri.uri.path));
   const deployDiffering = yield* conflictPairs.pipe(
     Stream.fromIterable,
     Stream.filterEffect(filesAreNotIdentical),
