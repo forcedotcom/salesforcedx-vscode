@@ -10,7 +10,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   OrgUserInfo,
   WorkspaceContextUtil,
-  UserService,
   refreshAllExtensionReporters,
   getDevHubIdFromScratchOrg
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -87,20 +86,16 @@ export class WorkspaceContext {
     }
   }
 
-  /** Update telemetry user ID when org changes */
+  /** Refresh telemetry reporters for ALL extensions when org changes (identity sourced from services). */
   protected handleTelemetryUpdate = async () => {
     if (!this.coreExtensionContext) {
       return;
     }
 
     try {
-      // Update the telemetry user ID in global state (Core extension doesn't use shared provider to avoid infinite loop)
-      await UserService.getTelemetryUserId(this.coreExtensionContext);
-
-      // Refresh telemetry reporters for ALL extensions (Core, Apex, etc.)
       await refreshAllExtensionReporters(this.coreExtensionContext);
     } catch (error) {
-      console.log('Failed to update telemetry user ID after org change:', error);
+      console.log('Failed to refresh telemetry reporters after org change:', error);
     }
   };
 

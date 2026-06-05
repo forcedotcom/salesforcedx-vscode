@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import {
   Properties,
   Measurements,
@@ -12,12 +13,16 @@ import {
   TelemetryServiceInterface,
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
+import * as Effect from 'effect/Effect';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { ChannelService } from '../commands/channelService';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
   SFDX_CORE_EXTENSION_NAME,
-  SFDX_EXTENSION_PACK_NAME
+  SFDX_EXTENSION_PACK_NAME,
+  UNAUTHENTICATED_USER
 } from '../constants';
 import { errorToString } from '../helpers/errorUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
@@ -27,7 +32,39 @@ import { O11yReporter } from '../telemetry/reporters/o11yReporter';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
-import { UserService, getWebTelemetryUserId, DefaultSharedTelemetryProvider } from './userService';
+
+type IdentityFromServices = {
+  cliId: string | undefined;
+  userId: string | undefined;
+  webUserId: string;
+};
+
+const FALLBACK_IDENTITY: IdentityFromServices = {
+  cliId: undefined,
+  userId: undefined,
+  webUserId: UNAUTHENTICATED_USER
+};
+
+/** Pull telemetry identity from the services extension. Logs and recovers known error tags. */
+const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
+  Effect.runPromise(
+    getServicesApi.pipe(
+      Effect.flatMap(api => api.services.TargetOrgRef()),
+      Effect.flatMap(SubscriptionRef.get),
+      Effect.map(
+        ({ cliId, userId, webUserId }): IdentityFromServices => ({
+          cliId,
+          userId,
+          webUserId: webUserId ?? UNAUTHENTICATED_USER
+        })
+      ),
+      Effect.tapError(e => Effect.log(`getIdentityFromServices error: ${String(e)}`)),
+      Effect.catchTags({
+        ServicesExtensionNotFoundError: () => Effect.succeed(FALLBACK_IDENTITY),
+        InvalidServicesApiError: () => Effect.succeed(FALLBACK_IDENTITY)
+      })
+    )
+  );
 
 type CommandMetric = {
   extensionName: string;
@@ -95,14 +132,15 @@ export class TelemetryService implements TelemetryServiceInterface {
     return startTimeMs ? endTime - startTimeMs : -1;
   }
 
-  /**
-   * Determines the appropriate SharedTelemetryProvider based on extension context.
-   * Core extension uses undefined to avoid infinite loops, others use DefaultSharedTelemetryProvider.
-   */
-  private getSharedTelemetryProvider(extensionContext: ExtensionContext): DefaultSharedTelemetryProvider | undefined {
-    return extensionContext.extension.id !== 'salesforce.salesforcedx-vscode-core'
-      ? new DefaultSharedTelemetryProvider()
-      : undefined;
+  /** Fetch telemetry identity. Public for jest spy override; do not invoke from outside this file. */
+  public getIdentityFromServices(): Promise<IdentityFromServices> {
+    return fetchIdentityFromServices();
+  }
+
+  private warnDegradedSession(cliId: string | undefined): void {
+    if (cliId === undefined) {
+      ChannelService.getInstance(this.extensionName).appendLine('telemetry seed missing — degraded session');
+    }
   }
 
   /**
@@ -129,10 +167,9 @@ export class TelemetryService implements TelemetryServiceInterface {
       });
 
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
-      const userId = this.extensionContext ? await UserService.getTelemetryUserId(this.extensionContext) : 'unknown';
-      const webUserId = this.extensionContext
-        ? await getWebTelemetryUserId(this.extensionContext, this.getSharedTelemetryProvider(this.extensionContext))
-        : 'unknown';
+      const { cliId, webUserId } = await this.getIdentityFromServices();
+      this.warnDegradedSession(cliId);
+      const userId = cliId ?? '';
       const reporterConfig: TelemetryReporterConfig = {
         extName: this.extensionName,
         version: this.version,
@@ -191,9 +228,10 @@ export class TelemetryService implements TelemetryServiceInterface {
       return;
     }
 
-    // Get the updated user ID (original) and webUserId field
-    const userId = await UserService.getTelemetryUserId(extensionContext);
-    const webUserId = await getWebTelemetryUserId(extensionContext, this.getSharedTelemetryProvider(extensionContext));
+    // Sourced from services-owned identity; webUserId always defined (UNAUTHENTICATED_USER until auth).
+    const { cliId, webUserId } = await this.getIdentityFromServices();
+    this.warnDegradedSession(cliId);
+    const userId = cliId ?? '';
 
     // priority: extension specific one, OR core default one, OR original one
     const { productFeatureId: thisExtensionPftId } = extensionPackageJsonSchema.parse(
