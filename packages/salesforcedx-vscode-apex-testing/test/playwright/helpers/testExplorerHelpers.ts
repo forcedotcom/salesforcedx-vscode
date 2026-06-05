@@ -66,20 +66,27 @@ const expandNamespaceAndPackage = async (panel: Locator): Promise<void> => {
   await expandTreeRow(panel, UNPACKAGED_METADATA_LABEL);
 };
 
-export const openTestExplorerAndDiscover = async (page: Page): Promise<Locator> => {
-  await executeCommandWithCommandPalette(page, CMD_FOCUS_TEST_EXPLORER);
-  const panel = page.locator(TEST_EXPLORER_PANEL);
-  await panel.waitFor({ state: 'visible', timeout: 10_000 });
+/**
+ * Triggers `Test: Refresh Tests` and waits for the tree to repopulate.
+ * Discovery clears and rebuilds the tree asynchronously after the command returns
+ * — on Windows this gap is long enough that the empty-state ("No tests have been
+ * found...") renders and any follow-up tree interaction times out.
+ */
+export const refreshTestsAndWaitForRebuild = async (page: Page, panel: Locator): Promise<void> => {
   await executeCommandWithCommandPalette(page, CMD_REFRESH_TESTS);
-  // Discovery clears and rebuilds the tree asynchronously. The rebuild starts after
-  // `Test: Refresh Tests` returns, so we wait for the top-level node to disappear briefly
-  // (or never if the refresh is fast) before asserting it reappears.
   await panel
     .getByText(LOCAL_NAMESPACE_LABEL)
     .first()
     .waitFor({ state: 'hidden', timeout: 2000 })
     .catch(() => {});
   await expect(panel.getByText(LOCAL_NAMESPACE_LABEL)).toBeVisible({ timeout: 60_000 });
+};
+
+export const openTestExplorerAndDiscover = async (page: Page): Promise<Locator> => {
+  await executeCommandWithCommandPalette(page, CMD_FOCUS_TEST_EXPLORER);
+  const panel = page.locator(TEST_EXPLORER_PANEL);
+  await panel.waitFor({ state: 'visible', timeout: 10_000 });
+  await refreshTestsAndWaitForRebuild(page, panel);
   await expandNamespaceAndPackage(panel);
   return panel;
 };

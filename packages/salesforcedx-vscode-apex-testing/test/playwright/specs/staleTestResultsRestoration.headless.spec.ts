@@ -18,7 +18,7 @@ import {
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForOutputChannelText
@@ -43,8 +43,8 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
 
   let testClassName: string;
 
-  await test.step('setup minimal org with Apex test class', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with Apex test class', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     testClassName = `StaleTestClass${Date.now()}`;
     const testClassContent = [
