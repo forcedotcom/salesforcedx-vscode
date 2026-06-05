@@ -33,6 +33,17 @@ describe('Telemetry', () => {
       onDidDelete: jest.fn(),
       dispose: jest.fn()
     } as any);
+    // Telemetry now sources identity from services API; mock the degraded-session channel write.
+    jest.spyOn(window, 'createOutputChannel').mockReturnValue({
+      appendLine: jest.fn(),
+      append: jest.fn(),
+      show: jest.fn(),
+      hide: jest.fn(),
+      clear: jest.fn(),
+      dispose: jest.fn(),
+      replace: jest.fn(),
+      name: 'mock'
+    } as any);
   });
 
   afterEach(() => {
@@ -96,9 +107,7 @@ describe('Telemetry', () => {
       expect(telemetryEnabled).toEqual(true);
 
       await showTelemetryMessage(mockExtensionContext);
-      expect(globalStateTelemetrySpy).toHaveBeenCalledTimes(4);
-      expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_USER_ID);
-      expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_WEB_USER_ID);
+      // Identity now sourced from services extension; only the show-message keys are read from globalState.
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_VALUE);
       expect(globalStateTelemetrySpy).toHaveBeenLastCalledWith(TELEMETRY_INTERNAL_VALUE);
       expect(mShowInformation).not.toHaveBeenCalled();

@@ -233,7 +233,7 @@ describe('Extension', () => {
       },
       globalState: {
         get: jest.fn().mockReturnValue(undefined),
-        update: jest.fn()
+        update: jest.fn().mockResolvedValue(undefined)
       }
     } as unknown as import('vscode').ExtensionContext;
 
