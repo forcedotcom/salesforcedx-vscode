@@ -6,7 +6,6 @@
  */
 
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
-import { noDirectHashableUriImports } from './noDirectHashableUriImports';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
@@ -42,7 +41,6 @@ const plugin = {
     'command-must-be-in-package-json': commandMustBeInPackageJson,
     'no-duplicate-i18n-values': noDuplicateI18nValues,
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
-    'no-direct-hashableuri-imports': noDirectHashableUriImports,
     'no-direct-services-imports': noDirectServicesImports,
     'no-effect-fn-wrapper': noEffectFnWrapper,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
