@@ -10,6 +10,7 @@ import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
+import { isNlsLocalizeCall } from './astUtils';
 import { collectQueryBuilderI18nKeyRefsFromHtml, extractKey, extractMessagesObject } from './i18nUtils';
 
 const DEFAULT_DYNAMIC_KEY_PATTERNS = ['^[A-Z][a-zA-Z0-9]*$'];
@@ -90,13 +91,6 @@ const loadPackageNlsKeys = (packageRoot: string): Set<string> => {
     return new Set();
   }
 };
-
-const isNlsLocalizeCall = (node: TSESTree.CallExpression): boolean =>
-  node.callee.type === AST_NODE_TYPES.MemberExpression &&
-  node.callee.object.type === AST_NODE_TYPES.Identifier &&
-  node.callee.object.name === 'nls' &&
-  node.callee.property.type === AST_NODE_TYPES.Identifier &&
-  node.callee.property.name === 'localize';
 
 const isCoerceMessageKeyCall = (node: TSESTree.CallExpression): boolean =>
   node.callee.type === AST_NODE_TYPES.Identifier && node.callee.name === 'coerceMessageKey';
