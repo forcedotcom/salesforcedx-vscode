@@ -8,7 +8,6 @@
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as util from 'node:util';
 import * as vscode from 'vscode';
-import { ConfigAggregatorProvider, TelemetryService } from '..';
 import { ConfigUtil } from '../config/configUtil';
 import {
   addKnownBadConnection,
@@ -20,6 +19,8 @@ import {
 } from '../helpers/authUtils';
 import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
+import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
+import { TelemetryService } from '../services/telemetry';
 import { getSalesforceVSCodeOrgExtension } from './orgExtensionUtils';
 
 export type OrgUserInfo = {

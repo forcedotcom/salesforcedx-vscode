@@ -21,10 +21,12 @@ import { CompletionConfiguration, doComplete, doTagComplete } from './services/h
 import { format, HTMLFormatConfiguration } from './services/htmlFormatter';
 import { findDocumentHighlights } from './services/htmlHighlighting';
 import { doHover } from './services/htmlHover';
+import { DocumentContext } from './services/documentContext';
 import { findDocumentLinks } from './services/htmlLinks';
 import { findDocumentSymbols } from './services/htmlSymbolsProvider';
 
 export { type HTMLFormatConfiguration, TokenType };
+export { type DocumentContext };
 
 type Node = {
   tag: string;
@@ -40,10 +42,6 @@ export declare type HTMLDocument = {
   roots: Node[];
   findNodeBefore(offset: number): Node;
   findNodeAt(offset: number): Node;
-};
-
-export type DocumentContext = {
-  resolveReference(ref: string, base?: string): string;
 };
 
 export type LanguageService = {

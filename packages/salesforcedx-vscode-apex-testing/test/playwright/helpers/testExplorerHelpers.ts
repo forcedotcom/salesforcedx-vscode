@@ -17,7 +17,7 @@ const UNPACKAGED_METADATA_LABEL = messages.test_explorer_unpackaged_metadata_lab
 
 // Built-in VS Code commands triggered via the Command Palette.
 const CMD_FOCUS_TEST_EXPLORER = 'Testing: Focus on Test Explorer View';
-export const CMD_REFRESH_TESTS = 'Test: Refresh Tests';
+const CMD_REFRESH_TESTS = 'Test: Refresh Tests';
 export const CMD_RUN_ALL_TESTS = 'Test: Run All Tests';
 export const CMD_TOGGLE_MAXIMIZED_PANEL = 'View: Toggle Maximized Panel';
 
