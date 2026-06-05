@@ -9,11 +9,15 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 
+/** Branded UUID identifying a single CLI install. */
+export const CliId = Schema.UUID.pipe(Schema.brand('@services/CliId'));
+export type CliId = Schema.Schema.Type<typeof CliId>;
+
 // Schema for sf telemetry --json output
 const SfTelemetryResultSchema = Schema.Struct({
   status: Schema.Number,
   result: Schema.Struct({
-    cliId: Schema.String
+    cliId: CliId
   })
 });
 
@@ -32,14 +36,16 @@ const fetchCliIdFromCli = () => {
     Effect.tapError(error => Effect.log(`sf telemetry error: ${String(error)}`)),
     Effect.flatMap(output => Schema.decodeUnknown(SfTelemetryResultSchema)(JSON.parse(output.stdout))),
     Effect.map(parsed => parsed.result.cliId),
-    Effect.catchAll(error => Effect.log(`Failed to fetch cliId: ${String(error)}`).pipe(Effect.as(undefined))),
+    Effect.catchAll(error =>
+      Effect.log(`Failed to fetch cliId: ${String(error)}`).pipe(Effect.as<CliId | undefined>(undefined))
+    ),
     Effect.withSpan('fetchCliId', { attributes: { command } })
   );
 };
 
 /** Get the CLI ID from sf telemetry. Cached permanently. Returns Option.none() on web or when CLI unavailable. */
 export const getCliId = () =>
-  (process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(undefined) : fetchCliIdFromCli()).pipe(
+  (process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed<CliId | undefined>(undefined) : fetchCliIdFromCli()).pipe(
     Effect.cached,
     Effect.flatten,
     Effect.map(Option.fromNullable)

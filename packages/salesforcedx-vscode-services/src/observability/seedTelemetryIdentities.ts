@@ -7,19 +7,23 @@
 
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { ExtensionContextService } from '../vscode/extensionContextService';
-import { getCliId } from './cliTelemetry';
+import { CliId, getCliId } from './cliTelemetry';
+import { readGlobalStateKey } from './readGlobalStateKey';
 import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER } from './webUserId';
 
-// crypto.randomUUID() returns a valid UUIDv4 — no decode needed
-const newRandomCliId = () => Effect.sync(() => globalThis.crypto.randomUUID());
+// crypto.randomUUID() returns a valid UUIDv4 — decode lifts it to the CliId brand.
+const newRandomCliId = () => Schema.decode(CliId)(globalThis.crypto.randomUUID()).pipe(Effect.orDie);
 
 const resolveCliIdFromCli = () =>
   process.env.ESBUILD_PLATFORM === 'web'
     ? newRandomCliId()
     : getCliId().pipe(Effect.flatMap(Option.match({ onSome: Effect.succeed, onNone: newRandomCliId })));
+
+const decodeStoredCliId = (value: string) => Schema.decode(CliId)(value).pipe(Effect.orDie);
 
 /**
  * Seed the stable cliId and webUserId identities into defaultOrgRef + globalState.
@@ -30,11 +34,9 @@ export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(func
   const extensionContext = yield* contextService.getContext;
   const defaultOrgRef = yield* getDefaultOrgRef();
 
-  const existingCliId = Option.fromNullable(
-    extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID)
-  );
+  const existingCliId = yield* readGlobalStateKey(TELEMETRY_GLOBAL_USER_ID);
   const cliId = yield* Option.match(existingCliId, {
-    onSome: Effect.succeed,
+    onSome: decodeStoredCliId,
     onNone: resolveCliIdFromCli
   });
 
@@ -42,9 +44,7 @@ export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(func
     yield* Effect.promise(() => extensionContext.globalState.update(TELEMETRY_GLOBAL_USER_ID, cliId));
   }
 
-  const existingWebUserId = Option.fromNullable(
-    extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID)
-  );
+  const existingWebUserId = yield* readGlobalStateKey(TELEMETRY_GLOBAL_WEB_USER_ID);
   const webUserId = Option.getOrElse(existingWebUserId, () => UNAUTHENTICATED_USER);
   if (Option.isNone(existingWebUserId)) {
     yield* Effect.promise(() => extensionContext.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, webUserId));
