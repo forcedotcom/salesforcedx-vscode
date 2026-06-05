@@ -14,9 +14,9 @@ import {
   refreshAllExtensionReporters
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
-import { getDevHubIdFromScratchOrg } from '../util/orgShapeUtil';
 import { workspaceContextUtils } from '.';
 
 /**
@@ -81,7 +81,14 @@ export class WorkspaceContext {
         }
       }
       if (orgShape === 'Scratch') {
-        const devHubId = await getDevHubIdFromScratchOrg(username);
+        const devHubId = await getRuntime().runPromise(
+          Effect.gen(function* () {
+            const api = yield* (yield* ExtensionProviderService).getServicesApi;
+            const ref = yield* api.services.TargetOrgRef();
+            const info = yield* SubscriptionRef.get(ref);
+            return info.devHubOrgId;
+          }).pipe(Effect.catchAll(() => Effect.succeed(undefined)))
+        );
         WorkspaceContextUtil.getInstance().devHubId = devHubId;
       }
     }
