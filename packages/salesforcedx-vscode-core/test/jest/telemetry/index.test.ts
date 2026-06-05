@@ -50,7 +50,7 @@ describe('Telemetry', () => {
         return key;
       }
       if (key === TELEMETRY_GLOBAL_WEB_USER_ID) {
-        return undefined; // Allow getWebTelemetryUserId to generate its own value
+        return undefined;
       }
       if (key === TELEMETRY_GLOBAL_VALUE) {
         return globalMsgShown;
