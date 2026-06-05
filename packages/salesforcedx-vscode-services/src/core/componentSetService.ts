@@ -94,7 +94,7 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
         );
         const hashableUris = HashSet.fromIterable(uris.map(HashableUri.fromUri));
         const paths = hashableUris.pipe(
-          HashSet.map(uri => uriToPath(uri)),
+          HashSet.map(hu => uriToPath(hu.uri)),
           HashSet.toValues
         );
         yield* Effect.annotateCurrentSpan({ paths });

@@ -6,6 +6,7 @@
  */
 
 import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { URI } from 'vscode-uri';
 import { createDiffFilePair, isDiffFilePair } from '../../../../src/shared/diff/diffTypes';
 
 const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
@@ -14,8 +15,8 @@ const remotePath = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/c
 describe('diffTypes', () => {
   it('createDiffFilePair produces pair accepted by isDiffFilePair', () => {
     const pair = createDiffFilePair({
-      localUri: HashableUri.file(localPath),
-      remoteUri: HashableUri.file(remotePath),
+      localUri: HashableUri.fromUri(URI.file(localPath)),
+      remoteUri: HashableUri.fromUri(URI.file(remotePath)),
       fileName: 'ConflictsTest.cls'
     });
 
