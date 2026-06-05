@@ -18,28 +18,12 @@ import { MessageKey } from './i18n';
  * If omitted, we will assume _message.
  */
 export const messages: Partial<Record<MessageKey, string>> = {
-  project_retrieve_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織からソースをプル',
-
-  project_deploy_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織へソースを転送',
-
-  deploy_this_source_text: 'SFDX: このソースを組織へデプロイ',
-  retrieve_this_source_text: 'SFDX: このソースを組織から取得',
-
-  delete_source_text: 'SFDX: プロジェクトおよび組織から削除',
-
-  view_all_changes_text: 'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
-
-  apex_generate_class_text: 'SFDX: Apex クラスを作成',
-  view_local_changes_text: 'SFDX: ローカルの変更を表示',
-  view_remote_changes_text: 'SFDX: デフォルトのスクラッチ組織の変更を参照',
   config_list_text: 'SFDX: すべての設定変数を一覧表示',
   alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
   error_parsing_sfdx_project_file: 'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
-
-  lightning_generate_lwc_text: 'SFDX: Lightning Web コンポーネントを作成',
 
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
