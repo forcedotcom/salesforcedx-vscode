@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
 import { getDevHubIdFromScratchOrg } from '../util/orgShapeUtil';
-import { workspaceContextUtils } from '.';
+import { getOrgShape } from './workspaceOrgShape';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
@@ -64,7 +64,7 @@ export class WorkspaceContext {
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
     const { username } = orgInfo;
     if (username !== undefined) {
-      const orgShape = await workspaceContextUtils.getOrgShape(username);
+      const orgShape = await getOrgShape(username);
       if (orgShape !== 'Undefined') {
         WorkspaceContextUtil.getInstance().orgShape = orgShape;
         WorkspaceContextUtil.getInstance().devHubId = undefined;
