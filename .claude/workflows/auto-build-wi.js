@@ -5,6 +5,7 @@ export const meta = {
   phases: [
     { title: 'Resolve identity' },
     { title: 'Ensure daemons' },
+    { title: 'Reap stranded worktrees' },
     { title: 'Monitor in-flight' },
     { title: 'Triage failures' },
     { title: 'Fix CI failures' },
@@ -379,6 +380,29 @@ Read .claude/skills/gha-rerun/SKILL.md (and .claude/commands/gha-rerun.md if pre
 
 Do not configure or rerun anything else. The daemon owns rerun budget; this step just keeps it alive.`,
   { schema: OK_SCHEMA, label: 'ensure-gha-rerun-daemon', phase: 'Ensure daemons', model: 'haiku' }
+)
+
+phase('Reap stranded worktrees')
+
+await agent(
+  `Reap worktrees + branches for WIs whose PRs are already merged/closed (e.g. user merged manually and the WI dropped out of the in-flight query).
+
+Run from ${PROJECT_ROOT}:
+
+1. List worktrees: 'git worktree list --porcelain'. Parse into entries.
+2. For each entry, find its branch (porcelain 'branch refs/heads/<name>' line). Skip:
+   - The main worktree (path == ${PROJECT_ROOT})
+   - Any worktree under '${PROJECT_ROOT}/.claude/worktrees/' (workflow-isolation worktrees, not WI worktrees)
+   - Any worktree whose branch does NOT start with '${identity.ownerPrefix}/W-'
+3. For each remaining (path, branch), find a PR: 'gh pr list --head <branch> --state all --json number,state,url --limit 1'.
+   - No PR found → leave it alone (still being built).
+   - PR state == 'MERGED' or 'CLOSED' → reap:
+     a. 'git worktree remove <path> --force'  (ignore failure)
+     b. 'git branch -D <branch>'              (ignore failure)
+   - PR state == 'OPEN' → leave it alone.
+
+Return {ok: true, detail: '<n reaped>: <comma-separated branch names>'} or {ok: true, detail: 'none'} when nothing to reap. Never error out — partial progress is fine.`,
+  { schema: OK_SCHEMA, label: 'reap-stranded-worktrees', phase: 'Reap stranded worktrees', model: 'haiku' }
 )
 
 phase('Monitor in-flight')
