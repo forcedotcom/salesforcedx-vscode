@@ -35,15 +35,15 @@ import { isInternalHost } from '../telemetry/utils/isInternal';
 
 type IdentityFromServices = {
   cliId: string | undefined;
-  userId: string | undefined;
   webUserId: string;
 };
 
 const FALLBACK_IDENTITY: IdentityFromServices = {
   cliId: undefined,
-  userId: undefined,
   webUserId: UNAUTHENTICATED_USER
 };
+
+const fallback = Effect.succeed(FALLBACK_IDENTITY);
 
 /** Pull telemetry identity from the services extension. Logs and recovers known error tags. */
 const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
@@ -52,16 +52,15 @@ const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
       Effect.flatMap(api => api.services.TargetOrgRef()),
       Effect.flatMap(SubscriptionRef.get),
       Effect.map(
-        ({ cliId, userId, webUserId }): IdentityFromServices => ({
+        ({ cliId, webUserId }): IdentityFromServices => ({
           cliId,
-          userId,
           webUserId: webUserId ?? UNAUTHENTICATED_USER
         })
       ),
       Effect.tapError(e => Effect.log(`getIdentityFromServices error: ${String(e)}`)),
       Effect.catchTags({
-        ServicesExtensionNotFoundError: () => Effect.succeed(FALLBACK_IDENTITY),
-        InvalidServicesApiError: () => Effect.succeed(FALLBACK_IDENTITY)
+        ServicesExtensionNotFoundError: () => fallback,
+        InvalidServicesApiError: () => fallback
       })
     )
   );

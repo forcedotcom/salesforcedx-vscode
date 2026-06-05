@@ -7,14 +7,19 @@
 
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { getCliId } from './cliTelemetry';
 import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER } from './webUserId';
 
-const newRandomCliId = () => Effect.sync(() => Schema.decodeSync(Schema.UUID)(globalThis.crypto.randomUUID()));
+// crypto.randomUUID() returns a valid UUIDv4 — no decode needed
+const newRandomCliId = () => Effect.sync(() => globalThis.crypto.randomUUID());
+
+const resolveCliIdFromCli = () =>
+  process.env.ESBUILD_PLATFORM === 'web'
+    ? newRandomCliId()
+    : getCliId().pipe(Effect.flatMap(Option.match({ onSome: Effect.succeed, onNone: newRandomCliId })));
 
 /**
  * Seed the stable cliId and webUserId identities into defaultOrgRef + globalState.
@@ -29,18 +34,8 @@ export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(func
     extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID)
   );
   const cliId = yield* Option.match(existingCliId, {
-    onSome: id => Effect.succeed(id),
-    onNone: () =>
-      process.env.ESBUILD_PLATFORM === 'web'
-        ? newRandomCliId()
-        : getCliId().pipe(
-            Effect.flatMap(
-              Option.match({
-                onSome: id => Effect.succeed(id),
-                onNone: () => newRandomCliId()
-              })
-            )
-          )
+    onSome: Effect.succeed,
+    onNone: resolveCliIdFromCli
   });
 
   if (Option.isNone(existingCliId)) {

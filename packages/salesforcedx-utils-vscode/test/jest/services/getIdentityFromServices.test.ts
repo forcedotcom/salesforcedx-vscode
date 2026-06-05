@@ -65,7 +65,7 @@ describe('TelemetryService.getIdentityFromServices', () => {
   it('returns identity from defaultOrgRef on happy path', async () => {
     mockApiState.ref = makeRef({ cliId: 'cli', userId: 'soql', webUserId: 'sha' });
     const result = await new TelemetryService().getIdentityFromServices();
-    expect(result).toEqual({ cliId: 'cli', userId: 'soql', webUserId: 'sha' });
+    expect(result).toEqual({ cliId: 'cli', webUserId: 'sha' });
   });
 
   it('falls back webUserId to UNAUTHENTICATED_USER when missing', async () => {
@@ -77,13 +77,13 @@ describe('TelemetryService.getIdentityFromServices', () => {
   it('recovers ServicesExtensionNotFoundError to degraded identity', async () => {
     mockApiState.mode = 'no-ext';
     const result = await new TelemetryService().getIdentityFromServices();
-    expect(result).toEqual({ cliId: undefined, userId: undefined, webUserId: UNAUTHENTICATED_USER });
+    expect(result).toEqual({ cliId: undefined, webUserId: UNAUTHENTICATED_USER });
   });
 
   it('recovers InvalidServicesApiError to degraded identity', async () => {
     mockApiState.mode = 'invalid';
     const result = await new TelemetryService().getIdentityFromServices();
-    expect(result).toEqual({ cliId: undefined, userId: undefined, webUserId: UNAUTHENTICATED_USER });
+    expect(result).toEqual({ cliId: undefined, webUserId: UNAUTHENTICATED_USER });
   });
 
   it('runtime error tag classes are referenced', () => {
