@@ -16,13 +16,7 @@ export {
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigUtil } from './config/configUtil';
-export {
-  SETTING_CLEAR_OUTPUT_TAB,
-  SFDX_CORE_CONFIGURATION_NAME,
-  SFDX_LWC_EXTENSION_NAME,
-  TELEMETRY_GLOBAL_USER_ID,
-  TELEMETRY_GLOBAL_WEB_USER_ID
-} from './constants';
+export { SFDX_CORE_CONFIGURATION_NAME, TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from './constants';
 export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService } from './services/telemetry';
@@ -30,39 +24,23 @@ export { isInternalHost } from './telemetry/utils/isInternal';
 export {
   createDirectory,
   fileOrFolderExists,
-  isDirectory,
-  isFile,
   readDirectory,
   readFile,
-  rename,
   safeDelete,
   stat,
   writeFile
 } from './helpers/fs';
-export { fileExtensionsMatch, getTestResultsFolder, projectPaths, TOOLS } from './helpers/paths';
+export { fileExtensionsMatch, projectPaths } from './helpers/paths';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
 export type { SharedAuthState } from './helpers/authUtils';
-export {
-  getDevHubIdFromScratchOrg,
-  getTargetOrgOrAlias,
-  isASandboxOrg,
-  isAScratchOrg,
-  getDevHubUsername,
-  getTargetDevHubOrAlias,
-  getUsername,
-  getOrgApiVersion,
-  getConnection,
-  getAuthFields
-} from './util/authInfo';
-export { hasRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces/workspaceUtils';
+export { getTargetOrgOrAlias, getTargetDevHubOrAlias, getOrgApiVersion } from './util/authInfo';
+export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
-export { SFDX_FOLDER } from './constants';
 
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
 export type { PreconditionChecker } from './commands/preconditionCheckers';
 export type { PostconditionChecker } from './commands/postconditionCheckers';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
 export { UserService } from './services/userService';
-export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';
