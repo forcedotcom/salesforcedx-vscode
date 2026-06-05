@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { getOrgShape } from '../../../src/context/workspaceOrgShape';
+import { getOrgShape, shapeFrom } from '../../../src/context/workspaceOrgShape';
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   workspaceUtils: {
@@ -57,5 +57,31 @@ describe('getOrgShape', () => {
     mockRunPromise.mockResolvedValue('Undefined');
 
     expect(await getOrgShape(username)).toBe('Undefined');
+  });
+});
+
+describe('shapeFrom', () => {
+  it('returns Scratch when isScratch true', () => {
+    expect(shapeFrom({ isScratch: true })).toBe('Scratch');
+  });
+
+  it('returns Sandbox when isSandbox true and isScratch false', () => {
+    expect(shapeFrom({ isSandbox: true })).toBe('Sandbox');
+  });
+
+  it('prefers Scratch over Sandbox when both flags set (precedence)', () => {
+    expect(shapeFrom({ isScratch: true, isSandbox: true })).toBe('Scratch');
+  });
+
+  it('returns Production when alias is set', () => {
+    expect(shapeFrom({ alias: 'my-org' })).toBe('Production');
+  });
+
+  it('returns Production when only username is set', () => {
+    expect(shapeFrom({ username: 'user@example.com' })).toBe('Production');
+  });
+
+  it('returns Undefined when nothing is populated', () => {
+    expect(shapeFrom({})).toBe('Undefined');
   });
 });

@@ -5,23 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { OrgShape, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getRuntime } from '../services/runtime';
+import { getDefaultOrgInfo } from './defaultOrgInfo';
 
-const shapeFrom = (info: { isScratch?: boolean; isSandbox?: boolean; alias?: string; username?: string }): OrgShape =>
-  info.isScratch ? 'Scratch' : info.isSandbox ? 'Sandbox' : (info.alias ?? info.username) ? 'Production' : 'Undefined';
+type OrgShapeInfo = { isScratch?: boolean; isSandbox?: boolean; alias?: string; username?: string };
+
+/**
+ * Maps DefaultOrgInfo fields from `defaultOrgRef` to an OrgShape literal.
+ * Precedence: Scratch > Sandbox > Production (when alias or username known) > Undefined.
+ * Exported for unit-test coverage of the precedence mapping.
+ */
+export const shapeFrom = (info: OrgShapeInfo): OrgShape => {
+  if (info.isScratch) return 'Scratch';
+  if (info.isSandbox) return 'Sandbox';
+  if (info.alias ?? info.username) return 'Production';
+  return 'Undefined';
+};
+
+const getOrgShapeEffect = Effect.fn('workspaceOrgShape.getOrgShape')(function* () {
+  const info = yield* getDefaultOrgInfo();
+  return shapeFrom(info);
+});
 
 export const getOrgShape = async (_username: string): Promise<OrgShape> => {
   if (!workspaceUtils.hasRootWorkspace()) return 'Undefined';
   return getRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const ref = yield* api.services.TargetOrgRef();
-      const info = yield* SubscriptionRef.get(ref);
-      return shapeFrom(info);
-    }).pipe(Effect.catchAll(() => Effect.succeed<OrgShape>('Undefined')))
+    getOrgShapeEffect().pipe(Effect.catchAll(() => Effect.succeed<OrgShape>('Undefined')))
   );
 };
