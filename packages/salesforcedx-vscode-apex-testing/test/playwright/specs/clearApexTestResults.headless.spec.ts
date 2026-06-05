@@ -22,11 +22,12 @@ import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../contants';
 import {
-  CMD_REFRESH_TESTS,
   STALE_AUTOCOMPLETE_OPTION,
+  TEST_EXPLORER_PANEL,
   clearFilter,
   focusAndTypeInFilter,
   openTestExplorerAndDiscover,
+  refreshTestsAndWaitForRebuild,
   runAllTestsAndWaitForCompletion
 } from '../helpers/testExplorerHelpers';
 
@@ -65,7 +66,7 @@ test('Clear Apex Test Results removes result files', async ({ page }) => {
   });
 
   await test.step('refresh and verify results are not restored', async () => {
-    await executeCommandWithCommandPalette(page, CMD_REFRESH_TESTS);
+    await refreshTestsAndWaitForRebuild(page, page.locator(TEST_EXPLORER_PANEL));
     await saveScreenshot(page, 'clear.step.after-refresh.png');
     await focusAndTypeInFilter(page, '@');
     const staleOption = page.getByText(STALE_AUTOCOMPLETE_OPTION);
