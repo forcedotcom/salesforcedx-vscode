@@ -12,8 +12,9 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { ExtensionContextService } from '../vscode/extensionContextService';
+import { readGlobalStateKey } from './readGlobalStateKey';
 
-// Telemetry globalState keys (matching @salesforce/salesforcedx-utils-vscode constants)
+// Telemetry globalState keys (matching @salesforce/salesforcedx-utils-vscode constants — kept in sync; services owns its own copy to avoid taking on a utils dep).
 export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
 export const TELEMETRY_GLOBAL_WEB_USER_ID = 'telemetryWebUserId';
 export const UNAUTHENTICATED_USER = 'UNAUTHENTICATED_USER';
@@ -44,11 +45,7 @@ export const setWebUserId = (orgId: string, userId: string) =>
 
 /** Mirrors webUserId from ExtensionContext globalState into defaultOrgRef. cliId is owned by seedTelemetryIdentities. */
 export const updateTelemetryUserIds = Effect.fn('updateTelemetryUserIds')(function* () {
-  const contextService = yield* ExtensionContextService;
-  const extensionContext = yield* contextService.getContext;
-  const webUserIdOption = Option.fromNullable(
-    extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID)
-  );
+  const webUserIdOption = yield* readGlobalStateKey(TELEMETRY_GLOBAL_WEB_USER_ID);
 
   const existingOrgInfo = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
   const updated = Option.match(webUserIdOption, {

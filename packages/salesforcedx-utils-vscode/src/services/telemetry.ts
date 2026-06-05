@@ -131,7 +131,10 @@ export class TelemetryService implements TelemetryServiceInterface {
     return startTimeMs ? endTime - startTimeMs : -1;
   }
 
-  /** Fetch telemetry identity. Public for jest spy override; do not invoke from outside this file. */
+  /**
+   * Fetch telemetry identity from the services extension.
+   * @internal Public only as a jest spy hook; do not invoke from outside this file.
+   */
   public getIdentityFromServices(): Promise<IdentityFromServices> {
     return fetchIdentityFromServices();
   }

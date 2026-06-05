@@ -13,8 +13,14 @@ import type { ExtensionContext } from 'vscode';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import * as cliTelemetryModule from '../../../src/observability/cliTelemetry';
 import { seedTelemetryIdentities } from '../../../src/observability/seedTelemetryIdentities';
+import * as Schema from 'effect/Schema';
+import { CliId } from '../../../src/observability/cliTelemetry';
 import { UNAUTHENTICATED_USER } from '../../../src/observability/webUserId';
 import { ExtensionContextService } from '../../../src/vscode/extensionContextService';
+
+const PERSISTED_CLI_ID = '11111111-1111-4111-8111-111111111111';
+const CLI_FROM_SF = '22222222-2222-4222-8222-222222222222';
+const brandedCliId = (value: string) => Schema.decodeSync(CliId)(value);
 
 type GlobalState = Map<string, string>;
 
@@ -44,27 +50,27 @@ describe('seedTelemetryIdentities', () => {
 
   it('uses cliId from globalState when present', async () => {
     delete process.env.ESBUILD_PLATFORM;
-    const state: GlobalState = new Map([['telemetryUserId', 'persisted-cli-id']]);
+    const state: GlobalState = new Map([['telemetryUserId', PERSISTED_CLI_ID]]);
     const { update, layer } = buildContextService(state);
 
     await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     const ref = await Effect.runPromise(getDefaultOrgRef());
     const info = await Effect.runPromise(SubscriptionRef.get(ref));
-    expect(info.cliId).toBe('persisted-cli-id');
+    expect(info.cliId).toBe(PERSISTED_CLI_ID);
     expect(info.webUserId).toBe(UNAUTHENTICATED_USER);
     expect(update).toHaveBeenCalledWith('telemetryWebUserId', UNAUTHENTICATED_USER);
   });
 
   it('desktop falls back to getCliId when globalState empty', async () => {
     delete process.env.ESBUILD_PLATFORM;
-    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some('cli-from-sf')));
+    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some(brandedCliId(CLI_FROM_SF))));
     const state: GlobalState = new Map();
     const { update, layer } = buildContextService(state);
 
     await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
-    expect(update).toHaveBeenCalledWith('telemetryUserId', 'cli-from-sf');
+    expect(update).toHaveBeenCalledWith('telemetryUserId', CLI_FROM_SF);
   });
 
   it('desktop generates UUID when getCliId returns None', async () => {
@@ -95,7 +101,7 @@ describe('seedTelemetryIdentities', () => {
 
   it('preserves existing webUserId when already present', async () => {
     delete process.env.ESBUILD_PLATFORM;
-    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some('cli')));
+    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some(brandedCliId(CLI_FROM_SF))));
     const state: GlobalState = new Map([['telemetryWebUserId', 'sha256-existing']]);
     const { update, layer } = buildContextService(state);
 
