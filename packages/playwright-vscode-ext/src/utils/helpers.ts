@@ -94,6 +94,7 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Channel is closed',
   'GenOpAgentConfig', // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
   'DEP0005', // Node.js Buffer() deprecation warning from transitive dependencies (non-critical)
+  'DEP0169', // Node.js url.parse() deprecation warning from transitive dependencies (non-critical)
   // VS Code 1.119+ web: workbench tries to instantiate agentHostSandboxForwarder which requires a
   // remote connection that doesn't exist in @vscode/test-web. Tracked upstream:
   // https://github.com/microsoft/vscode/issues/318222
@@ -472,6 +473,9 @@ export const waitForWorkspaceReady = async (page: Page, timeout = 30_000): Promi
 };
 
 export const typingSpeed = 50; // ms
+
+/** Escape regex metacharacters in `s` so it can be embedded in a `RegExp`. */
+export const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** Returns true if running on desktop (Electron), regardless of platform */
 export const isDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1';

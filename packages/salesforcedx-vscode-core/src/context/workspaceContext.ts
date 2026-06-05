@@ -7,15 +7,11 @@
 
 import { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import {
-  OrgUserInfo,
-  WorkspaceContextUtil,
-  refreshAllExtensionReporters,
-  getDevHubIdFromScratchOrg
-} from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil, refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
+import { getDevHubIdFromScratchOrg } from '../util/orgShapeUtil';
 import { workspaceContextUtils } from '.';
 
 /**

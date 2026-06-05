@@ -13,7 +13,7 @@ import {
   executeCommandWithCommandPalette,
   saveScreenshot,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForRunApexTestsProgressNotificationGone
@@ -39,8 +39,8 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
 
   let testClassName: string;
 
-  await test.step('setup minimal org with Apex test class', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with Apex test class', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     testClassName = `ExplorerTestClass${Date.now()}`;
     const testClassContent = [
