@@ -18,6 +18,7 @@ import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelAdapter } from './channel';
 import { createLwcCommand } from './commands/createLwc';
+import { renameLwcCommand } from './commands/renameLwc';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
@@ -128,6 +129,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
     createLwcCommand(outputDirParam)
   );
+  yield* registerCommand('sf.lightning.lwc.rename', renameLwcCommand);
   yield* registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
     createLwcCommand(sourceUri, { internal: true })
   );

@@ -8,8 +8,7 @@ import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesfo
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
 
 const getDevHubIdFromScratchOrgMock = jest.fn();
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
+jest.mock('../../../src/util/orgShapeUtil', () => ({
   getDevHubIdFromScratchOrg: (...args: any[]) => getDevHubIdFromScratchOrgMock(...args)
 }));
 

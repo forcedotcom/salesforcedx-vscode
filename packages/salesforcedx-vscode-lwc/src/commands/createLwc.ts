@@ -7,30 +7,13 @@
 
 import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { AURA_TYPE, LWC_TYPE } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-
-const promptForComponentName = Effect.fn('promptForComponentName')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  return yield* Effect.promise(() =>
-    vscode.window.showInputBox({
-      prompt: nls.localize('lwc_component_name_prompt'),
-      placeHolder: nls.localize('lwc_component_name_placeholder'),
-      validateInput: (value: string) => {
-        if (!value || value.trim().length === 0) return nls.localize('lwc_component_name_empty_error');
-        if (!/^[a-z][A-Za-z0-9_]*$/.test(value)) return nls.localize('lwc_component_name_format_error');
-        return undefined;
-      }
-    })
-  ).pipe(
-    Effect.map(raw => raw?.trim()),
-    Effect.flatMap(promptService.considerUndefinedAsCancellation)
-  );
-});
+import { promptForLwcName } from './promptForLwcName';
 
 const promptForComponentType = Effect.fn('promptForComponentType')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -73,16 +56,25 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
   const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const project = yield* api.services.ProjectService.getSfProject();
+  const componentSetService = yield* api.services.ComponentSetService;
 
   const template = yield* determineComponentTemplate(project);
-  const componentName = yield* promptForComponentName();
-
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'lwc');
+  const componentName = yield* componentSetService
+    .getComponentSetFromProjectDirectories({
+      metadataMembers: [
+        { type: LWC_TYPE, fullName: '*' },
+        { type: AURA_TYPE, fullName: '*' }
+      ]
+    })
+    .pipe(
+      Effect.map(set => new Set(Array.from(set.getSourceComponents()).map(c => c.fullName.toLowerCase()))),
+      Effect.flatMap(existingNames => promptForLwcName({ existingNames }))
+    );
 
   const outputDirUri =
     outputDirParam ??
     (yield* promptService.promptForOutputDir({
-      defaultUri,
+      defaultUri: Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'lwc'),
       folderName: 'lwc',
       pickerPlaceHolder: nls.localize('lwc_output_dir_prompt')
     }));
@@ -93,8 +85,7 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
     template
   });
 
-  const componentDirUri = Utils.joinPath(outputDirUri, componentName);
-  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [componentDirUri] });
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [Utils.joinPath(outputDirUri, componentName)] });
 
   const fsService = yield* api.services.FsService;
 

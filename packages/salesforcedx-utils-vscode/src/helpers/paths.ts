@@ -10,7 +10,6 @@ import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '..';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
-import { createDirectory } from './fs';
 
 export const ORGS = 'orgs';
 export const METADATA = 'metadata';
@@ -22,12 +21,6 @@ export const LOGS = 'logs';
 export const APEX_DB = 'apex.db';
 export const LWC = 'lwc';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
-
-export const getTestResultsFolder = async (vscodePath: string, testType: string) => {
-  const pathToTestResultsFolder = path.join(vscodePath, Global.STATE_FOLDER, TOOLS, TEST_RESULTS, testType);
-  await createDirectory(pathToTestResultsFolder);
-  return pathToTestResultsFolder;
-};
 
 export const fileExtensionsMatch = (sourceUri: URI, targetExtension: string): boolean => {
   const extension = sourceUri.path.split('.').pop()?.toLowerCase();

@@ -84,3 +84,17 @@ export const LWC_SERVER_READY_NOTIFICATION = 'custom/lwcServerReady';
  * is complete and the server is ready to serve requests.
  */
 export const AURA_SERVER_READY_NOTIFICATION = 'custom/auraServerReady';
+
+// Re-export from bundleRename
+export {
+  AURA_TYPE,
+  LWC_TYPE,
+  TEST_FOLDER,
+  NotInBundleError,
+  bundleFilePattern,
+  getBundleUri,
+  getBundleKind,
+  hasFileNameCollision,
+  normalizeComponentName
+} from './bundleRename';
+export type { LightningComponentKind } from './bundleRename';

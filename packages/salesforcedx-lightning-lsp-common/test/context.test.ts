@@ -20,7 +20,6 @@ type JsconfigContent = {
   typeAcquisition?: { include?: string[] };
 };
 
-import '../jest/matchers';
 import { LspFileSystemAccessor } from '../src/providers/lspFileSystemAccessor';
 import { normalizePath, type NormalizedPath } from '../src/utils';
 import {
@@ -171,7 +170,7 @@ describe('WorkspaceContext', () => {
     let context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemAccessor);
     context.initialize('SFDX');
     expect(context.type).toBe('SFDX');
-    expect(context.workspaceRoots[0]).toBeAbsolutePath();
+    expect(path.isAbsolute(context.workspaceRoots[0])).toBe(true);
 
     expect(
       (

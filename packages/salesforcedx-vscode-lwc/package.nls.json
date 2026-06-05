@@ -13,5 +13,6 @@
   "lightning_lwc_test_run_current_file_text": "SFDX: Run Current Lightning Web Component Test File",
   "lightning_lwc_test_start_watching_text": "SFDX: Start Watching Lightning Web Component Test",
   "lightning_lwc_test_stop_watching_all_tests_text": "SFDX: Stop Watching All Lightning Web Component Tests",
-  "lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test"
+  "lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test",
+  "rename_lightning_component_text": "SFDX: Rename Component"
 }

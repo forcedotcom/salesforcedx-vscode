@@ -58,12 +58,6 @@ export class ConfigUtil {
     return configSource === ConfigSource.Global;
   }
 
-  public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const templatesDirectory = configAggregator.getPropertyValue(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES);
-    return templatesDirectory ? String(templatesDirectory) : undefined;
-  }
-
   public static async isTelemetryDisabled(): Promise<boolean> {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const isTelemetryDisabled = configAggregator.getPropertyValue(SF_CONFIG_DISABLE_TELEMETRY);

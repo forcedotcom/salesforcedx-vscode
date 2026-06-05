@@ -15,7 +15,6 @@
   "project_generate_manifest": "SFDX: Generate Manifest File",
   "project_retrieve_start_default_org_text": "SFDX: Pull Source from Default Org",
   "project_retrieve_start_ignore_conflicts_default_org_text": "SFDX: Pull Source from Default Org and Ignore Conflicts",
-  "rename_lightning_component_text": "SFDX: Rename Component",
   "retrieve_this_source_text": "SFDX: Retrieve This Source from Org",
   "setting_clear_output_tab_description": "When a new command is run, clear the output content from the previous command.",
   "sf_log_level_description": "SF_LOG_LEVEL CLI environment variable value",

@@ -6,4 +6,3 @@
  */
 
 export { SfCommandletExecutor } from './sfCommandletExecutor';
-export { LwcAuraDuplicateComponentCheckerForRename } from './lwcAuraDuplicateComponentCheckers';

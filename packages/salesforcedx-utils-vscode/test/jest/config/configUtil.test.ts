@@ -53,23 +53,6 @@ describe('ConfigUtil', () => {
     });
   });
 
-  describe('getTemplatesDirectory', () => {
-    it('should return templates directory when set', async () => {
-      mockConfigAggregator.getPropertyValue.mockReturnValue('/path/to/templates');
-      const result = await ConfigUtil.getTemplatesDirectory();
-      expect(result).toBe('/path/to/templates');
-      expect(mockConfigAggregator.getPropertyValue).toHaveBeenCalledWith(
-        OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
-      );
-    });
-
-    it('should return undefined when not set', async () => {
-      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
-      const result = await ConfigUtil.getTemplatesDirectory();
-      expect(result).toBeUndefined();
-    });
-  });
-
   describe('isTelemetryDisabled', () => {
     it('should return true when telemetry is disabled', async () => {
       mockConfigAggregator.getPropertyValue.mockReturnValue('true');

@@ -6,7 +6,3 @@
  */
 
 export { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './cliConfiguration';
-
-export { type ComponentName, type ContinueOrCancel, type OneOrMany, isContinue } from './types';
-
-export * from './componentUtils';

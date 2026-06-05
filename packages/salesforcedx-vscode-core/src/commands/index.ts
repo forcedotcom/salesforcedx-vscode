@@ -7,5 +7,4 @@
 export { aliasListCommand } from './aliasList';
 export { configListCommand } from './configList';
 export { initSObjectDefinitions } from './refreshSObjects';
-export { renameLightningComponent } from './renameLightningComponent';
 export { openDocumentation } from './openDocumentation';

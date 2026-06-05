@@ -38,5 +38,10 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'Salesforce js-meta.xml IntelliSense は Red Hat XML 拡張機能のバージョン 0.15.0 では動作しません。Red Hat XML 拡張機能をアップグレードしてください。',
   lightning_lwc_fail_redhat_extension: 'Red Hat XML 拡張機能の設定に失敗しました',
   lwc_language_server_loading: 'LWC ファイルをインデックス化しています。しばらくお待ちください… $(sync~spin)',
-  lwc_language_server_loaded: 'インデックス化が完了しました $(check)'
+  lwc_language_server_loaded: 'インデックス化が完了しました $(check)',
+  rename_component_warning:
+    '警告: 古い名前への参照は更新されません。手動で更新し、すべての変更が完了したら再デプロイしてください。',
+  rename_component_input_dup_file_name_error:
+    'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',
+  component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています'
 };
