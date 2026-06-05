@@ -10,5 +10,6 @@
   "lightning_lwc_test_run_current_file_text": "SFDX: 現在の Lightning Web コンポーネントのテストファイルを実行",
   "lightning_lwc_test_start_watching_text": "SFDX: Lightning Web コンポーネントのテストのウォッチを開始",
   "lightning_lwc_test_stop_watching_all_tests_text": "SFDX: すべての Lightning Web コンポーネントのテストのウォッチを停止",
-  "lightning_lwc_test_stop_watching_text": "SFDX: Lightning Web コンポーネントのテストのウォッチを停止"
+  "lightning_lwc_test_stop_watching_text": "SFDX: Lightning Web コンポーネントのテストのウォッチを停止",
+  "rename_lightning_component_text": "SFDX: Rename Component"
 }
