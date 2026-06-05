@@ -17,7 +17,7 @@ import {
   selectOutputChannel,
   selectQuickInputOption,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForOutputChannelText,
@@ -37,8 +37,8 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   let testClassName: string;
   let testClassName2: string;
 
-  await test.step('setup minimal org with two Apex test classes', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with two Apex test classes', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     testClassName = `CommandPaletteTestClass1${Date.now()}`;
     const testClassContent = [

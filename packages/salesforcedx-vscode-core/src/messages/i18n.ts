@@ -30,26 +30,12 @@ export const messages = {
     "We're collecting information on the usage of our extensions and sending it to AppInsights to help us understand how our internal developers use them. We want to gather data on developer adoption to improve our products and services. Thanks for being a part of this process!",
   error_parsing_sfdx_project_file: "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
 
-  rename_lightning_component: 'SFDX: Rename Component',
-  component_input_dup_error: 'Component name is already in use in LWC or Aura',
-  rename_component_input_dup_file_name_error:
-    'This file name is already in use in the current component directory. Choose a different name and try again.',
-  rename_component_input_placeholder: 'Enter a unique component name',
-  rename_component_input_prompt: 'Press Enter to confirm your input or Escape to cancel',
-  rename_component_warning:
-    'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
-  rename_component_error:
-    'Unable to rename the component. Try renaming the component manually and then redeploying your changes.',
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
   soql_doc_url: 'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
   functions_doc_url: 'https://developer.salesforce.com/tools/vscode/en/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
-
-  rename_not_supported: 'Rename is not supported for multiple components',
-  input_no_component_name: 'Input does not contain component name',
-  component_empty: 'Component cannot be empty',
 
   // Metadata XML Support Messages
   metadata_xml_no_redhat_extension_found:

@@ -30,18 +30,5 @@ export const messages: Partial<Record<MessageKey, string>> = {
   soql_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
   functions_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
-  default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
-
-  component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています',
-  rename_component_input_dup_file_name_error:
-    'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',
-  rename_component_input_placeholder: '一意のコンポーネント名を入力',
-  rename_component_input_prompt: 'Enter で入力を確認、Escape でキャンセル',
-  rename_component_warning:
-    '警告: 古い名前への参照は更新されません。手動で更新し、すべての変更が完了したら再デプロイしてください。',
-  rename_component_error:
-    'コンポーネントの名前を変更できませんでした。手動でコンポーネントの名前を変更してから、変更を再デプロイしてみてください。',
-  rename_not_supported: '複数コンポーネントの名前変更はサポートされていません',
-  input_no_component_name: '入力にコンポーネント名が含まれていません',
-  component_empty: 'コンポーネントは空にできません'
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja'
 };
