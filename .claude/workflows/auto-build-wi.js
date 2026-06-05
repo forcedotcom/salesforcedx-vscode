@@ -1094,6 +1094,7 @@ const triageAndFixCi = async (toTriage, identity) => {
         schema: TRIAGE_SCHEMA,
         label: `triage-${r.wi.name}`,
         phase: 'Triage failures',
+        model: 'opus',
       }).then(triage => ({ ...r, triage }))
     )
   )
@@ -1116,6 +1117,7 @@ const triageAndFixCi = async (toTriage, identity) => {
           label: `e2e-fix-${r.wi.name}`,
           phase: 'Fix CI failures',
           isolation: 'worktree',
+          model: 'opus',
         })
         return
       }
@@ -1125,6 +1127,7 @@ const triageAndFixCi = async (toTriage, identity) => {
         label: `code-fix-${r.wi.name}`,
         phase: 'Fix CI failures',
         isolation: 'worktree',
+        model: 'opus',
       })
     })
   )
@@ -1138,6 +1141,7 @@ const keepInFlightCurrent = async (toRefresh, identity) => {
         schema: OK_SCHEMA,
         label: `refresh-${r.wi.name}`,
         phase: 'Keep in-flight current',
+        model: 'opus',
         isolation: 'worktree',
       })
     )
@@ -1285,6 +1289,7 @@ const runPlan = async (chosen, identity) => {
     label: `plan-${chosen.name}`,
     phase: 'Plan',
     isolation: 'worktree',
+    model: 'opus',
   })
 
   return { planResult, skillList }
@@ -1370,6 +1375,7 @@ const reviewAndCommitPlan = async (chosen, identity) => {
       label: `plan-advocate-revise-${chosen.name}`,
       phase: 'Plan',
       isolation: 'worktree',
+      model: 'opus',
     })
   }
 
@@ -1389,6 +1395,7 @@ const runBuild = async (chosen, identity) => {
     label: `build-${chosen.name}`,
     phase: 'Build',
     isolation: 'worktree',
+    model: 'opus',
   })
 }
 
@@ -1438,6 +1445,7 @@ const runReview = async (chosen, identity, skillList) => {
     label: `thermo-${chosen.name}`,
     phase: 'Review',
     isolation: 'worktree',
+    model: 'opus',
   })
 
   const effectDiffReview = await agent(effectDiffReviewPrompt(wt), {
@@ -1496,6 +1504,7 @@ const runReview = async (chosen, identity, skillList) => {
     label: `fix-${chosen.name}`,
     phase: 'Fix review findings',
     isolation: 'worktree',
+    model: 'opus',
   })
 
   await agent(mergeDevelopPrompt(wt), {
@@ -1503,7 +1512,7 @@ const runReview = async (chosen, identity, skillList) => {
     label: `merge-${chosen.name}`,
     phase: 'Fix review findings',
     isolation: 'worktree',
-    model: 'haiku',
+    model: 'opus',
   })
 
   return fixerResult
