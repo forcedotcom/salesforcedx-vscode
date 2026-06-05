@@ -40,7 +40,7 @@ test.describe('Apex LSP restart', () => {
 
   for (const { cleanDb, via, label } of matrix) {
     test(label, async ({ page, workspaceDir }) => {
-      test.setTimeout(360000);
+      // timeout comes from playwright.config.desktop.ts (timeout: 360_000)
       const consoleErrors = setupConsoleMonitoring(page);
       const networkErrors = setupNetworkMonitoring(page);
 

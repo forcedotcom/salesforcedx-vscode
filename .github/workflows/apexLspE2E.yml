@@ -48,12 +48,8 @@ jobs:
       fail-fast: false
 
     env:
-      NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
-      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
-      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -78,9 +74,8 @@ jobs:
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
-      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
-      # When cache misses, tests fail on missing org. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # Try E2E tests first. On wireit cache hit, the command is skipped — we never need Playwright browsers.
+      # E2E_NO_RETRIES=1 disables Playwright retries in config so failures are fast on a cache miss.
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -88,28 +83,10 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex -- --reporter=html
 
-      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
-      - name: Install Salesforce CLI
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npm i -g @salesforce/cli
-          retry_wait_seconds: 30
-
-      - name: Auth to dev hub (global)
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
-            --set-default-dev-hub --alias hub --sfdx-url-stdin'
-          retry_wait_seconds: 30
-
+      # Only install Playwright on cache miss. apex LSP specs do not exercise an org, so no CLI/scratch-org setup is required.
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
         uses: salesforcecli/github-workflows/.github/actions/retry@main
@@ -118,18 +95,6 @@ jobs:
           command: npx playwright install chromium --with-deps
           retry_wait_seconds: 60
 
-      - name: Generate non-tracking project
-        if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: sf project generate -n non-tracking-project
-
-      - name: Create scratch org
-        if: steps.try-run.outcome == 'failure'
-        shell: bash
-        run: |
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
-        working-directory: non-tracking-project
-
       - name: Run Apex LSP E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
         id: parallel-run
@@ -137,18 +102,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex -- --reporter=html
-
-      - name: Recreate scratch org before retry
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
-          'failure'
-        continue-on-error: true
-        shell: bash
-        run: |
-          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
-        working-directory: non-tracking-project
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -156,8 +110,6 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-          PLAYWRIGHT_WORKERS: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
@@ -183,9 +135,3 @@ jobs:
           path: packages/salesforcedx-vscode-apex/test-results
           if-no-files-found: ignore
 
-      - name: Cleanup scratch org
-        if: always() && steps.try-run.outcome == 'failure'
-        continue-on-error: true
-        shell: bash
-        run: |
-          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt || true

@@ -65,12 +65,13 @@ export const waitForApexLspReady = async (page: Page, workspaceDir: string): Pro
   await expect(getApexLanguageStatusButton(page, /Indexing complete/)).toBeVisible({ timeout: 120000 });
 
   const toolsDir = path.join(workspaceDir, '.sfdx', 'tools');
+  let resolvedReleaseDir = '';
   await expect(() => {
-    const releaseDir = findReleaseDir(workspaceDir);
-    const stdLibDir = path.join(toolsDir, releaseDir, STANDARD_APEX_LIBRARY);
+    resolvedReleaseDir = findReleaseDir(workspaceDir);
+    const stdLibDir = path.join(toolsDir, resolvedReleaseDir, STANDARD_APEX_LIBRARY);
     expect(existsSync(stdLibDir), `Expected ${stdLibDir} to exist`).toBe(true);
   }).toPass({ timeout: 60000 });
-  return findReleaseDir(workspaceDir);
+  return resolvedReleaseDir;
 };
 
 /** Click the Apex LSP language status button to open its hover, then click "Restart Apex Language Server". */

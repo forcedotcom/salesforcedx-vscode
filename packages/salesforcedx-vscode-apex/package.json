@@ -39,7 +39,6 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "*",
     "@salesforce/core": "^8.31.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-core": "*",
@@ -62,7 +61,6 @@
     "copy:jar": "wireit",
     "test": "wireit",
     "test:compile": "wireit",
-    "test:compile:desktop": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug"
   },
@@ -93,17 +91,6 @@
     "test:compile": {
       "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "test/**/*.ts",
-        "test/tsconfig.json"
-      ],
-      "output": []
-    },
-    "test:compile:desktop": {
-      "command": "tsc -p test/tsconfig.json",
-      "dependencies": [
         "compile",
         "../playwright-vscode-ext:compile"
       ],
@@ -125,10 +112,10 @@
         }
       },
       "dependencies": [
+        "test:compile",
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
-        "../playwright-vscode-ext:compile"
+        "../salesforcedx-vscode-core:vscode:package:legacy"
       ],
       "files": [
         "test/playwright/**/*.ts",
