@@ -10,6 +10,7 @@
 import { expect } from '@playwright/test';
 import {
   EDITOR_WITH_URI,
+  QUICK_INPUT_WIDGET,
   executeCommandWithCommandPalette,
   openFileByName,
   openFileFromExplorerTree,
@@ -45,14 +46,25 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     const testTab = page.getByRole('tab', { name: 'ExampleClassTest.cls', exact: true }).first();
     await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10000 });
 
+    // Click the editor body to guarantee keyboard focus lives in the editor, not a stale
+    // quick-input or panel. Without this, subsequent keyboard commands (Go to Line, F12) may
+    // target the wrong component on CI where focus transfer is slower.
+    const testEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="ExampleClassTest.cls"]`).first();
+    await testEditor.locator('.view-line').first().click();
+
     // Position caret on the `ExampleClass` reference (line 5, col 20 in the seeded test class)
     await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
     await page.keyboard.type('5:20');
     await page.keyboard.press('Enter');
 
-    // Use F12 directly instead of command palette — the palette's workbench focus-click
-    // can disrupt the editor cursor context, causing Go to Definition to resolve nothing.
-    await page.keyboard.press('F12');
+    // Wait for the quick input widget to fully dismiss before issuing Go to Definition;
+    // without this, the command fires while VS Code is still transferring focus back.
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+
+    // Use the command palette for Go to Definition — more reliable than bare F12 because
+    // the command service dispatches to the active editor regardless of DOM keyboard focus.
+    await executeCommandWithCommandPalette(page, 'Go to Definition');
 
     // Go to Definition may open a peek widget (inline reference view) instead of switching
     // tabs when the target file is already open. Detect and dismiss it with Enter to navigate.

@@ -74,7 +74,11 @@ export const waitForApexLspReady = async (page: Page, workspaceDir: string): Pro
   return resolvedReleaseDir;
 };
 
-/** Click the Apex LSP language status button to open its hover, then click "Restart Apex Language Server". */
+/**
+ * Click the Apex LSP language status button to open its hover, then click "Restart Apex Language Server".
+ * Falls back to the command palette if the hover link never surfaces (VS Code 1.116+ may not show
+ * hover-action links reliably in all CI environments).
+ */
 const clickApexLspRestartAction = async (page: Page): Promise<void> => {
   // Click the language status button to surface its hover popup; the hover hosts the link action.
   // Match by aria-label substring — covers "Indexing complete", restart-progress states, errors, etc.
@@ -83,20 +87,32 @@ const clickApexLspRestartAction = async (page: Page): Promise<void> => {
 
   // The hover popup may not appear on the first click (focus race in CI); retry up to 5 times
   // with Escape between attempts to dismiss any partially-shown or stale hover.
+  let linkAppeared = false;
   for (let attempt = 0; attempt < 5; attempt++) {
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
     await statusButton.first().click();
+    await page.waitForTimeout(300);
     // Also hover to trigger the tooltip on platforms where click alone doesn't surface it
     await statusButton.first().hover();
     const visible = await restartLink
       .waitFor({ state: 'visible', timeout: 5000 })
       .then(() => true)
       .catch(() => false);
-    if (visible) break;
+    if (visible) {
+      linkAppeared = true;
+      break;
+    }
   }
-  await restartLink.waitFor({ state: 'visible', timeout: 15000 });
-  await restartLink.click();
+
+  if (linkAppeared) {
+    await restartLink.click();
+  } else {
+    // Fallback: dismiss any leftover hover/tooltip, then use the command palette.
+    // The hover-action link may not render in headless CI on some VS Code versions.
+    await page.keyboard.press('Escape');
+    await executeCommandWithCommandPalette(page, RESTART_COMMAND);
+  }
 };
 
 const selectRestartQuickPick = async (page: Page, cleanDb: boolean): Promise<void> => {
