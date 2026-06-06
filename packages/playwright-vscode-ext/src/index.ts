@@ -26,7 +26,6 @@ export {
 
 export {
   removeAllDebugLevels,
-  disableMonacoAutoClosing,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,

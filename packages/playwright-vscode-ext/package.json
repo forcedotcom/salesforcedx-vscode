@@ -83,11 +83,11 @@
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
-        "check:circular-deps",
-        "compile"
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "../../eslint.config.mjs"
       ],
       "output": []
