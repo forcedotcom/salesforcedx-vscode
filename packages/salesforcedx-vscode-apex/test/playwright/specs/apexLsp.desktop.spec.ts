@@ -50,7 +50,21 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     await page.keyboard.type('5:20');
     await page.keyboard.press('Enter');
 
-    await executeCommandWithCommandPalette(page, 'Go to Definition');
+    // Use F12 directly instead of command palette — the palette's workbench focus-click
+    // can disrupt the editor cursor context, causing Go to Definition to resolve nothing.
+    await page.keyboard.press('F12');
+
+    // Go to Definition may open a peek widget (inline reference view) instead of switching
+    // tabs when the target file is already open. Detect and dismiss it with Enter to navigate.
+    const peekWidget = page.locator('.peekview-widget');
+    const peekVisible = await peekWidget
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+    if (peekVisible) {
+      // Enter in the peek widget navigates to the definition in the main editor
+      await page.keyboard.press('Enter');
+    }
 
     const exampleClassTab = page.getByRole('tab', { name: 'ExampleClass.cls', exact: true }).first();
     await expect(exampleClassTab).toHaveAttribute('aria-selected', 'true', { timeout: 30000 });

@@ -81,16 +81,21 @@ const clickApexLspRestartAction = async (page: Page): Promise<void> => {
   const statusButton = getApexLanguageStatusButton(page, /Apex/);
   const restartLink = page.getByRole('link', { name: new RegExp(RESTART_LINK_TITLE, 'i') }).first();
 
-  // The hover popup may not appear on the first click (focus race); retry up to 3 times.
-  for (let attempt = 0; attempt < 3; attempt++) {
+  // The hover popup may not appear on the first click (focus race in CI); retry up to 5 times
+  // with Escape between attempts to dismiss any partially-shown or stale hover.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
     await statusButton.first().click();
+    // Also hover to trigger the tooltip on platforms where click alone doesn't surface it
+    await statusButton.first().hover();
     const visible = await restartLink
       .waitFor({ state: 'visible', timeout: 5000 })
       .then(() => true)
       .catch(() => false);
     if (visible) break;
   }
-  await restartLink.waitFor({ state: 'visible', timeout: 10000 });
+  await restartLink.waitFor({ state: 'visible', timeout: 15000 });
   await restartLink.click();
 };
 

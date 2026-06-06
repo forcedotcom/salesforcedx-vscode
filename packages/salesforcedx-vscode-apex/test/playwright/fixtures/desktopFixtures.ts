@@ -48,7 +48,14 @@ const baseTest = createDesktopTest({
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,
-    'git.autofetch': false
+    'git.autofetch': false,
+    // Prevent Go to Definition from opening a peek widget when the target file is already open
+    'editor.gotoLocation.multipleDefinitions': 'goto',
+    'editor.gotoLocation.multipleDeclarations': 'goto',
+    'editor.gotoLocation.multipleImplementations': 'goto',
+    'editor.gotoLocation.multipleTypeDefinitions': 'goto',
+    'editor.gotoLocation.multipleReferences': 'goto',
+    'editor.gotoLocation.alternativeDefinitionCommand': ''
   }
 });
 
