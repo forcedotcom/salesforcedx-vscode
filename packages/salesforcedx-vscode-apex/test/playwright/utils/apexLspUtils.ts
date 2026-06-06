@@ -79,9 +79,17 @@ const clickApexLspRestartAction = async (page: Page): Promise<void> => {
   // Click the language status button to surface its hover popup; the hover hosts the link action.
   // Match by aria-label substring — covers "Indexing complete", restart-progress states, errors, etc.
   const statusButton = getApexLanguageStatusButton(page, /Apex/);
-  await statusButton.first().click();
-  // The link inside the hover renders with the action title.
   const restartLink = page.getByRole('link', { name: new RegExp(RESTART_LINK_TITLE, 'i') }).first();
+
+  // The hover popup may not appear on the first click (focus race); retry up to 3 times.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await statusButton.first().click();
+    const visible = await restartLink
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+    if (visible) break;
+  }
   await restartLink.waitFor({ state: 'visible', timeout: 10000 });
   await restartLink.click();
 };

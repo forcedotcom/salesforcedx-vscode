@@ -39,6 +39,12 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     // Use Explorer tree instead of Quick Open — VS Code's file-search index may not have
     // discovered the pre-seeded file yet (only "recently opened" files appear reliably).
     await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['classes']);
+    // Wait for ExampleClassTest.cls to become the active tab before issuing editor commands;
+    // openFileFromExplorerTree resolves on any visible editor, which may be the previously-opened
+    // ExampleClass.cls — causing Go to Line and Go to Definition to target the wrong file.
+    const testTab = page.getByRole('tab', { name: 'ExampleClassTest.cls', exact: true }).first();
+    await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10000 });
+
     // Position caret on the `ExampleClass` reference (line 5, col 20 in the seeded test class)
     await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
     await page.keyboard.type('5:20');
@@ -53,6 +59,9 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
 
   await test.step('Autocompletion suggests SayHello and inserts call', async () => {
     await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['classes']);
+    // Wait for ExampleClassTest.cls to become the active tab (same race as Go to Definition step).
+    const testTab = page.getByRole('tab', { name: 'ExampleClassTest.cls', exact: true }).first();
+    await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10000 });
     // Insert "\tExampleClass.say" at line 7 col 1, mirroring the WDIO sequence (apexLsp.e2e.ts:155).
     await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
     await page.keyboard.type('7:1');
