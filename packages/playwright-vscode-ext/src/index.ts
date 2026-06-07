@@ -21,13 +21,16 @@ export {
   isDesktop,
   isMacDesktop,
   isWindowsDesktop,
-  validateNoCriticalErrors,
+  validateNoCriticalErrors
+} from './utils/helpers';
+
+export {
   removeAllDebugLevels,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,
   prepareNoFolderOpenForPaletteTests
-} from './utils/helpers';
+} from './utils/workflows';
 
 export { activeQuickInputWidget, activeQuickInputTextField } from './utils/quickInput';
 

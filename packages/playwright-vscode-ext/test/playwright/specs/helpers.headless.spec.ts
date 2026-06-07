@@ -6,12 +6,8 @@
  */
 
 import { expect } from '@playwright/test';
-import {
-  closeWelcomeTabs,
-  waitForWorkspaceReady,
-  waitForVSCodeWorkbench,
-  ensureSecondarySideBarHidden
-} from '../../../src/utils/helpers';
+import { closeWelcomeTabs, waitForWorkspaceReady, waitForVSCodeWorkbench } from '../../../src/utils/helpers';
+import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { WORKBENCH } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 

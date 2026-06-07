@@ -41,8 +41,9 @@
     "@salesforce/core": "^8.31.0"
   },
   "scripts": {
+    "check:circular-deps": "wireit",
     "compile": "wireit",
-    "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo",
+    "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo .circular-deps.json",
     "lint": "wireit",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
@@ -51,6 +52,20 @@
     "test:desktop:debug": "npm run test:desktop -- --debug"
   },
   "wireit": {
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
@@ -68,10 +83,11 @@
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
-        "compile"
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
+        "test/**/*.ts",
         "../../eslint.config.mjs"
       ],
       "output": []

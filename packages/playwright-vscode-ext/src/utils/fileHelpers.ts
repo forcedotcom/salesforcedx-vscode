@@ -20,8 +20,6 @@ import { saveScreenshot } from '../shared/screenshotUtils';
 import {
   closeSettingsTab,
   closeWelcomeTabs,
-  disableMonacoAutoClosing,
-  ensureSecondarySideBarHidden,
   escapeRegExp,
   isDesktop,
   selectFirstQuickInputOption,
@@ -30,6 +28,7 @@ import {
 } from './helpers';
 import { DIRTY_EDITOR, EDITOR_WITH_URI, NOTIFICATION_LIST_ITEM, QUICK_INPUT_LIST_ROW, WORKBENCH } from './locators';
 import { activeQuickInputWidget } from './quickInput';
+import { disableMonacoAutoClosing, ensureSecondarySideBarHidden } from './workflows';
 
 /** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
 const DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS = 600_000;
