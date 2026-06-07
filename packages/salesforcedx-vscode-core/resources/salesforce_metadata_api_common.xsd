@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-05-31T13:40:49.023Z
-Total metadata types: 1571
+Generated on: 2026-06-07T13:41:17.879Z
+Total metadata types: 1572
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -3614,6 +3614,25 @@ Total metadata types: 1571
      <xsd:element name="enableAgentPlatform" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Agentforce is turned on. The default value is false.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="AgentforceAccountManagementSettings">
+  <xsd:annotation>
+   <xsd:documentation>Represents an org’s Agentforce Account Management settings.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentforceaccountmanagementsettings.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="enableAccountManagement" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Agentforce Account Management is enabled (true) or not (false).</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -9098,6 +9117,12 @@ Total metadata types: 1571
      <xsd:element name="enablePaymentSchedulesAndItemsCreation" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to create a default payment schedule policy and payment schedule treatment (true) or not (false). The default value is false. If enabled, payment schedules and payment schedule items are created during financial transactions such as posting of invoices. Available in API version 64.0 and later with Revenue Cloud Billing.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableRefundIssuingAndBalanceSettlement" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether to issue refunds and settle balances (true) or not (false). The default value is false. If enabled, refunds are issued and credit memos are applied to any remaining invoice balance when customers amend or cancel an order. Available in API version 67.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -18710,6 +18735,12 @@ Total metadata types: 1571
      <xsd:element name="tabs" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The list of tabs included in this application. In API version 12.0, the fullName for built-in tabs like Home, Account, and Reports, is the name of the tab (Home, for example). In API version 13.0 and later, built-in tabs are prefixed with standard-. For example, to reference the Account tab you would use standard-Account.In API version 42.0, this field was renamed from tab to tabs.</xsd:documentation>
+       <xsd:appinfo>Type: string[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="uiBundle" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The fully qualified name of an interal React app, which is represented by the UIBundle metadata type, such as c__propertymanagementapp. When configured, makes the app available in the App Launcher. This field is available in API version 67.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -70221,9 +70252,9 @@ Total metadata types: 1571
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
- <xsd:complexType name="UIBundle_Beta">
+ <xsd:complexType name="UIBundle">
   <xsd:annotation>
-   <xsd:documentation>Represents a Salesforce Multi-Framework app, such as a React app.</xsd:documentation>
+   <xsd:documentation>Represents the UI of a Salesforce Multi-Framework app, such as a React app.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uibundle.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -70255,7 +70286,7 @@ Total metadata types: 1571
      </xsd:element>
      <xsd:element name="target" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Specifies the Salesforce target where the app is supported. Valid values are: AppLauncher: Makes the app available in the App Launcher. This is the default target if you don’t specify a value. Experience: Indicates that the app is an external-facing site or portal and makes it available in the Digital Experiences app.</xsd:documentation>
+       <xsd:documentation>Specifies the Salesforce target where the app is supported. Valid values are: AppLauncher: Deprecated in API version 67.0. Instead, use CustomApplication. Makes the app available in the App Launcher. CustomApplication: When used with the CustomApplication metadata type, makes the app available in the App Launcher. This is the default target if you don’t specify a value. Available in API version 67.0 and later. Experience: Indicates that the app is an external-facing site or portal and makes it available in the Digital Experiences app.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -74683,6 +74714,7 @@ Total metadata types: 1571
  <xsd:element name="AgentConfigSkills" type="AgentConfigSkills"/>
  <xsd:element name="AgentConfigUserAssignments" type="AgentConfigUserAssignments"/>
  <xsd:element name="AgentPlatformSettings" type="AgentPlatformSettings"/>
+ <xsd:element name="AgentforceAccountManagementSettings" type="AgentforceAccountManagementSettings"/>
  <xsd:element name="AgentforceForDevelopersSettings" type="AgentforceForDevelopersSettings"/>
  <xsd:element name="AiAuthoringBundle" type="AiAuthoringBundle"/>
  <xsd:element name="AiCoachAgentScnrDefTranslation" type="AiCoachAgentScnrDefTranslation"/>
@@ -76091,7 +76123,7 @@ Total metadata types: 1571
  <xsd:element name="TransactionSecurityPolicy" type="TransactionSecurityPolicy"/>
  <xsd:element name="Translations" type="Translations"/>
  <xsd:element name="TrialOrgSettings" type="TrialOrgSettings"/>
- <xsd:element name="UIBundle_Beta" type="UIBundle_Beta"/>
+ <xsd:element name="UIBundle" type="UIBundle"/>
  <xsd:element name="UIObjectRelationConfig" type="UIObjectRelationConfig"/>
  <xsd:element name="UIObjectRelationFieldConfig" type="UIObjectRelationFieldConfig"/>
  <xsd:element name="UiFormatSpecification" type="UiFormatSpecification"/>
