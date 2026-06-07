@@ -8,7 +8,8 @@
 import { expect } from '@playwright/test';
 import { openSettingsUI, upsertSettings } from '../../../src/pages/settings';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, ensureSecondarySideBarHidden } from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
+import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 

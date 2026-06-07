@@ -6,7 +6,8 @@
  */
 
 import { verifyCommandDoesNotExist } from '../../../src/pages/commands';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, ensureSecondarySideBarHidden } from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
+import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { test } from '../fixtures/index';
 
 test.describe('Command Palette', () => {

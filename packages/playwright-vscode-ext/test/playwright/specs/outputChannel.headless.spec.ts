@@ -13,7 +13,8 @@ import {
   waitForOutputChannelText
 } from '../../../src/pages/outputChannel';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, ensureSecondarySideBarHidden } from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
+import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { EDITOR } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
