@@ -305,6 +305,24 @@ const WI_RECORDS_SCHEMA = {
   },
 }
 
+const WI_STATUS_RECORDS_SCHEMA = {
+  type: 'object',
+  required: ['records'],
+  properties: {
+    records: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['Name'],
+        properties: {
+          Name: { type: 'string' },
+          Status__c: { type: ['string', 'null'] },
+        },
+      },
+    },
+  },
+}
+
 const SKILL_LIST_SCHEMA = {
   type: 'object',
   required: ['skills'],
@@ -359,6 +377,29 @@ const extractPrUrl = details => {
 
 const hasPrUrl = details =>
   String(details || '').includes('github.com/forcedotcom/salesforcedx-vscode/pull/')
+
+// A blocker is "satisfied" only once its work has actually merged — i.e. the WI
+// reached a terminal closed/completed status. 'Ready for Review' / 'Fixed' mean
+// the PR exists but hasn't merged, so a dependency in those states is NOT met.
+const isBlockerSatisfied = status =>
+  status === 'Completed' || status.startsWith('Closed')
+
+const stripHtml = s => String(s || '').replace(/<[^>]+>/g, ' ')
+
+// Extract WI names this WI declares a hard dependency on. A blocking keyword
+// ("blocked by", "depends on", "after", "requires", "prerequisite") opens a
+// short window; every W-number inside that window is a blocker — captures
+// chained refs ("blocked by W-1 and W-2"). HTML is stripped first; sentence
+// boundaries close the window so unrelated later refs aren't swept in.
+const BLOCKER_RE =
+  /(?:blocked by|depends on|dependent on|prerequisite|requires?|\bafter\b|\bonce\b)([^.\n]{0,80})/gi
+const extractBlockers = (subject, details) => {
+  const text = `${subject || ''} ${stripHtml(details)}`
+  const names = [...text.matchAll(BLOCKER_RE)].flatMap(m =>
+    [...m[1].matchAll(/W-\d+/g)].map(w => w[0])
+  )
+  return [...new Set(names)]
+}
 
 const mapWiRecord = r => ({
   wiId: r.Id,
@@ -687,6 +728,19 @@ HARD RULES:
 - Do NOT modify the WHERE clause, drop filters, or broaden the search.
 - Do NOT add, remove, or transform fields in the records.`
 
+const blockerStatusQueryPrompt = wiNames =>
+  `Run EXACTLY ONE SOQL query — the one below — and return its records.
+
+sf data query --query "SELECT Name, Status__c FROM ADM_Work__c WHERE Name IN (${wiNames
+    .map(n => `'${n}'`)
+    .join(',')})" -o gus --result-format json
+
+Return {records: <result.records, verbatim>}.
+
+HARD RULES:
+- Do NOT run any other queries. Zero records is valid — return {records: []}.
+- Do NOT modify the WHERE clause or transform fields.`
+
 const prFilesPrompt = url =>
   `Run 'gh pr diff ${url} --name-only' and return {files: [<one path per line>]}.`
 
@@ -699,11 +753,12 @@ ${JSON.stringify(candidateList, null, 2)}
 Files already touched by in-flight PRs (avoid overlap when possible):
 ${inFlightFileList.join(', ') || 'none'}
 
+Candidates with unmet hard dependencies were already filtered out upstream — every WI here is unblocked.
+
 Selection rules (in order):
-1. Honor explicit dependencies in WI text ("blocked by W-XXX", "depends on W-XXX", "after W-XXX merges") — pick a WI whose dependencies are satisfied; defer ones that aren't.
-2. If a candidate's likely files (inferred from Subject/Details) overlap heavily with in-flight files, defer it.
-3. Prefer smaller Story_Points (null treated as 5).
-4. Tie-break by oldest CreatedDate.
+1. If a candidate's likely files (inferred from Subject/Details) overlap heavily with in-flight files, defer it.
+2. Prefer smaller Story_Points (null treated as 5).
+3. Tie-break by oldest CreatedDate.
 
 Return ONLY {wiId, reason}.`
 
@@ -728,12 +783,20 @@ Return {ok: false, detail} on failure, else {ok: true, detail: "reattached"}.`
   }
   return `Claim WI ${chosen.name} (${chosen.wiId}) and set up the worktree.
 
+Step 0 — concurrent-claim guard (run FIRST, before any writes):
+  git ls-remote --exit-code --heads origin ${branch}
+  If the branch EXISTS on origin:
+    gh pr list --head ${branch} --state open --json number,url --limit 1 --repo forcedotcom/salesforcedx-vscode
+    If an open PR is found → return {ok: false, detail: "concurrent-claim-detected: branch ${branch} already has open PR <url>"}.
+    If no open PR → the branch exists but has no open PR (prior build crashed); continue with steps below treating it as a fresh start (do NOT create the branch again in step 2 — use 'git worktree add ${wt} -b ${branch} origin/${branch}' instead).
+
 Steps:
 1. Update WI:
    sf data update record -s ADM_Work__c -i ${chosen.wiId} -o gus -v "Status__c='In Progress'"
 2. From ${identity.projectRoot}, run:
    git fetch origin develop
-   git worktree add -b ${branch} ${wt} origin/develop --no-track
+   If branch does NOT exist on origin: git worktree add -b ${branch} ${wt} origin/develop --no-track
+   Else (branch exists on origin, no open PR): git worktree add ${wt} -b ${branch} origin/${branch}
 3. cd ${wt} && npm install (deps may differ from origin/develop's lockfile and hooks need them).
 
 If any step fails, return {ok: false, detail: "<reason>"}. On success {ok: true, detail: "claimed"}.`
@@ -972,8 +1035,11 @@ Steps:
    - ## Test plan — items from the plan's verification section, EXCLUDING items covered by new/modified e2e tests on the branch (inspect 'git diff --name-only origin/develop...HEAD' for files matching '**/e2e/**' or '*.e2e.*' or 'packages/*-e2e/**' to determine coverage)
    - GUS reference per pr-draft skill
    - Footer: '🤖 Generated by auto-build pipeline. Original WI: <gus link>'
-5. Create draft PR: gh pr create --draft --title "<title>" --body "<body>" --base develop
-6. Take the PR URL from gh's output.
+5. Before creating the PR, check for an existing open PR on this branch:
+   gh pr list --head ${branch} --state open --json number,url --limit 1 --repo forcedotcom/salesforcedx-vscode
+   If one exists → skip gh pr create. Use that existing PR's url/number as the result. Skip to step 7.
+6. Create draft PR: gh pr create --draft --title "<title>" --body "<body>" --base develop
+   Take the PR URL from gh's output.
 7. Append a PR link to the WI Details__c. CRITICAL: do NOT replace Details__c — read it first, then APPEND.
    a. Fetch existing: \`sf data query --query "SELECT Details__c FROM ADM_Work__c WHERE Id = '${chosen.wiId}'" -o gus --result-format json\`. Parse \`result.records[0].Details__c\` (may be null/empty).
    b. If existing already contains this exact PR URL, skip the update (idempotent — return success).
@@ -1116,7 +1182,6 @@ const triageAndFixCi = async (toTriage, identity) => {
           schema: BUILD_SCHEMA,
           label: `e2e-fix-${r.wi.name}`,
           phase: 'Fix CI failures',
-          isolation: 'worktree',
           model: 'opus',
         })
         return
@@ -1126,7 +1191,6 @@ const triageAndFixCi = async (toTriage, identity) => {
         schema: BUILD_SCHEMA,
         label: `code-fix-${r.wi.name}`,
         phase: 'Fix CI failures',
-        isolation: 'worktree',
         model: 'opus',
       })
     })
@@ -1142,7 +1206,6 @@ const keepInFlightCurrent = async (toRefresh, identity) => {
         label: `refresh-${r.wi.name}`,
         phase: 'Keep in-flight current',
         model: 'opus',
-        isolation: 'worktree',
       })
     )
   )
@@ -1230,6 +1293,48 @@ const pickCandidate = async (identity, inFlightWis) => {
 
   if (!candidateList.length) return null
 
+  // Deterministic blocked-WI gate: drop any candidate that declares a hard
+  // dependency ("blocked by W-XXX", "depends on W-XXX", "after W-XXX merges")
+  // on a WI that hasn't merged yet. Done in code, not left to the picker LLM,
+  // and applied even when there's a single candidate (the picker is skipped
+  // in that path). One batched status query covers every referenced blocker.
+  const blockerMap = new Map(
+    candidateList.map(c => [c.wiId, extractBlockers(c.subject, c.details)])
+  )
+  const allBlockerNames = [...new Set([...blockerMap.values()].flat())]
+  if (allBlockerNames.length) {
+    const blockerRaw = await agent(blockerStatusQueryPrompt(allBlockerNames), {
+      schema: WI_STATUS_RECORDS_SCHEMA,
+      label: 'query-blocker-status',
+      phase: 'Pick candidate',
+      model: 'haiku',
+    })
+    const statusByName = new Map(
+      (blockerRaw.records || []).map(r => [r.Name, r.Status__c || ''])
+    )
+    const unblocked = candidateList.filter(c => {
+      const blockers = blockerMap.get(c.wiId) || []
+      // A blocker not present in query results doesn't exist (or is mistyped) —
+      // treat an unresolvable reference as unsatisfied to stay safe.
+      const unmet = blockers.filter(b => !isBlockerSatisfied(statusByName.get(b) || ''))
+      if (unmet.length) {
+        log(
+          `excluding ${c.name}: blocked by unmerged ${unmet
+            .map(b => `${b} (${statusByName.get(b) || 'not found'})`)
+            .join(', ')}`
+        )
+        return false
+      }
+      return true
+    })
+    if (!unblocked.length) {
+      log('all candidates blocked by unmerged dependencies — nothing to claim')
+      return null
+    }
+    candidateList.length = 0
+    candidateList.push(...unblocked)
+  }
+
   if (candidateList.length === 1) {
     log(`single candidate: ${candidateList[0].name}`)
     return candidateList[0]
@@ -1288,7 +1393,6 @@ const runPlan = async (chosen, identity) => {
     schema: PLAN_SCHEMA,
     label: `plan-${chosen.name}`,
     phase: 'Plan',
-    isolation: 'worktree',
     model: 'opus',
   })
 
@@ -1309,7 +1413,6 @@ const reviewAndCommitPlan = async (chosen, identity) => {
     schema: PLAN_REVIEW_SCHEMA,
     label: `plan-review-${chosen.name}`,
     phase: 'Plan',
-    isolation: 'worktree',
     model: 'sonnet',
   })
 
@@ -1318,7 +1421,6 @@ const reviewAndCommitPlan = async (chosen, identity) => {
       schema: PLAN_SCHEMA,
       label: `plan-revise-${chosen.name}`,
       phase: 'Plan',
-      isolation: 'worktree',
       model: 'sonnet',
     })
   }
@@ -1329,7 +1431,6 @@ const reviewAndCommitPlan = async (chosen, identity) => {
         schema: EFFECT_ADVOCATE_SCHEMA,
         label: `effect-plan-${chosen.name}`,
         phase: 'Plan',
-        isolation: 'worktree',
         agentType: 'effect-advocate',
       }),
     () =>
@@ -1337,7 +1438,6 @@ const reviewAndCommitPlan = async (chosen, identity) => {
         schema: EFFECT_ADVOCATE_SCHEMA,
         label: `e2e-plan-${chosen.name}`,
         phase: 'Plan',
-        isolation: 'worktree',
         agentType: 'e2e-advocate',
       }),
     () =>
@@ -1345,7 +1445,6 @@ const reviewAndCommitPlan = async (chosen, identity) => {
         schema: PLAN_ADVERSARY_SCHEMA,
         label: `adversary-plan-${chosen.name}`,
         phase: 'Plan',
-        isolation: 'worktree',
         agentType: 'plan-adversary',
       }),
   ])
@@ -1374,7 +1473,6 @@ const reviewAndCommitPlan = async (chosen, identity) => {
       schema: PLAN_SCHEMA,
       label: `plan-advocate-revise-${chosen.name}`,
       phase: 'Plan',
-      isolation: 'worktree',
       model: 'opus',
     })
   }
@@ -1383,7 +1481,6 @@ const reviewAndCommitPlan = async (chosen, identity) => {
     schema: OK_SCHEMA,
     label: `commit-plan-${chosen.name}`,
     phase: 'Plan',
-    isolation: 'worktree',
     model: 'haiku',
   })
 }
@@ -1394,7 +1491,6 @@ const runBuild = async (chosen, identity) => {
     schema: BUILD_SCHEMA,
     label: `build-${chosen.name}`,
     phase: 'Build',
-    isolation: 'worktree',
     model: 'opus',
   })
 }
@@ -1416,7 +1512,6 @@ const runReview = async (chosen, identity, skillList) => {
     schema: DIFF_RAW_SCHEMA,
     label: `diff-${chosen.name}`,
     phase: 'Review',
-    isolation: 'worktree',
     model: 'haiku',
   })
 
@@ -1434,7 +1529,6 @@ const runReview = async (chosen, identity, skillList) => {
         schema: SKILL_DETECT_SCHEMA,
         label: `skill-${skill}`,
         phase: 'Review',
-        isolation: 'worktree',
         model: 'sonnet',
       })
     )
@@ -1444,7 +1538,6 @@ const runReview = async (chosen, identity, skillList) => {
     schema: THERMO_SCHEMA,
     label: `thermo-${chosen.name}`,
     phase: 'Review',
-    isolation: 'worktree',
     model: 'opus',
   })
 
@@ -1452,7 +1545,6 @@ const runReview = async (chosen, identity, skillList) => {
     schema: EFFECT_ADVOCATE_SCHEMA,
     label: `effect-diff-${chosen.name}`,
     phase: 'Review',
-    isolation: 'worktree',
     agentType: 'effect-advocate',
   })
 
@@ -1472,7 +1564,6 @@ const runReview = async (chosen, identity, skillList) => {
         schema: VERIFY_SCHEMA,
         label: `verify-${finding.source}-${i}`,
         phase: 'Verify findings',
-        isolation: 'worktree',
         model: 'sonnet',
       }).then(v => (v ? { finding, ...v } : null))
     )
@@ -1503,7 +1594,6 @@ const runReview = async (chosen, identity, skillList) => {
     schema: FIXER_SCHEMA,
     label: `fix-${chosen.name}`,
     phase: 'Fix review findings',
-    isolation: 'worktree',
     model: 'opus',
   })
 
@@ -1511,7 +1601,6 @@ const runReview = async (chosen, identity, skillList) => {
     schema: OK_SCHEMA,
     label: `merge-${chosen.name}`,
     phase: 'Fix review findings',
-    isolation: 'worktree',
     model: 'opus',
   })
 
@@ -1524,7 +1613,6 @@ const draftPr = async (chosen, identity, fixerResult) => {
     schema: PR_DRAFT_SCHEMA,
     label: `pr-${chosen.name}`,
     phase: 'Draft PR',
-    isolation: 'worktree',
     model: 'sonnet',
   })
 }
@@ -1553,7 +1641,8 @@ if (toFinalize.length) await openForReview(toFinalize, identity)
 await peerApprove(identity)
 
 // Decide whether to restart a stuck in-flight WI, claim a new one, or exit.
-const stillInFlight = inFlightWis.length - toFinalize.length // optimistic; some finalizers may have failed
+// Subtract finalized (moving to review) and closed (merged/closed PR) — both reduce the active slot count.
+const stillInFlight = inFlightWis.length - toFinalize.length - toCloseWi.length
 
 let chosen
 let isRestart = false
