@@ -159,5 +159,33 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await saveScreenshot(page, 'step4.selected-text-query-output-verified.png');
   });
 
+  await test.step('run query via Tooling API', async () => {
+    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+    await soqlTab.click();
+
+    await selectOutputChannel(page, SOQL_CHANNEL);
+    await clearOutputChannel(page);
+
+    // Select all text and overwrite with a Tooling-only query (ApexClass is not available via REST)
+    const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
+    await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
+    await page.keyboard.type('SELECT Id, Name FROM ApexClass LIMIT 5');
+    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveScreenshot(page, 'step5.tooling-query-saved.png');
+
+    const runQueryLens = page.getByRole('button', { name: 'Run Query' });
+    await expect(runQueryLens, '"Run Query" code lens should be visible').toBeVisible({ timeout: 15_000 });
+    await runQueryLens.click();
+
+    await selectQuickInputOption(page, /^Tooling API/, {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 10_000
+    });
+    await saveScreenshot(page, 'step5.tooling-api-selected.png');
+
+    await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
+    await saveScreenshot(page, 'step5.tooling-query-output-verified.png');
+  });
+
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
