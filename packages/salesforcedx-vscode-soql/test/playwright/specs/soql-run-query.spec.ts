@@ -166,9 +166,17 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await selectOutputChannel(page, SOQL_CHANNEL);
     await clearOutputChannel(page);
 
-    // Select all text and overwrite with a Tooling-only query (ApexClass is not available via REST)
+    // Select all text and overwrite with a query to verify Tooling API execution
     const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
     await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
+    await expect(
+      page
+        .locator('.statusbar-item')
+        .filter({ hasText: /\(\d+ selected\)/ })
+        .first()
+    ).toBeVisible({
+      timeout: 5000
+    });
     await page.keyboard.type('SELECT Id, Name FROM ApexClass LIMIT 5');
     await executeCommandWithCommandPalette(page, 'File: Save');
     await saveScreenshot(page, 'step5.tooling-query-saved.png');
