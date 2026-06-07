@@ -6,13 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
-import * as Schema from 'effect/Schema';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { getDefaultOrgRef } from '../core/defaultOrgRef';
-import { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { ExtensionContextService } from '../vscode/extensionContextService';
-import { readGlobalStateKey } from './readGlobalStateKey';
 
 // Telemetry globalState keys (matching @salesforce/salesforcedx-utils-vscode constants — kept in sync; services owns its own copy to avoid taking on a utils dep).
 export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
@@ -33,28 +27,11 @@ const hashUserIdentifier = (orgId: string, userId: string) =>
   });
 
 // persist the webUserId to the extension context global state
-export const setWebUserId = (orgId: string, userId: string) =>
-  Effect.gen(function* () {
-    const contextService = yield* ExtensionContextService;
-    const extensionContext = yield* contextService.getContext;
-    const webUserId = yield* hashUserIdentifier(orgId, userId);
+export const setWebUserId = Effect.fn('setWebUserId')(function* (orgId: string, userId: string) {
+  const contextService = yield* ExtensionContextService;
+  const extensionContext = yield* contextService.getContext;
+  const webUserId = yield* hashUserIdentifier(orgId, userId);
 
-    yield* Effect.promise(() => extensionContext.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, webUserId));
-    return webUserId;
-  });
-
-/** Mirrors webUserId from ExtensionContext globalState into defaultOrgRef. cliId is owned by seedTelemetryIdentities. */
-export const updateTelemetryUserIds = Effect.fn('updateTelemetryUserIds')(function* () {
-  const webUserIdOption = yield* readGlobalStateKey(TELEMETRY_GLOBAL_WEB_USER_ID);
-
-  const existingOrgInfo = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
-  const updated = Option.match(webUserIdOption, {
-    onNone: () => existingOrgInfo,
-    onSome: webUserId => ({ ...existingOrgInfo, webUserId })
-  });
-
-  // Only update if values actually changed
-  if (!Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
-    yield* SubscriptionRef.set(yield* getDefaultOrgRef(), updated);
-  }
+  yield* Effect.promise(() => extensionContext.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, webUserId));
+  return webUserId;
 });

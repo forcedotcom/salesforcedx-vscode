@@ -32,7 +32,6 @@ const decodeStoredCliId = (value: string) => Schema.decode(CliId)(value).pipe(Ef
 export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(function* () {
   const contextService = yield* ExtensionContextService;
   const extensionContext = yield* contextService.getContext;
-  const defaultOrgRef = yield* getDefaultOrgRef();
 
   const existingCliId = yield* readGlobalStateKey(TELEMETRY_GLOBAL_USER_ID);
   const cliId = yield* Option.match(existingCliId, {
@@ -50,6 +49,7 @@ export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(func
     yield* Effect.promise(() => extensionContext.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, webUserId));
   }
 
+  const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
   yield* SubscriptionRef.set(defaultOrgRef, { ...existingOrgInfo, cliId, webUserId });
 });
