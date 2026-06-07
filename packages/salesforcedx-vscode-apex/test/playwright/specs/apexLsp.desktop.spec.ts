@@ -10,7 +10,6 @@
 import { expect } from '@playwright/test';
 import {
   EDITOR_WITH_URI,
-  QUICK_INPUT_WIDGET,
   executeCommandWithCommandPalette,
   openFileByName,
   openFileFromExplorerTree,
@@ -46,25 +45,29 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     const testTab = page.getByRole('tab', { name: 'ExampleClassTest.cls', exact: true }).first();
     await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10000 });
 
-    // Click the editor body to guarantee keyboard focus lives in the editor, not a stale
-    // quick-input or panel. Without this, subsequent keyboard commands (Go to Line, F12) may
-    // target the wrong component on CI where focus transfer is slower.
+    // Locate the `ExampleClass` token on line 5 of ExampleClassTest.cls. Use Ctrl/Cmd+Click
+    // directly on the token — this is more reliable than command palette "Go to Definition"
+    // because it guarantees the editor has focus and the click target is the resolved symbol.
     const testEditor = page.locator(`${EDITOR_WITH_URI}[data-uri$="ExampleClassTest.cls"]`).first();
-    await testEditor.locator('.view-line').first().click();
+    // Line 5 contains `ExampleClass.SayHello('Cody')` — find the span with `ExampleClass` text.
+    // The `.view-lines` container holds all rendered lines; filter to the specific token.
+    const exampleClassToken = testEditor
+      .locator('.view-lines span')
+      .filter({ hasText: /^ExampleClass$/ })
+      .first();
+    await exampleClassToken.waitFor({ state: 'visible', timeout: 10000 });
 
-    // Position caret on the `ExampleClass` reference (line 5, col 20 in the seeded test class)
-    await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
-    await page.keyboard.type('5:20');
-    await page.keyboard.press('Enter');
+    // Hover the token and wait for a hover tooltip to confirm the Apex LSP has resolved the
+    // symbol. Without this synchronization the LSP may not have finished processing the file
+    // and Ctrl+Click would yield no navigation.
+    await exampleClassToken.hover();
+    await expect(
+      page.locator('.monaco-hover').filter({ hasText: /ExampleClass/ }),
+      'hover tooltip should show ExampleClass type info before Ctrl+Click'
+    ).toBeVisible({ timeout: 60000 });
 
-    // Wait for the quick input widget to fully dismiss before issuing Go to Definition;
-    // without this, the command fires while VS Code is still transferring focus back.
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
-
-    // Use the command palette for Go to Definition — more reliable than bare F12 because
-    // the command service dispatches to the active editor regardless of DOM keyboard focus.
-    await executeCommandWithCommandPalette(page, 'Go to Definition');
+    // Ctrl+Click (Cmd+Click on macOS) triggers Go to Definition on the hovered token.
+    await exampleClassToken.click({ modifiers: ['ControlOrMeta'] });
 
     // Go to Definition may open a peek widget (inline reference view) instead of switching
     // tabs when the target file is already open. Detect and dismiss it with Enter to navigate.
