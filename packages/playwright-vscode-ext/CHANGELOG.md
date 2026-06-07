@@ -1,4 +1,13 @@
-# 1.1.0 (2026-06-05)
+# [1.2.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.1.0...playwright-vscode-ext-v1.2.0) (2026-06-07)
+
+
+### Features
+
+* **playwright-vscode-ext:** add check:circular-deps script - W-22862555 ([#7406](https://github.com/forcedotcom/salesforcedx-vscode/issues/7406)) ([84e8a9f](https://github.com/forcedotcom/salesforcedx-vscode/commit/84e8a9f89c2889ecdedc4c20bacdffb41b8fdf04))
+
+
+
+# [1.1.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/984cba14b3c11b2877f06d37264190f56a80a2b6...playwright-vscode-ext-v1.1.0) (2026-06-05)
 
 
 ### Bug Fixes
