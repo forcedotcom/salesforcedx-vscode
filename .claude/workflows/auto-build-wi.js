@@ -719,7 +719,7 @@ Return {ok: true, detail: "<approved | skip reason>"} or {ok: false, detail}.`
 const candidatesQueryPrompt = identity =>
   `Run EXACTLY ONE SOQL query — the one below — and return its records.
 
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Assignee__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Assignee__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready','Triaged') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
 
 Return {records: <result.records, verbatim>}.
 
@@ -1271,7 +1271,7 @@ const pickCandidate = async (identity, inFlightWis) => {
   })
 
   const inFlightWiIds = new Set(inFlightWis.map(w => w.wiId))
-  const validStatuses = new Set(['New', 'Ready'])
+  const validStatuses = new Set(['New', 'Ready', 'Triaged'])
   const rawRecords = candidatesRaw.records || []
   const offSpec = rawRecords.filter(
     r => r.Assignee__c !== identity.userId || !validStatuses.has(r.Status__c)
