@@ -34,11 +34,11 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
 
   // frameLocator is synchronous/lazy — safe to declare before DOM exists.
   // In VS Code desktop-electron, webview iframes are NOT nested inside
-  // .editor-group-container; they live in a separate overlay host. Using
-  // page.frameLocator resolves across all matching iframes at action time,
-  // finding the one whose content contains the target element.
-  const soqlFrame = page.frameLocator('iframe.webview.ready').frameLocator('#active-frame');
-  const resultsFrame = page.frameLocator('iframe.webview.ready').frameLocator('#active-frame');
+  // .editor-group-container; they live in a separate overlay host. This test
+  // opens two webviews (SOQL Builder first, Query Results second), so we
+  // disambiguate with .first() / .last() to avoid strict-mode violations.
+  const soqlFrame = page.frameLocator('iframe.webview.ready').first().frameLocator('#active-frame');
+  const resultsFrame = page.frameLocator('iframe.webview.ready').last().frameLocator('#active-frame');
 
   await desktopTest.step('setup workbench', async () => {
     await setupMinimalOrgAndAuth(page);
