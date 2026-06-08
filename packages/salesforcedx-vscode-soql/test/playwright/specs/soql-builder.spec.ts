@@ -90,13 +90,13 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     await soqlFrame.getByPlaceholder('Search object...').click();
     await saveScreenshot(page, 'step2.limit-set.png');
 
-    // Add WHERE condition: Name = 'Test'
+    // Add WHERE condition: Name != 'Test' (selecting NOT_EQ to exercise non-default operator)
     const whereSection = soqlFrame.locator('querybuilder-where');
     await whereSection.getByPlaceholder('Search fields...').click();
     await whereSection.locator('p.option[data-option-value="Name"]').click();
     await saveScreenshot(page, 'step2.where-field-selected.png');
 
-    await whereSection.locator('[data-el-where-operator-input]').selectOption({ value: 'EQ' });
+    await whereSection.locator('[data-el-where-operator-input]').selectOption({ value: 'NOT_EQ' });
     await whereSection.locator('[data-el-where-criteria-input]').fill('Test');
     // Blur to trigger debounced change event
     await soqlFrame.getByPlaceholder('Search object...').click();
@@ -105,7 +105,7 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     await expect(
       soqlFrame.locator('.query-preview-container pre'),
       'query preview should include WHERE clause'
-    ).toContainText("WHERE Name = 'Test'");
+    ).toContainText("WHERE Name != 'Test'");
     await saveScreenshot(page, 'step2.where-preview-verified.png');
 
     // Add ORDER BY: Name DESC
@@ -128,7 +128,7 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     await expect(
       soqlFrame.locator('.query-preview-container pre'),
       'query preview should show the built SOQL statement'
-    ).toContainText("SELECT Id, Name FROM Account WHERE Name = 'Test' ORDER BY Name DESC LIMIT 10");
+    ).toContainText("SELECT Id, Name FROM Account WHERE Name != 'Test' ORDER BY Name DESC LIMIT 10");
     await saveScreenshot(page, 'step2.query-preview-verified.png');
 
     await executeCommandWithCommandPalette(page, 'File: Save');
