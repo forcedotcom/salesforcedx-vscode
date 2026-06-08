@@ -475,8 +475,9 @@ const classifyMonitor = monitorOutcomes => ({
     r =>
       r &&
       r.wi.prUrl &&
-      (r.decision === 'wait' ||
-        (r.prState && r.prState.mergeable === 'CONFLICTING' && r.decision !== 'close-wi'))
+      r.prState &&
+      r.prState.mergeable === 'CONFLICTING' &&
+      r.decision !== 'close-wi'
   ),
 })
 
@@ -1211,16 +1212,16 @@ const triageAndFixCi = async (toTriage, identity) => {
 
 const keepInFlightCurrent = async (toRefresh, identity) => {
   phase('Keep in-flight current')
-  await parallel(
-    toRefresh.map(r => () =>
-      agent(refreshBranchPrompt(r, identity), {
-        schema: OK_SCHEMA,
-        label: `refresh-${r.wi.name}`,
-        phase: 'Keep in-flight current',
-        model: 'opus',
-      })
-    )
-  )
+  // Sequential, not parallel: merges may trigger compile/lint/test across many
+  // worktrees concurrently and crash the machine.
+  for (const r of toRefresh) {
+    await agent(refreshBranchPrompt(r, identity), {
+      schema: OK_SCHEMA,
+      label: `refresh-${r.wi.name}`,
+      phase: 'Keep in-flight current',
+      model: 'opus',
+    })
+  }
 }
 
 const openForReview = async (toFinalize, identity) => {

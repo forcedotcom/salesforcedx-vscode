@@ -75,8 +75,8 @@ Cached at `$HOME/.claude/runner-identity.json` after first resolve. If any of th
                   └───┬───┘
                       ▼
         ┌────────────────────┐
-        │ Keep in-flight     │  fetch + merge origin/develop into each
-        │ current            │  in-flight worktree; push if non-empty
+        │ Keep in-flight     │  conflicting PRs only: merge origin/develop
+        │ current            │  into each worktree sequentially; push
         └────────┬───────────┘
                  ▼
         ┌────────────────────┐
@@ -168,7 +168,7 @@ The owner gets GitHub's native approval notification — no Slack DM (it would l
 
 **Triage failures → Fix CI failures.** Triage classifies one of `flake-or-infra` / `e2e-test-issue` / `code-bug` / `unknown`. Each route runs in parallel: flakes/unknowns DM the runner; e2e issues spawn a fixer using the `analyze-e2e` command and `playwright-e2e` skill; code bugs re-enter a builder agent with the failure context and the original plan.
 
-**Keep in-flight current.** For every in-flight WI (waiting OR finalizing), `git fetch origin develop` and merge into the worktree. Skip if already current. Conflicts use [merge-conflicts skill](../skills/merge-conflicts/SKILL.md) best-effort; unresolvable conflicts DM the runner. Push if any merge happened.
+**Keep in-flight current.** Only for PRs whose `mergeable === 'CONFLICTING'` — not every behind-develop PR. `git fetch origin develop` and merge into the worktree. Conflicts use [merge-conflicts skill](../skills/merge-conflicts/SKILL.md) best-effort; unresolvable conflicts DM the runner. Push if any merge happened. Runs **sequentially** across worktrees — merges can trigger compile/lint/test, and doing many at once crashes the machine.
 
 **Open for review.** Green PRs only. Idempotent: gates each mutation behind a state check. Flips PR out of draft, sets WI to Ready for Review, reassigns reviewers per [.claude/skills/pr-draft/SKILL.md](../skills/pr-draft/SKILL.md), posts to `#ide-exp-code-review` (channel `C054SJJAB24`) tagging the runner, and removes the worktree.
 
