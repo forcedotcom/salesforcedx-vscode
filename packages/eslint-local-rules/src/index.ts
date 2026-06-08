@@ -13,6 +13,7 @@ import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
+import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
@@ -42,6 +43,7 @@ const plugin = {
     'no-duplicate-i18n-values': noDuplicateI18nValues,
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
+    'no-self-barrel-import': noSelfBarrelImport,
     'no-effect-fn-wrapper': noEffectFnWrapper,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
     'require-effect-fn-span-name': requireEffectFnSpanName,

@@ -158,6 +158,7 @@ export default [
       'local/no-vscode-progress-title-literals': 'error',
       'local/no-vscode-quickpick-description-literals': 'error',
       'local/no-vscode-validateinput-literals': 'error',
+      'local/no-self-barrel-import': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -558,6 +559,8 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
+      'jest/no-focused-tests': 'error',
+      'jest/no-identical-title': 'error',
       '@typescript-eslint/no-var-requires': 'off',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
@@ -799,6 +802,21 @@ export default [
     rules: {
       'local/vscodeignore-required-patterns': 'error',
       'local/vscodeignore-contributes-conflict': 'error'
+    }
+  },
+  // Core i18n: tighten unused-key detection by clearing the default dynamic-key
+  // pattern (^[A-Z][a-zA-Z0-9]*$). Core has no dynamic key lookup, so any
+  // PascalCase key (e.g., metadata-type labels) added here would be dead.
+  {
+    files: [
+      'packages/salesforcedx-vscode-core/src/messages/i18n.ts',
+      'packages/salesforcedx-vscode-core/src/messages/i18n.ja.ts'
+    ],
+    plugins: {
+      local: localPlugin
+    },
+    rules: {
+      'local/no-unused-i18n-messages': ['error', { dynamicKeyPatterns: [] }]
     }
   },
   // SOQL Builder LWC templates: unknown i18n.* keys vs querybuilder/messages/i18n.ts (SOQL package only)
