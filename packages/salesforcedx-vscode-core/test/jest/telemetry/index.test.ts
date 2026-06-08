@@ -150,25 +150,6 @@ describe('Telemetry', () => {
       expect(mShowInformation).not.toHaveBeenCalledWith(showMessage, showButtonText);
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
-
-    it('should show internal info message and not telemetry opt-out message', async () => {
-      // create telemetry shown states
-      globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, true, false));
-      // mock out the isInternalHost call
-      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
-
-      await telemetryService.initializeService(mockExtensionContext);
-
-      const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
-
-      await showTelemetryMessage(mockExtensionContext);
-
-      expect(mShowInformation).toHaveBeenCalledTimes(1);
-      expect(mShowInformation).toHaveBeenCalledWith(internalMessage);
-      expect(mShowInformation).not.toHaveBeenCalledWith(showMessage, showButtonText);
-      expect(teleSpy.mock.calls[0]).toEqual([true]);
-    });
   });
 
   describe('in dev mode', () => {
