@@ -92,6 +92,12 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // toast. Benign in E2E — tests don't use VS Code accounts.
   'Sign-in failed',
   'Channel is closed',
+  // Bundled A4V (salesforcedx-einstein-gpt) checks the EGPT-for-developers entitlement on default-org
+  // change by fetching a JWT. Scratch orgs used in E2E lack that entitlement, so the check fails and the
+  // extension logs these. Benign here — OAS generation doesn't depend on EGPT and the org auth is valid.
+  'Error creating JWT for', // JwtTokenService failure for the connected scratch org
+  'Unknown JWT Error identified', // A4V handleActivationError wrapping the JWT failure
+  'access your Salesforce org', // UnknownJwtError user-facing message surfaced by A4V (apostrophe-agnostic substring)
   'GenOpAgentConfig', // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
   'DEP0005', // Node.js Buffer() deprecation warning from transitive dependencies (non-critical)
   'UtilityProcessWorker', // Electron utility process worker SIGSEGV/code-11 noise on macOS desktop tests
