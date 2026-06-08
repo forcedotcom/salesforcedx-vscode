@@ -85,9 +85,9 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     await soqlFrame.locator('querybuilder-fields p.option[data-option-value="Name"]').click();
     await saveScreenshot(page, 'step2.fields-selected.png');
 
-    // Set LIMIT to 10 and click away to trigger the change event
+    // Set LIMIT to 10 and press Tab to blur and trigger the change event
     await soqlFrame.getByPlaceholder('Limit...').fill('10');
-    await soqlFrame.getByPlaceholder('Search object...').click();
+    await soqlFrame.getByPlaceholder('Limit...').press('Tab');
     await saveScreenshot(page, 'step2.limit-set.png');
 
     // Add WHERE condition: Name != 'Test' (selecting NOT_EQ to exercise non-default operator)
@@ -99,7 +99,7 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     await whereSection.locator('[data-el-where-operator-input]').selectOption({ value: 'NOT_EQ' });
     await whereSection.locator('[data-el-where-criteria-input]').fill('Test');
     // Blur to trigger debounced change event
-    await soqlFrame.getByPlaceholder('Search object...').click();
+    await whereSection.locator('[data-el-where-criteria-input]').press('Tab');
     await saveScreenshot(page, 'step2.where-condition-set.png');
 
     await expect(
