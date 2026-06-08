@@ -66,17 +66,22 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
     await saveScreenshot(page, 'step1.soql-tab-visible.png');
 
-    // Confirm text-editor mode: no webview iframe should be present (distinguishes from SOQL Builder)
-    await expect(
-      page.locator('iframe.webview.ready'),
-      'no webview iframe — file opened in text editor, not SOQL Builder'
-    ).not.toBeAttached({ timeout: 5000 });
-
-    // Confirm Monaco editor is present for the .soql file
+    // Confirm Monaco editor is present for the .soql file — this positively proves
+    // text-editor mode (SOQL Builder renders a webview, not a Monaco editor)
     await expect(
       page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`),
       'Monaco editor should be present for the .soql file'
     ).toBeVisible({ timeout: 5000 });
+
+    // Confirm no webview iframe in the active editor group. Scoped to
+    // `.editor-group-container.active` to avoid false failures from unrelated
+    // extension webviews (walkthrough panels, onboarding overlays) that may still
+    // be attached elsewhere in the DOM after closeWelcomeTabs runs (tab close is
+    // sync but iframe detach is async).
+    await expect(
+      page.locator('.editor-group-container.active iframe.webview.ready'),
+      'no webview iframe in active editor group — file opened in text editor, not SOQL Builder'
+    ).not.toBeAttached({ timeout: 5000 });
 
     // Type the query into the empty editor (file opens focused and ready for input)
     await page.locator(EDITOR).first().click();
