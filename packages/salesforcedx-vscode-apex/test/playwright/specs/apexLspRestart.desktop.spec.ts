@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable unicorn/numeric-separators-style -- timeouts use plain numeric literals; rule conflicts for 4–5 digit values */
-
 import { expect } from '@playwright/test';
 import {
   openFileByName,
