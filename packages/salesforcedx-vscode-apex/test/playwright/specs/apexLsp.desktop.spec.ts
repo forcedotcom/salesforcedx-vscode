@@ -64,20 +64,10 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
       'hover tooltip should show ExampleClass type info before Ctrl+Click'
     ).toBeVisible({ timeout: 60_000 });
 
-    // Ctrl+Click (Cmd+Click on macOS) triggers Go to Definition on the hovered token.
+    // Ctrl+Click (Cmd+Click on macOS) triggers Go to Definition on the hovered token. The
+    // `editor.gotoLocation.*: 'goto'` settings (fixtures/desktopFixtures.ts) make this navigate
+    // directly to the definition tab instead of opening a peek widget.
     await exampleClassToken.click({ modifiers: ['ControlOrMeta'] });
-
-    // Go to Definition may open a peek widget (inline reference view) instead of switching
-    // tabs when the target file is already open. Detect and dismiss it with Enter to navigate.
-    const peekWidget = page.locator('.peekview-widget');
-    const peekVisible = await peekWidget
-      .waitFor({ state: 'visible', timeout: 5000 })
-      .then(() => true)
-      .catch(() => false);
-    if (peekVisible) {
-      // Enter in the peek widget navigates to the definition in the main editor
-      await page.keyboard.press('Enter');
-    }
 
     const exampleClassTab = page.getByRole('tab', { name: 'ExampleClass.cls', exact: true }).first();
     await expect(exampleClassTab).toHaveAttribute('aria-selected', 'true', { timeout: 30_000 });
