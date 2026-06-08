@@ -182,7 +182,7 @@ describe('ComponentIndexer', () => {
     describe('#staleTags', () => {
       it('returns a list of tags that are stale and should be removed', async () => {
         const stale = await componentIndexer.getStaleTags();
-        expect(stale.length).toBe(0);
+        expect(stale).toHaveLength(0);
       });
     });
 
@@ -295,7 +295,7 @@ describe('ComponentIndexer', () => {
         const tags: Tag[] = [await createTag({ file: '/foo', updatedAt: new Date('2020-01-01') })];
         const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
-        expect(unIndexedFiles(entries, tags).length).toEqual(0);
+        expect(unIndexedFiles(entries, tags)).toHaveLength(0);
       });
 
       it('it returns entries 1 entries when the entries date is different', async () => {
@@ -304,7 +304,7 @@ describe('ComponentIndexer', () => {
         const tags: Tag[] = [await createTag({ file: '/foo', updatedAt: new Date('2020-01-01') })];
         const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
-        expect(unIndexedFiles(entries, tags).length).toEqual(1);
+        expect(unIndexedFiles(entries, tags)).toHaveLength(1);
       });
 
       it('it returns entries 1 entries when there is no matching tag', () => {
@@ -313,7 +313,7 @@ describe('ComponentIndexer', () => {
         const tags: Tag[] = [];
         const entries: Entry[] = [{ path: '/foo', stats, dirent, name: 'foo' }];
 
-        expect(unIndexedFiles(entries, tags).length).toEqual(1);
+        expect(unIndexedFiles(entries, tags)).toHaveLength(1);
       });
     });
   });
