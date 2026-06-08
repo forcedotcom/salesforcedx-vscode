@@ -1130,7 +1130,12 @@ const monitorInFlight = async identity => {
       if (prState.state === 'merged' || prState.state === 'closed') {
         return { ...result, decision: 'close-wi' }
       }
-      if (prState.state === 'green') return { ...result, decision: 'finalize' }
+      // Only finalize a green PR whose WI is still 'In Progress'. WIs already advanced to
+      // 'Ready for Review'/'Fixed' in a prior tick are done — re-finalizing them re-posts the
+      // Slack "PR ready for review" message every tick (openReviewPrompt step 4 is not idempotent).
+      if (prState.state === 'green') {
+        return { ...result, decision: result.wi.status === 'In Progress' ? 'finalize' : 'wait' }
+      }
       if (prState.state === 'running') return { ...result, decision: 'wait' }
       if (prState.state === 'no-pr') return { ...result, decision: 'no-pr-restart' }
       // state === 'failed': all checks settled, at least one not green.
