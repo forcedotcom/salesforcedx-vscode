@@ -64,7 +64,6 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   'initialhint.copilotcli',
   'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
   'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
-  'workbench.contrib.agentHostTerminal', // VS Code agent host terminal error (non-critical)
   // VS Code 1.116+ core Accounts area silently fetches a session/entitlement on boot;
   // with `vscode.github-authentication` disabled there's no provider, so it surfaces this
   // toast. Benign in E2E — tests don't use VS Code accounts.
