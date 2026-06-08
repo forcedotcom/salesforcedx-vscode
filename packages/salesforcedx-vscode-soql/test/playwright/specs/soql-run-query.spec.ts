@@ -66,6 +66,18 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
     await saveScreenshot(page, 'step1.soql-tab-visible.png');
 
+    // Confirm text-editor mode: no webview iframe should be present (distinguishes from SOQL Builder)
+    await expect(
+      page.locator('iframe.webview.ready'),
+      'no webview iframe — file opened in text editor, not SOQL Builder'
+    ).not.toBeAttached({ timeout: 5000 });
+
+    // Confirm Monaco editor is present for the .soql file
+    await expect(
+      page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`),
+      'Monaco editor should be present for the .soql file'
+    ).toBeVisible({ timeout: 5000 });
+
     // Type the query into the empty editor (file opens focused and ready for input)
     await page.locator(EDITOR).first().click();
     await page.keyboard.type(SOQL_QUERY);
