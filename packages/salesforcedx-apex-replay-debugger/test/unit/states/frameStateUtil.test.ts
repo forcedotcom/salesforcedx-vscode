@@ -44,10 +44,6 @@ describe('Frame state utilities', () => {
       const fields = 'NothingHereMatters|CONSTRUCTOR_EXIT|NothingHereMatters|ClassName.InnerClassName'.split('|');
       expect(FrameStateUtil.computeFrameName(fields)).toBe('ClassName.InnerClassName.InnerClassName');
     });
-    it('EVENT_CONSTRUCTOR_EXIT inner class', () => {
-      const fields = 'NothingHereMatters|CONSTRUCTOR_EXIT|NothingHereMatters|ClassName.InnerClassName'.split('|');
-      expect(FrameStateUtil.computeFrameName(fields)).toBe('ClassName.InnerClassName.InnerClassName');
-    });
     // VF_APEX_CALL_START/END tests
     it('EVENT_VF_APEX_CALL_START parse method name from invoke', () => {
       const fields =

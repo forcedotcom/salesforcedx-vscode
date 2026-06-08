@@ -61,7 +61,7 @@ describe('breakpointService Unit Tests.', () => {
       expect(breakpointService.isApexDebuggerBreakpointId('')).toBeFalsy();
     });
 
-    it('Should return false if isApexDebuggerBreakpointId is empty.', () => {
+    it('Should return false if isApexDebuggerBreakpointId is not the debugger id.', () => {
       expect(breakpointService.isApexDebuggerBreakpointId('NOT_THE_DEBUGGER_ID')).toBeFalsy();
     });
 
@@ -194,7 +194,7 @@ describe('breakpointService Unit Tests.', () => {
     });
   });
 
-  describe('getBreakpointsFor()', () => {
+  describe('getBreakpointsFor() cache', () => {
     it('Should return undefined if cache is empty.', () => {
       const lines = breakpointService.getBreakpointsFor('test');
       expect(lines.size).toEqual(0);
