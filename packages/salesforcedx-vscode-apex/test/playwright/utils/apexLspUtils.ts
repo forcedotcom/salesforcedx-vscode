@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable unicorn/numeric-separators-style -- timeouts use plain numeric literals; rule conflicts for 4–5 digit values */
-
 import { expect, type Page } from '@playwright/test';
 import {
   clearOutputChannel,
@@ -62,7 +60,7 @@ const getApexLanguageStatusButton = (page: Page, textRegex: RegExp) => page.getB
  * @returns the resolved release dir (e.g. `262`)
  */
 export const waitForApexLspReady = async (page: Page, workspaceDir: string): Promise<string> => {
-  await expect(getApexLanguageStatusButton(page, /Indexing complete/)).toBeVisible({ timeout: 120000 });
+  await expect(getApexLanguageStatusButton(page, /Indexing complete/)).toBeVisible({ timeout: 120_000 });
 
   const toolsDir = path.join(workspaceDir, '.sfdx', 'tools');
   let resolvedReleaseDir = '';
@@ -70,7 +68,7 @@ export const waitForApexLspReady = async (page: Page, workspaceDir: string): Pro
     resolvedReleaseDir = findReleaseDir(workspaceDir);
     const stdLibDir = path.join(toolsDir, resolvedReleaseDir, STANDARD_APEX_LIBRARY);
     expect(existsSync(stdLibDir), `Expected ${stdLibDir} to exist`).toBe(true);
-  }).toPass({ timeout: 60000 });
+  }).toPass({ timeout: 60_000 });
   return resolvedReleaseDir;
 };
 
@@ -117,13 +115,13 @@ const clickApexLspRestartAction = async (page: Page): Promise<void> => {
 
 const selectRestartQuickPick = async (page: Page, cleanDb: boolean): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  await widget.waitFor({ state: 'visible', timeout: 10000 });
+  await widget.waitFor({ state: 'visible', timeout: 10_000 });
   const label = cleanDb ? CLEAN_AND_RESTART_LABEL : RESTART_ONLY_LABEL;
   const row = widget
     .locator(QUICK_INPUT_LIST_ROW)
     .filter({ hasText: new RegExp(`^${label}$`) })
     .first();
-  await row.waitFor({ state: 'visible', timeout: 10000 });
+  await row.waitFor({ state: 'visible', timeout: 10_000 });
   await row.click();
 };
 
@@ -156,9 +154,9 @@ export const triggerLspRestart = async (
 
   // Intermediate "restarting" status — fails fast if restart was ignored.
   await expect(getApexLanguageStatusButton(page, /Apex Language Server is restarting/i)).toBeVisible({
-    timeout: 10000
+    timeout: 10_000
   });
 
-  await waitForOutputChannelText(page, { expectedText: PRELUDE_STARTING, timeout: 60000 });
+  await waitForOutputChannelText(page, { expectedText: PRELUDE_STARTING, timeout: 60_000 });
   return waitForApexLspReady(page, workspaceDir);
 };
