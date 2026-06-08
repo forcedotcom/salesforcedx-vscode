@@ -174,8 +174,15 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
   const SOQL_SAVE_FILE = 'MySoqlSaveFile';
   const SOQL_SAVE_QUERY = 'SELECT Id, Name FROM Account LIMIT 5';
 
-  // soqlFrame is initialized after the builder tab opens
-  let soqlFrame: ReturnType<typeof page.frameLocator>;
+  // frameLocator is synchronous/lazy — safe to declare before DOM exists
+  const soqlFrame = page.frameLocator('iframe.webview.ready').frameLocator('#active-frame');
+  const getResultsFrame = () =>
+    page
+      .locator('.editor-group-container.active iframe.webview.ready')
+      .first()
+      .contentFrame()
+      .locator('#active-frame')
+      .contentFrame();
 
   await desktopTest.step('setup workbench', async () => {
     await setupMinimalOrgAndAuth(page);
@@ -200,8 +207,6 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
 
     const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_SAVE_FILE}.soql` });
     await expect(soqlTab, `${SOQL_SAVE_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
-
-    soqlFrame = page.frameLocator('iframe.webview.ready').frameLocator('#active-frame');
 
     // Build query: select Account, fields Id and Name, limit 5
     await soqlFrame.getByPlaceholder('Search object...').click();
@@ -242,15 +247,10 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
     await resultsTab.click();
 
     // Access results webview frame scoped to the active editor group
-    const resultsFrame = page
-      .locator('.editor-group-container.active iframe.webview.ready')
-      .first()
-      .contentFrame()
-      .locator('#active-frame')
-      .contentFrame();
+    const resultsFrame = getResultsFrame();
 
     // Wait for save-csv-button to be visible (webview content loaded)
-    const saveCsvButton = resultsFrame.locator('#save-csv-button');
+    const saveCsvButton = resultsFrame.getByRole('button', { name: 'Save as CSV' });
     await expect(saveCsvButton, 'Save CSV button should be visible').toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'save.step3.csv-button-visible.png');
 
@@ -267,8 +267,8 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
     const input = quickInput.locator('input.input');
     await expect(input).toHaveValue(/\.csv$/, { timeout: 5000 });
 
-    // Click the Save button (VS Code simple save dialog action button)
-    const saveButton = quickInput.getByRole('button', { name: 'Save' });
+    // Click the OK button (VS Code simple save dialog action button — labeled "OK" when no saveLabel is set)
+    const saveButton = quickInput.getByRole('button', { name: 'OK' });
     await saveButton.click();
     await saveScreenshot(page, 'save.step3.save-confirmed.png');
 
@@ -278,15 +278,14 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
 
     // Dismiss notification
     const closeButton = csvNotification.locator('.codicon-notifications-clear');
-    if (await closeButton.isVisible()) {
-      await closeButton.click();
-    }
+    await expect(closeButton).toBeVisible({ timeout: 5000 });
+    await closeButton.click();
 
     // Assert CSV file exists on disk
     await expect(async () => {
       const files = await fs.readdir(workspaceDir, { recursive: true });
-      const csvFiles = files.filter(f => typeof f === 'string' && f.endsWith('.csv'));
-      expect(csvFiles.length, 'at least one CSV file should exist in workspace').toBeGreaterThan(0);
+      const csvFiles = files.filter(f => typeof f === 'string' && f.endsWith(`${SOQL_SAVE_FILE}.csv`));
+      expect(csvFiles.length, 'CSV export file should exist in workspace').toBeGreaterThan(0);
       const csvPath = path.join(workspaceDir, csvFiles[0]);
       const content = await fs.readFile(csvPath, 'utf8');
       expect(content.length, 'CSV file should have non-empty content').toBeGreaterThan(0);
@@ -300,14 +299,9 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
     await resultsTab.click();
 
     // Access results webview frame
-    const resultsFrame = page
-      .locator('.editor-group-container.active iframe.webview.ready')
-      .first()
-      .contentFrame()
-      .locator('#active-frame')
-      .contentFrame();
+    const resultsFrame = getResultsFrame();
 
-    const saveJsonButton = resultsFrame.locator('#save-json-button');
+    const saveJsonButton = resultsFrame.getByRole('button', { name: 'Save as JSON' });
     await expect(saveJsonButton, 'Save JSON button should be visible').toBeVisible({ timeout: 15_000 });
     await saveJsonButton.click();
     await saveScreenshot(page, 'save.step4.json-button-clicked.png');
@@ -321,8 +315,8 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
     const input = quickInput.locator('input.input');
     await expect(input).toHaveValue(/\.json$/, { timeout: 5000 });
 
-    // Click the Save button
-    const saveButton = quickInput.getByRole('button', { name: 'Save' });
+    // Click the OK button (VS Code simple save dialog action button — labeled "OK" when no saveLabel is set)
+    const saveButton = quickInput.getByRole('button', { name: 'OK' });
     await saveButton.click();
     await saveScreenshot(page, 'save.step4.json-save-confirmed.png');
 
@@ -333,8 +327,8 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
     // Assert JSON file exists on disk and is valid JSON with records
     await expect(async () => {
       const files = await fs.readdir(workspaceDir, { recursive: true });
-      const jsonFiles = files.filter(f => typeof f === 'string' && f.endsWith('.json') && !f.includes('sfdx-project'));
-      expect(jsonFiles.length, 'at least one JSON export file should exist in workspace').toBeGreaterThan(0);
+      const jsonFiles = files.filter(f => typeof f === 'string' && f.endsWith(`${SOQL_SAVE_FILE}.json`));
+      expect(jsonFiles.length, 'JSON export file should exist in workspace').toBeGreaterThan(0);
       const jsonPath = path.join(workspaceDir, jsonFiles[0]);
       const content = await fs.readFile(jsonPath, 'utf8');
       const parsed = JSON.parse(content) as unknown;
