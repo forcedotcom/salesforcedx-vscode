@@ -457,9 +457,7 @@ const normalizeFindings = (skillFindings, skillsToCheck, thermo, effectDiffRevie
 }
 
 const classifyMonitor = monitorOutcomes => ({
-  toFinalize: monitorOutcomes.filter(
-    r => r && r.decision === 'finalize' && r.wi.status === 'In Progress'
-  ),
+  toFinalize: monitorOutcomes.filter(r => r && r.decision === 'finalize'),
   toTriage: monitorOutcomes.filter(r => r && r.decision === 'triage'),
   toRestart: monitorOutcomes.filter(
     r => r && (r.decision === 'no-pr-restart' || r.action === 'no-pr-restart')
@@ -1098,15 +1096,16 @@ const monitorInFlight = async identity => {
     model: 'haiku',
   })
 
-  const inFlightWis = (inFlightRaw.records || []).map(mapWiRecord).filter(w => w.prUrl)
-  log(`in-flight: ${inFlightWis.length} WI(s)`)
+  // Include all in-flight WIs — with and without a PR URL. No-PR 'In Progress' WIs are active
+  // builds that crashed before opening a PR; they need to count toward the cap and be restarted.
+  const inFlightWis = (inFlightRaw.records || []).map(mapWiRecord)
+  log(`in-flight: ${inFlightWis.length} WI(s) — ${inFlightWis.map(w => `${w.name}(${w.status})`).join(', ')}`)
 
   const monitorOutcomes = await pipeline(
     inFlightWis,
     async wi => {
       if (!wi.prUrl) {
-        // Edge case: claim happened in a prior tick but PR was never created (build crashed).
-        // Treat as a builder restart.
+        // WI is 'In Progress' but no PR opened yet — build crashed in a prior tick. Restart.
         return { wi, action: 'no-pr-restart' }
       }
       const prState = await agent(checkPrStatePrompt(wi), {
@@ -1640,9 +1639,11 @@ if (toRefresh.length) await keepInFlightCurrent(toRefresh, identity)
 if (toFinalize.length) await openForReview(toFinalize, identity)
 await peerApprove(identity)
 
-// Decide whether to restart a stuck in-flight WI, claim a new one, or exit.
-// Subtract finalized (moving to review) and closed (merged/closed PR) — both reduce the active slot count.
-const stillInFlight = inFlightWis.length - toFinalize.length - toCloseWi.length
+// Cap = number of WIs currently 'In Progress' in GUS. GUS status is authoritative.
+// 'Ready for Review'/'Fixed' WIs are waiting on human review — not consuming builder slots.
+// No subtraction needed: GUS already reflects transitions from prior ticks.
+const stillInFlight = inFlightWis.filter(w => w.status === 'In Progress').length
+log(`cap: stillInFlight=${stillInFlight} (In Progress WIs) toFinalize=${toFinalize.length} toCloseWi=${toCloseWi.length} toRestart=${toRestart.length}`)
 
 let chosen
 let isRestart = false
