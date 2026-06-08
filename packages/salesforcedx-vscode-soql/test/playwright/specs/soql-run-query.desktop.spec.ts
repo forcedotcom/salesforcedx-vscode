@@ -126,13 +126,11 @@ desktopTest('SOQL Run Query: save query results to CSV and JSON', async ({ page,
     await saveScreenshot(page, 'save.step3.save-confirmed.png');
 
     // Assert success notification
-    const csvNotification = await waitForNotification(page, /We saved the results as:.*\.csv/, { timeout: 30_000 });
+    await waitForNotification(page, /We saved the results as:.*\.csv/, { timeout: 30_000 });
     await saveScreenshot(page, 'save.step3.csv-notification.png');
 
-    // Dismiss notification
-    const closeButton = csvNotification.locator('.codicon-notifications-clear');
-    await expect(closeButton).toBeVisible({ timeout: 5000 });
-    await closeButton.click();
+    // Dismiss all notifications via command palette (close button is hidden until hover)
+    await executeCommandWithCommandPalette(page, 'Notifications: Clear All Notifications');
 
     // Assert CSV file exists on disk
     await expect(async () => {
