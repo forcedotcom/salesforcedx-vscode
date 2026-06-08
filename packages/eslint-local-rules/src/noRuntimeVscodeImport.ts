@@ -54,6 +54,23 @@ export const noRuntimeVscodeImport = RuleCreator.withoutDocs({
       if (node.source.type === AST_NODE_TYPES.Literal && node.source.value === 'vscode') {
         context.report({ node: node.source, messageId: 'noRuntimeVscodeImport' });
       }
+    },
+    // `export { window } from 'vscode'` is a runtime load unless it is an
+    // `export type { ... } from 'vscode'`. A bare `export {}` has no source.
+    ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
+      if (
+        node.source?.value === 'vscode' &&
+        node.exportKind !== 'type' &&
+        node.specifiers.some(specifier => specifier.exportKind !== 'type')
+      ) {
+        context.report({ node: node.source, messageId: 'noRuntimeVscodeImport' });
+      }
+    },
+    // `export * from 'vscode'` / `export * as ns from 'vscode'` is a runtime load.
+    ExportAllDeclaration: (node: TSESTree.ExportAllDeclaration): void => {
+      if (node.source.value === 'vscode' && node.exportKind !== 'type') {
+        context.report({ node: node.source, messageId: 'noRuntimeVscodeImport' });
+      }
     }
   })
 });

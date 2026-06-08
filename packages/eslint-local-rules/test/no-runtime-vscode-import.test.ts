@@ -25,7 +25,13 @@ ruleTester.run('no-runtime-vscode-import', noRuntimeVscodeImport, {
     // error-pattern literal
     { code: `const re = /Cannot find module 'vscode'/;`, filename },
     // unrelated node builtin
-    { code: `import fs from 'node:fs';`, filename }
+    { code: `import fs from 'node:fs';`, filename },
+    // re-export forms that are fully type-erased
+    { code: `export type { Uri } from 'vscode';`, filename },
+    { code: `export { type Uri } from 'vscode';`, filename },
+    { code: `export type * from 'vscode';`, filename },
+    // bare local export, no module source
+    { code: `const x = 1;\nexport { x };`, filename }
   ],
   invalid: [
     {
@@ -61,6 +67,28 @@ ruleTester.run('no-runtime-vscode-import', noRuntimeVscodeImport, {
     },
     {
       code: `const fn = async () => { await import('vscode'); };`,
+      filename,
+      errors: [{ messageId: 'noRuntimeVscodeImport' }]
+    },
+    {
+      // named re-export of a value specifier → runtime load
+      code: `export { window } from 'vscode';`,
+      filename,
+      errors: [{ messageId: 'noRuntimeVscodeImport' }]
+    },
+    {
+      // mixed inline-type + value re-export → runtime load
+      code: `export { type Uri, window } from 'vscode';`,
+      filename,
+      errors: [{ messageId: 'noRuntimeVscodeImport' }]
+    },
+    {
+      code: `export * from 'vscode';`,
+      filename,
+      errors: [{ messageId: 'noRuntimeVscodeImport' }]
+    },
+    {
+      code: `export * as vscode from 'vscode';`,
       filename,
       errors: [{ messageId: 'noRuntimeVscodeImport' }]
     }

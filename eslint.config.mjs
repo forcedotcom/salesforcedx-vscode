@@ -577,6 +577,7 @@ export default [
       'packages/salesforcedx-vscode-automation-tests/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
+    ignores: ['**/locators.ts'],
     plugins: {
       local: localPlugin
     },
