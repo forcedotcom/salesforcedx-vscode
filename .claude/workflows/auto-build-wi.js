@@ -985,8 +985,10 @@ Verdict rules:
   - The premise is false (cited code doesn't do what the finding claims).
   - It only asks to RUN tests/checks that CI already runs on the PR. CI runs Playwright e2e (with retries) and the stop-hook chain (compile/lint/knip/effect-LS/unit) as gating checks — re-running them by hand before merge is redundant. Inspect '.github/workflows/' in ${wt} to confirm what CI covers; a "run X before merge" finding where X is a gating CI job → dropped.
   - It claims a BREAKING API change / removed export / dead code. PROVE affected consumers exist before keeping it. Read .claude/skills/external-consumers/SKILL.md and run its gh searches across org:forcedotcom and org:salesforcecli for the exact removed symbol AND its public-export form (e.g. workspaceContextUtils.<name>). Discount false positives (unrelated same-named symbols, the ci-testing mirror repo, the export site itself, plan/doc files). Zero real consumers → dropped (note "removed unused export, no consumers" for the PR body instead).
-- **downgraded** if the premise holds but the real severity is lower than claimed (e.g. theoretical edge, no user-facing impact).
-- **confirmed** only if premise verified and the fix adds genuine value.
+- **downgraded** if the premise holds but the real severity is lower than claimed (e.g. theoretical edge, no user-facing impact). Downgrade to 'low' — do NOT drop. A correct fix with no user-facing impact (misleading comment, dead/no-op config line, stale rationale) is still worth applying for free; keep it as a low-severity 'confirmed' or 'downgraded', never 'dropped'.
+- **confirmed** if premise verified and the fix is correct. "Adds genuine value" includes trivially-correct cleanups (delete a no-op line, fix a misleading comment) — these are cheap and unambiguous, so confirm them at low severity rather than discarding.
+
+'dropped' is ONLY for findings that are FALSE, ALREADY-COVERED (CI re-run), or ZERO-CONSUMER. A true-but-minor finding is low severity, not dropped.
 
 Return ONLY the structured result. 'severity' = the corrected severity (== claimed if confirmed). 'evidence' = file:line or gh-search summary that grounds the verdict.`
 
@@ -1000,8 +1002,8 @@ ${JSON.stringify(verifiedFindings, null, 2)}
 
 Rules:
 - Auto-apply ALL critical and high severity findings.
-- Auto-apply medium / low when the fix is cheap and clearly correct.
-- Surface the rest in 'remaining' with note + severity for the PR body.
+- Auto-apply ALL medium / low findings too — these survived adversarial verification, so the premise is already confirmed. Default to APPLYING, not surfacing. This explicitly includes trivial mechanical edits: deleting a no-op/dead config line, fixing or removing a misleading/stale comment, renaming for clarity. "Low value" is NOT a reason to skip — if the edit is unambiguous and self-contained, just make it.
+- Surface to 'remaining' ONLY when applying would be genuinely risky or ambiguous: the fix requires a design decision, spans many files, changes public behavior, or you cannot determine the correct change with confidence. State which of these applies in the note.
 - A finding may carry a 'prBodyNote' (e.g. "removed unused export, no consumers") instead of a code change — pass those straight into 'remaining' so they land in the PR body, no edit needed.
 
 Group commits logically: e.g. one commit "fix: critical/high review findings", one "refactor: medium/low review findings". If nothing to fix, return {fixedCount: 0, remaining: [...]}.
