@@ -40,7 +40,9 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.31.0",
-    "salesforcedx-vscode-core": "*"
+    "@salesforce/playwright-vscode-ext": "*",
+    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
@@ -58,7 +60,9 @@
     "copy:grammars": "wireit",
     "copy:jar": "wireit",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug"
   },
   "wireit": {
     "compile": {
@@ -87,11 +91,32 @@
     "test:compile": {
       "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "compile"
+        "compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/**/*.ts",
         "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test:desktop": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "test:compile",
+        "vscode:package",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json"
       ],
       "output": []
     },
