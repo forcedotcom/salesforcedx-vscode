@@ -1289,14 +1289,37 @@ const pickCandidate = async (identity, inFlightWis) => {
     )
   }
   const filteredRecords = offSpec.length ? [] : rawRecords
-  const candidateList = filteredRecords.map(mapWiRecord).filter(c => {
+  const preCandidates = filteredRecords.map(mapWiRecord).filter(c => {
     if (inFlightWiIds.has(c.wiId)) return false
-    if (hasPrUrl(c.details)) {
-      log(`excluding ${c.name}: Details already contains a PR URL`)
-      return false
-    }
     return true
   })
+  // For WIs with a workflow-appended PR URL, verify the PR is still open (not closed
+  // without merging). A closed PR means the WI needs a new attempt.
+  const candidateList = (
+    await Promise.all(
+      preCandidates.map(async c => {
+        const prUrl = extractPrUrl(c.details)
+        if (!prUrl) return c
+        const prNum = prUrl.split('/').pop()
+        const stateRaw = await agent(
+          `Run: gh pr view ${prNum} --json state,mergedAt --jq '{state: .state, mergedAt: .mergedAt}'\nReturn only the JSON object from stdout, nothing else.`,
+          { schema: { type: 'object', properties: { state: { type: 'string' }, mergedAt: {} }, required: ['state'] }, label: `pr-state-${prNum}`, phase: 'Pick candidate', model: 'haiku' }
+        )
+        const prState = (stateRaw && stateRaw.state) || 'UNKNOWN'
+        if (prState === 'OPEN') {
+          log(`excluding ${c.name}: PR #${prNum} is open — already in progress`)
+          return null
+        }
+        if (prState === 'MERGED' || stateRaw.mergedAt) {
+          log(`excluding ${c.name}: PR #${prNum} already merged`)
+          return null
+        }
+        // CLOSED without merge — PR was abandoned; re-queue the WI
+        log(`re-queuing ${c.name}: PR #${prNum} was closed without merging`)
+        return c
+      })
+    )
+  ).filter(Boolean)
 
   if (!candidateList.length) return null
 
