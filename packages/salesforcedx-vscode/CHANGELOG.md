@@ -2,25 +2,22 @@
 
 ## Added
 
-#### salesforcedx-vscode-core
+#### salesforcedx-vscode-metadata
 
-- Add no-self-barrel-import rule - W-22857708 ([PR #7399](https://github.com/forcedotcom/salesforcedx-vscode/pull/7399))
+- We rewrote the **SFDX: Install Package** command to use the Tooling API directly, so it now works in Web Console without the Salesforce CLI. The command also shows cancellable progress while the install request is polling. ([PR #7369](https://github.com/forcedotcom/salesforcedx-vscode/pull/7369))
 
-- Move rename Lightning component to LWC and Aura extensions - W-22775798 ([PR #7371](https://github.com/forcedotcom/salesforcedx-vscode/pull/7371))
+## Changed
 
-- Rewrite Install Package command using Tooling API - W-22771757 ([PR #7369](https://github.com/forcedotcom/salesforcedx-vscode/pull/7369))
+#### salesforcedx-vscode-lwc
+
+- You can now rename a Lightning Web Component in Web Console. ([PR #7371](https://github.com/forcedotcom/salesforcedx-vscode/pull/7371))
 
 ## Fixed
 
 #### salesforcedx-vscode-apex-log
 
-- Cache id->name lookups in TraceFlagService - W-22841018 ([PR #7391](https://github.com/forcedotcom/salesforcedx-vscode/pull/7391))
+- We reduced the number of API calls used to query information related to trace flags. ([PR #7391](https://github.com/forcedotcom/salesforcedx-vscode/pull/7391))
 
 #### salesforcedx-vscode-lwc
 
-- Re-add context menu LWC creation option - W-22845383 ([PR #7392](https://github.com/forcedotcom/salesforcedx-vscode/pull/7392))
-
-#### salesforcedx-vscode-services
-
-- Cache id->name lookups in TraceFlagService - W-22841018 ([PR #7391](https://github.com/forcedotcom/salesforcedx-vscode/pull/7391))
-
+- You can create a Lightning Web Component from the Explorer context menu, not only the Command Palette. Thanks to [@vsdragon626](https://github.com/vsdragon626) for the contribution! ([PR #7392](https://github.com/forcedotcom/salesforcedx-vscode/pull/7392))
