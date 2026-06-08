@@ -371,12 +371,20 @@ const pathsFor = (identity, wi) => ({
 })
 
 const extractPrUrl = details => {
-  const m = String(details || '').match(PR_URL_RE)
-  return m ? m[m.length - 1] : null
+  // Only extract PR URLs appended by the workflow (<strong>PR:</strong> <a href="...">).
+  // Avoids treating "Prior art" / reference links as the WI's own PR.
+  const s = String(details || '')
+  const prSection = s.match(/<strong>PR:<\/strong>[\s\S]*?(https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+)/)
+  if (prSection) return prSection[1]
+  return null
 }
 
+// Only match PRs appended by the workflow — formatted as <strong>PR:</strong> <a href="...">
+// This avoids false positives from "Prior art" / reference links in the WI body.
 const hasPrUrl = details =>
-  String(details || '').includes('github.com/forcedotcom/salesforcedx-vscode/pull/')
+  /<strong>PR:<\/strong>[\s\S]*?github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+/.test(
+    String(details || '')
+  )
 
 // A blocker is "satisfied" only once its work has actually merged — i.e. the WI
 // reached a terminal closed/completed status. 'Ready for Review' / 'Fixed' mean
