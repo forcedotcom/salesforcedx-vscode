@@ -71,7 +71,7 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await expect(
       page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`),
       'Monaco editor should be present for the .soql file'
-    ).toBeVisible({ timeout: 5_000 });
+    ).toBeVisible({ timeout: 5000 });
 
     // Confirm no webview iframe in the active editor group. Scoped to
     // `.editor-group-container.active` to avoid false failures from unrelated
@@ -81,7 +81,7 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await expect(
       page.locator('.editor-group-container.active iframe.webview.ready'),
       'no webview iframe in active editor group — file opened in text editor, not SOQL Builder'
-    ).not.toBeAttached({ timeout: 5_000 });
+    ).not.toBeAttached({ timeout: 5000 });
 
     // Type the query into the empty editor (file opens focused and ready for input)
     await page.locator(EDITOR).first().click();
