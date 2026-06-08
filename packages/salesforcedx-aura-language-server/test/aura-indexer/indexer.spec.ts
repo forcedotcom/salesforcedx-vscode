@@ -147,7 +147,7 @@ describe('indexer parsing content', () => {
     expect(tagInfo?.namespace).toEqual('c');
   });
 
-  xit('should handle indexing an invalid aura component', async () => {
+  it.skip('should handle indexing an invalid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new LspFileSystemAccessor());
     context.initialize('SFDX');
     await context.configureProject();
