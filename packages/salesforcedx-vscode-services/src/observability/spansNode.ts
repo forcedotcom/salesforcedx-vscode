@@ -17,12 +17,11 @@ import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
-import { AzureMonitorLogExporterWrapper } from './azureMonitorLogExporterWrapper';
+import { ApplicationInsightsNodeExporter } from './applicationInsightsNodeExporter';
 import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled, getLogLevel } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { OtlpFileLogExporterNode } from './otlpFileLogExporterNode';
 import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
-import { SpanToCustomEventProcessor } from './spanToCustomEventProcessor';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
 
@@ -40,8 +39,13 @@ export const NodeSdkLayerFor = ({
   enableCustomEventsFromSpans,
   connectionString
 }: SdkLayerConfig) => {
-  // Use consumer's connection string if provided, otherwise fall back to services package default
-  const effectiveConnectionString = connectionString ?? DEFAULT_AI_CONNECTION_STRING;
+  // connectionString is already normalized by getSdkLayerConfigFromContext (otelConnectionString
+  // preferred over aiKey, bare UUIDs wrapped). This block is a safety net for SdkLayerConfig
+  // constructed directly (e.g. tests, ServicesSdkLayer) without going through that helper.
+  const resolvedConnectionString = connectionString ?? DEFAULT_AI_CONNECTION_STRING;
+  const effectiveConnectionString = resolvedConnectionString.includes('InstrumentationKey=')
+    ? resolvedConnectionString
+    : `InstrumentationKey=${resolvedConnectionString}`;
 
   return NodeSdk.layer(() => ({
     resource: {
@@ -58,14 +62,18 @@ export const NodeSdkLayerFor = ({
       ...(isTelemetryExtensionConfigurationEnabled()
         ? [
             new SpanTransformProcessor(
-              new FilteredAzureMonitorTraceExporter({
-                connectionString: effectiveConnectionString,
-                storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
-              }),
-              {
-                exportTimeoutMillis: 15_000,
-                maxQueueSize: 1000
-              }
+              enableCustomEventsFromSpans
+                ? new ApplicationInsightsNodeExporter(effectiveConnectionString)
+                : new FilteredAzureMonitorTraceExporter({
+                    connectionString: effectiveConnectionString,
+                    storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
+                  }),
+              enableCustomEventsFromSpans
+                ? undefined
+                : {
+                    exportTimeoutMillis: 15_000,
+                    maxQueueSize: 1000
+                  }
             )
           ]
         : []),
@@ -73,22 +81,9 @@ export const NodeSdkLayerFor = ({
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
-      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : []),
-      // SpanProcessor that emits LogRecords for customEvents table routing
-      ...(enableCustomEventsFromSpans ? [new SpanToCustomEventProcessor()] : [])
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterNode())] : [])
     ],
     logRecordProcessor: [
-      // Azure Monitor log exporter routes LogRecords with "microsoft.custom_event.name" to customEvents table
-      ...(enableCustomEventsFromSpans && isTelemetryExtensionConfigurationEnabled()
-        ? [
-            new SimpleLogRecordProcessor(
-              new AzureMonitorLogExporterWrapper({
-                connectionString: effectiveConnectionString,
-                storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
-              })
-            )
-          ]
-        : []),
       ...(getFileTracesEnabled() ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())] : [])
     ]
   })).pipe(

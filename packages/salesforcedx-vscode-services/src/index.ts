@@ -35,7 +35,9 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
+import { setExtensionMode } from './observability/appInsights';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
+import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { TerminalService } from './terminal/terminalService';
@@ -126,6 +128,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     ProjectService: typeof ProjectService;
+    getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: typeof SdkLayerFor;
     SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
@@ -216,6 +219,8 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   context: vscode.ExtensionContext
 ) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
+  // Set extension mode for telemetry gating (blocks dev mode by default)
+  setExtensionMode(context.extensionMode);
   // do this first to prevent Connection issues.
   yield* updateTelemetryUserIds(context);
   const scope = yield* getExtensionScope();
@@ -383,6 +388,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataRegistryService,
       MetadataRetrieveService,
       ProjectService,
+      getSdkLayerConfigFromContext,
       SdkLayerFor,
       SettingsChangePubSub,
       SettingsService,

@@ -10,6 +10,7 @@ export const extensionPackageJsonSchema = z.object({
   name: z.string({ error: 'Extension name is not defined in package.json' }),
   version: z.string({ error: 'Extension version is not defined in package.json' }),
   aiKey: z.string().optional(),
+  otelConnectionString: z.string().optional(),
   // required for either original o11y OR PFT
   o11yUploadEndpoint: z.string().optional(),
   // original o11y (that is, sending most events and having them end up in splunk)

@@ -44,11 +44,16 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       // ErrorHandlerService depends on ChannelService, provide the extension's channel
       const channelLayer = api.services.ChannelServiceLayer(displayName);
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
+
+      const config = api.services.getSdkLayerConfigFromContext(context);
+
+      config.enableCustomEventsFromSpans = true;
+
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         Layer.succeedContext(api.services.prebuiltServicesDependencies),
         api.services.ExtensionContextServiceLayer(context),
-        api.services.SdkLayerFor(context),
+        api.services.SdkLayerFor(config),
         channelLayer,
         errorHandlerWithChannel
       );
