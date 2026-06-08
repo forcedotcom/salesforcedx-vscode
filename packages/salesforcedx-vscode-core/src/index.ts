@@ -18,13 +18,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
-import {
-  aliasListCommand,
-  configListCommand,
-  initSObjectDefinitions,
-  openDocumentation,
-  renameLightningComponent
-} from './commands';
+import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
 import { SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
@@ -46,7 +40,6 @@ import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 /** Customer-facing commands */
 const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     registerGetTelemetryServiceCommand()
   );

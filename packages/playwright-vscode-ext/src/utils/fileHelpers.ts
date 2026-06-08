@@ -7,6 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
+import { createNonTrackingOrg } from '../orgs/nonTrackingScratchOrgSetup';
 import { executeCommandWithCommandPalette, verifyCommandExists } from '../pages/commands';
 import {
   clearOutputChannel,
@@ -19,8 +20,7 @@ import { saveScreenshot } from '../shared/screenshotUtils';
 import {
   closeSettingsTab,
   closeWelcomeTabs,
-  disableMonacoAutoClosing,
-  ensureSecondarySideBarHidden,
+  escapeRegExp,
   isDesktop,
   selectFirstQuickInputOption,
   waitForVSCodeWorkbench,
@@ -28,6 +28,7 @@ import {
 } from './helpers';
 import { DIRTY_EDITOR, EDITOR_WITH_URI, NOTIFICATION_LIST_ITEM, QUICK_INPUT_LIST_ROW, WORKBENCH } from './locators';
 import { activeQuickInputWidget } from './quickInput';
+import { disableMonacoAutoClosing, ensureSecondarySideBarHidden } from './workflows';
 
 /** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
 const DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS = 600_000;
@@ -154,9 +155,11 @@ export const deployCurrentSourceToOrg = async (
     .locator(NOTIFICATION_LIST_ITEM)
     .filter({ hasText: /Deploying/i })
     .first();
-  await expect(deployingNotification, 'Deploy progress notification should appear').toBeVisible({ timeout: 30_000 });
 
   if (waitViaOutputChannel) {
+    // The "Deploying" toast can flash and dismiss too quickly to catch reliably (especially on
+    // fast deploys / CI). When we have a deterministic completion signal in the output channel,
+    // skip the strict notification wait and just rely on "Deployed Source".
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', deployCompleteTimeoutMs);
     await waitForOutputChannelText(page, {
@@ -164,6 +167,9 @@ export const deployCurrentSourceToOrg = async (
       timeout: deployCompleteTimeoutMs
     });
   } else {
+    await expect(deployingNotification, 'Deploy progress notification should appear').toBeVisible({
+      timeout: 30_000
+    });
     await expect(deployingNotification).not.toBeVisible({
       timeout: deployCompleteTimeoutMs
     });
@@ -222,8 +228,6 @@ export const openFileFromExplorerTree = async (
   const editor = page.locator(EDITOR_WITH_URI).first();
   await editor.waitFor({ state: 'visible', timeout: 15_000 });
 };
-
-const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * Open a file using Quick Open.
@@ -331,6 +335,36 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   }
 };
 
+/**
+ * Replace the entire contents of `lineNumber` (1-based) in the active editor with `newText` and save.
+ * Uses `Go to Line/Column...` palette command to position the caret, then selects the line via
+ * `Home` + `Shift+End` and types the replacement.
+ */
+export const replaceLineInOpenFile = async (page: Page, lineNumber: number, newText: string): Promise<void> => {
+  const editor = page.locator(`${EDITOR_WITH_URI}:not([data-uri^="testing:"]):not([data-uri^="output-"])`).first();
+  await editor.waitFor({ state: 'visible' });
+  await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+  await editor.click();
+
+  // Open Go to Line/Column palette, type the line number, confirm
+  await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+  await page.keyboard.type(String(lineNumber));
+  await page.keyboard.press('Enter');
+
+  // Select entire line and replace.
+  // VS Code's `Home` is "smart Home": first press moves to first non-whitespace, second press
+  // moves to column 0. Press twice so the selection covers leading whitespace too — otherwise
+  // typing `\t\t\t...` would double-indent.
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Shift+End');
+  await page.keyboard.press('Delete');
+  await page.keyboard.type(newText);
+
+  await executeCommandWithCommandPalette(page, 'File: Save');
+  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+};
+
 /** Edit the currently open file by adding a comment at the top */
 export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<void> => {
   // Exclude internal Monaco editors (e.g. Test Explorer filter at data-uri="testing:filter",
@@ -359,14 +393,11 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
   await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 };
 
-/**
- * Setup minimal org + auth with workbench loading in parallel.
- * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
- * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
- * @param checkWelcomeTabs When true (default), close welcome tabs. Set to false to skip.
- */
-export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
-  const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
+const finishOrgAndAuthSetup = async (
+  page: Page,
+  createResult: Awaited<ReturnType<typeof createMinimalOrg>>,
+  checkWelcomeTabs: boolean
+): Promise<void> => {
   if (checkWelcomeTabs) {
     // On web the Welcome tab always appears at startup — wait for it before closing so we don't
     // return early (count=0) and let it pop up mid-test. On desktop, workbench.startupEditor:none
@@ -382,6 +413,27 @@ export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true
   await saveScreenshot(page, 'setup.after-workbench.png');
   await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   await saveScreenshot(page, 'setup.after-auth-fields.png');
+};
+
+/**
+ * Setup minimal org + auth with workbench loading in parallel.
+ * Runs createMinimalOrg() and waitForVSCodeWorkbench(page) together so the
+ * browser shows VS Code while the org is created (avoids "tests do nothing" on web).
+ * @param checkWelcomeTabs When true (default), close welcome tabs. Set to false to skip.
+ */
+export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
+  const [createResult] = await Promise.all([createMinimalOrg(), waitForVSCodeWorkbench(page)]);
+  await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
+};
+
+/**
+ * Setup non-tracking org + auth with workbench loading in parallel. Use for tests that exercise
+ * deploy/retrieve but never need source-tracking commands (Push/Pull) — eliminates the
+ * "Override Conflicts and Deploy" modal that source-tracked orgs surface on rerun.
+ */
+export const setupNonTrackingOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
+  const [createResult] = await Promise.all([createNonTrackingOrg(), waitForVSCodeWorkbench(page)]);
+  await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
 };
 
 /** Create an Apex test class and deploy it to the org. */

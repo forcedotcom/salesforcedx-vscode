@@ -17,7 +17,7 @@ const UNPACKAGED_METADATA_LABEL = messages.test_explorer_unpackaged_metadata_lab
 
 // Built-in VS Code commands triggered via the Command Palette.
 const CMD_FOCUS_TEST_EXPLORER = 'Testing: Focus on Test Explorer View';
-export const CMD_REFRESH_TESTS = 'Test: Refresh Tests';
+const CMD_REFRESH_TESTS = 'Test: Refresh Tests';
 export const CMD_RUN_ALL_TESTS = 'Test: Run All Tests';
 export const CMD_TOGGLE_MAXIMIZED_PANEL = 'View: Toggle Maximized Panel';
 
@@ -66,20 +66,27 @@ const expandNamespaceAndPackage = async (panel: Locator): Promise<void> => {
   await expandTreeRow(panel, UNPACKAGED_METADATA_LABEL);
 };
 
-export const openTestExplorerAndDiscover = async (page: Page): Promise<Locator> => {
-  await executeCommandWithCommandPalette(page, CMD_FOCUS_TEST_EXPLORER);
-  const panel = page.locator(TEST_EXPLORER_PANEL);
-  await panel.waitFor({ state: 'visible', timeout: 10_000 });
+/**
+ * Triggers `Test: Refresh Tests` and waits for the tree to repopulate.
+ * Discovery clears and rebuilds the tree asynchronously after the command returns
+ * — on Windows this gap is long enough that the empty-state ("No tests have been
+ * found...") renders and any follow-up tree interaction times out.
+ */
+export const refreshTestsAndWaitForRebuild = async (page: Page, panel: Locator): Promise<void> => {
   await executeCommandWithCommandPalette(page, CMD_REFRESH_TESTS);
-  // Discovery clears and rebuilds the tree asynchronously. The rebuild starts after
-  // `Test: Refresh Tests` returns, so we wait for the top-level node to disappear briefly
-  // (or never if the refresh is fast) before asserting it reappears.
   await panel
     .getByText(LOCAL_NAMESPACE_LABEL)
     .first()
     .waitFor({ state: 'hidden', timeout: 2000 })
     .catch(() => {});
   await expect(panel.getByText(LOCAL_NAMESPACE_LABEL)).toBeVisible({ timeout: 60_000 });
+};
+
+export const openTestExplorerAndDiscover = async (page: Page): Promise<Locator> => {
+  await executeCommandWithCommandPalette(page, CMD_FOCUS_TEST_EXPLORER);
+  const panel = page.locator(TEST_EXPLORER_PANEL);
+  await panel.waitFor({ state: 'visible', timeout: 10_000 });
+  await refreshTestsAndWaitForRebuild(page, panel);
   await expandNamespaceAndPackage(panel);
   return panel;
 };
@@ -95,6 +102,26 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
   const testResultsTab = page.locator(TEST_RESULTS_TAB);
   await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout });
+};
+
+/**
+ * Test Explorer tree row by display name. The Test Explorer renders rows as ARIA treeitems
+ * whose accessible name embeds the display label, so getByRole('treeitem', { name: ... })
+ * matches a class or method node by substring.
+ */
+export const findTestExplorerItem = (page: Page, name: string): Locator => page.getByRole('treeitem', { name }).first();
+
+/**
+ * Hovers a Test Explorer tree row to reveal inline actions, then clicks the named action
+ * (e.g. `Run Test`, `Debug Test`). VS Code renders inline actions with the action label as
+ * `aria-label`; the underlying ARIA role differs between desktop and web (`link` vs `button`),
+ * so we match on aria-label rather than role.
+ */
+export const clickTreeItemAction = async (treeItem: Locator, actionLabel: string): Promise<void> => {
+  await treeItem.hover();
+  const action = treeItem.locator(`[aria-label="${actionLabel}"]`).first();
+  await action.waitFor({ state: 'visible', timeout: 10_000 });
+  await action.click();
 };
 
 export const focusAndTypeInFilter = async (page: Page, text: string): Promise<void> => {

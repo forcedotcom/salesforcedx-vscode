@@ -10,8 +10,9 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
+import * as vscode from 'vscode';
 
-/** Runs trace flag cleanup every 5 minutes and immediately on each org connection. Forks and runs until extension scope closes. */
+/** Runs trace flag cleanup every 5 minutes (only when VS Code window is active) and immediately on each org connection. Forks and runs until extension scope closes. */
 export const traceFlagCleanupScheduler = Effect.fn('traceFlagCleanupScheduler')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const traceFlagService = yield* api.services.TraceFlagService;
@@ -30,6 +31,11 @@ export const traceFlagCleanupScheduler = Effect.fn('traceFlagCleanupScheduler')(
     )
   );
 
-  yield* Effect.fork(Stream.fromSchedule(Schedule.fixed(Duration.minutes(5))).pipe(Stream.runForEach(() => cleanup)));
+  yield* Effect.fork(
+    Stream.fromSchedule(Schedule.fixed(Duration.minutes(5))).pipe(
+      Stream.filter(() => vscode.window.state.active),
+      Stream.runForEach(() => cleanup)
+    )
+  );
   yield* Effect.sleep(Duration.infinity);
 });

@@ -126,15 +126,13 @@ export class OrgBrowserPage {
       return metadataTypeLocator.first();
     }
 
-    await Promise.all([
-      this.sidebar
-        .getByRole('treeitem', {
-          level: 1,
-          includeHidden: true
-        })
-        .nth(1)
-        .click()
-    ]);
+    await this.sidebar
+      .getByRole('treeitem', {
+        level: 1,
+        includeHidden: true
+      })
+      .nth(1)
+      .click();
 
     await this.page.waitForTimeout(700);
     await this.page.keyboard.type(typeName, { delay: typingSpeed });

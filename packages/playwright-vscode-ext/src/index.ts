@@ -21,13 +21,16 @@ export {
   isDesktop,
   isMacDesktop,
   isWindowsDesktop,
-  validateNoCriticalErrors,
+  validateNoCriticalErrors
+} from './utils/helpers';
+
+export {
   removeAllDebugLevels,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,
   prepareNoFolderOpenForPaletteTests
-} from './utils/helpers';
+} from './utils/workflows';
 
 export { activeQuickInputWidget, activeQuickInputTextField } from './utils/quickInput';
 
@@ -38,7 +41,9 @@ export {
   openFileByName,
   openFileFromExplorerTree,
   editAndSaveOpenFile as editOpenFile,
+  replaceLineInOpenFile,
   setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
@@ -94,7 +99,13 @@ export {
   expectProblemsCountAtLeast
 } from './pages/problems';
 
-export { waitForRunApexTestsProgressNotificationGone } from './pages/notifications';
+export {
+  waitForRunApexTestsProgressNotificationGone,
+  waitForNotification,
+  acceptNotification
+} from './pages/notifications';
+
+export { clickCodeLens } from './pages/codeLens';
 
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
