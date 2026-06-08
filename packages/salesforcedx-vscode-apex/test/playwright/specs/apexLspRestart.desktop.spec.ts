@@ -20,7 +20,8 @@ import * as path from 'node:path';
 import { test } from '../fixtures';
 import { findReleaseDir, triggerLspRestart, waitForApexLspReady } from '../utils/apexLspUtils';
 
-// jorje is single-process and the restart matrix mutates shared state on disk; serialize.
+// Each matrix entry gets its own test-scoped workspace + Electron, so they're already isolated.
+// Serial mode is purely to skip the remaining (slow) restart entries once one fails.
 test.describe.configure({ mode: 'serial' });
 
 const matrix = [
