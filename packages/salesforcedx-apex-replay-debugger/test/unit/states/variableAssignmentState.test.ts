@@ -47,7 +47,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      state.handle(context);
 
       // add begin states for a local and static variable
       let beginState = new VariableBeginState(STATIC_PRIMITIVE_VARIABLE_SCOPE_BEGIN.split('|'));
@@ -111,7 +111,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      state.handle(context);
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(LOCAL_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
@@ -251,7 +251,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      state.handle(context);
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(STATIC_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
@@ -360,7 +360,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      state.handle(context);
       // add begin states for a local and static variable
       let assignState = new VariableAssignmentState(CHILD_VARIABLE_ASSIGNMENT.split('|'));
       assignState.handle(context);
@@ -442,7 +442,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      state.handle(context);
       getUriFromSignatureStub = jest
         .spyOn(LogContext.prototype, 'getUriFromSignature')
         .mockReturnValue(uriFromSignature);

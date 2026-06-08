@@ -560,6 +560,7 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
       'jest/no-focused-tests': 'error',
+      'jest/no-standalone-expect': 'error',
       '@typescript-eslint/no-var-requires': 'off',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',

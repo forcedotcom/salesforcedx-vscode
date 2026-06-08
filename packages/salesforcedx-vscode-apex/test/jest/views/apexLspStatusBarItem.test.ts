@@ -56,12 +56,6 @@ describe('ApexLSPStatusBarItem', () => {
 
     // Initialize disposables array with the diagnostic collection
     statusBarItem['disposables'] = [statusBarItem['diagnostics']];
-
-    // Verify mocks were created successfully
-    expect(createLanguageStatusItemMock).toBeDefined();
-    expect(createDiagnosticCollectionMock).toBeDefined();
-    expect(uriFileMock).toBeDefined();
-    expect(setMock).toBeDefined();
   });
 
   afterEach(() => {
