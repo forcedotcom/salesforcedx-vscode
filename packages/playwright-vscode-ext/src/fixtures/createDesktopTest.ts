@@ -59,6 +59,18 @@ type CreateDesktopTestOptions = {
    * Defaults to false; set E2E_FROM_VSIX=1 to enable without code changes.
    */
   useVsix?: boolean;
+  /**
+   * Gallery extension IDs to install via VS Code CLI `--install-extension <id>` before launch.
+   * Use when loading marketplace extensions (e.g., 'salesforce.apex-language-server-extension')
+   * instead of local dev paths.
+   */
+  marketplaceExtensionIds?: string[];
+  /**
+   * When true, do NOT include the auto-detected current package in VSIX list or
+   * `--extensionDevelopmentPath` args. Use when the test exercises an external marketplace
+   * extension and the current package should not be loaded (e.g., to avoid loading jorje).
+   */
+  skipCurrentPackage?: boolean;
 };
 
 type ExtensionPackageJson = {
@@ -187,7 +199,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     emptyWorkspace = false,
     additionalExtensionDirs = [],
     disableOtherExtensions = true,
-    userSettings
+    userSettings,
+    marketplaceExtensionIds = [],
+    skipCurrentPackage = false
   } = options;
 
   const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
@@ -217,15 +231,27 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           return;
         }
         const repoRoot = resolveRepoRoot(fixturesDir);
-        const allDirs = orderExtensionDirsForInstall(repoRoot, [
-          'salesforcedx-vscode-services',
-          packageDir,
-          ...additionalExtensionDirs
-        ]);
+        const localDirs = skipCurrentPackage
+          ? ['salesforcedx-vscode-services', ...additionalExtensionDirs]
+          : ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs];
+        const allDirs = orderExtensionDirsForInstall(repoRoot, localDirs);
         const vsixPaths = resolveVsixPaths(repoRoot, allDirs);
         const cacheKey = await computeVsixCacheKey(vsixPaths);
         const cacheDir = path.join(repoRoot, '.vscode-test', `ext-${cacheKey}`);
         await installVsixsToCache(cacheDir, vsixPaths, vscodeExecutable);
+
+        // Install marketplace extensions into the same extensions dir
+        if (marketplaceExtensionIds.length > 0) {
+          const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
+          for (const id of marketplaceExtensionIds) {
+            spawnSync(
+              cli,
+              ['--extensions-dir', cacheDir, '--user-data-dir', path.join(cacheDir, '.ud'), '--install-extension', id],
+              { stdio: 'inherit', shell: process.platform === 'win32' }
+            );
+          }
+        }
+
         await use(cacheDir);
       },
       { scope: 'worker' }
@@ -310,13 +336,31 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         : await (async (): Promise<string[]> => {
           const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
           await fs.mkdir(extensionsDir, { recursive: true });
-          const extensionArgs = [
-            // Extension path is the package root (contains package.json and bundled dist/index.js)
-            packageRoot,
-            ...additionalExtensionDirs
-              .concat(['salesforcedx-vscode-services'])
-              .map(dir => path.resolve(packageRoot, '..', dir))
-          ].map(p => `--extensionDevelopmentPath=${p}`);
+          const devPaths = skipCurrentPackage
+            ? additionalExtensionDirs
+                .concat(['salesforcedx-vscode-services'])
+                .map(dir => path.resolve(packageRoot, '..', dir))
+            : [
+                // Extension path is the package root (contains package.json and bundled dist/index.js)
+                packageRoot,
+                ...additionalExtensionDirs
+                  .concat(['salesforcedx-vscode-services'])
+                  .map(dir => path.resolve(packageRoot, '..', dir))
+              ];
+          const extensionArgs = devPaths.map(p => `--extensionDevelopmentPath=${p}`);
+
+          // Install marketplace extensions into extensions dir via VS Code CLI
+          if (marketplaceExtensionIds.length > 0) {
+            const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
+            for (const id of marketplaceExtensionIds) {
+              spawnSync(
+                cli,
+                ['--extensions-dir', extensionsDir, '--user-data-dir', path.join(extensionsDir, '.ud'), '--install-extension', id],
+                { stdio: 'inherit', shell: process.platform === 'win32' }
+              );
+            }
+          }
+
           return [
             `--user-data-dir=${userDataDir}`,
             `--extensions-dir=${extensionsDir}`,
