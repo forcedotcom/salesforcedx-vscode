@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { open } from '@vscode/test-web';
+import { open, type GalleryExtension } from '@vscode/test-web';
 import * as path from 'node:path';
 import { resolveRepoRoot } from '../utils/repoRoot';
+
+export type { GalleryExtension } from '@vscode/test-web';
 
 type HeadlessServerOptions = {
   /** Extension name for logging (e.g., "Org Browser", "Metadata") */
@@ -16,6 +18,17 @@ type HeadlessServerOptions = {
   callerDirname: string;
   /** Additional extension directory names to load (services is always included automatically) */
   additionalExtensionDirs?: string[];
+  /**
+   * Gallery extensions to install from the marketplace. Passed directly to `open()`.
+   * Use when loading an external extension by publisher.name ID instead of a local dev path.
+   */
+  extensionIds?: GalleryExtension[];
+  /**
+   * When true, do NOT compute or pass `extensionDevelopmentPath` to `open()`.
+   * Use when the caller's package should NOT be loaded (e.g., to avoid loading jorje
+   * when testing against the external TS Apex LS).
+   */
+  skipExtensionDevelopmentPath?: boolean;
   /**
    * Local folder to mount as the VS Code Web workspace (`vscode-test-web://mount`).
    * Use with {@link createTestWorkspace} so tests see `sfdx-project.json` and project files.
@@ -37,15 +50,28 @@ type HeadlessServerOptions = {
 export const createHeadlessServer = async (options: HeadlessServerOptions): Promise<void> => {
   try {
     // callerDirname is '<pkg>/test/playwright/web' (tsx) -> go up three levels to '<pkg>'
-    const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..');
+    const packageRoot = path.resolve(options.callerDirname, '..', '..', '..');
+    const repoRoot = resolveRepoRoot(options.callerDirname);
 
-    // Collect all extension paths: services + any additional
-    const extensionPaths = (options.additionalExtensionDirs ?? [])
-      .concat(['salesforcedx-vscode-services'])
-      .map(dir => path.resolve(extensionDevelopmentPath, '..', dir));
+    // When skipExtensionDevelopmentPath is true, do not load the caller's package
+    const extensionDevelopmentPath = options.skipExtensionDevelopmentPath ? undefined : packageRoot;
+
+    // Collect extension paths: resolve from repo root packages/ dir
+    const additionalDirs = options.additionalExtensionDirs ?? [];
+    const extensionPaths = (
+      options.skipExtensionDevelopmentPath ? additionalDirs : additionalDirs.concat(['salesforcedx-vscode-services'])
+    ).map(dir => path.resolve(repoRoot, 'packages', dir));
+
     console.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`);
-    console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
-    console.log(`📦 Extension paths: ${extensionPaths.join(', ')}`);
+    if (extensionDevelopmentPath !== undefined) {
+      console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
+    }
+    if (extensionPaths.length > 0) {
+      console.log(`📦 Extension paths: ${extensionPaths.join(', ')}`);
+    }
+    if (options.extensionIds !== undefined) {
+      console.log(`🏪 Marketplace extensions: ${options.extensionIds.map(e => e.id).join(', ')}`);
+    }
     if (options.folderPath !== undefined) {
       console.log(`📂 Workspace folderPath (virtual mount): ${options.folderPath}`);
     }
@@ -53,7 +79,6 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       console.log(`📂 Workspace folderUri: ${options.folderUri}`);
     }
 
-    const repoRoot = resolveRepoRoot(options.callerDirname);
     const testRunnerDataDir = path.join(repoRoot, '.vscode-test-web');
 
     // Do not launch Chromium via @vscode/test-web — Playwright's test runner is the only browser client.
@@ -66,8 +91,9 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
       port: Number(process.env.PORT) || 3001,
       printServerLog: true,
       verbose: true,
-      extensionDevelopmentPath,
-      extensionPaths,
+      ...(extensionDevelopmentPath !== undefined ? { extensionDevelopmentPath } : {}),
+      ...(extensionPaths.length > 0 ? { extensionPaths } : {}),
+      ...(options.extensionIds !== undefined ? { extensionIds: options.extensionIds } : {}),
       testRunnerDataDir,
       ...(options.folderUri !== undefined ? { folderUri: options.folderUri } : {}),
       ...(options.folderPath !== undefined ? { folderPath: options.folderPath } : {}),
