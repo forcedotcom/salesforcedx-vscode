@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
+import { expect, type FrameLocator } from '@playwright/test';
 import {
   EDITOR,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  hasContent,
+  hasTitle,
   isDesktop,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
@@ -19,10 +21,12 @@ import {
   validateNoCriticalErrors,
   waitForExtensionsActivated,
   waitForNotification,
-  waitForQuickInputFirstOption
+  waitForQuickInputFirstOption,
+  webviewActiveFrame
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
+import { messages } from '../../../src/messages/i18n';
 
 const SOQL_FILE = 'MySoqlSaveFile';
 const SOQL_QUERY = 'SELECT Id, Name FROM Account LIMIT 5';
@@ -82,9 +86,11 @@ test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  // Builder webview opens first, results webview second; disambiguate by DOM order.
-  const soqlFrame = page.frameLocator('iframe.webview.ready').first().frameLocator('#active-frame');
-  const resultsFrame = page.frameLocator('iframe.webview.ready').last().frameLocator('#active-frame');
+  // Both webviews stay open for the whole test; resolve each by its inner content rather than
+  // DOM order (the outer iframe.webview has no deterministic attributes). The builder's
+  // #active-frame hosts the #main app root; the results panel sets its #active-frame title.
+  let soqlFrame: FrameLocator;
+  let resultsFrame: FrameLocator;
 
   await test.step('setup workbench', async () => {
     await setupMinimalOrgAndAuth(page);
@@ -106,6 +112,8 @@ test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
 
     const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
     await expect(soqlTab, `${SOQL_FILE}.soql tab should be visible`).toBeVisible({ timeout: 20_000 });
+
+    soqlFrame = await webviewActiveFrame(page, hasContent('#main'));
 
     await soqlFrame.getByPlaceholder('Search object...').click();
     await soqlFrame.getByPlaceholder('Search object...').fill('Account');
@@ -131,9 +139,11 @@ test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
   await test.step('run query from SOQL Builder', async () => {
     await soqlFrame.getByRole('button', { name: 'Run Query' }).click();
 
-    const resultsTab = page.locator('[role="tab"]').filter({ hasText: 'SOQL Query Results' });
+    const resultsTab = page.locator('[role="tab"]').filter({ hasText: messages.soql_query_results });
     await expect(resultsTab, 'SOQL Query Results tab should appear').toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'save.results-tab-visible.png');
+
+    resultsFrame = await webviewActiveFrame(page, hasTitle(messages.soql_query_results));
   });
 
   await test.step('save results as CSV', async () => {
@@ -156,7 +166,7 @@ test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
   });
 
   await test.step('save results as JSON', async () => {
-    const resultsTab = page.locator('[role="tab"]').filter({ hasText: 'SOQL Query Results' });
+    const resultsTab = page.locator('[role="tab"]').filter({ hasText: messages.soql_query_results });
     await resultsTab.click();
 
     const saveJsonButton = resultsFrame.getByRole('button', { name: 'Save as JSON' });
