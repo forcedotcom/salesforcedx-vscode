@@ -15,10 +15,9 @@ import {
   executeCommandWithCommandPalette,
   isDesktop,
   openFileByName,
-  QUICK_INPUT_LIST_ROW,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   setupNonTrackingOrgAndAuth,
@@ -30,20 +29,21 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { COVERED_BG_RGBA, PINNED_THEME, TEST_RUN_TIMEOUT, UNCOVERED_BG_RGBA } from '../contants';
+import { COVERED_BG_RGBA, PINNED_THEME, TEST_RUN_TIMEOUT, UNCOVERED_BG_RGBA } from '../constants';
 
 // Runs desktop + web (apexTestingE2E.yml). UI-only (no Node fs / VS Code API) so behavior is
 // identical across platforms. The status-bar toggle is located by its tooltip via accessible
 // name — VS Code derives a status bar entry's aria-label from its tooltip (workbench.*.main.js
 // `ariaLabel: entry.tooltip || entry.label`), which holds for both Electron and web. Theme is
-// pinned (contants.ts PINNED_THEME) so the covered/uncovered RGBA constants resolve identically;
+// pinned (constants.ts PINNED_THEME) so the covered/uncovered RGBA constants resolve identically;
 // re-capture those RGBA values if PINNED_THEME ever changes.
 
 /**
- * Count `.view-overlays` child decoration divs whose computed background-color exactly matches
- * `targetRgba`. The colorizer renders covered/uncovered line backgrounds as `div.cdr` children of
- * `.view-overlays` (confirmed by the Phase 1 spike); matching by the pinned-theme RGBA isolates
- * the coverage decorations from unrelated overlays (e.g. the current-line highlight).
+ * Count `.view-overlays` decoration divs whose computed background-color exactly matches
+ * `targetRgba`. The colorizer renders covered/uncovered line backgrounds as decoration divs nested
+ * under `.view-overlays` (matched here via `.view-overlays > div > div`); matching by the
+ * pinned-theme RGBA isolates the coverage decorations from unrelated overlays (e.g. the
+ * current-line highlight).
  */
 const countOverlaysWithBg = async (editor: ReturnType<Page['locator']>, targetRgba: string): Promise<number> =>
   editor.evaluate((el, rgba) => {
@@ -58,7 +58,7 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
 
   const className = `ColorizerBranch${Date.now()}`;
   const testClassName = `ColorizerBranchTest${Date.now()}`;
-  const editor = page.locator(`.monaco-editor[data-uri$="${className}.cls"]`);
+  const editor = page.locator(`.monaco-editor[data-uri$="${className}.cls"]`).first();
 
   await test.step('setup non-tracking org + pin theme + enable coverage retrieval', async () => {
     await setupNonTrackingOrgAndAuth(page);
@@ -108,12 +108,7 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
 
   await test.step('run the test class via command palette (coverage enabled)', async () => {
     await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await page.keyboard.type(testClassName);
-    const testClassOption = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testClassName, 'i') });
-    await testClassOption.waitFor({ state: 'visible', timeout: 10_000 });
-    await testClassOption.click();
+    await selectQuickInputOptionByTyping(page, testClassName);
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
