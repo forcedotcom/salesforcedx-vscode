@@ -2,6 +2,10 @@
 
 Workflow scripts for [Workflow tool](https://docs.claude.com/) orchestration. Each `.js` file is a self-contained, multi-agent pipeline that fans out subagents per phase and returns a structured result.
 
+## Note
+
+This code is a mess.  Claude requires this live in 1 file (no imports, no TS, no effect)
+
 ## Setup
 
 Required before running anything in this directory:
@@ -42,32 +46,37 @@ Cached at `$HOME/.claude/runner-identity.json` after first resolve. If any of th
                           └──────────┬──────────┘
                                      ▼
                           ┌─────────────────────┐
+                          │ Reap stranded       │  rm worktrees/branches whose PRs
+                          │ worktrees           │  already merged/closed (haiku)
+                          └──────────┬──────────┘
+                                     ▼
+                          ┌─────────────────────┐
                           │  Monitor in-flight  │  query GUS for In Progress [ai-auto]
                           │  (per WI: PR check) │  + gh pr view + statusCheckRollup
                           └──────────┬──────────┘
                                      │
-            ┌────────────┬───────────┼───────────┬────────────┐
-            ▼            ▼           ▼           ▼            ▼
-        green/      running/     no-pr/       failed +      failed +
-       finalize       wait      restart     gha retries   exhausted
-            │            │           │      remaining        │
-            │            │           │           │           ▼
-            │            │           │           │      ┌─────────┐
-            │            │           │           │      │ Triage  │ flake | e2e | code-bug
-            │            │           │           │      └────┬────┘
-            │            │           │           │           ▼
-            │            │           │           │      ┌─────────┐
-            │            │           │           │      │ Fix CI  │ DM | e2e fix | code fix
-            │            │           │           │      └─────────┘
-            ▼            │           ▼           ▼
-            │            │      (re-enter      (let
-            │            │       builder)     gha-rerun
-            │            │                    work)
-            └──────┬─────┘
-                   ▼
+       ┌──────────┬───────┬──────────┼───────────┬────────────┐
+       ▼          ▼       ▼          ▼           ▼            ▼
+   merged/     green/  running/    no-pr/      failed +     failed +
+   closed     finalize   wait     restart    gha retries   exhausted
+       │          │       │          │       remaining        │
+       ▼          │       │          │           │            ▼
+  ┌─────────┐     │       │          │           │       ┌─────────┐
+  │ Close   │     │       │          │           │       │ Triage  │ flake | e2e | code-bug
+  │ merged  │     │       │          │           │       └────┬────┘
+  │ WIs     │     │       │          │           │            ▼
+  └─────────┘     │       │          │           │       ┌─────────┐
+   set WI         │       │          │           │       │ Fix CI  │ DM | e2e fix | code fix
+   Closed,        │       │          │           │       └─────────┘
+   rm worktree    ▼       │          ▼           ▼
+                  │       │     (re-enter      (let
+                  │       │      builder)     gha-rerun
+                  │       │                   work)
+                  └───┬───┘
+                      ▼
         ┌────────────────────┐
-        │ Keep in-flight     │  fetch + merge origin/develop into each
-        │ current            │  in-flight worktree; push if non-empty
+        │ Keep in-flight     │  conflicting PRs only: merge origin/develop
+        │ current            │  into each worktree sequentially; push
         └────────┬───────────┘
                  ▼
         ┌────────────────────┐
@@ -111,8 +120,13 @@ Cached at `$HOME/.claude/runner-identity.json` after first resolve. If any of th
         └────────┬───────────┘
                  ▼
         ┌────────────────────┐
-        │ Fix review findings│  auto-apply critical/high (incl. effect
-        │ + merge develop    │  must/should); merge origin/develop
+        │  Verify findings   │  adversarial check per finding (parallel):
+        │  (parallel)        │  premise + CI-coverage + consumer gh-search
+        └────────┬───────────┘  → confirmed | downgraded | dropped
+                 ▼
+        ┌────────────────────┐
+        │ Fix review findings│  consume verified findings; auto-apply
+        │ + merge develop    │  critical/high; merge origin/develop
         └────────┬───────────┘
                  ▼
         ┌────────────────────┐
@@ -146,11 +160,15 @@ The owner gets GitHub's native approval notification — no Slack DM (it would l
 
 **Ensure daemons.** Launches the [gha-rerun daemon](../skills/gha-rerun/SKILL.md) if it's not already running. The daemon owns CI rerun budget — without it, transient CI failures escalate to triage immediately.
 
-**Monitor in-flight.** For each in-flight WI, parses `PR: <url>` out of `Details__c`. Pipeline stage 1 reads PR state; stage 2 decides finalize/wait/restart/triage. PRs with no recorded URL are treated as crashed builders (rare). Failed PRs check the `gha-rerun` daemon's retry budget (3 attempts via GitHub `run_attempt`) and only triage once exhausted — otherwise the daemon handles it.
+**Reap stranded worktrees.** Runs before monitoring (single haiku agent). Lists `git worktree list`, and for any worktree on an `<ownerPrefix>/W-` branch whose PR is already `MERGED`/`CLOSED` (e.g. user merged manually, so the WI dropped out of the in-flight query), removes the worktree and deletes the local branch. Skips the main worktree, workflow-isolation worktrees under `.claude/worktrees/`, and branches with no PR (still building). Never errors — partial progress is fine.
+
+**Monitor in-flight.** For each in-flight WI, parses `PR: <url>` out of `Details__c`. Pipeline stage 1 reads PR state; stage 2 decides close/finalize/wait/restart/triage. PRs with no recorded URL are treated as crashed builders (rare). Failed PRs check the `gha-rerun` daemon's retry budget (3 attempts via GitHub `run_attempt`) and only triage once exhausted — otherwise the daemon handles it.
+
+**Close merged WIs.** For WIs whose PR came back `merged` or `closed`, runs one haiku agent each (parallel, idempotent): sets `Status__c='Closed'`, removes the worktree, deletes the local branch.
 
 **Triage failures → Fix CI failures.** Triage classifies one of `flake-or-infra` / `e2e-test-issue` / `code-bug` / `unknown`. Each route runs in parallel: flakes/unknowns DM the runner; e2e issues spawn a fixer using the `analyze-e2e` command and `playwright-e2e` skill; code bugs re-enter a builder agent with the failure context and the original plan.
 
-**Keep in-flight current.** For every in-flight WI (waiting OR finalizing), `git fetch origin develop` and merge into the worktree. Skip if already current. Conflicts use [merge-conflicts skill](../skills/merge-conflicts/SKILL.md) best-effort; unresolvable conflicts DM the runner. Push if any merge happened.
+**Keep in-flight current.** Only for PRs whose `mergeable === 'CONFLICTING'` — not every behind-develop PR. `git fetch origin develop` and merge into the worktree. Conflicts use [merge-conflicts skill](../skills/merge-conflicts/SKILL.md) best-effort; unresolvable conflicts DM the runner. Push if any merge happened. Runs **sequentially** across worktrees — merges can trigger compile/lint/test, and doing many at once crashes the machine.
 
 **Open for review.** Green PRs only. Idempotent: gates each mutation behind a state check. Flips PR out of draft, sets WI to Ready for Review, reassigns reviewers per [.claude/skills/pr-draft/SKILL.md](../skills/pr-draft/SKILL.md), posts to `#ide-exp-code-review` (channel `C054SJJAB24`) tagging the runner, and removes the worktree.
 
@@ -177,7 +195,15 @@ If the plan determines the WI is unimplementable (can't name files or definition
 - Thermonuclear code-quality review (file:line evidence required)
 - Effect-advocate diff review
 
-**Fix review findings.** Auto-applies all critical and high (including every effect-advocate `must`/`should`). Cheap mediums applied; the rest surface in PR `Reviewer notes`. Then merges `origin/develop` — uses [merge-conflicts skill](../skills/merge-conflicts/SKILL.md) best-effort; aborts and returns to caller if unresolvable.
+**Verify findings.** All review findings (skill + thermo + effect-advocate) are normalized to a uniform shape, then each is **adversarially verified** by its own agent in parallel (sonnet, worktree-isolated), defaulting to skepticism — analogous to the global `/c` "cite or retract" rule. A finding survives only if its premise is demonstrably true _and_ acting on it adds value beyond CI/automation. Drop rules:
+
+- **False premise** — cited code doesn't do what the finding claims.
+- **CI-redundant** — only asks to _run_ a check CI already gates (Playwright e2e with retries, the stop-hook compile/lint/knip/effect-LS/unit chain). The agent inspects `.github/workflows/` to confirm coverage.
+- **No consumers** — a breaking-API / removed-export / dead-code claim must _prove_ affected consumers exist via [external-consumers skill](../skills/external-consumers/SKILL.md) gh searches across `org:forcedotcom` + `org:salesforcecli` (discounting same-named symbols, the ci-testing mirror, the export site, docs). Zero real consumers → dropped with a `prBodyNote` ("removed unused export, no consumers") instead.
+
+Verdicts: `confirmed` (kept at claimed severity) / `downgraded` (premise holds, lower real severity) / `dropped`. Dropped findings are removed; survivors carry an authoritative `verifiedSeverity` into the fixer.
+
+**Fix review findings.** Consumes the _pre-verified_ findings (premise confirmed, severity corrected, false/redundant/no-consumer ones already gone). Auto-applies all critical and high (including every effect-advocate `must`/`should`). Cheap mediums applied; the rest — plus any `prBodyNote` passthroughs — surface in PR `Reviewer notes`. Then merges `origin/develop` — uses [merge-conflicts skill](../skills/merge-conflicts/SKILL.md) best-effort; aborts and returns to caller if unresolvable.
 
 **Draft PR.** Pushes the branch, opens a draft PR per [pr-draft skill](../skills/pr-draft/SKILL.md), appends `PR: <url>` back to `Details__c` (read-modify-write — never replaces existing content), ensures the `gha-rerun` daemon is running. Test plan excludes items covered by new/modified e2e files on the branch.
 

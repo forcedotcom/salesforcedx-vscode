@@ -45,6 +45,7 @@ Daemon at `${CLAUDE_PROJECT_DIR}/.claude/agents/gha-rerun-daemon.sh`. Don't inli
 - Author: `@me` (must be `mshanemc`)
 - State: `open` (incl. drafts)
 - Excluded workflows: `End to End Tests`, `Apex End to End Tests`, `LSP End to End Tests`, `LWC End to End Tests` (redhat vscode-extension-tester)
+- Reruns on conclusion `failure` or `timed_out` always; `cancelled` only when the run lasted ≥ `CANCEL_MIN_SECONDS` (50m) — distinguishes a GitHub `timeout-minutes` kill (e.g. 60m E2E) from a fast concurrency/manual cancel on the same sha. Cancels on superseded (older) shas are never seen, since the daemon queries only each PR's current `head_sha`.
 - Max attempts: 4 (original + 3 reruns). `run_attempt >= 4` + failure → notify once per run-id.
 - Poll: 60s
 

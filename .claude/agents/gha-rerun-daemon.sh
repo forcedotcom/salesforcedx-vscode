@@ -8,6 +8,9 @@ LOG="${CLAUDE_PROJECT_DIR:-$HOME}/.claude/gha-rerun.log"
 NOTIFIED="/tmp/gha-rerun-notified.txt"
 POLL=60
 MAX_ATTEMPTS=4
+# A 'cancelled' run is reran only if it ran at least this long — distinguishes a
+# GitHub timeout-minutes kill (e.g. 60m E2E) from a fast concurrency/manual cancel.
+CANCEL_MIN_SECONDS=3000  # 50m
 
 : > "$LOG"
 : > "$NOTIFIED"
@@ -56,6 +59,20 @@ while true; do
       [ "$status" != "completed" ] && continue
       case "$conclusion" in
         failure|timed_out) ;;
+        cancelled)
+          # only rerun a long-running cancel (timeout-minutes kill), not a fast
+          # concurrency/manual cancel on this same sha
+          started=$(jq -r '.run_started_at' <<<"$run")
+          ended=$(jq -r '.updated_at' <<<"$run")
+          s_epoch=$(date -j -f '%Y-%m-%dT%H:%M:%SZ' "$started" '+%s' 2>/dev/null) || { log "PR #$num: bad run_started_at='$started' run=$rid; skip"; continue; }
+          e_epoch=$(date -j -f '%Y-%m-%dT%H:%M:%SZ' "$ended" '+%s' 2>/dev/null) || { log "PR #$num: bad updated_at='$ended' run=$rid; skip"; continue; }
+          elapsed=$((e_epoch - s_epoch))
+          if [ "$elapsed" -lt "$CANCEL_MIN_SECONDS" ]; then
+            log "PR #$num: skip short cancel workflow='$name' run=$rid elapsed=${elapsed}s (<${CANCEL_MIN_SECONDS}s)"
+            continue
+          fi
+          log "PR #$num: long cancel (timeout) workflow='$name' run=$rid elapsed=${elapsed}s → rerun"
+          ;;
         *) continue ;;
       esac
 
