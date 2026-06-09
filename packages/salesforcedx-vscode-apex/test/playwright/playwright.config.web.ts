@@ -8,7 +8,9 @@
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 import type { PlaywrightTestConfig } from '@playwright/test';
 
-export default {
+const config: PlaywrightTestConfig = {
   ...createWebConfig({ testDir: './specs', timeout: 360_000 }),
   testIgnore: ['**/*.desktop.spec.ts']
-} satisfies PlaywrightTestConfig;
+};
+
+export default config;

@@ -9,8 +9,6 @@ import { open, type GalleryExtension } from '@vscode/test-web';
 import * as path from 'node:path';
 import { resolveRepoRoot } from '../utils/repoRoot';
 
-export type { GalleryExtension } from '@vscode/test-web';
-
 type HeadlessServerOptions = {
   /** Extension name for logging (e.g., "Org Browser", "Metadata") */
   extensionName: string;

@@ -117,7 +117,6 @@ export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureType
 
 // Web
 export { createHeadlessServer, setupSignalHandlers } from './web/createHeadlessServer';
-export type { GalleryExtension } from './web/createHeadlessServer';
 
 // Config factories
 export { createWebConfig } from './config/createWebConfig';

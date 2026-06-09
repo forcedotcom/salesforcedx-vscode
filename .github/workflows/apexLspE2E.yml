@@ -140,8 +140,8 @@ jobs:
     timeout-minutes: 30
 
     env:
-      # PORT 3001 matches createWebConfig/createHeadlessServer default; each workflow runs on isolated runners
-      PORT: 3001
+      # PORT 3002: distinct from default 3001 to avoid collision if web E2E jobs share a runner
+      PORT: 3002
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
