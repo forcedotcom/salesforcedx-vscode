@@ -83,7 +83,7 @@ describe('LogContext', () => {
   it('Should return array of log lines', () => {
     const logLines = context.getLogLines();
 
-    expect(logLines.length).toBe(3);
+    expect(logLines).toHaveLength(3);
     expect(logLines[1]).toBe('line1');
     expect(logLines[2]).toBe('line2');
   });
@@ -204,7 +204,7 @@ describe('LogContext', () => {
     expect(context.scanLogForHeapDumpLines()).toBe(true);
     expect(context.hasHeapDump()).toBe(true);
     const apexHeapDumps = context.getHeapDumps();
-    expect(apexHeapDumps.length).toBe(2);
+    expect(apexHeapDumps).toHaveLength(2);
     expect(apexHeapDumps[0].getHeapDumpId()).toBe('<HeapDumpId1>');
     expect(apexHeapDumps[1].getHeapDumpId()).toBe('<HeapDumpId2>');
     expect(apexHeapDumps[0].getClassName()).toBe('<ClassName1>');

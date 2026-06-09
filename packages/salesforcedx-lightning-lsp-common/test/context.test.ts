@@ -145,7 +145,7 @@ const verifyJsconfigCore = async (fileSystemAccessor: LspFileSystemAccessor, jsc
   const jsconfig = JSON.parse(jsconfigContent) as JsconfigContent;
   expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
   expect(Array.isArray(jsconfig.include)).toBe(true);
-  expect(jsconfig.include.length).toBe(2);
+  expect(jsconfig.include).toHaveLength(2);
   expect(jsconfig.include[0]).toBe('**/*');
   // The second include should have the relative path to typings
   expect(jsconfig.include[1]).toContain('.vscode/typings/lwc/**/*.d.ts');
@@ -173,12 +173,10 @@ describe('WorkspaceContext', () => {
     expect(path.isAbsolute(context.workspaceRoots[0])).toBe(true);
 
     expect(
-      (
-        await getModulesDirs(context.type, context.workspaceRoots, sfdxFileSystemAccessor, () =>
-          context.initSfdxProjectConfigCache()
-        )
-      ).length
-    ).toBe(3);
+      await getModulesDirs(context.type, context.workspaceRoots, sfdxFileSystemAccessor, () =>
+        context.initSfdxProjectConfigCache()
+      )
+    ).toHaveLength(3);
 
     context = new WorkspaceContext(STANDARD_WORKSPACE_PATH, standardFileSystemAccessor);
     context.initialize('STANDARD_LWC');
@@ -195,12 +193,10 @@ describe('WorkspaceContext', () => {
     expect(context.type).toBe('CORE_ALL');
 
     expect(
-      (
-        await getModulesDirs(context.type, context.workspaceRoots, coreFileSystemAccessor, () =>
-          context.initSfdxProjectConfigCache()
-        )
-      ).length
-    ).toBe(3);
+      await getModulesDirs(context.type, context.workspaceRoots, coreFileSystemAccessor, () =>
+        context.initSfdxProjectConfigCache()
+      )
+    ).toHaveLength(3);
 
     context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemAccessor);
     context.initialize('CORE_PARTIAL');
@@ -214,7 +210,7 @@ describe('WorkspaceContext', () => {
 
     context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemAccessor);
     context.initialize('CORE_ALL');
-    expect(context.workspaceRoots.length).toBe(2);
+    expect(context.workspaceRoots).toHaveLength(2);
 
     const modulesDirs = await getModulesDirs(context.type, context.workspaceRoots, coreMultiFileSystemAccessor, () =>
       context.initSfdxProjectConfigCache()
@@ -334,7 +330,7 @@ describe('WorkspaceContext', () => {
       Buffer.from((await freshAccessor.getFileContent(jsconfigPath)) ?? '').toString('utf8')
     ) as JsconfigContent;
 
-    expect(afterSecond.include.length).toBe(lengthAfterFirst);
+    expect(afterSecond.include).toHaveLength(lengthAfterFirst);
     expect(afterSecond.include).toEqual(afterFirst.include);
   });
 
