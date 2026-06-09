@@ -135,3 +135,50 @@ jobs:
           path: packages/salesforcedx-vscode-apex/test-results
           if-no-files-found: ignore
 
+  e2e-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      PORT: 3001
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Apex Outline web E2E tests
+        env:
+          CI: 1
+        run: npm run test:web -w salesforcedx-vscode-apex -- --reporter=html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-apex-web
+          path: packages/salesforcedx-vscode-apex/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-apex-web
+          path: packages/salesforcedx-vscode-apex/test-results
+          if-no-files-found: ignore
+
