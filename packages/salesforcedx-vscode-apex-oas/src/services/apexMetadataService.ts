@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
 import type {
   ApexClassOASEligibleResponses,
   ApexClassOASGatherContextResponse,
@@ -14,9 +16,13 @@ import type {
 } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
-import { ApexExtensionUnavailable, ApexLspRequestFailed } from '../errors';
+import { ApexExtensionUnavailable, ApexLspNotReady, ApexLspRequestFailed } from '../errors';
+import { nls } from '../messages/nls';
 
 const APEX_EXTENSION_ID = 'salesforce.salesforcedx-vscode-apex';
+
+// The Apex LS reports Indexing until it finishes; poll every 500ms for up to 2 minutes.
+const LSP_READY_SCHEDULE = Schedule.fixed(Duration.millis(500)).pipe(Schedule.intersect(Schedule.recurs(240)));
 
 const getApexExtension = Effect.fn('ApexOas.Lsp.getApexExtension')(function* () {
   const apexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(APEX_EXTENSION_ID);
@@ -32,13 +38,29 @@ const getApexExtension = Effect.fn('ApexOas.Lsp.getApexExtension')(function* () 
   return apexExtension;
 });
 
-const getClient = Effect.fn('ApexOas.Lsp.getClient')(function* () {
-  const ext = yield* getApexExtension();
-  const client = ext.exports.languageClientManager.getClientInstance();
-  if (!client) {
-    return yield* new ApexLspRequestFailed({ message: 'Apex language client is not available' });
+// One readiness probe: ready → succeed; init failed → fail fast (non-retryable); still indexing → retryable.
+export const probeReady = Effect.fn('ApexOas.Lsp.probeReady')(function* (
+  manager: ApexVSCodeApi['languageClientManager']
+) {
+  const client = manager.getClientInstance();
+  const status = manager.getStatus();
+  if (status.failedToInitialize()) {
+    return yield* new ApexLspRequestFailed({
+      message: `Apex Language Server failed to initialize: ${status.getStatusMessage()}`
+    });
+  }
+  if (!client || !status.isReady()) {
+    return yield* new ApexLspNotReady({ message: nls.localize('apex_lsp_not_ready') });
   }
   return client;
+});
+
+const getClient = Effect.fn('ApexOas.Lsp.getClient')(function* () {
+  const ext = yield* getApexExtension();
+  // The OAS commands can fire before indexing completes (activation is deferred), so wait for Ready.
+  return yield* probeReady(ext.exports.languageClientManager).pipe(
+    Effect.retry({ schedule: LSP_READY_SCHEDULE, while: error => error._tag === 'ApexLspNotReady' })
+  );
 });
 
 export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('ApexMetadataService', {

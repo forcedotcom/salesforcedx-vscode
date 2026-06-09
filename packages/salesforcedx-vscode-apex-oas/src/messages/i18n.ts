@@ -19,6 +19,7 @@
 export const messages = {
   channel_name: 'Apex OpenAPI Specification',
   apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
+  apex_lsp_not_ready: 'The Apex Language Server is still starting up. Wait for indexing to finish, then try again.',
   artifact_failed: 'Failed to save the artifact: %s',
   cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
   cannot_get_apexoaseligibility_response: 'Failed to get response through apexoas/isEligible from Apex Language Server',

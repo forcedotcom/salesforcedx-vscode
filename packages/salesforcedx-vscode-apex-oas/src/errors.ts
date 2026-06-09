@@ -16,9 +16,19 @@ export class ApexLspRequestFailed extends Data.TaggedError('ApexLspRequestFailed
   readonly cause?: unknown;
 }> {}
 
+/** The Apex language server is still indexing and not yet ready to serve requests. Transient; retried. */
+export class ApexLspNotReady extends Data.TaggedError('ApexLspNotReady')<{
+  readonly message: string;
+}> {}
+
 export class LLMCallFailed extends Data.TaggedError('LLMCallFailed')<{
   readonly message: string;
   readonly cause?: unknown;
+}> {}
+
+/** The LLM call succeeded but returned no content. Transient; retried like a failed call. */
+export class LLMEmptyResponse extends Data.TaggedError('LLMEmptyResponse')<{
+  readonly message: string;
 }> {}
 
 export class LLMRetriesExhausted extends Data.TaggedError('LLMRetriesExhausted')<{

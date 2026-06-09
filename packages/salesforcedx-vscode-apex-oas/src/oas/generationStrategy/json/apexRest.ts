@@ -7,6 +7,7 @@
 import type { PromptGenerationResult } from '../../schemas';
 import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Chunk from 'effect/Chunk';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
@@ -20,7 +21,7 @@ import type {
 import * as vscode from 'vscode';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../../constants';
-import { InvalidJsonDocument, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';
+import { InvalidJsonDocument, LLMEmptyResponse, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';
 import { nls } from '../../../messages/nls';
 import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
 import { LLMService } from '../../../services/llmService';
@@ -164,7 +165,13 @@ const prevalidateLLMResponse = Effect.fn('ApexOas.ApexRest.prevalidateLLMRespons
   return Chunk.toReadonlyArray(chunk);
 });
 
-const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(function* (
+// Retry up to 5 times with exponential backoff (1s base, doubling), capped at 30s between attempts.
+const LLM_RETRY_SCHEDULE = Schedule.exponential(Duration.seconds(1), 2.0).pipe(
+  Schedule.either(Schedule.spaced(Duration.seconds(30))),
+  Schedule.intersect(Schedule.recurs(5))
+);
+
+export const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(function* (
   prompt: string,
   tokenLimit: number,
   onAttempt: () => void
@@ -174,7 +181,11 @@ const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(function
       onSuccess: () => Effect.sync(onAttempt),
       onFailure: () => Effect.sync(onAttempt)
     }),
-    Effect.retry(Schedule.recurs(2)),
+    // An empty response is never valid; treat it as a transient failure so it is retried.
+    Effect.flatMap(response =>
+      response === '' ? new LLMEmptyResponse({ message: 'LLM returned an empty response' }) : Effect.succeed(response)
+    ),
+    Effect.retry(LLM_RETRY_SCHEDULE),
     Effect.mapError(cause => new LLMRetriesExhausted({ message: `Failed after retries: ${String(cause)}` }))
   );
 });
