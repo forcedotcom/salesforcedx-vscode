@@ -465,8 +465,8 @@ describe('ApexTestController', () => {
       expect(mockTestServiceMethods.runTestAsynchronous).toHaveBeenCalled();
       const payload = mockTestServiceMethods.runTestAsynchronous.mock.calls[0][0] as { testLevel?: string };
       expect(payload.testLevel).toBe('RunSpecifiedTests');
-      expect(orgMethod.tags?.includes(orgOnlyTag)).toBe(true);
-      expect(orgMethod.tags?.includes(inWorkspaceTag)).toBe(false);
+      expect(orgMethod.tags).toContain(orgOnlyTag);
+      expect(orgMethod.tags).not.toContain(inWorkspaceTag);
     });
   });
 
