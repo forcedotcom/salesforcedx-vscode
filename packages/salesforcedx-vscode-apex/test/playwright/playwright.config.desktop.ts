@@ -6,9 +6,10 @@
  */
 
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
+import type { PlaywrightTestConfig } from '@playwright/test';
 
 // jorje LSP is single-process and the restart specs are heavy; run one at a time (workers: 1, not parallel).
 export default {
   ...createDesktopConfig({ testDir: './specs', workers: 1, fullyParallel: false, timeout: 360_000 }),
   testIgnore: ['**/*.headless.spec.ts']
-};
+} satisfies PlaywrightTestConfig;
