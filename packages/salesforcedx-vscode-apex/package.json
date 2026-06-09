@@ -62,7 +62,8 @@
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug"
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:web": "wireit"
   },
   "wireit": {
     "compile": {
@@ -113,6 +114,17 @@
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-core:vscode:package:legacy"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:web": {
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/playwright/**/*.ts",
