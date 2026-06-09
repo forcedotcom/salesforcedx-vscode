@@ -12,6 +12,12 @@ export type WorkerFixtures = {
   vscodeExecutable: string;
   /** Resolved extensions dir: VSIX-install cache path (VSIX mode) or undefined (dev-path mode). */
   installedExtensionsDir: string | undefined;
+  /**
+   * Dev-path mode only: worker-scoped dir with marketplace extensions installed once per worker
+   * (amortizes the slow CLI install across all tests in the worker). `undefined` in VSIX mode
+   * (marketplace extensions go into the VSIX cache dir there) or when no marketplace IDs are set.
+   */
+  marketplaceExtensionsDir: string | undefined;
 };
 
 /** Test-scoped fixtures (fresh for each test) */

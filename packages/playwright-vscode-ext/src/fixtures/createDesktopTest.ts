@@ -126,15 +126,20 @@ const resolveVsixPaths = (repoRoot: string, packageDirs: string[]): string[] =>
   });
 
 /**
- * Compute a cache key from the combined sha256 of all VSIX files.
- * Uses file sizes+mtimes as a fast proxy — avoids reading multi-MB VSIX bytes.
+ * Compute a cache key from the combined sha256 of all VSIX files plus the marketplace extension IDs.
+ * Uses file sizes+mtimes as a fast proxy — avoids reading multi-MB VSIX bytes. Marketplace IDs are
+ * folded in so two configs that differ only by marketplace extensions don't share (and pollute) one
+ * cache dir — otherwise a stale marketplace ext persists after IDs change.
  */
-const computeVsixCacheKey = async (vsixPaths: string[]): Promise<string> => {
+const computeVsixCacheKey = async (vsixPaths: string[], marketplaceExtensionIds: string[]): Promise<string> => {
   const hash = crypto.createHash('sha256');
   for (const p of vsixPaths) {
     const stat = await fs.stat(p);
     hash.update(`${p}:${stat.size}:${stat.mtimeMs}`);
   }
+  unique(marketplaceExtensionIds)
+    .toSorted()
+    .forEach(id => hash.update(`mkt:${id}`));
   return hash.digest('hex').slice(0, 16);
 };
 
@@ -191,6 +196,30 @@ const installVsixsToCache = async (
   }
 };
 
+/**
+ * Install marketplace extensions (by gallery ID) into `extensionsDir` via the VS Code CLI.
+ * One spawn per ID so a failure names the offending extension. Throws if any install fails.
+ */
+const installMarketplaceExtensions = (
+  cli: string,
+  extensionsDir: string,
+  marketplaceExtensionIds: string[]
+): void => {
+  const failed = marketplaceExtensionIds
+    .map(id => ({
+      id,
+      status: spawnSync(
+        cli,
+        ['--extensions-dir', extensionsDir, '--user-data-dir', path.join(extensionsDir, '.ud'), '--install-extension', id],
+        { stdio: 'inherit', shell: process.platform === 'win32' }
+      ).status
+    }))
+    .filter(r => r.status !== 0);
+  if (failed.length > 0) {
+    throw new Error(`Marketplace extension install failed: ${failed.map(r => `${r.id} (exit ${r.status})`).join(', ')}`);
+  }
+};
+
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
 export const createDesktopTest = (options: CreateDesktopTestOptions) => {
   const {
@@ -231,35 +260,56 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           return;
         }
         const repoRoot = resolveRepoRoot(fixturesDir);
-        const localDirs = skipCurrentPackage
-          ? ['salesforcedx-vscode-services', ...additionalExtensionDirs]
-          : ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs];
-        const allDirs = orderExtensionDirsForInstall(repoRoot, localDirs);
+        // Pass ALL dirs (including packageDir) to the topological sort so dependency-graph edges
+        // declared on packageDir are preserved, THEN filter packageDir from the result when
+        // skipCurrentPackage. Filtering before the sort would silently drop those edges.
+        const localDirs = ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs];
+        const orderedDirs = orderExtensionDirsForInstall(repoRoot, localDirs);
+        const allDirs = skipCurrentPackage ? orderedDirs.filter(dir => dir !== packageDir) : orderedDirs;
         const vsixPaths = resolveVsixPaths(repoRoot, allDirs);
-        const cacheKey = await computeVsixCacheKey(vsixPaths);
+        const cacheKey = await computeVsixCacheKey(vsixPaths, marketplaceExtensionIds);
         const cacheDir = path.join(repoRoot, '.vscode-test', `ext-${cacheKey}`);
         await installVsixsToCache(cacheDir, vsixPaths, vscodeExecutable);
 
         // Install marketplace extensions into the same extensions dir
         if (marketplaceExtensionIds.length > 0) {
-          const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
-          const failedMarketplace = marketplaceExtensionIds
-            .map(id => ({
-              id,
-              status: spawnSync(
-                cli,
-                ['--extensions-dir', cacheDir, '--user-data-dir', path.join(cacheDir, '.ud'), '--install-extension', id],
-                { stdio: 'inherit', shell: process.platform === 'win32' }
-              ).status
-            }))
-            .filter(r => r.status !== 0);
-          if (failedMarketplace.length > 0) {
-            throw new Error(
-              `Marketplace extension install failed: ${failedMarketplace.map(r => `${r.id} (exit ${r.status})`).join(', ')}`
-            );
-          }
+          installMarketplaceExtensions(
+            resolveCliPathFromVSCodeExecutablePath(vscodeExecutable),
+            cacheDir,
+            marketplaceExtensionIds
+          );
         }
 
+        await use(cacheDir);
+      },
+      { scope: 'worker' }
+    ],
+
+    // Dev-path mode only: install marketplace extensions once per worker into a stable cache dir
+    // (keyed by the IDs) so the slow CLI install is amortized across all tests in the worker
+    // instead of re-running per test. VSIX mode returns undefined (handled by installedExtensionsDir).
+    marketplaceExtensionsDir: [
+      async ({ vscodeExecutable }, use): Promise<void> => {
+        if (useVsix || marketplaceExtensionIds.length === 0) {
+          await use(undefined);
+          return;
+        }
+        const repoRoot = resolveRepoRoot(fixturesDir);
+        const key = crypto
+          .createHash('sha256')
+          .update(unique(marketplaceExtensionIds).toSorted().join(','))
+          .digest('hex')
+          .slice(0, 16);
+        const cacheDir = path.join(repoRoot, '.vscode-test', `mkt-${key}`);
+        // Idempotent: skip install if a prior worker already populated this dir.
+        if (!existsSync(path.join(cacheDir, 'extensions.json'))) {
+          await fs.mkdir(cacheDir, { recursive: true });
+          installMarketplaceExtensions(
+            resolveCliPathFromVSCodeExecutablePath(vscodeExecutable),
+            cacheDir,
+            marketplaceExtensionIds
+          );
+        }
         await use(cacheDir);
       },
       { scope: 'worker' }
@@ -272,7 +322,10 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     },
 
     // Launch fresh Electron instance per test
-    electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
+    electronApp: async (
+      { vscodeExecutable, workspaceDir, installedExtensionsDir, marketplaceExtensionsDir },
+      use
+    ): Promise<void> => {
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
@@ -342,7 +395,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           ...startupArgs
         ]
         : await (async (): Promise<string[]> => {
-          const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
+          // Use the worker-scoped marketplace cache dir (installed once per worker) when marketplace
+          // extensions are requested; otherwise a per-test temp dir is fine (nothing is installed there).
+          const extensionsDir = marketplaceExtensionsDir ?? path.join(workspaceDir, '.vscode-test-extensions');
           await fs.mkdir(extensionsDir, { recursive: true });
           const devPaths = skipCurrentPackage
             ? additionalExtensionDirs
@@ -356,26 +411,6 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
                   .map(dir => path.resolve(packageRoot, '..', dir))
               ];
           const extensionArgs = devPaths.map(p => `--extensionDevelopmentPath=${p}`);
-
-          // Install marketplace extensions into extensions dir via VS Code CLI
-          if (marketplaceExtensionIds.length > 0) {
-            const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
-            const failedMarketplace = marketplaceExtensionIds
-              .map(id => ({
-                id,
-                status: spawnSync(
-                  cli,
-                  ['--extensions-dir', extensionsDir, '--user-data-dir', path.join(extensionsDir, '.ud'), '--install-extension', id],
-                  { stdio: 'inherit', shell: process.platform === 'win32' }
-                ).status
-              }))
-              .filter(r => r.status !== 0);
-            if (failedMarketplace.length > 0) {
-              throw new Error(
-                `Marketplace extension install failed: ${failedMarketplace.map(r => `${r.id} (exit ${r.status})`).join(', ')}`
-              );
-            }
-          }
 
           return [
             `--user-data-dir=${userDataDir}`,

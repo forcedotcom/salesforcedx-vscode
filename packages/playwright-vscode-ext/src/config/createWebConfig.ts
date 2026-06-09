@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 type WebConfigOptions = {
   /** Test directory relative to the config file (e.g. './specs') */
@@ -19,7 +19,7 @@ type WebConfigOptions = {
 };
 
 /** Creates a standardized Playwright web config for VS Code extension testing */
-export const createWebConfig = (options: WebConfigOptions): PlaywrightTestConfig =>
+export const createWebConfig = (options: WebConfigOptions) =>
   defineConfig({
     testDir: options.testDir,
     fullyParallel: options.fullyParallel ?? true,
