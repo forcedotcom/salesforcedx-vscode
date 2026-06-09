@@ -7,4 +7,4 @@
 
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createWebConfig({ testDir: './specs', timeout: 360_000 });
+export default { ...createWebConfig({ testDir: './specs', timeout: 360_000 }), testIgnore: ['**/*.desktop.spec.ts'] };

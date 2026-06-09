@@ -243,11 +243,19 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         // Install marketplace extensions into the same extensions dir
         if (marketplaceExtensionIds.length > 0) {
           const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
-          for (const id of marketplaceExtensionIds) {
-            spawnSync(
-              cli,
-              ['--extensions-dir', cacheDir, '--user-data-dir', path.join(cacheDir, '.ud'), '--install-extension', id],
-              { stdio: 'inherit', shell: process.platform === 'win32' }
+          const failedMarketplace = marketplaceExtensionIds
+            .map(id => ({
+              id,
+              status: spawnSync(
+                cli,
+                ['--extensions-dir', cacheDir, '--user-data-dir', path.join(cacheDir, '.ud'), '--install-extension', id],
+                { stdio: 'inherit', shell: process.platform === 'win32' }
+              ).status
+            }))
+            .filter(r => r.status !== 0);
+          if (failedMarketplace.length > 0) {
+            throw new Error(
+              `Marketplace extension install failed: ${failedMarketplace.map(r => `${r.id} (exit ${r.status})`).join(', ')}`
             );
           }
         }
@@ -352,11 +360,19 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           // Install marketplace extensions into extensions dir via VS Code CLI
           if (marketplaceExtensionIds.length > 0) {
             const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
-            for (const id of marketplaceExtensionIds) {
-              spawnSync(
-                cli,
-                ['--extensions-dir', extensionsDir, '--user-data-dir', path.join(extensionsDir, '.ud'), '--install-extension', id],
-                { stdio: 'inherit', shell: process.platform === 'win32' }
+            const failedMarketplace = marketplaceExtensionIds
+              .map(id => ({
+                id,
+                status: spawnSync(
+                  cli,
+                  ['--extensions-dir', extensionsDir, '--user-data-dir', path.join(extensionsDir, '.ud'), '--install-extension', id],
+                  { stdio: 'inherit', shell: process.platform === 'win32' }
+                ).status
+              }))
+              .filter(r => r.status !== 0);
+            if (failedMarketplace.length > 0) {
+              throw new Error(
+                `Marketplace extension install failed: ${failedMarketplace.map(r => `${r.id} (exit ${r.status})`).join(', ')}`
               );
             }
           }
