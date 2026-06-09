@@ -76,7 +76,7 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryEnabled).toBe(true);
 
       await showTelemetryMessage(mockExtensionContext);
       expect(mShowInformation).toHaveBeenCalledTimes(1);
@@ -93,7 +93,7 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryEnabled).toBe(true);
 
       await showTelemetryMessage(mockExtensionContext);
       expect(globalStateTelemetrySpy).toHaveBeenCalledTimes(4);
@@ -113,7 +113,7 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryEnabled).toBe(true);
 
       await showTelemetryMessage(mockExtensionContext);
 
@@ -132,7 +132,7 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryEnabled).toBe(true);
 
       await showTelemetryMessage(mockExtensionContext);
 
