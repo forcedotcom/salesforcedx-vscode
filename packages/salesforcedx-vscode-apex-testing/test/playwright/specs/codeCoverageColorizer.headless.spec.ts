@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   createApexClass,
   createAndDeployApexTestClass,
@@ -30,20 +30,28 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { COVERED_BG_RGBA, PINNED_THEME, TEST_RUN_TIMEOUT, UNCOVERED_BG_RGBA } from '../contants';
 
-// Pin the theme so resolved RGB(A) for testing.coveredBackground / testing.uncoveredBackground
-// is deterministic across CI + local. The harness workspace default is "Dark 2026"; pin it
-// explicitly (matches the exact combobox option label in the Settings UI).
-const PINNED_THEME = 'Dark 2026';
+/**
+ * Count `.view-overlays` child decoration divs whose computed background-color exactly matches
+ * `targetRgba`. The colorizer renders covered/uncovered line backgrounds as `div.cdr` children of
+ * `.view-overlays` (confirmed by the Phase 1 spike); matching by the pinned-theme RGBA isolates
+ * the coverage decorations from unrelated overlays (e.g. the current-line highlight).
+ */
+const countOverlaysWithBg = async (editor: ReturnType<Page['locator']>, targetRgba: string): Promise<number> =>
+  editor.evaluate((el, rgba) => {
+    const children = el.querySelectorAll('.view-overlays > div > div');
+    return Array.from(children).filter(child => getComputedStyle(child).backgroundColor === rgba).length;
+  }, targetRgba);
 
-test('Code coverage colorizer spike: DOM queryable, theme pinned, coverage JSON gate', async ({ page }) => {
+test('Code coverage colorizer: green covered + red uncovered lines, cleared on toggle-off', async ({ page }) => {
   test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
   const className = `ColorizerBranch${Date.now()}`;
   const testClassName = `ColorizerBranchTest${Date.now()}`;
+  const editor = page.locator(`.monaco-editor[data-uri$="${className}.cls"]`);
 
   await test.step('setup non-tracking org + pin theme + enable coverage retrieval', async () => {
     await setupNonTrackingOrgAndAuth(page);
@@ -74,7 +82,7 @@ test('Code coverage colorizer spike: DOM queryable, theme pinned, coverage JSON 
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata', TEST_RUN_TIMEOUT);
     await waitForOutputChannelText(page, { expectedText: className, timeout: TEST_RUN_TIMEOUT });
-    await saveScreenshot(page, 'spike.branch-class-deployed.png');
+    await saveScreenshot(page, 'step.branch-class-deployed.png');
   });
 
   await test.step('deploy test class exercising only the covered (true) path', async () => {
@@ -88,7 +96,7 @@ test('Code coverage colorizer spike: DOM queryable, theme pinned, coverage JSON 
       '}'
     ].join('\n');
     await createAndDeployApexTestClass(page, testClassName, testContent);
-    await saveScreenshot(page, 'spike.test-class-deployed.png');
+    await saveScreenshot(page, 'step.test-class-deployed.png');
   });
 
   await test.step('run the test class via command palette (coverage enabled)', async () => {
@@ -104,19 +112,18 @@ test('Code coverage colorizer spike: DOM queryable, theme pinned, coverage JSON 
     await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
-    await saveScreenshot(page, 'spike.test-run-complete.png');
+    await saveScreenshot(page, 'step.test-run-complete.png');
   });
 
   await test.step('open NON-test class and toggle colorizer ON', async () => {
     await openFileByName(page, `${className}.cls`);
-    const editor = page.locator(`.monaco-editor[data-uri$="${className}.cls"]`);
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 10_000 });
 
     const toggle = page.getByRole('button', { name: /Highlight Apex Code Coverage/ });
     await toggle.waitFor({ state: 'visible', timeout: 15_000 });
     await toggle.click();
-    await saveScreenshot(page, 'spike.colorizer-on.png');
+    await saveScreenshot(page, 'step.colorizer-on.png');
   });
 
   await test.step('GATE: no missing-coverage notification', async () => {
@@ -128,35 +135,38 @@ test('Code coverage colorizer spike: DOM queryable, theme pinned, coverage JSON 
     await expect(noCoverageNotification, 'colorizer coverage gate: no missing-coverage notification').toHaveCount(0);
   });
 
-  await test.step('SPIKE: dump .view-overlays DOM + capture computed RGB per theme', async () => {
-    const editor = page.locator(`.monaco-editor[data-uri$="${className}.cls"]`);
-    // Read every overlay child div's computed background-color so we can confirm the
-    // TextEditorDecorationType backgrounds render into queryable DOM (not canvas / ::before).
-    const overlayInfo = await editor.evaluate(el => {
-      const overlays = el.querySelectorAll('.view-overlays > div');
-      const colors: { idx: number; bg: string; html: string }[] = [];
-      overlays.forEach((node, idx) => {
-        const children = node.querySelectorAll('div');
-        children.forEach(child => {
-          const bg = getComputedStyle(child).backgroundColor;
-          if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
-            colors.push({ idx, bg, html: child.outerHTML.slice(0, 200) });
-          }
-        });
-      });
-      return {
-        theme: document.body.className,
-        overlayCount: overlays.length,
-        coloredChildren: colors
-      };
-    });
-    console.log('[COLORIZER SPIKE] view-overlays computed bg:', JSON.stringify(overlayInfo, null, 2));
+  await test.step('assert >=1 green (covered) and >=1 red (uncovered) line highlighted', async () => {
+    await expect
+      .poll(() => countOverlaysWithBg(editor, COVERED_BG_RGBA), {
+        message: `expected >=1 covered (green ${COVERED_BG_RGBA}) overlay`,
+        timeout: 15_000
+      })
+      .toBeGreaterThan(0);
+    await expect
+      .poll(() => countOverlaysWithBg(editor, UNCOVERED_BG_RGBA), {
+        message: `expected >=1 uncovered (red ${UNCOVERED_BG_RGBA}) overlay`,
+        timeout: 15_000
+      })
+      .toBeGreaterThan(0);
+    await saveScreenshot(page, 'step.colorizer-highlighted.png');
+  });
 
-    expect(
-      overlayInfo.coloredChildren.length,
-      'spike: expected >=1 .view-overlays child div with a non-transparent computed background-color'
-    ).toBeGreaterThan(0);
-    await saveScreenshot(page, 'spike.view-overlays-dumped.png');
+  await test.step('toggle colorizer OFF and assert all highlighting cleared', async () => {
+    const toggle = page.getByRole('button', { name: /Highlight Apex Code Coverage/ });
+    await toggle.click();
+    await expect
+      .poll(() => countOverlaysWithBg(editor, COVERED_BG_RGBA), {
+        message: 'expected zero covered (green) overlays after toggle-off',
+        timeout: 15_000
+      })
+      .toBe(0);
+    await expect
+      .poll(() => countOverlaysWithBg(editor, UNCOVERED_BG_RGBA), {
+        message: 'expected zero uncovered (red) overlays after toggle-off',
+        timeout: 15_000
+      })
+      .toBe(0);
+    await saveScreenshot(page, 'step.colorizer-cleared.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
