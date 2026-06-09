@@ -1,3 +1,12 @@
+# [65.10.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.9.0...eslint-plugin-vscode-extensions-v65.10.0) (2026-06-09)
+
+
+### Features
+
+* **playwright-vscode-ext:** publish to npm - W-22846720 ([#7394](https://github.com/forcedotcom/salesforcedx-vscode/issues/7394)) ([b747db2](https://github.com/forcedotcom/salesforcedx-vscode/commit/b747db2b21b37919e58ef058a1eedc0eb26fc3ce))
+
+
+
 # [65.9.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.8.0...eslint-plugin-vscode-extensions-v65.9.0) (2026-06-05)
 
 
