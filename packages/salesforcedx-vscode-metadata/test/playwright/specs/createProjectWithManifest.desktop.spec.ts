@@ -69,13 +69,18 @@ const PROJECT_NAME = `TestManifestProject${Date.now()}`;
 
       // Use .fill() to set path directly (avoids autocomplete issues with keyboard.type).
       // Trailing sep forces the simple dialog to navigate INTO the directory immediately.
+      // Without it, Windows shows the parent dir with the folder highlighted, then auto-navigates
+      // after a debounce - clicking "Create Project" during that transition doesn't register.
       const input = quickInput.locator('input.input');
       const targetPath = `${targetDir}${path.sep}`;
       await input.fill(targetPath);
 
       // Wait for dialog to show the directory contents (not just highlight the folder name)
       await expect(quickInput.getByText('path does not exist')).not.toBeVisible({ timeout: 5000 });
-      await expect(input).toHaveValue(new RegExp(`${targetDir.replaceAll('\\', '\\\\')}[/\\\\]$`), { timeout: 5000 });
+      await expect(input).toHaveValue(
+        new RegExp(`${targetDir.replaceAll('\\', '\\\\').replaceAll('.', '\\.')}[/\\\\]$`),
+        { timeout: 5000 }
+      );
       await saveScreenshot(page, 'createProjectWithManifest.05-folder-path-set.png');
 
       // Click "Create Project" button (openLabel from extension's showOpenDialog call)
@@ -86,13 +91,12 @@ const PROJECT_NAME = `TestManifestProject${Date.now()}`;
     await test.step('verify project files on disk', async () => {
       const projectDir = path.join(targetDir, PROJECT_NAME);
 
-      // Poll for sfdx-project.json (project generation may take a moment)
+      // Poll for project files (project generation may take a moment)
       await expect(async () => {
         await fs.access(path.join(projectDir, 'sfdx-project.json'));
+        await fs.access(path.join(projectDir, 'force-app'));
+        await fs.access(path.join(projectDir, 'manifest', 'package.xml'));
       }).toPass({ timeout: 120_000 });
-
-      await fs.access(path.join(projectDir, 'force-app'));
-      await fs.access(path.join(projectDir, 'manifest', 'package.xml'));
       await saveScreenshot(page, 'createProjectWithManifest.06-verified.png');
     });
   }
