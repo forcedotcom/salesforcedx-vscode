@@ -32,6 +32,13 @@ import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { COVERED_BG_RGBA, PINNED_THEME, TEST_RUN_TIMEOUT, UNCOVERED_BG_RGBA } from '../contants';
 
+// Runs desktop + web (apexTestingE2E.yml). UI-only (no Node fs / VS Code API) so behavior is
+// identical across platforms. The status-bar toggle is located by its tooltip via accessible
+// name — VS Code derives a status bar entry's aria-label from its tooltip (workbench.*.main.js
+// `ariaLabel: entry.tooltip || entry.label`), which holds for both Electron and web. Theme is
+// pinned (contants.ts PINNED_THEME) so the covered/uncovered RGBA constants resolve identically;
+// re-capture those RGBA values if PINNED_THEME ever changes.
+
 /**
  * Count `.view-overlays` child decoration divs whose computed background-color exactly matches
  * `targetRgba`. The colorizer renders covered/uncovered line backgrounds as `div.cdr` children of
