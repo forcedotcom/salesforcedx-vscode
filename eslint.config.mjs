@@ -561,6 +561,7 @@ export default [
       'jest/unbound-method': 'error',
       'jest/no-focused-tests': 'error',
       'jest/no-standalone-expect': 'error',
+      'jest/valid-describe-callback': 'error',
       'jest/prefer-to-be': 'error',
       'jest/prefer-to-contain': 'error',
       'jest/no-test-prefixes': 'error',
