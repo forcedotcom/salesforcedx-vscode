@@ -57,7 +57,7 @@ describe('string-util', () => {
             const result = countPreviousCommas(testString, threeCommaString.length + Math.floor(testString.length / 2));
 
             expect(result).toBeDefined();
-            expect(result).toEqual(3);
+            expect(result).toBe(3);
         });
 
         it('should find number of preceding commas with new line', () => {
@@ -67,7 +67,7 @@ describe('string-util', () => {
             const result = countPreviousCommas(testString, commaString.length + Math.floor(testString.length / 2));
 
             expect(result).toBeDefined();
-            expect(result).toEqual(2);
+            expect(result).toBe(2);
         });
     });
 
@@ -96,7 +96,7 @@ describe('string-util', () => {
             const result = findPreviousLeftParan(testString, Math.floor(testString.length / 2));
 
             expect(result).toBeDefined();
-            expect(result).toEqual(-1);
+            expect(result).toBe(-1);
         });
     });
 

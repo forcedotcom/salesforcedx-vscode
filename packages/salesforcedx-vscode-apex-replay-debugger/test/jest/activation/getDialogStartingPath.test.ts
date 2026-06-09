@@ -101,6 +101,6 @@ describe('getDialogStartingPath', () => {
     // Act
     const dialogStartingPathUri = await getDialogStartingPath(mockExtensionContext);
 
-    expect(dialogStartingPathUri as URI).toEqual(undefined);
+    expect(dialogStartingPathUri as URI).toBeUndefined();
   });
 });

@@ -761,8 +761,8 @@ describe('deserialize should', () => {
     const actual = deserialize('// This is a comment on line 1\n// This is a comment on line 2\nSELECT FROM object1');
 
     expect(actual.errors).toBeDefined();
-    expect(actual.errors?.length).toEqual(1);
-    expect(actual.errors?.[0].lineNumber).toEqual(3);
+    expect(actual.errors?.length).toBe(1);
+    expect(actual.errors?.[0].lineNumber).toBe(3);
     expect(actual.headerComments).toEqual(expected.headerComments);
   });
 

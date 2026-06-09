@@ -17,19 +17,19 @@ describe('Extract comments at the top of SOQL queries', () => {
   it('Handle single-line query with no comments', () => {
     const soqlWithComments = parseHeaderComments('SELECT Id FROM Account');
 
-    expect(soqlWithComments.headerComments).toEqual('');
-    expect(soqlWithComments.commentLineCount).toEqual(0);
-    expect(soqlWithComments.soqlText).toEqual('SELECT Id FROM Account');
-    expect(soqlWithComments.originalSoqlText).toEqual('SELECT Id FROM Account');
+    expect(soqlWithComments.headerComments).toBe('');
+    expect(soqlWithComments.commentLineCount).toBe(0);
+    expect(soqlWithComments.soqlText).toBe('SELECT Id FROM Account');
+    expect(soqlWithComments.originalSoqlText).toBe('SELECT Id FROM Account');
   });
 
   it('Handle multi-line query with no comments', () => {
     const soqlWithComments = parseHeaderComments('SELECT Id\nFROM Account\nWHERE TRUE');
 
-    expect(soqlWithComments.headerComments).toEqual('');
-    expect(soqlWithComments.commentLineCount).toEqual(0);
-    expect(soqlWithComments.soqlText).toEqual('SELECT Id\nFROM Account\nWHERE TRUE');
-    expect(soqlWithComments.originalSoqlText).toEqual('SELECT Id\nFROM Account\nWHERE TRUE');
+    expect(soqlWithComments.headerComments).toBe('');
+    expect(soqlWithComments.commentLineCount).toBe(0);
+    expect(soqlWithComments.soqlText).toBe('SELECT Id\nFROM Account\nWHERE TRUE');
+    expect(soqlWithComments.originalSoqlText).toBe('SELECT Id\nFROM Account\nWHERE TRUE');
   });
 
   it('Handle query with simple comments at the top', () => {
@@ -38,10 +38,10 @@ describe('Extract comments at the top of SOQL queries', () => {
 SELECT Id\nFROM Account\nWHERE TRUE`
     );
 
-    expect(soqlWithComments.headerComments).toEqual('// Comment line 1\n');
-    expect(soqlWithComments.commentLineCount).toEqual(1);
-    expect(soqlWithComments.soqlText).toEqual('SELECT Id\nFROM Account\nWHERE TRUE');
-    expect(soqlWithComments.originalSoqlText).toEqual(
+    expect(soqlWithComments.headerComments).toBe('// Comment line 1\n');
+    expect(soqlWithComments.commentLineCount).toBe(1);
+    expect(soqlWithComments.soqlText).toBe('SELECT Id\nFROM Account\nWHERE TRUE');
+    expect(soqlWithComments.originalSoqlText).toBe(
       `// Comment line 1
 SELECT Id\nFROM Account\nWHERE TRUE`
     );
@@ -56,13 +56,13 @@ SELECT Id\nFROM Account\nWHERE TRUE`
     );
 
     // NOTE: Empty lines right before the query belong to the comments
-    expect(soqlWithComments.headerComments).toEqual(`// Comment line 1
+    expect(soqlWithComments.headerComments).toBe(`// Comment line 1
 // Comment line2
 // Comment line3
 `);
-    expect(soqlWithComments.commentLineCount).toEqual(3);
-    expect(soqlWithComments.soqlText).toEqual('SELECT Id\nFROM Account\nWHERE TRUE');
-    expect(soqlWithComments.originalSoqlText).toEqual(
+    expect(soqlWithComments.commentLineCount).toBe(3);
+    expect(soqlWithComments.soqlText).toBe('SELECT Id\nFROM Account\nWHERE TRUE');
+    expect(soqlWithComments.originalSoqlText).toBe(
       `// Comment line 1
 // Comment line2
 // Comment line3
@@ -70,13 +70,13 @@ SELECT Id\nFROM Account\nWHERE TRUE`
     );
 
     // NOTE: Empty lines right before the query belong to the comments
-    expect(soqlWithComments.headerComments).toEqual(`// Comment line 1
+    expect(soqlWithComments.headerComments).toBe(`// Comment line 1
 // Comment line2
 // Comment line3
 `);
 
     // NOTE: Empty lines right before the query belong to the comments
-    expect(soqlWithComments.headerComments).toEqual(`// Comment line 1
+    expect(soqlWithComments.headerComments).toBe(`// Comment line 1
 // Comment line2
 // Comment line3
 `);
@@ -95,16 +95,16 @@ SELECT Id\nFROM Account\nWHERE TRUE
     );
 
     // NOTE: Empty lines right before the query belong to the comments
-    expect(soqlWithComments.headerComments).toEqual(`// Comment line 1
+    expect(soqlWithComments.headerComments).toBe(`// Comment line 1
 // Comment line2
 
 // Empty lines allows in comments
    // Leading spaces too
 
 `);
-    expect(soqlWithComments.commentLineCount).toEqual(6);
-    expect(soqlWithComments.soqlText).toEqual('SELECT Id\nFROM Account\nWHERE TRUE\n');
-    expect(soqlWithComments.originalSoqlText).toEqual(
+    expect(soqlWithComments.commentLineCount).toBe(6);
+    expect(soqlWithComments.soqlText).toBe('SELECT Id\nFROM Account\nWHERE TRUE\n');
+    expect(soqlWithComments.originalSoqlText).toBe(
       `// Comment line 1
 // Comment line2
 

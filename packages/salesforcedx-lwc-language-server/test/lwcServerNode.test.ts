@@ -698,8 +698,8 @@ describe('lwcServerNode', () => {
         await server.componentIndexer.init();
         const [location] = await server.onDefinition(params);
         expect(location.uri).toContain('todo/todo.js');
-        expect(location.range.start.line).toEqual(105);
-        expect(location.range.start.character).toEqual(4);
+        expect(location.range.start.line).toBe(105);
+        expect(location.range.start.character).toBe(4);
       });
 
       it('returns the Location of an (`@api`) classMember from the html attribute', async () => {
@@ -714,8 +714,8 @@ describe('lwcServerNode', () => {
         await server.onInitialize(initializeParams);
         await server.componentIndexer.init();
         const [location]: Location[] = await server.onDefinition(params);
-        expect(location.range.start.line).toEqual(14);
-        expect(location.range.start.character).toEqual(4);
+        expect(location.range.start.line).toBe(14);
+        expect(location.range.start.character).toBe(4);
       });
 
       it('returns the Location of a parent iterator node with an iterator attribute', async () => {
@@ -731,8 +731,8 @@ describe('lwcServerNode', () => {
         await server.componentIndexer.init();
         const [location]: Location[] = await server.onDefinition(params);
         expect(location.uri).toContain('todo/todo.html');
-        expect(location.range.start.line).toEqual(15);
-        expect(location.range.start.character).toEqual(60);
+        expect(location.range.start.line).toBe(15);
+        expect(location.range.start.character).toBe(60);
       });
     });
 
@@ -897,7 +897,7 @@ describe('lwcServerNode', () => {
         const sfdxTsConfigContent =
           (await provider.getFileContent(baseTsconfigPath)) ??
           (await server.fileSystemAccessor.getFileContent(baseTsconfigPath));
-        expect(sfdxTsConfigContent).not.toBeUndefined();
+        expect(sfdxTsConfigContent).toBeDefined();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!);
         const pathMapping = Object.keys(sfdxTsConfig.compilerOptions.paths);
@@ -1226,9 +1226,9 @@ describe('lwcServerNode', () => {
       const doc = await getDocument();
       const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 18, character: 33 } }, doc);
       expect(cursorInfo).not.toBeNull();
-      expect(cursorInfo!.type).toEqual('dynamicAttributeValue');
-      expect(cursorInfo!.name).toEqual('todo');
-      expect(cursorInfo!.tag).toEqual('c-todo_item');
+      expect(cursorInfo!.type).toBe('dynamicAttributeValue');
+      expect(cursorInfo!.name).toBe('todo');
+      expect(cursorInfo!.tag).toBe('c-todo_item');
       expect(cursorInfo!.range).toEqual({
         start: {
           character: 60,
@@ -1251,24 +1251,24 @@ describe('lwcServerNode', () => {
       const doc = await getDocument();
       const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 37, character: 24 } }, doc);
       expect(cursorInfo).not.toBeNull();
-      expect(cursorInfo!.type).toEqual('content');
-      expect(cursorInfo!.tag).toEqual('button');
+      expect(cursorInfo!.type).toBe('content');
+      expect(cursorInfo!.tag).toBe('button');
     });
 
     it('knows when Im in dynamic content', async () => {
       const doc = await getDocument();
       const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 27, character: 68 } }, doc);
       expect(cursorInfo).not.toBeNull();
-      expect(cursorInfo!.type).toEqual('dynamicContent');
-      expect(cursorInfo!.tag).toEqual('strong');
+      expect(cursorInfo!.type).toBe('dynamicContent');
+      expect(cursorInfo!.tag).toBe('strong');
     });
 
     it('knows when Im not dynamic content', async () => {
       const doc = await getDocument();
       const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 27, character: 76 } }, doc);
       expect(cursorInfo).not.toBeNull();
-      expect(cursorInfo!.type).toEqual('content');
-      expect(cursorInfo!.tag).toEqual('strong');
+      expect(cursorInfo!.type).toBe('content');
+      expect(cursorInfo!.tag).toBe('strong');
     });
   });
 
@@ -1276,11 +1276,11 @@ describe('lwcServerNode', () => {
     const text = '{foobar}, {foo.bar} so\nmething {baz.bux}';
 
     it('returns the dynamic match at the given offset if it exists', () => {
-      expect(findDynamicContent(text, 5)).toEqual('foobar');
+      expect(findDynamicContent(text, 5)).toBe('foobar');
     });
 
     it('returns the match if its not the only one in the string', () => {
-      expect(findDynamicContent(text, 12)).toEqual('foo');
+      expect(findDynamicContent(text, 12)).toBe('foo');
     });
 
     it('returns null when not on dynamic content', () => {

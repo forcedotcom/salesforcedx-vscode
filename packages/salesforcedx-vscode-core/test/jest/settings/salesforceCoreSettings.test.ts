@@ -20,7 +20,7 @@ describe('salesforceCoreSettings', () => {
       expect(salesforceCoreSettingsInstance).toBeInstanceOf(SalesforceCoreSettings);
       expect(getConfigValueSpy).toHaveBeenCalled();
       expect(getConfigValueSpy).toBeCalledWith(ALL_EXCEPTION_CATCHER_ENABLED, false);
-      expect(defaultValue).toEqual(false);
+      expect(defaultValue).toBe(false);
     });
   });
 });

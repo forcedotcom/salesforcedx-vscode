@@ -44,10 +44,10 @@ describe('RequestService unit tests.', () => {
   it('should be able to create an instance.', () => {
     const requestService = new RequestService();
     requestService.connectionTimeoutMs = 1000;
-    expect(requestService.connectionTimeoutMs).toEqual(1000);
+    expect(requestService.connectionTimeoutMs).toBe(1000);
     requestService.proxyStrictSSL = true;
-    expect(requestService.proxyStrictSSL).toEqual(true);
-    expect(requestService).not.toBeUndefined();
+    expect(requestService.proxyStrictSSL).toBe(true);
+    expect(requestService).toBeDefined();
   });
 
   it('Should have default timeout.', () => {

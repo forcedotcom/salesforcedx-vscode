@@ -68,9 +68,9 @@ describe('User debug event', () => {
 
     expect(state.handle(context)).toBe(false);
     expect(warnToDebugConsoleStub).toHaveBeenCalledTimes(1);
-    expect(warnToDebugConsoleStub.mock.calls[0][0]).toEqual(`Hello${EOL}foo${EOL}bar`);
+    expect(warnToDebugConsoleStub.mock.calls[0][0]).toBe(`Hello${EOL}foo${EOL}bar`);
     expect(warnToDebugConsoleStub.mock.calls[0][1]).toEqual(frame.source);
-    expect(warnToDebugConsoleStub.mock.calls[0][2]).toEqual(5);
+    expect(warnToDebugConsoleStub.mock.calls[0][2]).toBe(5);
   });
 
   it('Should use line number in log line', () => {
@@ -83,8 +83,8 @@ describe('User debug event', () => {
 
     expect(state.handle(context)).toBe(false);
     expect(warnToDebugConsoleStub).toHaveBeenCalledTimes(1);
-    expect(warnToDebugConsoleStub.mock.calls[0][0]).toEqual(`Hello${EOL}foo${EOL}bar`);
+    expect(warnToDebugConsoleStub.mock.calls[0][0]).toBe(`Hello${EOL}foo${EOL}bar`);
     expect(warnToDebugConsoleStub.mock.calls[0][1]).toEqual(frame.source);
-    expect(warnToDebugConsoleStub.mock.calls[0][2]).toEqual(2);
+    expect(warnToDebugConsoleStub.mock.calls[0][2]).toBe(2);
   });
 });

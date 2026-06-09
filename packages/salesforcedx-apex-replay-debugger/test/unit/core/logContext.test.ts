@@ -404,9 +404,7 @@ describe('LogContext', () => {
     });
 
     it('Should return URI for trigger', () => {
-      expect(context.getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')).toStrictEqual(
-        '/path/MyTrigger.trigger'
-      );
+      expect(context.getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')).toBe('/path/MyTrigger.trigger');
     });
   });
 });

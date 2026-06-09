@@ -145,7 +145,7 @@ describe('WorkspaceContextUtil', () => {
 
     await workspaceContextUtil.initialize(context);
 
-    expect(workspaceContextUtil.orgEdition).toEqual('Developer Edition');
+    expect(workspaceContextUtil.orgEdition).toBe('Developer Edition');
   });
 
   it('should leave orgEdition undefined when not in auth fields', async () => {
@@ -182,7 +182,7 @@ describe('WorkspaceContextUtil', () => {
     // Assert
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
-    expect(workspaceContextUtil.orgId).toEqual('');
+    expect(workspaceContextUtil.orgId).toBe('');
     expect(logMock).toHaveBeenCalled();
     expect(sendExceptionMock).toHaveBeenCalledWith(
       WORKSPACE_CONTEXT_ORG_ID_ERROR,
@@ -204,7 +204,7 @@ describe('WorkspaceContextUtil', () => {
     await handler();
 
     expect(workspaceContextUtil.username).toEqual(testUser2);
-    expect(workspaceContextUtil.alias).toEqual(undefined);
+    expect(workspaceContextUtil.alias).toBeUndefined();
     expect(workspaceContextUtil.orgId).toEqual(dummyOrgId2);
     expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe('WorkspaceContextUtil', () => {
     expect(handler).toBeInstanceOf(Function);
     await handler();
 
-    expect(workspaceContextUtil.username).toEqual(undefined);
+    expect(workspaceContextUtil.username).toBeUndefined();
     expect(workspaceContextUtil.alias).toEqual(testAlias);
   });
 
@@ -236,8 +236,8 @@ describe('WorkspaceContextUtil', () => {
     expect(handler).toBeInstanceOf(Function);
     await handler();
 
-    expect(workspaceContextUtil.username).toEqual(undefined);
-    expect(workspaceContextUtil.alias).toEqual(undefined);
+    expect(workspaceContextUtil.username).toBeUndefined();
+    expect(workspaceContextUtil.alias).toBeUndefined();
   });
 
   it('should notify subscribers that the default org may have changed', async () => {

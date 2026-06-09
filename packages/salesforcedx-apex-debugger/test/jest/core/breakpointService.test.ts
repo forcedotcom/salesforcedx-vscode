@@ -111,7 +111,7 @@ describe('breakpointService Unit Tests.', () => {
       const typerefMapping = new Map();
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
       const typeref = breakpointService.getTyperefFor('test', 1);
-      expect(typeref).toEqual('test');
+      expect(typeref).toBe('test');
     });
   });
 
@@ -125,7 +125,7 @@ describe('breakpointService Unit Tests.', () => {
       const typerefMapping = new Map([['test', 'test']]);
       breakpointService.setValidLines(new Map(), typerefMapping);
       const typeref = breakpointService.getSourcePathFromTyperef('test');
-      expect(typeref).toEqual('test');
+      expect(typeref).toBe('test');
     });
   });
 
@@ -139,7 +139,7 @@ describe('breakpointService Unit Tests.', () => {
       const typerefMapping = new Map([['test', 'test']]);
       breakpointService.setValidLines(new Map(), typerefMapping);
       const typeref = breakpointService.getSourcePathFromPartialTyperef('test');
-      expect(typeref).toEqual('test');
+      expect(typeref).toBe('test');
     });
   });
 
@@ -197,14 +197,14 @@ describe('breakpointService Unit Tests.', () => {
   describe('getBreakpointsFor() cache', () => {
     it('Should return undefined if cache is empty.', () => {
       const lines = breakpointService.getBreakpointsFor('test');
-      expect(lines.size).toEqual(0);
+      expect(lines.size).toBe(0);
     });
 
     it('Should return a breakpoint.', () => {
       breakpointService.cacheLineBreakpoint('test', 1, 'test');
       const lines = breakpointService.getBreakpointsFor('test');
-      expect(lines.size).toEqual(1);
-      expect(lines.has(1)).toEqual(true);
+      expect(lines.size).toBe(1);
+      expect(lines.has(1)).toBe(true);
     });
   });
 

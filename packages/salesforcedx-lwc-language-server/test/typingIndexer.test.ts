@@ -105,7 +105,7 @@ describe('TypingIndexer', () => {
   describe('new', () => {
     it('initializes with the root of a workspace', async () => {
       expect(typingIndexerData.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
-      await expect(getSfdxPackageDirsPattern(typingIndexerData.workspaceRoot, sfdxFileSystemAccessor)).resolves.toEqual(
+      await expect(getSfdxPackageDirsPattern(typingIndexerData.workspaceRoot, sfdxFileSystemAccessor)).resolves.toBe(
         '{force-app,utils,registered-empty-folder}'
       );
     });
@@ -216,10 +216,10 @@ describe('TypingIndexer', () => {
 
   describe('pathBasename', () => {
     it('returns the basename of a path', () => {
-      expect(pathBasename('force-app/main/default/contentassets/logo.asset-meta.xml')).toEqual('logo');
-      expect(pathBasename('force-app/main/default/contentassets/logo.asset.d.ts')).toEqual('logo');
-      expect(pathBasename('force-app\\main\\default\\contentassets\\logo.asset.d.ts-meta.xml')).toEqual('logo');
-      expect(pathBasename('force-app\\main\\default\\contentassets\\logo.asset.d.ts')).toEqual('logo');
+      expect(pathBasename('force-app/main/default/contentassets/logo.asset-meta.xml')).toBe('logo');
+      expect(pathBasename('force-app/main/default/contentassets/logo.asset.d.ts')).toBe('logo');
+      expect(pathBasename('force-app\\main\\default\\contentassets\\logo.asset.d.ts-meta.xml')).toBe('logo');
+      expect(pathBasename('force-app\\main\\default\\contentassets\\logo.asset.d.ts')).toBe('logo');
     });
   });
 
