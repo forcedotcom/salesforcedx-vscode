@@ -28,8 +28,7 @@ test('Apex Outline: document symbols from external TS LS (desktop)', async ({ pa
 
   await test.step('focus Outline view and verify symbols', async () => {
     // Open command palette and focus outline view
-    const isMac = process.platform === 'darwin';
-    await page.keyboard.press(isMac ? 'Meta+Shift+KeyP' : 'Control+Shift+KeyP');
+    await page.keyboard.press('F1');
     const quickInput = page.locator(`${QUICK_INPUT_WIDGET} input[type="text"]`);
     await expect(quickInput).toBeVisible({ timeout: 5000 });
     await quickInput.fill('Focus on Outline View');
@@ -46,8 +45,7 @@ test('Apex Outline: document symbols from external TS LS (desktop)', async ({ pa
 
   await test.step('verify jorje is NOT loaded', async () => {
     // Open command palette and show output channels
-    const isMac = process.platform === 'darwin';
-    await page.keyboard.press(isMac ? 'Meta+Shift+KeyP' : 'Control+Shift+KeyP');
+    await page.keyboard.press('F1');
     const quickInput = page.locator(`${QUICK_INPUT_WIDGET} input[type="text"]`);
     await expect(quickInput).toBeVisible({ timeout: 5000 });
     await quickInput.fill('Output: Focus on Output View');
@@ -58,16 +56,12 @@ test('Apex Outline: document symbols from external TS LS (desktop)', async ({ pa
     const outputPanel = page.locator('.output-view, [id="workbench.panel.output"]');
     await expect(outputPanel).toBeVisible({ timeout: 10_000 });
 
-    // Check output channel selector for jorje channel
+    // Check output channel selector for jorje channel — assert unconditionally
     const channelSelector = page.locator('.output-view .monaco-select-box, [id="workbench.panel.output"] select');
-    const channelText = await channelSelector.textContent().catch(() => '');
-    // If we can see channel options, verify no jorje channel is active
-    if (channelText?.includes('Apex Language Server')) {
-      // Select the channel and verify no Prelude marker
-      const outputContent = page.locator('.output-view .view-lines, [id="workbench.panel.output"] .view-lines');
-      const content = await outputContent.textContent().catch(() => '');
-      expect(content).not.toContain('Prelude');
-    }
+    const channelText = await channelSelector.textContent({ timeout: 10_000 });
+    expect(channelText, 'Expected to read output channel list but got empty string').toBeTruthy();
+    // The jorje "Apex Language Server" output channel must not appear
+    expect(channelText).not.toContain('Apex Language Server');
   });
 
   await validateNoCriticalErrors(test, consoleErrors);

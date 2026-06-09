@@ -40,8 +40,7 @@ test('Apex Outline: document symbols from external TS LS (web)', async ({ page }
 
   await test.step('focus Outline view and verify symbols', async () => {
     // Open command palette and focus outline view
-    const isMac = process.platform === 'darwin';
-    await page.keyboard.press(isMac ? 'Meta+Shift+KeyP' : 'Control+Shift+KeyP');
+    await page.keyboard.press('F1');
     const quickInput = page.locator(`${QUICK_INPUT_WIDGET} input[type="text"]`);
     await expect(quickInput).toBeVisible({ timeout: 5000 });
     await quickInput.fill('Focus on Outline View');
@@ -54,6 +53,24 @@ test('Apex Outline: document symbols from external TS LS (web)', async ({ page }
       const methodNode = page.getByRole('treeitem', { name: /SayHello/ });
       await expect(methodNode).toBeVisible();
     }).toPass({ timeout: 120_000 });
+  });
+
+  await test.step('verify jorje is NOT loaded', async () => {
+    // jorje cannot run in browser (no JVM), but assert absence to catch accidental bundling regressions
+    await page.keyboard.press('F1');
+    const quickInput = page.locator(`${QUICK_INPUT_WIDGET} input[type="text"]`);
+    await expect(quickInput).toBeVisible({ timeout: 5000 });
+    await quickInput.fill('Output: Focus on Output View');
+    await page.keyboard.press('Enter');
+
+    const outputPanel = page.locator('.output-view, [id="workbench.panel.output"]');
+    await expect(outputPanel).toBeVisible({ timeout: 10_000 });
+
+    // Check output channel selector — jorje "Apex Language Server" must not appear
+    const channelSelector = page.locator('.output-view .monaco-select-box, [id="workbench.panel.output"] select');
+    const channelText = await channelSelector.textContent({ timeout: 10_000 });
+    expect(channelText, 'Expected to read output channel list but got empty string').toBeTruthy();
+    expect(channelText).not.toContain('Apex Language Server');
   });
 
   await validateNoCriticalErrors(test, consoleErrors);

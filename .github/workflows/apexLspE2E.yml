@@ -140,6 +140,7 @@ jobs:
     timeout-minutes: 30
 
     env:
+      # PORT 3001 matches createWebConfig/createHeadlessServer default; each workflow runs on isolated runners
       PORT: 3001
     steps:
       - name: Checkout repository

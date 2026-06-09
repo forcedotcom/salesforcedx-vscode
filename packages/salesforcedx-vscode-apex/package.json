@@ -124,10 +124,12 @@
     "test:web": {
       "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "dependencies": [
+        "test:compile",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/playwright/**/*.ts",
+        "test/playwright/web/**/*",
         "package*.json"
       ],
       "output": []
