@@ -167,17 +167,9 @@ The testing doc is a Slack canvas (no longer Quip). The template lives at https:
 
 Wait for the user to confirm the doc is ready before continuing.
 
-### 9b — Run smoke checks
+### 9b — Do the testing doc
 
 Tell the user: "Let me know when you've finished manually testing the installed vsixes (logged in the testing canvas) and you're ready to publish to the Microsoft Marketplace and Open VSX."
-
-Suggested smoke checks the user may run before confirming:
-
-- Authorize an org / set a default org
-- Deploy and retrieve metadata
-- Run an Apex test from the Test Explorer
-- Open SOQL Builder and run a query
-- Open the Org Browser
 
 Do not proceed until the user explicitly confirms testing is complete.
 
