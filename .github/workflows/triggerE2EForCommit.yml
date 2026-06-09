@@ -34,7 +34,7 @@ jobs:
   # 📦 Deploy & Retrieve — now covered by core Playwright tests (manifestBuilder, deployAndRetrieve, metadataDeployRetrieve, pushAndPull)
 
   # 🐛 Apex Features
-  # apex-lsp: migrated to Playwright in apexLspE2E.yml (apexLsp.desktop.spec.ts, apexLspRestart.desktop.spec.ts, apexLspHover.desktop.spec.ts)
+  # apex-lsp: migrated to Playwright in apexLspE2E.yml
 
   # apex-run-tests: migrated to Playwright in apexTestingE2E.yml (runApexTestsCommandPalette/CodeLens/FailAndFix.headless.spec.ts)
 
