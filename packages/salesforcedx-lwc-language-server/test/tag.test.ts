@@ -96,8 +96,8 @@ describe('Tag', () => {
     describe('#classMembers', () => {
       it('returns methods, properties, attributes. Everything defined on the component', () => {
         expect(getClassMembers(tag!).length).toBeGreaterThan(0);
-        expect(getClassMembers(tag!)[0].name).toEqual('todo');
-        expect(getClassMembers(tag!)[0].type).toEqual('property');
+        expect(getClassMembers(tag!)[0].name).toBe('todo');
+        expect(getClassMembers(tag!)[0].type).toBe('property');
       });
     });
 
@@ -113,8 +113,8 @@ describe('Tag', () => {
       it('returns a classMember of a Tag by name', () => {
         const location = getClassMemberLocation(tag!, 'todo');
         expect(location?.uri).toContain('metadata.js');
-        expect(location?.range.start.line).toEqual(9);
-        expect(location?.range.start.character).toEqual(4);
+        expect(location?.range.start.line).toBe(9);
+        expect(location?.range.start.character).toBe(4);
 
         expect(getClassMemberLocation(tag!, 'index')?.uri).toContain('metadata.js');
         expect(getClassMemberLocation(tag!, 'foo')).toBeNull();
@@ -163,25 +163,25 @@ describe('Tag', () => {
 
     describe('#name', () => {
       it('returns the filename for the component', () => {
-        expect(getTagName(tag!)).toEqual('metadata');
+        expect(getTagName(tag!)).toBe('metadata');
       });
     });
 
     describe('#lwcTypingsName', () => {
       it('returns the lwc import name for the component', () => {
-        expect(getLwcTypingsName(tag!)).toEqual('c/metadata');
+        expect(getLwcTypingsName(tag!)).toBe('c/metadata');
       });
     });
 
     describe('#auraName', () => {
       it('returns the name for the lwc component when referenced in an aura component', () => {
-        expect(getAuraName(tag!)).toEqual('c:metadata');
+        expect(getAuraName(tag!)).toBe('c:metadata');
       });
     });
 
     describe('#lwcName', () => {
       it('returns the name for the component when referenced in another lwc component', () => {
-        expect(getLwcName(tag!)).toEqual('c-metadata');
+        expect(getLwcName(tag!)).toBe('c-metadata');
       });
     });
 

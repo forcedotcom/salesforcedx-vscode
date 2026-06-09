@@ -52,7 +52,7 @@ describe('test project paths', () => {
 
     it('should return a path to the state folder if the project does not have a root workspace', () => {
       hasRootWorkspaceStub.mockReturnValue(false);
-      expect(projectPaths.stateFolder()).toEqual('');
+      expect(projectPaths.stateFolder()).toBe('');
     });
   });
   describe('test salesforceProjectConfig', () => {

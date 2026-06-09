@@ -74,7 +74,7 @@ describe('ComponentIndexer', () => {
     it('initializes with the root of a workspace', () => {
       // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
       expect(componentIndexer.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
-      expect(componentIndexer.workspaceType).toEqual('SFDX');
+      expect(componentIndexer.workspaceType).toBe('SFDX');
     });
   });
 
@@ -132,12 +132,12 @@ describe('ComponentIndexer', () => {
     describe('findTagByName', () => {
       it('finds tag with an exact match', () => {
         expect(componentIndexer.findTagByName('hello_world')).not.toBeNull();
-        expect(getTagName(componentIndexer.findTagByName('hello_world')!)).toEqual('hello_world');
+        expect(getTagName(componentIndexer.findTagByName('hello_world')!)).toBe('hello_world');
         expect(componentIndexer.findTagByName('foo')).toBeNull();
       });
 
       it('finds tag with lwc prefix', () => {
-        expect(getTagName(componentIndexer.findTagByName('c-hello_world')!)).toEqual('hello_world');
+        expect(getTagName(componentIndexer.findTagByName('c-hello_world')!)).toBe('hello_world');
         expect(componentIndexer.findTagByName('c-hello-world')).toBeNull();
         expect(componentIndexer.findTagByName('c-helloWorld')).toBeNull();
         expect(componentIndexer.findTagByName('c-todo-foo')).toBeNull();
@@ -146,9 +146,9 @@ describe('ComponentIndexer', () => {
       it('finds tag with aura prefix', () => {
         expect(componentIndexer.findTagByName('c:hello_world')).toBeNull();
         expect(componentIndexer.findTagByName('c:hello-world')).toBeNull();
-        expect(getTagName(componentIndexer.findTagByName('c:helloWorld')!)).toEqual('hello_world');
-        expect(getTagName(componentIndexer.findTagByName('c:todo')!)).toEqual('todo');
-        expect(getTagName(componentIndexer.findTagByName('c:todoItem')!)).toEqual('todo_item');
+        expect(getTagName(componentIndexer.findTagByName('c:helloWorld')!)).toBe('hello_world');
+        expect(getTagName(componentIndexer.findTagByName('c:todo')!)).toBe('todo');
+        expect(getTagName(componentIndexer.findTagByName('c:todoItem')!)).toBe('todo_item');
         expect(componentIndexer.findTagByName('c:todo-foo')).toBeNull();
       });
 
@@ -271,7 +271,7 @@ describe('ComponentIndexer', () => {
 
           // Read and parse the updated tsconfig
           const updatedTsconfigContent = await sfdxFileSystemAccessor.getFileContent(sfdxPath);
-          expect(updatedTsconfigContent).not.toBeUndefined();
+          expect(updatedTsconfigContent).toBeDefined();
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const tsconfig = JSON.parse(updatedTsconfigContent!);
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

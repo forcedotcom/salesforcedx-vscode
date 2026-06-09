@@ -891,9 +891,9 @@ describe('Replay debugger adapter - unit', () => {
       ]);
       expect(canSetLineBreakpointStub).toHaveBeenCalledTimes(2);
       expect(canSetLineBreakpointStub.mock.calls[0][0]).toEqual(uriFromLanguageServer);
-      expect(canSetLineBreakpointStub.mock.calls[0][1]).toEqual(1);
+      expect(canSetLineBreakpointStub.mock.calls[0][1]).toBe(1);
       expect(canSetLineBreakpointStub.mock.calls[1][0]).toEqual(uriFromLanguageServer);
-      expect(canSetLineBreakpointStub.mock.calls[1][1]).toEqual(2);
+      expect(canSetLineBreakpointStub.mock.calls[1][1]).toBe(2);
       expect(sendEventSpy).toHaveBeenCalledTimes(2);
       expect(sendEventSpy.mock.calls[0][0]).toBeInstanceOf(Event);
       expect(sendEventSpy.mock.calls[0][0].body.subject).toBe('Failed to set breakpoint');
@@ -985,7 +985,7 @@ describe('Replay debugger adapter - unit', () => {
         const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.mock.calls[0][0];
         expect(actualResponse.success).toBe(true);
         expect(actualResponse).toEqual(initializedResponse);
-        expect(adapter.getProjectPath()).toBe(undefined);
+        expect(adapter.getProjectPath()).toBeUndefined();
       });
 
       it('Should save line number mapping', async () => {

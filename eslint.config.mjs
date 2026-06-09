@@ -561,6 +561,7 @@ export default [
       'jest/unbound-method': 'error',
       'jest/no-focused-tests': 'error',
       'jest/prefer-to-have-length': 'error',
+      'jest/prefer-to-be': 'error',
       'jest/prefer-to-contain': 'error',
       'jest/no-test-prefixes': 'error',
       'jest/no-identical-title': 'error',

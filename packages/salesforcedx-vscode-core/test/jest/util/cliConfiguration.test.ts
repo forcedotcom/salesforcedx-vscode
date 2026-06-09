@@ -37,7 +37,7 @@ describe('SFDX CLI Configuration utility', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('sfdx --version');
       expect(consoleLogSpy).toHaveBeenCalledWith(mockOutput.toString());
-      expect(response).toEqual(true);
+      expect(response).toBe(true);
     });
 
     it('Should return false if sfdx command throws', () => {
@@ -50,7 +50,7 @@ describe('SFDX CLI Configuration utility', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('sfdx --version');
       expect(consoleErrorSpy).toHaveBeenCalledWith('An error happened while looking for sfdx cli', mockError);
-      expect(response).toEqual(false);
+      expect(response).toBe(false);
     });
 
     it('Should handle non-Error throws', () => {
@@ -63,7 +63,7 @@ describe('SFDX CLI Configuration utility', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith('sfdx --version');
       expect(consoleErrorSpy).toHaveBeenCalledWith('An error happened while looking for sfdx cli', 'string error');
-      expect(response).toEqual(false);
+      expect(response).toBe(false);
     });
   });
 });
