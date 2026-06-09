@@ -643,6 +643,10 @@ Steps (idempotent; skip work if already current):
 5. Conflicts → apply .claude/skills/merge-conflicts/SKILL.md best-effort. Unresolvable → 'git merge --abort' and DM ${identity.slackId} via mcp__slack__slack_send_message: "⚠️ ${r.wi.name} merge conflict with develop — manual intervention needed\\nWorktree: <path>\\nPR: ${r.wi.prUrl}". Return {ok: false, detail: "merge-conflict-unresolved"}.
 6. If package-lock.json changed, run 'npm install'.
 7. git push
+8. The push moved the head SHA forward, so any prior '/ai-auto approve' comment is now stale (it predates the new head). Delete the runner's OWN stale approve comments so reviewers don't have to mentally diff timestamps — it should look like the comment was never made:
+   - gh api repos/forcedotcom/salesforcedx-vscode/issues/<prNumber>/comments --paginate
+   - For each comment where user.login == ${identity.githubLogin} AND body matches /^\\/ai-auto approve\\b/m: 'gh api -X DELETE repos/forcedotcom/salesforcedx-vscode/issues/comments/<commentId>' (ignore individual failures).
+   Only do this when a commit was actually pushed in this run (skip entirely on the "already current" early return).
 
 Return {ok: true, detail: "<n> commits merged"} or {ok: false, detail}.`
 }
