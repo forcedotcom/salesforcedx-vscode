@@ -4,6 +4,7 @@
 
 - [Playwright e2e](./CONTEXT.md) — Playwright spec/helper conventions (root, until a narrower home exists)
 - [AI tooling](./.claude/CONTEXT.md) — skills, workflows, commands under `.claude/`
+- [salesforcedx-vscode-services](./packages/salesforcedx-vscode-services/CONTEXT.md) — services extension glossary (HashableUri, etc.)
 
 ## Relationships
 

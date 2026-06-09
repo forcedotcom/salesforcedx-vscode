@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.14.2",
+  "version": "67.0.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "@salesforce/templates": "^66.9.1",
+    "@salesforce/templates": "^66.9.2",
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -212,12 +212,6 @@
   "main": "./out/src",
   "contributes": {
     "menus": {
-      "explorer/context": [
-        {
-          "command": "sf.rename.lightning.component",
-          "when": "sf:project_opened && resource =~ /.*\\/(lwc|aura)\\/.*(\\/[^\\/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
-        }
-      ],
       "commandPalette": [
         {
           "command": "sf.open.documentation",
@@ -230,10 +224,6 @@
         {
           "command": "sf.alias.list",
           "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.rename.lightning.component",
-          "when": "false"
         }
       ]
     },
@@ -249,10 +239,6 @@
       {
         "command": "sf.alias.list",
         "title": "%alias_list_text%"
-      },
-      {
-        "command": "sf.rename.lightning.component",
-        "title": "%rename_lightning_component_text%"
       }
     ],
     "configuration": {

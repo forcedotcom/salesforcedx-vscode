@@ -8,7 +8,7 @@ If you're contributing to this repo, be sure to read the docs in `contributing`
 
 ### Core Topics
 
-- [Testing](./Testing.md) - unit tests, e2e testing (RedHat/Playwright), coverage
+- [Testing](./Testing.md) - unit tests, e2e testing (Playwright/legacy RedHat), coverage
 - [Build](./Build.md) - bundling, packaging, publishing
 - [Telemetry](./Telemetry.md) - usage metrics and logging
 
