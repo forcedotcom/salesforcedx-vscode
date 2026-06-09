@@ -35,7 +35,7 @@ test('Apex LSP: hover shows method signature for SayHello', async ({ page, works
     await sayHelloToken.waitFor({ state: 'visible', timeout: 10_000 });
     await sayHelloToken.hover();
 
-    const hoverCard = page.locator('.monaco-hover');
+    const hoverCard = page.locator('.monaco-hover:not(.hidden)').filter({ hasText: 'SayHello' });
     await expect(hoverCard, 'Apex LSP hover card should appear with SayHello method signature').toBeVisible({
       timeout: 20_000
     });
