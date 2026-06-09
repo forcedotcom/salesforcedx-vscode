@@ -10,6 +10,7 @@ import {
   clearOutputChannel,
   ensureOutputPanelOpen,
   executeCommandWithCommandPalette,
+  outputChannelContains,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   selectOutputChannel,
@@ -27,6 +28,43 @@ const RESTART_ONLY_LABEL = 'Restart Only';
 const CLEAN_AND_RESTART_LABEL = 'Clean Apex DB and Restart';
 const STANDARD_APEX_LIBRARY = 'StandardApexLibrary';
 const PRELUDE_STARTING = 'Apex Prelude Service STARTING';
+
+/**
+ * Assert the jorje-based Apex Language Server never started.
+ *
+ * A name-only check on the output-channel dropdown is unsound two ways: the external TS Apex LS may
+ * register a channel that also contains "Apex Language Server" (false fail), and reading the visible
+ * monaco-select-box only sees the active channel, not the full list (false pass). So this:
+ * 1. enumerates EVERY `<option>` in the hidden `select.monaco-select-box` (the full channel list), then
+ * 2. for any channel matching the jorje name, selects it and asserts its content lacks the jorje-unique
+ * `Apex Prelude Service STARTING` marker — distinguishing jorje from a same-named external channel.
+ */
+export const assertJorjeNotLoaded = async (page: Page): Promise<void> => {
+  await ensureOutputPanelOpen(page);
+
+  const panel = page.locator('[id="workbench.panel.output"]');
+  const dropdown = panel.locator('select.monaco-select-box');
+  await dropdown.waitFor({ state: 'attached', timeout: 10_000 });
+
+  const optionTexts = await dropdown.locator('option').allTextContents();
+  expect(optionTexts.length, 'Expected the output channel dropdown to list at least one channel').toBeGreaterThan(0);
+
+  const jorjeChannels = optionTexts.map(text => text.trim()).filter(text => text === APEX_LANGUAGE_SERVER_CHANNEL);
+
+  // No channel by that name → jorje definitely did not start.
+  if (jorjeChannels.length === 0) {
+    return;
+  }
+
+  // A channel with the jorje name exists; confirm it is NOT jorje by checking its content lacks the
+  // Prelude startup marker (which only the jorje server emits).
+  await selectOutputChannel(page, APEX_LANGUAGE_SERVER_CHANNEL);
+  const hasPrelude = await outputChannelContains(page, PRELUDE_STARTING, { timeout: 10_000 });
+  expect(
+    hasPrelude,
+    `jorje "${APEX_LANGUAGE_SERVER_CHANNEL}" output channel started (found "${PRELUDE_STARTING}")`
+  ).toBe(false);
+};
 
 /**
  * Locate the `<release>` directory under `.sfdx/tools/` (e.g. `254`, `262`). The Apex LSP creates

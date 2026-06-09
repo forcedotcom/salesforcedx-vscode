@@ -14,6 +14,8 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
+import { assertJorjeNotLoaded } from '../utils/apexLspUtils';
+
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
@@ -46,31 +48,18 @@ test('Apex Outline: document symbols from external TS LS (web)', async ({ page }
     await quickInput.fill('Focus on Outline View');
     await page.keyboard.press('Enter');
 
-    // Poll for expected symbols in the Outline tree
+    // Poll for expected symbols in the Outline tree. Scope to the Outline pane so the
+    // assertion cannot match the Explorer file node opened above or the editor breadcrumb.
+    const outline = page.locator('.outline-pane');
     await expect(async () => {
-      const classNode = page.getByRole('treeitem', { name: /ExampleClass/ });
-      await expect(classNode).toBeVisible();
-      const methodNode = page.getByRole('treeitem', { name: /SayHello/ });
-      await expect(methodNode).toBeVisible();
+      await expect(outline.getByRole('treeitem', { name: /ExampleClass/ })).toBeVisible();
+      await expect(outline.getByRole('treeitem', { name: /SayHello/ })).toBeVisible();
     }).toPass({ timeout: 120_000 });
   });
 
   await test.step('verify jorje is NOT loaded', async () => {
     // jorje cannot run in browser (no JVM), but assert absence to catch accidental bundling regressions
-    await page.keyboard.press('F1');
-    const quickInput = page.locator(`${QUICK_INPUT_WIDGET} input[type="text"]`);
-    await expect(quickInput).toBeVisible({ timeout: 5000 });
-    await quickInput.fill('Output: Focus on Output View');
-    await page.keyboard.press('Enter');
-
-    const outputPanel = page.locator('.output-view, [id="workbench.panel.output"]');
-    await expect(outputPanel).toBeVisible({ timeout: 10_000 });
-
-    // Check output channel selector — jorje "Apex Language Server" must not appear
-    const channelSelector = page.locator('.output-view .monaco-select-box, [id="workbench.panel.output"] select');
-    const channelText = await channelSelector.textContent({ timeout: 10_000 });
-    expect(channelText, 'Expected to read output channel list but got empty string').toBeTruthy();
-    expect(channelText).not.toContain('Apex Language Server');
+    await assertJorjeNotLoaded(page);
   });
 
   await validateNoCriticalErrors(test, consoleErrors);
