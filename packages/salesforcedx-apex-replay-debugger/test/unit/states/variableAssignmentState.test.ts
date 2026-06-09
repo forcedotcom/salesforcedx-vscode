@@ -160,7 +160,7 @@ describe('Variable assignment event', () => {
       expect(container.variablesRef).not.toBe(0);
       expect(container.variables.has('s')).toBe(true);
       const variables = container.getAllVariables();
-      expect(variables.length).toBe(1);
+      expect(variables).toHaveLength(1);
       expect(variables[0]).toMatchObject({
         name: 's',
         value: "'MyObject.s'",
@@ -205,7 +205,7 @@ describe('Variable assignment event', () => {
       expect(container.variables.has('a')).toBe(true);
       const innerContainer = container.variables.get('a') as ApexVariableContainer;
       const variables = innerContainer.getAllVariables();
-      expect(variables.length).toBe(1);
+      expect(variables).toHaveLength(1);
       expect(variables[0]).toMatchObject({
         name: 'Name',
         value: "'MyObjectAccount'",
