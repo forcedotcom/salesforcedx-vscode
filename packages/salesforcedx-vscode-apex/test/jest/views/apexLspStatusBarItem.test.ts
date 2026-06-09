@@ -13,10 +13,7 @@ jest.mock('vscode');
 
 describe('ApexLSPStatusBarItem', () => {
   let statusBarItem: ApexLSPStatusBarItem;
-  let createLanguageStatusItemMock: jest.SpyInstance;
-  let createDiagnosticCollectionMock: jest.SpyInstance;
   let setMock: jest.SpyInstance;
-  let uriFileMock: jest.SpyInstance;
   let mockLanguageStatusItem: vscode.LanguageStatusItem;
   let mockRestartStatusItem: vscode.LanguageStatusItem;
 
@@ -35,19 +32,19 @@ describe('ApexLSPStatusBarItem', () => {
       dispose: jest.fn()
     } as unknown as vscode.LanguageStatusItem;
 
-    createLanguageStatusItemMock = jest.spyOn(vscode.languages, 'createLanguageStatusItem').mockImplementation(id => {
+    jest.spyOn(vscode.languages, 'createLanguageStatusItem').mockImplementation(id => {
       if (id === 'ApexLSPLanguageStatusItem') {
         return mockLanguageStatusItem;
       }
       return mockRestartStatusItem;
     });
 
-    createDiagnosticCollectionMock = jest.spyOn(vscode.languages, 'createDiagnosticCollection').mockReturnValue({
+    jest.spyOn(vscode.languages, 'createDiagnosticCollection').mockReturnValue({
       set: jest.fn(() => Promise.resolve()),
       dispose: jest.fn()
     } as unknown as vscode.DiagnosticCollection);
 
-    uriFileMock = jest.spyOn(URI, 'file').mockReturnValue({
+    jest.spyOn(URI, 'file').mockReturnValue({
       fsPath: '/ApexLSP'
     } as unknown as URI);
 
@@ -56,12 +53,6 @@ describe('ApexLSPStatusBarItem', () => {
 
     // Initialize disposables array with the diagnostic collection
     statusBarItem['disposables'] = [statusBarItem['diagnostics']];
-
-    // Verify mocks were created successfully
-    expect(createLanguageStatusItemMock).toBeDefined();
-    expect(createDiagnosticCollectionMock).toBeDefined();
-    expect(uriFileMock).toBeDefined();
-    expect(setMock).toBeDefined();
   });
 
   afterEach(() => {

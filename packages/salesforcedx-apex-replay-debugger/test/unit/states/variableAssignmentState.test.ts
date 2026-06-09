@@ -25,6 +25,7 @@ import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '..
 describe('Variable assignment event', () => {
   let getUriFromSignatureStub: jest.SpyInstance;
   let context: LogContext;
+  let frameEntryHandleResult: boolean;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const uriFromSignature = 'file:///path/foo.cls';
@@ -47,7 +48,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      frameEntryHandleResult = state.handle(context);
 
       // add begin states for a local and static variable
       let beginState = new VariableBeginState(STATIC_PRIMITIVE_VARIABLE_SCOPE_BEGIN.split('|'));
@@ -61,6 +62,10 @@ describe('Variable assignment event', () => {
 
     afterEach(() => {
       getUriFromSignatureStub.mockRestore();
+    });
+
+    it('Should not stop the debugger when entering the frame', () => {
+      expect(frameEntryHandleResult).toBe(false);
     });
 
     it('Should assign static variable for class', () => {
@@ -111,7 +116,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      frameEntryHandleResult = state.handle(context);
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(LOCAL_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
@@ -122,6 +127,10 @@ describe('Variable assignment event', () => {
 
     afterEach(() => {
       getUriFromSignatureStub.mockRestore();
+    });
+
+    it('Should not stop the debugger when entering the frame', () => {
+      expect(frameEntryHandleResult).toBe(false);
     });
 
     it('Should create a nested variable for an empty object', () => {
@@ -251,7 +260,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      frameEntryHandleResult = state.handle(context);
       // add begin states for a local and static variable
       const beginState = new VariableBeginState(STATIC_NESTED_VARIABLE_SCOPE_BEGIN.split('|'));
       beginState.handle(context);
@@ -262,6 +271,10 @@ describe('Variable assignment event', () => {
 
     afterEach(() => {
       getUriFromSignatureStub.mockRestore();
+    });
+
+    it('Should not stop the debugger when entering the frame', () => {
+      expect(frameEntryHandleResult).toBe(false);
     });
 
     it('Should create a nested variable for an empty object', () => {
@@ -360,7 +373,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      frameEntryHandleResult = state.handle(context);
       // add begin states for a local and static variable
       let assignState = new VariableAssignmentState(CHILD_VARIABLE_ASSIGNMENT.split('|'));
       assignState.handle(context);
@@ -379,6 +392,10 @@ describe('Variable assignment event', () => {
 
     afterEach(() => {
       getUriFromSignatureStub.mockRestore();
+    });
+
+    it('Should not stop the debugger when entering the frame', () => {
+      expect(frameEntryHandleResult).toBe(false);
     });
 
     it('Should be able to pull reference values from json in assignments', () => {
@@ -442,7 +459,7 @@ describe('Variable assignment event', () => {
       const state = new FrameEntryState(['signature']);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
-      expect(state.handle(context)).toBe(false);
+      frameEntryHandleResult = state.handle(context);
       getUriFromSignatureStub = jest
         .spyOn(LogContext.prototype, 'getUriFromSignature')
         .mockReturnValue(uriFromSignature);
@@ -450,6 +467,10 @@ describe('Variable assignment event', () => {
 
     afterEach(() => {
       getUriFromSignatureStub.mockRestore();
+    });
+
+    it('Should not stop the debugger when entering the frame', () => {
+      expect(frameEntryHandleResult).toBe(false);
     });
 
     it('Should not created a nested ref for maps', () => {
