@@ -1,0 +1,7 @@
+# Prevent test/LSP artifacts from being committed
+.sfdx/
+.sf/
+*.log
+.vscode-test*
+node_modules/
+.vscode/
