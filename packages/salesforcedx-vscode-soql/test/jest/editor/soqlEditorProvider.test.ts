@@ -146,7 +146,7 @@ describe('SOQLEditorProvider', () => {
 
       soqlEditorProvider['disposeInstance'](mockInstance);
 
-      expect(soqlEditorProvider['instances'].length).toBe(0);
+      expect(soqlEditorProvider['instances']).toHaveLength(0);
     });
 
     it('should not remove anything if instance not found', () => {
@@ -157,7 +157,7 @@ describe('SOQLEditorProvider', () => {
 
       soqlEditorProvider['disposeInstance'](mockInstance2);
 
-      expect(soqlEditorProvider['instances'].length).toBe(1);
+      expect(soqlEditorProvider['instances']).toHaveLength(1);
     });
   });
 });

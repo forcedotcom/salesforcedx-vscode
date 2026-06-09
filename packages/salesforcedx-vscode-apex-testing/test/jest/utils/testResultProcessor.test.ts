@@ -107,7 +107,7 @@ describe('testResultProcessor', () => {
 
       // Verify the setup - the implementation uses Array.from(classItems.values()).find(item => item.label === className)
       const values = Array.from(classItems.values());
-      expect(values.length).toBe(1);
+      expect(values).toHaveLength(1);
       expect(values[0]).toBe(classItem);
       expect(values[0].label).toBe('MyTestClass');
       // Verify uri is accessible and truthy

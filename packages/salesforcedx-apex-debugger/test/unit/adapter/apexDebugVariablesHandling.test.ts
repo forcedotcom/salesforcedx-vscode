@@ -293,7 +293,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(container!.getNumberOfChildren()).toBe(1);
       expect(adapter.getNumberOfChildren(variableRef)).toBe(1);
       const expandedVariables = await container!.expand(adapter, 'all');
-      expect(expandedVariables.length).toBe(1);
+      expect(expandedVariables).toHaveLength(1);
       expect(expandedVariables[0].indexedVariables).toBe(2);
     });
 
@@ -528,7 +528,7 @@ describe('Debugger adapter variable handling - unit', () => {
       const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
       expect(response.success).toBe(true);
       const stackFrames = response.body.stackFrames;
-      expect(stackFrames.length).toBe(2);
+      expect(stackFrames).toHaveLength(2);
       expect(stackFrames[0].id).toBeTruthy(); // should have frame id
       const frameInfo = adapter.getStackFrameInfo(stackFrames[0].id);
       expect(frameInfo).toBeTruthy(); // should have frame info for frame id
@@ -578,7 +578,7 @@ describe('Debugger adapter variable handling - unit', () => {
       const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
       expect(response.success).toBe(true);
       const stackFrames = response.body.stackFrames;
-      expect(stackFrames.length).toBe(2);
+      expect(stackFrames).toHaveLength(2);
       expect(stackFrames[0].id).toBeTruthy(); // should have frame id
       const frameInfo = adapter.getStackFrameInfo(stackFrames[0].id);
       expect(frameInfo).toBeTruthy(); // should have frame info for frame id
@@ -645,7 +645,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.success).toBe(true);
       expect(response.body).toBeTruthy();
       expect(response.body.scopes).toBeTruthy();
-      expect(response.body.scopes.length).toBe(0);
+      expect(response.body.scopes).toHaveLength(0);
     });
 
     it('Should return three scopes for known frameId', async () => {
@@ -669,7 +669,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.success).toBe(true);
       expect(response.body).toBeTruthy();
       expect(response.body.scopes).toBeTruthy();
-      expect(response.body.scopes.length).toBe(3);
+      expect(response.body.scopes).toHaveLength(3);
       expect(response.body.scopes[0]).toEqual({
         name: 'Local',
         variablesReference: 1000,
@@ -704,7 +704,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       const localScope = new ScopeContainer('local', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
-      expect(vars.length).toBe(1);
+      expect(vars).toHaveLength(1);
       expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).toBe(0);
     });
 
@@ -724,7 +724,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       const localScope = new ScopeContainer('static', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
-      expect(vars.length).toBe(1);
+      expect(vars).toHaveLength(1);
       expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).toBe(0);
     });
 
@@ -744,7 +744,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       const localScope = new ScopeContainer('global', frameInfo);
       const vars = await localScope.expand(adapter, 'all', 0, 0);
-      expect(vars.length).toBe(1);
+      expect(vars).toHaveLength(1);
       expect(ApexVariable.compareVariables(expectedVariableObj, vars[0])).toBe(0);
     });
   });
@@ -774,7 +774,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.success).toBe(true);
       expect(response.body).toBeTruthy();
       expect(response.body.variables).toBeTruthy();
-      expect(response.body.variables.length).toBe(0);
+      expect(response.body.variables).toHaveLength(0);
       expect(resetIdleTimersSpy).not.toHaveBeenCalled();
     });
 
@@ -799,7 +799,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.success).toBe(true);
       expect(response.body).toBeTruthy();
       expect(response.body.variables).toBeTruthy();
-      expect(response.body.variables.length).toBe(2);
+      expect(response.body.variables).toHaveLength(2);
       expect(response.body.variables).toEqual(variables);
       expect(resetIdleTimersSpy).toHaveBeenCalledTimes(1);
     });
@@ -820,7 +820,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       const response = adapter.getResponse(0) as DebugProtocol.VariablesResponse;
       expect(response.success).toBe(true);
-      expect(response.body.variables.length).toBe(0);
+      expect(response.body.variables).toHaveLength(0);
       expect(resetIdleTimersSpy).not.toHaveBeenCalled();
     });
   });

@@ -27,11 +27,11 @@ describe('HTML Completion', () => {
   ) => {
     const matches = completions.items.filter(completion => completion.label === expected.label);
     if (expected.notAvailable) {
-      expect(matches.length).toBe(0);
+      expect(matches).toHaveLength(0);
       return;
     }
 
-    expect(matches.length).toBe(1);
+    expect(matches).toHaveLength(1);
     const match = matches[0];
 
     if (expected.documentation) {
