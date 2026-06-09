@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { defineConfig } from '@playwright/test';
+import { defineConfig, type PlaywrightTestConfig } from '@playwright/test';
 
 type DesktopConfigOptions = {
   /** Test directory relative to the config file (e.g. './specs') */
@@ -19,7 +19,7 @@ type DesktopConfigOptions = {
 };
 
 /** Creates a standardized Playwright desktop (Electron) config for VS Code extension testing */
-export const createDesktopConfig = (options: DesktopConfigOptions) => {
+export const createDesktopConfig = (options: DesktopConfigOptions): PlaywrightTestConfig => {
   const workers =
     options.workers ?? (process.env.PLAYWRIGHT_WORKERS ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10) : undefined);
   return defineConfig({
