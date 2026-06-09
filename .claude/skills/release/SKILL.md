@@ -152,17 +152,24 @@ User should reload VS Code and run a few commands to validate.
 
 ## Step 9 — Confirm manual testing is complete
 
-### 9a — Create the Quip testing document
+### 9a — Create the Slack testing canvas
 
-Quip cannot be accessed programmatically from this skill, so the user must create the document. Tell the user:
+The testing doc is a Slack canvas (no longer Quip). The template lives at https://salesforce.enterprise.slack.com/docs/T092Z56AE/F0B7RLRUSRG (canvas id `F0B7RLRUSRG`).
 
-> Create a new Quip testing document from the team's release-testing template and name it **Release Testing v\<version\>** (e.g. `Release Testing v66.13.0`), where `<version>` matches the GH release tag.
+**If Slack MCP is available**: create the per-release canvas directly.
 
-Use the version captured from `gh release view v<version>` in Step 7 (or `detect-state.ts` `version` field) so the title matches the published tag exactly. Wait for the user to confirm the doc is created and shared with the team before continuing.
+1. Read the template: `slack_read_canvas` with `canvas_id: F0B7RLRUSRG`.
+2. Create the new canvas with `slack_create_canvas`, title **Release Testing v\<version\>** (e.g. `Release Testing v66.15.0`), where `<version>` matches the GH release tag (`gh release view v<version>` in Step 7, or `detect-state.ts` `version`).
+3. Copy the template body, bumping the `Release Version` line and any version-specific section headers to `v<version>`. Drop the trailing image-based "Instructions"/"Org picker" sections — Slack file-image refs (`![...][img-...]`) don't transfer across canvases, so they render broken; the instruction links in the template remain the reference.
+4. Print the returned `canvas_url` to the user.
+
+**If Slack MCP is not available**: tell the user to copy the [template canvas](https://salesforce.enterprise.slack.com/docs/T092Z56AE/F0B7RLRUSRG) into a new canvas named **Release Testing v\<version\>** and share it with the team.
+
+Wait for the user to confirm the doc is ready before continuing.
 
 ### 9b — Run smoke checks
 
-Tell the user: "Let me know when you've finished manually testing the installed vsixes (logged in the Quip doc) and you're ready to publish to the Microsoft Marketplace and Open VSX."
+Tell the user: "Let me know when you've finished manually testing the installed vsixes (logged in the testing canvas) and you're ready to publish to the Microsoft Marketplace and Open VSX."
 
 Suggested smoke checks the user may run before confirming:
 
