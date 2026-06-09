@@ -28,63 +28,14 @@ This extension provides services used by other Salesforce extensions and is not 
 
 There are two ways to consume this extension's API:
 
-1. **Plain API (recommended for most consumers)** — Promise-based, no framework dependencies
-2. **Effect-based API** — full power of Effect-TS for extensions already using Effect
+1. **Effect-based API (recommended)** — full power of Effect-TS, reactive primitives, and composable layers
+2. **Plain API** — Promise-based, no framework dependencies, for extensions that cannot adopt Effect
 
 **Dependency Management**: This extension handles all internal dependencies (like `@salesforce/core` and `@salesforce/source-deploy-retrieve`). When you migrate to using this extension's API, you can remove those packages from your own extension's dependencies — the services extension manages them for you.
 
 **Migration Help**: Use the `/services-extension-consumption` skill in this repository to help migrate your extension to consume these services.
 
-### Plain API (No Effect Dependencies)
-
-The simplest way to consume services. No need to add `effect` as a dependency or learn Effect-TS patterns.
-
-```typescript
-import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
-import * as vscode from 'vscode';
-
-export const activate = async (context: vscode.ExtensionContext) => {
-  const ext = vscode.extensions.getExtension<SalesforceVSCodeServicesApi>(
-    'salesforce.salesforcedx-vscode-services'
-  );
-  const api = ext?.exports;
-  if (!api) throw new Error('Salesforce Services extension not available');
-
-  // Connection / Org Auth
-  const connection = await api.getConnection();
-  const orgInfo = await api.getTargetOrgInfo();
-  // orgInfo.orgId, orgInfo.username, orgInfo.userId, orgInfo.tracksSource, etc.
-
-  // React to org changes
-  const disposable = api.onDidChangeTargetOrg(info => {
-    console.log('Org changed:', info.username);
-  });
-  context.subscriptions.push(disposable);
-
-  // Workspace & Project
-  const workspace = await api.getWorkspaceInfo();
-  const isSf = await api.isSalesforceProject();
-
-  // Settings
-  const apiVersion = await api.getApiVersion();
-
-  // File System
-  const content = await api.readFile('/path/to/file.cls');
-  const exists = await api.fileOrFolderExists('/path/to/dir');
-
-  // Metadata Operations
-  const types = await api.describe();
-  const result = await api.deploy(componentSet);
-
-  // Source Tracking
-  const hasTracking = await api.hasTracking();
-  const conflicts = await api.getConflicts();
-};
-```
-
-All methods reject with a standard `Error` when something goes wrong. Tagged Effect errors are converted to descriptive messages (e.g., `"NoTargetOrgConfiguredError: No target org configured"`).
-
-### Effect-based API (Advanced)
+### Effect-based API (Recommended)
 
 For extensions already using Effect-TS that want full access to services, layers, and reactive primitives.
 
@@ -167,6 +118,55 @@ Effect.runPromise(myProgram.pipe(Effect.provide(AllServicesLayer)));
 ```
 
 See `packages/salesforcedx-vscode-metadata/src/services/extensionProvider.ts` for a complete example.
+
+### Plain API (No Effect Dependencies)
+
+For extensions that cannot adopt Effect-TS. No need to add `effect` as a dependency or learn Effect-TS patterns.
+
+```typescript
+import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import * as vscode from 'vscode';
+
+export const activate = async (context: vscode.ExtensionContext) => {
+  const ext = vscode.extensions.getExtension<SalesforceVSCodeServicesApi>(
+    'salesforce.salesforcedx-vscode-services'
+  );
+  const api = ext?.exports;
+  if (!api) throw new Error('Salesforce Services extension not available');
+
+  // Connection / Org Auth
+  const connection = await api.getConnection();
+  const orgInfo = await api.getTargetOrgInfo();
+  // orgInfo.orgId, orgInfo.username, orgInfo.userId, orgInfo.tracksSource, etc.
+
+  // React to org changes
+  const disposable = api.onDidChangeTargetOrg(info => {
+    console.log('Org changed:', info.username);
+  });
+  context.subscriptions.push(disposable);
+
+  // Workspace & Project
+  const workspace = await api.getWorkspaceInfo();
+  const isSf = await api.isSalesforceProject();
+
+  // Settings
+  const apiVersion = await api.getApiVersion();
+
+  // File System
+  const content = await api.readFile('/path/to/file.cls');
+  const exists = await api.fileOrFolderExists('/path/to/dir');
+
+  // Metadata Operations
+  const types = await api.describe();
+  const result = await api.deploy(componentSet);
+
+  // Source Tracking
+  const hasTracking = await api.hasTracking();
+  const conflicts = await api.getConflicts();
+};
+```
+
+All methods reject with a standard `Error` when something goes wrong. Tagged Effect errors are converted to descriptive messages (e.g., `"NoTargetOrgConfiguredError: No target org configured"`).
 
 ## Contributing
 
