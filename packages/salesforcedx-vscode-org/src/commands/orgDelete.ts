@@ -7,12 +7,11 @@
 
 import { AuthRemover, Global } from '@salesforce/core';
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   FlagParameter,
   LibraryCommandletExecutor,
   SfCommandlet,
-  SfCommandletExecutor,
   CliCommandExecutor,
   ContinueResponse,
   workspaceUtils
@@ -25,7 +24,6 @@ import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
-import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
 import { OrgToDelete, SelectDeletableOrg } from '../parameterGatherers/selectDeletableOrg';
 import { telemetryService } from '../telemetry';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
@@ -138,45 +136,6 @@ class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] 
   }
 }
 
-/** Executor for deleting the default org (no picker). */
-class OrgDeleteDefaultExecutor extends SfCommandletExecutor<{}> {
-  constructor() {
-    super(OUTPUT_CHANNEL);
-  }
-
-  public build(_data: {}): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('org_delete_default_text'))
-      .withArg('org:delete:scratch')
-      .withArg('--no-prompt')
-      .withLogName('org_delete_default')
-      .build();
-  }
-
-  public execute(response: ContinueResponse<{}>): void {
-    const startTime = globalThis.performance.now();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SF_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
-
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-
-    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const exitCode = Array.isArray(data) ? data[0] : data;
-      if (exitCode === 0) {
-        await updateConfigAndStateAggregators();
-      }
-    });
-  }
-}
-
 /** sf org delete can take longer than the default 30s simpleExec timeout. */
 const DELETE_TIMEOUT_MS = 120_000;
 
@@ -207,22 +166,8 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   yield* Effect.promise(() => updateConfigAndStateAggregators());
 });
 
+/** Picker-based delete (sf.org.delete.username). Default-org delete is handled by orgDeleteDefaultCommand. */
 export async function orgDelete(this: FlagParameter<string>) {
-  const flag = this ? this.flag : undefined;
-
-  if (flag === '--target-org') {
-    const commandlet = new SfCommandlet(
-      sfProjectPreconditionChecker,
-      new SelectDeletableOrg(),
-      new OrgDeleteExecutor()
-    );
-    await commandlet.run();
-  } else {
-    const commandlet = new SfCommandlet(
-      sfProjectPreconditionChecker,
-      new PromptConfirmGatherer(nls.localize('parameter_gatherer_placeholder_delete_default_org')),
-      new OrgDeleteDefaultExecutor()
-    );
-    await commandlet.run();
-  }
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new SelectDeletableOrg(), new OrgDeleteExecutor());
+  await commandlet.run();
 }
