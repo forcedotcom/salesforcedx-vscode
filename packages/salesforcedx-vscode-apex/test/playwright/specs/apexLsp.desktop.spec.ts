@@ -79,14 +79,15 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     // Wait for ExampleClassTest.cls to become the active tab (same race as Go to Definition step).
     const testTab = page.getByRole('tab', { name: 'ExampleClassTest.cls', exact: true }).first();
     await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
-    // Insert "\tExampleClass.say" at line 7 col 1, mirroring the WDIO sequence (apexLsp.e2e.ts:155).
+    // Line 7 is blank per fixture layout (desktopFixtures.ts:37) — load-bearing for autocompletion test.
+    // Insert "\tExampleClass.say" at line 7 col 1 to trigger autocompletion.
     await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
     await page.keyboard.type('7:1');
     await page.keyboard.press('Enter');
     await page.keyboard.type('\tExampleClass.say');
 
-    // `.show-file-icons` filters out Quick Pick / file-explorer monaco-list-row variants — matches
-    // the WDIO selector at apexLsp.e2e.ts:159 and avoids matching unrelated rows in the workbench.
+    // `.show-file-icons` filters out Quick Pick / file-explorer monaco-list-row variants and
+    // avoids matching unrelated rows in the workbench.
     const completionRows = page.locator('div.monaco-list-row.show-file-icons');
     const firstRow = completionRows.first();
     await expect(firstRow).toBeVisible({ timeout: 30_000 });
