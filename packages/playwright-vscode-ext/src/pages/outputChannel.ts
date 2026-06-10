@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { isDesktop, isMacDesktop } from '../utils/helpers';
+import { isDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 import { executeCommandWithCommandPalette, openCommandPalette } from './commands';
@@ -304,15 +304,6 @@ export const captureOutputChannelDetails = async (
 ): Promise<void> => {
   const safeChannelName = channelName.replaceAll(/[^a-zA-Z0-9]/g, '_');
   const screenshotFileName = screenshotName ?? `output-channel-${safeChannelName}.png`;
-
-  // Skip on Mac desktop - context menus don't work there
-  if (isMacDesktop()) {
-    console.log('Skipping "Open Output in Editor" on Mac Desktop (context menus not supported)');
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, channelName);
-    await saveScreenshot(page, `test-results/${screenshotFileName}`, true);
-    return;
-  }
 
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, channelName);
