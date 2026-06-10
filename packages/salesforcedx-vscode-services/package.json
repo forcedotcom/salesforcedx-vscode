@@ -48,7 +48,7 @@
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.21.2",
-    "jsforce": "^3.10.2",
+    "jsforce": "^3.10.15",
     "o11y_schema": "^260.65.0",
     "vscode-uri": "^3.1.0"
   },
