@@ -22,6 +22,7 @@ import functional from 'eslint-plugin-functional';
 import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 import effectPlugin from '@effect/eslint-plugin';
 import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
+import eslintPluginPlaywright from 'eslint-plugin-playwright';
 import jsonPlugin from '@eslint/json';
 
 import htmlEslintPlugin from '@html-eslint/eslint-plugin';
@@ -585,7 +586,8 @@ export default [
     ],
     ignores: ['**/locators.ts'],
     plugins: {
-      local: localPlugin
+      local: localPlugin,
+      playwright: eslintPluginPlaywright
     },
     rules: {
       'local/no-runtime-vscode-import': 'error'
