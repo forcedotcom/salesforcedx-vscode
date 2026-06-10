@@ -11,15 +11,6 @@ import { desktopTest, emptyWorkspaceDesktopTest, multiPackageNoOrgDesktopTest, n
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 
-// Keep browser open on test failure when in debug mode
-webTest.afterEach(async ({ page }, testInfo) => {
-  if (process.env.DEBUG_MODE && testInfo.status !== 'passed') {
-    console.log('\n🔍 DEBUG_MODE: Test failed - pausing to keep browser open.');
-    console.log('Press Resume in Playwright Inspector or close browser to continue.');
-    await page.pause();
-  }
-});
-
 export const test = isDesktop ? desktopTest : webTest;
 export const emptyWorkspaceTest = isDesktop ? emptyWorkspaceDesktopTest : webTest;
 export const noOrgTest = isDesktop ? noOrgDesktopTest : webTest;

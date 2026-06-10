@@ -11,12 +11,4 @@ import { desktopTest } from './desktopFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 
-webTest.afterEach(async ({ page }, testInfo) => {
-  if (process.env.DEBUG_MODE && testInfo.status !== 'passed') {
-    console.log('\n🔍 DEBUG_MODE: Test failed - pausing to keep browser open.');
-    console.log('Press Resume in Playwright Inspector or close browser to continue.');
-    await page.pause();
-  }
-});
-
 export const test = isDesktop ? desktopTest : webTest;
