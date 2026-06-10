@@ -77,5 +77,9 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   // remote connection that doesn't exist in @vscode/test-web. Tracked upstream:
   // https://github.com/microsoft/vscode/issues/318222
   'agentHostSandboxForwarder',
-  'Remote agent host is not enabled'
+  'Remote agent host is not enabled',
+  // External salesforce.apex-language-server-extension v0.4.0 ships a manifest whose view
+  // declaration omits the mandatory `icon` string; VS Code logs a manifest-validation console
+  // error on activation. Benign to E2E — unrelated to the document-symbol behavior under test.
+  'apex-language-server-extension]: property `icon` is mandatory'
 ] as const;
