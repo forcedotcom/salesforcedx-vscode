@@ -22,7 +22,6 @@ import {
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   saveScreenshot,
-  isMacDesktop,
   validateNoCriticalErrors,
   EDITOR,
   NOTIFICATION_LIST_ITEM,
@@ -34,7 +33,7 @@ import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/consta
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
-(isMacDesktop() ? test.skip.bind(test) : test)('Deploy Source Path: deploys via all entry points', async ({ page }) => {
+test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
   test.setTimeout(DEPLOY_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);

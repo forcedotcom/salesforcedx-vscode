@@ -21,7 +21,6 @@ import {
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   executeCommandWithCommandPalette,
-  isMacDesktop,
   validateNoCriticalErrors,
   captureOutputChannelDetails,
   NOTIFICATION_LIST_ITEM,
@@ -41,7 +40,7 @@ import { DEPLOY_TIMEOUT } from '../../constants';
 // eslint-disable-next-line unicorn/prefer-string-replace-all -- regex escaping requires replace with regex pattern
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-(isMacDesktop() ? test.skip.bind(test) : test)('Deploy Manifest: deploys via all entry points', async ({ page }) => {
+test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
   test.setTimeout(DEPLOY_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);

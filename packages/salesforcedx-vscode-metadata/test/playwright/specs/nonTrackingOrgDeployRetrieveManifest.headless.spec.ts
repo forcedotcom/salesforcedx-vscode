@@ -23,7 +23,6 @@ import {
   selectOutputChannel,
   waitForOutputChannelText,
   isDesktop,
-  isMacDesktop,
   activeQuickInputWidget,
   EDITOR,
   ensureSecondarySideBarHidden
@@ -34,7 +33,7 @@ import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
-(isDesktop() && !isMacDesktop() ? test : test.skip.bind(test))(
+(isDesktop() ? test : test.skip.bind(test))(
   'Non-Tracking Org: deploy/retrieve via manifest work without tracking',
   async ({ page }) => {
     test.setTimeout(RETRIEVE_TIMEOUT);
