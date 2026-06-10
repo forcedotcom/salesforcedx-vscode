@@ -15,11 +15,11 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -137,18 +137,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
 
     // Open palette via F1 only (no workbench.click) to preserve editorHasSelection for the when condition
     await page.keyboard.press('F1');
-    const execSelWidget = page.locator(QUICK_INPUT_WIDGET);
-    await execSelWidget.waitFor({ state: 'visible', timeout: 10000 });
-    await page.keyboard.type(apexLogNls['apexLog.command.executeSelection'] as string);
-    await expect(execSelWidget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10000 });
-    await execSelWidget
-      .locator(QUICK_INPUT_LIST_ROW)
-      .filter({ hasText: /^SFDX: Execute Anonymous Apex with Editor's Selected Text/ })
-      .first()
-      .evaluate(el => {
-        el.scrollIntoView({ block: 'center', behavior: 'instant' });
-        (el as HTMLElement).click();
-      });
+    await selectQuickInputOptionByTyping(page, apexLogNls['apexLog.command.executeSelection'] as string);
 
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)

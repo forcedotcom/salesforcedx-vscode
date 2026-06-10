@@ -44,7 +44,7 @@ describe('CommandOutput Unit Tests.', () => {
     // Call the exit callback with a 0 response to indicate success
     exitCallback(successCode);
     await result.then(outValue => {
-      expect(outValue).toEqual('');
+      expect(outValue).toBe('');
     });
   });
 

@@ -11,21 +11,20 @@ import {
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForOutputChannelText,
-  waitForQuickInputFirstOption
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 
 /** Run Create Apex Test Suite via command palette: type suite name, select one class, confirm. */
@@ -45,18 +44,8 @@ const createApexTestSuiteViaPalette = async (
   // Wait for next prompt (select test classes)
   await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
-  // Wait for the quick pick list to populate
-  await waitForQuickInputFirstOption(page);
-
-  // Type test class name to filter the list
-  await page.keyboard.type(testClassName);
-
-  // Wait for the filtered test class to appear in the list
-  const testClassRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testClassName, 'i') });
-  await testClassRow.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Click the row to select it
-  await testClassRow.click();
+  // Multi-select (canPickMany) picker: toggle the matching row checkbox, then confirm
+  await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000, multiSelect: true });
 
   // Press Enter to confirm selection
   await page.keyboard.press('Enter');
@@ -68,28 +57,16 @@ const selectSuiteInQuickPick = async (
   testSuiteName: string,
   options?: { waitForListRowMs?: number }
 ): Promise<void> => {
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
-  await page.keyboard.type(testSuiteName);
-  await waitForQuickInputFirstOption(page, { retryTimeout: options?.waitForListRowMs });
-  const suiteOption = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testSuiteName, 'i') });
-  await suiteOption.waitFor({ state: 'visible', timeout: 10_000 });
-  await suiteOption.click();
+  await selectQuickInputOptionByTyping(page, testSuiteName, {
+    quickInputTimeout: 15_000,
+    optionTimeout: options?.waitForListRowMs
+  });
 };
 
 /** Select a test class in a quick pick (type to filter, click row to select, then Enter). */
 const selectTestClassInQuickPick = async (page: Page, testClassName: string): Promise<void> => {
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
-
-  // Type test class name to filter the list
-  await page.keyboard.type(testClassName);
-
-  // Wait for the filtered test class to appear in the list
-  const testClassRow = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testClassName, 'i') });
-  await testClassRow.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Click the row to select it
-  await testClassRow.click();
+  // Multi-select (canPickMany) picker: toggle the matching row checkbox, then confirm
+  await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000, multiSelect: true });
 
   // Press Enter to confirm selection
   await page.keyboard.press('Enter');
