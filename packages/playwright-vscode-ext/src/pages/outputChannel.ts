@@ -294,7 +294,7 @@ export const waitForOutputChannelText = async (
 /**
  * Opens output channel for a named extension, opens it in editor, and takes a screenshot.
  * Useful for debugging when errors occur.
- * Note: Context menus don't work on Mac+Desktop+Electron, so this will skip on that platform.
+ * Note: Context menus now work on Mac desktop via `window.menuStyle: custom` (VS Code 1.101+).
  * In web VS Code, if opening in editor fails, falls back to screenshotting the output panel directly.
  */
 export const captureOutputChannelDetails = async (
