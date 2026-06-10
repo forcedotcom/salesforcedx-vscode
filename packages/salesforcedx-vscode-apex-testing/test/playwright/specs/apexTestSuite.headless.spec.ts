@@ -44,8 +44,8 @@ const createApexTestSuiteViaPalette = async (
   // Wait for next prompt (select test classes)
   await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
-  // Type test class name to filter the list, then click the matching row
-  await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000 });
+  // Multi-select (canPickMany) picker: toggle the matching row checkbox, then confirm
+  await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000, multiSelect: true });
 
   // Press Enter to confirm selection
   await page.keyboard.press('Enter');
@@ -65,8 +65,8 @@ const selectSuiteInQuickPick = async (
 
 /** Select a test class in a quick pick (type to filter, click row to select, then Enter). */
 const selectTestClassInQuickPick = async (page: Page, testClassName: string): Promise<void> => {
-  // Type test class name to filter the list, then click the matching row
-  await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000 });
+  // Multi-select (canPickMany) picker: toggle the matching row checkbox, then confirm
+  await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000, multiSelect: true });
 
   // Press Enter to confirm selection
   await page.keyboard.press('Enter');
