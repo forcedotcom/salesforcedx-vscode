@@ -3,6 +3,7 @@ export const meta = {
   description: 'Drain GUS work items tagged [ai-auto] end-to-end: claim → plan → build → review → draft PR. Stateless across ticks; pair with /loop.',
   whenToUse: 'Run on a schedule via /loop (e.g. /loop 10m /auto-build-wi). Each tick monitors in-flight WIs and may claim a new one.',
   phases: [
+    { title: 'Acquire lock' },
     { title: 'Resolve identity' },
     { title: 'Ensure daemons' },
     { title: 'Reap stranded worktrees' },
@@ -47,6 +48,17 @@ const REVIEW_SKILL_DENYLIST = [
 ]
 const REVIEW_CHANNEL_ID = 'C054SJJAB24'
 const PR_URL_RE = /https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+/g
+
+// Single-run guard: overlapping /loop ticks must NOT run concurrently. The Claude Code
+// scheduler's own .claude/scheduled_tasks.lock only enforces one scheduler per project — it
+// does NOT gate this tick's workflow against the previous tick's still-running workflow
+// (workflows run detached in the background; the firing turn ends in seconds). So this
+// workflow holds its OWN lock for the full run and drops it in a finally. Separate filename —
+// never touch the scheduler's lock.
+const LOCK_PATH = '.claude/auto-build-wi.lock'
+// Worst-case run (monitor → plan → build → review across several opus agents) fits well under
+// this. A run that crashed without releasing is stolen once its lock ages past the window.
+const LOCK_STALE_MINUTES = 90
 
 // =====================================================================
 // SCHEMAS
@@ -344,6 +356,18 @@ const FILES_SCHEMA = {
   properties: { files: { type: 'array', items: { type: 'string' } } },
 }
 
+const LOCK_ACQUIRE_SCHEMA = {
+  type: 'object',
+  required: ['acquired'],
+  properties: {
+    acquired: { type: 'boolean' },
+    // Opaque per-run token written into the lock. Release deletes the lock ONLY if the
+    // on-disk token still matches — so a stolen-then-reacquired lock isn't dropped by us.
+    token: { type: ['string', 'null'] },
+    detail: { type: ['string', 'null'] },
+  },
+}
+
 // =====================================================================
 // HELPERS
 // =====================================================================
@@ -485,15 +509,60 @@ const classifyMonitor = monitorOutcomes => ({
 // PROMPTS
 // =====================================================================
 
+const acquireLockPrompt = `Acquire the auto-build-wi single-run lock so two overlapping /loop ticks don't build concurrently.
+
+Run from the project root. Lock file: ${LOCK_PATH}. Staleness window: ${LOCK_STALE_MINUTES} minutes.
+
+Do EXACTLY this in one bash invocation (atomic create via noclobber; steal only if stale):
+
+  LOCK=${LOCK_PATH}
+  TOKEN=\$(uuidgen)
+  NOW=\$(date +%s)
+  STALE=\$(( ${LOCK_STALE_MINUTES} * 60 ))
+  mkdir -p .claude
+  if ( set -o noclobber; printf '{"token":"%s","acquiredAt":%s}\\n' "\$TOKEN" "\$NOW" > "\$LOCK" ) 2>/dev/null; then
+    echo "ACQUIRED \$TOKEN"
+  else
+    AGE=\$(( NOW - \$(sed -n 's/.*"acquiredAt":\\([0-9]*\\).*/\\1/p' "\$LOCK" 2>/dev/null || echo 0) ))
+    if [ "\$AGE" -ge "\$STALE" ]; then
+      rm -f "\$LOCK"
+      if ( set -o noclobber; printf '{"token":"%s","acquiredAt":%s}\\n' "\$TOKEN" "\$NOW" > "\$LOCK" ) 2>/dev/null; then
+        echo "STOLEN \$TOKEN (prior lock aged \${AGE}s)"
+      else
+        echo "HELD"
+      fi
+    else
+      echo "HELD (\$AGE s old)"
+    fi
+  fi
+
+Interpret the output:
+- "ACQUIRED <token>" → {acquired: true, token: "<token>", detail: "acquired"}
+- "STOLEN <token> ..." → {acquired: true, token: "<token>", detail: "<the message>"}
+- "HELD ..." → {acquired: false, token: null, detail: "<the message>"}
+
+Do NOT touch .claude/scheduled_tasks.lock — that is Claude Code's scheduler lock, not this one. Structured result only.`
+
+const releaseLockPrompt = token =>
+  `Release the auto-build-wi lock — but ONLY if it is still ours.
+
+Run from the project root. Our token: ${token}. Lock file: ${LOCK_PATH}.
+
+  LOCK=${LOCK_PATH}
+  CUR=\$(sed -n 's/.*"token":"\\([^"]*\\)".*/\\1/p' "\$LOCK" 2>/dev/null)
+  if [ "\$CUR" = "${token}" ]; then rm -f "\$LOCK"; echo "RELEASED"; else echo "NOT-OURS (\$CUR)"; fi
+
+Return {ok: true, detail: "<RELEASED or NOT-OURS ...>"}. Never error. Do NOT touch .claude/scheduled_tasks.lock.`
+
 const identityPrompt = `Resolve runner identity per .claude/skills/gus-cli/SKILL.md → ## Runner identity.
 
 Schema: {userId, username, ownerPrefix, slackId, githubLogin, projectRoot}.
 
 1. Capture currentProjectRoot = 'pwd' (the workflow runs from the project root). Strip trailing slashes.
 2. 'sf alias list --json' → /^gus$/i. Missing → {error: "no gus alias — run 'sf org login web -a gus'"}. Value = currentUsername.
-3. Read $HOME/.claude/runner-identity.json. Cache hit requires: all 6 fields present, cached username == currentUsername, AND cached projectRoot exists as a directory ('test -d "<cached.projectRoot>"'). On hit, return cached. Stop.
+3. Read \$HOME/.claude/runner-identity.json. Cache hit requires: all 6 fields present, cached username == currentUsername, AND cached projectRoot exists as a directory ('test -d "<cached.projectRoot>"'). On hit, return cached. Stop.
 4. Miss → resolve per skill: query userId, match team table for githubLogin/slackId/ownerPrefix. Sanity-check team row Id == userId; mismatch → {error: "team table Id != User query Id"}. Not in table → {error: "runner '<currentUsername>' not in gus-cli Team members"}. Set projectRoot = currentProjectRoot.
-5. mkdir -p $HOME/.claude; write JSON (all 6 fields). Write failure non-fatal — still return object.
+5. mkdir -p \$HOME/.claude; write JSON (all 6 fields). Write failure non-fatal — still return object.
 
 Structured result only.`
 
@@ -1071,6 +1140,25 @@ Return {prUrl, prNumber}.`
 // =====================================================================
 // PHASE FUNCTIONS
 // =====================================================================
+
+const acquireLock = async () => {
+  phase('Acquire lock')
+  return await agent(acquireLockPrompt, {
+    schema: LOCK_ACQUIRE_SCHEMA,
+    label: 'acquire-lock',
+    phase: 'Acquire lock',
+    model: 'haiku',
+  })
+}
+
+const releaseLock = async token => {
+  await agent(releaseLockPrompt(token), {
+    schema: OK_SCHEMA,
+    label: 'release-lock',
+    phase: 'Acquire lock',
+    model: 'haiku',
+  })
+}
 
 const resolveIdentity = async () => {
   phase('Resolve identity')
@@ -1663,6 +1751,17 @@ const draftPr = async (chosen, identity, fixerResult) => {
 // ORCHESTRATION
 // =====================================================================
 
+// Single-run guard FIRST: if a prior tick's workflow is still running, skip this tick
+// entirely rather than stacking a second concurrent build.
+const lock = await acquireLock()
+if (!lock.acquired) {
+  log(`prior run in progress (${lock.detail}) — skipping this tick`)
+  return { exited: 'locked', detail: lock.detail }
+}
+log(`acquired single-run lock (${lock.detail})`)
+
+try {
+
 const identity = await resolveIdentity()
 if (identity.error || !identity.userId) {
   log(`identity resolution failed: ${identity.error || 'unknown'} — exiting`)
@@ -1739,4 +1838,11 @@ return {
   wi: chosen.name,
   prUrl: prResult.prUrl,
   finalized: toFinalize.length,
+}
+
+} finally {
+  // Runs on every exit path — normal return, early return, or throw — so a crashed
+  // run still releases (and if it can't, the staleness window lets the next tick steal).
+  await releaseLock(lock.token)
+  log('released single-run lock')
 }
