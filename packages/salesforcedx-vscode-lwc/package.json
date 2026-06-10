@@ -42,7 +42,7 @@
     "which": "1.3.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
+    "@playwright/test": "^1.60.0",
     "@salesforce/playwright-vscode-ext": "*",
     "@types/uuid": "^3.4.8",
     "@types/which": "^1.3.1",

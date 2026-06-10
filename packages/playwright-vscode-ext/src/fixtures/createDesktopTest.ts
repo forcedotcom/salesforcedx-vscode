@@ -13,6 +13,7 @@ import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { filterErrors } from '../utils/helpers';
@@ -239,9 +240,11 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
 
     // Launch fresh Electron instance per test
     electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
-      // Use subdirectory of workspace for user data (keeps everything isolated and together)
-      const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
-      await fs.mkdir(userDataDir, { recursive: true });
+      // User data dir must live OUTSIDE the opened workspace folder. On VS Code 1.124 (Chromium 148)
+      // placing it inside the workspace makes the Electron main process exit before the first window
+      // opens ("Waiting for the debugger to disconnect"), so electronApp.firstWindow() throws
+      // "Target page, context or browser has been closed".
+      const userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-e2e-user-data-'));
       const effectiveUserSettings = {
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
         'window.menuStyle': 'custom', // Keep context menus in the DOM so Playwright can interact with them on macOS.
@@ -308,7 +311,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           ...startupArgs
         ]
         : await (async (): Promise<string[]> => {
-          const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
+          // Keep the extensions dir outside the opened workspace folder for the same reason as userDataDir.
+          const extensionsDir = path.join(userDataDir, 'extensions');
           await fs.mkdir(extensionsDir, { recursive: true });
           const extensionArgs = [
             // Extension path is the package root (contains package.json and bundled dist/index.js)
