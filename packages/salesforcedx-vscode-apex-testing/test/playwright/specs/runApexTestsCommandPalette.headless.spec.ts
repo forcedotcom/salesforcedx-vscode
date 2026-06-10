@@ -26,7 +26,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 
 test('Run Apex Tests via Command Palette: run all, then run single class', async ({ page }) => {

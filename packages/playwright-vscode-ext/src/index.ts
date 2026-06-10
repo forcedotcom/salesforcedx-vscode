@@ -13,6 +13,7 @@ export {
   waitForQuickInputFirstOption,
   selectFirstQuickInputOption,
   selectQuickInputOption,
+  selectQuickInputOptionByTyping,
   closeWelcomeTabs,
   dismissSignInWalkthroughDialog,
   closeSettingsTab,

@@ -20,7 +20,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   STALE_AUTOCOMPLETE_OPTION,
   TEST_EXPLORER_PANEL,

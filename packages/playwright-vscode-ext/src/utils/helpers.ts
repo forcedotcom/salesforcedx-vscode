@@ -233,6 +233,29 @@ export const selectQuickInputOption = async (
 };
 
 /**
+ * Select a quick-pick option by typing a filter string then clicking the first matching row.
+ *
+ * Waits for the quick input widget, types `filterText` to narrow the list, then clicks the row
+ * whose text matches `filterText` (case-insensitive). Use for pickers that populate asynchronously
+ * (e.g. the Apex test-class picker) where typing is needed to surface the desired option.
+ *
+ * @param filterText Text to type into the quick input and match against list rows.
+ * @param options.quickInputTimeout Wait for the widget to appear, ms (default 10_000).
+ * @param options.optionTimeout Wait for the matching row to be visible, ms (default 10_000).
+ */
+export const selectQuickInputOptionByTyping = async (
+  page: Page,
+  filterText: string,
+  options?: { quickInputTimeout?: number; optionTimeout?: number }
+): Promise<void> => {
+  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: options?.quickInputTimeout ?? 10_000 });
+  await page.keyboard.type(filterText);
+  const option = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(filterText, 'i') });
+  await option.waitFor({ state: 'visible', timeout: options?.optionTimeout ?? 10_000 });
+  await option.click();
+};
+
+/**
  * Dismiss the VS Code 1.116+ "Welcome to VS Code" modal sign-in walkthrough that can appear on
  * first launch. This dialog is modal and blocks all other keyboard input (command palette, etc.)
  * until dismissed, so it must be closed before anything else. Clicks "Continue without Signing In"
