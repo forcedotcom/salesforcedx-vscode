@@ -6,12 +6,7 @@
  */
 
 import { expect } from '@playwright/test';
-import {
-  QUICK_INPUT_WIDGET,
-  openFileByName,
-  setupConsoleMonitoring,
-  validateNoCriticalErrors
-} from '@salesforce/playwright-vscode-ext';
+import { openFileByName, setupConsoleMonitoring, validateNoCriticalErrors } from '@salesforce/playwright-vscode-ext';
 
 import { outlineTest as test } from '../fixtures/outlineFixtures';
 import { assertJorjeNotLoaded } from '../utils/apexLspUtils';
@@ -28,12 +23,15 @@ test('Apex Outline: document symbols from external TS LS (desktop)', async ({ pa
   });
 
   await test.step('focus Outline view and verify symbols', async () => {
-    // Open command palette and focus outline view
-    await page.keyboard.press('F1');
-    const quickInput = page.locator(`${QUICK_INPUT_WIDGET} input[type="text"]`);
-    await expect(quickInput).toBeVisible({ timeout: 5000 });
-    await quickInput.fill('Focus on Outline View');
-    await page.keyboard.press('Enter');
+    // Expand the OUTLINE section in the Explorer. The command-palette "Focus on Outline View"
+    // command title is not reliably matchable across VS Code versions (yields "No matching
+    // results"), so click the section header directly — works identically in web and desktop.
+    const outlineHeader = page.getByRole('button', { name: 'Outline Section', exact: true });
+    await expect(outlineHeader).toBeVisible({ timeout: 30_000 });
+    const expanded = await outlineHeader.getAttribute('aria-expanded');
+    if (expanded !== 'true') {
+      await outlineHeader.click();
+    }
 
     // Poll for expected symbols in the Outline tree. Scope to the Outline pane so the
     // assertion cannot match the Explorer file node or the editor breadcrumb.

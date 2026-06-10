@@ -19,8 +19,12 @@ type WebConfigOptions = {
 };
 
 /** Creates a standardized Playwright web config for VS Code extension testing */
-export const createWebConfig = (options: WebConfigOptions) =>
-  defineConfig({
+export const createWebConfig = (options: WebConfigOptions) => {
+  // headlessServer (createHeadlessServer) binds to process.env.PORT || 3001. Keep baseURL/webServer.url
+  // in sync so playwright waits on the port the server actually listens on (CI may set PORT to avoid collisions).
+  const port = Number(process.env.PORT) || 3001;
+  const baseURL = `http://localhost:${port}`;
+  return defineConfig({
     testDir: options.testDir,
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
@@ -30,7 +34,7 @@ export const createWebConfig = (options: WebConfigOptions) =>
       : [['html', { open: 'never' }], ['list']],
     use: {
       viewport: { width: 1920, height: 1080 },
-      baseURL: 'http://localhost:3001',
+      baseURL,
       trace: process.env.CI ? 'on' : 'on-first-retry',
       screenshot: process.env.CI ? 'on' : 'only-on-failure',
       video: process.env.CI ? 'on' : 'retain-on-failure',
@@ -60,7 +64,7 @@ export const createWebConfig = (options: WebConfigOptions) =>
     ],
     webServer: {
       command: 'tsx web/headlessServer.ts',
-      url: 'http://localhost:3001',
+      url: baseURL,
       timeout: 120 * 1000,
       // CI: always spawn headlessServer so runs are isolated. Local (`reuseExistingServer: !process.env.CI`): if 3001
       // is already up (stale headlessServer), reuse it instead of failing with "already used". For a guaranteed fresh
@@ -69,3 +73,4 @@ export const createWebConfig = (options: WebConfigOptions) =>
       reuseExistingServer: !process.env.CI
     }
   });
+};
