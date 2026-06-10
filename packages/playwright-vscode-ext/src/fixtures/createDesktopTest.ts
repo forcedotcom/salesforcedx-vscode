@@ -244,6 +244,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       // placing it inside the workspace makes the Electron main process exit before the first window
       // opens ("Waiting for the debugger to disconnect"), so electronApp.firstWindow() throws
       // "Target page, context or browser has been closed".
+      // Cleaned up in the finally block below (it lives in os.tmpdir(), outside the workspace,
+      // so it is no longer removed implicitly with the workspace dir).
       const userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-e2e-user-data-'));
       const effectiveUserSettings = {
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
@@ -312,6 +314,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         ]
         : await (async (): Promise<string[]> => {
           // Keep the extensions dir outside the opened workspace folder for the same reason as userDataDir.
+          // Nested under userDataDir so it shares its lifetime and is removed by the same teardown cleanup.
           const extensionsDir = path.join(userDataDir, 'extensions');
           await fs.mkdir(extensionsDir, { recursive: true });
           const extensionArgs = [
@@ -379,6 +382,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             } catch {}
           }
         }
+        // Remove the temp user-data dir (and its nested extensions dir) now that the process is gone.
+        await fs.rm(userDataDir, { recursive: true, force: true });
         console.log('[teardown] done');
       }
     },
