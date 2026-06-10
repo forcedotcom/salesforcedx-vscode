@@ -23,7 +23,7 @@ jest.mock('../../../src/util/orgUtil', () => ({
 
 const userCancellationError = { _tag: 'UserCancellationError', message: 'User cancelled' } as const;
 
-type OrgSnapshot = { orgId?: string; isScratch?: boolean; isSandbox?: boolean };
+type OrgSnapshot = { orgId?: string; username?: string; isScratch?: boolean; isSandbox?: boolean };
 
 const buildServices = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock) => ({
   PromptService: Effect.succeed({
@@ -31,6 +31,7 @@ const buildServices = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.
       confirm ? Effect.void : Effect.fail(userCancellationError)
   }),
   TerminalService: Effect.succeed({ simpleExec }),
+  ChannelService: Effect.succeed({ appendToChannel: () => Effect.void }),
   TargetOrgRef: () => SubscriptionRef.make(orgInfo)
 });
 
@@ -64,6 +65,28 @@ describe('orgDeleteDefaultCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith('sf org delete sandbox --no-prompt', expect.any(Function), 120_000);
+  });
+
+  it('passes --target-org so delete does not depend on the extension-host cwd', async () => {
+    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const exit = await run({ orgId: '00D', username: 'me@scratch.org', isScratch: true }, true, simpleExec);
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenCalledWith(
+      'sf org delete scratch --target-org me@scratch.org --no-prompt',
+      expect.any(Function),
+      120_000
+    );
+  });
+
+  it('fails with OrgNotDeletableError and does not exec for a non-scratch/non-sandbox default org', async () => {
+    const simpleExec = jest.fn(() => Effect.succeed('deleted'));
+    const exit = await run({ orgId: '00D', username: 'me@prod.org' }, true, simpleExec);
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgNotDeletableError');
+    expect(simpleExec).not.toHaveBeenCalled();
+    expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 
   it('fails with UserCancellationError and does not exec when the user declines', async () => {

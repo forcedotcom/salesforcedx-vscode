@@ -18,6 +18,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
+import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -139,6 +140,10 @@ class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] 
 /** sf org delete can take longer than the default 30s simpleExec timeout. */
 const DELETE_TIMEOUT_MS = 120_000;
 
+class OrgNotDeletableError extends Schema.TaggedError<OrgNotDeletableError>()('OrgNotDeletableError', {
+  message: Schema.String
+}) {}
+
 /**
  * Effect command for `sf.org.delete.default`: confirm, then delete the default org.
  * Picks `org:delete:sandbox` for sandbox defaults and `org:delete:scratch` otherwise
@@ -153,13 +158,27 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   });
 
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-  const deleteSubcommand = orgInfo.isSandbox ? 'org delete sandbox' : 'org delete scratch';
+  // Defensive guard: the UI when-clause (sf:default_org_deletable) hides this command for
+  // non-scratch/non-sandbox orgs, but it remains callable via executeCommand. Without this
+  // check a production default org would fall through to `org delete scratch`.
+  if (orgInfo.isScratch !== true && orgInfo.isSandbox !== true) {
+    return yield* new OrgNotDeletableError({ message: nls.localize('org_delete_default_not_deletable') });
+  }
+  const deleteSubcommand = orgInfo.isSandbox === true ? 'org delete sandbox' : 'org delete scratch';
 
+  // pass --target-org so the delete resolves the default org by username rather than depending on
+  // the extension-host cwd (simpleExec runs without a workspace cwd, unlike the picker-based runDeleteCli)
+  const targetOrgFlag = orgInfo.username ? ` --target-org ${orgInfo.username}` : '';
   const terminalService = yield* api.services.TerminalService;
-  const output = yield* terminalService.simpleExec(`sf ${deleteSubcommand} --no-prompt`, identity, DELETE_TIMEOUT_MS);
+  const output = yield* terminalService.simpleExec(
+    `sf ${deleteSubcommand}${targetOrgFlag} --no-prompt`,
+    identity,
+    DELETE_TIMEOUT_MS
+  );
 
+  const channel = yield* api.services.ChannelService;
+  yield* channel.appendToChannel(output);
   yield* Effect.sync(() => {
-    channelService.appendLine(output);
     channelService.showChannelOutput();
   });
 
