@@ -25,6 +25,8 @@ describe('PromptService.confirmOrThrow', () => {
   it('resolves when the user clicks the confirm button', async () => {
     showWarningMessageSpy = jest
       .spyOn(vscode.window, 'showWarningMessage')
+      // showWarningMessage with string items resolves to `string | undefined`; jest.spyOn infers the
+      // MessageItem overload, so cast the spy's resolved value to that overload's type.
       .mockResolvedValue('Delete' as unknown as vscode.MessageItem);
 
     const exit = await runConfirm({ message: 'Delete the org?', confirmLabel: 'Delete' });
