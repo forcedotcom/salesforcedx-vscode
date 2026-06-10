@@ -24,6 +24,7 @@ import {
   orgLogoutDefault,
   orgOpen
 } from './commands';
+import { orgDeleteDefaultCommand } from './commands/orgDelete';
 import { ORG_OPEN_COMMAND } from './constants';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './extensionProvider';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
@@ -36,7 +37,6 @@ const registerCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
     vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken),
     vscode.commands.registerCommand('sf.org.create', orgCreate),
-    vscode.commands.registerCommand('sf.org.delete.default', orgDelete),
     vscode.commands.registerCommand('sf.org.delete.username', orgDelete, {
       flag: '--target-org'
     }),
@@ -86,6 +86,11 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
 ) {
   // Register output channel
   extensionContext.subscriptions.push(OUTPUT_CHANNEL, registerCommands());
+
+  // Register Effect-based commands with AllServicesLayer for proper tracing
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
 
   // Initialize org picker and status bar
   yield* initializeStatusBarItems;

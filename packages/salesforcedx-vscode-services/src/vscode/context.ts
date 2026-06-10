@@ -10,7 +10,14 @@ import * as vscode from 'vscode';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { ChannelService } from './channelService';
 
-const updateContext = (orgInfo: { orgId?: string; username?: string; tracksSource?: boolean }) =>
+/** Set VS Code context keys derived from the default org snapshot. Exported for unit testing. */
+export const updateContext = (orgInfo: {
+  orgId?: string;
+  username?: string;
+  tracksSource?: boolean;
+  isScratch?: boolean;
+  isSandbox?: boolean;
+}) =>
   Effect.all(
     [
       Effect.promise(() =>
@@ -18,6 +25,13 @@ const updateContext = (orgInfo: { orgId?: string; username?: string; tracksSourc
       ),
       Effect.promise(() =>
         vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', Boolean(orgInfo.tracksSource))
+      ),
+      Effect.promise(() =>
+        vscode.commands.executeCommand(
+          'setContext',
+          'sf:default_org_deletable',
+          orgInfo.isScratch === true || orgInfo.isSandbox === true
+        )
       )
     ],
     { concurrency: 'unbounded' }

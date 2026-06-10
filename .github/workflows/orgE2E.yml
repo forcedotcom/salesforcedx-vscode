@@ -47,6 +47,10 @@ jobs:
     env:
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -71,7 +75,9 @@ jobs:
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
-      # No Salesforce CLI or scratch org — tests use a temp project folder only (see org test fixtures).
+      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
+      # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -82,6 +88,37 @@ jobs:
           E2E_NO_RETRIES: 1
         run: |
           npm run test:desktop -w salesforcedx-vscode-org -- --reporter=html
+
+      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
+      - name: Install Salesforce CLI
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli
+          retry_wait_seconds: 30
+
+      - name: Generate minimal project
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: Auth to dev hub (global)
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url
+            --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
+
+      - name: create scratch org
+        if: steps.try-run.outcome == 'failure'
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
+        working-directory: minimal-project
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
@@ -133,3 +170,10 @@ jobs:
           name: playwright-test-results-org-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-org/test-results
           if-no-files-found: ignore
+
+      - name: Cleanup scratch org
+        if: always() && steps.try-run.outcome == 'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

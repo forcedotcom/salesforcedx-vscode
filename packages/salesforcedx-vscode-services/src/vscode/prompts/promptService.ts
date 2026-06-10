@@ -64,6 +64,19 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       }
     );
 
+    /** Show a modal warning with a single confirm button; if the user dismisses it (does not click
+     * `confirmLabel`), fail with {@link UserCancellationError}. Use to gate destructive actions. */
+    const confirmOrThrow = Effect.fn('PromptService.confirmOrThrow')(function* (params: {
+      readonly message: string;
+      readonly confirmLabel: string;
+    }) {
+      const choice = yield* Effect.promise(() =>
+        vscode.window.showWarningMessage(params.message, { modal: true }, params.confirmLabel)
+      );
+      if (choice !== params.confirmLabel)
+        return yield* new UserCancellationError({ message: 'User cancelled confirmation' });
+    });
+
     /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
      * Otherwise, return `value` with `undefined` removed from its type. */
     const considerUndefinedAsCancellation: <T>(
@@ -222,6 +235,9 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
        * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
       ensureMetadataOverwriteOrThrow,
+      /** Show a modal warning with a single confirm button; if the user dismisses it (does not click
+       * `confirmLabel`), fail with {@link UserCancellationError}. Use to gate destructive actions. */
+      confirmOrThrow,
       /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
        * Otherwise, return `value` with `undefined` removed from its type. */
       considerUndefinedAsCancellation,
