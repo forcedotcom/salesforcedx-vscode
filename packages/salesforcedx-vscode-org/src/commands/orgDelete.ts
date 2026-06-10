@@ -18,6 +18,8 @@ import {
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -174,6 +176,36 @@ class OrgDeleteDefaultExecutor extends SfCommandletExecutor<{}> {
     });
   }
 }
+
+/** sf org delete can take longer than the default 30s simpleExec timeout. */
+const DELETE_TIMEOUT_MS = 120_000;
+
+/**
+ * Effect command for `sf.org.delete.default`: confirm, then delete the default org.
+ * Picks `org:delete:sandbox` for sandbox defaults and `org:delete:scratch` otherwise
+ * (the prior executor hardcoded scratch, which failed for sandbox defaults).
+ */
+export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  yield* promptService.confirmOrThrow({
+    message: nls.localize('parameter_gatherer_placeholder_delete_default_org'),
+    confirmLabel: nls.localize('org_delete_default_text')
+  });
+
+  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const deleteSubcommand = orgInfo.isSandbox ? 'org delete sandbox' : 'org delete scratch';
+
+  const terminalService = yield* api.services.TerminalService;
+  const output = yield* terminalService.simpleExec(`sf ${deleteSubcommand} --no-prompt`, identity, DELETE_TIMEOUT_MS);
+
+  yield* Effect.sync(() => {
+    channelService.appendLine(output);
+    channelService.showChannelOutput();
+  });
+
+  yield* Effect.promise(() => updateConfigAndStateAggregators());
+});
 
 export async function orgDelete(this: FlagParameter<string>) {
   const flag = this ? this.flag : undefined;
