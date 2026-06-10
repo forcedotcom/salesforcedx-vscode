@@ -590,7 +590,8 @@ export default [
       playwright: eslintPluginPlaywright
     },
     rules: {
-      'local/no-runtime-vscode-import': 'error'
+      'local/no-runtime-vscode-import': 'error',
+      'playwright/no-page-pause': 'error'
     }
   },
   {
