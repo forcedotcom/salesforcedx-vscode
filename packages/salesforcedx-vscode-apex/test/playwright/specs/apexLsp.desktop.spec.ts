@@ -25,6 +25,10 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
+  // `.show-file-icons` filters out Quick Pick / file-explorer monaco-list-row variants and
+  // avoids matching unrelated rows in the workbench. Reused by both autocompletion steps.
+  const completionRows = page.locator('div.monaco-list-row.show-file-icons');
+
   await test.step('open ExampleClass.cls and wait for indexing complete', async () => {
     // Files were pre-seeded onto disk before Electron launched (see fixtures/desktopFixtures.ts);
     // jorje picks them up during its startup scan, so no reloadWindow workaround is needed.
@@ -86,9 +90,6 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     await page.keyboard.press('Enter');
     await page.keyboard.type('\tExampleClass.say');
 
-    // `.show-file-icons` filters out Quick Pick / file-explorer monaco-list-row variants and
-    // avoids matching unrelated rows in the workbench.
-    const completionRows = page.locator('div.monaco-list-row.show-file-icons');
     const firstRow = completionRows.first();
     await expect(firstRow).toBeVisible({ timeout: 30_000 });
     await expect(firstRow).toHaveAttribute('aria-label', /SayHello\(name\)/, { timeout: 30_000 });
@@ -119,14 +120,15 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     await expect(anonTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
 
     // Line 2 is blank per fixture layout (desktopFixtures.ts EXAMPLE_ANON) — load-bearing typing target.
-    // Type `ExampleClass.say` to exercise cross-file project-symbol completion from a .apex buffer,
-    // proving anonymous Apex resolves project ApexClass symbols through the same jorje LSP.
+    // Type `ExampleClass.say` to exercise cross-file project-symbol completion from a .apex buffer.
+    // Whether anonymous Apex resolves project ApexClass symbols through the same jorje LSP is not
+    // runtime-confirmed locally (see .claude/plans/W-22918963.md "Symbol-resolution risk"); CI is the
+    // verification path for this assertion.
     await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
     await page.keyboard.type('2:1');
     await page.keyboard.press('Enter');
     await page.keyboard.type('ExampleClass.say');
 
-    const completionRows = page.locator('div.monaco-list-row.show-file-icons');
     const firstRow = completionRows.first();
     await expect(firstRow).toBeVisible({ timeout: 30_000 });
     await expect(firstRow).toHaveAttribute('aria-label', /SayHello\(name\)/, { timeout: 30_000 });
