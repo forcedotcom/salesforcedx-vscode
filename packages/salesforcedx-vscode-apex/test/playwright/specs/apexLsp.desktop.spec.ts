@@ -109,5 +109,29 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     await saveScreenshot(page, 'step.autocompletion.png');
   });
 
+  await test.step('Anonymous Apex autocompletion', async () => {
+    // ExampleAnon.apex is pre-seeded at workspace-root scripts/apex (desktopFixtures.ts) — open via
+    // Explorer tree since Quick Open's file-search index may not have discovered it yet. The
+    // ['scripts', 'apex'] path tolerates VS Code compact-folder rendering (missing intermediate
+    // rows are skipped, leaf still reached).
+    await openFileFromExplorerTree(page, 'ExampleAnon.apex', ['scripts', 'apex']);
+    const anonTab = page.getByRole('tab', { name: 'ExampleAnon.apex', exact: true }).first();
+    await expect(anonTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
+
+    // Line 2 is blank per fixture layout (desktopFixtures.ts EXAMPLE_ANON) — load-bearing typing target.
+    // Type `ExampleClass.say` to exercise cross-file project-symbol completion from a .apex buffer,
+    // proving anonymous Apex resolves project ApexClass symbols through the same jorje LSP.
+    await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+    await page.keyboard.type('2:1');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('ExampleClass.say');
+
+    const completionRows = page.locator('div.monaco-list-row.show-file-icons');
+    const firstRow = completionRows.first();
+    await expect(firstRow).toBeVisible({ timeout: 30_000 });
+    await expect(firstRow).toHaveAttribute('aria-label', /SayHello\(name\)/, { timeout: 30_000 });
+    await saveScreenshot(page, 'step.anon-autocompletion.png');
+  });
+
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
