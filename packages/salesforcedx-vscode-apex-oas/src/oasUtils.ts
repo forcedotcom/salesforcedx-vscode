@@ -17,7 +17,9 @@ import { parse as yamlParse } from 'yaml';
 import { OAS_EXTENSION_ID } from './constants';
 import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
 import { oasDiagnosticCollection, ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
-import { AA_CLASS_REST_ANNOTATIONS } from './settings';
+
+// REST annotation names that should be present on the class
+export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];
 
 const AA_METHOD_REST_ANNOTATIONS = new Set(['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete']);
 

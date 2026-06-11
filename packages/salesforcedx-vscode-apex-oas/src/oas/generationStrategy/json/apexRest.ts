@@ -23,9 +23,13 @@ import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../../constants';
 import { InvalidJsonDocument, LLMEmptyResponse, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';
 import { nls } from '../../../messages/nls';
-import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
+import {
+  AA_CLASS_REST_ANNOTATIONS,
+  cleanupGeneratedDoc,
+  hasValidRestAnnotations,
+  parseOASDocFromJson
+} from '../../../oasUtils';
 import { LLMService } from '../../../services/llmService';
-import { AA_CLASS_REST_ANNOTATIONS } from '../../../settings';
 import { buildClassPrompt, generatePromptForMethod } from '../buildPromptUtils';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '../constants';
 import {

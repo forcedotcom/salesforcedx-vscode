@@ -61,7 +61,7 @@ test('OAS: composed mode → manual merge produces diff editor + timestamped ESR
     await openFileByName(page, 'CaseManager.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     await confirmEsrFolderPrompt(page);
-    // Generation takes 30-180s before the merge dialog renders.
+    // The merge dialog renders first; generation runs after the merge button is clicked and can take 30-180s.
     await clickModalDialogButton(page, 'Manually merge with existing ESR', 180_000);
     // Manual-merge writes a CaseManager_<ts>.externalServiceRegistration-meta.xml; verify on disk via tab below.
   });
