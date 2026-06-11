@@ -14,8 +14,15 @@ import type { URI } from 'vscode-uri';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationManager';
-import { selectStrategyByBidRule } from '../oas/promptGenerationOrchestrator';
-import { checkIfESRIsDecomposed, hasMixedFrameworks, parseOASDocFromJson, summarizeDiagnostics } from '../oasUtils';
+import { selectStrategyByBidRule, StrategyNotQualified } from '../oas/promptGenerationOrchestrator';
+import {
+  checkIfESRIsDecomposed,
+  hasAuraFrameworkCapability,
+  hasMixedFrameworks,
+  hasValidRestAnnotations,
+  parseOASDocFromJson,
+  summarizeDiagnostics
+} from '../oasUtils';
 import { gatherContext, validateMetadata } from './metadataOrchestrator';
 
 /** @ExportTaggedError */
@@ -37,6 +44,12 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   if (hasMixedFrameworks(context)) {
     const className = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
     return yield* new MixedFrameworksNotAllowed({ message: nls.localize('mixed_frameworks_not_allowed', className) });
+  }
+
+  // Step 2.6: Fail early when no strategy will qualify (e.g. @RestResource without an @Http___ method).
+  // Mirrors the bid eligibility of both strategies so valid Aura/REST classes still proceed.
+  if (!hasValidRestAnnotations(context) && !hasAuraFrameworkCapability(context)) {
+    return yield* new StrategyNotQualified({ message: nls.localize('strategy_not_qualified') });
   }
 
   // Step 3-4: Select the generation strategy by bid rule
