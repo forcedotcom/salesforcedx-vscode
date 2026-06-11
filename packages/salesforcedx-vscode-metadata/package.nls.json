@@ -50,6 +50,7 @@
   "notifications_delete_from_project_and_org_description": "Notification style for SFDX: Delete from Project and Org.",
   "notifications_diff_source_description": "Notification style for SFDX: Diff Source Against Org.",
   "notifications_deploy_on_save_description": "Notification style for Deploy on Save.",
+  "notifications_install_package_description": "Notification style for SFDX: Install Package.",
   "sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "sobject_refresh_all": "All SObjects",
   "sobject_refresh_custom": "Custom SObjects",

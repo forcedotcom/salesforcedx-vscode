@@ -16,7 +16,8 @@ export type CommandKey =
   | 'SFDX: Retrieve Source in Manifest from Org'
   | 'SFDX: Delete from Project and Org'
   | 'SFDX: Diff Source Against Org'
-  | 'Deploy on Save';
+  | 'Deploy on Save'
+  | 'SFDX: Install Package';
 
 export const { showSuccessNotification, getProgressLocation } = createNotificationMode<CommandKey>(
   'salesforcedx-vscode-metadata',

@@ -184,22 +184,21 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
 
     /** Pipeable operator: ties a vscode progress notification lifetime to an Effect. */
     const withProgress =
-      (title: string) =>
+      (title: string, location: vscode.ProgressLocation = vscode.ProgressLocation.Notification) =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
         Effect.suspend(() => {
           const { promise, resolve } = Promise.withResolvers<void>();
-          void vscode.window.withProgress(
-            { location: vscode.ProgressLocation.Notification, title, cancellable: false },
-            () => promise
-          );
+          void vscode.window.withProgress({ location, title, cancellable: false }, () => promise);
           return self.pipe(Effect.ensuring(Effect.sync(resolve)));
         });
 
     /** Pipeable operator: ties a cancellable vscode progress notification to an Effect.
      * The progress shows a Cancel button; clicking it interrupts the inner effect and surfaces a
-     * {@link UserCancellationError}. */
+     * {@link UserCancellationError}.
+     * @param title Title shown in the progress notification.
+     * @param location Progress location (default: `Notification`). */
     const withCancellableProgress =
-      (title: string) =>
+      (title: string, location: vscode.ProgressLocation = vscode.ProgressLocation.Notification) =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
         Effect.suspend(() => {
           const { promise, resolve } = Promise.withResolvers<void>();
@@ -207,16 +206,13 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           return Effect.forkDaemon(self).pipe(
             Effect.tap(fiber =>
               Effect.sync(() => {
-                void vscode.window.withProgress(
-                  { location: vscode.ProgressLocation.Notification, title, cancellable: true },
-                  (_progress, token) => {
-                    token.onCancellationRequested(() => {
-                      userCancelled.value = true;
-                      Effect.runFork(Fiber.interrupt(fiber));
-                    });
-                    return promise;
-                  }
-                );
+                void vscode.window.withProgress({ location, title, cancellable: true }, (_progress, token) => {
+                  token.onCancellationRequested(() => {
+                    userCancelled.value = true;
+                    Effect.runFork(Fiber.interrupt(fiber));
+                  });
+                  return promise;
+                });
               })
             ),
             Effect.flatMap(fiber => Fiber.join(fiber)),
@@ -243,10 +239,12 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       considerUndefinedAsCancellation,
       /** Prompt user to select output directory from available package directories, or choose a custom one. */
       promptForOutputDir,
-      /** Pipeable operator: ties a vscode progress notification lifetime to an Effect. */
+      /** Pipeable operator: ties a vscode progress notification lifetime to an Effect.
+       * Accepts `location` (default: `Notification`) to control where the progress is shown. */
       withProgress,
       /** Pipeable operator: ties a cancellable vscode progress notification lifetime to an Effect.
-       * Clicking Cancel interrupts the inner effect and surfaces a {@link UserCancellationError}. */
+       * Clicking Cancel interrupts the inner effect and surfaces a {@link UserCancellationError}.
+       * Accepts `location` (default: `Notification`) to control where the progress is shown. */
       withCancellableProgress
     };
   })

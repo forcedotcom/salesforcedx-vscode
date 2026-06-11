@@ -36,7 +36,9 @@ const showTransientStatusBarMessage = (statusBarId: string, statusBarName: strin
 };
 
 export type NotificationModeApi<CommandKey extends string> = {
-  showSuccessNotification: (command: CommandKey, message: string) => void;
+  /** Show a success notification. When `offShowsStatusBar` is `true`, the `off` mode falls back to
+   * the status bar instead of silently dropping the message. */
+  showSuccessNotification: (command: CommandKey, message: string, offShowsStatusBar?: boolean) => void;
   getProgressLocation: (command: CommandKey) => vscode.ProgressLocation;
 };
 
@@ -70,12 +72,12 @@ export const createNotificationMode = <CommandKey extends string>(
     vscode.workspace.getConfiguration(GLOBAL_SECTION).get<CommandNotificationMode>(GLOBAL_KEY, 'toast');
 
   return {
-    showSuccessNotification: (command: CommandKey, message: string): void => {
+    showSuccessNotification: (command: CommandKey, message: string, offShowsStatusBar = false): void => {
       const mode = getCommandNotificationMode(command);
-      if (mode === 'statusBar') {
-        showTransientStatusBarMessage(statusBarId, statusBarName, message);
-      } else if (mode === 'toast') {
+      if (mode === 'toast') {
         void vscode.window.showInformationMessage(message);
+      } else if (mode === 'statusBar' || offShowsStatusBar) {
+        showTransientStatusBarMessage(statusBarId, statusBarName, message);
       }
     },
     getProgressLocation: (command: CommandKey): vscode.ProgressLocation =>

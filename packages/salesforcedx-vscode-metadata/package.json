@@ -512,6 +512,20 @@
                 "%notifications_toast_description%"
               ],
               "description": "%notifications_deploy_on_save_description%"
+            },
+            "SFDX: Install Package": {
+              "type": "string",
+              "enum": [
+                "off",
+                "statusBar",
+                "toast"
+              ],
+              "enumDescriptions": [
+                "%notifications_off_description%",
+                "%notifications_status_bar_description%",
+                "%notifications_toast_description%"
+              ],
+              "description": "%notifications_install_package_description%"
             }
           },
           "additionalProperties": false

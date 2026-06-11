@@ -14,6 +14,9 @@ import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+
+const COMMAND = 'SFDX: Install Package' as const;
 
 const PKG_ID_PREFIX = '04t';
 
@@ -172,7 +175,7 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const packageId = yield* gatherPackageId().pipe(
     Effect.flatMap(id =>
       verifyPackageAvailable(id).pipe(
-        promptService.withProgress(nls.localize('package_install_verifying_progress', id))
+        promptService.withProgress(nls.localize('package_install_verifying_progress', id), getProgressLocation(COMMAND))
       )
     ),
     Effect.tap(id => Effect.annotateCurrentSpan('packageId', id))
@@ -187,29 +190,24 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const requestId = yield* submitInstallRequest({ packageId, installationKey });
 
   if (!shouldPoll) {
-    yield* Effect.promise(() =>
-      Promise.resolve(
-        vscode.window.showInformationMessage(nls.localize('package_install_submitted_message', requestId))
-      )
+    yield* Effect.sync(() =>
+      showSuccessNotification(COMMAND, nls.localize('package_install_submitted_message', requestId), true)
     );
     return;
   }
 
   yield* pollUntilComplete(requestId).pipe(
-    promptService.withCancellableProgress(nls.localize('package_install_polling_progress', packageId)),
+    promptService.withCancellableProgress(
+      nls.localize('package_install_polling_progress', packageId),
+      getProgressLocation(COMMAND)
+    ),
     Effect.tap(() =>
-      Effect.promise(() =>
-        Promise.resolve(
-          vscode.window.showInformationMessage(nls.localize('package_install_succeeded_message', packageId))
-        )
-      )
+      Effect.sync(() => showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId)))
     ),
     // custom message to make it clear how cancellation works
     Effect.tapErrorTag('UserCancellationError', () =>
-      Effect.promise(() =>
-        Promise.resolve(
-          vscode.window.showInformationMessage(nls.localize('package_install_cancelled_message', requestId))
-        )
+      Effect.sync(() =>
+        vscode.window.showInformationMessage(nls.localize('package_install_cancelled_message', requestId))
       )
     )
   );
