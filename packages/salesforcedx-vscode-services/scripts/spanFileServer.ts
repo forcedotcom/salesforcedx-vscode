@@ -7,6 +7,7 @@
 /* eslint-disable no-restricted-imports -- standalone Node script, not extension code */
 /* eslint-disable functional/no-try-statements -- sync request handling */
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- JSON.parse result */
+import { spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import * as http from 'node:http';
 import { homedir } from 'node:os';
@@ -104,12 +105,49 @@ const handleOtlpSpans = (body: string, res: http.ServerResponse): void => {
 };
 
 const server = http.createServer(handleRequest);
-server.listen(PORT, () => {
+
+const onListening = (): void => {
   console.log(`Span file server listening on http://localhost:${PORT}`);
   console.log(`Writing to ${SPANS_DIR}\n`);
-});
+};
 
-server.on('error', err => {
+server.listen(PORT, onListening);
+
+// In CI, a step's timeout can SIGKILL wireit before it tears down this service. wireit spawns it
+// detached in its own process group, so an orphaned server keeps holding PORT 3003 and the next
+// step's server then fails with EADDRINUSE. Watching ppid doesn't help: the intermediate `sh -c`
+// that wireit launches survives the orphaning, so our parent never changes. Instead, on EADDRINUSE
+// reclaim the port by killing whatever holds it, then retry once. (Windows kills the whole process
+// tree, so it never reaches this path.)
+const reclaimState = { attempted: false };
+
+const reclaimPortAndRetry = (): void => {
+  if (reclaimState.attempted || process.platform === 'win32') {
+    console.error(`Span file server: port ${PORT} in use and could not be reclaimed`);
+    process.exit(1);
+  }
+  reclaimState.attempted = true;
+  const result = spawnSync('lsof', ['-ti', `tcp:${PORT}`], { encoding: 'utf8' });
+  const pids = (result.stdout ?? '')
+    .split('\n')
+    .map(s => Number.parseInt(s.trim(), 10))
+    .filter(pid => Number.isInteger(pid) && pid !== process.pid);
+  pids.forEach(pid => {
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {
+      /* already gone */
+    }
+  });
+  console.error(`Span file server: reclaimed port ${PORT} from pid(s) ${pids.join(', ') || 'none'}; retrying`);
+  setTimeout(() => server.listen(PORT, onListening), 500);
+};
+
+server.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code === 'EADDRINUSE') {
+    reclaimPortAndRetry();
+    return;
+  }
   console.error('Server error:', err);
   process.exit(1);
 });

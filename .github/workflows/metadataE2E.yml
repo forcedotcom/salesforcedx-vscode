@@ -82,24 +82,6 @@ jobs:
         run: |
           npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
 
-      # The try-run step's 5-minute timeout can kill wireit before it tears down the span file server
-      # service, orphaning a process on port 3003. Kill any leftover listener so the real run can bind it.
-      - name: Ensure span server is not running
-        if: steps.try-run.outcome == 'failure'
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          if command -v lsof >/dev/null 2>&1; then
-            pids=$(lsof -ti tcp:3003); [ -n "$pids" ] && kill -9 $pids
-          elif command -v fuser >/dev/null 2>&1; then
-            fuser -k 3003/tcp
-          else
-            pids=$(netstat -ano | grep LISTENING | grep ':3003' | awk '{print $NF}' | sort -u)
-            for p in $pids; do taskkill //PID "$p" //F; done
-          fi
-          exit 0
-
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -272,24 +254,6 @@ jobs:
           E2E_NO_RETRIES: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
 
-      # The try-run step's 5-minute timeout can kill wireit before it tears down the span file server
-      # service, orphaning a process on port 3003. Kill any leftover listener so the real run can bind it.
-      - name: Ensure span server is not running
-        if: steps.try-run.outcome == 'failure'
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          if command -v lsof >/dev/null 2>&1; then
-            pids=$(lsof -ti tcp:3003); [ -n "$pids" ] && kill -9 $pids
-          elif command -v fuser >/dev/null 2>&1; then
-            fuser -k 3003/tcp
-          else
-            pids=$(netstat -ano | grep LISTENING | grep ':3003' | awk '{print $NF}' | sort -u)
-            for p in $pids; do taskkill //PID "$p" //F; done
-          fi
-          exit 0
-
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -452,24 +416,6 @@ jobs:
         run: |
           npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
 
-      # The try-run step's 5-minute timeout can kill wireit before it tears down the span file server
-      # service, orphaning a process on port 3003. Kill any leftover listener so the real run can bind it.
-      - name: Ensure span server is not running
-        if: steps.try-run.outcome == 'failure'
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          if command -v lsof >/dev/null 2>&1; then
-            pids=$(lsof -ti tcp:3003); [ -n "$pids" ] && kill -9 $pids
-          elif command -v fuser >/dev/null 2>&1; then
-            fuser -k 3003/tcp
-          else
-            pids=$(netstat -ano | grep LISTENING | grep ':3003' | awk '{print $NF}' | sort -u)
-            for p in $pids; do taskkill //PID "$p" //F; done
-          fi
-          exit 0
-
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
         run: |
@@ -602,24 +548,6 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
-
-      # The try-run step's 5-minute timeout can kill wireit before it tears down the span file server
-      # service, orphaning a process on port 3003. Kill any leftover listener so the real run can bind it.
-      - name: Ensure span server is not running
-        if: steps.try-run.outcome == 'failure'
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          if command -v lsof >/dev/null 2>&1; then
-            pids=$(lsof -ti tcp:3003); [ -n "$pids" ] && kill -9 $pids
-          elif command -v fuser >/dev/null 2>&1; then
-            fuser -k 3003/tcp
-          else
-            pids=$(netstat -ano | grep LISTENING | grep ':3003' | awk '{print $NF}' | sort -u)
-            for p in $pids; do taskkill //PID "$p" //F; done
-          fi
-          exit 0
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
