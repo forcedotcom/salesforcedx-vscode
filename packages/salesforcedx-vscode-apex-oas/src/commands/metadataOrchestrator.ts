@@ -15,7 +15,6 @@ import { ApexLspRequestFailed } from '../errors';
 import { nls } from '../messages/nls';
 import { ApexMetadataService } from '../services/apexMetadataService';
 
-/** @ExportTaggedError */
 export class ClassNotEligible extends Data.TaggedError('ClassNotEligible')<{
   readonly message: string;
 }> {}
