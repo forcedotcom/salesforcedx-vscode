@@ -13,6 +13,7 @@ import {
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
 
@@ -43,5 +44,19 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
 
-export { setAllServicesLayer } from './allServicesLayerRef';
-export { getRuntime } from './runtime';
+// eslint-disable-next-line functional/no-let -- Module-level mutable; set during activation, read by getRuntime
+let allServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+
+export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>): void => {
+  allServicesLayer = layer;
+};
+
+// eslint-disable-next-line functional/no-let -- Lazy singleton runtime
+let _auraRuntime:
+  | ManagedRuntime.ManagedRuntime<
+      Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+      Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+    >
+  | undefined;
+
+export const getRuntime = () => (_auraRuntime ??= ManagedRuntime.make(allServicesLayer));

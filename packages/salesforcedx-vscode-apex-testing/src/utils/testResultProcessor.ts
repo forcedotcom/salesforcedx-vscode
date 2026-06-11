@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -79,9 +79,9 @@ export const updateTestRunResults = (params: {
   // This ensures we can match results even if the suite wasn't expanded
   const testMap = new Map<string, vscode.TestItem>();
 
-  // Add all method items to the map (keyed by full name: Class.Method)
-  for (const [methodName, methodItem] of methodItems) {
-    testMap.set(methodName, methodItem);
+  // Add all method items keyed by stripped name (Class.Method) for result matching
+  for (const [, methodItem] of methodItems) {
+    testMap.set(getTestName(methodItem), methodItem);
   }
 
   // Also add items from testsToRun (for methods that might not be in methodItems yet)

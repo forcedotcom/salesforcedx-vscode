@@ -44,6 +44,8 @@ jobs:
       MINIMAL_ORG_ALIAS: minimalTestOrg
       NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -202,6 +204,8 @@ jobs:
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -375,6 +379,8 @@ jobs:
     env:
       MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -489,6 +495,8 @@ jobs:
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.13.0",
+  "version": "67.0.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -33,7 +33,7 @@
     "@salesforce/salesforcedx-lwc-language-server": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
     "vscode-languageclient": "^9.0.1",
@@ -340,7 +340,12 @@
       "test": []
     },
     "menus": {
-      "editor/context": [],
+      "editor/context": [
+        {
+          "command": "sf.lightning.lwc.rename",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+\\/[^\\/]+\\.(html|css|js|ts|xml|svg)$/"
+        }
+      ],
       "editor/title": [
         {
           "command": "sf.lightning.lwc.test.editorTitle.run",
@@ -366,11 +371,28 @@
       "editor/title/context": [],
       "view/title": [],
       "view/item/context": [],
-      "explorer/context": [],
+      "explorer/context": [
+        {
+          "command": "sf.lightning.lwc.rename",
+          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/.*(\\/[^\\/]+\\.(html|css|js|ts|xml|svg))?$/"
+        },
+        {
+          "command": "sf.metadata.lightning.generate.lwc",
+          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
+        },
+        {
+          "command": "sf.internal.lightning.generate.lwc",
+          "when": "explorerResourceIsFolder && sf:internal_dev"
+        }
+      ],
       "commandPalette": [
         {
           "command": "sf.metadata.lightning.generate.lwc",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.lightning.lwc.rename",
+          "when": "false"
         },
         {
           "command": "sf.internal.lightning.generate.lwc",
@@ -418,6 +440,10 @@
       {
         "command": "sf.internal.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
+      },
+      {
+        "command": "sf.lightning.lwc.rename",
+        "title": "%rename_lightning_component_text%"
       },
       {
         "command": "sf.lightning.lwc.test.file.debug",

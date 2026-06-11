@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -107,7 +107,7 @@ describe('testResultProcessor', () => {
 
       // Verify the setup - the implementation uses Array.from(classItems.values()).find(item => item.label === className)
       const values = Array.from(classItems.values());
-      expect(values.length).toBe(1);
+      expect(values).toHaveLength(1);
       expect(values[0]).toBe(classItem);
       expect(values[0].label).toBe('MyTestClass');
       // Verify uri is accessible and truthy

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -217,7 +217,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(sessionStartSpy).not.toHaveBeenCalled();
       expect(adapter.getResponse(0).success).toBe(false);
-      expect(adapter.getEvents().length).toBe(1); // value is 1 because the Launch Apex Debugger button is clicked
+      expect(adapter.getEvents()).toHaveLength(1); // value is 1 because the Launch Apex Debugger button is clicked
       expect(resetIdleTimersSpy).not.toHaveBeenCalled();
     });
 
@@ -231,7 +231,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(sessionStartSpy).not.toHaveBeenCalled();
       expect(adapter.getResponse(0).success).toBe(false);
       expect(adapter.getResponse(0).message).toBe(nls.localize('session_language_server_error_text'));
-      expect(adapter.getEvents().length).toBe(1); // value is 1 because the Launch Apex Debugger button is clicked
+      expect(adapter.getEvents()).toHaveLength(1); // value is 1 because the Launch Apex Debugger button is clicked
       expect(resetIdleTimersSpy).not.toHaveBeenCalled();
     });
 
@@ -585,7 +585,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.clearIdleTimers();
 
-      expect(adapter.getIdleTimers().length).toBe(0);
+      expect(adapter.getIdleTimers()).toHaveLength(0);
     });
 
     it('Should create idle timers', () => {
@@ -917,7 +917,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.threadsReq({} as DebugProtocol.ThreadsResponse);
 
-      expect(adapter.getResponses().length).toBe(1);
+      expect(adapter.getResponses()).toHaveLength(1);
       expect(adapter.getResponse(0).success).toBe(true);
       const response = adapter.getResponse(0) as DebugProtocol.ThreadsResponse;
       expect(response.body.threads).toEqual([
@@ -929,10 +929,10 @@ describe('Interactive debugger adapter - unit', () => {
     it('Should not return any debugged requests', () => {
       adapter.threadsReq({} as DebugProtocol.ThreadsResponse);
 
-      expect(adapter.getResponses().length).toBe(1);
+      expect(adapter.getResponses()).toHaveLength(1);
       expect(adapter.getResponse(0).success).toBe(true);
       const response = adapter.getResponse(0) as DebugProtocol.ThreadsResponse;
-      expect(response.body.threads.length).toBe(0);
+      expect(response.body.threads).toHaveLength(0);
     });
   });
 
@@ -971,7 +971,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(stateSpy).toHaveBeenCalled();
       const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
       expect(response.success).toBe(true);
-      expect(response.body.stackFrames.length).toBe(0);
+      expect(response.body.stackFrames).toHaveLength(0);
     });
 
     it('Should process stack frame with local source', async () => {
@@ -995,7 +995,7 @@ describe('Interactive debugger adapter - unit', () => {
       const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
       expect(response.success).toBe(true);
       const stackFrames = response.body.stackFrames;
-      expect(stackFrames.length).toBe(2);
+      expect(stackFrames).toHaveLength(2);
       expect(stackFrames[0]).toEqual(
         new StackFrame(1000, 'FooDebug.test()', new Source('foo.cls', URI.parse(fileUri).fsPath), 1, 0)
       );
@@ -1020,7 +1020,7 @@ describe('Interactive debugger adapter - unit', () => {
       const response = adapter.getResponse(0) as DebugProtocol.StackTraceResponse;
       expect(response.success).toBe(true);
       const stackFrames = response.body.stackFrames;
-      expect(stackFrames.length).toBe(1);
+      expect(stackFrames).toHaveLength(1);
       expect(stackFrames[0]).toEqual(new StackFrame(1000, 'anon.execute()', undefined, 2, 0));
     });
 
@@ -1045,7 +1045,7 @@ describe('Interactive debugger adapter - unit', () => {
       it('Should log warning to debug console', async () => {
         await adapter.customRequest(HOTSWAP_REQUEST, {} as DebugProtocol.Response, undefined);
 
-        expect(adapter.getEvents().length).toBe(1);
+        expect(adapter.getEvents()).toHaveLength(1);
         expect(adapter.getEvents()[0].event).toBe('output');
         const outputEvent = adapter.getEvents()[0] as DebugProtocol.OutputEvent;
         expect(outputEvent.body.output).toContain(nls.localize('hotswap_warn_text'));
@@ -1080,7 +1080,7 @@ describe('Interactive debugger adapter - unit', () => {
         expect(lockSpy).toHaveBeenCalledTimes(1);
         expect(lockSpy.mock.calls[0][0]).toBe('exception-breakpoint');
         expect(reconcileExceptionBreakpointSpy).toHaveBeenCalledTimes(1);
-        expect(reconcileExceptionBreakpointSpy.mock.calls[0].length).toBe(3);
+        expect(reconcileExceptionBreakpointSpy.mock.calls[0]).toHaveLength(3);
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][0]).toBe('someProjectPath');
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][1]).toBe('07aFAKE');
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][2]).toEqual(requestArg.exceptionInfo);
@@ -1105,7 +1105,7 @@ describe('Interactive debugger adapter - unit', () => {
         expect(lockSpy).toHaveBeenCalledTimes(1);
         expect(lockSpy.mock.calls[0][0]).toBe('exception-breakpoint');
         expect(reconcileExceptionBreakpointSpy).toHaveBeenCalledTimes(1);
-        expect(reconcileExceptionBreakpointSpy.mock.calls[0].length).toBe(3);
+        expect(reconcileExceptionBreakpointSpy.mock.calls[0]).toHaveLength(3);
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][0]).toBe('someProjectPath');
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][1]).toBe('07aFAKE');
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][2]).toEqual(requestArg.exceptionInfo);
@@ -1130,11 +1130,11 @@ describe('Interactive debugger adapter - unit', () => {
         expect(lockSpy).toHaveBeenCalledTimes(1);
         expect(lockSpy.mock.calls[0][0]).toBe('exception-breakpoint');
         expect(reconcileExceptionBreakpointSpy).toHaveBeenCalledTimes(1);
-        expect(reconcileExceptionBreakpointSpy.mock.calls[0].length).toBe(3);
+        expect(reconcileExceptionBreakpointSpy.mock.calls[0]).toHaveLength(3);
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][0]).toBe('someProjectPath');
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][1]).toBe('07aFAKE');
         expect(reconcileExceptionBreakpointSpy.mock.calls[0][2]).toEqual(requestArg.exceptionInfo);
-        expect(adapter.getEvents().length).toBe(0);
+        expect(adapter.getEvents()).toHaveLength(0);
       });
 
       it('Should not call breakpoint service with undefined request args', async () => {
@@ -1209,7 +1209,7 @@ describe('Interactive debugger adapter - unit', () => {
     it('Should not log without an error', () => {
       adapter.tryToParseSfError({} as DebugProtocol.Response);
 
-      expect(adapter.getEvents().length).toBe(0);
+      expect(adapter.getEvents()).toHaveLength(0);
     });
 
     it('Should not log error without an error message', () => {
@@ -1273,7 +1273,7 @@ describe('Interactive debugger adapter - unit', () => {
       await adapter.connectStreaming('foo');
 
       expect(streamingSubscribeSpy).toHaveBeenCalledTimes(1);
-      expect(streamingSubscribeSpy.mock.calls[0].length).toBe(4);
+      expect(streamingSubscribeSpy.mock.calls[0]).toHaveLength(4);
       expect(streamingSubscribeSpy.mock.calls[0][0]).toBe('foo');
       expect(streamingSubscribeSpy.mock.calls[0][1]).toBe(adapter.getRequestService());
       for (const obj of [streamingSubscribeSpy.mock.calls[0][2], streamingSubscribeSpy.mock.calls[0][3]]) {
@@ -1324,7 +1324,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(sessionStopSpy).toHaveBeenCalledTimes(1);
-      expect(adapter.getEvents().length).toBe(3);
+      expect(adapter.getEvents()).toHaveLength(3);
       expect(adapter.getEvents()[0].event).toBe('output');
       expect((adapter.getEvents()[0] as OutputEvent).body.output).toContain('foo');
       expect(adapter.getEvents()[1].event).toBe(SHOW_MESSAGE_EVENT);
@@ -1349,7 +1349,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(sessionStopSpy).not.toHaveBeenCalled();
-      expect(adapter.getEvents().length).toBe(0);
+      expect(adapter.getEvents()).toHaveLength(0);
     });
 
     it('[SessionTerminated] - Should not stop session service if it is not connected', () => {
@@ -1366,7 +1366,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(sessionStopSpy).not.toHaveBeenCalled();
-      expect(adapter.getEvents().length).toBe(0);
+      expect(adapter.getEvents()).toHaveLength(0);
     });
 
     it('[RequestStarted] - Should create new request thread', () => {
@@ -1383,7 +1383,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       expect(adapter.getRequestThreads().size).toBe(1);
       expect(adapter.getRequestThreads().get(1)).toBe('07cFAKE');
-      expect(adapter.getEvents().length).toBe(1);
+      expect(adapter.getEvents()).toHaveLength(1);
       expect(adapter.getEvents()[0].event).toBe('output');
     });
 
@@ -1410,7 +1410,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(1);
-      expect(adapter.getEvents().length).toBe(2);
+      expect(adapter.getEvents()).toHaveLength(2);
       expect(adapter.getEvents()[0].event).toBe('output');
       expect(adapter.getEvents()[1].event).toBe('thread');
       const threadEvent = adapter.getEvents()[1] as ThreadEvent;
@@ -1437,7 +1437,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(1);
-      expect(adapter.getEvents().length).toBe(0);
+      expect(adapter.getEvents()).toHaveLength(0);
     });
 
     it('[RequestFinished] - Should clear variable handles', () => {
@@ -1462,7 +1462,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(0);
-      expect(adapter.getEvents().length).toBe(2);
+      expect(adapter.getEvents()).toHaveLength(2);
 
       expect(adapter.getVariableContainer(variableReference)).toBeUndefined();
       expect(adapter.getStackFrameInfo(frameId)).toBeUndefined();
@@ -1484,7 +1484,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(1);
-      expect(adapter.getEvents().length).toBe(1);
+      expect(adapter.getEvents()).toHaveLength(1);
       expect(adapter.getEvents()[0].event).toBe('output');
     });
 
@@ -1502,7 +1502,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(1);
-      expect(adapter.getEvents().length).toBe(0);
+      expect(adapter.getEvents()).toHaveLength(0);
     });
 
     it('[Stopped] - Should send breakpoint stopped event', () => {
@@ -1530,7 +1530,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(1);
-      expect(adapter.getEvents().length).toBe(2);
+      expect(adapter.getEvents()).toHaveLength(2);
       expect(adapter.getEvents()[0].event).toBe('output');
       expect(adapter.getEvents()[1].event).toBe('stopped');
       const stoppedEvent = adapter.getEvents()[1] as StoppedEvent;
@@ -1649,7 +1649,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(1);
-      expect(adapter.getEvents().length).toBe(2);
+      expect(adapter.getEvents()).toHaveLength(2);
       expect(adapter.getEvents()[0].event).toBe('output');
       expect(adapter.getEvents()[1].event).toBe('stopped');
       const threadEvent = adapter.getEvents()[1] as ThreadEvent;
@@ -1669,7 +1669,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(0); // must have no registered request thread
-      expect(adapter.getEvents().length).toBe(0); // must not handle an event without a request id
+      expect(adapter.getEvents()).toHaveLength(0); // must not handle an event without a request id
     });
 
     it('[Stopped] - Should not clear variable handles', () => {
@@ -1698,7 +1698,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().size).toBe(2);
-      expect(adapter.getEvents().length).toBe(2);
+      expect(adapter.getEvents()).toHaveLength(2);
 
       expect(adapter.getVariableContainer(variableReference)).toBeDefined();
       expect(adapter.getStackFrameInfo(frameId)).toBeDefined();
@@ -1718,7 +1718,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getEvents().length).toBe(2);
+      expect(adapter.getEvents()).toHaveLength(2);
       expect(adapter.getEvents()[0].event).toBe('output');
       expect(adapter.getEvents()[1].event).toBe(SHOW_MESSAGE_EVENT);
       const showMessageEvent = adapter.getEvents()[1];
@@ -1739,7 +1739,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getEvents().length).toBe(1);
+      expect(adapter.getEvents()).toHaveLength(1);
       expect(adapter.getEvents()[0].event).toBe('output');
     });
 
@@ -1755,7 +1755,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getEvents().length).toBe(2);
+      expect(adapter.getEvents()).toHaveLength(2);
       expect(adapter.getEvents()[0].event).toBe('output');
       expect(adapter.getEvents()[1].event).toBe(SHOW_MESSAGE_EVENT);
       const showMessageEvent = adapter.getEvents()[1];
@@ -1776,7 +1776,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getEvents().length).toBe(1);
+      expect(adapter.getEvents()).toHaveLength(1);
       expect(adapter.getEvents()[0].event).toBe('output');
     });
 
@@ -1792,7 +1792,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getEvents().length).toBe(1);
+      expect(adapter.getEvents()).toHaveLength(1);
       expect(adapter.getEvents()[0].event).toBe('output');
     });
 
@@ -1808,7 +1808,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getEvents().length).toBe(1);
+      expect(adapter.getEvents()).toHaveLength(1);
       expect(adapter.getEvents()[0].event).toBe('output');
     });
 
@@ -1824,7 +1824,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getEvents().length).toBe(1);
+      expect(adapter.getEvents()).toHaveLength(1);
       expect(adapter.getEvents()[0].event).toBe('output');
     });
   });

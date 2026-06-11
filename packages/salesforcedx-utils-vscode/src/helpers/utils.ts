@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -92,19 +92,6 @@ export const extractJson = <T = any>(str: string): T => {
 export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
 
 export const stripAnsi = (str: string): string => (str ? str.replaceAll(ansiRegex(), '') : str);
-
-export const getMessageFromError = (err: any): string => {
-  if (err instanceof Error) {
-    return err.message;
-  }
-  if (typeof err === 'string') {
-    return err;
-  }
-  if (err) {
-    return `Unexpected error: ${JSON.stringify(err)}`;
-  }
-  return 'Unknown error';
-};
 
 /*
 Copied from https://github.com/sindresorhus/strip-ansi/blob/master/index.js

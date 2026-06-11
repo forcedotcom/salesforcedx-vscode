@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -84,3 +84,17 @@ export const LWC_SERVER_READY_NOTIFICATION = 'custom/lwcServerReady';
  * is complete and the server is ready to serve requests.
  */
 export const AURA_SERVER_READY_NOTIFICATION = 'custom/auraServerReady';
+
+// Re-export from bundleRename
+export {
+  AURA_TYPE,
+  LWC_TYPE,
+  TEST_FOLDER,
+  NotInBundleError,
+  bundleFilePattern,
+  getBundleUri,
+  getBundleKind,
+  hasFileNameCollision,
+  normalizeComponentName
+} from './bundleRename';
+export type { LightningComponentKind } from './bundleRename';

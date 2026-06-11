@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -392,8 +392,7 @@ export class ExternalServiceRegistrationManager {
    * @returns A cleaned copy of the document
    */
   private cleanOasDocument(doc: OpenAPIV3.Document): OpenAPIV3.Document {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const cleaned = JSON.parse(JSON.stringify(doc)); // Deep clone the document
+    const cleaned = structuredClone(doc); // Deep clone the document
 
     // Clean all description fields in the document
     const descriptionPaths = [

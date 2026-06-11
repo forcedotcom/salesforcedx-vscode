@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,9 +10,9 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import { isTelemetryExtensionConfigurationEnabled } from './appInsights';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
-import { FileSpanExporterWeb } from './fileSpanExporterWeb';
-import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled } from './localTracing';
+import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
+import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
 export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
@@ -37,6 +37,6 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
-      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new FileSpanExporterWeb(extensionName))] : [])
+      ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterWeb())] : [])
     ]
   }));

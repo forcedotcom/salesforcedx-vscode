@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/effect-ext-utils",
-  "version": "66.13.0",
+  "version": "67.0.0",
   "description": "Utility functions and helpers for Effect-based VS Code extensions",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -104,7 +104,7 @@
   },
   "dependencies": {
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "@types/vscode": "^1.90.0"
   }
 }

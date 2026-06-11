@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -22,7 +22,6 @@ import {
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   saveScreenshot,
-  isMacDesktop,
   validateNoCriticalErrors,
   EDITOR,
   NOTIFICATION_LIST_ITEM,
@@ -34,7 +33,7 @@ import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/consta
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
-(isMacDesktop() ? test.skip.bind(test) : test)('Deploy Source Path: deploys via all entry points', async ({ page }) => {
+test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
   test.setTimeout(DEPLOY_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);

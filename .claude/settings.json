@@ -1,24 +1,33 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh",
-            "args": []
-          }
-        ]
-      }
-    ]
-  },
+  "enableWorkflows": true,
   "permissions": {
     "allow": [
       "Bash(${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('sources',['?']\\)[:3]\\)\")",
       "Bash(git commit -m ' *)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(ls *~/.sf/vscode-spans*)",
+      "Bash(tail *~/.sf/vscode-spans*)",
+      "Bash(wc -l *~/.sf/vscode-spans*)",
+      "Bash(grep *~/.sf/vscode-spans*)",
+      "Bash(head *~/.sf/vscode-spans*)",
+      "Bash(sf:*)",
+      "Bash(gh:*)",
+      "Bash(git worktree:*)",
+      "Bash(git fetch:*)",
+      "Bash(git push:*)",
+      "Bash(git merge:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(npm install)",
+      "Bash(npm install --no-audit --no-fund)",
+      "Bash(ls .claude/skills*)",
+      "mcp__slack__slack_send_message"
     ]
   },
   "hooks": {
@@ -28,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/block-no-verify.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-no-verify.sh"
           }
         ]
       }
@@ -39,11 +48,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/mark-edit.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh"
           },
           {
             "type": "command",
-            "command": ".claude/hooks/verify-on-edit.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/mark-edit.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-edit.sh"
           }
         ]
       }
@@ -53,7 +66,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/verify-stop.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-stop.sh"
           }
         ]
       }

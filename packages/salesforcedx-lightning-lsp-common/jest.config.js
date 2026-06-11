@@ -6,7 +6,7 @@ module.exports = {
   },
   testRegex: 'test/.*(\\.|/)(test|spec)\\.ts$',
   moduleFileExtensions: ['ts', 'js', 'json'],
-  setupFilesAfterEnv: ['<rootDir>/jest/matchers.ts', 'jest-extended', '<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['jest-extended', '<rootDir>/jest.setup.js'],
   testEnvironmentOptions: {
     url: 'http://localhost/'
   },

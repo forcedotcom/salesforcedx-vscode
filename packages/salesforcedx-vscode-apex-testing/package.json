@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.13.0",
+  "version": "67.0.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,11 +28,11 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.21",
+    "@salesforce/apex-node": "^8.4.27",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/types": "^1.7.1",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
@@ -201,8 +201,10 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-apex:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -225,8 +227,10 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-apex:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [

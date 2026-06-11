@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -61,7 +61,7 @@ describe('breakpointService Unit Tests.', () => {
       expect(breakpointService.isApexDebuggerBreakpointId('')).toBeFalsy();
     });
 
-    it('Should return false if isApexDebuggerBreakpointId is empty.', () => {
+    it('Should return false if isApexDebuggerBreakpointId is not the debugger id.', () => {
       expect(breakpointService.isApexDebuggerBreakpointId('NOT_THE_DEBUGGER_ID')).toBeFalsy();
     });
 
@@ -111,7 +111,7 @@ describe('breakpointService Unit Tests.', () => {
       const typerefMapping = new Map();
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
       const typeref = breakpointService.getTyperefFor('test', 1);
-      expect(typeref).toEqual('test');
+      expect(typeref).toBe('test');
     });
   });
 
@@ -125,7 +125,7 @@ describe('breakpointService Unit Tests.', () => {
       const typerefMapping = new Map([['test', 'test']]);
       breakpointService.setValidLines(new Map(), typerefMapping);
       const typeref = breakpointService.getSourcePathFromTyperef('test');
-      expect(typeref).toEqual('test');
+      expect(typeref).toBe('test');
     });
   });
 
@@ -139,7 +139,7 @@ describe('breakpointService Unit Tests.', () => {
       const typerefMapping = new Map([['test', 'test']]);
       breakpointService.setValidLines(new Map(), typerefMapping);
       const typeref = breakpointService.getSourcePathFromPartialTyperef('test');
-      expect(typeref).toEqual('test');
+      expect(typeref).toBe('test');
     });
   });
 
@@ -194,17 +194,17 @@ describe('breakpointService Unit Tests.', () => {
     });
   });
 
-  describe('getBreakpointsFor()', () => {
+  describe('getBreakpointsFor() cache', () => {
     it('Should return undefined if cache is empty.', () => {
       const lines = breakpointService.getBreakpointsFor('test');
-      expect(lines.size).toEqual(0);
+      expect(lines.size).toBe(0);
     });
 
     it('Should return a breakpoint.', () => {
       breakpointService.cacheLineBreakpoint('test', 1, 'test');
       const lines = breakpointService.getBreakpointsFor('test');
-      expect(lines.size).toEqual(1);
-      expect(lines.has(1)).toEqual(true);
+      expect(lines.size).toBe(1);
+      expect(lines.has(1)).toBe(true);
     });
   });
 

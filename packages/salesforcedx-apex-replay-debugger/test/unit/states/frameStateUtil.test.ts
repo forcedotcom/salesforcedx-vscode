@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -38,10 +38,6 @@ describe('Frame state utilities', () => {
     });
     it('EVENT_CONSTRUCTOR_ENTRY inner class', () => {
       const fields = 'NothingHereMatters|CONSTRUCTOR_ENTRY|NothingHereMatters|ClassName.InnerClassName'.split('|');
-      expect(FrameStateUtil.computeFrameName(fields)).toBe('ClassName.InnerClassName.InnerClassName');
-    });
-    it('EVENT_CONSTRUCTOR_EXIT inner class', () => {
-      const fields = 'NothingHereMatters|CONSTRUCTOR_EXIT|NothingHereMatters|ClassName.InnerClassName'.split('|');
       expect(FrameStateUtil.computeFrameName(fields)).toBe('ClassName.InnerClassName.InnerClassName');
     });
     it('EVENT_CONSTRUCTOR_EXIT inner class', () => {

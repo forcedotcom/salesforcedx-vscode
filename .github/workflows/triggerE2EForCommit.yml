@@ -34,21 +34,9 @@ jobs:
   # 📦 Deploy & Retrieve — now covered by core Playwright tests (manifestBuilder, deployAndRetrieve, metadataDeployRetrieve, pushAndPull)
 
   # 🐛 Apex Features
-  apex-lsp:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'apexLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # apex-lsp: migrated to Playwright in apexLspE2E.yml
 
-  apex-run-tests:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'runApexTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # apex-run-tests: migrated to Playwright in apexTestingE2E.yml (runApexTestsCommandPalette/CodeLens/FailAndFix.headless.spec.ts)
 
   apex-debug-tests:
     uses: ./.github/workflows/runE2ETest.yml
@@ -58,14 +46,7 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
       runId: ${{ inputs.runId }}
 
-  apex-trail-replay-debugger:
-    if: false
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'trailApexReplayDebugger.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # apex-trail-replay-debugger: migrated to Playwright in apexReplayDebuggerE2E.yml (checkpoints.desktop.spec.ts) — W-21368925
 
   # ⚡ LWC Features
   # lwc-lsp: migrated to Playwright in lwcPlaywrightE2E.yml (lwcLspIndexing, lwcLspGoToDefinitionJs, lwcLspGoToDefinitionHtml, lwcLspAutocompletion)

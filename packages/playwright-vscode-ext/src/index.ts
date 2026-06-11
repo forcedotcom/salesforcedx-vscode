@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -13,6 +13,7 @@ export {
   waitForQuickInputFirstOption,
   selectFirstQuickInputOption,
   selectQuickInputOption,
+  selectQuickInputOptionByTyping,
   closeWelcomeTabs,
   dismissSignInWalkthroughDialog,
   closeSettingsTab,
@@ -21,13 +22,16 @@ export {
   isDesktop,
   isMacDesktop,
   isWindowsDesktop,
-  validateNoCriticalErrors,
+  validateNoCriticalErrors
+} from './utils/helpers';
+
+export {
   removeAllDebugLevels,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,
   prepareNoFolderOpenForPaletteTests
-} from './utils/helpers';
+} from './utils/workflows';
 
 export { activeQuickInputWidget, activeQuickInputTextField } from './utils/quickInput';
 
@@ -38,7 +42,9 @@ export {
   openFileByName,
   openFileFromExplorerTree,
   editAndSaveOpenFile as editOpenFile,
+  replaceLineInOpenFile,
   setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
@@ -94,7 +100,16 @@ export {
   expectProblemsCountAtLeast
 } from './pages/problems';
 
-export { waitForRunApexTestsProgressNotificationGone } from './pages/notifications';
+export {
+  waitForRunApexTestsProgressNotificationGone,
+  waitForNotification,
+  acceptNotification
+} from './pages/notifications';
+
+export { clickCodeLens } from './pages/codeLens';
+
+export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
+export type { ActiveFrameMatcher } from './pages/webview';
 
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';

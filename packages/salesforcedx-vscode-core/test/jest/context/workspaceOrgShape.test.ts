@@ -1,24 +1,23 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  workspaceUtils,
-  isASandboxOrg,
-  isAScratchOrg,
-  getTargetOrgOrAlias
-} from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils, getTargetOrgOrAlias } from '@salesforce/salesforcedx-utils-vscode';
 import { getOrgShape } from '../../../src/context/workspaceOrgShape';
+import { isASandboxOrg, isAScratchOrg } from '../../../src/util/orgShapeUtil';
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   workspaceUtils: {
     hasRootWorkspace: jest.fn()
   },
-  isASandboxOrg: jest.fn(),
-  isAScratchOrg: jest.fn(),
   getTargetOrgOrAlias: jest.fn()
+}));
+
+jest.mock('../../../src/util/orgShapeUtil', () => ({
+  isASandboxOrg: jest.fn(),
+  isAScratchOrg: jest.fn()
 }));
 
 describe('getOrgShape', () => {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { isDesktop, isMacDesktop } from '../utils/helpers';
+import { isDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 import { executeCommandWithCommandPalette, openCommandPalette } from './commands';
@@ -294,7 +294,7 @@ export const waitForOutputChannelText = async (
 /**
  * Opens output channel for a named extension, opens it in editor, and takes a screenshot.
  * Useful for debugging when errors occur.
- * Note: Context menus don't work on Mac+Desktop+Electron, so this will skip on that platform.
+ * Note: Context menus now work on Mac desktop via `window.menuStyle: custom` (VS Code 1.101+).
  * In web VS Code, if opening in editor fails, falls back to screenshotting the output panel directly.
  */
 export const captureOutputChannelDetails = async (
@@ -304,15 +304,6 @@ export const captureOutputChannelDetails = async (
 ): Promise<void> => {
   const safeChannelName = channelName.replaceAll(/[^a-zA-Z0-9]/g, '_');
   const screenshotFileName = screenshotName ?? `output-channel-${safeChannelName}.png`;
-
-  // Skip on Mac desktop - context menus don't work there
-  if (isMacDesktop()) {
-    console.log('Skipping "Open Output in Editor" on Mac Desktop (context menus not supported)');
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, channelName);
-    await saveScreenshot(page, `test-results/${screenshotFileName}`, true);
-    return;
-  }
 
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, channelName);

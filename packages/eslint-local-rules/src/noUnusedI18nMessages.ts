@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,6 +10,7 @@ import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
+import { isNlsLocalizeCall } from './astUtils';
 import { collectQueryBuilderI18nKeyRefsFromHtml, extractKey, extractMessagesObject } from './i18nUtils';
 
 const DEFAULT_DYNAMIC_KEY_PATTERNS = ['^[A-Z][a-zA-Z0-9]*$'];
@@ -90,13 +91,6 @@ const loadPackageNlsKeys = (packageRoot: string): Set<string> => {
     return new Set();
   }
 };
-
-const isNlsLocalizeCall = (node: TSESTree.CallExpression): boolean =>
-  node.callee.type === AST_NODE_TYPES.MemberExpression &&
-  node.callee.object.type === AST_NODE_TYPES.Identifier &&
-  node.callee.object.name === 'nls' &&
-  node.callee.property.type === AST_NODE_TYPES.Identifier &&
-  node.callee.property.name === 'localize';
 
 const isCoerceMessageKeyCall = (node: TSESTree.CallExpression): boolean =>
   node.callee.type === AST_NODE_TYPES.Identifier && node.callee.name === 'coerceMessageKey';

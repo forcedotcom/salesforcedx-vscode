@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -137,17 +137,17 @@ describe('indexer parsing content', () => {
     const auraFilename = path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp');
     const tagInfo = await auraIndexer.indexFile(auraFilename, true);
     expect(tagInfo).toBeObject();
-    expect(tagInfo?.name).toEqual('c:wireLdsCmp');
+    expect(tagInfo?.name).toBe('c:wireLdsCmp');
     expect(tagInfo?.file).toEndWith('wireLdsCmp.cmp');
-    expect(tagInfo?.type).toEqual('CUSTOM');
-    expect(tagInfo?.lwc).toEqual(false);
+    expect(tagInfo?.type).toBe('CUSTOM');
+    expect(tagInfo?.lwc).toBe(false);
     expect(tagInfo?.location).toBeObject();
     expect(tagInfo?.location?.uri).toEndWith('wireLdsCmp.cmp');
     expect(tagInfo?.location?.range).toBeObject();
-    expect(tagInfo?.namespace).toEqual('c');
+    expect(tagInfo?.namespace).toBe('c');
   });
 
-  xit('should handle indexing an invalid aura component', async () => {
+  it.skip('should handle indexing an invalid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new LspFileSystemAccessor());
     context.initialize('SFDX');
     await context.configureProject();

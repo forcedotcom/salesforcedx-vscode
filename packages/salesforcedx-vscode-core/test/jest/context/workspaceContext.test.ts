@@ -1,15 +1,14 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context';
 
 const getDevHubIdFromScratchOrgMock = jest.fn();
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
+jest.mock('../../../src/util/orgShapeUtil', () => ({
   getDevHubIdFromScratchOrg: (...args: any[]) => getDevHubIdFromScratchOrgMock(...args)
 }));
 
@@ -18,23 +17,15 @@ jest.mock('../../../src/services/runtime', () => ({
   getRuntime: () => ({ runPromise: mockRunPromise })
 }));
 
+const getOrgShapeMock = jest.fn();
+jest.mock('../../../src/context/workspaceOrgShape', () => ({
+  getOrgShape: (...args: any[]) => getOrgShapeMock(...args)
+}));
+
 describe('workspaceContext', () => {
   describe('handleOrgShapeChange', () => {
-    jest.mock('../../../src/context', () => ({
-      workspaceContextUtils: {
-        getOrgShape: jest.fn(),
-        OrgShape: {
-          Undefined: 'Undefined',
-          Scratch: 'Scratch',
-          Sandbox: 'Sandbox',
-          Production: 'Production'
-        }
-      }
-    }));
-
     const mockOrgUserInfo: OrgUserInfo = { username: 'test-username' };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
-    let getOrgShapeMock: jest.SpyInstance;
 
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
@@ -55,7 +46,7 @@ describe('workspaceContext', () => {
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
 
-      getOrgShapeMock = jest.spyOn(workspaceContextUtils, 'getOrgShape').mockResolvedValue('Undefined');
+      getOrgShapeMock.mockResolvedValue('Undefined');
 
       getDevHubIdFromScratchOrgMock.mockResolvedValue(undefined);
     });

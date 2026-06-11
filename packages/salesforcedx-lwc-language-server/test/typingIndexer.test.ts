@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -105,7 +105,7 @@ describe('TypingIndexer', () => {
   describe('new', () => {
     it('initializes with the root of a workspace', async () => {
       expect(typingIndexerData.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
-      await expect(getSfdxPackageDirsPattern(typingIndexerData.workspaceRoot, sfdxFileSystemAccessor)).resolves.toEqual(
+      await expect(getSfdxPackageDirsPattern(typingIndexerData.workspaceRoot, sfdxFileSystemAccessor)).resolves.toBe(
         '{force-app,utils,registered-empty-folder}'
       );
     });
@@ -216,10 +216,10 @@ describe('TypingIndexer', () => {
 
   describe('pathBasename', () => {
     it('returns the basename of a path', () => {
-      expect(pathBasename('force-app/main/default/contentassets/logo.asset-meta.xml')).toEqual('logo');
-      expect(pathBasename('force-app/main/default/contentassets/logo.asset.d.ts')).toEqual('logo');
-      expect(pathBasename('force-app\\main\\default\\contentassets\\logo.asset.d.ts-meta.xml')).toEqual('logo');
-      expect(pathBasename('force-app\\main\\default\\contentassets\\logo.asset.d.ts')).toEqual('logo');
+      expect(pathBasename('force-app/main/default/contentassets/logo.asset-meta.xml')).toBe('logo');
+      expect(pathBasename('force-app/main/default/contentassets/logo.asset.d.ts')).toBe('logo');
+      expect(pathBasename('force-app\\main\\default\\contentassets\\logo.asset.d.ts-meta.xml')).toBe('logo');
+      expect(pathBasename('force-app\\main\\default\\contentassets\\logo.asset.d.ts')).toBe('logo');
     });
   });
 

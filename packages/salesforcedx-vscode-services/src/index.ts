@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -22,6 +22,7 @@ import { ConnectionService } from './core/connectionService';
 import { getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
+import { LightningComponentService } from './core/lightningComponentService';
 import { MetadataChangeNotificationService } from './core/metadataChangeNotificationService';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
@@ -72,6 +73,7 @@ export type SalesforceVSCodeServicesApi = {
       | ApexLogService
       | ChannelService
       | ComponentSetService
+      | LightningComponentService
       | ConfigService
       | ConnectionService
       | EditorService
@@ -105,6 +107,7 @@ export type SalesforceVSCodeServicesApi = {
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
     ComponentSetService: typeof ComponentSetService;
+    LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
     registerCommandWithLayer: typeof registerCommandWithLayer;
@@ -155,6 +158,7 @@ export type {
   FailedToBuildComponentSetError,
   EmptyComponentSetError
 } from './core/componentSetService';
+export type { LightningComponentKind, RenameBundleParams } from './core/lightningComponentService';
 export type { NoActiveEditorError, EditorService } from './vscode/editorService';
 export type { GetOrgFromConnectionError } from './core/shared';
 export type {
@@ -163,7 +167,7 @@ export type {
   SourceTrackingNotEnabledError,
   SourceTrackingService
 } from './core/sourceTrackingService';
-export type { HashableUri } from './vscode/hashableUri';
+export { HashableUri } from './vscode/hashableUri';
 export type { FailedToResolveSfProjectError, NotInPackageDirectoryError } from './core/projectService';
 export type { NoWorkspaceOpenError } from './vscode/workspaceService';
 export type { FailedToCreateConfigAggregatorError } from './core/configService';
@@ -317,6 +321,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     FileChangePubSub.Default,
     ApexLogService.Default,
     ComponentSetService.Default,
+    LightningComponentService.Default,
     ConfigService.Default,
     ConnectionService.Default,
     EditorService.Default,
@@ -363,6 +368,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ChannelService,
       ChannelServiceLayer,
       ComponentSetService,
+      LightningComponentService,
       ConfigService,
       ConnectionService,
       ExecuteAnonymousService,

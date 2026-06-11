@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -146,7 +146,7 @@ describe('SOQLEditorProvider', () => {
 
       soqlEditorProvider['disposeInstance'](mockInstance);
 
-      expect(soqlEditorProvider['instances'].length).toBe(0);
+      expect(soqlEditorProvider['instances']).toHaveLength(0);
     });
 
     it('should not remove anything if instance not found', () => {
@@ -157,7 +157,7 @@ describe('SOQLEditorProvider', () => {
 
       soqlEditorProvider['disposeInstance'](mockInstance2);
 
-      expect(soqlEditorProvider['instances'].length).toBe(1);
+      expect(soqlEditorProvider['instances']).toHaveLength(1);
     });
   });
 });

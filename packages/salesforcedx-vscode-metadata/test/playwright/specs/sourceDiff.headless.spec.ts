@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -22,7 +22,6 @@ import {
   verifyCommandExists,
   executeExplorerContextMenuCommand,
   saveScreenshot,
-  isMacDesktop,
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -137,9 +136,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     await verifyDiffCompleted(page, classNamePalette, 'diff-palette');
   });
 
-  await test.step('create local change and diff via explorer context menu', async step => {
-    step.skip(isMacDesktop(), 'Explorer context menu not available on Mac Desktop');
-
+  await test.step('create local change and diff via explorer context menu', async () => {
     await executeCommandWithCommandPalette(page, 'View: Close All Editors');
 
     await openFileByName(page, `${classNamePalette}.cls`);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -30,6 +30,8 @@ export const messages = {
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
   org_delete_default_text: 'SFDX: Delete Default Org',
+  org_delete_default_not_deletable:
+    'The default org is not a scratch org or sandbox and cannot be deleted with this command.',
   org_delete_username_text: 'SFDX: Delete Org...',
   org_display_default_text: 'SFDX: Display Org Details for Default Org',
   org_display_username_text: 'SFDX: Display Org Details...',

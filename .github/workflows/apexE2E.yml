@@ -8,25 +8,10 @@ on:
       #   required: false
       #   default: true
       #   type: boolean
-      apexLsp:
-        description: 'Apex LSP'
-        required: false
-        default: true
-        type: boolean
       debugApexTests:
         description: 'Debug Apex Tests'
         required: false
         default: true
-        type: boolean
-      runApexTests:
-        description: 'Run Apex Tests'
-        required: false
-        default: true
-        type: boolean
-      trailApexReplayDebugger:
-        description: 'Trail Apex Replay Debugger'
-        required: false
-        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
@@ -45,25 +30,10 @@ on:
       #   required: false
       #   default: true
       #   type: boolean
-      apexLsp:
-        description: 'Apex LSP'
-        required: false
-        default: true
-        type: boolean
       debugApexTests:
         description: 'Debug Apex Tests'
         required: false
         default: true
-        type: boolean
-      runApexTests:
-        description: 'Run Apex Tests'
-        required: false
-        default: true
-        type: boolean
-      trailApexReplayDebugger:
-        description: 'Trail Apex Replay Debugger'
-        required: false
-        default: false
         type: boolean
       vscodeVersion:
         description: 'VSCode Version'
@@ -86,15 +56,6 @@ jobs:
   #     runId: ${{ inputs.runId }}
   #     os: '["ubuntu-latest"]'
 
-  apexLSP:
-    if: ${{ inputs.apexLsp }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'apexLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
   debugApexTests:
     if: ${{ inputs.debugApexTests }}
     uses: ./.github/workflows/runE2ETest.yml
@@ -104,20 +65,4 @@ jobs:
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
 
-  runApexTests:
-    if: ${{ inputs.runApexTests }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'runApexTests.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
-
-  trailApexReplayDebugger:
-    if: ${{ inputs.trailApexReplayDebugger }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'trailApexReplayDebugger.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+  # runApexTests: migrated to Playwright in apexTestingE2E.yml (runApexTestsCommandPalette/CodeLens/FailAndFix.headless.spec.ts)

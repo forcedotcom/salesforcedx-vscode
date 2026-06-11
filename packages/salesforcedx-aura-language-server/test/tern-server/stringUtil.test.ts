@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -57,7 +57,7 @@ describe('string-util', () => {
             const result = countPreviousCommas(testString, threeCommaString.length + Math.floor(testString.length / 2));
 
             expect(result).toBeDefined();
-            expect(result).toEqual(3);
+            expect(result).toBe(3);
         });
 
         it('should find number of preceding commas with new line', () => {
@@ -67,7 +67,7 @@ describe('string-util', () => {
             const result = countPreviousCommas(testString, commaString.length + Math.floor(testString.length / 2));
 
             expect(result).toBeDefined();
-            expect(result).toEqual(2);
+            expect(result).toBe(2);
         });
     });
 
@@ -96,7 +96,7 @@ describe('string-util', () => {
             const result = findPreviousLeftParan(testString, Math.floor(testString.length / 2));
 
             expect(result).toBeDefined();
-            expect(result).toEqual(-1);
+            expect(result).toBe(-1);
         });
     });
 

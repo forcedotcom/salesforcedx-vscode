@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -103,6 +103,6 @@ describe('PropertyCorrectionStep', () => {
   it('should remove security sections at root and within methods', () => {
     const result = step['ensureSecuritySectionsAreRemoved'](openAPIDoc);
     const securityEntries = JSONPath({ path: '$..security', json: result });
-    expect(securityEntries.length).toBe(0);
+    expect(securityEntries).toHaveLength(0);
   });
 });

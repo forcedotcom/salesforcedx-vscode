@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -761,8 +761,8 @@ describe('deserialize should', () => {
     const actual = deserialize('// This is a comment on line 1\n// This is a comment on line 2\nSELECT FROM object1');
 
     expect(actual.errors).toBeDefined();
-    expect(actual.errors?.length).toEqual(1);
-    expect(actual.errors?.[0].lineNumber).toEqual(3);
+    expect(actual.errors?.length).toBe(1);
+    expect(actual.errors?.[0].lineNumber).toBe(3);
     expect(actual.headerComments).toEqual(expected.headerComments);
   });
 

@@ -1,21 +1,23 @@
-# 66.12.3 - May 22, 2026
+# 66.15.0 - June 10, 2026
 
 ## Added
 
 #### salesforcedx-vscode-metadata
 
-- You can now disable automatic source tracking conflict detection via the **Source Tracking: Disable Conflict Detection** setting for improved startup performance. ([PR #7323](https://github.com/forcedotcom/salesforcedx-vscode/pull/7323))
+- We rewrote the **SFDX: Install Package** command to use the Tooling API directly, so it now works in Web Console without the Salesforce CLI. The command also shows cancellable progress while the install request is polling. ([PR #7369](https://github.com/forcedotcom/salesforcedx-vscode/pull/7369))
+
+## Changed
+
+#### salesforcedx-vscode-lwc
+
+- You can now rename a Lightning Web Component in Web Console. ([PR #7371](https://github.com/forcedotcom/salesforcedx-vscode/pull/7371))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-apex-log
 
-- We fixed an unhandled "Channel has been closed" exception that could occur during Apex Language Server restart. ([PR #7314](https://github.com/forcedotcom/salesforcedx-vscode/pull/7314))
+- We reduced the number of API calls used to query information related to trace flags. ([PR #7391](https://github.com/forcedotcom/salesforcedx-vscode/pull/7391))
 
-#### salesforcedx-vscode-org
+#### salesforcedx-vscode-lwc
 
-- We fixed an issue where the source tracking status bar didn't refresh after switching orgs via the org picker. ([PR #7328](https://github.com/forcedotcom/salesforcedx-vscode/pull/7328))
-
-## Under the Hood
-
-- We made some under the hood changes. ([PR #7293](https://github.com/forcedotcom/salesforcedx-vscode/pull/7293), [PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322), [PR #7325](https://github.com/forcedotcom/salesforcedx-vscode/pull/7325), [PR #7331](https://github.com/forcedotcom/salesforcedx-vscode/pull/7331), [PR #7336](https://github.com/forcedotcom/salesforcedx-vscode/pull/7336))
+- You can create a Lightning Web Component from the Explorer context menu, not only the Command Palette. Thanks to [@vsdragon626](https://github.com/vsdragon626) for the contribution! ([PR #7392](https://github.com/forcedotcom/salesforcedx-vscode/pull/7392))

@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.13.0",
+  "version": "67.0.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,10 +28,10 @@
   "browser": "./dist/web/index.js",
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "jsforce": "^3.10.2",
+    "jsforce": "^3.10.15",
     "@salesforce/types": "^1.6.0",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.20.0",
+    "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
@@ -141,7 +141,7 @@
       ]
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "command": "dpdm -T --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
       "dependencies": [
         "compile"
       ],

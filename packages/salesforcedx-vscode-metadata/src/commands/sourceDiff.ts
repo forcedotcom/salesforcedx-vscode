@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -61,8 +61,8 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
       () =>
         void vscode.commands.executeCommand(
           'vscode.diff',
-          firstPair.remoteUri.toUri(),
-          firstPair.localUri.toUri(),
+          firstPair.remoteUri.uri,
+          firstPair.localUri.uri,
           nls.localize('source_diff_title', 'remote', firstPair.fileName, firstPair.fileName)
         )
     );
@@ -119,7 +119,9 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
         const errorMessage = error instanceof Error ? error.message : String(error);
         yield* channelService.appendToChannel(`Diff failed: ${errorMessage}`);
         yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
-        yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('source_diff_failed', errorMessage)));
+        yield* Effect.sync(() => {
+          void vscode.window.showErrorMessage(nls.localize('source_diff_failed', errorMessage));
+        });
       }).pipe(Effect.asVoid)
     )
   );
