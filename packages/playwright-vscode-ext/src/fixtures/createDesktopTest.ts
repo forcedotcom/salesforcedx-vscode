@@ -383,7 +383,12 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           }
         }
         // Remove the temp user-data dir (and its nested extensions dir) now that the process is gone.
-        await fs.rm(userDataDir, { recursive: true, force: true });
+        // On Windows the just-killed VS Code may still hold file handles briefly, so fs.rm hits EBUSY/EPERM
+        // (force only suppresses ENOENT). maxRetries retries those with backoff; best-effort so a leftover
+        // temp dir never fails the test.
+        try {
+          await fs.rm(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+        } catch {}
         console.log('[teardown] done');
       }
     },
