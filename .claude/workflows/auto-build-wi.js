@@ -11,6 +11,7 @@ export const meta = {
     { title: 'Triage failures' },
     { title: 'Fix CI failures' },
     { title: 'Close merged WIs' },
+    { title: 'Close plan-only PRs' },
     { title: 'Keep in-flight current' },
     { title: 'Open for review' },
     { title: 'Peer approve' },
@@ -90,6 +91,7 @@ const PR_STATE_SCHEMA = {
     failedJobs: { type: 'array', items: { type: 'string' } },
     failedLogsExcerpt: { type: ['string', 'null'] },
     maxRunAttempt: { type: ['number', 'null'] },
+    files: { type: 'array', items: { type: 'string' } },
   },
 }
 
@@ -416,6 +418,16 @@ const hasPrUrl = details =>
 const isBlockerSatisfied = status =>
   status === 'Completed' || status.startsWith('Closed')
 
+// A PR whose ONLY changed file is its own plan (or otherwise empty) has no
+// implementation — the Build phase no-op'd but reported 'done'. Such a PR still
+// goes 'green' (only SAST/CLA run on a docs-only diff) so the finalize gate must
+// refuse it rather than open it for review. Files unknown (null/undefined) is NOT
+// treated as plan-only — only an explicit, non-empty, all-plan file list counts.
+const isPlanOnlyDiff = files =>
+  Array.isArray(files) &&
+  files.length > 0 &&
+  files.every(f => /^\.claude\/plans\//.test(f))
+
 const stripHtml = s => String(s || '').replace(/<[^>]+>/g, ' ')
 
 // Extract WI names this WI declares a hard dependency on. A blocking keyword
@@ -495,6 +507,7 @@ const classifyMonitor = monitorOutcomes => ({
     r => r && (r.decision === 'no-pr-restart' || r.action === 'no-pr-restart')
   ),
   toCloseWi: monitorOutcomes.filter(r => r && r.decision === 'close-wi'),
+  toPlanOnly: monitorOutcomes.filter(r => r && r.decision === 'plan-only'),
   toRefresh: monitorOutcomes.filter(
     r =>
       r &&
@@ -621,6 +634,7 @@ Run:
   - 'green' if every row resolves to SUCCESS / NEUTRAL / SKIPPED
   - 'failed' otherwise (any FAILURE / CANCELLED / TIMED_OUT / ERROR, with NO running rows remaining)
 - If state is 'failed', collect failed job names. Run 'gh run view --log-failed <runId>' for the most recent failed/cancelled run linked to the PR head SHA, capture last ~100 lines as failedLogsExcerpt. Also gather the maximum 'run_attempt' across the workflow runs for the PR head SHA (gh api repos/forcedotcom/salesforcedx-vscode/actions/runs?head_sha=<sha> → max .run_attempt). Return that as maxRunAttempt.
+- ALWAYS run 'gh pr diff ${wi.prUrl} --name-only' and return the changed paths (one per line) as 'files'. Empty list if the command yields nothing.
 
 Return ONLY the structured result.`
 
@@ -635,6 +649,23 @@ Steps (idempotent):
 3. Delete local branch if present: from ${identity.projectRoot}, 'git branch -D ${branch}' (ignore failure if branch doesn't exist).
 
 Return {ok: true, detail} summarizing changes.`
+}
+
+const planOnlyPrPrompt = (r, identity) => {
+  const { wt, branch } = pathsFor(identity, r.wi)
+  return `WI ${r.wi.name}'s PR (${r.wi.prUrl}) contains NO implementation — only the plan file changed. The build no-op'd. Tear it down and bounce the WI for human takeover. Worktree stays so a human can resume.
+
+Changed files (confirm plan-only before acting): ${(r.prState.files || []).join(', ') || '(none reported)'}
+
+Steps (idempotent — skip any step already done):
+1. SAFETY CHECK: run 'gh pr diff ${r.wi.prUrl} --name-only'. If ANY changed path is NOT under '.claude/plans/', ABORT — return {ok: false, detail: "diff has implementation files, not plan-only — leaving PR alone"}. Do nothing else.
+2. Close the PR: 'gh pr close ${r.wi.prUrl} --comment "Auto-closing: build produced no implementation (plan-only diff). Bouncing WI to Waiting for human takeover."'
+3. Delete the remote branch: 'git push origin --delete ${branch}' (ignore failure if already gone).
+4. Bounce the WI to Waiting: sf data update record -s ADM_Work__c -i ${r.wi.wiId} -o gus -v "Status__c='Waiting'"
+5. DM ${identity.slackId} via mcp__slack__slack_send_message:
+   "⚠️ ${r.wi.name} build produced no code (plan-only PR auto-closed). Bounced to Waiting — needs human takeover.\\nWorktree: ${wt}\\nBranch: ${branch}"
+
+Leave the local worktree (${wt}) in place for human resume. Return {ok: true, detail: "<summary>"} or {ok: false, detail} on abort.`
 }
 
 const triageCiPrompt = (r, identity) => {
@@ -1225,6 +1256,13 @@ const monitorInFlight = async identity => {
       if (prState.state === 'merged' || prState.state === 'closed') {
         return { ...result, decision: 'close-wi' }
       }
+      // A green PR whose ONLY change is its own plan file has no implementation — the
+      // Build phase no-op'd but reported 'done', and a docs-only diff trivially passes CI.
+      // Refuse to open it for review; bounce the WI for human takeover instead. (Catches
+      // it whether the build no-op'd this tick or a prior tick left the empty PR behind.)
+      if (prState.state === 'green' && isPlanOnlyDiff(prState.files)) {
+        return { ...result, decision: 'plan-only' }
+      }
       // Only finalize a green PR whose WI is still 'In Progress'. WIs already advanced to
       // 'Ready for Review'/'Fixed' in a prior tick are done — re-finalizing them re-posts the
       // Slack "PR ready for review" message every tick (openReviewPrompt step 4 is not idempotent).
@@ -1254,6 +1292,20 @@ const closeMergedWis = async (toCloseWi, identity) => {
         label: `close-${r.wi.name}`,
         phase: 'Close merged WIs',
         model: 'haiku',
+      })
+    )
+  )
+}
+
+const handlePlanOnlyPrs = async (toPlanOnly, identity) => {
+  phase('Close plan-only PRs')
+  await parallel(
+    toPlanOnly.map(r => () =>
+      agent(planOnlyPrPrompt(r, identity), {
+        schema: OK_SCHEMA,
+        label: `plan-only-${r.wi.name}`,
+        phase: 'Close plan-only PRs',
+        model: 'sonnet',
       })
     )
   )
@@ -1773,9 +1825,10 @@ await ensureDaemons()
 await reapStrandedWorktrees(identity)
 
 const { inFlightWis, monitorOutcomes } = await monitorInFlight(identity)
-const { toFinalize, toTriage, toRestart, toCloseWi, toRefresh } = classifyMonitor(monitorOutcomes)
+const { toFinalize, toTriage, toRestart, toCloseWi, toPlanOnly, toRefresh } = classifyMonitor(monitorOutcomes)
 
 if (toCloseWi.length) await closeMergedWis(toCloseWi, identity)
+if (toPlanOnly.length) await handlePlanOnlyPrs(toPlanOnly, identity)
 if (toTriage.length) await triageAndFixCi(toTriage, identity)
 if (toRefresh.length) await keepInFlightCurrent(toRefresh, identity)
 if (toFinalize.length) await openForReview(toFinalize, identity)
