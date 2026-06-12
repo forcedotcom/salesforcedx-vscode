@@ -80,7 +80,7 @@ Always grep for `\.exports\.\w+` across the full monorepo, not just `coreExtensi
 | apex | `coreExtensionUtils.ts`, `index.ts`, `languageServer.ts` | `.WorkspaceContext`, `.services.TelemetryService`, `.getAuthFields`, `.services.SalesforceProjectConfig` |
 | apex-debugger | `coreExtensionUtils.ts`, `index.ts`, `debugConfigurationProvider.ts` | `.channelService`, `.SfCommandlet`, `.telemetryService`, `.SfCommandletExecutor`, `.isCLIInstalled` |
 | apex-replay-debugger | `index.ts`, `checkpointService.ts`, `quickLaunch.ts`, `debugConfigurationProvider.ts` | `.services.WorkspaceContext`, `.getUserId` |
-| apex-oas | `coreExtensionUtils.ts`, `index.ts`, `oasUtils.ts`, `externalServiceRegistrationManager.ts`, `auraEnabledStrategy.ts` | `.WorkspaceContext`, `.services.SalesforceProjectConfig`, `.services.RegistryAccess`, `.services.WorkspaceContext` |
+| apex-oas | `index.ts`, `oasUtils.ts`, `externalServiceRegistrationManager.ts` | `.WorkspaceContext`, `.services.SalesforceProjectConfig`, `.services.RegistryAccess`, `.services.FsService` |
 | utils-vscode | `authUtils.ts`, `workspaceContextUtil.ts`, `telemetryUtils.ts` | `.sharedAuthState`, `.channelService`, `.getSharedTelemetryUserId` (phantom — not on API type) |
 
 ## Keeping current

@@ -119,15 +119,26 @@ Top-level spans automatically receive additional attributes via `SpanTransformPr
 
 #### Manual Attributes
 
-Add custom attributes using `Effect.annotateCurrentSpan()`:
+Two helpers, different targets:
+
+- **`Effect.annotateCurrentSpan()`** — writes to the current fiber's span. Visible in console / file / local-OTLP traces. **Not visible in App Insights or O11y unless the current span is itself top-level or a command span**, because [the export filter](spanUtils.ts) only ships top-level + command spans.
+- **`annotateRootSpan()` from `@salesforce/effect-ext-utils`** — walks up `Span.parent` to the trace root and annotates there. Reaches App Insights and O11y from anywhere in the call tree.
+
+Rule of thumb: if the consumer is local debugging, use `Effect.annotateCurrentSpan`. If the consumer is production telemetry (org IDs, feature flags, user-meaningful identifiers), use `annotateRootSpan`.
 
 ```typescript
+import { annotateRootSpan } from '@salesforce/effect-ext-utils';
+
+// On the current span — useful for local-only debug context
 yield *
   Effect.annotateCurrentSpan({
     customAttribute: 'value',
     count: 42,
     enabled: true
   });
+
+// On the trace root — reaches App Insights and O11y
+yield * annotateRootSpan({ orgId, featureFlag: 'enabled' });
 ```
 
 #### Excluding a Span from Production Telemetry

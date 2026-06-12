@@ -21,3 +21,7 @@ export { createTable } from './table';
 export type { Column, Row } from './table';
 
 export { sfProjectPreconditionChecker } from './preconditionCheckers';
+
+export { extractJson, getJsonCandidate, identifyJsonTypeInString, stripAnsi, getMessageFromError } from './utils';
+
+export { annotateRootSpan } from './annotateRootSpan';

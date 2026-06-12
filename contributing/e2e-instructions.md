@@ -83,6 +83,8 @@ Uncheck all the boxes except for the one E2E test you want to run. Input the ID 
 
 <img src="../imgs/apex-e2e-workflow-manual-trigger.png" alt="Apex E2E Workflow Manual Trigger Interface" width="300">
 
+**Note on Apex OAS E2E Tests:** OpenAPI Specification (OAS) tests have migrated from legacy vscode-extension-tester to Playwright in `packages/salesforcedx-vscode-apex-oas/test/playwright/specs/` and run in a separate workflow ([**Apex OAS E2E**](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/apexOasE2E.yml)). These tests run on desktop only (macOS + ubuntu). For local testing, see the [Playwright E2E skill](../.claude/skills/playwright-e2e/SKILL.md) for setup instructions.
+
 ## Updating salesforcedx-vscode-test-tools
 
 The salesforcedx-vscode-test-tools repo is a set of helper functions used to integrate the RedHat vscode-extension-tester repo. We created these helper functions to help us minimize calling vscode-extension-tester commands directly in our E2E tests, and also to remove duplicate code in common areas such as finding and right clicking a file in the sidebar or running a command in the command palette.

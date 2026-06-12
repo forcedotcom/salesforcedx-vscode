@@ -7,7 +7,6 @@
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
     "lint": "wireit",
-    "copy:files": "wireit",
     "compile": "wireit",
     "extester": "extest --help",
     "reinstall": "git checkout -- package-lock.json && git clean -xfd && npm install"
@@ -16,9 +15,6 @@
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
-      "dependencies": [
-        "copy:files"
-      ],
       "files": [
         "test/**/*.ts",
         "tsconfig.json",
@@ -26,17 +22,7 @@
         "package.json"
       ],
       "output": [
-        "lib/**",
-        "!lib/test/testData/files/*"
-      ]
-    },
-    "copy:files": {
-      "command": "shx mkdir -p lib/test/testData/files && shx cp ./test/testData/files/* lib/test/testData/files",
-      "files": [
-        "test/testData/files/*"
-      ],
-      "output": [
-        "lib/test/testData/files/*"
+        "lib/**"
       ]
     },
     "lint": {

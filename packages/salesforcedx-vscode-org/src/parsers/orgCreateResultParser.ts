@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJson } from '@salesforce/salesforcedx-utils-vscode';
+import { extractJson } from '@salesforce/effect-ext-utils';
 
 type OrgCreateSuccessResult = {
   status: number;

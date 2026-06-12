@@ -17,26 +17,25 @@
  */
 
 export const messages = {
-  active_text_editor_not_apex: 'The active text editor is not an Apex Class file',
   channel_name: 'Apex OpenAPI Specification',
   apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
+  apex_lsp_not_ready: 'The Apex Language Server is still starting up. Wait for indexing to finish, then try again.',
   artifact_failed: 'Failed to save the artifact: %s',
   cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
   cannot_get_apexoaseligibility_response: 'Failed to get response through apexoas/isEligible from Apex Language Server',
-  check_openapi_doc_failed: 'Failed to check OpenAPI Document',
   check_openapi_doc_succeeded: 'Validated OpenAPI Document %s successfully',
-  class_validation_failed: 'Failed to validate eligibility from %s',
-  create_openapi_doc_failed: 'Failed to create OpenAPI Document',
   eligible_method_not_in_doc: 'Methods %s are eligible for OAS generation, but not present in the document',
   failed_to_combine_oas: 'Failed to combine yaml docs: %s',
   file_exists: 'The file already exists. How do you want to proceed?',
-  full_path_failed: 'Failed to determine the full path for the OpenAPI document.',
-  gathering_context: 'Gathering context data.',
-  generating_oas_doc: 'Generating OpenAPI doc.',
-  get_document_path: 'Get OpenAPI document folder name.',
+  http_verb_prompt_get: 'For the given method only produce the GET verb.',
+  http_verb_prompt_patch: 'For the given method only produce the PATCH verb.',
+  http_verb_prompt_post: 'For the given method only produce the POST verb.',
+  http_verb_prompt_put: 'For the given method only produce the PUT verb.',
+  http_verb_prompt_delete: 'For the given method only produce the DELETE verb.',
   ineligible_method_in_doc: 'Method %s is not eligible for OAS generation, but present in the document',
-  invalid_active_text_editor: 'The active text editor is missing or is an invalid file.',
   invalid_file_for_generating_oas_doc: 'Invalid file for generating OAS doc',
+  llm_monthly_rate_limit:
+    'OpenAPI document generation was blocked because the shared AI model hit its monthly rate limit. Try again after the quota resets.',
   merge: 'Manually merge with existing ESR',
   method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
   mixed_frameworks_not_allowed:
@@ -50,13 +49,8 @@ export const messages = {
     'A new OpenAPI Document %s %s is created for %s. Manually merge the two files using the diff editor.',
   operation_cancelled: 'Operation canceled',
   overwrite: 'Overwrite',
-  processing_generated_oas: 'Verifying generated OpenAPI doc.',
   registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
-  running_validations_on_oas_document: 'SFDX: Running validations on OAS Document',
   select_folder_for_oas: 'Select folder to store OpenAPI Document',
   strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.',
-  unknown_bid_rule: 'Unknown bid rule "%s"',
-  validate_eligibility: 'Validating eligibility.',
-  validation_failed: 'Failed to validate eligibility.',
-  write_openapi_document: 'Writing OpenAPI Document.'
+  validation_failed: 'Failed to validate eligibility.'
 } as const;

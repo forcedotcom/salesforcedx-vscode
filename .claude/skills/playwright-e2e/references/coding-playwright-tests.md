@@ -22,18 +22,28 @@ One test per file. Many steps allowed.
 - Don't use `networkidle` - not available on desktop/electron
 - Use `test.step` to organize sequential tests
 
+## Workspace API Version
+
+Default `sourceApiVersion` in test fixtures is 64.0. Bump per-spec if deploying ESR metadata or features requiring higher API:
+
+```ts
+import { setWorkspaceApiVersion } from '…/utils/oasHelpers';
+// In test setup:
+await setWorkspaceApiVersion(workspaceDir, '66.0');
+```
+
 ## File System and VS Code API
 
-**NEVER use Node.js fs/path or VS Code API** - desktop only, not web
+**NEVER use Node.js fs/path or VS Code API** unless test is desktop-only (`.headless.spec.ts` or desktop fixture only)
 
-**Use UI interactions:**
+**For cross-platform (web + desktop) tests, use UI interactions:**
 
 - Quick Open: `@salesforce/playwright-vscode-ext` `openFileByName` — palette "Go to File…" (web + desktop); VS Code 1.116+ rows often `basename` + segments + trailing `file results` — match logic `packages/playwright-vscode-ext/src/utils/fileHelpers.ts`
 - `Control+Home`, `Control+s` - navigate and save
 - `page.keyboard.type()` - edit content
 - Monaco editor selectors - interact with editor
 
-Tests must work identically in web and desktop.
+**Desktop-only tests** (`.headless.spec.ts` file naming or `createDesktopTest` fixture) may poll fs directly for durable success signals (e.g., `waitForEsrFile` checks on-disk artifacts) instead of flaky UI toast assertions.
 
 ## Web headless (`createHeadlessServer`)
 
@@ -48,10 +58,9 @@ VS Code API (tree views, editors, output panels) only contains visible DOM lines
 - Don't rely on `scrollTo` - target element won't exist
 - `scrollIntoViewIfNeeded` probably won't help
 
-## Context Menus and macOS
+## Dialog Styles and macOS
 
-Desktop fixture sets `window.menuStyle: "custom"` before launch.
-Context menus stay in DOM on macOS; use shared context-menu helpers.
+Desktop fixture sets `window.menuStyle: "custom"` (context menus stay in DOM on macOS; use shared context-menu helpers) and `window.dialogStyle: "custom"` when spec needs to click modal dialog buttons (routes `showWarningMessage`, etc. through VS Code's DOM renderer for Playwright automation).
 
 ## Selectors and Assertions
 

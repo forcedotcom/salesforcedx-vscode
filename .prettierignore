@@ -2,6 +2,7 @@
 **/snippets/
 SHA256.md
 .claude/
+!.claude/worktrees/**
 .cursor/
 .github/
 packages/salesforcedx-vscode-automation-tests/lib/

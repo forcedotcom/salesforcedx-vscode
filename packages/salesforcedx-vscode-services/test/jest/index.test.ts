@@ -202,7 +202,9 @@ describe('Extension', () => {
     // Mock workspace.workspaceFolders to have at least one folder
     const vscode = require('vscode');
     vscode.extensions = {
-      getExtension: jest.fn().mockReturnValue({ extensionUri: mockExtensionUri })
+      getExtension: jest.fn().mockReturnValue({ extensionUri: mockExtensionUri }),
+      all: [],
+      onDidChange: jest.fn().mockReturnValue({ dispose: jest.fn() })
     };
     vscode.workspace.workspaceFolders = [
       {
