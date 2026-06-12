@@ -1,3 +1,12 @@
+# [1.3.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.2.0...playwright-vscode-ext-v1.3.0) (2026-06-12)
+
+
+### Features
+
+* **apex-oas:** defer activation until commands run - W-22168691 ([#7351](https://github.com/forcedotcom/salesforcedx-vscode/issues/7351)) ([a6b8507](https://github.com/forcedotcom/salesforcedx-vscode/commit/a6b8507383985a5a58c46d77b35e48b2f108d249))
+
+
+
 # [1.2.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.1.0...playwright-vscode-ext-v1.2.0) (2026-06-07)
 
 
