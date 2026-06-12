@@ -6,6 +6,14 @@ model: haiku
 
 Fix docs when code/config/scripts change. Run in background; fix directly; report what was fixed.
 
+## Working directory
+
+ALWAYS operate inside the parent's current working directory. NEVER edit absolute paths outside it.
+
+- First action: `pwd`. All subsequent file paths must be relative to that, or absolute paths inside it.
+- If parent is in a worktree (`/.../.claude/worktrees/<name>/`), all edits stay under that worktree path.
+- If a doc you would edit only exists outside the cwd, skip it — do not reach into a sibling checkout.
+
 ## Scope
 
 - **In scope**: .claude/skills/, .claude/agents/, .cursor/rules/, docs/, contributing/, packages/\*\*/README.md

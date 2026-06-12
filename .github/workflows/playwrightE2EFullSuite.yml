@@ -45,6 +45,12 @@ jobs:
     with:
       vscode_version: ${{ inputs.vscode_version }}
 
+  apex-oas:
+    uses: ./.github/workflows/apexOasE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscode_version }}
+
   org-e2e:
     uses: ./.github/workflows/orgE2E.yml
     secrets: inherit
