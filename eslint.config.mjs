@@ -559,6 +559,7 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
+      'jest/no-deprecated-functions': 'error',
       'jest/no-focused-tests': 'error',
       'jest/prefer-to-have-length': 'error',
       'jest/no-standalone-expect': 'error',
