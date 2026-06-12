@@ -560,12 +560,35 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
       'jest/no-focused-tests': 'error',
+      'jest/prefer-to-have-length': 'error',
+      'jest/no-standalone-expect': 'error',
+      'jest/valid-describe-callback': 'error',
+      'jest/prefer-to-be': 'error',
+      'jest/prefer-to-contain': 'error',
+      'jest/no-test-prefixes': 'error',
       'jest/no-identical-title': 'error',
       '@typescript-eslint/no-var-requires': 'off',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
       'no-param-reassign': 'off',
       'local/no-duplicate-playwright-locators': 'error'
+    }
+  },
+  {
+    // Playwright tests run in the test-runner/browser, not the extension host, so the
+    // `vscode` module is absent and a runtime import fails. Scoped to playwright-only
+    // dirs (jest/unit tests in the block above legitimately import vscode at runtime).
+    files: [
+      'packages/salesforcedx**/test/playwright/**/*',
+      'packages/salesforcedx-vscode-automation-tests/**/*',
+      'packages/playwright-vscode-ext/**/*.ts'
+    ],
+    ignores: ['**/locators.ts'],
+    plugins: {
+      local: localPlugin
+    },
+    rules: {
+      'local/no-runtime-vscode-import': 'error'
     }
   },
   {

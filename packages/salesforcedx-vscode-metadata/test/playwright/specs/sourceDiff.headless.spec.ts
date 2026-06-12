@@ -22,7 +22,6 @@ import {
   verifyCommandExists,
   executeExplorerContextMenuCommand,
   saveScreenshot,
-  isMacDesktop,
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -137,9 +136,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
     await verifyDiffCompleted(page, classNamePalette, 'diff-palette');
   });
 
-  await test.step('create local change and diff via explorer context menu', async step => {
-    step.skip(isMacDesktop(), 'Explorer context menu not available on Mac Desktop');
-
+  await test.step('create local change and diff via explorer context menu', async () => {
     await executeCommandWithCommandPalette(page, 'View: Close All Editors');
 
     await openFileByName(page, `${classNamePalette}.cls`);

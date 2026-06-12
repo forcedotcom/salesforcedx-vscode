@@ -13,6 +13,7 @@ export {
   waitForQuickInputFirstOption,
   selectFirstQuickInputOption,
   selectQuickInputOption,
+  selectQuickInputOptionByTyping,
   closeWelcomeTabs,
   dismissSignInWalkthroughDialog,
   closeSettingsTab,
@@ -106,6 +107,9 @@ export {
 } from './pages/notifications';
 
 export { clickCodeLens } from './pages/codeLens';
+
+export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
+export type { ActiveFrameMatcher } from './pages/webview';
 
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';

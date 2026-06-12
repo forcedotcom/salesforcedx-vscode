@@ -19,7 +19,7 @@ describe('HTML Highlighting', () => {
     const htmlDoc = ls.parseHTMLDocument(document);
 
     const highlights = ls.findDocumentHighlights(document, position, htmlDoc);
-    expect(highlights.length).toBe(expectedMatches.length);
+    expect(highlights).toHaveLength(expectedMatches.length);
     for (let i = 0; i < highlights.length; i++) {
       const actualStartOffset = document.offsetAt(highlights[i].range.start);
       expect(actualStartOffset).toBe(expectedMatches[i]);

@@ -30,6 +30,8 @@ export const messages = {
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
   org_delete_default_text: 'SFDX: Delete Default Org',
+  org_delete_default_not_deletable:
+    'The default org is not a scratch org or sandbox and cannot be deleted with this command.',
   org_delete_username_text: 'SFDX: Delete Org...',
   org_display_default_text: 'SFDX: Display Org Details for Default Org',
   org_display_username_text: 'SFDX: Display Org Details...',

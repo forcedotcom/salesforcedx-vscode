@@ -92,7 +92,7 @@ describe('SoqlModelUtils should', () => {
         new FromImpl('object1')
       )
     );
-    expect(actual.length).toEqual(2);
+    expect(actual).toHaveLength(2);
     expect(actual[0].reason).toEqual(unmodeled1.reason);
     expect(actual[0].unmodeledSyntax).toEqual(unmodeled1.syntax);
     expect(actual[1].reason).toEqual(unmodeled2.reason);
@@ -155,7 +155,7 @@ describe('SoqlModelUtils should', () => {
   it('returns array and operator from simpleGroupToArray for simple group', () => {
     const simpleGroup = new AndOrConditionImpl(conditionFieldCompare, AndOr.And, conditionAndOr);
     const { conditions, andOr } = SoqlModelUtils.simpleGroupToArray(simpleGroup);
-    expect(conditions.length).toEqual(3);
+    expect(conditions).toHaveLength(3);
     expect(andOr).toEqual(AndOr.And);
   });
   it('throws from arrayToSimpleGroup if conditions array empty', () => {
