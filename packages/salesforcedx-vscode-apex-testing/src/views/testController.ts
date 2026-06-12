@@ -8,6 +8,7 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { FileResponse, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -50,11 +51,6 @@ import {
   readTestRunIdFile,
   writeTestResultJsonFile
 } from '../utils/testUtils';
-import {
-  type MetadataRetrieveFileResponse,
-  isMetadataRetrieveFileResponse,
-  isMetadataRetrieveOutcomeLike
-} from '../utils/typeGuards';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
@@ -1651,29 +1647,24 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
   return classPath.slice(0, -4).replaceAll('/', '.');
 };
 
-const getRetrievedFileUri = (result: unknown): URI | undefined => {
-  if (!isMetadataRetrieveOutcomeLike(result)) {
-    return undefined;
-  }
-  let responses: readonly MetadataRetrieveFileResponse[];
+// Runtime defense-in-depth: `result` originates at runtime from SDR `pollStatus()` and SDR is a
+// floating dependency, so a malformed shape must degrade to `undefined` (skip the optional editor
+// open) rather than throw — the caller treats this path as best-effort.
+const safeGetFileResponses = (result: RetrieveResult): FileResponse[] => {
   try {
-    responses = result.getFileResponses();
+    return result.getFileResponses();
   } catch {
-    return undefined;
+    return [];
   }
+};
+
+const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
+  const responses = safeGetFileResponses(result);
   if (!Array.isArray(responses) || responses.length === 0) {
     return undefined;
   }
-  for (const item of responses) {
-    if (!isMetadataRetrieveFileResponse(item)) {
-      continue;
-    }
-    const { filePath } = item;
-    if (typeof filePath === 'string' && filePath.length > 0) {
-      return URI.file(filePath);
-    }
-  }
-  return undefined;
+  const match = responses.find(r => typeof r.filePath === 'string' && r.filePath.length > 0);
+  return match?.filePath ? URI.file(match.filePath) : undefined;
 };
 
 const closeEditorTabByUri = async (uri: URI): Promise<void> => {

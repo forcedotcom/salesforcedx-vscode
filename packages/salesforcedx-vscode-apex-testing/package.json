@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/source-deploy-retrieve": "^12.32.5",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
