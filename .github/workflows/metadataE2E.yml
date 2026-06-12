@@ -109,6 +109,14 @@ jobs:
             --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
@@ -418,6 +426,14 @@ jobs:
         run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias
           hub --sfdx-url-stdin
         shell: bash
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
 
       - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'

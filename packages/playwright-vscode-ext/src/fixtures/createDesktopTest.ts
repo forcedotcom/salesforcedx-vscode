@@ -13,6 +13,7 @@ import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { filterErrors } from '../utils/helpers';
@@ -275,9 +276,13 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
 
     // Launch fresh Electron instance per test
     electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
-      // Use subdirectory of workspace for user data (keeps everything isolated and together)
-      const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
-      await fs.mkdir(userDataDir, { recursive: true });
+      // User data dir must live OUTSIDE the opened workspace folder. On VS Code 1.124 (Chromium 148)
+      // placing it inside the workspace makes the Electron main process exit before the first window
+      // opens ("Waiting for the debugger to disconnect"), so electronApp.firstWindow() throws
+      // "Target page, context or browser has been closed".
+      // Cleaned up in the finally block below (it lives in os.tmpdir(), outside the workspace,
+      // so it is no longer removed implicitly with the workspace dir).
+      const userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-e2e-user-data-'));
       const effectiveUserSettings = {
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
         'window.menuStyle': 'custom', // Keep context menus in the DOM so Playwright can interact with them on macOS.
@@ -346,7 +351,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           ...startupArgs
         ]
         : await (async (): Promise<string[]> => {
-          const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
+          // Keep the extensions dir outside the opened workspace folder for the same reason as userDataDir.
+          // Nested under userDataDir so it shares its lifetime and is removed by the same teardown cleanup.
+          const extensionsDir = path.join(userDataDir, 'extensions');
           await fs.mkdir(extensionsDir, { recursive: true });
           // Install marketplace deps (e.g. extensionDependencies not built locally) into the per-test extensions dir
           installMarketplaceExtensions(extensionsDir, userDataDir, marketplaceExtensions, vscodeExecutable);
@@ -415,6 +422,13 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             } catch {}
           }
         }
+        // Remove the temp user-data dir (and its nested extensions dir) now that the process is gone.
+        // On Windows the just-killed VS Code may still hold file handles briefly, so fs.rm hits EBUSY/EPERM
+        // (force only suppresses ENOENT). maxRetries retries those with backoff; best-effort so a leftover
+        // temp dir never fails the test.
+        try {
+          await fs.rm(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+        } catch {}
         console.log('[teardown] done');
       }
     },
