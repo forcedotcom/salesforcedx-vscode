@@ -155,3 +155,4 @@ npm-packages-offline-cache/
 # Claude Code worktrees
 .claude/worktrees/
 .claude/scheduled_tasks.lock
+.claude/auto-build-wi.lock
