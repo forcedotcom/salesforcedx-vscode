@@ -106,7 +106,7 @@ describe('utils', () => {
 
       const settings = await utils.readJsonSync(nonExistentFile, fileSystemAccessor);
 
-      expect(Object.keys(settings).length).toBe(0);
+      expect(Object.keys(settings)).toHaveLength(0);
     });
   });
 

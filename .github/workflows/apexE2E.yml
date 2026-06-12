@@ -8,11 +8,6 @@ on:
       #   required: false
       #   default: true
       #   type: boolean
-      apexLsp:
-        description: 'Apex LSP'
-        required: false
-        default: true
-        type: boolean
       debugApexTests:
         description: 'Debug Apex Tests'
         required: false
@@ -35,11 +30,6 @@ on:
       #   required: false
       #   default: true
       #   type: boolean
-      apexLsp:
-        description: 'Apex LSP'
-        required: false
-        default: true
-        type: boolean
       debugApexTests:
         description: 'Debug Apex Tests'
         required: false
@@ -65,15 +55,6 @@ jobs:
   #     vscodeVersion: ${{ inputs.vscodeVersion }}
   #     runId: ${{ inputs.runId }}
   #     os: '["ubuntu-latest"]'
-
-  apexLSP:
-    if: ${{ inputs.apexLsp }}
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'apexLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
 
   debugApexTests:
     if: ${{ inputs.debugApexTests }}

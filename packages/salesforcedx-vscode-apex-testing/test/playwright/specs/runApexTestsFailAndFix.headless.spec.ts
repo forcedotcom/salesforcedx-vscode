@@ -16,11 +16,10 @@ import {
   executeCommandWithCommandPalette,
   isDesktop,
   openFileByName,
-  QUICK_INPUT_LIST_ROW,
-  QUICK_INPUT_WIDGET,
   replaceLineInOpenFile,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
@@ -32,7 +31,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 
 const ACCOUNT_SERVICE_CONTENT = [
@@ -74,12 +73,7 @@ const REPORT_NOTIFICATION_PATTERN = /Apex test report is ready: test-result-[a-z
 
 const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
   await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-  await page.keyboard.type('AccountServiceTest');
-  const option = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /AccountServiceTest/i });
-  await option.first().waitFor({ state: 'visible', timeout: 10_000 });
-  await option.first().click();
+  await selectQuickInputOptionByTyping(page, 'AccountServiceTest');
 };
 
 // Drives the Apex test runner via Command Palette and asserts the

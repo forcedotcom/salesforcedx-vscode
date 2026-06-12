@@ -103,6 +103,6 @@ describe('PropertyCorrectionStep', () => {
   it('should remove security sections at root and within methods', () => {
     const result = step['ensureSecuritySectionsAreRemoved'](openAPIDoc);
     const securityEntries = JSONPath({ path: '$..security', json: result });
-    expect(securityEntries.length).toBe(0);
+    expect(securityEntries).toHaveLength(0);
   });
 });

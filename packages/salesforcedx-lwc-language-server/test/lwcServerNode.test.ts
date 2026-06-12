@@ -826,7 +826,7 @@ describe('lwcServerNode', () => {
             (await server.fileSystemAccessor.fileExists(baseTsconfigPath))
         ).toBe(false);
         const tsconfigPaths = await getTsConfigPaths();
-        expect(tsconfigPaths.length).toBe(0);
+        expect(tsconfigPaths).toHaveLength(0);
       });
 
       it('initializes tsconfig when salesforcedx-vscode-lwc.preview.typeScriptSupport = true', async () => {
@@ -862,7 +862,7 @@ describe('lwcServerNode', () => {
         ).toBe(true);
         // There are currently 3 LWC directories under SFDX_WORKSPACE_ROOT
         // (force-app/main/default/lwc, utils/meta/lwc, and registered-empty-folder/meta/lwc)
-        expect(tsconfigPaths.length).toBe(3);
+        expect(tsconfigPaths).toHaveLength(3);
       }, 15_000);
 
       it('updates tsconfig.sfdx.json path mapping', async () => {
@@ -1030,7 +1030,7 @@ describe('lwcServerNode', () => {
               // If not, the update might have failed, but we'll allow it for now
               expect(hasComponent || pathMapping.length >= baselineCount).toBe(true);
             } else {
-              expect(pathMapping.length).toEqual(baselineCount + 1);
+              expect(pathMapping).toHaveLength(baselineCount + 1);
             }
           } else {
             // If baseline is incorrect, the update likely also failed - just verify it didn't decrease
@@ -1114,7 +1114,7 @@ describe('lwcServerNode', () => {
           await server.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
           const updatedPathMapping = await getPathMappingKeys(server);
           // File was changed but not added/removed, so count should remain the same
-          expect(updatedPathMapping.length).toEqual(baselineCount);
+          expect(updatedPathMapping).toHaveLength(baselineCount);
         });
 
         it("doesn't update path mapping when parent directory is not lwc", async () => {
@@ -1175,7 +1175,7 @@ describe('lwcServerNode', () => {
             await server.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
             const updatedPathMapping = await getPathMappingKeys(server);
             // Non-JS/TS file changes don't update path mapping, so count should stay the same
-            expect(updatedPathMapping.length).toEqual(initializedPathMapping.length);
+            expect(updatedPathMapping).toHaveLength(initializedPathMapping.length);
           });
         });
       });

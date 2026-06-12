@@ -25,7 +25,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   STALE_FILTER_TAG,
   TEST_EXPLORER_PANEL,

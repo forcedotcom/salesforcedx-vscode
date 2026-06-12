@@ -25,6 +25,11 @@ const EXAMPLE_CLASS_META = [
   '</ApexClass>'
 ].join('\n');
 
+// Anonymous Apex (`.apex`, language `apex-anon`). No class wrapper, no `-meta.xml`.
+// Layout is load-bearing: spec navigates to line 2 (blank) and types autocompletion content
+// there — keep line 2 blank.
+const EXAMPLE_ANON = ["System.debug('seed');", ''].join('\n');
+
 // Layout is load-bearing: spec navigates to 5:20 for Go to Definition (lands inside
 // `ExampleClass`) and types autocompletion content into the blank line 7 — keep line 7 blank.
 const EXAMPLE_CLASS_TEST = [
@@ -65,12 +70,17 @@ const baseTest = createDesktopTest({
 export const desktopTest = baseTest.extend<{ workspaceDir: string }>({
   workspaceDir: async ({ workspaceDir }, use) => {
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
-    await fs.mkdir(classesDir, { recursive: true });
+    // Anonymous Apex lives at workspace-root `scripts/apex/` (Salesforce convention; the dir
+    // templates scaffold). Not metadata — no `classes/` placement, no `-meta.xml`. jorje's
+    // startup scan picks it up (scripts is not an excluded metadata folder).
+    const anonDir = path.join(workspaceDir, 'scripts', 'apex');
+    await Promise.all([fs.mkdir(classesDir, { recursive: true }), fs.mkdir(anonDir, { recursive: true })]);
     await Promise.all([
       fs.writeFile(path.join(classesDir, 'ExampleClass.cls'), EXAMPLE_CLASS),
       fs.writeFile(path.join(classesDir, 'ExampleClass.cls-meta.xml'), EXAMPLE_CLASS_META),
       fs.writeFile(path.join(classesDir, 'ExampleClassTest.cls'), EXAMPLE_CLASS_TEST),
-      fs.writeFile(path.join(classesDir, 'ExampleClassTest.cls-meta.xml'), EXAMPLE_CLASS_META)
+      fs.writeFile(path.join(classesDir, 'ExampleClassTest.cls-meta.xml'), EXAMPLE_CLASS_META),
+      fs.writeFile(path.join(anonDir, 'ExampleAnon.apex'), EXAMPLE_ANON)
     ]);
     await use(workspaceDir);
   }

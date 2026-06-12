@@ -8,7 +8,7 @@
 import { expect } from '@playwright/test';
 import { executeEditorContextMenuCommand } from '../../../src/pages/contextMenu';
 import { createFileWithContents } from '../../../src/utils/fileHelpers';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, isMacDesktop } from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { EDITOR_WITH_URI } from '../../../src/utils/locators';
 import { activeQuickInputTextField, activeQuickInputWidget } from '../../../src/utils/quickInput';
@@ -22,8 +22,6 @@ test.describe('Context Menu', () => {
   });
 
   test('should execute editor context menu command', async ({ page }) => {
-    test.skip(isMacDesktop(), 'Context menus not supported on Mac desktop');
-
     await test.step('Create and open untitled file', async () => {
       await createFileWithContents(page, 'unused', 'Test content');
     });
@@ -46,8 +44,6 @@ test.describe('Context Menu', () => {
   });
 
   test('should execute explorer context menu command', async ({ page }) => {
-    test.skip(isMacDesktop(), 'Context menus not supported on Mac desktop');
-
     await test.step('Verify explorer view is accessible', async () => {
       // Focus explorer using keyboard shortcut
       await page.keyboard.press('Control+Shift+KeyE');

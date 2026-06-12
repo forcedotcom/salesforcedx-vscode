@@ -20,7 +20,6 @@ import {
   openFileByName,
   executeExplorerContextMenuCommand,
   saveScreenshot,
-  isMacDesktop,
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -37,7 +36,6 @@ import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
 test('Source Diff (multiple files): opens first diff and populates conflict tree', async ({ page }) => {
-  test.skip(isMacDesktop(), 'Explorer context menu not available on Mac Desktop');
   test.setTimeout(DEPLOY_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);

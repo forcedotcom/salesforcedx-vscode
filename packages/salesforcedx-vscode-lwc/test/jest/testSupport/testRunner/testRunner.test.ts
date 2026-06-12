@@ -12,7 +12,7 @@ describe('testRunner Unit Tests.', () => {
     it('Should return testNamePattern if flag is included', () => {
       const testName = 'Testing is Fun!';
       const testPatternArgs = getTestNamePatternArgs(testName);
-      expect(testPatternArgs.length).toBe(2);
+      expect(testPatternArgs).toHaveLength(2);
       expect(testPatternArgs).toMatchSnapshot();
     });
     it('Should escape certain symbols if testNamePattern is included', () => {

@@ -458,7 +458,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(sendResponseSpy).toHaveBeenCalledTimes(1);
       const actualResponse: DebugProtocol.ThreadsResponse = sendResponseSpy.mock.calls[0][0];
       expect(actualResponse.success).toBe(true);
-      expect(actualResponse.body.threads.length).toBe(1);
+      expect(actualResponse.body.threads).toHaveLength(1);
       const thread: Thread = actualResponse.body.threads[0];
       expect(thread.id).toBe(ApexReplayDebug.THREAD_ID);
     });
