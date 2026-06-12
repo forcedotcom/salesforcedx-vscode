@@ -117,15 +117,12 @@ server.listen(PORT, onListening);
 // detached in its own process group, so an orphaned server keeps holding PORT 3003 and the next
 // step's server then fails with EADDRINUSE. Watching ppid doesn't help: the intermediate `sh -c`
 // that wireit launches survives the orphaning, so our parent never changes. Instead, on EADDRINUSE
-// reclaim the port by killing whatever holds it, then retry once. (Windows kills the whole process
-// tree, so it never reaches this path.)
+// reclaim the port by killing whatever holds it, then retry once. Gated to non-Windows: `lsof` isn't
+// available there, and Windows kills the whole process tree so the orphan never happens anyway.
+const IS_WINDOWS = process.platform === 'win32';
 const reclaimState = { attempted: false };
 
 const reclaimPortAndRetry = (): void => {
-  if (reclaimState.attempted || process.platform === 'win32') {
-    console.error(`Span file server: port ${PORT} in use and could not be reclaimed`);
-    process.exit(1);
-  }
   reclaimState.attempted = true;
   const result = spawnSync('lsof', ['-ti', `tcp:${PORT}`], { encoding: 'utf8' });
   const pids = (result.stdout ?? '')
@@ -144,7 +141,7 @@ const reclaimPortAndRetry = (): void => {
 };
 
 server.on('error', (err: NodeJS.ErrnoException) => {
-  if (err.code === 'EADDRINUSE') {
+  if (err.code === 'EADDRINUSE' && !IS_WINDOWS && !reclaimState.attempted) {
     reclaimPortAndRetry();
     return;
   }
