@@ -189,8 +189,14 @@ export const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(f
     Effect.flatMap(response =>
       response === '' ? new LLMEmptyResponse({ message: 'LLM returned an empty response' }) : Effect.succeed(response)
     ),
-    Effect.retry(LLM_RETRY_SCHEDULE),
-    Effect.mapError(cause => new LLMRetriesExhausted({ message: `Failed after retries: ${String(cause)}` }))
+    // A monthly rate limit won't clear within the retry window, so don't burn backoff on it — let it
+    // propagate so the caller can surface it to the user instead of degrading it to empty content.
+    Effect.retry({ schedule: LLM_RETRY_SCHEDULE, while: error => error._tag !== 'LLMRateLimited' }),
+    Effect.mapError(cause =>
+      cause._tag === 'LLMRateLimited'
+        ? cause
+        : new LLMRetriesExhausted({ message: `Failed after retries: ${String(cause)}` })
+    )
   );
 });
 
@@ -231,6 +237,12 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
         callLLMWithRetry(prompt, outputTokenLimit, incrementLlmCallCount).pipe(
           Effect.tap(raw => Effect.logDebug({ event: 'rawResponse', methodName, raw })),
           Effect.map(raw => [methodName, raw] as const),
+          // A rate limit isn't a per-method failure to degrade to empty content — it dooms every
+          // method, so propagate it and let the command surface it to the user.
+          Effect.catchIf(
+            error => error._tag === 'LLMRateLimited',
+            error => Effect.fail(error)
+          ),
           Effect.catchAll(error =>
             Effect.gen(function* () {
               yield* Effect.logDebug({ event: 'rawResponseRejected', methodName, error: String(error) });

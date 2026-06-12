@@ -17,9 +17,9 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { caseManagerClassText } from '../testData/sampleClassData';
 import {
+  assertGenerationOrSkipOnRateLimit,
   clickModalDialogButton,
   confirmEsrFolderPrompt,
-  llmHitRateLimit,
   pushSource,
   setupWorkbenchAndAuth,
   waitForA4VAndOasCommands,
@@ -32,7 +32,6 @@ test.setTimeout(600_000);
 test.describe.configure({ retries: 1 });
 
 test('OAS: composed mode → manual merge produces diff editor + timestamped ESR', async ({ page, workspaceDir }) => {
-  const startedAt = Date.now();
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -55,7 +54,8 @@ test('OAS: composed mode → manual merge produces diff editor + timestamped ESR
     await confirmEsrFolderPrompt(page);
     await clickModalDialogButton(page, 'Overwrite').catch(() => {});
     // Info toasts auto-dismiss in seconds; the ESR file is the durable success signal.
-    await waitForEsrFile(workspaceDir, 'CaseManager');
+    // A monthly A4V quota outage surfaces a rate-limit notification instead — skip, don't fail.
+    await assertGenerationOrSkipOnRateLimit(test, page, waitForEsrFile(workspaceDir, 'CaseManager'));
   });
 
   await test.step('second generation: manual merge', async () => {
@@ -71,17 +71,9 @@ test('OAS: composed mode → manual merge produces diff editor + timestamped ESR
   await test.step('verify diff editor and timestamped ESR tabs are open', async () => {
     const diffTab = page.getByRole('tab', { name: /Manual Diff of ESR XML Files/ }).first();
     // The merge generation needs a fresh A4V LLM response. When the shared Core model is out of its
-    // monthly quota, that call fails, no merge file is written, and no diff opens — an infra outage,
-    // not a product bug. Skip rather than fail; the quota resets monthly.
-    await expect(diffTab)
-      .toBeVisible({ timeout: 30_000 })
-      .catch(async (error: unknown) => {
-        test.skip(
-          await llmHitRateLimit(startedAt),
-          'A4V Core model monthly rate limit hit; merge generation could not run'
-        );
-        throw error;
-      });
+    // monthly quota, the command shows a rate-limit error notification and no diff opens — an infra
+    // outage, not a product bug. Skip rather than fail; the quota resets monthly.
+    await assertGenerationOrSkipOnRateLimit(test, page, expect(diffTab).toBeVisible({ timeout: 30_000 }));
 
     const timestampedTab = page
       .getByRole('tab', { name: /CaseManager_\d{8}_\d{6}\.externalServiceRegistration-meta\.xml/ })

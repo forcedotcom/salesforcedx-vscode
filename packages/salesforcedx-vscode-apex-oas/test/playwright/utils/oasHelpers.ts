@@ -13,6 +13,7 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
   selectOutputChannel,
   upsertScratchOrgAuthFieldsToSettings,
@@ -20,11 +21,7 @@ import {
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
-import * as Schema from 'effect/Schema';
 import * as fs from 'node:fs/promises';
-import * as os from 'node:os';
 import * as path from 'node:path';
 
 const PUSH_COMMAND = 'SFDX: Push Source to Default Org and Ignore Conflicts';
@@ -126,61 +123,45 @@ export const waitForEsrFile = async (workspaceDir: string, baseName: string, tim
   throw new Error(`ESR file not found after ${timeoutMs}ms: ${target}`);
 };
 
-const SPAN_DIR = path.join(os.homedir(), '.sf', 'vscode-spans');
-
-/** A rate-limited `ApexOas.Llm.callLLM` span: failed status (code 2) whose message names the monthly quota. */
-const RateLimitSpan = Schema.Struct({
-  name: Schema.Literal('ApexOas.Llm.callLLM'),
-  status: Schema.Struct({
-    code: Schema.Literal(2),
-    message: Schema.String.pipe(Schema.pattern(/monthly rate limit/i))
-  })
-});
-
-/** Span file paths modified at/after `sinceMs`. */
-const recentSpanFiles = (sinceMs: number) =>
-  Effect.promise(() => fs.readdir(SPAN_DIR)).pipe(
-    Effect.orElseSucceed(() => []),
-    Effect.map(files => files.filter(f => f.endsWith('.jsonl')).map(f => path.join(SPAN_DIR, f))),
-    Effect.flatMap(
-      Effect.filter(file =>
-        Effect.promise(() => fs.stat(file)).pipe(
-          Effect.map(stat => stat.mtimeMs >= sinceMs),
-          Effect.orElseSucceed(() => false)
-        )
-      )
-    )
-  );
-
-/** True if any line in the file decodes as a rate-limit span. */
-const fileHasRateLimit = (file: string) =>
-  Effect.promise(() => fs.readFile(file, 'utf8')).pipe(
-    Effect.map(content =>
-      content
-        .split('\n')
-        .filter(Boolean)
-        .some(line => Option.isSome(Schema.decodeOption(Schema.parseJson(RateLimitSpan))(line)))
-    ),
-    Effect.orElseSucceed(() => false)
-  );
-
-const hitRateLimit = Effect.fn('OasE2E.llmHitRateLimit')(function* (sinceMs: number) {
-  const files = yield* recentSpanFiles(sinceMs);
-  return yield* Effect.exists(files, fileHasRateLimit);
-});
+/** The error notification createApexAction shows when the shared Core model is out of monthly quota.
+ * Mirrors the `llm_monthly_rate_limit` message in the extension's i18n. */
+const RATE_LIMIT_NOTIFICATION = /monthly rate limit/i;
 
 /**
- * Detect whether an A4V LLM call hit the shared Core model's monthly rate limit during the run.
+ * Run an A4V generation's success assertion, but skip the test instead of failing when the cause is
+ * the shared Core model's exhausted monthly quota.
  *
- * The rate-limit text only survives in the OTEL span file (file traces are enabled by the desktop
- * fixture): `ApexOas.Llm.callLLM` spans fail with status code 2 and a message containing
- * "monthly rate limit". The command's user-facing notification is the generic "LLM did not return
- * any content" (the rate-limit cause is swallowed by per-method catchAll), so it can't distinguish
- * a quota exhaustion from a real empty-response bug — only the span can.
+ * The extension now surfaces a quota exhaustion as a real error notification ("...hit its monthly
+ * rate limit...") rather than swallowing it into the generic "LLM did not return any content", so a
+ * spec detects it straight from the UI — no OTEL span file scan needed. A quota outage resets monthly
+ * and isn't a product bug, so it's a skip; any other generation failure still fails the test.
  *
- * Specs use this to treat a quota-exhausted run as a skip (infra problem, resets monthly) rather
- * than a failure, while still failing on genuine generation bugs.
+ * `success` is the success assertion (e.g. `expect(tab).toBeVisible()` or `waitForEsrFile(...)`). It
+ * races the rate-limit notification so a quota outage skips promptly rather than waiting out the
+ * assertion's full timeout (the on-disk ESR signal can poll for minutes). If `success` settles first:
+ * resolve → done, reject → rethrow. If the notification appears first: `test.skip`.
  *
- * @param sinceMs Only consider span files modified at/after this epoch-ms. Capture `Date.now()` at test start and pass it so a stale rate-limit span from a prior local run can't mask a real bug.
+ * @param test The Playwright `test` object (for `test.skip`).
+ * @param page Playwright page.
+ * @param success The success assertion; rejects when generation didn't produce its artifact.
  */
-export const llmHitRateLimit = (sinceMs = 0): Promise<boolean> => Effect.runPromise(hitRateLimit(sinceMs));
+export const assertGenerationOrSkipOnRateLimit = async (
+  test: { skip: (condition: boolean, description: string) => void },
+  page: Page,
+  success: Promise<unknown>
+): Promise<void> => {
+  // The watcher only ever *wins* the race by becoming visible; its own timeout must not settle the
+  // race (that's `success`'s job), so a not-found resolves to a promise that never settles. Its
+  // timeout is long enough to outlast the slowest generation success window (ESR poll ~240s).
+  const rateLimit: Promise<'rate-limit'> = page
+    .locator(NOTIFICATION_LIST_ITEM)
+    .filter({ hasText: RATE_LIMIT_NOTIFICATION })
+    .first()
+    .waitFor({ state: 'visible', timeout: 300_000 })
+    .then(
+      () => 'rate-limit' as const,
+      () => new Promise<never>(() => {})
+    );
+  const outcome = await Promise.race([success.then(() => 'success' as const), rateLimit]);
+  test.skip(outcome === 'rate-limit', 'A4V Core model monthly rate limit hit; generation could not run');
+};

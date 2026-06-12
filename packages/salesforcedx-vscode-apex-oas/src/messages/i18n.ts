@@ -34,6 +34,8 @@ export const messages = {
   http_verb_prompt_delete: 'For the given method only produce the DELETE verb.',
   ineligible_method_in_doc: 'Method %s is not eligible for OAS generation, but present in the document',
   invalid_file_for_generating_oas_doc: 'Invalid file for generating OAS doc',
+  llm_monthly_rate_limit:
+    'OpenAPI document generation was blocked because the shared AI model hit its monthly rate limit. Try again after the quota resets.',
   merge: 'Manually merge with existing ESR',
   method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
   mixed_frameworks_not_allowed:

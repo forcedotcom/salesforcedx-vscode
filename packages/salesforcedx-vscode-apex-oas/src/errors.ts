@@ -31,6 +31,12 @@ export class LLMEmptyResponse extends Data.TaggedError('LLMEmptyResponse')<{
   readonly message: string;
 }> {}
 
+/** The shared Core model rejected the call because its monthly quota is exhausted. Not transient within
+ * the month, so it is not retried; surfaced to the user instead of being swallowed as empty content. */
+export class LLMRateLimited extends Data.TaggedError('LLMRateLimited')<{
+  readonly message: string;
+}> {}
+
 export class LLMRetriesExhausted extends Data.TaggedError('LLMRetriesExhausted')<{
   readonly message: string;
 }> {}

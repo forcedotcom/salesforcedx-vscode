@@ -4,7 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { LLMCallFailed, LLMRetriesExhausted, MethodNotFoundInDocSymbols, OasGenerationFailed } from '../../errors';
+import type {
+  LLMCallFailed,
+  LLMRateLimited,
+  LLMRetriesExhausted,
+  MethodNotFoundInDocSymbols,
+  OasGenerationFailed
+} from '../../errors';
 import type { LLMService } from '../../services/llmService';
 import type { PromptGenerationStrategyBid } from '../schemas';
 import type { ExtensionProviderService } from '@salesforce/effect-ext-utils';
@@ -15,7 +21,7 @@ export type GenerationStrategy = {
   bid: () => Effect.Effect<PromptGenerationStrategyBid, never, never>;
   generateOAS: () => Effect.Effect<
     string,
-    OasGenerationFailed | LLMRetriesExhausted | LLMCallFailed | MethodNotFoundInDocSymbols,
+    OasGenerationFailed | LLMRetriesExhausted | LLMCallFailed | LLMRateLimited | MethodNotFoundInDocSymbols,
     LLMService | ExtensionProviderService | ConnectionService
   >;
 };
