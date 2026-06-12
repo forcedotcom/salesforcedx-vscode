@@ -20,7 +20,6 @@
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
   "productFeatureId": "aJCEE0000000mLm4AI",
-  "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
