@@ -1660,11 +1660,8 @@ const safeGetFileResponses = (result: RetrieveResult): FileResponse[] => {
 
 const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
   const responses = safeGetFileResponses(result);
-  if (!Array.isArray(responses) || responses.length === 0) {
-    return undefined;
-  }
-  const match = responses.find(r => typeof r.filePath === 'string' && r.filePath.length > 0);
-  return match?.filePath ? URI.file(match.filePath) : undefined;
+  const filePath = responses.find(r => typeof r.filePath === 'string' && r.filePath.length > 0)?.filePath;
+  return filePath ? URI.file(filePath) : undefined;
 };
 
 const closeEditorTabByUri = async (uri: URI): Promise<void> => {

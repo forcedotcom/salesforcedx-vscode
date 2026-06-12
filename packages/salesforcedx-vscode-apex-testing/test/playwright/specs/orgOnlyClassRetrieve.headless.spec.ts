@@ -49,15 +49,13 @@ const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_te
     const networkErrors = setupNetworkMonitoring(page);
 
     const className = `OrgOnlyRetrieve${Date.now()}`;
-    const classContent = [
-      '@isTest',
-      `public class ${className} {`,
-      '    @isTest',
-      '    static void retrievedFromOrg() {',
-      "        System.assertEquals(1, 1, 'org-only retrieve should pass');",
-      '    }',
-      '}'
-    ].join('\n');
+    const classContent = `@isTest
+public class ${className} {
+    @isTest
+    static void retrievedFromOrg() {
+        System.assertEquals(1, 1, 'org-only retrieve should pass');
+    }
+}`;
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
     const localClsPath = path.join(classesDir, `${className}.cls`);
 
@@ -86,6 +84,11 @@ const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_te
       // Clicking the org-only test item opens its `apex-testing:` virtual doc (the only place the
       // retrieve code lens renders).
       await findTestExplorerItem(page, className).click();
+      // Assert the virtual doc actually opened before clicking the code lens, so a broken
+      // open-on-click wiring surfaces here instead of as an opaque codelens-not-found timeout.
+      await expect(page.locator(`${EDITOR_WITH_URI}[data-uri^="apex-testing:"]`).first()).toBeVisible({
+        timeout: 60_000
+      });
       await saveScreenshot(page, 'step.virtual-doc-opened.png');
     });
 
@@ -93,16 +96,16 @@ const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_te
       await clickCodeLens(page, RETRIEVE_CODELENS, { timeout: 180_000 });
       await saveScreenshot(page, 'step.retrieve-codelens-clicked.png');
 
-      // Durable signal: the retrieved class is written back to local source. `getRetrievedFileUri`
-      // returning a real URI is what drives the editor open, so the on-disk file is the end-to-end
-      // proof the refactor preserved the runtime contract.
+      // SDR writes the retrieved class back to local source independent of `getRetrievedFileUri`,
+      // so this only confirms the retrieve ran. The editor-open assertion below is what validates
+      // `getRetrievedFileUri` returned a real URI end-to-end.
       await expect(async () => {
         await fs.access(localClsPath);
       }).toPass({ timeout: TEST_RUN_TIMEOUT });
       await saveScreenshot(page, 'step.retrieved-cls-on-disk.png');
 
       // The retrieved on-disk class opens in the editor (showTextDocument with the URI from
-      // getRetrievedFileUri).
+      // getRetrievedFileUri) — passes only if getRetrievedFileUri returned a valid URI.
       await expect(page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`).first()).toBeVisible({
         timeout: 60_000
       });
