@@ -237,13 +237,10 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
         callLLMWithRetry(prompt, outputTokenLimit, incrementLlmCallCount).pipe(
           Effect.tap(raw => Effect.logDebug({ event: 'rawResponse', methodName, raw })),
           Effect.map(raw => [methodName, raw] as const),
-          // A rate limit isn't a per-method failure to degrade to empty content — it dooms every
-          // method, so propagate it and let the command surface it to the user.
-          Effect.catchIf(
-            error => error._tag === 'LLMRateLimited',
-            error => Effect.fail(error)
-          ),
-          Effect.catchAll(error =>
+          // Degrade a retries-exhausted per-method failure to empty content so other methods still
+          // generate. A rate limit isn't per-method — it dooms every method — so it's left uncaught to
+          // propagate and be surfaced to the user instead of being swallowed into "no content generated".
+          Effect.catchTag('LLMRetriesExhausted', error =>
             Effect.gen(function* () {
               yield* Effect.logDebug({ event: 'rawResponseRejected', methodName, error: String(error) });
               return [methodName, ''] as const;
