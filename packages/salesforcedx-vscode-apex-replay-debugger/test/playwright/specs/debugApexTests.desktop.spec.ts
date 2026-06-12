@@ -54,7 +54,6 @@ const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void>
 const debugTestFromTreeItem = async (page: Page, name: RegExp): Promise<void> => {
   const item = page.getByRole('treeitem', { name });
   await item.waitFor({ state: 'visible', timeout: 30_000 });
-  await item.scrollIntoViewIfNeeded();
   await expect(async () => {
     await item.click({ force: true });
     await item.hover({ force: true });
@@ -64,15 +63,55 @@ const debugTestFromTreeItem = async (page: Page, name: RegExp): Promise<void> =>
   }).toPass({ timeout: 30_000 });
 };
 
+// Test Explorer builds a Namespace → Package → Class → Method hierarchy; unpackaged local classes
+// nest under these two labels (apex-testing src/messages/i18n.ts). Collapsed parents virtualize their
+// children, so class/method rows are not in the DOM until both parents are expanded.
+const LOCAL_NAMESPACE_LABEL = '(Local Namespace)';
+const UNPACKAGED_METADATA_LABEL = '(Unpackaged Metadata)';
+
+/** Expand a Test Explorer tree row via its twistie if collapsed; 400ms settle matches apex-testing helper. */
+const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
+  const row = page.locator('[role="treeitem"]').filter({ hasText: rowLabel }).first();
+  await row.waitFor({ state: 'visible', timeout: 15_000 });
+  const twistie = row.locator('.monaco-tl-twistie');
+  const collapsed = await twistie.evaluate(el => el.classList.contains('collapsed')).catch(() => false);
+  if (!collapsed) return;
+  await twistie.click({ force: true });
+  await page.waitForTimeout(400);
+};
+
+/** Expand the (Local Namespace) → (Unpackaged Metadata) parents so class/method rows render. */
+const expandNamespaceAndPackage = async (page: Page): Promise<void> => {
+  await expandTreeRow(page, LOCAL_NAMESPACE_LABEL);
+  await page
+    .locator('[role="treeitem"]')
+    .filter({ hasText: UNPACKAGED_METADATA_LABEL })
+    .first()
+    .waitFor({ state: 'visible', timeout: 10_000 });
+  await expandTreeRow(page, UNPACKAGED_METADATA_LABEL);
+};
+
+/**
+ * Runs `Test: Refresh Tests` and waits for the async tree rebuild. Discovery clears then rebuilds the
+ * tree after the command returns — on Windows the empty-state ("No tests have been found...") renders
+ * and any immediate follow-up tree interaction times out (mirrors apex-testing refreshTestsAndWaitForRebuild).
+ */
+const refreshTestsAndWaitForRebuild = async (page: Page): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
+  await page
+    .getByText(LOCAL_NAMESPACE_LABEL)
+    .first()
+    .waitFor({ state: 'hidden', timeout: 2000 })
+    .catch(() => {});
+  await expect(page.getByText(LOCAL_NAMESPACE_LABEL).first()).toBeVisible({ timeout: 60_000 });
+};
+
 /**
  * Success notification suffix from the apex-testing NLS template `%s successfully ran`.
  * `%s` = `Debug Test(s)` (replay-debugger i18n `debug_test_exec_name`, not in any package.nls.json),
  * so match on the static `successfully ran` suffix rather than the interpolated full string.
  */
-const SUCCESS_NOTIFICATION_SUFFIX = (apexTestingNls.apex_test_successful_execution_message as string).replace(
-  '%s ',
-  ''
-);
+const SUCCESS_NOTIFICATION_SUFFIX = apexTestingNls.apex_test_successful_execution_message.replace('%s ', '');
 
 const waitForSuccessNotification = async (page: Page): Promise<void> => {
   const successNotification = page
@@ -138,10 +177,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     await createApexClass(page, 'ExampleApexClass2Test', class2TestContent);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
-    await executeCommandWithCommandPalette(
-      page,
-      metadataNls.project_deploy_start_ignore_conflicts_default_org_text as string
-    );
+    await executeCommandWithCommandPalette(page, metadataNls.project_deploy_start_ignore_conflicts_default_org_text);
     await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30000 });
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120000 });
     await saveScreenshot(page, 'setup.classes-created.png');
@@ -175,7 +211,9 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
 
   await test.step('Debug class via Test Explorer', async () => {
     await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
-    await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
+    // Refresh rebuilds the tree async; wait for rebuild then expand parents so class rows render
+    await refreshTestsAndWaitForRebuild(page);
+    await expandNamespaceAndPackage(page);
     await debugTestFromTreeItem(page, /ExampleApexClass1Test/i);
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
@@ -184,10 +222,11 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
 
   await test.step('Debug method via Test Explorer', async () => {
     await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
+    await expandNamespaceAndPackage(page);
     // Expand the class node to reveal its method, then debug the method row
-    const classItem = page.getByRole('treeitem', { name: /ExampleApexClass2Test/i });
-    await classItem.waitFor({ state: 'visible', timeout: 30_000 });
-    await classItem.click({ force: true });
+    await expandTreeRow(page, 'ExampleApexClass2Test');
+    const methodItem = page.getByRole('treeitem', { name: /validateSayHello/i });
+    await methodItem.waitFor({ state: 'visible', timeout: 30_000 });
     await debugTestFromTreeItem(page, /validateSayHello/i);
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
