@@ -19,7 +19,6 @@
  * by holding a direct reference to an AzureMonitorLogExporter and a local LoggerProvider.
  */
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
-import { SeverityNumber } from '@opentelemetry/api-logs';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
@@ -119,7 +118,10 @@ const sendSpan = (span: ReadableSpan, otelLogger: ReturnType<LoggerProvider['get
     // Emit a LogRecord — the "microsoft.custom_event.name" attribute tells Azure Monitor
     // to route this to the customEvents table instead of traces.
     otelLogger.emit({
-      severityNumber: isError ? SeverityNumber.ERROR : SeverityNumber.INFO,
+      // SeverityNumber.ERROR (17) / SeverityNumber.INFO (9) — hard-coded to avoid a runtime
+      // dependency on @opentelemetry/api-logs just for these enum values.
+      // https://github.com/open-telemetry/opentelemetry-js/blob/main/api/src/logs/LogRecord.ts
+      severityNumber: isError ? 17 : 9,
       severityText: isError ? 'ERROR' : 'INFO',
       body: span.name,
       attributes: {
