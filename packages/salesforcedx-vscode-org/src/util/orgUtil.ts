@@ -22,7 +22,6 @@ import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString } from 'effect/Predicate';
-import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
@@ -125,13 +124,6 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   await StateAggregator.clearInstanceAsync();
 
   await getOrgRuntime().runPromise(refreshConnection());
-
-  // Trigger Apex Test Controller to discover tests after org auth/set-default. Delay so config
-  // and TargetOrgRef can propagate before refresh runs.
-  const REFRESH_DELAY_MS = 800;
-  setTimeout(() => {
-    void vscode.commands.executeCommand('sf.apex.test.refresh');
-  }, REFRESH_DELAY_MS);
 };
 
 const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
