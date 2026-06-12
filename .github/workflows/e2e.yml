@@ -10,11 +10,6 @@ on:
 
   workflow_call:
     inputs:
-      apexE2ETests:
-        description: 'Apex E2E Tests'
-        required: false
-        default: true
-        type: boolean
       lspE2ETests:
         description: 'LSP E2E Tests'
         required: false
@@ -31,11 +26,6 @@ on:
 
   workflow_dispatch:
     inputs:
-      apexE2ETests:
-        description: 'Apex E2E Tests'
-        required: false
-        default: true
-        type: boolean
       lspE2ETests:
         description: 'LSP E2E Tests'
         required: false
@@ -78,14 +68,6 @@ jobs:
 
           echo "Target VSCode version (latest - 2): $TARGET_VERSION"
           echo "version=$TARGET_VERSION" >> $GITHUB_OUTPUT
-
-  Apex:
-    if: ${{ inputs.apexE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
-    uses: ./.github/workflows/apexE2E.yml
-    secrets: inherit
-    with:
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId || github.event.workflow_run.id }}
 
   LSP:
     if: ${{ inputs.lspE2ETests || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
@@ -185,15 +167,6 @@ jobs:
     secrets: inherit
     with:
       vscode_version: ${{ inputs.vscodeVersion }}
-
-  Apex_min_vscode_version:
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
-    needs: calculate-min-vscode-version
-    uses: ./.github/workflows/apexE2E.yml
-    secrets: inherit
-    with:
-      vscodeVersion: ${{ needs.calculate-min-vscode-version.outputs.min-vscode-version }}
-      runId: ${{ github.event.workflow_run.id }}
 
   LSP_min_vscode_version:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
