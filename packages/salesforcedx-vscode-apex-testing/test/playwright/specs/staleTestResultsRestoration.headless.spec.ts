@@ -18,14 +18,14 @@ import {
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   STALE_FILTER_TAG,
   TEST_EXPLORER_PANEL,
@@ -43,8 +43,8 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
 
   let testClassName: string;
 
-  await test.step('setup minimal org with Apex test class', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with Apex test class', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     testClassName = `StaleTestClass${Date.now()}`;
     const testClassContent = [

@@ -6,10 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { executeCommandWithCommandPalette } from '../pages/commands';
-import { upsertSettings } from '../pages/settings';
 import {
-  CODELENS_ITEM,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   SETTINGS_SEARCH_INPUT,
@@ -17,6 +14,8 @@ import {
   TAB_CLOSE_BUTTON,
   WORKBENCH
 } from './locators';
+import { NON_CRITICAL_ERROR_PATTERNS } from './nonCriticalErrorPatterns';
+import { NON_CRITICAL_NETWORK_PATTERNS } from './nonCriticalNetworkPatterns';
 import { activeQuickInputTextField, activeQuickInputWidget } from './quickInput';
 
 type ConsoleError = { text: string; url?: string };
@@ -26,100 +25,6 @@ type WaitForQuickInputFirstOptionOptions = {
   optionVisibleTimeout?: number;
   retryTimeout?: number;
 };
-
-const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
-  // VS Code Web expected missing resources
-  'favicon.ico',
-  'sourcemap',
-  'webPackagePaths.js',
-  'workbench.web.main.nls.js',
-  // IndexedDB shutdown noise in web
-  'idbtransaction',
-  'indexeddb database',
-  'Long running operations during shutdown', // VS Code lifecycle noise
-  'marketplace.visualstudio.com', // Marketplace/network optional features
-  "Activating extension 'vscode.typescript-language-features' failed", // Extensions not supported in web
-  'CodeExpectedError', // Generic non-fatal code expectation messages
-  'Failed to load resource', // Generic failed to load resources (paired with specific url filtering below)
-  'vscode-userdata:/user/caches/cachedconfigurations', // VS Code user data caching in web environment
-  'vsliveshare', // vscode liveshare ext
-  'MaxListenersExceededWarning', // expected when loading many dev extensions simultaneously
-  'punycode', // known jsforce and transitive dep deprecation by node
-  'selectedStep', // VS Code internal walkthrough/tutorial state errors
-  'onWillSaveTextDocument', // VS Code save event timeout (non-critical)
-  'Throttler is disposed', // VS Code internal throttler lifecycle error (non-critical)
-  'vscode-log:', // VS Code internal logging infrastructure errors
-  'tasks.log', // VS Code tasks log file creation conflicts
-  'theme-defaults/themes', // VS Code theme loading failures
-  'light_modern.json', // VS Code theme file loading
-  'Failed to fetch', // Generic fetch failures (often for optional resources)
-  'tsserver.web.js', // TypeScript language features extension (UriError: Scheme contains illegal characters)
-  'typescript-language-features', // TS extension console/URI errors in web
-  'NO_COLOR', // Node.js color env var warnings
-  'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
-  'Applying inline style violates', // CSP inline style errors from VS Code UI
-  'Unable to resolve resource walkThrough://', // VS Code walkthrough/getting started page errors (non-critical)
-  'SourceMembers timed out after', // sourcemember polling warnings from source-tracking-library
-  'Illegal value for lineNumber', // VS Code internal editor error (non-critical),
-  "'allow-scripts' permissions is not set", //
-  'Blocked script execution', // Webview sandboxing initialization errors (non-critical)
-  'vscode-webview://', // Webview internal URLs (paired with blocked script errors)
-  'Connection failed, falling back to static endpoint', // o11y unauthnticated connection,
-  'Ignoring terminal.integrated.initialHint', // VS Code terminal hint configuration conflicts (non-critical)
-  // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
-  // Apex code-lens provider (provideCodeLenses) fires on file open even in headless/no-org tests; VS Code surfaces two console errors for the same underlying cause:
-  'No default org is set', // specific message from WorkspaceContextUtil.getConnection
-  'An unknown error occurred. Please consult the log for more details.', // VS Code workbench generic wrapper around the same no-org error
-  'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
-  'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
-  'Unable to resolve nonexistent file', // VS Code trying to access files that don't exist yet (workspace state)
-  'testResults', // Test results folder access before it's created (non-critical)
-  'workspaceStorage', // Workspace storage access errors during initialization (non-critical)
-  'Illegal assignment from String to Integer', // Execute anonymous compile error (intentionally triggered in E2E)
-  'Network error occurred', // VS Code Extension Host IPC keep-alive poller warning (non-critical)
-  'PerfSampleError', // Electron perf sampling noise (non-critical, unrelated to extension behavior)
-  'workbench.contrib.agentHostTerminal', // VS Code agent host terminal error (non-critical)
-  'Unable to resolve your shell environment', // VS Code terminal profile / integrated shell init (noisy on desktop E2E)
-  'Canceled: Canceled', // VS Code workbench / extension-host dispose during Reload Window or test teardown (non-critical)
-  // VS Code 1.116+ desktop: workbench contributions that expect remote agent (not present in @vscode/test-electron)
-  'agenthostterminal', // VS Code terminal/Copilot settings interplay — benign when running packaged VS Code in tests
-  'initialhint.copilotcli',
-  'copilotCli', // GitHub Copilot CLI extension noise (non-critical)
-  'remoteAgentHostService', // VS Code remote agent host service noise (non-critical)
-  'workbench.contrib.agentHostTerminal', // VS Code agent host terminal error (non-critical)
-  // VS Code 1.116+ core Accounts area silently fetches a session/entitlement on boot;
-  // with `vscode.github-authentication` disabled there's no provider, so it surfaces this
-  // toast. Benign in E2E — tests don't use VS Code accounts.
-  'Sign-in failed',
-  'Channel is closed',
-  'GenOpAgentConfig', // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
-  'DEP0005', // Node.js Buffer() deprecation warning from transitive dependencies (non-critical)
-  // VS Code 1.119+ web: workbench tries to instantiate agentHostSandboxForwarder which requires a
-  // remote connection that doesn't exist in @vscode/test-web. Tracked upstream:
-  // https://github.com/microsoft/vscode/issues/318222
-  'agentHostSandboxForwarder',
-  'Remote agent host is not enabled'
-] as const;
-
-const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
-  'webPackagePaths.js',
-  'workbench.web.main.nls.js',
-  'workbench.web.main.internal.js',
-  'marketplace.visualstudio.com',
-  'vscode-unpkg.net', // VS Code extension marketplace CDN
-  'scratchOrgInfo', // asking the org if it's a devhub during auth ?
-  'Package2Member', // Tooling API Package2Member can return 400 in scratch orgs; apex-testing handles it and falls back
-  '.a4drules', // @salesforce/templates optional project template assets (react internal/external app templates) not bundled for Apex
-  'typescript-language-features', // TS extension 404s for package.json etc in web
-  'applicationinsights.azure.com', // Azure Application Insights telemetry (e.g. HTTP 439 throttling) — not critical to extension behavior
-  // Salesforce OAuth userinfo endpoint (can 403/500 if session is invalid/expired in web,
-  // non-critical for these tests.  sfdx-core will query user/organization sobjects as fallback )
-  // https://github.com/forcedotcom/sfdx-core/blob/8d378c3a6f88a1d370ddc3f43954a90d7159377d/src/org/authInfo.ts#L1236
-  'services/oauth2/userinfo',
-  // Salesforce sObject describe endpoint — LSP/autocomplete may describe objects (including internal
-  // types like "Object") as-you-type; describe 404s are non-critical to test assertions
-  '/describe'
-] as const;
 
 export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
   const consoleErrors: ConsoleError[] = [];
@@ -328,6 +233,49 @@ export const selectQuickInputOption = async (
 };
 
 /**
+ * Select a quick-pick option by typing a filter string then clicking the first matching row.
+ *
+ * Waits for the quick input widget, types `filterText` to narrow the list, then clicks the row
+ * whose text matches `filterText` (case-insensitive). Use for pickers that populate asynchronously
+ * (e.g. the Apex test-class picker) where typing is needed to surface the desired option.
+ *
+ * Single-select (default): commits via DOM `evaluate` click (scrolls into view + fires a real DOM
+ * click synchronously) — the same pattern as `selectFirstQuickInputOption`, since Playwright
+ * `.click()` was silently dropped on desktop-electron.
+ *
+ * Multi-select (`canPickMany`, `options.multiSelect: true`): toggles the row checkbox via a real
+ * Playwright pointer click. A synthetic DOM `click()` does not toggle the monaco list checkbox, so
+ * the picker accepts with nothing selected and the command silently no-ops.
+ *
+ * @param filterText Text to type into the quick input and match against list rows.
+ * @param options.quickInputTimeout Wait for the widget to appear, ms (default 10_000).
+ * @param options.optionTimeout Wait for the matching row to be visible, ms (default 10_000).
+ * @param options.multiSelect Set true for `canPickMany` pickers to toggle the row checkbox.
+ */
+export const selectQuickInputOptionByTyping = async (
+  page: Page,
+  filterText: string,
+  options?: { quickInputTimeout?: number; optionTimeout?: number; multiSelect?: boolean }
+): Promise<void> => {
+  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: options?.quickInputTimeout ?? 10_000 });
+  await page.keyboard.type(filterText);
+  const option = page
+    .locator(QUICK_INPUT_LIST_ROW)
+    .filter({ hasText: new RegExp(filterText, 'i') })
+    .first();
+  await option.waitFor({ state: 'visible', timeout: options?.optionTimeout ?? 10_000 });
+  if (options?.multiSelect) {
+    await option.scrollIntoViewIfNeeded();
+    await option.click({ force: true });
+    return;
+  }
+  await option.evaluate(el => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
+};
+
+/**
  * Dismiss the VS Code 1.116+ "Welcome to VS Code" modal sign-in walkthrough that can appear on
  * first launch. This dialog is modal and blocks all other keyboard input (command palette, etc.)
  * until dismissed, so it must be closed before anything else. Clicks "Continue without Signing In"
@@ -473,6 +421,9 @@ export const waitForWorkspaceReady = async (page: Page, timeout = 30_000): Promi
 
 export const typingSpeed = 50; // ms
 
+/** Escape regex metacharacters in `s` so it can be embedded in a `RegExp`. */
+export const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /** Returns true if running on desktop (Electron), regardless of platform */
 export const isDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1';
 
@@ -481,35 +432,6 @@ export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' &&
 
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
-
-/**
- * Opens traceFlags.json and removes all debug levels via their Remove code lenses.
- * With no debug levels present, createTraceFlagForCurrentUser will auto-create
- * ReplayDebuggerLevels instead of showing the debug level picker.
- * Safe to call when no debug levels exist — the step is a no-op in that case.
- */
-export const removeAllDebugLevels = async (page: Page): Promise<void> => {
-  const removeLinks = page.locator(CODELENS_ITEM).filter({ hasText: /^Remove$/ });
-
-  await expect(async () => {
-    await executeCommandWithCommandPalette(page, 'SFDX: Open Trace Flags');
-    await expect(page.locator('.tab').filter({ hasText: /traceFlags\.json/ })).toBeVisible({ timeout: 10_000 });
-    // Wait for code lenses to render (attached is sufficient — they may be off-screen in web).
-    await expect(page.locator(CODELENS_ITEM).filter({ hasText: /Create Debug level/ })).toBeAttached({
-      timeout: 10_000
-    });
-
-    // This is only called when no trace flags are active, so all Remove lenses belong to
-    // debug levels — click the first one and re-iterate until none remain.
-    const link = removeLinks.first();
-    if (!(await link.isVisible({ timeout: 1000 }).catch(() => false))) return;
-    await link.scrollIntoViewIfNeeded();
-    const count = await removeLinks.count();
-    await link.click();
-    await expect(removeLinks).not.toHaveCount(count, { timeout: 10_000 });
-    throw new Error('removed one debug level, checking for more');
-  }).toPass({ timeout: 60_000 });
-};
 
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (
@@ -526,100 +448,4 @@ export const validateNoCriticalErrors = async (
     }
     await Promise.resolve(); // Satisfy require-await lint rule
   });
-};
-
-/**
- * Disable Monaco editor auto-closing features (brackets, quotes, etc.) to prevent duplicates during typing.
- * Uses VS Code settings API for cleaner, more maintainable approach.
- */
-export const disableMonacoAutoClosing = async (page: Page): Promise<void> => {
-  await upsertSettings(page, {
-    'editor.autoClosingBrackets': 'never',
-    'editor.autoClosingQuotes': 'never',
-    'editor.autoClosingOvertype': 'never'
-  });
-
-  // Close Settings tab so it doesn't interfere with subsequent operations
-  await closeSettingsTab(page);
-};
-
-/**
- * Wait for all VS Code extensions to finish activating by watching the
- * "Developer: Show Running Extensions" editor.  More reliable than polling
- * the command palette, especially on slow CI runners (e.g. Windows).
- *
- * While an extension is activating its row contains the text "Activating".
- * Once done the row shows "Activation: Xms" / "Startup Activation: Xms".
- * We wait until no rows contain "Activating" any more.
- *
- * @param timeout - Maximum ms to wait for all extensions to activate (default 120 000).
- */
-export const waitForExtensionsActivated = async (page: Page, timeout = 120_000): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Developer: Show Running Extensions');
-
-  // The editor container gets class "runtime-extensions-editor" via createEditor()
-  const editor = page.locator('.runtime-extensions-editor');
-  await editor.waitFor({ state: 'visible', timeout: 15_000 });
-
-  // Wait for the list to populate (at least one row rendered)
-  const rows = editor.locator('.monaco-list-row');
-  await expect(rows).not.toHaveCount(0, { timeout: 30_000 });
-
-  // Wait until no row still contains "Activating" text
-  const stillActivating = rows.filter({ hasText: 'Activating' });
-  await expect(stillActivating).toHaveCount(0, { timeout });
-
-  // Close the Running Extensions tab via command palette (cross-platform, no hover needed)
-  const tab = page.getByRole('tab', { name: /Running Extensions/i });
-  await executeCommandWithCommandPalette(page, 'View: Close All Editors');
-  await tab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
-};
-
-/**
- * Ensure the secondary sidebar (auxiliary bar, typically used for Chat/Copilot) is hidden.
- * This is idempotent - only hides if currently visible, avoiding toggle state issues.
- * Useful to prevent keystrokes from going to chat input instead of editor.
- */
-export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> => {
-  // VS Code's secondary sidebar is in the .part.auxiliarybar element
-  const auxiliaryBar = page.locator('.part.auxiliarybar');
-
-  await dismissWelcomeOnboardingOverlayIfPresent(page);
-
-  // Check if sidebar exists and is visible
-  // Use a short timeout to avoid hanging if it's not there
-  const isVisible = await auxiliaryBar.isVisible({ timeout: 1000 }).catch(() => false);
-
-  if (isVisible) {
-    // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
-    await page.locator(WORKBENCH).click({ timeout: 5000, force: true });
-    // Use the explicit Hide command (not Toggle) to ensure we're hiding
-    await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
-
-    // Wait for it to actually hide
-    await auxiliaryBar.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
-      // Ignore error - may have been already hidden or command not available
-    });
-  }
-};
-
-/**
- * Runs `Workspaces: Close Workspace` so no folder is open (empty VS Code window).
- * Call after {@link waitForVSCodeWorkbench} / {@link closeWelcomeTabs} / {@link ensureSecondarySideBarHidden} if needed.
- */
-export const closeWorkspaceToEmptyWindow = async (page: Page): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Workspaces: Close Workspace');
-  await waitForVSCodeWorkbench(page);
-};
-
-/**
- * From a desktop fixture that opened a workspace folder: prepare UI, then close the workspace so **no folder** is open.
- * Use when asserting palette commands with **no folder open**. Contrast: `createDesktopTest({ emptyWorkspace: true })` — a folder **is** open but has no `sfdx-project.json`.
- */
-export const prepareNoFolderOpenForPaletteTests = async (page: Page): Promise<void> => {
-  await waitForVSCodeWorkbench(page);
-  await closeWelcomeTabs(page);
-  await ensureSecondarySideBarHidden(page);
-  await closeWorkspaceToEmptyWindow(page);
-  await closeWelcomeTabs(page);
 };

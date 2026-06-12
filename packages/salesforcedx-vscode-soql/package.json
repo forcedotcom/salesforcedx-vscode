@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.14.2",
+  "version": "67.0.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -51,7 +51,7 @@
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.5.0",
-    "@lwc/jest-preset": "^19.0.0",
+    "@lwc/jest-preset": "^19.6.1",
     "@lwc/rollup-plugin": "^9.0.0",
     "@lwc/synthetic-shadow": "^9.1.1",
     "@rollup/plugin-alias": "^6.0.0",

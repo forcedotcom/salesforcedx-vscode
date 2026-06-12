@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "66.14.2",
+  "version": "67.0.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,19 +27,15 @@
   "categories": [
     "Programming Languages"
   ],
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": [],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.21.0",
     "@stoplight/spectral-functions": "1.10.2",
     "@stoplight/spectral-rulesets": "1.22.0",
-    "async-lock": "1.4.1",
     "ejs": "3.1.10",
     "fast-xml-parser": "^5.7.1",
     "jsonpath-plus": "10.4.0",
@@ -47,17 +43,15 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.31.0",
-    "@types/async-lock": "1.4.2",
+    "@salesforce/playwright-vscode-ext": "*",
     "@types/ejs": "3.1.5",
     "openapi-types": "12.1.3",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-services": "*",
     "vscode-languageserver-protocol": "3.17.5"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
-    "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-services",
     "salesforce.salesforcedx-einstein-gpt"
   ],
@@ -71,7 +65,9 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug"
   },
   "wireit": {
     "compile": {
@@ -79,10 +75,8 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-apex:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-apex:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -155,6 +149,33 @@
       "dependencies": [
         "vscode:bundle"
       ]
+    },
+    "test:desktop": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package:legacy",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-apex:vscode:package",
+        "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-metadata:vscode:package",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
     }
   },
   "packaging": {

@@ -1,4 +1,6 @@
-# Running E2E Tests
+# Running E2E Tests (Legacy RedHat/WDIO Framework)
+
+**Note:** This guide covers the legacy RedHat vscode-extension-tester framework. We're migrating to Playwright. For new e2e tests, see [.claude/skills/playwright-e2e/SKILL.md](../.claude/skills/playwright-e2e/SKILL.md).
 
 ## Prerequisites
 
@@ -80,6 +82,8 @@ To run a single E2E test on GHA, find the test in its appropriate category: e.g.
 Uncheck all the boxes except for the one E2E test you want to run. Input the ID of your commit workflow into the VSIX box, then click **Run workflow**.
 
 <img src="../imgs/apex-e2e-workflow-manual-trigger.png" alt="Apex E2E Workflow Manual Trigger Interface" width="300">
+
+**Note on Apex OAS E2E Tests:** OpenAPI Specification (OAS) tests have migrated from legacy vscode-extension-tester to Playwright in `packages/salesforcedx-vscode-apex-oas/test/playwright/specs/` and run in a separate workflow ([**Apex OAS E2E**](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/apexOasE2E.yml)). These tests run on desktop only (macOS + ubuntu). For local testing, see the [Playwright E2E skill](../.claude/skills/playwright-e2e/SKILL.md) for setup instructions.
 
 ## Updating salesforcedx-vscode-test-tools
 

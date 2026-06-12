@@ -22,6 +22,7 @@ import { ConnectionService } from './core/connectionService';
 import { getDefaultOrgRef } from './core/defaultOrgRef';
 import { ExecuteAnonymousService } from './core/executeAnonymousService';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
+import { LightningComponentService } from './core/lightningComponentService';
 import { MetadataChangeNotificationService } from './core/metadataChangeNotificationService';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
@@ -46,6 +47,7 @@ import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStor
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
+import { watchEsrDecomposedContext, watchMuleDxApiInactiveContext } from './vscode/contextKeyWatchers';
 import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
@@ -53,6 +55,7 @@ import { watchLwcAuraExtensionActivation } from './vscode/extensionActivator';
 import { setExtensionContext } from './vscode/extensionContext';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
+import { ExtensionsService } from './vscode/extensionsService';
 import { FileChangePubSub } from './vscode/fileChangePubSub';
 import { FileWatcherLayer } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
@@ -73,6 +76,7 @@ export type SalesforceVSCodeServicesApi = {
       | ApexLogService
       | ChannelService
       | ComponentSetService
+      | LightningComponentService
       | ConfigService
       | ConnectionService
       | EditorService
@@ -106,6 +110,7 @@ export type SalesforceVSCodeServicesApi = {
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
     ComponentSetService: typeof ComponentSetService;
+    LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
     registerCommandWithLayer: typeof registerCommandWithLayer;
@@ -157,6 +162,7 @@ export type {
   FailedToBuildComponentSetError,
   EmptyComponentSetError
 } from './core/componentSetService';
+export type { LightningComponentKind, RenameBundleParams } from './core/lightningComponentService';
 export type { NoActiveEditorError, EditorService } from './vscode/editorService';
 export type { GetOrgFromConnectionError } from './core/shared';
 export type {
@@ -165,7 +171,7 @@ export type {
   SourceTrackingNotEnabledError,
   SourceTrackingService
 } from './core/sourceTrackingService';
-export type { HashableUri } from './vscode/hashableUri';
+export { HashableUri } from './vscode/hashableUri';
 export type { FailedToResolveSfProjectError, NotInPackageDirectoryError } from './core/projectService';
 export type { NoWorkspaceOpenError } from './vscode/workspaceService';
 export type { FailedToCreateConfigAggregatorError } from './core/configService';
@@ -247,6 +253,10 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       Effect.forkIn(watchApexTestContext(), scope),
       // watch active editor to activate LWC/Aura extensions on demand
       Effect.forkIn(watchLwcAuraExtensionActivation(), scope),
+      // own sf:muleDxApiInactive context (was set once in apex-oas, now reactive)
+      Effect.forkIn(watchMuleDxApiInactiveContext(), scope),
+      // own sf:is_esr_decomposed context, react to sfdx-project.json changes
+      Effect.forkIn(watchEsrDecomposedContext(), scope),
       // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
       Effect.forkIn(watchAliasFile(), scope)
     ],
@@ -316,9 +326,11 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     TemplateService.Default,
     ExtensionContextService.Default,
     ExecuteAnonymousService.Default,
+    ExtensionsService.Default,
     FileChangePubSub.Default,
     ApexLogService.Default,
     ComponentSetService.Default,
+    LightningComponentService.Default,
     ConfigService.Default,
     ConnectionService.Default,
     EditorService.Default,
@@ -365,6 +377,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ChannelService,
       ChannelServiceLayer,
       ComponentSetService,
+      LightningComponentService,
       ConfigService,
       ConnectionService,
       ExecuteAnonymousService,

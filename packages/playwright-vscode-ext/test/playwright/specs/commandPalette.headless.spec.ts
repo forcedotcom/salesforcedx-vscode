@@ -7,13 +7,8 @@
 
 import { expect } from '@playwright/test';
 import { executeCommandWithCommandPalette, openCommandPalette } from '../../../src/pages/commands';
-import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  isMacDesktop,
-  ensureSecondarySideBarHidden,
-  isDesktop
-} from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs, isMacDesktop, isDesktop } from '../../../src/utils/helpers';
+import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { WORKBENCH } from '../../../src/utils/locators';
 import { activeQuickInputTextField, activeQuickInputWidget } from '../../../src/utils/quickInput';
 import { test } from '../fixtures/index';

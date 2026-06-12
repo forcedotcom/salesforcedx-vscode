@@ -7,9 +7,10 @@
 
 import * as HashSet from 'effect/HashSet';
 import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { URI } from 'vscode-uri';
 import { getStaleUris } from '../../../src/conflict/resultStorageCleanup';
 
-const uri = (path: string) => HashableUri.file(path);
+const uri = (path: string) => HashableUri.fromUri(URI.file(path));
 
 const u1 = uri('/org/deploy-2024-01-01.json');
 const u2 = uri('/org/deploy-2024-02-01.json');

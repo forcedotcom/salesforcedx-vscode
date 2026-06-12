@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "66.14.2",
+  "version": "67.0.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,7 +28,7 @@
   "browser": "./dist/web/index.js",
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "jsforce": "^3.10.2",
+    "jsforce": "^3.10.15",
     "@salesforce/types": "^1.6.0",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",

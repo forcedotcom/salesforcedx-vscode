@@ -13,20 +13,21 @@ import {
   executeCommandWithCommandPalette,
   saveScreenshot,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import {
-  CMD_REFRESH_TESTS,
   STALE_AUTOCOMPLETE_OPTION,
+  TEST_EXPLORER_PANEL,
   clearFilter,
   focusAndTypeInFilter,
   openTestExplorerAndDiscover,
+  refreshTestsAndWaitForRebuild,
   runAllTestsAndWaitForCompletion
 } from '../helpers/testExplorerHelpers';
 
@@ -37,8 +38,8 @@ test('Clear Apex Test Results removes result files', async ({ page }) => {
 
   let testClassName: string;
 
-  await test.step('setup minimal org with Apex test class', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with Apex test class', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     testClassName = `ClearTestClass${Date.now()}`;
     const testClassContent = [
@@ -65,7 +66,7 @@ test('Clear Apex Test Results removes result files', async ({ page }) => {
   });
 
   await test.step('refresh and verify results are not restored', async () => {
-    await executeCommandWithCommandPalette(page, CMD_REFRESH_TESTS);
+    await refreshTestsAndWaitForRebuild(page, page.locator(TEST_EXPLORER_PANEL));
     await saveScreenshot(page, 'clear.step.after-refresh.png');
     await focusAndTypeInFilter(page, '@');
     const staleOption = page.getByText(STALE_AUTOCOMPLETE_OPTION);

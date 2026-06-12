@@ -11,13 +11,12 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_LIST_ROW,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOption,
+  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
-  setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForOutputChannelText,
@@ -26,7 +25,7 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 
 test('Run Apex Tests via Command Palette: run all, then run single class', async ({ page }) => {
@@ -37,8 +36,8 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   let testClassName: string;
   let testClassName2: string;
 
-  await test.step('setup minimal org with two Apex test classes', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup non-tracking org with two Apex test classes', async () => {
+    await setupNonTrackingOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     testClassName = `CommandPaletteTestClass1${Date.now()}`;
     const testClassContent = [
@@ -77,13 +76,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   await test.step('run single test class via command palette', async () => {
     await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
     await saveScreenshot(page, 'step.run-single.after-command.png');
-    const quickInput = page.locator(QUICK_INPUT_WIDGET);
-    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await page.keyboard.type(testClassName);
-    await saveScreenshot(page, 'step.run-single.class-typed.png');
-    const testClassOption = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(testClassName, 'i') });
-    await testClassOption.waitFor({ state: 'visible', timeout: 5000 });
-    await testClassOption.click();
+    await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000 });
     await saveScreenshot(page, 'step.run-single.class-selected.png');
   });
 
