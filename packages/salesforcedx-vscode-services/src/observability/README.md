@@ -58,14 +58,13 @@ Node platform can route to **customEvents** table (matching Web) by enabling the
 ```typescript
 const config = api.services.getSdkLayerConfigFromContext(context);
 config.enableCustomEventsFromSpans = true;  // Routes Node spans to customEvents
-config.connectionString = "InstrumentationKey=...";  // optional: override at runtime (or bare UUID)
 
 const services = AllServicesLayer.pipe(
   Layer.provide(api.services.SdkLayerFor(config))
 );
 ```
 
-The connection string is resolved from your extension's `package.json` with precedence:
+The connection string is resolved from your extension's `package.json` (via `getSdkLayerConfigFromContext`) with precedence:
 1. `otelConnectionString` — dedicated OTEL field, full format, used as-is
 2. `aiKey` — legacy field; normalized from bare UUID to InstrumentationKey= format if needed
 3. Undefined — falls back to `DEFAULT_AI_CONNECTION_STRING`
@@ -229,18 +228,12 @@ import * as vscode from 'vscode';
 export const AllServicesLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
     const api = yield* extensionProvider.getServicesApi;
-    const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
-    const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-    const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
+    const context = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`)?.extensionContext;
+    const config = api.services.getSdkLayerConfigFromContext(context);  // connectionString auto-resolved (otelConnectionString → aiKey → DEFAULT_AI_CONNECTION_STRING)
 
     return Layer.mergeAll(
       // ... other service layers ...
-      api.services.SdkLayerFor({
-        extensionName: EXTENSION_NAME,
-        extensionVersion,
-        o11yEndpoint,
-        connectionString: extension?.packageJSON?.otelConnectionString || extension?.packageJSON?.aiKey  // optional: otelConnectionString preferred, then aiKey (auto-normalized)
-      })
+      api.services.SdkLayerFor(config)
       // ... other service layers ...
     );
   })

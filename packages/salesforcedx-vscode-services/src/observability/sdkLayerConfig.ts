@@ -6,6 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
+import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 
 export type SdkLayerConfig = {
   extensionName: string;
@@ -16,8 +17,8 @@ export type SdkLayerConfig = {
   /**
    * Full Azure Monitor connection string for the OTEL path.
    * Expected format: "InstrumentationKey=...;IngestionEndpoint=..."
-   * Resolved from packageJSON: otelConnectionString preferred over aiKey (normalized).
-   * If undefined, NodeSdkLayerFor falls back to DEFAULT_AI_CONNECTION_STRING.
+   * Resolved from packageJSON: otelConnectionString preferred over aiKey (normalized),
+   * falling back to DEFAULT_AI_CONNECTION_STRING.
    */
   connectionString?: string;
 };
@@ -28,7 +29,7 @@ export type SdkLayerConfig = {
  * 2. aiKey — legacy field; normalized from bare UUID to InstrumentationKey= format if needed
  * 3. undefined — NodeSdkLayerFor falls back to DEFAULT_AI_CONNECTION_STRING
  */
-const resolveConnectionString = (packageJSON: Record<string, unknown>): string | undefined => {
+const resolveConnectionString = (packageJSON: ExtensionPackageJSON): string | undefined => {
   const otelConnectionString = packageJSON?.otelConnectionString;
   if (typeof otelConnectionString === 'string' && otelConnectionString) return otelConnectionString;
   const aiKey = packageJSON?.aiKey;
@@ -36,13 +37,26 @@ const resolveConnectionString = (packageJSON: Record<string, unknown>): string |
   return aiKey.includes('InstrumentationKey=') ? aiKey : `InstrumentationKey=${aiKey}`;
 };
 
-export const getSdkLayerConfigFromContext = (context: ExtensionContext): SdkLayerConfig => ({
-  extensionName: context.extension.packageJSON.name,
-  extensionVersion: context.extension.packageJSON.version,
-  o11yEndpoint: process.env.O11Y_ENDPOINT ?? context.extension.packageJSON?.o11yUploadEndpoint,
-  productFeatureId: context.extension.packageJSON?.productFeatureId,
-  enableCustomEventsFromSpans: context.extension.packageJSON?.enableCustomEventsFromSpans,
-  connectionString: resolveConnectionString(context.extension.packageJSON)
+type ExtensionPackageJSON = {
+  name: string;
+  version: string;
+  o11yUploadEndpoint?: string;
+  productFeatureId?: string;
+  enableCustomEventsFromSpans?: boolean;
+  otelConnectionString?: string;
+  aiKey?: string;
+};
+
+export const getSdkLayerConfigFromPackageJSON = (packageJSON: ExtensionPackageJSON): SdkLayerConfig => ({
+  extensionName: packageJSON.name,
+  extensionVersion: packageJSON.version,
+  o11yEndpoint: process.env.O11Y_ENDPOINT ?? packageJSON?.o11yUploadEndpoint,
+  productFeatureId: packageJSON?.productFeatureId,
+  enableCustomEventsFromSpans: packageJSON?.enableCustomEventsFromSpans,
+  connectionString: resolveConnectionString(packageJSON) ?? DEFAULT_AI_CONNECTION_STRING
 });
+
+export const getSdkLayerConfigFromContext = (context: ExtensionContext): SdkLayerConfig =>
+  getSdkLayerConfigFromPackageJSON(context.extension.packageJSON);
 export const isExtensionContext = (input: SdkLayerConfig | vscode.ExtensionContext): input is vscode.ExtensionContext =>
   'extension' in input;
