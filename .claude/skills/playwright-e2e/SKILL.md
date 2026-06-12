@@ -69,6 +69,8 @@ When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never 
 
 Playwright desktop tests live in `packages/salesforcedx-vscode-apex-oas/test/playwright/specs/` with dedicated CI workflow `.github/workflows/apexOasE2E.yml` (macOS + ubuntu, desktop only). Specs share one MINIMAL_ORG_ALIAS scratch org and are serialized via `workers: 1` in `playwright.config.desktop.ts`. Tests that deploy ESR metadata requiring API >=66 call `setWorkspaceApiVersion()` to bump the fixture's default sourceApiVersion (64.0 → 66.0). Specs that click modal-dialog buttons require `window.dialogStyle: custom` in the fixture's `userSettings`. The OAS package depends on `salesforce.salesforcedx-einstein-gpt` (A4V); install it via the desktop fixture's pre-launch step.
 
+**A4V LLM rate limit = skip, not fail:** shared Core model exhausting its monthly quota is an infra outage, not a product bug. The rate-limit cause is swallowed before the UI (notification reads generic "LLM did not return any content") — only the span carries it. `llmHitRateLimit(sinceMs?)` (oasHelpers) scans `~/.sf/vscode-spans/*.jsonl` for `ApexOas.Llm.callLLM` status code 2 + `/monthly rate limit/`; `sinceMs` filters to files modified ≥ that ts (pass test-start `Date.now()` to ignore stale spans). On the assertion that depends on generation, `.catch` → `test.skip(await llmHitRateLimit(startedAt), …)` then rethrow. Used in `composedManualMerge.headless.spec.ts`.
+
 ## Running Full E2E Test Suite
 
 See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 9 packages in correct dependency order with failure analysis.

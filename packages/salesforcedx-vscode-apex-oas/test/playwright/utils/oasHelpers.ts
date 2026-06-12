@@ -20,7 +20,11 @@ import {
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
+import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 
 const PUSH_COMMAND = 'SFDX: Push Source to Default Org and Ignore Conflicts';
@@ -121,3 +125,62 @@ export const waitForEsrFile = async (workspaceDir: string, baseName: string, tim
   }
   throw new Error(`ESR file not found after ${timeoutMs}ms: ${target}`);
 };
+
+const SPAN_DIR = path.join(os.homedir(), '.sf', 'vscode-spans');
+
+/** A rate-limited `ApexOas.Llm.callLLM` span: failed status (code 2) whose message names the monthly quota. */
+const RateLimitSpan = Schema.Struct({
+  name: Schema.Literal('ApexOas.Llm.callLLM'),
+  status: Schema.Struct({
+    code: Schema.Literal(2),
+    message: Schema.String.pipe(Schema.pattern(/monthly rate limit/i))
+  })
+});
+
+/** Span file paths modified at/after `sinceMs`. */
+const recentSpanFiles = (sinceMs: number) =>
+  Effect.promise(() => fs.readdir(SPAN_DIR)).pipe(
+    Effect.orElseSucceed(() => []),
+    Effect.map(files => files.filter(f => f.endsWith('.jsonl')).map(f => path.join(SPAN_DIR, f))),
+    Effect.flatMap(
+      Effect.filter(file =>
+        Effect.promise(() => fs.stat(file)).pipe(
+          Effect.map(stat => stat.mtimeMs >= sinceMs),
+          Effect.orElseSucceed(() => false)
+        )
+      )
+    )
+  );
+
+/** True if any line in the file decodes as a rate-limit span. */
+const fileHasRateLimit = (file: string) =>
+  Effect.promise(() => fs.readFile(file, 'utf8')).pipe(
+    Effect.map(content =>
+      content
+        .split('\n')
+        .filter(Boolean)
+        .some(line => Option.isSome(Schema.decodeOption(Schema.parseJson(RateLimitSpan))(line)))
+    ),
+    Effect.orElseSucceed(() => false)
+  );
+
+const hitRateLimit = Effect.fn('OasE2E.llmHitRateLimit')(function* (sinceMs: number) {
+  const files = yield* recentSpanFiles(sinceMs);
+  return yield* Effect.exists(files, fileHasRateLimit);
+});
+
+/**
+ * Detect whether an A4V LLM call hit the shared Core model's monthly rate limit during the run.
+ *
+ * The rate-limit text only survives in the OTEL span file (file traces are enabled by the desktop
+ * fixture): `ApexOas.Llm.callLLM` spans fail with status code 2 and a message containing
+ * "monthly rate limit". The command's user-facing notification is the generic "LLM did not return
+ * any content" (the rate-limit cause is swallowed by per-method catchAll), so it can't distinguish
+ * a quota exhaustion from a real empty-response bug — only the span can.
+ *
+ * Specs use this to treat a quota-exhausted run as a skip (infra problem, resets monthly) rather
+ * than a failure, while still failing on genuine generation bugs.
+ *
+ * @param sinceMs Only consider span files modified at/after this epoch-ms. Capture `Date.now()` at test start and pass it so a stale rate-limit span from a prior local run can't mask a real bug.
+ */
+export const llmHitRateLimit = (sinceMs = 0): Promise<boolean> => Effect.runPromise(hitRateLimit(sinceMs));

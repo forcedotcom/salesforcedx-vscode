@@ -19,6 +19,7 @@ import { caseManagerClassText } from '../testData/sampleClassData';
 import {
   clickModalDialogButton,
   confirmEsrFolderPrompt,
+  llmHitRateLimit,
   pushSource,
   setupWorkbenchAndAuth,
   waitForA4VAndOasCommands,
@@ -31,6 +32,7 @@ test.setTimeout(600_000);
 test.describe.configure({ retries: 1 });
 
 test('OAS: composed mode → manual merge produces diff editor + timestamped ESR', async ({ page, workspaceDir }) => {
+  const startedAt = Date.now();
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -68,7 +70,18 @@ test('OAS: composed mode → manual merge produces diff editor + timestamped ESR
 
   await test.step('verify diff editor and timestamped ESR tabs are open', async () => {
     const diffTab = page.getByRole('tab', { name: /Manual Diff of ESR XML Files/ }).first();
-    await expect(diffTab).toBeVisible({ timeout: 30_000 });
+    // The merge generation needs a fresh A4V LLM response. When the shared Core model is out of its
+    // monthly quota, that call fails, no merge file is written, and no diff opens — an infra outage,
+    // not a product bug. Skip rather than fail; the quota resets monthly.
+    await expect(diffTab)
+      .toBeVisible({ timeout: 30_000 })
+      .catch(async (error: unknown) => {
+        test.skip(
+          await llmHitRateLimit(startedAt),
+          'A4V Core model monthly rate limit hit; merge generation could not run'
+        );
+        throw error;
+      });
 
     const timestampedTab = page
       .getByRole('tab', { name: /CaseManager_\d{8}_\d{6}\.externalServiceRegistration-meta\.xml/ })
