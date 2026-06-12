@@ -18,6 +18,7 @@ import { URI, Utils } from 'vscode-uri';
 import { resolveAvailableCreateCommands } from './commands/createComponent';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
+import { nls } from './messages';
 import { AssetPreviewFs, ASSET_PREVIEW_SCHEME } from './services/assetPreviewFs';
 import {
   AllServicesLayer,
@@ -120,11 +121,35 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const creatableTypes = yield* Effect.promise(resolveAvailableCreateCommands);
   treeProvider.setCreatableTypes(creatableTypes);
 
-  const savedViewMode = context.workspaceState.get<string>('orgBrowser.viewMode');
-  if (savedViewMode && isValidViewMode(savedViewMode)) {
-    treeProvider.setViewMode(savedViewMode);
-    yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', savedViewMode));
+  // Migrate legacy single-mode workspace state to the new boolean pair
+  const legacyViewMode = context.workspaceState.get<string>('orgBrowser.viewMode');
+  if (legacyViewMode) {
+    const migrated = legacyViewMode === 'withContent' ? 'local' : legacyViewMode;
+    if (isValidViewMode(migrated)) treeProvider.setViewMode(migrated);
+    void context.workspaceState.update('orgBrowser.viewMode', undefined);
+    const { showLocal, showOrg } = treeProvider.getViewFilter();
+    void context.workspaceState.update('orgBrowser.showLocal', showLocal);
+    void context.workspaceState.update('orgBrowser.showOrg', showOrg);
+  } else {
+    const savedShowLocal = context.workspaceState.get<boolean>('orgBrowser.showLocal') ?? true;
+    const savedShowOrg = context.workspaceState.get<boolean>('orgBrowser.showOrg') ?? true;
+    treeProvider.setViewFilter(savedShowLocal, savedShowOrg);
   }
+  const { showLocal: initLocal, showOrg: initOrg } = treeProvider.getViewFilter();
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', initLocal));
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', initOrg));
+  yield* Effect.promise(() =>
+    vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', treeProvider.hasOrgData())
+  );
+  context.subscriptions.push(
+    treeProvider.onOrgDataAvailable(() => {
+      void vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', true);
+      // If org filter is active, re-render root now that we have org data to filter against
+      if (treeProvider.getViewFilter().showOrg && !treeProvider.getViewFilter().showLocal) {
+        treeProvider.fireChangeEvent();
+      }
+    })
+  );
   const savedFilter = context.workspaceState.get<string[]>('orgBrowser.typeFilter');
   const savedComponentFilter = context.workspaceState.get<string>('orgBrowser.componentFilter');
   const savedStateFilter = context.workspaceState.get<SyncState[]>('orgBrowser.stateFilter');
@@ -147,7 +172,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   // Register the tree provider for both the standalone and Explorer views
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
-  vscode.window.registerTreeDataProvider(`${TREE_VIEW_ID}Explorer`, treeProvider);
 
   const registerCommand = api.services.registerCommandWithRuntime(getOrgBrowserRuntime());
 
@@ -259,32 +283,41 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           if (entry) await vscode.commands.executeCommand(entry.commandId);
         })
       ),
-      registerCommand(`${TREE_VIEW_ID}.viewModeLocalOnly`, () =>
+      registerCommand(`${TREE_VIEW_ID}.toggleLocalFilter`, () =>
         Effect.promise(async () => {
-          const mode = treeProvider.cycleViewMode();
-          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
-          await context.workspaceState.update('orgBrowser.viewMode', mode);
+          const { showLocal, showOrg } = treeProvider.getViewFilter();
+          treeProvider.setViewFilter(!showLocal, showOrg);
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', !showLocal);
+          await context.workspaceState.update('orgBrowser.showLocal', !showLocal);
         })
       ),
-      registerCommand(`${TREE_VIEW_ID}.viewModeWithContent`, () =>
+      registerCommand(`${TREE_VIEW_ID}.toggleLocalFilterOff`, () =>
         Effect.promise(async () => {
-          const mode = treeProvider.cycleViewMode();
-          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
-          await context.workspaceState.update('orgBrowser.viewMode', mode);
+          const { showLocal, showOrg } = treeProvider.getViewFilter();
+          treeProvider.setViewFilter(!showLocal, showOrg);
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', !showLocal);
+          await context.workspaceState.update('orgBrowser.showLocal', !showLocal);
         })
       ),
-      registerCommand(`${TREE_VIEW_ID}.viewModeOrgOnly`, () =>
+      registerCommand(`${TREE_VIEW_ID}.toggleOrgFilter`, () =>
         Effect.promise(async () => {
-          const mode = treeProvider.cycleViewMode();
-          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
-          await context.workspaceState.update('orgBrowser.viewMode', mode);
+          const { showLocal, showOrg } = treeProvider.getViewFilter();
+          treeProvider.setViewFilter(showLocal, !showOrg);
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', !showOrg);
+          await context.workspaceState.update('orgBrowser.showOrg', !showOrg);
         })
       ),
-      registerCommand(`${TREE_VIEW_ID}.viewModeAllTypes`, () =>
+      registerCommand(`${TREE_VIEW_ID}.toggleOrgFilterOff`, () =>
         Effect.promise(async () => {
-          const mode = treeProvider.cycleViewMode();
-          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.viewMode', mode);
-          await context.workspaceState.update('orgBrowser.viewMode', mode);
+          const { showLocal, showOrg } = treeProvider.getViewFilter();
+          treeProvider.setViewFilter(showLocal, !showOrg);
+          await vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', !showOrg);
+          await context.workspaceState.update('orgBrowser.showOrg', !showOrg);
+        })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.toggleOrgFilterNoData`, () =>
+        Effect.promise(async () => {
+          await vscode.window.showInformationMessage(nls.localize('org_filter_no_data'));
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.filterTypes`, () =>
@@ -311,11 +344,11 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
                 .runPromise(
                   Effect.gen(function* () {
                     const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
-                    const viewMode = treeProvider.getViewMode();
-                    const types =
-                      viewMode === 'allTypes'
-                        ? yield* servicesApi.services.MetadataDescribeService.describe()
-                        : yield* servicesApi.services.MetadataDescribeService.describeTypesWithContent();
+                    const { showLocal, showOrg } = treeProvider.getViewFilter();
+                    const showAll = !showLocal && !showOrg;
+                    const types = showAll
+                      ? yield* servicesApi.services.MetadataDescribeService.describe()
+                      : yield* servicesApi.services.MetadataDescribeService.describeTypesWithContent();
                     return types.map(t => t.xmlName).toSorted();
                   })
                 )

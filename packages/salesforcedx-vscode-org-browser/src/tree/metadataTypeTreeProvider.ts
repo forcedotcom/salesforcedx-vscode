@@ -21,15 +21,8 @@ import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
 /** Cached org-side component counts, populated when a type is expanded (listMetadata results) */
 const orgComponentCounts = new Map<string, number>();
 
-export type TypeViewMode = 'withContent' | 'localOnly' | 'orgOnly' | 'allTypes';
-export const VIEW_MODES: readonly TypeViewMode[] = ['withContent', 'localOnly', 'orgOnly', 'allTypes'] as const;
-
-const VIEW_MODE_CYCLE: Record<TypeViewMode, TypeViewMode> = {
-  withContent: 'localOnly',
-  localOnly: 'orgOnly',
-  orgOnly: 'allTypes',
-  allTypes: 'withContent'
-};
+export type TypeViewMode = 'local' | 'localOnly' | 'orgOnly' | 'allTypes';
+export const VIEW_MODES: readonly TypeViewMode[] = ['local', 'localOnly', 'orgOnly', 'allTypes'] as const;
 
 export const FILTER_TAGS: ReadonlyMap<string, readonly SyncState[]> = new Map([
   ['@added', ['localAdded', 'remoteAdded']],
@@ -49,7 +42,9 @@ export const FILTER_TAGS: ReadonlyMap<string, readonly SyncState[]> = new Map([
 ]);
 
 type TypeFilterState = {
-  viewMode: TypeViewMode;
+  showLocal: boolean;
+  showOrg: boolean;
+  hasOrgData: boolean;
   typeFilter: ReadonlySet<string> | undefined;
   componentFilter: string | undefined;
   stateFilter: ReadonlySet<SyncState> | undefined;
@@ -61,7 +56,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserTreeItem | undefined | void> =
     this._onDidChangeTreeData.event;
 
-  private viewMode: TypeViewMode = 'withContent';
+  private showLocal: boolean = true;
+  private showOrg: boolean = true;
   private typeFilter: ReadonlySet<string> | undefined;
   private componentFilter: string | undefined;
   private stateFilter: ReadonlySet<SyncState> | undefined;
@@ -80,10 +76,14 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     this._onDidChangeTreeData.fire(node);
   }
 
-  public cycleViewMode(): TypeViewMode {
-    this.viewMode = VIEW_MODE_CYCLE[this.viewMode];
+  public setViewFilter(showLocal: boolean, showOrg: boolean): void {
+    this.showLocal = showLocal;
+    this.showOrg = showOrg;
     this._onDidChangeTreeData.fire();
-    return this.viewMode;
+  }
+
+  public getViewFilter(): { showLocal: boolean; showOrg: boolean } {
+    return { showLocal: this.showLocal, showOrg: this.showOrg };
   }
 
   public setTypeFilter(filter: ReadonlySet<string>, componentPattern?: string, states?: ReadonlySet<SyncState>): void {
@@ -114,11 +114,15 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   }
 
   public getViewMode(): TypeViewMode {
-    return this.viewMode;
+    if (this.showLocal && this.showOrg) return 'local';
+    if (this.showLocal) return 'localOnly';
+    if (this.showOrg) return 'orgOnly';
+    return 'allTypes';
   }
 
   public setViewMode(mode: TypeViewMode): void {
-    this.viewMode = mode;
+    this.showLocal = mode === 'local' || mode === 'localOnly';
+    this.showOrg = mode === 'local' || mode === 'orgOnly';
     this._onDidChangeTreeData.fire();
   }
 
@@ -139,7 +143,9 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     const prevOrgCount = element ? orgComponentCounts.get(element.xmlName) : undefined;
     const children = await getOrgBrowserRuntime().runPromise(
       getChildrenOfTreeItem(element, {
-        viewMode: this.viewMode,
+        showLocal: this.showLocal,
+        showOrg: this.showOrg,
+        hasOrgData: orgComponentCounts.size > 0,
         typeFilter: this.typeFilter,
         componentFilter: this.componentFilter,
         stateFilter: this.stateFilter,
@@ -148,19 +154,28 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     );
     const newOrgCount = element ? orgComponentCounts.get(element.xmlName) : undefined;
     if (element && newOrgCount !== undefined && newOrgCount !== prevOrgCount) {
-      this._onDidChangeTreeData.fire();
+      if (orgComponentCounts.size === 1) this._onOrgDataAvailable.fire();
+      // Refresh root after returning children so the type node's description updates with org count.
+      // setImmediate defers until after VSCode processes the children response, preventing collapse.
+      setImmediate(() => this._onDidChangeTreeData.fire());
     }
     return children;
+  }
+
+  private _onOrgDataAvailable: vscode.EventEmitter<void> = new vscode.EventEmitter();
+  public readonly onOrgDataAvailable: vscode.Event<void> = this._onOrgDataAvailable.event;
+
+  // eslint-disable-next-line class-methods-use-this
+  public hasOrgData(): boolean {
+    return orgComponentCounts.size > 0;
   }
 }
 
 const applyChildFilters = (nodes: OrgBrowserTreeItem[], filterState: TypeFilterState): OrgBrowserTreeItem[] => {
-  const afterViewMode =
-    filterState.viewMode === 'localOnly'
-      ? nodes.filter(n => n.localPath)
-      : filterState.viewMode === 'orgOnly'
-        ? nodes.filter(n => !n.localPath)
-        : nodes;
+  // local-only: keep only components with a local file
+  // org-only: all children came from listMetadata (org), so no child filtering needed — show all
+  // both on / both off: no child filtering
+  const afterViewMode = filterState.showLocal && !filterState.showOrg ? nodes.filter(n => n.localPath) : nodes;
   const afterComponent = filterState.componentFilter
     ? afterViewMode.filter(n => n.componentName?.toLowerCase().includes(filterState.componentFilter!.toLowerCase()))
     : afterViewMode;
@@ -209,11 +224,12 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
       return yield* Effect.succeed([]);
     }
     if (!element) {
-      const [describeTypes, allChanges, projectComponentSet] = yield* Effect.all(
+      const showAll =
+        (!filterState.showLocal && !filterState.showOrg) || (!filterState.showLocal && !filterState.hasOrgData);
+      const [allDescribeTypes, contentDescribeTypes, allChanges, projectComponentSet] = yield* Effect.all(
         [
-          filterState.viewMode === 'allTypes'
-            ? metadataDescribeService.describe()
-            : metadataDescribeService.describeTypesWithContent(),
+          metadataDescribeService.describe(),
+          showAll ? metadataDescribeService.describe() : metadataDescribeService.describeTypesWithContent(),
           trackingCache.getAllChanges(),
           api.services.ComponentSetService.getComponentSetFromProjectDirectories()
         ],
@@ -226,8 +242,25 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, filterSt
         return acc;
       }, new Map<string, number>());
 
+      // Bundle types (e.g. AuraDefinitionBundle) may be missing from describeTypesWithContent()
+      // because SDR enumerates child file types (AuraDefinition) not the bundle type itself.
+      // orgComponentCounts is populated on node expansion — use it to add confirmed-org types back.
+      const contentDescribeByName = new Map(contentDescribeTypes.map(t => [t.xmlName, t]));
+      const allDescribeByName = new Map(allDescribeTypes.map(t => [t.xmlName, t]));
+      // Bundle types (e.g. AuraDefinitionBundle) may be absent from describeTypesWithContent()
+      // because SDR enumerates child file types rather than the bundle type itself.
+      // Fill the gap using orgComponentCounts, which is populated on node expansion.
+      Array.from(orgComponentCounts.keys())
+        .filter(name => !contentDescribeByName.has(name))
+        .flatMap(name => {
+          const t = allDescribeByName.get(name);
+          return t ? [t] : [];
+        })
+        .forEach(t => contentDescribeByName.set(t.xmlName, t));
+      const describeTypes = Array.from(contentDescribeByName.values());
+
       const afterViewFilter =
-        filterState.viewMode === 'localOnly'
+        filterState.showLocal && !filterState.showOrg
           ? describeTypes.filter(t => localCountsByType.has(t.xmlName))
           : describeTypes;
       const afterTypeFilter = filterState.typeFilter

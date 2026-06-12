@@ -316,10 +316,6 @@
       {
         "view": "sfdxOrgBrowser",
         "contents": "Loading metadata from your org...\n\nThe Org Browser shows your org and local project together with live sync status. Conflicts, remote changes, and local changes are surfaced automatically.\n\nUse view modes to focus on what matters, filter by type or state, and retrieve, deploy, or preview — all without leaving the editor."
-      },
-      {
-        "view": "sfdxOrgBrowserExplorer",
-        "contents": "Loading metadata from your org...\n\nThe Org Browser shows your org and local project together with live sync status. Conflicts, remote changes, and local changes are surfaced automatically.\n\nUse view modes to focus on what matters, filter by type or state, and retrieve, deploy, or preview — all without leaving the editor."
       }
     ],
     "viewsContainers": {
@@ -337,14 +333,6 @@
           "id": "sfdxOrgBrowser",
           "name": "%orgBrowser.view.name%",
           "when": "sf:has_target_org"
-        }
-      ],
-      "explorer": [
-        {
-          "id": "sfdxOrgBrowserExplorer",
-          "name": "%orgBrowser.view.explorerName%",
-          "when": "sf:has_target_org",
-          "visibility": "collapsed"
         }
       ]
     },
@@ -405,28 +393,37 @@
         "icon": "$(add)"
       },
       {
-        "command": "sfdxOrgBrowser.viewModeLocalOnly",
-        "title": "%orgBrowser.command.viewModeLocalOnly%",
+        "command": "sfdxOrgBrowser.toggleLocalFilter",
+        "title": "%orgBrowser.command.toggleLocalFilter%",
         "category": "Org Browser",
-        "icon": "$(eye-closed)"
+        "icon": "$(folder-opened)"
       },
       {
-        "command": "sfdxOrgBrowser.viewModeWithContent",
-        "title": "%orgBrowser.command.viewModeWithContent%",
+        "command": "sfdxOrgBrowser.toggleLocalFilterOff",
+        "title": "%orgBrowser.command.toggleLocalFilterOff%",
         "category": "Org Browser",
-        "icon": "$(eye)"
+        "icon": "$(folder)"
       },
       {
-        "command": "sfdxOrgBrowser.viewModeOrgOnly",
-        "title": "%orgBrowser.command.viewModeOrgOnly%",
+        "command": "sfdxOrgBrowser.toggleOrgFilter",
+        "title": "%orgBrowser.command.toggleOrgFilter%",
+        "category": "Org Browser",
+        "icon": {
+          "light": "resources/light/cloud-on.svg",
+          "dark": "resources/dark/cloud-on.svg"
+        }
+      },
+      {
+        "command": "sfdxOrgBrowser.toggleOrgFilterOff",
+        "title": "%orgBrowser.command.toggleOrgFilterOff%",
         "category": "Org Browser",
         "icon": "$(cloud)"
       },
       {
-        "command": "sfdxOrgBrowser.viewModeAllTypes",
-        "title": "%orgBrowser.command.viewModeAllTypes%",
+        "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
+        "title": "%orgBrowser.command.toggleOrgFilterNoData%",
         "category": "Org Browser",
-        "icon": "$(list-flat)"
+        "icon": "$(cloud)"
       },
       {
         "command": "sfdxOrgBrowser.filterTypes",
@@ -472,44 +469,44 @@
           "group": "navigation@1"
         },
         {
-          "command": "sfdxOrgBrowser.viewModeWithContent",
-          "when": "view =~ /^sfdxOrgBrowser/ && !sf:orgBrowser.viewMode",
+          "command": "sfdxOrgBrowser.toggleLocalFilter",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showLocal",
           "group": "navigation@2"
         },
         {
-          "command": "sfdxOrgBrowser.viewModeWithContent",
-          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == withContent",
+          "command": "sfdxOrgBrowser.toggleLocalFilterOff",
+          "when": "view == sfdxOrgBrowser && !sf:orgBrowser.showLocal",
           "group": "navigation@2"
         },
         {
-          "command": "sfdxOrgBrowser.viewModeAllTypes",
-          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == allTypes",
-          "group": "navigation@2"
+          "command": "sfdxOrgBrowser.toggleOrgFilter",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg && sf:orgBrowser.hasOrgData",
+          "group": "navigation@3"
         },
         {
-          "command": "sfdxOrgBrowser.viewModeLocalOnly",
-          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == localOnly",
-          "group": "navigation@2"
+          "command": "sfdxOrgBrowser.toggleOrgFilterOff",
+          "when": "view == sfdxOrgBrowser && !sf:orgBrowser.showOrg && sf:orgBrowser.hasOrgData",
+          "group": "navigation@3"
         },
         {
-          "command": "sfdxOrgBrowser.viewModeOrgOnly",
-          "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.viewMode == orgOnly",
-          "group": "navigation@2"
-        },
-        {
-          "command": "sfdxOrgBrowser.retrieveAllFiltered",
-          "when": "view =~ /^sfdxOrgBrowser/",
-          "group": "navigation@4"
+          "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
+          "when": "view == sfdxOrgBrowser && !sf:orgBrowser.hasOrgData",
+          "group": "navigation@3"
         },
         {
           "command": "sfdxOrgBrowser.filterTypes",
           "when": "view =~ /^sfdxOrgBrowser/ && !sf:orgBrowser.filterActive",
-          "group": "navigation@3"
+          "group": "navigation@4"
         },
         {
           "command": "sfdxOrgBrowser.clearFilter",
           "when": "view =~ /^sfdxOrgBrowser/ && sf:orgBrowser.filterActive",
-          "group": "navigation@3"
+          "group": "navigation@4"
+        },
+        {
+          "command": "sfdxOrgBrowser.retrieveAllFiltered",
+          "when": "view =~ /^sfdxOrgBrowser/",
+          "group": "navigation@5"
         }
       ],
       "commandPalette": [
