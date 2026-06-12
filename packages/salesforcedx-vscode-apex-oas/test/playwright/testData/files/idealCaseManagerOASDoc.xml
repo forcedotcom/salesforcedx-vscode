@@ -53,6 +53,7 @@ paths:
     <active>true</active>
   </operations>
   <registrationProvider>CaseManager</registrationProvider>
+  <registrationProviderAsset>CaseManager</registrationProviderAsset>
   <registrationProviderType>ApexRest</registrationProviderType>
   <namedCredential>null</namedCredential>
 </ExternalServiceRegistration>
