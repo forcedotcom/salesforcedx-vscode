@@ -39,13 +39,10 @@ export const NodeSdkLayerFor = ({
   enableCustomEventsFromSpans,
   connectionString
 }: SdkLayerConfig) => {
-  // connectionString is already normalized by getSdkLayerConfigFromContext (otelConnectionString
-  // preferred over aiKey, bare UUIDs wrapped). This block is a safety net for SdkLayerConfig
-  // constructed directly (e.g. tests, ServicesSdkLayer) without going through that helper.
-  const resolvedConnectionString = connectionString ?? DEFAULT_AI_CONNECTION_STRING;
-  const effectiveConnectionString = resolvedConnectionString.includes('InstrumentationKey=')
-    ? resolvedConnectionString
-    : `InstrumentationKey=${resolvedConnectionString}`;
+  // connectionString is normalized (otelConnectionString preferred over aiKey, bare UUIDs wrapped)
+  // and defaulted by sdkLayerConfig.ts. This `?? DEFAULT` is a safety net for SdkLayerConfig
+  // constructed directly (e.g. tests) without going through those helpers.
+  const effectiveConnectionString = connectionString ?? DEFAULT_AI_CONNECTION_STRING;
 
   return NodeSdk.layer(() => ({
     resource: {

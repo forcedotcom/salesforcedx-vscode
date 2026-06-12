@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { DEFAULT_AI_CONNECTION_STRING } from '../../../src/observability/appInsights';
 import { getSdkLayerConfigFromContext } from '../../../src/observability/sdkLayerConfig';
 import type { ExtensionContext } from 'vscode';
 
@@ -47,8 +48,8 @@ describe('getSdkLayerConfigFromContext — connectionString resolution', () => {
     expect(config.connectionString).toBe(full);
   });
 
-  it('returns undefined when neither otelConnectionString nor aiKey are present', () => {
+  it('falls back to DEFAULT_AI_CONNECTION_STRING when neither otelConnectionString nor aiKey are present', () => {
     const config = getSdkLayerConfigFromContext(makeContext({ name: 'ext', version: '1.0.0' }));
-    expect(config.connectionString).toBeUndefined();
+    expect(config.connectionString).toBe(DEFAULT_AI_CONNECTION_STRING);
   });
 });
