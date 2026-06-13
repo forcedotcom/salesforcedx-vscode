@@ -86,9 +86,14 @@ public class ${className} {
       const panel = await openTestExplorerAndDiscover(page);
       const classItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(className, 'i') });
       await classItem.first().waitFor({ state: 'visible', timeout: 60_000 });
-      // Clicking the org-only test item opens its `apex-testing:` virtual doc (the only place the
-      // retrieve code lens renders).
-      await findTestExplorerItem(page, className).click();
+      // A single click only selects a row; it never opens the editor. Expand the class to reveal its
+      // leaf method, then double-click the method row — only a leaf with a range triggers VS Code's
+      // "go to test" navigation, which opens the method's `apex-testing:` virtual doc (the one place
+      // the retrieve code lens renders).
+      await classItem.first().locator('.monaco-tl-twistie').click({ force: true });
+      const methodItem = findTestExplorerItem(page, 'retrievedFromOrg');
+      await methodItem.waitFor({ state: 'visible', timeout: 60_000 });
+      await methodItem.dblclick();
       // Assert the virtual doc actually opened before clicking the code lens, so a broken
       // open-on-click wiring surfaces here instead of as an opaque codelens-not-found timeout.
       await expect(page.locator(`${EDITOR_WITH_URI}[data-uri^="apex-testing:"]`).first()).toBeVisible({
