@@ -17,8 +17,10 @@ import {
   expectOrgPickerStatusBar,
   getTargetDevHub,
   QUICK_INPUT_LIST_ROW,
+  selectOrgInPicker,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
+  waitForNotification,
   waitForOutputChannelText,
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
@@ -34,6 +36,8 @@ import { orgDesktopTest as test } from '../fixtures/desktopFixtures';
 const NO_DEFAULT_ORG = 'No Default Org Set';
 // `channel_name` from `salesforcedx-vscode-org/src/messages/i18n.ts`.
 const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
+// `%s successfully ran` (`salesforcedx-utils-vscode/src/messages/i18n.ts`), %s = command description.
+const SET_DEFAULT_ORG_RAN = /SFDX: Set a Default Org successfully ran/;
 
 // The 5 ACTION_ITEMS rendered in the picker (orgList.ts ACTION_ITEMS); labels carry an icon prefix.
 const PICKER_ACTION_ITEMS = [
@@ -44,7 +48,7 @@ const PICKER_ACTION_ITEMS = [
   packageNls.org_list_clean_text
 ] as const;
 
-test('org picker: set default org, create scratch org, switch default org', async ({ page }) => {
+test('org picker: set default org, create scratch org, switch default org', async ({ page }, testInfo) => {
   // Scratch org creation can take several minutes; allow generous headroom.
   test.setTimeout(720_000);
 
@@ -60,13 +64,14 @@ test('org picker: set default org, create scratch org, switch default org', asyn
   });
 
   // WDIO it #2: open the picker via the status bar, verify the 5 action items, select the dev hub.
-  // The `SFDX: Set a Default Org successfully ran` toast (showInformationMessage, configSet.ts via
-  // LibraryCommandletExecutor) is transient and auto-collapses, so completion is asserted via the
-  // deterministic signals WDIO also checks: the output-channel config table and the status bar.
+  // WDIO waits for the `SFDX: Set a Default Org successfully ran` toast, then also asserts the
+  // deterministic signals (output-channel config table + status bar). Port both: wait for the toast
+  // (with a generous timeout since it auto-collapses) and then the persistent signals below.
   await test.step('set dev hub as default org via picker', async () => {
     await clickOrgPickerStatusBar(page, NO_DEFAULT_ORG);
     await expectOrgPickerActionItems(page, PICKER_ACTION_ITEMS);
-    await selectQuickInputOptionByTyping(page, devHubAlias);
+    await selectOrgInPicker(page, devHubAlias);
+    await waitForNotification(page, SET_DEFAULT_ORG_RAN);
   });
 
   // WDIO it #2 (output assertion): sf config was actually written, not just the status bar updated.
@@ -86,8 +91,9 @@ test('org picker: set default org, create scratch org, switch default org', asyn
   });
 
   // WDIO it #3: create a default scratch org via the picker's 3 prompts (def file, alias, days).
-  // Alias is dynamic and captured for reuse, mirroring WDIO's `scratchOrgAliasName`.
-  const scratchAlias = `TempScratchOrg_${Date.now()}`;
+  // Alias is dynamic and captured for reuse, mirroring WDIO's `scratchOrgAliasName`. Include the
+  // worker index + a random suffix so parallel workers can never collide on the same timestamp.
+  const scratchAlias = `TempScratchOrg_${Date.now()}_${testInfo.workerIndex}_${Math.random().toString(36).slice(2)}`;
   await test.step('create a default scratch org', async () => {
     await clickOrgPickerStatusBar(page, devHubAlias);
     await selectQuickInputOptionByTyping(page, packageNls.org_create_default_scratch_org_text);
@@ -115,9 +121,10 @@ test('org picker: set default org, create scratch org, switch default org', asyn
     await page.keyboard.press('Enter');
   });
 
-  // `--set-default` makes the new org the default; the status bar showing the new alias is the
-  // deterministic completion signal for the (multi-minute) create command. Long timeout covers it.
-  await test.step('status bar shows new scratch org (auto-set as default)', async () => {
+  // `--set-default` makes the new org the default. WDIO waits for the create command's success
+  // notification (multi-minute command); port that, then assert the persistent status-bar signal.
+  await test.step('scratch org create completes and is auto-set as default', async () => {
+    await waitForNotification(page, CREATE_SCRATCH_ORG_RAN, { timeout: 600_000 });
     await expectOrgPickerStatusBar(page, scratchAlias, { timeout: 600_000 });
   });
 
@@ -127,13 +134,26 @@ test('org picker: set default org, create scratch org, switch default org', asyn
     await clickOrgPickerStatusBar(page, scratchAlias);
     // Staleness guard: confirm the freshly created scratch org appears without a reload.
     await expectOrgPickerListsOrg(page, scratchAlias);
-    await selectQuickInputOptionByTyping(page, devHubAlias);
+    await selectOrgInPicker(page, devHubAlias);
+    await waitForNotification(page, SET_DEFAULT_ORG_RAN);
     await expectOrgPickerStatusBar(page, devHubAlias);
   });
 
   await test.step('switch default org back to scratch org', async () => {
     await clickOrgPickerStatusBar(page, devHubAlias);
-    await selectQuickInputOptionByTyping(page, scratchAlias);
+    await selectOrgInPicker(page, scratchAlias);
+    await waitForNotification(page, SET_DEFAULT_ORG_RAN);
     await expectOrgPickerStatusBar(page, scratchAlias);
+  });
+
+  // Clean up the scratch org created above (WDIO did this via testSetup.tearDown()). Best-effort:
+  // the org auto-expires in 1 day and a nightly cron sweeps leftovers, but deleting here avoids
+  // leaking a real org on every run. Guarded so a delete failure doesn't fail a passing test.
+  await test.step('delete the created scratch org', async () => {
+    await execAsync(`sf org delete scratch --target-org ${scratchAlias} --no-prompt`, {
+      env: { ...process.env, NO_COLOR: '1' }
+    }).catch((error: unknown) => {
+      console.warn(`Failed to delete scratch org ${scratchAlias}; it will expire in 1 day. ${String(error)}`);
+    });
   });
 });
