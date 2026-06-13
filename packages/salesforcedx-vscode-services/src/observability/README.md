@@ -343,7 +343,7 @@ These settings must be enabled for App Insights and O11y to work:
 - `salesforcedx-vscode-core.telemetry.enabled` - Extension telemetry toggle (must be true for App Insights/O11y)
 - `salesforcedx-vscode-core.telemetry.allowDevMode` - Dev mode telemetry override (default: false)
 
-**Dev Mode Protection**: By default, telemetry is blocked when running extensions in Development mode to prevent polluting production App Insights data. Set `telemetry.allowDevMode: true` in your VS Code settings to enable telemetry during extension development and testing.
+**Dev Mode Note**: On Node, dev/test mode auto-diverts App Insights to localhost (see [Inspecting App Insights Envelopes Locally](#inspecting-app-insights-envelopes-locally)) — telemetry is force-enabled there since it provably cannot reach Azure. On Web, telemetry behavior follows standard VS Code telemetry settings.
 
 ## Local Debugging
 
@@ -362,6 +362,24 @@ When `enableCustomEventsFromSpans` is enabled, `ApplicationInsightsNodeExporter`
    - `Export failed: <error>` - Export failure
    - `Sending span "spanName" (event/error) with telemetryTag: ...` - Per-span send
 4. Verify the number of spans, span names, and connection strings match expectations
+
+### Inspecting App Insights Envelopes Locally
+
+**Automatic in Dev/Test Mode**: When running extensions in Development or Test mode (`ExtensionMode.Development`/`Test`), Node automatically diverts App Insights envelopes to `http://localhost:3003/v2.1/track` without requiring env var or setting. Telemetry is force-enabled (provably safe since it cannot reach Azure).
+
+**Manual or Custom Port**: Override the default with `SF_OTEL_INGESTION_ENDPOINT=http://localhost:NNNN`.
+
+**Divert Mechanism**: Both `FilteredAzureMonitorTraceExporter` (dependencies path) and `ApplicationInsightsNodeExporter` (customEvents path) swap their private HTTP transport to POST Breeze envelopes over plain HTTP to the local endpoint. This avoids the Azure SDK's `ConnectionStringParser.sanitizeUrl`, which force-upgrades `http://` → `https://`, making plain-HTTP localhost servers unreachable.
+
+**To inspect**:
+
+1. Start the span file server: `npm run spans:server -w salesforcedx-vscode-services` (listens on `http://localhost:3003`)
+2. Launch the extension in dev/test mode, or set `SF_OTEL_INGESTION_ENDPOINT=http://localhost:3003`
+3. Reload the VS Code window
+4. Run commands or trigger spans — envelopes are written to `~/.sf/vscode-appinsights/appinsights-{ISO-timestamp}.jsonl` (gzip-decompressed, newline-delimited JSON) or `appinsights-web-{ISO-timestamp}.jsonl` for web
+5. Inspect: `cat ~/.sf/vscode-appinsights/appinsights-*.jsonl | jq '.' | less`
+
+The span file server preserves the exact wire format. Node and web both POST to `/v2.1/track`; the server sorts by shape: Breeze envelopes (containing `"baseType"`) go to `appinsights-*.jsonl`, web events go to `appinsights-web-*.jsonl`. In dev/test, envelopes use the same schema as production (RemoteDependencyData if diverting via dependencies path, custom event Breeze if via customEvents path).
 
 ### O11y Debug Server
 

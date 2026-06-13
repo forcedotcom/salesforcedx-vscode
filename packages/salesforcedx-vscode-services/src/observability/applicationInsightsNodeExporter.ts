@@ -58,14 +58,17 @@ export class ApplicationInsightsNodeExporter implements SpanExporter {
   private loggerProvider: LoggerProvider;
   private otelLogger: ReturnType<LoggerProvider['getLogger']>;
 
-  constructor(connectionString: string) {
+  constructor(connectionString: string, localIngestionEndpoint?: string) {
     this.loggerProvider = new LoggerProvider({
       processors: [
         new SimpleLogRecordProcessor(
-          new AzureMonitorLogExporterWrapper({
-            connectionString,
-            storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
-          })
+          new AzureMonitorLogExporterWrapper(
+            {
+              connectionString,
+              storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
+            },
+            localIngestionEndpoint
+          )
         )
       ]
     });

@@ -81,7 +81,7 @@ Inspect App Insights telemetry each platform would send to Azure — captured lo
 | Platform | Trigger | Exporter | Endpoint | File prefix |
 |----------|---------|----------|----------|-------------|
 | Desktop (Node) | Dev/Test mode (auto); `SF_OTEL_INGESTION_ENDPOINT` overrides | Azure Monitor | `/v2.1/track` | `appinsights-` |
-| Web | `ESBUILD_WEB_LOCAL=1` (auto under `run:web`) | `@vscode/extension-telemetry` | `/appinsights-web` | `appinsights-web-` |
+| Web | `ESBUILD_WEB_LOCAL=1` (auto under `run:web`) | `@vscode/extension-telemetry` | `/v2.1/track` | `appinsights-web-` |
 
 Start server first: `npm run spans:server -w salesforcedx-vscode-services`
 
@@ -91,15 +91,17 @@ Extension via `--extensionDevelopmentPath` (F5, `vscode-test`, Playwright deskto
 
 Custom port: `SF_OTEL_INGESTION_ENDPOINT=http://localhost:NNNN`.
 
+**Divert Mechanism**: Connection string stays pristine. Both `FilteredAzureMonitorTraceExporter` (dependencies path) and `ApplicationInsightsNodeExporter` (customEvents path) swap their private HTTP transport to POST Breeze envelopes over plain HTTP to `{localIngestionEndpoint}/v2.1/track`. Why swap transport? The Azure SDK's `ConnectionStringParser.sanitizeUrl` force-upgrades `http://` → `https://`, blocking plain-HTTP localhost servers.
+
 Server gzip-decompresses, writes raw **Breeze envelopes** (exact wire format Azure receives):
 ```jsonl
-{"name":"Microsoft.ApplicationInsights.Event","time":"2026-05-22T15:33:01.398Z","iKey":"f5cbbeba-...","data":{"baseType":"EventData","baseData":{"name":"ConnectionService.getConnection","properties":{"orgId":"00D...","duration":"42"}}}}
+{"name":"Microsoft.ApplicationInsights.RemoteDependency","time":"2026-05-22T15:33:01.398Z","iKey":"f5cbbeba-...","data":{"baseType":"RemoteDependencyData","baseData":{"name":"ConnectionService.getConnection","type":"","target":"localhost:3003","data":"..."}}}
 ```
-Filename: `appinsights-{ISO-timestamp}.jsonl`. With `enableCustomEventsFromSpans` in package.json, events route to `customEvents`; else `dependencies`/`requests`.
+Filename: `appinsights-{ISO-timestamp}.jsonl`. Shape (RemoteDependencyData vs customEvent) matches production export path.
 
 ### Web
 
-`npm run run:web` builds via `vscode:bundle:local`, setting `ESBUILD_WEB_LOCAL=1` — web exporter POSTs to `http://localhost:3003/appinsights-web` instead of Azure. (`SF_OTEL_INGESTION_ENDPOINT` has no effect on web: connection string hard-coded.)
+`npm run run:web` builds via `vscode:bundle:local`, setting `ESBUILD_WEB_LOCAL=1` — web exporter POSTs to `http://localhost:3003/v2.1/track` (shared Node endpoint). (`SF_OTEL_INGESTION_ENDPOINT` has no effect on web: connection string hard-coded.)
 
 Payload is **not** Breeze — it's the `@vscode/extension-telemetry` shape:
 ```jsonl
