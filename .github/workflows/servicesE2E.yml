@@ -86,6 +86,14 @@ jobs:
           command: npm i -g @salesforce/cli
           retry_wait_seconds: 30
 
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
       - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'
         shell: bash
