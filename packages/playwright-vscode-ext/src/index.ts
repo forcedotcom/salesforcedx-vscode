@@ -70,6 +70,7 @@ export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSI
 export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
 export { createNonTrackingOrg, NON_TRACKING_ORG_ALIAS, HUB_ORG_ALIAS } from './orgs/nonTrackingScratchOrgSetup';
+export { getTargetDevHub } from './orgs/devHub';
 
 // Pages
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
@@ -107,6 +108,13 @@ export {
 } from './pages/notifications';
 
 export { clickCodeLens } from './pages/codeLens';
+
+export {
+  clickOrgPickerStatusBar,
+  expectOrgPickerStatusBar,
+  expectOrgPickerActionItems,
+  expectOrgPickerListsOrg
+} from './pages/statusBar';
 
 export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
 export type { ActiveFrameMatcher } from './pages/webview';
