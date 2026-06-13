@@ -48,13 +48,7 @@ jobs:
   # lwc-debug-tests: migrated to Playwright in lwcPlaywrightE2E.yml (e2e-desktop-debug-tests via lwcDebugTests.desktop.spec.ts)
 
   # 🔥 Aura Features
-  aura-lsp:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'auraLsp.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # aura-lsp: migrated to Playwright in auraE2E.yml (auraLspGoToDefinition, auraLspAutocompletion + indexing-complete sync) — W-22973351
 
   # 📄 Visualforce Features — migrated to Playwright in visualforceE2E.yml
 
