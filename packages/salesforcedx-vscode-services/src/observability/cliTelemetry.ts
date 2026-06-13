@@ -36,9 +36,10 @@ const fetchCliIdFromCli = () => {
   );
 };
 
-/** Get the CLI ID from sf telemetry. Cached permanently. Returns undefined on web  */
-export const getCliId = () =>
-  (process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(undefined) : fetchCliIdFromCli()).pipe(
-    Effect.cached,
-    Effect.flatten
-  );
+const cliIdEffect = process.env.ESBUILD_PLATFORM === 'web' ? Effect.void : fetchCliIdFromCli();
+
+// memo wrapper built once at module scope; the inner sf telemetry effect runs at most once per session and is shared across all getCliId() calls
+const cachedCliId = Effect.runSync(Effect.cached(cliIdEffect));
+
+/** Get the CLI ID from sf telemetry. Memoized at module scope so the CLI runs once per session. Returns undefined on web  */
+export const getCliId = () => cachedCliId;
