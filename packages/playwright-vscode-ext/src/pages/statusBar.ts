@@ -17,7 +17,7 @@ import { activeQuickInputWidget } from '../utils/quickInput';
  * item currently shows ("No Default Org Set" before an org is set, then the org alias).
  */
 const orgPickerStatusBarItem = (page: Page, currentText: string | RegExp): Locator =>
-  page.locator(STATUS_BAR_ITEM_LABEL).filter({ hasText: currentText });
+  page.locator(STATUS_BAR_ITEM_LABEL).filter({ hasText: currentText }).first();
 
 /**
  * Click the org-picker / default-org status bar item (opens the org quick pick). Pass the label the
@@ -59,10 +59,13 @@ export const expectOrgPickerActionItems = async (
 ): Promise<void> => {
   await waitForQuickInputFirstOption(page);
   const widget = activeQuickInputWidget(page);
+  // `hasText` is a substring match, and some action labels are substrings of others
+  // (e.g. "SFDX: Authorize an Org" ⊂ "SFDX: Authorize an Org using Session ID"), so a label can
+  // match multiple rows. Assert the first matching row is visible to avoid a strict-mode violation.
   await Promise.all(
     actionLabels.map(label =>
       expect(
-        widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: label }),
+        widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: label }).first(),
         `Org picker should list action item "${label}"`
       ).toBeVisible({ timeout: opts?.timeout ?? 10_000 })
     )
