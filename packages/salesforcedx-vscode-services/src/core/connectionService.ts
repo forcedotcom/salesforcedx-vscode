@@ -353,11 +353,14 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
 });
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
-const getDevHubId = (devHubUsername?: string) =>
+const buildDevHubId = (devHubUsername?: string) =>
   (devHubUsername
     ? createAuthInfoFromUsername(devHubUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
     : Effect.succeed(undefined)
-  ).pipe(Effect.cached, Effect.withSpan('getDevHubId'), Effect.flatten);
+  ).pipe(Effect.withSpan('getDevHubId', { attributes: { devHubUsername } }));
+
+// memoized per distinct devHubUsername at module scope so AuthInfo.create (and the getDevHubId span) runs once per devhub per session
+const getDevHubId = Effect.runSync(Effect.cachedFunction(buildDevHubId));
 
 const createAuthInfoFromUsername = (username: string) =>
   Effect.tryPromise({
