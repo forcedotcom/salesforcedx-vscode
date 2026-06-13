@@ -109,12 +109,10 @@ const sendSpan = (span: ReadableSpan, otelLogger: ReturnType<LoggerProvider['get
   Effect.gen(function* () {
     const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
 
-    const orgRefResult = yield* Effect.gen(function* () {
+    const { userId, webUserId } = yield* Effect.gen(function* () {
       const orgRef = yield* getDefaultOrgRef();
       return yield* SubscriptionRef.get(orgRef);
     }).pipe(Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined })));
-
-    const { userId, webUserId } = orgRefResult;
 
     const isError = span.status?.code === SpanStatusCode.ERROR;
 
@@ -126,7 +124,12 @@ const sendSpan = (span: ReadableSpan, otelLogger: ReturnType<LoggerProvider['get
       // https://github.com/open-telemetry/opentelemetry-js/blob/main/api/src/logs/LogRecord.ts
       severityNumber: isError ? 17 : 9,
       severityText: isError ? 'ERROR' : 'INFO',
-      body: span.name,
+      // The customEvent name comes from the microsoft.custom_event.name attribute (below), so body
+      // is free to carry numeric measurements: the Azure log→customEvent mapping reads
+      // body.measurements into baseData.measurements (logUtils.getLegacyApplicationInsightsMeasurements).
+      // duration is ALSO kept in attributes → properties (string) so existing properties consumers
+      // keep working; measurements gives the queryable numeric copy.
+      body: { measurements: { duration: spanDuration(span) } },
       attributes: {
         // Magic attribute: routes this LogRecord to the customEvents table
         'microsoft.custom_event.name': span.name,
