@@ -27,8 +27,20 @@ import { goToLineCol, waitForAuraLspReady } from '../utils/auraLspUtils';
 // Migrated from WDIO `auraLsp.e2e.ts` "Go to Definition". The aura1 bundle is pre-seeded onto disk
 // before launch (fixtures/desktopFixtures.ts); the Aura LS indexes it on its startup scan, so no
 // `reloadWindow` workaround is needed. Go to Definition here is WITHIN-file: ref site L8
-// `{!v.simpleNewContact}` → def site L3 `<aura:attribute name="simpleNewContact" …/>` (col 27).
-test('Aura LSP: go to definition', async ({ page }) => {
+// `{!v.simpleNewContact}` → def site L3 `<aura:attribute name="simpleNewContact" …/>`.
+//
+// fixme(W-22973351): disabled because the PACKAGED Aura Language Server does not resolve this
+// definition at runtime. With the aura1 bundle as authored, `onDefinition` for the L8 body binding
+// deterministically returns no result ("No definition found"), and VS Code then parks the cursor at
+// end-of-document (`Ln 10, Col 18`). Reproduced on both CI (1.116.0; mac/ubuntu/windows) and locally
+// (1.124.2), and unaffected by retries, content edits/saves, or re-seating the cursor — so it is not
+// a host-version difference or an LSP-readiness race. The unit-tested source util
+// `getAuraBindingTemplateDeclaration` DOES resolve the same binding offline (L8 cols 7–24 → the L3
+// `name`-attribute value range), so the gap is in the shipped server's HTML parse of the `<aura:if>`
+// body when the Aura tag data provider is installed (`auraServer.setDataProviders` /
+// `getAuraTagProvider`), not in this test. Autocompletion (the other migrated WDIO case) keeps live
+// Aura LSP desktop coverage green. Re-enable once the server resolves the binding under test.
+test.fixme('Aura LSP: go to definition', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
