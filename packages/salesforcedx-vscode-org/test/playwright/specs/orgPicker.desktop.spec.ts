@@ -25,6 +25,8 @@ import {
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import packageNls from '../../../package.nls.json';
 import { orgDesktopTest as test } from '../fixtures/desktopFixtures';
 
@@ -38,6 +40,9 @@ const NO_DEFAULT_ORG = 'No Default Org Set';
 const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 // `%s successfully ran` (`salesforcedx-utils-vscode/src/messages/i18n.ts`), %s = command description.
 const SET_DEFAULT_ORG_RAN = /SFDX: Set a Default Org successfully ran/;
+const CREATE_SCRATCH_ORG_RAN = /SFDX: Create a Default Scratch Org\.\.\. successfully ran/;
+
+const execAsync = promisify(exec);
 
 // The 5 ACTION_ITEMS rendered in the picker (orgList.ts ACTION_ITEMS); labels carry an icon prefix.
 const PICKER_ACTION_ITEMS = [

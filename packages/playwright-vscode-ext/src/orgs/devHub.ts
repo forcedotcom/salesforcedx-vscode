@@ -7,7 +7,9 @@
 
 import { env, execAsync } from './shared';
 
-type ConfigGetResult = { result: readonly { key: string; value?: string }[] };
+// `sf config get <single-key> --json` always returns exactly one element (the queried key), so model
+// `result` as a 1-tuple and look the value up by key rather than relying on positional indexing.
+type ConfigGetResult = { result: readonly [{ key: string; value?: string }] };
 
 /**
  * Read the globally-configured target dev hub alias/username via `sf config get target-dev-hub --json`.
@@ -16,7 +18,7 @@ type ConfigGetResult = { result: readonly { key: string; value?: string }[] };
  */
 export const getTargetDevHub = async (): Promise<string> => {
   const { stdout } = await execAsync('sf config get target-dev-hub --json', { env });
-  const value = (JSON.parse(stdout) as ConfigGetResult).result[0]?.value;
+  const value = (JSON.parse(stdout) as ConfigGetResult).result.find(r => r.key === 'target-dev-hub')?.value;
   if (!value) {
     throw new Error('No target-dev-hub configured (sf config get target-dev-hub returned no value).');
   }

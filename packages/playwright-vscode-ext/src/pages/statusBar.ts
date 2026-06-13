@@ -15,6 +15,8 @@ import { activeQuickInputWidget } from '../utils/quickInput';
  * has no stable DOM id, so — mirroring the WDIO `getStatusBarItemWhichIncludes` aria-label match — we
  * find it by the visible label (`STATUS_BAR_ITEM_LABEL` + `hasText`). `currentText` is the label the
  * item currently shows ("No Default Org Set" before an org is set, then the org alias).
+ * `.first()`: only the org-picker item shows a user alias; other Salesforce status-bar items render
+ * fixed icons/text that cannot contain the alias, so the first label match is the org-picker item.
  */
 const orgPickerStatusBarItem = (page: Page, currentText: string | RegExp): Locator =>
   page.locator(STATUS_BAR_ITEM_LABEL).filter({ hasText: currentText }).first();
@@ -72,6 +74,30 @@ export const expectOrgPickerActionItems = async (
   );
 };
 
+/**
+ * Select an org row (by alias) in the open org picker, typing to filter first.
+ *
+ * `selectQuickInputOptionByTyping` matches any row containing the filter text, but a short alias
+ * (e.g. CI's dev-hub alias "hub") is also a substring of an action item ("SFDX: Authorize a Dev
+ * Hub"). The action items are `${ICON} SFDX: ...`, while org rows never contain "SFDX:", so this
+ * helper excludes action rows to land on the org row deterministically rather than relying on
+ * VS Code's fuzzy-scoring tie-break.
+ */
+export const selectOrgInPicker = async (page: Page, alias: string, opts?: { timeout?: number }): Promise<void> => {
+  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: opts?.timeout ?? 10_000 });
+  await page.keyboard.type(alias);
+  const orgRow = activeQuickInputWidget(page)
+    .locator(QUICK_INPUT_LIST_ROW)
+    .filter({ hasText: alias })
+    .filter({ hasNotText: 'SFDX:' })
+    .first();
+  await orgRow.waitFor({ state: 'visible', timeout: opts?.timeout ?? 10_000 });
+  await orgRow.evaluate(el => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
+};
+
 /** Assert the open org picker lists an org row whose text contains `alias` (pre-switch staleness guard). */
 export const expectOrgPickerListsOrg = async (
   page: Page,
@@ -81,7 +107,7 @@ export const expectOrgPickerListsOrg = async (
   await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: opts?.timeout ?? 10_000 });
   const widget = activeQuickInputWidget(page);
   await expect(
-    widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: alias }),
+    widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: alias }).first(),
     `Org picker should list org "${alias}"`
   ).toBeVisible({ timeout: opts?.timeout ?? 10_000 });
 };

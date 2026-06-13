@@ -113,7 +113,8 @@ export {
   clickOrgPickerStatusBar,
   expectOrgPickerStatusBar,
   expectOrgPickerActionItems,
-  expectOrgPickerListsOrg
+  expectOrgPickerListsOrg,
+  selectOrgInPicker
 } from './pages/statusBar';
 
 export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
