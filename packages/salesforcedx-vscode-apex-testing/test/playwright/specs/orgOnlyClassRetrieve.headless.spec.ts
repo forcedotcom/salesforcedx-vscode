@@ -14,6 +14,7 @@ import {
   createAndDeployApexTestClass,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
   isDesktop,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -78,6 +79,10 @@ public class ${className} {
     });
 
     await test.step('discover and open the org-only class virtual doc', async () => {
+      // `createApexClass` (setup) left the on-disk `.cls` open in a preview editor; deleting the
+      // file does not close that tab. A leftover active editor keeps the test-item click from
+      // navigating to the `apex-testing:` virtual doc, so close all editors first.
+      await executeCommandWithCommandPalette(page, 'View: Close All Editors');
       const panel = await openTestExplorerAndDiscover(page);
       const classItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(className, 'i') });
       await classItem.first().waitFor({ state: 'visible', timeout: 60_000 });
