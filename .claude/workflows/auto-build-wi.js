@@ -3,6 +3,7 @@ export const meta = {
   description: 'Drain GUS work items tagged [ai-auto] end-to-end: claim → plan → build → review → draft PR. Stateless across ticks; pair with /loop.',
   whenToUse: 'Run on a schedule via /loop (e.g. /loop 10m /auto-build-wi). Each tick monitors in-flight WIs and may claim a new one.',
   phases: [
+    { title: 'Acquire lock' },
     { title: 'Resolve identity' },
     { title: 'Ensure daemons' },
     { title: 'Reap stranded worktrees' },
@@ -10,6 +11,7 @@ export const meta = {
     { title: 'Triage failures' },
     { title: 'Fix CI failures' },
     { title: 'Close merged WIs' },
+    { title: 'Close plan-only PRs' },
     { title: 'Keep in-flight current' },
     { title: 'Open for review' },
     { title: 'Peer approve' },
@@ -48,6 +50,17 @@ const REVIEW_SKILL_DENYLIST = [
 const REVIEW_CHANNEL_ID = 'C054SJJAB24'
 const PR_URL_RE = /https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+/g
 
+// Single-run guard: overlapping /loop ticks must NOT run concurrently. The Claude Code
+// scheduler's own .claude/scheduled_tasks.lock only enforces one scheduler per project — it
+// does NOT gate this tick's workflow against the previous tick's still-running workflow
+// (workflows run detached in the background; the firing turn ends in seconds). So this
+// workflow holds its OWN lock for the full run and drops it in a finally. Separate filename —
+// never touch the scheduler's lock.
+const LOCK_PATH = '.claude/auto-build-wi.lock'
+// Worst-case run (monitor → plan → build → review across several opus agents) fits well under
+// this. A run that crashed without releasing is stolen once its lock ages past the window.
+const LOCK_STALE_MINUTES = 90
+
 // =====================================================================
 // SCHEMAS
 // =====================================================================
@@ -78,6 +91,7 @@ const PR_STATE_SCHEMA = {
     failedJobs: { type: 'array', items: { type: 'string' } },
     failedLogsExcerpt: { type: ['string', 'null'] },
     maxRunAttempt: { type: ['number', 'null'] },
+    files: { type: 'array', items: { type: 'string' } },
   },
 }
 
@@ -344,6 +358,18 @@ const FILES_SCHEMA = {
   properties: { files: { type: 'array', items: { type: 'string' } } },
 }
 
+const LOCK_ACQUIRE_SCHEMA = {
+  type: 'object',
+  required: ['acquired'],
+  properties: {
+    acquired: { type: 'boolean' },
+    // Opaque per-run token written into the lock. Release deletes the lock ONLY if the
+    // on-disk token still matches — so a stolen-then-reacquired lock isn't dropped by us.
+    token: { type: ['string', 'null'] },
+    detail: { type: ['string', 'null'] },
+  },
+}
+
 // =====================================================================
 // HELPERS
 // =====================================================================
@@ -391,6 +417,16 @@ const hasPrUrl = details =>
 // the PR exists but hasn't merged, so a dependency in those states is NOT met.
 const isBlockerSatisfied = status =>
   status === 'Completed' || status.startsWith('Closed')
+
+// A PR whose ONLY changed file is its own plan (or otherwise empty) has no
+// implementation — the Build phase no-op'd but reported 'done'. Such a PR still
+// goes 'green' (only SAST/CLA run on a docs-only diff) so the finalize gate must
+// refuse it rather than open it for review. Files unknown (null/undefined) is NOT
+// treated as plan-only — only an explicit, non-empty, all-plan file list counts.
+const isPlanOnlyDiff = files =>
+  Array.isArray(files) &&
+  files.length > 0 &&
+  files.every(f => /^\.claude\/plans\//.test(f))
 
 const stripHtml = s => String(s || '').replace(/<[^>]+>/g, ' ')
 
@@ -471,6 +507,7 @@ const classifyMonitor = monitorOutcomes => ({
     r => r && (r.decision === 'no-pr-restart' || r.action === 'no-pr-restart')
   ),
   toCloseWi: monitorOutcomes.filter(r => r && r.decision === 'close-wi'),
+  toPlanOnly: monitorOutcomes.filter(r => r && r.decision === 'plan-only'),
   toRefresh: monitorOutcomes.filter(
     r =>
       r &&
@@ -485,15 +522,60 @@ const classifyMonitor = monitorOutcomes => ({
 // PROMPTS
 // =====================================================================
 
+const acquireLockPrompt = `Acquire the auto-build-wi single-run lock so two overlapping /loop ticks don't build concurrently.
+
+Run from the project root. Lock file: ${LOCK_PATH}. Staleness window: ${LOCK_STALE_MINUTES} minutes.
+
+Do EXACTLY this in one bash invocation (atomic create via noclobber; steal only if stale):
+
+  LOCK=${LOCK_PATH}
+  TOKEN=\$(uuidgen)
+  NOW=\$(date +%s)
+  STALE=\$(( ${LOCK_STALE_MINUTES} * 60 ))
+  mkdir -p .claude
+  if ( set -o noclobber; printf '{"token":"%s","acquiredAt":%s}\\n' "\$TOKEN" "\$NOW" > "\$LOCK" ) 2>/dev/null; then
+    echo "ACQUIRED \$TOKEN"
+  else
+    AGE=\$(( NOW - \$(sed -n 's/.*"acquiredAt":\\([0-9]*\\).*/\\1/p' "\$LOCK" 2>/dev/null || echo 0) ))
+    if [ "\$AGE" -ge "\$STALE" ]; then
+      rm -f "\$LOCK"
+      if ( set -o noclobber; printf '{"token":"%s","acquiredAt":%s}\\n' "\$TOKEN" "\$NOW" > "\$LOCK" ) 2>/dev/null; then
+        echo "STOLEN \$TOKEN (prior lock aged \${AGE}s)"
+      else
+        echo "HELD"
+      fi
+    else
+      echo "HELD (\$AGE s old)"
+    fi
+  fi
+
+Interpret the output:
+- "ACQUIRED <token>" → {acquired: true, token: "<token>", detail: "acquired"}
+- "STOLEN <token> ..." → {acquired: true, token: "<token>", detail: "<the message>"}
+- "HELD ..." → {acquired: false, token: null, detail: "<the message>"}
+
+Do NOT touch .claude/scheduled_tasks.lock — that is Claude Code's scheduler lock, not this one. Structured result only.`
+
+const releaseLockPrompt = token =>
+  `Release the auto-build-wi lock — but ONLY if it is still ours.
+
+Run from the project root. Our token: ${token}. Lock file: ${LOCK_PATH}.
+
+  LOCK=${LOCK_PATH}
+  CUR=\$(sed -n 's/.*"token":"\\([^"]*\\)".*/\\1/p' "\$LOCK" 2>/dev/null)
+  if [ "\$CUR" = "${token}" ]; then rm -f "\$LOCK"; echo "RELEASED"; else echo "NOT-OURS (\$CUR)"; fi
+
+Return {ok: true, detail: "<RELEASED or NOT-OURS ...>"}. Never error. Do NOT touch .claude/scheduled_tasks.lock.`
+
 const identityPrompt = `Resolve runner identity per .claude/skills/gus-cli/SKILL.md → ## Runner identity.
 
 Schema: {userId, username, ownerPrefix, slackId, githubLogin, projectRoot}.
 
 1. Capture currentProjectRoot = 'pwd' (the workflow runs from the project root). Strip trailing slashes.
 2. 'sf alias list --json' → /^gus$/i. Missing → {error: "no gus alias — run 'sf org login web -a gus'"}. Value = currentUsername.
-3. Read $HOME/.claude/runner-identity.json. Cache hit requires: all 6 fields present, cached username == currentUsername, AND cached projectRoot exists as a directory ('test -d "<cached.projectRoot>"'). On hit, return cached. Stop.
+3. Read \$HOME/.claude/runner-identity.json. Cache hit requires: all 6 fields present, cached username == currentUsername, AND cached projectRoot exists as a directory ('test -d "<cached.projectRoot>"'). On hit, return cached. Stop.
 4. Miss → resolve per skill: query userId, match team table for githubLogin/slackId/ownerPrefix. Sanity-check team row Id == userId; mismatch → {error: "team table Id != User query Id"}. Not in table → {error: "runner '<currentUsername>' not in gus-cli Team members"}. Set projectRoot = currentProjectRoot.
-5. mkdir -p $HOME/.claude; write JSON (all 6 fields). Write failure non-fatal — still return object.
+5. mkdir -p \$HOME/.claude; write JSON (all 6 fields). Write failure non-fatal — still return object.
 
 Structured result only.`
 
@@ -552,6 +634,7 @@ Run:
   - 'green' if every row resolves to SUCCESS / NEUTRAL / SKIPPED
   - 'failed' otherwise (any FAILURE / CANCELLED / TIMED_OUT / ERROR, with NO running rows remaining)
 - If state is 'failed', collect failed job names. Run 'gh run view --log-failed <runId>' for the most recent failed/cancelled run linked to the PR head SHA, capture last ~100 lines as failedLogsExcerpt. Also gather the maximum 'run_attempt' across the workflow runs for the PR head SHA (gh api repos/forcedotcom/salesforcedx-vscode/actions/runs?head_sha=<sha> → max .run_attempt). Return that as maxRunAttempt.
+- ALWAYS run 'gh pr diff ${wi.prUrl} --name-only' and return the changed paths (one per line) as 'files'. Empty list if the command yields nothing.
 
 Return ONLY the structured result.`
 
@@ -566,6 +649,23 @@ Steps (idempotent):
 3. Delete local branch if present: from ${identity.projectRoot}, 'git branch -D ${branch}' (ignore failure if branch doesn't exist).
 
 Return {ok: true, detail} summarizing changes.`
+}
+
+const planOnlyPrPrompt = (r, identity) => {
+  const { wt, branch } = pathsFor(identity, r.wi)
+  return `WI ${r.wi.name}'s PR (${r.wi.prUrl}) contains NO implementation — only the plan file changed. The build no-op'd. Tear it down and bounce the WI for human takeover. Worktree stays so a human can resume.
+
+Changed files (confirm plan-only before acting): ${(r.prState.files || []).join(', ') || '(none reported)'}
+
+Steps (idempotent — skip any step already done):
+1. SAFETY CHECK: run 'gh pr diff ${r.wi.prUrl} --name-only'. If ANY changed path is NOT under '.claude/plans/', ABORT — return {ok: false, detail: "diff has implementation files, not plan-only — leaving PR alone"}. Do nothing else.
+2. Close the PR: 'gh pr close ${r.wi.prUrl} --comment "Auto-closing: build produced no implementation (plan-only diff). Bouncing WI to Waiting for human takeover."'
+3. Delete the remote branch: 'git push origin --delete ${branch}' (ignore failure if already gone).
+4. Bounce the WI to Waiting: sf data update record -s ADM_Work__c -i ${r.wi.wiId} -o gus -v "Status__c='Waiting'"
+5. DM ${identity.slackId} via mcp__slack__slack_send_message:
+   "⚠️ ${r.wi.name} build produced no code (plan-only PR auto-closed). Bounced to Waiting — needs human takeover.\\nWorktree: ${wt}\\nBranch: ${branch}"
+
+Leave the local worktree (${wt}) in place for human resume. Return {ok: true, detail: "<summary>"} or {ok: false, detail} on abort.`
 }
 
 const triageCiPrompt = (r, identity) => {
@@ -643,6 +743,10 @@ Steps (idempotent; skip work if already current):
 5. Conflicts → apply .claude/skills/merge-conflicts/SKILL.md best-effort. Unresolvable → 'git merge --abort' and DM ${identity.slackId} via mcp__slack__slack_send_message: "⚠️ ${r.wi.name} merge conflict with develop — manual intervention needed\\nWorktree: <path>\\nPR: ${r.wi.prUrl}". Return {ok: false, detail: "merge-conflict-unresolved"}.
 6. If package-lock.json changed, run 'npm install'.
 7. git push
+8. The push moved the head SHA forward, so any prior '/ai-auto approve' comment is now stale (it predates the new head). Delete the runner's OWN stale approve comments so reviewers don't have to mentally diff timestamps — it should look like the comment was never made:
+   - gh api repos/forcedotcom/salesforcedx-vscode/issues/<prNumber>/comments --paginate
+   - For each comment where user.login == ${identity.githubLogin} AND body matches /^\\/ai-auto approve\\b/m: 'gh api -X DELETE repos/forcedotcom/salesforcedx-vscode/issues/comments/<commentId>' (ignore individual failures).
+   Only do this when a commit was actually pushed in this run (skip entirely on the "already current" early return).
 
 Return {ok: true, detail: "<n> commits merged"} or {ok: false, detail}.`
 }
@@ -1068,6 +1172,25 @@ Return {prUrl, prNumber}.`
 // PHASE FUNCTIONS
 // =====================================================================
 
+const acquireLock = async () => {
+  phase('Acquire lock')
+  return await agent(acquireLockPrompt, {
+    schema: LOCK_ACQUIRE_SCHEMA,
+    label: 'acquire-lock',
+    phase: 'Acquire lock',
+    model: 'haiku',
+  })
+}
+
+const releaseLock = async token => {
+  await agent(releaseLockPrompt(token), {
+    schema: OK_SCHEMA,
+    label: 'release-lock',
+    phase: 'Acquire lock',
+    model: 'haiku',
+  })
+}
+
 const resolveIdentity = async () => {
   phase('Resolve identity')
   return await agent(identityPrompt, {
@@ -1133,6 +1256,13 @@ const monitorInFlight = async identity => {
       if (prState.state === 'merged' || prState.state === 'closed') {
         return { ...result, decision: 'close-wi' }
       }
+      // A green PR whose ONLY change is its own plan file has no implementation — the
+      // Build phase no-op'd but reported 'done', and a docs-only diff trivially passes CI.
+      // Refuse to open it for review; bounce the WI for human takeover instead. (Catches
+      // it whether the build no-op'd this tick or a prior tick left the empty PR behind.)
+      if (prState.state === 'green' && isPlanOnlyDiff(prState.files)) {
+        return { ...result, decision: 'plan-only' }
+      }
       // Only finalize a green PR whose WI is still 'In Progress'. WIs already advanced to
       // 'Ready for Review'/'Fixed' in a prior tick are done — re-finalizing them re-posts the
       // Slack "PR ready for review" message every tick (openReviewPrompt step 4 is not idempotent).
@@ -1162,6 +1292,20 @@ const closeMergedWis = async (toCloseWi, identity) => {
         label: `close-${r.wi.name}`,
         phase: 'Close merged WIs',
         model: 'haiku',
+      })
+    )
+  )
+}
+
+const handlePlanOnlyPrs = async (toPlanOnly, identity) => {
+  phase('Close plan-only PRs')
+  await parallel(
+    toPlanOnly.map(r => () =>
+      agent(planOnlyPrPrompt(r, identity), {
+        schema: OK_SCHEMA,
+        label: `plan-only-${r.wi.name}`,
+        phase: 'Close plan-only PRs',
+        model: 'sonnet',
       })
     )
   )
@@ -1659,6 +1803,17 @@ const draftPr = async (chosen, identity, fixerResult) => {
 // ORCHESTRATION
 // =====================================================================
 
+// Single-run guard FIRST: if a prior tick's workflow is still running, skip this tick
+// entirely rather than stacking a second concurrent build.
+const lock = await acquireLock()
+if (!lock.acquired) {
+  log(`prior run in progress (${lock.detail}) — skipping this tick`)
+  return { exited: 'locked', detail: lock.detail }
+}
+log(`acquired single-run lock (${lock.detail})`)
+
+try {
+
 const identity = await resolveIdentity()
 if (identity.error || !identity.userId) {
   log(`identity resolution failed: ${identity.error || 'unknown'} — exiting`)
@@ -1670,9 +1825,10 @@ await ensureDaemons()
 await reapStrandedWorktrees(identity)
 
 const { inFlightWis, monitorOutcomes } = await monitorInFlight(identity)
-const { toFinalize, toTriage, toRestart, toCloseWi, toRefresh } = classifyMonitor(monitorOutcomes)
+const { toFinalize, toTriage, toRestart, toCloseWi, toPlanOnly, toRefresh } = classifyMonitor(monitorOutcomes)
 
 if (toCloseWi.length) await closeMergedWis(toCloseWi, identity)
+if (toPlanOnly.length) await handlePlanOnlyPrs(toPlanOnly, identity)
 if (toTriage.length) await triageAndFixCi(toTriage, identity)
 if (toRefresh.length) await keepInFlightCurrent(toRefresh, identity)
 if (toFinalize.length) await openForReview(toFinalize, identity)
@@ -1735,4 +1891,11 @@ return {
   wi: chosen.name,
   prUrl: prResult.prUrl,
   finalized: toFinalize.length,
+}
+
+} finally {
+  // Runs on every exit path — normal return, early return, or throw — so a crashed
+  // run still releases (and if it can't, the staleness window lets the next tick steal).
+  await releaseLock(lock.token)
+  log('released single-run lock')
 }

@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/playwright-vscode-ext",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "versionedIndependently": true,
   "description": "Shared Playwright utilities, fixtures, and page objects for end-to-end testing of Salesforce DX VS Code extensions.",
   "author": "Salesforce",
@@ -33,7 +33,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.60.0",
     "@vscode/test-electron": "2.5.2",
     "@vscode/test-web": "^0.0.78"
   },

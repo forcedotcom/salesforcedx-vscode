@@ -111,6 +111,24 @@ const processOrder = Effect.fn("OrderService.process")(function* (orderId: Order
 - Internal implementation state
 - Sensitive data (PII, secrets)
 
+### Current vs Root Span
+
+`Effect.annotateCurrentSpan` writes to the current fiber's span. In this codebase, only top-level (and command) spans are exported to App Insights / O11y — annotations on inner spans are visible only in local debug exporters. When an attribute needs to reach production telemetry from deep in the call tree, use `annotateRootSpan` from `@salesforce/effect-ext-utils`:
+
+```typescript
+import { annotateRootSpan } from "@salesforce/effect-ext-utils"
+
+const processOrder = Effect.fn("OrderService.process")(function* (orderId: OrderId) {
+    // Local debug only — stays on the current span
+    yield* Effect.annotateCurrentSpan("step", "validating")
+
+    // Reaches App Insights / O11y — promoted to the trace root
+    yield* annotateRootSpan({ orderId, userId: order.userId })
+})
+```
+
+`annotateRootSpan` mirrors `Effect.annotateCurrentSpan`'s API (both `(key, value)` and record overloads) and no-ops with a debug log when there is no current span.
+
 ## Metrics
 
 ### Counter

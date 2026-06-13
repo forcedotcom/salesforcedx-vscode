@@ -31,7 +31,6 @@ export {
   writeFile
 } from './helpers/fs';
 export { fileExtensionsMatch, projectPaths } from './helpers/paths';
-export { extractJson, getJsonCandidate, identifyJsonTypeInString } from './helpers/utils';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
 export type { SharedAuthState } from './helpers/authUtils';

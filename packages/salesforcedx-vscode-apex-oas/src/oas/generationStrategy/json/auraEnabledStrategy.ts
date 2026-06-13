@@ -5,123 +5,53 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ConfigUtil, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import type { GenerationStrategy } from '../generationStrategy';
+import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import { OasGenerationFailed } from '../../../errors';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
-import { getRuntime } from '../../../services/runtime';
-import {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  PromptGenerationStrategyBid
-} from '../../schemas';
-import { buildClassPrompt } from '../buildPromptUtils';
-import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '../constants';
-import { GenerationStrategy } from '../generationStrategy';
-import { openAPISchemaV3Guided } from '../openapi3.schema';
+import { IMPOSED_FACTOR, SUM_TOKEN_MAX_LIMIT } from '../constants';
 
-const MIN_ORG_VERSION = 65.0;
-
-export class AuraEnabledStrategy extends GenerationStrategy {
-  private isDefaultOrg: boolean;
-  private isOrgVersionCompatible: boolean;
-
-  private constructor(
-    metadata: ApexClassOASEligibleResponse,
-    context: ApexClassOASGatherContextResponse,
-    sourceText: string
-  ) {
-    super(
-      metadata,
-      context,
-      'AuraEnabled',
-      0,
-      SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR,
-      'OpenAPI documents generated from Apex classes using @AuraEnabled annotations are in beta.'
-    );
-    this.sourceText = sourceText;
-    this.classPrompt = buildClassPrompt(this.context.classDetail);
-    this.oasSchema = JSON.stringify(openAPISchemaV3Guided);
-    this.isDefaultOrg = false;
-    this.isOrgVersionCompatible = false;
-  }
-
-  public static async initialize(
-    metadata: ApexClassOASEligibleResponse,
-    context: ApexClassOASGatherContextResponse
-  ): Promise<AuraEnabledStrategy> {
-    const sourceText = await readFile(metadata.resourceUri.fsPath);
-    const strategy = new AuraEnabledStrategy(metadata, context, sourceText);
-    return strategy;
-  }
-
-  public get openAPISchema(): string {
-    return this.oasSchema;
-  }
-
-  private async checkOrgVersion(): Promise<void> {
-    try {
-      const targetOrg = await ConfigUtil.getTargetOrgOrAlias();
-      this.isDefaultOrg = targetOrg !== undefined;
-
-      if (this.isDefaultOrg) {
-        const connection = await getRuntime().runPromise(
-          Effect.gen(function* () {
-            const api = yield* (yield* ExtensionProviderService).getServicesApi;
-            return yield* api.services.ConnectionService.getConnection();
-          })
-        );
-        const numericVersion = parseFloat(connection.getApiVersion());
-        this.isOrgVersionCompatible = numericVersion >= MIN_ORG_VERSION;
-      }
-    } catch (err) {
-      console.error('Failed to initialize org checks:', err);
-      this.isDefaultOrg = false;
-      this.isOrgVersionCompatible = false;
-    }
-  }
-
-  public async bid(): Promise<PromptGenerationStrategyBid> {
-    // Initialize org checks
-    await this.checkOrgVersion();
-
-    // Check if any method has @AuraEnabled annotation
-    const hasAuraEnabled = hasAuraFrameworkCapability(this.context);
-
-    // Only bid if we have Aura-enabled methods AND we're in the default org AND the org version is compatible
-    const shouldBid = hasAuraEnabled && this.isDefaultOrg && this.isOrgVersionCompatible;
-
-    return {
+export const createAuraEnabledStrategy = async (
+  context: ApexClassOASGatherContextResponse
+): Promise<GenerationStrategy> => {
+  const bid = () => {
+    const shouldBid = hasAuraFrameworkCapability(context);
+    return Effect.succeed({
       result: {
-        maxBudget: shouldBid ? this.maxBudget : 0,
+        maxBudget: shouldBid ? SUM_TOKEN_MAX_LIMIT * IMPOSED_FACTOR : 0,
         callCounts: shouldBid ? 1 : 0
       }
-    };
-  }
+    });
+  };
 
-  public async generateOAS(): Promise<string> {
-    const responses: string[] = [];
-
-    const connection = await getRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.ConnectionService.getConnection();
-      })
-    );
-    const apiVersion = connection.getApiVersion();
-    const endpoint = `${connection.instanceUrl}/services/data/v${apiVersion}/specifications/oas3/apex/${this.context.classDetail.name}`;
-
-    try {
-      const result = await connection.request({
-        method: 'GET',
-        url: endpoint
+  const generateOAS = Effect.fn('ApexOas.AuraEnabled.generateOAS')(
+    function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* api.services.ConnectionService.getConnection();
+      const endpoint = `/specifications/oas3/apex/${context.classDetail.name}`;
+      const result = yield* Effect.tryPromise({
+        try: () => connection.request({ method: 'GET', url: endpoint }),
+        catch: cause =>
+          new OasGenerationFailed({ message: `Failed to fetch OAS specification from org: ${String(cause)}` })
       });
-      responses.push(JSON.stringify(result));
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Failed to fetch OAS specification from org: ${errorMessage}`);
-    }
-    this.oasSchema = responses.join('\n');
-    return this.oasSchema;
-  }
-}
+      return JSON.stringify(result);
+    },
+    Effect.tap(() =>
+      annotateRootSpan({ strategyName: 'AuraEnabled', biddedCallCount: 0, llmCallCount: 0, generationSize: 0 })
+    ),
+    Effect.catchAll(cause =>
+      cause instanceof OasGenerationFailed
+        ? Effect.fail(cause)
+        : Effect.fail(
+            new OasGenerationFailed({ message: `Failed to fetch OAS specification from org: ${String(cause)}` })
+          )
+    )
+  );
+
+  return {
+    bid,
+    generateOAS
+  };
+};
