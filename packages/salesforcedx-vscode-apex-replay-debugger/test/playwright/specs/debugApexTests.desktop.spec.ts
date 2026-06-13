@@ -150,11 +150,14 @@ const class2Content = [
   '}'
 ].join('\n');
 
+// Distinct method name from ExampleApexClass1Test so the Test Explorer treeitem label is unique
+// (both classes nest under the same Namespace/Package parents; a shared method name would match
+// two virtualized treeitem rows and trip Playwright strict mode).
 const class2TestContent = [
   '@IsTest',
   'public class ExampleApexClass2Test {',
   '  @IsTest',
-  '  static void validateSayHello() {',
+  '  static void validateSayHelloTwo() {',
   "    System.debug('Starting validate');",
   "    ExampleApexClass2.SayHello('Cody');",
   '',
@@ -225,9 +228,9 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     await expandNamespaceAndPackage(page);
     // Expand the class node to reveal its method, then debug the method row
     await expandTreeRow(page, 'ExampleApexClass2Test');
-    const methodItem = page.getByRole('treeitem', { name: /validateSayHello/i });
+    const methodItem = page.getByRole('treeitem', { name: /validateSayHelloTwo/i });
     await methodItem.waitFor({ state: 'visible', timeout: 30_000 });
-    await debugTestFromTreeItem(page, /validateSayHello/i);
+    await debugTestFromTreeItem(page, /validateSayHelloTwo/i);
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
     await saveScreenshot(page, 'step.debug-test-explorer-method.png');
