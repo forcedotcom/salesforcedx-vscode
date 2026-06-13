@@ -10,6 +10,7 @@ import {
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
   openFileByName,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -58,12 +59,12 @@ test('Aura LSP: go to definition', async ({ page }) => {
   });
 
   await test.step('Go to Definition lands on the attribute definition (L3)', async () => {
-    // Matches WDIO `executeQuickPick('Go to Definition')` / F12. Within-file nav (no new tab), so
+    // Matches WDIO `executeQuickPick('Go to Definition')`. Within-file nav (no new tab), so
     // no Ctrl+Click (apex used Ctrl+Click only for its cross-file nav). LSP readiness already
-    // synced by `waitForAuraLspReady`. Press F12 directly (not the palette) so the command runs
-    // against the focused editor at the cursor we just set — the palette open/close cycle can drop
-    // editor focus / cursor and yield a no-op "No definition found".
-    await page.keyboard.press('F12');
+    // synced by `waitForAuraLspReady`. Use the command palette (lwcLspGoToDefinitionHtml precedent)
+    // rather than F12, which is more host/environment-sensitive (can be intercepted as a global
+    // shortcut).
+    await executeCommandWithCommandPalette(page, 'Go to Definition');
 
     // PRIMARY: the VS Code status-bar selection item reports the cursor position. The Aura LS
     // resolves the def to the `simpleNewContact` name-attribute value range on L3

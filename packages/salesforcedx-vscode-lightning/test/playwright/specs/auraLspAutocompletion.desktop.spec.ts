@@ -31,8 +31,9 @@ test('Aura LSP: autocompletion', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  // `.show-file-icons` filters out Quick Pick / file-explorer monaco-list-row variants.
-  const completionRows = page.locator('div.monaco-list-row.show-file-icons');
+  // Scope to the suggest widget so other monaco lists (file picker, quick open) can't match
+  // (lwcLspAutocompletion precedent). `.show-file-icons` further filters the completion rows.
+  const completionRows = page.locator('.editor-widget.suggest-widget .monaco-list-row.show-file-icons');
 
   await test.step('setup', async () => {
     await waitForVSCodeWorkbench(page);
