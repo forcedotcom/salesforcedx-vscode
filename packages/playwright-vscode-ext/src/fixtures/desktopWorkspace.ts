@@ -39,15 +39,17 @@ export const createTestWorkspace = async (orgAlias?: string): Promise<string> =>
       )
     ),
     fs.mkdir(path.join(workspaceDir, 'force-app', 'main', 'default'), { recursive: true }),
-    fs.mkdir(path.join(workspaceDir, SF_STATE_FOLDER), { recursive: true })
+    fs.mkdir(path.join(workspaceDir, SF_STATE_FOLDER), { recursive: true }),
+    // Minimal scratch-def so `sf.org.create`'s FileSelector (glob `config/**/*-scratch-def.json`) finds a match.
+    fs
+      .mkdir(path.join(workspaceDir, 'config'), { recursive: true })
+      .then(() =>
+        fs.writeFile(
+          path.join(workspaceDir, 'config', 'project-scratch-def.json'),
+          JSON.stringify({ orgName: 'vscode e2e', edition: 'Developer' }, null, 2)
+        )
+      )
   ]);
-
-  // Minimal scratch-def so `sf.org.create`'s FileSelector (glob `config/**/*-scratch-def.json`) finds a match.
-  await fs.mkdir(path.join(workspaceDir, 'config'), { recursive: true });
-  await fs.writeFile(
-    path.join(workspaceDir, 'config', 'project-scratch-def.json'),
-    JSON.stringify({ orgName: 'vscode e2e', edition: 'Developer' }, null, 2)
-  );
 
   if (orgAlias !== undefined) {
     await fs.writeFile(

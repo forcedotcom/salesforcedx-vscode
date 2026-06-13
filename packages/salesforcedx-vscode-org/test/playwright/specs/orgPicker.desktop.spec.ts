@@ -12,6 +12,8 @@ import {
   clickOrgPickerStatusBar,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
+  env,
+  execAsync,
   expectOrgPickerActionItems,
   expectOrgPickerListsOrg,
   expectOrgPickerStatusBar,
@@ -25,8 +27,6 @@ import {
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import packageNls from '../../../package.nls.json';
 import { orgDesktopTest as test } from '../fixtures/desktopFixtures';
 
@@ -41,8 +41,6 @@ const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 // `%s successfully ran` (`salesforcedx-utils-vscode/src/messages/i18n.ts`), %s = command description.
 const SET_DEFAULT_ORG_RAN = /SFDX: Set a Default Org successfully ran/;
 const CREATE_SCRATCH_ORG_RAN = /SFDX: Create a Default Scratch Org\.\.\. successfully ran/;
-
-const execAsync = promisify(exec);
 
 // The 5 ACTION_ITEMS rendered in the picker (orgList.ts ACTION_ITEMS); labels carry an icon prefix.
 const PICKER_ACTION_ITEMS = [
@@ -130,7 +128,9 @@ test('org picker: set default org, create scratch org, switch default org', asyn
   // notification (multi-minute command); port that, then assert the persistent status-bar signal.
   await test.step('scratch org create completes and is auto-set as default', async () => {
     await waitForNotification(page, CREATE_SCRATCH_ORG_RAN, { timeout: 600_000 });
-    await expectOrgPickerStatusBar(page, scratchAlias, { timeout: 600_000 });
+    // The success notification signals the command finished; the status bar updates within seconds, so
+    // a short timeout here keeps the two sequential waits from summing past the 720s test budget.
+    await expectOrgPickerStatusBar(page, scratchAlias, { timeout: 30_000 });
   });
 
   // WDIO it #4: switch default org back and forth. No window reload — `setDefaultOrg` re-reads auth
@@ -155,10 +155,10 @@ test('org picker: set default org, create scratch org, switch default org', asyn
   // the org auto-expires in 1 day and a nightly cron sweeps leftovers, but deleting here avoids
   // leaking a real org on every run. Guarded so a delete failure doesn't fail a passing test.
   await test.step('delete the created scratch org', async () => {
-    await execAsync(`sf org delete scratch --target-org ${scratchAlias} --no-prompt`, {
-      env: { ...process.env, NO_COLOR: '1' }
-    }).catch((error: unknown) => {
-      console.warn(`Failed to delete scratch org ${scratchAlias}; it will expire in 1 day. ${String(error)}`);
-    });
+    await execAsync(`sf org delete scratch --target-org ${scratchAlias} --no-prompt`, { env }).catch(
+      (error: unknown) => {
+        console.warn(`Failed to delete scratch org ${scratchAlias}; it will expire in 1 day. ${String(error)}`);
+      }
+    );
   });
 });
