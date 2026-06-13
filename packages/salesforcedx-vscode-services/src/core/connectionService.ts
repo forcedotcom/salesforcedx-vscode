@@ -357,7 +357,11 @@ const buildDevHubId = (devHubUsername?: string) =>
   (devHubUsername
     ? createAuthInfoFromUsername(devHubUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
     : Effect.succeed(undefined)
-  ).pipe(Effect.withSpan('getDevHubId', { attributes: { devHubUsername } }));
+  ).pipe(
+    // only successes are memoized; a failed lookup (e.g. devhub not yet authenticated) must be retried on the next call
+    Effect.catchAll(() => Effect.succeed(undefined)),
+    Effect.withSpan('getDevHubId', { attributes: { devHubUsername } })
+  );
 
 // memoized per distinct devHubUsername at module scope so AuthInfo.create (and the getDevHubId span) runs once per devhub per session
 const getDevHubId = Effect.runSync(Effect.cachedFunction(buildDevHubId));
