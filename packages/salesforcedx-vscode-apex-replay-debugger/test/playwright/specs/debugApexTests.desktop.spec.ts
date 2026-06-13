@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable unicorn/numeric-separators-style -- timeouts use numeric literals; rule conflicts for 4–5 digit values */
 import { expect, type Page } from '@playwright/test';
 import {
   clickCodeLens,
@@ -167,7 +166,7 @@ const class2TestContent = [
 ].join('\n');
 
 test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page }) => {
-  test.setTimeout(600000);
+  test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -181,24 +180,24 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await executeCommandWithCommandPalette(page, metadataNls.project_deploy_start_ignore_conflicts_default_org_text);
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30000 });
-    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120000 });
+    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
     await saveScreenshot(page, 'setup.classes-created.png');
   });
 
   await test.step('wait for CodeLens in test class', async () => {
     // Apex LS must finish indexing before CodeLens appear; CI is slower
     const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-    await expect(indexingComplete).toBeVisible({ timeout: 120000 });
+    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
     await openFileByName(page, 'ExampleApexClass1Test.cls');
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: 90000 });
+    await expect(codelens.first()).toBeVisible({ timeout: 90_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
   });
 
   await test.step('Debug All Tests via class-level CodeLens', async () => {
     await openFileByName(page, 'ExampleApexClass1Test.cls');
-    await clickCodeLens(page, 'Debug All Tests', { timeout: 180000 });
+    await clickCodeLens(page, 'Debug All Tests', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
     await saveScreenshot(page, 'step.debug-all-tests.png');
@@ -206,7 +205,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
 
   await test.step('Debug Test via method-level CodeLens', async () => {
     await openFileByName(page, 'ExampleApexClass2Test.cls');
-    await clickCodeLens(page, 'Debug Test', { timeout: 180000 });
+    await clickCodeLens(page, 'Debug Test', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
     await saveScreenshot(page, 'step.debug-single-test.png');
