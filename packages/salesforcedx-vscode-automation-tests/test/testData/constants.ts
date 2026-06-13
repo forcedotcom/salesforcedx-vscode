@@ -31,16 +31,6 @@ export const defaultExtensionConfigs: ExtensionConfig[] = [
   }
 ];
 
-/** Extension configurations for Apex test-related tests */
-export const apexTestExtensionConfigs: ExtensionConfig[] = [
-  ...defaultExtensionConfigs,
-  {
-    extensionId: 'salesforcedx-vscode-apex-testing',
-    shouldVerifyActivation: true,
-    shouldInstall: 'always'
-  }
-];
-
 /**
  * All Salesforce extensions for reference
  * This list is maintained in the consuming project and defines which extensions

@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable unicorn/numeric-separators-style -- timeouts use numeric literals; rule conflicts for 4–5 digit values */
 import { expect } from '@playwright/test';
 import {
   clearOutputChannel,
@@ -28,7 +27,7 @@ import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 
 test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ page }) => {
-  test.setTimeout(600000);
+  test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -55,8 +54,8 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
       page,
       metadataNls.project_deploy_start_ignore_conflicts_default_org_text as string
     );
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30000 });
-    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120000 });
+    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
   });
 
   await test.step('toggle checkpoint at the `return newAcct;` line of AccountService.cls', async () => {
