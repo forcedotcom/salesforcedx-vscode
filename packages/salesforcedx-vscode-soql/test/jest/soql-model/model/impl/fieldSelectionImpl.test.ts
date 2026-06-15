@@ -8,7 +8,7 @@
 import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
 import { FieldSelectionImpl } from '../../../../../src/soql-model/model/impl/fieldSelectionImpl';
 import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
-import { REASON_UNMODELED_ALIAS } from '../../../../../src/soql-model/model/model';
+import { REASON_UNMODELED_ALIAS } from '../../../../../src/soql-model/model/unmodeled';
 
 describe('FieldSelectionImpl should', () => {
   it('store a field', () => {

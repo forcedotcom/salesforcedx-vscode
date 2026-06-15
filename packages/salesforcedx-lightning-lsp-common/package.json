@@ -31,6 +31,11 @@
       "import": "./out/src/testSupport/testUtils.js",
       "require": "./out/src/testSupport/testUtils.js"
     },
+    "./testSupport/mockWorkspaceFindFiles": {
+      "types": "./out/src/testSupport/mockWorkspaceFindFiles.d.ts",
+      "import": "./out/src/testSupport/mockWorkspaceFindFiles.js",
+      "require": "./out/src/testSupport/mockWorkspaceFindFiles.js"
+    },
     "./providers/lspFileSystemAccessor": {
       "types": "./out/src/providers/lspFileSystemAccessor.d.ts",
       "import": "./out/src/providers/lspFileSystemAccessor.js",

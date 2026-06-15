@@ -7,7 +7,7 @@
 
 import { FromImpl } from '../../../../../src/soql-model/model/impl/fromImpl';
 import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
-import { REASON_UNMODELED_AS, REASON_UNMODELED_USING } from '../../../../../src/soql-model/model/model';
+import { REASON_UNMODELED_AS, REASON_UNMODELED_USING } from '../../../../../src/soql-model/model/unmodeled';
 
 describe('FromImpl should', () => {
   it('store SObject name as a string', () => {

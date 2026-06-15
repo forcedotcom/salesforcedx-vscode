@@ -7,11 +7,11 @@
 
 import { LspFileSystemAccessor, NormalizedPath, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths,
   SFDX_WORKSPACE_ROOT,
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { createMockWorkspaceFindFilesConnection } from '@salesforce/salesforcedx-lightning-lsp-common/testSupport/mockWorkspaceFindFiles';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { Connection } from 'vscode-languageserver';

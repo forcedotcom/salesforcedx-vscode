@@ -18,14 +18,12 @@ import { NotConditionImpl } from '../../../../src/soql-model/model/impl/notCondi
 import { QueryImpl } from '../../../../src/soql-model/model/impl/queryImpl';
 import { SelectExprsImpl } from '../../../../src/soql-model/model/impl/selectExprsImpl';
 import { UnmodeledSyntaxImpl } from '../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
+import { AndOr, Condition, ConditionOperator } from '../../../../src/soql-model/model/model';
 import {
-  AndOr,
-  Condition,
-  ConditionOperator,
   REASON_UNMODELED_ALIAS,
   REASON_UNMODELED_CALCULATEDCONDITION,
   REASON_UNMODELED_FUNCTIONREFERENCE
-} from '../../../../src/soql-model/model/model';
+} from '../../../../src/soql-model/model/unmodeled';
 import { SoqlModelUtils } from '../../../../src/soql-model/model/util';
 
 const field = new FieldRefImpl('field');

@@ -114,12 +114,12 @@ import {
   WORKSPACE_STAT_REQUEST
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths,
   SFDX_WORKSPACE_ROOT,
   SFDX_WORKSPACE_STRUCTURE,
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { createMockWorkspaceFindFilesConnection } from '@salesforce/salesforcedx-lightning-lsp-common/testSupport/mockWorkspaceFindFiles';
 import * as path from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
 import {
@@ -138,8 +138,8 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { BaseServer } from '../src/baseServer';
-import Server, { findDynamicContent } from '../src/lwcServerNode';
+import { BaseServer, findDynamicContent } from '../src/baseServer';
+import Server from '../src/lwcServerNode';
 
 // File paths and URIs
 const filename = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'todo', 'todo.html');

@@ -15,7 +15,7 @@ export {
 export { buildAllServicesLayer } from './allServicesLayer';
 export { ExtensionPackageJsonSchema, type ExtensionPackageJson } from './extensionPackageJson';
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
-export type { SalesforceVSCodeServicesApi } from './extensionProvider';
+export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 
 export { createTable } from './table';
 export type { Column, Row } from './table';

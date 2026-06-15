@@ -8,7 +8,6 @@
 import { normalizePath, NormalizedPath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   buildSfdxContentMap,
-  createMockWorkspaceFindFilesConnection,
   DIR_STAT,
   FILE_STAT,
   FORCE_APP_ROOT,
@@ -19,6 +18,7 @@ import {
   sfdxFileSystemAccessor,
   UTILS_ROOT
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { createMockWorkspaceFindFilesConnection } from '@salesforce/salesforcedx-lightning-lsp-common/testSupport/mockWorkspaceFindFiles';
 import { minimatch } from 'minimatch';
 import { join, resolve } from 'node:path';
 import { Connection } from 'vscode-languageserver';

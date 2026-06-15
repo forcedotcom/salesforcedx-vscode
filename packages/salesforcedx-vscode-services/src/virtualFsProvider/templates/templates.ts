@@ -27,5 +27,3 @@ export const TEMPLATES = {
   'README.md': readme,
   'tsconfig.json': tsconfig
 };
-
-export { metadataDirs } from './metadataDirs';

@@ -2,7 +2,7 @@
 import {
   REASON_UNMODELED_FUNCTIONREFERENCE,
   REASON_UNMODELED_GROUPBY
-} from '../../../../../../src/soql-model/model/model';
+} from '../../../../../../src/soql-model/model/unmodeled';
 import { createQueryTelemetry } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/telemetryUtils';
 import { ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 

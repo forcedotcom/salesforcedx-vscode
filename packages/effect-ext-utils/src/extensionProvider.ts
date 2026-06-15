@@ -9,7 +9,6 @@ import * as Context from 'effect/Context';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 // Import from the npm package (symlinked in workspace) - wireit ensures it's compiled first
-export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 

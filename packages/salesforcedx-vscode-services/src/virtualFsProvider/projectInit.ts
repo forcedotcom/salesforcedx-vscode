@@ -12,7 +12,8 @@ import { sampleProjectName } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fsTypes';
-import { TEMPLATES, metadataDirs } from './templates/templates';
+import { metadataDirs } from './templates/metadataDirs';
+import { TEMPLATES } from './templates/templates';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
 const sampleProjectPath = `${fsPrefix}:/${sampleProjectName}`;

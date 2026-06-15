@@ -16,15 +16,15 @@ import { QueryImpl } from '../../../../../src/soql-model/model/impl/queryImpl';
 import { SelectExprsImpl } from '../../../../../src/soql-model/model/impl/selectExprsImpl';
 import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
 import { WhereImpl } from '../../../../../src/soql-model/model/impl/whereImpl';
+import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 import {
-  ConditionOperator,
   REASON_UNMODELED_BIND,
   REASON_UNMODELED_GROUPBY,
   REASON_UNMODELED_OFFSET,
   REASON_UNMODELED_RECORDTRACKING,
   REASON_UNMODELED_UPDATE,
   REASON_UNMODELED_WITH
-} from '../../../../../src/soql-model/model/model';
+} from '../../../../../src/soql-model/model/unmodeled';
 
 describe('QueryImpl should', () => {
   it('store query components as appropriate model objects', () => {

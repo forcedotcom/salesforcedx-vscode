@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ErrorType } from '../../../../src/soql-model/model/model';
 import {
-  ErrorType,
   REASON_UNMODELED_ALIAS,
   REASON_UNMODELED_AS,
   REASON_UNMODELED_BIND,
@@ -23,7 +23,7 @@ import {
   REASON_UNMODELED_UPDATE,
   REASON_UNMODELED_USING,
   REASON_UNMODELED_WITH
-} from '../../../../src/soql-model/model/model';
+} from '../../../../src/soql-model/model/unmodeled';
 import { deserialize } from '../../../../src/soql-model/serialization/deserializer';
 
 const testQueryModel = {

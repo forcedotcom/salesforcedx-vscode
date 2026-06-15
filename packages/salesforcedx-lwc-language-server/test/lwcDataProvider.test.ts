@@ -23,12 +23,12 @@ jest.mock('../src/resources/transformed-lwc-standard.json', () => {
 
 import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths,
   SFDX_WORKSPACE_ROOT,
   SFDX_WORKSPACE_STRUCTURE,
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { createMockWorkspaceFindFilesConnection } from '@salesforce/salesforcedx-lightning-lsp-common/testSupport/mockWorkspaceFindFiles';
 import * as path from 'node:path';
 import type { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';

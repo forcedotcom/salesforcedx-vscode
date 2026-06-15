@@ -287,5 +287,3 @@ export type UnmodeledSyntax = SelectExpression &
     unmodeledSyntax: string;
     reason: UnmodeledSyntaxReason;
   };
-
-export * from './unmodeled';

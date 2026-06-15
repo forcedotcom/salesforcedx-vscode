@@ -873,5 +873,3 @@ export const buildSfdxContentMap = (): Map<string, string> => {
 /** Relative paths (forward slashes) for the SFDX test workspace. Use with createMockWorkspaceFindFilesConnection(..., { relativePaths: getSfdxWorkspaceRelativePaths() }) when disk read is unavailable in test env. */
 export const getSfdxWorkspaceRelativePaths = (): string[] =>
   Object.keys(SFDX_WORKSPACE_STRUCTURE).map(p => p.replaceAll('\\', '/'));
-
-export { createMockWorkspaceFindFilesConnection } from './mockWorkspaceFindFiles';
