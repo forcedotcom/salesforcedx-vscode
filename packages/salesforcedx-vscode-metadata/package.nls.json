@@ -25,6 +25,7 @@
   "source_tracking_status_bar_conflicts": "Conflicts",
   "source_tracking_status_bar_click_to_push": "Click to push local changes to org",
   "source_tracking_status_bar_no_changes": "No source tracking changes",
+  "source_tracking_enable_conflict_detection_description": "When disabled, skips automatic conflict detection for source tracking orgs. This improves performance but you won't see conflict warnings in the status bar or before deploy/retrieve operations.",
   "source_tracking_conflict_detection_disabled_tooltip": "Conflict detection is disabled. Local and remote change tracking is not active. Enable it in settings: `salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection`",
   "push_or_deploy_on_save_enabled_title": "Deploy on Save",
   "push_or_deploy_on_save_enabled_description": "Specifies whether or not to automatically deploy when a local source file is saved.",
