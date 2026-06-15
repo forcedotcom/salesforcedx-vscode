@@ -50,6 +50,8 @@ This extension depends on:
 
 REST class generation additionally needs an LLM (AI model) service registered with the VS Code service provider — obtained at runtime through the service provider rather than declared as a hard extension dependency, and is not required for AuraEnabled class generation.
 
+**Note:** As of A4V v4.1.0 "Agentforce Vibes" (2026-06-13), the LLM integration required for OAS generation is temporarily unavailable. v4 removed the `salesforcedx-einstein-gpt.isEnabled` context key that gates the OAS commands' visibility (so they no longer appear) and the `getLLMServiceInstance` command that generation invokes. E2E tests are skipped pending migration off the A4V LLM service.
+
 ## Activation
 
 This extension activates on demand when you run one of its commands. It does not activate automatically at workspace startup.
