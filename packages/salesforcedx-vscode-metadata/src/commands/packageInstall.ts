@@ -13,10 +13,10 @@ import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
-import { getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+import { messages, nls } from '../messages';
+import { type CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
 
-const COMMAND = 'SFDX: Install Package' as const;
+const COMMAND: CommandKey = messages.package_install_text;
 
 const PKG_ID_PREFIX = '04t';
 
@@ -149,8 +149,8 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
 
 const extractErrors = (record: PackageInstallRequest): string => {
   const list = record.Errors?.errors ?? [];
-  const messages = list.map(e => e.message).filter(m => typeof m === 'string' && m.length > 0);
-  const detail = messages.length === 0 ? 'Unknown error' : messages.join('; ');
+  const errorMessages = list.map(e => e.message).filter(m => typeof m === 'string' && m.length > 0);
+  const detail = errorMessages.length === 0 ? 'Unknown error' : errorMessages.join('; ');
   return nls.localize('package_install_failed_message', detail);
 };
 

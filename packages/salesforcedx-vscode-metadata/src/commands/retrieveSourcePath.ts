@@ -10,13 +10,13 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
-import { nls } from '../messages';
+import { messages, nls } from '../messages';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 import { type CommandKey } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = 'SFDX: Retrieve This Source from Org';
+const COMMAND: CommandKey = messages.retrieve_this_source_text;
 
 /** Retrieve source paths from the default org */
 // When a single file is selected and "Retrieve Source from Org" is executed,
