@@ -37,6 +37,7 @@ import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
+import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { TerminalService } from './terminal/terminalService';
@@ -131,6 +132,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     ProjectService: typeof ProjectService;
+    getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: typeof SdkLayerFor;
     SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
@@ -396,6 +398,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataRegistryService,
       MetadataRetrieveService,
       ProjectService,
+      getSdkLayerConfigFromContext,
       SdkLayerFor,
       SettingsChangePubSub,
       SettingsService,
