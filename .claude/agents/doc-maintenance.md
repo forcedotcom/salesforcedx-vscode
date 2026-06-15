@@ -40,3 +40,4 @@ ALWAYS operate inside the parent's current working directory. NEVER edit absolut
 
 - **.claude/, .cursor/rules/, docs/, contributing/**: Apply concise skill (fragments, remove words). See .claude/skills/concise/SKILL.md.
 - **packages/\*\*/README.md**: Customer-facing, marketplace. Use full sentences, original tone. Do NOT apply concise.
+- always use /concise
