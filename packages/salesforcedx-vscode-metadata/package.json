@@ -363,6 +363,11 @@
           "default": false,
           "description": "%conflict_detection_enabled_description%"
         },
+        "salesforcedx-vscode-metadata.sourceTracking.enableConflictDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "%source_tracking_enable_conflict_detection_description%"
+        },
         "salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds": {
           "type": "number",
           "default": 60,
