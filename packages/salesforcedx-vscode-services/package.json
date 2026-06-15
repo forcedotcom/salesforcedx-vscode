@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "svgtofont": "^3.5.0"
+    "svgtofont": "^6.5.2"
   },
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
