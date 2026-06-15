@@ -17,12 +17,14 @@ import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationMan
 import { selectStrategyByBidRule } from '../oas/promptGenerationOrchestrator';
 import {
   checkIfESRIsDecomposed,
+  diagnoseIneligibility,
   hasAuraFrameworkCapability,
   hasMixedFrameworks,
   hasValidRestAnnotations,
   parseOASDocFromJson,
   summarizeDiagnostics
 } from '../oasUtils';
+import { LLMService } from '../services/llmService';
 import { ClassNotEligible, gatherContext, validateMetadata } from './metadataOrchestrator';
 
 /** @ExportTaggedError */
@@ -50,7 +52,17 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // Mirrors the bid eligibility of both strategies so valid Aura/REST classes still proceed.
   if (!hasValidRestAnnotations(context) && !hasAuraFrameworkCapability(context)) {
     const className = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
-    return yield* new ClassNotEligible({ message: nls.localize('apex_class_not_valid', className) });
+    return yield* new ClassNotEligible({
+      message: nls.localize('apex_class_not_valid_detail', className, diagnoseIneligibility(context))
+    });
+  }
+
+  // Step 2.7 (REST path only): the REST strategy calls an LLM. Require that an LLM service can be obtained
+  // from the service provider before starting — whatever extension provides it. Failing here (rather than
+  // midway through generation) surfaces the service-provider cause up front. The AuraEnabled path generates
+  // from the org connection alone and needs no LLM, so it skips this.
+  if (hasValidRestAnnotations(context)) {
+    yield* LLMService.ensureAvailable();
   }
 
   // Step 3-4: Select the generation strategy by bid rule

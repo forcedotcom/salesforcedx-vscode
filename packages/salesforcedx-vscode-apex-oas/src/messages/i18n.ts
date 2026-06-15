@@ -19,6 +19,9 @@
 export const messages = {
   channel_name: 'Apex OpenAPI Specification',
   apex_class_not_valid: 'The Apex Class %s is not valid for OpenAPI document generation.',
+  apex_class_not_valid_detail: 'The Apex Class %s is not valid for OpenAPI document generation because %s',
+  apex_class_no_eligible_methods:
+    'The Apex Class %s has no methods eligible for OpenAPI document generation. Ineligible methods: %s. Ensure the methods are public or global and carry the required annotations.',
   apex_lsp_not_ready: 'The Apex Language Server is still starting up. Wait for indexing to finish, then try again.',
   artifact_failed: 'Failed to save the artifact: %s',
   cannot_gather_context: 'An error occurred while gathering context for the Apex class.',
@@ -34,6 +37,12 @@ export const messages = {
   http_verb_prompt_delete: 'For the given method only produce the DELETE verb.',
   ineligible_method_in_doc: 'Method %s is not eligible for OAS generation, but present in the document',
   invalid_file_for_generating_oas_doc: 'Invalid file for generating OAS doc',
+  llm_service_unavailable:
+    'Could not reach an AI model service, which is required to generate an OpenAPI document for REST (@RestResource) classes. Make sure an extension that provides this service is installed and active, and that you are connected to your org. AuraEnabled classes do not require it.',
+  llm_service_gpt_v4_hint:
+    'A known regression in version %s of the installed AI model service extension can prevent this; downgrading to a 3.x version is a workaround.',
+  llm_connection_failed:
+    'Could not connect to the AI model service needed to generate an OpenAPI document for REST (@RestResource) classes. Check your network connection (including any VPN or proxy), confirm you are signed in, and that your org has the required AI access, then try again.',
   llm_monthly_rate_limit:
     'OpenAPI document generation was blocked because the shared AI model hit its monthly rate limit. Try again after the quota resets.',
   merge: 'Manually merge with existing ESR',
@@ -44,6 +53,7 @@ export const messages = {
   no_folder_selected: 'Operation canceled: No folder selected.',
   no_oas_doc_in_file: 'No OAS doc detected in the file',
   no_oas_generated: 'LLM did not return any content.',
+  no_oas_generated_detail: 'OpenAPI document generation produced no content. Last failure: %s',
   openapi_doc_created: 'OpenAPI Document created for %s: %s.',
   openapi_doc_created_merge:
     'A new OpenAPI Document %s %s is created for %s. Manually merge the two files using the diff editor.',

@@ -219,6 +219,39 @@ export const hasAuraFrameworkCapability = (context: ApexClassOASGatherContextRes
   hasNoClassAnnotations(context) && hasAuraEnabledMethods(context);
 
 /**
+ * Explains, in user-facing terms, why a class qualified for neither the REST nor the AuraEnabled
+ * generation path. Inspects the gathered context (class/method annotations) so the surfaced error
+ * names the missing prerequisite instead of a generic "not valid" message.
+ *
+ * Call only after `hasValidRestAnnotations` and `hasAuraFrameworkCapability` both returned false.
+ * @param {ApexClassOASGatherContextResponse} context - The gathered class context.
+ * @returns {string} A sentence describing the most likely reason and how to fix it.
+ */
+export const diagnoseIneligibility = (context: ApexClassOASGatherContextResponse): string => {
+  const hasRestResource = hasRestResourceAnnotation(context);
+  const hasHttpMethods = hasHttpRestAnnotations(context);
+
+  // REST: class is annotated @RestResource but no method carries an @HttpGet/@HttpPost/... annotation.
+  if (hasRestResource && !hasHttpMethods) {
+    return 'the class is annotated with @RestResource but no method is annotated with an HTTP verb (@HttpGet, @HttpPost, @HttpPut, @HttpPatch, or @HttpDelete). Add an HTTP-verb annotation to the methods you want to expose.';
+  }
+
+  // REST: methods carry @Http___ but the class is missing the required @RestResource annotation.
+  if (!hasRestResource && hasHttpMethods) {
+    return 'methods are annotated with HTTP verbs but the class is missing the @RestResource annotation. Add @RestResource to the class.';
+  }
+
+  // AuraEnabled: class carries annotations that block the Aura path, but a method is @AuraEnabled.
+  if (!hasNoClassAnnotations(context) && hasAuraEnabledMethods(context)) {
+    const classAnnotations = context.classDetail.annotations.map(a => `@${a.name}`).join(', ');
+    return `the class has @AuraEnabled methods but also carries class-level annotations (${classAnnotations}) that are not allowed for AuraEnabled generation. Remove the class-level annotations.`;
+  }
+
+  // No qualifying annotations at all.
+  return 'it has no methods annotated for OpenAPI generation. Annotate a class with @RestResource plus HTTP-verb methods (@HttpGet, @HttpPost, ...), or annotate methods with @AuraEnabled.';
+};
+
+/**
  * Validates if a registration provider type is one of the allowed values.
  * @param {string | undefined} providerType - The provider type to validate.
  * @returns {boolean} - True if the provider type is valid, false otherwise.

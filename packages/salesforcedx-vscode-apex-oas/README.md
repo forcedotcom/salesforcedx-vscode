@@ -17,8 +17,17 @@ This extension provides OpenAPI Specification (OAS) generation capabilities for 
 
 - Salesforce CLI extension
 - Apex extension
-- Agentforce Vibes extension (for AI-powered generation)
 - A Salesforce DX project with an authenticated org
+
+### REST Generation Requirements
+
+For REST classes (`@RestResource` with `@HttpGet`, `@HttpPost`, etc.):
+- An LLM (AI model) service must be available through the VS Code service provider. This is supplied by an extension that provides this service; if no provider has registered the service, REST generation fails with a clear error.
+
+### AuraEnabled Generation Requirements
+
+For AuraEnabled classes (`@AuraEnabled` annotation):
+- Requires only an authenticated org connection (no AI/LLM required)
 
 ## Configuration
 
@@ -37,7 +46,8 @@ This extension depends on:
 
 - `salesforce.salesforcedx-vscode-apex`
 - `salesforce.salesforcedx-vscode-core`
-- `salesforce.salesforcedx-einstein-gpt`
+
+REST class generation additionally needs an LLM (AI model) service registered with the VS Code service provider — obtained at runtime through the service provider rather than declared as a hard extension dependency, and is not required for AuraEnabled class generation.
 
 ## Activation
 
