@@ -279,3 +279,124 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
     expect(toolingSpy.mock.calls.filter(c => c[0].includes('FROM ApexTrigger'))).toHaveLength(1);
   });
 });
+
+type CreateSpy = jest.Mock<Promise<{ success: boolean; id?: string }>, [string, unknown]>;
+type DeleteSpy = jest.Mock<Promise<{ success: boolean }>, [string, string]>;
+
+const buildToolingMutationLayer = (opts: {
+  create?: CreateSpy;
+  delete?: DeleteSpy;
+}): { layer: Layer.Layer<ConnectionService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
+  const createSpy: CreateSpy = opts.create ?? jest.fn(async () => ({ success: true, id: 'dl-new' }));
+  const deleteSpy: DeleteSpy = opts.delete ?? jest.fn(async () => ({ success: true }));
+  const layer = Layer.succeed(
+    ConnectionService,
+    ConnectionService.make({
+      getConnection: () =>
+        Effect.succeed({
+          tooling: { create: createSpy, delete: deleteSpy }
+        } as unknown as Connection),
+      invalidateCachedConnections: () => Effect.void
+    })
+  );
+  return { layer, createSpy, deleteSpy };
+};
+
+describe('TraceFlagService.createDebugLevel', () => {
+  beforeEach(async () => {
+    await Effect.runPromise(clearDefaultOrgRef());
+  });
+
+  it('returns the created id and forwards the payload to tooling.create', async () => {
+    const { layer, createSpy } = buildToolingMutationLayer({
+      create: jest.fn(async () => ({ success: true, id: 'dl-123' }))
+    });
+    const payload = { DeveloperName: 'Custom', MasterLabel: 'Custom', ApexCode: 'FINEST' };
+
+    const id = await runScoped(
+      Effect.gen(function* () {
+        const svc = yield* TraceFlagService;
+        return yield* svc.createDebugLevel(payload);
+      }),
+      layer
+    );
+
+    expect(id).toBe('dl-123');
+    expect(createSpy).toHaveBeenCalledWith('DebugLevel', payload);
+  });
+
+  it('fails with DebugLevelCreateError when create returns no id', async () => {
+    const { layer } = buildToolingMutationLayer({
+      create: jest.fn(async () => ({ success: true }))
+    });
+
+    const exit = await Effect.runPromiseExit(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const svc = yield* TraceFlagService;
+          return yield* svc.createDebugLevel({ DeveloperName: 'X', MasterLabel: 'X' });
+        })
+      ).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
+    );
+
+    expect(exit._tag).toBe('Failure');
+  });
+
+  it('fails with DebugLevelCreateError when tooling.create rejects', async () => {
+    const { layer } = buildToolingMutationLayer({
+      create: jest.fn(async () => {
+        throw new Error('boom');
+      })
+    });
+
+    const exit = await Effect.runPromiseExit(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const svc = yield* TraceFlagService;
+          return yield* svc.createDebugLevel({ DeveloperName: 'X', MasterLabel: 'X' });
+        })
+      ).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
+    );
+
+    expect(exit._tag).toBe('Failure');
+  });
+});
+
+describe('TraceFlagService.deleteDebugLevel', () => {
+  beforeEach(async () => {
+    await Effect.runPromise(clearDefaultOrgRef());
+  });
+
+  it('forwards the id to tooling.delete', async () => {
+    const { layer, deleteSpy } = buildToolingMutationLayer({});
+
+    await runScoped(
+      Effect.gen(function* () {
+        const svc = yield* TraceFlagService;
+        yield* svc.deleteDebugLevel('dl-9');
+      }),
+      layer
+    );
+
+    expect(deleteSpy).toHaveBeenCalledWith('DebugLevel', 'dl-9');
+  });
+
+  it('fails with DebugLevelDeleteError when tooling.delete rejects', async () => {
+    const { layer } = buildToolingMutationLayer({
+      delete: jest.fn(async () => {
+        throw new Error('nope');
+      })
+    });
+
+    const exit = await Effect.runPromiseExit(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const svc = yield* TraceFlagService;
+          yield* svc.deleteDebugLevel('dl-9');
+        })
+      ).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
+    );
+
+    expect(exit._tag).toBe('Failure');
+  });
+});
