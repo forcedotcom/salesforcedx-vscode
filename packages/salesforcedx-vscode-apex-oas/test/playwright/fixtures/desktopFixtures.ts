@@ -32,6 +32,17 @@ export const oasDesktopTest = createDesktopTest({
   }
 });
 
+// TODO: Unskip when OAS migrates off the A4V LLM service. A4V v4.0+ ("Agentforce Vibes",
+// marketplace id salesforce.salesforcedx-einstein-gpt, published 2026-06-13) dropped both the
+// `salesforcedx-einstein-gpt.isEnabled` context key (gates the OAS command's visibility) and the
+// `salesforcedx-einstein-gpt.getLLMServiceInstance` command / LLMService registration that OAS
+// generation invokes at runtime. The fixture installs A4V unpinned from the marketplace, so every
+// run now gets v4 and these specs hang waiting on a command that never appears. Skipping here (one
+// place — all 9 specs share this fixture) keeps CI green until OAS re-plumbs its LLM access.
+oasDesktopTest.beforeEach(() => {
+  oasDesktopTest.skip(true, 'A4V v4 removed the einstein-gpt isEnabled context key and LLMService — OAS commands unavailable');
+});
+
 // Match metadata specs: close editors at end so the next test starts clean and final state is tidy.
 oasDesktopTest.afterEach(async ({ page }) => {
   if (!page) return;

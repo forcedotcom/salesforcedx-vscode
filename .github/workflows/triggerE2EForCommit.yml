@@ -32,7 +32,7 @@ jobs:
 
   # apex-run-tests: migrated to Playwright in apexTestingE2E.yml (runApexTestsCommandPalette/CodeLens/FailAndFix.headless.spec.ts)
 
-  # apex-debug-tests: removed (flaky on Apex LS code lens timing); migrating to Playwright
+  # apex-debug-tests: migrated to Playwright in apexReplayDebuggerE2E.yml (debugApexTests.desktop.spec.ts) — W-22968398
 
   # apex-trail-replay-debugger: migrated to Playwright in apexReplayDebuggerE2E.yml (checkpoints.desktop.spec.ts) — W-21368925
 
