@@ -9,4 +9,4 @@ import type { Connection } from '@salesforce/core';
 export type QueryResult<T> = Awaited<ReturnType<Connection['query']>> & {
   records: T[];
 };
-export type DescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
+export type { DescribeSObjectResult } from 'salesforcedx-vscode-services';
