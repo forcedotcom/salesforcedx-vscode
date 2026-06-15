@@ -372,14 +372,16 @@
         "salesforcedx-vscode-metadata.extensionLevelNotifications": {
           "type": "string",
           "enum": [
-            "off",
-            "statusBar",
-            "toast"
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
           ],
           "enumDescriptions": [
-            "%notifications_off_description%",
-            "%notifications_status_bar_description%",
-            "%notifications_toast_description%"
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
           ],
           "description": "%extension_level_notifications_description%"
         },
@@ -390,126 +392,144 @@
             "SFDX: Deploy This Source to Org": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_deploy_this_source_description%"
             },
             "SFDX: Retrieve This Source from Org": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_retrieve_this_source_description%"
             },
             "SFDX: Push Source to Default Org": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_push_source_description%"
             },
             "SFDX: Pull Source from Default Org": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_pull_source_description%"
             },
             "SFDX: Deploy Source in Manifest to Org": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_deploy_source_in_manifest_description%"
             },
             "SFDX: Retrieve Source in Manifest from Org": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_retrieve_source_in_manifest_description%"
             },
             "SFDX: Delete from Project and Org": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_delete_from_project_and_org_description%"
             },
             "SFDX: Diff Source Against Org": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_diff_source_description%"
             },
             "Deploy on Save": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_deploy_on_save_description%"
             }

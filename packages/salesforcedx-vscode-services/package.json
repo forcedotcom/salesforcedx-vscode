@@ -346,16 +346,18 @@
         "salesforcedx-vscode-services.notifications": {
           "type": "string",
           "enum": [
-            "off",
-            "statusBar",
-            "toast"
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
           ],
           "enumDescriptions": [
-            "%notifications.off.description%",
-            "%notifications.statusBar.description%",
-            "%notifications.toast.description%"
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
           ],
-          "default": "toast",
+          "default": "progressToastSuccessToast",
           "description": "%notifications.description%"
         }
       }
