@@ -33,6 +33,16 @@ export class MixedFrameworksNotAllowed extends Data.TaggedError('MixedFrameworks
   readonly message: string;
 }> {}
 
+/** The REST generation path is turned off via the `enableRestOASGen` setting. @ExportTaggedError */
+export class RestOASGenerationDisabled extends Data.TaggedError('RestOASGenerationDisabled')<{
+  readonly message: string;
+}> {}
+
+/** Whether REST (@RestResource) OpenAPI generation is enabled. Off by default — it depends on an external
+ * AI model service that has proven unreliable; AuraEnabled generation is unaffected. */
+const isRestOASGenEnabled = (): boolean =>
+  vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex-oas.enableRestOASGen', false);
+
 /**
  * Creates an OpenAPI Document.
  */
@@ -58,11 +68,15 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
     });
   }
 
-  // Step 2.7 (REST path only): the REST strategy calls an LLM. Require that an LLM service can be obtained
-  // from the service provider before starting — whatever extension provides it. Failing here (rather than
-  // midway through generation) surfaces the service-provider cause up front. The AuraEnabled path generates
-  // from the org connection alone and needs no LLM, so it skips this.
+  // Step 2.7 (REST path only): the REST strategy calls an LLM. It is gated behind the `enableRestOASGen`
+  // setting (off by default) because it depends on an external AI model service; when disabled, fail with a
+  // clear message. When enabled, require that an LLM service can be obtained from the service provider before
+  // starting — whatever extension provides it — so the cause surfaces up front rather than midway through
+  // generation. The AuraEnabled path generates from the org connection alone and skips both checks.
   if (hasValidRestAnnotations(context)) {
+    if (!isRestOASGenEnabled()) {
+      return yield* new RestOASGenerationDisabled({ message: nls.localize('rest_oas_gen_disabled') });
+    }
     yield* LLMService.ensureAvailable();
   }
 

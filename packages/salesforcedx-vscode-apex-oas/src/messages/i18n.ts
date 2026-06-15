@@ -64,6 +64,8 @@ export const messages = {
   operation_cancelled: 'Operation canceled',
   overwrite: 'Overwrite',
   registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
+  rest_oas_gen_disabled:
+    'OpenAPI document generation for Apex REST (@RestResource) classes is disabled. Enable the "salesforcedx-vscode-apex-oas.enableRestOASGen" setting to use it. AuraEnabled classes are not affected.',
   select_folder_for_oas: 'Select folder to store OpenAPI Document',
   strategy_not_qualified: 'No generation strategy is qualified for the selected class or method.',
   validation_failed: 'Failed to validate eligibility.'

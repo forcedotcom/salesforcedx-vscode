@@ -39,6 +39,7 @@ This extension contributes the following settings:
 - `salesforcedx-vscode-apex-oas.generation_strategy`: Strategy for OAS generation (default: `"LEAST_CALLS"`)
 - `salesforcedx-vscode-apex-oas.generation_include_schema`: Include OpenAPI schema in generation (default: `false`)
 - `salesforcedx-vscode-apex-oas.generation_output_token_limit`: Maximum number of tokens for generation output (default: `750`)
+- `salesforcedx-vscode-apex-oas.enableRestOASGen`: Enable OpenAPI document generation for Apex REST (`@RestResource`) classes (default: `false`). Disabled by default because it depends on an external AI model service; AuraEnabled classes are unaffected.
 
 ## Dependencies
 
