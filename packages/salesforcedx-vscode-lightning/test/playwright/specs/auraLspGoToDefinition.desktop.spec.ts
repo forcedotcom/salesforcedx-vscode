@@ -29,18 +29,14 @@ import { goToLineCol, waitForAuraLspReady } from '../utils/auraLspUtils';
 // `reloadWindow` workaround is needed. Go to Definition here is WITHIN-file: ref site L8
 // `{!v.simpleNewContact}` → def site L3 `<aura:attribute name="simpleNewContact" …/>`.
 //
-// fixme(W-22973351): disabled because the PACKAGED Aura Language Server does not resolve this
-// definition at runtime. With the aura1 bundle as authored, `onDefinition` for the L8 body binding
-// deterministically returns no result ("No definition found"), and VS Code then parks the cursor at
-// end-of-document (`Ln 10, Col 18`). Reproduced on both CI (1.116.0; mac/ubuntu/windows) and locally
-// (1.124.2), and unaffected by retries, content edits/saves, or re-seating the cursor — so it is not
-// a host-version difference or an LSP-readiness race. The unit-tested source util
-// `getAuraBindingTemplateDeclaration` DOES resolve the same binding offline (L8 cols 7–24 → the L3
-// `name`-attribute value range), so the gap is in the shipped server's HTML parse of the `<aura:if>`
-// body when the Aura tag data provider is installed (`auraServer.setDataProviders` /
-// `getAuraTagProvider`), not in this test. Autocompletion (the other migrated WDIO case) keeps live
-// Aura LSP desktop coverage green. Re-enable once the server resolves the binding under test.
-test.fixme('Aura LSP: go to definition', async ({ page }) => {
+// The Go to Definition command MUST run with `preserveSelection: true`. Without it,
+// `openCommandPalette` clicks the workbench center to grab keyboard focus before F1; for this
+// 10-line file the editor center is below the last line, so VS Code re-parks the cursor at
+// end-of-document and the LSP then receives `onDefinition` at end-of-doc — where there is no
+// binding — returning "No definition found" (cursor ends at `Ln 10, Col 18`). The packaged server
+// resolves the L8 binding correctly when the request fires at 8:15. `preserveSelection` skips that
+// focus-click (and the selection-clearing Escape), keeping the cursor where the test placed it.
+test('Aura LSP: go to definition', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -75,8 +71,10 @@ test.fixme('Aura LSP: go to definition', async ({ page }) => {
     // no Ctrl+Click (apex used Ctrl+Click only for its cross-file nav). LSP readiness already
     // synced by `waitForAuraLspReady`. Use the command palette (lwcLspGoToDefinitionHtml precedent)
     // rather than F12, which is more host/environment-sensitive (can be intercepted as a global
-    // shortcut).
-    await executeCommandWithCommandPalette(page, 'Go to Definition');
+    // shortcut). `preserveSelection` keeps the 8:15 cursor placed above — otherwise the palette's
+    // workbench focus-click re-parks the cursor at end-of-document (below the last line of this
+    // 10-line file) and Go to Definition resolves nothing.
+    await executeCommandWithCommandPalette(page, 'Go to Definition', undefined, { preserveSelection: true });
 
     // PRIMARY: the VS Code status-bar selection item reports the cursor position. The Aura LS
     // resolves the def to the `simpleNewContact` name-attribute value range on L3
