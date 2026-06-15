@@ -36,7 +36,42 @@ _Note_ for developers that are employed by Salesforce telemetry can not be disab
 
 ## Live QA
 
-If you want to see stuff hitting telemery (o11y, appinsights, pft, etc) from locally bundled extensions, you have to take it out of DevMode. Search for `isDevMode` in the codebase...and manually make that `false`.
+**Dev Mode Protection**: By default, telemetry is blocked when running extensions in Development mode (Extension Host) to prevent polluting production App Insights data. 
+
+To enable telemetry during development:
+
+1. **Option 1 (Recommended)**: Enable the dev mode override setting:
+   ```json
+   {
+     "salesforcedx-vscode-core.telemetry.allowDevMode": true
+   }
+   ```
+
+2. **Option 2**: Install the extension from a VSIX file (runs in Production mode automatically)
+
+## Debugging Telemetry Export
+
+To observe telemetry export in action:
+
+1. **Application Insights exporter**: Set Effect log level to Debug to see `ApplicationInsightsNodeExporter` debug logs (batch export status, per-span sends, errors). See [Debugging Custom Events Export Flow](../packages/salesforcedx-vscode-services/src/observability/README.md#debugging-custom-events-export-flow) for details.
+2. **Full OTEL span tracing**: Enable `salesforcedx-vscode-salesforcedx.enableConsoleTraces` in VS Code settings to see all application spans
+3. **Complete setup guide**: See [Local Debugging](../packages/salesforcedx-vscode-services/src/observability/README.md#local-debugging) in the observability docs
+
+## Configuring OTEL Connection String
+
+To route spans to a specific Azure App Insights instance, configure your extension's `package.json`:
+
+```json
+{
+  "otelConnectionString": "InstrumentationKey=your-key;IngestionEndpoint=https://...",
+  "aiKey": "optional-fallback-for-legacy-code"
+}
+```
+
+Resolution precedence:
+1. `otelConnectionString` — dedicated OTEL field (preferred)
+2. `aiKey` — legacy field; bare UUIDs auto-normalized
+3. Default — built-in instrumentation key
 
 ## Logging telemetry to a file
 
