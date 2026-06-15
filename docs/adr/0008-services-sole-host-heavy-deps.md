@@ -1,6 +1,6 @@
 # The services extension is the intended sole host of heavy Salesforce deps
 
-The target is that `salesforcedx-vscode-services` is the only extension that declares the heavy Salesforce libraries (`@salesforce/core`, source-deploy-retrieve, source-tracking, jsforce) as runtime `dependencies`; other extensions work *through* the services API and keep these out of their runtime deps (devDependencies for tests are fine). Motivation: a single API abstraction, shared stateful singletons, web compatibility, and bundle size — every extension ships its own copy of its deps ([Extensions.md](../architecture/Extensions.md) "dependencies"), and jsforce is large.
+`salesforcedx-vscode-services` should be the only extension declaring the heavy Salesforce libraries (`@salesforce/core`, source-deploy-retrieve, source-tracking, jsforce) as runtime `dependencies`; other extensions work *through* the services API and keep these out of their runtime deps (devDependencies for tests are fine). Motivation: a single API abstraction, shared stateful singletons, web compatibility, and bundle size — every extension ships its own copy of its deps ([Extensions.md](../architecture/Extensions.md) "dependencies"), and jsforce is large.
 
 ## Status
 
