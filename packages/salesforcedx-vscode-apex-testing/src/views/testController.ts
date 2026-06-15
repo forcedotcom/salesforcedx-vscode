@@ -8,7 +8,7 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { FileResponse, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -1647,20 +1647,10 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
   return classPath.slice(0, -4).replaceAll('/', '.');
 };
 
-// Runtime defense-in-depth: `result` originates at runtime from SDR `pollStatus()` and SDR is a
-// floating dependency, so a malformed shape must degrade to `undefined` (skip the optional editor
-// open) rather than throw — the caller treats this path as best-effort.
-const safeGetFileResponses = (result: RetrieveResult): FileResponse[] => {
-  try {
-    return result.getFileResponses();
-  } catch {
-    return [];
-  }
-};
-
 const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
-  const responses = safeGetFileResponses(result);
-  const filePath = responses.find(r => typeof r.filePath === 'string' && r.filePath.length > 0)?.filePath;
+  const filePath = result
+    .getFileResponses()
+    .find(r => typeof r.filePath === 'string' && r.filePath.length > 0)?.filePath;
   return filePath ? URI.file(filePath) : undefined;
 };
 
