@@ -242,7 +242,7 @@ from Atlassian on the flow. These steps are manual because you might encounter m
       For `bugs` the url is `https://github.com/forcedotcom/salesforcedx-vscode/issues`
       For `repository` the url is `https://github.com/forcedotcom/salesforcedx-vscode`
    3. Scripts: modern packages use wireit; see [Build](../docs/Build.md) and
-      [vsce-direct-use](./decisions/vsce-direct-use.md). Legacy packages need
+      [vsce-direct-use](../docs/adr/0018-vsce-package-directly.md). Legacy packages need
       `vscode:prepublish`, `vscode:package:legacy`. All need `vscode:sha256` and
       `vscode:publish`.
 
