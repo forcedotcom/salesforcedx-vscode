@@ -287,8 +287,8 @@ const buildToolingMutationLayer = (opts: {
   create?: CreateSpy;
   delete?: DeleteSpy;
 }): { layer: Layer.Layer<ConnectionService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
-  const createSpy: CreateSpy = opts.create ?? jest.fn(async () => ({ success: true, id: 'dl-new' }));
-  const deleteSpy: DeleteSpy = opts.delete ?? jest.fn(async () => ({ success: true }));
+  const createSpy: CreateSpy = opts.create ?? jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-new' }));
+  const deleteSpy: DeleteSpy = opts.delete ?? jest.fn(async (_type, _id) => ({ success: true }));
   const layer = Layer.succeed(
     ConnectionService,
     ConnectionService.make({
@@ -309,9 +309,22 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('returns the created id and forwards the payload to tooling.create', async () => {
     const { layer, createSpy } = buildToolingMutationLayer({
-      create: jest.fn(async () => ({ success: true, id: 'dl-123' }))
+      create: jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-123' }))
     });
-    const payload = { DeveloperName: 'Custom', MasterLabel: 'Custom', ApexCode: 'FINEST' };
+    const payload = {
+      DeveloperName: 'Custom',
+      MasterLabel: 'Custom',
+      ApexCode: 'FINEST' as const,
+      ApexProfiling: 'NONE' as const,
+      Callout: 'NONE' as const,
+      Database: 'NONE' as const,
+      Nba: 'NONE' as const,
+      System: 'NONE' as const,
+      Validation: 'NONE' as const,
+      Visualforce: 'NONE' as const,
+      Wave: 'NONE' as const,
+      Workflow: 'NONE' as const
+    };
 
     const id = await runScoped(
       Effect.gen(function* () {
@@ -327,14 +340,27 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('fails with DebugLevelCreateError when create returns no id', async () => {
     const { layer } = buildToolingMutationLayer({
-      create: jest.fn(async () => ({ success: true }))
+      create: jest.fn(async (_type, _payload) => ({ success: true }))
     });
 
     const exit = await Effect.runPromiseExit(
       Effect.scoped(
         Effect.gen(function* () {
           const svc = yield* TraceFlagService;
-          return yield* svc.createDebugLevel({ DeveloperName: 'X', MasterLabel: 'X' });
+          return yield* svc.createDebugLevel({
+            DeveloperName: 'X',
+            MasterLabel: 'X',
+            ApexCode: 'NONE',
+            ApexProfiling: 'NONE',
+            Callout: 'NONE',
+            Database: 'NONE',
+            Nba: 'NONE',
+            System: 'NONE',
+            Validation: 'NONE',
+            Visualforce: 'NONE',
+            Wave: 'NONE',
+            Workflow: 'NONE'
+          });
         })
       ).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
     );
@@ -344,7 +370,7 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('fails with DebugLevelCreateError when tooling.create rejects', async () => {
     const { layer } = buildToolingMutationLayer({
-      create: jest.fn(async () => {
+      create: jest.fn(async (_type, _payload) => {
         throw new Error('boom');
       })
     });
@@ -353,7 +379,20 @@ describe('TraceFlagService.createDebugLevel', () => {
       Effect.scoped(
         Effect.gen(function* () {
           const svc = yield* TraceFlagService;
-          return yield* svc.createDebugLevel({ DeveloperName: 'X', MasterLabel: 'X' });
+          return yield* svc.createDebugLevel({
+            DeveloperName: 'X',
+            MasterLabel: 'X',
+            ApexCode: 'NONE',
+            ApexProfiling: 'NONE',
+            Callout: 'NONE',
+            Database: 'NONE',
+            Nba: 'NONE',
+            System: 'NONE',
+            Validation: 'NONE',
+            Visualforce: 'NONE',
+            Wave: 'NONE',
+            Workflow: 'NONE'
+          });
         })
       ).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
     );
@@ -383,7 +422,7 @@ describe('TraceFlagService.deleteDebugLevel', () => {
 
   it('fails with DebugLevelDeleteError when tooling.delete rejects', async () => {
     const { layer } = buildToolingMutationLayer({
-      delete: jest.fn(async () => {
+      delete: jest.fn(async (_type, _id) => {
         throw new Error('nope');
       })
     });
