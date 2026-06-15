@@ -21,6 +21,11 @@ const SfTelemetryResultSchema = Schema.Struct({
   })
 });
 
+class FetchCliIdError extends Schema.TaggedError<FetchCliIdError>()('FetchCliIdError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
+
 const fetchCliIdFromCli = () => {
   const command = 'sf telemetry --json';
   return Effect.tryPromise({
@@ -30,7 +35,7 @@ const fetchCliIdFromCli = () => {
       const execAsync = promisify(exec);
       return execAsync(command, { env: { ...process.env, NO_COLOR: '1' } });
     },
-    catch: e => e
+    catch: cause => new FetchCliIdError({ message: `Failed to run ${command}`, cause })
   }).pipe(
     Effect.tap(output => Effect.log(`sf telemetry output: ${output.stdout}`)),
     Effect.tapError(error => Effect.log(`sf telemetry error: ${String(error)}`)),
@@ -43,10 +48,11 @@ const fetchCliIdFromCli = () => {
   );
 };
 
-/** Get the CLI ID from sf telemetry. Cached permanently. Returns Option.none() on web or when CLI unavailable. */
-export const getCliId = () =>
-  (process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed<CliId | undefined>(undefined) : fetchCliIdFromCli()).pipe(
-    Effect.cached,
-    Effect.flatten,
-    Effect.map(Option.fromNullable)
-  );
+const cliIdEffect =
+  process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed<CliId | undefined>(undefined) : fetchCliIdFromCli();
+
+// memo wrapper built once at module scope; the inner sf telemetry effect runs at most once per session and is shared across all getCliId() calls
+const cachedCliId = Effect.runSync(Effect.cached(cliIdEffect));
+
+/** Get the CLI ID from sf telemetry. Memoized at module scope so the CLI runs once per session. Returns Option.none() on web or when CLI unavailable. */
+export const getCliId = () => cachedCliId.pipe(Effect.map(Option.fromNullable));
