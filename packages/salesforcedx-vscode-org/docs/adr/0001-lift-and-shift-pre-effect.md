@@ -1,0 +1,3 @@
+# The org extension is a lift-and-shift out of core, not yet Effect/services style
+
+`salesforcedx-vscode-org` was extracted from `salesforcedx-vscode-core` as a straight port — pre-Effect patterns were carried over verbatim and it still declares `@salesforce/core` in its runtime `dependencies` rather than routing heavy deps through the services API (consistent with [root ADR-0008](../../../../docs/adr/0008-services-sole-host-heavy-deps.md) marking org as not-migrated). Recorded so nobody moves it back into core and nobody copies the non-idiomatic code or the bundled `@salesforce/core` copy as a pattern — it is known debt with an end state of Effect + services style (deps routed through services).
