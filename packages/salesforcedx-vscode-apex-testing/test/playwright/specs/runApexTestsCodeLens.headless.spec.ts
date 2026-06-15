@@ -24,7 +24,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../contants';
+import { TEST_RUN_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 
 // salesforcedx-vscode-apex (which provides the Run All Tests / Run Test code lenses) has no

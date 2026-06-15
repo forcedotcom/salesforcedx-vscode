@@ -14,3 +14,4 @@ Save tokens and preserve context window.
 - remove words without altering meaning
 - cut repetition
 - prefer shorter synonyms
+- use numerals (4 not four)

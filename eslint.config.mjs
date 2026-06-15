@@ -559,12 +559,37 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
+      'jest/no-deprecated-functions': 'error',
       'jest/no-focused-tests': 'error',
+      'jest/prefer-to-have-length': 'error',
+      'jest/no-standalone-expect': 'error',
+      'jest/valid-describe-callback': 'error',
+      'jest/prefer-to-be': 'error',
+      'jest/prefer-to-contain': 'error',
+      'jest/no-test-prefixes': 'error',
+      'jest/no-identical-title': 'error',
       '@typescript-eslint/no-var-requires': 'off',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
       'no-param-reassign': 'off',
       'local/no-duplicate-playwright-locators': 'error'
+    }
+  },
+  {
+    // Playwright tests run in the test-runner/browser, not the extension host, so the
+    // `vscode` module is absent and a runtime import fails. Scoped to playwright-only
+    // dirs (jest/unit tests in the block above legitimately import vscode at runtime).
+    files: [
+      'packages/salesforcedx**/test/playwright/**/*',
+      'packages/salesforcedx-vscode-automation-tests/**/*',
+      'packages/playwright-vscode-ext/**/*.ts'
+    ],
+    ignores: ['**/locators.ts'],
+    plugins: {
+      local: localPlugin
+    },
+    rules: {
+      'local/no-runtime-vscode-import': 'error'
     }
   },
   {
@@ -598,6 +623,7 @@ export default [
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
@@ -660,6 +686,7 @@ export default [
   {
     // class-methods-use-this for packages not yet using Effect
     files: [
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
       'packages/soql-common/**/*.ts'
@@ -721,7 +748,9 @@ export default [
       'functional/no-let': 'off',
       'functional/no-loop-statements': 'off',
       'functional/prefer-property-signatures': 'off',
-      'import/no-extraneous-dependencies': 'off'
+      'import/no-extraneous-dependencies': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/array-type': 'off'
     }
   },
   // i18n TS plugin - node:fs; type assertions; triple-slash for tsserverlibrary

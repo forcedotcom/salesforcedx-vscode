@@ -34,7 +34,7 @@ describe('formatQueryPlanResults', () => {
     const result = formatQueryPlanResults(response);
 
     const matches = result.match(/Not considering filter/g) ?? [];
-    expect(matches.length).toBe(1);
+    expect(matches).toHaveLength(1);
   });
 
   it('keeps distinct notes', () => {

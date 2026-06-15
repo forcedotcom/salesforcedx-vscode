@@ -134,6 +134,6 @@ describe('declarationsFromCustomLabels', () => {
 `;
 
     const typings: string = await declarationsFromCustomLabels(xmlDocument);
-    expect(typings).toEqual('');
+    expect(typings).toBe('');
   });
 });

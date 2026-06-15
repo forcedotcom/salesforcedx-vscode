@@ -47,6 +47,7 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
   // Apex code-lens provider (provideCodeLenses) fires on file open even in headless/no-org tests; VS Code surfaces two console errors for the same underlying cause:
   'No default org is set', // specific message from WorkspaceContextUtil.getConnection
+  'No target org configured', // NoTargetOrgConfiguredError from salesforcedx-vscode-services (no-org workspace)
   'An unknown error occurred. Please consult the log for more details.', // VS Code workbench generic wrapper around the same no-org error
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)
   'callback must be a function', // memfs/Volume API compatibility issue on web (non-critical),
@@ -69,8 +70,16 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   // toast. Benign in E2E — tests don't use VS Code accounts.
   'Sign-in failed',
   'Channel is closed',
+  // Bundled A4V (salesforcedx-einstein-gpt) checks the EGPT-for-developers entitlement on default-org
+  // change by fetching a JWT. Scratch orgs used in E2E lack that entitlement, so the check fails and the
+  // extension logs these. Benign here — OAS generation doesn't depend on EGPT and the org auth is valid.
+  'Error creating JWT for', // JwtTokenService failure for the connected scratch org
+  'Unknown JWT Error identified', // A4V handleActivationError wrapping the JWT failure
+  'access your Salesforce org', // UnknownJwtError user-facing message surfaced by A4V (apostrophe-agnostic substring)
   'GenOpAgentConfig', // VS Code 1.119+ registry warning for unreleased agent config type (non-critical)
   'DEP0005', // Node.js Buffer() deprecation warning from transitive dependencies (non-critical)
+  'UtilityProcessWorker', // Electron utility process worker SIGSEGV/code-11 noise on macOS desktop tests
+  'File Watcher (universal)', // VS Code file watcher restarts after the worker crash above (paired noise)
   'DEP0169', // Node.js url.parse() deprecation warning from transitive dependencies (non-critical)
   // VS Code 1.119+ web: workbench tries to instantiate agentHostSandboxForwarder which requires a
   // remote connection that doesn't exist in @vscode/test-web. Tracked upstream:

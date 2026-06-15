@@ -8,7 +8,8 @@
   "overrides": {
     "wireit": {
       "brace-expansion": "4.0.1"
-    }
+    },
+    "playwright-core": "1.60.0"
   },
   "engines": {
     "node": ">=22.15.1"
@@ -18,7 +19,7 @@
     "@actions/github": "^6.0.0",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/vscode-service-provider": "1.5.0",
-    "jsforce": "^3.10.10",
+    "jsforce": "^3.10.16",
     "memfs": "^4.32.0",
     "node": "^22.19.0",
     "npm": "^10",
@@ -37,7 +38,7 @@
     "@html-eslint/parser": "0.59.0",
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
-    "@playwright/test": "^1.49.0",
+    "@playwright/test": "^1.60.0",
     "@salesforce/apex-tmlanguage": "^2.0.3",
     "@salesforce/dev-config": "^4.3.2",
     "@salesforce/salesforcedx-vscode-test-tools": "*",
@@ -101,7 +102,7 @@
     "os-browserify": "0.3.0",
     "ovsx": "0.10.7",
     "path-browserify": "^1.0.1",
-    "playwright": "^1.49.0",
+    "playwright": "^1.60.0",
     "prettier": "3.8.3",
     "pretty-quick": "4.2.2",
     "process": "0.11.10",

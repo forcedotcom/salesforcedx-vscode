@@ -42,6 +42,6 @@ describe('orgOnlyRetrieveCodeLensProvider', () => {
       { language: 'apex', scheme: 'apex-testing' },
       expect.objectContaining({ provideCodeLenses: expect.any(Function) })
     );
-    expect(context.subscriptions.length).toBe(1);
+    expect(context.subscriptions).toHaveLength(1);
   });
 });
