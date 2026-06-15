@@ -15,7 +15,7 @@
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
@@ -73,9 +73,10 @@ const waitForJestResults = async (workspaceDir: string, afterMs: number, timeout
 /** Focus the Test Explorer view and refresh test items. */
 const openAndRefreshTestExplorer = async (page: Page): Promise<void> => {
   await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
-  await page.waitForTimeout(2000);
   await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
-  await page.waitForTimeout(3000);
+  // Tree populated with the lwc1 item = discovery done (all callers create lwc1 first).
+  // toBeVisible polls internally, so no waitForTimeout / toPass wrapper is needed.
+  await expect(testItem(page, 'lwc1')).toBeVisible({ timeout: 30_000 });
 };
 
 // ---------------------------------------------------------------------------

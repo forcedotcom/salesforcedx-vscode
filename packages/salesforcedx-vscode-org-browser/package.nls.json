@@ -24,8 +24,9 @@
   "configuration_title": "Salesforce Org Browser Configuration",
   "extension_level_notifications_description": "Notification style for all Org Browser commands. Overrides the global salesforcedx-vscode-services.notifications setting. Individual commands can be further overridden in salesforcedx-vscode-org-browser.commandLevelNotifications.",
   "command_level_notifications_description": "Notification style for each Org Browser command. Overrides the global salesforcedx-vscode-services.notifications and extension-level salesforcedx-vscode-org-browser.extensionLevelNotifications settings.",
-  "notifications_off_description": "No success notifications. Progress spinner shown in the status bar.",
-  "notifications_status_bar_description": "Show progress spinner and success message in the status bar.",
-  "notifications_toast_description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
+  "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
+  "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
   "notifications_retrieve_metadata_description": "Notification style for Retrieve Metadata."
 }

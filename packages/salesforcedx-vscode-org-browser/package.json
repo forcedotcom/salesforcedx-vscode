@@ -393,14 +393,16 @@
         "salesforcedx-vscode-org-browser.extensionLevelNotifications": {
           "type": "string",
           "enum": [
-            "off",
-            "statusBar",
-            "toast"
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
           ],
           "enumDescriptions": [
-            "%notifications_off_description%",
-            "%notifications_status_bar_description%",
-            "%notifications_toast_description%"
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
           ],
           "description": "%extension_level_notifications_description%"
         },
@@ -411,14 +413,16 @@
             "Retrieve Metadata": {
               "type": "string",
               "enum": [
-                "off",
-                "statusBar",
-                "toast"
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
               ],
               "enumDescriptions": [
-                "%notifications_off_description%",
-                "%notifications_status_bar_description%",
-                "%notifications_toast_description%"
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_retrieve_metadata_description%"
             }

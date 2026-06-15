@@ -159,6 +159,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
 - [TerminalService](references/terminal-service.md) - Run shell commands (desktop-only)
+- [NotificationModeApi](references/notification-mode-api.md) - Configurable success notifications
 
 ## Watchers
 

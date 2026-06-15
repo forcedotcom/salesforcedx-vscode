@@ -17,6 +17,10 @@ We want to defer activation where possible to improve performance.
 `salesforcedx-vscode-core` because it's used by all the other extensions as a runtime dependency
 `salesforcedx-vscode-apex` because `jorje` is so slow to start that we don't want users to wait. Once we're all-in on the new LS we can reconsider this behavior
 
+### defer to on-demand activation
+
+`salesforcedx-vscode-apex-oas` activates when its commands are run; no eager activation
+
 ### automatically start when a relevant file is open
 
 these extensions have a language in their `contributes` and run whenever an associated file is opened

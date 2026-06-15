@@ -37,6 +37,7 @@ import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
+import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { TerminalService } from './terminal/terminalService';
@@ -46,6 +47,7 @@ import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStor
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
+import { watchEsrDecomposedContext, watchMuleDxApiInactiveContext } from './vscode/contextKeyWatchers';
 import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
@@ -53,6 +55,7 @@ import { watchLwcAuraExtensionActivation } from './vscode/extensionActivator';
 import { setExtensionContext } from './vscode/extensionContext';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
+import { ExtensionsService } from './vscode/extensionsService';
 import { FileChangePubSub } from './vscode/fileChangePubSub';
 import { FileWatcherLayer } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
@@ -129,6 +132,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     ProjectService: typeof ProjectService;
+    getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: typeof SdkLayerFor;
     SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
@@ -249,6 +253,10 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       Effect.forkIn(watchApexTestContext(), scope),
       // watch active editor to activate LWC/Aura extensions on demand
       Effect.forkIn(watchLwcAuraExtensionActivation(), scope),
+      // own sf:muleDxApiInactive context (was set once in apex-oas, now reactive)
+      Effect.forkIn(watchMuleDxApiInactiveContext(), scope),
+      // own sf:is_esr_decomposed context, react to sfdx-project.json changes
+      Effect.forkIn(watchEsrDecomposedContext(), scope),
       // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
       Effect.forkIn(watchAliasFile(), scope)
     ],
@@ -318,6 +326,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     TemplateService.Default,
     ExtensionContextService.Default,
     ExecuteAnonymousService.Default,
+    ExtensionsService.Default,
     FileChangePubSub.Default,
     ApexLogService.Default,
     ComponentSetService.Default,
@@ -389,6 +398,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataRegistryService,
       MetadataRetrieveService,
       ProjectService,
+      getSdkLayerConfigFromContext,
       SdkLayerFor,
       SettingsChangePubSub,
       SettingsService,

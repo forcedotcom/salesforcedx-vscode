@@ -559,6 +559,7 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
+      'jest/no-deprecated-functions': 'error',
       'jest/no-focused-tests': 'error',
       'jest/prefer-to-have-length': 'error',
       'jest/no-standalone-expect': 'error',
@@ -622,6 +623,7 @@ export default [
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
@@ -684,6 +686,7 @@ export default [
   {
     // class-methods-use-this for packages not yet using Effect
     files: [
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
       'packages/soql-common/**/*.ts'
@@ -745,7 +748,9 @@ export default [
       'functional/no-let': 'off',
       'functional/no-loop-statements': 'off',
       'functional/prefer-property-signatures': 'off',
-      'import/no-extraneous-dependencies': 'off'
+      'import/no-extraneous-dependencies': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/array-type': 'off'
     }
   },
   // i18n TS plugin - node:fs; type assertions; triple-slash for tsserverlibrary
