@@ -8,6 +8,7 @@
 
 import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Runtime from 'effect/Runtime';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
@@ -17,6 +18,36 @@ import { parse as yamlParse } from 'yaml';
 import { OAS_EXTENSION_ID } from './constants';
 import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
 import { oasDiagnosticCollection, ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
+
+/** Reports a step message into an active progress notification. */
+export type ProgressReporter = (message: string) => Effect.Effect<void>;
+
+/**
+ * Runs `body` inside a non-cancellable VS Code progress notification, giving it a `report` callback to update
+ * the notification message per step. Without this, long operations (e.g. the REST LLM loop) show no sign of
+ * life between the folder prompt and the final toast. The notification closes when the Effect settles.
+ * @param title - The notification title shown for the whole operation.
+ * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
+ */
+export const withSteppedProgress = <A, E, R>(
+  title: string,
+  body: (report: ProgressReporter) => Effect.Effect<A, E, R>
+) =>
+  Effect.runtime<R>().pipe(
+    Effect.flatMap(runtime =>
+      Effect.async<A, E>(resume => {
+        void vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Notification, title, cancellable: false },
+          progress => {
+            const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
+            return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
+              resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+            });
+          }
+        );
+      })
+    )
+  );
 
 // REST annotation names that should be present on the class
 export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];

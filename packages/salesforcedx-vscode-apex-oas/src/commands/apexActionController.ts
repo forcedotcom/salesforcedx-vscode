@@ -22,7 +22,8 @@ import {
   hasMixedFrameworks,
   hasValidRestAnnotations,
   parseOASDocFromJson,
-  summarizeDiagnostics
+  summarizeDiagnostics,
+  withSteppedProgress
 } from '../oasUtils';
 import { LLMService } from '../services/llmService';
 import { ClassNotEligible, gatherContext, validateMetadata } from './metadataOrchestrator';
@@ -75,19 +76,29 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // Step 6: Check if the file already exists
   const fullPath = yield* pathExists(openApiFileName);
 
-  // Step 7: Use the strategy to generate the OAS
-  const openApiDocument = yield* strategy.generateOAS();
+  // Steps 7-9 run inside a progress notification so the user sees activity instead of dead air between
+  // accepting the folder and the final toast (the REST LLM loop alone can take tens of seconds).
+  const processedOasResult = yield* withSteppedProgress(nls.localize('generating_oas_progress_title', name), report =>
+    Effect.gen(function* () {
+      // Step 7: Use the strategy to generate the OAS
+      yield* report(nls.localize('generating_oas_progress_generating'));
+      const openApiDocument = yield* strategy.generateOAS();
 
-  // Step 8: Process the OAS document
-  const processedOasResult = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
-    context,
-    eligibleResult: eligibilityResult,
-    isRevalidation: false
-  });
+      // Step 8: Process the OAS document
+      yield* report(nls.localize('generating_oas_progress_processing'));
+      const result = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
+        context,
+        eligibleResult: eligibilityResult,
+        isRevalidation: false
+      });
 
-  // Step 9: Write OpenAPI Document to File
-  const isESRDecomposed = yield* checkIfESRIsDecomposed();
-  yield* generateEsrMD(isESRDecomposed, processedOasResult, fullPath);
+      // Step 9: Write OpenAPI Document to File
+      yield* report(nls.localize('generating_oas_progress_writing'));
+      const isESRDecomposed = yield* checkIfESRIsDecomposed();
+      yield* generateEsrMD(isESRDecomposed, result, fullPath);
+      return result;
+    })
+  );
 
   // Step 11: Gather metrics
   const overwrite = fullPath[0] === fullPath[1];
