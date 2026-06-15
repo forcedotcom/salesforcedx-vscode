@@ -1,23 +1,48 @@
-# 66.15.0 - June 10, 2026
+# 67.1.0 - June 17, 2026
 
 ## Added
 
-#### salesforcedx-vscode-metadata
+#### docs
 
-- We rewrote the **SFDX: Install Package** command to use the Tooling API directly, so it now works in Web Console without the Salesforce CLI. The command also shows cancellable progress while the install request is polling. ([PR #7369](https://github.com/forcedotcom/salesforcedx-vscode/pull/7369))
+- Route Effect spans to App Insights customEvents table - W-22815903 ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418))
 
-## Changed
+#### salesforcedx-utils-vscode
 
-#### salesforcedx-vscode-lwc
+- Route Effect spans to App Insights customEvents table - W-22815903 ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418))
 
-- You can now rename a Lightning Web Component in Web Console. ([PR #7371](https://github.com/forcedotcom/salesforcedx-vscode/pull/7371))
+- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+
+#### salesforcedx-vscode-apex
+
+- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+
+- Update Apex LSP jar for 262 language changes - W-21313831 ([PR #7435](https://github.com/forcedotcom/salesforcedx-vscode/pull/7435))
+
+#### salesforcedx-vscode-apex-oas
+
+- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+
+#### salesforcedx-vscode-automation-tests
+
+- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+
+#### salesforcedx-vscode-org
+
+- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+
+- Hide delete default org command when default org is not deletable - W-22168898 ([PR #7433](https://github.com/forcedotcom/salesforcedx-vscode/pull/7433))
+
+#### salesforcedx-vscode-services
+
+- Route Effect spans to App Insights customEvents table - W-22815903 ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418))
+
+- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+
+- Hide delete default org command when default org is not deletable - W-22168898 ([PR #7433](https://github.com/forcedotcom/salesforcedx-vscode/pull/7433))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex-log
+#### salesforcedx-vscode-org
 
-- We reduced the number of API calls used to query information related to trace flags. ([PR #7391](https://github.com/forcedotcom/salesforcedx-vscode/pull/7391))
+- Let apex test react to org change rather than calling refresh - W-22966425 ([PR #7448](https://github.com/forcedotcom/salesforcedx-vscode/pull/7448))
 
-#### salesforcedx-vscode-lwc
-
-- You can create a Lightning Web Component from the Explorer context menu, not only the Command Palette. Thanks to [@vsdragon626](https://github.com/vsdragon626) for the contribution! ([PR #7392](https://github.com/forcedotcom/salesforcedx-vscode/pull/7392))
