@@ -208,6 +208,7 @@ export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
 export type {
   DebugLevelCreateError,
+  DebugLevelDeleteError,
   TraceFlagCreateError,
   TraceFlagNotFoundError,
   TraceFlagUpdateError,
@@ -467,9 +468,11 @@ export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
 export {
+  CreateDebugLevelStruct,
   DebugLevelItemSchema,
   TraceFlagItemStruct,
   TraceFlagLogType,
+  type CreateDebugLevelPayload,
   type DebugLevelItem,
   type TraceFlagItem
 } from './core/schemas/traceFlagSchemas';

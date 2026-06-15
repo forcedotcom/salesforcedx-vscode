@@ -28,6 +28,11 @@ export class DebugLevelCreateError extends Schema.TaggedError<DebugLevelCreateEr
   cause: Schema.optional(Schema.Unknown)
 }) {}
 
+export class DebugLevelDeleteError extends Schema.TaggedError<DebugLevelDeleteError>()('DebugLevelDeleteError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
+
 export class UserIdNotFoundError extends Schema.TaggedError<UserIdNotFoundError>()('UserIdNotFoundError', {
   message: Schema.String
 }) {}
