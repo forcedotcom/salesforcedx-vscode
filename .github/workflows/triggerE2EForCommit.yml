@@ -16,13 +16,7 @@ jobs:
   # emptyWorkspaceSfdxCommands.desktop.spec.ts, createProject.desktop.spec.ts; org: orgCommands.desktop.spec.ts)
 
   # 🔧 Core Features
-  core-authentication:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'authentication.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion || vars.MAX_REDHAT_VSCODE_VERSION || 'latest' }}
-      runId: ${{ inputs.runId }}
+  # core-authentication: migrated to Playwright in orgE2E.yml (orgPicker.desktop.spec.ts)
 
   # core-create-project: migrated to Playwright in metadataE2E.yml (createProject.desktop.spec.ts)
 
