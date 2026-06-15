@@ -137,7 +137,9 @@ const nodeBuild = await build({
 const webConfigJson = await buildWebConfig();
 const browserDefine = {
   ...commonConfigBrowser.define,
-  'process.env.ESBUILD_WEB_CONFIG': webConfigJson ? `'${webConfigJson.replace(/'/g, "\\'")}'` : "'undefined'"
+  'process.env.ESBUILD_WEB_CONFIG': webConfigJson ? `'${webConfigJson.replace(/'/g, "\\'")}'` : "'undefined'",
+  // Inline ESBUILD_WEB_LOCAL so the web bundle can divert App Insights telemetry to localhost in local dev.
+  'process.env.ESBUILD_WEB_LOCAL': process.env.ESBUILD_WEB_LOCAL ? "'1'" : "'undefined'"
 };
 const browserBuild = await build({
   ...commonConfigBrowser,

@@ -119,11 +119,32 @@ const exportSpan = (span: ReadableSpan) =>
 
     yield* Effect.try({
       try: () =>
-        success
-          ? getWebAppInsightsReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
-          : getWebAppInsightsReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
+        process.env.ESBUILD_WEB_LOCAL === '1'
+          ? sendToLocalAppInsightsFile(span.name, success, props, measurements)
+          : success
+            ? getWebAppInsightsReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
+            : getWebAppInsightsReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
       catch: error => unknownToErrorCause(error)
     }).pipe(
       Effect.catchAll(error => Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause)))
     );
   });
+
+// Local-dev sink: POST the App Insights payload to the span file server instead of Azure (ESBUILD_WEB_LOCAL).
+// Shares the Node divert /v2.1/track endpoint; the server sorts web events from Breeze envelopes by shape.
+const APP_INSIGHTS_WEB_FILE_SERVER_URL = 'http://localhost:3003/v2.1/track';
+
+const sendToLocalAppInsightsFile = (
+  name: string,
+  success: boolean,
+  properties: Record<string, string | undefined>,
+  measurements: Record<string, number>
+): void => {
+  void fetch(APP_INSIGHTS_WEB_FILE_SERVER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements })
+  }).catch(() => {
+    /* server optional in local dev */
+  });
+};

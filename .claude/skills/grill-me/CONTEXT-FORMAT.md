@@ -28,6 +28,7 @@ _Avoid_: Client, buyer, account
 - Tight: 1-2 sentences. What it IS, not what it does.
 - Project-specific terms only. General programming concepts (timeouts, error types, utility patterns) don't belong. Test: unique to this context, or general?
 - Group under subheadings when clusters emerge. Single cluster → flat fine.
+- use /concise skill
 
 ## Single vs multi-context
 

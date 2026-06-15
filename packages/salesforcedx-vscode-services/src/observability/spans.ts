@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { type SdkLayerConfig, getSdkLayerConfigFromContext, isExtensionContext } from './sdkLayerConfig';
+import {
+  type SdkLayerConfig,
+  getSdkLayerConfigFromContext,
+  getSdkLayerConfigFromPackageJSON,
+  isExtensionContext
+} from './sdkLayerConfig';
 import { NodeSdkLayerFor } from './spansNode';
 import { WebSdkLayerFor } from './spansWeb';
 
@@ -21,6 +26,11 @@ export const SdkLayerFor = (input: SdkLayerConfig | vscode.ExtensionContext) => 
 /** Pre-built SDK layer factory for the services extension itself */
 export const ServicesSdkLayer = () => {
   const extension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
-  const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-  return SdkLayerFor({ extensionName: 'salesforcedx-vscode-services', extensionVersion });
+  return SdkLayerFor(
+    getSdkLayerConfigFromPackageJSON({
+      name: 'salesforcedx-vscode-services',
+      version: 'unknown',
+      ...extension?.packageJSON
+    })
+  );
 };

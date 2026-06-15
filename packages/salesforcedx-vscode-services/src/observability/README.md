@@ -32,14 +32,87 @@ flowchart TD
 
 ### App Insights Export Pipeline
 
-`ApplicationInsightsWebExporter.export` now builds a single Effect pipeline so stream operations, span exporting, and success/failure handlers run together before the SpanExporter callback returns. For each batch of spans the exporter:
+Both `ApplicationInsightsWebExporter.export` and `ApplicationInsightsNodeExporter.export` build a single Effect pipeline so stream operations, span exporting, and success/failure handlers run together before the SpanExporter callback returns. For each batch of spans the exporter:
 
 1. Pipes `Stream.fromIterable(spans)` through `Stream.filter(isSpanValidForProductionTelemetry)` so only the spans that belong in production telemetry are kept.
-2. Runs each filtered span through `Stream.mapEffect(exportSpan)`, pushing every span into `exportSpan` which ultimately calls `getWebAppInsightsReporter().sendDangerousTelemetryEvent` or `sendDangerousTelemetryErrorEvent`.
+2. Runs each filtered span through `Stream.mapEffect(exportSpan)`, pushing every span into `exportSpan` which ultimately calls `getAppInsightsReporter().sendDangerousTelemetryEvent` or `sendDangerousTelemetryErrorEvent`.
 3. Executes the stream with `Stream.runDrain`, then maps the succeeding effect to `resultCallback({ code: ExportResultCode.SUCCESS })`, keeping the callback inside the same pipeline as the stream.
-4. Wraps the entire pipeline in `Effect.catchAll`, which logs the failure, reports the error to console, sends failure telemetry, and calls `resultCallback({ code: ExportResultCode.FAILED, error: unknownToErrorCause(error).cause })`.
+4. Wraps the entire pipeline in `Effect.catchAll`, which logs the failure, reports the error to console, and calls `resultCallback({ code: ExportResultCode.FAILED, error: unknownToErrorCause(error).cause })`.
+5. Observes the entire pipeline via `Effect.logDebug` statements at key points (batch start, per-span send, batch completion, errors).
 
 Keeping the stream, exporter callback, and logging/failure telemetry in the same pipeline satisfies the SpanExporter contract while still letting the existing `exportSpan` helper handle per-span telemetry.
+
+### Azure Application Insights Table Routing
+
+Effect spans are routed to different Azure Application Insights tables depending on platform and configuration:
+
+**Default Behavior (Backward Compatible):**
+
+- **Web platform**: Uses `ApplicationInsightsWebExporter` with `TelemetryReporter.sendDangerousTelemetryEvent()` → routes to **customEvents** table
+- **Node platform**: Uses `FilteredAzureMonitorTraceExporter` (standard Azure Monitor OTEL exporter) → routes to **dependencies** table
+
+**Optional: Enable CustomEvents for Node**
+
+Node platform can route to **customEvents** table (matching Web) by enabling the `enableCustomEventsFromSpans` flag:
+
+```typescript
+const config = api.services.getSdkLayerConfigFromContext(context);
+config.enableCustomEventsFromSpans = true;  // Routes Node spans to customEvents
+
+const services = AllServicesLayer.pipe(
+  Layer.provide(api.services.SdkLayerFor(config))
+);
+```
+
+The connection string is resolved from your extension's `package.json` (via `getSdkLayerConfigFromContext`) with precedence:
+1. `otelConnectionString` — dedicated OTEL field, full format, used as-is
+2. `aiKey` — legacy field; normalized from bare UUID to InstrumentationKey= format if needed
+3. Undefined — falls back to `DEFAULT_AI_CONNECTION_STRING`
+
+**Formats accepted:**
+- **Full format**: `"InstrumentationKey=ec3632a4-...-...;IngestionEndpoint=...;..."`
+- **Bare UUID**: `"ec3632a4-..."` (automatically normalized to full format)
+
+**Example package.json**:
+
+```json
+{
+  "otelConnectionString": "InstrumentationKey=your-key;IngestionEndpoint=https://..."
+}
+```
+
+When enabled, Node uses `ApplicationInsightsNodeExporter` with the legacy `applicationinsights` SDK (v1.0.7) to route spans to customEvents.
+
+**Why Legacy SDK for Node CustomEvents?**
+
+TelemetryReporter (from `@vscode/extension-telemetry`) has **multiple fatal bugs on Node platform**:
+1. **Constructor bug** (v1.5.1-v1.5.2): `TypeError: basicAISDK.ApplicationInsights is not a constructor` - imports browser SDK on Node
+2. **keepNames bug** ([GitHub issue #2694](https://github.com/microsoft/ApplicationInsights-JS/issues/2694)): `Cannot redefine property: name` with esbuild keepNames=true
+
+Both bugs cause silent failures where events never reach Azure.
+
+The legacy `applicationinsights` SDK (v1.0.7) works reliably and is proven in production across all Salesforce VSCode extensions via utils-vscode. It provides:
+- ✅ Disk caching for offline retry (`setUseDiskRetryCaching`)
+- ✅ Proper Node.js support
+- ✅ Routes to customEvents via `client.trackEvent()`
+
+**Schema Differences:**
+
+- **customEvents** (Web & Node with flag): Flat structure with all span attributes in `customDimensions`, measurements in `customMeasurements`
+- **dependencies** (Node default): Standard OTEL span structure with `type`, `target`, `data`, and hierarchical attributes
+
+**Trade-offs:**
+
+When using `enableCustomEventsFromSpans=true` on Node:
+- ✅ **Consistency**: Same table schema as Web platform
+- ✅ **Disk caching**: Offline retry support (TelemetryReporter lacks this)
+- ✅ **Reliable**: No TelemetryReporter bugs
+- ⚠️ **Older SDK**: v1.0.7 from 2017 (but stable and maintained)
+
+When using default (dependencies table):
+- ✅ **Standard OTEL**: Native OpenTelemetry export format
+- ✅ **Structured data**: Hierarchical span attributes
+- ✅ **No extra deps**: Uses existing Azure Monitor exporter
 
 ## Usage with Code Examples
 
@@ -166,17 +239,12 @@ import * as vscode from 'vscode';
 export const AllServicesLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
     const api = yield* extensionProvider.getServicesApi;
-    const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
-    const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
-    const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
+    const context = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`)?.extensionContext;
+    const config = api.services.getSdkLayerConfigFromContext(context);  // connectionString auto-resolved (otelConnectionString → aiKey → DEFAULT_AI_CONNECTION_STRING)
 
     return Layer.mergeAll(
       // ... other service layers ...
-      api.services.SdkLayerFor({
-        extensionName: EXTENSION_NAME,
-        extensionVersion,
-        o11yEndpoint
-      })
+      api.services.SdkLayerFor(config)
       // ... other service layers ...
     );
   })
@@ -273,8 +341,45 @@ These settings must be enabled for App Insights and O11y to work:
 
 - `telemetry.telemetryLevel` - VS Code telemetry level (must not be "off")
 - `salesforcedx-vscode-core.telemetry.enabled` - Extension telemetry toggle (must be true for App Insights/O11y)
+- `salesforcedx-vscode-core.telemetry.allowDevMode` - Dev mode telemetry override (default: false)
+
+**Dev Mode Note**: On Node, dev/test mode auto-diverts App Insights to localhost (see [Inspecting App Insights Envelopes Locally](#inspecting-app-insights-envelopes-locally)) — telemetry is force-enabled there since it provably cannot reach Azure. On Web, telemetry behavior follows standard VS Code telemetry settings.
 
 ## Local Debugging
+
+### Debugging Custom Events Export Flow
+
+When `enableCustomEventsFromSpans` is enabled, `ApplicationInsightsNodeExporter` observes its own behavior via `Effect.logDebug` statements. These debug logs appear in the console when Effect's log level is set to Debug.
+
+**Why not spans?** The exporter runs in an isolated Effect runtime via `Effect.runPromise`, which is disconnected from the application's trace context. Attempts to create spans in this context fail silently, so debug logging is used instead.
+
+**To debug exporter behavior**:
+1. Set Effect log level to Debug. This depends on your logger implementation; see Effect's [Logger documentation](https://effect.website/docs/guides/logging).
+2. Open the Extension Host console (View > Output, select "Extension Host")
+3. Run your command - watch for these debug log patterns:
+   - `Exporting X spans (Y valid for production) to connectionString...` - Batch export start
+   - `Successfully exported Y spans` - Export success
+   - `Export failed: <error>` - Export failure
+   - `Sending span "spanName" (event/error) with telemetryTag: ...` - Per-span send
+4. Verify the number of spans, span names, and connection strings match expectations
+
+### Inspecting App Insights Envelopes Locally
+
+**Automatic in Dev/Test Mode**: When running extensions in Development or Test mode (`ExtensionMode.Development`/`Test`), Node automatically diverts App Insights envelopes to `http://localhost:3003/v2.1/track` without requiring env var or setting. Telemetry is force-enabled (provably safe since it cannot reach Azure).
+
+**Manual or Custom Port**: Override the default with `SF_OTEL_INGESTION_ENDPOINT=http://localhost:NNNN`.
+
+**Divert Mechanism**: Both `FilteredAzureMonitorTraceExporter` (dependencies path) and `ApplicationInsightsNodeExporter` (customEvents path) swap their private HTTP transport to POST Breeze envelopes over plain HTTP to the local endpoint. This avoids the Azure SDK's `ConnectionStringParser.sanitizeUrl`, which force-upgrades `http://` → `https://`, making plain-HTTP localhost servers unreachable.
+
+**To inspect**:
+
+1. Start the span file server: `npm run spans:server -w salesforcedx-vscode-services` (listens on `http://localhost:3003`)
+2. Launch the extension in dev/test mode, or set `SF_OTEL_INGESTION_ENDPOINT=http://localhost:3003`
+3. Reload the VS Code window
+4. Run commands or trigger spans — envelopes are written to `~/.sf/vscode-appinsights/appinsights-{ISO-timestamp}.jsonl` (gzip-decompressed, newline-delimited JSON) or `appinsights-web-{ISO-timestamp}.jsonl` for web
+5. Inspect: `cat ~/.sf/vscode-appinsights/appinsights-*.jsonl | jq '.' | less`
+
+The span file server preserves the exact wire format. Node and web both POST to `/v2.1/track`; the server sorts by shape: Breeze envelopes (containing `"baseType"`) go to `appinsights-*.jsonl`, web events go to `appinsights-web-*.jsonl`. In dev/test, envelopes use the same schema as production (RemoteDependencyData if diverting via dependencies path, custom event Breeze if via customEvents path).
 
 ### O11y Debug Server
 
