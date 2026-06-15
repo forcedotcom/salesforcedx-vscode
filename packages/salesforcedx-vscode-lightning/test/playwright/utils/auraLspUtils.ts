@@ -6,12 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import {
-  executeCommandWithCommandPalette,
-  QUICK_INPUT_WIDGET,
-  STATUS_BAR_ITEM_LABEL,
-  WORKBENCH
-} from '@salesforce/playwright-vscode-ext';
+import { STATUS_BAR_ITEM_LABEL, WORKBENCH } from '@salesforce/playwright-vscode-ext';
 
 /** Text shown in the Aura language status item when the LSP has finished indexing. */
 const AURA_LSP_READY_TEXT = 'Indexing complete';
@@ -31,18 +26,4 @@ export const waitForAuraLspReady = async (page: Page, timeout = 120_000): Promis
     editorLanguageStatus.or(legacyStatusBarLabel).first(),
     `Aura LSP should show "${AURA_LSP_READY_TEXT}" when indexing is done`
   ).toBeVisible({ timeout });
-};
-
-/**
- * Moves the editor cursor to a specific line and column using the Go to Line/Column command.
- * Line and column are both 1-indexed. (Owned copy of `lwcUtils.goToLineCol`; lightning cannot
- * cross-import lwc-package test utils.)
- */
-export const goToLineCol = async (page: Page, line: number, col: number): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
-  const widget = page.locator(QUICK_INPUT_WIDGET);
-  await widget.waitFor({ state: 'visible', timeout: 5000 });
-  await page.keyboard.type(`${line}:${col}`);
-  await page.keyboard.press('Enter');
-  await widget.waitFor({ state: 'hidden', timeout: 5000 });
 };
