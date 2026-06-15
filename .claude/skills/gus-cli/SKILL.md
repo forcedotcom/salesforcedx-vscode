@@ -58,7 +58,6 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
 | Name               | Id                   | GitHub login      | Slack ID      |
 | ------------------ | -------------------- | ----------------- | ------------- |
-| Cristina Cañizales | `005EE000008cgrGYAQ` | `CristiCanizales` | `U040DRU0ADA` |
 | Daphne Yang        | `005EE000005d0jdYAA` | `daphne-sfdc`     | `U03CKVATVCY` |
 | Jonny Hork         | `005B0000004pYWjIAM` | `jonnyhork`       | `WFGT1L8HF`   |
 | Kyle Walker        | `005EE0000010oCLYAY` | `kylewalke`       | `U02GCUGEAUU` |
@@ -85,15 +84,21 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 
 **Create:** Always set `Story_Points__c=2`, `Product_Tag__c=a1aB000000005G3IAI`, `RecordTypeId`. Include `Subject__c`, `Assignee__c`, `Scrum_Team__c=a00B0000000w9xPIAQ`, `Epic__c` (optional), `QA_Engineer__c` (optional), `Details__c` (optional). Leave `Sprint__c` blank; never modify it. **Details\_\_c:** write concisely—fragments/bullets, minimal words, no repetition (see .claude/skills/concise/SKILL.md).
 
-**`-v` + `--flags-dir` don't combine on create:** `-v` takes precedence; flags-dir values are dropped. Workaround: create without Details, then update with `--flags-dir` only.
+**`Details__c` ≥20 chars required.** `Details__c` (field label "Description") has a User Story validation rule: <20 chars → create fails with `Description must be at least 20 characters to submit a User Story`. Despite docs marking it optional, treat as required on create. Note: `Description__c` is a DIFFERENT field (label "Comment", unvalidated)—don't confuse them; the validated body field is `Details__c`.
 
-**Details\_\_c formatting (readable WI body):** Details\_\_c is a Rich Text Area (extraTypeInfo: richtextarea)—use HTML, not markdown. The `-v` flag parses space-separated key=value; use `--flags-dir` with a `values` file ([ref](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_flag_values_in_files.htm)):
+**Values strings space-split, even in single quotes.** Both `-v` and `--flags-dir`'s `values` file split on spaces inside quotes (this CLI version), truncating any multi-word `Subject__c`/`Details__c` at the first space—often surfacing as the misleading 20-char error. Working recipe:
+
+1. **Create** with no-space placeholder tokens via `-v` (underscores, no quotes): `-v "Subject__c=temp Details__c=Consolidate_..._20+_chars RecordTypeId=... Assignee__c=... Scrum_Team__c=... Story_Points__c=2 Product_Tag__c=... Epic__c=..."`
+2. Find Id: `sf data query --query "SELECT Id,Name FROM ADM_Work__c WHERE Subject__c='temp' ORDER BY CreatedDate DESC LIMIT 1"`
+3. **Update** real `Subject__c` + HTML `Details__c` via `--flags-dir` (step below). Update path tolerates spaces in the single-line value.
+
+**Details\_\_c formatting (readable WI body):** Details\_\_c is a Rich Text Area (extraTypeInfo: richtextarea)—use HTML, not markdown. Set via `--flags-dir` with a `values` file ([ref](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_flag_values_in_files.htm)):
 
 1. `mkdir -p /tmp/gus-flags`
-2. Create `values` with one line: `Details__c='<p><strong>Section</strong></p><p>Content. <code>inline code</code></p><ul><li>item</li></ul><p><strong>Ref:</strong> <a href="https://...">url</a></p>'`
+2. Create `values` with one line: `Subject__c='...' Details__c='<p><strong>Section</strong></p><p>Content. <code>inline code</code></p><ul><li>item</li></ul><p><strong>Ref:</strong> <a href=&quot;https://...&quot;>url</a></p>'`
 3. `sf data update record -s ADM_Work__c -i <id> -o gus --flags-dir /tmp/gus-flags`
 
-Constraints: File must be single-line (flags-dir treats each line as a separate flag invocation). Value in single quotes. Use HTML: `<p>`, `<strong>`, `<code>`, `<ul><li>`, `<a href="...">`. Avoid unescaped `"` inside value—use `&quot;` or rephrase.
+Constraints: File single-line (flags-dir treats each line as a separate flag invocation). Values in single quotes. HTML: `<p>`, `<strong>`, `<code>`, `<ul><li>`, `<a href="...">`. Escape `"` inside value as `&quot;`.
 
 **After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
 
