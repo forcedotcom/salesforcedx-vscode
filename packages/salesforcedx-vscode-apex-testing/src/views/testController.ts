@@ -8,6 +8,7 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -50,11 +51,6 @@ import {
   readTestRunIdFile,
   writeTestResultJsonFile
 } from '../utils/testUtils';
-import {
-  type MetadataRetrieveFileResponse,
-  isMetadataRetrieveFileResponse,
-  isMetadataRetrieveOutcomeLike
-} from '../utils/typeGuards';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
@@ -1651,29 +1647,11 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
   return classPath.slice(0, -4).replaceAll('/', '.');
 };
 
-const getRetrievedFileUri = (result: unknown): URI | undefined => {
-  if (!isMetadataRetrieveOutcomeLike(result)) {
-    return undefined;
-  }
-  let responses: readonly MetadataRetrieveFileResponse[];
-  try {
-    responses = result.getFileResponses();
-  } catch {
-    return undefined;
-  }
-  if (!Array.isArray(responses) || responses.length === 0) {
-    return undefined;
-  }
-  for (const item of responses) {
-    if (!isMetadataRetrieveFileResponse(item)) {
-      continue;
-    }
-    const { filePath } = item;
-    if (typeof filePath === 'string' && filePath.length > 0) {
-      return URI.file(filePath);
-    }
-  }
-  return undefined;
+const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
+  const filePath = result
+    .getFileResponses()
+    .find(r => typeof r.filePath === 'string' && r.filePath.length > 0)?.filePath;
+  return filePath ? URI.file(filePath) : undefined;
 };
 
 const closeEditorTabByUri = async (uri: URI): Promise<void> => {
