@@ -159,6 +159,7 @@ export default [
       'local/no-vscode-quickpick-description-literals': 'error',
       'local/no-vscode-validateinput-literals': 'error',
       'local/no-self-barrel-import': 'error',
+      'local/no-cross-barrel-reexport': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
