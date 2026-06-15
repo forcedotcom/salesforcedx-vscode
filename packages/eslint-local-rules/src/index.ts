@@ -6,6 +6,7 @@
  */
 
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
+import { noCrossBarrelReexport } from './noCrossBarrelReexport';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
@@ -45,6 +46,7 @@ const plugin = {
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
     'no-self-barrel-import': noSelfBarrelImport,
+    'no-cross-barrel-reexport': noCrossBarrelReexport,
     'no-effect-fn-wrapper': noEffectFnWrapper,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
     'no-runtime-vscode-import': noRuntimeVscodeImport,
