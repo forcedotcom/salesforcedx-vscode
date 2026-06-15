@@ -37,6 +37,8 @@ concurrency:
 
 jobs:
   e2e-desktop:
+    # skipped while OAS is broken b/c of a4v 4.0
+    if: false
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
