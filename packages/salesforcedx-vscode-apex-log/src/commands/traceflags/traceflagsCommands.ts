@@ -200,7 +200,9 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   yield* traceFlagService.createDebugLevel(payload).pipe(
     Effect.flatMap(() => refreshTraceFlagsView(orgId)),
     Effect.catchTag('DebugLevelCreateError', () =>
-      Effect.promise(() => vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed')))
+      Effect.sync(() => {
+        void vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed'));
+      })
     )
   );
 });

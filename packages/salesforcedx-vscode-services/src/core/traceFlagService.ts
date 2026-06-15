@@ -227,6 +227,22 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       return Option.some(item);
     });
 
+    const createDebugLevel = Effect.fn('TraceFlagService.createDebugLevel')(function* (
+      payload: CreateDebugLevelPayload
+    ) {
+      const conn = yield* connectionService.getConnection();
+      const result = yield* Effect.tryPromise({
+        try: () => conn.tooling.create('DebugLevel', payload),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new DebugLevelCreateError({ message: `Failed to create debug level: ${cause.message}`, cause: error });
+        }
+      });
+      return result.success && result.id
+        ? result.id
+        : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
+    });
+
     const getOrCreateDebugLevel = Effect.fn('TraceFlagService.getOrCreateDebugLevel')(function* () {
       const conn = yield* connectionService.getConnection();
       const existing = yield* Effect.tryPromise({
@@ -242,41 +258,20 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       if (existing.records.length > 0 && existing.records[0].Id) {
         return existing.records[0].Id;
       }
-      const createResult = yield* Effect.tryPromise({
-        try: () =>
-          conn.tooling.create('DebugLevel', {
-            DeveloperName: REPLAY_DEBUGGER_LEVELS,
-            MasterLabel: REPLAY_DEBUGGER_LEVELS,
-            ApexCode: APEX_CODE_DEBUG_LEVEL,
-            Visualforce: VISUALFORCE_DEBUG_LEVEL
-          }),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new DebugLevelCreateError({
-            message: `Failed to create debug level: ${cause.message}`,
-            cause: error
-          });
-        }
+      return yield* createDebugLevel({
+        DeveloperName: REPLAY_DEBUGGER_LEVELS,
+        MasterLabel: REPLAY_DEBUGGER_LEVELS,
+        ApexCode: APEX_CODE_DEBUG_LEVEL,
+        ApexProfiling: 'NONE',
+        Callout: 'NONE',
+        Database: 'NONE',
+        Nba: 'NONE',
+        System: 'NONE',
+        Validation: 'NONE',
+        Visualforce: VISUALFORCE_DEBUG_LEVEL,
+        Wave: 'NONE',
+        Workflow: 'NONE'
       });
-      return createResult.success && createResult.id
-        ? createResult.id
-        : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
-    });
-
-    const createDebugLevel = Effect.fn('TraceFlagService.createDebugLevel')(function* (
-      payload: CreateDebugLevelPayload
-    ) {
-      const conn = yield* connectionService.getConnection();
-      const result = yield* Effect.tryPromise({
-        try: () => conn.tooling.create('DebugLevel', payload),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new DebugLevelCreateError({ message: `Failed to create debug level: ${cause.message}`, cause: error });
-        }
-      });
-      return result.success && result.id
-        ? result.id
-        : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
     });
 
     const deleteDebugLevel = Effect.fn('TraceFlagService.deleteDebugLevel')(function* (debugLevelId: string) {
