@@ -18,6 +18,7 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import {
   DebugLevelCreateError,
+  DebugLevelDeleteError,
   TraceFlagCreateError,
   TraceFlagNotFoundError,
   TraceFlagUpdateError,
@@ -30,6 +31,7 @@ import {
   DebugLevelItemSchema,
   TraceFlagItemSchema,
   ToolingDebugLevelStruct,
+  type CreateDebugLevelPayload,
   type ToolingDebugLevelRecord,
   type ToolingTraceFlagRecord,
   type TraceFlagItem,
@@ -261,6 +263,33 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
         : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
     });
 
+    const createDebugLevel = Effect.fn('TraceFlagService.createDebugLevel')(function* (
+      payload: CreateDebugLevelPayload
+    ) {
+      const conn = yield* connectionService.getConnection();
+      const result = yield* Effect.tryPromise({
+        try: () => conn.tooling.create('DebugLevel', payload),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new DebugLevelCreateError({ message: `Failed to create debug level: ${cause.message}`, cause: error });
+        }
+      });
+      return result.success && result.id
+        ? result.id
+        : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
+    });
+
+    const deleteDebugLevel = Effect.fn('TraceFlagService.deleteDebugLevel')(function* (debugLevelId: string) {
+      const conn = yield* connectionService.getConnection();
+      yield* Effect.tryPromise({
+        try: () => conn.tooling.delete('DebugLevel', debugLevelId),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new DebugLevelDeleteError({ message: `Failed to delete debug level: ${cause.message}`, cause: error });
+        }
+      });
+    });
+
     const createTraceFlag = Effect.fn('TraceFlagService.createTraceFlag')(function* (
       userId: string,
       debugLevelId: string,
@@ -433,6 +462,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       ensureTraceFlag,
       cleanupExpired,
       getOrCreateDebugLevel,
+      createDebugLevel,
+      deleteDebugLevel,
       getUserId,
       traceFlagsChanged
     };
