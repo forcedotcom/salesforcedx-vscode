@@ -37,7 +37,7 @@ concurrency:
 
 jobs:
   e2e-desktop:
-    # OAS broken by A4V v4 marketplace release; re-enable when fixed.
+    # OAS broken by A4V v4 marketplace release; re-enable when fixed (tracked in W-22997620).
     if: false
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
