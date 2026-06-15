@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as pkg from '../../package.json';
 
 const registerCommandWithRuntime = jest.fn(() => () => Effect.succeed({ dispose: jest.fn() }));
 
@@ -31,5 +32,14 @@ describe('OAS Extension Activation', () => {
   it('module loads without error', () => {
     // Smoke test — full activation flow is covered by integration tests
     expect(registerCommandWithRuntime).toBeDefined();
+  });
+});
+
+describe('package.json settings', () => {
+  it('contributes enableRestOASGen as a boolean defaulting to false (REST path blocked by default)', () => {
+    const setting = pkg.contributes.configuration.properties['salesforcedx-vscode-apex-oas.enableRestOASGen'];
+    expect(setting).toBeDefined();
+    expect(setting.type).toBe('boolean');
+    expect(setting.default).toBe(false);
   });
 });

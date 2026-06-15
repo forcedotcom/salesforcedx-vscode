@@ -11,6 +11,7 @@ import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
+import { LLMConnectionFailed } from '../../../../src/errors';
 import { callLLMWithRetry } from '../../../../src/oas/generationStrategy/json/apexRest';
 import { LLMService } from '../../../../src/services/llmService';
 
@@ -26,6 +27,12 @@ const mockLLMLayer = (responses: string[]) => {
       return Effect.succeed(queue.shift()!);
     })
   );
+  return { layer: Layer.succeed(LLMService, { callLLM } as unknown as InstanceType<typeof LLMService>), callLLM };
+};
+
+/** Mock LLMService whose callLLM always fails with the given (already-classified) error. */
+const failingLLMLayer = (error: unknown) => {
+  const callLLM = jest.fn(() => Effect.fail(error));
   return { layer: Layer.succeed(LLMService, { callLLM } as unknown as InstanceType<typeof LLMService>), callLLM };
 };
 
@@ -75,6 +82,29 @@ describe('callLLMWithRetry', () => {
       const error = Exit.causeOption(exit).pipe(opt => (opt._tag === 'Some' ? opt.value : undefined));
       expect(String(error)).toContain('LLMRetriesExhausted');
     }
+    expect(callLLM).toHaveBeenCalledTimes(6);
+  });
+
+  it('retries a connection error (transient) and exhausts to LLMRetriesExhausted, preserving the reason', async () => {
+    const { layer, callLLM } = failingLLMLayer(new LLMConnectionFailed({ message: 'Could not connect' }));
+
+    const exit = await Effect.runPromiseExit(
+      Effect.gen(function* () {
+        const fiber = yield* Effect.fork(callLLMWithRetry('prompt', 750, jest.fn()));
+        yield* TestClock.adjust(PAST_ALL_RETRIES);
+        return yield* Fiber.join(fiber);
+      }).pipe(Effect.provide(layer), Effect.provide(TestContext.TestContext))
+    );
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) {
+      const error = Exit.causeOption(exit).pipe(opt => (opt._tag === 'Some' ? opt.value : undefined));
+      // A connection error is treated as transient: retried, then wrapped so the per-method handler degrades
+      // it to empty content. The original reason rides along in the exhaustion message.
+      expect(String(error)).toContain('LLMRetriesExhausted');
+      expect(String(error)).toContain('Could not connect');
+    }
+    // 1 initial + 5 retries — connection errors are NOT excluded from the retry predicate.
     expect(callLLM).toHaveBeenCalledTimes(6);
   });
 

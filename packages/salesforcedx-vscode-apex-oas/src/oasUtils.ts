@@ -8,6 +8,7 @@
 
 import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Runtime from 'effect/Runtime';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
@@ -17,6 +18,36 @@ import { parse as yamlParse } from 'yaml';
 import { OAS_EXTENSION_ID } from './constants';
 import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
 import { oasDiagnosticCollection, ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
+
+/** Reports a step message into an active progress notification. */
+export type ProgressReporter = (message: string) => Effect.Effect<void>;
+
+/**
+ * Runs `body` inside a non-cancellable VS Code progress notification, giving it a `report` callback to update
+ * the notification message per step. Without this, long operations (e.g. the REST LLM loop) show no sign of
+ * life between the folder prompt and the final toast. The notification closes when the Effect settles.
+ * @param title - The notification title shown for the whole operation.
+ * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
+ */
+export const withSteppedProgress = <A, E, R>(
+  title: string,
+  body: (report: ProgressReporter) => Effect.Effect<A, E, R>
+) =>
+  Effect.runtime<R>().pipe(
+    Effect.flatMap(runtime =>
+      Effect.async<A, E>(resume => {
+        void vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Notification, title, cancellable: false },
+          progress => {
+            const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
+            return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
+              resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+            });
+          }
+        );
+      })
+    )
+  );
 
 // REST annotation names that should be present on the class
 export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];
@@ -217,6 +248,39 @@ const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): bool
 export const hasAuraFrameworkCapability = (context: ApexClassOASGatherContextResponse): boolean =>
   // Check for no class annotations AND at least one method with AuraEnabled annotation
   hasNoClassAnnotations(context) && hasAuraEnabledMethods(context);
+
+/**
+ * Explains, in user-facing terms, why a class qualified for neither the REST nor the AuraEnabled
+ * generation path. Inspects the gathered context (class/method annotations) so the surfaced error
+ * names the missing prerequisite instead of a generic "not valid" message.
+ *
+ * Call only after `hasValidRestAnnotations` and `hasAuraFrameworkCapability` both returned false.
+ * @param {ApexClassOASGatherContextResponse} context - The gathered class context.
+ * @returns {string} A sentence describing the most likely reason and how to fix it.
+ */
+export const diagnoseIneligibility = (context: ApexClassOASGatherContextResponse): string => {
+  const hasRestResource = hasRestResourceAnnotation(context);
+  const hasHttpMethods = hasHttpRestAnnotations(context);
+
+  // REST: class is annotated @RestResource but no method carries an @HttpGet/@HttpPost/... annotation.
+  if (hasRestResource && !hasHttpMethods) {
+    return 'the class is annotated with @RestResource but no method is annotated with an HTTP verb (@HttpGet, @HttpPost, @HttpPut, @HttpPatch, or @HttpDelete). Add an HTTP-verb annotation to the methods you want to expose.';
+  }
+
+  // REST: methods carry @Http___ but the class is missing the required @RestResource annotation.
+  if (!hasRestResource && hasHttpMethods) {
+    return 'methods are annotated with HTTP verbs but the class is missing the @RestResource annotation. Add @RestResource to the class.';
+  }
+
+  // AuraEnabled: class carries annotations that block the Aura path, but a method is @AuraEnabled.
+  if (!hasNoClassAnnotations(context) && hasAuraEnabledMethods(context)) {
+    const classAnnotations = context.classDetail.annotations.map(a => `@${a.name}`).join(', ');
+    return `the class has @AuraEnabled methods but also carries class-level annotations (${classAnnotations}) that are not allowed for AuraEnabled generation. Remove the class-level annotations.`;
+  }
+
+  // No qualifying annotations at all.
+  return 'it has no methods annotated for OpenAPI generation. Annotate a class with @RestResource plus HTTP-verb methods (@HttpGet, @HttpPost, ...), or annotate methods with @AuraEnabled.';
+};
 
 /**
  * Validates if a registration provider type is one of the allowed values.

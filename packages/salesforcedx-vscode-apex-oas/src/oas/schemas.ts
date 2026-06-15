@@ -26,7 +26,7 @@ export type PromptGenerationStrategyBid = {
   result: PromptGenerationResult;
 };
 
-export type HttpRequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+type HttpRequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export const httpMethodMap: Record<string, HttpRequestMethod> = {
   HttpGet: 'get',

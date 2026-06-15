@@ -6,6 +6,7 @@
  */
 import type {
   LLMCallFailed,
+  LLMConnectionFailed,
   LLMRateLimited,
   LLMRetriesExhausted,
   MethodNotFoundInDocSymbols,
@@ -21,7 +22,12 @@ export type GenerationStrategy = {
   bid: () => Effect.Effect<PromptGenerationStrategyBid, never, never>;
   generateOAS: () => Effect.Effect<
     string,
-    OasGenerationFailed | LLMRetriesExhausted | LLMCallFailed | LLMRateLimited | MethodNotFoundInDocSymbols,
+    | OasGenerationFailed
+    | LLMRetriesExhausted
+    | LLMCallFailed
+    | LLMRateLimited
+    | LLMConnectionFailed
+    | MethodNotFoundInDocSymbols,
     LLMService | ExtensionProviderService | ConnectionService
   >;
 };

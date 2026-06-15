@@ -18,6 +18,7 @@ import {
   selectOutputChannel,
   upsertScratchOrgAuthFieldsToSettings,
   verifyCommandExists,
+  waitForExtensionsActivated,
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -36,9 +37,15 @@ export const setupWorkbenchAndAuth = async (page: Page): Promise<void> => {
   await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 };
 
-/** Wait for A4V (installed by fixture) to be active so OAS commands appear. */
+/** Wait until all extensions finish activating and the OAS commands are registered.
+ *
+ * The commands are no longer gated by `salesforcedx-einstein-gpt.isEnabled`, so their presence proves only
+ * that the OAS extension is active — not that the LLM service the REST path needs has been registered with the
+ * service provider yet. The REST path obtains that service fail-fast, so a spec that triggers generation before
+ * the providing extension finishes registering its command would flake. Waiting for all extensions to finish
+ * activating closes that race. The AuraEnabled path needs only an active org. */
 export const waitForA4VAndOasCommands = async (page: Page): Promise<void> => {
-  // Both commands are gated by `salesforcedx-einstein-gpt.isEnabled`; their presence proves A4V is loaded.
+  await waitForExtensionsActivated(page);
   await verifyCommandExists(page, 'SFDX: Create OpenAPI Document from This Class', 60_000);
 };
 
