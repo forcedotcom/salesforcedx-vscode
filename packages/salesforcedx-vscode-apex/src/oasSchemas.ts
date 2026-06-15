@@ -80,6 +80,7 @@ export type ApexAnnotationDetail = {
 };
 
 export type ApexClassOASGatherContextResponse = {
-  // Define the structure based on what the language server returns
-  [key: string]: any;
+  classDetail: ApexOASClassDetail;
+  methods: ApexOASMethodDetail[];
+  properties: ApexOASPropertyDetail[];
 };
