@@ -112,8 +112,16 @@ export const validateMetadata = Effect.fn('ApexOas.Metadata.validate')(function*
   }
   const eligibleSymbols = (first.symbols ?? []).filter(s => s.isApexOasEligible || s.isEligible);
   if (eligibleSymbols.length === 0) {
+    const className = path.basename(first.resourceUri.fsPath, '.cls');
+    // Name the ineligible methods so the user knows which symbols to annotate/adjust, instead of a bare class name.
+    const ineligibleNames = (first.symbols ?? [])
+      .filter(s => !s.isApexOasEligible && !s.isEligible)
+      .map(s => s.docSymbol.name)
+      .join(', ');
     return yield* new ClassNotEligible({
-      message: nls.localize('apex_class_not_valid', path.basename(first.resourceUri.fsPath, '.cls'))
+      message: ineligibleNames
+        ? nls.localize('apex_class_no_eligible_methods', className, ineligibleNames)
+        : nls.localize('apex_class_not_valid', className)
     });
   }
   return first;
