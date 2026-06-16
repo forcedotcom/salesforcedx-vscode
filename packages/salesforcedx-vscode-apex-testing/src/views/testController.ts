@@ -1453,7 +1453,9 @@ export class ApexTestController {
     const { payload, hasSuite, hasClass } = runAllTestsInOrg
       ? {
           payload: {
-            testLevel: TestLevel.RunAllTestsInOrg,
+            // TestLevel is an ambient const enum; isolatedModules forbids referencing its members (TS2748), so assert the literal value
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            testLevel: 'RunAllTestsInOrg' as TestLevel,
             skipCodeCoverage: !codeCoverage
           },
           hasSuite: false,

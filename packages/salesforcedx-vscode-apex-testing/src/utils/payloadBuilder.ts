@@ -21,7 +21,9 @@ const buildPayload = (
   skipCodeCoverage: boolean
 ) =>
   testService.buildAsyncPayload(
-    TestLevel.RunSpecifiedTests,
+    // TestLevel is an ambient const enum; isolatedModules forbids referencing its members (TS2748), so assert the literal value
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    'RunSpecifiedTests' as TestLevel,
     options.methods,
     options.className,
     options.suiteName,

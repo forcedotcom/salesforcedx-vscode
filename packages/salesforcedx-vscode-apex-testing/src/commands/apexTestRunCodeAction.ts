@@ -58,7 +58,9 @@ class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     const connection = await getConnection();
     const testService = new TestService(connection);
     const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
+      // TestLevel is an ambient const enum; isolatedModules forbids referencing its members (TS2748), so assert the literal value
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      'RunSpecifiedTests' as TestLevel,
       this.tests.join(),
       undefined,
       undefined,

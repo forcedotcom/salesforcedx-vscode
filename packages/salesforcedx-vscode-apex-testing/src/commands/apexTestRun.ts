@@ -149,7 +149,9 @@ const buildTestPayload = async (
   testService: TestService,
   data: ApexTestQuickPickItem
 ): Promise<AsyncTestConfiguration> => {
-  const testLevel = TestLevel.RunSpecifiedTests;
+  // TestLevel is an ambient const enum; isolatedModules forbids referencing its members (TS2748), so assert the literal value
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const testLevel = 'RunSpecifiedTests' as TestLevel;
   switch (data.type) {
     case 'Class':
       return await testService.buildAsyncPayload(
@@ -170,10 +172,14 @@ const buildTestPayload = async (
         !settings.retrieveTestCodeCoverage()
       );
     case 'AllLocal':
-      return { testLevel: TestLevel.RunLocalTests };
+      // TestLevel is an ambient const enum; isolatedModules forbids referencing its members (TS2748), so assert the literal value
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      return { testLevel: 'RunLocalTests' as TestLevel };
     case 'All':
-      return { testLevel: TestLevel.RunAllTestsInOrg };
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      return { testLevel: 'RunAllTestsInOrg' as TestLevel };
     default:
-      return { testLevel: TestLevel.RunAllTestsInOrg };
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      return { testLevel: 'RunAllTestsInOrg' as TestLevel };
   }
 };
