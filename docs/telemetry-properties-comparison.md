@@ -27,6 +27,8 @@ Comparison of properties sent to Application Insights from the two telemetry imp
 
 ## Per-Event Properties (added to each event/span)
 
+For *why* `userId`, `webUserId`, and the SOQL user ID coexist and how each maps per destination, see [ADR-0019](./adr/0019-telemetry-ids.md).
+
 | Property Key | vscode-utils | services | Notes |
 |---|---|---|---|
 | `orgId` | `WorkspaceContextUtil.orgId` | `DefaultOrgRef.orgId` | Same concept, different source object |
