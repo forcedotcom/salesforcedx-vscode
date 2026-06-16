@@ -208,6 +208,7 @@ export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
 export type {
   DebugLevelCreateError,
+  DebugLevelDeleteError,
   TraceFlagCreateError,
   TraceFlagNotFoundError,
   TraceFlagUpdateError,
@@ -437,11 +438,8 @@ export { type ChannelService, type ChannelServiceLayer } from './vscode/channelS
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
 export { type ErrorHandlerService } from './vscode/errorHandlerService';
-export {
-  type ExtensionContextService,
-  type ExtensionContextServiceLayer,
-  ExtensionContextNotAvailableError
-} from './vscode/extensionContextService';
+export { type ExtensionContextService, type ExtensionContextServiceLayer } from './vscode/extensionContextService';
+export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';
 export { type FileChangePubSub, type FileChangeEvent } from './vscode/fileChangePubSub';
 export { type FsService } from './vscode/fsService';
 export {
@@ -467,9 +465,11 @@ export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
 export {
+  CreateDebugLevelStruct,
   DebugLevelItemSchema,
   TraceFlagItemStruct,
   TraceFlagLogType,
+  type CreateDebugLevelPayload,
   type DebugLevelItem,
   type TraceFlagItem
 } from './core/schemas/traceFlagSchemas';

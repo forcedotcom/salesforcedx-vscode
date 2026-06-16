@@ -5,6 +5,7 @@
   "apex_oas_generation_strategy": "Apex Open API 仕様の生成に使用される戦略。",
   "apex_oas_generation_schema": "生成に OpenAPI スキーマを含めます。",
   "apex_generation_output_token_limit": "出力で生成するトークンの最大数。",
+  "apex_oas_enable_rest_gen": "Apex REST (@RestResource) クラスの OpenAPI ドキュメント生成を有効にします。外部の AI モデルサービスに依存するため、既定では無効です。AuraEnabled クラスには影響しません。",
   "configuration_title": "Salesforce Apex OAS 設定",
   "create_openapi_doc_class": "SFDX: このクラスから OpenAPI ドキュメントを作成",
   "validate_oas_document": "SFDX: OpenAPI ドキュメントを検証"

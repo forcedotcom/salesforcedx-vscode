@@ -190,12 +190,17 @@ export const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(f
       response === '' ? new LLMEmptyResponse({ message: 'LLM returned an empty response' }) : Effect.succeed(response)
     ),
     // A monthly rate limit won't clear within the retry window, so don't burn backoff on it — let it
-    // propagate so the caller can surface it to the user instead of degrading it to empty content.
+    // propagate so the caller can surface it to the user instead of degrading it to empty content. Every
+    // other failure (including a connection error, which is often a transient network blip) stays in the
+    // retry loop and, only if all attempts fail, becomes LLMRetriesExhausted so the per-method handler can
+    // degrade it to empty content — its reason is preserved in the exhaustion message.
     Effect.retry({ schedule: LLM_RETRY_SCHEDULE, while: error => error._tag !== 'LLMRateLimited' }),
     Effect.mapError(cause =>
       cause._tag === 'LLMRateLimited'
         ? cause
-        : new LLMRetriesExhausted({ message: `Failed after retries: ${String(cause)}` })
+        : // Carry the underlying error's own message (e.g. the actionable LLMConnectionFailed guidance) rather
+          // than its tag-prefixed stringification, so the surfaced reason reads as one clean sentence.
+          new LLMRetriesExhausted({ message: cause.message })
     )
   );
 });
@@ -231,6 +236,10 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   const generateOAS = Effect.fn('ApexOas.ApexRest.generateOAS')(function* () {
     const promptEntries = Array.from(genState.servicePrompts.entries()).filter(([, p]) => p?.length > 0);
     yield* Effect.forEach(promptEntries, ([, prompt]) => Effect.logDebug({ event: 'prompt', prompt }));
+    // Remember the last per-method failure reason so that, if every method degrades to empty content, we can
+    // surface why instead of a bare "no content generated". Without this the real cause is debug-logged only.
+    // eslint-disable-next-line functional/no-let
+    let lastFailureReason = '';
     const responses = yield* Effect.forEach(
       promptEntries,
       ([methodName, prompt]) =>
@@ -242,6 +251,7 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
           // propagate and be surfaced to the user instead of being swallowed into "no content generated".
           Effect.catchTag('LLMRetriesExhausted', error =>
             Effect.gen(function* () {
+              lastFailureReason = error.message;
               yield* Effect.logDebug({ event: 'rawResponseRejected', methodName, error: String(error) });
               return [methodName, ''] as const;
             })
@@ -252,7 +262,11 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
     const responseMap = new Map(responses);
     const validResponses = yield* prevalidateLLMResponse(responseMap, genState.methodsContextMap, urlMapping);
     if (validResponses.length === 0) {
-      return yield* new OasGenerationFailed({ message: nls.localize('no_oas_generated') });
+      return yield* new OasGenerationFailed({
+        message: lastFailureReason
+          ? nls.localize('no_oas_generated_detail', lastFailureReason)
+          : nls.localize('no_oas_generated')
+      });
     }
     yield* annotateRootSpan({
       strategyName: 'ApexRest',

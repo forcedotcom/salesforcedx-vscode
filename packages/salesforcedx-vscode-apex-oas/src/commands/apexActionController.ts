@@ -17,18 +17,31 @@ import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationMan
 import { selectStrategyByBidRule } from '../oas/promptGenerationOrchestrator';
 import {
   checkIfESRIsDecomposed,
+  diagnoseIneligibility,
   hasAuraFrameworkCapability,
   hasMixedFrameworks,
   hasValidRestAnnotations,
   parseOASDocFromJson,
-  summarizeDiagnostics
+  summarizeDiagnostics,
+  withSteppedProgress
 } from '../oasUtils';
+import { LLMService } from '../services/llmService';
 import { ClassNotEligible, gatherContext, validateMetadata } from './metadataOrchestrator';
 
 /** @ExportTaggedError */
 export class MixedFrameworksNotAllowed extends Data.TaggedError('MixedFrameworksNotAllowed')<{
   readonly message: string;
 }> {}
+
+/** The REST generation path is turned off via the `enableRestOASGen` setting. @ExportTaggedError */
+export class RestOASGenerationDisabled extends Data.TaggedError('RestOASGenerationDisabled')<{
+  readonly message: string;
+}> {}
+
+/** Whether REST (@RestResource) OpenAPI generation is enabled. Off by default — it depends on an external
+ * AI model service that has proven unreliable; AuraEnabled generation is unaffected. */
+const isRestOASGenEnabled = (): boolean =>
+  vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex-oas.enableRestOASGen', false);
 
 /**
  * Creates an OpenAPI Document.
@@ -50,7 +63,21 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // Mirrors the bid eligibility of both strategies so valid Aura/REST classes still proceed.
   if (!hasValidRestAnnotations(context) && !hasAuraFrameworkCapability(context)) {
     const className = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
-    return yield* new ClassNotEligible({ message: nls.localize('apex_class_not_valid', className) });
+    return yield* new ClassNotEligible({
+      message: nls.localize('apex_class_not_valid_detail', className, diagnoseIneligibility(context))
+    });
+  }
+
+  // Step 2.7 (REST path only): the REST strategy calls an LLM. It is gated behind the `enableRestOASGen`
+  // setting (off by default) because it depends on an external AI model service; when disabled, fail with a
+  // clear message. When enabled, require that an LLM service can be obtained from the service provider before
+  // starting — whatever extension provides it — so the cause surfaces up front rather than midway through
+  // generation. The AuraEnabled path generates from the org connection alone and skips both checks.
+  if (hasValidRestAnnotations(context)) {
+    if (!isRestOASGenEnabled()) {
+      return yield* new RestOASGenerationDisabled({ message: nls.localize('rest_oas_gen_disabled') });
+    }
+    yield* LLMService.ensureAvailable();
   }
 
   // Step 3-4: Select the generation strategy by bid rule
@@ -63,19 +90,29 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // Step 6: Check if the file already exists
   const fullPath = yield* pathExists(openApiFileName);
 
-  // Step 7: Use the strategy to generate the OAS
-  const openApiDocument = yield* strategy.generateOAS();
+  // Steps 7-9 run inside a progress notification so the user sees activity instead of dead air between
+  // accepting the folder and the final toast (the REST LLM loop alone can take tens of seconds).
+  const processedOasResult = yield* withSteppedProgress(nls.localize('generating_oas_progress_title', name), report =>
+    Effect.gen(function* () {
+      // Step 7: Use the strategy to generate the OAS
+      yield* report(nls.localize('generating_oas_progress_generating'));
+      const openApiDocument = yield* strategy.generateOAS();
 
-  // Step 8: Process the OAS document
-  const processedOasResult = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
-    context,
-    eligibleResult: eligibilityResult,
-    isRevalidation: false
-  });
+      // Step 8: Process the OAS document
+      yield* report(nls.localize('generating_oas_progress_processing'));
+      const result = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
+        context,
+        eligibleResult: eligibilityResult,
+        isRevalidation: false
+      });
 
-  // Step 9: Write OpenAPI Document to File
-  const isESRDecomposed = yield* checkIfESRIsDecomposed();
-  yield* generateEsrMD(isESRDecomposed, processedOasResult, fullPath);
+      // Step 9: Write OpenAPI Document to File
+      yield* report(nls.localize('generating_oas_progress_writing'));
+      const isESRDecomposed = yield* checkIfESRIsDecomposed();
+      yield* generateEsrMD(isESRDecomposed, result, fullPath);
+      return result;
+    })
+  );
 
   // Step 11: Gather metrics
   const overwrite = fullPath[0] === fullPath[1];
