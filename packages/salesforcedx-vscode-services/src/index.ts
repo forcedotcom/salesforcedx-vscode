@@ -438,11 +438,8 @@ export { type ChannelService, type ChannelServiceLayer } from './vscode/channelS
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
 export { type ErrorHandlerService } from './vscode/errorHandlerService';
-export {
-  type ExtensionContextService,
-  type ExtensionContextServiceLayer,
-  ExtensionContextNotAvailableError
-} from './vscode/extensionContextService';
+export { type ExtensionContextService, type ExtensionContextServiceLayer } from './vscode/extensionContextService';
+export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';
 export { type FileChangePubSub, type FileChangeEvent } from './vscode/fileChangePubSub';
 export { type FsService } from './vscode/fsService';
 export {
