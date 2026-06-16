@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Config, ConfigAggregator, OrgConfigProperties, StateAggregator } from '@salesforce/core';
+import { Config, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 import { ConfigUtil } from '../../../src/config/configUtil';
 import { SF_CONFIG_DISABLE_TELEMETRY } from '../../../src/constants';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
@@ -41,13 +41,13 @@ describe('ConfigUtil', () => {
 
   describe('isGlobalTargetOrg', () => {
     it('should return true when target org is global', async () => {
-      mockConfigAggregator.getLocation.mockReturnValue(ConfigAggregator.Location.GLOBAL);
+      mockConfigAggregator.getLocation.mockReturnValue('Global');
       const result = await ConfigUtil.isGlobalTargetOrg();
       expect(result).toBe(true);
     });
 
     it('should return false when target org is local', async () => {
-      mockConfigAggregator.getLocation.mockReturnValue(ConfigAggregator.Location.LOCAL);
+      mockConfigAggregator.getLocation.mockReturnValue('Local');
       const result = await ConfigUtil.isGlobalTargetOrg();
       expect(result).toBe(false);
     });

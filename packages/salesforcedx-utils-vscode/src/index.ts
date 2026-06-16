@@ -18,7 +18,8 @@ export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigUtil } from './config/configUtil';
 export { SFDX_CORE_CONFIGURATION_NAME, TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from './constants';
 export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
-export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
+export { WorkspaceContextUtil } from './context/workspaceContextUtil';
+export type { OrgUserInfo, OrgShape } from './context/workspaceContextUtil';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export {

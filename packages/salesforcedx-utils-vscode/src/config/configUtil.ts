@@ -20,9 +20,12 @@ const getConfigSource = async (key: string): Promise<ConfigSource> => {
   const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
   const configSource = configAggregator.getLocation(key);
   switch (configSource) {
-    case ConfigAggregator.Location.LOCAL:
+    // ConfigAggregator.Location is an ambient const enum; isolatedModules forbids referencing its members (TS2748), so assert the literal values
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    case 'Local' as ConfigAggregator.Location:
       return ConfigSource.Local;
-    case ConfigAggregator.Location.GLOBAL:
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    case 'Global' as ConfigAggregator.Location:
       return ConfigSource.Global;
     default:
       return ConfigSource.None;
