@@ -96,10 +96,6 @@ export default {
     alias({
       entries: [
         { find: 'os', replacement: 'os-browserify/browser' },
-        {
-          find: '@salesforce/soql-model',
-          replacement: path.resolve(__dirname, '../soql-model')
-        },
         // Non-component module: messages catalog (path ends with messages/i18n.ts for eslint-local-rules)
         {
           find: 'querybuilder/messages',
@@ -114,8 +110,9 @@ export default {
     //   1. @lwc/compiler v9 dropped @babel/preset-typescript, so LWC component
     //      files must have types stripped before the LWC plugin sees them.
     //   2. @rollup/plugin-typescript only covers files under CWD via its
-    //      default include, and the aliased ../soql-model/ sibling package falls
-    //      outside that scope, causing raw-TypeScript parse failures.
+    //      default include, and the @salesforce/soql-model package (resolved from
+    //      node_modules) falls outside that scope, causing raw-TypeScript parse
+    //      failures.
     //
     // Babel does purely syntactic type erasure (no cross-file type checking),
     // which is fine here — we're only building, not type-checking. Type-only

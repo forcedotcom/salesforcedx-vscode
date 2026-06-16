@@ -1,0 +1,111 @@
+{
+  "name": "@salesforce/soql-model",
+  "private": true,
+  "description": "SOQL query model, serialization, and validation",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode.git",
+    "directory": "packages/soql-model"
+  },
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/main/packages/soql-model#readme",
+  "main": "out/src/model/index.js",
+  "types": "out/src/model/index.d.ts",
+  "exports": {
+    "./model": {
+      "types": "./out/src/model/index.d.ts",
+      "default": "./out/src/model/index.js"
+    },
+    "./model/util": {
+      "types": "./out/src/model/util.d.ts",
+      "default": "./out/src/model/util.js"
+    },
+    "./analyzers": {
+      "types": "./out/src/analyzers/index.d.ts",
+      "default": "./out/src/analyzers/index.js"
+    },
+    "./serialization": {
+      "types": "./out/src/serialization/index.d.ts",
+      "default": "./out/src/serialization/index.js"
+    },
+    "./validators": {
+      "types": "./out/src/validators/index.d.ts",
+      "default": "./out/src/validators/index.js"
+    }
+  },
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../soql-common:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "test": {
+      "command": "jest",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json"
+      ],
+      "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/model/index.ts src/analyzers/index.ts src/serialization/index.ts src/validators/index.ts src/model/util.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "package.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    }
+  },
+  "dependencies": {
+    "@salesforce/soql-common": "*",
+    "antlr4ts": "^0.5.0-alpha.3"
+  }
+}

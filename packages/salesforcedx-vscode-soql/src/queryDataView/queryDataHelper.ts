@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { QueryResult } from '../types';
-import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model/analyzers/selectAnalyzer';
+import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model/analyzers';
 import type { JsonMap } from '@salesforce/ts-types';
 import { getFlattenedSoqlGridPayload } from '../commands/dataQuery';
 

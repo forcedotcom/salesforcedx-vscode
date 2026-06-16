@@ -14,9 +14,13 @@
 import { api, LightningElement, track } from 'lwc';
 import debounce from 'debounce';
 import { messages } from 'querybuilder/messages';
-import { ConditionOperator, LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model/model';
-import { getFieldInputValidator, getFieldMultipleInputValidator, getOperatorValidator } from '@salesforce/soql-model/validators/validatorFactory';
-import { splitMultiInputValues } from '@salesforce/soql-model/validators/inputUtils';
+import { ConditionOperator, LiteralType, SObjectFieldType, UiOperatorValue } from '@salesforce/soql-model/model';
+import {
+  getFieldInputValidator,
+  getFieldMultipleInputValidator,
+  getOperatorValidator,
+  splitMultiInputValues
+} from '@salesforce/soql-model/validators';
 import { JsonMap } from '@salesforce/types';
 import { OperatorOption, operatorOptions } from '../services/model';
 import { SObjectTypeUtils } from '../services/sobjectUtils';

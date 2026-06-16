@@ -1,4 +1,4 @@
-import { ErrorType } from '@salesforce/soql-model/model/model';
+import { ErrorType } from '@salesforce/soql-model/model';
 
 /** ERROR HANDLING UTILITIES - Using ErrorType from soql-model */
 

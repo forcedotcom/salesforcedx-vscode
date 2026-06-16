@@ -595,7 +595,8 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
       'packages/salesforcedx-apex-replay-debugger/**',
-      'packages/salesforcedx-vscode-soql/**'
+      'packages/salesforcedx-vscode-soql/**',
+      'packages/soql-model/**'
     ],
     rules: {
       '@typescript-eslint/prefer-nullish-coalescing': 'off'
@@ -684,7 +685,8 @@ export default [
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
-      'packages/soql-common/**/*.ts'
+      'packages/soql-common/**/*.ts',
+      'packages/soql-model/**/*.ts'
     ],
     rules: {
       'class-methods-use-this': 'error'

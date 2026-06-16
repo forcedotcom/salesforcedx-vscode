@@ -6,25 +6,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConditionOperator, Query, Select, SelectExprs, UiOperatorValue } from '@salesforce/soql-model/model/model';
+import {
+  ConditionOperator,
+  FieldCompareConditionImpl,
+  FieldRefImpl,
+  FieldSelectionImpl,
+  FromImpl,
+  HeaderCommentsImpl,
+  IncludesConditionImpl,
+  InListConditionImpl,
+  LimitImpl,
+  LiteralImpl,
+  OrderByExpressionImpl,
+  OrderByImpl,
+  Query,
+  QueryImpl,
+  Select,
+  SelectCountImpl,
+  SelectExprs,
+  SelectExprsImpl,
+  UiOperatorValue,
+  WhereImpl
+} from '@salesforce/soql-model/model';
 import { SoqlModelUtils } from '@salesforce/soql-model/model/util';
-import { ModelSerializer } from '@salesforce/soql-model/serialization/serializer';
-import { deserialize } from '@salesforce/soql-model/serialization/deserializer';
-import { FieldCompareConditionImpl } from '@salesforce/soql-model/model/impl/fieldCompareConditionImpl';
-import { FieldRefImpl } from '@salesforce/soql-model/model/impl/fieldRefImpl';
-import { FieldSelectionImpl } from '@salesforce/soql-model/model/impl/fieldSelectionImpl';
-import { FromImpl } from '@salesforce/soql-model/model/impl/fromImpl';
-import { HeaderCommentsImpl } from '@salesforce/soql-model/model/impl/headerCommentsImpl';
-import { IncludesConditionImpl } from '@salesforce/soql-model/model/impl/includesConditionImpl';
-import { InListConditionImpl } from '@salesforce/soql-model/model/impl/inListConditionImpl';
-import { LimitImpl } from '@salesforce/soql-model/model/impl/limitImpl';
-import { LiteralImpl } from '@salesforce/soql-model/model/impl/literalImpl';
-import { OrderByExpressionImpl } from '@salesforce/soql-model/model/impl/orderByExpressionImpl';
-import { OrderByImpl } from '@salesforce/soql-model/model/impl/orderByImpl';
-import { QueryImpl } from '@salesforce/soql-model/model/impl/queryImpl';
-import { SelectCountImpl } from '@salesforce/soql-model/model/impl/selectCountImpl';
-import { SelectExprsImpl } from '@salesforce/soql-model/model/impl/selectExprsImpl';
-import { WhereImpl } from '@salesforce/soql-model/model/impl/whereImpl';
+import { ModelSerializer, deserialize } from '@salesforce/soql-model/serialization';
 import { SELECT_COUNT, ToolingModelJson } from './model';
 
 export const convertSoqlToUiModel = (soql: string): ToolingModelJson => {
