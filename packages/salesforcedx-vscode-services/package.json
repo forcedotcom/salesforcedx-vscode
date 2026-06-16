@@ -308,7 +308,7 @@
         },
         "salesforce-web-console.apiVersion": {
           "type": "string",
-          "default": "64.0",
+          "default": "67.0",
           "description": "%configuration.apiVersion.description%"
         },
         "salesforce-web-console.retrieveOnLoad": {
