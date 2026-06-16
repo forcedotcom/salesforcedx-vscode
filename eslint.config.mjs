@@ -527,7 +527,6 @@ export default [
       'packages/salesforcedx-lwc-language-server/test/**/*',
       'packages/salesforcedx-lightning-lsp-common/test/**/*',
       'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
-      'packages/salesforcedx-vscode-automation-tests/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],
@@ -579,11 +578,7 @@ export default [
     // Playwright tests run in the test-runner/browser, not the extension host, so the
     // `vscode` module is absent and a runtime import fails. Scoped to playwright-only
     // dirs (jest/unit tests in the block above legitimately import vscode at runtime).
-    files: [
-      'packages/salesforcedx**/test/playwright/**/*',
-      'packages/salesforcedx-vscode-automation-tests/**/*',
-      'packages/playwright-vscode-ext/**/*.ts'
-    ],
+    files: ['packages/salesforcedx**/test/playwright/**/*', 'packages/playwright-vscode-ext/**/*.ts'],
     ignores: ['**/locators.ts'],
     plugins: {
       local: localPlugin
