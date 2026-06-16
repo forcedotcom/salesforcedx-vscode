@@ -4,15 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { Connection } from '@salesforce/core';
+import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
+import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
-
-type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
@@ -38,7 +37,7 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
   );
 });
 
-const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult) {
+const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonMap>) {
   const csvContent = convertQueryResultToCSV(queryResult);
 
   const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
@@ -115,7 +114,7 @@ export const dataQueryDocument = Effect.fn('sf.data.query.document')(function* (
 
 /** Shared flatten pipeline for output channel table, CSV, and Query Data View. */
 const buildFlattenedGridModel = (
-  records: QueryResult['records']
+  records: QueryResult<JsonMap>['records']
 ): { flattenedFields: string[]; rows: Record<string, unknown>[] } | null => {
   const recs = records?.filter(isRecord) ?? [];
   if (recs.length === 0) {
@@ -131,7 +130,7 @@ const buildFlattenedGridModel = (
 
 /** Pre-flattened grid for SOQL Builder webview (string cells for Tabulator). */
 export const getFlattenedSoqlGridPayload = (
-  records: QueryResult['records']
+  records: QueryResult<JsonMap>['records']
 ): { fields: string[]; rowData: Record<string, string>[] } | null => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
@@ -145,7 +144,7 @@ export const getFlattenedSoqlGridPayload = (
 };
 
 /** Generates table output from query records */
-export const generateTableOutput = (records: QueryResult['records'], title: string): string => {
+export const generateTableOutput = (records: QueryResult<JsonMap>['records'], title: string): string => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
     return '';
@@ -484,7 +483,7 @@ const fillParentColumnsForCsvChunk = (
 };
 
 /** Converts query records to CSV format (same row/column model as generateTableOutput). */
-export const convertToCSV = (records: QueryResult['records']): string => {
+export const convertToCSV = (records: QueryResult<JsonMap>['records']): string => {
   const model = buildFlattenedGridModel(records);
   if (!model) {
     return '';
@@ -561,7 +560,7 @@ export const formatFieldValueForDisplay = (value: unknown, depthRemaining = DISP
 };
 
 /** Displays query results in table format */
-export const displayTableResults = Effect.fn('displayTableResults')(function* (queryResult: QueryResult) {
+export const displayTableResults = Effect.fn('displayTableResults')(function* (queryResult: QueryResult<JsonMap>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -575,5 +574,5 @@ export const displayTableResults = Effect.fn('displayTableResults')(function* (q
 });
 
 /** Converts query result to CSV string */
-export const convertQueryResultToCSV = (queryResult: QueryResult): string =>
+export const convertQueryResultToCSV = (queryResult: QueryResult<JsonMap>): string =>
   queryResult.records?.length ? convertToCSV(queryResult.records) : nls.localize('data_query_no_records');
