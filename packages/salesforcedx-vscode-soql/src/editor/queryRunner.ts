@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { QueryResult } from '../types';
 import type { Connection } from '@salesforce/core';
 import * as soqlComments from '@salesforce/soql-common/soqlComments';
 import type { JsonMap } from '@salesforce/ts-types';
@@ -17,14 +18,12 @@ const hasMessage = (obj: unknown): obj is { message: unknown } =>
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : hasMessage(error) ? String(error.message) : String(error);
 
-type QueryResult = Awaited<ReturnType<Connection['query']>>;
-
 export const runQuery =
   (conn: Connection) =>
   async (
     queryText: string,
     options: { showErrors?: boolean; maxRows?: number } = { showErrors: true }
-  ): Promise<QueryResult> => {
+  ): Promise<QueryResult<JsonMap>> => {
     const { maxRows } = options;
     const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
 
