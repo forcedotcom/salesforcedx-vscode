@@ -17,9 +17,9 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
   }
-  // isolatedModules: true speeds up ts-jest significantly (~4-7x faster).
-  // Exceptions: salesforcedx-vscode-org (orgUtil.ts await import) and
-  // salesforcedx-utils-vscode (o11yReporter ESM import) override with false.
+  // isolatedModules: true speeds up ts-jest significantly (~4-7x faster). All packages inherit it.
+  // salesforcedx-utils-vscode keeps isolatedModules:true but overrides module to CommonJS so
+  // o11yReporter's dynamic import() of ESM-only o11y_schema downlevels to require() under jest.
   // This collectCoverageFrom will show coverage for all files in a projects, but slows down calculating coverage results.
   // Can be a good tool for measuring coverage of the project as a whole locally, but shouldn't be committed at this time.
   // Off:
