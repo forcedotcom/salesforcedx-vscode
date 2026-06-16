@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "isolatedModules": false,
     "rootDir": ".",
     "outDir": "out"
   },

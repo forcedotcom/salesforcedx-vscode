@@ -87,7 +87,9 @@ class QuickLaunch {
     try {
       const singleTestName = testMethod ? `${testClass}.${testMethod}` : undefined;
       const payload = await testService.buildSyncPayload(
-        TestLevel.RunSpecifiedTests,
+        // TestLevel is an ambient const enum; isolatedModules forbids referencing its members (TS2748), so assert the literal value
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        'RunSpecifiedTests' as TestLevel,
         singleTestName,
         singleTestName ? undefined : testClass,
         undefined,
