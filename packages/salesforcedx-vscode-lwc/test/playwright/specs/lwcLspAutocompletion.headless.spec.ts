@@ -11,12 +11,13 @@ import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  goToLineCol,
   setupConsoleMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
-import { createLwc, goToLineCol, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
+import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
 import { disableDeployOnSaveWeb } from '../utils/lwcWebScratchAuth';
 
 test.beforeEach(async ({ page }) => {

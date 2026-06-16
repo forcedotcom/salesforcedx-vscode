@@ -11,6 +11,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  goToLineCol,
   openFileByName,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -22,7 +23,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
-import { goToLineCol, waitForAuraLspReady } from '../utils/auraLspUtils';
+import { waitForAuraLspReady } from '../utils/auraLspUtils';
 
 // Migrated from WDIO `auraLsp.e2e.ts` "Go to Definition". The aura1 bundle is pre-seeded onto disk
 // before launch (fixtures/desktopFixtures.ts); the Aura LS indexes it on its startup scan, so no

@@ -43,6 +43,7 @@ export {
   openFileFromExplorerTree,
   editAndSaveOpenFile as editOpenFile,
   replaceLineInOpenFile,
+  goToLineCol,
   setupMinimalOrgAndAuth,
   setupNonTrackingOrgAndAuth,
   createAndDeployApexTestClass
