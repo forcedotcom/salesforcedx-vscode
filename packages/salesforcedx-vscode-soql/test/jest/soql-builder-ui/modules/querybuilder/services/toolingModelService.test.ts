@@ -9,7 +9,7 @@
  */
 
 import { Effect, Layer } from 'effect';
-import { AndOr } from '../../../../../../src/soql-model/model/model';
+import { AndOr } from '@salesforce/soql-model/model';
 import {
   ToolingModelService,
   toolingModelTemplate

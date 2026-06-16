@@ -15,7 +15,7 @@
  */
 
 import { api, createElement, LightningElement } from 'lwc';
-import { AndOr } from '../../../../../../src/soql-model/model/model';
+import { AndOr } from '@salesforce/soql-model/model';
 import Where from '../../../../../../src/soql-builder-ui/modules/querybuilder/where/where';
 
 class WhereExpressionManager {

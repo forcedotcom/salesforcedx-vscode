@@ -85,6 +85,8 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
+        "test/tsconfig.json",
+        "tsconfig.json",
         "../../eslint.config.mjs",
         "package.json"
       ],
