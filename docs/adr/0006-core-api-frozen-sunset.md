@@ -1,0 +1,3 @@
+# The vscode-core extension API is frozen, on a sunset path
+
+`SalesforceVSCodeCoreApi` (the `salesforcedx-vscode-core` `activate()` exports) is frozen: do not add consumers or grow its surface. The goal is to remove it entirely, but it is blocked by external consumers (einstein-gpt, vscode-agents, code-analyzer) and in-repo consumers (apex extensions) that version-gate, so a major bump alone is insufficient. Migrate existing usage per-member to the services API; remove a member only once every consumer is gone. See [core-extension-api](../../.claude/skills/core-extension-api/SKILL.md) and [external-consumers](../../.claude/skills/external-consumers/SKILL.md).

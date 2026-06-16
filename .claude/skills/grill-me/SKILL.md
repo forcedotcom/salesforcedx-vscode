@@ -37,6 +37,8 @@ Multi-context:
 
 Contexts go wherever a coherent vocabulary lives — packages, plus non-source dirs (`.claude/`, `.github/`). Narrowest scope owning the term.
 
+Root `docs/adr/` + in-scope `packages/*/docs/adr/` — *why / what-rejected*; grill against; avoid re-proposing reverted alternatives.
+
 Create lazily. First new context in a single-context repo → also create `CONTEXT-MAP.md`; move existing root `CONTEXT.md` to its proper scope if it doesn't belong at root.
 
 ## During the session
