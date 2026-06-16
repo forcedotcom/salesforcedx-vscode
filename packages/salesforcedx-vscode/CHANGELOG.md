@@ -1,48 +1,46 @@
-# 67.1.0 - June 17, 2026
+# 67.1.0 - June 18, 2026
 
 ## Added
 
-#### docs
-
-- Route Effect spans to App Insights customEvents table - W-22815903 ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418))
-
-#### salesforcedx-utils-vscode
-
-- Route Effect spans to App Insights customEvents table - W-22815903 ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418))
-
-- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
-
 #### salesforcedx-vscode-apex
 
-- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
-
-- Update Apex LSP jar for 262 language changes - W-21313831 ([PR #7435](https://github.com/forcedotcom/salesforcedx-vscode/pull/7435))
-
-#### salesforcedx-vscode-apex-oas
-
-- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
-
-#### salesforcedx-vscode-automation-tests
-
-- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+- We updated the Apex Language Server with Summer '26 (API version 262) language definitions and refreshed standard Apex library. ([PR #7435](https://github.com/forcedotcom/salesforcedx-vscode/pull/7435))
 
 #### salesforcedx-vscode-org
 
-- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
-
-- Hide delete default org command when default org is not deletable - W-22168898 ([PR #7433](https://github.com/forcedotcom/salesforcedx-vscode/pull/7433))
-
-#### salesforcedx-vscode-services
-
-- Route Effect spans to App Insights customEvents table - W-22815903 ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418))
-
-- Defer activation until commands run - W-22168691 ([PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
-
-- Hide delete default org command when default org is not deletable - W-22168898 ([PR #7433](https://github.com/forcedotcom/salesforcedx-vscode/pull/7433))
+- The **SFDX: Delete Default Org** command is now hidden when your default org is a production org or Dev Hub (only scratch orgs and sandboxes can be deleted). ([PR #7433](https://github.com/forcedotcom/salesforcedx-vscode/pull/7433))
 
 ## Fixed
 
 #### salesforcedx-vscode-org
 
-- Let apex test react to org change rather than calling refresh - W-22966425 ([PR #7448](https://github.com/forcedotcom/salesforcedx-vscode/pull/7448))
+- We fixed a bug where the Apex test view didn't refresh immediately after changing the default org. ([PR #7448](https://github.com/forcedotcom/salesforcedx-vscode/pull/7448))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418), [PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+
+# 66.15.0 - June 11, 2026
+
+## Added
+
+#### salesforcedx-vscode-services
+
+- We added a `SalesforceProject` Effect service with API caching. ([PR #7432](https://github.com/forcedotcom/salesforcedx-vscode/pull/7432))
+
+#### salesforcedx-vscode-core
+
+- The **Org Picker** now shows scratch org aliases after the username, when present. ([PR #7404](https://github.com/forcedotcom/salesforcedx-vscode/pull/7404))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue where the status-bar Org Picker showed a stale list of orgs after deleting an org outside VS Code. The Org Picker now lists only orgs currently found by the Salesforce CLI. ([PR #7432](https://github.com/forcedotcom/salesforcedx-vscode/pull/7432))
+
+- We fixed a bug where the **SFDX: Create Project** command failed on Windows when the target folder path contained a trailing backslash. ([PR #7431](https://github.com/forcedotcom/salesforcedx-vscode/pull/7431))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #7365](https://github.com/forcedotcom/salesforcedx-vscode/pull/7365), [PR #7366](https://github.com/forcedotcom/salesforcedx-vscode/pull/7366), [PR #7423](https://github.com/forcedotcom/salesforcedx-vscode/pull/7423))
 
