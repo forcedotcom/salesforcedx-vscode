@@ -17,8 +17,7 @@
     "**/jscpd-report/**",
     "**/extension/**",
     "**/salesforcedx-apex-debugger/**",
-    "**/salesforcedx-vscode-apex-debugger/**",
-    "**/salesforcedx-vscode-automation-tests/**"
+    "**/salesforcedx-vscode-apex-debugger/**"
   ],
   "minLines": 5,
   "minTokens": 50,
