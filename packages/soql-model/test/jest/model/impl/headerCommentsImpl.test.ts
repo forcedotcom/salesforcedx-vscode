@@ -21,12 +21,10 @@ describe('HeaderCommentsImpl should', () => {
   });
 
   it('return the empty string on toSoqlSyntax() when no comments', () => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    let actual = new HeaderCommentsImpl(null as string).toSoqlSyntax();
+    let actual = new HeaderCommentsImpl(null).toSoqlSyntax();
     expect(actual).toBe('');
 
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    actual = new HeaderCommentsImpl(undefined as string).toSoqlSyntax();
+    actual = new HeaderCommentsImpl(undefined).toSoqlSyntax();
     expect(actual).toBe('');
 
     actual = new HeaderCommentsImpl('').toSoqlSyntax();

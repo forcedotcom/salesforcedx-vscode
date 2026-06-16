@@ -263,7 +263,7 @@ export type Where = SoqlModelObject & {
   condition: Condition;
 };
 export type HeaderComments = SoqlModelObject & {
-  text: string;
+  text: string | null | undefined;
 };
 
 export type With = SoqlModelObject;
