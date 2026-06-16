@@ -5,4 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export * from './selectAnalyzer';
+export { SelectAnalyzer } from './selectAnalyzer';
+export type { ColumnData, Selection } from './selectAnalyzer';

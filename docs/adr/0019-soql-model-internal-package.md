@@ -1,6 +1,6 @@
 # soql-model is a real but internal workspace package
 
-`soql-model` (SOQL AST model, serialization, validators) is a real npm-workspaces package `@salesforce/soql-model`, consumed within the repo via the `*` version, but marked `private: true` and never published. It was previously a quasi-package faked by four alias mechanisms (tsconfig `paths`, two jest `moduleNameMapper`s, a rollup `@rollup/plugin-alias` entry) with no manifest or build boundary — the tail of the soql-tooling→vscode move (PR #6821). Making it a real package gives it a real build/lint/test boundary and curated exports via [wireit](../../.claude/skills/wireit/SKILL.md) ([ADR-0001](0001-npm-workspaces-wireit.md)), without taking on publish overhead.
+`soql-model` (SOQL AST model, serialization, validators) is a real npm-workspaces pkg `@salesforce/soql-model`, consumed in-repo via `*`, `private: true`, not published. Previously a quasi-pkg faked by 4 alias mechanisms (tsconfig `paths`, 2 jest `moduleNameMapper`s, rollup `@rollup/plugin-alias`), no manifest/boundary — tail of soql-tooling→vscode move (PR #6821). Real pkg provides build/lint/test boundary + curated exports via [wireit](../../.claude/skills/wireit/SKILL.md) ([ADR-0001](0001-npm-workspaces-wireit.md)), no publish overhead.
 
 ## Considered Options
 
