@@ -39,6 +39,7 @@
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
+    "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
     "antlr4ts": "^0.5.0-alpha.3",

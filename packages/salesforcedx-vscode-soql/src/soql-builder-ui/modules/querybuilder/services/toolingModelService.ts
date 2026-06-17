@@ -7,7 +7,7 @@
  */
 
 import { Effect, Stream, SubscriptionRef } from 'effect';
-import { AndOr } from '@salesforce/soql-model/model/model';
+import { AndOr } from '@salesforce/soql-model';
 import { JsonMap } from '@salesforce/ts-types';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { MessageService } from './message/iMessageService';
