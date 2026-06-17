@@ -81,7 +81,7 @@
     "@lwc/compiler": "9.0.3",
     "@lwc/errors": "9.0.3",
     "@lwc/metadata": "12.3.4",
-    "@lwc/template-compiler": "9.0.3",
+    "@lwc/template-compiler": "9.3.4",
     "@salesforce/apex": "^0.0.21",
     "@salesforce/label": "^0.0.21",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
