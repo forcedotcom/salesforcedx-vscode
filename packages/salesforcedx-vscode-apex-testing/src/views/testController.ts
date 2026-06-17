@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,10 +8,11 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { TEST_ID_PREFIXES } from '../constants';
+import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
 import { getApexTestDiscoveryStore, resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryStore';
 import { APEX_TESTING_SCHEME } from '../discoveryVfs/apexTestingDiscoveryFs';
@@ -50,11 +51,6 @@ import {
   readTestRunIdFile,
   writeTestResultJsonFile
 } from '../utils/testUtils';
-import {
-  type MetadataRetrieveFileResponse,
-  isMetadataRetrieveFileResponse,
-  isMetadataRetrieveOutcomeLike
-} from '../utils/typeGuards';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
@@ -206,40 +202,51 @@ export class ApexTestController {
     }
   }
 
-  private async doDiscoverTests(): Promise<void> {
-    try {
-      // Initialize connection and testService
-      await this.ensureInitialized();
+  private doDiscoverTestsEffect = Effect.fn('doDiscoverTests')(function* (this: ApexTestController) {
+    yield* Effect.tryPromise(() => this.ensureInitialized()).pipe(Effect.withSpan('ensureInitialized'));
 
-      // Clear existing test items before repopulating (important when switching orgs)
-      this.clearTestItems();
+    this.clearTestItems();
 
-      // Populate suites first so they appear at the top
-      await this.populateSuiteItems();
+    yield* Effect.tryPromise(() => this.populateSuiteItems()).pipe(Effect.withSpan('populateSuiteItems'));
 
-      // Then populate test classes from org (all tests, not just local)
-      const discoveryResult = await getApexTestingRuntime().runPromise(discoverTests());
-      await this.persistDiscoveredClasses(discoveryResult.classes);
+    const discoveryResult = yield* discoverTests();
 
-      // Always populate whatever classes were discovered, even if discovery was partial
-      if (discoveryResult.classes.length > 0) {
-        await this.populateTestItemsFromOrg(discoveryResult.classes);
-      }
+    yield* Effect.tryPromise(() => this.persistDiscoveredClasses(discoveryResult.classes)).pipe(
+      Effect.withSpan('persistDiscoveredClasses', {
+        attributes: { classCount: discoveryResult.classes.length }
+      })
+    );
 
-      // Restore previous test results on initial load (not on manual refresh)
-      if (!this.hasRestoredResults) {
-        this.hasRestoredResults = true;
-        await this.restorePreviousResults();
-      }
-    } catch (error) {
-      console.debug('Failed to discover tests:', error);
-      const friendlyMessage = toUserFriendlyApexTestError(error);
-      if (friendlyMessage === nls.localize('apex_test_discovery_partial_warning')) {
-        void notificationService.showWarningMessage(friendlyMessage);
-      } else {
-        void notificationService.showErrorMessage(friendlyMessage);
-      }
+    if (discoveryResult.classes.length > 0) {
+      yield* Effect.tryPromise(() => this.populateTestItemsFromOrg(discoveryResult.classes)).pipe(
+        Effect.withSpan('populateTestItemsFromOrg', {
+          attributes: { classCount: discoveryResult.classes.length }
+        })
+      );
     }
+
+    if (!this.hasRestoredResults) {
+      this.hasRestoredResults = true;
+      yield* Effect.tryPromise(() => this.restorePreviousResults()).pipe(Effect.withSpan('restorePreviousResults'));
+    }
+  });
+
+  private async doDiscoverTests(): Promise<void> {
+    await getApexTestingRuntime().runPromise(
+      this.doDiscoverTestsEffect.call(this).pipe(
+        Effect.catchAll(error =>
+          Effect.sync(() => {
+            console.debug('Failed to discover tests:', error);
+            const friendlyMessage = toUserFriendlyApexTestError(error);
+            if (friendlyMessage === nls.localize('apex_test_discovery_partial_warning')) {
+              void notificationService.showWarningMessage(friendlyMessage);
+            } else {
+              void notificationService.showErrorMessage(friendlyMessage);
+            }
+          })
+        )
+      )
+    );
   }
 
   private async persistDiscoveredClasses(classes: ToolingTestClass[]): Promise<void> {
@@ -293,8 +300,6 @@ export class ApexTestController {
     return bodyByFullName;
   }
 
-  private static readonly RESULT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
-
   private async restorePreviousResults(): Promise<void> {
     // Prevent concurrent restoration attempts
     if (this.isRestoringResults) {
@@ -317,7 +322,10 @@ export class ApexTestController {
 
       // Find all test-result JSON files, sorted oldest-first (last applied wins)
       const resultUris = entries
-        .filter(uri => uri.path.includes('test-result') && uri.path.endsWith('.json'))
+        .filter(
+          uri =>
+            uri.path.includes('test-result') && uri.path.endsWith('.json') && !uri.path.endsWith('-codecoverage.json')
+        )
         .toSorted((a, b) => a.path.localeCompare(b.path));
 
       if (resultUris.length === 0) {
@@ -331,7 +339,7 @@ export class ApexTestController {
       const sessionMethodIds = new Set<string>();
       for (const uri of resultUris) {
         const stat = await vscode.workspace.fs.stat(uri);
-        if (now - stat.mtime <= ApexTestController.RESULT_MAX_AGE_MS) {
+        if (now - stat.mtime <= RESULT_MAX_AGE_MS) {
           recentUris.push(uri);
           const methodsInFile = await ApexTestController.getMethodIdsFromResultFile(uri);
           const targetSet = stat.mtime < this.sessionStartTime ? staleMethodIds : sessionMethodIds;
@@ -1544,21 +1552,17 @@ export class ApexTestController {
   }
 
   private async updateTestResults(testResultUri: URI): Promise<void> {
+    const resultText = await getApexTestingRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        return yield* api.services.FsService.readFile(testResultUri);
+      })
+    );
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const resultContent = JSON.parse(resultText) as TestResult;
+
+    const run = this.controller.createTestRun(new vscode.TestRunRequest());
     try {
-      const resultText = await getApexTestingRuntime().runPromise(
-        Effect.gen(function* () {
-          const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          return yield* api.services.FsService.readFile(testResultUri);
-        })
-      );
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const resultContent = JSON.parse(resultText) as TestResult;
-
-      // Create a test run to update results
-      const run = this.controller.createTestRun(new vscode.TestRunRequest());
-
-      // Reuse updateTestRunResults - pass empty array for testsToRun since we're loading from file
-      // Use the code coverage setting to determine if coverage should be shown
       const codeCoverage = settings.retrieveTestCodeCoverage();
       const concise = settings.retrieveTestRunConcise();
       updateTestRunResults({
@@ -1570,11 +1574,8 @@ export class ApexTestController {
         codeCoverage,
         concise
       });
-
+    } finally {
       run.end();
-    } catch (error) {
-      const friendlyMessage = toUserFriendlyApexTestError(error);
-      throw new Error(nls.localize('apex_test_update_results_failed_message', friendlyMessage));
     }
   }
 
@@ -1646,29 +1647,11 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
   return classPath.slice(0, -4).replaceAll('/', '.');
 };
 
-const getRetrievedFileUri = (result: unknown): URI | undefined => {
-  if (!isMetadataRetrieveOutcomeLike(result)) {
-    return undefined;
-  }
-  let responses: readonly MetadataRetrieveFileResponse[];
-  try {
-    responses = result.getFileResponses();
-  } catch {
-    return undefined;
-  }
-  if (!Array.isArray(responses) || responses.length === 0) {
-    return undefined;
-  }
-  for (const item of responses) {
-    if (!isMetadataRetrieveFileResponse(item)) {
-      continue;
-    }
-    const { filePath } = item;
-    if (typeof filePath === 'string' && filePath.length > 0) {
-      return URI.file(filePath);
-    }
-  }
-  return undefined;
+const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
+  const filePath = result
+    .getFileResponses()
+    .find(r => typeof r.filePath === 'string' && r.filePath.length > 0)?.filePath;
+  return filePath ? URI.file(filePath) : undefined;
 };
 
 const closeEditorTabByUri = async (uri: URI): Promise<void> => {

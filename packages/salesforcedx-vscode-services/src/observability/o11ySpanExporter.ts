@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -70,7 +70,7 @@ export class O11ySpanExporter implements SpanExporter {
         try: async () => {
           await this.ensureInitialized();
           const pdpEventSchema = await getPdpEventSchema();
-          const { cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
+          const { userId, cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
             Effect.flatMap(ref => SubscriptionRef.get(ref)),
             Effect.runSync
           );
@@ -83,7 +83,8 @@ export class O11ySpanExporter implements SpanExporter {
               traceID: span.spanContext().traceId,
               spanID: span.spanContext().spanId,
               parentID: span.parentSpanContext?.spanId,
-              ...(cliId ? { userId: cliId } : {}),
+              ...(userId ? { userId } : {}),
+              ...(cliId ? { cliId } : {}),
               ...(webUserId ? { webUserId } : {})
             };
             const measurements = {

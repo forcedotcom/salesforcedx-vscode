@@ -1,21 +1,22 @@
-# 66.12.3 - May 22, 2026
+# 67.1.0 - June 18, 2026
 
 ## Added
 
-#### salesforcedx-vscode-metadata
-
-- You can now disable automatic source tracking conflict detection via the **Source Tracking: Disable Conflict Detection** setting for improved startup performance. ([PR #7323](https://github.com/forcedotcom/salesforcedx-vscode/pull/7323))
-
-## Fixed
-
 #### salesforcedx-vscode-apex
 
-- We fixed an unhandled "Channel has been closed" exception that could occur during Apex Language Server restart. ([PR #7314](https://github.com/forcedotcom/salesforcedx-vscode/pull/7314))
+- We updated the Apex Language Server with Summer '26 (API version 262) language definitions and refreshed standard Apex library. ([PR #7435](https://github.com/forcedotcom/salesforcedx-vscode/pull/7435))
 
 #### salesforcedx-vscode-org
 
-- We fixed an issue where the source tracking status bar didn't refresh after switching orgs via the org picker. ([PR #7328](https://github.com/forcedotcom/salesforcedx-vscode/pull/7328))
+- The **SFDX: Delete Default Org** command is now hidden when your default org is a production org or Dev Hub (only scratch orgs and sandboxes can be deleted). ([PR #7433](https://github.com/forcedotcom/salesforcedx-vscode/pull/7433))
+
+## Fixed
+
+#### salesforcedx-vscode-org
+
+- We fixed a bug where the Apex test view didn't refresh immediately after changing the default org. ([PR #7448](https://github.com/forcedotcom/salesforcedx-vscode/pull/7448))
 
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #7293](https://github.com/forcedotcom/salesforcedx-vscode/pull/7293), [PR #7299](https://github.com/forcedotcom/salesforcedx-vscode/pull/7299), [PR #7322](https://github.com/forcedotcom/salesforcedx-vscode/pull/7322), [PR #7325](https://github.com/forcedotcom/salesforcedx-vscode/pull/7325), [PR #7331](https://github.com/forcedotcom/salesforcedx-vscode/pull/7331), [PR #7336](https://github.com/forcedotcom/salesforcedx-vscode/pull/7336))
+- We made some under the hood changes. ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418), [PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+

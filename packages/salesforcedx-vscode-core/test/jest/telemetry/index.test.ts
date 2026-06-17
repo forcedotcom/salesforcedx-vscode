@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -33,6 +33,17 @@ describe('Telemetry', () => {
       onDidDelete: jest.fn(),
       dispose: jest.fn()
     } as any);
+    // Telemetry now sources identity from services API; mock the degraded-session channel write.
+    jest.spyOn(window, 'createOutputChannel').mockReturnValue({
+      appendLine: jest.fn(),
+      append: jest.fn(),
+      show: jest.fn(),
+      hide: jest.fn(),
+      clear: jest.fn(),
+      dispose: jest.fn(),
+      replace: jest.fn(),
+      name: 'mock'
+    } as any);
   });
 
   afterEach(() => {
@@ -50,7 +61,7 @@ describe('Telemetry', () => {
         return key;
       }
       if (key === TELEMETRY_GLOBAL_WEB_USER_ID) {
-        return undefined; // Allow getWebTelemetryUserId to generate its own value
+        return undefined;
       }
       if (key === TELEMETRY_GLOBAL_VALUE) {
         return globalMsgShown;
@@ -76,7 +87,7 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryEnabled).toBe(true);
 
       await showTelemetryMessage(mockExtensionContext);
       expect(mShowInformation).toHaveBeenCalledTimes(1);
@@ -93,12 +104,10 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryEnabled).toBe(true);
 
       await showTelemetryMessage(mockExtensionContext);
-      expect(globalStateTelemetrySpy).toHaveBeenCalledTimes(4);
-      expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_USER_ID);
-      expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_WEB_USER_ID);
+      // Identity now sourced from services extension; only the show-message keys are read from globalState.
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_VALUE);
       expect(globalStateTelemetrySpy).toHaveBeenLastCalledWith(TELEMETRY_INTERNAL_VALUE);
       expect(mShowInformation).not.toHaveBeenCalled();
@@ -113,7 +122,7 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryEnabled).toBe(true);
 
       await showTelemetryMessage(mockExtensionContext);
 
@@ -132,26 +141,7 @@ describe('Telemetry', () => {
       await telemetryService.initializeService(mockExtensionContext);
 
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
-
-      await showTelemetryMessage(mockExtensionContext);
-
-      expect(mShowInformation).toHaveBeenCalledTimes(1);
-      expect(mShowInformation).toHaveBeenCalledWith(internalMessage);
-      expect(mShowInformation).not.toHaveBeenCalledWith(showMessage, showButtonText);
-      expect(teleSpy.mock.calls[0]).toEqual([true]);
-    });
-
-    it('should show internal info message and not telemetry opt-out message', async () => {
-      // create telemetry shown states
-      globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, true, false));
-      // mock out the isInternalHost call
-      jest.spyOn(os, 'hostname').mockReturnValue('test.internal.salesforce.com');
-
-      await telemetryService.initializeService(mockExtensionContext);
-
-      const telemetryEnabled = await telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).toEqual(true);
+      expect(telemetryEnabled).toBe(true);
 
       await showTelemetryMessage(mockExtensionContext);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -698,8 +698,8 @@ describe('lwcServerNode', () => {
         await server.componentIndexer.init();
         const [location] = await server.onDefinition(params);
         expect(location.uri).toContain('todo/todo.js');
-        expect(location.range.start.line).toEqual(105);
-        expect(location.range.start.character).toEqual(4);
+        expect(location.range.start.line).toBe(105);
+        expect(location.range.start.character).toBe(4);
       });
 
       it('returns the Location of an (`@api`) classMember from the html attribute', async () => {
@@ -714,8 +714,8 @@ describe('lwcServerNode', () => {
         await server.onInitialize(initializeParams);
         await server.componentIndexer.init();
         const [location]: Location[] = await server.onDefinition(params);
-        expect(location.range.start.line).toEqual(14);
-        expect(location.range.start.character).toEqual(4);
+        expect(location.range.start.line).toBe(14);
+        expect(location.range.start.character).toBe(4);
       });
 
       it('returns the Location of a parent iterator node with an iterator attribute', async () => {
@@ -731,8 +731,8 @@ describe('lwcServerNode', () => {
         await server.componentIndexer.init();
         const [location]: Location[] = await server.onDefinition(params);
         expect(location.uri).toContain('todo/todo.html');
-        expect(location.range.start.line).toEqual(15);
-        expect(location.range.start.character).toEqual(60);
+        expect(location.range.start.line).toBe(15);
+        expect(location.range.start.character).toBe(60);
       });
     });
 
@@ -826,7 +826,7 @@ describe('lwcServerNode', () => {
             (await server.fileSystemAccessor.fileExists(baseTsconfigPath))
         ).toBe(false);
         const tsconfigPaths = await getTsConfigPaths();
-        expect(tsconfigPaths.length).toBe(0);
+        expect(tsconfigPaths).toHaveLength(0);
       });
 
       it('initializes tsconfig when salesforcedx-vscode-lwc.preview.typeScriptSupport = true', async () => {
@@ -862,7 +862,7 @@ describe('lwcServerNode', () => {
         ).toBe(true);
         // There are currently 3 LWC directories under SFDX_WORKSPACE_ROOT
         // (force-app/main/default/lwc, utils/meta/lwc, and registered-empty-folder/meta/lwc)
-        expect(tsconfigPaths.length).toBe(3);
+        expect(tsconfigPaths).toHaveLength(3);
       }, 15_000);
 
       it('updates tsconfig.sfdx.json path mapping', async () => {
@@ -897,7 +897,7 @@ describe('lwcServerNode', () => {
         const sfdxTsConfigContent =
           (await provider.getFileContent(baseTsconfigPath)) ??
           (await server.fileSystemAccessor.getFileContent(baseTsconfigPath));
-        expect(sfdxTsConfigContent).not.toBeUndefined();
+        expect(sfdxTsConfigContent).toBeDefined();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!);
         const pathMapping = Object.keys(sfdxTsConfig.compilerOptions.paths);
@@ -1030,7 +1030,7 @@ describe('lwcServerNode', () => {
               // If not, the update might have failed, but we'll allow it for now
               expect(hasComponent || pathMapping.length >= baselineCount).toBe(true);
             } else {
-              expect(pathMapping.length).toEqual(baselineCount + 1);
+              expect(pathMapping).toHaveLength(baselineCount + 1);
             }
           } else {
             // If baseline is incorrect, the update likely also failed - just verify it didn't decrease
@@ -1114,7 +1114,7 @@ describe('lwcServerNode', () => {
           await server.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
           const updatedPathMapping = await getPathMappingKeys(server);
           // File was changed but not added/removed, so count should remain the same
-          expect(updatedPathMapping.length).toEqual(baselineCount);
+          expect(updatedPathMapping).toHaveLength(baselineCount);
         });
 
         it("doesn't update path mapping when parent directory is not lwc", async () => {
@@ -1175,7 +1175,7 @@ describe('lwcServerNode', () => {
             await server.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
             const updatedPathMapping = await getPathMappingKeys(server);
             // Non-JS/TS file changes don't update path mapping, so count should stay the same
-            expect(updatedPathMapping.length).toEqual(initializedPathMapping.length);
+            expect(updatedPathMapping).toHaveLength(initializedPathMapping.length);
           });
         });
       });
@@ -1226,9 +1226,9 @@ describe('lwcServerNode', () => {
       const doc = await getDocument();
       const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 18, character: 33 } }, doc);
       expect(cursorInfo).not.toBeNull();
-      expect(cursorInfo!.type).toEqual('dynamicAttributeValue');
-      expect(cursorInfo!.name).toEqual('todo');
-      expect(cursorInfo!.tag).toEqual('c-todo_item');
+      expect(cursorInfo!.type).toBe('dynamicAttributeValue');
+      expect(cursorInfo!.name).toBe('todo');
+      expect(cursorInfo!.tag).toBe('c-todo_item');
       expect(cursorInfo!.range).toEqual({
         start: {
           character: 60,
@@ -1251,24 +1251,24 @@ describe('lwcServerNode', () => {
       const doc = await getDocument();
       const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 37, character: 24 } }, doc);
       expect(cursorInfo).not.toBeNull();
-      expect(cursorInfo!.type).toEqual('content');
-      expect(cursorInfo!.tag).toEqual('button');
+      expect(cursorInfo!.type).toBe('content');
+      expect(cursorInfo!.tag).toBe('button');
     });
 
     it('knows when Im in dynamic content', async () => {
       const doc = await getDocument();
       const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 27, character: 68 } }, doc);
       expect(cursorInfo).not.toBeNull();
-      expect(cursorInfo!.type).toEqual('dynamicContent');
-      expect(cursorInfo!.tag).toEqual('strong');
+      expect(cursorInfo!.type).toBe('dynamicContent');
+      expect(cursorInfo!.tag).toBe('strong');
     });
 
     it('knows when Im not dynamic content', async () => {
       const doc = await getDocument();
       const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 27, character: 76 } }, doc);
       expect(cursorInfo).not.toBeNull();
-      expect(cursorInfo!.type).toEqual('content');
-      expect(cursorInfo!.tag).toEqual('strong');
+      expect(cursorInfo!.type).toBe('content');
+      expect(cursorInfo!.tag).toBe('strong');
     });
   });
 
@@ -1276,11 +1276,11 @@ describe('lwcServerNode', () => {
     const text = '{foobar}, {foo.bar} so\nmething {baz.bux}';
 
     it('returns the dynamic match at the given offset if it exists', () => {
-      expect(findDynamicContent(text, 5)).toEqual('foobar');
+      expect(findDynamicContent(text, 5)).toBe('foobar');
     });
 
     it('returns the match if its not the only one in the string', () => {
-      expect(findDynamicContent(text, 12)).toEqual('foo');
+      expect(findDynamicContent(text, 12)).toBe('foo');
     });
 
     it('returns null when not on dynamic content', () => {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -27,7 +27,12 @@ export const messages = {
   aura_generate_app_success: 'Aura app created successfully',
   aura_generate_component_success: 'Aura component created successfully',
   aura_generate_event_success: 'Aura event created successfully',
-  aura_generate_interface_success: 'Aura interface created successfully'
+  aura_generate_interface_success: 'Aura interface created successfully',
+  rename_component_warning:
+    'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
+  rename_component_input_dup_file_name_error:
+    'This file name is already in use in the current component directory. Choose a different name and try again.',
+  component_input_dup_error: 'Component name is already in use in LWC or Aura'
 } as const;
 
 export type MessageKey = keyof typeof messages;

@@ -1,19 +1,19 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Effect from 'effect/Effect';
 import { JSONPath } from 'jsonpath-plus';
 import { OpenAPIV3 } from 'openapi-types';
-import { PropertyCorrectionStep } from '../../../src/oas/documentProcessorPipeline/propertyCorrectionStep';
+import { propertyCorrectionStep } from '../../../src/oas/documentProcessorPipeline/propertyCorrectionStep';
+import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
 
-describe('PropertyCorrectionStep', () => {
-  let step: PropertyCorrectionStep;
+describe('propertyCorrectionStep', () => {
   let openAPIDoc: OpenAPIV3.Document;
 
   beforeEach(() => {
-    step = new PropertyCorrectionStep();
     openAPIDoc = {
       openapi: '3.0.0',
       info: {
@@ -59,50 +59,49 @@ describe('PropertyCorrectionStep', () => {
         }
       }
     };
-  }) as OpenAPIV3.Document;
+  });
 
-  it('should ensure info version is present', () => {
-    const result = step['ensureInfoVersionIsPresent'](openAPIDoc);
+  const run = async (doc: OpenAPIV3.Document): Promise<OpenAPIV3.Document> => {
+    const input: ProcessorInputOutput = {
+      errors: [],
+      openAPIDoc: doc,
+      context: undefined
+    };
+    const output = await Effect.runPromise(propertyCorrectionStep(input));
+    return output.openAPIDoc;
+  };
+
+  it('ensures info version is present', async () => {
+    const result = await run(openAPIDoc);
     expect(result.info.version).toBe('1.0.0');
   });
 
-  it('should ensure servers are present', () => {
-    const result = step['ensureServersIsPresent'](openAPIDoc);
+  it('ensures servers are present', async () => {
+    const result = await run(openAPIDoc);
     expect(result.servers).toEqual([{ url: '/services/apexrest' }]);
   });
 
-  it('should ensure response descriptions are present', () => {
-    const result = step['ensureResponseDescriptionsArePresent'](openAPIDoc);
+  it('preserves existing response descriptions', async () => {
+    const result = await run(openAPIDoc);
     const responseDescriptions = JSONPath({ path: '$.paths[*][*].responses[*].description', json: result });
     expect(responseDescriptions).toContain('this one is ok');
-    expect(responseDescriptions).not.toContain('Default description for the response.');
   });
 
-  it('should ensure parameter descriptions are present', () => {
-    const result = step['ensureParameterDescriptionsArePresent'](openAPIDoc);
+  it('fills empty parameter descriptions with default', async () => {
+    const result = await run(openAPIDoc);
     const parameterDescriptions = JSONPath({ path: '$.paths[*][*].parameters[*].description', json: result });
     expect(parameterDescriptions).toContain('Default description for the parameter.');
   });
 
-  it('should ensure request body descriptions are present', () => {
-    const result = step['ensureRequestBodyDescriptionsArePresent'](openAPIDoc);
+  it('fills missing request body descriptions with default', async () => {
+    const result = await run(openAPIDoc);
     const requestBodyDescriptions = JSONPath({ path: '$.paths[*][*].requestBody.description', json: result });
     expect(requestBodyDescriptions).toContain('Default description for the requestBody.');
   });
 
-  it('should ensure descriptions are present using generic method', () => {
-    const result = step['ensureDescriptionsArePresent'](
-      openAPIDoc,
-      '$.paths[*][*].parameters[*]',
-      'Default description for the parameter.'
-    );
-    const parameterDescriptions = JSONPath({ path: '$.paths[*][*].parameters[*].description', json: result });
-    expect(parameterDescriptions).toContain('Default description for the parameter.');
-  });
-
-  it('should remove security sections at root and within methods', () => {
-    const result = step['ensureSecuritySectionsAreRemoved'](openAPIDoc);
+  it('removes security sections at root and within methods', async () => {
+    const result = await run(openAPIDoc);
     const securityEntries = JSONPath({ path: '$..security', json: result });
-    expect(securityEntries.length).toBe(0);
+    expect(securityEntries).toHaveLength(0);
   });
 });

@@ -1,49 +1,34 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  PromptGenerationStrategyBid
-} from '../schemas';
-import { ApexRestStrategy } from './json/apexRest';
-import { AuraEnabledStrategy } from './json/auraEnabledStrategy';
+import * as Effect from 'effect/Effect';
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import { GenerationStrategy } from './generationStrategy';
+import { createApexRestStrategy } from './json/apexRest';
+import { createAuraEnabledStrategy } from './json/auraEnabledStrategy';
 
 export type GenerationStrategyType = 'ApexRest' | 'AuraEnabled';
 
-export type StrategyTypes = ApexRestStrategy | AuraEnabledStrategy;
-
-export const initializeAndBid = async (
+export const initializeAndBid = Effect.fn('ApexOas.Strategy.initializeAndBid')(function* (
   metadata: ApexClassOASEligibleResponse,
   context: ApexClassOASGatherContextResponse
-): Promise<{
-  strategies: Map<GenerationStrategyType, StrategyTypes>;
-  bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>;
-}> => {
+) {
   // Initialize strategies
-  const strategies = new Map<GenerationStrategyType, StrategyTypes>();
-  const apexRestStrategy = await ApexRestStrategy.initialize(metadata, context);
-  const auraEnabledStrategy = await AuraEnabledStrategy.initialize(metadata, context);
-
-  strategies.set('ApexRest', apexRestStrategy);
-  strategies.set('AuraEnabled', auraEnabledStrategy);
-
+  const apexRestStrategy = yield* createApexRestStrategy(metadata, context);
+  const auraEnabledStrategy = yield* Effect.promise(() => createAuraEnabledStrategy(context));
+  const strategies = new Map<GenerationStrategyType, GenerationStrategy>([
+    ['ApexRest', apexRestStrategy],
+    ['AuraEnabled', auraEnabledStrategy]
+  ]);
   // Get bids from all strategies
-  const bidPromises = Array.from(strategies.entries())
-    .filter(([_, strategy]) => strategy)
-    .map(
-      async ([strategyName, strategy]): Promise<[GenerationStrategyType, PromptGenerationStrategyBid]> => [
-        strategyName,
-        await strategy.bid()
-      ]
-    );
-
-  const bidResults = await Promise.all(bidPromises);
-  const bids = new Map(bidResults);
-
-  return { strategies, bids };
-};
+  const bidEntries = yield* Effect.forEach(
+    Array.from(strategies.entries()),
+    ([name, strategy]) => Effect.map(strategy.bid(), bid => [name, bid] as const),
+    { concurrency: 'unbounded' }
+  );
+  return { strategies, bids: new Map(bidEntries) };
+});

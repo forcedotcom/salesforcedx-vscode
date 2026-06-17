@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -14,16 +14,6 @@ export class LogGetNoLogsError extends Schema.TaggedError<LogGetNoLogsError>()('
 export class OpenLogsFolderError extends Schema.TaggedError<OpenLogsFolderError>()('OpenLogsFolderError', {
   message: Schema.String,
   cause: Schema.instanceOf(Error)
-}) {}
-
-export class DebugLevelCreateError extends Schema.TaggedError<DebugLevelCreateError>()('DebugLevelCreateError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.Unknown)
-}) {}
-
-export class DebugLevelDeleteError extends Schema.TaggedError<DebugLevelDeleteError>()('DebugLevelDeleteError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.Unknown)
 }) {}
 
 export class TraceFlagOrphanedDebugLevelError extends Schema.TaggedError<TraceFlagOrphanedDebugLevelError>()(

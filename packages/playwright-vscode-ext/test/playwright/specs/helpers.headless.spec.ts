@@ -1,17 +1,13 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { expect } from '@playwright/test';
-import {
-  closeWelcomeTabs,
-  waitForWorkspaceReady,
-  waitForVSCodeWorkbench,
-  ensureSecondarySideBarHidden
-} from '../../../src/utils/helpers';
+import { closeWelcomeTabs, waitForWorkspaceReady, waitForVSCodeWorkbench } from '../../../src/utils/helpers';
+import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { WORKBENCH } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 

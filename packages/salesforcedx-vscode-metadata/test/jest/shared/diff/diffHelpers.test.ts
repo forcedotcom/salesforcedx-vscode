@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -82,7 +82,7 @@ describe('matchUrisToComponents', () => {
     const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
     const remoteMeta = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls-meta.xml';
 
-    const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
+    const localUriFilter = HashSet.fromIterable([HashableUri.fromUri(URI.file(localPath))]);
     const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
     const retrievedSet = createMockRetrievedSet([
       createMockComponent('ConflictsTest', 'ApexClass', remoteCls, remoteMeta)
@@ -95,15 +95,15 @@ describe('matchUrisToComponents', () => {
     expect(HashSet.size(result)).toBe(1);
     const [pair] = [...HashSet.toValues(result)];
     expect(pair.fileName).toBe('ConflictsTest.cls');
-    expect(pair.localUri.path).toContain('ConflictsTest.cls');
-    expect(pair.remoteUri.path).toContain('ConflictsTest.cls');
+    expect(pair.localUri.uri.path).toContain('ConflictsTest.cls');
+    expect(pair.remoteUri.uri.path).toContain('ConflictsTest.cls');
   });
 
   it('returns empty when no remote component matches fullName', async () => {
     const localPath = '/workspace/force-app/main/default/classes/ConflictsTest.cls';
     const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/OtherClass.cls';
 
-    const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
+    const localUriFilter = HashSet.fromIterable([HashableUri.fromUri(URI.file(localPath))]);
     const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
     const retrievedSet = createMockRetrievedSet([createMockComponent('OtherClass', 'ApexClass', remoteCls)]);
 
@@ -119,7 +119,7 @@ describe('matchUrisToComponents', () => {
     const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls';
     const remoteMeta = '/workspace/.sf/orgs/org123/remoteMetadata/pkg/main/default/classes/ConflictsTest.cls-meta.xml';
 
-    const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
+    const localUriFilter = HashSet.fromIterable([HashableUri.fromUri(URI.file(localPath))]);
     // project component has only the .cls (no -meta.xml) so only .cls is iterated locally
     const projectSet = createMockProjectSet([createMockComponent('ConflictsTest', 'ApexClass', localPath)]);
     const retrievedSet = createMockRetrievedSet([
@@ -132,8 +132,8 @@ describe('matchUrisToComponents', () => {
 
     expect(HashSet.size(result)).toBe(1);
     const [pair] = [...HashSet.toValues(result)];
-    expect(pair.remoteUri.path).toBe(remoteCls);
-    expect(pair.remoteUri.path.endsWith('.cls-meta.xml')).toBe(false);
+    expect(pair.remoteUri.uri.path).toBe(remoteCls);
+    expect(pair.remoteUri.uri.path.endsWith('.cls-meta.xml')).toBe(false);
   });
 
   it('returns empty when localUriFilter filters out all local files', async () => {
@@ -184,7 +184,7 @@ describe('matchUrisToComponents', () => {
     const localPath = '/workspace/force-app/main/default/controllers/MyClass.cls';
     const remoteCls = '/workspace/.sf/orgs/org123/remoteMetadata/classes/MyClass.cls';
 
-    const localUriFilter = HashSet.fromIterable([HashableUri.file(localPath)]);
+    const localUriFilter = HashSet.fromIterable([HashableUri.fromUri(URI.file(localPath))]);
     const projectSet = createMockProjectSet([createMockComponent('MyClass', 'ApexClass', localPath)]);
     const retrievedSet = createMockRetrievedSet([createMockComponent('MyClass', 'ApexClass', remoteCls)]);
 
@@ -194,8 +194,8 @@ describe('matchUrisToComponents', () => {
 
     expect(HashSet.size(result)).toBe(1);
     const [pair] = [...HashSet.toValues(result)];
-    expect(pair.localUri.path).toContain('controllers/MyClass.cls');
-    expect(pair.remoteUri.path).toContain('classes/MyClass.cls');
+    expect(pair.localUri.uri.path).toContain('controllers/MyClass.cls');
+    expect(pair.remoteUri.uri.path).toContain('classes/MyClass.cls');
   });
 });
 
@@ -204,8 +204,8 @@ describe('filesAreNotIdentical', () => {
     const localPath = '/workspace/classes/Test.cls';
     const remotePath = '/remote/classes/Test.cls';
     const pair = {
-      localUri: HashableUri.file(localPath),
-      remoteUri: HashableUri.file(remotePath),
+      localUri: HashableUri.fromUri(URI.file(localPath)),
+      remoteUri: HashableUri.fromUri(URI.file(remotePath)),
       fileName: 'Test.cls'
     };
 
@@ -224,8 +224,8 @@ describe('filesAreNotIdentical', () => {
     const localPath = '/workspace/classes/Test.cls';
     const remotePath = '/remote/classes/Test.cls';
     const pair = {
-      localUri: HashableUri.file(localPath),
-      remoteUri: HashableUri.file(remotePath),
+      localUri: HashableUri.fromUri(URI.file(localPath)),
+      remoteUri: HashableUri.fromUri(URI.file(remotePath)),
       fileName: 'Test.cls'
     };
 

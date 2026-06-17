@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { OrgConfigProperties } from '@salesforce/core';
 import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 
@@ -18,6 +20,7 @@ import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { uriToPath } from '../vscode/paths';
+import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { ProjectService } from './projectService';
 
@@ -27,7 +30,7 @@ export { TemplateType, type CreateOutput } from '@salesforce/templates';
 /**
  * Project options where `ns` and `loginurl` may be omitted by callers; the
  * service fills defaults (no namespace, production login URL) before invoking
- * @salesforce/templates which requires both as strings.
+ * @salesforce/templates which requires both as strings
  */
 type ProjectCreateOptions = Omit<SfTemplates.ProjectOptions, 'ns' | 'loginurl'> & {
   readonly ns?: string;
@@ -129,27 +132,30 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
     )
   );
   const failCount = yield* Stream.fromIterable(paths).pipe(
-    Stream.mapEffect(relativePath =>
-      Effect.tryPromise({
-        try: async () => {
-          const dest = `${rootFsPath}/${relativePath}`;
-          nodeFs.mkdirSync(dest.slice(0, dest.lastIndexOf('/')), { recursive: true });
-          const content = await vscode.workspace.fs.readFile(Utils.joinPath(rootUri, relativePath));
-          nodeFs.writeFileSync(dest, Buffer.from(content));
-        },
-        catch: e =>
-          new TemplatesManifestLoadError({
-            message: nls.localize(
-              'template_service_file_copy_failed',
-              relativePath,
-              e instanceof Error ? e.message : String(e)
-            ),
-            cause: e
-          })
-      }).pipe(
-        Effect.as(0),
-        Effect.catchTag('TemplatesManifestLoadError', error => Effect.logWarning(error.message).pipe(Effect.as(1)))
-      )
+    Stream.mapEffect(
+      relativePath =>
+        Effect.tryPromise({
+          try: async () => {
+            const dest = `${rootFsPath}/${relativePath}`;
+            nodeFs.mkdirSync(dest.slice(0, dest.lastIndexOf('/')), { recursive: true });
+            const content = await vscode.workspace.fs.readFile(Utils.joinPath(rootUri, relativePath));
+            nodeFs.writeFileSync(dest, Buffer.from(content));
+          },
+          catch: e =>
+            new TemplatesManifestLoadError({
+              message: nls.localize(
+                'template_service_file_copy_failed',
+                relativePath,
+                e instanceof Error ? e.message : String(e)
+              ),
+              cause: e
+            })
+        }).pipe(
+          Effect.as(0),
+          Effect.catchTag('TemplatesManifestLoadError', error => Effect.logWarning(error.message).pipe(Effect.as(1)))
+        ),
+      // Copy files concurrently; the default (1) serializes ~435 HTTP reads and delays the first create by minutes on web.
+      { concurrency: 20 }
     ),
     Stream.runFold(0, (count, failed) => count + failed)
   );
@@ -231,14 +237,34 @@ const withProjectDefaults = (params: CreateParams<SfTemplates.TemplateType>): Cr
  */
 export class TemplateService extends Effect.Service<TemplateService>()('TemplateService', {
   accessors: true,
-  dependencies: [ProjectService.Default, ConnectionService.Default],
+  dependencies: [ProjectService.Default, ConnectionService.Default, ConfigService.Default],
   effect: Effect.gen(function* () {
+    const resolveCustomTemplatesPath = Effect.fn('TemplateService.resolveCustomTemplatesPath')(function* () {
+      const configService = yield* ConfigService;
+      const agg = yield* configService.getConfigAggregator();
+      const value = agg.getPropertyValue<string>(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES);
+      return value ? String(value) : undefined;
+    });
+
     const getTemplatesRootCached = yield* Effect.cached(getTemplatesRoot());
-    const ensureTemplatesInFsOnce = yield* Effect.once(
-      getTemplatesRootCached.pipe(
-        Effect.flatMap(({ templatesRootUri, templatesRootPath }) =>
-          ensureTemplatesInFs(templatesRootUri, templatesRootPath)
-        )
+    // Stage templates into memfs exactly once on success, while making concurrent callers AWAIT the
+    // in-flight run. Neither `Effect.once` nor `Effect.cached` fits:
+    //   - `once` flips its flag when the first caller STARTS, so a second `create` mid-staging skips and
+    //     runs against a half-copied templates dir (ENOENT on readdir).
+    //   - `cached` memoizes failures too, so one transient copy error would be stuck until reload.
+    // A 1-permit semaphore serializes callers (they queue and await); a Ref set ONLY after success
+    // short-circuits subsequent callers, while a failure leaves it false so the next caller retries.
+    const stagingDone = yield* Ref.make(false);
+    const stagingLock = yield* Effect.makeSemaphore(1);
+    const ensureTemplatesInFsOnce = stagingLock.withPermits(1)(
+      Effect.unlessEffect(
+        getTemplatesRootCached.pipe(
+          Effect.flatMap(({ templatesRootUri, templatesRootPath }) =>
+            ensureTemplatesInFs(templatesRootUri, templatesRootPath)
+          ),
+          Effect.zipRight(Ref.set(stagingDone, true))
+        ),
+        Ref.get(stagingDone)
       )
     );
 
@@ -257,7 +283,10 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
             outputdir: path.relative(params.cwd, uriToPath(params.outputdir))
           }
         : optionsWithApiVersion;
-      return yield* Effect.tryPromise(() => templateService.create(params.templateType, templateOptions));
+      const customTemplatesPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
+      return yield* Effect.tryPromise(() =>
+        templateService.create(params.templateType, templateOptions, customTemplatesPath)
+      );
     });
     return { create };
   })

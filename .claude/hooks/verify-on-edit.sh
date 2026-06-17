@@ -4,6 +4,10 @@ set -e
 ROOT="${CLAUDE_PROJECT_DIR:-${CURSOR_PROJECT_DIR:-.}}"
 cd "$ROOT"
 
+# Read PostToolUse stdin to find the edited file path (if any)
+INPUT=$(cat)
+EDITED_FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
+
 echo "[verify-on-edit] running compile check" >&2
 
 # Run compile and capture output
@@ -16,4 +20,32 @@ if ! COMPILE_OUTPUT=$(npm run compile 2>&1); then
 fi
 
 echo "[verify-on-edit] compile passed" >&2
+
+# Effect LS diagnostics: only on .ts edits. Surface warnings AND messages, not just errors.
+# Invoke the locally-installed bin directly (never bare `npx`, which would
+# silently fetch+execute an unscoped registry typosquat if the local install
+# is missing). The package is a top-level devDep in package.json.
+EFFECT_LS="$ROOT/node_modules/.bin/effect-language-service"
+if [[ "$EDITED_FILE" == *.ts ]] && [ -f "$EDITED_FILE" ] && [ -x "$EFFECT_LS" ]; then
+  echo "[verify-on-edit] running effect LS on $EDITED_FILE" >&2
+  if EFFECT_OUTPUT=$("$EFFECT_LS" diagnostics --file "$EDITED_FILE" 2>&1); then
+    # Exit 0 = no errors. Check if there are any warnings/messages worth surfacing.
+    SUMMARY=$(echo "$EFFECT_OUTPUT" | grep -E '^Checked .* files? out of' | head -1)
+    # Format: "Checked N files out of M files. X errors, Y warnings and Z messages."
+    if echo "$SUMMARY" | grep -qE '[1-9][0-9]* (warning|message)'; then
+      MSG=$(echo "$EFFECT_OUTPUT" | tr -d '\000-\037\177' | sed 's/\\/\\\\/g; s/"/\\"/g' | head -c 1500)
+      echo "[verify-on-edit] effect LS has warnings/messages" >&2
+      echo "{\"followup_message\": \"Effect LS findings on $EDITED_FILE — address warnings and messages, not just errors:\\n$MSG\"}"
+      exit 0
+    fi
+    echo "[verify-on-edit] effect LS clean" >&2
+  else
+    # Non-zero exit = errors
+    MSG=$(echo "$EFFECT_OUTPUT" | tr -d '\000-\037\177' | sed 's/\\/\\\\/g; s/"/\\"/g' | head -c 1500)
+    echo "[verify-on-edit] effect LS errors" >&2
+    echo "{\"followup_message\": \"Effect LS errors on $EDITED_FILE:\\n$MSG\"}"
+    exit 0
+  fi
+fi
+
 exit 0

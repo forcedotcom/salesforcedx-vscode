@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -24,5 +24,10 @@ export const messages: Partial<Record<MessageKey, string>> = {
   aura_generate_app_success: 'Aura アプリが正常に作成されました',
   aura_generate_component_success: 'Aura コンポーネントが正常に作成されました',
   aura_generate_event_success: 'Aura イベントが正常に作成されました',
-  aura_generate_interface_success: 'Aura インターフェースが正常に作成されました'
+  aura_generate_interface_success: 'Aura インターフェースが正常に作成されました',
+  rename_component_warning:
+    '警告: 古い名前への参照は更新されません。手動で更新し、すべての変更が完了したら再デプロイしてください。',
+  rename_component_input_dup_file_name_error:
+    'このファイル名は現在のコンポーネントディレクトリで既に使用されています。別の名前を選択して再試行してください。',
+  component_input_dup_error: 'コンポーネント名は LWC または Aura で既に使用されています'
 };

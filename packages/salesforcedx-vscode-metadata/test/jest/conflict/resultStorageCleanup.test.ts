@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -7,9 +7,10 @@
 
 import * as HashSet from 'effect/HashSet';
 import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { URI } from 'vscode-uri';
 import { getStaleUris } from '../../../src/conflict/resultStorageCleanup';
 
-const uri = (path: string) => HashableUri.file(path);
+const uri = (path: string) => HashableUri.fromUri(URI.file(path));
 
 const u1 = uri('/org/deploy-2024-01-01.json');
 const u2 = uri('/org/deploy-2024-02-01.json');

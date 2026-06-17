@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -13,6 +13,8 @@ import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
+import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
+import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
@@ -42,8 +44,10 @@ const plugin = {
     'no-duplicate-i18n-values': noDuplicateI18nValues,
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
+    'no-self-barrel-import': noSelfBarrelImport,
     'no-effect-fn-wrapper': noEffectFnWrapper,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
+    'no-runtime-vscode-import': noRuntimeVscodeImport,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,

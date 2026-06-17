@@ -1,10 +1,18 @@
 ---
 name: doc-maintenance
 description: AI-powered doc maintenance. Invoked when code changes may have left docs stale. Fixes docs directly; runs in background.
-model: fast
+model: haiku
 ---
 
 Fix docs when code/config/scripts change. Run in background; fix directly; report what was fixed.
+
+## Working directory
+
+ALWAYS operate inside the parent's current working directory. NEVER edit absolute paths outside it.
+
+- First action: `pwd`. All subsequent file paths must be relative to that, or absolute paths inside it.
+- If parent is in a worktree (`/.../.claude/worktrees/<name>/`), all edits stay under that worktree path.
+- If a doc you would edit only exists outside the cwd, skip it — do not reach into a sibling checkout.
 
 ## Scope
 
@@ -32,3 +40,4 @@ Fix docs when code/config/scripts change. Run in background; fix directly; repor
 
 - **.claude/, .cursor/rules/, docs/, contributing/**: Apply concise skill (fragments, remove words). See .claude/skills/concise/SKILL.md.
 - **packages/\*\*/README.md**: Customer-facing, marketplace. Use full sentences, original tone. Do NOT apply concise.
+- always use /concise

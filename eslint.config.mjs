@@ -31,6 +31,8 @@ const localRules = localRulesPlugin.rules;
 const localProcessors = localRulesPlugin.processors;
 const localPlugin = { processors: localProcessors, rules: localRules };
 
+const currentYear = new Date().getFullYear();
+
 export default [
   {
     ignores: [
@@ -156,6 +158,9 @@ export default [
       'local/no-vscode-progress-title-literals': 'error',
       'local/no-vscode-quickpick-description-literals': 'error',
       'local/no-vscode-validateinput-literals': 'error',
+      'local/no-self-barrel-import': 'error',
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -163,10 +168,12 @@ export default [
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-array-reverse': 'error',
       'unicorn/no-array-sort': 'error',
+      'unicorn/no-empty-file': 'error',
       'unicorn/no-immediate-mutation': 'error',
       'unicorn/no-instanceof-builtins': 'error',
-      'unicorn/no-typeof-undefined': 'error',
+      'unicorn/no-single-promise-in-promise-methods': 'error',
       'unicorn/no-static-only-class': 'error',
+      'unicorn/no-typeof-undefined': 'error',
       'unicorn/no-unused-properties': 'error',
       'unicorn/no-useless-collection-argument': 'error',
       'unicorn/no-useless-error-capture-stack-trace': 'error',
@@ -175,14 +182,19 @@ export default [
       'unicorn/no-useless-length-check': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
       'unicorn/no-useless-spread': 'error',
+      'unicorn/no-useless-switch-case': 'error',
       'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-at': 'error',
       'unicorn/prefer-array-find': 'error',
+      'unicorn/prefer-array-flat': 'error',
+      'unicorn/prefer-array-flat-map': 'error',
+      'unicorn/prefer-array-some': 'error',
       'unicorn/prefer-class-fields': 'error',
       'unicorn/prefer-date-now': 'error',
       'unicorn/prefer-export-from': 'error',
       'unicorn/prefer-includes': 'error',
       'unicorn/prefer-modern-math-apis': 'error',
+      'unicorn/prefer-native-coercion-functions': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/prefer-object-from-entries': 'error',
       'unicorn/prefer-optional-catch-binding': 'error',
@@ -191,6 +203,7 @@ export default [
       'unicorn/prefer-single-call': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
+      'unicorn/prefer-structured-clone': 'error',
       'unicorn/prefer-ternary': ['error'],
       'unicorn/prefer-simple-condition-first': 'error',
       'unicorn/filename-case': [
@@ -205,8 +218,8 @@ export default [
         [
           '',
           {
-            pattern: ' \\* Copyright \\(c\\) \\d{4}, salesforce\\.com, inc\\.',
-            template: ' * Copyright (c) 2026, salesforce.com, inc.'
+            pattern: ` \\* Copyright \\(c\\) ${currentYear}, salesforce\\.com, inc\\.`,
+            template: ` * Copyright (c) ${currentYear}, salesforce.com, inc.`
           },
           ' * All rights reserved.',
           ' * Licensed under the BSD 3-Clause license.',
@@ -516,7 +529,7 @@ export default [
       'packages/salesforcedx-lwc-language-server/test/**/*',
       'packages/salesforcedx-lightning-lsp-common/test/**/*',
       'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
-      'packages/salesforcedx-vscode-automation-tests/**/*',
+      'packages/soql-model/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],
@@ -548,11 +561,33 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
+      'jest/no-deprecated-functions': 'error',
+      'jest/no-focused-tests': 'error',
+      'jest/prefer-to-have-length': 'error',
+      'jest/no-standalone-expect': 'error',
+      'jest/valid-describe-callback': 'error',
+      'jest/prefer-to-be': 'error',
+      'jest/prefer-to-contain': 'error',
+      'jest/no-test-prefixes': 'error',
+      'jest/no-identical-title': 'error',
       '@typescript-eslint/no-var-requires': 'off',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
       'no-param-reassign': 'off',
       'local/no-duplicate-playwright-locators': 'error'
+    }
+  },
+  {
+    // Playwright tests run in the test-runner/browser, not the extension host, so the
+    // `vscode` module is absent and a runtime import fails. Scoped to playwright-only
+    // dirs (jest/unit tests in the block above legitimately import vscode at runtime).
+    files: ['packages/salesforcedx**/test/playwright/**/*', 'packages/playwright-vscode-ext/**/*.ts'],
+    ignores: ['**/locators.ts'],
+    plugins: {
+      local: localPlugin
+    },
+    rules: {
+      'local/no-runtime-vscode-import': 'error'
     }
   },
   {
@@ -563,7 +598,8 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
       'packages/salesforcedx-apex-replay-debugger/**',
-      'packages/salesforcedx-vscode-soql/**'
+      'packages/salesforcedx-vscode-soql/**',
+      'packages/soql-model/**'
     ],
     rules: {
       '@typescript-eslint/prefer-nullish-coalescing': 'off'
@@ -586,6 +622,7 @@ export default [
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
@@ -648,9 +685,11 @@ export default [
   {
     // class-methods-use-this for packages not yet using Effect
     files: [
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
-      'packages/soql-common/**/*.ts'
+      'packages/soql-common/**/*.ts',
+      'packages/soql-model/**/*.ts'
     ],
     rules: {
       'class-methods-use-this': 'error'
@@ -665,8 +704,25 @@ export default [
     }
   },
   {
-    // Allow top-level src/index.ts files as barrel files (public API exports)
+    // Allow top-level src/index.ts files as barrel files (public API exports),
+    // including export-* aggregation of a package's public surface.
     files: ['packages/**/src/index.ts'],
+    rules: {
+      'barrel-files/avoid-barrel-files': 'off',
+      'barrel-files/avoid-re-export-all': 'off'
+    }
+  },
+  {
+    // Legacy packages with pre-existing sub-directory barrels (out of scope for
+    // the no-barrel-files rollout in W-23031858). avoid-re-export-all stays ON.
+    // Cleaning up these barrels is a separate WI.
+    files: [
+      'packages/salesforcedx-apex-debugger/**/*.ts',
+      'packages/salesforcedx-apex-replay-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
+      'packages/salesforcedx-vscode-org/**/*.ts',
+      'packages/salesforcedx-vscode-core/**/*.ts'
+    ],
     rules: {
       'barrel-files/avoid-barrel-files': 'off'
     }
@@ -703,13 +759,19 @@ export default [
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
 
+      // Tests may re-export fixtures / aggregate helpers
+      'barrel-files/avoid-barrel-files': 'off',
+      'barrel-files/avoid-re-export-all': 'off',
+
       'import/order': 'off',
       'functional/no-throw-statements': 'off',
       'functional/no-try-statements': 'off',
       'functional/no-let': 'off',
       'functional/no-loop-statements': 'off',
       'functional/prefer-property-signatures': 'off',
-      'import/no-extraneous-dependencies': 'off'
+      'import/no-extraneous-dependencies': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/array-type': 'off'
     }
   },
   // i18n TS plugin - node:fs; type assertions; triple-slash for tsserverlibrary
@@ -785,6 +847,21 @@ export default [
     rules: {
       'local/vscodeignore-required-patterns': 'error',
       'local/vscodeignore-contributes-conflict': 'error'
+    }
+  },
+  // Core i18n: tighten unused-key detection by clearing the default dynamic-key
+  // pattern (^[A-Z][a-zA-Z0-9]*$). Core has no dynamic key lookup, so any
+  // PascalCase key (e.g., metadata-type labels) added here would be dead.
+  {
+    files: [
+      'packages/salesforcedx-vscode-core/src/messages/i18n.ts',
+      'packages/salesforcedx-vscode-core/src/messages/i18n.ja.ts'
+    ],
+    plugins: {
+      local: localPlugin
+    },
+    rules: {
+      'local/no-unused-i18n-messages': ['error', { dynamicKeyPatterns: [] }]
     }
   },
   // SOQL Builder LWC templates: unknown i18n.* keys vs querybuilder/messages/i18n.ts (SOQL package only)

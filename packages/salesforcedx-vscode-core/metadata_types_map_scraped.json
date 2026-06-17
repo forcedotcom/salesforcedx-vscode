@@ -6627,6 +6627,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether to issue refunds and settle balances (true) or not (false). The default value is false. If enabled, refunds are issued and credit memos are applied to any remaining invoice balance when customers amend or cancel an order. Available in API version 67.0 and later.",
+        "Field Name": "enableRefundIssuingAndBalanceSettlement",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether to create Transaction Journal records based on the defined general ledger account assignment rules for the billing entities when billing transaction records are created or updated (true) or not (false). The default value is false. Available in API version 63.0 and later with Revenue Cloud Billing. Billing transaction records include these transaction types. Invoice Invoice Line Invoice Line Tax Credit Memo Credit Memo Line Credit Memo Line Tax Payment Refund Payment Line Invoice Payment Line Invoice Line Credit Memo Inv Application Credit Memo Line Invoice Line",
         "Field Name": "enableTransactionJournalCreation",
         "Field Type": "boolean"
@@ -10906,6 +10911,11 @@
         "Field Type": "ConversationMessageConstant[]"
       },
       {
+        "Description": "Specifies the business intent of the Conversation Message Definition. Valid values are: AccountUpdate Authentication Feedback OrderUpdate PromotionalOutreach Reminder Response",
+        "Field Name": "contentCategory",
+        "Field Type": "ConversationMessageContentCategory (enumeration of type string)"
+      },
+      {
         "Description": "The description of the conversation message definition.",
         "Field Name": "description",
         "Field Type": "string"
@@ -11017,7 +11027,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The type of the conversation message constant primitive value. Valid values are: ImageAsset Text Url",
+        "Description": "Required. The type of the conversation message constant primitive value. Valid values are: FileAsset ImageAsset Text Url",
         "Field Name": "type",
         "Field Type": "ConversationMessageConstantValueType (enumeration of type string)"
       },
@@ -11833,6 +11843,11 @@
       {
         "Description": "The list of tabs included in this application. In API version 12.0, the fullName for built-in tabs like Home, Account, and Reports, is the name of the tab (Home, for example). In API version 13.0 and later, built-in tabs are prefixed with standard-. For example, to reference the Account tab you would use standard-Account.In API version 42.0, this field was renamed from tab to tabs.",
         "Field Name": "tabs",
+        "Field Type": "string[]"
+      },
+      {
+        "Description": "The fully qualified name of an interal React app, which is represented by the UIBundle metadata type, such as c__propertymanagementapp. When configured, makes the app available in the App Launcher. This field is available in API version 67.0 and later.",
+        "Field Name": "uiBundle",
         "Field Type": "string[]"
       },
       {
@@ -29617,8 +29632,8 @@
   "LightningComponentBundle": {
     "fields": [
       {
-        "Description": "An internal AI description of the Lightning web component. This description is supported only in orgs that have Setup with Agentforce (Beta) enabled. This description enables Agentforce to analyze the component for inclusion in agent-generated Lightning pages. For more information, see Configure a Component for Use in Setup with Agentforce (Beta). Available in API version 66.0 and later.",
-        "Field Name": "ai (Beta)",
+        "Description": "An internal AI description of the Lightning web component. This description is supported only in orgs that have Setup with Agentforce enabled. This description enables Agentforce to analyze the component for inclusion in agent-generated Lightning pages. For more information, see Configure a Component for Use in Setup with Agentforce. Available in API version 66.0 and later.",
+        "Field Name": "ai",
         "Field Type": "base64Binary"
       },
       {
@@ -40870,6 +40885,18 @@
     ],
     "short_description": "Represents settings for Agentforce.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentplatformsettings.htm",
+    "parent": "Metadata"
+  },
+  "AgentforceAccountManagementSettings": {
+    "fields": [
+      {
+        "Description": "Indicates whether Agentforce Account Management is enabled (true) or not (false).",
+        "Field Name": "enableAccountManagement",
+        "Field Type": "boolean"
+      }
+    ],
+    "short_description": "Represents an org’s Agentforce Account Management settings.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentforceaccountmanagementsettings.htm",
     "parent": "Metadata"
   },
   "AgentforceForDevelopersSettings": {
@@ -53881,7 +53908,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },
-  "UIBundle (Beta)": {
+  "UIBundle": {
     "fields": [
       {
         "Description": "A description of what the web application does.",
@@ -53904,7 +53931,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Specifies the Salesforce target where the app is supported. Valid values are: AppLauncher: Makes the app available in the App Launcher. This is the default target if you don’t specify a value. Experience: Indicates that the app is an external-facing site or portal and makes it available in the Digital Experiences app.",
+        "Description": "Specifies the Salesforce target where the app is supported. Valid values are: AppLauncher: Deprecated in API version 67.0. Instead, use CustomApplication. Makes the app available in the App Launcher. CustomApplication: When used with the CustomApplication metadata type, makes the app available in the App Launcher. This is the default target if you don’t specify a value. Available in API version 67.0 and later. Experience: Indicates that the app is an external-facing site or portal and makes it available in the Digital Experiences app.",
         "Field Name": "target",
         "Field Type": "string"
       },
@@ -53914,7 +53941,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents a Salesforce Multi-Framework app, such as a React app.",
+    "short_description": "Represents the UI of a Salesforce Multi-Framework app, such as a React app.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uibundle.htm",
     "parent": "Metadata"
   },

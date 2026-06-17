@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -34,7 +34,7 @@ describe('formatQueryPlanResults', () => {
     const result = formatQueryPlanResults(response);
 
     const matches = result.match(/Not considering filter/g) ?? [];
-    expect(matches.length).toBe(1);
+    expect(matches).toHaveLength(1);
   });
 
   it('keeps distinct notes', () => {

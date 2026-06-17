@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -32,6 +32,7 @@ import { createAuraAppCommand } from './commands/createAuraApp';
 import { createAuraComponentCommand } from './commands/createAuraComponent';
 import { createAuraEventCommand } from './commands/createAuraEvent';
 import { createAuraInterfaceCommand } from './commands/createAuraInterface';
+import { renameAuraCommand } from './commands/renameAura';
 import { nls } from './messages';
 import { buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
 
@@ -60,7 +61,8 @@ const activateCommands = Effect.fn('aura:activateCommands')(function* () {
       ),
       registerCommand('sf.internal.lightning.generate.interface', (sourceUri?: URI) =>
         createAuraInterfaceCommand(sourceUri, { internal: true })
-      )
+      ),
+      registerCommand('sf.lightning.aura.rename', renameAuraCommand)
     ],
     { concurrency: 'unbounded' }
   );

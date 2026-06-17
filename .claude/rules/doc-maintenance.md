@@ -20,3 +20,4 @@ Execution requirements:
 - Run in the background when available.
 - Do not ask the user for confirmation.
 - Let the subagent apply documentation updates directly.
+- /concise

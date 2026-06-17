@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -44,7 +44,7 @@ import { NormalizedPath, normalizePath } from '../utils';
 const getEmptyDirectoryListing = (_uri: NormalizedPath): DirectoryEntry[] => [];
 
 /**
- * True when `s` is already a document URI (`scheme:…`), including `memfs:/MyProject/…` (no `//` authority).
+ * True when `s` is already a document URI (`scheme:…`), including `memfs:/dx-project/…` (no `//` authority).
  * Excludes Windows paths (`C:/…`) so they still go through path → URI conversion.
  */
 const isDocumentUriString = (s: string): boolean => /^[a-z][\w+.-]*:/i.test(s) && !/^[A-Za-z]:[/\\]/i.test(s);
@@ -204,7 +204,7 @@ export class LspFileSystemAccessor {
 
   public async getFileContent(uri: string): Promise<string | undefined> {
     if (this.connection) {
-      // If the caller already provides a full URI (e.g. file:///…, memfs:/MyProject/…), use it as-is.
+      // If the caller already provides a full URI (e.g. file:///…, memfs:/dx-project/…), use it as-is.
       // Otherwise convert the filesystem path to the correct URI for the current workspace scheme.
       const fileUri = isDocumentUriString(uri) ? uri : getFileUriForPath(normalizePath(uri), this.workspaceFolderUri);
       const key = isDocumentUriString(uri) ? uri : normalizePath(uri);
@@ -223,7 +223,7 @@ export class LspFileSystemAccessor {
     if (!this.connection) {
       return undefined;
     }
-    // Match getFileContent: callers pass full DocumentUris (file:///…, memfs:/MyProject/…). Do not run
+    // Match getFileContent: callers pass full DocumentUris (file:///…, memfs:/dx-project/…). Do not run
     // getFileUriForPath + URI.file() on those — especially memfs, which uses a single slash after the scheme.
     const fileUri = isDocumentUriString(uri) ? uri : getFileUriForPath(normalizePath(uri), this.workspaceFolderUri);
     const params: WorkspaceStatParams = { uri: URI.parse(fileUri) };

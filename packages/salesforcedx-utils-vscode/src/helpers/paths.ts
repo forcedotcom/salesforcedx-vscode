@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,9 +8,8 @@
 import { Global } from '@salesforce/core/global';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
-import { WorkspaceContextUtil } from '..';
+import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
-import { createDirectory } from './fs';
 
 export const ORGS = 'orgs';
 export const METADATA = 'metadata';
@@ -22,12 +21,6 @@ export const LOGS = 'logs';
 export const APEX_DB = 'apex.db';
 export const LWC = 'lwc';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
-
-export const getTestResultsFolder = async (vscodePath: string, testType: string) => {
-  const pathToTestResultsFolder = path.join(vscodePath, Global.STATE_FOLDER, TOOLS, TEST_RESULTS, testType);
-  await createDirectory(pathToTestResultsFolder);
-  return pathToTestResultsFolder;
-};
 
 export const fileExtensionsMatch = (sourceUri: URI, targetExtension: string): boolean => {
   const extension = sourceUri.path.split('.').pop()?.toLowerCase();

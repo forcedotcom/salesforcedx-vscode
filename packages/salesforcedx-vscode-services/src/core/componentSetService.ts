@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -11,7 +11,8 @@ import type { SfProject } from '@salesforce/core/project';
 import {
   ComponentSet,
   type ComponentSet as ComponentSetType,
-  type FileResponseSuccess
+  type FileResponseSuccess,
+  type MetadataMember
 } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
@@ -93,7 +94,7 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
         );
         const hashableUris = HashSet.fromIterable(uris.map(HashableUri.fromUri));
         const paths = hashableUris.pipe(
-          HashSet.map(uri => uriToPath(uri)),
+          HashSet.map(hu => uriToPath(hu.uri)),
           HashSet.toValues
         );
         yield* Effect.annotateCurrentSpan({ paths });
@@ -158,10 +159,13 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
 
     // TODO: have all orgs, regardless of tracking, use the local source tracking; when there are no changes, this should not be recalculated
     // this'll require local tracking updates from all retrieves/deletes/deploys
-    /** Get ComponentSet from all project package directories. No filtering - includes everything in the package */
+    /** Get ComponentSet from all project package directories.
+     * @param options.metadataMembers optional list of `{ type, fullName }` members (typically wildcards like
+     * `{ type: 'LightningComponentBundle', fullName: '*' }`) used by SDR to narrow the resolved components by type.
+     * No filtering when omitted - includes everything in the package directories. */
     const getComponentSetFromProjectDirectories = Effect.fn(
       'ComponentSetService.getComponentSetFromProjectDirectories'
-    )(function* () {
+    )(function* (options?: { metadataMembers?: readonly MetadataMember[] }) {
       return yield* Effect.gen(function* () {
         const [registryAccess, project, configAggregator] = yield* Effect.all(
           [
@@ -174,8 +178,12 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
         const sourcePaths = project.getPackageDirectories().map(pkgDir => pkgDir.fullPath);
         yield* Effect.annotateCurrentSpan({ sourcePaths });
 
+        const include = options?.metadataMembers
+          ? new ComponentSet(options.metadataMembers, registryAccess)
+          : undefined;
+
         const componentSet = yield* Effect.try({
-          try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, registry: registryAccess }),
+          try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
           catch: e => {
             const { cause } = unknownToErrorCause(e);
             return new FailedToBuildComponentSetError({

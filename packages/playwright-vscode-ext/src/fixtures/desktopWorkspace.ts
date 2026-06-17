@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core/global';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
+
+/** Salesforce CLI state folder name. Mirrors `Global.SF_STATE_FOLDER` from `@salesforce/core` without taking it as a runtime dep. */
+const SF_STATE_FOLDER = '.sf';
 
 /** Create a temporary empty workspace directory (no sfdx-project.json) for desktop tests */
 export const createEmptyTestWorkspace = async (): Promise<string> =>
@@ -37,12 +39,21 @@ export const createTestWorkspace = async (orgAlias?: string): Promise<string> =>
       )
     ),
     fs.mkdir(path.join(workspaceDir, 'force-app', 'main', 'default'), { recursive: true }),
-    fs.mkdir(path.join(workspaceDir, Global.SF_STATE_FOLDER), { recursive: true })
+    fs.mkdir(path.join(workspaceDir, SF_STATE_FOLDER), { recursive: true }),
+    // Minimal scratch-def so `sf.org.create`'s FileSelector (glob `config/**/*-scratch-def.json`) finds a match.
+    fs
+      .mkdir(path.join(workspaceDir, 'config'), { recursive: true })
+      .then(() =>
+        fs.writeFile(
+          path.join(workspaceDir, 'config', 'project-scratch-def.json'),
+          JSON.stringify({ orgName: 'vscode e2e', edition: 'Developer' }, null, 2)
+        )
+      )
   ]);
 
   if (orgAlias !== undefined) {
     await fs.writeFile(
-      path.join(workspaceDir, Global.SF_STATE_FOLDER, 'config.json'),
+      path.join(workspaceDir, SF_STATE_FOLDER, 'config.json'),
       JSON.stringify(
         {
           'target-org': orgAlias

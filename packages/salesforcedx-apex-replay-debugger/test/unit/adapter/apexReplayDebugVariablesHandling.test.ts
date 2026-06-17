@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -96,7 +96,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       const actualResponse = response;
       expect(actualResponse.success).toBe(true);
-      expect(actualResponse.body.scopes.length).toBe(0);
+      expect(actualResponse.body.scopes).toHaveLength(0);
     });
 
     it('Should return local, static, and global scopes', async () => {
@@ -111,7 +111,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       const actualResponse = response;
       expect(actualResponse.success).toBe(true);
-      expect(actualResponse.body.scopes.length).toBe(3);
+      expect(actualResponse.body.scopes).toHaveLength(3);
       expect(actualResponse.body.scopes[0].name).toBe('Local');
       expect(actualResponse.body.scopes[1].name).toBe('Static');
       expect(actualResponse.body.scopes[2].name).toBe('Global');
@@ -166,7 +166,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       const actualResponse = response;
       expect(actualResponse.success).toBe(true);
-      expect(actualResponse.body.variables.length).toBe(0);
+      expect(actualResponse.body.variables).toHaveLength(0);
     });
 
     it('Should collect variables from scope container', async () => {
@@ -181,7 +181,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       const actualResponse = response;
       expect(actualResponse.success).toBe(true);
-      expect(actualResponse.body.variables.length).toBe(1);
+      expect(actualResponse.body.variables).toHaveLength(1);
       const apexVariable = actualResponse.body.variables[0];
       expect(apexVariable.name).toBe('foo');
       expect(apexVariable.value).toBe('bar');

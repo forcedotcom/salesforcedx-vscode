@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -49,14 +49,14 @@ export const conflictDiffCommandEffect = (entry: DiffFilePair | ConflictTreeItem
   return pair && isDiffFilePair(pair)
     ? Effect.sync(() => {
         const title = nls.localize('conflict_detect_diff_title', 'remote', pair.fileName, pair.fileName);
-        void vscode.commands.executeCommand('vscode.diff', pair.remoteUri.toUri(), pair.localUri.toUri(), title);
+        void vscode.commands.executeCommand('vscode.diff', pair.remoteUri.uri, pair.localUri.uri, title);
       })
     : Effect.void;
 };
 
 export const conflictOpenCommandEffect = (node: ConflictTreeItem) => {
   const pair = node?.pair;
-  return pair ? Effect.sync(() => void vscode.window.showTextDocument(pair.localUri.toUri())) : Effect.void;
+  return pair ? Effect.sync(() => void vscode.window.showTextDocument(pair.localUri.uri)) : Effect.void;
 };
 
 /** Detect conflicts, populate tree, focus view. Used when status bar clicked with conflicts. */

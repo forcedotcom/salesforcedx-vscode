@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -7,17 +7,22 @@
 
 import { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import {
-  OrgUserInfo,
-  WorkspaceContextUtil,
-  UserService,
-  refreshAllExtensionReporters,
-  getDevHubIdFromScratchOrg
-} from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil, refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
-import { workspaceContextUtils } from '.';
+import { getDefaultOrgInfo } from './defaultOrgInfo';
+import { getOrgShape } from './workspaceOrgShape';
+
+const getConnectionEffect = Effect.fn('workspaceContext.getConnection')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ConnectionService.getConnection();
+});
+
+const getDevHubIdEffect = Effect.fn('workspaceContext.getDevHubId')(function* () {
+  const info = yield* getDefaultOrgInfo();
+  return info.devHubOrgId;
+});
 
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
@@ -58,18 +63,13 @@ export class WorkspaceContext {
   // @deprecated. Use getConnection from the Services extension.
   // maintained for backward compatibility for 2PP using vscode-core API
   public async getConnection(): Promise<Connection> {
-    return getRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.ConnectionService.getConnection();
-      })
-    );
+    return getRuntime().runPromise(getConnectionEffect());
   }
 
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
     const { username } = orgInfo;
     if (username !== undefined) {
-      const orgShape = await workspaceContextUtils.getOrgShape(username);
+      const orgShape = await getOrgShape(username);
       if (orgShape !== 'Undefined') {
         WorkspaceContextUtil.getInstance().orgShape = orgShape;
         WorkspaceContextUtil.getInstance().devHubId = undefined;
@@ -81,26 +81,24 @@ export class WorkspaceContext {
         }
       }
       if (orgShape === 'Scratch') {
-        const devHubId = await getDevHubIdFromScratchOrg(username);
+        const devHubId = await getRuntime().runPromise(
+          getDevHubIdEffect().pipe(Effect.catchAll(() => Effect.succeed(undefined)))
+        );
         WorkspaceContextUtil.getInstance().devHubId = devHubId;
       }
     }
   }
 
-  /** Update telemetry user ID when org changes */
+  /** Refresh telemetry reporters for ALL extensions when org changes (identity sourced from services). */
   protected handleTelemetryUpdate = async () => {
     if (!this.coreExtensionContext) {
       return;
     }
 
     try {
-      // Update the telemetry user ID in global state (Core extension doesn't use shared provider to avoid infinite loop)
-      await UserService.getTelemetryUserId(this.coreExtensionContext);
-
-      // Refresh telemetry reporters for ALL extensions (Core, Apex, etc.)
       await refreshAllExtensionReporters(this.coreExtensionContext);
     } catch (error) {
-      console.log('Failed to update telemetry user ID after org change:', error);
+      console.log('Failed to refresh telemetry reporters after org change:', error);
     }
   };
 

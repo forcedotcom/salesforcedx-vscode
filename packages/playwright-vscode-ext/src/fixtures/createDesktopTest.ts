@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -13,6 +13,7 @@ import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { filterErrors } from '../utils/helpers';
@@ -49,6 +50,8 @@ type CreateDesktopTestOptions = {
   emptyWorkspace?: boolean;
   /** Additional extension directory names to load (ex: ['salesforcedx-vscode-metadata'] for apex-testing "SFDX: Create Apex Class") */
   additionalExtensionDirs?: string[];
+  /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
+  marketplaceExtensions?: string[];
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
@@ -116,14 +119,43 @@ const resolveVsixPaths = (repoRoot: string, packageDirs: string[]): string[] =>
 /**
  * Compute a cache key from the combined sha256 of all VSIX files.
  * Uses file sizes+mtimes as a fast proxy — avoids reading multi-MB VSIX bytes.
+ * Marketplace IDs participate in the key so that adding/removing one busts the cache.
  */
-const computeVsixCacheKey = async (vsixPaths: string[]): Promise<string> => {
+const computeVsixCacheKey = async (vsixPaths: string[], marketplaceExtensions: string[]): Promise<string> => {
   const hash = crypto.createHash('sha256');
   for (const p of vsixPaths) {
     const stat = await fs.stat(p);
     hash.update(`${p}:${stat.size}:${stat.mtimeMs}`);
   }
+  marketplaceExtensions.forEach(id => hash.update(`mkt:${id}`));
   return hash.digest('hex').slice(0, 16);
+};
+
+/**
+ * Install marketplace extensions by ID into the given extensions dir using `code --install-extension <id>`.
+ * Skips silently if `ids` is empty.
+ */
+const installMarketplaceExtensions = (
+  extensionsDir: string,
+  userDataDir: string,
+  ids: string[],
+  vscodeExecutable: string
+): void => {
+  if (ids.length === 0) return;
+  const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
+  const failed = ids
+    .map(id => ({
+      id,
+      status: spawnSync(
+        cli,
+        ['--extensions-dir', extensionsDir, '--user-data-dir', userDataDir, '--install-extension', id, '--force'],
+        { stdio: 'inherit', shell: process.platform === 'win32' }
+      ).status
+    }))
+    .filter(r => r.status !== 0);
+  if (failed.length > 0) {
+    throw new Error(`Marketplace extension install failed: ${failed.map(r => `${r.id} (exit ${r.status})`).join(', ')}`);
+  }
 };
 
 /**
@@ -135,6 +167,7 @@ const computeVsixCacheKey = async (vsixPaths: string[]): Promise<string> => {
 const installVsixsToCache = async (
   cacheDir: string,
   vsixPaths: string[],
+  marketplaceExtensions: string[],
   vscodeExecutable: string
 ): Promise<void> => {
   const extensionsJson = path.join(cacheDir, 'extensions.json');
@@ -171,6 +204,9 @@ const installVsixsToCache = async (
     );
   }
 
+  // Marketplace extensions install into the same dir — happens after VSIXs so locally-built deps win
+  installMarketplaceExtensions(tmpDir, path.join(tmpDir, '.ud'), marketplaceExtensions, vscodeExecutable);
+
   // Atomic rename: first worker wins; others clean up their own tmp and use the winner's dir
   try {
     await fs.rename(tmpDir, cacheDir);
@@ -186,6 +222,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     orgAlias,
     emptyWorkspace = false,
     additionalExtensionDirs = [],
+    marketplaceExtensions = [],
     disableOtherExtensions = true,
     userSettings
   } = options;
@@ -223,9 +260,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           ...additionalExtensionDirs
         ]);
         const vsixPaths = resolveVsixPaths(repoRoot, allDirs);
-        const cacheKey = await computeVsixCacheKey(vsixPaths);
+        const cacheKey = await computeVsixCacheKey(vsixPaths, marketplaceExtensions);
         const cacheDir = path.join(repoRoot, '.vscode-test', `ext-${cacheKey}`);
-        await installVsixsToCache(cacheDir, vsixPaths, vscodeExecutable);
+        await installVsixsToCache(cacheDir, vsixPaths, marketplaceExtensions, vscodeExecutable);
         await use(cacheDir);
       },
       { scope: 'worker' }
@@ -239,9 +276,13 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
 
     // Launch fresh Electron instance per test
     electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
-      // Use subdirectory of workspace for user data (keeps everything isolated and together)
-      const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
-      await fs.mkdir(userDataDir, { recursive: true });
+      // User data dir must live OUTSIDE the opened workspace folder. On VS Code 1.124 (Chromium 148)
+      // placing it inside the workspace makes the Electron main process exit before the first window
+      // opens ("Waiting for the debugger to disconnect"), so electronApp.firstWindow() throws
+      // "Target page, context or browser has been closed".
+      // Cleaned up in the finally block below (it lives in os.tmpdir(), outside the workspace,
+      // so it is no longer removed implicitly with the workspace dir).
+      const userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-e2e-user-data-'));
       const effectiveUserSettings = {
         'files.simpleDialog.enable': true, // Use VS Code's simple dialog instead of native OS dialog (visible in Electron)
         'window.menuStyle': 'custom', // Keep context menus in the DOM so Playwright can interact with them on macOS.
@@ -261,6 +302,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         'extensions.autoUpdate': false,
         'telemetry.telemetryLevel': 'off',
         'update.mode': 'none',
+        // Tag e2e telemetry/spans so they can be filtered out from real-user analytics
+        'salesforcedx-vscode-core.telemetry-tag': 'e2e-test',
         ...userSettings
       };
       if (Object.keys(effectiveUserSettings).length > 0) {
@@ -308,8 +351,12 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           ...startupArgs
         ]
         : await (async (): Promise<string[]> => {
-          const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
+          // Keep the extensions dir outside the opened workspace folder for the same reason as userDataDir.
+          // Nested under userDataDir so it shares its lifetime and is removed by the same teardown cleanup.
+          const extensionsDir = path.join(userDataDir, 'extensions');
           await fs.mkdir(extensionsDir, { recursive: true });
+          // Install marketplace deps (e.g. extensionDependencies not built locally) into the per-test extensions dir
+          installMarketplaceExtensions(extensionsDir, userDataDir, marketplaceExtensions, vscodeExecutable);
           const extensionArgs = [
             // Extension path is the package root (contains package.json and bundled dist/index.js)
             packageRoot,
@@ -375,6 +422,13 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             } catch {}
           }
         }
+        // Remove the temp user-data dir (and its nested extensions dir) now that the process is gone.
+        // On Windows the just-killed VS Code may still hold file handles briefly, so fs.rm hits EBUSY/EPERM
+        // (force only suppresses ENOENT). maxRetries retries those with backoff; best-effort so a leftover
+        // temp dir never fails the test.
+        try {
+          await fs.rm(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+        } catch {}
         console.log('[teardown] done');
       }
     },

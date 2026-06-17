@@ -1,17 +1,15 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Data from 'effect/Data';
+import type { ExtensionContextNotAvailableError } from './extensionContextErrors';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { ExtensionContext } from 'vscode';
 import { getExtensionContext } from './extensionContext';
-
-export class ExtensionContextNotAvailableError extends Data.TaggedError('ExtensionContextNotAvailableError')<{}> {}
 
 /**
  * Service providing access to VS Code ExtensionContext.

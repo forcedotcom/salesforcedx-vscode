@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -707,7 +707,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private initBreakpointSessionServices(args: LaunchRequestArguments): void {
-    if (args && args.workspaceSettings) {
+    if (args?.workspaceSettings) {
       const workspaceSettings: WorkspaceSettings = args.workspaceSettings;
       this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
       this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
@@ -721,7 +721,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private setValidBreakpointLines(args: LaunchRequestArguments): void {
-    if (args && args.lineBreakpointInfo) {
+    if (args?.lineBreakpointInfo) {
       const lineBpInfo: LineBreakpointInfo[] = args.lineBreakpointInfo;
       if (lineBpInfo && lineBpInfo.length > 0) {
         const lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> = new Map();
@@ -1367,9 +1367,6 @@ export class ApexDebug extends LoggingDebugSession {
         this.handleSystemWarning(message);
         break;
       }
-      case 'LogLine':
-      case 'OrgChange':
-      case 'Ready':
       default: {
         break;
       }

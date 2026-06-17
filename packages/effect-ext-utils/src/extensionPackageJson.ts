@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -12,7 +12,8 @@ export const ExtensionPackageJsonSchema = Schema.Struct({
   name: Schema.optional(Schema.String),
   version: Schema.optional(Schema.String),
   displayName: Schema.optional(Schema.String),
-  o11yUploadEndpoint: Schema.optional(Schema.String)
+  o11yUploadEndpoint: Schema.optional(Schema.String),
+  otelConnectionString: Schema.optional(Schema.String)
 });
 
 export type ExtensionPackageJson = Schema.Schema.Type<typeof ExtensionPackageJsonSchema>;

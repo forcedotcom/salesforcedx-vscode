@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -130,14 +130,14 @@ describe('provideAttributes()', () => {
     const attributs = provider.provideAttributes('template');
     expect(attributs).not.toBeEmpty();
     expect(attributs).toBeArrayOfSize(9);
-    expect(attributs[0].name).toEqual('for:each');
-    expect(attributs[1].name).toEqual('for:item');
-    expect(attributs[2].name).toEqual('for:index');
-    expect(attributs[3].name).toEqual('if:true');
-    expect(attributs[4].name).toEqual('if:false');
-    expect(attributs[5].name).toEqual('lwc:if');
-    expect(attributs[6].name).toEqual('lwc:elseif');
-    expect(attributs[7].name).toEqual('lwc:else');
-    expect(attributs[8].name).toEqual('iterator:it');
+    expect(attributs[0].name).toBe('for:each');
+    expect(attributs[1].name).toBe('for:item');
+    expect(attributs[2].name).toBe('for:index');
+    expect(attributs[3].name).toBe('if:true');
+    expect(attributs[4].name).toBe('if:false');
+    expect(attributs[5].name).toBe('lwc:if');
+    expect(attributs[6].name).toBe('lwc:elseif');
+    expect(attributs[7].name).toBe('lwc:else');
+    expect(attributs[8].name).toBe('iterator:it');
   });
 });

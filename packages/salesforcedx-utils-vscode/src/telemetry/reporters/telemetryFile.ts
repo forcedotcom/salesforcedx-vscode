@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,9 +8,9 @@ import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { getRootWorkspacePath } from '../..';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
+import { getRootWorkspacePath } from '../../workspaces/workspaceUtils';
 
 /**
  * Represents a telemetry file that logs telemetry events by appending to a local file.

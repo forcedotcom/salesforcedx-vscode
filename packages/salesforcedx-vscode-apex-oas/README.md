@@ -17,8 +17,17 @@ This extension provides OpenAPI Specification (OAS) generation capabilities for 
 
 - Salesforce CLI extension
 - Apex extension
-- Agentforce Vibes extension (for AI-powered generation)
 - A Salesforce DX project with an authenticated org
+
+### REST Generation Requirements
+
+For REST classes (`@RestResource` with `@HttpGet`, `@HttpPost`, etc.):
+- An LLM (AI model) service must be available through the VS Code service provider. This is supplied by an extension that provides this service; if no provider has registered the service, REST generation fails with a clear error.
+
+### AuraEnabled Generation Requirements
+
+For AuraEnabled classes (`@AuraEnabled` annotation):
+- Requires only an authenticated org connection (no AI/LLM required)
 
 ## Configuration
 
@@ -30,6 +39,7 @@ This extension contributes the following settings:
 - `salesforcedx-vscode-apex-oas.generation_strategy`: Strategy for OAS generation (default: `"LEAST_CALLS"`)
 - `salesforcedx-vscode-apex-oas.generation_include_schema`: Include OpenAPI schema in generation (default: `false`)
 - `salesforcedx-vscode-apex-oas.generation_output_token_limit`: Maximum number of tokens for generation output (default: `750`)
+- `salesforcedx-vscode-apex-oas.enableRestOASGen`: Enable OpenAPI document generation for Apex REST (`@RestResource`) classes (default: `false`). Disabled by default because it depends on an external AI model service; AuraEnabled classes are unaffected.
 
 ## Dependencies
 
@@ -37,7 +47,10 @@ This extension depends on:
 
 - `salesforce.salesforcedx-vscode-apex`
 - `salesforce.salesforcedx-vscode-core`
-- `salesforce.salesforcedx-einstein-gpt`
+
+REST class generation additionally needs an LLM (AI model) service registered with the VS Code service provider — obtained at runtime through the service provider rather than declared as a hard extension dependency, and is not required for AuraEnabled class generation.
+
+**Note:** As of A4V v4.1.0 "Agentforce Vibes" (2026-06-13), the LLM integration required for OAS generation is temporarily unavailable. v4 removed the `salesforcedx-einstein-gpt.isEnabled` context key that gates the OAS commands' visibility (so they no longer appear) and the `getLLMServiceInstance` command that generation invokes. E2E tests are skipped pending migration off the A4V LLM service.
 
 ## Activation
 

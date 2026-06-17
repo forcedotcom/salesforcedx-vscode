@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const sampleProjectName = 'MyProject';
+export const sampleProjectName = 'dx-project';
 
 // VS Code settings sections and keys used across services and tests
 export const CODE_BUILDER_WEB_SECTION = 'salesforce-web-console';

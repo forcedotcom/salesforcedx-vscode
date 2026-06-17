@@ -1,45 +1,130 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
+import * as Effect from 'effect/Effect';
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import GenerationInteractionLogger from '../../../src/oas/generationInteractionLogger';
+import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
+import * as factory from '../../../src/oas/generationStrategy/generationStrategyFactory';
+import { GenerationStrategyType } from '../../../src/oas/generationStrategy/generationStrategyFactory';
 import {
-  GenerationStrategyType,
-  initializeAndBid
-} from '../../../src/oas/generationStrategy/generationStrategyFactory';
-import { BID_RULES, PromptGenerationOrchestrator } from '../../../src/oas/promptGenerationOrchestrator';
-import {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse,
-  PromptGenerationStrategyBid
-} from '../../../src/oas/schemas';
-import * as oasUtils from '../../../src/oasUtils';
+  applyRule,
+  getLeastCallsStrategy,
+  getMostCallsStrategy,
+  selectStrategyByBidRule
+} from '../../../src/oas/promptGenerationOrchestrator';
+import { PromptGenerationStrategyBid } from '../../../src/oas/schemas';
 
-jest.mock('../../../src/oas/generationStrategy/generationStrategyFactory');
-jest.mock('../../../src/oasUtils');
-jest.mock('../../../src/oas/generationInteractionLogger', () => {
-  const mockInstance = {
-    addPostGenDoc: jest.fn(),
-    addGenerationStrategy: jest.fn(),
-    addOutputTokenLimit: jest.fn(),
-    addGuidedJson: jest.fn()
-  };
-  return {
-    __esModule: true,
-    default: {
-      getInstance() {
-        return mockInstance;
-      }
-    }
-  };
+const buildBids = (entries: Array<[GenerationStrategyType, number]>) =>
+  new Map<GenerationStrategyType, PromptGenerationStrategyBid>(
+    entries.map(([s, callCounts]) => [s, { result: { callCounts, maxBudget: 100 } }])
+  );
+
+describe('promptGenerationOrchestrator pure helpers', () => {
+  describe('getLeastCallsStrategy', () => {
+    it('returns strategy with minimum calls excluding zero', async () => {
+      const result = await Effect.runPromise(
+        getLeastCallsStrategy(
+          buildBids([
+            ['ApexRest', 5],
+            ['AuraEnabled', 0]
+          ])
+        )
+      );
+      expect(result).toBe('ApexRest');
+    });
+
+    it('returns first strategy when multiple share min', async () => {
+      const result = await Effect.runPromise(
+        getLeastCallsStrategy(
+          buildBids([
+            ['ApexRest', 2],
+            ['AuraEnabled', 2]
+          ])
+        )
+      );
+      expect(result).toBe('ApexRest');
+    });
+
+    it('fails when all zero', async () => {
+      await expect(
+        Effect.runPromise(
+          getLeastCallsStrategy(
+            buildBids([
+              ['ApexRest', 0],
+              ['AuraEnabled', 0]
+            ])
+          )
+        )
+      ).rejects.toBeDefined();
+    });
+
+    it('fails for empty bids', async () => {
+      await expect(Effect.runPromise(getLeastCallsStrategy(new Map()))).rejects.toBeDefined();
+    });
+  });
+
+  describe('getMostCallsStrategy', () => {
+    it('returns strategy with highest calls', async () => {
+      const result = await Effect.runPromise(
+        getMostCallsStrategy(
+          buildBids([
+            ['ApexRest', 5],
+            ['AuraEnabled', 1]
+          ])
+        )
+      );
+      expect(result).toBe('ApexRest');
+    });
+
+    it('fails when all zero', async () => {
+      await expect(
+        Effect.runPromise(
+          getMostCallsStrategy(
+            buildBids([
+              ['ApexRest', 0],
+              ['AuraEnabled', 0]
+            ])
+          )
+        )
+      ).rejects.toBeDefined();
+    });
+  });
+
+  describe('applyRule', () => {
+    it('applies LEAST_CALLS', async () => {
+      const result = await Effect.runPromise(
+        applyRule(
+          'LEAST_CALLS',
+          buildBids([
+            ['ApexRest', 5],
+            ['AuraEnabled', 0]
+          ])
+        )
+      );
+      expect(result).toBe('ApexRest');
+    });
+
+    it('applies MOST_CALLS', async () => {
+      const result = await Effect.runPromise(
+        applyRule(
+          'MOST_CALLS',
+          buildBids([
+            ['ApexRest', 5],
+            ['AuraEnabled', 0]
+          ])
+        )
+      );
+      expect(result).toBe('ApexRest');
+    });
+  });
 });
 
-describe('PromptGenerationOrchestrator', () => {
-  let orchestrator: PromptGenerationOrchestrator;
+describe('selectStrategyByBidRule', () => {
   const mockMetadata: ApexClassOASEligibleResponse = {
     isApexOasEligible: true,
     isEligible: true,
@@ -57,304 +142,98 @@ describe('PromptGenerationOrchestrator', () => {
       comment: ''
     },
     properties: [],
-    methods: [],
-    relationships: new Map()
+    methods: []
   };
 
-  beforeEach(() => {
-    orchestrator = new PromptGenerationOrchestrator(mockMetadata, mockContext);
+  const buildMockStrategy = (strategyName: string): GenerationStrategy =>
+    ({
+      strategyName,
+      bid: jest.fn(),
+      generateOAS: jest.fn(),
+      getTelemetry: jest.fn()
+    }) as unknown as GenerationStrategy;
+
+  const stubInitializeAndBid = (
+    strategies: Map<GenerationStrategyType, GenerationStrategy>,
+    bids: Map<GenerationStrategyType, PromptGenerationStrategyBid>
+  ) => {
+    jest.spyOn(factory, 'initializeAndBid').mockReturnValue(Effect.succeed({ strategies, bids }) as never);
+  };
+
+  // initializeAndBid is mocked, so the `R` channel is empty at runtime; cast away the static service requirements.
+  const runSelect = (rule: 'LEAST_CALLS' | 'MOST_CALLS') => {
+    jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
+      get: () => rule,
+      update: jest.fn()
+    } as unknown as vscode.WorkspaceConfiguration);
+    return Effect.runPromise(
+      selectStrategyByBidRule(mockMetadata, mockContext) as Effect.Effect<GenerationStrategy, unknown, never>
+    );
+  };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
-  describe('getLeastCallsStrategy', () => {
-    it('should return strategy with minimum calls excluding zero', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
-      ]);
-
-      const result = orchestrator['getLeastCallsStrategy'](bids);
-      expect(result).toBe('ApexRest');
-    });
-
-    it('should return first strategy when multiple have same minimum calls', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 2, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 2, maxBudget: 100 } }]
-      ]);
-
-      const result = orchestrator['getLeastCallsStrategy'](bids);
-      expect(result).toBe('ApexRest');
-    });
-
-    it('should return undefined when all strategies have zero calls', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 0, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
-      ]);
-
-      const result = orchestrator['getLeastCallsStrategy'](bids);
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined for empty bids map', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>();
-      const result = orchestrator['getLeastCallsStrategy'](bids);
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('getMostCallsStrategy', () => {
-    it('should return strategy with highest calls among those with at least one call', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 1, maxBudget: 100 } }]
-      ]);
-
-      const result = orchestrator['getMostCallsStrategy'](bids);
-      expect(result).toBe('ApexRest');
-    });
-
-    it('should return first strategy when multiple have same highest calls', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 5, maxBudget: 100 } }]
-      ]);
-
-      const result = orchestrator['getMostCallsStrategy'](bids);
-      expect(result).toBe('ApexRest');
-    });
-
-    it('should return undefined when all strategies have zero calls', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 0, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
-      ]);
-
-      const result = orchestrator['getMostCallsStrategy'](bids);
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined for empty bids map', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>();
-      const result = orchestrator['getMostCallsStrategy'](bids);
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('applyRule', () => {
-    it('should apply LEAST_CALLS rule correctly excluding zero calls', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
-      ]);
-
-      const result = orchestrator['applyRule'](BID_RULES.LEAST_CALLS, bids);
-      expect(result).toBe('ApexRest');
-    });
-
-    it('should apply MOST_CALLS rule correctly', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
-      ]);
-
-      const result = orchestrator['applyRule'](BID_RULES.MOST_CALLS, bids);
-      expect(result).toBe('ApexRest');
-    });
-
-    it('should throw error for unknown bid rule', () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>();
-      expect(() => orchestrator['applyRule']('UNKNOWN_RULE' as any, bids)).toThrow();
-    });
-  });
-
-  describe('selectStrategyByBidRule', () => {
-    let mockStrategyApexRest: jest.Mocked<GenerationStrategy>;
-    let mockStrategyAuraEnabled: jest.Mocked<GenerationStrategy>;
-
-    beforeEach(() => {
-      mockStrategyApexRest = {
-        generateOAS: jest.fn(),
-        bid: jest.fn(),
-        outputTokenLimit: 1000,
-        includeOASSchema: false,
-        openAPISchema: undefined,
-        strategyName: 'ApexRest',
-        metadata: mockMetadata,
-        context: mockContext
-      } as any;
-
-      mockStrategyAuraEnabled = {
-        generateOAS: jest.fn(),
-        bid: jest.fn(),
-        outputTokenLimit: 1000,
-        includeOASSchema: false,
-        openAPISchema: undefined,
-        strategyName: 'AuraEnabled',
-        metadata: mockMetadata,
-        context: mockContext
-      } as any;
-
-      jest.clearAllMocks();
-    });
-
-    it('should select and return strategy based on LEAST_CALLS rule', async () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
+  it('returns the strategy chosen by LEAST_CALLS', async () => {
+    const apexRest = buildMockStrategy('ApexRest');
+    const aura = buildMockStrategy('AuraEnabled');
+    stubInitializeAndBid(
+      new Map<GenerationStrategyType, GenerationStrategy>([
+        ['ApexRest', apexRest],
+        ['AuraEnabled', aura]
+      ]),
+      new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
         ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
         ['AuraEnabled', { result: { callCounts: 10, maxBudget: 100 } }]
-      ]);
-      const strategies = new Map<GenerationStrategyType, GenerationStrategy>([
-        ['ApexRest', mockStrategyApexRest],
-        ['AuraEnabled', mockStrategyAuraEnabled]
-      ]);
+      ])
+    );
 
-      (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
-
-      const result = await orchestrator.selectStrategyByBidRule(BID_RULES.LEAST_CALLS);
-
-      expect(initializeAndBid).toHaveBeenCalledWith(mockMetadata, mockContext);
-      expect(result).toBe(mockStrategyApexRest);
-      expect(orchestrator.strategy).toBe(mockStrategyApexRest);
-    });
-
-    it('should select and return strategy based on MOST_CALLS rule', async () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 10, maxBudget: 100 } }]
-      ]);
-      const strategies = new Map<GenerationStrategyType, GenerationStrategy>([
-        ['ApexRest', mockStrategyApexRest],
-        ['AuraEnabled', mockStrategyAuraEnabled]
-      ]);
-
-      (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
-
-      const result = await orchestrator.selectStrategyByBidRule(BID_RULES.MOST_CALLS);
-
-      expect(initializeAndBid).toHaveBeenCalledWith(mockMetadata, mockContext);
-      expect(result).toBe(mockStrategyAuraEnabled);
-      expect(orchestrator.strategy).toBe(mockStrategyAuraEnabled);
-    });
-
-    it('should throw error when no strategy qualifies', async () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 0, maxBudget: 100 } }],
-        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
-      ]);
-      const strategies = new Map<GenerationStrategyType, GenerationStrategy>([
-        ['ApexRest', mockStrategyApexRest],
-        ['AuraEnabled', mockStrategyAuraEnabled]
-      ]);
-
-      (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
-
-      await expect(orchestrator.selectStrategyByBidRule(BID_RULES.LEAST_CALLS)).rejects.toThrow();
-    });
-
-    it('should throw error when selected strategy is not found', async () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
-        ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }]
-      ]);
-      const strategies = new Map<GenerationStrategyType, GenerationStrategy>();
-
-      (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
-
-      await expect(orchestrator.selectStrategyByBidRule(BID_RULES.LEAST_CALLS)).rejects.toThrow();
-    });
+    const result = await runSelect('LEAST_CALLS');
+    expect(result).toBe(apexRest);
   });
 
-  describe('generateOASWithSelectedStrategy', () => {
-    let mockStrategy: jest.Mocked<GenerationStrategy>;
+  it('returns the strategy chosen by MOST_CALLS', async () => {
+    const apexRest = buildMockStrategy('ApexRest');
+    const aura = buildMockStrategy('AuraEnabled');
+    stubInitializeAndBid(
+      new Map<GenerationStrategyType, GenerationStrategy>([
+        ['ApexRest', apexRest],
+        ['AuraEnabled', aura]
+      ]),
+      new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
+        ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }],
+        ['AuraEnabled', { result: { callCounts: 10, maxBudget: 100 } }]
+      ])
+    );
 
-    beforeEach(() => {
-      mockStrategy = {
-        generateOAS: jest.fn().mockResolvedValue('{"openapi": "3.0.0"}'),
-        bid: jest.fn(),
-        outputTokenLimit: 1000,
-        includeOASSchema: false,
-        openAPISchema: undefined,
-        strategyName: 'ApexRest',
-        metadata: mockMetadata,
-        context: mockContext
-      } as any;
+    const result = await runSelect('MOST_CALLS');
+    expect(result).toBe(aura);
+  });
 
-      (oasUtils.cleanupGeneratedDoc as jest.Mock).mockImplementation((doc: string) => doc);
-      jest.clearAllMocks();
-    });
+  it('fails when all bids are zero', async () => {
+    stubInitializeAndBid(
+      new Map<GenerationStrategyType, GenerationStrategy>([
+        ['ApexRest', buildMockStrategy('ApexRest')],
+        ['AuraEnabled', buildMockStrategy('AuraEnabled')]
+      ]),
+      new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
+        ['ApexRest', { result: { callCounts: 0, maxBudget: 100 } }],
+        ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
+      ])
+    );
 
-    it('should generate OAS using previously selected strategy', async () => {
-      orchestrator.strategy = mockStrategy;
+    await expect(runSelect('LEAST_CALLS')).rejects.toBeDefined();
+  });
 
-      const result = await orchestrator.generateOASWithSelectedStrategy();
-
-      expect(mockStrategy.generateOAS).toHaveBeenCalled();
-      expect(oasUtils.cleanupGeneratedDoc).toHaveBeenCalledWith('{"openapi": "3.0.0"}');
-      const gil = GenerationInteractionLogger.getInstance();
-      expect(gil.addPostGenDoc).toHaveBeenCalledWith('{"openapi": "3.0.0"}');
-      expect(gil.addGenerationStrategy).toHaveBeenCalledWith('MANUAL');
-      expect(gil.addOutputTokenLimit).toHaveBeenCalledWith(1000);
-      expect(result).toBe('{"openapi": "3.0.0"}');
-    });
-
-    it('should select strategy and generate OAS when rule is provided', async () => {
-      const bids = new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
+  it('fails when the chosen strategy is missing from the strategies map', async () => {
+    stubInitializeAndBid(
+      new Map<GenerationStrategyType, GenerationStrategy>(),
+      new Map<GenerationStrategyType, PromptGenerationStrategyBid>([
         ['ApexRest', { result: { callCounts: 5, maxBudget: 100 } }]
-      ]);
-      const strategies = new Map<GenerationStrategyType, GenerationStrategy>([['ApexRest', mockStrategy]]);
+      ])
+    );
 
-      (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
-
-      const result = await orchestrator.generateOASWithSelectedStrategy(BID_RULES.LEAST_CALLS);
-
-      expect(initializeAndBid).toHaveBeenCalled();
-      expect(mockStrategy.generateOAS).toHaveBeenCalled();
-      expect(oasUtils.cleanupGeneratedDoc).toHaveBeenCalled();
-      const gil = GenerationInteractionLogger.getInstance();
-      expect(gil.addPostGenDoc).toHaveBeenCalled();
-      expect(gil.addGenerationStrategy).toHaveBeenCalledWith(BID_RULES.LEAST_CALLS);
-      expect(result).toBe('{"openapi": "3.0.0"}');
-    });
-
-    it('should throw error when no strategy is selected and no rule provided', async () => {
-      orchestrator.strategy = undefined;
-
-      await expect(orchestrator.generateOASWithSelectedStrategy()).rejects.toThrow();
-    });
-
-    it('should include guided JSON when strategy has OAS schema', async () => {
-      mockStrategy.includeOASSchema = true;
-      mockStrategy.openAPISchema = '{"schema": "test"}';
-      orchestrator.strategy = mockStrategy;
-
-      await orchestrator.generateOASWithSelectedStrategy();
-
-      const gil = GenerationInteractionLogger.getInstance();
-      expect(gil.addGuidedJson).toHaveBeenCalledWith('{"schema": "test"}');
-    });
-
-    it('should not include guided JSON when strategy does not have OAS schema', async () => {
-      mockStrategy.includeOASSchema = false;
-      orchestrator.strategy = mockStrategy;
-
-      await orchestrator.generateOASWithSelectedStrategy();
-
-      const gil = GenerationInteractionLogger.getInstance();
-      expect(gil.addGuidedJson).not.toHaveBeenCalled();
-    });
-
-    it('should clean up generated document with markdown code fences', async () => {
-      const rawOas = '```json\n{"openapi": "3.0.0"}\n```';
-      const cleanedOas = '{"openapi": "3.0.0"}';
-      mockStrategy.generateOAS = jest.fn().mockResolvedValue(rawOas);
-      (oasUtils.cleanupGeneratedDoc as jest.Mock).mockReturnValue(cleanedOas);
-      orchestrator.strategy = mockStrategy;
-
-      const result = await orchestrator.generateOASWithSelectedStrategy();
-
-      expect(oasUtils.cleanupGeneratedDoc).toHaveBeenCalledWith(rawOas);
-      expect(result).toBe(cleanedOas);
-      const gil = GenerationInteractionLogger.getInstance();
-      expect(gil.addPostGenDoc).toHaveBeenCalledWith(cleanedOas);
-    });
+    await expect(runSelect('LEAST_CALLS')).rejects.toBeDefined();
   });
 });

@@ -41,7 +41,10 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        os: [ macos-latest, windows-latest ]
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            test_runner_prefix: 'xvfb-run -a '
       fail-fast: false
 
     env:
@@ -49,6 +52,8 @@ jobs:
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -83,7 +88,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger -- --reporter=html
+          ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger -- --reporter=html
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -131,7 +136,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger -- --reporter=html
+          ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger -- --reporter=html
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -142,7 +147,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger -- --last-failed --reporter=html
+          ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-replay-debugger -- --last-failed --reporter=html
 
       - name: Copy span files to test-results
         if: always()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -20,7 +20,7 @@ describe('salesforceCoreSettings', () => {
       expect(salesforceCoreSettingsInstance).toBeInstanceOf(SalesforceCoreSettings);
       expect(getConfigValueSpy).toHaveBeenCalled();
       expect(getConfigValueSpy).toBeCalledWith(ALL_EXCEPTION_CATCHER_ENABLED, false);
-      expect(defaultValue).toEqual(false);
+      expect(defaultValue).toBe(false);
     });
   });
 });

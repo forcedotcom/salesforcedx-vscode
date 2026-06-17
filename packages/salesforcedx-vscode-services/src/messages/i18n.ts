@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -41,8 +41,7 @@ export const messages = {
     'Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (%s)',
   template_service_manifest_parse_failed: 'Failed to parse templates manifest from extension assets.',
   template_service_file_copy_failed: 'Failed to copy template file "%s" to memfs. (%s)',
-  template_service_source_api_version_not_defined: 'sourceApiVersion is not defined',
-  workspace_folder_name: 'Web Console'
+  template_service_source_api_version_not_defined: 'sourceApiVersion is not defined'
 } as const;
 
 export type MessageKey = keyof typeof messages;

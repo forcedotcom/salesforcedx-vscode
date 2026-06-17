@@ -1,35 +1,36 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { URI, Utils } from 'vscode-uri';
+import { sampleProjectName } from '../../src/constants';
 import { toUri } from '../../src/vscode/uriUtils';
 
 describe('toUri', () => {
   describe('virtual filesystem URIs (memfs)', () => {
     it('should parse memfs:/ URI string correctly', () => {
-      const result = toUri('memfs:/MyProject/force-app/main/default/classes/MyClass.cls');
+      const result = toUri(`memfs:/${sampleProjectName}/force-app/main/default/classes/MyClass.cls`);
 
       expect(result.scheme).toBe('memfs');
-      expect(result.path).toBe('/MyProject/force-app/main/default/classes/MyClass.cls');
-      expect(result.toString()).toBe('memfs:/MyProject/force-app/main/default/classes/MyClass.cls');
+      expect(result.path).toBe(`/${sampleProjectName}/force-app/main/default/classes/MyClass.cls`);
+      expect(result.toString()).toBe(`memfs:/${sampleProjectName}/force-app/main/default/classes/MyClass.cls`);
     });
 
     it('should handle memfs:/ with single segment', () => {
-      const result = toUri('memfs:/MyProject');
+      const result = toUri(`memfs:/${sampleProjectName}`);
 
       expect(result.scheme).toBe('memfs');
-      expect(result.path).toBe('/MyProject');
+      expect(result.path).toBe(`/${sampleProjectName}`);
     });
 
     it('should handle memfs:/ with no leading slash in path', () => {
-      const result = toUri('memfs:MyProject/file.txt');
+      const result = toUri(`memfs:${sampleProjectName}/file.txt`);
 
       expect(result.scheme).toBe('memfs');
-      expect(result.path).toContain('MyProject/file.txt');
+      expect(result.path).toContain(`${sampleProjectName}/file.txt`);
     });
   });
 
@@ -236,12 +237,12 @@ describe('toUri', () => {
 
   describe('round-trip conversions', () => {
     it('should round-trip memfs URI through toString()', () => {
-      const original = 'memfs:/MyProject/force-app/main/default/classes/MyClass.cls';
+      const original = `memfs:/${sampleProjectName}/force-app/main/default/classes/MyClass.cls`;
       const uri = toUri(original);
       const result = toUri(uri.toString());
 
       expect(result.scheme).toBe('memfs');
-      expect(result.path).toBe('/MyProject/force-app/main/default/classes/MyClass.cls');
+      expect(result.path).toBe(`/${sampleProjectName}/force-app/main/default/classes/MyClass.cls`);
       expect(result.toString()).toBe(original);
     });
 
@@ -255,12 +256,12 @@ describe('toUri', () => {
     });
 
     it('should handle URI from Utils.joinPath result', () => {
-      const baseUri = URI.parse('memfs:/MyProject');
+      const baseUri = URI.parse(`memfs:/${sampleProjectName}`);
       const joinedUri = Utils.joinPath(baseUri, 'force-app', 'classes', 'MyClass.cls');
       const result = toUri(joinedUri.toString());
 
       expect(result.scheme).toBe('memfs');
-      expect(result.path).toBe('/MyProject/force-app/classes/MyClass.cls');
+      expect(result.path).toBe(`/${sampleProjectName}/force-app/classes/MyClass.cls`);
     });
   });
 });

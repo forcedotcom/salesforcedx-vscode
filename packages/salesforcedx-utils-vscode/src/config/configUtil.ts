@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -56,12 +56,6 @@ export class ConfigUtil {
   public static async isGlobalTargetOrg(): Promise<boolean> {
     const configSource: ConfigSource = await getConfigSource(OrgConfigProperties.TARGET_ORG);
     return configSource === ConfigSource.Global;
-  }
-
-  public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const templatesDirectory = configAggregator.getPropertyValue(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES);
-    return templatesDirectory ? String(templatesDirectory) : undefined;
   }
 
   public static async isTelemetryDisabled(): Promise<boolean> {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -115,6 +115,11 @@ export const ToolingDebugLevelStruct = Schema.Struct({
 });
 
 export type ToolingDebugLevelRecord = Schema.Schema.Type<typeof ToolingDebugLevelStruct>;
+
+/** DebugLevel create payload — ToolingDebugLevelStruct without the server-assigned Id or Language. */
+export const CreateDebugLevelStruct = ToolingDebugLevelStruct.pipe(Schema.omit('Id', 'Language'));
+
+export type CreateDebugLevelPayload = Schema.Schema.Type<typeof CreateDebugLevelStruct>;
 
 /** Client-facing DebugLevelItem: PascalCase → camelCase via rename. */
 export const DebugLevelItemSchema = Schema.rename(ToolingDebugLevelStruct, {

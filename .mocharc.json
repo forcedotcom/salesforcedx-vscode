@@ -1,8 +1,0 @@
-{
-  "timeout": 1800000,
-  "require": ["ts-node/register", "./packages/salesforcedx-vscode-automation-tests/test/globalHooks.ts"],
-  "extension": ["ts"],
-  "slow": 75,
-  "exit": true,
-  "reporter": "./packages/salesforcedx-vscode-automation-tests/lib/test/customSummaryReporter.js"
-}

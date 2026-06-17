@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -52,7 +52,7 @@ describe('test project paths', () => {
 
     it('should return a path to the state folder if the project does not have a root workspace', () => {
       hasRootWorkspaceStub.mockReturnValue(false);
-      expect(projectPaths.stateFolder()).toEqual('');
+      expect(projectPaths.stateFolder()).toBe('');
     });
   });
   describe('test salesforceProjectConfig', () => {

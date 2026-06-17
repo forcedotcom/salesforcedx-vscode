@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -202,7 +202,9 @@ describe('Extension', () => {
     // Mock workspace.workspaceFolders to have at least one folder
     const vscode = require('vscode');
     vscode.extensions = {
-      getExtension: jest.fn().mockReturnValue({ extensionUri: mockExtensionUri })
+      getExtension: jest.fn().mockReturnValue({ extensionUri: mockExtensionUri }),
+      all: [],
+      onDidChange: jest.fn().mockReturnValue({ dispose: jest.fn() })
     };
     vscode.workspace.workspaceFolders = [
       {
@@ -233,7 +235,7 @@ describe('Extension', () => {
       },
       globalState: {
         get: jest.fn().mockReturnValue(undefined),
-        update: jest.fn()
+        update: jest.fn().mockResolvedValue(undefined)
       }
     } as unknown as import('vscode').ExtensionContext;
 

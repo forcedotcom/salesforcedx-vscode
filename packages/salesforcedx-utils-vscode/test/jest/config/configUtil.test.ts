@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -50,23 +50,6 @@ describe('ConfigUtil', () => {
       mockConfigAggregator.getLocation.mockReturnValue(ConfigAggregator.Location.LOCAL);
       const result = await ConfigUtil.isGlobalTargetOrg();
       expect(result).toBe(false);
-    });
-  });
-
-  describe('getTemplatesDirectory', () => {
-    it('should return templates directory when set', async () => {
-      mockConfigAggregator.getPropertyValue.mockReturnValue('/path/to/templates');
-      const result = await ConfigUtil.getTemplatesDirectory();
-      expect(result).toBe('/path/to/templates');
-      expect(mockConfigAggregator.getPropertyValue).toHaveBeenCalledWith(
-        OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
-      );
-    });
-
-    it('should return undefined when not set', async () => {
-      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
-      const result = await ConfigUtil.getTemplatesDirectory();
-      expect(result).toBeUndefined();
     });
   });
 

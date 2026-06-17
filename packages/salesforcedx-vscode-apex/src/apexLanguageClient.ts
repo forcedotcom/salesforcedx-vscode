@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -106,9 +106,9 @@ export class ApexLanguageClient extends LanguageClient {
    */
   public async gatherOpenAPIContext(sourceUri: URI | URI[]): Promise<ApexClassOASGatherContextResponse> {
     if (!Array.isArray(sourceUri)) {
-      return this.sendRequest('apexoas/gatherContext', this.code2ProtocolConverter.asUri(sourceUri)).then(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        gatheredContext => gatheredContext as ApexClassOASGatherContextResponse
+      return this.sendRequest<ApexClassOASGatherContextResponse>(
+        'apexoas/gatherContext',
+        this.code2ProtocolConverter.asUri(sourceUri)
       );
     }
     throw new Error('Not implemented - Can only handle a single Uri for context gathering');

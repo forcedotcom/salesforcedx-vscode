@@ -3,9 +3,7 @@ name: typescript
 description: TypeScript coding standards and conventions including file naming rules
 ---
 
-- new file copyright header: use year **2026** (e.g. `Copyright (c) 2026, salesforce.com, inc.`)
 - no barrel files
-- avoid type assertions (`as Foo` or `as unknown as` or `Foo!`). do guards or Effect.schema stuff (ex `is`) instead
 - no `void` for async - use async/effect (exception [vscode-window-messages](../vscode-window-messages/SKILL.md))
 - no `export *` - name exports explicitly
 - prefer `undefined` over null (unless server requires null)
@@ -16,6 +14,7 @@ description: TypeScript coding standards and conventions including file naming r
 - no enums or namespaces (enums compile to weird JS; use string union types instead; exception: interfaces defined outside this repo that we can't change)
 - no runtime errors for developer mistakes (use types to ensure exhaustive switch/case; don't throw for null/undefined when input/consumer is within our control)
 - .ts filenames: camelCase, no hyphens, no leading capitals
-- preserve comments when refactoring; remove if wrong/obsolete
+- preserve comments when refactoring; remove/fix if wrong/obsolete
 - exported functions: single-line jsdoc /\*_ foo _/ if name unclear; no params/return (TS provides types)
 - look for uses of (Object|Map).groupBy instead of older patterns
+- redundant empty-collection guards: if `arr.find/some/every/map/filter/reduce` already returns the same value for an empty array, drop the `if (arr.length === 0) return …` guard. e.g. `find` on `[]` is `undefined`, so guarding `return undefined` is dead code.

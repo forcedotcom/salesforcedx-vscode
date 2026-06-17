@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -68,9 +68,9 @@ describe('User debug event', () => {
 
     expect(state.handle(context)).toBe(false);
     expect(warnToDebugConsoleStub).toHaveBeenCalledTimes(1);
-    expect(warnToDebugConsoleStub.mock.calls[0][0]).toEqual(`Hello${EOL}foo${EOL}bar`);
+    expect(warnToDebugConsoleStub.mock.calls[0][0]).toBe(`Hello${EOL}foo${EOL}bar`);
     expect(warnToDebugConsoleStub.mock.calls[0][1]).toEqual(frame.source);
-    expect(warnToDebugConsoleStub.mock.calls[0][2]).toEqual(5);
+    expect(warnToDebugConsoleStub.mock.calls[0][2]).toBe(5);
   });
 
   it('Should use line number in log line', () => {
@@ -83,8 +83,8 @@ describe('User debug event', () => {
 
     expect(state.handle(context)).toBe(false);
     expect(warnToDebugConsoleStub).toHaveBeenCalledTimes(1);
-    expect(warnToDebugConsoleStub.mock.calls[0][0]).toEqual(`Hello${EOL}foo${EOL}bar`);
+    expect(warnToDebugConsoleStub.mock.calls[0][0]).toBe(`Hello${EOL}foo${EOL}bar`);
     expect(warnToDebugConsoleStub.mock.calls[0][1]).toEqual(frame.source);
-    expect(warnToDebugConsoleStub.mock.calls[0][2]).toEqual(2);
+    expect(warnToDebugConsoleStub.mock.calls[0][2]).toBe(2);
   });
 });

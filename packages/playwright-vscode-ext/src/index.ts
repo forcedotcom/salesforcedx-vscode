@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -13,6 +13,7 @@ export {
   waitForQuickInputFirstOption,
   selectFirstQuickInputOption,
   selectQuickInputOption,
+  selectQuickInputOptionByTyping,
   closeWelcomeTabs,
   dismissSignInWalkthroughDialog,
   closeSettingsTab,
@@ -21,13 +22,16 @@ export {
   isDesktop,
   isMacDesktop,
   isWindowsDesktop,
-  validateNoCriticalErrors,
+  validateNoCriticalErrors
+} from './utils/helpers';
+
+export {
   removeAllDebugLevels,
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,
   prepareNoFolderOpenForPaletteTests
-} from './utils/helpers';
+} from './utils/workflows';
 
 export { activeQuickInputWidget, activeQuickInputTextField } from './utils/quickInput';
 
@@ -38,7 +42,10 @@ export {
   openFileByName,
   openFileFromExplorerTree,
   editAndSaveOpenFile as editOpenFile,
+  replaceLineInOpenFile,
+  goToLineCol,
   setupMinimalOrgAndAuth,
+  setupNonTrackingOrgAndAuth,
   createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
@@ -64,6 +71,8 @@ export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSI
 export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
 export { createNonTrackingOrg, NON_TRACKING_ORG_ALIAS, HUB_ORG_ALIAS } from './orgs/nonTrackingScratchOrgSetup';
+export { getTargetDevHub } from './orgs/devHub';
+export { execAsync, env } from './orgs/shared';
 
 // Pages
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
@@ -94,7 +103,24 @@ export {
   expectProblemsCountAtLeast
 } from './pages/problems';
 
-export { waitForRunApexTestsProgressNotificationGone } from './pages/notifications';
+export {
+  waitForRunApexTestsProgressNotificationGone,
+  waitForNotification,
+  acceptNotification
+} from './pages/notifications';
+
+export { clickCodeLens } from './pages/codeLens';
+
+export {
+  clickOrgPickerStatusBar,
+  expectOrgPickerStatusBar,
+  expectOrgPickerActionItems,
+  expectOrgPickerListsOrg,
+  selectOrgInPicker
+} from './pages/statusBar';
+
+export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
+export type { ActiveFrameMatcher } from './pages/webview';
 
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';

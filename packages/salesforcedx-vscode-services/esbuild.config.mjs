@@ -48,9 +48,22 @@ const copyTemplates = copy({
   ]
 });
 
-// Generate manifest listing all template file paths (relative to templates root).
-// Web bundle reads this instead of vscode.workspace.fs.readDirectory (not supported on HTTPS extension URIs).
-// Walk the copy destination (not source) so manifest only lists files that were actually bundled.
+// Template categories reachable from web-enabled extensions (those with a `browser` entry that call
+// TemplateService.create). Everything else is desktop-only and must not bloat the web copy:
+//   - apexclass / apextrigger: apex-log (web)
+//   - lightningcomponent/lwc:  lwc (web)
+//   - analytics:               metadata `sf.analytics.generate.template` (registered on web)
+// Excluded: project (React scaffolds, ~350+ files; project-generate is desktop-only in metadata),
+// lightningcomponent/aura + lightningapp/event/interface (lightning ext has no `browser`),
+// visualforce* (visualforce ext has no `browser`), staticresource (no web creator).
+// Keep this in sync with the web extensions' TemplateService.create call sites.
+const WEB_TEMPLATE_PREFIXES = ['apexclass/', 'apextrigger/', 'lightningcomponent/lwc/', 'analytics/'];
+
+// Generate manifest listing template file paths (relative to templates root) for the WEB bundle to copy
+// into memfs (vscode.workspace.fs.readDirectory is unsupported on HTTPS extension URIs). Desktop ignores
+// this manifest and reads dist/templates from disk, so all categories stay copied for desktop; the manifest
+// is filtered to WEB_TEMPLATE_PREFIXES only so web doesn't fetch hundreds of unreachable template files.
+// Walk the copy destination (not source) so the manifest only lists files that were actually bundled.
 // Ensure dist/templates exists (esbuild-plugin-copy does not create it when the source glob matches no files).
 const generateTemplatesManifest = async () => {
   const distTemplates = join(packageDir, 'dist/templates');
@@ -58,12 +71,13 @@ const generateTemplatesManifest = async () => {
   await mkdir(distTemplates, { recursive: true });
 
   const prefix = distTemplates.replace(/\\/g, '/') + '/';
-  const paths = (await readdir(distTemplates, { recursive: true, withFileTypes: true }))
+  const allPaths = (await readdir(distTemplates, { recursive: true, withFileTypes: true }))
     .filter(e => e.isFile() && e.name !== 'manifest.json')
     .map(e => `${(e.parentPath ?? e.path).replace(/\\/g, '/')}/${e.name}`.replace(prefix, ''));
+  const paths = allPaths.filter(p => WEB_TEMPLATE_PREFIXES.some(prefix => p.startsWith(prefix)));
 
   await writeFile(join(distTemplates, 'manifest.json'), JSON.stringify(paths));
-  console.log(`[esbuild] Generated templates manifest: ${paths.length} files`);
+  console.log(`[esbuild] Generated templates manifest: ${paths.length} web files (of ${allPaths.length} on disk)`);
 };
 
 const execAsync = promisify(exec);
@@ -137,7 +151,9 @@ const nodeBuild = await build({
 const webConfigJson = await buildWebConfig();
 const browserDefine = {
   ...commonConfigBrowser.define,
-  'process.env.ESBUILD_WEB_CONFIG': webConfigJson ? `'${webConfigJson.replace(/'/g, "\\'")}'` : "'undefined'"
+  'process.env.ESBUILD_WEB_CONFIG': webConfigJson ? `'${webConfigJson.replace(/'/g, "\\'")}'` : "'undefined'",
+  // Inline ESBUILD_WEB_LOCAL so the web bundle can divert App Insights telemetry to localhost in local dev.
+  'process.env.ESBUILD_WEB_LOCAL': process.env.ESBUILD_WEB_LOCAL ? "'1'" : "'undefined'"
 };
 const browserBuild = await build({
   ...commonConfigBrowser,

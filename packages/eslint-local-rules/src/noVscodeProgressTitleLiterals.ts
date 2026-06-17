@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,84 +8,20 @@
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
-/** Check if an expression is a call to nls.localize() */
-const isNlsLocalizeCall = (expr: TSESTree.Expression): boolean =>
-  expr.type === AST_NODE_TYPES.CallExpression &&
-  expr.callee.type === AST_NODE_TYPES.MemberExpression &&
-  expr.callee.object.type === AST_NODE_TYPES.Identifier &&
-  expr.callee.object.name === 'nls' &&
-  expr.callee.property.type === AST_NODE_TYPES.Identifier &&
-  expr.callee.property.name === 'localize';
-
-/** Check if an expression is a string literal or template literal without nls.localize() */
-const isStringLiteralOrTemplateWithoutNls = (expr: TSESTree.Expression): boolean => {
-  if (expr.type === AST_NODE_TYPES.Literal && typeof expr.value === 'string') {
-    return true;
-  }
-  if (expr.type === AST_NODE_TYPES.TemplateLiteral) {
-    return !expr.expressions.some(isNlsLocalizeCall);
-  }
-  return false;
-};
-
-/** Find the title property in a withProgress options object */
-const findTitleProperty = (obj: TSESTree.ObjectExpression): TSESTree.Property | undefined => {
-  const p = obj.properties.find(
-    prop =>
-      prop.type === AST_NODE_TYPES.Property && prop.key.type === AST_NODE_TYPES.Identifier && prop.key.name === 'title'
-  );
-  return p?.type === AST_NODE_TYPES.Property ? p : undefined;
-};
-
-/** Check if this is vscode.window.withProgress or window.withProgress */
-const isVscodeWithProgressCall = (node: TSESTree.CallExpression): boolean => {
-  if (node.callee.type !== AST_NODE_TYPES.MemberExpression) return false;
-  const callee = node.callee;
-  if (callee.property.type !== AST_NODE_TYPES.Identifier || callee.property.name !== 'withProgress') {
-    return false;
-  }
-  if (callee.object.type === AST_NODE_TYPES.MemberExpression) {
-    return (
-      callee.object.object.type === AST_NODE_TYPES.Identifier &&
-      callee.object.object.name === 'vscode' &&
-      callee.object.property.type === AST_NODE_TYPES.Identifier &&
-      callee.object.property.name === 'window'
-    );
-  }
-  if (callee.object.type === AST_NODE_TYPES.Identifier) {
-    return callee.object.name === 'window';
-  }
-  return false;
-};
+import {
+  findObjectProperty,
+  findVarInitInScope,
+  isStringLiteralOrTemplateWithoutNls,
+  isVscodeWindowMethodCall
+} from './astUtils';
 
 /** Check if this is a promptService.withProgress(title) call (title as first arg, not in options object) */
 const isPromptServiceWithProgressCall = (node: TSESTree.CallExpression): boolean =>
   node.callee.type === AST_NODE_TYPES.MemberExpression &&
   node.callee.property.type === AST_NODE_TYPES.Identifier &&
   node.callee.property.name === 'withProgress' &&
-  !isVscodeWithProgressCall(node) &&
+  !isVscodeWindowMethodCall(node, 'withProgress') &&
   node.arguments[0]?.type !== AST_NODE_TYPES.ObjectExpression;
-
-const checkIdentifierForLiteral = (
-  value: TSESTree.Identifier,
-  node: TSESTree.CallExpression,
-  context: Parameters<Parameters<typeof RuleCreator.withoutDocs>[0]['create']>[0]
-): void => {
-  let currentScope: ReturnType<typeof context.sourceCode.getScope> | null = context.sourceCode.getScope(node);
-  while (currentScope) {
-    const variable = currentScope.variables.find(v => v.name === value.name);
-    if (variable?.defs[0]) {
-      const defNode = variable.defs[0].node;
-      if (defNode.type === AST_NODE_TYPES.VariableDeclarator && defNode.init) {
-        if (isStringLiteralOrTemplateWithoutNls(defNode.init)) {
-          context.report({ node: value, messageId: 'noLiteral' });
-        }
-      }
-      return;
-    }
-    currentScope = currentScope.upper;
-  }
-};
 
 export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
   meta: {
@@ -102,11 +38,11 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
   defaultOptions: [],
   create: context => ({
     CallExpression: (node: TSESTree.CallExpression): void => {
-      if (isVscodeWithProgressCall(node)) {
+      if (isVscodeWindowMethodCall(node, 'withProgress')) {
         const optionsArg = node.arguments[0];
         if (optionsArg?.type !== AST_NODE_TYPES.ObjectExpression) return;
 
-        const titleProp = findTitleProperty(optionsArg);
+        const titleProp = findObjectProperty(optionsArg, 'title');
         if (!titleProp?.value) return;
 
         const value = titleProp.value;
@@ -118,7 +54,10 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
         }
 
         if (value.type === AST_NODE_TYPES.Identifier) {
-          checkIdentifierForLiteral(value, node, context);
+          const init = findVarInitInScope(context, node, value.name);
+          if (init && isStringLiteralOrTemplateWithoutNls(init)) {
+            context.report({ node: value, messageId: 'noLiteral' });
+          }
         }
         return;
       }
@@ -133,7 +72,10 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
         }
 
         if (titleArg.type === AST_NODE_TYPES.Identifier) {
-          checkIdentifierForLiteral(titleArg, node, context);
+          const init = findVarInitInScope(context, node, titleArg.name);
+          if (init && isStringLiteralOrTemplateWithoutNls(init)) {
+            context.report({ node: titleArg, messageId: 'noLiteral' });
+          }
         }
       }
     }

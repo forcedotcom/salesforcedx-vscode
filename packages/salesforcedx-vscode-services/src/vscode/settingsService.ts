@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -17,7 +17,7 @@ import {
 } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 
-const FALLBACK_API_VERSION = '64.0';
+const FALLBACK_API_VERSION = '67.0';
 
 export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettingsError', {
   cause: S.Unknown,
@@ -216,7 +216,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       getInstanceUrl,
       /** Get the Salesforce access token from settings */
       getAccessToken,
-      /** Get the Salesforce API version from settings. In the form of '64.0' */
+      /** Get the Salesforce API version from settings. In the form of '67.0' */
       getApiVersion,
       /** Set the Salesforce instance URL in settings */
       setInstanceUrl,

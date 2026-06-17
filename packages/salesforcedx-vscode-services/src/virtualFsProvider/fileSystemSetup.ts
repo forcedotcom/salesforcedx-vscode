@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -13,7 +13,6 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { sampleProjectName } from '../constants';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
-import { nls } from '../messages';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fileSystemProvider';
@@ -55,13 +54,15 @@ export const fileSystemSetup = Effect.fn('fileSystemSetup')(function* (context: 
   );
 
   // Only inject the memfs sample project when the user hasn't already opened a workspace folder.
-  // If a folder is already open (e.g. a real project loaded via `?folder=` in web, or a `--folder`
-  // arg, or a Playwright-E2E vscode-test-web mount), prepending a synthetic sample would hide that
-  // folder's Explorer contents behind the memfs tree and break file lookups/search.
+  // If a folder is already open (e.g. the Code Builder Web host booting `memfs:/<sampleProjectName>`
+  // via its workspaceProvider, a real project loaded via `?folder=` in web, a `--folder` arg, or a
+  // Playwright-E2E vscode-test-web mount), prepending a synthetic sample would hide that folder's
+  // Explorer contents behind the memfs tree and break file lookups/search.
+  // No `name` override: the Explorer root derives from the folder URI basename, so standalone and
+  // host-opened windows both show `sampleProjectName`.
   const hasExistingWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
   if (!hasExistingWorkspace) {
     vscode.workspace.updateWorkspaceFolders(0, 0, {
-      name: nls.localize('workspace_folder_name'),
       uri: URI.parse(`${fsPrefix}:/${sampleProjectName}`)
     });
   }

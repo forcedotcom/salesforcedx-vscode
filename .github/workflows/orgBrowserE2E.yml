@@ -42,6 +42,8 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
@@ -108,6 +110,14 @@ jobs:
             --set-default-dev-hub --alias hub --sfdx-url-stdin'
           retry_wait_seconds: 30
 
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
@@ -173,6 +183,8 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
+      SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}

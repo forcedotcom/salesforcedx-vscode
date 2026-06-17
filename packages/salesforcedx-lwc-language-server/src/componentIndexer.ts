@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -278,7 +278,7 @@ export default class ComponentIndexer {
           let componentFilePath = normalizePath(path.join(dir, fileName));
           // For memfs:// URIs, ensure paths have a leading slash so TypeScript web server can properly resolve them
           // TypeScript web server needs absolute paths to convert to URIs for file watching
-          // Without a leading slash, paths like "MyProject/force-app/..." might be misinterpreted as schemes
+          // Without a leading slash, paths like "dx-project/force-app/..." might be misinterpreted as schemes
           // Windows absolute paths (e.g., "d:/path") should not get a leading slash added
           const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(componentFilePath);
           if (!isWindowsAbsolute && !componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
@@ -349,7 +349,7 @@ export default class ComponentIndexer {
           let componentFilePath = normalizePath(path.join(dir, fileName));
           // For memfs:// URIs, ensure paths have a leading slash so TypeScript web server can properly resolve them
           // TypeScript web server needs absolute paths to convert to URIs for file watching
-          // Without a leading slash, paths like "MyProject/force-app/..." might be misinterpreted as schemes
+          // Without a leading slash, paths like "dx-project/force-app/..." might be misinterpreted as schemes
           // Windows absolute paths (e.g., "d:/path") should not get a leading slash added
           const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(componentFilePath);
           if (!isWindowsAbsolute && !componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {

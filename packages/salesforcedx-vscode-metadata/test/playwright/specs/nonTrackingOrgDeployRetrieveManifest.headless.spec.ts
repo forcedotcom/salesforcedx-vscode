@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -23,7 +23,6 @@ import {
   selectOutputChannel,
   waitForOutputChannelText,
   isDesktop,
-  isMacDesktop,
   activeQuickInputWidget,
   EDITOR,
   ensureSecondarySideBarHidden
@@ -34,7 +33,7 @@ import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
-(isDesktop() && !isMacDesktop() ? test : test.skip.bind(test))(
+(isDesktop() ? test : test.skip.bind(test))(
   'Non-Tracking Org: deploy/retrieve via manifest work without tracking',
   async ({ page }) => {
     test.setTimeout(RETRIEVE_TIMEOUT);

@@ -37,27 +37,9 @@ Use ex: `npm run test -w packages/salesforcedx-vscode-soql -- --coverage` to see
 
 e2e is even more crucial in the extensions because much of the extensions API is "run-time only." You **could** write unit tests to check vscode notifications, but you're mocking all of that and there's no way to assert that you're doing it correctly. It's more useful to have an e2e environment running **real** vscode and asserting it does what you expect.
 
-Both our e2e testing frameworks run both locally and in Github Actions
+These run locally and in Github Actions using Playwright.
 
-### old: redhat framework
-
-<https://github.com/forcedotcom/salesforcedx-vscode-test-tools> is our repo to make using <https://github.com/redhat-developer/vscode-extension-tester> simpler.
-
-See [contributing/e2e-instructions.md](../contributing/e2e-instructions.md) for instructions for the framework.
-
-pros
-
-- pre-defined selenium PageObject definitions for most of the vscode UI so you don't have to figure out or maintain selectors
-- versioned selectors for multiple vscode versions
-- you can import our library from anywhere else
-
-cons
-
-- it's slow and single-test-at-a-time
-- it's been super flaky
-- desktop only (so you might need to do playwright stuff to cover your web extension)
-
-### new: playwright
+### playwright
 
 See [.claude/skills/playwright-e2e/SKILL.md](../.claude/skills/playwright-e2e/SKILL.md) for guidelines on writing, running, and debugging Playwright tests.
 
@@ -74,7 +56,7 @@ cons
 - you might spend some time screwing around getting the selectors right (recommendation: have your LLM log html snapshots so it can iterate based on the contents)
 - our test using this are much newer, and the code exists only within the extensions, so you'll be copy-pasting a bit if you want to reuse that. On the roadmap to make that more shared
 
-I'd probably start with playwright if I were doing a new extension.
+Use Playwright for any new e2e tests.
 
 ### VSCode DOM
 
@@ -97,4 +79,4 @@ When the VSCode UI changes, you might have to update your e2e tests. And you mig
 
 - [Build](./Build.md) - use packaged vsix for e2e tests
 - [contributing/tests.md](../contributing/tests.md) - jest setup and running tests
-- [contributing/e2e-instructions.md](../contributing/e2e-instructions.md) - RedHat e2e framework details
+- [contributing/e2e-instructions.md](../contributing/e2e-instructions.md) - Playwright e2e instructions

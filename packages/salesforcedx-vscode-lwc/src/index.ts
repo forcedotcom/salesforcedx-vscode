@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -18,6 +18,7 @@ import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelAdapter } from './channel';
 import { createLwcCommand } from './commands/createLwc';
+import { renameLwcCommand } from './commands/renameLwc';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import LwcLspStatusBarItem from './lwcLspStatusBarItem';
@@ -127,6 +128,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
     createLwcCommand(outputDirParam)
+  );
+  yield* registerCommand('sf.lightning.lwc.rename', renameLwcCommand);
+  yield* registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
+    createLwcCommand(sourceUri, { internal: true })
   );
   yield* Effect.forkDaemon(startLwcFileWatcher());
   // Creates resources for js-meta.xml to work

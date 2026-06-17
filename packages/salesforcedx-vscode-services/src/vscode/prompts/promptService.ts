@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, salesforce.com, inc.
+ * Copyright (c) 2026, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,6 +8,7 @@
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
+import * as Fiber from 'effect/Fiber';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -62,6 +63,19 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           return yield* new UserCancellationError({ message: 'User cancelled overwrite' });
       }
     );
+
+    /** Show a modal warning with a single confirm button; if the user dismisses it (does not click
+     * `confirmLabel`), fail with {@link UserCancellationError}. Use to gate destructive actions. */
+    const confirmOrThrow = Effect.fn('PromptService.confirmOrThrow')(function* (params: {
+      readonly message: string;
+      readonly confirmLabel: string;
+    }) {
+      const choice = yield* Effect.promise(() =>
+        vscode.window.showWarningMessage(params.message, { modal: true }, params.confirmLabel)
+      );
+      if (choice !== params.confirmLabel)
+        return yield* new UserCancellationError({ message: 'User cancelled confirmation' });
+    });
 
     /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
      * Otherwise, return `value` with `undefined` removed from its type. */
@@ -181,17 +195,59 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           return self.pipe(Effect.ensuring(Effect.sync(resolve)));
         });
 
+    /** Pipeable operator: ties a cancellable vscode progress notification to an Effect.
+     * The progress shows a Cancel button; clicking it interrupts the inner effect and surfaces a
+     * {@link UserCancellationError}. */
+    const withCancellableProgress =
+      (title: string) =>
+      <A, E, R>(self: Effect.Effect<A, E, R>) =>
+        Effect.suspend(() => {
+          const { promise, resolve } = Promise.withResolvers<void>();
+          const userCancelled = { value: false };
+          return Effect.forkDaemon(self).pipe(
+            Effect.tap(fiber =>
+              Effect.sync(() => {
+                void vscode.window.withProgress(
+                  { location: vscode.ProgressLocation.Notification, title, cancellable: true },
+                  (_progress, token) => {
+                    token.onCancellationRequested(() => {
+                      userCancelled.value = true;
+                      Effect.runFork(Fiber.interrupt(fiber));
+                    });
+                    return promise;
+                  }
+                );
+              })
+            ),
+            Effect.flatMap(fiber => Fiber.join(fiber)),
+            Effect.ensuring(Effect.sync(resolve)),
+            Effect.catchAllCause(cause =>
+              userCancelled.value
+                ? Effect.fail<UserCancellationError | E>(
+                    new UserCancellationError({ message: 'User cancelled progress' })
+                  )
+                : Effect.failCause<UserCancellationError | E>(cause)
+            )
+          );
+        });
+
     return {
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
        * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
       ensureMetadataOverwriteOrThrow,
+      /** Show a modal warning with a single confirm button; if the user dismisses it (does not click
+       * `confirmLabel`), fail with {@link UserCancellationError}. Use to gate destructive actions. */
+      confirmOrThrow,
       /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
        * Otherwise, return `value` with `undefined` removed from its type. */
       considerUndefinedAsCancellation,
       /** Prompt user to select output directory from available package directories, or choose a custom one. */
       promptForOutputDir,
       /** Pipeable operator: ties a vscode progress notification lifetime to an Effect. */
-      withProgress
+      withProgress,
+      /** Pipeable operator: ties a cancellable vscode progress notification lifetime to an Effect.
+       * Clicking Cancel interrupts the inner effect and surfaces a {@link UserCancellationError}. */
+      withCancellableProgress
     };
   })
 }) {}
