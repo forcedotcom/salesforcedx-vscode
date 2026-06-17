@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export { AndOr, ConditionOperator, SObjectFieldType } from './model/model';
+export type { ErrorType, LiteralType, Query, Select, SelectExprs, UiOperatorValue } from './model/model';
 export {
-  AndOr,
-  ConditionOperator,
   REASON_UNMODELED_COMPLEXGROUP,
   REASON_UNMODELED_FUNCTIONREFERENCE,
-  REASON_UNMODELED_GROUPBY,
-  SObjectFieldType
-} from './model/model';
-export type { ErrorType, LiteralType, Query, Select, SelectExprs, UiOperatorValue } from './model/model';
+  REASON_UNMODELED_GROUPBY
+} from './model/unmodeled';
 export { SoqlModelUtils } from './model/util';
 
 export { FieldCompareConditionImpl } from './model/impl/fieldCompareConditionImpl';

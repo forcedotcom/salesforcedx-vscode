@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ErrorType } from '../../../src/model/model';
 import {
-  ErrorType,
   REASON_UNMODELED_ALIAS,
   REASON_UNMODELED_BIND,
   REASON_UNMODELED_FUNCTIONREFERENCE,
@@ -23,7 +23,7 @@ import {
   REASON_UNMODELED_COMPLEXGROUP,
   REASON_UNMODELED_DISTANCECONDITION,
   REASON_UNMODELED_INSEMIJOINCONDITION
-} from '../../../src/model/model';
+} from '../../../src/model/unmodeled';
 import { deserialize } from '../../../src/serialization/deserializer';
 
 const testQueryModel = {

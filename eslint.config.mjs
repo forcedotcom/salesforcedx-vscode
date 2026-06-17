@@ -159,6 +159,8 @@ export default [
       'local/no-vscode-quickpick-description-literals': 'error',
       'local/no-vscode-validateinput-literals': 'error',
       'local/no-self-barrel-import': 'error',
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -702,8 +704,25 @@ export default [
     }
   },
   {
-    // Allow top-level src/index.ts files as barrel files (public API exports)
+    // Allow top-level src/index.ts files as barrel files (public API exports),
+    // including export-* aggregation of a package's public surface.
     files: ['packages/**/src/index.ts'],
+    rules: {
+      'barrel-files/avoid-barrel-files': 'off',
+      'barrel-files/avoid-re-export-all': 'off'
+    }
+  },
+  {
+    // Legacy packages with pre-existing sub-directory barrels (out of scope for
+    // the no-barrel-files rollout in W-23031858). avoid-re-export-all stays ON.
+    // Cleaning up these barrels is a separate WI.
+    files: [
+      'packages/salesforcedx-apex-debugger/**/*.ts',
+      'packages/salesforcedx-apex-replay-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
+      'packages/salesforcedx-vscode-org/**/*.ts',
+      'packages/salesforcedx-vscode-core/**/*.ts'
+    ],
     rules: {
       'barrel-files/avoid-barrel-files': 'off'
     }
@@ -739,6 +758,10 @@ export default [
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
+
+      // Tests may re-export fixtures / aggregate helpers
+      'barrel-files/avoid-barrel-files': 'off',
+      'barrel-files/avoid-re-export-all': 'off',
 
       'import/order': 'off',
       'functional/no-throw-statements': 'off',

@@ -52,6 +52,15 @@ import {
   OrderByExpression,
   Query,
   RecordTrackingType,
+  Select,
+  UnmodeledSyntax,
+  Update,
+  Where,
+  With,
+  SelectExpression,
+  NullsOrder
+} from '../model/model';
+import {
   REASON_UNMODELED_ALIAS,
   REASON_UNMODELED_AS,
   REASON_UNMODELED_BIND,
@@ -73,15 +82,8 @@ import {
   REASON_UNMODELED_USING,
   REASON_UNMODELED_WITH,
   REASON_UNMODELED_GROUPBY,
-  Select,
-  UnmodeledSyntax,
-  UnmodeledSyntaxReason,
-  Update,
-  Where,
-  With,
-  SelectExpression,
-  NullsOrder
-} from '../model/model';
+  UnmodeledSyntaxReason
+} from '../model/unmodeled';
 import { SoqlModelUtils } from '../model/util';
 
 export const deserialize = (soqlSyntax: string): Query => {
