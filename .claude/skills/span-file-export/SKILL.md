@@ -41,6 +41,13 @@ Each line independent JSON. Discriminate on `kind`.
 | `resource.attributes["extension.name"]` | Emitting extension |
 | Duration (ms) | `(endTimeUnixNano - startTimeUnixNano) / 1_000_000` |
 
+Identity attrs (`userId`, `cliId`, `webUserId`, `orgId`, `common.*`) stamped **only on root spans** — child spans have them `null`; not a gap. Mirrors the App Insights `properties` exactly. `userId` absent for expired/unauthenticated orgs. Note: an internal diagnostic child span (`maybeUpdateDefaultOrgRef`) annotates the literal string `"undefined"` when SOQL userId is unresolved — that string never reaches exported root spans (filtered out).
+
+```sh
+f=$(ls -t ~/.sf/vscode-spans/*.jsonl | head -1)
+jq -rc 'select(.kind=="span" and .parentSpanId=="") | {name, userId:.attributes.userId, cliId:.attributes.cliId, webUserId:.attributes.webUserId, orgId:.attributes.orgId}' "$f" | sort -u
+```
+
 ### Logs (`kind: "log"`)
 
 ```jsonl
@@ -93,11 +100,28 @@ Custom port: `SF_OTEL_INGESTION_ENDPOINT=http://localhost:NNNN`.
 
 **Divert Mechanism**: Connection string stays pristine. Both `FilteredAzureMonitorTraceExporter` (dependencies path) and `ApplicationInsightsNodeExporter` (customEvents path) swap their private HTTP transport to POST Breeze envelopes over plain HTTP to `{localIngestionEndpoint}/v2.1/track`. Why swap transport? The Azure SDK's `ConnectionStringParser.sanitizeUrl` force-upgrades `http://` → `https://`, blocking plain-HTTP localhost servers.
 
-Server gzip-decompresses, writes raw **Breeze envelopes** (exact wire format Azure receives):
+Server gzip-decompresses, writes raw **Breeze envelopes** (exact wire format Azure receives). Top-level keys: `name, time, instrumentationKey, sampleRate, tags, version, data`. **No `iKey`, no `target`.** Custom dimensions (IDs, `common.*`) live in `data.baseData.properties`, NOT directly under `baseData`:
 ```jsonl
-{"name":"Microsoft.ApplicationInsights.RemoteDependency","time":"2026-05-22T15:33:01.398Z","iKey":"f5cbbeba-...","data":{"baseType":"RemoteDependencyData","baseData":{"name":"ConnectionService.getConnection","type":"","target":"localhost:3003","data":"..."}}}
+{"name":"Microsoft.ApplicationInsights.RemoteDependency","time":"2026-06-15T15:44:24.223Z","instrumentationKey":"f5cbbeba-...","sampleRate":100,"version":1,"tags":{"ai.cloud.role":"salesforcedx-vscode-core","ai.operation.id":"f2da4484..."},"data":{"baseType":"RemoteDependencyData","baseData":{"name":"ConnectionService.getConnection","id":"1250a85f...","success":true,"resultCode":"0","duration":"00:00:00.001","properties":{"common.extname":"salesforcedx-vscode-core","cliId":"00d6...","webUserId":"701b...","userId":"005..."},"measurements":{}}}}
 ```
-Filename: `appinsights-{ISO-timestamp}.jsonl`. Shape (RemoteDependencyData vs customEvent) matches production export path.
+Filename: `appinsights-{ISO-timestamp}.jsonl`. `data.baseType`: `RemoteDependencyData` (span path), `MetricData`, `ExceptionData`, or `EventData` (customEvents path).
+
+| Field | Notes |
+|-------|-------|
+| `instrumentationKey` | connection key (NOT `iKey`) |
+| `tags["ai.cloud.role"]` | emitting extension |
+| `data.baseData.properties` | custom dimensions: `cliId`, `webUserId`, `userId`, `common.*`, `telemetryTag` |
+
+**Identity lands only on root spans** (`spanTransformProcessor` gates on `!span.parentSpanContext`) → most envelopes/spans lack IDs; that's expected, not a gap. `userId` (SOQL-derived) is absent until an org is authenticated and the query resolves; absent for expired orgs. `cliId`/`webUserId` are install-stable, present once `seedTelemetryIdentities` runs at activation — activation spans firing before that seeding are bare.
+
+**customEvents path** (`EventData`, via `ApplicationInsightsNodeExporter`) only emits when an extension's packageJSON sets `enableCustomEventsFromSpans`. None do today — so only the dependencies path (`RemoteDependencyData`) appears.
+
+Useful queries:
+```sh
+g=$(ls -t ~/.sf/vscode-appinsights/*.jsonl | head -1)
+jq -rc '.data.baseType' "$g" | sort | uniq -c                                  # envelope mix
+jq -rc 'select(.data.baseType=="RemoteDependencyData") | {name:.data.baseData.name, role:.tags["ai.cloud.role"], userId:.data.baseData.properties.userId, cliId:.data.baseData.properties.cliId, webUserId:.data.baseData.properties.webUserId}' "$g"
+```
 
 ### Web
 

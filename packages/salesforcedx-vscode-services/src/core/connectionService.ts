@@ -277,7 +277,9 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
           : Effect.succeed({ username: undefined, userId: undefined })
         : Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }),
       existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
-      existingOrgInfo.cliId ? Effect.succeed(existingOrgInfo.cliId) : getCliId()
+      existingOrgInfo.cliId
+        ? Effect.succeed(existingOrgInfo.cliId)
+        : getCliId().pipe(Effect.map(Option.getOrElse(() => undefined)))
     ],
     { concurrency: 'unbounded' }
   );
