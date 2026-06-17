@@ -9,7 +9,7 @@ import { URI, Utils } from 'vscode-uri';
 
 /**
  * Convert path string or URI to URI, handling both file:// and other schemes like memfs://
- * @param filePath - Either a URI object, URI string (e.g., "memfs:/MyProject/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
+ * @param filePath - Either a URI object, URI string (e.g., "memfs:/dx-project/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
  * @returns A properly parsed VS Code URI
  */
 export const toUri = (filePath: string | URI): URI => {

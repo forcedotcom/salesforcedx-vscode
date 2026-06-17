@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { URI } from 'vscode-uri';
 import { shouldDeploy } from '../../src/services/deployOnSaveService';
+import { sampleProjectName } from 'salesforcedx-vscode-services/src/constants';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { uriToPath } from 'salesforcedx-vscode-services/src/vscode/paths';
@@ -181,10 +182,10 @@ describe('shouldDeploy', () => {
 
   // UT does not run on windows because it's virtualFs (always posix-style)
   (process.platform === 'win32' ? describe.skip : describe)('virtual filesystem (memfs)', () => {
-    const memfsRoot = '/MyProject';
+    const memfsRoot = `/${sampleProjectName}`;
 
     it('should return true for valid metadata file in memfs workspace', async () => {
-      const uri = URI.parse('memfs:/MyProject/force-app/main/default/classes/FileUtilities.cls');
+      const uri = URI.parse(`memfs:/${sampleProjectName}/force-app/main/default/classes/FileUtilities.cls`);
       const mockChannelService = createMockChannelService();
       const mockWorkspaceService = createMockWorkspaceService(memfsRoot, true);
       const mockExtensionProvider = createMockExtensionProvider();
@@ -220,7 +221,7 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for .soql files in memfs workspace', async () => {
-      const uri = URI.parse('memfs:/MyProject/force-app/main/default/queries/test.soql');
+      const uri = URI.parse(`memfs:/${sampleProjectName}/force-app/main/default/queries/test.soql`);
       const mockChannelService = createMockChannelService();
       const mockWorkspaceService = createMockWorkspaceService(memfsRoot, true);
       const mockExtensionProvider = createMockExtensionProvider();

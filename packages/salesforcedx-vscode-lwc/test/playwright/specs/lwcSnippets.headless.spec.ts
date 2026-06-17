@@ -78,7 +78,7 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await waitForWorkspaceReady(page);
-    // salesforcedx-vscode-services creates a memfs:/MyProject workspace folder during activation.
+    // salesforcedx-vscode-services creates a memfs:/dx-project workspace folder during activation.
     // Wait until no extension shows "Activating" so file search / indexing is ready before Quick Open runs.
     await waitForExtensionsActivated(page);
     // Disable deploy-on-save AFTER the workspace folder is added so the setting persists to the correct workspace context.

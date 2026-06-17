@@ -9,6 +9,7 @@ import { OrgConfigProperties } from '@salesforce/core';
 import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 
@@ -131,27 +132,30 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
     )
   );
   const failCount = yield* Stream.fromIterable(paths).pipe(
-    Stream.mapEffect(relativePath =>
-      Effect.tryPromise({
-        try: async () => {
-          const dest = `${rootFsPath}/${relativePath}`;
-          nodeFs.mkdirSync(dest.slice(0, dest.lastIndexOf('/')), { recursive: true });
-          const content = await vscode.workspace.fs.readFile(Utils.joinPath(rootUri, relativePath));
-          nodeFs.writeFileSync(dest, Buffer.from(content));
-        },
-        catch: e =>
-          new TemplatesManifestLoadError({
-            message: nls.localize(
-              'template_service_file_copy_failed',
-              relativePath,
-              e instanceof Error ? e.message : String(e)
-            ),
-            cause: e
-          })
-      }).pipe(
-        Effect.as(0),
-        Effect.catchTag('TemplatesManifestLoadError', error => Effect.logWarning(error.message).pipe(Effect.as(1)))
-      )
+    Stream.mapEffect(
+      relativePath =>
+        Effect.tryPromise({
+          try: async () => {
+            const dest = `${rootFsPath}/${relativePath}`;
+            nodeFs.mkdirSync(dest.slice(0, dest.lastIndexOf('/')), { recursive: true });
+            const content = await vscode.workspace.fs.readFile(Utils.joinPath(rootUri, relativePath));
+            nodeFs.writeFileSync(dest, Buffer.from(content));
+          },
+          catch: e =>
+            new TemplatesManifestLoadError({
+              message: nls.localize(
+                'template_service_file_copy_failed',
+                relativePath,
+                e instanceof Error ? e.message : String(e)
+              ),
+              cause: e
+            })
+        }).pipe(
+          Effect.as(0),
+          Effect.catchTag('TemplatesManifestLoadError', error => Effect.logWarning(error.message).pipe(Effect.as(1)))
+        ),
+      // Copy files concurrently; the default (1) serializes ~435 HTTP reads and delays the first create by minutes on web.
+      { concurrency: 20 }
     ),
     Stream.runFold(0, (count, failed) => count + failed)
   );
@@ -243,11 +247,24 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
     });
 
     const getTemplatesRootCached = yield* Effect.cached(getTemplatesRoot());
-    const ensureTemplatesInFsOnce = yield* Effect.once(
-      getTemplatesRootCached.pipe(
-        Effect.flatMap(({ templatesRootUri, templatesRootPath }) =>
-          ensureTemplatesInFs(templatesRootUri, templatesRootPath)
-        )
+    // Stage templates into memfs exactly once on success, while making concurrent callers AWAIT the
+    // in-flight run. Neither `Effect.once` nor `Effect.cached` fits:
+    //   - `once` flips its flag when the first caller STARTS, so a second `create` mid-staging skips and
+    //     runs against a half-copied templates dir (ENOENT on readdir).
+    //   - `cached` memoizes failures too, so one transient copy error would be stuck until reload.
+    // A 1-permit semaphore serializes callers (they queue and await); a Ref set ONLY after success
+    // short-circuits subsequent callers, while a failure leaves it false so the next caller retries.
+    const stagingDone = yield* Ref.make(false);
+    const stagingLock = yield* Effect.makeSemaphore(1);
+    const ensureTemplatesInFsOnce = stagingLock.withPermits(1)(
+      Effect.unlessEffect(
+        getTemplatesRootCached.pipe(
+          Effect.flatMap(({ templatesRootUri, templatesRootPath }) =>
+            ensureTemplatesInFs(templatesRootUri, templatesRootPath)
+          ),
+          Effect.zipRight(Ref.set(stagingDone, true))
+        ),
+        Ref.get(stagingDone)
       )
     );
 
