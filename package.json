@@ -41,15 +41,12 @@
     "@playwright/test": "^1.60.0",
     "@salesforce/apex-tmlanguage": "^2.0.3",
     "@salesforce/dev-config": "^4.3.2",
-    "@salesforce/salesforcedx-vscode-test-tools": "*",
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.1.3",
     "@tsconfig/node22": "22.0.5",
-    "@types/chai": "^4.3.17",
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^29.5.12",
-    "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.1",
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
@@ -67,7 +64,7 @@
     "cz-conventional-changelog": "3.3.0",
     "dpdm": "^3.14.0",
     "effect": "^3.21.2",
-    "esbuild": "0.27.4",
+    "esbuild": "^0.27.7",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-plugin-polyfill-node": "0.3.0",
     "esbuild-plugin-transform": "0.5.0",
@@ -96,8 +93,6 @@
     "jszip": "^3.10.1",
     "junit-report-merger": "9.0.3",
     "markdown-link-check": "^3.14.2",
-    "mocha": "^11.7.1",
-    "mocha-multi-reporters": "^1.1.7",
     "nyc": "15.1.0",
     "os-browserify": "0.3.0",
     "ovsx": "0.10.7",
@@ -117,7 +112,6 @@
     "typescript": "5.9.3",
     "typescript-eslint": "^8.60.0",
     "util": "0.12.5",
-    "vscode-extension-tester": "^8.16.0",
     "wireit": "^0.14.12",
     "xml2js": "0.6.2",
     "yaml": "^2.9.0"
@@ -160,10 +154,7 @@
     "scrape:single:page": "ts-node scripts/xsd/scrape-single-page.ts",
     "convert:json:to:xsd": "ts-node scripts/xsd/jsonToXsdConverter.ts",
     "validate:xsd": "ts-node scripts/xsd/validateXsd.ts",
-    "fix:xsd:errors": "ts-node scripts/xsd/fixXsdErrors.ts",
-    "automation-test": "rm -rf ./e2e-temp && npm install && npm run compile && npm run vscode:package && rm -rf ./extensions && mkdir -p ./extensions && find ./packages -name '*.vsix' -exec cp {} ./extensions/ \\; || true && VSIX_TO_INSTALL=./extensions node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/specs/runLwcTests.e2e.js",
-    "gha-automation-tests": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec",
-    "setup": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/setup/anInitialSetUp.e2e.js"
+    "fix:xsd:errors": "ts-node scripts/xsd/fixXsdErrors.ts"
   },
   "wireit": {
     "compile": {
@@ -196,8 +187,7 @@
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
-        "./packages/salesforcedx-vscode-apex-log:compile",
-        "./packages/salesforcedx-vscode-automation-tests:compile"
+        "./packages/salesforcedx-vscode-apex-log:compile"
       ]
     },
     "lint": {
@@ -227,7 +217,6 @@
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
         "./packages/salesforcedx-vscode-apex-log:lint",
-        "./packages/salesforcedx-vscode-automation-tests:lint",
         "./packages/playwright-vscode-ext:lint",
         "./packages/salesforcedx-lightning-lsp-common:lint",
         "./packages/salesforcedx-aura-language-server:lint",

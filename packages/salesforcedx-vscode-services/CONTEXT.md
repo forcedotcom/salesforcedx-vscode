@@ -2,6 +2,13 @@
 
 ## Glossary
 
+### Web Console
+
+- browser build of (some) extensions running in VS Code for the Web (vscode.dev / github.dev style); no local CLI or filesystem
+- Salesforce libraries run in-process (`@salesforce/core`, SDR, source-tracking); files via memfs + IndexedDB through `vscode.workspace.fs`; auth injected via settings
+- invariant: **always single-org** — only the org it started in, no cross-org switch (why the org extension is excluded)
+- _Avoid_: "web extension" (ambiguous), "vscode.dev mode", "browser mode"
+
 ### HashableUri
 
 - structural wrapper around `vscode-uri` `URI` adding Effect `Hash`/`Equal` symbols

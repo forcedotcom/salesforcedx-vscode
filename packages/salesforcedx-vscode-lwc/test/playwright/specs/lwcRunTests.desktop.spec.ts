@@ -9,8 +9,6 @@
  * LWC Run Tests — desktop-only spec (requires @salesforce/sfdx-lwc-jest on the host).
  * Covers: Test Explorer run all, per-component run, single test case, command palette,
  * code lenses (Run All Tests / Run Test), and editor toolbar button.
- *
- * Equivalent to packages/salesforcedx-vscode-automation-tests/test/specs/runLwcTests.e2e.ts.
  */
 
 import * as fs from 'node:fs/promises';

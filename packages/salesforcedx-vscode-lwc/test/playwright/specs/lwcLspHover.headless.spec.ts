@@ -16,13 +16,14 @@ import {
   EDITOR_WITH_URI,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
+  goToLineCol,
   isDesktop,
   setupConsoleMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
-import { createLwc, goToLineCol, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
+import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
 
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);

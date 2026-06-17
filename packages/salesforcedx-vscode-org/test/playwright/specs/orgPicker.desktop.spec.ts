@@ -30,7 +30,6 @@ import {
 import packageNls from '../../../package.nls.json';
 import { orgDesktopTest as test } from '../fixtures/desktopFixtures';
 
-// Migrated 1:1 from WDIO `salesforcedx-vscode-automation-tests/test/specs/authentication.e2e.ts`.
 // Tests the org-picker status bar item: no-org state, picker action items, set default org (dev hub),
 // create a default scratch org, and switching the default org between dev hub and scratch.
 

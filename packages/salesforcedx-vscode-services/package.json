@@ -32,7 +32,7 @@
     "@effect/opentelemetry": "0.63.0",
     "@effect/platform": "^0.96.1",
     "@opentelemetry/api": "1.9.1",
-    "@opentelemetry/core": "2.7.1",
+    "@opentelemetry/core": "2.8.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.218.0",
     "@opentelemetry/resources": "2.7.1",
     "@opentelemetry/sdk-logs": "0.218.0",
@@ -44,7 +44,7 @@
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
     "@salesforce/source-tracking": "^7.8.16",
-    "@salesforce/templates": "^66.10.0",
+    "@salesforce/templates": "^66.10.2",
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.21.2",
@@ -309,7 +309,7 @@
         },
         "salesforce-web-console.apiVersion": {
           "type": "string",
-          "default": "64.0",
+          "default": "67.0",
           "description": "%configuration.apiVersion.description%"
         },
         "salesforce-web-console.retrieveOnLoad": {

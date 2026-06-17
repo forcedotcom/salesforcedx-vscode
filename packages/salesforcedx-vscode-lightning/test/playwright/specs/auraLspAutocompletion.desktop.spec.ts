@@ -11,6 +11,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  goToLineCol,
   openFileByName,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -21,7 +22,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
-import { goToLineCol, waitForAuraLspReady } from '../utils/auraLspUtils';
+import { waitForAuraLspReady } from '../utils/auraLspUtils';
 
 // Migrated from WDIO `auraLsp.e2e.ts` "Autocompletion". Specs are independent (separate VS Code
 // session per spec), so the Aura LS re-indexes the pre-seeded aura1 bundle here. Types `<aura:appl`
