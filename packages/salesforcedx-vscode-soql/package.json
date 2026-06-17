@@ -103,6 +103,7 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../soql-common:compile",
+        "../soql-model:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
@@ -128,6 +129,9 @@
     },
     "build:soql-builder-ui": {
       "command": "cd src/soql-builder-ui && rollup -c rollup.config.mjs",
+      "dependencies": [
+        "../soql-model:compile"
+      ],
       "files": [
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
@@ -139,6 +143,9 @@
     },
     "test:soql-builder-ui": {
       "command": "jest --config src/soql-builder-ui/jest.config.js",
+      "dependencies": [
+        "../soql-model:compile"
+      ],
       "files": [
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/jest.config.js",
