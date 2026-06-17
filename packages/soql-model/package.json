@@ -71,6 +71,7 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
+        "test/tsconfig.json",
         "../../eslint.config.mjs",
         "package.json"
       ],

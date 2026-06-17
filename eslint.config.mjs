@@ -527,6 +527,7 @@ export default [
       'packages/salesforcedx-lwc-language-server/test/**/*',
       'packages/salesforcedx-lightning-lsp-common/test/**/*',
       'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
+      'packages/soql-model/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],
