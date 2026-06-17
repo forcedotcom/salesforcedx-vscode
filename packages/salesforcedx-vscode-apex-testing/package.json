@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.0.0",
+  "version": "67.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/source-deploy-retrieve": "^12.32.5",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [

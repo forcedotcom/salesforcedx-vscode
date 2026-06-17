@@ -70,7 +70,7 @@ export class O11ySpanExporter implements SpanExporter {
         try: async () => {
           await this.ensureInitialized();
           const pdpEventSchema = await getPdpEventSchema();
-          const { cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
+          const { userId, cliId, webUserId, orgId, devHubOrgId } = getDefaultOrgRef().pipe(
             Effect.flatMap(ref => SubscriptionRef.get(ref)),
             Effect.runSync
           );
@@ -83,7 +83,8 @@ export class O11ySpanExporter implements SpanExporter {
               traceID: span.spanContext().traceId,
               spanID: span.spanContext().spanId,
               parentID: span.parentSpanContext?.spanId,
-              ...(cliId ? { userId: cliId } : {}),
+              ...(userId ? { userId } : {}),
+              ...(cliId ? { cliId } : {}),
               ...(webUserId ? { webUserId } : {})
             };
             const measurements = {

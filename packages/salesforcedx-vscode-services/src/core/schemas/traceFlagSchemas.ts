@@ -116,6 +116,11 @@ export const ToolingDebugLevelStruct = Schema.Struct({
 
 export type ToolingDebugLevelRecord = Schema.Schema.Type<typeof ToolingDebugLevelStruct>;
 
+/** DebugLevel create payload — ToolingDebugLevelStruct without the server-assigned Id or Language. */
+export const CreateDebugLevelStruct = ToolingDebugLevelStruct.pipe(Schema.omit('Id', 'Language'));
+
+export type CreateDebugLevelPayload = Schema.Schema.Type<typeof CreateDebugLevelStruct>;
+
 /** Client-facing DebugLevelItem: PascalCase → camelCase via rename. */
 export const DebugLevelItemSchema = Schema.rename(ToolingDebugLevelStruct, {
   Id: 'id',

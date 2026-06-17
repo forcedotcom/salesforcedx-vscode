@@ -26,7 +26,14 @@ import {
   waitForVSCodeWorkbench,
   waitForQuickInputFirstOption
 } from './helpers';
-import { DIRTY_EDITOR, EDITOR_WITH_URI, NOTIFICATION_LIST_ITEM, QUICK_INPUT_LIST_ROW, WORKBENCH } from './locators';
+import {
+  DIRTY_EDITOR,
+  EDITOR_WITH_URI,
+  NOTIFICATION_LIST_ITEM,
+  QUICK_INPUT_LIST_ROW,
+  QUICK_INPUT_WIDGET,
+  WORKBENCH
+} from './locators';
 import { activeQuickInputWidget } from './quickInput';
 import { disableMonacoAutoClosing, ensureSecondarySideBarHidden } from './workflows';
 
@@ -363,6 +370,19 @@ export const replaceLineInOpenFile = async (page: Page, lineNumber: number, newT
 
   await executeCommandWithCommandPalette(page, 'File: Save');
   await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+};
+
+/**
+ * Moves the editor cursor to a specific line and column using the Go to Line/Column command.
+ * Line and column are both 1-indexed.
+ */
+export const goToLineCol = async (page: Page, line: number, col: number): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  await widget.waitFor({ state: 'visible', timeout: 5000 });
+  await page.keyboard.type(`${line}:${col}`);
+  await page.keyboard.press('Enter');
+  await widget.waitFor({ state: 'hidden', timeout: 5000 });
 };
 
 /** Edit the currently open file by adding a comment at the top */

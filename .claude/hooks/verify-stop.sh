@@ -49,11 +49,16 @@ rm -f "$SESSION_MARKER"
 run_step "compile" "npm run compile" && echo "[verify-stop] compile ok" >&2
 run_step "lint" "npm run lint" && echo "[verify-stop] lint ok" >&2
 
-# Effect LS: only uncommitted .ts files
+# Effect LS: only uncommitted .ts files.
+# Invoke the locally-installed bin directly (never bare `npx`, which would
+# silently fetch+execute an unscoped registry typosquat if the local install
+# is missing). The package is a top-level devDep in package.json.
+EFFECT_LS="$ROOT/node_modules/.bin/effect-language-service"
 ts_files=$(git diff --name-only HEAD 2>/dev/null | grep '\.ts$' || true)
 if [ -n "$ts_files" ]; then
+  [ -x "$EFFECT_LS" ] || fail "effect LS" "$EFFECT_LS not found — run npm install"
   for f in $ts_files; do
-    [ -f "$f" ] && run_step "effect LS ($f)" "npx effect-language-service diagnostics --file $f"
+    [ -f "$f" ] && run_step "effect LS ($f)" "\"$EFFECT_LS\" diagnostics --file $f"
   done
 fi
 [ -z "$ts_files" ] && echo "[verify-stop] effect LS skipped (no uncommitted .ts)" >&2
