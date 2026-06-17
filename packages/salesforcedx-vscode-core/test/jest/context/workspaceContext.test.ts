@@ -7,11 +7,6 @@
 import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { WorkspaceContext } from '../../../src/context';
 
-const getDevHubIdFromScratchOrgMock = jest.fn();
-jest.mock('../../../src/util/orgShapeUtil', () => ({
-  getDevHubIdFromScratchOrg: (...args: any[]) => getDevHubIdFromScratchOrgMock(...args)
-}));
-
 const mockRunPromise = jest.fn();
 jest.mock('../../../src/services/runtime', () => ({
   getRuntime: () => ({ runPromise: mockRunPromise })
@@ -48,7 +43,7 @@ describe('workspaceContext', () => {
 
       getOrgShapeMock.mockResolvedValue('Undefined');
 
-      getDevHubIdFromScratchOrgMock.mockResolvedValue(undefined);
+      mockRunPromise.mockResolvedValue(undefined);
     });
 
     it('should set orgShape and devHubId to undefined if orgShape is Undefined', async () => {
@@ -76,7 +71,7 @@ describe('workspaceContext', () => {
 
     it('should set orgShape and devHubId if orgShape is Scratch', async () => {
       getOrgShapeMock.mockResolvedValue('Scratch');
-      getDevHubIdFromScratchOrgMock.mockResolvedValue('test-dev-hub-id');
+      mockRunPromise.mockResolvedValueOnce('test-dev-hub-id');
       const workspaceContext = WorkspaceContext.getInstance();
 
       await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
@@ -84,7 +79,6 @@ describe('workspaceContext', () => {
       expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
       expect(getOrgShapeMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
       expect(mockWorkspaceContextUtil.orgShape).toBe('Scratch');
-      expect(getDevHubIdFromScratchOrgMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
       expect(mockWorkspaceContextUtil.devHubId).toBe('test-dev-hub-id');
     });
 
