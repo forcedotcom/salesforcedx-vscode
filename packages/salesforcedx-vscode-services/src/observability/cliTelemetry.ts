@@ -6,15 +6,25 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
+
+/** Branded UUID identifying a single CLI install. */
+export const CliId = Schema.UUID.pipe(Schema.brand('@services/CliId'));
+export type CliId = Schema.Schema.Type<typeof CliId>;
 
 // Schema for sf telemetry --json output
 const SfTelemetryResultSchema = Schema.Struct({
   status: Schema.Number,
   result: Schema.Struct({
-    cliId: Schema.String
+    cliId: CliId
   })
 });
+
+class FetchCliIdError extends Schema.TaggedError<FetchCliIdError>()('FetchCliIdError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
 
 const fetchCliIdFromCli = () => {
   const command = 'sf telemetry --json';
@@ -25,20 +35,24 @@ const fetchCliIdFromCli = () => {
       const execAsync = promisify(exec);
       return execAsync(command, { env: { ...process.env, NO_COLOR: '1' } });
     },
-    catch: e => e
+    catch: cause => new FetchCliIdError({ message: `Failed to run ${command}`, cause })
   }).pipe(
     Effect.tap(output => Effect.log(`sf telemetry output: ${output.stdout}`)),
     Effect.tapError(error => Effect.log(`sf telemetry error: ${String(error)}`)),
     Effect.flatMap(output => Schema.decodeUnknown(SfTelemetryResultSchema)(JSON.parse(output.stdout))),
     Effect.map(parsed => parsed.result.cliId),
-    Effect.catchAll(error => Effect.log(`Failed to fetch cliId: ${String(error)}`).pipe(Effect.as(undefined))),
+    Effect.catchAll(error =>
+      Effect.log(`Failed to fetch cliId: ${String(error)}`).pipe(Effect.as<CliId | undefined>(undefined))
+    ),
     Effect.withSpan('fetchCliId', { attributes: { command } })
   );
 };
 
-/** Get the CLI ID from sf telemetry. Cached permanently. Returns undefined on web  */
-export const getCliId = () =>
-  (process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(undefined) : fetchCliIdFromCli()).pipe(
-    Effect.cached,
-    Effect.flatten
-  );
+const cliIdEffect =
+  process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed<CliId | undefined>(undefined) : fetchCliIdFromCli();
+
+// memo wrapper built once at module scope; the inner sf telemetry effect runs at most once per session and is shared across all getCliId() calls
+const cachedCliId = Effect.runSync(Effect.cached(cliIdEffect));
+
+/** Get the CLI ID from sf telemetry. Memoized at module scope so the CLI runs once per session. Returns Option.none() on web or when CLI unavailable. */
+export const getCliId = () => cachedCliId.pipe(Effect.map(Option.fromNullable));

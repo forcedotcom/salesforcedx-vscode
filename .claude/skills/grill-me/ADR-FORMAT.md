@@ -2,6 +2,8 @@
 
 Live in `docs/adr/`. Sequential: `0001-slug.md`, `0002-slug.md`. Create dir lazily on first ADR.
 
+Scope by context: repo-wide → root `docs/adr/`; package-local → `packages/*/docs/adr/`. Each dir numbers independently.
+
 ## Template
 
 ```md

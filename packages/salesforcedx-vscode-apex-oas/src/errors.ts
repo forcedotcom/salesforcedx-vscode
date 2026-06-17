@@ -37,6 +37,14 @@ export class LLMRateLimited extends Data.TaggedError('LLMRateLimited')<{
   readonly message: string;
 }> {}
 
+/** Could not reach the AI model endpoint (e.g. ModelApiRequestError / connection error). Usually a network,
+ * VPN/proxy, auth, or entitlement problem rather than a transient blip, so it is not retried within the
+ * generation loop; surfaced to the user with guidance instead of being swallowed as empty content. */
+export class LLMConnectionFailed extends Data.TaggedError('LLMConnectionFailed')<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
 export class LLMRetriesExhausted extends Data.TaggedError('LLMRetriesExhausted')<{
   readonly message: string;
 }> {}

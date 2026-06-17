@@ -20,9 +20,37 @@ import {
   summarizeDiagnostics,
   getCurrentTimestamp,
   cleanupGeneratedDoc,
+  diagnoseIneligibility,
   parseOASDocFromJson,
   parseOASDocFromYaml
 } from '../../../src/oasUtils';
+
+const makeContext = (
+  classAnnotations: ApexOASClassDetail['annotations'],
+  methods: ApexOASMethodDetail[]
+): ApexClassOASGatherContextResponse => ({
+  classDetail: {
+    name: 'TestClass',
+    annotations: classAnnotations,
+    interfaces: [],
+    extendedClass: null,
+    definitionModifiers: [],
+    accessModifiers: [],
+    innerClasses: [],
+    comment: ''
+  },
+  methods,
+  properties: []
+});
+
+const method = (name: string, annotationNames: string[]): ApexOASMethodDetail => ({
+  name,
+  returnType: 'String',
+  parameterTypes: [],
+  modifiers: [],
+  annotations: annotationNames.map(n => ({ name: n, parameters: {} })),
+  comment: ''
+});
 
 describe('hasValidRestAnnotations', () => {
   it('should return true when class has RestResource annotation and methods have HTTP REST annotations', () => {
@@ -713,5 +741,29 @@ describe('parseOASDocFromYaml', () => {
   it('should throw error for invalid YAML', () => {
     const doc = 'invalid: yaml: :';
     expect(() => parseOASDocFromYaml(doc)).toThrow();
+  });
+});
+
+describe('diagnoseIneligibility', () => {
+  it('explains @RestResource class with no HTTP-verb method', () => {
+    const context = makeContext([{ name: 'RestResource', parameters: {} }], [method('foo', [])]);
+    expect(diagnoseIneligibility(context)).toContain('no method is annotated with an HTTP verb');
+  });
+
+  it('explains HTTP-verb methods on a class missing @RestResource', () => {
+    const context = makeContext([], [method('foo', ['HttpGet'])]);
+    expect(diagnoseIneligibility(context)).toContain('missing the @RestResource annotation');
+  });
+
+  it('explains @AuraEnabled methods blocked by class-level annotations', () => {
+    const context = makeContext([{ name: 'SomeClassAnnotation', parameters: {} }], [method('foo', ['AuraEnabled'])]);
+    const result = diagnoseIneligibility(context);
+    expect(result).toContain('class-level annotations');
+    expect(result).toContain('@SomeClassAnnotation');
+  });
+
+  it('explains a class with no OpenAPI-relevant annotations at all', () => {
+    const context = makeContext([], [method('foo', [])]);
+    expect(diagnoseIneligibility(context)).toContain('no methods annotated for OpenAPI generation');
   });
 });

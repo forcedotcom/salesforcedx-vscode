@@ -42,5 +42,5 @@ export type { ContinueResponse, CancelResponse, ParametersGatherer } from './com
 export type { PreconditionChecker } from './commands/preconditionCheckers';
 export type { PostconditionChecker } from './commands/postconditionCheckers';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
-export { UserService } from './services/userService';
+export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';
