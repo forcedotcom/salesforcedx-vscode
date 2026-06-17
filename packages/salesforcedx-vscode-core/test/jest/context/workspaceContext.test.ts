@@ -5,36 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
-
-const getDevHubIdFromScratchOrgMock = jest.fn();
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
-  getDevHubIdFromScratchOrg: (...args: any[]) => getDevHubIdFromScratchOrgMock(...args)
-}));
+import { WorkspaceContext } from '../../../src/context';
 
 const mockRunPromise = jest.fn();
 jest.mock('../../../src/services/runtime', () => ({
   getRuntime: () => ({ runPromise: mockRunPromise })
 }));
 
+const getOrgShapeMock = jest.fn();
+jest.mock('../../../src/context/workspaceOrgShape', () => ({
+  getOrgShape: (...args: any[]) => getOrgShapeMock(...args)
+}));
+
 describe('workspaceContext', () => {
   describe('handleOrgShapeChange', () => {
-    jest.mock('../../../src/context', () => ({
-      workspaceContextUtils: {
-        getOrgShape: jest.fn(),
-        OrgShape: {
-          Undefined: 'Undefined',
-          Scratch: 'Scratch',
-          Sandbox: 'Sandbox',
-          Production: 'Production'
-        }
-      }
-    }));
-
     const mockOrgUserInfo: OrgUserInfo = { username: 'test-username' };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
-    let getOrgShapeMock: jest.SpyInstance;
 
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
@@ -55,9 +41,9 @@ describe('workspaceContext', () => {
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
 
-      getOrgShapeMock = jest.spyOn(workspaceContextUtils, 'getOrgShape').mockResolvedValue('Undefined');
+      getOrgShapeMock.mockResolvedValue('Undefined');
 
-      getDevHubIdFromScratchOrgMock.mockResolvedValue(undefined);
+      mockRunPromise.mockResolvedValue(undefined);
     });
 
     it('should set orgShape and devHubId to undefined if orgShape is Undefined', async () => {
@@ -85,7 +71,7 @@ describe('workspaceContext', () => {
 
     it('should set orgShape and devHubId if orgShape is Scratch', async () => {
       getOrgShapeMock.mockResolvedValue('Scratch');
-      getDevHubIdFromScratchOrgMock.mockResolvedValue('test-dev-hub-id');
+      mockRunPromise.mockResolvedValueOnce('test-dev-hub-id');
       const workspaceContext = WorkspaceContext.getInstance();
 
       await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
@@ -93,7 +79,6 @@ describe('workspaceContext', () => {
       expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
       expect(getOrgShapeMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
       expect(mockWorkspaceContextUtil.orgShape).toBe('Scratch');
-      expect(getDevHubIdFromScratchOrgMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
       expect(mockWorkspaceContextUtil.devHubId).toBe('test-dev-hub-id');
     });
 

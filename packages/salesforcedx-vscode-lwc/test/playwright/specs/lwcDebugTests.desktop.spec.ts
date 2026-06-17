@@ -9,8 +9,6 @@
  * LWC Debug Tests — desktop-only spec (requires @salesforce/sfdx-lwc-jest on the host).
  * Covers: Test Explorer debug all, single test case debug, command palette, and editor toolbar button.
  * Code lens debug tests are omitted (flaky in original automation test).
- *
- * Equivalent to packages/salesforcedx-vscode-automation-tests/test/specs/debugLwcTests.e2e.ts.
  */
 
 import * as fs from 'node:fs/promises';

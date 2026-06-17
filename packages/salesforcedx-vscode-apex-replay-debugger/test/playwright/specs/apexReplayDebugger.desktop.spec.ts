@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable unicorn/numeric-separators-style -- timeouts use numeric literals; rule conflicts for 4–5 digit values */
 import { expect, type Page } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
@@ -15,11 +14,11 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
-  QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
@@ -53,7 +52,7 @@ const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void>
 };
 
 test('Apex Replay Debugger: trace flag, exec anon, replay from log and test class', async ({ page }) => {
-  test.setTimeout(600000);
+  test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -89,18 +88,18 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       page,
       metadataNls.project_deploy_start_ignore_conflicts_default_org_text as string
     );
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30000 });
-    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120000 });
+    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
     await saveScreenshot(page, 'setup.classes-created.png');
   });
 
   await test.step('wait for CodeLens in test class', async () => {
     // Apex LS must finish indexing before CodeLens appear; CI is slower
     const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-    await expect(indexingComplete).toBeVisible({ timeout: 120000 });
+    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
     await openFileByName(page, 'ExampleApexClassTest.cls');
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: 90000 });
+    await expect(codelens.first()).toBeVisible({ timeout: 90_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
   });
 
@@ -114,7 +113,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
       apexLogNls['apexLog.command.traceFlagsCreateForCurrentUser'] as string
     );
     const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ });
-    await expect(statusBar).toBeVisible({ timeout: 30000 });
+    await expect(statusBar).toBeVisible({ timeout: 30_000 });
   });
 
   await test.step('exec anon with selected text', async () => {
@@ -137,18 +136,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
 
     // Open palette via F1 only (no workbench.click) to preserve editorHasSelection for the when condition
     await page.keyboard.press('F1');
-    const execSelWidget = page.locator(QUICK_INPUT_WIDGET);
-    await execSelWidget.waitFor({ state: 'visible', timeout: 10000 });
-    await page.keyboard.type(apexLogNls['apexLog.command.executeSelection'] as string);
-    await expect(execSelWidget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10000 });
-    await execSelWidget
-      .locator(QUICK_INPUT_LIST_ROW)
-      .filter({ hasText: /^SFDX: Execute Anonymous Apex with Editor's Selected Text/ })
-      .first()
-      .evaluate(el => {
-        el.scrollIntoView({ block: 'center', behavior: 'instant' });
-        (el as HTMLElement).click();
-      });
+    await selectQuickInputOptionByTyping(page, apexLogNls['apexLog.command.executeSelection'] as string);
 
     const successNotification = page
       .locator(NOTIFICATION_LIST_ITEM)
@@ -189,7 +177,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await clearOutputChannel(page);
 
     await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.createAnonymousApexScript'] as string);
-    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
     await page.keyboard.type('TestScript');
     await page.keyboard.press('Enter');
     // Wait for directory QuickPick list rows (InputBox has none; QuickPick has 2 options)
@@ -200,7 +188,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await page
       .locator('.tab')
       .filter({ hasText: /TestScript\.apex/ })
-      .waitFor({ state: 'visible', timeout: 15000 });
+      .waitFor({ state: 'visible', timeout: 15_000 });
     await openFileByName(page, 'TestScript.apex');
     // Click the editor to ensure it has focus (not the output panel) —
     // editorLangId must be apex-anon for the executeDocument when clause

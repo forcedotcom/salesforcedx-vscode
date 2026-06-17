@@ -4,18 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { notificationService } from '../commands/notificationService';
 import { ConfigSource, ConfigUtil } from '../config/configUtil';
 import { nls } from '../messages/messages';
 import { telemetryService } from '../services/telemetry';
-
-/** Get the Dev Hub username */
-export const getDevHubUsername = async (): Promise<string | undefined> => {
-  const targetDevHubOrAlias = await getTargetDevHubOrAlias(false);
-  return targetDevHubOrAlias ? await getUsername(targetDevHubOrAlias) : undefined;
-};
 
 /** Get the target org or alias, optionally showing warnings */
 export const getTargetOrgOrAlias = async (enableWarning: boolean): Promise<string | undefined> => {
@@ -72,81 +66,21 @@ export const getTargetDevHubOrAlias = async (
   }
 };
 
-/** Get the username for an org alias or username */
-export const getUsername = async (usernameOrAlias: string): Promise<string> => {
+const getUsername = async (usernameOrAlias: string): Promise<string> => {
   const info = await StateAggregator.getInstance();
   return info.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
 };
 
-/** Check if an org is a scratch org */
-export const isAScratchOrg = async (username: string): Promise<boolean> => {
-  const authInfo = await AuthInfo.create({ username });
-  const org: Org = await Org.create({
-    connection: await Connection.create({
-      authInfo
-    })
-  });
-  if (org.isScratch()) {
-    return true;
+const getConnection = async (usernameOrAlias?: string): Promise<Connection> => {
+  const resolved = usernameOrAlias ?? (await getTargetOrgOrAlias(true));
+  if (!resolved) {
+    throw new Error(nls.localize('error_no_target_org'));
   }
-  const authInfoFields = authInfo.getFields();
-  return !!authInfoFields.devHubUsername || false;
-};
-
-/** Check if an org is a sandbox org */
-export const isASandboxOrg = async (username: string): Promise<boolean> => {
-  const authInfo = await AuthInfo.create({ username });
-  const org: Org = await Org.create({
-    connection: await Connection.create({
-      authInfo
-    })
-  });
-  if (await org.isSandbox()) {
-    return true;
-  }
-  // scratch org also makes IsSandbox true
-  const result = await org
-    .getConnection()
-    .singleRecordQuery<{ IsSandbox: boolean }>('select IsSandbox from organization');
-  return result?.IsSandbox;
-};
-
-/** Get the Dev Hub ID for a scratch org */
-export const getDevHubIdFromScratchOrg = async (username: string): Promise<string | undefined> => {
-  if (await isAScratchOrg(username)) {
-    const scratchOrg: Org = await Org.create({
-      connection: await Connection.create({
-        authInfo: await AuthInfo.create({ username })
-      })
-    });
-    const devHubOrg = await scratchOrg.getDevHubOrg();
-    return devHubOrg?.getOrgId();
-  } else return undefined;
-};
-
-/** Get a connection for an org */
-export const getConnection = async (usernameOrAlias?: string): Promise<Connection> => {
-  let _usernameOrAlias;
-
-  if (usernameOrAlias) {
-    _usernameOrAlias = usernameOrAlias;
-  } else {
-    const defaultName = await getTargetOrgOrAlias(true);
-    if (!defaultName) {
-      throw new Error(nls.localize('error_no_target_org'));
-    }
-    _usernameOrAlias = defaultName;
-  }
-
-  const username = await getUsername(_usernameOrAlias);
-
+  const username = await getUsername(resolved);
   return await Connection.create({
     authInfo: await AuthInfo.create({ username })
   });
 };
-
-/** Get auth fields for a connection */
-export const getAuthFields = (connection: Connection): AuthFields => connection.getAuthInfoFields();
 
 /**
  * Gets the org API version as a numeric value.

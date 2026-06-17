@@ -22,12 +22,12 @@ describe('HeaderCommentsImpl should', () => {
 
   it('return the empty string on toSoqlSyntax() when no comments', () => {
     let actual = new HeaderCommentsImpl(null as unknown as string).toSoqlSyntax();
-    expect(actual).toEqual('');
+    expect(actual).toBe('');
 
     actual = new HeaderCommentsImpl(undefined as unknown as string).toSoqlSyntax();
-    expect(actual).toEqual('');
+    expect(actual).toBe('');
 
     actual = new HeaderCommentsImpl('').toSoqlSyntax();
-    expect(actual).toEqual('');
+    expect(actual).toBe('');
   });
 });

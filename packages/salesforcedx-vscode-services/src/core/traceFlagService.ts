@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
@@ -17,17 +18,20 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import {
   DebugLevelCreateError,
+  DebugLevelDeleteError,
   TraceFlagCreateError,
   TraceFlagNotFoundError,
   TraceFlagUpdateError,
   UserIdNotFoundError
 } from '../errors/traceFlagErrors';
+import { getExtensionScope } from '../vscode/extensionScope';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import {
   DebugLevelItemSchema,
   TraceFlagItemSchema,
   ToolingDebugLevelStruct,
+  type CreateDebugLevelPayload,
   type ToolingDebugLevelRecord,
   type ToolingTraceFlagRecord,
   type TraceFlagItem,
@@ -73,6 +77,27 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     const connectionService = yield* ConnectionService;
     const traceFlagsChanged = yield* PubSub.sliding<TraceFlagItem[]>(1);
 
+    // Id -> Name cache for User/ApexClass/ApexTrigger entities referenced by trace flags.
+    // External-set mode: getOption for reads, set after batch SOQL. Misses are not cached.
+    const idNameCache = yield* Cache.make<string, string>({
+      capacity: 1000,
+      timeToLive: Duration.infinity,
+      lookup: () => Effect.die('idNameCache.lookup should never be called — use getOption + set')
+    });
+
+    // Invalidate cache when default org identity (orgId) changes. Fiber tied to the extension scope.
+    yield* getDefaultOrgRef().pipe(
+      Effect.flatMap(ref =>
+        ref.changes.pipe(
+          Stream.map(info => info.orgId),
+          Stream.changes,
+          Stream.drop(1),
+          Stream.runForEach(() => idNameCache.invalidateAll)
+        )
+      ),
+      Effect.forkIn(yield* getExtensionScope())
+    );
+
     const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
       const conn = yield* connectionService.getConnection();
       const query = `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName, TracedEntityId
@@ -92,17 +117,25 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           { concurrency: 'unbounded' }
         );
       }
-      const byPrefix = Object.groupBy(entitiesToResolve, id => id.slice(0, 3));
-
       const queryIdName = (soql: string, tooling: boolean) =>
         Effect.tryPromise(() =>
           tooling
             ? conn.tooling.query<{ Id: string; Name: string }>(soql)
             : conn.query<{ Id: string; Name: string }>(soql)
         ).pipe(Effect.map(r => r.records));
-      // get the names for these IDs
-      const idToName = yield* Stream.fromIterable(
-        Object.entries(byPrefix).filter((entry): entry is [string, string[]] => entry[1] !== undefined)
+
+      // Identify cache misses; group by prefix for batched SOQL.
+      const missesByPrefix = Object.groupBy(
+        (yield* Effect.all(
+          entitiesToResolve.map(id => idNameCache.contains(id).pipe(Effect.map(hit => [id, hit] as const))),
+          { concurrency: 'unbounded' }
+        )).flatMap(([id, hit]) => (hit ? [] : [id])),
+        id => id.slice(0, 3)
+      );
+
+      // Query only the misses, per prefix; populate cache as rows arrive.
+      yield* Stream.fromIterable(
+        Object.entries(missesByPrefix).filter((entry): entry is [string, string[]] => entry[1] !== undefined)
       ).pipe(
         Stream.mapConcatEffect(([prefix, ids]) =>
           Match.value(prefix).pipe(
@@ -125,13 +158,19 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           )
         ),
         Stream.filterMap(o => o),
-        Stream.runFold(new Map<string, string>(), (map, row) => map.set(row.Id, row.Name))
+        Stream.runForEach(row => idNameCache.set(row.Id, row.Name))
       );
 
+      // Cache is the single source of truth — read each record's name directly. Misses stay undefined.
       return yield* Effect.all(
-        traceFlagRecords
-          .map(rec => (rec.TracedEntityId ? { ...rec, TracedEntityName: idToName.get(rec.TracedEntityId) } : rec))
-          .map(r => Schema.decodeUnknown(TraceFlagItemSchema)(r)),
+        traceFlagRecords.map(rec =>
+          (rec.TracedEntityId
+            ? idNameCache
+                .getOption(rec.TracedEntityId)
+                .pipe(Effect.map(opt => ({ ...rec, TracedEntityName: Option.getOrUndefined(opt) })))
+            : Effect.succeed(rec)
+          ).pipe(Effect.flatMap(r => Schema.decodeUnknown(TraceFlagItemSchema)(r)))
+        ),
         { concurrency: 'unbounded' }
       ).pipe(
         Effect.mapError((parseError: ParseResult.ParseError) => {
@@ -188,6 +227,22 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       return Option.some(item);
     });
 
+    const createDebugLevel = Effect.fn('TraceFlagService.createDebugLevel')(function* (
+      payload: CreateDebugLevelPayload
+    ) {
+      const conn = yield* connectionService.getConnection();
+      const result = yield* Effect.tryPromise({
+        try: () => conn.tooling.create('DebugLevel', payload),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new DebugLevelCreateError({ message: `Failed to create debug level: ${cause.message}`, cause: error });
+        }
+      });
+      return result.success && result.id
+        ? result.id
+        : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
+    });
+
     const getOrCreateDebugLevel = Effect.fn('TraceFlagService.getOrCreateDebugLevel')(function* () {
       const conn = yield* connectionService.getConnection();
       const existing = yield* Effect.tryPromise({
@@ -203,25 +258,31 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       if (existing.records.length > 0 && existing.records[0].Id) {
         return existing.records[0].Id;
       }
-      const createResult = yield* Effect.tryPromise({
-        try: () =>
-          conn.tooling.create('DebugLevel', {
-            DeveloperName: REPLAY_DEBUGGER_LEVELS,
-            MasterLabel: REPLAY_DEBUGGER_LEVELS,
-            ApexCode: APEX_CODE_DEBUG_LEVEL,
-            Visualforce: VISUALFORCE_DEBUG_LEVEL
-          }),
+      return yield* createDebugLevel({
+        DeveloperName: REPLAY_DEBUGGER_LEVELS,
+        MasterLabel: REPLAY_DEBUGGER_LEVELS,
+        ApexCode: APEX_CODE_DEBUG_LEVEL,
+        ApexProfiling: 'NONE',
+        Callout: 'NONE',
+        Database: 'NONE',
+        Nba: 'NONE',
+        System: 'NONE',
+        Validation: 'NONE',
+        Visualforce: VISUALFORCE_DEBUG_LEVEL,
+        Wave: 'NONE',
+        Workflow: 'NONE'
+      });
+    });
+
+    const deleteDebugLevel = Effect.fn('TraceFlagService.deleteDebugLevel')(function* (debugLevelId: string) {
+      const conn = yield* connectionService.getConnection();
+      yield* Effect.tryPromise({
+        try: () => conn.tooling.delete('DebugLevel', debugLevelId),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
-          return new DebugLevelCreateError({
-            message: `Failed to create debug level: ${cause.message}`,
-            cause: error
-          });
+          return new DebugLevelDeleteError({ message: `Failed to delete debug level: ${cause.message}`, cause: error });
         }
       });
-      return createResult.success && createResult.id
-        ? createResult.id
-        : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
     });
 
     const createTraceFlag = Effect.fn('TraceFlagService.createTraceFlag')(function* (
@@ -245,7 +306,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       });
       const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
       yield* PubSub.publish(traceFlagsChanged, flags);
-      return result.success && result.id ? result.id : undefined;
+      return result.success && result.id
+        ? result.id
+        : yield* new TraceFlagCreateError({ message: 'Trace flag create returned no ID' });
     });
 
     const updateTraceFlag = Effect.fn('TraceFlagService.updateTraceFlag')(function* (
@@ -253,13 +316,11 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       options?: { debugLevelId?: string; expirationDate?: Date }
     ) {
       const conn = yield* connectionService.getConnection();
-      const payload: { Id: string; StartDate: string; ExpirationDate?: string } = {
+      const payload = {
         Id: traceFlagId,
-        StartDate: new Date().toISOString()
+        StartDate: new Date().toISOString(),
+        ...(options?.expirationDate ? { ExpirationDate: options.expirationDate.toISOString() } : {})
       };
-      if (options?.expirationDate) {
-        payload.ExpirationDate = options.expirationDate.toISOString();
-      }
       if (options?.debugLevelId) {
         const dlId = options.debugLevelId;
         yield* Effect.tryPromise({
@@ -344,9 +405,6 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
         onNone: () =>
           Effect.gen(function* () {
             const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
-            if (!traceFlagId) {
-              return yield* new TraceFlagCreateError({ message: 'Create returned no ID' });
-            }
             return { created: true, traceFlagId };
           }),
         onSome: traceFlag =>
@@ -354,9 +412,6 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
             if (traceFlag.expirationDate < new Date()) {
               yield* deleteTraceFlag(traceFlag.id);
               const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
-              if (!traceFlagId) {
-                return yield* new TraceFlagCreateError({ message: 'Create returned no ID' });
-              }
               return { created: true, traceFlagId };
             }
             const validExpiration =
@@ -374,15 +429,18 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       });
     });
 
-    const cleanupExpired = Effect.fn('TraceFlagService.cleanupExpired')(function* () {
-      const userId = yield* getUserIdOrFail;
-      const existing = yield* getTraceFlagForUser(userId);
-      return yield* Option.match(existing, {
-        onNone: () => Effect.succeed(false),
-        onSome: tf =>
-          tf.expirationDate < new Date() ? deleteTraceFlag(tf.id).pipe(Effect.as(true)) : Effect.succeed(false)
-      });
-    });
+    const cleanupExpired = Effect.fn('TraceFlagService.cleanupExpired')(() =>
+      getUserIdOrFail.pipe(
+        Effect.flatMap(getTraceFlagForUser),
+        Effect.flatMap(
+          Option.match({
+            onNone: () => Effect.succeed(false),
+            onSome: tf =>
+              tf.expirationDate < new Date() ? deleteTraceFlag(tf.id).pipe(Effect.as(true)) : Effect.succeed(false)
+          })
+        )
+      )
+    );
 
     const getUserId = Effect.fn('TraceFlagService.getUserId')(function* () {
       return yield* getUserIdOrFail;
@@ -399,6 +457,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       ensureTraceFlag,
       cleanupExpired,
       getOrCreateDebugLevel,
+      createDebugLevel,
+      deleteDebugLevel,
       getUserId,
       traceFlagsChanged
     };

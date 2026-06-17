@@ -149,6 +149,7 @@ Cross-extension / `executeCommand`: `vscode.commands.executeCommand('sf.org.logi
 Accessor pattern: call methods directly, don't assign to variable first.
 
 - [ChannelService](references/channel-service.md) - Output channel
+- [ComponentSetService](references/component-set-service.md) - Build component sets (source, manifest, URIs)
 - [MediaService](references/media-service.md) - Icons (ICONS) and NLS descriptions
 - [WorkspaceService](references/workspace-service.md) - Workspace info
 - [ConnectionService](references/connection-service.md) - Org connections
@@ -327,5 +328,9 @@ return Layer.mergeAll(
   errorHandlerWithChannel
 );
 ```
+
+## Review
+
+Invoke the `effect-advocate` subagent on plans and diffs — its top-priority finding category is "you re-implemented something that already exists in `salesforcedx-vscode-services`."
 
 `prebuiltServicesDependencies` contains ~27 services built once during services extension activation. Calling `.Default` on any of them creates a **second instance** with its own caches, watchers, and state — silently breaking cross-extension sharing.

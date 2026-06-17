@@ -12,7 +12,6 @@ import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DebugLevelItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { DebugLevelCreateError, DebugLevelDeleteError } from '../../errors/commandErrors';
 import { nls } from '../../messages';
 import {
   pickDebugLevel,
@@ -132,7 +131,6 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
-  const conn = yield* api.services.ConnectionService.getConnection();
 
   const masterLabel = yield* Effect.promise(() =>
     vscode.window.showInputBox({
@@ -198,15 +196,15 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
     Workflow: levels.workflow ?? 'NONE'
   };
 
-  const result = yield* Effect.tryPromise({
-    try: () => conn.tooling.create('DebugLevel', payload),
-    catch: e => new DebugLevelCreateError({ message: `Failed to create debug level: ${String(e)}`, cause: e })
-  });
-  if (!result.success) {
-    yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed')));
-    return;
-  }
-  yield* refreshTraceFlagsView(orgId);
+  const traceFlagService = yield* api.services.TraceFlagService;
+  yield* traceFlagService.createDebugLevel(payload).pipe(
+    Effect.flatMap(() => refreshTraceFlagsView(orgId)),
+    Effect.catchTag('DebugLevelCreateError', () =>
+      Effect.sync(() => {
+        void vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed'));
+      })
+    )
+  );
 });
 
 /** Delete trace flag by Id, refresh virtual doc. */
@@ -244,10 +242,7 @@ export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDeb
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
-  const conn = yield* api.services.ConnectionService.getConnection();
-  yield* Effect.tryPromise({
-    try: () => conn.tooling.delete('DebugLevel', debugLevelId),
-    catch: e => new DebugLevelDeleteError({ message: `Failed to delete debug level: ${String(e)}`, cause: e })
-  });
+  const traceFlagService = yield* api.services.TraceFlagService;
+  yield* traceFlagService.deleteDebugLevel(debugLevelId);
   yield* refreshTraceFlagsView(orgId);
 });

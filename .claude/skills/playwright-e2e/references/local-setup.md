@@ -20,7 +20,7 @@ Prereq: authenticated Dev Hub (`sf org login web --set-default-dev-hub` or simil
 ## Minimal
 
 - **Alias:** `minimalTestOrg` (override: `MINIMAL_ORG_ALIAS`)
-- **Used by:** services, core, apex-log, apex-replay-debugger, apex-testing, metadata
+- **Used by:** services, core, apex-log, apex-replay-debugger, metadata
 - **No script.** Tests call `createMinimalOrg()` — creates org on first run if missing. Or create manually:
 
 ```bash
@@ -32,7 +32,7 @@ cd /tmp/minimal-project && sf org create scratch -d -w 10 -a minimalTestOrg --ed
 ## Non-tracking
 
 - **Alias:** `nonTrackingTestOrg` (override: `NON_TRACKING_ORG_ALIAS`)
-- **Used by:** metadata (non-tracking UI tests)
+- **Used by:** apex-testing, metadata (non-tracking UI tests)
 - **No script.** Tests call `createNonTrackingOrg()` — creates org on first run if missing. Or create manually (same as minimal + `--no-track-source`):
 
 ```bash

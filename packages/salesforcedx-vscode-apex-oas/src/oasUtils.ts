@@ -6,83 +6,53 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
-import {
-  getJsonCandidate,
-  identifyJsonTypeInString,
-  workspaceUtils,
-  createDirectory,
-  readDirectory,
-  readFile,
-  stat,
-  writeFile
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Runtime from 'effect/Runtime';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
+import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';
-import { SF_LOG_LEVEL_SETTING, VSCODE_APEX_EXTENSION_NAME } from './constants';
-import { getVscodeCoreExtension } from './coreExtensionUtils';
-import OasProcessor from './oas/documentProcessorPipeline';
-import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
-import GenerationInteractionLogger from './oas/generationInteractionLogger';
-import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
+import { OAS_EXTENSION_ID } from './constants';
+import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
+import { oasDiagnosticCollection, ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 
-const DOT_SFDX = '.sfdx';
-
-const TEMPLATES_DIR = path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX, 'resources', 'templates');
-
-const gil = GenerationInteractionLogger.getInstance();
+/** Reports a step message into an active progress notification. */
+export type ProgressReporter = (message: string) => Effect.Effect<void>;
 
 /**
- * Processes an OAS document from a YAML string.
- * @param {string} oasDoc - The OAS document as a YAML string.
- * @param {object} [options] - Options for processing the OAS document.
- * @param {ApexClassOASGatherContextResponse} [options.context] - The context for the OAS document.
- * @param {ApexClassOASEligibleResponse} [options.eligibleResult] - The eligible result for the OAS document.
- * @param {boolean} [options.isRevalidation] - Whether the document is being revalidated.
- * @param {string} [options.betaInfo] - Beta information for the document.
- * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
+ * Runs `body` inside a non-cancellable VS Code progress notification, giving it a `report` callback to update
+ * the notification message per step. Without this, long operations (e.g. the REST LLM loop) show no sign of
+ * life between the folder prompt and the final toast. The notification closes when the Effect settles.
+ * @param title - The notification title shown for the whole operation.
+ * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
  */
-export const processOasDocumentFromYaml = async (
-  oasDoc: string,
-  options?: {
-    context?: ApexClassOASGatherContextResponse;
-    eligibleResult?: ApexClassOASEligibleResponse;
-    isRevalidation?: boolean;
-    betaInfo?: string;
-  }
-): Promise<ProcessorInputOutput> => processOasDocument(JSON.stringify(parseOASDocFromYaml(oasDoc)), options);
+export const withSteppedProgress = <A, E, R>(
+  title: string,
+  body: (report: ProgressReporter) => Effect.Effect<A, E, R>
+) =>
+  Effect.runtime<R>().pipe(
+    Effect.flatMap(runtime =>
+      Effect.async<A, E>(resume => {
+        void vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Notification, title, cancellable: false },
+          progress => {
+            const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
+            return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
+              resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+            });
+          }
+        );
+      })
+    )
+  );
 
-/**
- * Processes an OAS document.
- * @param {string} oasDoc - The OAS document as a string.
- * @param {object} [options] - Options for processing the OAS document.
- * @param {ApexClassOASGatherContextResponse} [options.context] - The context for the OAS document.
- * @param {ApexClassOASEligibleResponse} [options.eligibleResult] - The eligible result for the OAS document.
- * @param {boolean} [options.isRevalidation] - Whether the document is being revalidated.
- * @param {string} [options.betaInfo] - Beta information for the document.
- * @returns {Promise<ProcessorInputOutput>} - The processed OAS document.
- * @throws Will throw an error if the document is invalid for processing.
- */
-export const processOasDocument = async (
-  oasDoc: string,
-  options?: {
-    context?: ApexClassOASGatherContextResponse;
-    eligibleResult?: ApexClassOASEligibleResponse;
-    isRevalidation?: boolean;
-    betaInfo?: string;
-  }
-): Promise<ProcessorInputOutput> => {
-  const parsed = parseOASDocFromJson(oasDoc);
+// REST annotation names that should be present on the class
+export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];
 
-  const oasProcessor = new OasProcessor(parsed, options);
-
-  const processResult = await oasProcessor.process();
-
-  return processResult;
-};
+const AA_METHOD_REST_ANNOTATIONS = new Set(['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete']);
 
 /**
  * Creates problem tab entries for an OAS document.
@@ -96,7 +66,7 @@ export const createProblemTabEntriesForOasDocument = (
   isESRDecomposed: boolean
 ): void => {
   const uri = URI.file(fullPath);
-  OasProcessor.diagnosticCollection.clear();
+  oasDiagnosticCollection.clear();
 
   const adjustErrors = processedOasResult.errors.map(result => {
     // if embedded inside of ESR.xml then position is hardcoded because of `apexActionController.createESRObject`
@@ -111,28 +81,26 @@ export const createProblemTabEntriesForOasDocument = (
     return new vscode.Diagnostic(range, result.message, result.severity);
   });
 
-  gil.addDiagnostics(adjustErrors);
-
   const mulesoftExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
   if (!mulesoftExtension?.isActive) {
-    OasProcessor.diagnosticCollection.set(uri, adjustErrors);
+    oasDiagnosticCollection.set(uri, adjustErrors);
   }
 };
 
 /**
- * Reads sfdx-project.json and checks if decomposeExternalServiceRegistrationBeta is enabled.
- * @returns {Promise<boolean>} - True if sfdx-project.json contains decomposeExternalServiceRegistrationBeta.
+ * Detects ESR decomposition by inspecting the SDR registry's ExternalServiceRegistration type.
+ * When `decomposeExternalServiceRegistrationBeta` preset is enabled (via sfdx-project.json
+ * sourceBehaviorOptions), the registry entry gains `children` and `strategies.decomposition === 'topLevel'`.
+ * Source: node_modules/@salesforce/source-deploy-retrieve/.../decomposeExternalServiceRegistrationBeta.json
  */
-export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const sfdxProjectJson = await vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance();
-
-  if (sfdxProjectJson?.getContents().sourceBehaviorOptions?.includes('decomposeExternalServiceRegistrationBeta')) {
-    return true;
-  }
-
-  return false;
-};
+export const checkIfESRIsDecomposed = Effect.fn('ApexOas.checkIfESRIsDecomposed')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registryAccess = yield* api.services.MetadataRegistryService.getRegistryAccess();
+  return yield* Effect.try(() => {
+    const esrType = registryAccess.getTypeByName('ExternalServiceRegistration');
+    return Boolean(esrType.children) || esrType.strategies?.decomposition === 'topLevel';
+  }).pipe(Effect.catchAll(() => Effect.succeed(false)));
+});
 
 /**
  * Strips markdown code fences from a string if present.
@@ -149,21 +117,14 @@ const stripMarkdownCodeFences = (doc: string): string => {
 /**
  * Cleans up a generated document by extracting the JSON string.
  * @param {string} doc - The document to clean up.
- * @returns {string} - The cleaned-up JSON string.
- * @throws Will throw an error if the document is not a valid JSON object.
+ * @returns Effect yielding the cleaned-up JSON string, or InvalidJsonDocument if not a valid JSON object.
  */
-export const cleanupGeneratedDoc = (doc: string): string => {
+export const cleanupGeneratedDoc = Effect.fn('ApexOas.cleanupGeneratedDoc')(function* (doc: string) {
   // First, strip markdown code fences if present
   const strippedDoc = stripMarkdownCodeFences(doc);
-
-  if (identifyJsonTypeInString(strippedDoc) === 'object') {
-    const jsonCandidate = getJsonCandidate(strippedDoc);
-    if (jsonCandidate) {
-      return jsonCandidate;
-    }
-  }
-  throw new Error('The document is not a valid JSON object.');
-};
+  const jsonCandidate = identifyJsonTypeInString(strippedDoc) === 'object' ? getJsonCandidate(strippedDoc) : undefined;
+  return jsonCandidate ?? (yield* new InvalidJsonDocument({ message: 'The document is not a valid JSON object.' }));
+});
 
 /**
  * Parses an OAS document from a JSON string.
@@ -185,66 +146,29 @@ const PROMPT_TEMPLATES = {
 
 type EjsTemplateKey = keyof typeof PROMPT_TEMPLATES;
 
-export enum EjsTemplatesEnum {
-  METHOD_BY_METHOD = 'METHOD_BY_METHOD'
-}
-
-/**
- * Copies the contents of a directory recursively.
- * @param {string} src - The source directory.
- * @param {string} dest - The destination directory.
- */
-const copyDirectorySync = async (src: string, dest: string) => {
-  await createDirectory(dest);
-
-  const entries = await readDirectory(src);
-
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry);
-    const destPath = path.join(dest, entry);
-
-    if ((await stat(srcPath))?.type === vscode.FileType.Directory) {
-      await copyDirectorySync(srcPath, destPath);
-    } else {
-      const content = await readFile(srcPath);
-      await writeFile(destPath, content);
-    }
-  }
-};
-
 /**
  * Resolves the template directory URI.
  * @returns {Promise<URI>} - The URI of the template directory.
  */
-const resolveTemplateDir = async (): Promise<URI> => {
-  const logLevel = vscode.workspace.getConfiguration().get(SF_LOG_LEVEL_SETTING, 'fatal');
-  const ext = vscode.extensions.getExtension(VSCODE_APEX_EXTENSION_NAME);
+const resolveTemplateDir = Effect.fn('ApexOas.Templates.resolveTemplateDir')(function* () {
+  const ext = vscode.extensions.getExtension(OAS_EXTENSION_ID);
   if (!ext) {
-    throw new Error(`Unable to find extension ${VSCODE_APEX_EXTENSION_NAME}`);
+    return yield* new ApexExtensionUnavailable({
+      message: `Unable to find extension ${OAS_EXTENSION_ID}`
+    });
   }
-  const extensionDir = ext.extensionUri;
-  if (logLevel !== 'fatal') {
-    // copy contents of extensionDir to TEMPLATES_DIR
-    await copyDirectorySync(path.join(extensionDir.fsPath, 'resources', 'templates'), TEMPLATES_DIR);
-    return URI.file(path.join(workspaceUtils.getRootWorkspacePath(), DOT_SFDX));
-  }
-  return extensionDir;
-};
+  return ext.extensionUri;
+});
 
 /**
- * Helper functions for EJS templates.
+ * Gets the template path for a given key.
+ * @param {EjsTemplateKey} key - The key for the template.
+ * @returns {Promise<URI>} - The URI of the template path.
  */
-export const ejsTemplateHelpers = {
-  /**
-   * Gets the template path for a given key.
-   * @param {EjsTemplateKey} key - The key for the template.
-   * @returns {Promise<URI>} - The URI of the template path.
-   */
-  getTemplatePath: async (key: EjsTemplateKey): Promise<URI> => {
-    const baseExtensionPath = await resolveTemplateDir();
-    return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
-  }
-};
+export const getTemplatePath = Effect.fn('ApexOas.Templates.getTemplatePath')(function* (key: EjsTemplateKey) {
+  const baseExtensionPath = yield* resolveTemplateDir();
+  return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
+});
 
 /**
  * Summarizes diagnostics by severity.
@@ -278,22 +202,18 @@ export const getCurrentTimestamp = (): string => {
  * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
  * @returns {boolean} - True if the class has RestResource annotation.
  */
-const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean => {
-  const validClassAnnotations = retrieveAAClassRestAnnotations();
-  return context.classDetail.annotations.some(a => validClassAnnotations.includes(a.name));
-};
+const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.classDetail.annotations.some(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name));
 
 /**
  * Checks if any method has HTTP REST annotations.
  * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
  * @returns {boolean} - True if any method has HTTP REST annotations.
  */
-const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
-  const validMethodAnnotations = retrieveAAMethodRestAnnotations();
-  return context.methods.some(method =>
-    method.annotations.some(annotation => validMethodAnnotations.includes(annotation.name))
+const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean =>
+  context.methods.some(method =>
+    method.annotations.some(annotation => AA_METHOD_REST_ANNOTATIONS.has(annotation.name))
   );
-};
 
 /**
  * Checks if a class has valid REST annotations.
@@ -328,6 +248,39 @@ const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): bool
 export const hasAuraFrameworkCapability = (context: ApexClassOASGatherContextResponse): boolean =>
   // Check for no class annotations AND at least one method with AuraEnabled annotation
   hasNoClassAnnotations(context) && hasAuraEnabledMethods(context);
+
+/**
+ * Explains, in user-facing terms, why a class qualified for neither the REST nor the AuraEnabled
+ * generation path. Inspects the gathered context (class/method annotations) so the surfaced error
+ * names the missing prerequisite instead of a generic "not valid" message.
+ *
+ * Call only after `hasValidRestAnnotations` and `hasAuraFrameworkCapability` both returned false.
+ * @param {ApexClassOASGatherContextResponse} context - The gathered class context.
+ * @returns {string} A sentence describing the most likely reason and how to fix it.
+ */
+export const diagnoseIneligibility = (context: ApexClassOASGatherContextResponse): string => {
+  const hasRestResource = hasRestResourceAnnotation(context);
+  const hasHttpMethods = hasHttpRestAnnotations(context);
+
+  // REST: class is annotated @RestResource but no method carries an @HttpGet/@HttpPost/... annotation.
+  if (hasRestResource && !hasHttpMethods) {
+    return 'the class is annotated with @RestResource but no method is annotated with an HTTP verb (@HttpGet, @HttpPost, @HttpPut, @HttpPatch, or @HttpDelete). Add an HTTP-verb annotation to the methods you want to expose.';
+  }
+
+  // REST: methods carry @Http___ but the class is missing the required @RestResource annotation.
+  if (!hasRestResource && hasHttpMethods) {
+    return 'methods are annotated with HTTP verbs but the class is missing the @RestResource annotation. Add @RestResource to the class.';
+  }
+
+  // AuraEnabled: class carries annotations that block the Aura path, but a method is @AuraEnabled.
+  if (!hasNoClassAnnotations(context) && hasAuraEnabledMethods(context)) {
+    const classAnnotations = context.classDetail.annotations.map(a => `@${a.name}`).join(', ');
+    return `the class has @AuraEnabled methods but also carries class-level annotations (${classAnnotations}) that are not allowed for AuraEnabled generation. Remove the class-level annotations.`;
+  }
+
+  // No qualifying annotations at all.
+  return 'it has no methods annotated for OpenAPI generation. Annotate a class with @RestResource plus HTTP-verb methods (@HttpGet, @HttpPost, ...), or annotate methods with @AuraEnabled.';
+};
 
 /**
  * Validates if a registration provider type is one of the allowed values.

@@ -5,24 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Re-export all OAS types from the Apex extension - no duplication!
-export type {
-  ApexClassOASEligibleRequest,
-  ApexClassOASEligibleResponse,
-  ApexClassOASEligibleResponses,
-  ApexOASEligiblePayload,
-  ApexClassOASGatherContextResponse,
-  ApexOASClassDetail,
-  ApexOASMethodDetail,
-  ApexAnnotationDetail
-} from 'salesforcedx-vscode-apex';
-
-export enum ApexOASResource {
-  class = 'CLASS',
-  multiClass = 'MULTI CLASSES',
-  singleMethodOrProp = 'METHOD or PROPERTY',
-  folder = 'FOLDER'
-}
+export type ApexOASResource = 'CLASS' | 'MULTI CLASSES' | 'METHOD or PROPERTY' | 'FOLDER';
 
 export type ApexOASInfo = {
   description: string;
@@ -43,7 +26,7 @@ export type PromptGenerationStrategyBid = {
   result: PromptGenerationResult;
 };
 
-export type HttpRequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+type HttpRequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export const httpMethodMap: Record<string, HttpRequestMethod> = {
   HttpGet: 'get',
@@ -52,21 +35,3 @@ export const httpMethodMap: Record<string, HttpRequestMethod> = {
   HttpPatch: 'patch',
   HttpDelete: 'delete'
 } as const;
-
-export type OASGenerationCommandProperties = {
-  isClass: string;
-  overwrite: string;
-  strategy: string;
-};
-
-export type OASGenerationCommandMeasure = {
-  llmCallCount?: number;
-  biddedCallCount?: number;
-  generationSize?: number;
-  generationDuration?: number;
-  documentTtlProblems?: number;
-  documentErrors?: number;
-  documentWarnings?: number;
-  documentInfo?: number;
-  documentHints?: number;
-};
