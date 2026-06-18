@@ -7,7 +7,8 @@ There are two extensions in this repo that are extension packs. These allow cust
 the extensions from this repo plus
 
 - code analyzer
-- the vibe coding extension
+- the vibe coding extension (Agentforce Vibes)
+- vibes autocomplete
 
 ## packages/salesforcedx-vscode-expanded
 
