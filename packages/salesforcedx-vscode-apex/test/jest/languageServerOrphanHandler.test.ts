@@ -71,12 +71,23 @@ const provide =
 const run = (responses: { match: string; result: ExecResult }[]) =>
   Effect.runPromise(checkAndResolveOrphanedLanguageServers().pipe(provide(responses)) as Effect.Effect<void>);
 
-/** Run on the TestClock, advancing past the (bounded) 2s + 4s kill-retry backoff so scheduled retries fire without real waits. */
+// Mirrors killOne's retry schedule in languageServerOrphanHandler.ts: Schedule.exponential('2 seconds') x recurs(2).
+// Keep in sync with the handler; the adjust window below is derived from these so the retry tests can never
+// silently stop exercising retries if the backoff grows.
+const KILL_RETRY_BASE_SECONDS = 2;
+const KILL_RETRY_COUNT = 2;
+// exponential backoff total: 2s + 4s = sum over i of base*2^i for i in [0, count)
+const KILL_RETRY_TOTAL_SECONDS = Array.from(
+  { length: KILL_RETRY_COUNT },
+  (_unused, i) => KILL_RETRY_BASE_SECONDS * 2 ** i
+).reduce((sum, s) => sum + s, 0);
+
+/** Run on the TestClock, advancing past the (bounded) kill-retry backoff so scheduled retries fire without real waits. */
 const runWithClock = (responses: { match: string; result: ExecResult }[]) =>
   Effect.runPromise(
     Effect.gen(function* () {
       const fiber = yield* Effect.fork(checkAndResolveOrphanedLanguageServers().pipe(provide(responses)));
-      yield* TestClock.adjust(Duration.seconds(10));
+      yield* TestClock.adjust(Duration.seconds(KILL_RETRY_TOTAL_SECONDS + 1));
       return yield* Fiber.join(fiber);
     }).pipe(Effect.provide(TestContext.TestContext)) as Effect.Effect<void>
   );

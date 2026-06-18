@@ -63,10 +63,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
     Effect.catchAll(() => Effect.succeed<ExtensionPackageJson>({}))
   );
   const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance(pjson.name);
-  yield* Effect.promise(() => telemetryService.initializeService(context));
   if (!telemetryService) {
     return yield* new TelemetryUnavailableError({ message: 'Could not fetch a telemetry service instance' });
   }
+  yield* Effect.promise(() => telemetryService.initializeService(context));
   setTelemetryService(telemetryService);
 
   if (!vscode.workspace?.workspaceFolders) {

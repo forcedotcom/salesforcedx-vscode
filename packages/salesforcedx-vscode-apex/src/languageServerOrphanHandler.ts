@@ -84,7 +84,7 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
 
   // Web (or any exec failure listing processes) → no orphan work.
   const candidates = yield* terminal
-    .simpleExec(listProcessesCmd, s => s, 600_000)
+    .simpleExec(listProcessesCmd, s => s, 60_000)
     .pipe(
       Effect.map(parseProcessList),
       Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([]))
@@ -107,8 +107,8 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
   return checked.filter(processInfo => processInfo.orphaned);
 });
 
-const killOne = (processInfo: ProcessDetail) =>
-  Effect.try({
+const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: ProcessDetail) {
+  yield* Effect.try({
     try: () => process.kill(processInfo.pid, 'SIGKILL'),
     catch: e =>
       new ProcessTerminationError({
@@ -129,10 +129,24 @@ const killOne = (processInfo: ProcessDetail) =>
       return Effect.void;
     })
   );
+});
 
 export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* () {
   const telemetryService = getTelemetryService();
-  const orphanedProcesses = yield* findOrphanedProcesses();
+  // Services extension missing/failed to activate → orphan check can't run; emit telemetry and treat as no orphans
+  // (the forked fiber would otherwise die silently with no signal).
+  const orphanedProcesses = yield* findOrphanedProcesses().pipe(
+    Effect.catchTags({
+      ServicesExtensionNotFoundError: e => {
+        telemetryService.sendException(APEX_LSP_ORPHAN, e._tag);
+        return Effect.succeed<ProcessDetail[]>([]);
+      },
+      InvalidServicesApiError: e => {
+        telemetryService.sendException(APEX_LSP_ORPHAN, e.cause?.message ?? e._tag);
+        return Effect.succeed<ProcessDetail[]>([]);
+      }
+    })
+  );
   yield* Effect.annotateCurrentSpan('orphanCount', orphanedProcesses.length);
 
   if (orphanedProcesses.length === 0) {
@@ -167,7 +181,6 @@ type Resolution = 'continue' | boolean;
 /** Prompt once; returns 'continue' to re-prompt, or a terminal decision. Fails with UserCancellationError on dismissal. */
 const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProcesses: ProcessDetail[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
   const orphanedCount = orphanedProcesses.length;
 
   const choice = yield* Effect.promise(() =>
@@ -176,7 +189,7 @@ const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProces
       nls.localize('terminate_processes'),
       nls.localize('terminate_show_processes')
     )
-  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  ).pipe(Effect.flatMap((yield* api.services.PromptService).considerUndefinedAsCancellation));
 
   if (requestsTermination(choice)) {
     const confirmed: Resolution = yield* terminationConfirmation(orphanedCount);
@@ -231,10 +244,11 @@ const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {
 
 const terminationConfirmation = Effect.fn('apex.orphan.terminationConfirmation')(function* (orphanedCount: number) {
   const choice = yield* Effect.promise(() =>
+    // modal: VS Code adds Cancel automatically; blocks until the user makes a destructive-action decision
     vscode.window.showWarningMessage(
       nls.localize('terminate_processes_confirm', orphanedCount),
-      nls.localize('yes'),
-      nls.localize('cancel')
+      { modal: true },
+      nls.localize('yes')
     )
   );
   return choice === nls.localize('yes');
