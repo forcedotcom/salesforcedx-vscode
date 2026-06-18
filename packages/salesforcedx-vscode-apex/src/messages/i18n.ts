@@ -27,7 +27,6 @@ export const messages = {
   apex_language_server_restart_dialog_prompt: 'Clean Apex DB and Restart? Or Restart Only?',
   apex_language_server_restart_dialog_restart_only: 'Restart Only',
   apex_language_server_restarting: 'Apex Language Server is restarting… $(sync~spin)',
-  cancel: 'Cancel',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   channel_name: 'Apex',
   client_name: 'Apex Language Server',
