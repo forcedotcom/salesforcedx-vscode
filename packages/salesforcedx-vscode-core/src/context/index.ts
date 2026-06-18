@@ -5,10 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getOrgShape } from './workspaceOrgShape';
-import { getTargetOrgOrAlias } from './workspaceOrgType';
 
 export { WorkspaceContext } from './workspaceContext';
 export const workspaceContextUtils = {
-  getTargetOrgOrAlias,
   getOrgShape
 };

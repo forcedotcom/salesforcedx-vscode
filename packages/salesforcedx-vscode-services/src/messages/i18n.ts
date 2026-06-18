@@ -41,8 +41,7 @@ export const messages = {
     'Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (%s)',
   template_service_manifest_parse_failed: 'Failed to parse templates manifest from extension assets.',
   template_service_file_copy_failed: 'Failed to copy template file "%s" to memfs. (%s)',
-  template_service_source_api_version_not_defined: 'sourceApiVersion is not defined',
-  workspace_folder_name: 'Web Console'
+  template_service_source_api_version_not_defined: 'sourceApiVersion is not defined'
 } as const;
 
 export type MessageKey = keyof typeof messages;

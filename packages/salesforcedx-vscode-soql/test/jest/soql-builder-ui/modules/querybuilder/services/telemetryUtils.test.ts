@@ -1,8 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import {
-  REASON_UNMODELED_FUNCTIONREFERENCE,
-  REASON_UNMODELED_GROUPBY
-} from '../../../../../../src/soql-model/model/model';
+import { REASON_UNMODELED_FUNCTIONREFERENCE, REASON_UNMODELED_GROUPBY } from '@salesforce/soql-model';
 import { createQueryTelemetry } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/telemetryUtils';
 import { ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 

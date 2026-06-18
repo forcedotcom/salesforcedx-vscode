@@ -6,7 +6,7 @@
  */
 
 export { FrameCommand } from './frameCommand';
-export * from './protocol';
+export type { DebuggerResponse, Reference, Value, Tuple, LocalValue } from './protocol';
 export { ReferencesCommand } from './referencesCommand';
 export { RunCommand } from './runCommand';
 export { StepIntoCommand, StepOutCommand, StepOverCommand } from './stepCommands';

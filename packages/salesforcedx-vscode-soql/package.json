@@ -39,6 +39,7 @@
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
+    "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
     "antlr4ts": "^0.5.0-alpha.3",
@@ -52,7 +53,7 @@
     "@lwc/engine-dom": "^9.0.0",
     "@lwc/eslint-plugin-lwc": "^3.5.0",
     "@lwc/jest-preset": "^19.6.1",
-    "@lwc/rollup-plugin": "^9.0.0",
+    "@lwc/rollup-plugin": "^9.3.4",
     "@lwc/synthetic-shadow": "^9.1.1",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-babel": "^6.0.0",
@@ -102,6 +103,7 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../soql-common:compile",
+        "../soql-model:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
@@ -127,6 +129,9 @@
     },
     "build:soql-builder-ui": {
       "command": "cd src/soql-builder-ui && rollup -c rollup.config.mjs",
+      "dependencies": [
+        "../soql-model:compile"
+      ],
       "files": [
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
@@ -138,6 +143,9 @@
     },
     "test:soql-builder-ui": {
       "command": "jest --config src/soql-builder-ui/jest.config.js",
+      "dependencies": [
+        "../soql-model:compile"
+      ],
       "files": [
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/jest.config.js",

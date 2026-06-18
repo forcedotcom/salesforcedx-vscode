@@ -86,6 +86,10 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 
 **`Details__c` ≥20 chars required.** `Details__c` (field label "Description") has a User Story validation rule: <20 chars → create fails with `Description must be at least 20 characters to submit a User Story`. Despite docs marking it optional, treat as required on create. Note: `Description__c` is a DIFFERENT field (label "Comment", unvalidated)—don't confuse them; the validated body field is `Details__c`.
 
+**Sequencing prefix:** When planning an epic or when the user states a dependency between work items, prefix `Subject__c` with a sequence number + space (e.g. `1.2 Add config loader`). See [work-item-sequencing](../work-item-sequencing/SKILL.md). Optional—skip for independent work.
+
+**`-v` + `--flags-dir` don't combine on create:** `-v` takes precedence; flags-dir values are dropped. Workaround: create without Details, then update with `--flags-dir` only.
+
 **Values strings space-split, even in single quotes.** Both `-v` and `--flags-dir`'s `values` file split on spaces inside quotes (this CLI version), truncating any multi-word `Subject__c`/`Details__c` at the first space—often surfacing as the misleading 20-char error. Working recipe:
 
 1. **Create** with no-space placeholder tokens via `-v` (underscores, no quotes): `-v "Subject__c=temp Details__c=Consolidate_..._20+_chars RecordTypeId=... Assignee__c=... Scrum_Team__c=... Story_Points__c=2 Product_Tag__c=... Epic__c=..."`
@@ -178,6 +182,7 @@ When unsure which epic: ask the user.
 2. Query: `Epic__c = '<epicId>' AND Status__c NOT IN (...)` — use all values from ## Status\_\_c values "Closed (terminal)" and "Bug no-fix"
 3. Add `LIMIT 100`; order by Status\_\_c or Name
 4. Present as table: Name, Subject**c, Status**c, Assignee (or run separate query for assignee names)
+5. If any `Subject__c` carries a sequence-number prefix (`1`, `1.2`, …), compute ready/blocked per [work-item-sequencing](../work-item-sequencing/SKILL.md) instead of a flat list. "What's ready / unblocked in this epic?" routes there.
 
 ## Status\_\_c values
 

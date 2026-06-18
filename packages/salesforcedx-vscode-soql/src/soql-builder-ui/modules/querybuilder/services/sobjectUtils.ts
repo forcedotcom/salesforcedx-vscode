@@ -6,7 +6,7 @@
  *
  */
 
-import { SObjectFieldType } from '@salesforce/soql-model/model/model';
+import { SObjectFieldType } from '@salesforce/soql-model';
 import { SObjectMetadata } from './message/soqlEditorEvent';
 
 type NormalizedField = {

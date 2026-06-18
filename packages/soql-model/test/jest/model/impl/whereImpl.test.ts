@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { FieldCompareConditionImpl } from '../../../../src/model/impl/fieldCompareConditionImpl';
+import { FieldRefImpl } from '../../../../src/model/impl/fieldRefImpl';
+import { LiteralImpl } from '../../../../src/model/impl/literalImpl';
+import { WhereImpl } from '../../../../src/model/impl/whereImpl';
+import { ConditionOperator } from '../../../../src/model/model';
+
+describe('WhereImpl should', () => {
+  it('store condition', () => {
+    const expected = {
+      condition: {
+        kind: 'fieldCompare',
+        field: { kind: 'fieldRef', fieldName: 'field' },
+        operator: '=',
+        compareValue: { kind: 'literal', type: 'STRING', value: "'abc'" }
+      }
+    };
+    const actual = new WhereImpl(
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.Equals,
+        new LiteralImpl('STRING', "'abc'")
+      )
+    );
+    expect(actual).toEqual(expected);
+  });
+  it('return condition preceded by WHERE keyword for toSoqlSyntax()', () => {
+    const expected = "WHERE field = 'abc'";
+    const actual = new WhereImpl(
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.Equals,
+        new LiteralImpl('STRING', "'abc'")
+      )
+    ).toSoqlSyntax();
+    expect(actual).toEqual(expected);
+  });
+});
