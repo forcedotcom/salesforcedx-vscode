@@ -10,6 +10,13 @@ import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 
 /**
+ * Exact tree-item name match, tolerant of VS Code's `"<label>, has actions"` suffix
+ * (1.125+) on rows with hover actions. Matches "CustomObject", not "CustomObjectTranslation".
+ */
+const exactTreeItemName = (name: string): RegExp =>
+  new RegExp(`^${name.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}(,|$)`);
+
+/**
  * Page Object Model for the Org Browser extension in VS Code web
  * Encapsulates interactions with the Org Browser UI
  */
@@ -59,8 +66,8 @@ export class OrgBrowserPage {
 
   public async expandFolder(folderName: string, level?: number): Promise<void> {
     const folderItem = level
-      ? this.page.getByRole('treeitem', { name: folderName, level, exact: true })
-      : this.page.getByRole('treeitem', { name: folderName, exact: true });
+      ? this.page.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
+      : this.page.getByRole('treeitem', { name: exactTreeItemName(folderName) });
     const twistie = folderItem.locator('.monaco-tl-twistie');
     await Promise.all([
       folderItem.click({ timeout: 5000, delay: 100 }),
@@ -89,8 +96,8 @@ export class OrgBrowserPage {
 
     // locators get messed up because of the scroll
     const folderItemAgain = level
-      ? this.page.getByRole('treeitem', { name: folderName, level, exact: true })
-      : this.page.getByRole('treeitem', { name: folderName, exact: true });
+      ? this.page.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
+      : this.page.getByRole('treeitem', { name: exactTreeItemName(folderName) });
     const twistieAgain = folderItemAgain.locator('.monaco-tl-twistie');
 
     // tapping to refocus;  But that also closes it.  So we need to tap twice to reopen and ensure it's open
@@ -118,8 +125,10 @@ export class OrgBrowserPage {
    * @returns The locator for the found element, or null if not found
    */
   public async findMetadataType(typeName: string): Promise<Locator> {
-    // Create a precise locator that matches exact tree items at aria-level 1
-    const metadataTypeLocator = this.sidebar.getByRole('treeitem', { level: 1 }).filter({ hasText: typeName });
+    // Match the exact type at aria-level 1, tolerant of trailing accessible-name
+    // decorations (e.g. ", has actions") but not sibling types like
+    // CustomObjectTranslation. See exactTreeItemName.
+    const metadataTypeLocator = this.sidebar.getByRole('treeitem', { level: 1, name: exactTreeItemName(typeName) });
 
     // Check if already visible
     if (await metadataTypeLocator.first().isVisible()) {
@@ -153,7 +162,7 @@ export class OrgBrowserPage {
    */
   public async getMetadataItem(metadataType: string, itemName: string, level = 2): Promise<Locator> {
     // All metadata items are at aria-level >= 2 (metadata types are level 1)
-    const metadataItem = this.sidebar.getByRole('treeitem', { level, name: itemName, exact: true });
+    const metadataItem = this.sidebar.getByRole('treeitem', { level, name: exactTreeItemName(itemName) });
 
     // Check if already visible
     if (await metadataItem.first().isVisible({ timeout: 1000 })) {
