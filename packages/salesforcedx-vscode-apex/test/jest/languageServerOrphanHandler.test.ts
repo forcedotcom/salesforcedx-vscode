@@ -13,7 +13,6 @@ import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
 import * as vscode from 'vscode';
 import { UBER_JAR_NAME } from '../../src/constants';
-import { checkAndResolveOrphanedLanguageServers } from '../../src/languageServerOrphanHandler';
 import { nls } from '../../src/messages';
 import { setTelemetryService } from '../../src/telemetry/telemetry';
 import { MockTelemetryService } from './telemetry/mockTelemetryService';
@@ -60,16 +59,53 @@ const makeApi = (responses: { match: string; result: ExecResult }[]) => ({
   }
 });
 
+/**
+ * Load the handler + its ExtensionProviderService tag from one isolated module graph, with `platform`
+ * pinned at module-load time, and bind the telemetry mock into that graph.
+ *
+ * The handler captures `process.platform` into a module-level `isWindows` constant on import, so the
+ * platform must be set before requiring it — otherwise on Windows CI the non-Windows tests would hit
+ * the powershell command path their stubs don't mock. The ExtensionProviderService tag is re-required
+ * from the same graph so the provided service matches the tag identity the handler resolves against.
+ */
+const loadHandler = (platform: NodeJS.Platform, telemetry: MockTelemetryService) => {
+  const original = process.platform;
+  Object.defineProperty(process, 'platform', { value: platform, configurable: true });
+  let result:
+    | {
+        checkAndResolveOrphanedLanguageServers: typeof import('../../src/languageServerOrphanHandler').checkAndResolveOrphanedLanguageServers;
+        Provider: typeof ExtensionProviderService;
+      }
+    | undefined;
+  jest.isolateModules(() => {
+    (require('../../src/telemetry/telemetry') as typeof import('../../src/telemetry/telemetry')).setTelemetryService(
+      telemetry
+    );
+    const { ExtensionProviderService: Provider } =
+      require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
+    const { checkAndResolveOrphanedLanguageServers } =
+      require('../../src/languageServerOrphanHandler') as typeof import('../../src/languageServerOrphanHandler');
+    result = { checkAndResolveOrphanedLanguageServers, Provider };
+  });
+  Object.defineProperty(process, 'platform', { value: original, configurable: true });
+  return result!;
+};
+
 const provide =
-  (responses: { match: string; result: ExecResult }[]) => (effect: Effect.Effect<unknown, unknown, unknown>) =>
+  (Provider: typeof ExtensionProviderService, responses: { match: string; result: ExecResult }[]) =>
+  (effect: Effect.Effect<unknown, unknown, unknown>) =>
     effect.pipe(
-      Effect.provideService(ExtensionProviderService, {
+      Effect.provideService(Provider, {
         getServicesApi: Effect.succeed(makeApi(responses))
       } as unknown as ExtensionProviderService)
     );
 
-const run = (responses: { match: string; result: ExecResult }[]) =>
-  Effect.runPromise(checkAndResolveOrphanedLanguageServers().pipe(provide(responses)) as Effect.Effect<void>);
+const run = (telemetry: MockTelemetryService, responses: { match: string; result: ExecResult }[]) => {
+  const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin', telemetry);
+  return Effect.runPromise(
+    checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)) as Effect.Effect<void>
+  );
+};
 
 // Mirrors killOne's retry schedule in languageServerOrphanHandler.ts: Schedule.exponential('2 seconds') x recurs(2).
 // Keep in sync with the handler; the adjust window below is derived from these so the retry tests can never
@@ -83,14 +119,16 @@ const KILL_RETRY_TOTAL_SECONDS = Array.from(
 ).reduce((sum, s) => sum + s, 0);
 
 /** Run on the TestClock, advancing past the (bounded) kill-retry backoff so scheduled retries fire without real waits. */
-const runWithClock = (responses: { match: string; result: ExecResult }[]) =>
-  Effect.runPromise(
+const runWithClock = (telemetry: MockTelemetryService, responses: { match: string; result: ExecResult }[]) => {
+  const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin', telemetry);
+  return Effect.runPromise(
     Effect.gen(function* () {
-      const fiber = yield* Effect.fork(checkAndResolveOrphanedLanguageServers().pipe(provide(responses)));
+      const fiber = yield* Effect.fork(checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)));
       yield* TestClock.adjust(Duration.seconds(KILL_RETRY_TOTAL_SECONDS + 1));
       return yield* Fiber.join(fiber);
     }).pipe(Effect.provide(TestContext.TestContext)) as Effect.Effect<void>
   );
+};
 
 const setWarningChoices = ({ warning = [], confirm = [] }: Choices) => {
   const queue = [...warning];
@@ -119,13 +157,13 @@ describe('languageServerOrphanHandler', () => {
   });
 
   it('no orphan processes → no prompt, no kill', async () => {
-    await run([{ match: 'ps -e', result: '' }]);
+    await run(telemetry, [{ match: 'ps -e', result: '' }]);
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(killSpy).not.toHaveBeenCalled();
   });
 
   it('parent alive → not orphaned → no prompt', async () => {
-    await run([
+    await run(telemetry, [
       { match: 'ps -e', result: HEALTHY_LIST },
       { match: 'ps -p 5678', result: 'alive' }
     ]);
@@ -135,7 +173,7 @@ describe('languageServerOrphanHandler', () => {
 
   it('orphan found + user confirms → kill called + didTerminate telemetry', async () => {
     setWarningChoices({ warning: [nls.localize('terminate_processes')], confirm: [nls.localize('yes')] });
-    await run([{ match: 'ps -e', result: ORPHAN_LIST }]);
+    await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
     expect(telemetry.sendEventData).toHaveBeenCalledWith('apexLSPOrphan', undefined, {
       orphanCount: 1,
@@ -145,7 +183,7 @@ describe('languageServerOrphanHandler', () => {
 
   it('user dismisses prompt → UserCancellationError caught → no kill, didTerminate 0', async () => {
     setWarningChoices({ warning: [undefined as unknown as string] });
-    await run([{ match: 'ps -e', result: ORPHAN_LIST }]);
+    await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).not.toHaveBeenCalled();
     expect(telemetry.sendEventData).toHaveBeenCalledWith('apexLSPOrphan', undefined, {
       orphanCount: 1,
@@ -163,7 +201,7 @@ describe('languageServerOrphanHandler', () => {
         throw new Error('boom2');
       })
       .mockReturnValueOnce(true);
-    await runWithClock([{ match: 'ps -e', result: ORPHAN_LIST }]);
+    await runWithClock(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).toHaveBeenCalledTimes(3);
     expect(telemetry.sendException).not.toHaveBeenCalled();
   });
@@ -173,14 +211,14 @@ describe('languageServerOrphanHandler', () => {
     killSpy.mockImplementation(() => {
       throw new Error('always');
     });
-    await expect(runWithClock([{ match: 'ps -e', result: ORPHAN_LIST }])).resolves.toBeUndefined();
+    await expect(runWithClock(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }])).resolves.toBeUndefined();
     expect(killSpy).toHaveBeenCalledTimes(3);
     expect(telemetry.sendException).toHaveBeenCalledWith('apexLSPOrphan', 'always');
   });
 
   it('web platform → TerminalServiceError → empty result, no prompt', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
-    await run([{ match: 'ps -e', result: { fail: 'Not available on web' } }]);
+    await run(telemetry, [{ match: 'ps -e', result: { fail: 'Not available on web' } }]);
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(killSpy).not.toHaveBeenCalled();
   });
