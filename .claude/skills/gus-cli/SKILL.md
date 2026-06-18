@@ -85,6 +85,8 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 
 **Create:** Always set `Story_Points__c=2`, `Product_Tag__c=a1aB000000005G3IAI`, `RecordTypeId`. Include `Subject__c`, `Assignee__c`, `Scrum_Team__c=a00B0000000w9xPIAQ`, `Epic__c` (optional), `QA_Engineer__c` (optional), `Details__c` (optional). Leave `Sprint__c` blank; never modify it. **Details\_\_c:** write concisely—fragments/bullets, minimal words, no repetition (see .claude/skills/concise/SKILL.md).
 
+**Sequencing prefix:** When planning an epic or when the user states a dependency between work items, prefix `Subject__c` with a sequence number + space (e.g. `1.2 Add config loader`). See [work-item-sequencing](../work-item-sequencing/SKILL.md). Optional—skip for independent work.
+
 **`-v` + `--flags-dir` don't combine on create:** `-v` takes precedence; flags-dir values are dropped. Workaround: create without Details, then update with `--flags-dir` only.
 
 **Details\_\_c formatting (readable WI body):** Details\_\_c is a Rich Text Area (extraTypeInfo: richtextarea)—use HTML, not markdown. The `-v` flag parses space-separated key=value; use `--flags-dir` with a `values` file ([ref](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_flag_values_in_files.htm)):
@@ -173,6 +175,7 @@ When unsure which epic: ask the user.
 2. Query: `Epic__c = '<epicId>' AND Status__c NOT IN (...)` — use all values from ## Status\_\_c values "Closed (terminal)" and "Bug no-fix"
 3. Add `LIMIT 100`; order by Status\_\_c or Name
 4. Present as table: Name, Subject**c, Status**c, Assignee (or run separate query for assignee names)
+5. If any `Subject__c` carries a sequence-number prefix (`1`, `1.2`, …), compute ready/blocked per [work-item-sequencing](../work-item-sequencing/SKILL.md) instead of a flat list. "What's ready / unblocked in this epic?" routes there.
 
 ## Status\_\_c values
 
