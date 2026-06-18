@@ -182,6 +182,7 @@ const WI_RECORDS_SCHEMA = {
           Story_Points__c: { type: ['number', 'null'] },
           CreatedDate: { type: ['string', 'null'] },
           Assignee__c: { type: ['string', 'null'] },
+          Epic__c: { type: ['string', 'null'] },
         },
       },
     },
@@ -200,6 +201,28 @@ const WI_STATUS_RECORDS_SCHEMA = {
         properties: {
           Name: { type: 'string' },
           Status__c: { type: ['string', 'null'] },
+        },
+      },
+    },
+  },
+}
+
+// Epic siblings for the numeric-sequencing gate: every WI in a candidate's epic, with its
+// Subject (carries the dotted sequence prefix) and Status (done = Closed/Completed).
+const EPIC_WI_RECORDS_SCHEMA = {
+  type: 'object',
+  required: ['records'],
+  properties: {
+    records: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['Name'],
+        properties: {
+          Name: { type: 'string' },
+          Subject__c: { type: ['string', 'null'] },
+          Status__c: { type: ['string', 'null'] },
+          Epic__c: { type: ['string', 'null'] },
         },
       },
     },
@@ -305,6 +328,22 @@ const extractBlockers = (subject, details) => {
   return [...new Set(names)]
 }
 
+// Numeric-sequencing gate (.claude/skills/work-item-sequencing/SKILL.md). A leading dotted
+// number + single space in Subject__c expresses per-epic order: top-level integers are
+// sequential (2 waits on 1 and every 1.x); same-first-segment siblings (1.1, 1.2) run in
+// PARALLEL. We gate ONLY on the top-level segment: a candidate is blocked iff its epic holds
+// an unfinished WI with a strictly-smaller leading integer. Anything else (deeper siblings,
+// same group) stays claimable. Only a leading N or N.N… followed by a space counts — bare
+// "W-123 backport" / "2.40 release" are NOT sequence numbers (skill ## Edge cases).
+const SEQUENCE_RE = /^(\d+(?:\.\d+)*)\s/
+const parseSequence = subject => {
+  const m = SEQUENCE_RE.exec(String(subject || ''))
+  // Malformed forms ("1.", "1..2") never match SEQUENCE_RE (needs a trailing space after a
+  // well-formed dotted number), so they read as unnumbered — skill says treat-as-unnumbered.
+  return m ? m[1].split('.').map(Number) : null
+}
+const topSegment = seq => (seq ? seq[0] : null)
+
 const mapWiRecord = r => ({
   wiId: r.Id,
   name: r.Name,
@@ -313,6 +352,7 @@ const mapWiRecord = r => ({
   status: r.Status__c || '',
   storyPoints: typeof r.Story_Points__c === 'number' ? r.Story_Points__c : null,
   createdDate: r.CreatedDate || '',
+  epicId: r.Epic__c || '',
   prUrl: extractPrUrl(r.Details__c),
 })
 
@@ -490,6 +530,9 @@ Steps (idempotent):
    sf data update record -s ADM_Work__c -i ${r.wi.wiId} -o gus -v "Status__c='Closed'"
 2. Remove worktree if present: 'git worktree remove ${wt} --force'.
 3. Delete local branch if present: from ${identity.projectRoot}, 'git branch -D ${branch}' (ignore failure if branch doesn't exist).
+4. Find the "PR ready for review" Slack message in channel ${REVIEW_CHANNEL_ID}:
+   Use mcp__slack__slack_search_public_and_private with query "PR ready for review ${r.wi.name} in:${REVIEW_CHANNEL_ID}" to find the message. The message text contains the WI name in the format "(${r.wi.name})". Filter results to channel ${REVIEW_CHANNEL_ID} and pick the message whose text contains "${r.wi.name}".
+5. If a matching message is found with a ts field, add a :merge: reaction via mcp__slack__slack_add_reaction (channel=${REVIEW_CHANNEL_ID}, timestamp=<ts>, reaction="merge"). Skip silently if not found — the message may not exist if review was skipped or Slack search is unavailable.
 
 Return {ok: true, detail} summarizing changes.`
 }
@@ -673,7 +716,7 @@ Return {ok: true, detail: "<approved | skip reason>"} or {ok: false, detail}.`
 const candidatesQueryPrompt = identity =>
   `Run EXACTLY ONE SOQL query — the one below — and return its records.
 
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Assignee__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready','Triaged') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Assignee__c, Story_Points__c, CreatedDate, Epic__c FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready','Triaged') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
 
 Return {records: <result.records, verbatim>}.
 
@@ -694,6 +737,22 @@ Return {records: <result.records, verbatim>}.
 HARD RULES:
 - Do NOT run any other queries. Zero records is valid — return {records: []}.
 - Do NOT modify the WHERE clause or transform fields.`
+
+// Numeric-sequencing gate: fetch every WI in the given epics so we can read their dotted
+// Subject__c prefixes + Status. NO open-only filter — a satisfied prerequisite is Closed,
+// which an open-only WHERE would hide (skill ## Reading, step 1).
+const epicSiblingsQueryPrompt = epicIds =>
+  `Run EXACTLY ONE SOQL query — the one below — and return its records.
+
+sf data query --query "SELECT Name, Subject__c, Status__c, Epic__c FROM ADM_Work__c WHERE Epic__c IN (${epicIds
+    .map(id => `'${id}'`)
+    .join(',')}) LIMIT 200" -o gus --result-format json
+
+Return {records: <result.records, verbatim>}.
+
+HARD RULES:
+- Do NOT run any other queries. Zero records is valid — return {records: []}.
+- Do NOT add an open-only / Status filter, modify the WHERE clause, or transform fields.`
 
 const prFilesPrompt = url =>
   `Run 'gh pr diff ${url} --name-only' and return {files: [<one path per line>]}.`
@@ -1251,6 +1310,61 @@ const pickCandidate = async (identity, inFlightWis) => {
     }
     candidateList.length = 0
     candidateList.push(...unblocked)
+  }
+
+  // Numeric-sequencing gate (.claude/skills/work-item-sequencing/SKILL.md). Within one epic a
+  // leading dotted number in Subject__c orders work: top-level integers are sequential, but
+  // same-first-segment siblings (1.1, 1.2) run in PARALLEL. So gate on the TOP segment only —
+  // a candidate is blocked iff its epic still holds an UNFINISHED WI with a strictly-smaller
+  // leading integer (done = Closed/Completed, reusing isBlockerSatisfied). Unnumbered
+  // candidates are always ready; candidates without an epic can't be sequenced. One batched
+  // query per the distinct epics in play, fetched WITHOUT an open-only filter so Closed
+  // prerequisites are visible.
+  const seqCandidates = candidateList
+    .map(c => ({ c, seq: parseSequence(c.subject) }))
+    .filter(({ c, seq }) => seq && c.epicId)
+  const seqEpicIds = [...new Set(seqCandidates.map(({ c }) => c.epicId))]
+  if (seqEpicIds.length) {
+    const epicRaw = await agent(epicSiblingsQueryPrompt(seqEpicIds), {
+      schema: EPIC_WI_RECORDS_SCHEMA,
+      label: 'query-epic-siblings',
+      phase: 'Pick candidate',
+      model: 'haiku',
+    })
+    // Per epic: the smallest top-level integer among UNFINISHED numbered WIs. A candidate
+    // whose own top segment exceeds that minimum is gated behind unfinished earlier work.
+    // Unnumbered WIs neither gate nor are gated; done (Closed/Completed) WIs don't gate.
+    const minUnfinishedTopByEpic = (epicRaw.records || [])
+      .map(r => ({ epicId: r.Epic__c || '', top: topSegment(parseSequence(r.Subject__c)), status: r.Status__c || '' }))
+      .filter(r => r.top !== null && !isBlockerSatisfied(r.status))
+      .reduce((m, r) => {
+        const prev = m.get(r.epicId)
+        return prev === undefined || r.top < prev ? m.set(r.epicId, r.top) : m
+      }, new Map())
+    const blockedIds = new Set(
+      seqCandidates
+        .filter(({ c, seq }) => {
+          const minOpen = minUnfinishedTopByEpic.get(c.epicId)
+          // Blocked only if an unfinished WI sorts in an EARLIER top-level group. Equal top
+          // segment = same group = parallel sibling (or the candidate itself) → not blocked.
+          return minOpen !== undefined && minOpen < topSegment(seq)
+        })
+        .map(({ c, seq }) => {
+          log(
+            `excluding ${c.name}: sequence-blocked — epic has unfinished WI in earlier group ${minUnfinishedTopByEpic.get(c.epicId)} (candidate is ${topSegment(seq)})`
+          )
+          return c.wiId
+        })
+    )
+    if (blockedIds.size) {
+      const open = candidateList.filter(c => !blockedIds.has(c.wiId))
+      if (!open.length) {
+        log('all candidates gated by earlier unfinished epic work — nothing to claim')
+        return null
+      }
+      candidateList.length = 0
+      candidateList.push(...open)
+    }
   }
 
   if (candidateList.length === 1) {

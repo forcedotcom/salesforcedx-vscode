@@ -120,6 +120,8 @@ sf data update record -s ADM_Work__c -i <recordId> -o gus -v "Status__c='In Prog
 
 ## Epics (ADM_Epic\_\_c)
 
+**Creating an epic or bulk-creating its work items → [epics.md](./epics.md)** (fields, `Scheduled_Build__c`, the `Details__c` ≥20-char + CLI-warning-breaks-JSON gotchas, bulk-create loop).
+
 **Query team epics** (exclude closed):
 
 ```
