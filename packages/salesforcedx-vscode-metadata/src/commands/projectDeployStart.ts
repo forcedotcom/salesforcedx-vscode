@@ -8,7 +8,8 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
-import { messages, nls } from '../messages';
+import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';

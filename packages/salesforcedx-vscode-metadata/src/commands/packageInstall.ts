@@ -12,8 +12,10 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
+import * as Str from 'effect/String';
 import * as vscode from 'vscode';
-import { messages, nls } from '../messages';
+import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { type CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
 
 const COMMAND: CommandKey = messages.package_install_text;
@@ -148,8 +150,7 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
 });
 
 const extractErrors = (record: PackageInstallRequest): string => {
-  const list = record.Errors?.errors ?? [];
-  const errorMessages = list.map(e => e.message).filter(m => typeof m === 'string' && m.length > 0);
+  const errorMessages = (record.Errors?.errors ?? []).map(e => e.message).filter(Str.isNonEmpty);
   const detail = errorMessages.length === 0 ? 'Unknown error' : errorMessages.join('; ');
   return nls.localize('package_install_failed_message', detail);
 };
