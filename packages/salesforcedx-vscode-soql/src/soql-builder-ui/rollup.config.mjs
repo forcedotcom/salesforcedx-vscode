@@ -96,10 +96,6 @@ export default {
     alias({
       entries: [
         { find: 'os', replacement: 'os-browserify/browser' },
-        {
-          find: '@salesforce/soql-model',
-          replacement: path.resolve(__dirname, '../soql-model')
-        },
         // Non-component module: messages catalog (path ends with messages/i18n.ts for eslint-local-rules)
         {
           find: 'querybuilder/messages',
@@ -108,14 +104,12 @@ export default {
       ]
     }),
     fixLwcEmptyCss,
-    // Strips TypeScript types from ALL .ts files in the bundle using Babel.
+    // Strips TypeScript types from the .ts files in the bundle using Babel.
     //
-    // We use Babel (not @rollup/plugin-typescript) here because:
-    //   1. @lwc/compiler v9 dropped @babel/preset-typescript, so LWC component
-    //      files must have types stripped before the LWC plugin sees them.
-    //   2. @rollup/plugin-typescript only covers files under CWD via its
-    //      default include, and the aliased ../soql-model/ sibling package falls
-    //      outside that scope, causing raw-TypeScript parse failures.
+    // We use Babel (not @rollup/plugin-typescript) because @lwc/compiler v9
+    // dropped @babel/preset-typescript, so LWC component files must have types
+    // stripped before the LWC plugin sees them. (@salesforce/soql-model resolves
+    // to its own compiled, type-free out/ — node-resolve picks it up directly.)
     //
     // Babel does purely syntactic type erasure (no cross-file type checking),
     // which is fine here — we're only building, not type-checking. Type-only
@@ -134,7 +128,7 @@ export default {
     lwc({
       modules: [{ dir: 'modules' }],
       // Restrict LWC compiler to component files only; without this it also
-      // tries to apply its own Babel transform to soql-model .ts files.
+      // tries to apply its own Babel transform to non-component .ts dependencies.
       include: ['modules/**']
     }),
     resolve({ browser: true, extensions: ['.ts', '.mjs', '.js', '.json'] }),

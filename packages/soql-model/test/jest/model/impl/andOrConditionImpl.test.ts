@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { AndOrConditionImpl } from '../../../../src/model/impl/andOrConditionImpl';
+import { FieldCompareConditionImpl } from '../../../../src/model/impl/fieldCompareConditionImpl';
+import { FieldRefImpl } from '../../../../src/model/impl/fieldRefImpl';
+import { LiteralImpl } from '../../../../src/model/impl/literalImpl';
+import { AndOr, ConditionOperator } from '../../../../src/model/model';
+
+describe('AndOrConditionImpl should', () => {
+  it('store left and right conditions and the AndOr operator', () => {
+    const expected = {
+      kind: 'andOr',
+      leftCondition: {
+        kind: 'fieldCompare',
+        field: { kind: 'fieldRef', fieldName: 'field' },
+        operator: '>',
+        compareValue: { kind: 'literal', type: 'NUMBER', value: '1' }
+      },
+      andOr: 'OR',
+      rightCondition: {
+        kind: 'fieldCompare',
+        field: { kind: 'fieldRef', fieldName: 'field' },
+        operator: '<',
+        compareValue: { kind: 'literal', type: 'NUMBER', value: '5' }
+      }
+    };
+    const actual = new AndOrConditionImpl(
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.GreaterThan,
+        new LiteralImpl('NUMBER', '1')
+      ),
+      AndOr.Or,
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.LessThan,
+        new LiteralImpl('NUMBER', '5')
+      )
+    );
+    expect(actual).toEqual(expected);
+  });
+  it('return left condition followed by AndOr operator followed by right condition for toSoqlSyntax()', () => {
+    const expected = 'field > 1 OR field < 5';
+    const actual = new AndOrConditionImpl(
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.GreaterThan,
+        new LiteralImpl('NUMBER', '1')
+      ),
+      AndOr.Or,
+      new FieldCompareConditionImpl(
+        new FieldRefImpl('field'),
+        ConditionOperator.LessThan,
+        new LiteralImpl('NUMBER', '5')
+      )
+    ).toSoqlSyntax();
+    expect(actual).toEqual(expected);
+  });
+});

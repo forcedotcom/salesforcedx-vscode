@@ -5,7 +5,7 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
-import { AndOr, ConditionOperator, UiOperatorValue } from '@salesforce/soql-model/model/model';
+import { AndOr, ConditionOperator, UiOperatorValue } from '@salesforce/soql-model';
 import { JsonMap } from '@salesforce/ts-types';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
 
