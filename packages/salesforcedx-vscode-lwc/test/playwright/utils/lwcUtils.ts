@@ -283,16 +283,3 @@ export const assertLwcSfdxTypingsGenerated = async (page: Page): Promise<void> =
     );
   }
 };
-
-/**
- * Moves the editor cursor to a specific line and column using the Go to Line/Column command.
- * Line and column are both 1-indexed.
- */
-export const goToLineCol = async (page: Page, line: number, col: number): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
-  const widget = page.locator(QUICK_INPUT_WIDGET);
-  await widget.waitFor({ state: 'visible', timeout: 5000 });
-  await page.keyboard.type(`${line}:${col}`);
-  await page.keyboard.press('Enter');
-  await widget.waitFor({ state: 'hidden', timeout: 5000 });
-};

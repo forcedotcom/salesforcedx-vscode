@@ -5,7 +5,6 @@ SHA256.md
 !.claude/worktrees/**
 .cursor/
 .github/
-packages/salesforcedx-vscode-automation-tests/lib/
 packages/salesforcedx-aura-language-server/src/resources/
 packages/salesforcedx-aura-language-server/src/build-time-resources/
 packages/salesforcedx-aura-language-server/src/tern/**

@@ -22,9 +22,13 @@ fi
 echo "[verify-on-edit] compile passed" >&2
 
 # Effect LS diagnostics: only on .ts edits. Surface warnings AND messages, not just errors.
-if [[ "$EDITED_FILE" == *.ts ]] && [ -f "$EDITED_FILE" ]; then
+# Invoke the locally-installed bin directly (never bare `npx`, which would
+# silently fetch+execute an unscoped registry typosquat if the local install
+# is missing). The package is a top-level devDep in package.json.
+EFFECT_LS="$ROOT/node_modules/.bin/effect-language-service"
+if [[ "$EDITED_FILE" == *.ts ]] && [ -f "$EDITED_FILE" ] && [ -x "$EFFECT_LS" ]; then
   echo "[verify-on-edit] running effect LS on $EDITED_FILE" >&2
-  if EFFECT_OUTPUT=$(npx effect-language-service diagnostics --file "$EDITED_FILE" 2>&1); then
+  if EFFECT_OUTPUT=$("$EFFECT_LS" diagnostics --file "$EDITED_FILE" 2>&1); then
     # Exit 0 = no errors. Check if there are any warnings/messages worth surfacing.
     SUMMARY=$(echo "$EFFECT_OUTPUT" | grep -E '^Checked .* files? out of' | head -1)
     # Format: "Checked N files out of M files. X errors, Y warnings and Z messages."

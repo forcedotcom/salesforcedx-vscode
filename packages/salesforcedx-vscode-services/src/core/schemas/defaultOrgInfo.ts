@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { CliId } from '../../observability/cliTelemetry';
 
 export const DefaultOrgInfoSchema = Schema.Struct({
   aliases: Schema.optional(Schema.Array(Schema.String)),
@@ -19,7 +20,7 @@ export const DefaultOrgInfoSchema = Schema.Struct({
   isSandbox: Schema.optional(Schema.Boolean),
   // the actual userID from the salesforce org
   userId: Schema.optional(Schema.String),
-  cliId: Schema.optional(Schema.String),
+  cliId: Schema.optional(CliId),
   webUserId: Schema.optional(Schema.String),
   orgEdition: Schema.optional(Schema.String)
 });
