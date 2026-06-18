@@ -1422,18 +1422,48 @@ if (identity.error || !identity.userId) {
 }
 log(`runner: ${identity.username} (${identity.ownerPrefix}, ${identity.githubLogin})`)
 
-await ensureDaemons()
-await reapStrandedWorktrees(identity)
+// Independent: daemon launch touches no repo git; reap mutates only worktrees/branches
+// that dropped OUT of the in-flight query; monitor does read-only gh/sf (gh pr diff <url>
+// hits the API, not local git). Disjoint sets + no shared ref mutation → run concurrently.
+// Each fn's bare phase() races the global pointer, but every agent() inside passes an
+// explicit phase: opt so progress grouping stays correct.
+const [, , monitor] = await parallel([
+  () => ensureDaemons(),
+  () => reapStrandedWorktrees(identity),
+  () => monitorInFlight(identity),
+])
+if (!monitor) {
+  log('monitor phase failed (subagent died) — exiting tick; next tick retries')
+  return { exited: 'monitor-failed' }
+}
+const { inFlightWis, monitorOutcomes } = monitor
+const { toFinalize: toFinalizeRaw, toTriage, toRestart, toCloseWi, toPlanOnly, toRefresh } = classifyMonitor(monitorOutcomes)
 
-const { inFlightWis, monitorOutcomes } = await monitorInFlight(identity)
-const { toFinalize, toTriage, toRestart, toCloseWi, toPlanOnly, toRefresh } = classifyMonitor(monitorOutcomes)
+// toRefresh is orthogonal to the decision buckets (a green PR can also be CONFLICTING), so a
+// WI can be in BOTH toFinalize and toRefresh. openReview removes the worktree while
+// refreshBranch reattaches+merges it — a same-WI race once these run concurrently. Let refresh
+// win this tick (it pushes a merge commit → CI reruns → next tick finalizes the now-current PR).
+const refreshIds = new Set(toRefresh.map(r => r.wi.wiId))
+const toFinalize = toFinalizeRaw.filter(r => !refreshIds.has(r.wi.wiId))
 
-if (toCloseWi.length) await closeMergedWis(toCloseWi, identity)
-if (toPlanOnly.length) await handlePlanOnlyPrs(toPlanOnly, identity)
-if (toTriage.length) await triageAndFixCi(toTriage, identity)
-if (toRefresh.length) await keepInFlightCurrent(toRefresh, identity)
-if (toFinalize.length) await openForReview(toFinalize, identity)
-await peerApprove(identity)
+// Handlers split by resource profile, not just data-independence:
+//  - Safe group (close / plan-only / open-review / peer-approve): light gh/sf/slack +
+//    worktree REMOVAL on disjoint WI sets, no compile/build → fully concurrent.
+//  - Heavy chain (triage → refresh): both push commits and trigger compile/lint/test across
+//    worktrees; MUST stay sequential — concurrent heavy builds crash the machine (the reason
+//    keepInFlightCurrent is already a sequential for-loop). The two groups touch disjoint
+//    worktrees, so the safe group runs alongside the heavy chain.
+// Results unused; parallel() turns a thrown handler into null and never rejects.
+await parallel([
+  () => (toCloseWi.length ? closeMergedWis(toCloseWi, identity) : null),
+  () => (toPlanOnly.length ? handlePlanOnlyPrs(toPlanOnly, identity) : null),
+  () => (toFinalize.length ? openForReview(toFinalize, identity) : null),
+  () => peerApprove(identity),
+  async () => {
+    if (toTriage.length) await triageAndFixCi(toTriage, identity)
+    if (toRefresh.length) await keepInFlightCurrent(toRefresh, identity)
+  },
+])
 
 // Cap = number of WIs currently 'In Progress' in GUS. GUS status is authoritative.
 // 'Ready for Review'/'Fixed' WIs are waiting on human review — not consuming builder slots.
