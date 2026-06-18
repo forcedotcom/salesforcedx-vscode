@@ -19,7 +19,7 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
   effect: Effect.succeed({
     /** Execute a shell command and parse its stdout. Desktop-only; fails with TerminalServiceError on web. stdout is trimmed before parsing.
      * `timeout` (default 30s) bounds the child process; pass a larger Duration for long-running commands (e.g. org delete). */
-    simpleExec: ({
+    simpleExec: Effect.fn('TerminalService.simpleExec')(function* ({
       command,
       parse = s => s,
       timeout = Duration.millis(30_000)
@@ -27,19 +27,20 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       command: string;
       parse?: (stdout: string) => string;
       timeout?: Duration.DurationInput;
-    }) =>
-      process.env.ESBUILD_PLATFORM === 'web'
-        ? Effect.fail(new TerminalServiceError({ message: 'Not available on web', command }))
-        : Effect.tryPromise({
-            try: async () => {
-              const { exec } = await import('node:child_process');
-              const { promisify } = await import('node:util');
-              return promisify(exec)(command, { timeout: Duration.toMillis(timeout) });
-            },
-            catch: e => new TerminalServiceError({ message: e instanceof Error ? e.message : 'exec failed', command })
-          }).pipe(
-            Effect.map(result => parse(result.stdout.trim())),
-            Effect.withSpan('TerminalService.simpleExec', { attributes: { command } })
-          )
+    }) {
+      yield* Effect.annotateCurrentSpan('command', command);
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        return yield* Effect.fail(new TerminalServiceError({ message: 'Not available on web', command }));
+      }
+      const result = yield* Effect.tryPromise({
+        try: async () => {
+          const { exec } = await import('node:child_process');
+          const { promisify } = await import('node:util');
+          return promisify(exec)(command, { timeout: Duration.toMillis(timeout) });
+        },
+        catch: e => new TerminalServiceError({ message: e instanceof Error ? e.message : 'exec failed', command })
+      });
+      return parse(result.stdout.trim());
+    })
   })
 }) {}
