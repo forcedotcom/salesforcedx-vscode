@@ -16,6 +16,16 @@ export const meta = {
   ],
 }
 
+// Periodic E2E flakiness audit. Goal: data-driven root causes, not workarounds.
+// No workarounds — no test.skip, platform-gating, waitForTimeout, fallbacks, retry
+//   inflation; only determinism improvements (enforced in Hypothesize/Draft prompts).
+// Evidence required — every hypothesis cites runId + artifact path + exact error.
+// Prior-art guard — never re-propose a reverted approach; Assess-prior-WIs phase checks
+//   EDE epic closed WIs + linked PR diffs first.
+// WIs → EDE epic a3QEE000002AZ8D2AW, subject prefix [ai-auto]. Draft only; never create
+//   without user confirm ("create all" / "create 1,3"). See gus-cli skill safety rules.
+// See also skills: analyze-e2e, span-file-export, playwright-e2e.
+
 // =====================================================================
 // CONSTANTS
 // =====================================================================
