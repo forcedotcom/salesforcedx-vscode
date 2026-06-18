@@ -4,6 +4,7 @@ export const meta = {
   whenToUse: 'Run via /flakiness-review. Pass args.days (default 7) to control lookback window.',
   phases: [
     { title: 'Scan CI runs' },
+    { title: 'Collect metrics' },
     { title: 'Cluster failures' },
     { title: 'Filter resolved' },
     { title: 'Download artifacts' },
@@ -123,6 +124,42 @@ const HYPOTHESES_SCHEMA = {
   },
 }
 
+const METRICS_SCHEMA = {
+  type: 'object',
+  required: ['workflowMetrics', 'testMetrics'],
+  properties: {
+    workflowMetrics: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['workflowName', 'totalRuns', 'rerunCount', 'rerunRate', 'failureCount'],
+        properties: {
+          workflowName: { type: 'string' },
+          totalRuns: { type: 'number' },
+          rerunCount: { type: 'number' },
+          rerunRate: { type: 'number' },
+          failureCount: { type: 'number' },
+        },
+      },
+    },
+    testMetrics: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['testName', 'totalRuns', 'failCount', 'retryCount', 'retryRate', 'workflowName'],
+        properties: {
+          testName: { type: 'string' },
+          totalRuns: { type: 'number' },
+          failCount: { type: 'number' },
+          retryCount: { type: 'number' },
+          retryRate: { type: 'number' },
+          workflowName: { type: 'string' },
+        },
+      },
+    },
+  },
+}
+
 const WI_DRAFTS_SCHEMA = {
   type: 'object',
   required: ['drafts'],
@@ -168,10 +205,89 @@ if (!runsResult || !runsResult.runs.length) {
   return { hypotheses: [], wis: [] }
 }
 
-log(`Found ${runsResult.runs.length} E2E runs. Checking for failures and retries...`)
+log(`Found ${runsResult.runs.length} E2E runs. Collecting metrics...`)
 
 // =====================================================================
-// PHASE 2: CLUSTER FAILURES
+// PHASE 2: COLLECT METRICS
+// =====================================================================
+// Workflow-level: rerun rate from gh run list (attempt > 1).
+// Test-level: retry counts from Playwright JSON artifacts (results.json has
+//   per-test retry arrays). GitHub Actions has no native per-test API —
+//   the source of truth is the artifact reports we download.
+
+phase('Collect metrics')
+
+const metricsResult = await agent(
+  `Collect flakiness metrics for E2E CI runs in ${REPO} over the last ${DAYS} days.
+
+## Runs to analyze
+${JSON.stringify(runsResult.runs, null, 2)}
+
+## Part 1 — Workflow-level metrics (from runs data above, no new gh calls needed)
+
+Group runs by workflowName. For each workflow compute:
+- totalRuns: count of runs in the window
+- rerunCount: runs where attempt > 1 (were manually or automatically re-triggered)
+- rerunRate: rerunCount / totalRuns (as 0–1 float, round to 2dp)
+- failureCount: runs with conclusion == "failure"
+
+## Part 2 — Test-level metrics (requires downloading artifacts)
+
+For each run with conclusion=="failure" OR hadRetries==true, download the playwright-report artifacts and extract per-test retry data:
+
+\`\`\`bash
+# Download report for a run (skip if already present)
+gh run download <run-id> --repo ${REPO} -D ${ARTIFACTS_ROOT}/develop/<run-id> --pattern "playwright-report*" 2>/dev/null || true
+
+# Find Playwright JSON results (contains per-test retry arrays)
+find ${ARTIFACTS_ROOT}/develop/<run-id> -name "*.json" -path "*/test-results/*" | head -5
+find ${ARTIFACTS_ROOT}/develop/<run-id> -name "results.json" | head -5
+\`\`\`
+
+Parse each results JSON. Playwright result format has tests with a \`results\` array — each element is one attempt. Length > 1 means retries occurred. A test that eventually passed (last result status=="passed") but had retries is retry-masked flakiness.
+
+\`\`\`bash
+python3 - <<'PY'
+import glob, json, collections
+retry_counts = collections.Counter()
+fail_counts = collections.Counter()
+run_counts = collections.Counter()
+for path in glob.glob('${ARTIFACTS_ROOT}/develop/**/results.json', recursive=True):
+    try:
+        data = json.load(open(path))
+        # Playwright JSON: data.suites -> nested -> specs -> tests -> results[]
+        def walk(node):
+            for suite in node.get('suites', []):
+                walk(suite)
+            for spec in node.get('specs', []):
+                for test in spec.get('tests', []):
+                    title = spec.get('title', 'unknown')
+                    results = test.get('results', [])
+                    run_counts[title] += 1
+                    if len(results) > 1:
+                        retry_counts[title] += len(results) - 1
+                    if results and results[-1].get('status') not in ('passed', 'skipped'):
+                        fail_counts[title] += 1
+        walk(data)
+    except Exception as e:
+        pass
+all_tests = set(list(retry_counts.keys()) + list(fail_counts.keys()))
+for t in sorted(all_tests, key=lambda x: -(retry_counts[x] + fail_counts[x]))[:30]:
+    print(json.dumps({'test': t, 'retries': retry_counts[t], 'fails': fail_counts[t], 'runs': run_counts[t]}))
+PY
+\`\`\`
+
+Collect test metrics for any test with retryCount > 0 or failCount > 0. Compute retryRate = retryCount / totalRuns (0–1 float).
+
+Return both workflowMetrics and testMetrics sorted by rerunRate/retryRate descending.`,
+  { label: 'collect:metrics', phase: 'Collect metrics', schema: METRICS_SCHEMA }
+)
+
+const metricsData = metricsResult || { workflowMetrics: [], testMetrics: [] }
+log(`Metrics: ${metricsData.workflowMetrics.length} workflows, ${metricsData.testMetrics.length} tests with retries/failures`)
+
+// =====================================================================
+// PHASE 3: CLUSTER FAILURES
 // =====================================================================
 
 phase('Cluster failures')
@@ -469,6 +585,9 @@ const reportResult = await agent(
 - Repo: https://github.com/${REPO}
 - Artifacts root: ${ARTIFACTS_ROOT}/develop/
 
+## Metrics
+${JSON.stringify(metricsData, null, 2)}
+
 ## Hypotheses
 ${JSON.stringify(hypothesesResult.hypotheses, null, 2)}
 
@@ -491,6 +610,20 @@ Report format — apply /concise style (fragments, not full sentences; cut redun
 # Flakiness Review — <DAYS>-day lookback
 
 > Generated <date>. Review findings below; run \`/flakiness-review create-wis\` to create approved items.
+
+## Metrics
+
+### Workflow rerun rates
+| Workflow | Runs | Reruns | Rerun rate | Failures |
+|----------|------|--------|-----------|----------|
+| ...      |      |        |           |          |
+
+### Test retry rates (top flaky tests)
+| Test | Runs | Retries | Retry rate | Failures |
+|------|------|---------|-----------|----------|
+| ...  |      |         |           |          |
+
+_Retry rate = retries / runs. A test with retry rate > 0 is flaky even if it never fully failed._
 
 ## Resolved / filtered
 _Brief bullet per filtered cluster — what it was, why dismissed (e.g. "playwright bump fallout, last seen Jun 14, resolved by #7490")_
