@@ -10,6 +10,7 @@ export const meta = {
     { title: 'Assess prior WIs' },
     { title: 'Hypothesize' },
     { title: 'Draft WIs' },
+    { title: 'Write report' },
   ],
 }
 
@@ -446,20 +447,97 @@ if (!wiDraftsResult || !wiDraftsResult.drafts.length) {
   return { hypotheses: hypothesesResult.hypotheses, wis: [] }
 }
 
-// Present to user for confirmation before creating
-log(`\n${'='.repeat(60)}\nFLAKINESS REVIEW COMPLETE\n${'='.repeat(60)}\n`)
-log(`Proposed ${wiDraftsResult.drafts.length} WI(s) in epic IDE e2e improvements (${EDE_EPIC_ID}):\n`)
+// =====================================================================
+// PHASE 7: WRITE REPORT
+// =====================================================================
 
-wiDraftsResult.drafts.forEach((d, i) => {
-  log(`\n--- WI ${i + 1} ---`)
-  log(`Subject: ${d.subject}`)
-  log(`Details:\n${d.details}`)
-})
+phase('Write report')
 
-log(`\nReview the drafts above. To create them, confirm via the gus-cli skill (safety rule: write only after explicit confirmation).`)
+// Report lives next to artifacts, named by date so multiple runs don't collide.
+// Use a fixed timestamp passed via args so the filename is deterministic on resume.
+const reportTs = (args && args.reportTs) || 'latest'
+const reportDir = `${ARTIFACTS_ROOT}/flakiness-reports`
+const reportPath = `${reportDir}/flakiness-review-${reportTs}.md`
+
+const reportResult = await agent(
+  `Write a human-reviewable flakiness review report as a concise markdown file.
+
+## Context
+- Lookback: ${DAYS} days
+- Filtered/resolved clusters: ${resolvedResult ? resolvedResult.resolvedSummary : 'none'}
+- Active clusters analyzed: ${topClusters.length}
+- Repo: https://github.com/${REPO}
+- Artifacts root: ${ARTIFACTS_ROOT}/develop/
+
+## Hypotheses
+${JSON.stringify(hypothesesResult.hypotheses, null, 2)}
+
+## Artifact findings (per cluster)
+${artifactSummaries.map((s, i) => `### Cluster ${i}: ${topClusters[i]?.testName}\n${s}`).join('\n\n')}
+
+## Prior WI attempts
+${JSON.stringify(priorAttempts, null, 2)}
+
+## Draft WIs
+${JSON.stringify(wiDraftsResult.drafts, null, 2)}
+
+---
+
+Write the report to \`${reportPath}\`. Create \`${reportDir}\` if needed.
+
+Report format — apply /concise style (fragments, not full sentences; cut redundancy):
+
+\`\`\`
+# Flakiness Review — <DAYS>-day lookback
+
+> Generated <date>. Review findings below; run \`/flakiness-review create-wis\` to create approved items.
+
+## Resolved / filtered
+_Brief bullet per filtered cluster — what it was, why dismissed (e.g. "playwright bump fallout, last seen Jun 14, resolved by #7490")_
+
+## Active findings
+
+### 1. <Test name> — <root cause in ≤8 words>
+**Seen:** N times across runs <runId1>, <runId2>
+**Retry-masked:** yes/no
+**Error:** \`<exact error message, truncated at 120 chars>\`
+**Evidence:** [screenshot](<relative path>) · [video frame](<relative path>) · [span: <span name>]
+**Prior attempts:** W-XXXXX (<what it did>, <still flaky?>)
+**Code:** \`<file>:<line>\` — <what's wrong>
+**Proposed fix:** <concrete 1-2 sentence description — name the function/assertion/helper to change>
+
+---
+_repeat per finding_
+
+## Proposed WIs
+| # | Subject | Points |
+|---|---------|--------|
+| 1 | [ai-auto] e2e: ... | — |
+| 2 | ... | — |
+
+_To create: confirm with "create all" or "create 1,3" after reviewing findings above._
+\`\`\`
+
+Rules:
+- All artifact links must be relative paths from the repo root (e.g. \`.e2e-artifacts/develop/12345/playwright-report/index.html\`)
+- Link to the HTML playwright report if present: \`.e2e-artifacts/develop/<runId>/playwright-report/index.html\`
+- Link to screenshots/frames using relative markdown image syntax: \`![desc](.e2e-artifacts/...)\`
+- Code references: use \`packages/<pkg>/test/playwright/specs/<file>.ts:<line>\` format if you can identify it from the error stack
+- If a prior WI's PR is known, link it: [W-XXXXX](https://github.com/${REPO}/pull/<pr>)
+- Skip sections with nothing to say (no prior attempts → omit that row)
+- Use a horizontal rule between findings
+- Keep the whole report under ~150 lines
+
+After writing the file, return the report path and a one-sentence summary of findings.`,
+  { label: 'write:report', phase: 'Write report' }
+)
+
+log(`Report written: ${reportPath}`)
+log(`To create WIs: review ${reportPath} then confirm "create all" or "create N,M"`)
 
 return {
   hypotheses: hypothesesResult.hypotheses,
   drafts: wiDraftsResult.drafts,
   epicId: EDE_EPIC_ID,
+  reportPath,
 }

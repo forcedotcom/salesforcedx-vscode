@@ -25,10 +25,20 @@ All new WIs → epic `a3QEE000002AZ8D2AW` (IDE e2e improvements). Subject prefix
 
 1. **Scan** — GHA Playwright E2E runs on `develop`, last N days
 2. **Cluster** — group failures by test name + error pattern; include retry-masked (passed after retries)
-3. **Download artifacts** — top clusters: screenshots, video frames (ffmpeg), span JSONL
-4. **Assess prior WIs** — EDE epic closed WIs → linked merged PRs → diffs → still flaky?
-5. **Hypothesize** — evidence-backed root-cause per cluster (cite artifact + run)
-6. **Draft WIs** — one WI per hypothesis; present for confirmation before creating
+3. **Filter resolved** — drop clusters whose last occurrence predates the midpoint of the window and whose recent runs are clean (e.g. playwright/vscode bump fallout already fixed)
+4. **Download artifacts** — top clusters: screenshots, video frames (ffmpeg), span JSONL
+5. **Assess prior WIs** — EDE epic closed WIs → linked merged PRs → diffs → still flaky?
+6. **Hypothesize** — evidence-backed root-cause per cluster (cite artifact + run)
+7. **Draft WIs** — one WI per hypothesis
+8. **Write report** — concise markdown at `.e2e-artifacts/flakiness-reports/flakiness-review-<ts>.md` with linked artifacts, code references, prior WI links, and proposed WI table
+
+## Output
+
+Report: `.e2e-artifacts/flakiness-reports/flakiness-review-<ts>.md`
+- Links to screenshots/video frames inline
+- Code file:line references for each finding
+- Prior WI links (GitHub PR + GUS WI name)
+- Proposed WI table at bottom — confirm "create all" or "create 1,3" to create
 
 ## Reference commands
 
