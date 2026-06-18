@@ -10,6 +10,7 @@ export const meta = {
     { title: 'Download artifacts' },
     { title: 'Assess prior WIs' },
     { title: 'Hypothesize' },
+    { title: 'Challenge' },
     { title: 'Draft WIs' },
     { title: 'Write report' },
   ],
@@ -157,6 +158,17 @@ const METRICS_SCHEMA = {
         },
       },
     },
+  },
+}
+
+const VERDICT_SCHEMA = {
+  type: 'object',
+  required: ['refuted', 'reason', 'unsupportedClaims', 'survivingClaim'],
+  properties: {
+    refuted: { type: 'boolean' },
+    reason: { type: 'string' },
+    unsupportedClaims: { type: 'array', items: { type: 'string' } },
+    survivingClaim: { type: 'string' },
   },
 }
 
@@ -525,10 +537,90 @@ if (!hypothesesResult || !hypothesesResult.hypotheses.length) {
   return { hypotheses: [], wis: [] }
 }
 
-log(`Formed ${hypothesesResult.hypotheses.length} hypotheses. Drafting WIs...`)
+log(`Formed ${hypothesesResult.hypotheses.length} hypotheses. Challenging each...`)
 
 // =====================================================================
-// PHASE 6: DRAFT WIs
+// PHASE 6: CHALLENGE
+// =====================================================================
+// One adversarial agent per hypothesis. Its job is to REFUTE the claim
+// by going back to the artifact files and the repo source. Rules:
+//   - Every retained claim must be cited to a file:line or artifact path
+//   - No reasoning from "likely", "probably", or VS Code internals unless
+//     the source code is publicly readable and the agent can verify it
+//   - If the screenshot/artifact does NOT show what the hypothesis claims,
+//     refuted=true
+//   - If the proposed fix addresses a different failure mode than what the
+//     artifact actually shows, refuted=true
+//   - unsupportedClaims: list every sentence in the hypothesis that is
+//     asserted without a citable source in this repo or the downloaded artifact
+
+phase('Challenge')
+
+const verdicts = await parallel(
+  hypothesesResult.hypotheses.map((h, i) => () => agent(
+    `You are an adversarial reviewer. Your job is to REFUTE this flakiness hypothesis if you can.
+Default to refuted=true if you are uncertain.
+
+## Hypothesis
+Test: ${h.testName}
+Root cause: ${h.rootCause}
+Evidence cited: run ${h.evidence.runId}, artifact ${h.evidence.artifactPath}, error: "${h.evidence.failureMessage}"
+Proposed fix: ${h.proposedFix}
+
+## Your task
+
+1. Open the cited artifact and read it:
+\`\`\`bash
+cat "${h.evidence.artifactPath}" 2>/dev/null || echo "FILE NOT FOUND"
+# Also look for screenshots in the same directory:
+ls $(dirname "${h.evidence.artifactPath}")/*.png 2>/dev/null | head -5
+\`\`\`
+
+2. Read the cited source file(s) if a file:line is mentioned in rootCause or proposedFix:
+\`\`\`bash
+# e.g. grep -n "relevant term" packages/.../spec.ts | head -20
+\`\`\`
+
+3. For every causal claim in rootCause, ask:
+   - Is this directly visible in the artifact/screenshot? If not, is it in a file in this repo?
+   - If neither, it is unsupported — list it.
+
+4. Ask: does the proposed fix actually address what the artifact shows went wrong?
+   - If the artifact shows failure mode X but the fix targets failure mode Y, refuted=true.
+
+5. Ask: does the hypothesis conflate two separate failure modes into one root cause?
+   - If yes, note it in reason and set refuted=true.
+
+Rules:
+- Do NOT cite VS Code internals, browser behavior, or CSS unless you can point to a public VS Code source file URL or a file in this repo that documents it
+- "The screenshot shows..." is a valid citation if you actually read the screenshot
+- "VS Code probably does X" is not a valid citation — mark it unsupported
+- survivingClaim: the minimum claim that IS supported by artifacts/repo files (may be empty string if nothing survives)`,
+    { label: `challenge:${i}:${h.testName.slice(0, 25)}`, phase: 'Challenge', schema: VERDICT_SCHEMA }
+  ))
+)
+
+const confirmedHypotheses = hypothesesResult.hypotheses
+  .map((h, i) => ({ h, verdict: verdicts[i] }))
+  .filter(({ verdict }) => verdict && !verdict.refuted)
+  .map(({ h, verdict }) => ({ ...h, survivingClaim: verdict.survivingClaim }))
+
+const refutedSummary = hypothesesResult.hypotheses
+  .map((h, i) => ({ h, verdict: verdicts[i] }))
+  .filter(({ verdict }) => verdict && verdict.refuted)
+  .map(({ h, verdict }) => `- **${h.testName}**: ${verdict.reason}`)
+  .join('\n')
+
+if (refutedSummary) log(`Refuted:\n${refutedSummary}`)
+log(`${confirmedHypotheses.length} of ${hypothesesResult.hypotheses.length} hypotheses survived challenge.`)
+
+if (!confirmedHypotheses.length) {
+  log('No hypotheses survived adversarial review — nothing to draft.')
+  return { hypotheses: [], refuted: refutedSummary, wis: [] }
+}
+
+// =====================================================================
+// PHASE 7: DRAFT WIs
 // =====================================================================
 
 phase('Draft WIs')
@@ -536,8 +628,8 @@ phase('Draft WIs')
 const wiDraftsResult = await agent(
   `Draft GUS work items for E2E flakiness fixes.
 
-## Hypotheses
-${JSON.stringify(hypothesesResult.hypotheses, null, 2)}
+## Hypotheses (adversarially verified — unsupported claims stripped)
+${JSON.stringify(confirmedHypotheses, null, 2)}
 
 ## Prior WI attempts (for context — don't duplicate)
 ${JSON.stringify(priorAttempts, null, 2)}
@@ -560,7 +652,7 @@ Return the draft list.`,
 
 if (!wiDraftsResult || !wiDraftsResult.drafts.length) {
   log('No WI drafts produced.')
-  return { hypotheses: hypothesesResult.hypotheses, wis: [] }
+  return { hypotheses: confirmedHypotheses, refuted: refutedSummary, wis: [] }
 }
 
 // =====================================================================
@@ -588,8 +680,11 @@ const reportResult = await agent(
 ## Metrics
 ${JSON.stringify(metricsData, null, 2)}
 
-## Hypotheses
-${JSON.stringify(hypothesesResult.hypotheses, null, 2)}
+## Confirmed hypotheses (survived adversarial challenge)
+${JSON.stringify(confirmedHypotheses, null, 2)}
+
+## Refuted hypotheses
+${refutedSummary || 'none'}
 
 ## Artifact findings (per cluster)
 ${artifactSummaries.map((s, i) => `### Cluster ${i}: ${topClusters[i]?.testName}\n${s}`).join('\n\n')}
@@ -626,7 +721,10 @@ Report format — apply /concise style (fragments, not full sentences; cut redun
 _Retry rate = retries / runs. A test with retry rate > 0 is flaky even if it never fully failed._
 
 ## Resolved / filtered
-_Brief bullet per filtered cluster — what it was, why dismissed (e.g. "playwright bump fallout, last seen Jun 14, resolved by #7490")_
+_Brief bullet per filtered cluster — what it was, why dismissed_
+
+## Refuted findings
+_Brief bullet per hypothesis that failed adversarial challenge — what claim couldn't be cited, what the artifact actually showed_
 
 ## Active findings
 
@@ -669,7 +767,8 @@ log(`Report written: ${reportPath}`)
 log(`To create WIs: review ${reportPath} then confirm "create all" or "create N,M"`)
 
 return {
-  hypotheses: hypothesesResult.hypotheses,
+  hypotheses: confirmedHypotheses,
+  refuted: refutedSummary,
   drafts: wiDraftsResult.drafts,
   epicId: EDE_EPIC_ID,
   reportPath,
