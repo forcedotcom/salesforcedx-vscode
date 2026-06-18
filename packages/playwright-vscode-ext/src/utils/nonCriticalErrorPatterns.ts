@@ -81,6 +81,7 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   'UtilityProcessWorker', // Electron utility process worker SIGSEGV/code-11 noise on macOS desktop tests
   'File Watcher (universal)', // VS Code file watcher restarts after the worker crash above (paired noise)
   'DEP0169', // Node.js url.parse() deprecation warning from transitive dependencies (non-critical)
+  'DEP0190', // Node.js child_process shell-option args deprecation warning from transitive dependencies (non-critical)
   // VS Code 1.119+ web: workbench tries to instantiate agentHostSandboxForwarder which requires a
   // remote connection that doesn't exist in @vscode/test-web. Tracked upstream:
   // https://github.com/microsoft/vscode/issues/318222
