@@ -34,7 +34,7 @@ You've caught us in the middle of a giant transition, so apologies for how confu
 
 This repo is owned by Extensions team (IDE Experience, aka IDE Foundations). You probably don't want your code here if you're building a new extension. You **might** want your code here if you're adding a feature that closely ties to something already here (ex: Apex or LWC).
 
-There are other extensions (code-analyzer, or the vibe coding extension) that live in other repos, then build/bundle/package/publish from their repo, and are included in one of our extension packs.
+There are other extensions (code-analyzer, the vibe coding extension, or vibes autocomplete) that live in other repos, then build/bundle/package/publish from their repo, and are included in one of our extension packs.
 
 Whether you intend to build a new extension, or a feature, or want to be included in the pack, it's worth talking to us in advance.
 
