@@ -94,6 +94,6 @@ const deployCommand = Effect.fn('deploy')(function* () {
   const actions = [
     { label: nls.localize('view_details'), run: () => { /* show details */ } }
   ];
-  notificationApi.showSuccessNotification('deploy', message, !!requestId, actions);
+  yield* Effect.sync(() => notificationApi.showSuccessNotification('deploy', message, !!requestId, actions));
 });
 ```

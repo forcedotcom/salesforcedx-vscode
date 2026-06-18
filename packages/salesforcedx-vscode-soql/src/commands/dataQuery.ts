@@ -11,7 +11,11 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
+import { type CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
+
+const COMMAND: CommandKey = messages.soql_query_execution_text;
 
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
@@ -35,7 +39,7 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
     vscode.window.withProgress(
       {
         cancellable: false,
-        location: vscode.ProgressLocation.Notification,
+        location: getProgressLocation(COMMAND),
         title: nls.localize('progress_running_query')
       },
       () =>
@@ -56,21 +60,17 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   const fileUri = Utils.joinPath(workspaceUri, '.sfdx', 'data', fileName);
   yield* api.services.FsService.writeFile(fileUri, csvContent);
 
-  // Show success message with clickable file link
-  const openFileAction = nls.localize('data_query_open_file');
-  yield* Effect.promise(() =>
-    vscode.window
-      .showInformationMessage(
-        nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath),
-        openFileAction
-      )
-      .then(selection => {
-        if (selection === openFileAction) {
-          vscode.workspace.openTextDocument(fileUri).then(doc => {
-            vscode.window.showTextDocument(doc);
-          });
+  const successMessage = nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath);
+  yield* Effect.sync(() =>
+    showSuccessNotification(COMMAND, successMessage, true, [
+      {
+        label: nls.localize('data_query_open_file'),
+        run: async () => {
+          const doc = await vscode.workspace.openTextDocument(fileUri);
+          await vscode.window.showTextDocument(doc);
         }
-      })
+      }
+    ])
   );
 });
 
