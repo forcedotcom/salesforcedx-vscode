@@ -9,7 +9,7 @@ Periodic audit of E2E test flakiness. Goal: data-driven root causes, not workaro
 
 ## Trigger
 
-`/flakiness-review` — optional `days=N` (default: 7). **Always invoke workflow `flakiness-review.js`.** Do not inline.
+`/flakiness-review` — optional `days=N` (default: 7). **Always invoke workflow `flakiness-review.js`.** Do not inline. Warn the user before launching: this takes 30–60 minutes.
 
 ## Constraints
 

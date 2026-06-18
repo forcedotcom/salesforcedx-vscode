@@ -20,6 +20,8 @@ export const meta = {
 // CONSTANTS
 // =====================================================================
 
+log('Flakiness review started — expect 30–60 minutes. Use /workflows to watch progress.')
+
 const DAYS = (args && args.days) || 7
 const EDE_EPIC_ID = 'a3QEE000002AZ8D2AW'
 const REPO = 'forcedotcom/salesforcedx-vscode'
