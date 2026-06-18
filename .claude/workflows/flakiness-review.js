@@ -5,6 +5,7 @@ export const meta = {
   phases: [
     { title: 'Scan CI runs' },
     { title: 'Cluster failures' },
+    { title: 'Filter resolved' },
     { title: 'Download artifacts' },
     { title: 'Assess prior WIs' },
     { title: 'Hypothesize' },
@@ -209,10 +210,71 @@ if (!clustersResult || !clustersResult.clusters.length) {
 
 log(`Found ${clustersResult.clusters.length} failure clusters. Top: ${clustersResult.clusters[0].testName}`)
 
-const topClusters = clustersResult.clusters.slice(0, MAX_ARTIFACT_CLUSTERS)
+// =====================================================================
+// PHASE 3: FILTER TRENDING-RESOLVED CLUSTERS
+// =====================================================================
+// A cluster is "trending resolved" if:
+//   - Its most recent occurrence is older than half the lookback window, AND
+//   - The most recent N runs of that workflow all succeeded without retries
+// These were likely fixed by a recent code/dep change — don't propose new WIs.
+
+phase('Filter resolved')
+
+const RESOLVED_SCHEMA = {
+  type: 'object',
+  required: ['activeClusterIndices', 'resolvedSummary'],
+  properties: {
+    activeClusterIndices: { type: 'array', items: { type: 'number' } },
+    resolvedSummary: { type: 'string' },
+  },
+}
+
+const resolvedResult = await agent(
+  `Determine which failure clusters are "trending resolved" — likely fixed by a recent code or dependency change — and should be excluded from further investigation.
+
+## Clusters to evaluate
+${JSON.stringify(clustersResult.clusters, null, 2)}
+
+## All runs (with dates and conclusions)
+${JSON.stringify(runsResult.runs, null, 2)}
+
+## Lookback window: ${DAYS} days
+
+A cluster is trending-resolved if BOTH:
+1. Its most recent failure (latest runId) is from the first half of the lookback window (older than ${Math.floor(DAYS / 2)} days ago), AND
+2. The workflow runs in the second half of the window all show conclusion=="success" and attempt==1 (no reruns)
+
+Also treat as resolved if the failure pattern is clearly tied to a known-fixed external cause:
+- Playwright version bumps (test failures mentioning "locator" or "element" API changes that then disappear)
+- VS Code version bumps (failures mentioning chromium, vscode api, extension activation that then disappear)
+- Any cluster whose runIds are all older than 2 days and haven't recurred
+
+For each cluster, check the run dates and recent workflow conclusions. Use the runs list above (don't make new gh calls for this phase — use what you already have).
+
+Return:
+- activeClusterIndices: indices (0-based) of clusters that are still active and need investigation
+- resolvedSummary: brief description of what was filtered out and why (e.g. "2 clusters filtered: playwright bump fallout resolved after PR #7490, last seen 2026-06-14")`,
+  { label: 'filter:resolved', phase: 'Filter resolved', schema: RESOLVED_SCHEMA }
+)
+
+const activeIndices = resolvedResult ? resolvedResult.activeClusterIndices : clustersResult.clusters.map((_, i) => i)
+const activeClusters = activeIndices.map(i => clustersResult.clusters[i]).filter(Boolean)
+
+if (resolvedResult && resolvedResult.resolvedSummary) {
+  log(`Filtered: ${resolvedResult.resolvedSummary}`)
+}
+
+if (!activeClusters.length) {
+  log('All failure clusters appear to be trending resolved — no active flakiness to investigate.')
+  return { hypotheses: [], wis: [], resolvedSummary: resolvedResult && resolvedResult.resolvedSummary }
+}
+
+log(`${activeClusters.length} active cluster(s) after filtering resolved issues.`)
+
+const topClusters = activeClusters.slice(0, MAX_ARTIFACT_CLUSTERS)
 
 // =====================================================================
-// PHASE 3: DOWNLOAD ARTIFACTS + PHASE 4: ASSESS PRIOR WIs (parallel)
+// PHASE 4: DOWNLOAD ARTIFACTS + PHASE 5: ASSESS PRIOR WIs (parallel)
 // =====================================================================
 
 phase('Download artifacts')
