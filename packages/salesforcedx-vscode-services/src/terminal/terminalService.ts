@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 
@@ -17,20 +18,29 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
   accessors: false,
   effect: Effect.succeed({
     /** Execute a shell command and parse its stdout. Desktop-only; fails with TerminalServiceError on web. stdout is trimmed before parsing.
-     * `timeoutMs` (default 30_000) bounds the child process; pass a larger value for long-running commands (e.g. org delete). */
-    simpleExec: (command: string, parse: (stdout: string) => string = s => s, timeoutMs = 30_000) =>
-      process.env.ESBUILD_PLATFORM === 'web'
-        ? Effect.fail(new TerminalServiceError({ message: 'Not available on web', command }))
-        : Effect.tryPromise({
-            try: async () => {
-              const { exec } = await import('node:child_process');
-              const { promisify } = await import('node:util');
-              return promisify(exec)(command, { timeout: timeoutMs });
-            },
-            catch: e => new TerminalServiceError({ message: e instanceof Error ? e.message : 'exec failed', command })
-          }).pipe(
-            Effect.map(result => parse(result.stdout.trim())),
-            Effect.withSpan('TerminalService.simpleExec', { attributes: { command } })
-          )
+     * `timeout` (default 30s) bounds the child process; pass a larger Duration for long-running commands (e.g. org delete). */
+    simpleExec: Effect.fn('TerminalService.simpleExec')(function* ({
+      command,
+      parse = s => s,
+      timeout = Duration.millis(30_000)
+    }: {
+      command: string;
+      parse?: (stdout: string) => string;
+      timeout?: Duration.DurationInput;
+    }) {
+      yield* Effect.annotateCurrentSpan('command', command);
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        return yield* Effect.fail(new TerminalServiceError({ message: 'Not available on web', command }));
+      }
+      const result = yield* Effect.tryPromise({
+        try: async () => {
+          const { exec } = await import('node:child_process');
+          const { promisify } = await import('node:util');
+          return promisify(exec)(command, { timeout: Duration.toMillis(timeout) });
+        },
+        catch: e => new TerminalServiceError({ message: e instanceof Error ? e.message : 'exec failed', command })
+      });
+      return parse(result.stdout.trim());
+    })
   })
 }) {}
