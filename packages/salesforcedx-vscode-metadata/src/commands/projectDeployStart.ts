@@ -9,12 +9,13 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = 'SFDX: Push Source to Default Org';
+const COMMAND: CommandKey = messages.project_deploy_start_default_org_text;
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

@@ -11,12 +11,13 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { type CommandKey } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = 'SFDX: Deploy This Source to Org';
+const COMMAND: CommandKey = messages.deploy_this_source_text;
 
 // shared logic for both the editor command and the uri command
 const deployUris = Effect.fn('deploySourcePath.deployUris')(

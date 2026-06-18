@@ -10,13 +10,14 @@ import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { type CommandKey } from '../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 import { ManifestSelectionRequiredError } from './manifestErrors';
 
-const COMMAND: CommandKey = 'SFDX: Deploy Source in Manifest to Org';
+const COMMAND: CommandKey = messages.deploy_in_manifest_text;
 
 export const deployManifestCommand = Effect.fn('deployManifestCommand')(
   function* (manifestUri?: URI) {

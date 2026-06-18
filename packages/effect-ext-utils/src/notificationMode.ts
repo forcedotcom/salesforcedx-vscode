@@ -48,7 +48,11 @@ const showTransientStatusBarMessage = (statusBarId: string, statusBarName: strin
 };
 
 export type NotificationModeApi<CommandKey extends string> = {
-  showSuccessNotification: (command: CommandKey, message: string) => void;
+  /** Show a success notification for `command`.
+   * `forceShow` overrides `*SuccessOff` modes: toast-progress modes show a toast,
+   * status-bar-progress modes show in the status bar. Use only when the message
+   * contains information the user must see (e.g. a request ID). */
+  showSuccessNotification: (command: CommandKey, message: string, forceShow?: boolean) => void;
   getProgressLocation: (command: CommandKey) => vscode.ProgressLocation;
 };
 
@@ -84,14 +88,19 @@ export const createNotificationMode = <CommandKey extends string>(
       .get<CommandNotificationMode>(GLOBAL_KEY, 'progressToastSuccessToast');
 
   return {
-    showSuccessNotification: (command: CommandKey, message: string): void => {
+    showSuccessNotification: (command: CommandKey, message: string, forceShow = false): void => {
       const mode = getCommandNotificationMode(command);
-      if (mode === 'progressStatusBarSuccessStatusBar') {
+      const effectiveMode =
+        forceShow && mode === 'progressToastSuccessOff'
+          ? 'progressToastSuccessToast'
+          : forceShow && mode === 'progressStatusBarSuccessOff'
+            ? 'progressStatusBarSuccessStatusBar'
+            : mode;
+      if (effectiveMode === 'progressStatusBarSuccessStatusBar') {
         showTransientStatusBarMessage(statusBarId, statusBarName, message);
-      } else if (mode === 'progressToastSuccessToast') {
+      } else if (effectiveMode === 'progressToastSuccessToast') {
         void vscode.window.showInformationMessage(message);
       }
-      // progressToastSuccessOff and progressStatusBarSuccessOff: no success notification
     },
     getProgressLocation: (command: CommandKey): vscode.ProgressLocation => {
       const mode = getCommandNotificationMode(command);

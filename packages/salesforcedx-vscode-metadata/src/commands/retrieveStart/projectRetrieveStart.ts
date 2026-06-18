@@ -9,13 +9,14 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
+import { messages } from '../../messages/i18n';
 import { formatRetrieveOutput } from '../../shared/retrieve/formatRetrieveOutput';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
 import { type CommandKey, showSuccessNotification } from '../../utils/notificationMode';
 import { withConfigurableSuccessNotification } from '../../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = 'SFDX: Pull Source from Default Org';
+const COMMAND: CommandKey = messages.project_retrieve_start_default_org_text;
 
 /**
  * Apply remote deletes and retrieve non-deletes. Skips retrieve when only deletes exist.

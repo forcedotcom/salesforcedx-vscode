@@ -165,7 +165,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package",
+      "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -537,6 +537,22 @@
                 "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_deploy_on_save_description%"
+            },
+            "SFDX: Install Package": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_install_package_description%"
             }
           },
           "additionalProperties": false
