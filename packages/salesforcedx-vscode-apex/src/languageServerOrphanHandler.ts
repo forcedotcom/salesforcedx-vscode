@@ -71,7 +71,7 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
     const hasPowershell = yield* terminal
       .simpleExec('where powershell', s => s)
       .pipe(
-        Effect.map(stdout => stdout.trim().length > 0),
+        Effect.map(stdout => stdout.length > 0),
         Effect.catchTag('TerminalServiceError', e => {
           telemetryService.sendException('apex_lsp_orphan', e.message);
           return Effect.succeed(false);
@@ -116,10 +116,9 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
         message: e instanceof Error ? e.message : 'unknown'
       })
   }).pipe(
-    // bounded: 3 attempts total (initial + 2 retries); exponential alone would retry indefinitely
     Effect.retry(Schedule.exponential('2 seconds').pipe(Schedule.intersect(Schedule.recurs(2)))),
+    Effect.withSpan('apex.orphan.killOne.succeeded', { attributes: { pid: processInfo.pid } }),
     Effect.tap(() => {
-      getTelemetryService().sendEventData(APEX_LSP_ORPHAN, undefined, { terminateSuccessful: 1 });
       showProcessTerminated(processInfo);
       return Effect.void;
     }),
@@ -138,11 +137,11 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
   const orphanedProcesses = yield* findOrphanedProcesses().pipe(
     Effect.catchTags({
       ServicesExtensionNotFoundError: e => {
-        telemetryService.sendException(APEX_LSP_ORPHAN, e._tag);
+        telemetryService.sendException(APEX_LSP_ORPHAN, String(e));
         return Effect.succeed<ProcessDetail[]>([]);
       },
       InvalidServicesApiError: e => {
-        telemetryService.sendException(APEX_LSP_ORPHAN, e.cause?.message ?? e._tag);
+        telemetryService.sendException(APEX_LSP_ORPHAN, e.cause?.message ?? String(e));
         return Effect.succeed<ProcessDetail[]>([]);
       }
     })
@@ -157,20 +156,11 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
     Effect.catchTag('UserCancellationError', () => Effect.succeed(false))
   );
 
+  yield* Effect.annotateCurrentSpan('didTerminate', shouldTerminate ? 1 : 0);
+
   if (!shouldTerminate) {
-    yield* Effect.annotateCurrentSpan('didTerminate', 0);
-    telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, {
-      orphanCount: orphanedProcesses.length,
-      didTerminate: 0
-    });
     return;
   }
-
-  yield* Effect.annotateCurrentSpan('didTerminate', 1);
-  telemetryService.sendEventData(APEX_LSP_ORPHAN, undefined, {
-    orphanCount: orphanedProcesses.length,
-    didTerminate: 1
-  });
 
   yield* Effect.forEach(orphanedProcesses, killOne, { concurrency: 1 });
 });
@@ -192,16 +182,13 @@ const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProces
   ).pipe(Effect.flatMap((yield* api.services.PromptService).considerUndefinedAsCancellation));
 
   if (requestsTermination(choice)) {
-    const confirmed: Resolution = yield* terminationConfirmation(orphanedCount);
-    return confirmed;
+    return yield* terminationConfirmation(orphanedCount);
   }
   if (showProcesses(choice)) {
     showOrphansInChannel(orphanedProcesses);
-    const keepGoing: Resolution = 'continue';
-    return keepGoing;
+    return 'continue';
   }
-  const declined: Resolution = false;
-  return declined;
+  return false;
 });
 
 /**
@@ -211,12 +198,13 @@ const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProces
 const getResolutionForOrphanProcesses = Effect.fn('apex.orphan.getResolution')(function* (
   orphanedProcesses: ProcessDetail[]
 ) {
-  const initial: Resolution = 'continue';
-  const resolution = yield* Effect.iterate(initial, {
-    while: state => state === 'continue',
-    body: () => promptOnce(orphanedProcesses)
-  });
-  return resolution === true;
+  const initialState: Resolution = 'continue';
+  return (
+    (yield* Effect.iterate(initialState, {
+      while: state => state === 'continue',
+      body: () => promptOnce(orphanedProcesses)
+    })) === true
+  );
 });
 
 const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {

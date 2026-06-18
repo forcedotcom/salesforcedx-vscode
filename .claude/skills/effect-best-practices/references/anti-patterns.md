@@ -97,6 +97,25 @@ if (isMyType(someValue)) {
 }
 ```
 
+## FORBIDDEN: Accessing _tag Directly
+
+```typescript
+// FORBIDDEN
+telemetryService.sendException(APEX_LSP_ORPHAN, error._tag)
+const msg = `Error: ${error._tag}`
+```
+
+**Why:** `_tag` is internal; Shape can change. Use error-specific fields or String() conversion.
+
+**Correct:**
+```typescript
+// Use String() for generic error messages
+telemetryService.sendException(APEX_LSP_ORPHAN, String(error))
+
+// Or extract error-specific fields
+telemetryService.sendException(APEX_LSP_ORPHAN, error.message)
+```
+
 ## FORBIDDEN: Promise in Service Signatures
 
 ```typescript
