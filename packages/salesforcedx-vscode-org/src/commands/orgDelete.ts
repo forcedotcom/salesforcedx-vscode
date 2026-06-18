@@ -16,6 +16,7 @@ import {
   ContinueResponse,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Schema from 'effect/Schema';
@@ -138,7 +139,7 @@ class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] 
 }
 
 /** sf org delete can take longer than the default 30s simpleExec timeout. */
-const DELETE_TIMEOUT_MS = 120_000;
+const DELETE_TIMEOUT = Duration.seconds(120);
 
 class OrgNotDeletableError extends Schema.TaggedError<OrgNotDeletableError>()('OrgNotDeletableError', {
   message: Schema.String
@@ -170,11 +171,11 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   // the extension-host cwd (simpleExec runs without a workspace cwd, unlike the picker-based runDeleteCli)
   const targetOrgFlag = orgInfo.username ? ` --target-org ${orgInfo.username}` : '';
   const terminalService = yield* api.services.TerminalService;
-  const output = yield* terminalService.simpleExec(
-    `sf ${deleteSubcommand}${targetOrgFlag} --no-prompt`,
-    identity,
-    DELETE_TIMEOUT_MS
-  );
+  const output = yield* terminalService.simpleExec({
+    command: `sf ${deleteSubcommand}${targetOrgFlag} --no-prompt`,
+    parse: identity,
+    timeout: DELETE_TIMEOUT
+  });
 
   const channel = yield* api.services.ChannelService;
   yield* channel.appendToChannel(output);
