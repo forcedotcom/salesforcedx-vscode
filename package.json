@@ -38,7 +38,7 @@
     "@html-eslint/parser": "0.59.0",
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
-    "@playwright/test": "^1.60.0",
+    "@playwright/test": "^1.61.0",
     "@salesforce/apex-tmlanguage": "^2.0.3",
     "@salesforce/dev-config": "^4.3.2",
     "@secretlint/node": "11.7.1",
