@@ -48,6 +48,11 @@ const notificationApi = createNotificationMode(
 // Show success notification
 notificationApi.showSuccessNotification('commandKey', 'Success!');
 
+// Show success with action buttons
+notificationApi.showSuccessNotification('commandKey', 'Success!', false, [
+  { label: 'Open', run: () => { /* action handler */ } }
+]);
+
 // Get progress location for withProgress
 const location = notificationApi.getProgressLocation('commandKey');
 ```
@@ -58,7 +63,7 @@ Creates a configurable notification API for command execution feedback. Supports
 - `progressStatusBarSuccessStatusBar`: status bar progress, status bar success
 - `progressStatusBarSuccessOff`: status bar progress, hidden success
 
-Users configure per-command, per-extension, or globally via VS Code settings. Use `forceShow: true` to override `*SuccessOff` modes when the message has critical info (e.g., request ID).
+Action buttons appear in toast notifications and when status bar items are clicked. Users configure per-command, per-extension, or globally via VS Code settings. Use `forceShow: true` to override `*SuccessOff` modes when the message has critical info (e.g., request ID).
 
 See [NotificationModeApi reference](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.claude/skills/services-extension-consumption/references/notification-mode-api.md) for full details.
 

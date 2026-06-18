@@ -21,25 +21,50 @@ export type CommandNotificationMode =
   | 'progressStatusBarSuccessStatusBar'
   | 'progressStatusBarSuccessOff';
 
-const transientItems = new Map<
-  string,
-  { item: vscode.StatusBarItem; timeout: ReturnType<typeof setTimeout> | undefined }
->();
+/** An action button shown in a success toast, or when a status bar success notification is clicked. */
+export type ToastAction = { label: string; run: () => void | Promise<void> };
+
+type TransientState = {
+  item: vscode.StatusBarItem;
+  timeout: ReturnType<typeof setTimeout> | undefined;
+  pendingToast: { message: string; actions: ToastAction[] } | undefined;
+};
+
+const transientItems = new Map<string, TransientState>();
 
 const getTransientStatusBar = (statusBarId: string, statusBarName: string): vscode.StatusBarItem => {
   const existing = transientItems.get(statusBarId);
   if (existing) return existing.item;
+
   const item = vscode.window.createStatusBarItem(statusBarId, vscode.StatusBarAlignment.Left, 44);
   item.name = statusBarName;
-  transientItems.set(statusBarId, { item, timeout: undefined });
+
+  const commandId = `${statusBarId}.showToast`;
+  vscode.commands.registerCommand(commandId, async () => {
+    const state = transientItems.get(statusBarId);
+    if (!state?.pendingToast) return;
+    const { message, actions } = state.pendingToast;
+    const labels = actions.map(a => a.label);
+    const selection = await vscode.window.showInformationMessage(message, ...labels);
+    if (selection) await actions.find(a => a.label === selection)?.run();
+  });
+
+  item.command = commandId;
+  transientItems.set(statusBarId, { item, timeout: undefined, pendingToast: undefined });
   return item;
 };
 
-const showTransientStatusBarMessage = (statusBarId: string, statusBarName: string, message: string): void => {
+const showTransientStatusBarMessage = (
+  statusBarId: string,
+  statusBarName: string,
+  message: string,
+  actions: ToastAction[] = []
+): void => {
   const item = getTransientStatusBar(statusBarId, statusBarName);
   item.text = `$(check) ${message}`;
   item.show();
   const state = transientItems.get(statusBarId)!;
+  state.pendingToast = { message, actions };
   if (state.timeout) clearTimeout(state.timeout);
   state.timeout = setTimeout(() => {
     item.hide();
@@ -51,8 +76,9 @@ export type NotificationModeApi<CommandKey extends string> = {
   /** Show a success notification for `command`.
    * `forceShow` overrides `*SuccessOff` modes: toast-progress modes show a toast,
    * status-bar-progress modes show in the status bar. Use only when the message
-   * contains information the user must see (e.g. a request ID). */
-  showSuccessNotification: (command: CommandKey, message: string, forceShow?: boolean) => void;
+   * contains information the user must see (e.g. a request ID).
+   * `actions` are shown as buttons in the toast; in status bar mode they appear when the item is clicked. */
+  showSuccessNotification: (command: CommandKey, message: string, forceShow?: boolean, actions?: ToastAction[]) => void;
   getProgressLocation: (command: CommandKey) => vscode.ProgressLocation;
 };
 
@@ -88,7 +114,12 @@ export const createNotificationMode = <CommandKey extends string>(
       .get<CommandNotificationMode>(GLOBAL_KEY, 'progressToastSuccessToast');
 
   return {
-    showSuccessNotification: (command: CommandKey, message: string, forceShow = false): void => {
+    showSuccessNotification: (
+      command: CommandKey,
+      message: string,
+      forceShow = false,
+      actions: ToastAction[] = []
+    ): void => {
       const mode = getCommandNotificationMode(command);
       const effectiveMode =
         forceShow && mode === 'progressToastSuccessOff'
@@ -97,9 +128,12 @@ export const createNotificationMode = <CommandKey extends string>(
             ? 'progressStatusBarSuccessStatusBar'
             : mode;
       if (effectiveMode === 'progressStatusBarSuccessStatusBar') {
-        showTransientStatusBarMessage(statusBarId, statusBarName, message);
+        showTransientStatusBarMessage(statusBarId, statusBarName, message, actions);
       } else if (effectiveMode === 'progressToastSuccessToast') {
-        void vscode.window.showInformationMessage(message);
+        const labels = actions.map(a => a.label);
+        void vscode.window.showInformationMessage(message, ...labels).then(selection => {
+          if (selection) void actions.find(a => a.label === selection)?.run();
+        });
       }
     },
     getProgressLocation: (command: CommandKey): vscode.ProgressLocation => {
