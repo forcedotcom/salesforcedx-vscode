@@ -82,7 +82,8 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     }).toPass({ timeout: 20_000 });
 
     const oldFolder = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`^${oldName}$`, 'i') });
-    await expect(oldFolder).toHaveCount(0, { timeout: 5000 });
+    // Same debounced watcher lag can delay the old-name treeitem disappearing.
+    await expect(oldFolder).toHaveCount(0, { timeout: 20_000 });
     await saveScreenshot(page, 'rename.verify-tree.png');
   });
 
