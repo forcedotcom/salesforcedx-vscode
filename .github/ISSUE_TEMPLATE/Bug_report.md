@@ -36,12 +36,8 @@ _Describe what actually happened instead_.
 
 _Feel free to attach a screenshot_.
 
-**Salesforce Extension Version in VS Code**:
+**Project Info**:
 
-**Salesforce CLI Version**:
-
-**OS and version**:
-
-**VS Code version**:
+_Run `SFDX: Generate Project Info` from the command palette and paste the contents of `.sf/project-info.md` below._
 
 **Most recent version of the extensions where this was working**:

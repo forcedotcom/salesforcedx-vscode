@@ -37,6 +37,7 @@ type MetadataInfo = {
 type EnvInfo = {
   cliVersion: string;
   javaVersion: string;
+  appName: string;
   vscodeVersion: string;
   nodeVersion: string;
   os: string;
@@ -161,6 +162,7 @@ const gatherEnvironment = Effect.fn('gatherEnvironment')(function* () {
   return {
     cliVersion,
     javaVersion,
+    appName: vscode.env.appName,
     vscodeVersion: vscode.version,
     nodeVersion: process.version,
     os: `${os.type()} ${os.release()}`,
@@ -175,7 +177,7 @@ const mdTable = (headers: string[], rows: readonly string[][]): string => {
   return [header, separator, body].join('\n');
 };
 
-const renderMarkdown = ({
+export const renderMarkdown = ({
   metadataInfo,
   orgInfo,
   settings,
@@ -238,6 +240,7 @@ const renderMarkdown = ({
       [
         ['Salesforce CLI', envInfo.cliVersion],
         ['Java', envInfo.javaVersion],
+        ['Editor', envInfo.appName],
         ['VS Code', envInfo.vscodeVersion],
         ['Node', envInfo.nodeVersion],
         ['OS', envInfo.os]
