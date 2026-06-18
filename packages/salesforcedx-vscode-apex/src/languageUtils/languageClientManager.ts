@@ -6,7 +6,6 @@
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
-import { execSync } from 'node:child_process';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -50,13 +49,6 @@ class LanguageClientStatus {
     return this.message;
   }
 }
-
-export type ProcessDetail = {
-  pid: number;
-  ppid: number;
-  command: string;
-  orphaned: boolean;
-};
 
 interface RestartQuickPickItem extends vscode.QuickPickItem {
   type: 'restart' | 'reset';
@@ -379,74 +371,6 @@ export class LanguageClientManager {
     languageServerStatusBarItem.ready();
     this.setStatus(ClientStatus.Ready, '');
     languageClient?.errorHandler?.serviceHasStartedSuccessfully();
-  }
-
-  public async findAndCheckOrphanedProcesses(): Promise<ProcessDetail[]> {
-    const telemetryService = getTelemetryService();
-    const isWindows = process.platform === 'win32';
-
-    if (!this.canRunCheck(isWindows)) {
-      return [];
-    }
-
-    const cmd = isWindows
-      ? 'powershell.exe -command "Get-CimInstance -ClassName Win32_Process | ForEach-Object { [PSCustomObject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine } } | Format-Table -HideTableHeaders"'
-      : 'ps -e -o pid,ppid,command';
-
-    const stdout = execSync(cmd).toString();
-    return stdout
-      .trim()
-      .split(/\r?\n/g)
-      .map((line: string) => {
-        const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
-        const pid = parseInt(pidStr, 10);
-        const ppid = parseInt(ppidStr, 10);
-        const command = commandParts.join(' ');
-        return { pid, ppid, command, orphaned: false };
-      })
-      .filter(
-        (processInfo: ProcessDetail) => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c))
-      )
-      .filter((processInfo: ProcessDetail) => processInfo.command.includes('apex-jorje-lsp.jar'))
-      .map(processInfo => {
-        const checkOrphanedCmd = isWindows
-          ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${processInfo.ppid}'"`
-          : `ps -p ${processInfo.ppid}`;
-        if (!isWindows && processInfo.ppid === 1) {
-          processInfo.orphaned = true;
-          return processInfo;
-        }
-        try {
-          execSync(checkOrphanedCmd);
-        } catch (err) {
-          telemetryService.sendException(
-            'apex_lsp_orphan',
-            typeof err === 'string' ? err : (err?.message ?? 'unknown')
-          );
-          processInfo.orphaned = true;
-        }
-        return processInfo;
-      })
-      .filter(processInfo => processInfo.orphaned);
-  }
-
-  public terminateProcess(pid: number): void {
-    process.kill(pid, 'SIGKILL');
-  }
-
-  public canRunCheck(isWindows: boolean): boolean {
-    if (isWindows) {
-      try {
-        const wherePowershell = execSync('where powershell');
-        if (wherePowershell.toString().trim().length === 0) {
-          return false;
-        }
-        return true;
-      } catch {
-        return false;
-      }
-    }
-    return true;
   }
 }
 
