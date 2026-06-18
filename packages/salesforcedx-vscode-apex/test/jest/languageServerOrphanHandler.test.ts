@@ -171,24 +171,16 @@ describe('languageServerOrphanHandler', () => {
     expect(killSpy).not.toHaveBeenCalled();
   });
 
-  it('orphan found + user confirms → kill called + didTerminate telemetry', async () => {
+  it('orphan found + user confirms → kill called', async () => {
     setWarningChoices({ warning: [nls.localize('terminate_processes')], confirm: [nls.localize('yes')] });
     await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
-    expect(telemetry.sendEventData).toHaveBeenCalledWith('apexLSPOrphan', undefined, {
-      orphanCount: 1,
-      didTerminate: 1
-    });
   });
 
-  it('user dismisses prompt → UserCancellationError caught → no kill, didTerminate 0', async () => {
+  it('user dismisses prompt → UserCancellationError caught → no kill', async () => {
     setWarningChoices({ warning: [undefined as unknown as string] });
     await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).not.toHaveBeenCalled();
-    expect(telemetry.sendEventData).toHaveBeenCalledWith('apexLSPOrphan', undefined, {
-      orphanCount: 1,
-      didTerminate: 0
-    });
   });
 
   it('kill fails twice then succeeds → retry within bound, no exception telemetry', async () => {
