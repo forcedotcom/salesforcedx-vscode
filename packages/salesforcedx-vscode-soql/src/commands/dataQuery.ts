@@ -16,6 +16,7 @@ import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs 
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
  * `salesforcedx-vscode-soql.maxQueryLimit` setting (default 50,000).
+ * Shows a progress notification while query executes.
  *
  * @param query - SOQL query string to execute
  * @param useTooling - Whether to use the Tooling API instead of REST
@@ -31,9 +32,17 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
 
   const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
   return yield* Effect.promise(() =>
-    useTooling
-      ? connection.tooling.query(query, { autoFetch: true, maxFetch })
-      : connection.query(query, { autoFetch: true, maxFetch })
+    vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: nls.localize('progress_running_query')
+      },
+      () =>
+        useTooling
+          ? connection.tooling.query(query, { autoFetch: true, maxFetch })
+          : connection.query(query, { autoFetch: true, maxFetch })
+    )
   );
 });
 
