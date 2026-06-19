@@ -42,8 +42,10 @@ describe('ConnectionService.listAllAuthorizations', () => {
     expect(Exit.isFailure(exit)).toBe(true);
     const failure = Exit.isFailure(exit) ? Cause.failureOption(exit.cause) : Option.none();
     expect(Option.isSome(failure)).toBe(true);
-    const error = Option.getOrThrow(failure);
-    expect(error._tag).toBe('FailedToListAuthorizationsError');
-    expect(error.cause).toBe(underlying);
+    if (Option.isSome(failure)) {
+      const error = failure.value;
+      expect(error._tag).toBe('FailedToListAuthorizationsError');
+      expect(error.cause).toBe(underlying);
+    }
   });
 });
