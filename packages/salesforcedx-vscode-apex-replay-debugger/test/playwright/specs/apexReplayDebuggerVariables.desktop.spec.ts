@@ -188,6 +188,7 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
 
   await test.step('continue and end debug session', async () => {
     const toolbar = page.locator('.debug-toolbar');
+    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5
     await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');

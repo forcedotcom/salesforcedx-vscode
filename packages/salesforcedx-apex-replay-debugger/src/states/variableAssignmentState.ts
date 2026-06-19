@@ -142,7 +142,7 @@ export class VariableAssignmentState implements DebugLogState {
     const keys: string[] = Array.isArray(parsed) ? parsed.map((_, index) => index.toString()) : Object.keys(parsed);
     keys.forEach(key => {
       const rawValue = parsed[key];
-      const refContainer = logContext.getRefsMap().get(String(rawValue))!;
+      const refContainer = logContext.getRefsMap().get(String(rawValue));
       if (refContainer) {
         const tmpContainer = this.copyReferenceContainer(refContainer, key, logContext);
         container.variables.set(key, tmpContainer);
