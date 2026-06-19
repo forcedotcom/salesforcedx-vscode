@@ -39,19 +39,12 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
   );
 
   const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
+  const promptService = yield* api.services.PromptService;
   return yield* Effect.promise(() =>
-    vscode.window.withProgress(
-      {
-        cancellable: false,
-        location: getProgressLocation(COMMAND),
-        title: nls.localize('progress_running_query')
-      },
-      () =>
-        useTooling
-          ? connection.tooling.query(query, { autoFetch: true, maxFetch })
-          : connection.query(query, { autoFetch: true, maxFetch })
-    )
-  );
+    useTooling
+      ? connection.tooling.query(query, { autoFetch: true, maxFetch })
+      : connection.query(query, { autoFetch: true, maxFetch })
+  ).pipe(promptService.withProgress(nls.localize('progress_running_query'), getProgressLocation(COMMAND)));
 });
 
 const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonMap>) {
