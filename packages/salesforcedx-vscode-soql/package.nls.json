@@ -35,6 +35,8 @@
   "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
   "notifications_soql_query_execution_description": "Notification style for SOQL Query Execution.",
   "soql_query_execution_text": "SOQL Query Execution",
+  "notifications_save_query_results_description": "Notification style for Save Query Results.",
+  "save_query_results_text": "Save Query Results",
   "data_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text",
   "data_query_document_text": "SFDX: Execute SOQL Query with Current File",
   "query_plan_selection_text": "SFDX: Get SOQL Query Plan with Currently Selected Text",

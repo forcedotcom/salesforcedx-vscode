@@ -32,6 +32,7 @@ export const messages = {
   error_data_view_save:
     "ERROR: We can't save the file to the specified directory. Make sure you have write permissions for the directory.",
   soql_query_execution_text: 'SOQL Query Execution',
+  save_query_results_text: 'Save Query Results',
   data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
   data_query_document_text: 'SFDX: Execute SOQL Query with Current File',
   soql_run_query_codelens: 'Run Query',

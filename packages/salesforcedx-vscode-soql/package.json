@@ -490,6 +490,22 @@
                 "%notifications.progressStatusBarSuccessOff.description%"
               ],
               "description": "%notifications_soql_query_execution_description%"
+            },
+            "Save Query Results": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_save_query_results_description%"
             }
           },
           "additionalProperties": false

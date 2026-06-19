@@ -7,7 +7,7 @@
 
 import { createNotificationMode } from '@salesforce/effect-ext-utils';
 
-export type CommandKey = 'SOQL Query Execution';
+export type CommandKey = 'SOQL Query Execution' | 'Save Query Results';
 
 export const { showSuccessNotification, getProgressLocation } = createNotificationMode<CommandKey>(
   'salesforcedx-vscode-soql',
