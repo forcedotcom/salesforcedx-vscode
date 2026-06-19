@@ -15,9 +15,43 @@ Required before running anything in this directory:
 3. **gus alias + identity.** `sf alias list` must show a `gus` alias pointing to the org you query work items in (`sf org login web -a gus` if missing). Your username must be listed under **Team members** in [.claude/skills/gus-cli/SKILL.md](../skills/gus-cli/SKILL.md) (with `Github_Username__c`, slack id, owner prefix). The first run caches identity to `$HOME/.claude/runner-identity.json`.
 4. **Slack MCP.** `mcp__slack__slack_send_message` must be reachable (DMs and `#ide-exp-code-review` posts). Run `/salesforce-trust-foundations:mcp-auth` if MCP calls 401.
 
+## review-plan.js / review-diff.js — standalone review entry points
+
+Plan-review + code-review sub-graphs extracted to own workflows: human-runnable on demand against any branch/plan, not just inside an `auto-build-wi` tick. `auto-build-wi` calls them via `workflow()` — pipeline single-sourced (prompts/schemas in the child). Scripts can't `import`, so each child copies the few shared constants/schemas.
+
+### `/review-plan` — multi-pass plan review
+
+```text
+/review-plan .claude/plans/W-123.md
+```
+
+Concise-style check + revise → effect-advocate + e2e-advocate + plan-adversary fan-out (parallel) → fold blocking findings (effect `must`, e2e `must`, adversary `critical`/`high`) into 1 revise pass → optional commit.
+
+| Arg | Default | Purpose |
+| --- | --- | --- |
+| `planPath` (or bare string) | _required_ | Plan file, relative to `wt` |
+| `wt` | `.` | Worktree/dir holding the plan |
+| `subject` / `details` | `''` | WI context for e2e/adversary reviewers |
+| `commitMessage` | _unset_ | Set → commit plan file w/ this subject |
+
+### `/review-diff` — thermonuclear code review
+
+```text
+/review-diff                 # current branch vs origin/develop, applies fixes
+/review-diff ../some-worktree
+```
+
+Applicable-skill fan-out (diff-sized: `<20` lines → `typescript`/`concise`/`paths` only; larger → all skills minus operational denylist) + thermo + effect diff review → adversarial per-finding verify (`confirmed`/`downgraded`/`dropped`) → fixer. Returns `{verifiedFindings, droppedCount, fixerResult}`.
+
+| Arg | Default | Purpose |
+| --- | --- | --- |
+| `wt` (or bare string) | `.` | Worktree/dir to review |
+| `base` | `origin/develop` | Diff base ref |
+| `apply` | `true` | `false` → return findings, skip fixer |
+
 ## auto-build-wi.js
 
-Drains GUS work items tagged `[ai-auto]` end-to-end: claim → plan → build → review → draft PR. **Stateless across ticks** — each run starts fresh, queries current GUS/GitHub state, and acts. Pair with `/loop` to run on a schedule (e.g. `/loop 10m /auto-build-wi`).
+Drains GUS work items tagged `[ai-auto]` end-to-end: claim → plan → build → review → draft PR. **Stateless across ticks** — each run starts fresh, queries current GUS/GitHub state, and acts. Pair with `/loop` to run on a schedule (e.g. `/loop 10m /auto-build-wi`). The Plan and Review phases delegate to [`review-plan`](#review-planjs--review-diffjs--standalone-review-entry-points) / `review-diff`.
 
 ### Arguments
 

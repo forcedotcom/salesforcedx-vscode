@@ -137,6 +137,7 @@ const getMockVSCode = () => {
     Disposable: jest.fn(),
     env: {
       machineId: '12345534',
+      appName: 'Visual Studio Code',
       createTelemetryLogger: jest.fn().mockReturnValue({
         logUsage: jest.fn(),
         logError: jest.fn(),
