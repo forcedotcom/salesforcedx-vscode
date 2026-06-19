@@ -92,8 +92,10 @@ test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page
     await dismissEditorOverlays(page);
     await executeCommandWithCommandPalette(page, 'File: Save');
     // body `System.debug($0)`; `$0` is the final cursor (empty render) → saved text `System.debug()`.
+    // Assert it landed on blank line 7 (between the assertEquals and the class-closing brace) so a
+    // misfired Go to Line/Column navigation cannot silently pass on a line-agnostic substring match.
     const doc = collapseEditorWhitespace(await readActiveEditorDocumentText(page));
-    expect(doc).toContain('System.debug()');
+    expect(doc).toMatch(/SayHello should greet the name'\);\s*System\.debug\(\)\s*}/);
     await saveScreenshot(page, 'apex-snippets.saved.png');
   });
 

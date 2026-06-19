@@ -82,7 +82,7 @@ const snippetBaseTest = createDesktopTest({
 // workspaceDir). jorje scans the project at startup; files written after launch require a window
 // reload. Shared by both tests so the seeded files (incl. ExampleClassTest.cls blank line 7) match.
 const seedWorkspaceFiles = {
-  workspaceDir: async ({ workspaceDir }: { workspaceDir: string }, use: (dir: string) => Promise<void>) => {
+  workspaceDir: async ({ workspaceDir }, use) => {
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
     // Anonymous Apex lives at workspace-root `scripts/apex/` (Salesforce convention; the dir
     // templates scaffold). Not metadata — no `classes/` placement, no `-meta.xml`. jorje's
