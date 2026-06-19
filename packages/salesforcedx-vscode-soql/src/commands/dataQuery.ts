@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { getSoqlRuntime } from '../services/extensionProvider';
 import {
   type ProgressAndSuccessCommandKey,
   getProgressLocation,
@@ -62,10 +63,7 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
     showSuccessNotification(COMMAND, successMessage, true, [
       {
         label: nls.localize('data_query_open_file'),
-        run: async () => {
-          const doc = await vscode.workspace.openTextDocument(fileUri);
-          await vscode.window.showTextDocument(doc);
-        }
+        run: () => void getSoqlRuntime().runPromise(api.services.FsService.showTextDocument(fileUri))
       }
     ])
   );
