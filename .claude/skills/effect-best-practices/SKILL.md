@@ -40,6 +40,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
 | Config            | `Config.*` with validation                               | `process.env` directly (except build-time vars like `ESBUILD_*`) |
+| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; params as `Duration.DurationInput` | Numeric milliseconds as `number` params or `TIMEOUT_MS = 30_000` constants |
 | Options           | `Option.match` with both cases                           | `Option.getOrThrow`                                              |
 | Nullability       | `Option<T>` in domain types                              | `null`/`undefined`                                               |
 | Atoms             | `Atom.make` outside components                           | Creating atoms inside render                                     |
