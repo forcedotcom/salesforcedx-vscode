@@ -20,7 +20,6 @@ export const meta = {
     { title: 'Plan' },
     { title: 'Build' },
     { title: 'Review' },
-    { title: 'Verify findings' },
     { title: 'Fix review findings' },
     { title: 'Draft PR' },
   ],
@@ -31,22 +30,7 @@ export const meta = {
 // =====================================================================
 
 const MAX_IN_FLIGHT = (args && args.maxInFlight) || 5
-const SMALL_DIFF_LINES = 20
-const ALWAYS_APPLICABLE_SKILLS = ['typescript', 'concise', 'paths']
 const SKILLS_DIR = '.claude/skills'
-// Skills not relevant to code review of a diff — operational workflows or environmental setup.
-const REVIEW_SKILL_DENYLIST = [
-  'changelog',
-  'feature-branch',
-  'grill-me',
-  'gus-cli',
-  'merge-conflicts',
-  'pr-draft',
-  'release',
-  'shipped-issues',
-  'query-app-insights',
-  'span-file-export',
-]
 const REVIEW_CHANNEL_ID = 'C054SJJAB24'
 const PR_URL_RE = /https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+/g
 
@@ -136,37 +120,6 @@ const PLAN_SCHEMA = {
   },
 }
 
-const PLAN_REVIEW_SCHEMA = {
-  type: 'object',
-  required: ['approved'],
-  properties: {
-    approved: { type: 'boolean' },
-    revisions: { type: 'array', items: { type: 'string' } },
-  },
-}
-
-const EFFECT_ADVOCATE_SCHEMA = {
-  type: 'object',
-  required: ['findings'],
-  properties: {
-    verdict: { enum: ['LGTM', 'minor', 'needs rework'] },
-    findings: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['severity', 'suggestion'],
-        properties: {
-          severity: { enum: ['must', 'should', 'consider'] },
-          file: { type: ['string', 'null'] },
-          line: { type: ['number', 'null'] },
-          suggestion: { type: 'string' },
-          citation: { type: ['string', 'null'] },
-        },
-      },
-    },
-  },
-}
-
 const BUILD_SCHEMA = {
   type: 'object',
   required: ['status'],
@@ -174,103 +127,6 @@ const BUILD_SCHEMA = {
     status: { enum: ['done', 'stuck'] },
     commits: { type: 'array', items: { type: 'string' } },
     reason: { type: 'string' },
-  },
-}
-
-const SKILL_DETECT_SCHEMA = {
-  type: 'object',
-  required: ['applies', 'findings'],
-  properties: {
-    applies: { type: 'boolean' },
-    findings: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['severity', 'suggestion'],
-        properties: {
-          severity: { enum: ['critical', 'high', 'medium', 'low'] },
-          file: { type: ['string', 'null'] },
-          line: { type: ['number', 'null'] },
-          suggestion: { type: 'string' },
-        },
-      },
-    },
-  },
-}
-
-const THERMO_SCHEMA = {
-  type: 'object',
-  required: ['findings'],
-  properties: {
-    findings: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['severity', 'claim'],
-        properties: {
-          severity: { enum: ['critical', 'high', 'medium', 'low'] },
-          file: { type: ['string', 'null'] },
-          line: { type: ['number', 'null'] },
-          claim: { type: 'string' },
-          evidence: { type: 'string' },
-        },
-      },
-    },
-  },
-}
-
-const PLAN_ADVERSARY_SCHEMA = {
-  type: 'object',
-  required: ['findings'],
-  properties: {
-    verdict: { enum: ['LGTM', 'concerns', 'blocking'] },
-    findings: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['severity', 'claim'],
-        properties: {
-          severity: { enum: ['critical', 'high', 'medium', 'low'] },
-          section: { type: ['string', 'null'] },
-          claim: { type: 'string' },
-          evidence: { type: ['string', 'null'] },
-          suggestion: { type: ['string', 'null'] },
-        },
-      },
-    },
-  },
-}
-
-const FIXER_SCHEMA = {
-  type: 'object',
-  required: ['fixedCount', 'remaining'],
-  properties: {
-    fixedCount: { type: 'number' },
-    remaining: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['severity', 'note'],
-        properties: {
-          severity: { enum: ['critical', 'high', 'medium', 'low'] },
-          note: { type: 'string' },
-        },
-      },
-    },
-  },
-}
-
-const VERIFY_SCHEMA = {
-  type: 'object',
-  required: ['verdict', 'severity', 'rationale'],
-  properties: {
-    // confirmed: premise verified, keep as-is.
-    // downgraded: real but lower severity than claimed.
-    // dropped: premise false, or already-covered (e.g. CI runs it), or zero affected consumers.
-    verdict: { enum: ['confirmed', 'downgraded', 'dropped'] },
-    severity: { enum: ['critical', 'high', 'medium', 'low'] },
-    rationale: { type: 'string' },
-    evidence: { type: ['string', 'null'] },
   },
 }
 
@@ -287,6 +143,19 @@ const PICKER_SCHEMA = {
   type: 'object',
   required: ['wiId', 'reason'],
   properties: { wiId: { type: 'string' }, reason: { type: 'string' } },
+}
+
+// Result of the no-PR reconcile: did GitHub already have a PR for the deterministic
+// branch? If so we adopt it (and re-persist the URL) instead of rebuilding.
+const RECONCILE_SCHEMA = {
+  type: 'object',
+  required: ['found'],
+  properties: {
+    found: { type: 'boolean' },
+    prUrl: { type: ['string', 'null'] },
+    persisted: { type: ['boolean', 'null'] },
+    detail: { type: ['string', 'null'] },
+  },
 }
 
 const OK_SCHEMA = {
@@ -313,6 +182,7 @@ const WI_RECORDS_SCHEMA = {
           Story_Points__c: { type: ['number', 'null'] },
           CreatedDate: { type: ['string', 'null'] },
           Assignee__c: { type: ['string', 'null'] },
+          Epic__c: { type: ['string', 'null'] },
         },
       },
     },
@@ -337,19 +207,32 @@ const WI_STATUS_RECORDS_SCHEMA = {
   },
 }
 
+// Epic siblings for the numeric-sequencing gate: every WI in a candidate's epic, with its
+// Subject (carries the dotted sequence prefix) and Status (done = Closed/Completed).
+const EPIC_WI_RECORDS_SCHEMA = {
+  type: 'object',
+  required: ['records'],
+  properties: {
+    records: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['Name'],
+        properties: {
+          Name: { type: 'string' },
+          Subject__c: { type: ['string', 'null'] },
+          Status__c: { type: ['string', 'null'] },
+          Epic__c: { type: ['string', 'null'] },
+        },
+      },
+    },
+  },
+}
+
 const SKILL_LIST_SCHEMA = {
   type: 'object',
   required: ['skills'],
   properties: { skills: { type: 'array', items: { type: 'string' } } },
-}
-
-const DIFF_RAW_SCHEMA = {
-  type: 'object',
-  required: ['shortstat', 'files'],
-  properties: {
-    shortstat: { type: 'string' },
-    files: { type: 'array', items: { type: 'string' } },
-  },
 }
 
 const FILES_SCHEMA = {
@@ -445,6 +328,22 @@ const extractBlockers = (subject, details) => {
   return [...new Set(names)]
 }
 
+// Numeric-sequencing gate (.claude/skills/work-item-sequencing/SKILL.md). A leading dotted
+// number + single space in Subject__c expresses per-epic order: top-level integers are
+// sequential (2 waits on 1 and every 1.x); same-first-segment siblings (1.1, 1.2) run in
+// PARALLEL. We gate ONLY on the top-level segment: a candidate is blocked iff its epic holds
+// an unfinished WI with a strictly-smaller leading integer. Anything else (deeper siblings,
+// same group) stays claimable. Only a leading N or N.N… followed by a space counts — bare
+// "W-123 backport" / "2.40 release" are NOT sequence numbers (skill ## Edge cases).
+const SEQUENCE_RE = /^(\d+(?:\.\d+)*)\s/
+const parseSequence = subject => {
+  const m = SEQUENCE_RE.exec(String(subject || ''))
+  // Malformed forms ("1.", "1..2") never match SEQUENCE_RE (needs a trailing space after a
+  // well-formed dotted number), so they read as unnumbered — skill says treat-as-unnumbered.
+  return m ? m[1].split('.').map(Number) : null
+}
+const topSegment = seq => (seq ? seq[0] : null)
+
 const mapWiRecord = r => ({
   wiId: r.Id,
   name: r.Name,
@@ -453,52 +352,9 @@ const mapWiRecord = r => ({
   status: r.Status__c || '',
   storyPoints: typeof r.Story_Points__c === 'number' ? r.Story_Points__c : null,
   createdDate: r.CreatedDate || '',
+  epicId: r.Epic__c || '',
   prUrl: extractPrUrl(r.Details__c),
 })
-
-const parseShortstatLines = shortstat => {
-  // e.g. " 3 files changed, 12 insertions(+), 4 deletions(-)"
-  const ins = (shortstat.match(/(\d+)\s+insertion/) || [0, 0])[1]
-  const del = (shortstat.match(/(\d+)\s+deletion/) || [0, 0])[1]
-  return Number(ins) + Number(del)
-}
-
-// Severity rank for sorting/threshold logic. effect 'must'/'should'/'consider'
-// map to critical/high/medium upstream before reaching here.
-const SEVERITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 }
-
-// Flatten every review source (per-skill, thermo, effect-advocate) into one
-// uniform {source, severity, file, line, claim} list the verifier can chew on.
-const normalizeFindings = (skillFindings, skillsToCheck, thermo, effectDiffReview) => {
-  const effectSeverity = s => (s === 'must' ? 'critical' : s === 'should' ? 'high' : 'medium')
-  const skill = skillFindings
-    .map((r, i) => ({ r, name: skillsToCheck[i] }))
-    .filter(({ r }) => r && r.applies)
-    .flatMap(({ r, name }) =>
-      (r.findings || []).map(f => ({
-        source: `skill:${name}`,
-        severity: f.severity,
-        file: f.file ?? null,
-        line: f.line ?? null,
-        claim: f.suggestion,
-      }))
-    )
-  const thermoF = ((thermo && thermo.findings) || []).map(f => ({
-    source: 'thermo',
-    severity: f.severity,
-    file: f.file ?? null,
-    line: f.line ?? null,
-    claim: `${f.claim}${f.evidence ? ` [${f.evidence}]` : ''}`,
-  }))
-  const effectF = ((effectDiffReview && effectDiffReview.findings) || []).map(f => ({
-    source: 'effect',
-    severity: effectSeverity(f.severity),
-    file: f.file ?? null,
-    line: f.line ?? null,
-    claim: `${f.suggestion}${f.citation ? ` [${f.citation}]` : ''}`,
-  }))
-  return [...skill, ...thermoF, ...effectF]
-}
 
 const classifyMonitor = monitorOutcomes => ({
   toFinalize: monitorOutcomes.filter(r => r && r.decision === 'finalize'),
@@ -628,7 +484,8 @@ Run:
   - CheckRun rows expose .conclusion (SUCCESS/FAILURE/NEUTRAL/SKIPPED/CANCELLED/TIMED_OUT) and .status (COMPLETED/IN_PROGRESS/QUEUED/PENDING)
   - StatusContext rows expose .state (SUCCESS/FAILURE/PENDING/EXPECTED/ERROR) only — no .conclusion
   Treat each row's effective outcome as: row.conclusion ?? row.state. A null on both = treat as PENDING.
-- Determine overall state:
+- DEDUP BY CONTEXT FIRST: the same check name/context can appear MORE THAN ONCE (e.g. a stale failed run plus a fresh passing re-run on the same commit, or an edited PR body re-triggering 'pr-validation'). GitHub branch protection only honors the LATEST run per context — so must you. Group rows by their name (CheckRun: .name) / context (StatusContext: .context), and within each group keep ONLY the row with the most recent .completedAt (fall back to .startedAt, else the last-listed row). Evaluate overall state against this deduped set ONLY. A superseded older FAILURE must NOT make the PR 'failed'.
+- Determine overall state (over the deduped set):
   - 'no-pr' if gh fails to find the PR
   - 'running' if ANY row is IN_PROGRESS / QUEUED / PENDING / EXPECTED (or has no resolved outcome)
   - 'green' if every row resolves to SUCCESS / NEUTRAL / SKIPPED
@@ -637,6 +494,32 @@ Run:
 - ALWAYS run 'gh pr diff ${wi.prUrl} --name-only' and return the changed paths (one per line) as 'files'. Empty list if the command yields nothing.
 
 Return ONLY the structured result.`
+
+// A WI is 'In Progress' with NO PR URL in Details__c. Before assuming the build crashed,
+// reconcile against GitHub: the branch is deterministic, so a PR may already exist — the
+// prior tick just failed to persist the URL (flaky Details__c write). Adopt + re-persist
+// it instead of rebuilding from scratch.
+const reconcilePrPrompt = (wi, identity) => {
+  const { branch } = pathsFor(identity, wi)
+  return `WI ${wi.name} is 'In Progress' but has no PR URL in its Details__c. Determine whether an open PR already exists for its branch on GitHub, and if so, re-persist the URL.
+
+Branch: ${branch}
+
+Steps:
+1. gh pr list --head ${branch} --state open --json number,url --limit 1 --repo forcedotcom/salesforcedx-vscode
+   - No open PR found → return {found: false, detail: "no open PR on branch"}. (Caller will rebuild.)
+2. An open PR exists → capture its url + number. Re-persist into Details__c so future ticks stop rebuilding:
+   a. Fetch existing: \`sf data query --query "SELECT Details__c FROM ADM_Work__c WHERE Id = '${wi.wiId}'" -o gus --result-format json\`. Parse \`result.records[0].Details__c\`.
+   b. If it ALREADY contains 'pull/<number>' under a '<strong>PR:</strong>' marker → return {found: true, prUrl, persisted: true, detail: "already present"} (the extraction must have transiently failed; nothing to write).
+   c. Else compose new value = existing Details__c + this exact snippet (PR_URL/PR_NUMBER substituted): <p><strong>PR:</strong> <a href="PR_URL">#PR_NUMBER</a></p>
+   d. Write via --flags-dir with a SINGLE-QUOTE-wrapped value (the body's apostrophes are HTML-entity-encoded so it contains no literal single-quotes; the href's literal double-quotes are safe inside single quotes):
+      - mkdir -p /tmp/gus-flags-${wi.name}
+      - Write a SINGLE-LINE file /tmp/gus-flags-${wi.name}/values: Details__c='<NEW_VALUE>'
+      - sf data update record -s ADM_Work__c -i ${wi.wiId} -o gus --flags-dir /tmp/gus-flags-${wi.name}
+   e. Verify: re-query Details__c; confirm 'pull/<number>' is now present under '<strong>PR:</strong>'. Present → {found: true, prUrl, persisted: true}. Absent → {found: true, prUrl, persisted: false, detail: "<why write failed>"}.
+
+Return ONLY the structured result.`
+}
 
 const closeMergedPrompt = (r, identity) => {
   const { wt, branch } = pathsFor(identity, r.wi)
@@ -647,6 +530,9 @@ Steps (idempotent):
    sf data update record -s ADM_Work__c -i ${r.wi.wiId} -o gus -v "Status__c='Closed'"
 2. Remove worktree if present: 'git worktree remove ${wt} --force'.
 3. Delete local branch if present: from ${identity.projectRoot}, 'git branch -D ${branch}' (ignore failure if branch doesn't exist).
+4. Find the "PR ready for review" Slack message in channel ${REVIEW_CHANNEL_ID}:
+   Use mcp__slack__slack_search_public_and_private with query "PR ready for review ${r.wi.name} in:${REVIEW_CHANNEL_ID}" to find the message. The message text contains the WI name in the format "(${r.wi.name})". Filter results to channel ${REVIEW_CHANNEL_ID} and pick the message whose text contains "${r.wi.name}".
+5. If a matching message is found with a ts field, add a :merge: reaction via mcp__slack__slack_add_reaction (channel=${REVIEW_CHANNEL_ID}, timestamp=<ts>, reaction="merge"). Skip silently if not found — the message may not exist if review was skipped or Slack search is unavailable.
 
 Return {ok: true, detail} summarizing changes.`
 }
@@ -830,7 +716,7 @@ Return {ok: true, detail: "<approved | skip reason>"} or {ok: false, detail}.`
 const candidatesQueryPrompt = identity =>
   `Run EXACTLY ONE SOQL query — the one below — and return its records.
 
-sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Assignee__c, Story_Points__c, CreatedDate FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready','Triaged') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
+sf data query --query "SELECT Id, Name, Subject__c, Details__c, Status__c, Assignee__c, Story_Points__c, CreatedDate, Epic__c FROM ADM_Work__c WHERE Assignee__c = '${identity.userId}' AND Status__c IN ('New','Ready','Triaged') AND Subject__c LIKE '%[ai-auto]%' ORDER BY CreatedDate ASC LIMIT 50" -o gus --result-format json
 
 Return {records: <result.records, verbatim>}.
 
@@ -851,6 +737,22 @@ Return {records: <result.records, verbatim>}.
 HARD RULES:
 - Do NOT run any other queries. Zero records is valid — return {records: []}.
 - Do NOT modify the WHERE clause or transform fields.`
+
+// Numeric-sequencing gate: fetch every WI in the given epics so we can read their dotted
+// Subject__c prefixes + Status. NO open-only filter — a satisfied prerequisite is Closed,
+// which an open-only WHERE would hide (skill ## Reading, step 1).
+const epicSiblingsQueryPrompt = epicIds =>
+  `Run EXACTLY ONE SOQL query — the one below — and return its records.
+
+sf data query --query "SELECT Name, Subject__c, Status__c, Epic__c FROM ADM_Work__c WHERE Epic__c IN (${epicIds
+    .map(id => `'${id}'`)
+    .join(',')}) LIMIT 200" -o gus --result-format json
+
+Return {records: <result.records, verbatim>}.
+
+HARD RULES:
+- Do NOT run any other queries. Zero records is valid — return {records: []}.
+- Do NOT add an open-only / Status filter, modify the WHERE clause, or transform fields.`
 
 const prFilesPrompt = url =>
   `Run 'gh pr diff ${url} --name-only' and return {files: [<one path per line>]}.`
@@ -952,79 +854,6 @@ Steps:
 Return {ok: true}.`
 }
 
-const planReviewPrompt = (chosen, identity) => {
-  const { wt } = pathsFor(identity, chosen)
-  return `Review the plan at ${wt}/.claude/plans/${chosen.name}.md.
-
-BEFORE judging, Read ${wt}/.claude/skills/concise/SKILL.md so 'concise style' is concrete to you.
-
-Enforce:
-- concise skill style (the rules you just read)
-- Each phase has a clear commit message
-- Verification section exists and notes which items are e2e-covered
-- Skills list is non-empty and includes typescript
-
-Return {approved: true} or {approved: false, revisions: [...]}.`
-}
-
-const planRevisePrompt = (chosen, identity, revisions) => {
-  const { wt } = pathsFor(identity, chosen)
-  return `Revise the plan at ${wt}/.claude/plans/${chosen.name}.md addressing:
-${(revisions || []).map(r => `- ${r}`).join('\n')}
-
-Return {verdict: 'plan'} when done.`
-}
-
-const effectPlanReviewPrompt = (chosen, identity) => {
-  const { wt } = pathsFor(identity, chosen)
-  return `Review the plan at ${wt}/.claude/plans/${chosen.name}.md (mode: plan review). Identify Effect-TS smells the plan would introduce — hand-rolled retry/timeout/cache, untyped errors, ad-hoc PubSub, services that already exist in salesforcedx-vscode-services, etc.
-
-Return ONLY the structured result.`
-}
-
-const e2ePlanReviewPrompt = (chosen, identity) => {
-  const { wt } = pathsFor(identity, chosen)
-  return `Review the plan at ${wt}/.claude/plans/${chosen.name}.md for e2e test coverage adequacy.
-
-WI Subject: ${chosen.subject}
-WI Details:
-${chosen.details || '(empty)'}
-
-Return ONLY the structured result.`
-}
-
-const adversaryPlanReviewPrompt = (chosen, identity) => {
-  const { wt } = pathsFor(identity, chosen)
-  return `Adversarially review the plan at ${wt}/.claude/plans/${chosen.name}.md.
-
-WI Subject: ${chosen.subject}
-WI Details:
-${chosen.details || '(empty)'}
-
-Return ONLY the structured result.`
-}
-
-const planAdvocateRevisePrompt = (chosen, identity, advocateRevisions) => {
-  const { wt } = pathsFor(identity, chosen)
-  return `Revise the plan at ${wt}/.claude/plans/${chosen.name}.md to address these advocate findings before implementation. The plan must reflect the right approach (Effect idioms, e2e coverage, adversarial concerns), not work around them.
-
-Findings:
-${advocateRevisions.map(r => `- ${r}`).join('\n')}
-
-Return {verdict: 'plan'} when done.`
-}
-
-const commitPlanPrompt = (chosen, identity) => {
-  const { wt } = pathsFor(identity, chosen)
-  return `Commit the plan file in ${wt} — only if there is something to commit.
-
-Steps:
-1. cd ${wt}
-2. git add .claude/plans/${chosen.name}.md
-3. If 'git diff --cached --quiet' returns 0 (nothing staged), skip the commit and return {ok: true, detail: "no-op (plan unchanged)"}.
-4. Else commit with subject "chore: plan for ${chosen.name}". Use a HEREDOC so the Co-Authored-By trailer with YOUR actual model name is preserved (the same trailer you append on any normal commit). Return {ok: true, detail: "committed"}.`
-}
-
 const buildPrompt = (chosen, identity) => {
   const { wt } = pathsFor(identity, chosen)
   return `Build WI ${chosen.name} per the plan at ${wt}/.claude/plans/${chosen.name}.md.
@@ -1049,71 +878,6 @@ Steps:
 Return {ok: true}.`
 }
 
-const diffPrompt = wt =>
-  `From ${wt}, run both:
-- git diff --shortstat origin/develop...HEAD
-- git diff --name-only origin/develop...HEAD
-
-Return {shortstat: "<raw stdout of --shortstat, may be empty>", files: [<one path per line of --name-only>]}.`
-
-const skillDetectPrompt = (skill, wt) =>
-  `Decide if skill '${skill}' applies to the current branch's diff in ${wt}.
-
-Read .claude/skills/${skill}/SKILL.md.
-Examine: git diff origin/develop...HEAD (run from ${wt}).
-
-Answer:
-- applies: true if the diff intersects this skill's domain
-- findings: concrete code-level changes that would improve the code per this skill, severity-graded. If applies but no actionable findings, return findings: [].
-
-Return ONLY the structured result.`
-
-const thermoPrompt = wt =>
-  `Run a thermonuclear code-quality review on the diff in ${wt}.
-
-Read and apply .claude/skills/thermonuclear-code-quality-review/SKILL.md. Examine 'git diff origin/develop...HEAD'. Return severity-graded findings only — file:line evidence required.`
-
-const effectDiffReviewPrompt = wt =>
-  `Review the diff in ${wt} (mode: diff review). Examine 'git diff origin/develop...HEAD'.`
-
-const verifyFindingPrompt = (wt, finding) =>
-  `Adversarially verify ONE code-review finding against the diff in ${wt}. Default to skepticism: a finding survives only if its premise is demonstrably true AND acting on it adds value beyond what CI/automation already provides.
-
-Finding (source: ${finding.source}):
-${JSON.stringify({ severity: finding.severity, file: finding.file, line: finding.line, claim: finding.claim }, null, 2)}
-
-Establish the premise with EVIDENCE, not assumption. Read the cited file:line and 'git diff origin/develop...HEAD' in ${wt}.
-
-Verdict rules:
-- **dropped** if ANY of:
-  - The premise is false (cited code doesn't do what the finding claims).
-  - It only asks to RUN tests/checks that CI already runs on the PR. CI runs Playwright e2e (with retries) and the stop-hook chain (compile/lint/knip/effect-LS/unit) as gating checks — re-running them by hand before merge is redundant. Inspect '.github/workflows/' in ${wt} to confirm what CI covers; a "run X before merge" finding where X is a gating CI job → dropped.
-  - It claims a BREAKING API change / removed export / dead code. PROVE affected consumers exist before keeping it. Read .claude/skills/external-consumers/SKILL.md and run its gh searches across org:forcedotcom and org:salesforcecli for the exact removed symbol AND its public-export form (e.g. workspaceContextUtils.<name>). Discount false positives (unrelated same-named symbols, the ci-testing mirror repo, the export site itself, plan/doc files). Zero real consumers → dropped (note "removed unused export, no consumers" for the PR body instead).
-- **downgraded** if the premise holds but the real severity is lower than claimed (e.g. theoretical edge, no user-facing impact). Downgrade to 'low' — do NOT drop. A correct fix with no user-facing impact (misleading comment, dead/no-op config line, stale rationale) is still worth applying for free; keep it as a low-severity 'confirmed' or 'downgraded', never 'dropped'.
-- **confirmed** if premise verified and the fix is correct. "Adds genuine value" includes trivially-correct cleanups (delete a no-op line, fix a misleading comment) — these are cheap and unambiguous, so confirm them at low severity rather than discarding.
-
-'dropped' is ONLY for findings that are FALSE, ALREADY-COVERED (CI re-run), or ZERO-CONSUMER. A true-but-minor finding is low severity, not dropped.
-
-Return ONLY the structured result. 'severity' = the corrected severity (== claimed if confirmed). 'evidence' = file:line or gh-search summary that grounds the verdict.`
-
-const fixerPrompt = (wt, verifiedFindings) =>
-  `Apply review findings to the code in ${wt}.
-
-Each finding was already adversarially verified — premise confirmed, severity corrected, false/redundant/no-consumer findings already removed. 'verifiedSeverity' is authoritative; 'rationale'/'evidence' explain why it survived.
-
-Verified findings (JSON):
-${JSON.stringify(verifiedFindings, null, 2)}
-
-Rules:
-- Auto-apply ALL critical and high severity findings.
-- Auto-apply ALL medium / low findings too — these survived adversarial verification, so the premise is already confirmed. Default to APPLYING, not surfacing. This explicitly includes trivial mechanical edits: deleting a no-op/dead config line, fixing or removing a misleading/stale comment, renaming for clarity. "Low value" is NOT a reason to skip — if the edit is unambiguous and self-contained, just make it.
-- Surface to 'remaining' ONLY when applying would be genuinely risky or ambiguous: the fix requires a design decision, spans many files, changes public behavior, or you cannot determine the correct change with confidence. State which of these applies in the note.
-- A finding may carry a 'prBodyNote' (e.g. "removed unused export, no consumers") instead of a code change — pass those straight into 'remaining' so they land in the PR body, no edit needed.
-
-Group commits logically: e.g. one commit "fix: critical/high review findings", one "refactor: medium/low review findings". If nothing to fix, return {fixedCount: 0, remaining: [...]}.
-
-Return ONLY the structured result.`
-
 const mergeDevelopPrompt = wt =>
   `Merge origin/develop into the branch in ${wt}.
 
@@ -1135,7 +899,7 @@ Branch: ${branch}
 WI Subject: ${chosen.subject}
 Plan path (in repo): .claude/plans/${chosen.name}.md
 Remaining review notes (medium/low not auto-fixed):
-${JSON.stringify(fixerResult.remaining || [], null, 2)}
+${JSON.stringify((fixerResult && fixerResult.remaining) || [], null, 2)}
 
 Steps:
 1. cd ${wt}
@@ -1145,8 +909,8 @@ Steps:
    - ## Summary — 1–3 bullets distilled from the plan
    - ## Plan — link to .claude/plans/${chosen.name}.md
    - ## Reviewer notes — list the remaining findings (skip if empty)
-   - ## Test plan — items from the plan's verification section, EXCLUDING items covered by new/modified e2e tests on the branch (inspect 'git diff --name-only origin/develop...HEAD' for files matching '**/e2e/**' or '*.e2e.*' or 'packages/*-e2e/**' to determine coverage)
-   - GUS reference per pr-draft skill
+   - ## Test plan — items from the plan's verification section, but ONLY genuine human/manual verification steps. EXCLUDE: (a) items covered by new/modified e2e tests on the branch (inspect 'git diff --name-only origin/develop...HEAD' for files matching '**/e2e/**' or '*.e2e.*' or 'packages/*-e2e/**'); (b) anything already enforced automatically by hooks/CI — typecheck, lint, eslint, prettier/format, effect-language-service diagnostics, and unit/jest tests passing. A reviewer must never be asked to run a gate that a git hook, agent hook, or CI job already guarantees. If nothing manual remains after these exclusions, omit the section entirely rather than listing automated gates.
+   - GUS reference per pr-draft skill. CRITICAL: the repo's 'pr-validation' CI gate (salesforcecli validatePR) hard-fails (exit 1) unless the PR BODY contains the work item wrapped in @-signs — literally '@${chosen.name}@' (e.g. @W-12345678@), not just a bare 'W-...' or a markdown link. Ensure the exact token '@${chosen.name}@' appears somewhere in the body (the GUS reference line is the natural place). The title already carries the bare WI; the body needs the @-wrapped form.
    - Footer: '🤖 Generated by auto-build pipeline. Original WI: <gus link>'
 5. Before creating the PR, check for an existing open PR on this branch:
    gh pr list --head ${branch} --state open --json number,url --limit 1 --repo forcedotcom/salesforcedx-vscode
@@ -1239,8 +1003,31 @@ const monitorInFlight = async identity => {
     inFlightWis,
     async wi => {
       if (!wi.prUrl) {
-        // WI is 'In Progress' but no PR opened yet — build crashed in a prior tick. Restart.
-        return { wi, action: 'no-pr-restart' }
+        // WI is 'In Progress' but no PR URL in Details__c. Could be a crashed build OR a
+        // prior tick that opened the PR but failed to persist the URL (flaky Details__c
+        // write). Reconcile against GitHub by the deterministic branch before rebuilding.
+        const reconciled = await agent(reconcilePrPrompt(wi, identity), {
+          schema: RECONCILE_SCHEMA,
+          label: `reconcile-pr-${wi.name}`,
+          phase: 'Monitor in-flight',
+          model: 'sonnet',
+        })
+        if (!reconciled || !reconciled.found || !reconciled.prUrl) {
+          log(`${wi.name}: no PR on branch — restarting build`)
+          return { wi, action: 'no-pr-restart' }
+        }
+        // Adopt the recovered URL so the rest of this tick treats it as a normal in-flight PR.
+        log(
+          `${wi.name}: adopted existing PR ${reconciled.prUrl} (persisted=${reconciled.persisted}) — skipping rebuild`
+        )
+        const recoveredWi = { ...wi, prUrl: reconciled.prUrl }
+        const prState = await agent(checkPrStatePrompt(recoveredWi), {
+          schema: PR_STATE_SCHEMA,
+          label: `check-pr-${wi.name}`,
+          phase: 'Monitor in-flight',
+          model: 'sonnet',
+        })
+        return { wi: recoveredWi, prState, action: 'evaluate' }
       }
       const prState = await agent(checkPrStatePrompt(wi), {
         schema: PR_STATE_SCHEMA,
@@ -1466,9 +1253,17 @@ const pickCandidate = async (identity, inFlightWis) => {
           log(`excluding ${c.name}: PR #${prNum} already merged`)
           return null
         }
-        // CLOSED without merge — PR was abandoned; re-queue the WI
-        log(`re-queuing ${c.name}: PR #${prNum} was closed without merging`)
-        return c
+        // Only an explicit CLOSED (abandoned, not merged) justifies a re-queue.
+        // Any other reading (UNKNOWN, garbled, hallucinated by the state agent) is
+        // NOT a confirmed abandonment — exclude rather than risk re-claiming a WI
+        // whose PR is actually still open (would fail concurrent-claim-detected and
+        // burn a tick). Re-queue requires certainty the PR is gone.
+        if (prState === 'CLOSED') {
+          log(`re-queuing ${c.name}: PR #${prNum} was closed without merging`)
+          return c
+        }
+        log(`excluding ${c.name}: PR #${prNum} state '${prState}' is not a confirmed CLOSED — not re-queuing`)
+        return null
       })
     )
   ).filter(Boolean)
@@ -1515,6 +1310,61 @@ const pickCandidate = async (identity, inFlightWis) => {
     }
     candidateList.length = 0
     candidateList.push(...unblocked)
+  }
+
+  // Numeric-sequencing gate (.claude/skills/work-item-sequencing/SKILL.md). Within one epic a
+  // leading dotted number in Subject__c orders work: top-level integers are sequential, but
+  // same-first-segment siblings (1.1, 1.2) run in PARALLEL. So gate on the TOP segment only —
+  // a candidate is blocked iff its epic still holds an UNFINISHED WI with a strictly-smaller
+  // leading integer (done = Closed/Completed, reusing isBlockerSatisfied). Unnumbered
+  // candidates are always ready; candidates without an epic can't be sequenced. One batched
+  // query per the distinct epics in play, fetched WITHOUT an open-only filter so Closed
+  // prerequisites are visible.
+  const seqCandidates = candidateList
+    .map(c => ({ c, seq: parseSequence(c.subject) }))
+    .filter(({ c, seq }) => seq && c.epicId)
+  const seqEpicIds = [...new Set(seqCandidates.map(({ c }) => c.epicId))]
+  if (seqEpicIds.length) {
+    const epicRaw = await agent(epicSiblingsQueryPrompt(seqEpicIds), {
+      schema: EPIC_WI_RECORDS_SCHEMA,
+      label: 'query-epic-siblings',
+      phase: 'Pick candidate',
+      model: 'haiku',
+    })
+    // Per epic: the smallest top-level integer among UNFINISHED numbered WIs. A candidate
+    // whose own top segment exceeds that minimum is gated behind unfinished earlier work.
+    // Unnumbered WIs neither gate nor are gated; done (Closed/Completed) WIs don't gate.
+    const minUnfinishedTopByEpic = (epicRaw.records || [])
+      .map(r => ({ epicId: r.Epic__c || '', top: topSegment(parseSequence(r.Subject__c)), status: r.Status__c || '' }))
+      .filter(r => r.top !== null && !isBlockerSatisfied(r.status))
+      .reduce((m, r) => {
+        const prev = m.get(r.epicId)
+        return prev === undefined || r.top < prev ? m.set(r.epicId, r.top) : m
+      }, new Map())
+    const blockedIds = new Set(
+      seqCandidates
+        .filter(({ c, seq }) => {
+          const minOpen = minUnfinishedTopByEpic.get(c.epicId)
+          // Blocked only if an unfinished WI sorts in an EARLIER top-level group. Equal top
+          // segment = same group = parallel sibling (or the candidate itself) → not blocked.
+          return minOpen !== undefined && minOpen < topSegment(seq)
+        })
+        .map(({ c, seq }) => {
+          log(
+            `excluding ${c.name}: sequence-blocked — epic has unfinished WI in earlier group ${minUnfinishedTopByEpic.get(c.epicId)} (candidate is ${topSegment(seq)})`
+          )
+          return c.wiId
+        })
+    )
+    if (blockedIds.size) {
+      const open = candidateList.filter(c => !blockedIds.has(c.wiId))
+      if (!open.length) {
+        log('all candidates gated by earlier unfinished epic work — nothing to claim')
+        return null
+      }
+      candidateList.length = 0
+      candidateList.push(...open)
+    }
   }
 
   if (candidateList.length === 1) {
@@ -1569,7 +1419,7 @@ const runPlan = async (chosen, identity) => {
     phase: 'Plan',
     model: 'haiku',
   })
-  const skillList = (skillNames.skills || []).map(s => s.trim()).filter(Boolean)
+  const skillList = ((skillNames && skillNames.skills) || []).map(s => s.trim()).filter(Boolean)
 
   const planResult = await agent(planPrompt(chosen, identity, skillList), {
     schema: PLAN_SCHEMA,
@@ -1578,7 +1428,7 @@ const runPlan = async (chosen, identity) => {
     model: 'opus',
   })
 
-  return { planResult, skillList }
+  return { planResult }
 }
 
 const bounceBlockedPlan = async (chosen, planResult, identity) => {
@@ -1590,80 +1440,19 @@ const bounceBlockedPlan = async (chosen, planResult, identity) => {
   })
 }
 
+// Plan review (concise-style check + revise → effect/e2e/adversary advocate
+// fan-out → fold blocking findings into a revise pass → commit) lives in the
+// standalone review-plan workflow so a human can run /review-plan on demand.
+// Called here as a sub-step so the pipeline behavior is single-sourced.
 const reviewAndCommitPlan = async (chosen, identity) => {
-  const planReview = await agent(planReviewPrompt(chosen, identity), {
-    schema: PLAN_REVIEW_SCHEMA,
-    label: `plan-review-${chosen.name}`,
-    phase: 'Plan',
-    model: 'sonnet',
-  })
-
-  if (!planReview.approved) {
-    await agent(planRevisePrompt(chosen, identity, planReview.revisions), {
-      schema: PLAN_SCHEMA,
-      label: `plan-revise-${chosen.name}`,
-      phase: 'Plan',
-      model: 'sonnet',
-    })
-  }
-
-  const [effectPlanReview, e2ePlanReview, adversaryPlanReview] = await parallel([
-    () =>
-      agent(effectPlanReviewPrompt(chosen, identity), {
-        schema: EFFECT_ADVOCATE_SCHEMA,
-        label: `effect-plan-${chosen.name}`,
-        phase: 'Plan',
-        agentType: 'effect-advocate',
-      }),
-    () =>
-      agent(e2ePlanReviewPrompt(chosen, identity), {
-        schema: EFFECT_ADVOCATE_SCHEMA,
-        label: `e2e-plan-${chosen.name}`,
-        phase: 'Plan',
-        agentType: 'e2e-advocate',
-      }),
-    () =>
-      agent(adversaryPlanReviewPrompt(chosen, identity), {
-        schema: PLAN_ADVERSARY_SCHEMA,
-        label: `adversary-plan-${chosen.name}`,
-        phase: 'Plan',
-        agentType: 'plan-adversary',
-      }),
-  ])
-
-  const effectMust = ((effectPlanReview && effectPlanReview.findings) || []).filter(
-    f => f.severity === 'must'
-  )
-  const e2eMust = ((e2ePlanReview && e2ePlanReview.findings) || []).filter(
-    f => f.severity === 'must'
-  )
-  const adversaryBlocking = ((adversaryPlanReview && adversaryPlanReview.findings) || []).filter(
-    f => f.severity === 'critical' || f.severity === 'high'
-  )
-
-  const advocateRevisions = [
-    ...effectMust.map(f => `[effect] ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`),
-    ...e2eMust.map(f => `[e2e] ${f.suggestion}${f.citation ? ' [' + f.citation + ']' : ''}`),
-    ...adversaryBlocking.map(
-      f =>
-        `[adversary:${f.severity}] ${f.claim}${f.suggestion ? ' — ' + f.suggestion : ''}${f.evidence ? ' [' + f.evidence + ']' : ''}`
-    ),
-  ]
-
-  if (advocateRevisions.length) {
-    await agent(planAdvocateRevisePrompt(chosen, identity, advocateRevisions), {
-      schema: PLAN_SCHEMA,
-      label: `plan-advocate-revise-${chosen.name}`,
-      phase: 'Plan',
-      model: 'opus',
-    })
-  }
-
-  await agent(commitPlanPrompt(chosen, identity), {
-    schema: OK_SCHEMA,
-    label: `commit-plan-${chosen.name}`,
-    phase: 'Plan',
-    model: 'haiku',
+  const { wt } = pathsFor(identity, chosen)
+  await workflow('review-plan', {
+    planPath: `.claude/plans/${chosen.name}.md`,
+    wt,
+    subject: chosen.subject,
+    details: chosen.details || '',
+    commitMessage: `chore: plan for ${chosen.name}`,
+    label: chosen.name,
   })
 }
 
@@ -1686,99 +1475,23 @@ const bounceStuckBuild = async (chosen, buildResult, identity) => {
   })
 }
 
-const runReview = async (chosen, identity, skillList) => {
+// Code review (applicable-skill fan-out + thermo + effect diff review →
+// adversarial per-finding verify → fixer) lives in the standalone review-diff
+// workflow so a human can run /review-diff on demand. Called here as a sub-step
+// so the pipeline behavior is single-sourced. The post-review merge of
+// origin/develop stays here — it's a build-pipeline concern, not part of review.
+const runReview = async (chosen, identity) => {
   phase('Review')
   const { wt } = pathsFor(identity, chosen)
 
-  const diffInfo = await agent(diffPrompt(wt), {
-    schema: DIFF_RAW_SCHEMA,
-    label: `diff-${chosen.name}`,
-    phase: 'Review',
-    model: 'haiku',
+  const reviewResult = await workflow('review-diff', {
+    wt,
+    base: 'origin/develop',
+    apply: true,
+    label: chosen.name,
   })
-
-  const lineCount = parseShortstatLines(diffInfo.shortstat || '')
-  const skillsToCheck =
-    lineCount < SMALL_DIFF_LINES
-      ? skillList.filter(s => ALWAYS_APPLICABLE_SKILLS.includes(s))
-      : skillList.filter(s => !REVIEW_SKILL_DENYLIST.includes(s))
-
-  log(`diff: ${lineCount} lines; checking ${skillsToCheck.length} skills`)
-
-  const skillFindings = await parallel(
-    skillsToCheck.map(skill => () =>
-      agent(skillDetectPrompt(skill, wt), {
-        schema: SKILL_DETECT_SCHEMA,
-        label: `skill-${skill}`,
-        phase: 'Review',
-        model: 'sonnet',
-      })
-    )
-  )
-
-  const thermo = await agent(thermoPrompt(wt), {
-    schema: THERMO_SCHEMA,
-    label: `thermo-${chosen.name}`,
-    phase: 'Review',
-    model: 'opus',
-  })
-
-  const effectDiffReview = await agent(effectDiffReviewPrompt(wt), {
-    schema: EFFECT_ADVOCATE_SCHEMA,
-    label: `effect-diff-${chosen.name}`,
-    phase: 'Review',
-    agentType: 'effect-advocate',
-  })
-
-  // Verify every finding before fixing: each gets an adversarial verifier that
-  // proves the premise (reads cited code; gh-searches consumers for breaking/
-  // dead-code claims; checks CI coverage for "run X before merge" claims) and
-  // returns confirmed / downgraded / dropped. Kills false positives, redundant
-  // CI re-runs, and zero-consumer "breaking changes" before they reach the fixer.
-  phase('Verify findings')
-
-  const rawFindings = normalizeFindings(skillFindings, skillsToCheck, thermo, effectDiffReview)
-  log(`verifying ${rawFindings.length} raw finding(s)`)
-
-  const verdicts = await parallel(
-    rawFindings.map((finding, i) => () =>
-      agent(verifyFindingPrompt(wt, finding), {
-        schema: VERIFY_SCHEMA,
-        label: `verify-${finding.source}-${i}`,
-        phase: 'Verify findings',
-        model: 'sonnet',
-      }).then(v => (v ? { finding, ...v } : null))
-    )
-  )
-
-  const verifiedFindings = verdicts
-    .filter(Boolean)
-    .filter(v => v.verdict !== 'dropped')
-    .map(v => ({
-      source: v.finding.source,
-      file: v.finding.file,
-      line: v.finding.line,
-      claim: v.finding.claim,
-      verifiedSeverity: v.severity,
-      rationale: v.rationale,
-      evidence: v.evidence ?? null,
-    }))
-    .sort((a, b) => SEVERITY_RANK[a.verifiedSeverity] - SEVERITY_RANK[b.verifiedSeverity])
-
-  const droppedCount = verdicts.filter(Boolean).filter(v => v.verdict === 'dropped').length
-  log(
-    `verified: ${verifiedFindings.length} kept, ${droppedCount} dropped (${verdicts.filter(Boolean).filter(v => v.verdict === 'downgraded').length} downgraded)`
-  )
 
   phase('Fix review findings')
-
-  const fixerResult = await agent(fixerPrompt(wt, verifiedFindings), {
-    schema: FIXER_SCHEMA,
-    label: `fix-${chosen.name}`,
-    phase: 'Fix review findings',
-    model: 'opus',
-  })
-
   await agent(mergeDevelopPrompt(wt), {
     schema: OK_SCHEMA,
     label: `merge-${chosen.name}`,
@@ -1786,7 +1499,9 @@ const runReview = async (chosen, identity, skillList) => {
     model: 'opus',
   })
 
-  return fixerResult
+  // A null fixer (subagent died) shouldn't sink the tick — the build is already
+  // committed. Degrade to no remaining notes so the PR still drafts.
+  return (reviewResult && reviewResult.fixerResult) || { remaining: [] }
 }
 
 const draftPr = async (chosen, identity, fixerResult) => {
@@ -1821,18 +1536,48 @@ if (identity.error || !identity.userId) {
 }
 log(`runner: ${identity.username} (${identity.ownerPrefix}, ${identity.githubLogin})`)
 
-await ensureDaemons()
-await reapStrandedWorktrees(identity)
+// Independent: daemon launch touches no repo git; reap mutates only worktrees/branches
+// that dropped OUT of the in-flight query; monitor does read-only gh/sf (gh pr diff <url>
+// hits the API, not local git). Disjoint sets + no shared ref mutation → run concurrently.
+// Each fn's bare phase() races the global pointer, but every agent() inside passes an
+// explicit phase: opt so progress grouping stays correct.
+const [, , monitor] = await parallel([
+  () => ensureDaemons(),
+  () => reapStrandedWorktrees(identity),
+  () => monitorInFlight(identity),
+])
+if (!monitor) {
+  log('monitor phase failed (subagent died) — exiting tick; next tick retries')
+  return { exited: 'monitor-failed' }
+}
+const { inFlightWis, monitorOutcomes } = monitor
+const { toFinalize: toFinalizeRaw, toTriage, toRestart, toCloseWi, toPlanOnly, toRefresh } = classifyMonitor(monitorOutcomes)
 
-const { inFlightWis, monitorOutcomes } = await monitorInFlight(identity)
-const { toFinalize, toTriage, toRestart, toCloseWi, toPlanOnly, toRefresh } = classifyMonitor(monitorOutcomes)
+// toRefresh is orthogonal to the decision buckets (a green PR can also be CONFLICTING), so a
+// WI can be in BOTH toFinalize and toRefresh. openReview removes the worktree while
+// refreshBranch reattaches+merges it — a same-WI race once these run concurrently. Let refresh
+// win this tick (it pushes a merge commit → CI reruns → next tick finalizes the now-current PR).
+const refreshIds = new Set(toRefresh.map(r => r.wi.wiId))
+const toFinalize = toFinalizeRaw.filter(r => !refreshIds.has(r.wi.wiId))
 
-if (toCloseWi.length) await closeMergedWis(toCloseWi, identity)
-if (toPlanOnly.length) await handlePlanOnlyPrs(toPlanOnly, identity)
-if (toTriage.length) await triageAndFixCi(toTriage, identity)
-if (toRefresh.length) await keepInFlightCurrent(toRefresh, identity)
-if (toFinalize.length) await openForReview(toFinalize, identity)
-await peerApprove(identity)
+// Handlers split by resource profile, not just data-independence:
+//  - Safe group (close / plan-only / open-review / peer-approve): light gh/sf/slack +
+//    worktree REMOVAL on disjoint WI sets, no compile/build → fully concurrent.
+//  - Heavy chain (triage → refresh): both push commits and trigger compile/lint/test across
+//    worktrees; MUST stay sequential — concurrent heavy builds crash the machine (the reason
+//    keepInFlightCurrent is already a sequential for-loop). The two groups touch disjoint
+//    worktrees, so the safe group runs alongside the heavy chain.
+// Results unused; parallel() turns a thrown handler into null and never rejects.
+await parallel([
+  () => (toCloseWi.length ? closeMergedWis(toCloseWi, identity) : null),
+  () => (toPlanOnly.length ? handlePlanOnlyPrs(toPlanOnly, identity) : null),
+  () => (toFinalize.length ? openForReview(toFinalize, identity) : null),
+  () => peerApprove(identity),
+  async () => {
+    if (toTriage.length) await triageAndFixCi(toTriage, identity)
+    if (toRefresh.length) await keepInFlightCurrent(toRefresh, identity)
+  },
+])
 
 // Cap = number of WIs currently 'In Progress' in GUS. GUS status is authoritative.
 // 'Ready for Review'/'Fixed' WIs are waiting on human review — not consuming builder slots.
@@ -1859,16 +1604,24 @@ if (toRestart.length) {
   }
 }
 
+// A null return from any builder subagent means it died on a terminal API error
+// (e.g. socket closed) after retries. The WI stays 'In Progress' with no PR, so the
+// next tick's monitor classifies it 'no-pr-restart' and resumes it. Exit this tick
+// gracefully instead of dereferencing null and crashing the whole run.
 const claimed = await claimOrRestart(chosen, identity, isRestart)
-if (!claimed.ok) {
-  log(`${isRestart ? 'restart' : 'claim'} failed: ${claimed.detail}`)
+if (!claimed || !claimed.ok) {
+  log(`${isRestart ? 'restart' : 'claim'} failed: ${(claimed && claimed.detail) || 'subagent died'}`)
   return {
     exited: isRestart ? 'restart-failed' : 'claim-failed',
-    error: claimed.detail,
+    error: (claimed && claimed.detail) || 'subagent-died',
   }
 }
 
-const { planResult, skillList } = await runPlan(chosen, identity)
+const { planResult } = await runPlan(chosen, identity)
+if (!planResult) {
+  log(`plan subagent died for ${chosen.name}; WI stays In Progress for next-tick restart`)
+  return { exited: 'plan-died', wi: chosen.name }
+}
 if (planResult.verdict === 'blocked') {
   await bounceBlockedPlan(chosen, planResult, identity)
   return { exited: 'plan-blocked', wi: chosen.name }
@@ -1876,14 +1629,22 @@ if (planResult.verdict === 'blocked') {
 await reviewAndCommitPlan(chosen, identity)
 
 const buildResult = await runBuild(chosen, identity)
+if (!buildResult) {
+  log(`build subagent died for ${chosen.name}; WI stays In Progress for next-tick restart`)
+  return { exited: 'build-died', wi: chosen.name }
+}
 if (buildResult.status === 'stuck') {
   await bounceStuckBuild(chosen, buildResult, identity)
   return { exited: 'build-stuck', wi: chosen.name, reason: buildResult.reason }
 }
 
-const fixerResult = await runReview(chosen, identity, skillList)
+const fixerResult = await runReview(chosen, identity)
 
 const prResult = await draftPr(chosen, identity, fixerResult)
+if (!prResult || !prResult.prUrl) {
+  log(`draft-PR subagent died for ${chosen.name}; WI stays In Progress for next-tick restart`)
+  return { exited: 'draft-pr-died', wi: chosen.name }
+}
 
 log(`opened draft PR ${prResult.prUrl} for ${chosen.name}`)
 return {

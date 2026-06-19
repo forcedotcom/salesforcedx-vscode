@@ -30,6 +30,7 @@ Per finding: file:line, smell, Effect replacement, citation. Severity: `must` (a
 - **`if/else` or `switch` on tagged union** → `Match.type<T>().pipe(Match.tag(...), Match.exhaustive)` or `Effect.match` / `Option.match`.
 - **Hand-rolled retry** (`for`/`while`/recursion + `setTimeout`) → `Effect.retry` + `Schedule.exponential` / `Schedule.recurs` / `Schedule.intersect`.
 - **Hand-rolled timeouts** (`Promise.race` + `setTimeout`) → `Effect.timeout` / `Effect.timeoutFail`.
+- **Numeric time values** (`TIMEOUT_MS = 30_000`, timeout params as `number`) → `Duration.seconds(30)` / `Duration.millis(30_000)` for constants; `Duration.DurationInput` for param types. Convert with `Duration.toMillis`.
 - **AbortController inside Effect** → `Effect.interruptible` / fiber interruption / `Effect.race`.
 - **Cache** (Map + manual TTL) → `Cache.make` / `Effect.cached` / `Effect.cachedWithTTL`.
 - **In-flight dedup** (Map of pending Promises) → `Effect.cachedFunction` / `RequestResolver`.
