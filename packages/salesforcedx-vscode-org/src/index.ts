@@ -76,6 +76,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   console.log('Salesforce Org Management extension activated');
 
   const extensionScope = Effect.runSync(getExtensionScope());
+  // fallbackDisplayName only fires if package.json displayName is absent; channel_name must match displayName ('Salesforce Org Management')
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
   await Effect.runPromise(
     activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer)).pipe(Scope.extend(extensionScope))
