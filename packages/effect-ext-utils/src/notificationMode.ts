@@ -182,9 +182,17 @@ export type SuccessOnlyNotificationModeApi<CommandKey extends string> = {
   showSuccessOnlyNotification: (command: CommandKey, message: string, actions?: ToastAction[]) => void;
 };
 
+const progressAndSuccessModeToSuccessOnlyMode = (mode: ProgressAndSuccessMode): SuccessOnlyMode => {
+  if (mode === 'progressToastSuccessToast') return 'toast';
+  if (mode === 'progressStatusBarSuccessStatusBar') return 'statusBar';
+  return 'off';
+};
+
 /**
  * Creates a success-only notification API for commands that have no progress phase.
- * Reads the command-level `SuccessOnlyMode` setting; defaults to `toast` if unset.
+ * Falls back through extension-level and global `ProgressAndSuccessMode` settings via mapping:
+ * `progressToastSuccessToast` → `toast`, `progressStatusBarSuccessStatusBar` → `statusBar`,
+ * `progressToast/StatusBarSuccessOff` → `off`.
  */
 export const createSuccessOnlyNotificationMode = <CommandKey extends string>(
   extensionSection: string,
@@ -194,8 +202,17 @@ export const createSuccessOnlyNotificationMode = <CommandKey extends string>(
   const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
 
   const getMode = (command: CommandKey): SuccessOnlyMode => {
-    const i = vscode.workspace.getConfiguration(commandLevelSection).inspect<SuccessOnlyMode>(command);
-    return i?.workspaceFolderValue ?? i?.workspaceValue ?? i?.globalValue ?? 'toast';
+    const cmdLevel = vscode.workspace.getConfiguration(commandLevelSection).inspect<SuccessOnlyMode>(command);
+    const cmdExplicit = cmdLevel?.workspaceFolderValue ?? cmdLevel?.workspaceValue ?? cmdLevel?.globalValue;
+    if (cmdExplicit) return cmdExplicit;
+
+    const extLevel = inspectExplicit(extensionSection, EXTENSION_LEVEL_KEY);
+    if (extLevel) return progressAndSuccessModeToSuccessOnlyMode(extLevel);
+
+    const globalMode = vscode.workspace.getConfiguration(GLOBAL_SECTION).get<ProgressAndSuccessMode>(GLOBAL_KEY);
+    if (globalMode) return progressAndSuccessModeToSuccessOnlyMode(globalMode);
+
+    return 'toast';
   };
 
   return {

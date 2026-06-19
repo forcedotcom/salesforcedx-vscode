@@ -113,7 +113,7 @@ Configurable notifications for commands with only a success phase — no progres
 - `statusBar`: show success in status bar
 - `off`: suppress success notification
 
-Reads command-level `SuccessOnlyMode` settings and defaults to `toast` if unset. Action buttons appear in toast notifications and when status bar items are clicked.
+Reads command-level `SuccessOnlyMode` settings first, then falls back through extension-level and global `ProgressAndSuccessMode` settings via a mapping function: `progressToastSuccessToast` → `toast`, `progressStatusBarSuccessStatusBar` → `statusBar`, and `progressToast/StatusBarSuccessOff` → `off`. Defaults to `toast` if no configuration is found at any level. Action buttons appear in toast notifications and when status bar items are clicked.
 
 See [SuccessOnlyNotificationModeApi reference](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.claude/skills/services-extension-consumption/references/notification-mode-api.md) for full details.
 
