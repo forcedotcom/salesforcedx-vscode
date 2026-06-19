@@ -479,15 +479,11 @@
               "type": "string",
               "enum": [
                 "progressToastSuccessToast",
-                "progressToastSuccessOff",
-                "progressStatusBarSuccessStatusBar",
-                "progressStatusBarSuccessOff"
+                "progressStatusBarSuccessStatusBar"
               ],
               "enumDescriptions": [
                 "%notifications.progressToastSuccessToast.description%",
-                "%notifications.progressToastSuccessOff.description%",
-                "%notifications.progressStatusBarSuccessStatusBar.description%",
-                "%notifications.progressStatusBarSuccessOff.description%"
+                "%notifications.progressStatusBarSuccessStatusBar.description%"
               ],
               "description": "%notifications_soql_query_execution_description%"
             },
