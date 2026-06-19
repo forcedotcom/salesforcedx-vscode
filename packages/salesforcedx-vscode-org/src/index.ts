@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer,
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope
+} from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
@@ -26,7 +31,8 @@ import {
 } from './commands';
 import { orgDeleteDefaultCommand } from './commands/orgDelete';
 import { ORG_OPEN_COMMAND } from './constants';
-import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './extensionProvider';
+import { AllServicesLayer, setAllServicesLayer } from './extensionProvider';
+import { nls } from './messages';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
 import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 
@@ -70,7 +76,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   console.log('Salesforce Org Management extension activated');
 
   const extensionScope = Effect.runSync(getExtensionScope());
-  setAllServicesLayer(buildAllServicesLayer(extensionContext));
+  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
   await Effect.runPromise(
     activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer)).pipe(Scope.extend(extensionScope))
   );
