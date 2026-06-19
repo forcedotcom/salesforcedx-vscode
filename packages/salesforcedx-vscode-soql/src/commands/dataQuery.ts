@@ -12,10 +12,14 @@ import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
-import { type CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+import {
+  type ProgressAndSuccessCommandKey,
+  getProgressLocation,
+  showSuccessNotification
+} from '../utils/notificationMode';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
 
-const COMMAND: CommandKey = messages.soql_query_execution_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text;
 
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured

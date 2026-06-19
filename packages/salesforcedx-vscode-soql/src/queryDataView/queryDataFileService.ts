@@ -15,7 +15,7 @@ import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
+import { type SuccessOnlyCommandKey, showSuccessOnlyNotification } from '../utils/notificationMode';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 
 export enum FileFormat {
@@ -71,7 +71,7 @@ const validateExportResultsFileNameInput = (value: string, fileExtension: string
 const normalizeExportResultsFileBaseName = (value: string, fileExtension: string): string =>
   stripTrailingExtension(value.trim(), fileExtension);
 
-const SAVE_COMMAND: CommandKey = messages.save_query_results_text;
+const SAVE_COMMAND: SuccessOnlyCommandKey = messages.save_query_results_text;
 
 const writeQueryResultsAndNotify = Effect.fn('queryDataFileService.writeQueryResultsAndNotify')(function* (params: {
   fileUri: URI;
@@ -83,7 +83,7 @@ const writeQueryResultsAndNotify = Effect.fn('queryDataFileService.writeQueryRes
   const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   showFileInExplorer(fileUri, fsPath);
   yield* Effect.sync(() =>
-    showSuccessNotification(SAVE_COMMAND, nls.localize('info_file_save_success', Utils.basename(fileUri)), true)
+    showSuccessOnlyNotification(SAVE_COMMAND, nls.localize('info_file_save_success', Utils.basename(fileUri)))
   );
   return fileUri;
 });

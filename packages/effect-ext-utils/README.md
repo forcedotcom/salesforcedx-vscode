@@ -34,12 +34,12 @@ yield * annotateRootSpan({ orgId, featureFlag: 'enabled' });
 
 Signature mirrors `Effect.annotateCurrentSpan` — both `(key, value)` and record overloads. The helper walks `Span.parent` to find the trace root, no-ops with a debug log if there is no current span or the chain dead-ends at a non-Effect (External) span.
 
-### createNotificationMode
+### createProgressAndSuccessNotificationMode
 
 ```typescript
-import { createNotificationMode } from '@salesforce/effect-ext-utils';
+import { createProgressAndSuccessNotificationMode } from '@salesforce/effect-ext-utils';
 
-const notificationApi = createNotificationMode(
+const notificationApi = createProgressAndSuccessNotificationMode(
   'my-extension-section',
   'my-extension.statusBar',
   'My Extension Status'
@@ -57,7 +57,7 @@ notificationApi.showSuccessNotification('commandKey', 'Success!', false, [
 const location = notificationApi.getProgressLocation('commandKey');
 ```
 
-Creates a configurable notification API for command execution feedback. Supports multiple modes:
+Configurable notifications for commands with both a progress phase and a success notification (`ProgressAndSuccessMode`). Supports modes:
 - `progressToastSuccessToast`: toast progress, toast success
 - `progressToastSuccessOff`: toast progress, hidden success
 - `progressStatusBarSuccessStatusBar`: status bar progress, status bar success
@@ -65,7 +65,57 @@ Creates a configurable notification API for command execution feedback. Supports
 
 Action buttons appear in toast notifications and when status bar items are clicked. Users configure per-command, per-extension, or globally via VS Code settings. Use `forceShow: true` to override `*SuccessOff` modes when the message has critical info (e.g., request ID).
 
-See [NotificationModeApi reference](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.claude/skills/services-extension-consumption/references/notification-mode-api.md) for full details.
+See [ProgressAndSuccessNotificationModeApi reference](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.claude/skills/services-extension-consumption/references/notification-mode-api.md) for full details.
+
+### createNotificationModeApi
+
+```typescript
+import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
+
+const notificationApi = createNotificationModeApi(
+  'my-extension-section',
+  'my-extension.statusBar',
+  'My Extension Status'
+);
+
+// Use progress+success notifications
+notificationApi.showSuccessNotification('progressCommandKey', 'Done!');
+const progressLocation = notificationApi.getProgressLocation('progressCommandKey');
+
+// Use success-only notifications
+notificationApi.showSuccessOnlyNotification('successCommandKey', 'Complete!');
+```
+
+Combined factory that creates both `createProgressAndSuccessNotificationMode` and `createSuccessOnlyNotificationMode` APIs bound to the same settings and status bar. Use when an extension has both command types — avoids repeating config arguments. Returns merged API with both `showSuccessNotification`/`getProgressLocation` and `showSuccessOnlyNotification` methods.
+
+### createSuccessOnlyNotificationMode
+
+```typescript
+import { createSuccessOnlyNotificationMode } from '@salesforce/effect-ext-utils';
+
+const notificationApi = createSuccessOnlyNotificationMode(
+  'my-extension-section',
+  'my-extension.statusBar',
+  'My Extension Status'
+);
+
+// Show success notification
+notificationApi.showSuccessOnlyNotification('commandKey', 'Success!');
+
+// Show success with action buttons
+notificationApi.showSuccessOnlyNotification('commandKey', 'Success!', [
+  { label: 'Open', run: () => { /* action handler */ } }
+]);
+```
+
+Configurable notifications for commands with only a success phase — no progress (`SuccessOnlyMode`). Supports modes:
+- `toast`: show success as toast notification
+- `statusBar`: show success in status bar
+- `off`: suppress success notification
+
+Reads command-level `SuccessOnlyMode` settings and defaults to `toast` if unset. Action buttons appear in toast notifications and when status bar items are clicked.
+
+See [SuccessOnlyNotificationModeApi reference](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/.claude/skills/services-extension-consumption/references/notification-mode-api.md) for full details.
 
 ## License
 

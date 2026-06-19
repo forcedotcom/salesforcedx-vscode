@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createNotificationMode } from '@salesforce/effect-ext-utils';
+import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
 
-export type CommandKey = 'SOQL Query Execution' | 'Save Query Results';
+export type ProgressAndSuccessCommandKey = 'SOQL Query Execution';
+export type SuccessOnlyCommandKey = 'Save Query Results';
 
-export const { showSuccessNotification, getProgressLocation } = createNotificationMode<CommandKey>(
-  'salesforcedx-vscode-soql',
-  'sf-soql-notifications',
-  'Salesforce: SOQL Notifications'
-);
+export const { showSuccessNotification, getProgressLocation, showSuccessOnlyNotification } = createNotificationModeApi<
+  ProgressAndSuccessCommandKey,
+  SuccessOnlyCommandKey
+>('salesforcedx-vscode-soql', 'sf-soql-notifications', 'Salesforce: SOQL Notifications');

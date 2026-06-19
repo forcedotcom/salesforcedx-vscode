@@ -494,16 +494,14 @@
             "Save Query Results": {
               "type": "string",
               "enum": [
-                "progressToastSuccessToast",
-                "progressToastSuccessOff",
-                "progressStatusBarSuccessStatusBar",
-                "progressStatusBarSuccessOff"
+                "toast",
+                "statusBar",
+                "off"
               ],
               "enumDescriptions": [
-                "%notifications.progressToastSuccessToast.description%",
-                "%notifications.progressToastSuccessOff.description%",
-                "%notifications.progressStatusBarSuccessStatusBar.description%",
-                "%notifications.progressStatusBarSuccessOff.description%"
+                "%notifications.saveToast.description%",
+                "%notifications.saveStatusBar.description%",
+                "%notifications.saveOff.description%"
               ],
               "description": "%notifications_save_query_results_description%"
             }
