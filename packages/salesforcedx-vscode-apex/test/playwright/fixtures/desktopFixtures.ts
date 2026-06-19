@@ -44,31 +44,45 @@ const EXAMPLE_CLASS_TEST = [
   '}'
 ].join('\n');
 
-// apexLsp specs do not exercise Push/Pull, so the workspace has no org. Files are pre-seeded
-// onto disk before Electron launches so the jorje LSP startup scan picks them up — drops the
-// WDIO Windows-only `reloadWindow` workaround.
+// Shared userSettings: apexLsp specs do not exercise Push/Pull, so the workspace has no org.
+const userSettings = {
+  'git.terminalAuthentication': false,
+  'git.autofetch': false,
+  // Prevent Go to Definition from opening a peek widget when the target file is already open
+  'editor.gotoLocation.multipleDefinitions': 'goto',
+  'editor.gotoLocation.multipleDeclarations': 'goto',
+  'editor.gotoLocation.multipleImplementations': 'goto',
+  'editor.gotoLocation.multipleTypeDefinitions': 'goto',
+  'editor.gotoLocation.multipleReferences': 'goto',
+  'editor.gotoLocation.alternativeDefinitionCommand': ''
+};
+
+// Files are pre-seeded onto disk before Electron launches so the jorje LSP startup scan picks
+// them up — drops the WDIO Windows-only `reloadWindow` workaround.
 const baseTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs: ['salesforcedx-vscode-core'],
   disableOtherExtensions: false,
-  userSettings: {
-    'git.terminalAuthentication': false,
-    'git.autofetch': false,
-    // Prevent Go to Definition from opening a peek widget when the target file is already open
-    'editor.gotoLocation.multipleDefinitions': 'goto',
-    'editor.gotoLocation.multipleDeclarations': 'goto',
-    'editor.gotoLocation.multipleImplementations': 'goto',
-    'editor.gotoLocation.multipleTypeDefinitions': 'goto',
-    'editor.gotoLocation.multipleReferences': 'goto',
-    'editor.gotoLocation.alternativeDefinitionCommand': ''
-  }
+  userSettings
 });
 
-// Override `workspaceDir` so ExampleClass.cls + ExampleClassTest.cls land on disk before
-// Electron is launched (which depends on workspaceDir). jorje scans the project at startup;
-// files written after launch require a window reload.
-export const desktopTest = baseTest.extend<{ workspaceDir: string }>({
-  workspaceDir: async ({ workspaceDir }, use) => {
+// Snippet spec needs the marketplace ext `salesforce.apex-language-server-extension` (ships
+// apex.json snippets). `marketplaceExtensions` is a createDesktopTest arg, not extendable
+// per-test — so this is its own createDesktopTest. `disableOtherExtensions: false` is required:
+// the default `--disable-extensions` would block the marketplace ext from loading.
+const snippetBaseTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-core'],
+  marketplaceExtensions: ['salesforce.apex-language-server-extension'],
+  disableOtherExtensions: false,
+  userSettings
+});
+
+// Override `workspaceDir` so files land on disk before Electron is launched (which depends on
+// workspaceDir). jorje scans the project at startup; files written after launch require a window
+// reload. Shared by both tests so the seeded files (incl. ExampleClassTest.cls blank line 7) match.
+const seedWorkspaceFiles = {
+  workspaceDir: async ({ workspaceDir }: { workspaceDir: string }, use: (dir: string) => Promise<void>) => {
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
     // Anonymous Apex lives at workspace-root `scripts/apex/` (Salesforce convention; the dir
     // templates scaffold). Not metadata — no `classes/` placement, no `-meta.xml`. jorje's
@@ -84,4 +98,8 @@ export const desktopTest = baseTest.extend<{ workspaceDir: string }>({
     ]);
     await use(workspaceDir);
   }
-});
+};
+
+export const desktopTest = baseTest.extend<{ workspaceDir: string }>(seedWorkspaceFiles);
+
+export const snippetDesktopTest = snippetBaseTest.extend<{ workspaceDir: string }>(seedWorkspaceFiles);
