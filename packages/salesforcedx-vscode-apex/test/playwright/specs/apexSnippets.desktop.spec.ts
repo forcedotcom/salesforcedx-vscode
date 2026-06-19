@@ -10,6 +10,7 @@ import {
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   executeCommandWithCommandPalette,
+  goToLineCol,
   openFileByName,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
@@ -69,9 +70,10 @@ test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page
     // Snippets are scoped to the active editor language; ensure the .cls editor (apex) has focus.
     await editor.click();
     // Move the cursor to the blank line 7 so `System.debug()` lands in a known location.
-    await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
-    await page.keyboard.type('7:1');
-    await page.keyboard.press('Enter');
+    // goToLineCol waits for the Go to Line widget to open before typing and to close after
+    // Enter — the raw type/press sequence raced the widget and left the caret at EOF, so the
+    // snippet landed after the class-closing brace.
+    await goToLineCol(page, 7, 1);
     await saveScreenshot(page, 'apex-snippets.editor-open.png');
   });
 
