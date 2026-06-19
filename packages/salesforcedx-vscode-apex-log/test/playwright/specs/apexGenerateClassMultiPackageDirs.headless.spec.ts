@@ -13,6 +13,7 @@ import {
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
+  selectFirstQuickInputOption,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
@@ -54,8 +55,7 @@ multiPackageNoOrgTest(
     });
 
     await multiPackageNoOrgTest.step('select template in QuickPick', async () => {
-      await waitForQuickInputFirstOption(page);
-      await page.keyboard.press('Enter');
+      await selectFirstQuickInputOption(page);
       await saveScreenshot(page, 'step.template-selected.png');
     });
 
