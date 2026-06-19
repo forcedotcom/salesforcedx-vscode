@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -55,7 +56,11 @@ describe('orgDeleteDefaultCommand', () => {
     const exit = await run({ orgId: '00D', isScratch: true }, true, simpleExec);
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(simpleExec).toHaveBeenCalledWith('sf org delete scratch --no-prompt', expect.any(Function), 120_000);
+    expect(simpleExec).toHaveBeenCalledWith({
+      command: 'sf org delete scratch --no-prompt',
+      parse: expect.any(Function),
+      timeout: Duration.seconds(120)
+    });
     expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
   });
 
@@ -64,7 +69,11 @@ describe('orgDeleteDefaultCommand', () => {
     const exit = await run({ orgId: '00D', isSandbox: true }, true, simpleExec);
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(simpleExec).toHaveBeenCalledWith('sf org delete sandbox --no-prompt', expect.any(Function), 120_000);
+    expect(simpleExec).toHaveBeenCalledWith({
+      command: 'sf org delete sandbox --no-prompt',
+      parse: expect.any(Function),
+      timeout: Duration.seconds(120)
+    });
   });
 
   it('passes --target-org so delete does not depend on the extension-host cwd', async () => {
@@ -72,11 +81,11 @@ describe('orgDeleteDefaultCommand', () => {
     const exit = await run({ orgId: '00D', username: 'me@scratch.org', isScratch: true }, true, simpleExec);
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(simpleExec).toHaveBeenCalledWith(
-      'sf org delete scratch --target-org me@scratch.org --no-prompt',
-      expect.any(Function),
-      120_000
-    );
+    expect(simpleExec).toHaveBeenCalledWith({
+      command: 'sf org delete scratch --target-org me@scratch.org --no-prompt',
+      parse: expect.any(Function),
+      timeout: Duration.seconds(120)
+    });
   });
 
   it('fails with OrgNotDeletableError and does not exec for a non-scratch/non-sandbox default org', async () => {
