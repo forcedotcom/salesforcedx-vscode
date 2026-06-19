@@ -126,27 +126,41 @@ export class VariableAssignmentState implements DebugLogState {
     try {
       const modifiedValue = logContext.getUtil().surroundBlobsWithQuotes(value);
       const obj = JSON.parse(modifiedValue);
-      Object.keys(obj).forEach(key => {
-        const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
-        if (refContainer) {
-          const tmpContainer = this.copyReferenceContainer(refContainer, key, logContext);
-          container.variables.set(key, tmpContainer);
-        } else {
-          let varValue = obj[key];
-          if (typeof varValue === 'string') {
-            varValue = `'${varValue}'`;
-            varValue = logContext.getUtil().removeQuotesFromBlob(varValue);
-          } else {
-            varValue = `${varValue}`;
-          }
-          container.variables.set(key, new ApexVariableContainer(key, varValue, ''));
-        }
-      });
+      // Recurse on the already-parsed object so inner string values aren't re-quoted/re-stringified.
+      this.populateFromParsed(obj, container, logContext);
     } catch {
       container.value = value;
       container.variablesRef = 0;
       container.variables.clear();
     }
+  }
+
+  // Populate a container's children from an already-parsed JSON value (object or array).
+  // Operates on the parsed value directly to avoid re-running surroundBlobsWithQuotes /
+  // JSON.stringify on inner values (which would mangle already-quoted strings).
+  private populateFromParsed(parsed: any, container: ApexVariableContainer, logContext: LogContext) {
+    const keys: string[] = Array.isArray(parsed) ? parsed.map((_, index) => index.toString()) : Object.keys(parsed);
+    keys.forEach(key => {
+      const rawValue = parsed[key];
+      const refContainer = logContext.getRefsMap().get(String(rawValue))!;
+      if (refContainer) {
+        const tmpContainer = this.copyReferenceContainer(refContainer, key, logContext);
+        container.variables.set(key, tmpContainer);
+      } else if (rawValue !== null && typeof rawValue === 'object') {
+        // Nested object/array (parent SObject rel, multi-level hierarchy, or child subquery
+        // records). Build an expandable child container and recurse. type='' is acceptable:
+        // VARIABLE_ASSIGNMENT JSON carries no nested SObject type metadata (only field
+        // name/value), unlike the heap-dump path which reads types from a separate source.
+        const nested = new ApexVariableContainer(key, '', '');
+        container.variables.set(key, nested);
+        nested.variablesRef = logContext.getVariableHandler().create(nested);
+        this.populateFromParsed(rawValue, nested, logContext);
+      } else {
+        const varValue =
+          typeof rawValue === 'string' ? logContext.getUtil().removeQuotesFromBlob(`'${rawValue}'`) : `${rawValue}`;
+        container.variables.set(key, new ApexVariableContainer(key, varValue, ''));
+      }
+    });
   }
   private copyReferenceContainer(refContainer: ApexVariableContainer, varName: string, logContext: LogContext) {
     const tmpContainer = new ApexVariableContainer(varName, refContainer.value, refContainer.type, refContainer.ref);
