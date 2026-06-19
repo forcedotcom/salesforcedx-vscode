@@ -4,15 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { type Column, createTable, ExtensionProviderService, type Row } from '@salesforce/effect-ext-utils';
+import {
+  annotateRootSpan,
+  type Column,
+  createTable,
+  ExtensionProviderService,
+  type Row
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
-import { APEX_LSP_ORPHAN, UBER_JAR_NAME } from './constants';
+import { UBER_JAR_NAME } from './constants';
 import { nls } from './messages';
-import { getTelemetryService } from './telemetry/telemetry';
 
 // these messages contain replaceable parameters, cannot localize yet
 
@@ -22,12 +27,14 @@ class ProcessTerminationError extends Schema.TaggedError<ProcessTerminationError
   message: Schema.String
 }) {}
 
-type ProcessDetail = {
-  pid: number;
-  ppid: number;
-  command: string;
-  orphaned: boolean;
-};
+const ProcessDetailSchema = Schema.Struct({
+  pid: Schema.Number,
+  ppid: Schema.Number,
+  command: Schema.String,
+  orphaned: Schema.Boolean
+});
+
+type ProcessDetail = typeof ProcessDetailSchema.Type;
 
 const isWindows = process.platform === 'win32';
 
@@ -40,21 +47,25 @@ const parentCheckCmd = (ppid: number): string =>
     ? `powershell.exe -command "Get-CimInstance -ClassName Win32_Process -Filter 'ProcessId = ${ppid}'"`
     : `ps -p ${ppid}`;
 
+const decodeProcessList = Schema.decodeSync(Schema.mutable(Schema.Array(ProcessDetailSchema)));
+
+// stdout already trimmed by simpleExec
 const parseProcessList = (stdout: string): ProcessDetail[] =>
-  stdout
-    .trim()
-    .split(/\r?\n/g)
-    .map(line => {
-      const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
-      return {
-        pid: parseInt(pidStr, 10),
-        ppid: parseInt(ppidStr, 10),
-        command: commandParts.join(' '),
-        orphaned: false
-      };
-    })
-    .filter(processInfo => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c)))
-    .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME));
+  decodeProcessList(
+    stdout
+      .split(/\r?\n/g)
+      .map(line => {
+        const [pidStr, ppidStr, ...commandParts] = line.trim().split(/\s+/);
+        return {
+          pid: parseInt(pidStr, 10),
+          ppid: parseInt(ppidStr, 10),
+          command: commandParts.join(' '),
+          orphaned: false
+        };
+      })
+      .filter(processInfo => !['ps', 'grep', 'Get-CimInstance'].some(c => processInfo.command.includes(c)))
+      .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME))
+  );
 
 /**
  * Find Apex Language Server processes whose parent no longer exists.
@@ -64,47 +75,40 @@ const parseProcessList = (stdout: string): ProcessDetail[] =>
 const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const terminal = yield* api.services.TerminalService;
-  const telemetryService = getTelemetryService();
 
-  // Windows-only guard: powershell must be present. Preserves the prior no-powershell telemetry outcome.
+  // Windows-only guard: powershell must be present. Preserves the prior no-powershell outcome.
   if (isWindows) {
-    const hasPowershell = yield* terminal
-      .simpleExec('where powershell', s => s)
-      .pipe(
-        Effect.map(stdout => stdout.length > 0),
-        Effect.catchTag('TerminalServiceError', e => {
-          telemetryService.sendException('apex_lsp_orphan', e.message);
-          return Effect.succeed(false);
-        })
-      );
+    const hasPowershell = yield* terminal.simpleExec({ command: 'where powershell' }).pipe(
+      Effect.map(stdout => stdout.length > 0),
+      Effect.catchTag('TerminalServiceError', e =>
+        annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as(false))
+      )
+    );
     if (!hasPowershell) {
       return [];
     }
   }
 
   // Web (or any exec failure listing processes) → no orphan work.
-  const candidates = yield* terminal
-    .simpleExec(listProcessesCmd, s => s, 60_000)
-    .pipe(
-      Effect.map(parseProcessList),
-      Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([]))
-    );
+  // simpleExec's parse must return string, so decode the ProcessDetail[] via Schema afterward.
+  const candidates = yield* terminal.simpleExec({ command: listProcessesCmd, timeout: 60_000 }).pipe(
+    Effect.map(parseProcessList),
+    Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([]))
+  );
 
   const checkParent = (processInfo: ProcessDetail): Effect.Effect<ProcessDetail> =>
     !isWindows && processInfo.ppid === 1
       ? Effect.succeed({ ...processInfo, orphaned: true })
-      : terminal
-          .simpleExec(parentCheckCmd(processInfo.ppid), s => s)
-          .pipe(
-            Effect.as(processInfo),
-            Effect.catchTag('TerminalServiceError', e => {
-              telemetryService.sendException('apex_lsp_orphan', e.message);
-              return Effect.succeed({ ...processInfo, orphaned: true });
-            })
-          );
+      : terminal.simpleExec({ command: parentCheckCmd(processInfo.ppid) }).pipe(
+          Effect.as(processInfo),
+          Effect.catchTag('TerminalServiceError', e =>
+            annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as({ ...processInfo, orphaned: true }))
+          )
+        );
 
-  const checked = yield* Effect.forEach(candidates, checkParent, { concurrency: 1 });
-  return checked.filter(processInfo => processInfo.orphaned);
+  return (yield* Effect.forEach(candidates, checkParent, { concurrency: 1 })).filter(
+    processInfo => processInfo.orphaned
+  );
 });
 
 const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: ProcessDetail) {
@@ -124,29 +128,23 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
     }),
     Effect.catchTag('ProcessTerminationError', error => {
       showTerminationFailed(processInfo, error.message);
-      getTelemetryService().sendException(APEX_LSP_ORPHAN, error.message);
-      return Effect.void;
+      return annotateRootSpan('orphanKillError', error.message);
     })
   );
 });
 
 export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* () {
-  const telemetryService = getTelemetryService();
-  // Services extension missing/failed to activate → orphan check can't run; emit telemetry and treat as no orphans
-  // (the forked fiber would otherwise die silently with no signal).
+  // Services extension missing/failed to activate → orphan check can't run; record on the root span and treat as
+  // no orphans (the forked fiber would otherwise die silently with no signal).
   const orphanedProcesses = yield* findOrphanedProcesses().pipe(
     Effect.catchTags({
-      ServicesExtensionNotFoundError: e => {
-        telemetryService.sendException(APEX_LSP_ORPHAN, String(e));
-        return Effect.succeed<ProcessDetail[]>([]);
-      },
-      InvalidServicesApiError: e => {
-        telemetryService.sendException(APEX_LSP_ORPHAN, e.cause?.message ?? String(e));
-        return Effect.succeed<ProcessDetail[]>([]);
-      }
+      ServicesExtensionNotFoundError: e =>
+        annotateRootSpan('orphanCheckError', String(e)).pipe(Effect.as<ProcessDetail[]>([])),
+      InvalidServicesApiError: e =>
+        annotateRootSpan('orphanCheckError', e.cause?.message ?? String(e)).pipe(Effect.as<ProcessDetail[]>([]))
     })
   );
-  yield* Effect.annotateCurrentSpan('orphanCount', orphanedProcesses.length);
+  yield* annotateRootSpan('orphanCount', orphanedProcesses.length);
 
   if (orphanedProcesses.length === 0) {
     return;
@@ -156,7 +154,7 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
     Effect.catchTag('UserCancellationError', () => Effect.succeed(false))
   );
 
-  yield* Effect.annotateCurrentSpan('didTerminate', shouldTerminate ? 1 : 0);
+  yield* annotateRootSpan('didTerminate', shouldTerminate ? 1 : 0);
 
   if (!shouldTerminate) {
     return;

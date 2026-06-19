@@ -9,6 +9,7 @@ import {
   buildAllServicesLayer,
   closeExtensionScope,
   ExtensionPackageJsonSchema,
+  ExtensionProviderService,
   type ExtensionPackageJson,
   getExtensionScope
 } from '@salesforce/effect-ext-utils';
@@ -32,12 +33,8 @@ import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
 
-/** Internal-only activation errors; never cross the bundle boundary (activate() rejects via runPromise on failure). */
+/** Internal-only activation error; never crosses the bundle boundary (activate() rejects via runPromise on failure). */
 class TelemetryUnavailableError extends Schema.TaggedError<TelemetryUnavailableError>()('TelemetryUnavailableError', {
-  message: Schema.String
-}) {}
-
-class NoWorkspaceError extends Schema.TaggedError<NoWorkspaceError>()('NoWorkspaceError', {
   message: Schema.String
 }) {}
 
@@ -69,9 +66,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
   yield* Effect.promise(() => telemetryService.initializeService(context));
   setTelemetryService(telemetryService);
 
-  if (!vscode.workspace?.workspaceFolders) {
-    return yield* new NoWorkspaceError({ message: nls.localize('cannot_determine_workspace') });
-  }
+  // fails with the typed NoWorkspaceOpenError from WorkspaceService when no workspace is open
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow();
 
   // Workspace Context
   yield* Effect.promise(() => workspaceContext.initialize(context));

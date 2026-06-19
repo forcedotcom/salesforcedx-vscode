@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
+import type * as Tracer from 'effect/Tracer';
 import * as vscode from 'vscode';
 import { UBER_JAR_NAME } from '../../src/constants';
 import { nls } from '../../src/messages';
@@ -32,7 +33,7 @@ type ExecResult = string | { fail: string };
 /** Build a stub TerminalService.simpleExec that returns canned stdout (or a TerminalServiceError) per matched command substring. */
 const makeSimpleExec =
   (responses: { match: string; result: ExecResult }[]) =>
-  (command: string, parse: (stdout: string) => string = s => s) => {
+  ({ command, parse = s => s }: { command: string; parse?: (stdout: string) => string; timeout?: unknown }) => {
     const hit = responses.find(r => command.includes(r.match));
     if (!hit) {
       return Effect.die(new Error(`unexpected command: ${command}`));
@@ -100,10 +101,23 @@ const provide =
       } as unknown as ExtensionProviderService)
     );
 
-const run = (telemetry: MockTelemetryService, responses: { match: string; result: ExecResult }[]) => {
+// Capture the root span so tests can assert the annotations the handler writes via annotateRootSpan.
+const captureRoot = (holder: { root?: Tracer.Span }) => (effect: Effect.Effect<void>) =>
+  Effect.gen(function* () {
+    holder.root = yield* Effect.currentSpan;
+    return yield* effect;
+  }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
+
+const run = (
+  telemetry: MockTelemetryService,
+  responses: { match: string; result: ExecResult }[],
+  holder: { root?: Tracer.Span } = {}
+) => {
   const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin', telemetry);
   return Effect.runPromise(
-    checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)) as Effect.Effect<void>
+    (checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)) as Effect.Effect<void>).pipe(
+      captureRoot(holder)
+    )
   );
 };
 
@@ -119,14 +133,19 @@ const KILL_RETRY_TOTAL_SECONDS = Array.from(
 ).reduce((sum, s) => sum + s, 0);
 
 /** Run on the TestClock, advancing past the (bounded) kill-retry backoff so scheduled retries fire without real waits. */
-const runWithClock = (telemetry: MockTelemetryService, responses: { match: string; result: ExecResult }[]) => {
+const runWithClock = (
+  telemetry: MockTelemetryService,
+  responses: { match: string; result: ExecResult }[],
+  holder: { root?: Tracer.Span } = {}
+) => {
   const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin', telemetry);
   return Effect.runPromise(
     Effect.gen(function* () {
+      holder.root = yield* Effect.currentSpan;
       const fiber = yield* Effect.fork(checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)));
       yield* TestClock.adjust(Duration.seconds(KILL_RETRY_TOTAL_SECONDS + 1));
       return yield* Fiber.join(fiber);
-    }).pipe(Effect.provide(TestContext.TestContext)) as Effect.Effect<void>
+    }).pipe(Effect.withSpan('test-root'), Effect.provide(TestContext.TestContext)) as Effect.Effect<void>
   );
 };
 
@@ -198,14 +217,16 @@ describe('languageServerOrphanHandler', () => {
     expect(telemetry.sendException).not.toHaveBeenCalled();
   });
 
-  it('kill fails all attempts → ProcessTerminationError caught internally + sendException, never propagates', async () => {
+  it('kill fails all attempts → ProcessTerminationError caught internally + root-span annotation, never propagates', async () => {
     setWarningChoices({ warning: [nls.localize('terminate_processes')], confirm: [nls.localize('yes')] });
     killSpy.mockImplementation(() => {
       throw new Error('always');
     });
-    await expect(runWithClock(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }])).resolves.toBeUndefined();
+    const holder: { root?: Tracer.Span } = {};
+    await expect(runWithClock(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], holder)).resolves.toBeUndefined();
     expect(killSpy).toHaveBeenCalledTimes(3);
-    expect(telemetry.sendException).toHaveBeenCalledWith('apexLSPOrphan', 'always');
+    expect(telemetry.sendException).not.toHaveBeenCalled();
+    expect(holder.root?.attributes.get('orphanKillError')).toBe('always');
   });
 
   it('web platform → TerminalServiceError → empty result, no prompt', async () => {
@@ -232,9 +253,10 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
     Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });
   });
 
-  it('where powershell fails → empty result + no-powershell telemetry, no prompt', async () => {
+  it('where powershell fails → empty result + root-span annotation, no prompt', async () => {
     // Build the effect + its service provision entirely inside the isolated module graph so the handler's
     // module-level isWindows (true here) and the ExtensionProviderService tag identity stay consistent.
+    const holder: { root?: Tracer.Span } = {};
     let program: Effect.Effect<void> | undefined;
     jest.isolateModules(() => {
       const telemetryModule =
@@ -244,19 +266,22 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
         require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
       const { checkAndResolveOrphanedLanguageServers: checkOnWindows } =
         require('../../src/languageServerOrphanHandler') as typeof import('../../src/languageServerOrphanHandler');
-      program = checkOnWindows().pipe(
-        Effect.provideService(IsolatedProvider, {
-          getServicesApi: Effect.succeed(
-            makeApi([{ match: 'where powershell', result: { fail: 'powershell not found' } }])
-          )
-        } as unknown as ExtensionProviderService)
-      ) as Effect.Effect<void>;
+      program = Effect.gen(function* () {
+        holder.root = yield* Effect.currentSpan;
+        return yield* checkOnWindows().pipe(
+          Effect.provideService(IsolatedProvider, {
+            getServicesApi: Effect.succeed(
+              makeApi([{ match: 'where powershell', result: { fail: 'powershell not found' } }])
+            )
+          } as unknown as ExtensionProviderService)
+        );
+      }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
     });
     const killSpy = jest.spyOn(process, 'kill').mockReturnValue(true);
 
     await Effect.runPromise(program!);
 
-    expect(telemetry.sendException).toHaveBeenCalledWith('apex_lsp_orphan', 'powershell not found');
+    expect(holder.root?.attributes.get('orphanCheckError')).toBe('powershell not found');
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(killSpy).not.toHaveBeenCalled();
     killSpy.mockRestore();
