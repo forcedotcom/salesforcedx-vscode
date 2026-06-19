@@ -21,7 +21,7 @@ import { nls } from './messages';
 
 // these messages contain replaceable parameters, cannot localize yet
 
-/** Internal-only error; never crosses the bundle boundary (not re-exported, handled via catchTag here). */
+/** Internal-only; handled via catchTag here. */
 class ProcessTerminationError extends Schema.TaggedError<ProcessTerminationError>()('ProcessTerminationError', {
   pid: Schema.Number,
   message: Schema.String
@@ -67,16 +67,12 @@ const parseProcessList = (stdout: string): ProcessDetail[] =>
       .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME))
   );
 
-/**
- * Find Apex Language Server processes whose parent no longer exists.
- * Replaces the former synchronous `execSync` implementation with async `TerminalService.simpleExec`
- * so it no longer blocks the extension host event loop on startup.
- */
+/** Find Apex Language Server processes whose parent no longer exists. */
 const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const terminal = yield* api.services.TerminalService;
 
-  // Windows-only guard: powershell must be present. Preserves the prior no-powershell outcome.
+  // Windows-only guard: powershell must be present to list processes.
   if (isWindows) {
     const hasPowershell = yield* terminal.simpleExec({ command: 'where powershell' }).pipe(
       Effect.map(stdout => stdout.length > 0),
@@ -90,7 +86,6 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
   }
 
   // Web (or any exec failure listing processes) → no orphan work.
-  // simpleExec's parse must return string, so decode the ProcessDetail[] via Schema afterward.
   const candidates = yield* terminal.simpleExec({ command: listProcessesCmd, timeout: 60_000 }).pipe(
     Effect.map(parseProcessList),
     Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([]))
@@ -134,8 +129,7 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
 });
 
 export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* () {
-  // Services extension missing/failed to activate → orphan check can't run; record on the root span and treat as
-  // no orphans (the forked fiber would otherwise die silently with no signal).
+  // Services extension unavailable → can't check; record on root span, treat as no orphans.
   const orphanedProcesses = yield* findOrphanedProcesses().pipe(
     Effect.catchTags({
       ServicesExtensionNotFoundError: e =>
@@ -166,7 +160,7 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
 /** 'continue' = re-prompt (user asked to view the process table); boolean = terminal decision */
 type Resolution = 'continue' | boolean;
 
-/** Prompt once; returns 'continue' to re-prompt, or a terminal decision. Fails with UserCancellationError on dismissal. */
+/** Prompt once. Fails with UserCancellationError on dismissal. */
 const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProcesses: ProcessDetail[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orphanedCount = orphanedProcesses.length;

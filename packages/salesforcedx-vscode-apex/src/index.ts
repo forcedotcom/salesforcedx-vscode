@@ -33,7 +33,7 @@ import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
 
-/** Internal-only activation error; never crosses the bundle boundary (activate() rejects via runPromise on failure). */
+/** Internal-only; activate() rejects via runPromise on failure. */
 class TelemetryUnavailableError extends Schema.TaggedError<TelemetryUnavailableError>()('TelemetryUnavailableError', {
   message: Schema.String
 }) {}
@@ -95,8 +95,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
     context.subscriptions.push(commands);
   });
 
-  // Resolve any found orphan language servers in the background on the extension scope
-  // (replaces the former blocking execSync-in-setImmediate path that froze the Windows host).
+  // Resolve any orphan language servers in the background on the extension scope.
   const scope = yield* getExtensionScope();
   yield* Effect.forkIn(checkAndResolveOrphanedLanguageServers(), scope).pipe(Effect.asVoid);
 });
@@ -120,7 +119,6 @@ export const deactivate = async () => {
   await languageClientManager.getClientInstance()?.stop(30_000);
   languageClientManager.disposeOutputChannel();
   getTelemetryService().sendExtensionDeactivationEvent();
-  // Close the extension scope so the forked orphan-check fiber does not outlive deactivation.
   await getRuntime().runPromise(closeExtensionScope());
 };
 
