@@ -50,14 +50,16 @@ const generateManifest = async (page: Page, workspaceDir: string, fileName: stri
   return manifestPath;
 };
 
-/** Poll the workspace sfdx-project.json until the watcher could have observed `version`, with a deadline. */
+/** Poll the workspace sfdx-project.json until the write is readable, with exponential backoff and a deadline. */
 const waitForProjectApiVersionOnDisk = async (workspaceDir: string, version: string) => {
   const file = path.join(workspaceDir, 'sfdx-project.json');
   const deadline = Date.now() + 15_000;
+  let delay = 50;
   while (Date.now() < deadline) {
     const project = JSON.parse(await fs.readFile(file, 'utf8'));
     if (project.sourceApiVersion === version) return;
-    await new Promise(resolve => setTimeout(resolve, 250));
+    await new Promise(resolve => setTimeout(resolve, delay));
+    delay = Math.min(delay * 2, 1000);
   }
   throw new Error(`sfdx-project.json sourceApiVersion never became ${version}`);
 };
@@ -66,10 +68,9 @@ desktopOnlyTest(
   'manifest version tracks mid-session sourceApiVersion edit without reload',
   async ({ page, workspaceDir }) => {
     test.setTimeout(RETRIEVE_TIMEOUT);
-    let className: string;
+    const className = `StaleApiVersion${Date.now()}`;
 
     await test.step('create apex class', async () => {
-      className = `StaleApiVersion${Date.now()}`;
       await createApexClass(page, className);
       await saveScreenshot(page, 'stale-api.after-create-class.png');
     });
@@ -86,8 +87,11 @@ desktopOnlyTest(
       const project = JSON.parse(await fs.readFile(file, 'utf8'));
       project.sourceApiVersion = EDITED_API_VERSION;
       await fs.writeFile(file, JSON.stringify(project, null, 2));
-      // Let the file-change watcher debounce + invalidate the cache before the next manifest build.
+      // The poll only confirms the test's own write is readable; the VS Code FileSystemWatcher ->
+      // FileChangePubSub -> 5ms debounce -> invalidateSfProjectCache pipeline is async and OS-latency
+      // dependent. Add a fixed settle delay so invalidation completes before the next manifest build.
       await waitForProjectApiVersionOnDisk(workspaceDir, EDITED_API_VERSION);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     });
 
     await test.step('regenerate manifest picks up the edited version (cache invalidated)', async () => {
