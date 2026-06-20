@@ -32,6 +32,7 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
+import { watchSfProjectFile } from './core/sfProjectFileWatcher';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
@@ -259,7 +260,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       // own sf:is_esr_decomposed context, react to sfdx-project.json changes
       Effect.forkIn(watchEsrDecomposedContext(), scope),
       // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
-      Effect.forkIn(watchAliasFile(), scope)
+      Effect.forkIn(watchAliasFile(), scope),
+      // watch sfdx-project.json for changes and invalidate the SfProject cache (fresh sourceApiVersion)
+      Effect.forkIn(watchSfProjectFile(), scope)
     ],
     {
       concurrency: 'unbounded'

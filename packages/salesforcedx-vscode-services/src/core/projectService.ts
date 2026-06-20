@@ -14,6 +14,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { normalize } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { toUri } from '../vscode/uriUtils';
@@ -58,6 +59,9 @@ const globalSfProjectCache = Effect.runSync(
   }).pipe(Effect.withSpan('sfProjectCache'))
 );
 
+/** Invalidate a single SfProject cache entry (per-key, NOT invalidateAll — preserves sibling workspace entries). */
+export const invalidateSfProjectCache = (cacheKey: string) => globalSfProjectCache.invalidate(cacheKey);
+
 const TOOLS_DIR = 'tools';
 const SOBJECTS_DIR = 'sobjects';
 const STANDARDOBJECTS_DIR = 'standardObjects';
@@ -88,6 +92,14 @@ const readVsCodeTestWebDiskRootMarker = Effect.promise(async (): Promise<string 
     () => undefined
   );
 }).pipe(Effect.withSpan('readVsCodeTestWebDiskRootMarker'));
+
+/**
+ * Single source of truth for the `globalSfProjectCache` key, shared by `getSfProject` and `sfProjectFileWatcher`.
+ * `vscode-test-web` mounts key by the disk-root marker; desktop/Node keys by the workspace directory fsPath.
+ * @param workspaceDirFsPath the workspace folder fsPath (the directory containing sfdx-project.json)
+ */
+export const sfProjectCacheKey = (workspaceDirFsPath: string) =>
+  Effect.map(readVsCodeTestWebDiskRootMarker, markerPath => markerPath ?? normalize(workspaceDirFsPath));
 
 /** VS Code Web test mounts are not readable by Node `SfProject.resolve`; used when resolve fails on the disk key. */
 const workspaceRootSalesforceManifestExistsViaVscodeFs = Effect.promise(async (): Promise<boolean> => {
@@ -121,8 +133,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
         return false;
       }
 
-      const markerPath = yield* readVsCodeTestWebDiskRootMarker;
-      const cacheKey = markerPath ?? workspaceDescription.fsPath;
+      const cacheKey = yield* sfProjectCacheKey(workspaceDescription.fsPath);
 
       return yield* globalSfProjectCache.get(cacheKey).pipe(
         Effect.tap(() => setProjectOpenedContext(true, 'workspace_non_empty')),
@@ -140,9 +151,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 
     /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
     const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
-      const markerPath = yield* readVsCodeTestWebDiskRootMarker;
       const workspacePath = (yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath;
-      const cacheKey = markerPath ?? workspacePath;
+      const cacheKey = yield* sfProjectCacheKey(workspacePath);
       const project = yield* globalSfProjectCache
         .get(cacheKey)
         .pipe(Effect.tapError(() => setProjectOpenedContext(false, 'workspace_empty')));
