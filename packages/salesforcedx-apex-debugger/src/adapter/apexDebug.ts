@@ -158,6 +158,16 @@ export class ApexVariable extends Variable {
   }
 
   public static valueAsString(value: Value): string {
+    // Reference-backed values (SObjects, collections) carry `ref`. The server is documented to send a
+    // string summary in `value` (e.g. collections arrive as `(a, b)`), but for parent-relationship /
+    // child-subquery SObject fields it sends either no string or a non-string object — a protocol
+    // violation against the `value?: string` contract (commands/protocol.ts) that previously
+    // template-coerced to `[object Object]`. When no usable display string is present, fall back to the
+    // type label so the value column stays meaningful. See W-23095412 (server-side fix tracked separately).
+    if (value.ref !== undefined && typeof value.value !== 'string') {
+      return value.nameForMessages;
+    }
+
     if (value.value === undefined || value.value === null) {
       // We want to explicitly display null for null values (no type info for strings).
       return 'null';
@@ -168,7 +178,7 @@ export class ApexVariable extends Variable {
       return `'${value.value}'`;
     }
 
-    return `${value.value}`;
+    return value.value;
   }
 
   public static compareVariables(v1: ApexVariable, v2: ApexVariable): number {
