@@ -8,11 +8,11 @@
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { dirname, normalize, sep } from 'node:path';
+import { Utils } from 'vscode-uri';
 import { FileChangePubSub } from '../vscode/fileChangePubSub';
 import { invalidateSfProjectCache, sfProjectCacheKey } from './projectService';
 
-const SFDX_PROJECT_FILE_SUFFIX = `${sep}sfdx-project.json`;
+const SFDX_PROJECT_FILE_NAME = 'sfdx-project.json';
 
 /**
  * Watches sfdx-project.json edits and invalidates the matching `globalSfProjectCache` entry so the
@@ -23,12 +23,12 @@ export const watchSfProjectFile = Effect.fn('watchSfProjectFile')(function* () {
   const fileChangePubSub = yield* FileChangePubSub;
 
   yield* Stream.fromPubSub(fileChangePubSub).pipe(
-    Stream.filter(event => normalize(event.uri.fsPath).endsWith(SFDX_PROJECT_FILE_SUFFIX)),
+    Stream.filter(event => Utils.basename(event.uri) === SFDX_PROJECT_FILE_NAME),
     Stream.debounce(Duration.millis(5)),
     Stream.runForEach(event =>
       // cacheKey derivation mirrors getSfProject: the workspace dir equals the directory containing
       // the edited sfdx-project.json (desktop), or the disk-root marker (vscode-test-web).
-      sfProjectCacheKey(dirname(event.uri.fsPath)).pipe(Effect.flatMap(invalidateSfProjectCache))
+      sfProjectCacheKey(Utils.dirname(event.uri).fsPath).pipe(Effect.flatMap(invalidateSfProjectCache))
     )
   );
 });
