@@ -18,8 +18,7 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  upsertSettings,
-  verifyCommandExists
+  upsertSettings
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -64,7 +63,6 @@ test('Trace flag status bar clears automatically at natural expiry (no manual de
   });
 
   await test.step('create trace flag for current user', async () => {
-    await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser'], 60_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser']);
     await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ })).toBeVisible({
       timeout: 60_000
