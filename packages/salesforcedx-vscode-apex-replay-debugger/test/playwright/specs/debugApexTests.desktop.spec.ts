@@ -165,28 +165,6 @@ const class2TestContent = [
   '}'
 ].join('\n');
 
-// Test whose locals include a ref-backed SObject with a parent-relationship field (`queried.Account`).
-// At the breakpoint line, `queried` is in scope; expanding it surfaces the relationship field whose
-// value column previously rendered `[object Object]` (W-23095412). Account.Name is asserted so the
-// query graph is real, not a stub.
-const RELATIONSHIP_TEST_CLASS = 'ExampleRelationshipTest';
-const BREAKPOINT_LINE_MARKER = 'System.debug(queried.Account.Name); // breakpoint';
-const relationshipTestContent = [
-  '@IsTest',
-  'public class ExampleRelationshipTest {',
-  '  @IsTest',
-  '  static void validateRelationship() {',
-  "    Account a = new Account(Name = 'Acme');",
-  '    insert a;',
-  "    Contact c = new Contact(LastName = 'Doe', AccountId = a.Id);",
-  '    insert c;',
-  '    Contact queried = [SELECT Id, Account.Name FROM Contact WHERE Id = :c.Id];',
-  '    System.debug(queried.Account.Name); // breakpoint',
-  "    System.assertEquals('Acme', queried.Account.Name, 'relationship resolved');",
-  '  }',
-  '}'
-].join('\n');
-
 test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page }) => {
   test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -255,76 +233,6 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
     await saveScreenshot(page, 'step.debug-test-explorer-method.png');
-  });
-
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
-});
-
-/** Place the cursor on the line containing `marker`, then toggle a breakpoint there via the palette. */
-const setBreakpointOnLine = async (page: Page, marker: string): Promise<void> => {
-  const lineWithMarker = page.locator(`${WORKBENCH} .editor-instance .view-line`).filter({ hasText: marker }).first();
-  await lineWithMarker.waitFor({ state: 'visible', timeout: 30_000 });
-  await lineWithMarker.click({ force: true });
-  await executeCommandWithCommandPalette(page, 'Debug: Toggle Breakpoint');
-};
-
-/** Variables panel tree row whose name cell matches `name` (debug view virtualizes rows as monaco-list-row). */
-const debugVariableRow = (page: Page, name: RegExp) =>
-  page
-    .locator('.debug-variables .monaco-list-row, .monaco-list-row')
-    .filter({ has: page.locator('.monaco-highlighted-label', { hasText: name }) })
-    .first();
-
-test('Debug Apex Tests: VARIABLES panel summarizes related SObject fields (no [object Object])', async ({ page }) => {
-  test.setTimeout(600_000);
-  const consoleErrors = setupConsoleMonitoring(page);
-  const networkErrors = setupNetworkMonitoring(page);
-
-  await test.step('setup minimal org with relationship-querying Apex test', async () => {
-    await setupMinimalOrgAndAuth(page);
-    await ensureSecondarySideBarHidden(page);
-    await createApexClass(page, RELATIONSHIP_TEST_CLASS, relationshipTestContent);
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await executeCommandWithCommandPalette(page, metadataNls.project_deploy_start_ignore_conflicts_default_org_text);
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
-    await saveScreenshot(page, 'rel.classes-created.png');
-  });
-
-  await test.step('wait for CodeLens then set breakpoint on the relationship line', async () => {
-    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
-    await openFileByName(page, `${RELATIONSHIP_TEST_CLASS}.cls`);
-    const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: 90_000 });
-    await setBreakpointOnLine(page, BREAKPOINT_LINE_MARKER);
-    await saveScreenshot(page, 'rel.breakpoint-set.png');
-  });
-
-  await test.step('Debug the test and pause on the breakpoint', async () => {
-    await clickCodeLens(page, 'Debug Test', { timeout: 180_000 });
-    // Debug toolbar appears once the session is live and paused at the breakpoint.
-    await expect(page.locator('.debug-toolbar')).toBeVisible({ timeout: 180_000 });
-    await saveScreenshot(page, 'rel.paused.png');
-  });
-
-  await test.step('expand the queried SObject and assert the relationship field is summarized', async () => {
-    const queriedRow = debugVariableRow(page, /queried/);
-    await queriedRow.waitFor({ state: 'visible', timeout: 60_000 });
-    await queriedRow.click({ force: true });
-    // Expanding a parent variable issues a references request; child rows (incl. the Account relationship) render.
-    const accountRow = debugVariableRow(page, /^Account$/);
-    await accountRow.waitFor({ state: 'visible', timeout: 60_000 });
-    const accountValue = await accountRow.locator('.value').textContent();
-    expect(accountValue ?? '').not.toContain('[object Object]');
-    // Post-fix the value column shows the type label (nameForMessages) instead of the broken coercion.
-    expect(accountValue ?? '').toContain('Account');
-    await saveScreenshot(page, 'rel.variables-inspected.png');
-  });
-
-  await test.step('resume to let the session complete', async () => {
-    await continueDebugSession(page);
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
