@@ -151,13 +151,17 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
     const variablesView = page.locator(`${WORKBENCH} .debug-variables`);
     await variablesView.waitFor({ state: 'visible', timeout: 30_000 });
 
-    // The replay Variables tree shows scope rows (Local/Static); expand any collapsed scope so
-    // the locals (Contact `c`) are rendered.
-    const collapsedScopes = variablesView.locator('.monaco-list-row[aria-expanded="false"]');
-    const collapsedCount = await collapsedScopes.count();
-    for (let i = 0; i < collapsedCount; i++) {
-      await collapsedScopes.nth(i).locator('.monaco-tl-twistie').click({ force: true });
-    }
+    // The replay Variables tree shows scope rows (Local/Static); expand every collapsed scope so
+    // the locals (Contact `c`) are rendered. Always click the FIRST remaining collapsed row:
+    // clicking a twistie mutates the live NodeList, so an index-based loop (nth(i)) would target
+    // shifted rows and could re-collapse a scope. Driving the first-collapsed row to zero is stable.
+    const firstCollapsed = variablesView.locator('.monaco-list-row[aria-expanded="false"]').first();
+    await expect(async () => {
+      if (await firstCollapsed.isVisible()) {
+        await firstCollapsed.locator('.monaco-tl-twistie').click({ force: true });
+      }
+      await expect(firstCollapsed).toBeHidden();
+    }).toPass({ timeout: 30_000 });
 
     // The Contact local `c` carries the nested Account relationship. Match the variable-name cell.
     const nestedRow = variablesView
@@ -173,13 +177,18 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
     const twistie = nestedRow.locator('.monaco-tl-twistie');
     await expect(twistie).toBeVisible({ timeout: 10_000 });
 
-    // Expand and confirm a child property row becomes visible
-    await twistie.click({ force: true });
+    // Expand `c` and confirm a child property row becomes visible. Select the row then press Right:
+    // on a monaco tree Right expands a collapsed row (never collapses an expanded one), so it's
+    // idempotent under CI timing where `c` may already be expanded. Re-drive until a child appears.
     const childRow = variablesView
       .locator('.monaco-list-row')
       .filter({ hasText: /LastName|Account/ })
       .first();
-    await expect(childRow).toBeVisible({ timeout: 15_000 });
+    await expect(async () => {
+      await nestedRow.click({ force: true });
+      await page.keyboard.press('ArrowRight');
+      await expect(childRow).toBeVisible({ timeout: 5000 });
+    }).toPass({ timeout: 30_000 });
 
     // No row anywhere renders [object Object]
     await expect(variablesView.locator('.monaco-list-row', { hasText: '[object Object]' })).toHaveCount(0);
