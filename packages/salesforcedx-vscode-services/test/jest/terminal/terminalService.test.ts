@@ -12,7 +12,10 @@ import { TerminalService, TerminalServiceError } from '../../../src/terminal/ter
 
 // simpleExec dynamically imports child_process.exec and wraps it with util.promisify.
 // Attach promisify.custom to the mocked exec so the real promisify returns our controllable async fn.
-const promisified = jest.fn<Promise<{ stdout: string }>, [string, { signal?: AbortSignal; timeout?: number }]>();
+const promisified = jest.fn<
+  Promise<{ stdout: string; stderr: string }>,
+  [string, { signal?: AbortSignal; timeout?: number }]
+>();
 const execMock = Object.assign(jest.fn(), { [promisify.custom]: promisified });
 
 jest.mock('node:child_process', () => ({ exec: execMock }));
@@ -23,7 +26,6 @@ const run = <A, E>(effect: Effect.Effect<A, E, TerminalService>) =>
 describe('TerminalService.simpleExec', () => {
   beforeEach(() => {
     delete process.env.ESBUILD_PLATFORM;
-    promisified.mockReset();
   });
 
   it('aborts the child signal when the fiber is interrupted', async () => {
@@ -35,29 +37,28 @@ describe('TerminalService.simpleExec', () => {
     });
 
     const fiber = Effect.runFork(
-      Effect.gen(function* () {
-        const terminal = yield* TerminalService;
-        return yield* terminal.simpleExec({ command: 'sf org delete' });
-      }).pipe(Effect.provide(TerminalService.Default))
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org delete' })),
+        Effect.provide(TerminalService.Default)
+      )
     );
 
-    // let the fiber reach the in-flight exec call
-    await new Promise(resolve => setTimeout(resolve, 50));
-    expect(capturedSignal?.aborted).toBe(false);
+    // poll until the fiber reaches the in-flight exec call (avoids a fixed-sleep race under CI load)
+    while (capturedSignal === undefined) {
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+    expect(capturedSignal.aborted).toBe(false);
 
     await Effect.runPromise(Fiber.interrupt(fiber));
-    expect(capturedSignal?.aborted).toBe(true);
+    expect(capturedSignal.aborted).toBe(true);
   });
 
   it('trims stdout and passes it to parse on the happy path', async () => {
-    promisified.mockResolvedValue({ stdout: '  hello world  \n' });
+    promisified.mockResolvedValue({ stdout: '  hello world  \n', stderr: '' });
     const parse = jest.fn((s: string) => s.toUpperCase());
 
     const result = await run(
-      Effect.gen(function* () {
-        const terminal = yield* TerminalService;
-        return yield* terminal.simpleExec({ command: 'sf foo', parse });
-      })
+      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse })))
     );
 
     expect(parse).toHaveBeenCalledWith('hello world');
@@ -68,10 +69,10 @@ describe('TerminalService.simpleExec', () => {
     process.env.ESBUILD_PLATFORM = 'web';
 
     const error = await run(
-      Effect.gen(function* () {
-        const terminal = yield* TerminalService;
-        return yield* terminal.simpleExec({ command: 'sf foo' });
-      }).pipe(Effect.flip)
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo' })),
+        Effect.flip
+      )
     );
 
     expect(error).toBeInstanceOf(TerminalServiceError);
