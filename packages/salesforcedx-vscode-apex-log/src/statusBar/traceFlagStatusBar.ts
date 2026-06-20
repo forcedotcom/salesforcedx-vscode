@@ -17,6 +17,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { type LogCollectorState, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
+import { isTraceFlagActive } from '../traceFlags/traceFlagActive';
 
 const STATUS_BAR_ID = 'apex-trace-flag-status';
 const STATUS_BAR_PRIORITY = 46;
@@ -117,7 +118,7 @@ const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(
   }
   const traceFlagsRef = yield* CurrentTraceFlags;
   const activeRecords = (yield* SubscriptionRef.get(traceFlagsRef))
-    .filter(rec => rec.isActive)
+    .filter(isTraceFlagActive)
     .toSorted(byExpirationDesc);
 
   const collectorRef = yield* LogCollectorStateRef;
