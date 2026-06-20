@@ -95,11 +95,10 @@ export const createTraceFlagStatusBar = () =>
           // because new logs were retrieved
           collectorRef.changes.pipe(Stream.as(undefined)),
           // because a trace flag may have expired since the last render — re-eval live isTraceFlagActive
-          // so the footer clears within a minute of expiry without a manual toggle or reload
-          Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(
-            Stream.filter(() => vscode.window.state.active),
-            Stream.as(undefined)
-          )
+          // so the footer clears within a minute of expiry without a manual toggle or reload. Unlike the
+          // cleanup scheduler (which hits the org), this is a cheap local re-render, so it is NOT gated on
+          // window.state.active — the footer must clear at expiry even while the window is unfocused.
+          Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(Stream.as(undefined))
         ],
         {
           concurrency: 'unbounded'
