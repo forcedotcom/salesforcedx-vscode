@@ -192,6 +192,7 @@ export default [
       'unicorn/prefer-class-fields': 'error',
       'unicorn/prefer-date-now': 'error',
       'unicorn/prefer-export-from': 'error',
+      'unicorn/prefer-hoisting-branch-code': 'error',
       'unicorn/prefer-includes': 'error',
       'unicorn/prefer-modern-math-apis': 'error',
       'unicorn/prefer-native-coercion-functions': 'error',
