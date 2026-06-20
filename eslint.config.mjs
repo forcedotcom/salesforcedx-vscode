@@ -211,6 +211,7 @@ export default [
         'error',
         {
           case: 'camelCase',
+          // v68 added directory-name checks; preserve prior file-only behavior
           checkDirectories: false
         }
       ],
