@@ -37,24 +37,23 @@ const isAddress = (value: any): boolean => typeof value === 'string' && value.st
 
 const createStringFromExtentValue = (value: any): string =>
   // can't toString undefined or null
-  value === undefined ? 'undefined' : value === null ? 'null' : value.toString();
+  value === undefined || value === null ? String(value) : value.toString();
 
-const isPrimitiveType = (typeName: string): boolean => {
-  const lcTypeName = typeName.toLocaleLowerCase();
-  return (
-    lcTypeName === LC_APEX_PRIMITIVE_BLOB ||
-    lcTypeName === LC_APEX_PRIMITIVE_BOOLEAN ||
-    lcTypeName === LC_APEX_PRIMITIVE_DATE ||
-    lcTypeName === LC_APEX_PRIMITIVE_DATETIME ||
-    lcTypeName === LC_APEX_PRIMITIVE_DECIMAL ||
-    lcTypeName === LC_APEX_PRIMITIVE_DOUBLE ||
-    lcTypeName === LC_APEX_PRIMITIVE_ID ||
-    lcTypeName === LC_APEX_PRIMITIVE_INTEGER ||
-    lcTypeName === LC_APEX_PRIMITIVE_LONG ||
-    lcTypeName === LC_APEX_PRIMITIVE_STRING ||
-    lcTypeName === LC_APEX_PRIMITIVE_TIME
-  );
-};
+const PRIMITIVE_TYPES = new Set([
+  LC_APEX_PRIMITIVE_BLOB,
+  LC_APEX_PRIMITIVE_BOOLEAN,
+  LC_APEX_PRIMITIVE_DATE,
+  LC_APEX_PRIMITIVE_DATETIME,
+  LC_APEX_PRIMITIVE_DECIMAL,
+  LC_APEX_PRIMITIVE_DOUBLE,
+  LC_APEX_PRIMITIVE_ID,
+  LC_APEX_PRIMITIVE_INTEGER,
+  LC_APEX_PRIMITIVE_LONG,
+  LC_APEX_PRIMITIVE_STRING,
+  LC_APEX_PRIMITIVE_TIME
+]);
+
+const isPrimitiveType = (typeName: string): boolean => PRIMITIVE_TYPES.has(typeName.toLocaleLowerCase());
 
 const isCollectionType = (typeName: string): boolean =>
   typeName.toLocaleLowerCase().startsWith('map<') ||
