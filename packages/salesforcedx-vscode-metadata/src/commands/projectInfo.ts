@@ -292,16 +292,19 @@ const doProjectInfo = Effect.fn('doProjectInfo')(function* () {
 
   yield* api.services.FsService.safeWriteFile(outputUri, content);
 
+  return outputUri;
+});
+
+export const projectInfoCommand = Effect.fn('projectInfoCommand')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const outputUri = yield* doProjectInfo().pipe(
+    promptService.withProgress(nls.localize('project_info_gathering_progress'))
+  );
   const selection = yield* Effect.promise(() =>
     vscode.window.showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button'))
   );
   if (selection === nls.localize('open_button')) {
     yield* api.services.FsService.showTextDocument(outputUri);
   }
-});
-
-export const projectInfoCommand = Effect.fn('projectInfoCommand')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  return yield* doProjectInfo().pipe(promptService.withProgress(nls.localize('project_info_gathering_progress')));
 });
