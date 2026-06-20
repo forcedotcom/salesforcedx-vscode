@@ -112,7 +112,7 @@
     "salesforce"
   ],
   "peerDependencies": {
-    "@eslint/json": "^0.3.0",
+    "@eslint/json": ">=0.3.0",
     "eslint": ">=8.0.0"
   },
   "dependencies": {

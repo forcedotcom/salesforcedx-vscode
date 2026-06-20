@@ -197,7 +197,7 @@ export const noUnusedI18nMessages = RuleCreator.withoutDocs({
   defaultOptions: [DEFAULT_OPTIONS],
 
   create: (context, [opts = DEFAULT_OPTIONS]) => {
-    const filename = context.getFilename();
+    const filename = context.filename;
     if (!filename.replaceAll('\\', '/').endsWith('messages/i18n.ts')) {
       return {};
     }

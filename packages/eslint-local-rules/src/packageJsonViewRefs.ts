@@ -59,7 +59,7 @@ export const packageJsonViewRefs: Rule.RuleModule = {
     }
   },
   create: context => {
-    const filename = context.filename ?? context.getFilename();
+    const filename = context.filename;
     if (!filename.match(/packages\/[^/]+\/package\.json$/)) {
       return {};
     }
