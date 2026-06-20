@@ -12,6 +12,7 @@ import {
   openFileByName,
   executeCommandWithCommandPalette,
   activeQuickInputWidget,
+  activeQuickInputTextField,
   EDITOR,
   isDesktop,
   saveScreenshot
@@ -40,8 +41,9 @@ const generateManifest = async (page: Page, workspaceDir: string, fileName: stri
   await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
 
   // Replace the default `package.xml` value with a per-call name so the second run does not hit the overwrite modal.
-  await page.keyboard.press('Control+a');
-  await page.keyboard.type(fileName.replace(/\.xml$/i, ''));
+  // `fill` clears and sets atomically; `Control+a` is move-to-line-start (readline) on macOS, not select-all,
+  // which left the default in place and produced e.g. `pkgWarmpackage.xml` instead of `pkgWarm.xml`.
+  await activeQuickInputTextField(page).fill(fileName.replace(/\.xml$/i, ''));
   await page.keyboard.press('Enter');
 
   const manifestPath = path.join(workspaceDir, 'manifest', fileName);
