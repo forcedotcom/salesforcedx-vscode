@@ -1100,12 +1100,16 @@ export class ApexTestController {
 
       const retrievedFileUri = getRetrievedFileUri(result);
       if (retrievedFileUri) {
-        const document = await vscode.workspace.openTextDocument(retrievedFileUri);
-        await vscode.window.showTextDocument(document, {
-          preview: false,
-          viewColumn: vscode.ViewColumn.Active,
-          preserveFocus: false
-        });
+        await getApexTestingRuntime().runPromise(
+          Effect.gen(function* () {
+            const api = yield* (yield* ExtensionProviderService).getServicesApi;
+            yield* api.services.FsService.showTextDocument(retrievedFileUri, {
+              preview: false,
+              viewColumn: vscode.ViewColumn.Active,
+              preserveFocus: false
+            });
+          })
+        );
         await closeEditorTabByUri(uri);
       }
 
@@ -1620,11 +1624,16 @@ const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
   if (!test.uri) {
     return;
   }
-  const document = await vscode.workspace.openTextDocument(test.uri);
-  const editor = await vscode.window.showTextDocument(document, {
-    preview: false,
-    viewColumn: vscode.ViewColumn.Active
-  });
+  const testUri = test.uri;
+  const editor = await getApexTestingRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      return yield* api.services.FsService.showTextDocument(testUri, {
+        preview: false,
+        viewColumn: vscode.ViewColumn.Active
+      });
+    })
+  );
   if (isMethod(test.id) && test.range) {
     editor.selection = new vscode.Selection(test.range.start, test.range.start);
     editor.revealRange(test.range, vscode.TextEditorRevealType.InCenter);
