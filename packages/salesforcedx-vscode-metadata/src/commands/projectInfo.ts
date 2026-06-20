@@ -292,15 +292,12 @@ const doProjectInfo = Effect.fn('doProjectInfo')(function* () {
 
   yield* api.services.FsService.safeWriteFile(outputUri, content);
 
-  yield* Effect.sync(() => {
-    void vscode.window
-      .showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button'))
-      .then(selection => {
-        if (selection === nls.localize('open_button')) {
-          void vscode.window.showTextDocument(outputUri);
-        }
-      });
-  });
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button'))
+  );
+  if (selection === nls.localize('open_button')) {
+    yield* api.services.FsService.showTextDocument(outputUri);
+  }
 });
 
 export const projectInfoCommand = Effect.fn('projectInfoCommand')(function* () {

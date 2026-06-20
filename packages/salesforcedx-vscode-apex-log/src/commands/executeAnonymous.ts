@@ -47,14 +47,12 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
     logBody
   );
   const logUri = yield* saveExecResult(context.text, result, logBody, logId);
-  yield* Effect.sync(() => {
-    void vscode.window
-      .showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
-      .then(
-        selected =>
-          selected === nls.localize('open_log') && void vscode.window.showTextDocument(URI.parse(logUri.toString()))
-      );
-  });
+  const selected = yield* Effect.promise(() =>
+    vscode.window.showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
+  );
+  if (selected === nls.localize('open_log')) {
+    yield* api.services.FsService.showTextDocument(URI.parse(logUri.toString()));
+  }
   return result;
 });
 
