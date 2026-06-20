@@ -475,7 +475,7 @@
           "type": "object",
           "description": "%command_level_notifications_description%",
           "properties": {
-            "SOQL Query Execution": {
+            "SOQL Text Editor Run Query": {
               "type": "string",
               "enum": [
                 "progressToastSuccessToast",
@@ -485,7 +485,19 @@
                 "%notifications.progressToastSuccessToast.description%",
                 "%notifications.progressStatusBarSuccessStatusBar.description%"
               ],
-              "description": "%notifications_soql_query_execution_description%"
+              "description": "%notifications_soql_text_editor_run_query_description%"
+            },
+            "SOQL Builder Run Query": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_soql_builder_run_query_description%"
             },
             "Save Query Results": {
               "type": "string",

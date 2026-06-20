@@ -7,7 +7,7 @@
 
 import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
 
-export type ProgressAndSuccessCommandKey = 'SOQL Query Execution';
+export type ProgressAndSuccessCommandKey = 'SOQL Text Editor Run Query' | 'SOQL Builder Run Query';
 export type SuccessOnlyCommandKey = 'Save Query Results';
 
 export const { showSuccessNotification, getProgressLocation, showSuccessOnlyNotification } = createNotificationModeApi<

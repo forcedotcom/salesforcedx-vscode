@@ -18,7 +18,6 @@ import type { DescribeSObjectResult } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
 import { nls } from '../messages';
-import { messages } from '../messages/i18n';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection, isDefaultOrgSet } from '../services/org';
@@ -99,12 +98,12 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
   // PromptService cannot be added to this Effect's R type without widening the entire
   // handleMessageEffect switch union to unknown. Use vscode.window.withProgress directly
   // so all switch cases share a compatible R type. This shares the same notification
-  // location setting as dataQuery.ts via getProgressLocation('SOQL Query Execution').
+  // location setting as dataQuery.ts via getProgressLocation('SOQL Builder Run Query').
   const queryData = yield* Effect.promise(() =>
     vscode.window.withProgress(
       {
         cancellable: false,
-        location: getProgressLocation(messages.soql_query_execution_text),
+        location: getProgressLocation('SOQL Builder Run Query'),
         title: nls.localize('progress_running_query')
       },
       () => runQuery(conn)(queryText, { maxRows })

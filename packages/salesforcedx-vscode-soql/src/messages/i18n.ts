@@ -31,7 +31,7 @@ export const messages = {
     'ERROR: %s. Unknown error. Open an issue and provide the error message details: https://github.com/forcedotcom/soql-tooling/issues/new/choose.',
   error_data_view_save:
     "ERROR: We can't save the file to the specified directory. Make sure you have write permissions for the directory.",
-  soql_query_execution_text: 'SOQL Query Execution',
+  soql_query_execution_text: 'SOQL Text Editor Run Query',
   save_query_results_text: 'Save Query Results',
   data_query_selection_text: 'SFDX: Execute SOQL Query with Currently Selected Text',
   data_query_document_text: 'SFDX: Execute SOQL Query with Current File',
