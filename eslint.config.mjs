@@ -209,7 +209,8 @@ export default [
       'unicorn/filename-case': [
         'error',
         {
-          case: 'camelCase'
+          case: 'camelCase',
+          checkDirectories: false
         }
       ],
       'header/header': [

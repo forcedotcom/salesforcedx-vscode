@@ -160,7 +160,7 @@ export const openLwcFile = async (page: Page, fileName: string): Promise<void> =
  * Create bundles with **SFDX: Create Lightning Web Component** (same FS the UI uses), then open the `.js` editor.
  */
 export const createLwcViaSfdxCommand = async (page: Page, componentName: string): Promise<void> => {
-  const camelName = `${componentName[0].toLowerCase()}${componentName.slice(1)}`;
+  const camelName = `${componentName.at(0).toLowerCase()}${componentName.slice(1)}`;
   const jsFileName = `${camelName}.js`;
 
   await closeWelcomeTabs(page);
