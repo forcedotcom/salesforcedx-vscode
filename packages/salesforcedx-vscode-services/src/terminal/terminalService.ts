@@ -33,10 +33,10 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
         return yield* Effect.fail(new TerminalServiceError({ message: 'Not available on web', command }));
       }
       const result = yield* Effect.tryPromise({
-        try: async () => {
+        try: async signal => {
           const { exec } = await import('node:child_process');
           const { promisify } = await import('node:util');
-          return promisify(exec)(command, { timeout: Duration.toMillis(timeout) });
+          return promisify(exec)(command, { timeout: Duration.toMillis(timeout), signal });
         },
         catch: e => new TerminalServiceError({ message: e instanceof Error ? e.message : 'exec failed', command })
       });
