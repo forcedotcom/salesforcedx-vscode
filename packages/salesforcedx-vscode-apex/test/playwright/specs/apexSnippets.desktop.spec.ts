@@ -78,7 +78,14 @@ test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page
   });
 
   await test.step('insert System Debug snippet', async () => {
-    await executeCommandWithCommandPalette(page, 'Snippets: Insert Snippet');
+    // preserveSelection: true skips openCommandPalette's workbench focus-click. The seeded file is
+    // only 9 lines in a tall editor pane, so that click lands in the empty area below the last line
+    // and moves the caret to EOF — the snippet then inserts after the class-closing brace instead
+    // of on blank line 7. goToLineCol already gave the editor keyboard focus, so skipping the click
+    // keeps the caret on line 7.
+    await executeCommandWithCommandPalette(page, 'Snippets: Insert Snippet', undefined, {
+      preserveSelection: true
+    });
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
     // apex.json picker label = JSON key `System Debug`; prefix `debug` matches the fill.
