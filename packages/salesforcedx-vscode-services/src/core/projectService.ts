@@ -59,8 +59,19 @@ const globalSfProjectCache = Effect.runSync(
   }).pipe(Effect.withSpan('sfProjectCache'))
 );
 
-/** Invalidate a single SfProject cache entry (per-key, NOT invalidateAll — preserves sibling workspace entries). */
-export const invalidateSfProjectCache = (cacheKey: string) => globalSfProjectCache.invalidate(cacheKey);
+/**
+ * Invalidate the SfProject cache so the next `getSfProject` re-reads sfdx-project.json from disk.
+ *
+ * Two caches must be dropped together:
+ * (1) our `globalSfProjectCache` — per-key invalidate (preserves sibling workspace entries).
+ * (2) `@salesforce/core`'s static `SfProject.instances` Map — `SfProject.resolve` returns the memoized
+ * instance per path, and each instance memoizes its parsed `sfProjectJson` (sfProject.js:468). Without
+ * clearing it, a fresh `globalSfProjectCache` lookup re-resolves the SAME stale instance, so the edited
+ * `sourceApiVersion` is never picked up. `clearInstances()` is the only public API (no per-path delete);
+ * clearing all is safe — siblings simply re-resolve from disk on next use.
+ */
+export const invalidateSfProjectCache = (cacheKey: string) =>
+  globalSfProjectCache.invalidate(cacheKey).pipe(Effect.tap(() => Effect.sync(() => SfProject.clearInstances())));
 
 const TOOLS_DIR = 'tools';
 const SOBJECTS_DIR = 'sobjects';

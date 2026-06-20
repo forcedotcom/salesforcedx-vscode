@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfProject } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
@@ -46,6 +47,8 @@ const runWatcherTest = (publishUri: string) => {
 };
 
 describe('watchSfProjectFile', () => {
+  afterEach(() => jest.restoreAllMocks());
+
   it('invalidates the SfProject cache when sfdx-project.json changes', async () => {
     const spy = await runWatcherTest(PROJECT_FILE_PATH);
     expect(spy).toHaveBeenCalledTimes(1);
@@ -60,5 +63,17 @@ describe('watchSfProjectFile', () => {
   it('does not invalidate when a non-project file changes', async () => {
     const spy = await runWatcherTest(OTHER_FILE_PATH);
     expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+describe('invalidateSfProjectCache', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('clears the @salesforce/core SfProject instance cache so memoized sfProjectJson is dropped', async () => {
+    // Without clearInstances, SfProject.resolve returns the same memoized instance (sfProject.js:436),
+    // whose parsed sfProjectJson is also memoized (sfProject.js:468) -> stale sourceApiVersion survives.
+    const clearSpy = jest.spyOn(SfProject, 'clearInstances').mockImplementation(() => {});
+    await Effect.runPromise(projectService.invalidateSfProjectCache('/Users/testuser/project'));
+    expect(clearSpy).toHaveBeenCalledTimes(1);
   });
 });
