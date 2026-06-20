@@ -58,10 +58,10 @@ export const conflictDiffCommandEffect = (entry: DiffFilePair | ConflictTreeItem
 export const conflictOpenCommandEffect = (node: ConflictTreeItem) => {
   const pair = node?.pair;
   return pair
-    ? Effect.gen(function* () {
+    ? Effect.fn('conflictOpenCommandEffect')(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         yield* api.services.FsService.showTextDocument(pair.localUri.uri);
-      })
+      })()
     : Effect.void;
 };
 

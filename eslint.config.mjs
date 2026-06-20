@@ -759,7 +759,6 @@ export default [
     ],
     rules: {
       'local/no-vscode-show-text-document': 'off',
-
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
 
