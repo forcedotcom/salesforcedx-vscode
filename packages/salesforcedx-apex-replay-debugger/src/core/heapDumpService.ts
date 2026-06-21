@@ -71,6 +71,70 @@ const getKeyTypeForMap = (typeName: string, collectionType: string): string => {
   return typeName.substring(typeName.indexOf('<') + 1, typeName.lastIndexOf(lastIndexOfValue));
 };
 
+const isTriggerExtent = (outerExtent: HeapDumpExtents): boolean =>
+  (outerExtent.typeName.toLowerCase() === LC_APEX_PRIMITIVE_BOOLEAN || isCollectionType(outerExtent.typeName)) &&
+  outerExtent.count > 0 &&
+  outerExtent.extent[0].symbols !== null &&
+  outerExtent.extent[0].symbols.length > 0 &&
+  outerExtent.extent[0].symbols[0].startsWith(EXTENT_TRIGGER_PREFIX);
+
+// The way the variables are displayed in the variable's window is <varName>:<value>
+// and the value is basically a 'toString' of the variable. This is easy enough for
+// primitive types but for things like collections it ends up being something like
+// MyStrList: ('1','2','3') which when expanded looks like
+// MyStrList: ('1','2','3')
+//   0: '1'
+//   1: '2'
+//   2: '3'
+const createStringFromVarContainer = (varContainer: ApexVariableContainer, visitedSet: Set<string>): string => {
+  // If the varContainer isn't a reference or is a string references
+  if (!varContainer.ref || varContainer.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
+    return varContainer.value;
+  }
+
+  // If the varContainer is a ref and it's already been visited then return the string
+  if (varContainer.ref) {
+    if (visitedSet.has(varContainer.ref)) {
+      return 'already output';
+    } else {
+      visitedSet.add(varContainer.ref);
+    }
+  }
+  let returnString = '';
+  try {
+    // For a list or set the name string is going to end up being (<val1>,...<valX)
+    // For a objects, the name string is going to end up being <TypeName>: {<Name1>=<Value1>,...<NameX>=<ValueX>}
+    const isListOrSet =
+      varContainer.type.toLowerCase().startsWith('list<') || varContainer.type.toLowerCase().startsWith('set<');
+    // The live debugger, for collections, doesn't include their type in variable name/value
+    const containerType = isCollectionType(varContainer.type) ? '' : `${varContainer.type}:`;
+    returnString = isListOrSet ? '(' : `${containerType}{`;
+    let first = true;
+    // Loop through each of the container's variables to get the name/value combinations, calling to create
+    // the string if another collection is found.
+    for (const entry of Array.from(varContainer.variables.entries())) {
+      const valueAsApexVar = entry[1];
+      if (!first) {
+        returnString += ', ';
+      }
+      if (valueAsApexVar.ref) {
+        // if this is also a ref then create the string from that
+        returnString += createStringFromVarContainer(valueAsApexVar, visitedSet);
+      } else {
+        // otherwise get the name/value from the variable
+        returnString += isListOrSet ? valueAsApexVar.value : `${valueAsApexVar.name}=${valueAsApexVar.value}`;
+      }
+      first = false;
+    }
+    returnString += isListOrSet ? ')' : '}';
+  } finally {
+    if (varContainer.ref) {
+      visitedSet.delete(varContainer.ref);
+    }
+  }
+  return returnString;
+};
+
 export class HeapDumpService {
   private logContext: LogContext;
 
@@ -198,7 +262,7 @@ export class HeapDumpService {
       // scratch instead of updating existing variables.
       if (this.logContext.isRunningApexTrigger()) {
         for (const outerExtent of heapdumpResult.HeapDump.extents) {
-          if (this.isTriggerExtent(outerExtent)) {
+          if (isTriggerExtent(outerExtent)) {
             // The trigger context variables are going to be immediate children of the outerExtent.
             for (const innerExtent of outerExtent.extent) {
               // All of the symbols are going to start with the trigger prefix and will be exclusive
@@ -266,19 +330,6 @@ export class HeapDumpService {
     }
   }
 
-  public isTriggerExtent(outerExtent: HeapDumpExtents) {
-    if (
-      (outerExtent.typeName.toLowerCase() === LC_APEX_PRIMITIVE_BOOLEAN || isCollectionType(outerExtent.typeName)) &&
-      outerExtent.count > 0 &&
-      outerExtent.extent[0].symbols !== null &&
-      outerExtent.extent[0].symbols.length > 0 &&
-      outerExtent.extent[0].symbols[0].startsWith(EXTENT_TRIGGER_PREFIX)
-    ) {
-      return true;
-    }
-    return false;
-  }
-
   // This is where a reference turns into a variable. The refContainer is
   // cloned into a new variable that has a variable name.
   private copyReferenceContainer(refContainer: ApexVariableContainer, varName: string, createVarRef = true) {
@@ -295,63 +346,6 @@ export class HeapDumpService {
           refContainer.variablesRef;
     }
     return tmpContainer;
-  }
-
-  // The way the variables are displayed in the variable's window is <varName>:<value>
-  // and the value is basically a 'toString' of the variable. This is easy enough for
-  // primitive types but for things like collections it ends up being something like
-  // MyStrList: ('1','2','3') which when expanded looks like
-  // MyStrList: ('1','2','3')
-  //   0: '1'
-  //   1: '2'
-  //   2: '3'
-  private createStringFromVarContainer(varContainer: ApexVariableContainer, visitedSet: Set<string>): string {
-    // If the varContainer isn't a reference or is a string references
-    if (!varContainer.ref || varContainer.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
-      return varContainer.value;
-    }
-
-    // If the varContainer is a ref and it's already been visited then return the string
-    if (varContainer.ref) {
-      if (visitedSet.has(varContainer.ref)) {
-        return 'already output';
-      } else {
-        visitedSet.add(varContainer.ref);
-      }
-    }
-    let returnString = '';
-    try {
-      // For a list or set the name string is going to end up being (<val1>,...<valX)
-      // For a objects, the name string is going to end up being <TypeName>: {<Name1>=<Value1>,...<NameX>=<ValueX>}
-      const isListOrSet =
-        varContainer.type.toLowerCase().startsWith('list<') || varContainer.type.toLowerCase().startsWith('set<');
-      // The live debugger, for collections, doesn't include their type in variable name/value
-      const containerType = isCollectionType(varContainer.type) ? '' : `${varContainer.type}:`;
-      returnString = isListOrSet ? '(' : `${containerType}{`;
-      let first = true;
-      // Loop through each of the container's variables to get the name/value combinations, calling to create
-      // the string if another collection is found.
-      for (const entry of Array.from(varContainer.variables.entries())) {
-        const valueAsApexVar = entry[1];
-        if (!first) {
-          returnString += ', ';
-        }
-        if (valueAsApexVar.ref) {
-          // if this is also a ref then create the string from that
-          returnString += this.createStringFromVarContainer(valueAsApexVar, visitedSet);
-        } else {
-          // otherwise get the name/value from the variable
-          returnString += isListOrSet ? valueAsApexVar.value : `${valueAsApexVar.name}=${valueAsApexVar.value}`;
-        }
-        first = false;
-      }
-      returnString += isListOrSet ? ')' : '}';
-    } finally {
-      if (varContainer.ref) {
-        visitedSet.delete(varContainer.ref);
-      }
-    }
-    return returnString;
   }
 
   // Update the leaf reference which means do not follow any reference chain. Just update
@@ -482,7 +476,7 @@ export class HeapDumpService {
     }
     // If the reference doesn't contain any child references then it's value can set here.
     if (!hasInnerRefs) {
-      refContainer.value = this.createStringFromVarContainer(refContainer, new Set<string>());
+      refContainer.value = createStringFromVarContainer(refContainer, new Set<string>());
     }
   }
 
@@ -615,7 +609,7 @@ export class HeapDumpService {
             childVarContainer.ref = undefined;
           }
         }
-        namedVarContainer.value = this.createStringFromVarContainer(namedVarContainer, new Set<string>());
+        namedVarContainer.value = createStringFromVarContainer(namedVarContainer, new Set<string>());
       }
 
       return namedVarContainer;
@@ -627,7 +621,7 @@ export class HeapDumpService {
       // time to update them
       if (visitedMap.size === 0) {
         updateAfterVarCreation.forEach(varContainer => {
-          varContainer.value = this.createStringFromVarContainer(varContainer, new Set<string>());
+          varContainer.value = createStringFromVarContainer(varContainer, new Set<string>());
         });
       }
     }
