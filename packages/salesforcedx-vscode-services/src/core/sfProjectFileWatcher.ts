@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
 import { FileChangePubSub } from '../vscode/fileChangePubSub';
+import { WorkspaceService } from '../vscode/workspaceService';
 import { invalidateSfProjectCache, sfProjectCacheKey } from './projectService';
 
 const SFDX_PROJECT_FILE_NAME = 'sfdx-project.json';
@@ -20,15 +21,21 @@ const SFDX_PROJECT_FILE_NAME = 'sfdx-project.json';
  * `sourceApiVersion` changes without requiring a `.sfdx`/`.sf` delete + reload.
  */
 export const watchSfProjectFile = Effect.fn('watchSfProjectFile')(function* () {
-  const fileChangePubSub = yield* FileChangePubSub;
+  const [fileChangePubSub, workspaceService] = yield* Effect.all([FileChangePubSub, WorkspaceService]);
 
   yield* Stream.fromPubSub(fileChangePubSub).pipe(
     Stream.filter(event => Utils.basename(event.uri) === SFDX_PROJECT_FILE_NAME),
     Stream.debounce(Duration.millis(5)),
-    Stream.runForEach(event =>
-      // cacheKey derivation mirrors getSfProject: the workspace dir equals the directory containing
-      // the edited sfdx-project.json (desktop), or the disk-root marker (vscode-test-web).
-      sfProjectCacheKey(Utils.dirname(event.uri).fsPath).pipe(Effect.flatMap(invalidateSfProjectCache))
+    Stream.runForEach(() =>
+      // Derive the cache key from WorkspaceService (the same source `getSfProject` uses), NOT from the
+      // event URI's dirname. On web the runner user-agent contains "Windows", so `vscode-uri` renders
+      // `uri.fsPath` with backslashes (e.g. `\dx-project`) while WorkspaceService normalizes them to `/`
+      // for virtual filesystems — keying off the event URI produced `\dx-project` and never matched the
+      // `/dx-project` cache entry, so mid-session edits stayed stale on web.
+      workspaceService.getWorkspaceInfo().pipe(
+        Effect.flatMap(({ fsPath }) => sfProjectCacheKey(fsPath)),
+        Effect.flatMap(invalidateSfProjectCache)
+      )
     )
   );
 });

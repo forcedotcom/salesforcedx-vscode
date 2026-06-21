@@ -10,11 +10,12 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';
-import { dirname, normalize } from 'node:path';
+import { normalize } from 'node:path';
 import { URI } from 'vscode-uri';
 import * as projectService from '../../../src/core/projectService';
 import { watchSfProjectFile } from '../../../src/core/sfProjectFileWatcher';
 import { FileChangePubSub, type FileChangeEvent } from '../../../src/vscode/fileChangePubSub';
+import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
 const WORKSPACE_DIR = '/Users/testuser/project';
 const PROJECT_FILE_PATH = `${WORKSPACE_DIR}/sfdx-project.json`;
@@ -23,13 +24,25 @@ const OTHER_FILE_PATH = `${WORKSPACE_DIR}/.sf/config.json`;
 const makeFileChangePubSubLayer = (pubsub: PubSub.PubSub<FileChangeEvent>) =>
   Layer.succeed(FileChangePubSub, pubsub as unknown as FileChangePubSub);
 
-const runWatcherTest = (publishUri: string) => {
+// The watcher derives its cache key from WorkspaceService (not the event URI). On web the runner UA
+// contains "Windows", so the event URI's fsPath is backslashed while WorkspaceService normalizes to `/`;
+// keying off WorkspaceService guarantees the key equals the one `getSfProject` used to populate the cache.
+const makeWorkspaceServiceLayer = (fsPath: string) =>
+  Layer.succeed(WorkspaceService, {
+    getWorkspaceInfo: () => Effect.succeed({ fsPath } as never),
+    getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath } as never)
+  } as unknown as WorkspaceService);
+
+const runWatcherTest = (publishUri: string, workspaceFsPath = WORKSPACE_DIR) => {
   const invalidateSpy = jest.spyOn(projectService, 'invalidateSfProjectCache').mockImplementation(() => Effect.void);
 
   return Effect.runPromise(
     Effect.gen(function* () {
       const fileChangePubSub = yield* PubSub.sliding<FileChangeEvent>(10);
-      const layer = makeFileChangePubSubLayer(fileChangePubSub);
+      const layer = Layer.merge(
+        makeFileChangePubSubLayer(fileChangePubSub),
+        makeWorkspaceServiceLayer(workspaceFsPath)
+      );
 
       const fiber = yield* Effect.provide(Effect.scoped(watchSfProjectFile()), layer).pipe(Effect.fork);
 
@@ -54,10 +67,11 @@ describe('watchSfProjectFile', () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  it('invalidates with the cacheKey getSfProject would compute (dirname of the project file)', async () => {
+  it('invalidates with the cacheKey getSfProject would compute (the WorkspaceService fsPath)', async () => {
     const spy = await runWatcherTest(PROJECT_FILE_PATH);
-    // parity guard: key must equal the workspace dir so invalidation targets the live entry
-    expect(spy).toHaveBeenCalledWith(normalize(dirname(PROJECT_FILE_PATH)));
+    // parity guard: key must equal the workspace dir from WorkspaceService so invalidation targets the
+    // live entry — NOT the event URI's dirname, which is backslashed on web and would never match.
+    expect(spy).toHaveBeenCalledWith(normalize(WORKSPACE_DIR));
   });
 
   it('does not invalidate when a non-project file changes', async () => {
