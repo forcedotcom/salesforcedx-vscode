@@ -171,6 +171,22 @@ export const createPlainServicesApi = (
         })
       ),
     invalidateCachedConnections: () => run(builtContext, ConnectionService.invalidateCachedConnections()),
+    withDefaultOrg: <R>(use: (org: import('./owned/servicesOrg').ServicesOrg) => R | Promise<R>) =>
+      run(
+        builtContext,
+        Effect.gen(function* () {
+          const svc = yield* ConnectionService;
+          return yield* svc.withDefaultOrg(use);
+        })
+      ),
+    getConnectionData: () =>
+      run(
+        builtContext,
+        Effect.gen(function* () {
+          const svc = yield* ConnectionService;
+          return yield* svc.getConnectionData();
+        })
+      ),
     onDidChangeTargetOrg: orgChangeEmitter.event,
 
     getWorkspaceInfo: () => run(builtContext, WorkspaceService.getWorkspaceInfo()),

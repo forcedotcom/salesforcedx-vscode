@@ -5,19 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // Hand-authored, services-owned. NO imports from @salesforce/*, jsforce, or effect.
-export type MetadataTypeInfo = {
-  readonly xmlName: string;
-  readonly directoryName?: string;
-  readonly inFolder: boolean;
-  readonly metaFile: boolean;
-  readonly suffix?: string;
-  readonly childXmlNames?: readonly string[];
-};
-export type TemplateCreateOutcome = {
-  readonly outputDir: string;
-  readonly created: readonly string[];
-  readonly rawOutput?: string;
-};
 export type ConnectionData = {
   readonly accessToken: string;
   readonly instanceUrl: string;

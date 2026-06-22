@@ -11,6 +11,8 @@ import type { FilePropertiesSchema } from './core/schemas/fileProperties';
 import type { TraceFlagItem, TraceFlagLogType } from './core/schemas/traceFlagSchemas';
 import type { SourceTrackingOptions } from './core/sourceTrackingService';
 import type { TemplateOptionsFor } from './core/templateService';
+import type { ConnectionData } from './owned/metadata';
+import type { ServicesOrg } from './owned/servicesOrg';
 import type { Connection, SfProject } from '@salesforce/core';
 import type { ComponentSet, DeployResult, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import type { ChangeResult } from '@salesforce/source-tracking';
@@ -47,6 +49,8 @@ export type ServicesContract = {
   // Connection / Org
   readonly getConnection: () => Connection;
   readonly invalidateCachedConnections: () => void;
+  readonly withDefaultOrg: <R>(use: (org: ServicesOrg) => R | Promise<R>) => Promise<R>;
+  readonly getConnectionData: () => ConnectionData;
 
   // Workspace
   readonly getWorkspaceInfo: () => {
