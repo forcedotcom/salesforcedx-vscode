@@ -6,6 +6,7 @@
  */
 /* eslint-disable functional/no-let -- module-level refs set during ensureConflictView */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -56,7 +57,12 @@ export const conflictDiffCommandEffect = (entry: DiffFilePair | ConflictTreeItem
 
 export const conflictOpenCommandEffect = (node: ConflictTreeItem) => {
   const pair = node?.pair;
-  return pair ? Effect.sync(() => void vscode.window.showTextDocument(pair.localUri.uri)) : Effect.void;
+  return pair
+    ? Effect.fn('conflictOpenCommandEffect')(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        yield* api.services.FsService.showTextDocument(pair.localUri.uri);
+      })()
+    : Effect.void;
 };
 
 /** Detect conflicts, populate tree, focus view. Used when status bar clicked with conflicts. */

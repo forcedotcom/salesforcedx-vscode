@@ -49,20 +49,15 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
 
   // Show success message with clickable file link
   const openFileAction = nls.localize('data_query_open_file');
-  yield* Effect.promise(() =>
-    vscode.window
-      .showInformationMessage(
-        nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath),
-        openFileAction
-      )
-      .then(selection => {
-        if (selection === openFileAction) {
-          vscode.workspace.openTextDocument(fileUri).then(doc => {
-            vscode.window.showTextDocument(doc);
-          });
-        }
-      })
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showInformationMessage(
+      nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath),
+      openFileAction
+    )
   );
+  if (selection === openFileAction) {
+    yield* api.services.FsService.showTextDocument(fileUri);
+  }
 });
 
 const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
