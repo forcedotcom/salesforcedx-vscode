@@ -6,6 +6,7 @@
  */
 
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
+import { orphanLensTargets } from '../../../src/traceFlags/traceFlagsCodeLensProvider';
 import { enrichTraceFlags, isOrphanedTraceFlag } from '../../../src/traceFlags/traceFlagsContentProvider';
 
 const farFuture = new Date(Date.now() + 1000 * 60 * 60);
@@ -73,5 +74,24 @@ describe('isOrphanedTraceFlag', () => {
 
   it('is false when the flag has no debugLevelId at all', () => {
     expect(isOrphanedTraceFlag(makeFlag({ debugLevelId: undefined }))).toBe(false);
+  });
+});
+
+describe('orphanLensTargets', () => {
+  it('returns one target per orphaned active flag, carrying its id and missing debugLevelId', () => {
+    const orphan = makeFlag({ id: '7tfOrphan', debugLevelId: '7dlMissingAAA' });
+    const healthy = makeFlag({ id: '7tfOk', debugLevelId: 'dl1', debugLevelName: 'Resolved' });
+    const targets = orphanLensTargets([orphan, healthy]);
+    expect(targets).toEqual([{ traceFlagId: '7tfOrphan', debugLevelId: '7dlMissingAAA' }]);
+  });
+
+  it('returns no targets when every flag resolved a debug level name', () => {
+    const healthy = makeFlag({ id: '7tfOk', debugLevelId: 'dl1', debugLevelName: 'Resolved' });
+    expect(orphanLensTargets([healthy])).toEqual([]);
+  });
+
+  it('ignores inactive flags even when orphaned', () => {
+    const expiredOrphan = makeFlag({ id: '7tfExpired', debugLevelId: '7dlMissingAAA', isActive: false });
+    expect(orphanLensTargets([expiredOrphan])).toEqual([]);
   });
 });
