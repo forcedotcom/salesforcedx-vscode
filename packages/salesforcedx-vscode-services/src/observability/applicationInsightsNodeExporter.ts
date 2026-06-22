@@ -105,58 +105,60 @@ export class ApplicationInsightsNodeExporter implements SpanExporter {
   }
 }
 
-const sendSpan = (span: ReadableSpan, otelLogger: ReturnType<LoggerProvider['getLogger']>) =>
-  Effect.gen(function* () {
-    const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
+const sendSpan = Effect.fn('sendSpan')(function* (
+  span: ReadableSpan,
+  otelLogger: ReturnType<LoggerProvider['getLogger']>
+) {
+  const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
 
-    const { userId, webUserId } = yield* Effect.gen(function* () {
-      const orgRef = yield* getDefaultOrgRef();
-      return yield* SubscriptionRef.get(orgRef);
-    }).pipe(Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined })));
+  const { userId, webUserId } = yield* Effect.gen(function* () {
+    const orgRef = yield* getDefaultOrgRef();
+    return yield* SubscriptionRef.get(orgRef);
+  }).pipe(Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined })));
 
-    const isError = span.status?.code === SpanStatusCode.ERROR;
+  const isError = span.status?.code === SpanStatusCode.ERROR;
 
-    // Emit a LogRecord — the "microsoft.custom_event.name" attribute tells Azure Monitor
-    // to route this to the customEvents table instead of traces.
-    otelLogger.emit({
-      // SeverityNumber.ERROR (17) / SeverityNumber.INFO (9) — hard-coded to avoid a runtime
-      // dependency on @opentelemetry/api-logs just for these enum values.
-      // https://github.com/open-telemetry/opentelemetry-js/blob/main/api/src/logs/LogRecord.ts
-      severityNumber: isError ? 17 : 9,
-      severityText: isError ? 'ERROR' : 'INFO',
-      // The customEvent name comes from the microsoft.custom_event.name attribute (below), so body
-      // is free to carry numeric measurements: the Azure log→customEvent mapping reads
-      // body.measurements into baseData.measurements (logUtils.getLegacyApplicationInsightsMeasurements).
-      // duration is ALSO kept in attributes → properties (string) so existing properties consumers
-      // keep working; measurements gives the queryable numeric copy.
-      body: { measurements: { duration: spanDuration(span) } },
-      attributes: {
-        // Magic attribute: routes this LogRecord to the customEvents table
-        'microsoft.custom_event.name': span.name,
+  // Emit a LogRecord — the "microsoft.custom_event.name" attribute tells Azure Monitor
+  // to route this to the customEvents table instead of traces.
+  otelLogger.emit({
+    // SeverityNumber.ERROR (17) / SeverityNumber.INFO (9) — hard-coded to avoid a runtime
+    // dependency on @opentelemetry/api-logs just for these enum values.
+    // https://github.com/open-telemetry/opentelemetry-js/blob/main/api/src/logs/LogRecord.ts
+    severityNumber: isError ? 17 : 9,
+    severityText: isError ? 'ERROR' : 'INFO',
+    // The customEvent name comes from the microsoft.custom_event.name attribute (below), so body
+    // is free to carry numeric measurements: the Azure log→customEvent mapping reads
+    // body.measurements into baseData.measurements (logUtils.getLegacyApplicationInsightsMeasurements).
+    // duration is ALSO kept in attributes → properties (string) so existing properties consumers
+    // keep working; measurements gives the queryable numeric copy.
+    body: { measurements: { duration: spanDuration(span) } },
+    attributes: {
+      // Magic attribute: routes this LogRecord to the customEvents table
+      'microsoft.custom_event.name': span.name,
 
-        // Resource attributes (extension name/version)
-        ...convertAttributes(span.resource.attributes),
-        ...getExtensionNameAndVersionAttributes(span.resource.attributes),
-        // Span attributes
-        ...convertAttributes(span.attributes),
-        // Trace context
-        traceID: span.spanContext().traceId,
-        spanID: span.spanContext().spanId,
-        ...(span.parentSpanContext?.spanId ? { parentID: span.parentSpanContext.spanId } : {}),
-        // Span metadata
-        spanKind: getSpanKindName(span.kind),
-        spanStatus: isError ? 'ERROR' : 'OK',
-        // Timestamps
-        startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
-        endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000),
-        // Duration as a measurement
-        duration: spanDuration(span),
-        // User context
-        ...(userId ? { userId } : {}),
-        ...(webUserId ? { webUserId } : {}),
-        // Telemetry tag
-        ...(telemetryTag ? { telemetryTag } : {})
-      },
-      timestamp: span.startTime
-    });
+      // Resource attributes (extension name/version)
+      ...convertAttributes(span.resource.attributes),
+      ...getExtensionNameAndVersionAttributes(span.resource.attributes),
+      // Span attributes
+      ...convertAttributes(span.attributes),
+      // Trace context
+      traceID: span.spanContext().traceId,
+      spanID: span.spanContext().spanId,
+      ...(span.parentSpanContext?.spanId ? { parentID: span.parentSpanContext.spanId } : {}),
+      // Span metadata
+      spanKind: getSpanKindName(span.kind),
+      spanStatus: isError ? 'ERROR' : 'OK',
+      // Timestamps
+      startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
+      endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000),
+      // Duration as a measurement
+      duration: spanDuration(span),
+      // User context
+      ...(userId ? { userId } : {}),
+      ...(webUserId ? { webUserId } : {}),
+      // Telemetry tag
+      ...(telemetryTag ? { telemetryTag } : {})
+    },
+    timestamp: span.startTime
   });
+});
