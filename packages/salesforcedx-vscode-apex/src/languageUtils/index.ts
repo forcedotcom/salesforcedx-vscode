@@ -9,7 +9,7 @@ import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { ApexTestMethod } from '../views/lspConverter';
-import { ProcessDetail, languageClientManager } from './languageClientManager';
+import { languageClientManager } from './languageClientManager';
 
 export const getLineBreakpointInfo = async () => languageClientManager.getLineBreakpointInfo();
 
@@ -60,13 +60,6 @@ export const indexerDoneHandler = async (
   languageServerStatusBarItem: ApexLSPStatusBarItem
 ): Promise<void> =>
   languageClientManager.indexerDoneHandler(enableSyncInitJobs, languageClient, languageServerStatusBarItem);
-
-export const findAndCheckOrphanedProcesses = async (): Promise<ProcessDetail[]> =>
-  languageClientManager.findAndCheckOrphanedProcesses();
-
-export const terminateProcess = (pid: number): void => {
-  languageClientManager.terminateProcess(pid);
-};
 
 export { configureApexLanguage } from './apexLanguageConfiguration';
 export { languageClientManager } from './languageClientManager';

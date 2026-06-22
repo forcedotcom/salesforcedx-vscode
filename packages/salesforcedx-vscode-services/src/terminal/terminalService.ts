@@ -19,13 +19,13 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
   effect: Effect.succeed({
     /** Execute a shell command and parse its stdout. Desktop-only; fails with TerminalServiceError on web. stdout is trimmed before parsing.
      * `timeout` (default 30s) bounds the child process; pass a larger Duration for long-running commands (e.g. org delete). */
-    simpleExec: Effect.fn('TerminalService.simpleExec')(function* ({
+    simpleExec: Effect.fn('TerminalService.simpleExec')(function* <A>({
       command,
-      parse = s => s,
+      parse,
       timeout = Duration.millis(30_000)
     }: {
       command: string;
-      parse?: (stdout: string) => string;
+      parse: (stdout: string) => A;
       timeout?: Duration.DurationInput;
     }) {
       yield* Effect.annotateCurrentSpan('command', command);

@@ -30,7 +30,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'Apex DB をクリーンアップして再起動しますか？それとも再起動のみ行いますか？',
   apex_language_server_restart_dialog_restart_only: '再起動のみ',
   apex_language_server_restarting: 'Apex 言語サーバを再起動しています... $(sync~spin)',
-  cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
   client_name: 'Apex 言語サーバ',
   java_binary_missing_text: '%s の Java バイナリ %s が見つかりません。Java のインストールを確認してください。',
   java_bin_missing_text: '%s に Java bin ディレクトリが見つかりません。Java のインストールを確認してください。',

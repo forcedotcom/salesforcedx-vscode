@@ -5,11 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as child_process from 'node:child_process';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
-import { UBER_JAR_NAME } from '../../../src/constants';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
@@ -120,45 +118,6 @@ describe('Language Client Manager', () => {
 
       instance1.setStatus(ClientStatus.Ready, 'test');
       expect(instance2.getStatus().isReady()).toBe(true);
-    });
-  });
-
-  describe('Orphaned Process Management', () => {
-    beforeEach(() => {
-      setTelemetryService(new MockTelemetryService());
-    });
-
-    it('should return empty array if no processes found', async () => {
-      jest.spyOn(child_process, 'execSync').mockReturnValue(Buffer.from(''));
-      jest.spyOn(languageClientManager, 'canRunCheck').mockImplementation((isWindows: boolean) => true);
-
-      const result = await languageClientManager.findAndCheckOrphanedProcesses();
-      expect(result).toHaveLength(0);
-    });
-
-    it('should return empty array if no orphaned processes found', async () => {
-      jest
-        .spyOn(child_process, 'execSync')
-        .mockReturnValueOnce(Buffer.from(`1234 5678 ${UBER_JAR_NAME}`))
-        .mockReturnValueOnce(Buffer.from(''));
-      jest.spyOn(languageClientManager, 'canRunCheck').mockImplementation((isWindows: boolean) => true);
-
-      const result = await languageClientManager.findAndCheckOrphanedProcesses();
-      expect(result).toHaveLength(0);
-    });
-
-    it('should return array of orphaned processes', async () => {
-      jest
-        .spyOn(child_process, 'execSync')
-        .mockReturnValueOnce(Buffer.from(`1234 5678 ${UBER_JAR_NAME}`))
-        .mockImplementationOnce(() => {
-          throw new Error();
-        });
-      jest.spyOn(languageClientManager, 'canRunCheck').mockImplementation((isWindows: boolean) => true);
-
-      const result = await languageClientManager.findAndCheckOrphanedProcesses();
-      expect(result).toHaveLength(1);
-      expect(result[0]).toHaveProperty('pid', 1234);
     });
   });
 

@@ -16,4 +16,3 @@ export const API = {
   doneIndexing: 'indexer/done'
 };
 export const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
-export const APEX_LSP_ORPHAN = 'apexLSPOrphan';

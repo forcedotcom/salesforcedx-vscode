@@ -18,3 +18,4 @@ description: TypeScript coding standards and conventions including file naming r
 - exported functions: single-line jsdoc /\*_ foo _/ if name unclear; no params/return (TS provides types)
 - look for uses of (Object|Map).groupBy instead of older patterns
 - redundant empty-collection guards: if `arr.find/some/every/map/filter/reduce` already returns the same value for an empty array, drop the `if (arr.length === 0) return …` guard. e.g. `find` on `[]` is `undefined`, so guarding `return undefined` is dead code.
+- no needless const declarations: return directly instead of `const x = val; return x` (exception: complex expressions where const improves readability)
