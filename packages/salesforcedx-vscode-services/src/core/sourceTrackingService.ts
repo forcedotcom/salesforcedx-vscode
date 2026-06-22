@@ -55,6 +55,10 @@ const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Sc
 type ResolvedChangeResult = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
 const isResolvedChangeResult = (c: ChangeResult): c is ResolvedChangeResult => Schema.is(ResolvedChangeResultSchema)(c);
 
+/** Type guard: filters ChangeResult to records that have name AND type (for OrgChange mapping) */
+const hasNameAndType = (c: ChangeResult): c is ChangeResult & { name: string; type: string } =>
+  c.name != null && c.type != null;
+
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   accessors: true,
   dependencies: [
@@ -359,11 +363,13 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     /** Get conflicts as owned OrgChange[] (both tracking files) */
     const getConflictChanges = Effect.fn('SourceTrackingService.getConflictChanges')(function* () {
       const conflicts = yield* getConflicts();
-      return conflicts.map(toOrgChange);
+      return conflicts.filter(hasNameAndType).map(toOrgChange);
     });
 
     /** Get local changes as owned OrgChange[] (local tracking files only) */
-    const getLocalChanges = Effect.fn('SourceTrackingService.getLocalChanges')(function* () {
+    const getLocalChanges = Effect.fn('SourceTrackingService.getLocalChanges')(function* (opts?: {
+      applyIgnore?: boolean;
+    }) {
       const tracking = yield* getOrCreateTracking();
 
       return yield* localSemaphore.withPermits(1)(
@@ -373,7 +379,10 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
             try: () => tracking.getChanges({ origin: 'local', state: 'nondelete', format: 'ChangeResult' }),
             catch: toSourceTrackingError
           }).pipe(Effect.withSpan('STL.GetLocalChanges'));
-          return changes.map(toOrgChange);
+
+          // Apply ignore filtering if requested by filtering out ignored changes
+          const filtered = opts?.applyIgnore ? changes.filter(c => c.ignored !== true) : changes;
+          return filtered.filter(hasNameAndType).map(toOrgChange);
         })
       );
     });
@@ -393,8 +402,8 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
           }).pipe(Effect.withSpan('STL.GetRemoteChanges'));
 
           // Apply ignore filtering if requested by filtering out ignored changes
-          const result = opts?.applyIgnore ? changes.filter(c => c.ignored !== true) : changes;
-          return result.map(toOrgChange);
+          const filtered = opts?.applyIgnore ? changes.filter(c => c.ignored !== true) : changes;
+          return filtered.filter(hasNameAndType).map(toOrgChange);
         })
       );
     });

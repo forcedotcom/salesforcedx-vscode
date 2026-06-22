@@ -65,4 +65,21 @@ describe('toOrgChange', () => {
       state: 'local'
     });
   });
+
+  it('requires name and type fields (narrowed type prevents garbage records)', () => {
+    // This test verifies the type signature - toOrgChange requires name and type
+    const changeWithBoth: ChangeResult & { name: string; type: string } = {
+      name: 'MyClass',
+      type: 'ApexClass',
+      origin: 'remote'
+    };
+    expect(toOrgChange(changeWithBoth)).toEqual({
+      fullName: 'MyClass',
+      type: 'ApexClass',
+      state: 'remote'
+    });
+
+    // Changes without name/type must be filtered at the service level
+    // (not passed to toOrgChange) to prevent garbage records like { fullName: '', type: '' }
+  });
 });

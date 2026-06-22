@@ -150,6 +150,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 
 - [ChannelService](references/channel-service.md) - Output channel
 - [ComponentSetService](references/component-set-service.md) - Build component sets (source, manifest, URIs)
+- [Metadata Deploy & Retrieve](references/metadata-deploy-retrieve-service.md) - Deploy/retrieve from SourceSpec
 - [MediaService](references/media-service.md) - Icons (ICONS) and NLS descriptions
 - [WorkspaceService](references/workspace-service.md) - Workspace info
 - [ConnectionService](references/connection-service.md) - Org connections
@@ -159,6 +160,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
 - [TerminalService](references/terminal-service.md) - Run shell commands (desktop-only)
+- [Source Tracking Service](references/source-tracking-service.md) - Query local, remote, conflict changes
 
 ## Watchers
 

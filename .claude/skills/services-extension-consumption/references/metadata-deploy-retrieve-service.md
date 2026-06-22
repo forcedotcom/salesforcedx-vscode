@@ -146,6 +146,17 @@ const outcome = yield *
   );
 ```
 
+## Introspection
+
+For component metadata without deploy/retrieve, use `ComponentSetService.describeProjectComponents()`:
+
+```typescript
+const info = yield * api.services.ComponentSetService.describeProjectComponents(spec);
+// info.components[], info.packageXml, info.size, info.sourceApiVersion
+```
+
+See [ComponentSetService](component-set-service.md) for details. Returns owned types (no SDR dependency).
+
 ## Notes
 
 - `deployFromSource` / `retrieveToSource` wrap `deploy` / `retrieveComponentSet`

@@ -117,7 +117,7 @@ export type ServicesContract = {
   readonly hasTracking: () => boolean;
   readonly getConflicts: () => ChangeResult[];
   readonly getConflictChanges: () => OrgChange[];
-  readonly getLocalChanges: () => OrgChange[];
+  readonly getLocalChanges: (opts?: { applyIgnore?: boolean }) => OrgChange[];
   readonly getRemoteChanges: (opts?: { applyIgnore?: boolean }) => OrgChange[];
   readonly checkConflicts: () => void;
 

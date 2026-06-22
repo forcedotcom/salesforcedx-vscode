@@ -44,6 +44,46 @@ const uris = [uri1, uri2];
 const componentSet = yield * api.services.ComponentSetService.getComponentSetFromUris(uris);
 ```
 
+### buildComponentSet
+
+Dispatch SourceSpec to appropriate getter (internal routing for deploy/retrieve):
+
+```typescript
+type SourceSpec =
+  | { kind: 'paths'; uris: string[] }
+  | { kind: 'manifest'; manifestUri: string }
+  | { kind: 'projectDirectories' };
+
+const componentSet = yield * api.services.ComponentSetService.buildComponentSet(spec);
+```
+
+Maps to `getComponentSetFromUris()`, `getComponentSetFromManifest()`, or `getComponentSetFromProjectDirectories()`. Use via `MetadataDeployService.deployFromSource()` / `MetadataRetrieveService.retrieveToSource()` — see [Metadata Deploy & Retrieve Services](metadata-deploy-retrieve-service.md).
+
+### describeProjectComponents
+
+Introspect components via owned `ComponentSetInfo` — no external SDR dependency:
+
+```typescript
+type ComponentInfo = {
+  fullName: string;
+  type: string;
+  xmlPath?: string;
+  contentPaths: string[];
+};
+
+type ComponentSetInfo = {
+  size: number;
+  sourceApiVersion?: string;
+  projectDirectory?: string;
+  components: ComponentInfo[];
+  packageXml: string;
+};
+
+const info: ComponentSetInfo = yield * api.services.ComponentSetService.describeProjectComponents(spec);
+```
+
+Maps `SourceSpec` to owned types (no external imports). Consumers inspect `components[]`, `packageXml`, metadata without live ComponentSet. Use for tooling needing component visibility (LSP, project browser, metadata validation).
+
 ## Utilities
 
 ### ensureNonEmptyComponentSet

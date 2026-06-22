@@ -11,11 +11,13 @@ import type { ChangeResult } from '@salesforce/source-tracking';
 /**
  * Maps a source-tracking ChangeResult to owned OrgChange format.
  * Extracts the first filename from the filenames array if present.
+ *
+ * @param change - ChangeResult with required name and type fields (pre-filtered)
  */
-export const toOrgChange = (change: ChangeResult): OrgChange => {
+export const toOrgChange = (change: ChangeResult & { name: string; type: string }): OrgChange => {
   const base: OrgChange = {
-    fullName: change.name ?? '',
-    type: change.type ?? '',
+    fullName: change.name,
+    type: change.type,
     state: change.origin
   };
 
