@@ -8,7 +8,6 @@
 import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type * as Either from 'effect/Either';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -19,72 +18,73 @@ const minApiVersion = 65.0;
 export const discoverTests = (options: DiscoverTestsOptions = {}) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const connection = yield* api.services.ConnectionService.getConnection();
 
-    const connectionApiVersion = parseFloat(connection.getApiVersion());
-    // Ensure we use an API version that supports the Test Discovery API (>= 65.0)
-    const apiVersion = (
-      Number.isFinite(connectionApiVersion) ? Math.max(connectionApiVersion, minApiVersion) : minApiVersion
-    ).toFixed(1);
-    const basePath = `/services/data/v${apiVersion}/tooling/tests`;
-    const qp = new URLSearchParams();
-    // Always show all methods (both consumers use this)
-    qp.set('showAllMethods', 'true');
-    if (options?.namespacePrefix) {
-      qp.set('namespacePrefix', options.namespacePrefix);
-    }
-    const baseUrl = qp.toString() ? `${basePath}?${qp.toString()}` : basePath;
-
-    const classes: ToolingTestClass[] = [];
-    let nextUrl: string | undefined = baseUrl;
-    let partialResult = false;
-
-    // Request headers to fix pagination URL format
-    const requestHeaders = {
-      'X-Chatter-Entity-Encoding': 'false'
-    };
-
-    while (nextUrl) {
-      const urlToFetch = nextUrl; // Capture for TypeScript narrowing
-
-      const pageResult: Either.Either<ToolingTestsPage, Error> = yield* Effect.either(
-        Effect.tryPromise({
-          try: (): Promise<ToolingTestsPage> =>
-            connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
-          catch: (error): Error =>
-            new Error(`Failed to fetch test discovery page: ${error instanceof Error ? error.message : String(error)}`)
-        })
-      );
-
-      if (pageResult._tag === 'Left') {
-        const error = pageResult.left;
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        // Check if it's a 431 error (Request Header Fields Too Large)
-        if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
-          partialResult = true;
-          break;
+    // api.withDefaultOrg loses its generic type in PromisifiedContract mapping, returning Promise<unknown>.
+    // Use Effect.map with explicit typing to restore type safety.
+    const result = yield* Effect.tryPromise(() =>
+      api.withDefaultOrg(async org => {
+        const connectionApiVersion = parseFloat(org.apiVersion);
+        // Ensure we use an API version that supports the Test Discovery API (>= 65.0)
+        const apiVersion = (
+          Number.isFinite(connectionApiVersion) ? Math.max(connectionApiVersion, minApiVersion) : minApiVersion
+        ).toFixed(1);
+        const basePath = `/services/data/v${apiVersion}/tooling/tests`;
+        const qp = new URLSearchParams();
+        // Always show all methods (both consumers use this)
+        qp.set('showAllMethods', 'true');
+        if (options?.namespacePrefix) {
+          qp.set('namespacePrefix', options.namespacePrefix);
         }
-        // For other errors, rethrow
-        return yield* Effect.fail(error);
-      }
+        const baseUrl = qp.toString() ? `${basePath}?${qp.toString()}` : basePath;
 
-      if (pageResult._tag === 'Right') {
-        const page: ToolingTestsPage = pageResult.right;
-        if (page?.apexTestClasses?.length) {
-          classes.push(...page.apexTestClasses);
+        const classes: ToolingTestClass[] = [];
+        let nextUrl: string | undefined = baseUrl;
+        let partialResult = false;
+
+        // Request headers to fix pagination URL format
+        const requestHeaders = {
+          'X-Chatter-Entity-Encoding': 'false'
+        };
+
+        while (nextUrl) {
+          const urlToFetch: string = nextUrl; // Capture for TypeScript narrowing
+
+          try {
+            const page: ToolingTestsPage = await org.request<ToolingTestsPage>({
+              method: 'GET',
+              url: urlToFetch,
+              headers: requestHeaders
+            });
+            if (page?.apexTestClasses?.length) {
+              classes.push(...page.apexTestClasses);
+            }
+            nextUrl = page?.nextRecordsUrl ?? undefined;
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            // Check if it's a 431 error (Request Header Fields Too Large)
+            if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
+              partialResult = true;
+              break;
+            }
+            // For other errors, rethrow
+            throw error;
+          }
         }
-        nextUrl = page?.nextRecordsUrl ?? undefined;
-      }
-    }
 
-    if (partialResult) {
-      // Log warning about partial results
-      yield* Effect.logWarning(
-        `Test discovery stopped early due to URL length limits. Loaded ${classes.length} unique test classes. Some tests may not be visible.`
-      );
-    }
+        if (partialResult) {
+          // Log warning about partial results - using console since we're in plain Promise context
+          console.warn(
+            `Test discovery stopped early due to URL length limits. Loaded ${classes.length} unique test classes. Some tests may not be visible.`
+          );
+        }
 
-    return { classes } satisfies TestDiscoveryResult;
+        return { classes } satisfies TestDiscoveryResult;
+      })
+    ).pipe(
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      Effect.map(r => r as TestDiscoveryResult)
+    );
+    return result;
   }).pipe(
     Effect.withSpan('apex-test-discovery', {
       attributes: {

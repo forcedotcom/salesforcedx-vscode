@@ -20,12 +20,19 @@ const SCHEME = 'sf-org-apex';
 const lookupClassBody = (className: string) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const connection = yield* api.services.ConnectionService.getConnection();
 
     // Query for the Apex class body using Tooling API
     const query = `SELECT Id, Name, Body, NamespacePrefix FROM ApexClass WHERE Name = '${className.replaceAll("'", "''")}' LIMIT 1`;
-    const result = yield* Effect.promise(() =>
-      connection.tooling.query<{ Body: string; Name: string; NamespacePrefix?: string }>(query)
+    type ApexClassRecord = { Body: string; Name: string; NamespacePrefix?: string };
+    // api.withDefaultOrg loses its generic type in PromisifiedContract mapping, returning Promise<unknown>.
+    // Use Effect.map with explicit typing to restore type safety.
+    const result = yield* Effect.tryPromise(() =>
+      api.withDefaultOrg(org => org.query<ApexClassRecord>(query, { tooling: true }))
+    ).pipe(
+      Effect.map(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        r => r as { readonly done: boolean; readonly totalSize: number; readonly records: readonly ApexClassRecord[] }
+      )
     );
 
     if (result.records.length === 0) {
