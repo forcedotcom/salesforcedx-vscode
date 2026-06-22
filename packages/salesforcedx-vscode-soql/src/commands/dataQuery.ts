@@ -338,7 +338,7 @@ const addFieldPathForValue = (pathPrefix: string, val: unknown, addField: (name:
 
 const collectSubQueryFieldPaths = (
   prefix: string,
-  value: { totalSize: number; done: boolean; records: unknown[] },
+  value: { records: unknown[] },
   addField: (name: string) => void,
   depthRemaining: number
 ): void => {

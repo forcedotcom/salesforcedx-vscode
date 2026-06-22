@@ -69,7 +69,7 @@ export const getDocumentRegions = (languageService: LanguageService, document: T
       case TokenType.AttributeValue:
         if (lastAttributeName === 'src' && lastTagName.toLowerCase() === 'script') {
           let value = scanner.getTokenText();
-          if (value[0] === "'" || value[0] === '"') {
+          if (value.at(0) === "'" || value.at(0) === '"') {
             value = value.substr(1, value.length - 1);
           }
           importedScripts.push(value);

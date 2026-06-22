@@ -27,7 +27,7 @@ export const noExportTaggedErrorInServices = RuleCreator.withoutDocs({
   defaultOptions: [],
   create: context => ({
     ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
-      const sourceCode = context.sourceCode ?? context.getSourceCode();
+      const sourceCode = context.sourceCode;
       if (hasExportTaggedErrorTag(sourceCode.getCommentsBefore(node))) {
         context.report({ node, messageId: 'noExportTaggedError' });
       }
