@@ -87,48 +87,50 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   }
 }
 
-const exportSpan = (span: ReadableSpan) =>
-  Effect.gen(function* () {
-    const success = span.status?.code !== SpanStatusCode.ERROR;
+const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan) {
+  const success = span.status?.code !== SpanStatusCode.ERROR;
 
-    // Create distributed trace context from OpenTelemetry span context
-    const telemetryTrace = {
-      traceID: span.spanContext().traceId,
-      spanID: span.spanContext().spanId,
-      parentID: span.parentSpanContext?.spanId
-    };
+  // Create distributed trace context from OpenTelemetry span context
+  const telemetryTrace = {
+    traceID: span.spanContext().traceId,
+    spanID: span.spanContext().spanId,
+    parentID: span.parentSpanContext?.spanId
+  };
 
-    const { userId, webUserId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(
+    Effect.flatMap(SubscriptionRef.get),
+    Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined }))
+  );
 
-    const props = {
-      ...convertAttributes(span.resource.attributes),
-      ...getExtensionNameAndVersionAttributes(span.resource.attributes),
-      ...convertAttributes(span.attributes),
-      ...telemetryTrace,
-      spanKind: getSpanKindName(span.kind),
-      telemetryTag,
-      startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
-      endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000),
-      ...(userId ? { userId } : {}),
-      ...(webUserId ? { webUserId } : {})
-    };
+  const props = {
+    ...convertAttributes(span.resource.attributes),
+    ...getExtensionNameAndVersionAttributes(span.resource.attributes),
+    ...convertAttributes(span.attributes),
+    ...telemetryTrace,
+    spanKind: getSpanKindName(span.kind),
+    telemetryTag,
+    startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
+    endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000),
+    ...(userId ? { userId } : {}),
+    ...(webUserId ? { webUserId } : {})
+  };
 
-    const measurements = {
-      duration: spanDuration(span)
-    };
+  const measurements = {
+    duration: spanDuration(span)
+  };
 
-    yield* Effect.try({
-      try: () =>
-        process.env.ESBUILD_WEB_LOCAL === '1'
-          ? sendToLocalAppInsightsFile(span.name, success, props, measurements)
-          : success
-            ? getWebAppInsightsReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
-            : getWebAppInsightsReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
-      catch: error => unknownToErrorCause(error)
-    }).pipe(
-      Effect.catchAll(error => Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause)))
-    );
-  });
+  yield* Effect.try({
+    try: () =>
+      process.env.ESBUILD_WEB_LOCAL === '1'
+        ? sendToLocalAppInsightsFile(span.name, success, props, measurements)
+        : success
+          ? getWebAppInsightsReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
+          : getWebAppInsightsReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
+    catch: error => unknownToErrorCause(error)
+  }).pipe(
+    Effect.catchAll(error => Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause)))
+  );
+});
 
 // Local-dev sink: POST the App Insights payload to the span file server instead of Azure (ESBUILD_WEB_LOCAL).
 // Shares the Node divert /v2.1/track endpoint; the server sorts web events from Breeze envelopes by shape.
