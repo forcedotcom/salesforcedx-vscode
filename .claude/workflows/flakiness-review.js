@@ -40,6 +40,10 @@ const ARTIFACTS_ROOT = '.e2e-artifacts'
 const MAX_ARTIFACT_CLUSTERS = 5
 // Min failure appearances across runs to be worth investigating
 const MIN_FAILURE_COUNT = 2
+// Per-test retry rate at/above which a test is its own cluster (retry-masked flake)
+const RETRY_RATE_THRESHOLD = 0.5
+// Min runs a test needs before its retryRate is trusted
+const RETRY_MIN_RUNS = 4
 
 // =====================================================================
 // SCHEMAS
@@ -74,13 +78,15 @@ const CLUSTERS_SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
-        required: ['testName', 'errorPattern', 'runIds', 'count', 'retryMasked'],
+        required: ['testName', 'errorPattern', 'runIds', 'count', 'retryMasked', 'source', 'retryRate'],
         properties: {
           testName: { type: 'string' },
           errorPattern: { type: 'string' },
           runIds: { type: 'array', items: { type: 'string' } },
           count: { type: 'number' },
           retryMasked: { type: 'boolean' },
+          source: { type: 'string', enum: ['failure', 'retryRate'] },
+          retryRate: { type: 'number' },
         },
       },
     },
@@ -339,6 +345,15 @@ find ${ARTIFACTS_ROOT}/develop/<run-id> -name "*.json" | xargs grep -l '"status"
 \`\`\`
 
 Group failures by: test name + error message pattern (first 120 chars of the error). A test that appears with the same error pattern across ${MIN_FAILURE_COUNT}+ runs is a cluster. Also flag any test that only passes after retries (retryMasked=true).
+
+## Per-test retry metrics
+${JSON.stringify(metricsData.testMetrics, null, 2)}
+
+For EVERY cluster you emit:
+- Set \`retryRate\` by looking up the cluster's \`testName\` in the testMetrics array above (match on \`testName\`); if absent, \`retryRate: 0\`.
+- Set \`source\`: \`'failure'\` for run-level-failure clusters, \`'retryRate'\` for retry-threshold clusters (below).
+
+Also emit a cluster for ANY testMetrics entry with \`retryRate >= ${RETRY_RATE_THRESHOLD}\` AND \`totalRuns >= ${RETRY_MIN_RUNS}\`, even with 0 hard failures — retries mask a green run-level result. For such clusters: \`source: 'retryRate'\`, \`retryMasked: true\`, \`count\` = that entry's \`retryCount\`, \`runIds\` = best-available run ids for the test (empty array if none), \`errorPattern\` = brief note that this is retry-masked flake.
 
 Sort clusters by count descending. Return top clusters.`,
   { label: 'cluster:failures', phase: 'Cluster failures', schema: CLUSTERS_SCHEMA }
