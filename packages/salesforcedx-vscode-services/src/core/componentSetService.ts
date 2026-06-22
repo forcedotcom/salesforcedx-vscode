@@ -227,7 +227,7 @@ export const setComponentSetProperties = Effect.fn('setComponentSetProperties')(
   componentSet: ComponentSetType;
   project: SfProject;
   configAggregator: ConfigAggregator;
-  /** if not provied, uses the project path.  Useful it retrieving to a custom directory. */
+  /** if not provided, uses the project path.  Useful it retrieving to a custom directory. */
   directory?: URI;
 }) {
   componentSet.projectDirectory = directory ? uriToPath(directory) : project.getPath();
@@ -249,4 +249,8 @@ export const setComponentSetProperties = Effect.fn('setComponentSetProperties')(
   if (sourceApiVersion) {
     componentSet.sourceApiVersion = String(sourceApiVersion);
   }
+  yield* Effect.annotateCurrentSpan({
+    apiVersion: apiVersion ?? 'unset',
+    sourceApiVersion: sourceApiVersion ? String(sourceApiVersion) : 'unset'
+  });
 });
