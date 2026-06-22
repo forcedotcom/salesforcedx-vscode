@@ -38,4 +38,22 @@ describe('makeServicesOrg adapter', () => {
     };
     expect(makeServicesOrg(fakeConn as never).apiVersion).toBe('62.0');
   });
+  it('maps DML errorCode to OwnedSaveResult statusCode', async () => {
+    const createMock = jest.fn().mockResolvedValue({
+      success: false,
+      errors: [{ errorCode: 'REQUIRED_FIELD_MISSING', message: 'Required field missing' }]
+    });
+    const fakeConn = {
+      getApiVersion: () => '62.0',
+      query: jest.fn(),
+      tooling: { query: jest.fn() },
+      sobject: () => ({ create: createMock })
+    };
+    const org = makeServicesOrg(fakeConn as never);
+    const r = await org.create('Account', { Name: 'Test' });
+    expect(r.success).toBe(false);
+    expect(r.errors).toHaveLength(1);
+    expect(r.errors[0].statusCode).toBe('REQUIRED_FIELD_MISSING');
+    expect(r.errors[0].message).toBe('Required field missing');
+  });
 });

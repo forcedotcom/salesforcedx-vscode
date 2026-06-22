@@ -23,6 +23,7 @@ export const makeServicesOrg = (conn: Connection): ServicesOrg => ({
   query: async <T = Record<string, unknown>>(soql: string, opts?: QueryOpts): Promise<OwnedQueryResult<T>> => {
     const api = opts?.tooling ? conn.tooling : conn;
     const r = await api.query<JSForceRecord>(soql, { autoFetch: opts?.autoFetch, maxFetch: opts?.maxFetch });
+    // jsforce's `Record[]` is structurally unrelated to the owned generic `T[]` plus differs in mutability, so a double-cast is required at this boundary.
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return { done: r.done, totalSize: r.totalSize, records: r.records as unknown as readonly T[] };
   },
@@ -33,12 +34,15 @@ export const makeServicesOrg = (conn: Connection): ServicesOrg => ({
   },
   create: async (sobjectType, record, opts?: ToolingOpt): Promise<OwnedSaveResult> => {
     const api = opts?.tooling ? conn.tooling : conn;
+    // jsforce serializes the record to JSON and does not mutate it, so dropping `readonly` is safe.
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const r = await api.sobject(sobjectType).create(record as JSForceRecord);
     return toSaveResult(r);
   },
   update: async (sobjectType, record, opts?: ToolingOpt): Promise<OwnedSaveResult> => {
     const api = opts?.tooling ? conn.tooling : conn;
+    // jsforce serializes the record to JSON and does not mutate it, so dropping `readonly` is safe.
+    // the owned `update` accepts a plain record; Id presence is validated server-side (owned contract is intentionally looser than jsforce's compile-time `Id` requirement).
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const r = await api.sobject(sobjectType).update(record as JSForceRecord & { Id: string });
     return toSaveResult(r);
@@ -49,6 +53,7 @@ export const makeServicesOrg = (conn: Connection): ServicesOrg => ({
     return toSaveResult(r);
   },
   request: async <R>(req: string | OwnedHttpRequest): Promise<R> =>
+    // `OwnedHttpRequest.method` is intentionally `string` (broader than jsforce's literal HTTP-verb union, to allow Salesforce custom methods); the cast bridges to jsforce's narrower type.
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     conn.request<R>(req as never),
   identity: async (): Promise<OwnedIdentityInfo> => {
@@ -72,8 +77,12 @@ const toSaveResult = (r: SaveResult | SaveResult[]): OwnedSaveResult => {
     success: one.success,
     errors: (one.errors ?? []).map((e: unknown) => {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const err = e as { statusCode?: string; message?: string; fields?: string[] };
-      return { statusCode: err.statusCode ?? 'UNKNOWN', message: err.message ?? String(e), fields: err.fields };
+      const err = e as { statusCode?: string; errorCode?: string; message?: string; fields?: string[] };
+      return {
+        statusCode: err.statusCode ?? err.errorCode ?? 'UNKNOWN',
+        message: err.message ?? String(e),
+        fields: err.fields
+      };
     })
   };
 };
