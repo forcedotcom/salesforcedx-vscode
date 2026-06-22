@@ -51,6 +51,7 @@ type CreateParams<T extends TemplateType = TemplateType> = {
  */
 export type ServicesContract = {
   // Connection / Org
+  /** @deprecated Returns a live @salesforce/core Connection (a 3pp instance). Use `withDefaultOrg(org => …)` for owned operations, or `getConnectionData()` to build your own. Removed once consumers migrate (W-22419571). */
   readonly getConnection: () => Connection;
   readonly invalidateCachedConnections: () => void;
   readonly withDefaultOrg: <R>(use: (org: ServicesOrg) => R | Promise<R>) => Promise<R>;
@@ -68,6 +69,7 @@ export type ServicesContract = {
 
   // Project
   readonly isSalesforceProject: () => boolean;
+  /** @deprecated Returns a live @salesforce/core SfProject (a 3pp instance). Use `getProjectInfo()` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly getSfProject: () => SfProject;
   readonly getProjectInfo: () => ProjectInfo;
   readonly isInPackageDirectories: (uri: URI) => boolean;
@@ -103,19 +105,23 @@ export type ServicesContract = {
   // Note: These are excluded from PromisifiedContract conversion
 
   // Metadata Describe
+  /** @deprecated Returns a live jsforce DescribeMetadataObject array (a 3pp result). Use `describeMetadata()` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly describe: () => DescribeMetadataObject[];
   readonly describeMetadata: () => MetadataTypeInfo[];
 
   // Metadata Deploy
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve DeployResult (a 3pp instance). Use `deployFromSource(spec)` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly deploy: (components: ComponentSet) => DeployResult;
   readonly deployFromSource: (spec: SourceSpec) => DeployOutcome;
 
   // Metadata Retrieve (basic signatures - specialized ones excluded)
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve RetrieveResult (a 3pp instance). Use `retrieveToSource(spec)` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly retrieveComponentSet: (components: ComponentSet) => RetrieveResult;
   readonly retrieveToSource: (spec: SourceSpec, opts?: RetrieveOptions) => RetrieveOutcome;
 
   // Source Tracking (basic methods)
   readonly hasTracking: () => boolean;
+  /** @deprecated Returns a live @salesforce/source-tracking ChangeResult array (a 3pp instance). Use `getConflictChanges()` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly getConflicts: () => ChangeResult[];
   readonly getConflictChanges: () => OrgChange[];
   readonly getLocalChanges: (opts?: { applyIgnore?: boolean }) => OrgChange[];
@@ -126,8 +132,11 @@ export type ServicesContract = {
   readonly simpleExec: (command: string, parse?: (stdout: string) => string, timeoutMs?: number) => string;
 
   // Component Set
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve ComponentSet (a 3pp instance). Use `deployFromSource(spec)`, `retrieveToSource(spec)`, or `describeProjectComponents(spec)` (the SourceSpec-based methods). Removed once consumers migrate (W-22419571). */
   readonly getComponentSetFromUris: (uris: readonly URI[]) => ComponentSet;
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve ComponentSet (a 3pp instance). Use `deployFromSource(spec)`, `retrieveToSource(spec)`, or `describeProjectComponents(spec)` (the SourceSpec-based methods). Removed once consumers migrate (W-22419571). */
   readonly getComponentSetFromManifest: (manifestUri: URI) => ComponentSet;
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve ComponentSet (a 3pp instance). Use `deployFromSource(spec)`, `retrieveToSource(spec)`, or `describeProjectComponents(spec)` (the SourceSpec-based methods, or `describeProjectComponents({kind:'projectDirectories'})`). Removed once consumers migrate (W-22419571). */
   readonly getComponentSetFromProjectDirectories: () => ComponentSet;
   readonly describeProjectComponents: (spec: SourceSpec) => ComponentSetInfo;
 };
@@ -146,14 +155,19 @@ export type ServicesContractExtensions = {
 
   // Metadata operations with optional parameters
   readonly listMetadata: (type: string, folder?: string) => readonly FilePropertiesPlain[];
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve RetrieveResult (a 3pp instance). Use `retrieveToSource(spec)` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly retrieve: (members: MetadataMember[], options?: SourceTrackingOptions) => RetrieveResult;
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve RetrieveResult (a 3pp instance). Use `retrieveToSource(spec)` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly retrieveComponentSetToDirectory: (components: NonEmptyComponentSet, outputPath: URI) => RetrieveResult;
 
   // Source tracking with specialized return types
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve ComponentSet array (a 3pp instance). Use `getLocalChanges()` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly getLocalChangesAsComponentSet: () => ComponentSet[];
+  /** @deprecated Returns a live @salesforce/source-deploy-retrieve ComponentSet (a 3pp instance). Use `getRemoteChanges({ applyIgnore })` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly getRemoteNonDeletesAsComponentSet: (options: { applyIgnore: boolean }) => ComponentSet;
 
   // Template creation with generic type parameter
+  /** @deprecated Returns a live @salesforce/templates CreateOutput (a 3pp instance). Use `createFromTemplateOwned(params)` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly createFromTemplate: <T extends TemplateType>(params: CreateParams<T>) => CreateOutput;
   readonly createFromTemplateOwned: <T extends TemplateType>(params: CreateParams<T>) => TemplateCreateOutcome;
 
