@@ -394,11 +394,16 @@ ${JSON.stringify(clustersResult.clusters, null, 2)}
 ## All runs (with dates and conclusions)
 ${JSON.stringify(runsResult.runs, null, 2)}
 
+## Per-test retry metrics
+${JSON.stringify(metricsData.testMetrics, null, 2)}
+
 ## Lookback window: ${DAYS} days
+
+A cluster is NEVER resolved if testMetrics for its \`testName\` shows \`retryRate >= ${RETRY_RATE_THRESHOLD}\` over \`totalRuns >= ${RETRY_MIN_RUNS}\`, even if recent runs show conclusion=="success" — a run-level green result masks per-test retry flake. Such clusters are always active. Check this rule FIRST.
 
 A cluster is trending-resolved if BOTH:
 1. Its most recent failure (latest runId) is from the first half of the lookback window (older than ${Math.floor(DAYS / 2)} days ago), AND
-2. The workflow runs in the second half of the window all show conclusion=="success" and attempt==1 (no reruns)
+2. The workflow runs in the second half of the window all show conclusion=="success" AND attempt==1 (no reruns) AND the cluster's test shows no per-test retries in testMetrics
 
 Also treat as resolved if the failure pattern is clearly tied to a known-fixed external cause:
 - Playwright version bumps (test failures mentioning "locator" or "element" API changes that then disappear)
