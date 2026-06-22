@@ -54,7 +54,7 @@ export const noDuplicateI18nValues = RuleCreator.withoutDocs({
   },
   defaultOptions: [],
   create: context => {
-    const filename = context.filename ?? context.getFilename();
+    const filename = context.filename;
     // Check if this is a translation file (not the base i18n.ts)
     if (!filename.match(/i18n\.[a-z]{2}\.ts$/)) {
       return {};
@@ -117,7 +117,7 @@ export const noDuplicateI18nValues = RuleCreator.withoutDocs({
               // If it's a duplicate, remove it; otherwise, just flag it for manual review
               if (!isDuplicate) return null;
 
-              const sourceCode = context.sourceCode ?? context.getSourceCode();
+              const sourceCode = context.sourceCode;
               const nextToken = sourceCode.getTokenAfter(node);
               const prevToken = sourceCode.getTokenBefore(node);
 

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TSESLint } from '@typescript-eslint/utils';
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
@@ -19,6 +20,7 @@ import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
 import { noVscodeQuickpickDescriptionLiterals } from './noVscodeQuickpickDescriptionLiterals';
+import { noVscodeShowTextDocument } from './noVscodeShowTextDocument';
 import { noVscodeUri } from './noVscodeUri';
 import { noVscodeValidateInputLiterals } from './noVscodeValidateInputLiterals';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
@@ -35,7 +37,7 @@ import { vscodeignoreContributesConflict } from './vscodeignoreContributesConfli
 import { vscodeignoreRequiredPatterns } from './vscodeignoreRequiredPatterns';
 import { vscodeignoreTextProcessor } from './vscodeignoreTextProcessor';
 
-const plugin = {
+const plugin: TSESLint.FlatConfig.Plugin = {
   processors: {
     vscodeignoreText: vscodeignoreTextProcessor
   },
@@ -56,6 +58,7 @@ const plugin = {
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
     'no-vscode-quickpick-description-literals': noVscodeQuickpickDescriptionLiterals,
+    'no-vscode-show-text-document': noVscodeShowTextDocument,
     'no-vscode-uri': noVscodeUri,
     'no-vscode-validateinput-literals': noVscodeValidateInputLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,

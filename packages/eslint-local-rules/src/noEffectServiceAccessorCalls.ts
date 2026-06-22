@@ -158,7 +158,7 @@ export const noEffectServiceAccessorCalls = RuleCreator.withoutDocs({
   },
   defaultOptions: [],
   create: context => {
-    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const sourceCode = context.sourceCode;
     const ast = sourceCode.ast;
     const contexts = ast.body.flatMap(n => findEffectServiceContexts(n));
     if (contexts.length === 0) return {};

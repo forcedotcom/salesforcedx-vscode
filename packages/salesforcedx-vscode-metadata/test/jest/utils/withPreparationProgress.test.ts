@@ -50,7 +50,6 @@ const setupWithProgress = () => {
     })
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (vscode.window.withProgress as jest.Mock).mockImplementation((_options: unknown, task: any) => task(progress, token));
 
   const cancel = () => cancellationListeners.forEach(l => l());

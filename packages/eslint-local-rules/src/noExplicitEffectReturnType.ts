@@ -46,7 +46,7 @@ export const noExplicitEffectReturnType = RuleCreator.withoutDocs({
   },
   defaultOptions: [],
   create: context => {
-    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const sourceCode = context.sourceCode;
 
     const createFix =
       (returnTypeNode: TSESTree.TSTypeAnnotation) =>

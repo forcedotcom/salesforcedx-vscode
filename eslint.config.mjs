@@ -10,7 +10,7 @@ import stylistic from '@stylistic/eslint-plugin-ts';
 import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
 import header from '@tony.ganchev/eslint-plugin-header';
-import eslintPluginImport from 'eslint-plugin-import';
+import eslintPluginImport from 'eslint-plugin-import-x';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
@@ -127,6 +127,7 @@ export default [
     },
     rules: {
       'local/no-vscode-uri': 'error',
+      'local/no-vscode-show-text-document': 'warn',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -209,7 +210,8 @@ export default [
       'unicorn/filename-case': [
         'error',
         {
-          case: 'camelCase'
+          case: 'camelCase',
+          checkDirectories: false
         }
       ],
       'header/header': [
@@ -700,7 +702,8 @@ export default [
     // salesforcedx-vscode-services exports errors for consumption by other packages — knip already sees them as used.
     files: ['packages/salesforcedx-vscode-services/**/*.ts'],
     rules: {
-      'local/no-export-tagged-error-in-services': 'error'
+      'local/no-export-tagged-error-in-services': 'error',
+      'local/no-vscode-show-text-document': 'off'
     }
   },
   {
@@ -756,6 +759,7 @@ export default [
       'packages/salesforcedx-vscode-visualforce/playwright*.ts'
     ],
     rules: {
+      'local/no-vscode-show-text-document': 'off',
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
 

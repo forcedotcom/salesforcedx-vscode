@@ -340,7 +340,7 @@ export const noDuplicatePlaywrightLocators = RuleCreator.withoutDocs({
       return {};
     }
 
-    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const sourceCode = context.sourceCode;
     const ast = sourceCode.ast as TSESTree.Program;
     const importPath = getImportPath(filename, repoRoot);
 

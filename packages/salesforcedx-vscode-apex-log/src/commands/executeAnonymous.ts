@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { type EditorService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
@@ -50,10 +49,11 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
   yield* Effect.sync(() => {
     void vscode.window
       .showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
-      .then(
-        selected =>
-          selected === nls.localize('open_log') && void vscode.window.showTextDocument(URI.parse(logUri.toString()))
-      );
+      .then(selected => {
+        if (selected === nls.localize('open_log')) {
+          void getRuntime().runPromise(api.services.FsService.showTextDocument(logUri));
+        }
+      });
   });
   return result;
 });

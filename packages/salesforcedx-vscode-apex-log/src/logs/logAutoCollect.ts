@@ -16,6 +16,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { type LogCollectorState, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
+import { isTraceFlagActive } from '../traceFlags/traceFlagActive';
 import { getExecAnonLogIds, saveLog } from './logStorage';
 
 const toDate = (d: Date | string): Date => (d instanceof Date ? d : new Date(d));
@@ -40,7 +41,7 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
 
   const channelService = yield* api.services.ChannelService;
   const items = yield* SubscriptionRef.get(yield* CurrentTraceFlags);
-  const activeItems = items.filter(r => r.isActive);
+  const activeItems = items.filter(isTraceFlagActive);
   if (activeItems.length === 0) return;
 
   const execAnonIds: Set<string> = yield* Effect.catchAll(getExecAnonLogIds(), () => Effect.succeed(new Set<string>()));

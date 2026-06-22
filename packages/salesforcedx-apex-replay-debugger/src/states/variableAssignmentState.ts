@@ -61,7 +61,7 @@ export class VariableAssignmentState implements DebugLogState {
           if (value === '{}') {
             refContainer.variables.set(varName, new ApexVariableContainer(varName, value, ''));
             // if its a json assignment, parse the values
-          } else if (value.indexOf('{') === 0) {
+          } else if (value.startsWith('{')) {
             const topLevel = new ApexVariableContainer(varName, '', '');
             refContainer.variables.set(varName, topLevel);
             topLevel.variablesRef = logContext.getVariableHandler().create(topLevel);
@@ -81,7 +81,7 @@ export class VariableAssignmentState implements DebugLogState {
             }
           }
           // if not nested then the refcontainer is the top level
-        } else if (value.indexOf('{') === 0) {
+        } else if (value.startsWith('{')) {
           this.parseJSONAndPopulate(value, refContainer, logContext);
         } else {
           refContainer.variables.set(varName, new ApexVariableContainer(varName, value, ''));
