@@ -18,7 +18,7 @@
 
 #### salesforcedx-vscode-services
 
-- We fixed a bug where the Code Builder Web Console showed **Untitled (Workspace)** instead of the project name, and we made creating a project in the web significantly faster. ([PR #7484](https://github.com/forcedotcom/salesforcedx-vscode/pull/7484))
+- We fixed a bug where Web Console showed **Untitled (Workspace)** instead of the project name, and we made creating a project in the web significantly faster. ([PR #7484](https://github.com/forcedotcom/salesforcedx-vscode/pull/7484))
 
 ## Under the Hood
 
