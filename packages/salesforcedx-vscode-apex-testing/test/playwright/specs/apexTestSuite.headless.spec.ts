@@ -19,6 +19,7 @@ import {
   setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  verifyCommandExists,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
@@ -160,6 +161,8 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await clearOutputChannel(page);
+    // Gate on command registration to avoid racing extension-command registration (opens+closes its own palette)
+    await verifyCommandExists(page, packageNls.apex_test_suite_run_text, 30_000);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_run_text);
     await saveScreenshot(page, 'step.run.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName);
