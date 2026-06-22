@@ -118,8 +118,8 @@ const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const ref = yield* api.services.TargetOrgRef();
-  const { orgId } = yield* SubscriptionRef.get(ref);
-  if (!orgId) {
+  const { orgId, userId } = yield* SubscriptionRef.get(ref);
+  if (!orgId || !userId) {
     return statusBarItem.hide();
   }
   const traceFlagsRef = yield* CurrentTraceFlags;
@@ -129,20 +129,23 @@ const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(
 
   const collectorRef = yield* LogCollectorStateRef;
   const collectorState = yield* SubscriptionRef.get(collectorRef);
-  const { userId } = yield* SubscriptionRef.get(ref);
   statusBarItem.tooltip = buildTooltip(activeRecords, collectorState, userId);
-  statusBarItem.text = getStatusBarText(collectorState, activeRecords[0]);
+  statusBarItem.text = getStatusBarText(collectorState, selectCurrentUserFlag(activeRecords, userId));
   statusBarItem.show();
 });
 
-const hasCurrentUserTraceFlag = (records: TraceFlagItem[], userId: string | undefined) =>
-  Boolean(userId && records.some(r => r.logType === 'DEVELOPER_LOG' && r.tracedEntityId === userId));
+const hasCurrentUserTraceFlag = (records: TraceFlagItem[], userId: string) =>
+  records.some(r => r.logType === 'DEVELOPER_LOG' && r.tracedEntityId === userId);
+
+/** Returns the first trace flag (any type) for the current user, or undefined if none is active. */
+export const selectCurrentUserFlag = (records: TraceFlagItem[], userId: string): TraceFlagItem | undefined =>
+  records.find(r => r.tracedEntityId === userId);
 
 /** Build the tooltip for the status bar item */
 const buildTooltip = (
   activeRecords: TraceFlagItem[],
   collectorState: LogCollectorState,
-  userId: string | undefined
+  userId: string
 ): vscode.MarkdownString => {
   const byKey = LOG_TYPE_ORDER.reduce<Record<(typeof LOG_TYPE_ORDER)[number], TraceFlagItem[]>>(
     (acc, key) => ({
