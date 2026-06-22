@@ -40,7 +40,7 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 - Quick Open: `@salesforce/playwright-vscode-ext` `openFileByName` — palette "Go to File…" (web + desktop); VS Code 1.116+ rows often `basename` + segments + trailing `file results` — match logic `packages/playwright-vscode-ext/src/utils/fileHelpers.ts`
 - `Control+Home`, `Control+s` - navigate and save
-- `page.keyboard.type()` - edit content
+- `page.keyboard.type()` - edit content; call `disableMonacoAutoClosing(page)` first to prevent auto-bracket/quote duplication (vs clipboard + parallel races)
 - Monaco editor selectors - interact with editor
 
 **Desktop-only tests** (`.headless.spec.ts` file naming or `createDesktopTest` fixture) may poll fs directly for durable success signals (e.g., `waitForEsrFile` checks on-disk artifacts) instead of flaky UI toast assertions.
