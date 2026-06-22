@@ -11,11 +11,21 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
+import { getSoqlRuntime } from '../services/extensionProvider';
+import {
+  type ProgressAndSuccessCommandKey,
+  getProgressLocation,
+  showSuccessNotification
+} from '../utils/notificationMode';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
+
+const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text;
 
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
  * `salesforcedx-vscode-soql.maxQueryLimit` setting (default 50,000).
+ * Shows a progress notification while query executes.
  *
  * @param query - SOQL query string to execute
  * @param useTooling - Whether to use the Tooling API instead of REST
@@ -30,11 +40,12 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
   );
 
   const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
+  const promptService = yield* api.services.PromptService;
   return yield* Effect.promise(() =>
     useTooling
       ? connection.tooling.query(query, { autoFetch: true, maxFetch })
       : connection.query(query, { autoFetch: true, maxFetch })
-  );
+  ).pipe(promptService.withProgress(nls.localize('progress_running_query'), getProgressLocation(COMMAND)));
 });
 
 const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonMap>) {
@@ -47,21 +58,14 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   const fileUri = Utils.joinPath(workspaceUri, '.sfdx', 'data', fileName);
   yield* api.services.FsService.writeFile(fileUri, csvContent);
 
-  // Show success message with clickable file link
-  const openFileAction = nls.localize('data_query_open_file');
-  yield* Effect.promise(() =>
-    vscode.window
-      .showInformationMessage(
-        nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath),
-        openFileAction
-      )
-      .then(selection => {
-        if (selection === openFileAction) {
-          vscode.workspace.openTextDocument(fileUri).then(doc => {
-            vscode.window.showTextDocument(doc);
-          });
-        }
-      })
+  const successMessage = nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath);
+  yield* Effect.sync(() =>
+    showSuccessNotification(COMMAND, successMessage, true, [
+      {
+        label: nls.localize('data_query_open_file'),
+        run: () => void getSoqlRuntime().runPromise(api.services.FsService.showTextDocument(fileUri))
+      }
+    ])
   );
 });
 

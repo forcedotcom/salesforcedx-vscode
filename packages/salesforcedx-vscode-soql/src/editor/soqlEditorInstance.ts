@@ -23,6 +23,7 @@ import { getSoqlRuntime } from '../services/extensionProvider';
 import { getConnection, isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
+import { getProgressLocation } from '../utils/notificationMode';
 import { runQuery } from './queryRunner';
 
 const appendToChannel = (message: string) =>
@@ -77,6 +78,40 @@ type SoqlEditorEvent =
       type: 'set_default_org';
       payload: never;
     };
+
+const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* (
+  document: vscode.TextDocument,
+  maxRows: number | undefined,
+  openQueryDataView: (data: QueryResult<JsonMap>) => Promise<void>,
+  runQueryDone: () => Effect.Effect<void>
+) {
+  const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
+  if (!isOrgSet) {
+    const message = nls.localize('info_no_default_org');
+    yield* appendToChannel(message);
+    yield* Effect.promise(() => vscode.window.showInformationMessage(message));
+    yield* runQueryDone();
+    return;
+  }
+  const queryText = document.getText();
+  const conn = yield* Effect.promise(() => getConnection());
+  // PromptService cannot be added to this Effect's R type without widening the entire
+  // handleMessageEffect switch union to unknown. Use vscode.window.withProgress directly
+  // so all switch cases share a compatible R type. This shares the same notification
+  // location setting as dataQuery.ts via getProgressLocation('SOQL Builder Run Query').
+  const queryData = yield* Effect.promise(() =>
+    vscode.window.withProgress(
+      {
+        cancellable: false,
+        location: getProgressLocation('SOQL Builder Run Query'),
+        title: nls.localize('progress_running_query')
+      },
+      () => runQuery(conn)(queryText, { maxRows })
+    )
+  );
+  yield* Effect.promise(() => openQueryDataView(queryData));
+  yield* runQueryDone();
+});
 
 export class SOQLEditorInstance {
   public subscriptions: vscode.Disposable[] = [];
@@ -210,34 +245,13 @@ export class SOQLEditorInstance {
         );
 
       case 'run_query': {
-        const runQueryDone = () => this.runQueryDone();
-        const { document } = this;
-        const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
         const maxRows = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit');
-        return Effect.gen(function* () {
-          const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
-          if (!isOrgSet) {
-            const message = nls.localize('info_no_default_org');
-            yield* appendToChannel(message);
-            yield* Effect.promise(() => vscode.window.showInformationMessage(message));
-            yield* runQueryDone();
-            return;
-          }
-          const queryText = document.getText();
-          const conn = yield* Effect.promise(() => getConnection());
-          const queryData = yield* Effect.promise(() =>
-            vscode.window.withProgress(
-              {
-                cancellable: false,
-                location: vscode.ProgressLocation.Notification,
-                title: nls.localize('progress_running_query')
-              },
-              () => runQuery(conn)(queryText, { maxRows })
-            )
-          );
-          yield* Effect.promise(() => openQueryDataView(queryData));
-          yield* runQueryDone();
-        }).pipe(
+        return runBuilderQueryEffect(
+          this.document,
+          maxRows,
+          data => this.openQueryDataView(data),
+          () => this.runQueryDone()
+        ).pipe(
           Effect.catchAllCause(cause => {
             const err = Cause.squash(cause);
             return appendToChannel(

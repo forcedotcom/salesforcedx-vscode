@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createNotificationMode } from '@salesforce/effect-ext-utils';
+import { createProgressAndSuccessNotificationMode } from '@salesforce/effect-ext-utils';
 
 export type CommandKey = 'Retrieve Metadata';
 
-export const { showSuccessNotification, getProgressLocation } = createNotificationMode<CommandKey>(
+export const { showSuccessNotification, getProgressLocation } = createProgressAndSuccessNotificationMode<CommandKey>(
   'salesforcedx-vscode-org-browser',
   'sf-org-browser-notifications',
   'Salesforce: Org Browser Notifications'
