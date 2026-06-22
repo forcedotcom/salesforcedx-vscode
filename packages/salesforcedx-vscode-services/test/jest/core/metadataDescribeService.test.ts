@@ -32,7 +32,8 @@ const createMockConnectionService = (listResult: ListItem | ListItem[]): Layer.L
             list: jest.fn().mockResolvedValue(listResult)
           }
         } as unknown as Connection),
-      invalidateCachedConnections: () => Effect.void
+      invalidateCachedConnections: () => Effect.void,
+      listAllAuthorizations: () => Effect.succeed([])
     })
   );
 
