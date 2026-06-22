@@ -257,6 +257,7 @@ export const createPlainServicesApi = (
     },
 
     describe: () => run(builtContext, MetadataDescribeService.describe()),
+    describeMetadata: () => run(builtContext, MetadataDescribeService.describeMetadata()),
     listMetadata: (type: string, folder?: string) =>
       run(builtContext, MetadataDescribeService.listMetadata(type, folder)),
 
@@ -286,6 +287,8 @@ export const createPlainServicesApi = (
 
     createFromTemplate: <T extends TemplateType>(params: CreateParams<T>) =>
       run(builtContext, TemplateService.create(params)),
+    createFromTemplateOwned: <T extends TemplateType>(params: CreateParams<T>) =>
+      run(builtContext, TemplateService.createWithOwnedOutcome(params)),
 
     getTraceFlags: () => run(builtContext, TraceFlagService.getTraceFlags()),
     ensureTraceFlag: (userId: string, duration?: number, logType?: TraceFlagLogType, existingDebugLevelId?: string) =>

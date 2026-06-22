@@ -14,7 +14,7 @@ import type { TemplateOptionsFor } from './core/templateService';
 import type { OrgChange } from './owned/changes';
 import type { ComponentSetInfo } from './owned/components';
 import type { DeployOutcome, RetrieveOptions, RetrieveOutcome, SourceSpec } from './owned/deploy';
-import type { ConnectionData } from './owned/metadata';
+import type { ConnectionData, MetadataTypeInfo, TemplateCreateOutcome } from './owned/metadata';
 import type { ProjectInfo } from './owned/projectInfo';
 import type { ServicesOrg } from './owned/servicesOrg';
 import type { Connection, SfProject } from '@salesforce/core';
@@ -104,6 +104,7 @@ export type ServicesContract = {
 
   // Metadata Describe
   readonly describe: () => DescribeMetadataObject[];
+  readonly describeMetadata: () => MetadataTypeInfo[];
 
   // Metadata Deploy
   readonly deploy: (components: ComponentSet) => DeployResult;
@@ -154,6 +155,7 @@ export type ServicesContractExtensions = {
 
   // Template creation with generic type parameter
   readonly createFromTemplate: <T extends TemplateType>(params: CreateParams<T>) => CreateOutput;
+  readonly createFromTemplateOwned: <T extends TemplateType>(params: CreateParams<T>) => TemplateCreateOutcome;
 
   // Trace flags
   readonly getTraceFlags: () => TraceFlagItem[];

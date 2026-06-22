@@ -12,3 +12,18 @@ export type ConnectionData = {
   readonly username: string;
   readonly orgId: string;
 };
+
+export type MetadataTypeInfo = {
+  readonly xmlName: string;
+  readonly directoryName?: string;
+  readonly inFolder: boolean;
+  readonly metaFile: boolean;
+  readonly suffix?: string;
+  readonly childXmlNames?: string[];
+};
+
+export type TemplateCreateOutcome = {
+  readonly outputDir: string;
+  readonly created: readonly string[];
+  readonly rawOutput: string;
+};

@@ -16,6 +16,7 @@ import * as Option from 'effect/Option';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { toMetadataTypeInfo } from '../owned/metadataTypeInfoMapper';
 import { ChannelService } from '../vscode/channelService';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
@@ -415,6 +416,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       return yield* listMetadataCache.get(key);
     });
 
+    const describeMetadata = Effect.fn('MetadataDescribeService.describeMetadata')(function* () {
+      const rawDescribe = yield* describe();
+      return rawDescribe.map(toMetadataTypeInfo);
+    });
+
     return {
       /** Clears the cached Metadata API describe result for the current org. */
       invalidateDescribe,
@@ -426,6 +432,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
        * Performs a Metadata API describe and returns the result.
        */
       describe,
+      /**
+       * Performs a Metadata API describe and returns owned MetadataTypeInfo array.
+       * Maps jsforce DescribeMetadataObject to services-owned types.
+       */
+      describeMetadata,
       /**
        * Calls the Metadata API list method for a given type and optional folder.
        * Results are cached per-org by type+folder key (TTL 5 min).

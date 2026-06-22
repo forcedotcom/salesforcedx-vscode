@@ -19,6 +19,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
 import { nls } from '../messages';
+import { toTemplateCreateOutcome } from '../owned/templateCreateOutcomeMapper';
 import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
@@ -288,6 +289,14 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
         templateService.create(params.templateType, templateOptions, customTemplatesPath)
       );
     });
-    return { create };
+
+    const createWithOwnedOutcome = Effect.fn('TemplateService.createWithOwnedOutcome')(function* (
+      params: CreateParams<SfTemplates.TemplateType>
+    ) {
+      const rawOutput = yield* create(params);
+      return toTemplateCreateOutcome(rawOutput);
+    });
+
+    return { create, createWithOwnedOutcome };
   })
 }) {}
