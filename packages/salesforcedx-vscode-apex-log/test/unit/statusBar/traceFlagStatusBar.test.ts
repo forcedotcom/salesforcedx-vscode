@@ -46,12 +46,12 @@ describe('selectCurrentUserFlag', () => {
     expect(selectCurrentUserFlag([otherFlag], CURRENT_USER)).toBeUndefined();
   });
 
-  it('ignores USER_DEBUG flags for the current user', () => {
+  it('returns USER_DEBUG flags for the current user', () => {
     const userDebugFlag = makeFlag('USER_DEBUG', CURRENT_USER);
-    expect(selectCurrentUserFlag([userDebugFlag], CURRENT_USER)).toBeUndefined();
+    expect(selectCurrentUserFlag([userDebugFlag], CURRENT_USER)).toBe(userDebugFlag);
   });
 
-  it('returns current user DEVELOPER_LOG even when another user has one with a later expiry', () => {
+  it('returns current user flag even when another user has one with a later expiry', () => {
     const currentFlag = makeFlag('DEVELOPER_LOG', CURRENT_USER, {
       expirationDate: new Date(Date.now() + 60_000)
     });
@@ -62,9 +62,9 @@ describe('selectCurrentUserFlag', () => {
     expect(selectCurrentUserFlag([otherFlag, currentFlag], CURRENT_USER)).toBe(currentFlag);
   });
 
-  it('returns undefined when current user only has USER_DEBUG flag and another user has DEVELOPER_LOG', () => {
+  it('returns current user USER_DEBUG flag even when another user has DEVELOPER_LOG', () => {
     const currentUserDebug = makeFlag('USER_DEBUG', CURRENT_USER);
     const otherDevLog = makeFlag('DEVELOPER_LOG', OTHER_USER);
-    expect(selectCurrentUserFlag([otherDevLog, currentUserDebug], CURRENT_USER)).toBeUndefined();
+    expect(selectCurrentUserFlag([otherDevLog, currentUserDebug], CURRENT_USER)).toBe(currentUserDebug);
   });
 });
