@@ -8,6 +8,7 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  activeQuickInputTextField,
   activeQuickInputWidget,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -60,8 +61,8 @@ test.describe('Aura Rename (Desktop Only)', () => {
       );
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
       await saveScreenshot(page, 'auraRename.menu-fired.png');
-      await page.keyboard.press('ControlOrMeta+a');
-      await page.keyboard.type(newName);
+      // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
+      await activeQuickInputTextField(page).fill(newName, { force: true });
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.entered-new-name.png');
     });
@@ -71,10 +72,14 @@ test.describe('Aura Rename (Desktop Only)', () => {
         .locator('[role="treeitem"]')
         .filter({ hasText: new RegExp(`^${newName}$`, 'i') })
         .first();
-      await expect(newFolder).toBeVisible({ timeout: 10_000 });
+      // Debounced file watcher lags the tree refresh; poll until the renamed folder appears.
+      await expect(async () => {
+        await expect(newFolder).toBeVisible();
+      }).toPass({ timeout: 20_000 });
 
       const oldFolder = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`^${oldName}$`, 'i') });
-      await expect(oldFolder).toHaveCount(0, { timeout: 5000 });
+      // Same debounced watcher lag can delay the old-name treeitem disappearing.
+      await expect(oldFolder).toHaveCount(0, { timeout: 20_000 });
     });
 
     // Follow-up: rename again via editor context menu. The renamed bundle's main file is in the active editor.
@@ -82,8 +87,7 @@ test.describe('Aura Rename (Desktop Only)', () => {
     await test.step('rename again via editor context menu', async () => {
       await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.cmp`);
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
-      await page.keyboard.press('ControlOrMeta+a');
-      await page.keyboard.type(finalName);
+      await activeQuickInputTextField(page).fill(finalName, { force: true });
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.editor-menu-fired.png');
     });
@@ -93,7 +97,10 @@ test.describe('Aura Rename (Desktop Only)', () => {
         .locator('[role="treeitem"]')
         .filter({ hasText: new RegExp(`^${finalName}$`, 'i') })
         .first();
-      await expect(finalFolder).toBeVisible({ timeout: 10_000 });
+      // Debounced file watcher lags the tree refresh; poll until the renamed folder appears.
+      await expect(async () => {
+        await expect(finalFolder).toBeVisible();
+      }).toPass({ timeout: 20_000 });
     });
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);
