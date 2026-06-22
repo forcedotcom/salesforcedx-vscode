@@ -104,6 +104,7 @@ const processOrder = Effect.fn("OrderService.process")(function* (orderId: Order
 - Entity IDs (orderId, userId, etc.)
 - Important business values (amounts, statuses)
 - Error context when failing
+- Counters/flags (didTerminate: 0/1, orphanCount) instead of telemetryService.sendEventData
 
 **Don't annotate:**
 - Step-by-step progress
