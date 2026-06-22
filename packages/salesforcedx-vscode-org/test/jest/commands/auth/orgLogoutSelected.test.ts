@@ -76,7 +76,7 @@ describe('OrgLogoutSelected', () => {
 
     resetOrgRuntimeForTesting();
     setAllServicesLayer(
-      buildLayer() as ReturnType<typeof import('../../../../src/extensionProvider').buildAllServicesLayer>
+      buildLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
     );
   });
 
