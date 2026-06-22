@@ -405,7 +405,7 @@ A cluster is trending-resolved if BOTH:
 1. Its most recent failure (latest runId) is from the first half of the lookback window (older than ${Math.floor(DAYS / 2)} days ago), AND
 2. The workflow runs in the second half of the window all show conclusion=="success" AND attempt==1 (no reruns) AND the cluster's test shows no per-test retries in testMetrics
 
-Also treat as resolved if the failure pattern is clearly tied to a known-fixed external cause:
+Also treat as resolved if the failure pattern is clearly tied to a known-fixed external cause (the high-retry rule above still takes precedence — a cluster meeting it is NEVER resolved even if these conditions match):
 - Playwright version bumps (test failures mentioning "locator" or "element" API changes that then disappear)
 - VS Code version bumps (failures mentioning chromium, vscode api, extension activation that then disappear)
 - Any cluster whose runIds are all older than 2 days and haven't recurred
@@ -446,6 +446,12 @@ const [artifactFindings, priorWisResult] = await parallel([
     topClusters,
     async (cluster, _orig, i) => {
       const runId = cluster.runIds[0]
+      // retryRate-source clusters may have no run ids (no hard failure to attach
+      // artifacts to). Skip artifact download rather than interpolate `undefined`
+      // into the gh command and prompt.
+      if (!runId) {
+        return `No run ids for cluster "${cluster.testName}" (source: ${cluster.source}, retry-masked: ${cluster.retryMasked}) — no artifacts to download. Evidence is the per-test retry rate (${cluster.retryRate}); no run-level failure exists.`
+      }
       return agent(
         `Download and analyze CI artifacts for a flaky test cluster in ${REPO}.
 
@@ -687,7 +693,7 @@ Return the draft list.`,
 if (wiDraftsResult && wiDraftsResult.drafts) {
   wiDraftsResult.drafts = wiDraftsResult.drafts.map(d => ({
     ...d,
-    subject: /^\[ai-auto\]/i.test(d.subject.trimStart()) ? d.subject : `[ai-auto] ${d.subject.trimStart()}`,
+    subject: /^\[ai-auto\]/i.test((d.subject ?? '').trimStart()) ? d.subject : `[ai-auto] ${(d.subject ?? '').trimStart()}`,
   }))
 }
 
