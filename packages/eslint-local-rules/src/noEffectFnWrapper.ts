@@ -87,7 +87,7 @@ export const noEffectFnWrapper = RuleCreator.withoutDocs({
       // and pass-through (arrow param -> generator) are still flagged.
       if (node.params.length > 0 && gen.params.length > 0) return;
 
-      const sourceCode = context.sourceCode ?? context.getSourceCode();
+      const sourceCode = context.sourceCode;
 
       context.report({
         node,

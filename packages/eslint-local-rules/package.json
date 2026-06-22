@@ -112,8 +112,8 @@
     "salesforce"
   ],
   "peerDependencies": {
-    "@eslint/json": "^0.3.0",
-    "eslint": ">=8.0.0"
+    "@eslint/json": ">=0.3.0",
+    "eslint": ">=9.0.0"
   },
   "dependencies": {
     "@humanwhocodes/momoa": "^3.3.10",

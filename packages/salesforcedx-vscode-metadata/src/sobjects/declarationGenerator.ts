@@ -39,7 +39,7 @@ const TYPE_MAPPING: Map<string, string> = new Map([
   ['complexvalue', 'Object']
 ]);
 
-const capitalize = (str: string) => (str.length > 0 ? `${str[0].toUpperCase()}${str.slice(1)}` : str);
+const capitalize = (str: string) => (str.length > 0 ? `${str.charAt(0).toUpperCase()}${str.slice(1)}` : str);
 
 export const generateSObjectDefinition = (sobject: SObject): SObjectDefinition => {
   const declarations = [

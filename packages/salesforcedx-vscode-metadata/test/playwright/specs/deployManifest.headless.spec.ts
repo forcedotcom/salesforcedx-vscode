@@ -37,7 +37,6 @@ import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
 /** Escape regex special characters in a string for use in RegExp */
-// eslint-disable-next-line unicorn/prefer-string-replace-all -- regex escaping requires replace with regex pattern
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 test('Deploy Manifest: deploys via all entry points', async ({ page }) => {

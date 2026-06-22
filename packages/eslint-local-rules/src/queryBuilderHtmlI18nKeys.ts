@@ -64,7 +64,7 @@ export const queryBuilderHtmlI18nKeys = RuleCreator.withoutDocs({
   },
   defaultOptions: [],
   create: context => {
-    const filename = context.getFilename();
+    const filename = context.filename;
     const packageRoot = findPackageRoot(filename);
     const allowed = packageRoot ? getQueryBuilderCatalogKeys(packageRoot) : undefined;
     if (!allowed) {

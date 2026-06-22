@@ -43,9 +43,7 @@ const createMockProjectSet = (components: SourceComponent[]): ComponentSet =>
 const createMockRetrievedSet = (remoteComponents: SourceComponent[]): ComponentSet =>
   ({
     getComponentFilenamesByNameAndType: ({ fullName, type }: { fullName: string; type: string }) =>
-      remoteComponents
-        .filter(c => c.fullName === fullName && c.type.name === type)
-        .flatMap(c => sourceComponentToPaths(c))
+      remoteComponents.flatMap(c => (c.fullName === fullName && c.type.name === type ? sourceComponentToPaths(c) : []))
   }) as unknown as ComponentSet;
 
 /** api.services.FsService is an Effect that yields the service */

@@ -208,7 +208,7 @@ export class ApexVariable extends Variable {
   }
 
   private static extractNumber(s: string): string {
-    if (s[0] === '[' && s.at(-1) === ']') {
+    if (s.at(0) === '[' && s.at(-1) === ']') {
       return s.substring(1, s.length - 1);
     }
     return s;

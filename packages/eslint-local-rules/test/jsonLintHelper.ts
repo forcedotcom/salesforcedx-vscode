@@ -12,7 +12,8 @@ import { Linter } from 'eslint';
 // `{ default: plugin }` but CJS require gives us `plugin` directly. With esModuleInterop: false,
 // `import json from '@eslint/json'` yields undefined at runtime.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const json = require('@eslint/json') as (typeof import('@eslint/json'))['default'];
+const jsonModule = require('@eslint/json') as typeof import('@eslint/json');
+const json = jsonModule.default;
 
 /** Creates a lintJson helper for testing a specific package.json ESLint rule */
 export const createJsonLinter = (ruleName: string, ruleModule: Rule.RuleModule) => {

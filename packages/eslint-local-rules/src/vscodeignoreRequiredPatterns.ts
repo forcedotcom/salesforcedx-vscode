@@ -93,7 +93,7 @@ export const vscodeignoreRequiredPatterns: Rule.RuleModule = {
   },
   create: context => ({
     'Program:exit': programNode => {
-      const filename = context.filename ?? context.getFilename();
+      const filename = context.filename;
       if (!filename.endsWith('.vscodeignore')) {
         return;
       }

@@ -206,7 +206,7 @@ const getMemberProperty = (propertyObj: ClassProperty): InternalClassMember | nu
   }
 
   // Private properties are not included in old metadata.
-  if (propertyObj.name[0] === '_') {
+  if (propertyObj.name.at(0) === '_') {
     return null;
   }
 
@@ -252,7 +252,7 @@ const getMemberMethod = (methodObj: ClassMethod): InternalClassMember | null => 
   }
 
   // Private methods are not included in old metadata.
-  if (methodObj.name[0] === '_') {
+  if (methodObj.name.at(0) === '_') {
     return null;
   }
 

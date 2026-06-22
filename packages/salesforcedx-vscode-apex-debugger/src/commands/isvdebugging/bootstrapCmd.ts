@@ -492,7 +492,7 @@ export const isvDebugBootstrap = async (): Promise<void> => {
     forceIdeUrlGatherer,
     new SelectProjectName(() => {
       if (forceIdeUrlGatherer.forceIdUrl?.orgName) {
-        return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replaceAll(/[+]/g, '_'));
+        return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replaceAll('+', '_'));
       }
       return '';
     }),

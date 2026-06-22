@@ -334,7 +334,7 @@ connection.onDocumentLinks(documentLinkParam => {
         // eslint-disable-next-line no-param-reassign
         ref = url.resolve(base, ref);
       }
-      if (workspacePath && ref[0] === '/') {
+      if (workspacePath && ref.at(0) === '/') {
         return URI.file(path.join(workspacePath, ref)).toString();
       }
       return url.resolve(document.uri, ref);

@@ -469,7 +469,7 @@ export const createHeapDumpWithNoStringTypes = (): ApexHeapDump => {
               size: 12,
               symbols: ['theDouble'],
               value: {
-                value: 3.141_59
+                value: 3.14159
               }
             }
           ],
@@ -570,7 +570,7 @@ export const createHeapDumpWithNoStringTypes = (): ApexHeapDump => {
                   {
                     keyDisplayValue: 'MyDouble',
                     value: {
-                      value: 4.375_59
+                      value: 4.37559
                     }
                   },
                   {
@@ -713,7 +713,7 @@ export const createHeapDumpWithNestedRefs = (): ApexHeapDump => {
                   {
                     keyDisplayValue: 'MyDouble',
                     value: {
-                      value: 4.375_59
+                      value: 4.37559
                     }
                   },
                   {
@@ -765,7 +765,7 @@ export const createHeapDumpWithNestedRefs = (): ApexHeapDump => {
                   {
                     keyDisplayValue: 'MyDouble',
                     value: {
-                      value: 3.141_59
+                      value: 3.14159
                     }
                   },
                   {

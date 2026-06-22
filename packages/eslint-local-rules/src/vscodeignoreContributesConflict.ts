@@ -110,7 +110,7 @@ export const vscodeignoreContributesConflict: Rule.RuleModule = {
   },
   create: context => ({
     'Program:exit': programNode => {
-      const filename = context.filename ?? context.getFilename();
+      const filename = context.filename;
       if (!filename.endsWith('.vscodeignore')) return;
 
       const packageDir = pathModule.dirname(pathModule.resolve(filename));

@@ -75,7 +75,6 @@ export const trackingConflictTest = createDesktopTest({
     ...playwrightDialogSettings
   }
 }).extend<{ helperProject: HelperProject; statusBarPage: SourceTrackingStatusBarPage }>({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   helperProject: async ({}: any, use: any) => {
     const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${Math.random()}`);
 
@@ -99,7 +98,6 @@ export const trackingConflictTest = createDesktopTest({
 
     // Cleanup not needed - OS temp cleanup handles it
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   statusBarPage: async ({ page }: any, use: any) => {
     await use(new SourceTrackingStatusBarPage(page));
   }
@@ -116,7 +114,6 @@ export const nonTrackingConflictTest = createDesktopTest({
     ...playwrightDialogSettings
   }
 }).extend<{ helperProject: HelperProject }>({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   helperProject: async ({}: any, use: any) => {
     const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${Math.random()}`);
     await fs.mkdir(dir, { recursive: true });

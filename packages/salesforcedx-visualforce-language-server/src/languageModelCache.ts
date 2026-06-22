@@ -27,20 +27,20 @@ export const getLanguageModelCache = <T>(
   } = {};
   let nModels = 0;
 
-  let cleanupInterval = void 0;
-  if (cleanupIntervalTimeInSec > 0) {
-    cleanupInterval = setInterval(() => {
-      const cutoffTime = Date.now() - cleanupIntervalTimeInSec * 1000;
-      const uris = Object.keys(languageModels);
-      for (const uri of uris) {
-        const languageModelInfo = languageModels[uri];
-        if (languageModelInfo.cTime < cutoffTime) {
-          delete languageModels[uri];
-          nModels--;
-        }
-      }
-    }, cleanupIntervalTimeInSec * 1000);
-  }
+  let cleanupInterval =
+    cleanupIntervalTimeInSec > 0
+      ? setInterval(() => {
+          const cutoffTime = Date.now() - cleanupIntervalTimeInSec * 1000;
+          const uris = Object.keys(languageModels);
+          for (const uri of uris) {
+            const languageModelInfo = languageModels[uri];
+            if (languageModelInfo.cTime < cutoffTime) {
+              delete languageModels[uri];
+              nModels--;
+            }
+          }
+        }, cleanupIntervalTimeInSec * 1000)
+      : void 0;
 
   return {
     get: (document: TextDocument): T => {

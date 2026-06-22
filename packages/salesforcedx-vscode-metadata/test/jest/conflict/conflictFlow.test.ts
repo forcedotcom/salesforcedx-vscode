@@ -59,9 +59,7 @@ const createMockExtensionProvider = (tracksSource: boolean) =>
 const provideServices = (tracksSource: boolean) => (e: Effect.Effect<unknown, unknown, unknown>) =>
   e.pipe(Effect.provideService(ExtensionProviderService, createMockExtensionProvider(tracksSource)));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const runWithServices = (effect: Effect.Effect<any, any, any>, tracksSource = true) =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Effect.runPromise(effect.pipe(provideServices(tracksSource)) as Effect.Effect<any, any, never>);
 
 describe('detectConflicts', () => {
