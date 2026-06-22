@@ -20,6 +20,7 @@ import {
   selectAll,
   showExplorer
 } from '../../../src/pages/nativeCommands';
+import { openFileByName } from '../../../src/utils/fileHelpers';
 import { waitForVSCodeWorkbench, closeWelcomeTabs, isDesktop } from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI, QUICK_INPUT_WIDGET, TAB, WORKBENCH } from '../../../src/utils/locators';
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
@@ -52,16 +53,22 @@ test.describe('Native command wrappers', () => {
   });
 
   test('saveFile clears the dirty indicator', async ({ page }) => {
-    // Untitled docs have no backing path, so `File: Save` opens a save-as dialog. On web headless
-    // there is no real filesystem to save to, so the doc can never become clean — same reason
-    // commandPalette.headless.spec.ts skips its File: Save assertion off desktop.
-    test.skip(!isDesktop(), 'Saving an untitled doc requires a real filesystem (desktop only)');
+    // `File: Save` only writes a backed file. An untitled doc has no path, so Save opens a
+    // (never-handled) save-as dialog and the tab stays dirty — open a real workspace file instead.
+    // Web Quick Open can't find files that were never opened in the editor, so this is desktop-only —
+    // same reason commandPalette.headless.spec.ts skips its File: Save assertion off desktop.
+    test.skip(!isDesktop(), 'Saving requires a real on-disk file (desktop only)');
 
-    await newUntitledTextFile(page);
+    // sfdx-project.json is scaffolded into every desktop workspace by createTestWorkspace.
+    await openFileByName(page, 'sfdx-project.json');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await expect(editor).toBeVisible({ timeout: 10_000 });
     await editor.click();
-    await page.keyboard.type('dirty content');
+    // Append a blank line so the doc is dirty without breaking JSON (nothing reads it after).
+    await goToLineColumn(page);
+    await page.keyboard.type('1:1');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('\n');
     // The unsaved-changes marker lives on the editor tab (`.tab.dirty`), not the editor body.
     const dirtyTab = page.locator(`${WORKBENCH} .tabs-container .tab.dirty`);
     await expect(dirtyTab).toBeVisible({ timeout: 10_000 });
