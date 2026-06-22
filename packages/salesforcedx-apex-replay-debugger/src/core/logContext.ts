@@ -248,15 +248,12 @@ export class LogContext {
           heapDump.setOverlaySuccessResult(result as unknown as ApexExecutionOverlayResultCommandSuccess);
           return true;
         } catch (error) {
-          if (error instanceof Error && 'errorCode' in error && typeof error.errorCode === 'string') {
-            const errorMessage = nls.localize('heap_dump_error', error.message, error.errorCode, heapDump.toString());
-            this.session.errorToDebugConsole(errorMessage);
-            return false;
-          } else {
-            const errorMessage = `${String(error)}. ${heapDump.toString()}`;
-            this.session.errorToDebugConsole(errorMessage);
-            return false;
-          }
+          const errorMessage =
+            error instanceof Error && 'errorCode' in error && typeof error.errorCode === 'string'
+              ? nls.localize('heap_dump_error', error.message, error.errorCode, heapDump.toString())
+              : `${String(error)}. ${heapDump.toString()}`;
+          this.session.errorToDebugConsole(errorMessage);
+          return false;
         }
       }
     } catch (error) {

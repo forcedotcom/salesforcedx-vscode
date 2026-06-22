@@ -260,12 +260,11 @@ export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
       if (lineBpInfo?.length) {
         console.log(nls.localize('line_breakpoint_information_success'));
         breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
-        return true;
       } else {
         const errorMessage = nls.localize('no_line_breakpoint_information_for_current_project');
         writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-        return true;
       }
+      return true;
     }
   } else {
     const errorMessage = nls.localize('session_language_server_error_text');

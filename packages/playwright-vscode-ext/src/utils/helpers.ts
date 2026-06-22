@@ -338,12 +338,11 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
         await dismissAllQuickInputWidgets(page);
       }
       await closeButton.click({ timeout: 5000, force: true });
-      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
     } else {
       // Fall back to keyboard shortcut
       await page.keyboard.press('Control+w');
-      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
     }
+    await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
 
     // Verify tab was closed - locators automatically re-evaluate
     const remainingCount = await welcomeTabs.count();
