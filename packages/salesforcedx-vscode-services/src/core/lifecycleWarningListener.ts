@@ -7,6 +7,7 @@
 
 import { Lifecycle } from '@salesforce/core/lifecycle';
 import * as Effect from 'effect/Effect';
+import * as Runtime from 'effect/Runtime';
 import { ChannelService } from '../vscode/channelService';
 
 /**
@@ -15,8 +16,9 @@ import { ChannelService } from '../vscode/channelService';
  */
 export const subscribeLifecycleWarnings = Effect.fn('subscribeLifecycleWarnings')(function* () {
   const channelService = yield* ChannelService;
+  const runtime = yield* Effect.runtime();
 
   Lifecycle.getInstance().onWarning(async (warning: string) => {
-    await Effect.runPromise(channelService.appendToChannel(`[SFDX_CORE WARNING] ${warning}`));
+    await Runtime.runPromise(runtime)(channelService.appendToChannel(`[SFDX_CORE WARNING] ${warning}`));
   });
 });

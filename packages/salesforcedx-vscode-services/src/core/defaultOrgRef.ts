@@ -13,8 +13,7 @@ import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 let defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type> | undefined;
 
 export const getDefaultOrgRef = Effect.fn('getDefaultOrgRef')(function* () {
-  defaultOrgRef ??= yield* SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({});
-  return defaultOrgRef;
+  return (defaultOrgRef ??= yield* SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
 });
 
 // preserves the webUserId and cliId when clearing the defaultOrgRef
