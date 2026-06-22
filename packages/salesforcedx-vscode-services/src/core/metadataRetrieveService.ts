@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { RetrieveOptions, SourceSpec } from '../owned/deploy';
 import type { Connection } from '@salesforce/core';
 import type { SfProject } from '@salesforce/core/project';
 import {
@@ -20,11 +21,17 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { toRetrieveOutcome } from '../owned/deployMapper';
 import { uriToPath } from '../vscode/paths';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
-import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
+import {
+  ComponentSetService,
+  FailedToBuildComponentSetError,
+  NonEmptyComponentSet,
+  setComponentSetProperties
+} from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
@@ -56,6 +63,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
   accessors: true,
   dependencies: [
     WorkspaceService.Default,
+    ComponentSetService.Default,
     ConnectionService.Default,
     SourceTrackingService.Default,
     MetadataRegistryService.Default,
@@ -64,6 +72,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
   ],
   effect: Effect.gen(function* () {
     const workspaceService = yield* WorkspaceService;
+    const componentSetService = yield* ComponentSetService;
     const connectionService = yield* ConnectionService;
     const sourceTrackingService = yield* SourceTrackingService;
     const projectService = yield* ProjectService;
@@ -272,12 +281,24 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       }
     );
 
+    /** Retrieve metadata from SourceSpec - returns owned RetrieveOutcome */
+    const retrieveToSource = Effect.fn('MetadataRetrieveService.retrieveToSource')(function* (
+      spec: SourceSpec,
+      opts?: RetrieveOptions
+    ) {
+      yield* Effect.annotateCurrentSpan({ specKind: spec.kind, opts });
+      const components = yield* componentSetService.buildComponentSet(spec);
+      const retrieveResult = yield* retrieveComponentSet(components, opts);
+      return toRetrieveOutcome(retrieveResult);
+    });
+
     return {
       retrieve,
       retrieveComponentSet,
       retrieveComponentSetToDirectory,
       buildComponentSet,
-      buildComponentSetFromSource
+      buildComponentSetFromSource,
+      retrieveToSource
     };
   })
 }) {}

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { DeployOptions, SourceSpec } from '../owned/deploy';
 import { ComponentSet, type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
@@ -17,10 +18,12 @@ import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { toDeployOutcome } from '../owned/deployMapper';
 import { FsService } from '../vscode/fsService';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
+import { ComponentSetService } from './componentSetService';
 import { ConnectionService } from './connectionService';
 import { MetadataChangeNotificationService } from './metadataChangeNotificationService';
 import { ProjectService } from './projectService';
@@ -36,6 +39,7 @@ export class MetadataDeployError extends Schema.TaggedError<MetadataDeployError>
 export class MetadataDeployService extends Effect.Service<MetadataDeployService>()('MetadataDeployService', {
   accessors: true,
   dependencies: [
+    ComponentSetService.Default,
     ConnectionService.Default,
     FsService.Default,
     MetadataChangeNotificationService.Default,
@@ -44,6 +48,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     SourceTrackingService.Default
   ],
   effect: Effect.gen(function* () {
+    const componentSetService = yield* ComponentSetService;
     const trackingService = yield* SourceTrackingService;
     const connectionService = yield* ConnectionService;
     const fsService = yield* FsService;
@@ -157,7 +162,18 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       return deployOutcome;
     }, withActiveMetadataOperationPipeline);
 
-    return { deploy, getComponentSetForDeploy };
+    /** Deploy metadata from SourceSpec - returns owned DeployOutcome */
+    const deployFromSource = Effect.fn('MetadataDeployService.deployFromSource')(function* (
+      spec: SourceSpec,
+      opts?: DeployOptions
+    ) {
+      yield* Effect.annotateCurrentSpan({ specKind: spec.kind, opts });
+      const components = yield* componentSetService.buildComponentSet(spec);
+      const deployResult = yield* deploy(components);
+      return toDeployOutcome(deployResult);
+    });
+
+    return { deploy, getComponentSetForDeploy, deployFromSource };
   })
 }) {}
 

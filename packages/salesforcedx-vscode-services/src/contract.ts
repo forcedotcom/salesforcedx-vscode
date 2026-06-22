@@ -11,6 +11,7 @@ import type { FilePropertiesSchema } from './core/schemas/fileProperties';
 import type { TraceFlagItem, TraceFlagLogType } from './core/schemas/traceFlagSchemas';
 import type { SourceTrackingOptions } from './core/sourceTrackingService';
 import type { TemplateOptionsFor } from './core/templateService';
+import type { DeployOptions, DeployOutcome, RetrieveOptions, RetrieveOutcome, SourceSpec } from './owned/deploy';
 import type { ConnectionData } from './owned/metadata';
 import type { ProjectInfo } from './owned/projectInfo';
 import type { ServicesOrg } from './owned/servicesOrg';
@@ -104,9 +105,11 @@ export type ServicesContract = {
 
   // Metadata Deploy
   readonly deploy: (components: ComponentSet) => DeployResult;
+  readonly deployFromSource: (spec: SourceSpec, opts?: DeployOptions) => DeployOutcome;
 
   // Metadata Retrieve (basic signatures - specialized ones excluded)
   readonly retrieveComponentSet: (components: ComponentSet) => RetrieveResult;
+  readonly retrieveToSource: (spec: SourceSpec, opts?: RetrieveOptions) => RetrieveOutcome;
 
   // Source Tracking (basic methods)
   readonly hasTracking: () => boolean;

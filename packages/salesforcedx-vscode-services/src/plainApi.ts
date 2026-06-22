@@ -261,11 +261,15 @@ export const createPlainServicesApi = (
       run(builtContext, MetadataDescribeService.listMetadata(type, folder)),
 
     deploy: (components: ComponentSet) => run(builtContext, MetadataDeployService.deploy(components)),
+    deployFromSource: (spec: import('./owned/deploy').SourceSpec, opts?: import('./owned/deploy').DeployOptions) =>
+      run(builtContext, MetadataDeployService.deployFromSource(spec, opts)),
 
     retrieve: (members: MetadataMember[], options?: SourceTrackingOptions) =>
       run(builtContext, MetadataRetrieveService.retrieve(members, options)),
     retrieveComponentSet: (components: ComponentSet, options?: SourceTrackingOptions) =>
       run(builtContext, MetadataRetrieveService.retrieveComponentSet(components, options)),
+    retrieveToSource: (spec: import('./owned/deploy').SourceSpec, opts?: import('./owned/deploy').RetrieveOptions) =>
+      run(builtContext, MetadataRetrieveService.retrieveToSource(spec, opts)),
     retrieveComponentSetToDirectory: (components: NonEmptyComponentSet, outputPath: URI) =>
       run(builtContext, MetadataRetrieveService.retrieveComponentSetToDirectory(components, outputPath)),
 

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SourceSpec } from '../owned/deploy';
 import { OrgConfigProperties } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import type { SfProject } from '@salesforce/core/project';
@@ -200,6 +201,19 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
       }).pipe(Effect.withSpan('getComponentSetFromProjectDirectories'));
     });
 
+    /** Build ComponentSet from SourceSpec - internal dispatch to existing getters */
+    const buildComponentSet = Effect.fn('ComponentSetService.buildComponentSet')(function* (spec: SourceSpec) {
+      yield* Effect.annotateCurrentSpan({ specKind: spec.kind });
+      switch (spec.kind) {
+        case 'paths':
+          return yield* getComponentSetFromUris(spec.uris.map(u => URI.parse(u)));
+        case 'manifest':
+          return yield* getComponentSetFromManifest(URI.parse(spec.manifestUri));
+        case 'projectDirectories':
+          return yield* getComponentSetFromProjectDirectories();
+      }
+    });
+
     return {
       getComponentState,
       isSDRSuccess,
@@ -209,7 +223,8 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
       ensureNonEmptyComponentSet,
       getComponentSetFromUris,
       getComponentSetFromManifest,
-      getComponentSetFromProjectDirectories
+      getComponentSetFromProjectDirectories,
+      buildComponentSet
     };
   })
 }) {}
