@@ -40,6 +40,7 @@ import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
+import { createPlainServicesApi, type PlainServicesApi } from './plainApi';
 import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -68,7 +69,7 @@ import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherLayer } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
-export type SalesforceVSCodeServicesApi = {
+export type SalesforceVSCodeServicesApi = PlainServicesApi & {
   services: {
     /** contains most of the dependencies prebuilt in the services extension */
     prebuiltServicesDependencies: Context.Context<
@@ -368,8 +369,12 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   console.log('Salesforce Services extension is now active!');
 
+  // Create plain Promise-based API facade
+  const plainApi = createPlainServicesApi(builtContext, extensionScope);
+
   // Return API for other extensions to consume
   return {
+    ...plainApi,
     services: {
       prebuiltServicesDependencies: builtContext,
       ApexLogService,
@@ -435,6 +440,7 @@ const deactivateEffect = Effect.gen(function* () {
 );
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
+export type { DefaultOrgInfo, PlainServicesApi, WorkspaceInfo } from './plainApi';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';

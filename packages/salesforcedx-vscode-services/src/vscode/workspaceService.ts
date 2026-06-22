@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getPathWithSchema } from './paths';
 
-type WorkspaceInfo = {
+export type WorkspaceInfo = {
   uri: URI;
   /** includes the file:// or other schemeprefix */
   path: string;
