@@ -106,6 +106,59 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable.evaluateName).toBe('null');
     });
 
+    it('Should summarize reference-backed SObject field with undefined value as its type label', () => {
+      // Parent-relationship / child-subquery SObject fields arrive ref-backed. Hypothesis (B): no
+      // string value. Must show the type label, not 'null' and not '[object Object]'.
+      const sobjectValue: Value = {
+        name: 'Account',
+        nameForMessages: 'Account',
+        declaredTypeRef: 'common/apex/runtime/impl/SObjectValue',
+        ref: 5
+      };
+      expect(ApexVariable.valueAsString(sobjectValue)).toBe('Account');
+      expect(ApexVariable.valueAsString(sobjectValue)).not.toBe('null');
+      expect(ApexVariable.valueAsString(sobjectValue)).not.toContain('[object Object]');
+    });
+
+    it('Should summarize reference-backed SObject field with non-string value as its type label', () => {
+      // Hypothesis (A), confirmed for W-23095412: the server violates the `value?: string` contract and
+      // sends a non-string object for ref-backed SObject fields, which previously coerced to
+      // '[object Object]'. The fixture below documents that known server-side deviation.
+      const sobjectValue = {
+        name: 'Account',
+        nameForMessages: 'Account',
+        declaredTypeRef: 'common/apex/runtime/impl/SObjectValue',
+        ref: 5,
+        value: { Name: 'Acme' }
+      } as unknown as Value;
+      expect(ApexVariable.valueAsString(sobjectValue)).toBe('Account');
+      expect(ApexVariable.valueAsString(sobjectValue)).not.toContain('[object Object]');
+    });
+
+    it('Should preserve reference-backed collection string summary', () => {
+      // Regression: ref-backed collections already arrive with a usable string summary (e.g. '(a, b)').
+      // That must keep rendering verbatim, not collapse to a generic type label.
+      const collectionValue: Value = {
+        name: '0',
+        nameForMessages: 'List<String>',
+        declaredTypeRef: 'List<String>',
+        ref: 1,
+        value: '(a, b)'
+      };
+      expect(ApexVariable.valueAsString(collectionValue)).toBe('(a, b)');
+    });
+
+    it('Should expose variablesReference for reference-backed values (expansion preserved)', () => {
+      const sobjectValue: Value = {
+        name: 'Account',
+        nameForMessages: 'Account',
+        declaredTypeRef: 'common/apex/runtime/impl/SObjectValue',
+        ref: 5
+      };
+      const refVariable = new ApexVariable(sobjectValue, ApexVariableKind.Field, 42);
+      expect(refVariable.variablesReference).toBe(42);
+    });
+
     it('Should compare Value of different kinds', () => {
       // given
       const v1 = new ApexVariable(value, ApexVariableKind.Local);
