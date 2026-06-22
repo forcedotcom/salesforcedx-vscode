@@ -21,7 +21,7 @@ Scope: web-enabling/authoring an extension feature (browser host, no Node, no CL
 ## Bundle split
 
 - Two-bundle tree-shake on `ESBUILD_PLATFORM`: [ADR 0013](../../../docs/adr/0013-dual-target-bundle-time-split.md), [Build.md](../../../docs/Build.md)
-- Use inline literal `process.env.ESBUILD_PLATFORM` at the branch — never assign to const/prop (breaks dead-branch elimination)
+- Use inline literal `process.env.ESBUILD_PLATFORM` — never assign to const/prop (breaks dead-branch elimination)
 
 ## package.json
 
@@ -39,6 +39,6 @@ Scope: web-enabling/authoring an extension feature (browser host, no Node, no CL
 ## Testing
 
 - [playwright-e2e](../playwright-e2e/SKILL.md), `test:web`
-- Web Playwright runs in a `memfs:/` workspace (scheme `memfs`), NOT a `vscode-test-web` mount
+- Web Playwright runs in a `memfs:/dx-project` workspace (scheme `memfs`), NOT a `vscode-test-web` mount
 - `FsProvider.writeFile` hits the same `@salesforce/core/fs` polyfill `SfProject.resolve` reads — editor writes reach the SfProject fs
 - `.headless.spec.ts` runs web+desktop; reserve Node fs/path for `.desktop.spec.ts`
