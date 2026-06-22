@@ -85,7 +85,7 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
     const traceFlagService = yield* api.services.TraceFlagService;
     const existing = yield* traceFlagService.getTraceFlagForUser(userId!);
     yield* Option.match(existing, {
-      onNone: () => Effect.void,
+      onNone: () => Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active'))),
       onSome: tf => traceFlagService.deleteTraceFlag(tf.id)
     });
     yield* refreshTraceFlagsView(orgId);
