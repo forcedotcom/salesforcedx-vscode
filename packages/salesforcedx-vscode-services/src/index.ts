@@ -180,7 +180,8 @@ export type {
   FailedToSaveAuthInfoError,
   FailedToCreateConnectionError,
   FailedToResolveUsernameError,
-  NoTargetOrgConfiguredError
+  NoTargetOrgConfiguredError,
+  FailedToListAuthorizationsError
 } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
