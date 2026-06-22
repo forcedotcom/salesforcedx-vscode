@@ -278,6 +278,10 @@ export const createPlainServicesApi = (
     getRemoteNonDeletesAsComponentSet: (options: { applyIgnore: boolean }) =>
       run(builtContext, SourceTrackingService.getRemoteNonDeletesAsComponentSet(options)),
     getConflicts: () => run(builtContext, SourceTrackingService.getConflicts()),
+    getConflictChanges: () => run(builtContext, SourceTrackingService.getConflictChanges()),
+    getLocalChanges: () => run(builtContext, SourceTrackingService.getLocalChanges()),
+    getRemoteChanges: (opts?: { applyIgnore?: boolean }) =>
+      run(builtContext, SourceTrackingService.getRemoteChanges(opts)),
     checkConflicts: () => run(builtContext, SourceTrackingService.checkConflicts()),
 
     createFromTemplate: <T extends TemplateType>(params: CreateParams<T>) =>

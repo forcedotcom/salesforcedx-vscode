@@ -11,6 +11,7 @@ import type { FilePropertiesSchema } from './core/schemas/fileProperties';
 import type { TraceFlagItem, TraceFlagLogType } from './core/schemas/traceFlagSchemas';
 import type { SourceTrackingOptions } from './core/sourceTrackingService';
 import type { TemplateOptionsFor } from './core/templateService';
+import type { OrgChange } from './owned/changes';
 import type { ComponentSetInfo } from './owned/components';
 import type { DeployOutcome, RetrieveOptions, RetrieveOutcome, SourceSpec } from './owned/deploy';
 import type { ConnectionData } from './owned/metadata';
@@ -115,6 +116,9 @@ export type ServicesContract = {
   // Source Tracking (basic methods)
   readonly hasTracking: () => boolean;
   readonly getConflicts: () => ChangeResult[];
+  readonly getConflictChanges: () => OrgChange[];
+  readonly getLocalChanges: () => OrgChange[];
+  readonly getRemoteChanges: (opts?: { applyIgnore?: boolean }) => OrgChange[];
   readonly checkConflicts: () => void;
 
   // Terminal
