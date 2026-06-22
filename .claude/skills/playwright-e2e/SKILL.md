@@ -71,6 +71,18 @@ Playwright desktop tests live in `packages/salesforcedx-vscode-apex-oas/test/pla
 
 **A4V LLM rate limit = skip, not fail (pre-migration):** the shared Core model exhausting its monthly quota is an infra outage, not a product bug — it can hit *any* spec that triggers a generation LLM call (all composed/decomposed/context-menu specs), not just manual-merge. The extension surfaces it as a real error notification (`/monthly rate limit/`, from the `llm_monthly_rate_limit` i18n message) instead of the old generic "LLM did not return any content", so specs detect it straight from the UI — no span-file scan. Wrap the generation success signal with `assertGenerationOrSkipOnRateLimit(test, page, success)` (oasHelpers): `success` is the success assertion (`expect(tab).toBeVisible()` or `waitForEsrFile(...)`); it races the rate-limit notification and `test.skip`s if that wins, else resolves/rethrows. The eligibility-failure specs (`ineligibleClass`, `mixedFrameworksClass`, `restResourceNoHttpMethod`) fail before any LLM call and need no guard.
 
+## Don't use the clipboard to set editor content
+
+`navigator.clipboard.writeText` + Paste is a shared global resource — desktop Electron clipboard is the system OS clipboard (electronjs.org/docs/latest/api/clipboard), so parallel workers (`fullyParallel: true`) race: worker B's write between A's write and A's Paste makes A paste B's text. Flaky, hard to diagnose.
+
+Set content directly instead:
+
+- type via `page.keyboard.type(text)` (after Select All + Delete), or
+- write the file on disk (desktop fs / web memfs), or
+- set the editor model value through a VS Code command.
+
+Note: "keyboard shortcut can miss on web" comments refer to **shortcut keystrokes** (`Cmd+A`/`Cmd+V`) not landing — fix is command-palette `Select All`/`Paste`, not clipboard. Clipboard ≠ required for that.
+
 ## Running Full E2E Test Suite
 
 See `references/full-suite-execution.md` for complete guide on running all E2E tests locally across all 9 packages in correct dependency order with failure analysis.

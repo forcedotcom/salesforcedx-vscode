@@ -30,7 +30,8 @@ export {
   ensureSecondarySideBarHidden,
   waitForExtensionsActivated,
   closeWorkspaceToEmptyWindow,
-  prepareNoFolderOpenForPaletteTests
+  prepareNoFolderOpenForPaletteTests,
+  disableMonacoAutoClosing
 } from './utils/workflows';
 
 export { activeQuickInputWidget, activeQuickInputTextField } from './utils/quickInput';
