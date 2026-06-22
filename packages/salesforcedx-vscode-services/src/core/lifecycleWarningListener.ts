@@ -13,11 +13,10 @@ import { ChannelService } from '../vscode/channelService';
  * Subscribes to @salesforce/core Lifecycle warnings and routes to output channel.
  * This prevents process.emitWarning from being called in web environments.
  */
-export const subscribeLifecycleWarnings = () =>
-  Effect.gen(function* () {
-    const channelService = yield* ChannelService;
+export const subscribeLifecycleWarnings = Effect.fn('subscribeLifecycleWarnings')(function* () {
+  const channelService = yield* ChannelService;
 
-    Lifecycle.getInstance().onWarning(async (warning: string) => {
-      await Effect.runPromise(channelService.appendToChannel(`[SFDX_CORE WARNING] ${warning}`));
-    });
-  }).pipe(Effect.withSpan('subscribeLifecycleWarnings'));
+  Lifecycle.getInstance().onWarning(async (warning: string) => {
+    await Effect.runPromise(channelService.appendToChannel(`[SFDX_CORE WARNING] ${warning}`));
+  });
+});
