@@ -307,6 +307,7 @@ export const createPlainServicesApi = (
     getComponentSetFromManifest: (manifestUri: URI) =>
       run(builtContext, ComponentSetService.getComponentSetFromManifest(manifestUri)),
     getComponentSetFromProjectDirectories: () =>
-      run(builtContext, ComponentSetService.getComponentSetFromProjectDirectories())
+      run(builtContext, ComponentSetService.getComponentSetFromProjectDirectories()),
+    describeProjectComponents: spec => run(builtContext, ComponentSetService.describeProjectComponents(spec))
   };
 };

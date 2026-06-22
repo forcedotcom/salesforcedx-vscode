@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ComponentSetInfo } from '../owned/components';
 import type { SourceSpec } from '../owned/deploy';
 import { OrgConfigProperties } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
@@ -20,6 +21,7 @@ import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
+import { toComponentSetInfo } from '../owned/componentSetInfoMapper';
 import { HashableUri } from '../vscode/hashableUri';
 import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
@@ -214,6 +216,15 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
       }
     });
 
+    /** Describe project components as owned ComponentSetInfo - introspection path */
+    const describeProjectComponents = Effect.fn('ComponentSetService.describeProjectComponents')(function* (
+      spec: SourceSpec
+    ) {
+      const componentSet = yield* buildComponentSet(spec);
+      const componentSetInfo: ComponentSetInfo = yield* Effect.promise(() => toComponentSetInfo(componentSet));
+      return componentSetInfo;
+    });
+
     return {
       getComponentState,
       isSDRSuccess,
@@ -224,7 +235,8 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
       getComponentSetFromUris,
       getComponentSetFromManifest,
       getComponentSetFromProjectDirectories,
-      buildComponentSet
+      buildComponentSet,
+      describeProjectComponents
     };
   })
 }) {}

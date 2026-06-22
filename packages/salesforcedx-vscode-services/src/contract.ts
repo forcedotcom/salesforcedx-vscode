@@ -11,6 +11,7 @@ import type { FilePropertiesSchema } from './core/schemas/fileProperties';
 import type { TraceFlagItem, TraceFlagLogType } from './core/schemas/traceFlagSchemas';
 import type { SourceTrackingOptions } from './core/sourceTrackingService';
 import type { TemplateOptionsFor } from './core/templateService';
+import type { ComponentSetInfo } from './owned/components';
 import type { DeployOutcome, RetrieveOptions, RetrieveOutcome, SourceSpec } from './owned/deploy';
 import type { ConnectionData } from './owned/metadata';
 import type { ProjectInfo } from './owned/projectInfo';
@@ -123,6 +124,7 @@ export type ServicesContract = {
   readonly getComponentSetFromUris: (uris: readonly URI[]) => ComponentSet;
   readonly getComponentSetFromManifest: (manifestUri: URI) => ComponentSet;
   readonly getComponentSetFromProjectDirectories: () => ComponentSet;
+  readonly describeProjectComponents: (spec: SourceSpec) => ComponentSetInfo;
 };
 
 /**
