@@ -13,6 +13,7 @@ import { CancellationToken, CodeLens, ExtensionContext, languages, Range, TextDo
 import { nls } from '../messages';
 import { buildExtendedTraceFlagItemStruct, buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
 import { getRuntime } from '../services/runtime';
+import { isTraceFlagActive } from './traceFlagActive';
 
 const TRACE_FLAGS_DOCUMENT_SELECTOR = { language: 'json', scheme: 'sf-traceflags' };
 
@@ -22,7 +23,7 @@ const hasActiveTraceFlagEffect = Effect.fn('ApexLog.hasActiveTraceFlag')(functio
   if (!userId) return false;
   const traceFlagService = yield* api.services.TraceFlagService;
   const existing = yield* traceFlagService.getTraceFlagForUser(userId);
-  return Option.isSome(existing) && existing.value.isActive;
+  return Option.isSome(existing) && isTraceFlagActive(existing.value);
 });
 
 const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTraceFlagsCodeLens')(function* (
@@ -36,7 +37,7 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
   const text = document.getText();
   const allActiveItems = Object.values(parsed?.traceFlags ?? {})
     .flat()
-    .filter(item => item.isActive);
+    .filter(isTraceFlagActive);
   const deleteLenses = allActiveItems.flatMap(item => {
     const idx = text.indexOf(`"id": "${item.id}"`);
     if (idx < 0) return [];
