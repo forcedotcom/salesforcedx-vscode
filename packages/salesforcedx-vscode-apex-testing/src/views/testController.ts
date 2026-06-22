@@ -320,13 +320,12 @@ export class ApexTestController {
         })
       );
 
-      // Find all test-result JSON files, sorted oldest-first (last applied wins)
-      const resultUris = entries
-        .filter(
-          uri =>
-            uri.path.includes('test-result') && uri.path.endsWith('.json') && !uri.path.endsWith('-codecoverage.json')
-        )
-        .toSorted((a, b) => a.path.localeCompare(b.path));
+      // Find all test-result JSON files. Filenames embed Salesforce test-run IDs, which are NOT
+      // chronologically sortable, so we order by mtime below rather than by filename.
+      const resultUris = entries.filter(
+        uri =>
+          uri.path.includes('test-result') && uri.path.endsWith('.json') && !uri.path.endsWith('-codecoverage.json')
+      );
 
       if (resultUris.length === 0) {
         return;
@@ -334,13 +333,13 @@ export class ApexTestController {
 
       // Filter to files within the age threshold and track which methods are pre-session
       const now = Date.now();
-      const recentUris: URI[] = [];
+      const recentResults: { uri: URI; mtime: number }[] = [];
       const staleMethodIds = new Set<string>();
       const sessionMethodIds = new Set<string>();
       for (const uri of resultUris) {
         const stat = await vscode.workspace.fs.stat(uri);
         if (now - stat.mtime <= RESULT_MAX_AGE_MS) {
-          recentUris.push(uri);
+          recentResults.push({ uri, mtime: stat.mtime });
           const methodsInFile = await ApexTestController.getMethodIdsFromResultFile(uri);
           const targetSet = stat.mtime < this.sessionStartTime ? staleMethodIds : sessionMethodIds;
           for (const methodId of methodsInFile) {
@@ -349,9 +348,12 @@ export class ApexTestController {
         }
       }
 
-      if (recentUris.length === 0) {
+      if (recentResults.length === 0) {
         return;
       }
+
+      // Apply oldest-first (by mtime) so the most recent run's result wins for each method.
+      const recentUris = sortUrisByMtimeAscending(recentResults);
 
       // Session results override stale (a method run this session is not stale)
       for (const methodId of sessionMethodIds) {
@@ -1696,3 +1698,12 @@ export const disposeTestController = (): void => {
     testControllerInst = undefined;
   }
 };
+
+/**
+ * Returns the URIs sorted oldest-first by mtime. Result filenames embed Salesforce test-run IDs,
+ * which are NOT chronologically sortable, so alphabetical (filename) order can disagree with run
+ * order. Restoration applies results oldest-first so the most recent run wins per method; sorting
+ * by mtime keeps that ordering correct. Does not mutate the input. (Mirrors colorizer.ts.)
+ */
+export const sortUrisByMtimeAscending = (items: readonly { uri: URI; mtime: number }[]): URI[] =>
+  items.toSorted((a, b) => a.mtime - b.mtime).map(item => item.uri);

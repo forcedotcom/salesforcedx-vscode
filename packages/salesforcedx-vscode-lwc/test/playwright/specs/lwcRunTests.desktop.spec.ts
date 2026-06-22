@@ -15,9 +15,11 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { expect, type Page } from '@playwright/test';
 import {
+  clearFilter,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  focusAndTypeInFilter,
   saveScreenshot,
   setupConsoleMonitoring,
   validateNoCriticalErrors,
@@ -324,6 +326,53 @@ test('LWC Run Tests: run current test file from editor toolbar button', async ({
   await test.step('verify test suite passes', async () => {
     await waitForJestResults(workspaceDir, runStartMs!);
     await saveScreenshot(page, 'toolbar-run.results.png');
+  });
+
+  await validateNoCriticalErrors(test, consoleErrors);
+});
+
+// Regression guard for W-22691592 / issue #7350: VS Code's Test Explorer tag filter matches by
+// TestTag id across ALL controllers and hides items lacking that tag. LWC test items now carry the
+// same `in-workspace` tag the Apex controller uses, so applying `@in-workspace` must keep them visible.
+// The `@org-only` filter (a tag LWC never carries) must hide them, proving the filter isn't a no-op.
+test('LWC Run Tests: LWC tests stay visible under the @in-workspace Test Explorer filter', async ({ page }) => {
+  test.setTimeout(10 * 60 * 1000);
+  const consoleErrors = setupConsoleMonitoring(page);
+
+  await test.step('create two LWC components', async () => {
+    await createLwc(page, 'lwc1');
+    await createLwc(page, 'lwc2');
+  });
+
+  await test.step('wait for LSP indexing', async () => {
+    await openLwcFile(page, 'lwc1.html');
+    await waitForLwcLspReady(page);
+  });
+
+  await test.step('open and refresh Test Explorer', async () => {
+    await openAndRefreshTestExplorer(page);
+    await expect(testItem(page, 'lwc2')).toBeVisible({ timeout: 30_000 });
+  });
+
+  await test.step('apply @in-workspace filter — LWC tests remain visible', async () => {
+    await clearFilter(page);
+    await focusAndTypeInFilter(page, '@in-workspace');
+    await expect(testItem(page, 'lwc1')).toBeVisible({ timeout: 15_000 });
+    await expect(testItem(page, 'lwc2')).toBeVisible({ timeout: 15_000 });
+    await saveScreenshot(page, 'filter.in-workspace-visible.png');
+  });
+
+  await test.step('apply @org-only filter — LWC tests are hidden (filter is not a no-op)', async () => {
+    await clearFilter(page);
+    await focusAndTypeInFilter(page, '@org-only');
+    await expect(testItem(page, 'lwc1')).toBeHidden({ timeout: 15_000 });
+    await expect(testItem(page, 'lwc2')).toBeHidden({ timeout: 15_000 });
+    await saveScreenshot(page, 'filter.org-only-hidden.png');
+  });
+
+  await test.step('clear filter — LWC tests visible again', async () => {
+    await clearFilter(page);
+    await expect(testItem(page, 'lwc1')).toBeVisible({ timeout: 15_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors);
