@@ -38,7 +38,7 @@ describe('TerminalService.simpleExec', () => {
 
     const fiber = Effect.runFork(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org delete' })),
+        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org delete', parse: s => s })),
         Effect.provide(TerminalService.Default)
       )
     );
@@ -70,7 +70,7 @@ describe('TerminalService.simpleExec', () => {
 
     const error = await run(
       TerminalService.pipe(
-        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo' })),
+        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse: s => s })),
         Effect.flip
       )
     );
