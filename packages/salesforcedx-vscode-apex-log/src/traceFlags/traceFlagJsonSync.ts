@@ -14,9 +14,10 @@ import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
-import type { DebugLevelItem } from 'salesforcedx-vscode-services';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { isTraceFlagActive } from './traceFlagActive';
 import { TraceFlagsContentProviderService } from './traceFlagsContentProvider';
 
 export const readDefaultDurationMinutes = Effect.fn('ApexLog.readDefaultDurationMinutes')(function* () {
@@ -142,6 +143,26 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
 });
 
 type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
+
+type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: string };
+
+/** Show a QuickPick of active trace flags. Returns the selected item, or undefined if cancelled. Shows an info message and returns undefined if there are no active flags. */
+export const pickTraceFlag = async (items: TraceFlagItem[]): Promise<TraceFlagQuickPickItem | undefined> => {
+  const active = items.filter(isTraceFlagActive);
+  if (active.length === 0) {
+    await vscode.window.showInformationMessage(nls.localize('trace_flags_none_active'));
+    return undefined;
+  }
+  return vscode.window.showQuickPick<TraceFlagQuickPickItem>(
+    active.map(tf => ({
+      label: tf.tracedEntityName ?? tf.tracedEntityId ?? tf.id,
+      description: tf.logType,
+      detail: `Expires ${tf.expirationDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      traceFlagId: tf.id
+    })),
+    { placeHolder: nls.localize('trace_flag_pick_trace_flag') }
+  );
+};
 
 /** Show a QuickPick of org DebugLevels. */
 export const pickDebugLevel = async (items: DebugLevelItem[]): Promise<DebugLevelQuickPickItem | undefined> =>

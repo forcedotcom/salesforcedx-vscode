@@ -17,6 +17,7 @@ import {
   pickDebugLevel,
   pickLogLevel,
   pickOrgUser,
+  pickTraceFlag,
   readDefaultDurationMinutes,
   refreshTraceFlagsView,
   sanitizeDeveloperName
@@ -207,16 +208,23 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   );
 });
 
-/** Delete trace flag by Id, refresh virtual doc. */
+/** Delete trace flag by Id, refresh virtual doc. When no Id is provided (e.g. command palette), prompts via QuickPick. */
 export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTraceFlagForId')(function* (
-  traceFlagId: string
+  traceFlagId?: string
 ) {
-  if (!traceFlagId) return;
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
-  yield* traceFlagService.deleteTraceFlag(traceFlagId);
+  const resolvedId =
+    traceFlagId ??
+    (yield* Effect.gen(function* () {
+      const flags = yield* traceFlagService.getTraceFlags();
+      const picked = yield* Effect.promise(() => pickTraceFlag(flags));
+      return picked?.traceFlagId;
+    }));
+  if (!resolvedId) return;
+  yield* traceFlagService.deleteTraceFlag(resolvedId);
   yield* refreshTraceFlagsView(orgId);
 });
 
