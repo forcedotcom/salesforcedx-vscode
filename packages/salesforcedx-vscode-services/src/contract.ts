@@ -12,6 +12,7 @@ import type { TraceFlagItem, TraceFlagLogType } from './core/schemas/traceFlagSc
 import type { SourceTrackingOptions } from './core/sourceTrackingService';
 import type { TemplateOptionsFor } from './core/templateService';
 import type { ConnectionData } from './owned/metadata';
+import type { ProjectInfo } from './owned/projectInfo';
 import type { ServicesOrg } from './owned/servicesOrg';
 import type { Connection, SfProject } from '@salesforce/core';
 import type { ComponentSet, DeployResult, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
@@ -65,6 +66,7 @@ export type ServicesContract = {
   // Project
   readonly isSalesforceProject: () => boolean;
   readonly getSfProject: () => SfProject;
+  readonly getProjectInfo: () => ProjectInfo;
   readonly isInPackageDirectories: (uri: URI) => boolean;
 
   // Settings

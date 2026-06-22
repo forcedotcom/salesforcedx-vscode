@@ -16,6 +16,7 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
+import { toProjectInfo } from '../owned/projectInfoMapper';
 import { toUri } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
@@ -218,6 +219,33 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, ...TYPINGS_SEGMENTS);
     });
 
+    const getProjectInfo = Effect.fn('ProjectService.getProjectInfo')(function* () {
+      const project = yield* getSfProject();
+      const workspaceInfo = yield* workspaceService.getWorkspaceInfoOrThrow();
+
+      // Compute the conventional paths
+      const soqlMetadataPath = (yield* getSoqlMetadataPath()).fsPath;
+      const soqlCustomObjectsPath = (yield* getSoqlCustomObjectsPath()).fsPath;
+      const soqlStandardObjectsPath = (yield* getSoqlStandardObjectsPath()).fsPath;
+      const fauxStandardObjectsPath = (yield* getFauxStandardObjectsPath()).fsPath;
+      const fauxCustomObjectsPath = (yield* getFauxCustomObjectsPath()).fsPath;
+      const typingsPath = (yield* getTypingsPath()).fsPath;
+
+      return toProjectInfo(project, {
+        name:
+          workspaceInfo.uri.path
+            .split('/')
+            .filter(Boolean)
+            .findLast(() => true) ?? 'unknown',
+        soqlMetadataPath,
+        soqlCustomObjectsPath,
+        soqlStandardObjectsPath,
+        fauxStandardObjectsPath,
+        fauxCustomObjectsPath,
+        typingsPath
+      });
+    });
+
     return {
       isSalesforceProject,
       getSfProject,
@@ -229,7 +257,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       getFauxClassesPath,
       getFauxStandardObjectsPath,
       getFauxCustomObjectsPath,
-      getTypingsPath
+      getTypingsPath,
+      getProjectInfo
     };
   })
 }) {}

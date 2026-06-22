@@ -193,6 +193,7 @@ export const createPlainServicesApi = (
 
     isSalesforceProject: () => run(builtContext, ProjectService.isSalesforceProject()),
     getSfProject: () => run(builtContext, ProjectService.getSfProject()),
+    getProjectInfo: () => run(builtContext, ProjectService.getProjectInfo()),
     isInPackageDirectories: (uri: URI) => run(builtContext, ProjectService.isInPackageDirectories(uri)),
 
     getSettingsValue: <T>(section: string, key: string, defaultValue?: T) =>
