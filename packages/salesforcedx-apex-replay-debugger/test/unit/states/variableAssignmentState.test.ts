@@ -515,4 +515,99 @@ describe('Variable assignment event', () => {
       expect(container.variablesRef).toBe(0);
     });
   });
+
+  describe('Nested related-object expansion', () => {
+    const DUMMY_REF = '0x00000000';
+    const NESTED_SCOPE_BEGIN = 'fakeTime|VARIABLE_SCOPE_BEGIN|[8]|this|NestedClass|true|false';
+
+    // walk the container tree collecting every container
+    const walk = (container: ApexVariableContainer): ApexVariableContainer[] => [
+      container,
+      ...Array.from(container.variables.values()).flatMap(walk)
+    ];
+
+    beforeEach(() => {
+      const state = new FrameEntryState(['signature']);
+      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context.getFrames().push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
+      frameEntryHandleResult = state.handle(context);
+      const beginState = new VariableBeginState(NESTED_SCOPE_BEGIN.split('|'));
+      beginState.handle(context);
+      getUriFromSignatureStub = jest
+        .spyOn(LogContext.prototype, 'getUriFromSignature')
+        .mockReturnValue(uriFromSignature);
+    });
+
+    afterEach(() => {
+      getUriFromSignatureStub.mockRestore();
+    });
+
+    const getThis = (): ApexVariableContainer => {
+      const frameInfo = context.getFrameHandler().get(context.getTopFrame()!.id);
+      assert(frameInfo);
+      return frameInfo.locals.get('this') as ApexVariableContainer;
+    };
+
+    it('Should expand a multi-level parent hierarchy without [object Object]', () => {
+      new VariableAssignmentState(`fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{}|${DUMMY_REF}`.split('|')).handle(context);
+      const json = '{"Name":"A","Parent":{"Name":"P","Parent":{"Name":"GP"}}}';
+      new VariableAssignmentState(`fakeTime|VARIABLE_ASSIGNMENT|[10]|this.a|${json}|${DUMMY_REF}`.split('|')).handle(
+        context
+      );
+      const container = getThis();
+      const a = container.variables.get('a') as ApexVariableContainer;
+      expect(a.variablesRef).not.toBe(0);
+
+      const parent = a.variables.get('Parent') as ApexVariableContainer;
+      expect(parent.variablesRef).not.toBe(0);
+      expect((parent.variables.get('Name') as ApexVariableContainer).value).toBe("'P'");
+
+      const grandparent = parent.variables.get('Parent') as ApexVariableContainer;
+      expect(grandparent.variablesRef).not.toBe(0);
+      expect((grandparent.variables.get('Name') as ApexVariableContainer).value).toBe("'GP'");
+
+      // leaf primitive
+      expect((a.variables.get('Name') as ApexVariableContainer).value).toBe("'A'");
+      // no container value renders as [object Object]
+      expect(walk(container).every(c => c.value !== '[object Object]')).toBe(true);
+    });
+
+    it('Should expand a child subquery records array keyed by index', () => {
+      new VariableAssignmentState(`fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{}|${DUMMY_REF}`.split('|')).handle(context);
+      const json = '{"Name":"A","Contacts":{"records":[{"LastName":"X"},{"LastName":"Y"}]}}';
+      new VariableAssignmentState(`fakeTime|VARIABLE_ASSIGNMENT|[10]|this.a|${json}|${DUMMY_REF}`.split('|')).handle(
+        context
+      );
+      const a = getThis().variables.get('a') as ApexVariableContainer;
+      const contacts = a.variables.get('Contacts') as ApexVariableContainer;
+      expect(contacts.variablesRef).not.toBe(0);
+
+      const records = contacts.variables.get('records') as ApexVariableContainer;
+      expect(records.variablesRef).not.toBe(0);
+      // array container keyed by numeric index strings
+      expect(Array.from(records.variables.keys())).toEqual(['0', '1']);
+
+      const first = records.variables.get('0') as ApexVariableContainer;
+      const second = records.variables.get('1') as ApexVariableContainer;
+      expect(first.variablesRef).not.toBe(0);
+      expect((first.variables.get('LastName') as ApexVariableContainer).value).toBe("'X'");
+      expect((second.variables.get('LastName') as ApexVariableContainer).value).toBe("'Y'");
+
+      expect(walk(getThis()).every(c => c.value !== '[object Object]')).toBe(true);
+    });
+
+    it('Should not re-quote already-quoted inner strings (parse-once regression guard)', () => {
+      new VariableAssignmentState(`fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{}|${DUMMY_REF}`.split('|')).handle(context);
+      const json = '{"Name":"A","Parent":{"Name":"P"}}';
+      new VariableAssignmentState(`fakeTime|VARIABLE_ASSIGNMENT|[10]|this.a|${json}|${DUMMY_REF}`.split('|')).handle(
+        context
+      );
+      const a = getThis().variables.get('a') as ApexVariableContainer;
+      const parentName = (a.variables.get('Parent') as ApexVariableContainer).variables.get(
+        'Name'
+      ) as ApexVariableContainer;
+      // single-quoted once, not "''P''"
+      expect(parentName.value).toBe("'P'");
+    });
+  });
 });
