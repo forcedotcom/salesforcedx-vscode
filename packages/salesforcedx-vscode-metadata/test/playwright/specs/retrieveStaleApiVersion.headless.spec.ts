@@ -21,6 +21,7 @@ import {
   activeQuickInputTextField,
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden,
+  disableMonacoAutoClosing,
   saveScreenshot,
   EDITOR,
   DIRTY_EDITOR
@@ -38,18 +39,18 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
 const WARM_API_VERSION = '63.0';
 const EDITED_API_VERSION = '62.0';
 
-/** sfdx-project.json body with a given sourceApiVersion; pasted whole so the test is independent of the platform default. */
+/**
+ * sfdx-project.json body with a given sourceApiVersion; single-line so it types in one keystroke run
+ * with no editor auto-indent. The downstream assertion matches the `sourceApiVersion` substring, so
+ * whitespace/formatting is irrelevant.
+ */
 const projectJson = (sourceApiVersion: string): string =>
-  JSON.stringify(
-    {
-      packageDirectories: [{ path: 'force-app', default: true }],
-      namespace: '',
-      sfdcLoginUrl: 'https://login.salesforce.com',
-      sourceApiVersion
-    },
-    null,
-    2
-  );
+  JSON.stringify({
+    packageDirectories: [{ path: 'force-app', default: true }],
+    namespace: '',
+    sfdcLoginUrl: 'https://login.salesforce.com',
+    sourceApiVersion
+  });
 
 /** Open sfdx-project.json from the Explorer and overwrite its full contents with `sourceApiVersion`, then save. */
 const writeProjectApiVersion = async (page: Page, sourceApiVersion: string) => {
@@ -63,16 +64,19 @@ const writeProjectApiVersion = async (page: Page, sourceApiVersion: string) => {
   await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
   await editor.click();
 
-  // Select-all + paste (clipboard) mirrors createApexClass: keyboard shortcuts can miss on web.
+  // Select-all via command palette (keyboard shortcut can miss on web), then type the new contents.
+  // No clipboard: it is a shared global resource and parallel workers race on it (desktop Electron
+  // clipboard is the system OS clipboard). disableMonacoAutoClosing stops `{`/`[`/`"` from doubling.
+  await disableMonacoAutoClosing(page);
+  await editor.click();
   await executeCommandWithCommandPalette(page, 'Select All');
   await page.keyboard.press('Delete');
-  await page.evaluate((text: string) => navigator.clipboard.writeText(text), projectJson(sourceApiVersion));
-  await executeCommandWithCommandPalette(page, 'Paste');
+  await page.keyboard.type(projectJson(sourceApiVersion));
 
-  // Guard: the edit must actually land in the editor buffer (Paste can silently miss on web if focus
+  // Guard: the edit must actually land in the editor buffer (typing can silently miss on web if focus
   // is wrong). Asserting the new value is present rules out a test artifact when downstream fails.
   await expect(editor.locator('.view-lines'), 'edited sfdx-project.json buffer').toContainText(
-    `"sourceApiVersion": "${sourceApiVersion}"`
+    `"sourceApiVersion":"${sourceApiVersion}"`
   );
 
   await executeCommandWithCommandPalette(page, 'File: Save');
