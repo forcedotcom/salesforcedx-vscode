@@ -1,22 +1,68 @@
-# 67.1.0 - June 18, 2026
+# 67.2.0 - June 24, 2026
 
 ## Added
 
-#### salesforcedx-vscode-apex
+#### docs
 
-- We updated the Apex Language Server with Summer '26 (API version 262) language definitions and refreshed standard Apex library. ([PR #7435](https://github.com/forcedotcom/salesforcedx-vscode/pull/7435))
+- Include Agentforce Vibes Autocomplete in both extension packs - W-23057893 ([PR #7499](https://github.com/forcedotcom/salesforcedx-vscode/pull/7499))
 
-#### salesforcedx-vscode-org
+- Avoid Untitled Workspace in Web Console; rename sample project to dx-project - W-22390400 ([PR #7484](https://github.com/forcedotcom/salesforcedx-vscode/pull/7484))
 
-- The **SFDX: Delete Default Org** command is now hidden when your default org is a production org or Dev Hub (only scratch orgs and sandboxes can be deleted). ([PR #7433](https://github.com/forcedotcom/salesforcedx-vscode/pull/7433))
+#### salesforcedx-lightning-lsp-common
+
+- Avoid Untitled Workspace in Web Console; rename sample project to dx-project - W-22390400 ([PR #7484](https://github.com/forcedotcom/salesforcedx-vscode/pull/7484))
+
+#### salesforcedx-lwc-language-server
+
+- Avoid Untitled Workspace in Web Console; rename sample project to dx-project - W-22390400 ([PR #7484](https://github.com/forcedotcom/salesforcedx-vscode/pull/7484))
+
+#### salesforcedx-vscode
+
+- Include Agentforce Vibes Autocomplete in both extension packs - W-23057893 ([PR #7499](https://github.com/forcedotcom/salesforcedx-vscode/pull/7499))
+
+#### salesforcedx-vscode-apex-oas
+
+- Decouple REST OAS generation from the GPT extension - W-22998168 ([PR #7465](https://github.com/forcedotcom/salesforcedx-vscode/pull/7465))
+
+#### salesforcedx-vscode-expanded
+
+- Include Agentforce Vibes Autocomplete in both extension packs - W-23057893 ([PR #7499](https://github.com/forcedotcom/salesforcedx-vscode/pull/7499))
+
+#### salesforcedx-vscode-services
+
+- Avoid Untitled Workspace in Web Console; rename sample project to dx-project - W-22390400 ([PR #7484](https://github.com/forcedotcom/salesforcedx-vscode/pull/7484))
 
 ## Fixed
 
+#### docs
+
+- ADR-0019 telemetry IDs (cliId, webUserId, SOQL userId) ([PR #7487](https://github.com/forcedotcom/salesforcedx-vscode/pull/7487))
+
+- Capture retroactive ADRs for salesforcedx-vscode - W-22996800 ([PR #7463](https://github.com/forcedotcom/salesforcedx-vscode/pull/7463))
+
+#### salesforcedx-vscode-apex
+
+- Async orphan-process check via TerminalService to fix Windows startup freeze - W-23073461 ([PR #7508](https://github.com/forcedotcom/salesforcedx-vscode/pull/7508))
+
+- Capture retroactive ADRs for salesforcedx-vscode - W-22996800 ([PR #7463](https://github.com/forcedotcom/salesforcedx-vscode/pull/7463))
+
+#### salesforcedx-vscode-apex-oas
+
+- Bump spectral-core to 1.23.0 for minimatch ReDoS - W-23034164 ([PR #7489](https://github.com/forcedotcom/salesforcedx-vscode/pull/7489))
+
+- Capture retroactive ADRs for salesforcedx-vscode - W-22996800 ([PR #7463](https://github.com/forcedotcom/salesforcedx-vscode/pull/7463))
+
+#### salesforcedx-vscode-metadata
+
+- Async orphan-process check via TerminalService to fix Windows startup freeze - W-23073461 ([PR #7508](https://github.com/forcedotcom/salesforcedx-vscode/pull/7508))
+
 #### salesforcedx-vscode-org
 
-- We fixed a bug where the Apex test view didn't refresh immediately after changing the default org. ([PR #7448](https://github.com/forcedotcom/salesforcedx-vscode/pull/7448))
+- Capture retroactive ADRs for salesforcedx-vscode - W-22996800 ([PR #7463](https://github.com/forcedotcom/salesforcedx-vscode/pull/7463))
 
-## Under the Hood
+#### salesforcedx-vscode-services
 
-- We made some under the hood changes. ([PR #7418](https://github.com/forcedotcom/salesforcedx-vscode/pull/7418), [PR #7351](https://github.com/forcedotcom/salesforcedx-vscode/pull/7351))
+- Async orphan-process check via TerminalService to fix Windows startup freeze - W-23073461 ([PR #7508](https://github.com/forcedotcom/salesforcedx-vscode/pull/7508))
+
+- Capture retroactive ADRs for salesforcedx-vscode - W-22996800 ([PR #7463](https://github.com/forcedotcom/salesforcedx-vscode/pull/7463))
 
