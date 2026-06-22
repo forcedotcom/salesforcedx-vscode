@@ -10,6 +10,15 @@ import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
 import { createNonTrackingOrg } from '../orgs/nonTrackingScratchOrgSetup';
 import { executeCommandWithCommandPalette, verifyCommandExists } from '../pages/commands';
 import {
+  focusOnFilesExplorer,
+  goToFile,
+  goToLineColumn,
+  newUntitledTextFile,
+  paste,
+  saveFile,
+  selectAll
+} from '../pages/nativeCommands';
+import {
   clearOutputChannel,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -50,7 +59,7 @@ export const createFileWithContents = async (page: Page, _filePath: string, cont
   await page.locator(WORKBENCH).click();
 
   // Create a new untitled file
-  await executeCommandWithCommandPalette(page, 'File: New Untitled Text File');
+  await newUntitledTextFile(page);
 
   // Wait for command palette to close first
   const widget = activeQuickInputWidget(page);
@@ -124,7 +133,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
 
     // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
-    await executeCommandWithCommandPalette(page, 'Select All');
+    await selectAll(page);
 
     // Delete the selected content
     await page.keyboard.press('Delete');
@@ -134,10 +143,10 @@ export const createApexClass = async (page: Page, className: string, content?: s
     await page.evaluate((text: string) => navigator.clipboard.writeText(text), content);
 
     // Paste the content
-    await executeCommandWithCommandPalette(page, 'Paste');
+    await paste(page);
 
     // Save so the file is persisted and can be deployed / discovered by the test controller
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
   }
 };
@@ -205,7 +214,7 @@ export const openFileFromExplorerTree = async (
   parentFolders: readonly string[] = []
 ): Promise<void> => {
   // Focus the Files Explorer view; palette avoids keybinding conflicts
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  await focusOnFilesExplorer(page);
   const tree = page.getByRole('tree', { name: /Files Explorer/i }).first();
   await tree.waitFor({ state: 'visible', timeout: 10_000 });
 
@@ -246,7 +255,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 
   if (isDesktop()) {
     // On macOS desktop, Control+P doesn't work reliably, use command palette instead
-    await executeCommandWithCommandPalette(page, 'Go to File...');
+    await goToFile(page);
 
     // Wait for Quick Open widget to be visible and ready
     await expect(widget).toBeVisible({ timeout: 10_000 });
@@ -354,7 +363,7 @@ export const replaceLineInOpenFile = async (page: Page, lineNumber: number, newT
   await editor.click();
 
   // Open Go to Line/Column palette, type the line number, confirm
-  await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+  await goToLineColumn(page);
   await page.keyboard.type(String(lineNumber));
   await page.keyboard.press('Enter');
 
@@ -368,7 +377,7 @@ export const replaceLineInOpenFile = async (page: Page, lineNumber: number, newT
   await page.keyboard.press('Delete');
   await page.keyboard.type(newText);
 
-  await executeCommandWithCommandPalette(page, 'File: Save');
+  await saveFile(page);
   await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 };
 
@@ -377,7 +386,7 @@ export const replaceLineInOpenFile = async (page: Page, lineNumber: number, newT
  * Line and column are both 1-indexed.
  */
 export const goToLineCol = async (page: Page, line: number, col: number): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+  await goToLineColumn(page);
   const widget = page.locator(QUICK_INPUT_WIDGET);
   await widget.waitFor({ state: 'visible', timeout: 5000 });
   await page.keyboard.type(`${line}:${col}`);
@@ -409,7 +418,7 @@ export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<
   await page.keyboard.type(`// ${comment}`);
 
   // Save file
-  await executeCommandWithCommandPalette(page, 'File: Save');
+  await saveFile(page);
   await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 };
 
