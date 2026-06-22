@@ -171,11 +171,15 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   // the extension-host cwd (simpleExec runs without a workspace cwd, unlike the picker-based runDeleteCli)
   const targetOrgFlag = orgInfo.username ? ` --target-org ${orgInfo.username}` : '';
   const terminalService = yield* api.services.TerminalService;
-  const output = yield* terminalService.simpleExec({
-    command: `sf ${deleteSubcommand}${targetOrgFlag} --no-prompt`,
-    parse: identity,
-    timeout: DELETE_TIMEOUT
-  });
+  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, which aborts the
+  // runtime AbortSignal simpleExec threads into exec, killing the long-running sf child.
+  const output = yield* terminalService
+    .simpleExec({
+      command: `sf ${deleteSubcommand}${targetOrgFlag} --no-prompt`,
+      parse: identity,
+      timeout: DELETE_TIMEOUT
+    })
+    .pipe(promptService.withCancellableProgress(nls.localize('org_delete_default_progress')));
 
   const channel = yield* api.services.ChannelService;
   yield* channel.appendToChannel(output);
