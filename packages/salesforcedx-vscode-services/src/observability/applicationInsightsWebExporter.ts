@@ -97,7 +97,10 @@ const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan) {
     parentID: span.parentSpanContext?.spanId
   };
 
-  const { userId, webUserId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(
+    Effect.flatMap(SubscriptionRef.get),
+    Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined }))
+  );
 
   const props = {
     ...convertAttributes(span.resource.attributes),

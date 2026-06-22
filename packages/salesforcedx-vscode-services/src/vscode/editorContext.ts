@@ -9,6 +9,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { ProjectService } from '../core/projectService';
 import { EditorService } from './editorService';
 
@@ -21,7 +22,7 @@ const setApexTestContext = (value: boolean) =>
 const IS_TEST_REG_EXP = /@isTest/i;
 
 const isApexTestFile = (editor: vscode.TextEditor | undefined): boolean =>
-  editor?.document.uri.fsPath.endsWith('.cls') ? IS_TEST_REG_EXP.test(editor.document.getText()) : false;
+  editor && Utils.extname(editor.document.uri) === '.cls' ? IS_TEST_REG_EXP.test(editor.document.getText()) : false;
 
 /** Update VS Code context variable when the active editor changes */
 export const watchPackageDirectoriesContext = Effect.fn('watchPackageDirectoriesContext')(function* () {

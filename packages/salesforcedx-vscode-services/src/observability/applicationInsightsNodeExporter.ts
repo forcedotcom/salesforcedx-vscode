@@ -111,10 +111,10 @@ const sendSpan = Effect.fn('sendSpan')(function* (
 ) {
   const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
 
-  const { userId, webUserId } = yield* Effect.gen(function* () {
-    const orgRef = yield* getDefaultOrgRef();
-    return yield* SubscriptionRef.get(orgRef);
-  }).pipe(Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined })));
+  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(
+    Effect.flatMap(SubscriptionRef.get),
+    Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined }))
+  );
 
   const isError = span.status?.code === SpanStatusCode.ERROR;
 
