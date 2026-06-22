@@ -682,6 +682,15 @@ Return the draft list.`,
   { label: 'draft:wis', phase: 'Draft WIs', schema: WI_DRAFTS_SCHEMA }
 )
 
+// Deterministically enforce [ai-auto] prefix so drafts can opt into auto-build-wi
+// regardless of what the agent emitted. Reassigning .drafts updates report + return.
+if (wiDraftsResult && wiDraftsResult.drafts) {
+  wiDraftsResult.drafts = wiDraftsResult.drafts.map(d => ({
+    ...d,
+    subject: /^\[ai-auto\]/i.test(d.subject.trimStart()) ? d.subject : `[ai-auto] ${d.subject.trimStart()}`,
+  }))
+}
+
 if (!wiDraftsResult || !wiDraftsResult.drafts.length) {
   log('No WI drafts produced.')
   return { hypotheses: confirmedHypotheses, refuted: refutedSummary, wis: [] }
