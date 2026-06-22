@@ -10,6 +10,7 @@ import * as Array from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
+import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { TraceFlagItem } from 'salesforcedx-vscode-services';
@@ -17,6 +18,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { type LogCollectorState, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
+import { isTraceFlagActive } from '../traceFlags/traceFlagActive';
 
 const STATUS_BAR_ID = 'apex-trace-flag-status';
 const STATUS_BAR_PRIORITY = 46;
@@ -91,7 +93,12 @@ export const createTraceFlagStatusBar = () =>
           // because the trace flags changed
           currentTraceFlagsRef.changes.pipe(Stream.as(undefined)),
           // because new logs were retrieved
-          collectorRef.changes.pipe(Stream.as(undefined))
+          collectorRef.changes.pipe(Stream.as(undefined)),
+          // because a trace flag may have expired since the last render — re-eval live isTraceFlagActive
+          // so the footer clears within a minute of expiry without a manual toggle or reload. Unlike the
+          // cleanup scheduler (which hits the org), this is a cheap local re-render, so it is NOT gated on
+          // window.state.active — the footer must clear at expiry even while the window is unfocused.
+          Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(Stream.as(undefined))
         ],
         {
           concurrency: 'unbounded'
@@ -117,7 +124,7 @@ const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(
   }
   const traceFlagsRef = yield* CurrentTraceFlags;
   const activeRecords = (yield* SubscriptionRef.get(traceFlagsRef))
-    .filter(rec => rec.isActive)
+    .filter(isTraceFlagActive)
     .toSorted(byExpirationDesc);
 
   const collectorRef = yield* LogCollectorStateRef;
