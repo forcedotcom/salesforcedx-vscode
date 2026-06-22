@@ -131,12 +131,19 @@ const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(
   const collectorState = yield* SubscriptionRef.get(collectorRef);
   const { userId } = yield* SubscriptionRef.get(ref);
   statusBarItem.tooltip = buildTooltip(activeRecords, collectorState, userId);
-  statusBarItem.text = getStatusBarText(collectorState, activeRecords[0]);
+  statusBarItem.text = getStatusBarText(collectorState, selectCurrentUserFlag(activeRecords, userId));
   statusBarItem.show();
 });
 
 const hasCurrentUserTraceFlag = (records: TraceFlagItem[], userId: string | undefined) =>
   Boolean(userId && records.some(r => r.logType === 'DEVELOPER_LOG' && r.tracedEntityId === userId));
+
+/** Returns the current user's own DEVELOPER_LOG trace flag, or undefined if none is active. */
+export const selectCurrentUserFlag = (
+  records: TraceFlagItem[],
+  userId: string | undefined
+): TraceFlagItem | undefined =>
+  userId ? records.find(r => r.logType === 'DEVELOPER_LOG' && r.tracedEntityId === userId) : undefined;
 
 /** Build the tooltip for the status bar item */
 const buildTooltip = (
