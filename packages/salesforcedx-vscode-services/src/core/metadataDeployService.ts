@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DeployOptions, SourceSpec } from '../owned/deploy';
+import type { SourceSpec } from '../owned/deploy';
 import { ComponentSet, type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
@@ -163,11 +163,8 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     }, withActiveMetadataOperationPipeline);
 
     /** Deploy metadata from SourceSpec - returns owned DeployOutcome */
-    const deployFromSource = Effect.fn('MetadataDeployService.deployFromSource')(function* (
-      spec: SourceSpec,
-      opts?: DeployOptions
-    ) {
-      yield* Effect.annotateCurrentSpan({ specKind: spec.kind, opts });
+    const deployFromSource = Effect.fn('MetadataDeployService.deployFromSource')(function* (spec: SourceSpec) {
+      yield* Effect.annotateCurrentSpan({ specKind: spec.kind });
       const components = yield* componentSetService.buildComponentSet(spec);
       const deployResult = yield* deploy(components);
       return toDeployOutcome(deployResult);

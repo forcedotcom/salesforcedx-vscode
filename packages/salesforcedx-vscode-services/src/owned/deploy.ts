@@ -10,8 +10,7 @@ export type SourceSpec =
   | { readonly kind: 'manifest'; readonly manifestUri: string }
   | { readonly kind: 'projectDirectories' };
 
-export type DeployOptions = { readonly ignoreConflicts?: boolean; readonly checkOnly?: boolean };
-export type RetrieveOptions = { readonly ignoreConflicts?: boolean; readonly outputDir?: string };
+export type RetrieveOptions = { readonly ignoreConflicts?: boolean };
 
 export type FileResponseInfo = {
   readonly fullName: string;
