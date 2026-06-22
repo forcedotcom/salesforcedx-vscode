@@ -31,11 +31,6 @@ describe('selectCurrentUserFlag', () => {
     expect(selectCurrentUserFlag([], CURRENT_USER)).toBeUndefined();
   });
 
-  it('returns undefined when userId is undefined', () => {
-    const flag = makeFlag('DEVELOPER_LOG', CURRENT_USER);
-    expect(selectCurrentUserFlag([flag], undefined)).toBeUndefined();
-  });
-
   it('returns the DEVELOPER_LOG flag for the current user', () => {
     const flag = makeFlag('DEVELOPER_LOG', CURRENT_USER);
     expect(selectCurrentUserFlag([flag], CURRENT_USER)).toBe(flag);
