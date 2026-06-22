@@ -12,11 +12,9 @@ import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 // eslint-disable-next-line functional/no-let
 let defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type> | undefined;
 
-export const getDefaultOrgRef = () =>
-  Effect.gen(function* () {
-    defaultOrgRef ??= yield* SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({});
-    return defaultOrgRef;
-  });
+export const getDefaultOrgRef = Effect.fn('getDefaultOrgRef')(function* () {
+  return (defaultOrgRef ??= yield* SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
+});
 
 // preserves the webUserId and cliId when clearing the defaultOrgRef
 export const clearDefaultOrgRef = Effect.fn('clearDefaultOrgRef')(function* () {

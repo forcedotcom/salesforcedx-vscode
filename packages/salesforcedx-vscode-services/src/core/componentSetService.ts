@@ -218,7 +218,7 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
  * Set project directory, API version, and source API version on ComponentSet
  * side effect: mutates the componentSet in place.  There's not a good way to return a new componentSet with the properties set.
  */
-export const setComponentSetProperties = ({
+export const setComponentSetProperties = Effect.fn('setComponentSetProperties')(function* ({
   componentSet,
   project,
   configAggregator,
@@ -229,29 +229,28 @@ export const setComponentSetProperties = ({
   configAggregator: ConfigAggregator;
   /** if not provided, uses the project path.  Useful it retrieving to a custom directory. */
   directory?: URI;
-}) =>
-  Effect.gen(function* () {
-    componentSet.projectDirectory = directory ? uriToPath(directory) : project.getPath();
-    const apiVersion = configAggregator.getPropertyValue<string>(OrgConfigProperties.ORG_API_VERSION);
-    if (apiVersion) {
-      componentSet.apiVersion = apiVersion;
+}) {
+  componentSet.projectDirectory = directory ? uriToPath(directory) : project.getPath();
+  const apiVersion = configAggregator.getPropertyValue<string>(OrgConfigProperties.ORG_API_VERSION);
+  if (apiVersion) {
+    componentSet.apiVersion = apiVersion;
+  }
+  const projectJson = yield* Effect.tryPromise({
+    try: () => project.retrieveSfProjectJson(),
+    catch: e => {
+      const { cause } = unknownToErrorCause(e);
+      return new FailedToResolveSfProjectError({
+        message: `Failed to resolve SfProject: ${cause.message}`,
+        cause
+      });
     }
-    const projectJson = yield* Effect.tryPromise({
-      try: () => project.retrieveSfProjectJson(),
-      catch: e => {
-        const { cause } = unknownToErrorCause(e);
-        return new FailedToResolveSfProjectError({
-          message: `Failed to resolve SfProject: ${cause.message}`,
-          cause
-        });
-      }
-    });
-    const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
-    if (sourceApiVersion) {
-      componentSet.sourceApiVersion = String(sourceApiVersion);
-    }
-    yield* Effect.annotateCurrentSpan({
-      apiVersion: apiVersion ?? 'unset',
-      sourceApiVersion: sourceApiVersion ? String(sourceApiVersion) : 'unset'
-    });
-  }).pipe(Effect.withSpan('setComponentSetProperties'));
+  });
+  const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
+  if (sourceApiVersion) {
+    componentSet.sourceApiVersion = String(sourceApiVersion);
+  }
+  yield* Effect.annotateCurrentSpan({
+    apiVersion: apiVersion ?? 'unset',
+    sourceApiVersion: sourceApiVersion ? String(sourceApiVersion) : 'unset'
+  });
+});

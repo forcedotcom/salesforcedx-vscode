@@ -11,11 +11,10 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 // eslint-disable-next-line functional/no-let
 let activeMetadataOperationRef: SubscriptionRef.SubscriptionRef<number> | undefined;
 
-export const getActiveMetadataOperationRef = () =>
-  Effect.gen(function* () {
-    activeMetadataOperationRef ??= yield* SubscriptionRef.make(0);
-    return activeMetadataOperationRef;
-  });
+export const getActiveMetadataOperationRef = Effect.fn('getActiveMetadataOperationRef')(function* () {
+  activeMetadataOperationRef ??= yield* SubscriptionRef.make(0);
+  return activeMetadataOperationRef;
+});
 
 export const withActiveMetadataOperationPipeline = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
   getActiveMetadataOperationRef().pipe(
