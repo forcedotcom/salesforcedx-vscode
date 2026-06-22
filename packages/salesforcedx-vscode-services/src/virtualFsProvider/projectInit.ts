@@ -41,27 +41,26 @@ const createConfigFiles = (fsp: FsProvider): void => {
 };
 
 /** Creates the project directory structure and files */
-const createProjectStructure = (fsp: FsProvider) =>
-  Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ sampleProjectPath });
-    const dirsToCreate = getDirsToCreate();
-    yield* Effect.annotateCurrentSpan({ dirsToCreate });
+const createProjectStructure = Effect.fn('projectInit: createProjectStructure')(function* (fsp: FsProvider) {
+  yield* Effect.annotateCurrentSpan({ sampleProjectPath });
+  const dirsToCreate = getDirsToCreate();
+  yield* Effect.annotateCurrentSpan({ dirsToCreate });
 
-    yield* Effect.tryPromise({
-      try: () =>
-        Promise.all(
-          dirsToCreate
-            .map(dir => URI.parse(dir))
-            .filter(uri => !fsp.exists(uri))
-            .map(uri => fsp.createDirectory(uri))
-        ),
-      catch: (error: unknown) => new VirtualFsProviderError(unknownToErrorCause(error))
-    });
+  yield* Effect.tryPromise({
+    try: () =>
+      Promise.all(
+        dirsToCreate
+          .map(dir => URI.parse(dir))
+          .filter(uri => !fsp.exists(uri))
+          .map(uri => fsp.createDirectory(uri))
+      ),
+    catch: (error: unknown) => new VirtualFsProviderError(unknownToErrorCause(error))
+  });
 
-    yield* Effect.all([Effect.sync(() => createConfigFiles(fsp)), Effect.sync(() => createVSCodeFiles(fsp))], {
-      concurrency: 'unbounded'
-    });
-  }).pipe(Effect.withSpan('projectInit: createProjectStructure'));
+  yield* Effect.all([Effect.sync(() => createConfigFiles(fsp)), Effect.sync(() => createVSCodeFiles(fsp))], {
+    concurrency: 'unbounded'
+  });
+});
 
 const createVSCodeFiles = (fsp: FsProvider): void => {
   // Create .vscode directory and config files
@@ -86,16 +85,15 @@ const createVSCodeFiles = (fsp: FsProvider): void => {
 };
 
 /** Creates the files for an empty sfdx project */
-export const projectFiles = (fsp: FsProvider) =>
-  Effect.gen(function* () {
-    // Check if project already exists, if not create it
-    const projectExists = fsp.exists(URI.parse(`${sampleProjectPath}/sfdx-project.json`));
-    yield* Effect.annotateCurrentSpan({
-      projectExists,
-      projectFiles: fsp.readDirectory(URI.parse(`${sampleProjectPath}`))
-    });
+export const projectFiles = Effect.fn('projectFiles')(function* (fsp: FsProvider) {
+  // Check if project already exists, if not create it
+  const projectExists = fsp.exists(URI.parse(`${sampleProjectPath}/sfdx-project.json`));
+  yield* Effect.annotateCurrentSpan({
+    projectExists,
+    projectFiles: fsp.readDirectory(URI.parse(`${sampleProjectPath}`))
+  });
 
-    if (!projectExists) {
-      yield* createProjectStructure(fsp);
-    }
-  }).pipe(Effect.withSpan('projectFiles'));
+  if (!projectExists) {
+    yield* createProjectStructure(fsp);
+  }
+});
