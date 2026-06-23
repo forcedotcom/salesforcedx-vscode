@@ -29,10 +29,9 @@ export const createAuraEnabledStrategy = async (
   const generateOAS = Effect.fn('ApexOas.AuraEnabled.generateOAS')(
     function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const connection = yield* api.services.ConnectionService.getConnection();
       const endpoint = `/specifications/oas3/apex/${context.classDetail.name}`;
       const result = yield* Effect.tryPromise({
-        try: () => connection.request({ method: 'GET', url: endpoint }),
+        try: () => api.withDefaultOrg(org => org.request({ method: 'GET', url: endpoint })),
         catch: cause =>
           new OasGenerationFailed({ message: `Failed to fetch OAS specification from org: ${String(cause)}` })
       });
