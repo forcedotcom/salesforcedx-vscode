@@ -97,7 +97,11 @@ export const deserialize = (soqlSyntax: string): Query => {
 
   const { headerComments, headerPaddedSoqlText } = parseHeaderComments(soqlSyntax);
 
-  const result = parser.parseQuery(headerPaddedSoqlText);
+  // the vendored ANTLR parser lacks ALL/ROWS tokens; strip the trailing clause before parse and re-inject as a flag
+  const allRowsMatch = /\s+ALL\s+ROWS\s*$/i.exec(headerPaddedSoqlText);
+  const strippedSoqlText = allRowsMatch ? headerPaddedSoqlText.slice(0, allRowsMatch.index) : headerPaddedSoqlText;
+
+  const result = parser.parseQuery(strippedSoqlText);
   const parseTree = result.getParseTree();
   const errors = result.getParserErrors();
   if (parseTree) {
@@ -106,6 +110,9 @@ export const deserialize = (soqlSyntax: string): Query => {
     query = queryListener.getQuery();
     if (query && headerComments) {
       query.headerComments = new HeaderCommentsImpl(headerComments);
+    }
+    if (query && allRowsMatch) {
+      query.allRows = true;
     }
   }
 

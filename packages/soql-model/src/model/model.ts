@@ -90,6 +90,7 @@ export class SyntaxOptions {
 }
 
 export type Query = SoqlModelObject & {
+  allRows?: boolean;
   headerComments?: HeaderComments;
   select?: Select;
   from?: From;

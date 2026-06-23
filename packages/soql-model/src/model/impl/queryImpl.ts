@@ -24,6 +24,7 @@ import {
 
 export class QueryImpl implements Query {
   public headerComments?: HeaderComments;
+  public allRows?: boolean;
   public with?: With;
   constructor(
     public select?: Select,
@@ -78,6 +79,9 @@ export class QueryImpl implements Query {
     }
     if (this.update) {
       syntax += `${' '.repeat(opts.indent)}${this.update.toSoqlSyntax(opts)}\n`;
+    }
+    if (this.allRows) {
+      syntax += `${' '.repeat(opts.indent)}ALL ROWS\n`;
     }
     return syntax;
   }
