@@ -14,12 +14,12 @@ import { promptForVfTypeName } from './vfTemplateProjectHelpers';
 export const createVisualforcePageCommand = Effect.fn('createVisualforcePageCommand')(function* (arg?: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
+  const projectInfo = yield* api.services.ProjectService.getProjectInfo();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   const pageName = yield* promptForVfTypeName(nls.localize('vf_page_name_prompt'));
 
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'pages');
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, projectInfo.defaultPackage.path, 'main', 'default', 'pages');
 
   const outputDirUri =
     arg ??
