@@ -18,7 +18,10 @@ const minApiVersion = 65.0;
 
 export const discoverTests = (options: DiscoverTestsOptions = {}) =>
   Effect.gen(function* () {
-    const connection = yield* Effect.promise(() => getConnection());
+    const connection = yield* Effect.tryPromise({
+      try: () => getConnection(),
+      catch: (e): Error => (e instanceof Error ? e : new Error(String(e)))
+    });
 
     const connectionApiVersion = parseFloat(connection.getApiVersion());
     // Ensure we use an API version that supports the Test Discovery API (>= 65.0)

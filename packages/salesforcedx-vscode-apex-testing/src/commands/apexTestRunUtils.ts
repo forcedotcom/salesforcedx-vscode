@@ -59,7 +59,10 @@ export const runApexTests = Effect.fn('runApexTests')(function* (
   yield* Effect.annotateCurrentSpan('trigger', options.telemetryTrigger);
   const startTime = Date.now();
 
-  const connection = yield* Effect.promise(() => getConnection());
+  const connection = yield* Effect.tryPromise({
+    try: () => getConnection(),
+    catch: (e): Error => (e instanceof Error ? e : new Error(String(e)))
+  });
   const testService = new TestService(connection);
 
   const progressReporter: Progress<ApexTestProgressValue> = {

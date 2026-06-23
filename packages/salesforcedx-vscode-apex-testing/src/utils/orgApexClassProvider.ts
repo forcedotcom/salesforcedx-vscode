@@ -20,7 +20,10 @@ const SCHEME = 'sf-org-apex';
 /** Lookup function for fetching Apex class body from org */
 const lookupClassBody = (className: string) =>
   Effect.gen(function* () {
-    const connection = yield* Effect.promise(() => getConnection());
+    const connection = yield* Effect.tryPromise({
+      try: () => getConnection(),
+      catch: (e): Error => (e instanceof Error ? e : new Error(String(e)))
+    });
 
     // Query for the Apex class body using Tooling API
     const query = `SELECT Id, Name, Body, NamespacePrefix FROM ApexClass WHERE Name = '${className.replaceAll("'", "''")}' LIMIT 1`;
