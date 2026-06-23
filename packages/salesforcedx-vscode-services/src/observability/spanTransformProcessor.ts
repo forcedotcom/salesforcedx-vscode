@@ -83,7 +83,7 @@ const getPermanentAttributes = () => {
     ...((uiKindString === 'Desktop'
       ? [
           ['common.platformversion', (os?.release?.() ?? '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3')],
-          ['common.systemmemory', `${(os?.totalmem?.() ?? 0 / (1024 * 1024 * 1024)).toFixed(2)} GB`],
+          ['common.systemmemory', `${((os?.totalmem?.() ?? 0) / (1024 * 1024 * 1024)).toFixed(2)} GB`],
           ['common.cpus', getCPUs()]
         ]
       : []) satisfies TelemetryAttribute[])
