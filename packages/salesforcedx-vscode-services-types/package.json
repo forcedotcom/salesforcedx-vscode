@@ -18,6 +18,10 @@
     ".": {
       "types": "./out/index.d.ts",
       "default": "./out/index.js"
+    },
+    "./owned": {
+      "types": "./out/owned.d.ts",
+      "default": "./out/owned.js"
     }
   },
   "files": [
@@ -32,6 +36,8 @@
     "generate-entry": "ts-node scripts/generateEntry.ts",
     "sync-deps": "ts-node scripts/syncDeps.ts",
     "compile": "wireit",
+    "check:consumer": "wireit",
+    "test": "wireit",
     "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz"
   },
   "wireit": {
@@ -43,6 +49,7 @@
       ],
       "output": [
         "src/index.ts",
+        "src/owned.ts",
         "src/icons.ts"
       ]
     },
@@ -62,6 +69,24 @@
       "output": [
         "out/**"
       ]
+    },
+    "test": {
+      "dependencies": [
+        "check:consumer"
+      ]
+    },
+    "check:consumer": {
+      "command": "tsc --noEmit -p test-consumer/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test-consumer/**/*.ts",
+        "test-consumer/tsconfig.json",
+        "out/owned.d.ts",
+        "../../tsconfig.common.json"
+      ],
+      "output": []
     }
   },
   "dependencies": {
