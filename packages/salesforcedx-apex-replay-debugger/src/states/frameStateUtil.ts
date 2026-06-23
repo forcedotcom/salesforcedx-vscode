@@ -95,6 +95,6 @@ export class FrameStateUtil {
   public static isExtraneousVFGetterOrSetterLogLine(logLine: string): boolean {
     const getMatch = ' get\\((.*)\\)';
     const setMatch = ' set\\((.*)\\)';
-    return !(logLine.match(getMatch) == null && logLine.match(setMatch) == null);
+    return logLine.match(getMatch) !== null || logLine.match(setMatch) !== null;
   }
 }

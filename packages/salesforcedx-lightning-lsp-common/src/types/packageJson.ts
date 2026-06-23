@@ -33,5 +33,5 @@ export const isPackageJson = (value: unknown): value is PackageJson => {
   if ('dependencies' in value && !isStringRecord(value.dependencies)) {
     return false;
   }
-  return !('devDependencies' in value && !isStringRecord(value.devDependencies));
+  return !('devDependencies' in value) || isStringRecord(value.devDependencies);
 };
