@@ -41,6 +41,8 @@ export const toProjectInfo = (project: SfProject, paths: ProjectInfoPaths): Proj
     name: paths.name,
     sourceApiVersion: contents.sourceApiVersion,
     namespace: contents.namespace,
+    sfdcLoginUrl: contents.sfdcLoginUrl,
+    defaultLwcLanguage: contents.defaultLwcLanguage,
     defaultPackage: mapPackageDir(defaultPackage),
     packageDirectories: packageDirectories.map(mapPackageDir),
     soqlMetadataPath: paths.soqlMetadataPath,

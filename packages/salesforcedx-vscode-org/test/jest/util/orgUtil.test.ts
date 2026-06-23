@@ -401,7 +401,7 @@ describe('testing setTargetOrgOrAlias', () => {
 });
 
 describe('updateConfigAndStateAggregators', () => {
-  let getConnectionMock: jest.Mock;
+  let withDefaultOrgMock: jest.Mock;
   let invalidateCachedConnectionsMock: jest.Mock;
   let invalidateConfigAggregatorMock: jest.Mock;
 
@@ -415,17 +415,17 @@ describe('updateConfigAndStateAggregators', () => {
     jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
     (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
 
-    getConnectionMock = jest.fn().mockReturnValue(Effect.succeed({}));
+    withDefaultOrgMock = jest.fn().mockResolvedValue(undefined);
     invalidateCachedConnectionsMock = jest.fn().mockReturnValue(Effect.void);
     invalidateConfigAggregatorMock = jest.fn().mockReturnValue(Effect.void);
 
     const mockServicesApi = {
+      withDefaultOrg: withDefaultOrgMock,
       services: {
         ConfigService: {
           invalidateConfigAggregator: invalidateConfigAggregatorMock
         },
         ConnectionService: {
-          getConnection: getConnectionMock,
           invalidateCachedConnections: invalidateCachedConnectionsMock
         }
       }
@@ -444,20 +444,20 @@ describe('updateConfigAndStateAggregators', () => {
     resetOrgRuntimeForTesting();
   });
 
-  it('should call getConnection after invalidating caches to refresh TargetOrgRef', async () => {
+  it('should refresh the connection via withDefaultOrg after invalidating caches to refresh TargetOrgRef', async () => {
     await updateConfigAndStateAggregators();
 
     expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
     expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
-    expect(getConnectionMock).toHaveBeenCalled();
+    expect(withDefaultOrgMock).toHaveBeenCalled();
   });
 
-  it('should not throw when getConnection fails', async () => {
-    getConnectionMock.mockReturnValue(Effect.fail(new Error('No target org configured')));
+  it('should not throw when the connection refresh fails', async () => {
+    withDefaultOrgMock.mockRejectedValue(new Error('No target org configured'));
 
     await expect(updateConfigAndStateAggregators()).resolves.toBeUndefined();
     expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
     expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
-    expect(getConnectionMock).toHaveBeenCalled();
+    expect(withDefaultOrgMock).toHaveBeenCalled();
   });
 });

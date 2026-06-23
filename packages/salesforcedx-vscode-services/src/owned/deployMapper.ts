@@ -5,15 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Adapter layer: maps SDR results to owned types. MAY import SDR.
+// Adapter layer: maps SDR results to owned types. Imports SDR TYPES ONLY (no value imports), so consumers
+// that transitively load this mapper don't pull SDR's runtime module graph.
 import type { ComponentFailureInfo, DeployOutcome, FileResponseInfo, RetrieveOutcome } from './deploy';
-import {
-  type DeployMessage,
-  type DeployResult,
-  type FileResponse,
-  RequestStatus,
-  type RetrieveResult
-} from '@salesforce/source-deploy-retrieve';
+import type { DeployMessage, DeployResult, FileResponse, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 
 const mapFileResponse = (fr: FileResponse): FileResponseInfo => ({
   fullName: fr.fullName,
@@ -36,8 +31,8 @@ const mapComponentFailure = (m: DeployMessage): ComponentFailureInfo => ({
   problemType: m.problemType ?? 'Error'
 });
 
-const appliedToOrg = (status: RequestStatus): boolean =>
-  status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
+// RequestStatus is a string enum; compare to its string values to avoid a runtime value-import of SDR.
+const appliedToOrg = (status: string): boolean => status === 'Succeeded' || status === 'SucceededPartial';
 
 export const toDeployOutcome = (result: DeployResult): DeployOutcome => ({
   success: result.response.success,

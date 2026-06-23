@@ -16,6 +16,10 @@ export type ProjectInfo = {
   readonly name: string;
   readonly sourceApiVersion?: string;
   readonly namespace?: string;
+  /** sfdc-project.json `sfdcLoginUrl`, when set (used by auth flows). */
+  readonly sfdcLoginUrl?: string;
+  /** sfdc-project.json `defaultLwcLanguage`, when set (e.g. 'typescript' | 'javascript'). */
+  readonly defaultLwcLanguage?: string;
   readonly defaultPackage: PackageDirInfo;
   readonly packageDirectories: readonly PackageDirInfo[];
   readonly soqlMetadataPath: string;

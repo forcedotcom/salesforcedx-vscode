@@ -193,9 +193,6 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
 
 const getProjectLoginUrl = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  // NOTE: ProjectInfo doesn't expose sfdcLoginUrl yet - this is a coverage gap
-  // that needs ProjectInfo.sfdcLoginUrl? added to owned surface (W-22419571)
-  const project = yield* api.services.ProjectService.getSfProject();
-  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return projectJson.get('sfdcLoginUrl');
+  const projectInfo = yield* api.services.ProjectService.getProjectInfo();
+  return projectInfo.sfdcLoginUrl;
 });
