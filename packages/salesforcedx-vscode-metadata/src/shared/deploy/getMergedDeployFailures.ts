@@ -5,48 +5,35 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { DeployMessage, DeployResult, FileResponseFailure } from '@salesforce/source-deploy-retrieve';
-import * as Effect from 'effect/Effect';
+import type { DeployOutcome, FileResponseInfo } from 'salesforcedx-vscode-services';
 
 const makeKey = (type: string, name: string): string => `${type}#${name}`;
 
-const toDeployMessageArray = (raw: DeployMessage | DeployMessage[] | undefined): DeployMessage[] => {
-  if (raw === undefined) return [];
-  return Array.isArray(raw) ? raw : [raw];
-};
-
 /**
- * Merge file-level failures with `response.details.componentFailures`, matching
+ * Merge file-level failures with `componentFailures`, matching
  * plugin-deploy-retrieve `DeployResultFormatter.getFileResponseFailures` / `sf project deploy start`.
+ * Now operates on owned DeployOutcome (sync, no Effect needed).
  */
-export const getMergedDeployFailures = Effect.fn('getMergedDeployFailures')(function* (result: DeployResult) {
-  const { isSDRFailure, makeFileResponseFailure } = yield* (yield* (yield* ExtensionProviderService).getServicesApi)
-    .services.ComponentSetService;
+export const getMergedDeployFailures = (outcome: DeployOutcome): readonly FileResponseInfo[] => {
+  const failures = outcome.fileResponses.filter(fr => fr.state === 'Failed');
 
-  const failures = result.getFileResponses().filter(isSDRFailure);
-  const deployMessages = toDeployMessageArray(result.response?.details?.componentFailures);
-
-  if (deployMessages.length <= failures.length) {
+  if (outcome.componentFailures.length <= failures.length) {
     return failures;
   }
 
-  const failureKeySet = new Set(failures.map(f => makeKey(f.type, f.fullName)));
+  const seen = new Set(failures.map(f => makeKey(f.type, f.fullName)));
 
-  const extras = deployMessages.reduce<FileResponseFailure[]>((acc, m) => {
-    if (m.componentType && failureKeySet.has(makeKey(m.componentType, m.fullName))) {
-      return acc;
-    }
-    acc.push(
-      makeFileResponseFailure({
+  const extras = outcome.componentFailures
+    .filter(m => !seen.has(makeKey(m.type, m.fullName)))
+    .map(
+      (m): FileResponseInfo => ({
         fullName: m.fullName,
-        type: m.componentType ?? 'UNKNOWN',
-        error: m.problem ?? 'UNKNOWN',
-        problemType: m.problemType ?? 'Error'
+        type: m.type,
+        state: 'Failed',
+        error: m.problem,
+        problemType: m.problemType
       })
     );
-    return acc;
-  }, []);
 
   return [...failures, ...extras];
-});
+};

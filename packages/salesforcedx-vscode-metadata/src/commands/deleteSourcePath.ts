@@ -7,6 +7,8 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+// eslint-disable-next-line import/no-extraneous-dependencies -- toDeployOutcome is a pure mapper function
+import { toDeployOutcome } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
@@ -66,9 +68,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
       // add the error output to the chanel, let the regular error handler do the rest
       Effect.tapErrorTag('DeleteSourceFailedError', (error: DeleteSourceFailedError) =>
         Effect.all([
-          ...(error.result
-            ? [formatDeployOutput(error.result).pipe(Effect.flatMap(o => channelService.appendToChannel(o)))]
-            : []),
+          ...(error.result ? [channelService.appendToChannel(formatDeployOutput(toDeployOutcome(error.result)))] : []),
           channelService.getChannel.pipe(Effect.map(channel => channel.show()))
         ])
       )

@@ -7,7 +7,8 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+// eslint-disable-next-line import/no-extraneous-dependencies -- toDeployOutcome is a pure mapper function
+import { toDeployOutcome, type NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
@@ -44,7 +45,7 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   // Delete local files after successful deploy
   yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet);
-  yield* channelService.appendToChannel(yield* formatDeployOutput(result));
+  yield* channelService.appendToChannel(formatDeployOutput(toDeployOutcome(result)));
 
   if (result.getFileResponses().some(isSDRFailure)) {
     yield* Effect.sync(() => {

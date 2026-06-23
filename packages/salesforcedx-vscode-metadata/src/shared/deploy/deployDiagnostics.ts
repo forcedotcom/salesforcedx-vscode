@@ -6,8 +6,8 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { FileResponseFailure } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import type { FileResponseInfo } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
 
@@ -50,9 +50,9 @@ const resolveFileUri = Effect.fn('deployDiagnostics.resolveFileUri')(function* (
   return isAbsolute ? yield* fs.toUri(filePath) : Utils.resolvePath(workspaceUri, filePath ?? '');
 });
 
-/** Apply deploy failures to Problems panel. Clears first, then sets failures. Caller filters with ComponentSetService.isSDRFailure. */
+/** Apply deploy failures to Problems panel. Operates on owned FileResponseInfo. Clears first, then sets failures. */
 export const applyDeployDiagnostics = Effect.fn('applyDeployDiagnostics')(function* (
-  failedResponses: FileResponseFailure[]
+  failedResponses: readonly FileResponseInfo[]
 ) {
   const workspaceUri = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
     Effect.flatMap(api => api.services.WorkspaceService.getWorkspaceInfoOrThrow()),

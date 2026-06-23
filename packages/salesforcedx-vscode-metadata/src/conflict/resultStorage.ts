@@ -6,7 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
@@ -16,7 +16,7 @@ import * as Order from 'effect/Order';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { HashableUri } from 'salesforcedx-vscode-services';
+import type { DeployOutcome, HashableUri } from 'salesforcedx-vscode-services';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { MissingDefaultOrgError } from '../shared/diff/diffErrors';
@@ -100,18 +100,19 @@ const orgTracksSource = Effect.fn('resultStorage.orgTracksSource')(function* () 
 });
 
 /** Store deploy result JSON if the deploy succeeded and the org doesn't track source.
- * Uses completedDate from deployResult, falling back to client timestamp. */
+ * Uses completedDate from deployResult, falling back to client timestamp.
+ * Now operates on owned DeployOutcome. */
 export const maybeStoreDeployResult = Effect.fn('resultStorage.maybeStoreDeployResult')(function* (
-  result: DeployResult
+  outcome: DeployOutcome
 ) {
-  if (!isSucceeded(result.response?.status) || (yield* orgTracksSource())) return;
+  if (!isSucceeded(outcome.status) || (yield* orgTracksSource())) return;
 
-  const timestamp = result.response?.completedDate
-    ? DateTime.unsafeMake(new Date(result.response.completedDate))
+  const timestamp = outcome.completedDate
+    ? DateTime.unsafeMake(new Date(outcome.completedDate))
     : DateTime.unsafeMake(new Date());
-  const components = result
-    .getFileResponses() // we don't have timestamps on fileResponse
-    .map(fr => toStoredComponent(fr.type, fr.fullName, DateTime.formatIso(timestamp)));
+  const components = outcome.fileResponses.map(fr =>
+    toStoredComponent(fr.type, fr.fullName, DateTime.formatIso(timestamp))
+  );
   yield* storeResult('deploy', components, timestamp);
 });
 

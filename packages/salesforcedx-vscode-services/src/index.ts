@@ -205,6 +205,7 @@ export {
   ChildRelationshipSchema,
   PicklistValueSchema
 } from './core/transmogrifierService';
+export { toDeployOutcome, toRetrieveOutcome } from './owned/deployMapper';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
