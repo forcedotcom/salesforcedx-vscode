@@ -41,6 +41,14 @@ describe('O11ySpanExporter pdp schema contract', () => {
     const mod = await import('o11y_schema/sf_pdp');
     expect(mod.pdpEventSchema).toBeDefined();
     expect(typeof mod.pdpEventSchema).toBe('object');
+    // shape-key check catches schema-shape drift / renamed export between o11y_schema versions
+    expect(mod.pdpEventSchema).toEqual(
+      expect.objectContaining({
+        namespace: expect.anything(),
+        name: expect.anything(),
+        pbjsSchema: expect.anything()
+      })
+    );
   });
 
   it('passes the resolved pdpEventSchema into logEventWithSchema for command spans with a productFeatureId', async () => {
