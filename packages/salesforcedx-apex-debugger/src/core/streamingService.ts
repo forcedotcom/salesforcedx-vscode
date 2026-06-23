@@ -48,10 +48,7 @@ export class StreamingService {
 
   public hasProcessedEvent(type: ApexDebuggerEventType, replayId: number): boolean {
     const client = this.getClient(type);
-    if (client && replayId > client.getReplayId()) {
-      return false;
-    }
-    return true;
+    return !(client && replayId > client.getReplayId());
   }
 
   public markEventProcessed(type: ApexDebuggerEventType, replayId: number): void {
@@ -92,9 +89,6 @@ export class StreamingService {
   }
 
   public isReady(): boolean {
-    if (this.systemEventClient?.isConnected() && this.userEventClient?.isConnected()) {
-      return true;
-    }
-    return false;
+    return Boolean(this.systemEventClient?.isConnected() && this.userEventClient?.isConnected());
   }
 }
