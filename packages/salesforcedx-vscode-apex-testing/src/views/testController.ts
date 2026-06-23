@@ -1408,9 +1408,10 @@ export class ApexTestController {
       } catch (error) {
         const friendlyMessage = toUserFriendlyApexTestError(error);
         for (const test of testsToDebug) {
-          if (isClass(test.id) && getTestName(test) === className) {
-            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
-          } else if (isMethod(test.id) && extractClassName(test.id) === className) {
+          if (
+            (isClass(test.id) && getTestName(test) === className) ||
+            (isMethod(test.id) && extractClassName(test.id) === className)
+          ) {
             run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
           }
         }

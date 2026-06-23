@@ -29,7 +29,11 @@ type OrgSnapshot = { orgId?: string; username?: string; isScratch?: boolean; isS
 const buildServices = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: jest.Mock) => ({
   PromptService: Effect.succeed({
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
-      confirm ? Effect.void : Effect.fail(userCancellationError)
+      confirm ? Effect.void : Effect.fail(userCancellationError),
+    withCancellableProgress:
+      <A, E>(_message: string) =>
+      (effect: Effect.Effect<A, E>) =>
+        effect
   }),
   TerminalService: Effect.succeed({ simpleExec }),
   ChannelService: Effect.succeed({ appendToChannel: () => Effect.void }),
