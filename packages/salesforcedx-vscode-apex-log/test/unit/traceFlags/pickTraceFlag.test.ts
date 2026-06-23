@@ -51,6 +51,8 @@ describe('pickTraceFlag', () => {
     const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
     const typedItems = items as unknown as TraceFlagQuickPickItem[];
     expect(typedItems.map(i => i.traceFlagId)).toEqual([ACTIVE.id]);
+    expect(typedItems[0].description).toBe(ACTIVE.logType);
+    expect(typedItems[0].detail).toMatch(/^Expires /);
     expect(exit).toStrictEqual(Exit.succeed(ACTIVE.id));
   });
 
@@ -64,37 +66,19 @@ describe('pickTraceFlag', () => {
     expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
   });
 
-  it('uses tracedEntityName as the label when available', async () => {
-    const flagWithName = makeFlag('tf-named', { tracedEntityName: 'Alice Smith', tracedEntityId: '005ALICE' });
+  it.each([
+    ['tracedEntityName', { tracedEntityName: 'Alice Smith', tracedEntityId: '005ALICE' }, 'Alice Smith'],
+    ['tracedEntityId when name absent', { tracedEntityId: '005XYZ' }, '005XYZ'],
+    ['tf.id when name and entityId absent', {}, 'tf-label']
+  ])('labels the item with %s', async (_desc, overrides, expectedLabel) => {
+    const flag = makeFlag('tf-label', overrides);
     jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
 
-    await run([flagWithName]);
+    await run([flag]);
 
     const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
     const typedItems = items as unknown as TraceFlagQuickPickItem[];
-    expect(typedItems[0].label).toBe('Alice Smith');
-    expect(typedItems[0].traceFlagId).toBe('tf-named');
-  });
-
-  it('falls back to tracedEntityId when tracedEntityName is absent', async () => {
-    const flagNoName = makeFlag('tf-noid', { tracedEntityId: '005XYZ' });
-    jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
-
-    await run([flagNoName]);
-
-    const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
-    const typedItems = items as unknown as TraceFlagQuickPickItem[];
-    expect(typedItems[0].label).toBe('005XYZ');
-  });
-
-  it('falls back to tf.id when both tracedEntityName and tracedEntityId are absent', async () => {
-    const flagIdOnly = makeFlag('tf-idonly');
-    jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
-
-    await run([flagIdOnly]);
-
-    const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
-    const typedItems = items as unknown as TraceFlagQuickPickItem[];
-    expect(typedItems[0].label).toBe('tf-idonly');
+    expect(typedItems[0].label).toBe(expectedLabel);
+    expect(typedItems[0].traceFlagId).toBe('tf-label');
   });
 });
