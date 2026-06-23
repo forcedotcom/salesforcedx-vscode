@@ -33,7 +33,16 @@ const createMockConnectionService = (listResult: ListItem | ListItem[]): Layer.L
           }
         } as unknown as Connection),
       invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
+      listAllAuthorizations: () => Effect.succeed([]),
+      withDefaultOrg: () => Effect.succeed(undefined as never),
+      getConnectionData: () =>
+        Effect.succeed({
+          accessToken: '',
+          instanceUrl: '',
+          apiVersion: '60.0',
+          username: '',
+          orgId: ''
+        })
     })
   );
 

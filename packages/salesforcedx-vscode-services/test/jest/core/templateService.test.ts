@@ -82,7 +82,20 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
       getFauxClassesPath: () => Effect.succeed(URI.file('/test/faux')),
       getFauxStandardObjectsPath: () => Effect.succeed(URI.file('/test/faux/std')),
       getFauxCustomObjectsPath: () => Effect.succeed(URI.file('/test/faux/custom')),
-      getTypingsPath: () => Effect.succeed(URI.file('/test/.sfdx/typings'))
+      getTypingsPath: () => Effect.succeed(URI.file('/test/.sfdx/typings')),
+      getProjectInfo: () =>
+        Effect.succeed({
+          path: '/test',
+          name: 'test-project',
+          defaultPackage: { path: 'force-app', default: true, fullPath: '/test/force-app' },
+          packageDirectories: [{ path: 'force-app', default: true, fullPath: '/test/force-app' }],
+          soqlMetadataPath: '/test/soql',
+          soqlCustomObjectsPath: '/test/soql/custom',
+          soqlStandardObjectsPath: '/test/soql/std',
+          fauxStandardObjectsPath: '/test/faux/std',
+          fauxCustomObjectsPath: '/test/faux/custom',
+          typingsPath: '/test/.sfdx/typings'
+        })
     })
   );
 };
@@ -93,7 +106,16 @@ const createMockConnectionService = (): Layer.Layer<ConnectionService> =>
     ConnectionService.make({
       getConnection: () => Effect.succeed({ version: '60.0' } as unknown as import('@salesforce/core').Connection),
       invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
+      listAllAuthorizations: () => Effect.succeed([]),
+      withDefaultOrg: () => Effect.succeed(undefined as never),
+      getConnectionData: () =>
+        Effect.succeed({
+          accessToken: '',
+          instanceUrl: '',
+          apiVersion: '60.0',
+          username: '',
+          orgId: ''
+        })
     })
   );
 

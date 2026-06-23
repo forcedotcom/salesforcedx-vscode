@@ -10,7 +10,7 @@ import type { ChangeResult } from '@salesforce/source-tracking';
 
 describe('toOrgChange', () => {
   it('maps a ChangeResult with single filename to OrgChange', () => {
-    const change: ChangeResult = {
+    const change: ChangeResult & { name: string; type: string } = {
       name: 'MyClass',
       type: 'ApexClass',
       origin: 'remote',
@@ -25,7 +25,7 @@ describe('toOrgChange', () => {
   });
 
   it('maps a ChangeResult with multiple filenames to OrgChange using first file', () => {
-    const change: ChangeResult = {
+    const change: ChangeResult & { name: string; type: string } = {
       name: 'MyClass',
       type: 'ApexClass',
       origin: 'local',
@@ -40,7 +40,7 @@ describe('toOrgChange', () => {
   });
 
   it('maps a ChangeResult with no filenames to OrgChange without filePath', () => {
-    const change: ChangeResult = {
+    const change: ChangeResult & { name: string; type: string } = {
       name: 'MyClass',
       type: 'ApexClass',
       origin: 'remote'
@@ -53,7 +53,7 @@ describe('toOrgChange', () => {
   });
 
   it('maps a ChangeResult with empty filenames array to OrgChange without filePath', () => {
-    const change: ChangeResult = {
+    const change: ChangeResult & { name: string; type: string } = {
       name: 'MyClass',
       type: 'ApexClass',
       origin: 'local',
