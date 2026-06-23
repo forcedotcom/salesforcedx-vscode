@@ -85,13 +85,12 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
   const vscChannel = yield* channelService.getChannel;
 
   try {
-    const connection = yield* servicesApi.services.ConnectionService.getConnection();
     yield* channelService.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')));
 
     const encodedQuery = encodeURIComponent(query);
     const path = `/query?explain=${encodedQuery}`;
 
-    const result = yield* Effect.promise(() => connection.request(path)).pipe(
+    const result = yield* Effect.promise(() => servicesApi.withDefaultOrg(org => org.request(path))).pipe(
       Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse))
     );
     yield* channelService.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);

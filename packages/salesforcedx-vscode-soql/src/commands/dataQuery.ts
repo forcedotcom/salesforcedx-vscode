@@ -22,7 +22,6 @@ import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs 
  */
 const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
   const channelService = yield* api.services.ChannelService;
 
   yield* channelService.appendToChannel(
@@ -30,11 +29,15 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
   );
 
   const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
-  return yield* Effect.promise(() =>
-    useTooling
-      ? connection.tooling.query(query, { autoFetch: true, maxFetch })
-      : connection.query(query, { autoFetch: true, maxFetch })
-  );
+  // OwnedQueryResult is structurally compatible with QueryResult (both have done, totalSize, records)
+  const executeQuery = async (): Promise<QueryResult<JsonMap>> => {
+    const result = await api.withDefaultOrg(org =>
+      org.query<JsonMap>(query, { autoFetch: true, maxFetch, tooling: useTooling })
+    );
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    return result as QueryResult<JsonMap>;
+  };
+  return yield* Effect.promise(executeQuery);
 });
 
 const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonMap>) {
