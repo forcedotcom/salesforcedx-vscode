@@ -49,8 +49,19 @@ export const toDeployOutcome = (result: DeployResult): DeployOutcome => ({
   errorMessage: result.response.errorMessage
 });
 
-export const toRetrieveOutcome = (result: RetrieveResult): RetrieveOutcome => ({
-  success: result.response.success,
-  status: result.response.status,
-  fileResponses: result.getFileResponses().map(mapFileResponse)
-});
+export const toRetrieveOutcome = (result: RetrieveResult): RetrieveOutcome => {
+  const fileProperties = result.response?.fileProperties;
+  const normalizedProperties =
+    fileProperties === undefined ? [] : Array.isArray(fileProperties) ? fileProperties : [fileProperties];
+
+  return {
+    success: result.response.success,
+    status: result.response.status,
+    fileResponses: result.getFileResponses().map(mapFileResponse),
+    components: normalizedProperties.map(fp => ({
+      type: fp.type,
+      fullName: fp.fullName,
+      lastModifiedDate: fp.lastModifiedDate
+    }))
+  };
+};

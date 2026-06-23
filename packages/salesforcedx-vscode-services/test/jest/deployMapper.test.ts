@@ -105,4 +105,47 @@ describe('toRetrieveOutcome', () => {
       error: undefined
     });
   });
+
+  it('populates components from fileProperties (array)', () => {
+    const fake = {
+      response: {
+        success: true,
+        status: 'Succeeded',
+        fileProperties: [
+          { type: 'ApexClass', fullName: 'MyClass', lastModifiedDate: '2026-06-23T10:00:00.000Z' },
+          { type: 'ApexClass', fullName: 'OtherClass', lastModifiedDate: '2026-06-23T11:00:00.000Z' }
+        ]
+      },
+      getFileResponses: () => []
+    };
+    const out = toRetrieveOutcome(fake as never);
+    expect(out.components).toEqual([
+      { type: 'ApexClass', fullName: 'MyClass', lastModifiedDate: '2026-06-23T10:00:00.000Z' },
+      { type: 'ApexClass', fullName: 'OtherClass', lastModifiedDate: '2026-06-23T11:00:00.000Z' }
+    ]);
+  });
+
+  it('populates components from fileProperties (single)', () => {
+    const fake = {
+      response: {
+        success: true,
+        status: 'Succeeded',
+        fileProperties: { type: 'ApexClass', fullName: 'SingleClass', lastModifiedDate: '2026-06-23T10:00:00.000Z' }
+      },
+      getFileResponses: () => []
+    };
+    const out = toRetrieveOutcome(fake as never);
+    expect(out.components).toEqual([
+      { type: 'ApexClass', fullName: 'SingleClass', lastModifiedDate: '2026-06-23T10:00:00.000Z' }
+    ]);
+  });
+
+  it('populates empty components when fileProperties is undefined', () => {
+    const fake = {
+      response: { success: true, status: 'Succeeded' },
+      getFileResponses: () => []
+    };
+    const out = toRetrieveOutcome(fake as never);
+    expect(out.components).toEqual([]);
+  });
 });

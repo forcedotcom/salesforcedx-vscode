@@ -6,7 +6,6 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
@@ -16,12 +15,11 @@ import * as Order from 'effect/Order';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DeployOutcome, HashableUri } from 'salesforcedx-vscode-services';
+import type { DeployOutcome, HashableUri, RetrieveOutcome } from 'salesforcedx-vscode-services';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { MissingDefaultOrgError } from '../shared/diff/diffErrors';
 import { getStaleUris } from './resultStorageCleanup';
-import { getFileProperties } from './shared';
 
 /** One metadata component within a stored result file. lastModifiedDate is the server-reported
  * value for retrieves, or the server completedDate (falling back to client timestamp) for deploys. */
@@ -117,14 +115,14 @@ export const maybeStoreDeployResult = Effect.fn('resultStorage.maybeStoreDeployR
 });
 
 /** Store retrieve result JSON if the retrieve succeeded and the org doesn't track source.
- * Uses lastModifiedDate from fileProperties per component. */
+ * Uses lastModifiedDate from fileProperties per component. Now operates on owned RetrieveOutcome. */
 export const maybeStoreRetrieveResult = Effect.fn('resultStorage.maybeStoreRetrieveResult')(function* (
-  result: RetrieveResult
+  outcome: RetrieveOutcome
 ) {
-  if (!isSucceeded(result.response?.status) || (yield* orgTracksSource())) return;
+  if (!isSucceeded(outcome.status) || (yield* orgTracksSource())) return;
 
   const timestamp = DateTime.unsafeMake(new Date());
-  const components = getFileProperties(result).map(fp => toStoredComponent(fp.type, fp.fullName, fp.lastModifiedDate));
+  const components = outcome.components.map(c => toStoredComponent(c.type, c.fullName, c.lastModifiedDate));
   yield* storeResult('retrieve', components, timestamp);
 });
 

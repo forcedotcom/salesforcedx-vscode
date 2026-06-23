@@ -457,6 +457,7 @@ export { type FsService } from './vscode/fsService';
 export type {
   DeployOutcome,
   RetrieveOutcome,
+  RetrievedComponentInfo,
   FileResponseInfo,
   ComponentFailureInfo,
   SourceSpec,

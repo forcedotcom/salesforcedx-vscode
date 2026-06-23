@@ -7,7 +7,6 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-// eslint-disable-next-line import/no-extraneous-dependencies -- toDeployOutcome is a pure mapper function
 import { toDeployOutcome, type NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { nls } from '../../messages';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';

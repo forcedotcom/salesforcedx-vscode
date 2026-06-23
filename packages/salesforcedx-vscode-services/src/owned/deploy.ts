@@ -53,8 +53,16 @@ export type DeployOutcome = {
   /** Server-reported top-level error message when the deploy failed, when present. */
   readonly errorMessage?: string;
 };
+export type RetrievedComponentInfo = {
+  readonly type: string;
+  readonly fullName: string;
+  readonly lastModifiedDate: string;
+};
+
 export type RetrieveOutcome = {
   readonly success: boolean;
   readonly status: string;
   readonly fileResponses: readonly FileResponseInfo[];
+  /** Per-component server metadata (from fileProperties) for result-storage timestamps. */
+  readonly components: readonly RetrievedComponentInfo[];
 };

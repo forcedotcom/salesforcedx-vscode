@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../../conflict/conflictFlow';
 import { nls } from '../../messages';
-import { formatRetrieveOutput } from '../../shared/retrieve/formatRetrieveOutput';
+import { formatRetrieveOutputFromResult } from '../../shared/retrieve/formatRetrieveOutput';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
 import { withConfigurableSuccessNotification } from '../../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../../utils/withPreparationProgress';
@@ -31,7 +31,7 @@ const applyAndRetrieve = Effect.fn('projectRetrieve.applyAndRetrieve')(function*
         ignoreConflicts: true,
         fileResponsesFromDelete
       })
-    : channelService.appendToChannel(yield* formatRetrieveOutput(undefined, fileResponsesFromDelete));
+    : channelService.appendToChannel(yield* formatRetrieveOutputFromResult(undefined, fileResponsesFromDelete));
 });
 
 const retrieveEffect = Effect.fn('retrieveEffect')(

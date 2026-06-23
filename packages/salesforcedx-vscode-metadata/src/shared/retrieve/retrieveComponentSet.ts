@@ -6,8 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet, FileResponse } from '@salesforce/source-deploy-retrieve';
+import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { toRetrieveOutcome, type FileResponseInfo } from 'salesforcedx-vscode-services';
 import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
@@ -17,7 +18,7 @@ import { retrieveHasErrors, RetrieveCompletedWithErrorsError } from './retrieveO
 export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* (options: {
   componentSet: ComponentSet;
   ignoreConflicts?: boolean;
-  fileResponsesFromDelete?: FileResponse[];
+  fileResponsesFromDelete?: FileResponseInfo[];
 }) {
   const { componentSet, ignoreConflicts, fileResponsesFromDelete } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -27,12 +28,13 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
 
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
+  const outcome = toRetrieveOutcome(result);
 
-  yield* channelService.appendToChannel(yield* formatRetrieveOutput(result, fileResponsesFromDelete));
+  yield* channelService.appendToChannel(formatRetrieveOutput(outcome, fileResponsesFromDelete));
 
-  yield* maybeStoreRetrieveResult(result);
+  yield* maybeStoreRetrieveResult(outcome);
 
-  if (yield* retrieveHasErrors(result)) {
+  if (retrieveHasErrors(outcome)) {
     const channel = yield* channelService.getChannel;
     yield* Effect.sync(() => channel.show());
     return yield* new RetrieveCompletedWithErrorsError({
