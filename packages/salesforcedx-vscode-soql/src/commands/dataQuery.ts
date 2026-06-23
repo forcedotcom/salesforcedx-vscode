@@ -10,6 +10,7 @@ import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
+import { stripAllRows } from '../editor/allRows';
 import { nls } from '../messages';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
 
@@ -20,7 +21,7 @@ import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs 
  * @param query - SOQL query string to execute
  * @param useTooling - Whether to use the Tooling API instead of REST
  */
-const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
+export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const connection = yield* api.services.ConnectionService.getConnection();
   const channelService = yield* api.services.ChannelService;
@@ -30,10 +31,12 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
   );
 
   const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
+  // strip a trailing ALL ROWS and route to /queryAll via scanAll — the endpoint rejects literal ALL ROWS text
+  const { soql, scanAll } = stripAllRows(query);
   return yield* Effect.promise(() =>
     useTooling
-      ? connection.tooling.query(query, { autoFetch: true, maxFetch })
-      : connection.query(query, { autoFetch: true, maxFetch })
+      ? connection.tooling.query(soql, { autoFetch: true, maxFetch, scanAll })
+      : connection.query(soql, { autoFetch: true, maxFetch, scanAll })
   );
 });
 
