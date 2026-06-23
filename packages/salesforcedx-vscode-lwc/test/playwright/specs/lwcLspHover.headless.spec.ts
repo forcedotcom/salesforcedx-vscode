@@ -71,7 +71,10 @@ test('LWC LSP provides hover documentation for lightning-accordion in HTML templ
     // "View in Component Library" appears in every lightning-* component hover.
     await expect(async () => {
       await page.keyboard.press('Escape');
-      await page.mouse.move(0, 0);
+      // Move the pointer off the token to an editor-body coordinate so the next hover() is a
+      // genuine pointer transition (avoids targeting the workbench title bar at 0,0).
+      const editorBox = await editor.boundingBox();
+      await page.mouse.move((editorBox?.x ?? 0) + 10, (editorBox?.y ?? 0) + (editorBox?.height ?? 0) - 10);
       await tagToken.hover();
       await expect(
         page.locator('.monaco-hover').filter({ hasText: /View in Component Library/i }),
@@ -114,7 +117,10 @@ test('LWC LSP provides hover type information for LightningElement in JS files',
     // language service is ready gets re-driven.
     await expect(async () => {
       await page.keyboard.press('Escape');
-      await page.mouse.move(0, 0);
+      // Move the pointer off the token to an editor-body coordinate so the next hover() is a
+      // genuine pointer transition (avoids targeting the workbench title bar at 0,0).
+      const editorBox = await editor.boundingBox();
+      await page.mouse.move((editorBox?.x ?? 0) + 10, (editorBox?.y ?? 0) + (editorBox?.height ?? 0) - 10);
       await lightningToken.hover();
       await expect(
         page.locator('.monaco-hover').filter({ hasText: /LightningElement/ }),
