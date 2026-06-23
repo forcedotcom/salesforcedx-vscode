@@ -36,10 +36,8 @@ export const findWord = (str: string, offset: number): { start: number; end: num
 
     while (pos < length) {
         c = str.charCodeAt(pos);
-        if (c === 10 || c === 13) {
-            // \n and \r
-            break;
-        } else if (!isAlphaNumberic(c)) {
+        // \n and \r
+        if (c === 10 || c === 13 || !isAlphaNumberic(c)) {
             break;
         }
         ++pos;
@@ -128,10 +126,8 @@ export const findPreviousWord = (str: string, offset: number): { start: number; 
 
     while (pos < length) {
         c = str.charCodeAt(pos);
-        if (c === 10 || c === 13) {
-            // \n and \r
-            break;
-        } else if (!isAlphaNumberic(c)) {
+        // \n and \r
+        if (c === 10 || c === 13 || !isAlphaNumberic(c)) {
             break;
         }
         ++pos;
