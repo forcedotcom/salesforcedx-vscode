@@ -30,6 +30,28 @@ vscode.window.showErrorMessage(`${nls.localize('prefix')} - ${details}`);
 
 The rule allows template literals that contain `nls.localize()` calls.
 
+### no-inline-esbuild-platform
+
+Enforces that `process.env.ESBUILD_PLATFORM` is compared inline against a string literal (e.g. `=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so `'web' === 'web'` constant-folds and dead branches tree-shake (ADR 0013); assigning it to a variable, object/class property, destructuring it, or comparing against a non-literal (`=== someVar`) defeats the strip and leaks node-only code into the web bundle.
+
+**Bad:**
+
+```typescript
+const isWebMode = process.env.ESBUILD_PLATFORM === 'web';
+const { ESBUILD_PLATFORM } = process.env;
+doThing(process.env.ESBUILD_PLATFORM);
+if (process.env.ESBUILD_PLATFORM === someVar) { ... }
+```
+
+**Good:**
+
+```typescript
+if (process.env.ESBUILD_PLATFORM === 'web') { ... }
+const reporter = process.env.ESBUILD_PLATFORM === 'web' ? webReporter : nodeReporter;
+```
+
+Test files set/delete/save-restore the env var as jest plumbing; that is allowed via an `off` override in `eslint.config.mjs`, not the rule.
+
 ### package-json-i18n-descriptions
 
 Enforces that user-facing strings in `package.json` `contributes` sections use i18n placeholders (`%key%`) and that those keys exist in the sibling `package.nls.json` file.

@@ -21,8 +21,6 @@ if (process.env.ESBUILD_PLATFORM !== 'web') {
   appInsights = require('applicationinsights');
 }
 
-const isWebMode = process.env.ESBUILD_PLATFORM === 'web';
-
 export class AppInsights
   extends Disposable
   implements TelemetryReporter, TelemetryReporterWithModifiableUserProperties
@@ -63,7 +61,7 @@ export class AppInsights
     if (this.userOptIn !== config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true)) {
       this.userOptIn = config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true);
       if (this.userOptIn) {
-        if (isWebMode) {
+        if (process.env.ESBUILD_PLATFORM === 'web') {
           this.createWebReporter();
         } else {
           this.createAppInsightsClient(key);
@@ -135,7 +133,7 @@ export class AppInsights
     const baseProps = getBaseProps();
     const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties, webUserId: this.webUserId });
 
-    if (isWebMode) {
+    if (process.env.ESBUILD_PLATFORM === 'web') {
       if (this.webReporter) {
         try {
           // Add extension metadata to properties for web mode
@@ -173,7 +171,7 @@ export class AppInsights
     const baseProps = getBaseProps();
     const finalProps = this.applyTelemetryTag({ ...baseProps, webUserId: this.webUserId });
 
-    if (isWebMode) {
+    if (process.env.ESBUILD_PLATFORM === 'web') {
       if (this.webReporter) {
         try {
           const properties = {
@@ -205,7 +203,7 @@ export class AppInsights
   }
 
   public dispose(): Promise<any> {
-    if (isWebMode) {
+    if (process.env.ESBUILD_PLATFORM === 'web') {
       if (this.webReporter) {
         this.webReporter = undefined;
         return Promise.resolve(void 0);
