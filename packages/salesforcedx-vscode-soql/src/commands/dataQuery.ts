@@ -31,7 +31,6 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
   );
 
   const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
-  // strip a trailing ALL ROWS and route to /queryAll via scanAll — the endpoint rejects literal ALL ROWS text
   const { soql, scanAll } = stripAllRows(query);
   return yield* Effect.promise(() =>
     useTooling

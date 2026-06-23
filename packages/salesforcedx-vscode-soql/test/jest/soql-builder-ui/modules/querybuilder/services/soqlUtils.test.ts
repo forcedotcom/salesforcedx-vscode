@@ -24,10 +24,10 @@ import {
   SELECT_COUNT,
   ToolingModelJson
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/model';
-import { toolingModelTemplate } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 
 describe('SoqlUtils', () => {
   const uiModelOne: ToolingModelJson = {
+    allRows: false,
     sObject: 'Account',
     fields: ['Name', 'Id'],
     where: {
@@ -64,6 +64,7 @@ describe('SoqlUtils', () => {
     originalSoqlStatement: ''
   };
   const uiModelCount: ToolingModelJson = {
+    allRows: false,
     sObject: 'Account',
     fields: [SELECT_COUNT],
     where: {
@@ -77,6 +78,7 @@ describe('SoqlUtils', () => {
     originalSoqlStatement: ''
   };
   const uiModelErrors: ToolingModelJson = {
+    allRows: false,
     sObject: 'Account',
     fields: ['Name'],
     orderBy: [],
@@ -131,6 +133,7 @@ describe('SoqlUtils', () => {
   it('transform UI Model with comments to Soql Model', () => {
     const modelWithComments: ToolingModelJson = {
       headerComments: `// Comments here${EOL}`,
+      allRows: false,
       sObject: 'Foo',
       fields: ['Id'],
       where: { andOr: undefined, conditions: [] },
@@ -163,6 +166,7 @@ describe('SoqlUtils', () => {
     const transformedUiModel = convertSoqlToUiModel(`// Comments here${EOL}SELECT Id FROM Foo`);
     const expectedUiModel: ToolingModelJson = {
       headerComments: `// Comments here${EOL}`,
+      allRows: false,
       sObject: 'Foo',
       fields: ['Id'],
       where: { andOr: undefined, conditions: [] },
@@ -204,10 +208,6 @@ describe('SoqlUtils', () => {
   it('transforms Soql with ALL ROWS to UI Model with allRows true', () => {
     const transformedUiModel = convertSoqlToUiModel(`${soqlOne} ALL ROWS`);
     expect(transformedUiModel.allRows).toBe(true);
-  });
-
-  it('defaults toolingModelTemplate allRows to false (not undefined)', () => {
-    expect(toolingModelTemplate.allRows).toBe(false);
   });
 
   describe('soqlStringLiteralToDisplayValue should', () => {

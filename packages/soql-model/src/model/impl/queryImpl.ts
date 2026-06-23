@@ -80,6 +80,9 @@ export class QueryImpl implements Query {
     if (this.update) {
       syntax += `${' '.repeat(opts.indent)}${this.update.toSoqlSyntax(opts)}\n`;
     }
+    // ALL ROWS is mutually exclusive with FOR UPDATE / UPDATE TRACKING|VIEWSTAT in SOQL grammar.
+    // The builder UI only ever sets one (allRows has no UI overlap with recordTrackingType/update),
+    // so this unconditional append after `update` is safe for the supported subset.
     if (this.allRows) {
       syntax += `${' '.repeat(opts.indent)}ALL ROWS\n`;
     }
