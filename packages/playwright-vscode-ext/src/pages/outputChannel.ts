@@ -10,7 +10,8 @@ import { saveScreenshot } from '../shared/screenshotUtils';
 import { isDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
-import { executeCommandWithCommandPalette, openCommandPalette } from './commands';
+import { openCommandPalette } from './commands';
+import { clearOutput } from './nativeCommands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
@@ -259,7 +260,7 @@ export const outputChannelContains = async (
  * Use this to make sure that your assertions are not picking up text from the previous test unless you mean to
  */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'View: Clear Output');
+  await clearOutput(page);
 
   // Wait for the clear action to take effect - output should be completely empty
   const codeArea = outputPanelCodeArea(page);

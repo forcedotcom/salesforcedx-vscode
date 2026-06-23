@@ -7,7 +7,7 @@
 
 import type { Page, Locator } from '@playwright/test';
 import { EDITOR_WITH_URI, CONTEXT_MENU } from '../utils/locators';
-import { executeCommandWithCommandPalette } from './commands';
+import { focusOnFilesExplorer } from './nativeCommands';
 
 /** Opens context menu on an editor. If fileName is provided, matches editor by URI/name (partial match). */
 const openEditorContextMenu = async (page: Page, fileName?: string): Promise<Locator> => {
@@ -51,7 +51,7 @@ const openEditorContextMenu = async (page: Page, fileName?: string): Promise<Loc
 
 /** Opens context menu on a file/folder in the explorer sidebar */
 const openExplorerContextMenu = async (page: Page, itemName: string | RegExp): Promise<Locator> => {
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  await focusOnFilesExplorer(page);
   // Filter out sticky rows which intercept clicks - get all matching items then exclude sticky ones
   const allTreeItems = page.getByRole('treeitem', { name: itemName });
   const count = await allTreeItems.count();

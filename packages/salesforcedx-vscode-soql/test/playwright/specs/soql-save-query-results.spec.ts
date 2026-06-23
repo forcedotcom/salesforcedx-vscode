@@ -7,6 +7,7 @@
 
 import { expect, type FrameLocator } from '@playwright/test';
 import {
+  clearAllNotifications,
   EDITOR,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -14,6 +15,7 @@ import {
   hasTitle,
   isDesktop,
   QUICK_INPUT_WIDGET,
+  saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
@@ -133,7 +135,7 @@ test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
     ).toContainText(SOQL_QUERY);
     await saveScreenshot(page, 'save.query-built.png');
 
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
   });
 
   await test.step('run query from SOQL Builder', async () => {
@@ -154,7 +156,7 @@ test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
     await acceptSaveTarget(page, 'csv');
     await waitForNotification(page, /We saved the results as:.*\.csv/, { timeout: 30_000 });
     await saveScreenshot(page, 'save.csv-notification.png');
-    await executeCommandWithCommandPalette(page, 'Notifications: Clear All Notifications');
+    await clearAllNotifications(page);
   });
 
   await test.step('verify CSV file contents', async () => {
@@ -176,7 +178,7 @@ test('SOQL Builder: save query results to CSV and JSON', async ({ page }) => {
     await acceptSaveTarget(page, 'json');
     await waitForNotification(page, /We saved the results as:.*\.json/, { timeout: 30_000 });
     await saveScreenshot(page, 'save.json-notification.png');
-    await executeCommandWithCommandPalette(page, 'Notifications: Clear All Notifications');
+    await clearAllNotifications(page);
   });
 
   await test.step('verify JSON file contents', async () => {

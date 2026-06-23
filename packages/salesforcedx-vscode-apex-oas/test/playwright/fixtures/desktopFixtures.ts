@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createDesktopTest, executeCommandWithCommandPalette, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
+import {
+  closeAllEditors,
+  createDesktopTest,
+  MINIMAL_ORG_ALIAS
+} from '@salesforce/playwright-vscode-ext';
 
 const A4V_EXTENSION_ID = 'salesforce.salesforcedx-einstein-gpt';
 
@@ -46,5 +50,5 @@ oasDesktopTest.beforeEach(() => {
 // Match metadata specs: close editors at end so the next test starts clean and final state is tidy.
 oasDesktopTest.afterEach(async ({ page }) => {
   if (!page) return;
-  await executeCommandWithCommandPalette(page, 'View: Close All Editors').catch(() => {});
+  await closeAllEditors(page).catch(() => {});
 });

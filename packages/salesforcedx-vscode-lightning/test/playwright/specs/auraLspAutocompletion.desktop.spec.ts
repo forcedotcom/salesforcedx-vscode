@@ -10,9 +10,9 @@ import {
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   goToLineCol,
   openFileByName,
+  saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -62,7 +62,7 @@ test('Aura LSP: autocompletion', async ({ page }) => {
 
     // Close the tag and save (mirrors WDIO `typeText('>')` + `save()`).
     await page.keyboard.type('>');
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
   });
 
   await test.step('verify aura:application was inserted on L2', async () => {

@@ -6,13 +6,13 @@
  */
 import { expect } from '@playwright/test';
 import {
-  EDITOR_WITH_URI,
-  TAB,
   closeWelcomeTabs,
+  EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
+  goToDefinition,
   goToLineCol,
   setupConsoleMonitoring,
+  TAB,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -49,7 +49,7 @@ test('LWC LSP Go to Definition navigates from HTML property binding to JS class 
   });
 
   await test.step('execute Go to Definition', async () => {
-    await executeCommandWithCommandPalette(page, 'Go to Definition');
+    await goToDefinition(page);
   });
 
   await test.step('verify navigation targets gtdHtmlComp.js (class field location)', async () => {

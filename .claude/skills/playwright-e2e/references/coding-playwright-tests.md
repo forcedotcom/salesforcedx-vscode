@@ -74,6 +74,15 @@ Desktop fixture sets `window.menuStyle: "custom"` (context menus stay in DOM on 
 - Use `f1` for commands, not meta-shift-P
 - Use `Control` for all. No ControlOrMeta
 
+## Native VS Code Commands
+
+Native VS Code commands (`File: Save`, `View: Close All Editors`, `Select All`, `Paste`, `Go to Definition`, etc.) — use named wrappers in `packages/playwright-vscode-ext/src/pages/nativeCommands.ts` (exported from `src/index.ts`), NOT `executeCommandWithCommandPalette(page, '<literal>')`.
+
+- `saveFile(page)`, `closeAllEditors(page)`, `selectAll(page)`, `goToDefinition(page, sel?, opts?)`, etc. — grep `nativeCommands.ts` for full list before adding a literal.
+- Wrappers return same Promise → existing `.catch(() => {})` chains + palette/selection opts still work.
+- Reserve `executeCommandWithCommandPalette` for extension/test-provider commands (`SFDX:`, `Testing:`, `Test:`) — NOT native.
+- Native command with no wrapper yet? Add one to `nativeCommands.ts`, don't inline the literal.
+
 ## Commands and i18n
 
 Prefer `package.nls.json` for command titles instead of hardcoded strings.

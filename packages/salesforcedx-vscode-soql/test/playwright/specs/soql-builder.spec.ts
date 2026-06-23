@@ -8,8 +8,11 @@
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
+  closeEditor,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  hidePanel,
+  saveFile,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -131,7 +134,7 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     ).toContainText("SELECT Id, Name FROM Account WHERE Name != 'Test' ORDER BY Name DESC LIMIT 10");
     await saveScreenshot(page, 'step2.query-preview-verified.png');
 
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     await saveScreenshot(page, 'step2.query-saved.png');
   });
 
@@ -149,7 +152,7 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
 
     // Close the results panel so only one webview iframe exists when interacting with the builder next
     await resultsTab.click();
-    await executeCommandWithCommandPalette(page, 'View: Close Editor');
+    await closeEditor(page);
     await expect(resultsTab, 'SOQL Query Results tab should be closed').not.toBeVisible({ timeout: 10_000 });
   });
 
@@ -172,7 +175,7 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     });
     await saveScreenshot(page, 'step4.query-plan-output-verified.png');
 
-    await executeCommandWithCommandPalette(page, 'View: Hide Panel');
+    await hidePanel(page);
   });
 
   await test.step('toggle from SOQL Builder to Text Editor', async () => {

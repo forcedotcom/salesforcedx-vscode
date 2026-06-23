@@ -6,19 +6,23 @@
  */
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
+  closeWelcomeTabs,
   DIRTY_EDITOR,
   EDITOR_WITH_URI,
-  QUICK_INPUT_LIST_ROW,
-  QUICK_INPUT_WIDGET,
-  STATUS_BAR_ITEM_LABEL,
-  WORKBENCH,
-  closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  focusOnFilesExplorer,
   isDesktop,
   openFileByName,
+  paste,
+  QUICK_INPUT_LIST_ROW,
+  QUICK_INPUT_WIDGET,
+  saveFile,
+  selectAll,
+  STATUS_BAR_ITEM_LABEL,
   verifyCommandExists,
-  waitForQuickInputFirstOption
+  waitForQuickInputFirstOption,
+  WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 import lwcPackageNls from '../../../package.nls.json';
 import { LWC_GTD_HTML_COMP_SEED_HTML, LWC_GTD_HTML_COMP_SEED_JS } from './createLwcTestWorkspace';
@@ -33,11 +37,11 @@ const replaceEditorContentAndSave = async (
 ): Promise<void> => {
   await editor.click();
   await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
-  await executeCommandWithCommandPalette(page, 'Select All');
+  await selectAll(page);
   await page.keyboard.press('Delete');
   await page.evaluate((t: string) => navigator.clipboard.writeText(t), content);
-  await executeCommandWithCommandPalette(page, 'Paste');
-  await executeCommandWithCommandPalette(page, 'File: Save');
+  await paste(page);
+  await saveFile(page);
   await expect(page.locator(DIRTY_EDITOR).first(), 'editor should be saved (no dirty indicator)').not.toBeVisible({
     timeout: 10_000
   });
@@ -139,7 +143,7 @@ const clickWebExplorerTreeitemExact = async (page: Page, fileName: string): Prom
  * the file in Files Explorer so the editor opens reliably in E2E.
  */
 const openLwcFileViaExplorer = async (page: Page, fileName: string): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  await focusOnFilesExplorer(page);
   await expandExplorerPathToLwcFile(page, fileName);
   await clickWebExplorerTreeitemExact(page, fileName);
 };
@@ -247,7 +251,7 @@ export const openSfdxCustomComponentsJson = async (page: Page): Promise<void> =>
   await (isDesktop()
     ? openFileByName(page, fileName)
     : expect(async () => {
-        await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+        await focusOnFilesExplorer(page);
         await expandWebExplorerSegments(page, ['.sfdx', 'indexes', 'lwc']);
         await clickWebExplorerTreeitemExact(page, fileName);
       }).toPass({ timeout: 90_000 }));
@@ -271,7 +275,7 @@ export const assertLwcSfdxTypingsGenerated = async (page: Page): Promise<void> =
     return;
   }
 
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  await focusOnFilesExplorer(page);
   await expandWebExplorerSegments(page, ['.sfdx', 'typings', 'lwc']);
   for (const { file, header } of LWC_SFDX_GENERATED_TYPINGS_EXPECTATIONS) {
     await clickWebExplorerTreeitemExact(page, file);

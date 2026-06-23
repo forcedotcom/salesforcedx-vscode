@@ -13,6 +13,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  find,
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
   saveScreenshot,
@@ -32,7 +33,7 @@ import { waitForTraceFlagStatusBar } from '../helpers';
 const findInEditor = async (page: Page, query: string): Promise<void> => {
   const editor = page.locator(EDITOR_WITH_URI).first();
   await editor.click();
-  await executeCommandWithCommandPalette(page, 'Find');
+  await find(page);
   const findInput = page.getByRole('textbox', { name: 'Find' });
   await expect(findInput).toBeVisible({ timeout: 10_000 });
   await findInput.fill(query);

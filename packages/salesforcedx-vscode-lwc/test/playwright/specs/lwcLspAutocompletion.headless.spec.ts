@@ -6,12 +6,12 @@
  */
 import { expect } from '@playwright/test';
 import {
+  closeWelcomeTabs,
   DIRTY_EDITOR,
   EDITOR_WITH_URI,
-  closeWelcomeTabs,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   goToLineCol,
+  saveFile,
   setupConsoleMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
@@ -77,7 +77,7 @@ test('LWC LSP provides autocompletion for lightning-* base components in HTML te
 
     // Close the tag and save
     await page.keyboard.type('>');
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     await expect(
       page.locator(DIRTY_EDITOR).first(),
       'HTML editor should be saved after inserting suggestion'

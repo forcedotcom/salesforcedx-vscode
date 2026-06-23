@@ -12,6 +12,7 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  saveFile,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -69,7 +70,7 @@ test('SOQL Query Plan: code lens, current file, selected text via command palett
     // Type the query into the empty editor (file opens focused and ready for input)
     await page.locator(EDITOR).first().click();
     await page.keyboard.type(SOQL_QUERY);
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     await saveScreenshot(page, 'step1.query-saved.png');
   });
 

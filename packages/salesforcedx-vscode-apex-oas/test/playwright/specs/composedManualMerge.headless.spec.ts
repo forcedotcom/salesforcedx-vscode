@@ -8,6 +8,7 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  closeAllEditors,
   createApexClass,
   executeCommandWithCommandPalette,
   openFileByName,
@@ -59,7 +60,7 @@ test('OAS: composed mode → manual merge produces diff editor + timestamped ESR
   });
 
   await test.step('second generation: manual merge', async () => {
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors').catch(() => {});
+    await closeAllEditors(page).catch(() => {});
     await openFileByName(page, 'CaseManager.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
     await confirmEsrFolderPrompt(page);

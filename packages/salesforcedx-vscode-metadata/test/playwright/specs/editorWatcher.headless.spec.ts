@@ -8,20 +8,20 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
+  closeWelcomeTabs,
+  createApexClass,
+  createMinimalOrg,
+  EDITOR_WITH_URI,
+  ensureSecondarySideBarHidden,
+  focusOnFilesExplorer,
+  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
-  createApexClass,
-  verifyCommandExists,
-  verifyCommandDoesNotExist,
-  saveScreenshot,
   validateNoCriticalErrors,
-  EDITOR_WITH_URI,
-  executeCommandWithCommandPalette,
-  ensureSecondarySideBarHidden
+  verifyCommandDoesNotExist,
+  verifyCommandExists,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -73,7 +73,7 @@ test('EditorWatcher: deploy commands show/hide based on active editor location',
 
   await test.step('open sfdx-project.json (not in package directory)', async () => {
     // Focus explorer and click on sfdx-project.json to open it
-    await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+    await focusOnFilesExplorer(page);
 
     // Find and click the sfdx-project.json file in the explorer tree
     const projectFile = page.getByRole('treeitem', { name: /sfdx-project\.json/ });

@@ -86,6 +86,31 @@ export {
 } from './pages/commands';
 export type { OpenCommandPaletteOptions } from './pages/commands';
 
+export {
+  focusOnFilesExplorer,
+  newUntitledTextFile,
+  saveFile,
+  clearAllNotifications,
+  closeAllEditors,
+  showExplorer,
+  reloadWindow,
+  goToFile,
+  goToLineColumn,
+  selectAll,
+  paste,
+  focusOnProblemsView,
+  goToDefinition,
+  focusActiveEditorGroup,
+  find,
+  hidePanel,
+  clearOutput,
+  closeEditor,
+  insertSnippet,
+  showRunningExtensions,
+  hideSecondarySideBar,
+  closeWorkspace
+} from './pages/nativeCommands';
+
 export { executeEditorContextMenuCommand, executeExplorerContextMenuCommand } from './pages/contextMenu';
 
 export {

@@ -11,15 +11,15 @@ import * as path from 'node:path';
 import { expect } from '@playwright/test';
 import {
   clickCodeLens,
+  closeAllEditors,
   createAndDeployApexTestClass,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   isDesktop,
   saveScreenshot,
   setupConsoleMonitoring,
-  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
+  setupNonTrackingOrgAndAuth,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
@@ -82,7 +82,7 @@ public class ${className} {
       // `createApexClass` (setup) left the on-disk `.cls` open in a preview editor; deleting the
       // file does not close that tab. A leftover active editor keeps the test-item click from
       // navigating to the `apex-testing:` virtual doc, so close all editors first.
-      await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+      await closeAllEditors(page);
       const panel = await openTestExplorerAndDiscover(page);
       const classItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(className, 'i') });
       await classItem.first().waitFor({ state: 'visible', timeout: 60_000 });

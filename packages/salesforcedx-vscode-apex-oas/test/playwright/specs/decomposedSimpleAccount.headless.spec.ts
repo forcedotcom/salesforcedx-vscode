@@ -15,6 +15,7 @@ import {
   expectProblemsCount,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
+  reloadWindow,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -48,7 +49,7 @@ test('OAS: decomposed mode opens YAML+XML, validates, deploys', async ({ page, w
 
   await test.step('switch project to decomposed-ESR mode and reload', async () => {
     await writeWorkspaceFile(workspaceDir, 'sfdx-project.json', getSfdxProjectJson());
-    await executeCommandWithCommandPalette(page, 'Developer: Reload Window');
+    await reloadWindow(page);
   });
 
   await test.step('wait for A4V + OAS commands available after reload', async () => {

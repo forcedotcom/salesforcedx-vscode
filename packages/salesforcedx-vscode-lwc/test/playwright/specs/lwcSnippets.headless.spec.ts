@@ -11,10 +11,12 @@ import {
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
+  insertSnippet,
+  isDesktop,
   openFileByName,
   openFileFromExplorerTree,
   QUICK_INPUT_WIDGET,
+  saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -23,8 +25,7 @@ import {
   waitForExtensionsActivated,
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
-  waitForWorkspaceReady,
-  isDesktop
+  waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 
 import { test } from '../fixtures';
@@ -104,7 +105,7 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
     // Snippets are scoped to the active editor language; ensure HTML editor has focus (web CI can leave focus elsewhere after palette use).
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
-    await executeCommandWithCommandPalette(page, 'Snippets: Insert Snippet');
+    await insertSnippet(page);
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
     await quickInput.waitFor({ state: 'visible', timeout: 15_000 });
     await quickInput.locator('input.input').first().fill('lwc-button');
@@ -117,7 +118,7 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
 
   await test.step('save and assert HTML snippet body', async () => {
     await dismissEditorOverlays(page);
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     const doc = collapseEditorWhitespace(await readActiveEditorDocumentText(page));
     expect(doc).toContain('<lightning-button');
     expect(doc).toContain('variant="base"');
@@ -177,7 +178,7 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, test
 
   await test.step('save and assert JS snippet body', async () => {
     await dismissEditorOverlays(page);
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     const doc = collapseEditorWhitespace(await readActiveEditorDocumentText(page));
     expect(doc).toContain('this.dispatchEvent(new CustomEvent("event-name"));');
     await saveScreenshot(page, 'lwc-snippets-js.saved.png');

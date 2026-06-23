@@ -8,24 +8,24 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
-  setupConsoleMonitoring,
-  setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
+  closeAllEditors,
   closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   createApexClass,
+  createMinimalOrg,
   editOpenFile,
-  openFileByName,
-  executeCommandWithCommandPalette,
+  EDITOR,
+  ensureSecondarySideBarHidden,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  saveScreenshot,
-  validateNoCriticalErrors,
-  EDITOR,
   NOTIFICATION_LIST_ITEM,
-  ensureSecondarySideBarHidden
+  openFileByName,
+  saveScreenshot,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  upsertScratchOrgAuthFieldsToSettings,
+  upsertSettings,
+  validateNoCriticalErrors,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -67,7 +67,7 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
     await saveScreenshot(page, 'step1.after-create-class.png');
 
     // Close any open editors to ensure clean state
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+    await closeAllEditors(page);
     await saveScreenshot(page, 'step1.after-close-editors.png');
 
     // Edit class to create new local change
@@ -102,7 +102,7 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
 
   await test.step('2. Explorer context menu (file)', async () => {
     // Close any open editors to ensure clean state
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+    await closeAllEditors(page);
     await saveScreenshot(page, 'step2.after-close-editors.png');
 
     // Ensure status bar is ready and file is synced (local=0) after step 1 deploy
@@ -177,7 +177,7 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
 
   await test.step('3. Explorer context menu (directory)', async () => {
     // Close any open editors to ensure clean state
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+    await closeAllEditors(page);
     await saveScreenshot(page, 'step3.after-close-editors.png');
 
     // Ensure status bar is ready and file is synced (local=0) after step 2 deploy

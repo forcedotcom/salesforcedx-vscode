@@ -10,7 +10,7 @@ import {
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
+  goToDefinition,
   goToLineCol,
   openFileByName,
   saveScreenshot,
@@ -75,7 +75,7 @@ test('Aura LSP: go to definition', async ({ page }) => {
     // shortcut). `preserveSelection` keeps the 8:15 cursor placed above — otherwise the palette's
     // workbench focus-click re-parks the cursor at end-of-document (below the last line of this
     // 10-line file) and Go to Definition resolves nothing.
-    await executeCommandWithCommandPalette(page, 'Go to Definition', undefined, { preserveSelection: true });
+    await goToDefinition(page, { preserveSelection: true });
 
     // PRIMARY: the VS Code status-bar selection item reports the cursor position. The Aura LS
     // resolves the def to the `simpleNewContact` name-attribute value range on L3

@@ -6,7 +6,8 @@
  */
 
 import { expect } from '@playwright/test';
-import { executeCommandWithCommandPalette, openCommandPalette } from '../../../src/pages/commands';
+import { openCommandPalette } from '../../../src/pages/commands';
+import { closeAllEditors, newUntitledTextFile, saveFile } from '../../../src/pages/nativeCommands';
 import { waitForVSCodeWorkbench, closeWelcomeTabs, isMacDesktop, isDesktop } from '../../../src/utils/helpers';
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { WORKBENCH } from '../../../src/utils/locators';
@@ -30,7 +31,7 @@ test.describe('Command Palette', () => {
 
   test('should execute command via command palette', async ({ page }) => {
     await test.step('Execute "View: Close All Editors" command', async () => {
-      await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+      await closeAllEditors(page);
       // Wait for tabs to close - command execution may take a moment
       // Filter out welcome tabs as they may reopen - we're testing that editor tabs close
       const tabs = page.locator('.tabs-container .tab').filter({ hasNotText: /Welcome|Walkthrough/i });
@@ -64,7 +65,7 @@ test.describe('Command Palette', () => {
     test.skip(!isDesktop(), 'File: Save test only runs on desktop');
 
     await test.step('Create new untitled file', async () => {
-      await executeCommandWithCommandPalette(page, 'File: New Untitled Text File');
+      await newUntitledTextFile(page);
       // Wait for new editor to open
       const editor = page.locator('.editor-instance').first();
       await expect(editor).toBeVisible({ timeout: 5000 });
@@ -78,7 +79,7 @@ test.describe('Command Palette', () => {
     });
 
     await test.step('Save file using command palette', async () => {
-      await executeCommandWithCommandPalette(page, 'File: Save');
+      await saveFile(page);
       // Command palette should execute File: Save
       // Note: In test environment, this may trigger save dialog or auto-save depending on settings
       // We're testing that the command executes without error
