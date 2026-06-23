@@ -53,8 +53,17 @@ const mockExtensionProvider = {
   })
 } as unknown as ExtensionProviderService;
 
-const runWithMocks = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService>) =>
-  Effect.runPromise(effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)));
+// deployFromOutcome statically requires ExtensionProviderService | FsService | ChannelService, but the
+// deployDiagnostics/resultStorage modules are jest.mock'd (their FsService deps neutralized at runtime) and
+// ChannelService is served via the mocked getServicesApi — so providing ExtensionProviderService is sufficient
+// at runtime. The requirement channel is widened to `never` for the test runner since the env is fully mocked.
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+const runWithMocks = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+  Effect.runPromise(
+    (effect as Effect.Effect<A, E, ExtensionProviderService>).pipe(
+      Effect.provideService(ExtensionProviderService, mockExtensionProvider)
+    )
+  );
 
 describe('deployFromOutcome', () => {
   it('uses shared formatDeployOutput for success outcome', () => {
