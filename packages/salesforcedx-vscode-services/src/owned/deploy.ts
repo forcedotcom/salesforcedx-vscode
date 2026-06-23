@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // Hand-authored, services-owned. NO imports from @salesforce/*, jsforce, or effect.
+import type { OwnedMetadataMember } from './components';
+
 export type SourceSpec =
   | { readonly kind: 'paths'; readonly uris: readonly string[] }
   | { readonly kind: 'manifest'; readonly manifestUri: string }
-  | { readonly kind: 'projectDirectories' };
+  | { readonly kind: 'projectDirectories'; readonly members?: readonly OwnedMetadataMember[] };
 
 export type RetrieveOptions = { readonly ignoreConflicts?: boolean };
 

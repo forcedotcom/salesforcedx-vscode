@@ -207,7 +207,8 @@ export {
 } from './core/transmogrifierService';
 export { toDeployOutcome, toRetrieveOutcome } from './owned/deployMapper';
 export type { MetadataTypeInfo, TemplateCreateOutcome, ConnectionData } from './owned/metadata';
-export type { ComponentSetInfo, ComponentInfo } from './owned/components';
+export type { ComponentSetInfo, ComponentInfo, OwnedMetadataMember } from './owned/components';
+export { componentSetHas, componentFilenamesByNameAndType } from './owned/componentSetInfoHelpers';
 export type { OrgChange } from './owned/changes';
 export type { ProjectInfo, PackageDirInfo } from './owned/projectInfo';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';

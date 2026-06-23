@@ -19,3 +19,4 @@ export type ComponentSetInfo = {
   readonly components: readonly ComponentInfo[];
   readonly packageXml: string;
 };
+export type OwnedMetadataMember = { readonly type: string; readonly fullName: string };

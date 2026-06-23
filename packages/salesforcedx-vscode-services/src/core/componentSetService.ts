@@ -212,7 +212,11 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
         case 'manifest':
           return yield* getComponentSetFromManifest(URI.parse(spec.manifestUri));
         case 'projectDirectories':
-          return yield* getComponentSetFromProjectDirectories();
+          return yield* getComponentSetFromProjectDirectories(
+            spec.members
+              ? { metadataMembers: spec.members.map(m => ({ type: m.type, fullName: m.fullName })) }
+              : undefined
+          );
       }
     });
 
