@@ -9,7 +9,8 @@
     "wireit": {
       "brace-expansion": "4.0.1"
     },
-    "playwright-core": "1.60.0"
+    "playwright-core": "1.60.0",
+    "o11y_schema": "$o11y_schema"
   },
   "engines": {
     "node": ">=22.15.1"
@@ -17,12 +18,13 @@
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
-    "@salesforce/o11y-reporter": "^1.8.1",
+    "@salesforce/o11y-reporter": "^1.8.4",
     "@salesforce/vscode-service-provider": "1.5.0",
     "jsforce": "^3.10.16",
     "memfs": "^4.32.0",
     "node": "^22.19.0",
     "npm": "^11",
+    "o11y_schema": "^264.84.0",
     "semver": "^7.5.4",
     "ts-node": "10.9.2",
     "url": "0.11.4"
