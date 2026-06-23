@@ -12,7 +12,6 @@ This extension provides core services for Salesforce development in VS Code.
   - Metadata describe with owned `MetadataTypeInfo` DTO (mirrors jsforce DescribeMetadataObject)
 - Source tracking — query local, remote, conflict changes as owned OrgChange DTOs
 - Template generation through `@salesforce/templates`:
-  - Standard `CreateOutput` return via `createFromTemplate()`
   - Owned `TemplateCreateOutcome` return via `createFromTemplateOwned()` (data-only DTO)
 - Virtual FS provider (`src/virtualFsProvider`) — memfs, IndexedDB storage for web
 - Observability (`src/observability`) — OpenTelemetry spans, App Insights, O11y. See [observability README](src/observability/README.md)

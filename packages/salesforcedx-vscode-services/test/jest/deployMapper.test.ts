@@ -86,6 +86,14 @@ describe('toDeployOutcome', () => {
       { fullName: 'A', type: 'ApexClass', problem: 'bad', problemType: 'Error' }
     ]);
   });
+
+  it('maps response.errorMessage to errorMessage', () => {
+    const fake = {
+      response: { success: false, status: 'Failed', errorMessage: 'Deploy failed due to org limits', details: {} },
+      getFileResponses: () => []
+    };
+    expect(toDeployOutcome(fake as never).errorMessage).toBe('Deploy failed due to org limits');
+  });
 });
 
 describe('toRetrieveOutcome', () => {
