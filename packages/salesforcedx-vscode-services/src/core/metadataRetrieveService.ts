@@ -292,13 +292,66 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       return toRetrieveOutcome(retrieveResult);
     });
 
+    /** Retrieve remote changes (from source tracking) - returns owned RetrieveOutcome.
+     * Encapsulates: maybeApplyRemoteDeletesToLocal → retrieve non-deletes → merge delete responses into outcome.
+     * Deletes are folded into the outcome's fileResponses so formatRetrieveOutput surfaces them. */
+    const retrieveRemoteChanges = Effect.fn('MetadataRetrieveService.retrieveRemoteChanges')(function* (
+      opts?: RetrieveOptions
+    ) {
+      const { componentSetFromNonDeletes, fileResponsesFromDelete } =
+        yield* sourceTrackingService.maybeApplyRemoteDeletesToLocal();
+
+      if (componentSetFromNonDeletes.size > 0) {
+        // Retrieve the non-deletes via the existing internal retrieveComponentSet
+        const retrieveResult = yield* retrieveComponentSet(componentSetFromNonDeletes, opts);
+        const outcome = toRetrieveOutcome(retrieveResult);
+
+        // Map delete FileResponses to owned FileResponseInfo and merge into the outcome
+        const mappedDeletes = fileResponsesFromDelete.map(fr => ({
+          fullName: fr.fullName,
+          type: fr.type,
+          state: fr.state,
+          filePath: 'filePath' in fr ? fr.filePath : undefined,
+          error: 'error' in fr ? fr.error : undefined,
+          lineNumber: 'lineNumber' in fr ? fr.lineNumber : undefined,
+          columnNumber: 'columnNumber' in fr ? fr.columnNumber : undefined,
+          problemType: 'problemType' in fr ? fr.problemType : undefined
+        }));
+
+        return {
+          ...outcome,
+          fileResponses: [...outcome.fileResponses, ...mappedDeletes]
+        };
+      } else {
+        // Only deletes (no non-deletes to retrieve) — return an outcome with just the delete responses
+        const mappedDeletes = fileResponsesFromDelete.map(fr => ({
+          fullName: fr.fullName,
+          type: fr.type,
+          state: fr.state,
+          filePath: 'filePath' in fr ? fr.filePath : undefined,
+          error: 'error' in fr ? fr.error : undefined,
+          lineNumber: 'lineNumber' in fr ? fr.lineNumber : undefined,
+          columnNumber: 'columnNumber' in fr ? fr.columnNumber : undefined,
+          problemType: 'problemType' in fr ? fr.problemType : undefined
+        }));
+
+        return {
+          success: true,
+          status: 'Succeeded',
+          fileResponses: mappedDeletes,
+          components: []
+        };
+      }
+    }, withActiveMetadataOperationPipeline);
+
     return {
       retrieve,
       retrieveComponentSet,
       retrieveComponentSetToDirectory,
       buildComponentSet,
       buildComponentSetFromSource,
-      retrieveToSource
+      retrieveToSource,
+      retrieveRemoteChanges
     };
   })
 }) {}

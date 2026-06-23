@@ -273,6 +273,8 @@ export const createPlainServicesApi = (
       run(builtContext, MetadataRetrieveService.retrieveComponentSet(components, options)),
     retrieveToSource: (spec: import('./owned/deploy').SourceSpec, opts?: import('./owned/deploy').RetrieveOptions) =>
       run(builtContext, MetadataRetrieveService.retrieveToSource(spec, opts)),
+    retrieveRemoteChanges: (opts?: import('./owned/deploy').RetrieveOptions) =>
+      run(builtContext, MetadataRetrieveService.retrieveRemoteChanges(opts)),
     retrieveComponentSetToDirectory: (components: NonEmptyComponentSet, outputPath: URI) =>
       run(builtContext, MetadataRetrieveService.retrieveComponentSetToDirectory(components, outputPath)),
 

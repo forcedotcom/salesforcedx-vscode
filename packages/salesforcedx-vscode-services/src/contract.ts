@@ -124,6 +124,7 @@ export type ServicesContract = {
   /** @deprecated Returns a live @salesforce/source-deploy-retrieve RetrieveResult (a 3pp instance). Use `retrieveToSource(spec)` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly retrieveComponentSet: (components: ComponentSet) => RetrieveResult;
   readonly retrieveToSource: (spec: SourceSpec, opts?: RetrieveOptions) => RetrieveOutcome;
+  readonly retrieveRemoteChanges: (opts?: RetrieveOptions) => RetrieveOutcome;
 
   // Source Tracking (basic methods)
   readonly hasTracking: () => boolean;
