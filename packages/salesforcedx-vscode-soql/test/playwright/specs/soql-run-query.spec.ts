@@ -196,5 +196,46 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     await saveScreenshot(page, 'step5.tooling-query-output-verified.png');
   });
 
+  await test.step('run query ending in ALL ROWS routes to /queryAll', async () => {
+    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+    await soqlTab.click();
+
+    await selectOutputChannel(page, SOQL_CHANNEL);
+    await clearOutputChannel(page);
+
+    // Overwrite with a query whose trailing ALL ROWS must be stripped before send and routed to /queryAll
+    const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
+    await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
+    await expect(
+      page
+        .locator('.statusbar-item')
+        .filter({ hasText: /\(\d+ selected\)/ })
+        .first()
+    ).toBeVisible({ timeout: 5000 });
+    await page.keyboard.type('SELECT Id, Name FROM Account LIMIT 10 ALL ROWS');
+    await saveFile(page);
+    await saveScreenshot(page, 'step6.all-rows-query-saved.png');
+
+    const runQueryLens = page.getByRole('button', { name: 'Run Query' });
+    await expect(runQueryLens, '"Run Query" code lens should be visible').toBeVisible({ timeout: 15_000 });
+
+    // setupNetworkMonitoring only records failed responses, so capture the outbound request explicitly
+    // BEFORE clicking Run to prove the literal ALL ROWS was stripped and the request hit /queryAll
+    const queryAllRequest = page.waitForRequest(req => req.url().includes('/queryAll'), { timeout: 30_000 });
+
+    await runQueryLens.click();
+    await selectQuickInputOption(page, /^REST API/, {
+      quickInputVisibleTimeout: 10_000,
+      optionVisibleTimeout: 10_000
+    });
+
+    await queryAllRequest;
+    await saveScreenshot(page, 'step6.queryall-request-observed.png');
+
+    // Query completes => org accepted the stripped query (it would reject literal ALL ROWS on /queryAll)
+    await waitForOutputChannelText(page, { expectedText: QUERY_COMPLETE_TEXT, timeout: 30_000 });
+    await saveScreenshot(page, 'step6.all-rows-query-output-verified.png');
+  });
+
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
