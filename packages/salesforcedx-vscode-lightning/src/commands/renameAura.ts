@@ -61,14 +61,19 @@ export const renameAuraCommand = Effect.fn('renameAuraCommand')(function* (
 
   const oldName = Utils.basename(bundleUri);
 
-  const projectSet = yield* componentSetService.getComponentSetFromProjectDirectories({
-    metadataMembers: [
-      { type: LWC_TYPE, fullName: '*' },
-      { type: AURA_TYPE, fullName: '*' }
-    ]
-  });
-  const existingNames = new Set(Array.from(projectSet.getSourceComponents()).map(c => c.fullName.toLowerCase()));
+  // Pre-build a project-wide ComponentSet filtered to LWC + Aura. Used by validateInput
+  // for case-insensitive collision check across all packageDirectories.
+  const existingNames = new Set(
+    (yield* componentSetService.describeProjectComponents({
+      kind: 'projectDirectories',
+      members: [
+        { type: LWC_TYPE, fullName: '*' },
+        { type: AURA_TYPE, fullName: '*' }
+      ]
+    })).components.map(c => c.fullName.toLowerCase())
+  );
 
+  // Materialize all bundle filenames (including __tests__) for the within-bundle collision check
   const bundleFileNames = (yield* fsService.readDirectory(bundleUri).pipe(
     Effect.flatMap(top =>
       Effect.gen(function* () {
