@@ -50,6 +50,8 @@ export type DeployOutcome = {
   readonly fileResponses: readonly FileResponseInfo[];
   /** Server-level component failures from response.details.componentFailures, normalized. */
   readonly componentFailures: readonly ComponentFailureInfo[];
+  /** Server-reported top-level error message when the deploy failed, when present. */
+  readonly errorMessage?: string;
 };
 export type RetrieveOutcome = {
   readonly success: boolean;

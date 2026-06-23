@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as Data from 'effect/Data';
+import type { DeployOutcome } from 'salesforcedx-vscode-services';
 
 export class DeleteSourceFailedError extends Data.TaggedError('DeleteSourceFailedError')<{
   readonly cause?: Error;
-  readonly result: DeployResult;
+  readonly outcome: DeployOutcome;
 }> {}

@@ -45,7 +45,8 @@ export const toDeployOutcome = (result: DeployResult): DeployOutcome => ({
   appliedToOrg: appliedToOrg(result.response.status),
   completedDate: result.response.completedDate,
   fileResponses: result.getFileResponses().map(mapFileResponse),
-  componentFailures: toDeployMessageArray(result.response.details?.componentFailures).map(mapComponentFailure)
+  componentFailures: toDeployMessageArray(result.response.details?.componentFailures).map(mapComponentFailure),
+  errorMessage: result.response.errorMessage
 });
 
 export const toRetrieveOutcome = (result: RetrieveResult): RetrieveOutcome => ({
