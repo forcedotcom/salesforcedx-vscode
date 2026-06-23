@@ -55,7 +55,9 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  // NOTE: determineComponentTemplate needs defaultLwcLanguage from project json - coverage gap (W-22419571)
   const project = yield* api.services.ProjectService.getSfProject();
+  const projectInfo = yield* api.services.ProjectService.getProjectInfo();
   const componentSetService = yield* api.services.ComponentSetService;
 
   const template = yield* determineComponentTemplate(project);
@@ -74,7 +76,7 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
   const outputDirUri =
     outputDirParam ??
     (yield* promptService.promptForOutputDir({
-      defaultUri: Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'lwc'),
+      defaultUri: Utils.joinPath(workspaceInfo.uri, projectInfo.defaultPackage.path, 'main', 'default', 'lwc'),
       folderName: 'lwc',
       pickerPlaceHolder: nls.localize('lwc_output_dir_prompt')
     }));
