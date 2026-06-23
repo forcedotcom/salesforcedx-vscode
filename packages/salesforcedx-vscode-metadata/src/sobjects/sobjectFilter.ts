@@ -14,15 +14,11 @@ export const sobjectTypeFilter =
     const isCustomObject = sobject.custom === true && category === 'CUSTOM';
     const isStandardObject = sobject.custom === false && category === 'STANDARD';
 
-    if (category === 'ALL' && source === 'manual') {
-      return true;
-    } else if (
-      category === 'ALL' &&
-      (source === 'startupmin' || source === 'startup') &&
-      isRequiredSObject(sobject.name)
+    if (
+      (category === 'ALL' && source === 'manual') ||
+      (category === 'ALL' && (source === 'startupmin' || source === 'startup') && isRequiredSObject(sobject.name)) ||
+      ((isCustomObject || isStandardObject) && source === 'manual' && isRequiredSObject(sobject.name))
     ) {
-      return true;
-    } else if ((isCustomObject || isStandardObject) && source === 'manual' && isRequiredSObject(sobject.name)) {
       return true;
     }
     return false;

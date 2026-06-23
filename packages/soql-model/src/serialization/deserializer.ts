@@ -685,9 +685,7 @@ class QueryListener implements SoqlParserListener {
   }
 
   protected toCompareValue(ctx: ParserRuleContext): CompareValue {
-    if (ctx instanceof Parser.SoqlColonExprLiteralValueContext) {
-      return this.toUnmodeledSyntax(ctx.start, ctx.stop as Token, REASON_UNMODELED_COLONEXPRESSION);
-    } else if (ctx instanceof Parser.SoqlColonLikeValueContext) {
+    if (ctx instanceof Parser.SoqlColonExprLiteralValueContext || ctx instanceof Parser.SoqlColonLikeValueContext) {
       return this.toUnmodeledSyntax(ctx.start, ctx.stop as Token, REASON_UNMODELED_COLONEXPRESSION);
     }
     return this.toLiteral(ctx);
@@ -701,13 +699,12 @@ class QueryListener implements SoqlParserListener {
     if (ctx instanceof Parser.SoqlLiteralCommonLiteralsContext) {
       ctx = ctx.soqlCommonLiterals();
     }
-    if (ctx instanceof Parser.SoqlDateLiteralContext) {
-      return new LiteralImpl('DATE', ctx.text);
-    } else if (ctx instanceof Parser.SoqlDateTimeLiteralContext) {
-      return new LiteralImpl('DATE', ctx.text);
-    } else if (ctx instanceof Parser.SoqlTimeLiteralContext) {
-      return new LiteralImpl('DATE', ctx.text);
-    } else if (ctx instanceof Parser.SoqlDateFormulaLiteralContext) {
+    if (
+      ctx instanceof Parser.SoqlDateLiteralContext ||
+      ctx instanceof Parser.SoqlDateTimeLiteralContext ||
+      ctx instanceof Parser.SoqlTimeLiteralContext ||
+      ctx instanceof Parser.SoqlDateFormulaLiteralContext
+    ) {
       return new LiteralImpl('DATE', ctx.text);
     } else if (ctx instanceof Parser.SoqlNumberLiteralContext) {
       return new LiteralImpl('NUMBER', ctx.text);
