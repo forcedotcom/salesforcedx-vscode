@@ -24,27 +24,24 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
     const resolved = manifestUri ?? (yield* api.services.EditorService.getActiveEditorUri());
     const spec = { kind: 'manifest' as const, manifestUri: resolved.toString() };
 
-    // Helper that performs the retrieve. Closes over resolved URI so retry can re-use it.
+    // The data-only retrieve. This is the RETRY target — it must NOT re-run conflict detection.
     const performRetrieve = Effect.gen(function* () {
-      // Conflict detection stays on the existing ComponentSet path (deferred migration).
-      yield* Effect.succeed(resolved).pipe(
-        Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
-        Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
-        withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
-      );
-
-      // Retrieve is now DATA-ONLY: services builds + retrieves + returns an owned RetrieveOutcome.
       yield* channelService.appendToChannel('Starting metadata retrieval...');
       const outcome = yield* api.services.MetadataRetrieveService.retrieveToSource(spec, { ignoreConflicts: true });
       return yield* retrieveFromOutcome(outcome);
     });
 
-    return yield* performRetrieve.pipe(
+    // Conflict detection runs ONCE (on the existing ComponentSet path — deferred migration).
+    // If conflicts are acknowledged via the modal, retry performs the retrieve WITHOUT re-detecting.
+    return yield* Effect.succeed(resolved).pipe(
+      Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
+      Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
+      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve')),
+      Effect.flatMap(() => performRetrieve),
       Effect.catchTag('ConflictsDetectedError', err =>
         handleConflictWithRetry({
           pairs: err.pairs,
           operationType: err.operationType,
-          // On retry, conflicts were acknowledged — re-run with the same spec (closes over `resolved`).
           retryOperation: performRetrieve
         })
       )

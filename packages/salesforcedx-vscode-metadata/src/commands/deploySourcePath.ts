@@ -24,27 +24,24 @@ const deployUris = Effect.fn('deploySourcePath.deployUris')(function* (uris: Set
   const urisArray = Array.from(uris);
   const spec = { kind: 'paths' as const, uris: urisArray.map(u => u.toString()) };
 
-  // Helper that performs the deploy. Closes over spec so retry can re-use it.
+  // The data-only deploy. This is the RETRY target — it must NOT re-run conflict detection.
   const performDeploy = Effect.gen(function* () {
-    // Conflict detection stays on the existing ComponentSet path (deferred migration).
-    yield* Effect.succeed(urisArray).pipe(
-      Effect.flatMap(componentSetService.getComponentSetFromUris),
-      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy'))
-    );
-
-    // Deploy is now DATA-ONLY: services builds + deploys + returns an owned DeployOutcome.
     yield* channelService.appendToChannel('Starting metadata deployment...');
     const outcome = yield* api.services.MetadataDeployService.deployFromSource(spec, { ignoreConflicts: true });
     return yield* deployFromOutcome(outcome);
   });
 
-  return yield* performDeploy.pipe(
+  // Conflict detection runs ONCE (on the existing ComponentSet path — deferred migration).
+  // If conflicts are acknowledged via the modal, retry performs the deploy WITHOUT re-detecting.
+  return yield* Effect.succeed(urisArray).pipe(
+    Effect.flatMap(componentSetService.getComponentSetFromUris),
+    Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+    withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy')),
+    Effect.flatMap(() => performDeploy),
     Effect.catchTag('ConflictsDetectedError', err =>
       handleConflictWithRetry({
         pairs: err.pairs,
         operationType: err.operationType,
-        // On retry, conflicts were acknowledged — re-run with the same spec (closes over `spec`).
         retryOperation: performDeploy
       })
     )
