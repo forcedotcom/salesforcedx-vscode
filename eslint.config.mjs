@@ -128,6 +128,7 @@ export default [
     rules: {
       'local/no-vscode-uri': 'error',
       'local/no-vscode-show-text-document': 'warn',
+      'local/no-inline-esbuild-platform': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -170,6 +171,8 @@ export default [
       'unicorn/no-array-reverse': 'error',
       'unicorn/no-array-sort': 'error',
       'unicorn/no-boolean-sort-comparator': 'error',
+      'unicorn/no-constant-zero-expression': 'error',
+      'unicorn/no-duplicate-if-branches': 'error',
       'unicorn/no-duplicate-logical-operands': 'error',
       'unicorn/no-empty-file': 'error',
       'unicorn/no-immediate-mutation': 'error',
@@ -188,6 +191,7 @@ export default [
       'unicorn/no-useless-switch-case': 'error',
       'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-at': 'error',
+      'unicorn/prefer-boolean-return': 'error',
       'unicorn/prefer-array-find': 'error',
       'unicorn/prefer-array-flat': 'error',
       'unicorn/prefer-array-flat-map': 'error',
@@ -764,6 +768,8 @@ export default [
     ],
     rules: {
       'local/no-vscode-show-text-document': 'off',
+      // Tests set/delete/save-restore process.env.ESBUILD_PLATFORM as jest setup/teardown plumbing
+      'local/no-inline-esbuild-platform': 'off',
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
 

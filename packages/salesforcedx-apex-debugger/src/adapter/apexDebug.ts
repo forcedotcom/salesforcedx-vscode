@@ -986,10 +986,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private hasStackFrames(response: DebuggerResponse): boolean {
-    if (response.stateResponse?.state?.stack?.stackFrame?.length > 0) {
-      return true;
-    }
-    return false;
+    return response.stateResponse?.state?.stack?.stackFrame?.length > 0;
   }
 
   protected async customRequest(command: string, response: DebugProtocol.Response, args: any): Promise<void> {
