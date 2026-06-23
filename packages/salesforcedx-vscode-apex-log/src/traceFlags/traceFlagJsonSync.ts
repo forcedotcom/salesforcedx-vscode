@@ -146,11 +146,10 @@ type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
 
 type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: string };
 
-/** Show a QuickPick of active trace flags. Returns the selected item, or undefined if cancelled. Shows an info message and returns undefined if there are no active flags. */
+/** Show a QuickPick of active trace flags. Returns the selected item, or undefined if cancelled or there are no active flags. Callers are responsible for handling the empty/undefined case (e.g. showing an info message). */
 export const pickTraceFlag = async (items: TraceFlagItem[]): Promise<TraceFlagQuickPickItem | undefined> => {
   const active = items.filter(isTraceFlagActive);
   if (active.length === 0) {
-    await vscode.window.showInformationMessage(nls.localize('trace_flags_none_active'));
     return undefined;
   }
   return vscode.window.showQuickPick<TraceFlagQuickPickItem>(

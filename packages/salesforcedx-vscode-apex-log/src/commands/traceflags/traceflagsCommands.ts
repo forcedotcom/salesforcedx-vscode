@@ -13,6 +13,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DebugLevelItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { isTraceFlagActive } from '../../traceFlags/traceFlagActive';
 import {
   pickDebugLevel,
   pickLogLevel,
@@ -84,10 +85,13 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
     const { api, orgId, userId } = ctx.value;
     const traceFlagService = yield* api.services.TraceFlagService;
     const existing = yield* traceFlagService.getTraceFlagForUser(userId!);
-    yield* Option.match(existing, {
-      onNone: () => Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active'))),
-      onSome: tf => traceFlagService.deleteTraceFlag(tf.id)
-    });
+    if (Option.isNone(existing)) {
+      yield* Effect.sync(() => {
+        void vscode.window.showInformationMessage(nls.localize('trace_flags_none_active'));
+      });
+      return;
+    }
+    yield* traceFlagService.deleteTraceFlag(existing.value.id);
     yield* refreshTraceFlagsView(orgId);
   }
 );
@@ -216,15 +220,24 @@ export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTrac
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
-  const resolvedId =
-    traceFlagId ??
-    (yield* Effect.gen(function* () {
-      const flags = yield* traceFlagService.getTraceFlags();
-      const picked = yield* Effect.promise(() => pickTraceFlag(flags));
-      return picked?.traceFlagId;
-    }));
-  if (!resolvedId) return;
-  yield* traceFlagService.deleteTraceFlag(resolvedId);
+  if (!traceFlagId) {
+    const flags = yield* traceFlagService.getTraceFlags();
+    const picked = yield* Effect.promise(() => pickTraceFlag(flags));
+    if (!picked) {
+      // pickTraceFlag returns undefined for both empty-list and user-cancel;
+      // show the info message only when there were no active flags to pick from.
+      if (flags.filter(f => isTraceFlagActive(f)).length === 0) {
+        yield* Effect.sync(() => {
+          void vscode.window.showInformationMessage(nls.localize('trace_flags_none_active'));
+        });
+      }
+      return;
+    }
+    yield* traceFlagService.deleteTraceFlag(picked.traceFlagId);
+    yield* refreshTraceFlagsView(orgId);
+    return;
+  }
+  yield* traceFlagService.deleteTraceFlag(traceFlagId);
   yield* refreshTraceFlagsView(orgId);
 });
 
