@@ -108,7 +108,7 @@ export const createTraceFlagStatusBar = () =>
         Stream.runForEach(() => refresh(statusBarItem))
       )
     );
-    yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
+    yield* Effect.promise(() => api.withDefaultOrg(() => undefined)).pipe(Effect.catchAll(() => Effect.void));
     yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity);
   });
