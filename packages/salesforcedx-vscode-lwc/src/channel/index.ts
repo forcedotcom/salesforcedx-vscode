@@ -15,7 +15,7 @@ const getChannelService = () =>
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       return yield* api.services.ChannelService;
-    })
+    }).pipe(Effect.withSpan('LwcChannel.getChannelService'))
   );
 
 let _channelService: Awaited<ReturnType<typeof getChannelService>> | undefined;

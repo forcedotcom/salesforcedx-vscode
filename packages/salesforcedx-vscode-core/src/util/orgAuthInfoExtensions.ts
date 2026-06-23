@@ -15,7 +15,7 @@ const getConnection = () =>
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       return yield* api.services.ConnectionService.getConnection();
-    })
+    }).pipe(Effect.withSpan('OrgAuthInfoExtensions.getConnection'))
   );
 
 /** Get the user ID, preferring the cached TargetOrgRef before falling back to a connection */
@@ -26,7 +26,7 @@ export const getUserId = async (): Promise<string | undefined> => {
       const ref = yield* api.services.TargetOrgRef();
       const { userId } = yield* SubscriptionRef.get(ref);
       return userId;
-    })
+    }).pipe(Effect.withSpan('OrgAuthInfoExtensions.getUserId'))
   );
   if (refUserId) return refUserId;
 
