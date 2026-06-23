@@ -1,0 +1,16 @@
+{
+  "//": "Import-free consumer gate. Type-checks consumer.ts against the PUBLISHED owned entry with NO ambient",
+  "//2": "types (types:[]) and skipLibCheck:false, so any SDK/effect type that leaked into the owned .d.ts",
+  "//3": "closure would fail this compile. Resolves the package's `owned` subpath to the built out/owned.d.ts.",
+  "extends": "../../../tsconfig.common.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": false,
+    "types": [],
+    "baseUrl": ".",
+    "paths": {
+      "salesforcedx-vscode-services-types/owned": ["../out/owned.d.ts"]
+    }
+  },
+  "include": ["consumer.ts"]
+}

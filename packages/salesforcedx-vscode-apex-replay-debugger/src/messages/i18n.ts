@@ -45,7 +45,6 @@ export const messages = {
   no_line_breakpoint_information_for_current_project: 'There is no line breakpoint information for the current project',
   line_breakpoint_information_success: 'Retrieved line breakpoint info from language server',
   language_client_not_ready: 'Unable to retrieve breakpoint info from language server, language server is not ready',
-  unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',
