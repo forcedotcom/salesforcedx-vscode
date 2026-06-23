@@ -8,7 +8,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-// eslint-disable-next-line import/no-extraneous-dependencies, local/no-direct-services-imports -- helper functions exported for consumer use
 import {
   componentFilenamesByNameAndType,
   type ComponentSetInfo,

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
-// eslint-disable-next-line import/no-extraneous-dependencies, local/no-direct-services-imports -- helper functions exported for consumer use
 import { componentFilenamesByNameAndType, type ComponentSetInfo } from 'salesforcedx-vscode-services';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField } from './types';

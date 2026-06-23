@@ -8,7 +8,6 @@ import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider'
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
-// eslint-disable-next-line import/no-extraneous-dependencies, local/no-direct-services-imports -- helper functions exported for consumer use
 import {
   componentFilenamesByNameAndType,
   componentSetHas,

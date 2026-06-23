@@ -11,7 +11,13 @@ import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 const SERVICES_PACKAGE_PATTERN = /^salesforcedx-vscode-services/;
 
 /** Value exports allowed for direct import (pure functions/constants, not Effect services) */
-const ALLOWED_VALUE_IMPORTS = new Set(['ICONS', 'toDeployOutcome', 'toRetrieveOutcome']);
+const ALLOWED_VALUE_IMPORTS = new Set([
+  'ICONS',
+  'toDeployOutcome',
+  'toRetrieveOutcome',
+  'componentSetHas',
+  'componentFilenamesByNameAndType'
+]);
 
 const isServicesImport = (source: TSESTree.StringLiteral | TSESTree.TemplateLiteral): boolean => {
   if (source.type === AST_NODE_TYPES.Literal && typeof source.value === 'string') {

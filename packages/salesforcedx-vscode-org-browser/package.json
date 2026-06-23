@@ -31,13 +31,13 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
+    "salesforcedx-vscode-services": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.31.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/source-deploy-retrieve": "^12.32.5"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
