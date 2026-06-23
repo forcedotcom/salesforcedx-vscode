@@ -10,7 +10,9 @@ import { join } from 'node:path';
 describe('owned types are import-free', () => {
   const ownedDir = join(__dirname, '..', '..', '..', 'src', 'owned');
   it('no owned/*.ts imports the SF SDK or effect', () => {
-    for (const f of readdirSync(ownedDir).filter(n => n.endsWith('.ts'))) {
+    // *Mapper.ts files are the adapter layer (SDR -> owned types) and MAY import the SDK by design;
+    // the guard protects only the pure owned TYPE modules.
+    for (const f of readdirSync(ownedDir).filter(n => n.endsWith('.ts') && !n.endsWith('Mapper.ts'))) {
       const src = readFileSync(join(ownedDir, f), 'utf8');
       expect(src).not.toMatch(/from ['"]@salesforce\//);
       expect(src).not.toMatch(/from ['"](jsforce|@jsforce\/)/);

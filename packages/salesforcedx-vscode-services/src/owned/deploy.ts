@@ -15,14 +15,37 @@ export type RetrieveOptions = { readonly ignoreConflicts?: boolean };
 export type FileResponseInfo = {
   readonly fullName: string;
   readonly type: string;
+  /** SDR file state, e.g. 'Created' | 'Changed' | 'Unchanged' | 'Deleted' | 'Failed'. */
   readonly state: string;
   readonly filePath?: string;
   readonly error?: string;
+  /** 1-based line of a failure, when the org reported one (drives Problems-panel range). */
+  readonly lineNumber?: number;
+  /** 1-based column of a failure, when the org reported one. */
+  readonly columnNumber?: number;
+  /** SDR problemType, e.g. 'Error' | 'Warning'. Absent for successes. */
+  readonly problemType?: string;
 };
+
+/** One server-reported component failure not already present as a FileResponse failure. */
+export type ComponentFailureInfo = {
+  readonly fullName: string;
+  readonly type: string;
+  readonly problem: string;
+  readonly problemType: string;
+};
+
 export type DeployOutcome = {
   readonly success: boolean;
+  /** SDR RequestStatus as a string, e.g. 'Succeeded' | 'SucceededPartial' | 'Failed' | 'Canceled'. */
   readonly status: string;
+  /** True when the org applied at least part of the deploy (status Succeeded or SucceededPartial). */
+  readonly appliedToOrg: boolean;
+  /** ISO-8601 server completedDate when present (used for result-storage timestamps). */
+  readonly completedDate?: string;
   readonly fileResponses: readonly FileResponseInfo[];
+  /** Server-level component failures from response.details.componentFailures, normalized. */
+  readonly componentFailures: readonly ComponentFailureInfo[];
 };
 export type RetrieveOutcome = {
   readonly success: boolean;

@@ -6,21 +6,46 @@
  */
 
 // Adapter layer: maps SDR results to owned types. MAY import SDR.
-import type { DeployOutcome, RetrieveOutcome, FileResponseInfo } from './deploy';
-import type { DeployResult, RetrieveResult, FileResponse } from '@salesforce/source-deploy-retrieve';
+import type { ComponentFailureInfo, DeployOutcome, FileResponseInfo, RetrieveOutcome } from './deploy';
+import {
+  type DeployMessage,
+  type DeployResult,
+  type FileResponse,
+  RequestStatus,
+  type RetrieveResult
+} from '@salesforce/source-deploy-retrieve';
 
 const mapFileResponse = (fr: FileResponse): FileResponseInfo => ({
   fullName: fr.fullName,
   type: fr.type,
   state: fr.state,
-  filePath: fr.filePath,
-  error: 'error' in fr ? fr.error : undefined
+  filePath: 'filePath' in fr ? fr.filePath : undefined,
+  error: 'error' in fr ? fr.error : undefined,
+  lineNumber: 'lineNumber' in fr ? fr.lineNumber : undefined,
+  columnNumber: 'columnNumber' in fr ? fr.columnNumber : undefined,
+  problemType: 'problemType' in fr ? fr.problemType : undefined
 });
+
+const toDeployMessageArray = (raw: DeployMessage | DeployMessage[] | undefined): DeployMessage[] =>
+  raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];
+
+const mapComponentFailure = (m: DeployMessage): ComponentFailureInfo => ({
+  fullName: m.fullName,
+  type: m.componentType ?? 'UNKNOWN',
+  problem: m.problem ?? 'UNKNOWN',
+  problemType: m.problemType ?? 'Error'
+});
+
+const appliedToOrg = (status: RequestStatus): boolean =>
+  status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
 
 export const toDeployOutcome = (result: DeployResult): DeployOutcome => ({
   success: result.response.success,
   status: result.response.status,
-  fileResponses: result.getFileResponses().map(mapFileResponse)
+  appliedToOrg: appliedToOrg(result.response.status),
+  completedDate: result.response.completedDate,
+  fileResponses: result.getFileResponses().map(mapFileResponse),
+  componentFailures: toDeployMessageArray(result.response.details?.componentFailures).map(mapComponentFailure)
 });
 
 export const toRetrieveOutcome = (result: RetrieveResult): RetrieveOutcome => ({
