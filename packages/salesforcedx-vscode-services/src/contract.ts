@@ -13,7 +13,13 @@ import type { SourceTrackingOptions } from './core/sourceTrackingService';
 import type { TemplateOptionsFor } from './core/templateService';
 import type { OrgChange } from './owned/changes';
 import type { ComponentSetInfo } from './owned/components';
-import type { DeployOutcome, RetrieveOptions, RetrieveOutcome, SourceSpec } from './owned/deploy';
+import type {
+  DeployFromSourceOptions,
+  DeployOutcome,
+  RetrieveOptions,
+  RetrieveOutcome,
+  SourceSpec
+} from './owned/deploy';
 import type { ConnectionData, MetadataTypeInfo, TemplateCreateOutcome } from './owned/metadata';
 import type { ProjectInfo } from './owned/projectInfo';
 import type { ServicesOrg } from './owned/servicesOrg';
@@ -112,7 +118,7 @@ export type ServicesContract = {
   // Metadata Deploy
   /** @deprecated Returns a live @salesforce/source-deploy-retrieve DeployResult (a 3pp instance). Use `deployFromSource(spec)` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly deploy: (components: ComponentSet) => DeployResult;
-  readonly deployFromSource: (spec: SourceSpec) => DeployOutcome;
+  readonly deployFromSource: (spec: SourceSpec, opts?: DeployFromSourceOptions) => DeployOutcome;
 
   // Metadata Retrieve (basic signatures - specialized ones excluded)
   /** @deprecated Returns a live @salesforce/source-deploy-retrieve RetrieveResult (a 3pp instance). Use `retrieveToSource(spec)` for owned operations. Removed once consumers migrate (W-22419571). */

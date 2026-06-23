@@ -12,6 +12,10 @@ export type SourceSpec =
 
 export type RetrieveOptions = { readonly ignoreConflicts?: boolean };
 
+/** Options for deployFromSource. `ignoreConflicts` is reserved: conflict detection currently
+ * runs in the consumer (metadata); this flag stabilizes the contract for a future migration. */
+export type DeployFromSourceOptions = { readonly ignoreConflicts?: boolean };
+
 export type FileResponseInfo = {
   readonly fullName: string;
   readonly type: string;

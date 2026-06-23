@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SourceSpec } from '../owned/deploy';
+import type { DeployFromSourceOptions, SourceSpec } from '../owned/deploy';
 import { ComponentSet, type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
@@ -162,9 +162,15 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       return deployOutcome;
     }, withActiveMetadataOperationPipeline);
 
-    /** Deploy metadata from SourceSpec - returns owned DeployOutcome */
-    const deployFromSource = Effect.fn('MetadataDeployService.deployFromSource')(function* (spec: SourceSpec) {
-      yield* Effect.annotateCurrentSpan({ specKind: spec.kind });
+    /** Deploy metadata from SourceSpec - returns owned DeployOutcome.
+     * `ignoreConflicts` is reserved: services does not conflict-check today (the underlying SDR deploy
+     * applies what it is given); the consumer runs conflict detection. The flag keeps the contract
+     * stable for when conflict detection migrates into services. */
+    const deployFromSource = Effect.fn('MetadataDeployService.deployFromSource')(function* (
+      spec: SourceSpec,
+      opts?: DeployFromSourceOptions
+    ) {
+      yield* Effect.annotateCurrentSpan({ specKind: spec.kind, ignoreConflicts: opts?.ignoreConflicts ?? false });
       const components = yield* componentSetService.buildComponentSet(spec);
       const deployResult = yield* deploy(components);
       return toDeployOutcome(deployResult);
