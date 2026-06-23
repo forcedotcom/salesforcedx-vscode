@@ -26,9 +26,8 @@ import type { ServicesOrg } from './owned/servicesOrg';
 import type { Connection, SfProject } from '@salesforce/core';
 import type { ComponentSet, DeployResult, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import type { ChangeResult } from '@salesforce/source-tracking';
-import type { CreateOutput, TemplateType } from '@salesforce/templates';
+import type { TemplateType } from '@salesforce/templates';
 import type * as Schema from 'effect/Schema';
-import type { DescribeMetadataObject } from 'jsforce/lib/api/metadata/schema';
 import type * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 
@@ -111,8 +110,6 @@ export type ServicesContract = {
   // Note: These are excluded from PromisifiedContract conversion
 
   // Metadata Describe
-  /** @deprecated Returns a live jsforce DescribeMetadataObject array (a 3pp result). Use `describeMetadata()` for owned operations. Removed once consumers migrate (W-22419571). */
-  readonly describe: () => DescribeMetadataObject[];
   readonly describeMetadata: () => MetadataTypeInfo[];
 
   // Metadata Deploy
@@ -172,14 +169,10 @@ export type ServicesContractExtensions = {
   readonly retrieveComponentSetToDirectory: (components: NonEmptyComponentSet, outputPath: URI) => RetrieveResult;
 
   // Source tracking with specialized return types
-  /** @deprecated Returns a live @salesforce/source-deploy-retrieve ComponentSet array (a 3pp instance). Use `getLocalChanges()` for owned operations. Removed once consumers migrate (W-22419571). */
-  readonly getLocalChangesAsComponentSet: () => ComponentSet[];
   /** @deprecated Returns a live @salesforce/source-deploy-retrieve ComponentSet (a 3pp instance). Use `getRemoteChanges({ applyIgnore })` for owned operations. Removed once consumers migrate (W-22419571). */
   readonly getRemoteNonDeletesAsComponentSet: (options: { applyIgnore: boolean }) => ComponentSet;
 
   // Template creation with generic type parameter
-  /** @deprecated Returns a live @salesforce/templates CreateOutput (a 3pp instance). Use `createFromTemplateOwned(params)` for owned operations. Removed once consumers migrate (W-22419571). */
-  readonly createFromTemplate: <T extends TemplateType>(params: CreateParams<T>) => CreateOutput;
   readonly createFromTemplateOwned: <T extends TemplateType>(params: CreateParams<T>) => TemplateCreateOutcome;
 
   // Trace flags

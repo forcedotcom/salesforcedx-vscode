@@ -256,7 +256,6 @@ export const createPlainServicesApi = (
       );
     },
 
-    describe: () => run(builtContext, MetadataDescribeService.describe()),
     describeMetadata: () => run(builtContext, MetadataDescribeService.describeMetadata()),
     listMetadata: (type: string, folder?: string) =>
       run(builtContext, MetadataDescribeService.listMetadata(type, folder)),
@@ -283,7 +282,6 @@ export const createPlainServicesApi = (
       run(builtContext, MetadataRetrieveService.retrieveComponentSetToDirectory(components, outputPath)),
 
     hasTracking: () => run(builtContext, SourceTrackingService.hasTracking()),
-    getLocalChangesAsComponentSet: () => run(builtContext, SourceTrackingService.getLocalChangesAsComponentSet()),
     getRemoteNonDeletesAsComponentSet: (options: { applyIgnore: boolean }) =>
       run(builtContext, SourceTrackingService.getRemoteNonDeletesAsComponentSet(options)),
     getConflicts: () => run(builtContext, SourceTrackingService.getConflicts()),
@@ -294,8 +292,6 @@ export const createPlainServicesApi = (
       run(builtContext, SourceTrackingService.getRemoteChanges(opts)),
     checkConflicts: () => run(builtContext, SourceTrackingService.checkConflicts()),
 
-    createFromTemplate: <T extends TemplateType>(params: CreateParams<T>) =>
-      run(builtContext, TemplateService.create(params)),
     createFromTemplateOwned: <T extends TemplateType>(params: CreateParams<T>) =>
       run(builtContext, TemplateService.createWithOwnedOutcome(params)),
 
