@@ -151,24 +151,15 @@ export type PickDebugLevelToRemoveResult =
 /** Show a QuickPick of org DebugLevels for removal. Returns a discriminated result. */
 export const pickDebugLevelToRemove = async (items: DebugLevelItem[]): Promise<PickDebugLevelToRemoveResult> => {
   if (items.length === 0) return { kind: 'noLevels' };
-  const picked = await vscode.window.showQuickPick<DebugLevelQuickPickItem>(
-    items.map(dl => ({
-      label: dl.masterLabel,
-      description: `Apex=${dl.apexCode} Vf=${dl.visualforce} DB=${dl.database}`,
-      detail: dl.developerName,
-      debugLevelId: dl.id
-    })),
-    {
-      placeHolder: nls.localize('trace_flag_pick_debug_level_to_remove'),
-      matchOnDescription: true,
-      matchOnDetail: true
-    }
-  );
+  const picked = await pickDebugLevel(items, nls.localize('trace_flag_pick_debug_level_to_remove'));
   return picked ? { kind: 'picked', debugLevelId: picked.debugLevelId } : { kind: 'cancelled' };
 };
 
 /** Show a QuickPick of org DebugLevels. */
-export const pickDebugLevel = async (items: DebugLevelItem[]): Promise<DebugLevelQuickPickItem | undefined> =>
+export const pickDebugLevel = async (
+  items: DebugLevelItem[],
+  placeHolder: string = nls.localize('trace_flag_pick_debug_level')
+): Promise<DebugLevelQuickPickItem | undefined> =>
   vscode.window.showQuickPick<DebugLevelQuickPickItem>(
     items.map(dl => ({
       label: dl.masterLabel,
@@ -176,7 +167,7 @@ export const pickDebugLevel = async (items: DebugLevelItem[]): Promise<DebugLeve
       detail: dl.developerName,
       debugLevelId: dl.id
     })),
-    { placeHolder: nls.localize('trace_flag_pick_debug_level'), matchOnDescription: true, matchOnDetail: true }
+    { placeHolder, matchOnDescription: true, matchOnDetail: true }
   );
 
 type LogCategoryLevel = 'NONE' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'FINE' | 'FINER' | 'FINEST';

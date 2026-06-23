@@ -46,8 +46,9 @@ describe('pickDebugLevelToRemove', () => {
     expect(vscode.window.showQuickPick).toHaveBeenCalledTimes(1);
     const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
     expect(Array.isArray(items)).toBe(true);
-    const typedItems = items as unknown as Array<{ debugLevelId: string; label: string }>;
+    const typedItems = items as unknown as Array<{ debugLevelId: string; label: string; description: string }>;
     expect(typedItems.map(i => i.debugLevelId)).toEqual([LEVEL_A.id, LEVEL_B.id]);
+    expect(typedItems[0].description).toBe('Apex=DEBUG Vf=INFO DB=INFO');
     expect(result).toEqual({ kind: 'picked', debugLevelId: LEVEL_A.id });
   });
 

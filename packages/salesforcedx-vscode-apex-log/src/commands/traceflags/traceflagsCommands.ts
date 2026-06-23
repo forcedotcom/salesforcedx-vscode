@@ -201,9 +201,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   yield* traceFlagService.createDebugLevel(payload).pipe(
     Effect.flatMap(() => refreshTraceFlagsView(orgId)),
     Effect.catchTag('DebugLevelCreateError', () =>
-      Effect.sync(() => {
-        void vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed'));
-      })
+      Effect.promise(() => vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed')))
     )
   );
 });
@@ -249,9 +247,7 @@ export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDeb
       const levels = yield* traceFlagService.getDebugLevels();
       const result = yield* Effect.promise(() => pickDebugLevelToRemove(levels));
       if (result.kind === 'noLevels') {
-        yield* Effect.sync(() => {
-          void vscode.window.showInformationMessage(nls.localize('trace_flags_no_debug_levels'));
-        });
+        yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_no_debug_levels')));
         return undefined;
       }
       if (result.kind === 'cancelled') return undefined;
