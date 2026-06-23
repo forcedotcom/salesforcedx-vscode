@@ -10,29 +10,46 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
-import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployFromOutcome } from '../shared/deploy/deployFromOutcome';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.MetadataDeployService.getComponentSetForDeploy().pipe(
-    Effect.flatMap((yield* api.services.ComponentSetService).ensureNonEmptyComponentSet),
-    withPreparationProgress('deploy', ignoreConflicts ? undefined : cs => detectConflicts(cs, 'deploy')),
-    Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
+  const channelService = yield* api.services.ChannelService;
+  const spec = { kind: 'projectDirectories' as const };
+
+  // Helper that performs the deploy. Closes over spec so retry can re-use it.
+  const performDeploy = Effect.gen(function* () {
+    // Conflict detection stays on the existing ComponentSet path (deferred migration).
+    if (!ignoreConflicts) {
+      yield* api.services.MetadataDeployService.getComponentSetForDeploy().pipe(
+        Effect.flatMap((yield* api.services.ComponentSetService).ensureNonEmptyComponentSet),
+        withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy'))
+      );
+    }
+
+    // Deploy is now DATA-ONLY: services builds + deploys + returns an owned DeployOutcome.
+    yield* channelService.appendToChannel('Starting metadata deployment...');
+    const outcome = yield* api.services.MetadataDeployService.deployFromSource(spec, { ignoreConflicts: true });
+    return yield* deployFromOutcome(outcome);
+  });
+
+  return yield* performDeploy.pipe(
+    Effect.catchTag('ConflictsDetectedError', err =>
+      handleConflictWithRetry({
+        pairs: err.pairs,
+        operationType: err.operationType,
+        // On retry, conflicts were acknowledged — re-run with the same spec (closes over `spec`).
+        retryOperation: performDeploy
+      })
+    )
   );
 });
 
 /** Deploy local changes to the default org */
 export const projectDeployStartCommand = (ignoreConflicts = false) =>
   deployEffect(ignoreConflicts).pipe(
-    Effect.catchTag('ConflictsDetectedError', err =>
-      handleConflictWithRetry({
-        pairs: err.pairs,
-        operationType: err.operationType,
-        retryOperation: deployEffect(true)
-      })
-    ),
     withConfigurableSuccessNotification(
       nls.localize(
         'command_succeeded_text',
