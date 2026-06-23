@@ -8,6 +8,7 @@
 import { expect, type Page } from '@playwright/test';
 import {
   acceptNotification,
+  clearAllNotifications,
   clearOutputChannel,
   createAndDeployApexTestClass,
   deployCurrentSourceToOrg,
@@ -21,8 +22,8 @@ import {
   selectOutputChannel,
   selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
-  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
+  setupNonTrackingOrgAndAuth,
   validateNoCriticalErrors,
   waitForNotification,
   waitForOutputChannelText,
@@ -135,7 +136,7 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
       // Clear all notifications so the failing run's "Apex test report is ready" toast doesn't
       // get re-matched (and possibly re-clicked) when we verify the passing-run notification.
-      await executeCommandWithCommandPalette(page, 'Notifications: Clear All Notifications');
+      await clearAllNotifications(page);
     });
 
     await test.step('clear Salesforce Metadata channel before redeploy', async () => {
