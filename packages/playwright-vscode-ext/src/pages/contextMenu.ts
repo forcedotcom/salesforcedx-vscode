@@ -29,7 +29,8 @@ const openEditorContextMenu = async (page: Page, fileName?: string): Promise<Loc
       await Promise.all(Array.from({ length: count }, (_, i) => allEditors.nth(i).getAttribute('data-uri')))
     ).filter((uri): uri is string => uri !== null);
     throw new Error(
-      `No editor found with fileName containing "${fileName}". Available data-uris: ${dataUris.join(', ')}`
+      `No editor found with fileName containing "${fileName}". Available data-uris: ${dataUris.join(', ')}`,
+      { cause }
     );
   });
   await editor.click({ button: 'right' });
