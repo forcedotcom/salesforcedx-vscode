@@ -25,8 +25,10 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
       const resourceAttrs = span.resource.attributes;
       const extensionName = resourceAttrs['extension.name'];
       const extensionVersion = resourceAttrs['extension.version'];
-      getAdditionalAttributes(extensionName, extensionVersion)
-        .concat(Effect.runSync(memoized('everySpanIsTheSame'))) // it seems to want a key
+      Effect.runSync(
+        Effect.all([getAdditionalAttributes(extensionName, extensionVersion), memoized('everySpanIsTheSame')]) // it seems to want a key
+      )
+        .flat()
         .filter(isNotUndefined)
         .map(([k, v]) => span.setAttribute(k, v));
     }
@@ -36,34 +38,39 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
 
 type TelemetryAttribute = [string, string | undefined];
 
-const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unknown): TelemetryAttribute[] => {
-  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource, userId, webUserId, cliId, orgEdition } =
-    getDefaultOrgRef().pipe(
-      Effect.flatMap(ref => SubscriptionRef.get(ref)),
-      Effect.runSync
-    );
-  const commonAttrs: TelemetryAttribute[] = [];
-  if (typeof extensionName === 'string') {
-    commonAttrs.push(['common.extname', extensionName]);
-  }
-  if (typeof extensionVersion === 'string') {
-    commonAttrs.push(['common.extversion', extensionVersion]);
-  }
-  return [
-    // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
-    ...commonAttrs,
-    ['orgId', orgId],
-    ['devHubOrgId', devHubOrgId],
-    ['isSandbox', optionalBooleanToString(isSandbox)],
-    ['isScratch', optionalBooleanToString(isScratch)],
-    ['tracksSource', optionalBooleanToString(tracksSource)],
-    ['userId', userId],
-    ['cliId', cliId],
-    ['webUserId', webUserId],
-    ['orgEdition', orgEdition],
-    ['telemetryTag', workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')]
-  ];
-};
+const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unknown) =>
+  getDefaultOrgRef().pipe(
+    Effect.flatMap(ref => SubscriptionRef.get(ref)),
+    Effect.map(
+      ({
+        orgId,
+        devHubOrgId,
+        isSandbox,
+        isScratch,
+        tracksSource,
+        userId,
+        webUserId,
+        cliId,
+        orgEdition
+      }): TelemetryAttribute[] => [
+        // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
+        ...(typeof extensionName === 'string' ? [['common.extname', extensionName] satisfies TelemetryAttribute] : []),
+        ...(typeof extensionVersion === 'string'
+          ? [['common.extversion', extensionVersion] satisfies TelemetryAttribute]
+          : []),
+        ['orgId', orgId],
+        ['devHubOrgId', devHubOrgId],
+        ['isSandbox', optionalBooleanToString(isSandbox)],
+        ['isScratch', optionalBooleanToString(isScratch)],
+        ['tracksSource', optionalBooleanToString(tracksSource)],
+        ['userId', userId],
+        ['cliId', cliId],
+        ['webUserId', webUserId],
+        ['orgEdition', orgEdition],
+        ['telemetryTag', workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')]
+      ]
+    )
+  );
 
 export const isInternalUser = (uiKindString: string | undefined): string | undefined => {
   if (uiKindString !== 'Desktop') return undefined;
@@ -83,7 +90,7 @@ const getPermanentAttributes = () => {
     ...((uiKindString === 'Desktop'
       ? [
           ['common.platformversion', (os?.release?.() ?? '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3')],
-          ['common.systemmemory', `${(os?.totalmem?.() ?? 0 / (1024 * 1024 * 1024)).toFixed(2)} GB`],
+          ['common.systemmemory', `${((os?.totalmem?.() ?? 0) / (1024 * 1024 * 1024)).toFixed(2)} GB`],
           ['common.cpus', getCPUs()]
         ]
       : []) satisfies TelemetryAttribute[])
@@ -96,7 +103,7 @@ const isNotUndefined = (item: [string, string | undefined]): item is [string, st
 
 const getCPUs = (): string => {
   const cpus = os?.cpus() ?? [];
-  return cpus?.length > 0 ? `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})` : 'unknown';
+  return cpus[0] ? `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})` : 'unknown';
 };
 
 const optionalBooleanToString = (value: boolean | undefined): string | undefined =>
