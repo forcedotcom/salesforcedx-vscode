@@ -144,15 +144,20 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
 
 type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
 
-type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: string };
+export type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: string };
 
-/** Show a QuickPick of active trace flags. Returns the selected item, or undefined if cancelled or there are no active flags. Callers are responsible for handling the empty/undefined case (e.g. showing an info message). */
-export const pickTraceFlag = async (items: TraceFlagItem[]): Promise<TraceFlagQuickPickItem | undefined> => {
+export type PickTraceFlagResult =
+  | { kind: 'noActive' }
+  | { kind: 'cancelled' }
+  | { kind: 'picked'; traceFlagId: string };
+
+/** Show a QuickPick of active trace flags. Returns a discriminated result indicating whether no active flags exist, user cancelled, or a flag was picked. */
+export const pickTraceFlag = async (items: TraceFlagItem[]): Promise<PickTraceFlagResult> => {
   const active = items.filter(isTraceFlagActive);
   if (active.length === 0) {
-    return undefined;
+    return { kind: 'noActive' };
   }
-  return vscode.window.showQuickPick<TraceFlagQuickPickItem>(
+  const picked = await vscode.window.showQuickPick<TraceFlagQuickPickItem>(
     active.map(tf => ({
       label: tf.tracedEntityName ?? tf.tracedEntityId ?? tf.id,
       description: tf.logType,
@@ -161,6 +166,7 @@ export const pickTraceFlag = async (items: TraceFlagItem[]): Promise<TraceFlagQu
     })),
     { placeHolder: nls.localize('trace_flag_pick_trace_flag') }
   );
+  return picked ? { kind: 'picked', traceFlagId: picked.traceFlagId } : { kind: 'cancelled' };
 };
 
 /** Show a QuickPick of org DebugLevels. */
