@@ -125,6 +125,10 @@ export type ServicesContract = {
   readonly retrieveComponentSet: (components: ComponentSet) => RetrieveResult;
   readonly retrieveToSource: (spec: SourceSpec, opts?: RetrieveOptions) => RetrieveOutcome;
   readonly retrieveRemoteChanges: (opts?: RetrieveOptions) => RetrieveOutcome;
+  readonly retrieveMembers: (
+    members: readonly import('./owned/components').OwnedMetadataMember[],
+    opts?: RetrieveOptions
+  ) => RetrieveOutcome;
 
   // Source Tracking (basic methods)
   readonly hasTracking: () => boolean;

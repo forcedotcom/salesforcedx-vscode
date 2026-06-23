@@ -344,6 +344,18 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       }
     }, withActiveMetadataOperationPipeline);
 
+    /** Retrieve owned members — maps owned OwnedMetadataMember[] to SDR's shape, calls the existing retrieve, returns owned RetrieveOutcome. */
+    const retrieveMembers = Effect.fn('MetadataRetrieveService.retrieveMembers')(function* (
+      members: readonly import('../owned/components').OwnedMetadataMember[],
+      opts?: import('../owned/deploy').RetrieveOptions
+    ) {
+      yield* Effect.annotateCurrentSpan({ membersCount: members.length, opts });
+      // OwnedMetadataMember {type, fullName} is structurally compatible with SDR MetadataMember
+      const sdrMembers: MetadataMember[] = members.map(m => ({ type: m.type, fullName: m.fullName }));
+      const retrieveResult = yield* retrieve(sdrMembers, opts);
+      return toRetrieveOutcome(retrieveResult);
+    }, withActiveMetadataOperationPipeline);
+
     return {
       retrieve,
       retrieveComponentSet,
@@ -351,7 +363,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       buildComponentSet,
       buildComponentSetFromSource,
       retrieveToSource,
-      retrieveRemoteChanges
+      retrieveRemoteChanges,
+      retrieveMembers
     };
   })
 }) {}
