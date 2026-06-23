@@ -188,6 +188,7 @@ export default [
       'unicorn/no-useless-switch-case': 'error',
       'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-at': 'error',
+      'unicorn/prefer-boolean-return': 'error',
       'unicorn/prefer-array-find': 'error',
       'unicorn/prefer-array-flat': 'error',
       'unicorn/prefer-array-flat-map': 'error',
