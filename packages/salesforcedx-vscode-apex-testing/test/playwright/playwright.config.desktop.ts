@@ -7,10 +7,4 @@
 
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createDesktopConfig({
-  testDir: './specs',
-  workers: 1,
-  fullyParallel: false,
-  timeout: 360_000,
-  trace: 'on-first-retry'
-});
+export default createDesktopConfig({ testDir: './specs', workers: 1, fullyParallel: false, timeout: 360_000 });

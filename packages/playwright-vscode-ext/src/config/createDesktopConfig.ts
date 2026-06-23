@@ -16,8 +16,6 @@ type DesktopConfigOptions = {
   fullyParallel?: boolean;
   /** Per-test timeout in ms (default: 60_000) */
   timeout?: number;
-  /** Playwright trace mode (default: 'on'). Set 'on-first-retry' to avoid per-test trace-zip churn. */
-  trace?: 'on' | 'on-first-retry' | 'retain-on-failure' | 'off';
 };
 
 /** Creates a standardized Playwright desktop (Electron) config for VS Code extension testing */
@@ -33,7 +31,7 @@ export const createDesktopConfig = (options: DesktopConfigOptions) => {
       ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit-desktop.xml' }]]
       : [['html', { open: 'never' }], ['list']],
     use: {
-      trace: options.trace ?? 'on',
+      trace: 'on',
       screenshot: 'on',
       actionTimeout: 15_000,
       viewport: { width: 1920, height: 1080 }
