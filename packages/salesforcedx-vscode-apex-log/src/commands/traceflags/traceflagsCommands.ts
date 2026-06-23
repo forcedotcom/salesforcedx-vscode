@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import {
   pickDebugLevel,
+  pickDebugLevelToRemove,
   pickLogLevel,
   pickOrgUser,
   readDefaultDurationMinutes,
@@ -234,15 +235,29 @@ export const changeDebugLevelCommand = Effect.fn('ApexLog.Command.changeDebugLev
   yield* refreshTraceFlagsView(orgId);
 });
 
-/** Delete debug level by Id via Tooling API, refresh virtual doc. */
+/** Delete debug level by Id via Tooling API, refresh virtual doc. When no Id is provided (e.g. command palette), prompts via QuickPick. */
 export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDebugLevelForId')(function* (
-  debugLevelId: string
+  debugLevelId?: string
 ) {
-  if (!debugLevelId) return;
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
-  yield* traceFlagService.deleteDebugLevel(debugLevelId);
+  const resolvedId =
+    debugLevelId ??
+    (yield* Effect.gen(function* () {
+      const levels = yield* traceFlagService.getDebugLevels();
+      const result = yield* Effect.promise(() => pickDebugLevelToRemove(levels));
+      if (result.kind === 'noLevels') {
+        yield* Effect.sync(() => {
+          void vscode.window.showInformationMessage(nls.localize('trace_flags_no_debug_levels'));
+        });
+        return undefined;
+      }
+      if (result.kind === 'cancelled') return undefined;
+      return result.debugLevelId;
+    }));
+  if (!resolvedId) return;
+  yield* traceFlagService.deleteDebugLevel(resolvedId);
   yield* refreshTraceFlagsView(orgId);
 });
