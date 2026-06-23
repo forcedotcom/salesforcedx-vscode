@@ -55,20 +55,18 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
   const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const projectInfo = yield* api.services.ProjectService.getProjectInfo();
-  const componentSetService = yield* api.services.ComponentSetService;
 
   const template = yield* determineComponentTemplate(projectInfo.defaultLwcLanguage);
-  const componentName = yield* componentSetService
-    .getComponentSetFromProjectDirectories({
-      metadataMembers: [
-        { type: LWC_TYPE, fullName: '*' },
-        { type: AURA_TYPE, fullName: '*' }
-      ]
-    })
-    .pipe(
-      Effect.map(set => new Set(Array.from(set.getSourceComponents()).map(c => c.fullName.toLowerCase()))),
-      Effect.flatMap(existingNames => promptForLwcName({ existingNames }))
-    );
+  const componentName = yield* api.services.ComponentSetService.describeProjectComponents({
+    kind: 'projectDirectories',
+    members: [
+      { type: LWC_TYPE, fullName: '*' },
+      { type: AURA_TYPE, fullName: '*' }
+    ]
+  }).pipe(
+    Effect.map(info => new Set(info.components.map(c => c.fullName.toLowerCase()))),
+    Effect.flatMap(existingNames => promptForLwcName({ existingNames }))
+  );
 
   const outputDirUri =
     outputDirParam ??
