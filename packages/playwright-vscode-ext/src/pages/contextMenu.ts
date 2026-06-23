@@ -9,40 +9,30 @@ import type { Page, Locator } from '@playwright/test';
 import { EDITOR_WITH_URI, CONTEXT_MENU } from '../utils/locators';
 import { focusOnFilesExplorer } from './nativeCommands';
 
+/** Escape a value for use inside a double-quoted CSS attribute selector string. */
+const escapeCssAttrValue = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
+
 /** Opens context menu on an editor. If fileName is provided, matches editor by URI/name (partial match). */
 const openEditorContextMenu = async (page: Page, fileName?: string): Promise<Locator> => {
-  let editor: Locator;
-  if (fileName) {
-    // Wait for at least one editor to be visible first
-    await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
-
-    // Try to find editor by matching fileName in data-uri
-    // Check all editors and find one that matches
+  // Build the target as one auto-retrying locator. The data-uri substring match mirrors the old
+  // `dataUri.includes(fileName)` semantics. waitFor resolves instantly when the editor is already
+  // open (static-path callers) and waits up-to-10s while a renamed URI is still settling.
+  const editor = fileName
+    ? page.locator(`${EDITOR_WITH_URI}[data-uri*="${escapeCssAttrValue(fileName)}"]`).first()
+    : page.locator(EDITOR_WITH_URI).first();
+  await editor.waitFor({ state: 'visible', timeout: 10_000 }).catch(async (cause: unknown) => {
+    if (!fileName) throw cause;
+    // Preserve the old diagnostics: list currently-present data-uris (only on failure).
     const allEditors = page.locator(EDITOR_WITH_URI);
     const count = await allEditors.count();
-    let foundEditor: Locator | undefined;
-    const dataUris: string[] = [];
-    for (let i = 0; i < count; i++) {
-      const editorLocator = allEditors.nth(i);
-      const dataUri = await editorLocator.getAttribute('data-uri');
-      if (dataUri) {
-        dataUris.push(dataUri);
-        if (dataUri.includes(fileName)) {
-          foundEditor = editorLocator;
-          break;
-        }
-      }
-    }
-    if (!foundEditor) {
-      throw new Error(
-        `No editor found with fileName containing "${fileName}". Available data-uris: ${dataUris.join(', ')}`
-      );
-    }
-    editor = foundEditor;
-  } else {
-    editor = page.locator(EDITOR_WITH_URI).first();
-  }
-  await editor.waitFor({ state: 'visible', timeout: 10_000 });
+    const dataUris = (
+      await Promise.all(Array.from({ length: count }, (_, i) => allEditors.nth(i).getAttribute('data-uri')))
+    ).filter((uri): uri is string => uri !== null);
+    throw new Error(
+      `No editor found with fileName containing "${fileName}". Available data-uris: ${dataUris.join(', ')}`,
+      { cause }
+    );
+  });
   await editor.click({ button: 'right' });
   const contextMenu = page.locator(CONTEXT_MENU);
   await contextMenu.waitFor({ state: 'visible', timeout: 5000 });
