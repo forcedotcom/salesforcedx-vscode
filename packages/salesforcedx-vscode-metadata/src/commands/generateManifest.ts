@@ -38,9 +38,9 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
 });
 
 const generateManifestFromUris = Effect.fn('generateManifestFromUris')(function* (uris: URI[]) {
+  yield* Effect.annotateCurrentSpan('uriCount', uris.length);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const componentSetService = yield* api.services.ComponentSetService;
-  const componentSet = yield* componentSetService.getComponentSetFromUris(Array.from(uris));
+  const componentSet = yield* api.services.ComponentSetService.getComponentSetFromUris(Array.from(uris));
   return yield* Effect.promise(() => componentSet.getPackageXml());
 });
 
@@ -49,9 +49,10 @@ const saveManifestFile = Effect.fn('saveManifestFile')(function* (
   fileName: string,
   packageXML: string
 ) {
+  yield* Effect.annotateCurrentSpan('fileName', fileName);
+  yield* Effect.annotateCurrentSpan('workspacePath', workspacePath.toString());
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
-  const fsService = yield* api.services.FsService;
   const promptService = yield* api.services.PromptService;
   // Build manifest directory path
   const manifestFileUri = Utils.joinPath(workspacePath, 'manifest', fileName);
@@ -61,7 +62,7 @@ const saveManifestFile = Effect.fn('saveManifestFile')(function* (
   yield* api.services.FsService.safeWriteFile(manifestFileUri, packageXML);
   yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
 
-  yield* fsService.showTextDocument(manifestFileUri);
+  yield* api.services.FsService.showTextDocument(manifestFileUri);
 
   return manifestFileUri;
 });
