@@ -23,6 +23,7 @@ jest.mock('@salesforce/effect-ext-utils', () => jest.requireActual('@salesforce/
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
+import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import {
   convertToCSV,
@@ -724,33 +725,46 @@ describe('DataQuery Pure Functions', () => {
           }
         } as unknown as SalesforceVSCodeServicesApi)
       };
-      return { provider, restQuery, toolingQuery };
+      const mockConnectionService = {
+        getConnection: () => Effect.succeed(connection),
+        invalidateCachedConnections: () => Effect.void,
+        listAllAuthorizations: () => Effect.succeed([])
+      } as unknown as ConnectionService;
+      return { provider, restQuery, toolingQuery, mockConnectionService };
     };
 
     it('strips trailing ALL ROWS and passes scanAll true on the REST branch', async () => {
-      const { provider, restQuery } = makeApiMock();
+      const { provider, restQuery, mockConnectionService } = makeApiMock();
       await Effect.runPromise(
         runSoqlQuery('SELECT Id FROM Account ALL ROWS', false).pipe(
-          Effect.provideService(ExtensionProviderService, provider)
+          Effect.provideService(ExtensionProviderService, provider),
+          Effect.provideService(ConnectionService, mockConnectionService),
+          Effect.provideService(ChannelService, mockChannel as unknown as ChannelService)
         )
       );
       expect(restQuery).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: true }));
     });
 
     it('strips trailing ALL ROWS and passes scanAll true on the Tooling branch', async () => {
-      const { provider, toolingQuery } = makeApiMock();
+      const { provider, toolingQuery, mockConnectionService } = makeApiMock();
       await Effect.runPromise(
         runSoqlQuery('SELECT Id FROM ApexClass ALL ROWS', true).pipe(
-          Effect.provideService(ExtensionProviderService, provider)
+          Effect.provideService(ExtensionProviderService, provider),
+          Effect.provideService(ConnectionService, mockConnectionService),
+          Effect.provideService(ChannelService, mockChannel as unknown as ChannelService)
         )
       );
       expect(toolingQuery).toHaveBeenCalledWith('SELECT Id FROM ApexClass', expect.objectContaining({ scanAll: true }));
     });
 
     it('passes scanAll false and unchanged text when ALL ROWS is absent', async () => {
-      const { provider, restQuery } = makeApiMock();
+      const { provider, restQuery, mockConnectionService } = makeApiMock();
       await Effect.runPromise(
-        runSoqlQuery('SELECT Id FROM Account', false).pipe(Effect.provideService(ExtensionProviderService, provider))
+        runSoqlQuery('SELECT Id FROM Account', false).pipe(
+          Effect.provideService(ExtensionProviderService, provider),
+          Effect.provideService(ConnectionService, mockConnectionService),
+          Effect.provideService(ChannelService, mockChannel as unknown as ChannelService)
+        )
       );
       expect(restQuery).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: false }));
     });
