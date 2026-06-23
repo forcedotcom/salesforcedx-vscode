@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
+import type { OwnedMetadataMember, RetrieveOutcome } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
@@ -18,17 +18,17 @@ export class NoFilesRetrievedError extends Schema.TaggedError<NoFilesRetrievedEr
 }) {}
 
 const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
-  members: MetadataMember[],
+  members: OwnedMetadataMember[],
   openInEditor = false
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
 
-  const result = yield* api.services.MetadataRetrieveService.retrieve(members, { ignoreConflicts: true });
-  if (typeof result === 'string') {
-    return result;
+  const result = yield* api.services.MetadataRetrieveService.retrieveMembers(members, { ignoreConflicts: true });
+  if (!result.success) {
+    return yield* Effect.fail(new NoFilesRetrievedError({ message: result.status }));
   }
-  const fileResponses = result.getFileResponses().filter(f => f.filePath);
+  const fileResponses = result.fileResponses.filter(f => f.filePath);
   yield* channel.appendToChannel(`Retrieve completed. ${fileResponses.length} files retrieved successfully.`);
   if (fileResponses.length > 0) {
     yield* channel.appendToChannel(
@@ -54,9 +54,9 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
   return result;
 });
 
-const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
+const findFirstSuccessfulFile = (result: RetrieveOutcome): Option.Option<string> =>
   // for unknown reasons, the filePath is sometimes prefixed with a backslash
-  Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '/'));
+  Option.fromNullable(result.fileResponses[0]?.filePath?.replace(/^\\/, '/'));
 
 export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieveService>()(
   'OrgBrowserRetrieveService',

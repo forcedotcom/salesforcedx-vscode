@@ -6,9 +6,15 @@
  */
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
+// eslint-disable-next-line import/no-extraneous-dependencies, local/no-direct-services-imports -- helper functions exported for consumer use
+import {
+  componentFilenamesByNameAndType,
+  componentSetHas,
+  type ComponentSetInfo,
+  type OwnedMetadataMember
+} from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
@@ -26,7 +32,9 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
   yield* Effect.annotateCurrentSpan({ memberCount: members.length });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+  const projectComponentSet = yield* api.services.ComponentSetService.describeProjectComponents({
+    kind: 'projectDirectories'
+  });
 
   yield* confirmOverwrite(projectComponentSet, members);
 
@@ -65,11 +73,11 @@ const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataType
     Match.orElse(() => Effect.succeed([]))
   );
 
-/** ComponentSet.has() returns false for CustomFields in monolithic format; use getComponentFilenamesByNameAndType */
-const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: MetadataMember): boolean => {
-  if (projectComponentSet.has(m)) return true;
+/** ComponentSet.has() returns false for CustomFields in monolithic format; use componentFilenamesByNameAndType */
+const isMemberPresentInProject = (projectComponentSet: ComponentSetInfo, m: OwnedMetadataMember): boolean => {
+  if (componentSetHas(projectComponentSet, m)) return true;
   if (m.type === 'CustomField') {
-    const fieldPaths = projectComponentSet.getComponentFilenamesByNameAndType({
+    const fieldPaths = componentFilenamesByNameAndType(projectComponentSet, {
       fullName: m.fullName,
       type: 'CustomField'
     });
@@ -78,12 +86,12 @@ const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: Metadata
   return false;
 };
 
-const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
+const getOverwriteCount = (projectComponentSet: ComponentSetInfo, members: OwnedMetadataMember[]): number =>
   members.reduce((n, m) => n + (isMemberPresentInProject(projectComponentSet, m) ? 1 : 0), 0);
 
 const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (
-  projectComponentSet: ComponentSet,
-  members: MetadataMember[]
+  projectComponentSet: ComponentSetInfo,
+  members: OwnedMetadataMember[]
 ) {
   const overwriteCount = getOverwriteCount(projectComponentSet, members);
   if (overwriteCount === 0) return;
