@@ -14,14 +14,11 @@ export const sobjectTypeFilter =
     const isCustomObject = sobject.custom === true && category === 'CUSTOM';
     const isStandardObject = sobject.custom === false && category === 'STANDARD';
 
-    if (
+    return (
       (category === 'ALL' && source === 'manual') ||
       (category === 'ALL' && (source === 'startupmin' || source === 'startup') && isRequiredSObject(sobject.name)) ||
       ((isCustomObject || isStandardObject) && source === 'manual' && isRequiredSObject(sobject.name))
-    ) {
-      return true;
-    }
-    return false;
+    );
   };
 
 /* Ignore all sobjects that end with Share or History or Feed or Event */
