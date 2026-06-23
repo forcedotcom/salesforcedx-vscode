@@ -10,7 +10,8 @@
       "brace-expansion": "4.0.1"
     },
     "playwright-core": "1.60.0",
-    "o11y_schema": "$o11y_schema"
+    "o11y_schema": "$o11y_schema",
+    "protobufjs": "^7.6.4"
   },
   "engines": {
     "node": ">=22.15.1"
