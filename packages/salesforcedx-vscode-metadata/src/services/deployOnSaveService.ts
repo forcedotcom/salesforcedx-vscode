@@ -48,9 +48,7 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
   if (basename.endsWith('.soql')) return false;
 
   // Exclude anonymous apex files
-  if (basename.endsWith('.apex')) return false;
-
-  return true;
+  return !basename.endsWith('.apex');
 });
 
 /** Deploy queued files using MetadataDeployService */

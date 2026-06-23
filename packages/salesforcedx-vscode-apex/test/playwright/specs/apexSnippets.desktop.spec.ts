@@ -9,10 +9,11 @@ import { expect, type Page } from '@playwright/test';
 import {
   closeWelcomeTabs,
   EDITOR_WITH_URI,
-  executeCommandWithCommandPalette,
   goToLineCol,
+  insertSnippet,
   openFileByName,
   QUICK_INPUT_WIDGET,
+  saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -83,7 +84,7 @@ test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page
     // and moves the caret to EOF — the snippet then inserts after the class-closing brace instead
     // of on blank line 7. goToLineCol already gave the editor keyboard focus, so skipping the click
     // keeps the caret on line 7.
-    await executeCommandWithCommandPalette(page, 'Snippets: Insert Snippet', undefined, {
+    await insertSnippet(page, {
       preserveSelection: true
     });
     const quickInput = page.locator(QUICK_INPUT_WIDGET);
@@ -99,7 +100,7 @@ test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page
 
   await test.step('save and assert snippet body', async () => {
     await dismissEditorOverlays(page);
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     // body `System.debug($0)`; `$0` is the final cursor (empty render) → saved text `System.debug()`.
     // Assert it landed on blank line 7 (between the assertEquals and the class-closing brace) so a
     // misfired Go to Line/Column navigation cannot silently pass on a line-agnostic substring match.

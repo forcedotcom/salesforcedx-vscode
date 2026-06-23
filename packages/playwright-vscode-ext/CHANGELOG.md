@@ -1,3 +1,12 @@
+## [1.3.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.0...playwright-vscode-ext-v1.3.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* **metadata:** refresh sourceApiVersion mid-session for retrieve/deploy - W-23095743 ([#7521](https://github.com/forcedotcom/salesforcedx-vscode/issues/7521)) ([98551d7](https://github.com/forcedotcom/salesforcedx-vscode/commit/98551d7c035c88a987daafb86b6aed02ad18d874))
+
+
+
 # [1.3.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.2.0...playwright-vscode-ext-v1.3.0) (2026-06-12)
 
 

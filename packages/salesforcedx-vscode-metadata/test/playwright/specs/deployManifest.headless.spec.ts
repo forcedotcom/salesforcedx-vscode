@@ -8,25 +8,26 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
-  setupConsoleMonitoring,
-  setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
+  activeQuickInputWidget,
+  captureOutputChannelDetails,
+  closeAllEditors,
   closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   createApexClass,
+  createMinimalOrg,
   editOpenFile,
-  openFileByName,
+  EDITOR,
+  ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  executeCommandWithCommandPalette,
-  validateNoCriticalErrors,
-  captureOutputChannelDetails,
   NOTIFICATION_LIST_ITEM,
-  EDITOR,
-  activeQuickInputWidget,
-  ensureSecondarySideBarHidden
+  openFileByName,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  upsertScratchOrgAuthFieldsToSettings,
+  upsertSettings,
+  validateNoCriticalErrors,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -147,7 +148,7 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
 
   await test.step('2. Explorer context menu (file)', async () => {
     // Close any open editors to ensure clean state
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+    await closeAllEditors(page);
 
     // Edit apex class again to create new local change
     await openFileByName(page, `${className}.cls`);

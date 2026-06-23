@@ -8,21 +8,22 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
-  setupConsoleMonitoring,
-  setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
+  activeQuickInputWidget,
+  closeAllEditors,
   closeWelcomeTabs,
-  createMinimalOrg,
-  upsertScratchOrgAuthFieldsToSettings,
   createApexClass,
+  createMinimalOrg,
+  EDITOR,
+  ensureSecondarySideBarHidden,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  executeCommandWithCommandPalette,
-  validateNoCriticalErrors,
+  focusOnFilesExplorer,
   saveScreenshot,
-  EDITOR,
-  activeQuickInputWidget,
-  ensureSecondarySideBarHidden
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  upsertScratchOrgAuthFieldsToSettings,
+  validateNoCriticalErrors,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -75,13 +76,13 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
     await saveScreenshot(page, 'step1.manifest-opened.png');
 
     // Assert manifest file exists in explorer - focus explorer first, then look for file
-    await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+    await focusOnFilesExplorer(page);
     const manifestFile = page.getByRole('treeitem', { name: /package\.xml/i });
     await expect(manifestFile).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'step1.manifest-in-explorer.png');
 
     // Close editors to prepare for next step
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+    await closeAllEditors(page);
     await saveScreenshot(page, 'step1.after-close-editors.png');
   });
 
@@ -108,7 +109,7 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
     await saveScreenshot(page, 'step2.manifest-opened.png');
 
     // Assert manifest file exists in explorer - focus explorer first, then look for file
-    await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+    await focusOnFilesExplorer(page);
     const manifestFile = page.getByRole('treeitem', { name: /package2\.xml/i });
     await expect(manifestFile).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'step2.manifest-in-explorer.png');

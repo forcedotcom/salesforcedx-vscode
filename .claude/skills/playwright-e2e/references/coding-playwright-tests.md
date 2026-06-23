@@ -40,7 +40,7 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 - Quick Open: `@salesforce/playwright-vscode-ext` `openFileByName` — palette "Go to File…" (web + desktop); VS Code 1.116+ rows often `basename` + segments + trailing `file results` — match logic `packages/playwright-vscode-ext/src/utils/fileHelpers.ts`
 - `Control+Home`, `Control+s` - navigate and save
-- `page.keyboard.type()` - edit content
+- `page.keyboard.type()` - edit content; call `disableMonacoAutoClosing(page)` first to prevent auto-bracket/quote duplication (vs clipboard + parallel races)
 - Monaco editor selectors - interact with editor
 
 **Desktop-only tests** (`.headless.spec.ts` file naming or `createDesktopTest` fixture) may poll fs directly for durable success signals (e.g., `waitForEsrFile` checks on-disk artifacts) instead of flaky UI toast assertions.
@@ -73,6 +73,15 @@ Desktop fixture sets `window.menuStyle: "custom"` (context menus stay in DOM on 
 
 - Use `f1` for commands, not meta-shift-P
 - Use `Control` for all. No ControlOrMeta
+
+## Native VS Code Commands
+
+Native VS Code commands (`File: Save`, `View: Close All Editors`, `Select All`, `Paste`, `Go to Definition`, etc.) — use named wrappers in `packages/playwright-vscode-ext/src/pages/nativeCommands.ts` (exported from `src/index.ts`), NOT `executeCommandWithCommandPalette(page, '<literal>')`.
+
+- `saveFile(page)`, `closeAllEditors(page)`, `selectAll(page)`, `goToDefinition(page, sel?, opts?)`, etc. — grep `nativeCommands.ts` for full list before adding a literal.
+- Wrappers return same Promise → existing `.catch(() => {})` chains + palette/selection opts still work.
+- Reserve `executeCommandWithCommandPalette` for extension/test-provider commands (`SFDX:`, `Testing:`, `Test:`) — NOT native.
+- Native command with no wrapper yet? Add one to `nativeCommands.ts`, don't inline the literal.
 
 ## Commands and i18n
 

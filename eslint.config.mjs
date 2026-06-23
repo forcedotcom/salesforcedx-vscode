@@ -128,6 +128,7 @@ export default [
     rules: {
       'local/no-vscode-uri': 'error',
       'local/no-vscode-show-text-document': 'warn',
+      'local/no-inline-esbuild-platform': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -169,6 +170,12 @@ export default [
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-array-reverse': 'error',
       'unicorn/no-array-sort': 'error',
+      'unicorn/no-boolean-sort-comparator': 'error',
+      'unicorn/no-chained-comparison': 'error',
+      'unicorn/no-constant-zero-expression': 'error',
+      'unicorn/no-double-comparison': 'error',
+      'unicorn/no-duplicate-if-branches': 'error',
+      'unicorn/no-duplicate-logical-operands': 'error',
       'unicorn/no-empty-file': 'error',
       'unicorn/no-immediate-mutation': 'error',
       'unicorn/no-instanceof-builtins': 'error',
@@ -185,14 +192,17 @@ export default [
       'unicorn/no-useless-spread': 'error',
       'unicorn/no-useless-switch-case': 'error',
       'unicorn/numeric-separators-style': 'error',
-      'unicorn/prefer-at': 'error',
       'unicorn/prefer-array-find': 'error',
       'unicorn/prefer-array-flat': 'error',
       'unicorn/prefer-array-flat-map': 'error',
       'unicorn/prefer-array-some': 'error',
+      'unicorn/prefer-at': 'error',
+      'unicorn/prefer-boolean-return': 'error',
       'unicorn/prefer-class-fields': 'error',
       'unicorn/prefer-date-now': 'error',
       'unicorn/prefer-export-from': 'error',
+      'unicorn/prefer-flat-math-min-max': 'error',
+      'unicorn/prefer-hoisting-branch-code': 'error',
       'unicorn/prefer-includes': 'error',
       'unicorn/prefer-modern-math-apis': 'error',
       'unicorn/prefer-native-coercion-functions': 'error',
@@ -211,6 +221,7 @@ export default [
         'error',
         {
           case: 'camelCase',
+          // v68 added directory-name checks; preserve prior file-only behavior
           checkDirectories: false
         }
       ],
@@ -760,6 +771,8 @@ export default [
     ],
     rules: {
       'local/no-vscode-show-text-document': 'off',
+      // Tests set/delete/save-restore process.env.ESBUILD_PLATFORM as jest setup/teardown plumbing
+      'local/no-inline-esbuild-platform': 'off',
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
 
