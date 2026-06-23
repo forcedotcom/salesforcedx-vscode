@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
-import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
+import { retrieveFromOutcome } from '../shared/retrieve/retrieveFromOutcome';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
@@ -29,6 +29,7 @@ import { withPreparationProgress } from '../utils/withPreparationProgress';
 export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand')(
   function* (sourceUri: URI | undefined, uris: URI[] | undefined) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const channelService = yield* api.services.ChannelService;
     const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
 
     if (!resolvedSourceUri) return;
@@ -36,26 +37,38 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
     const componentSetService = yield* api.services.ComponentSetService;
     const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
     yield* api.services.ProjectService.ensureInPackageDirectories(resolvedUris);
-    const componentSet = yield* Effect.succeed(Array.from(resolvedUris)).pipe(
-      Effect.flatMap(componentSetService.getComponentSetFromUris),
-      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
-    );
+    const spec = { kind: 'paths' as const, uris: resolvedUris.map(u => u.toString()) };
 
-    // we can ignore conflicts because we already did the detectConflicts check
-    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
+    // Helper that performs the retrieve. Closes over resolved URIs so retry can re-use them.
+    const performRetrieve = Effect.gen(function* () {
+      // Conflict detection stays on the existing ComponentSet path (deferred migration).
+      yield* Effect.succeed(Array.from(resolvedUris)).pipe(
+        Effect.flatMap(componentSetService.getComponentSetFromUris),
+        Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+        withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
+      );
+
+      // Retrieve is now DATA-ONLY: services builds + retrieves + returns an owned RetrieveOutcome.
+      yield* channelService.appendToChannel('Starting metadata retrieval...');
+      const outcome = yield* api.services.MetadataRetrieveService.retrieveToSource(spec, { ignoreConflicts: true });
+      return yield* retrieveFromOutcome(outcome);
+    });
+
+    return yield* performRetrieve.pipe(
+      Effect.catchTag('ConflictsDetectedError', err =>
+        handleConflictWithRetry({
+          pairs: err.pairs,
+          operationType: err.operationType,
+          // On retry, conflicts were acknowledged — re-run with the same spec (closes over `resolvedUris`).
+          retryOperation: performRetrieve
+        })
+      )
+    );
   },
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_select_file_or_directory'))).pipe(
       Effect.as(undefined)
     )
-  ),
-  Effect.catchTag('ConflictsDetectedError', err =>
-    handleConflictWithRetry({
-      pairs: err.pairs,
-      operationType: err.operationType,
-      retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
-    })
   ),
   withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text')))
 );

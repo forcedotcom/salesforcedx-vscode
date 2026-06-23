@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
-import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
+import { retrieveFromOutcome } from '../shared/retrieve/retrieveFromOutcome';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 import { ManifestSelectionRequiredError } from './manifestErrors';
@@ -20,26 +20,39 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
   function* (manifestUri?: URI) {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const channelService = yield* api.services.ChannelService;
     const resolved = manifestUri ?? (yield* api.services.EditorService.getActiveEditorUri());
+    const spec = { kind: 'manifest' as const, manifestUri: resolved.toString() };
 
-    const componentSet = yield* Effect.succeed(resolved).pipe(
-      Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
-      Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
-      withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
+    // Helper that performs the retrieve. Closes over resolved URI so retry can re-use it.
+    const performRetrieve = Effect.gen(function* () {
+      // Conflict detection stays on the existing ComponentSet path (deferred migration).
+      yield* Effect.succeed(resolved).pipe(
+        Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
+        Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
+        withPreparationProgress('retrieve', cs => detectConflicts(cs, 'retrieve'))
+      );
+
+      // Retrieve is now DATA-ONLY: services builds + retrieves + returns an owned RetrieveOutcome.
+      yield* channelService.appendToChannel('Starting metadata retrieval...');
+      const outcome = yield* api.services.MetadataRetrieveService.retrieveToSource(spec, { ignoreConflicts: true });
+      return yield* retrieveFromOutcome(outcome);
+    });
+
+    return yield* performRetrieve.pipe(
+      Effect.catchTag('ConflictsDetectedError', err =>
+        handleConflictWithRetry({
+          pairs: err.pairs,
+          operationType: err.operationType,
+          // On retry, conflicts were acknowledged — re-run with the same spec (closes over `resolved`).
+          retryOperation: performRetrieve
+        })
+      )
     );
-
-    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
   },
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('retrieve_select_manifest') })
-  ),
-  Effect.catchTag('ConflictsDetectedError', err =>
-    handleConflictWithRetry({
-      pairs: err.pairs,
-      operationType: err.operationType,
-      retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true })
-    })
   ),
   withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text')))
 );
