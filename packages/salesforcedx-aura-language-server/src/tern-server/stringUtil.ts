@@ -4,21 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-const isAlphaNumberic = (code: number): boolean => {
-    if (code > 47 && code < 58) {
-        // numeric
-        return true;
-    }
-    if ((code > 64 && code < 91) || (code > 96 && code < 123)) {
-        // alpha
-        return true;
-    }
-    if (code === 95 || code === 45) {
-        // _ and -
-        return true;
-    }
-    return false;
-};
+const isAlphaNumberic = (code: number): boolean =>
+    (code > 47 && code < 58) || // numeric
+    (code > 64 && code < 91) || // alpha
+    (code > 96 && code < 123) ||
+    code === 95 || // _ and -
+    code === 45;
 
 export const findWord = (str: string, offset: number): { start: number; end: number } | undefined => {
     let start = -1;
