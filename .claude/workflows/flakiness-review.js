@@ -40,6 +40,10 @@ const ARTIFACTS_ROOT = '.e2e-artifacts'
 const MAX_ARTIFACT_CLUSTERS = 5
 // Min failure appearances across runs to be worth investigating
 const MIN_FAILURE_COUNT = 2
+// Per-test retry rate at/above which a test is its own cluster (retry-masked flake)
+const RETRY_RATE_THRESHOLD = 0.5
+// Min runs a test needs before its retryRate is trusted
+const RETRY_MIN_RUNS = 4
 
 // =====================================================================
 // SCHEMAS
@@ -74,13 +78,15 @@ const CLUSTERS_SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
-        required: ['testName', 'errorPattern', 'runIds', 'count', 'retryMasked'],
+        required: ['testName', 'errorPattern', 'runIds', 'count', 'retryMasked', 'source', 'retryRate'],
         properties: {
           testName: { type: 'string' },
           errorPattern: { type: 'string' },
           runIds: { type: 'array', items: { type: 'string' } },
           count: { type: 'number' },
           retryMasked: { type: 'boolean' },
+          source: { type: 'string', enum: ['failure', 'retryRate'] },
+          retryRate: { type: 'number' },
         },
       },
     },
@@ -340,6 +346,15 @@ find ${ARTIFACTS_ROOT}/develop/<run-id> -name "*.json" | xargs grep -l '"status"
 
 Group failures by: test name + error message pattern (first 120 chars of the error). A test that appears with the same error pattern across ${MIN_FAILURE_COUNT}+ runs is a cluster. Also flag any test that only passes after retries (retryMasked=true).
 
+## Per-test retry metrics
+${JSON.stringify(metricsData.testMetrics, null, 2)}
+
+For EVERY cluster you emit:
+- Set \`retryRate\` by looking up the cluster's \`testName\` in the testMetrics array above (match on \`testName\`); if absent, \`retryRate: 0\`.
+- Set \`source\`: \`'failure'\` for run-level-failure clusters, \`'retryRate'\` for retry-threshold clusters (below).
+
+Also emit a cluster for ANY testMetrics entry with \`retryRate >= ${RETRY_RATE_THRESHOLD}\` AND \`totalRuns >= ${RETRY_MIN_RUNS}\`, even with 0 hard failures — retries mask a green run-level result. For such clusters: \`source: 'retryRate'\`, \`retryMasked: true\`, \`count\` = that entry's \`retryCount\`, \`runIds\` = best-available run ids for the test (empty array if none), \`errorPattern\` = brief note that this is retry-masked flake.
+
 Sort clusters by count descending. Return top clusters.`,
   { label: 'cluster:failures', phase: 'Cluster failures', schema: CLUSTERS_SCHEMA }
 )
@@ -379,13 +394,18 @@ ${JSON.stringify(clustersResult.clusters, null, 2)}
 ## All runs (with dates and conclusions)
 ${JSON.stringify(runsResult.runs, null, 2)}
 
+## Per-test retry metrics
+${JSON.stringify(metricsData.testMetrics, null, 2)}
+
 ## Lookback window: ${DAYS} days
+
+A cluster is NEVER resolved if testMetrics for its \`testName\` shows \`retryRate >= ${RETRY_RATE_THRESHOLD}\` over \`totalRuns >= ${RETRY_MIN_RUNS}\`, even if recent runs show conclusion=="success" — a run-level green result masks per-test retry flake. Such clusters are always active. Check this rule FIRST.
 
 A cluster is trending-resolved if BOTH:
 1. Its most recent failure (latest runId) is from the first half of the lookback window (older than ${Math.floor(DAYS / 2)} days ago), AND
-2. The workflow runs in the second half of the window all show conclusion=="success" and attempt==1 (no reruns)
+2. The workflow runs in the second half of the window all show conclusion=="success" AND attempt==1 (no reruns) AND the cluster's test shows no per-test retries in testMetrics
 
-Also treat as resolved if the failure pattern is clearly tied to a known-fixed external cause:
+Also treat as resolved if the failure pattern is clearly tied to a known-fixed external cause (the high-retry rule above still takes precedence — a cluster meeting it is NEVER resolved even if these conditions match):
 - Playwright version bumps (test failures mentioning "locator" or "element" API changes that then disappear)
 - VS Code version bumps (failures mentioning chromium, vscode api, extension activation that then disappear)
 - Any cluster whose runIds are all older than 2 days and haven't recurred
@@ -426,6 +446,12 @@ const [artifactFindings, priorWisResult] = await parallel([
     topClusters,
     async (cluster, _orig, i) => {
       const runId = cluster.runIds[0]
+      // retryRate-source clusters may have no run ids (no hard failure to attach
+      // artifacts to). Skip artifact download rather than interpolate `undefined`
+      // into the gh command and prompt.
+      if (!runId) {
+        return `No run ids for cluster "${cluster.testName}" (source: ${cluster.source}, retry-masked: ${cluster.retryMasked}) — no artifacts to download. Evidence is the per-test retry rate (${cluster.retryRate}); no run-level failure exists.`
+      }
       return agent(
         `Download and analyze CI artifacts for a flaky test cluster in ${REPO}.
 
@@ -661,6 +687,15 @@ Each Details__c must be plain text (no HTML), ≥ 20 chars.
 Return the draft list.`,
   { label: 'draft:wis', phase: 'Draft WIs', schema: WI_DRAFTS_SCHEMA }
 )
+
+// Deterministically enforce [ai-auto] prefix so drafts can opt into auto-build-wi
+// regardless of what the agent emitted. Reassigning .drafts updates report + return.
+if (wiDraftsResult && wiDraftsResult.drafts) {
+  wiDraftsResult.drafts = wiDraftsResult.drafts.map(d => ({
+    ...d,
+    subject: /^\[ai-auto\]/i.test((d.subject ?? '').trimStart()) ? d.subject : `[ai-auto] ${(d.subject ?? '').trimStart()}`,
+  }))
+}
 
 if (!wiDraftsResult || !wiDraftsResult.drafts.length) {
   log('No WI drafts produced.')
