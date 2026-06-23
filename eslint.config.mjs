@@ -128,6 +128,7 @@ export default [
     rules: {
       'local/no-vscode-uri': 'error',
       'local/no-vscode-show-text-document': 'warn',
+      'local/no-inline-esbuild-platform': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -762,6 +763,8 @@ export default [
     ],
     rules: {
       'local/no-vscode-show-text-document': 'off',
+      // Tests set/delete/save-restore process.env.ESBUILD_PLATFORM as jest setup/teardown plumbing
+      'local/no-inline-esbuild-platform': 'off',
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
 
