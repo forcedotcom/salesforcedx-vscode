@@ -29,6 +29,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.4.27",
+    "@salesforce/core": "^8.31.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/types": "^1.7.1",
     "@salesforce/vscode-i18n": "*",

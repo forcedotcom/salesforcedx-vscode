@@ -5,8 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Mocks are hoisted; static import is fine
+// Mock @salesforce/core before other imports
+jest.mock('@salesforce/core', () => ({
+  AuthInfo: {
+    create: jest.fn()
+  },
+  Connection: {
+    create: jest.fn()
+  }
+}));
 
+// Mocks are hoisted; static import is fine
 jest.mock('../../../src/services/extensionProvider', () => {
   const EffectLib = jest.requireActual('effect/Effect');
   const Context = jest.requireActual('effect/Context');
@@ -15,12 +24,12 @@ jest.mock('../../../src/services/extensionProvider', () => {
 
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
 
-  // This will be set by tests via __setMockConnection
-  let mockConnectionRef: any;
+  // This will be set by tests via __setMockConnectionData
+  let mockConnectionDataRef: any;
 
   // Mock ConnectionService as a class-like object with static accessor method
   const MockConnectionService = {
-    getConnection: () => EffectLib.succeed(mockConnectionRef)
+    getConnectionData: () => EffectLib.succeed(mockConnectionDataRef)
   };
 
   const mockServicesApi = {
@@ -40,13 +49,14 @@ jest.mock('../../../src/services/extensionProvider', () => {
     ExtensionProviderService: MockExtensionProviderService,
     AllServicesLayer: MockAllServicesLayer,
     getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
-    // Export a function to set the mock connection
-    __setMockConnection: (conn: any) => {
-      mockConnectionRef = conn;
+    // Export a function to set the mock connection data
+    __setMockConnectionData: (data: any) => {
+      mockConnectionDataRef = data;
     }
   };
 });
 
+import { AuthInfo, Connection } from '@salesforce/core';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import { discoverTests } from '../../../src/testDiscovery/testDiscovery';
 
@@ -59,8 +69,19 @@ const mockConnection = {
 describe('TestDiscovery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Set the mock connection for the extensionProvider mock
-    (extensionProvider as any).__setMockConnection(mockConnection);
+
+    // Mock @salesforce/core to return our mock connection
+    (AuthInfo.create as jest.Mock).mockResolvedValue({ username: 'test@example.com' });
+    (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
+
+    // Set the mock connection data for the extensionProvider mock
+    (extensionProvider as any).__setMockConnectionData({
+      accessToken: 'test-token',
+      instanceUrl: 'https://example.com',
+      apiVersion: '61.0',
+      username: 'test@example.com',
+      orgId: '00Dxx0000000001EAA'
+    });
   });
 
   it('returns classes and methods from /tooling/tests endpoint', async () => {

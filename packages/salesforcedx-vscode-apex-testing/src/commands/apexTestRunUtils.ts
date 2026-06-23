@@ -18,6 +18,7 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { CancellationToken, CancellationError } from 'vscode';
 import { URI } from 'vscode-uri';
+import { getConnection } from '../coreExtensionUtils';
 import * as settings from '../settings';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
@@ -58,8 +59,7 @@ export const runApexTests = Effect.fn('runApexTests')(function* (
   yield* Effect.annotateCurrentSpan('trigger', options.telemetryTrigger);
   const startTime = Date.now();
 
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
+  const connection = yield* Effect.promise(() => getConnection());
   const testService = new TestService(connection);
 
   const progressReporter: Progress<ApexTestProgressValue> = {
