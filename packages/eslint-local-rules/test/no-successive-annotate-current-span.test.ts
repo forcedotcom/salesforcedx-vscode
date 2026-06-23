@@ -58,6 +58,32 @@ ruleTester.run('no-successive-annotate-current-span', noSuccessiveAnnotateCurren
   );
 }`,
       filename
+    },
+    {
+      // single annotate tap among non-annotate taps in the SAME pipe — run length < 2, must NOT flag
+      code: `const program = x.pipe(
+  Effect.tap(v => Effect.annotateCurrentSpan('v', v)),
+  Effect.map(f)
+);`,
+      filename
+    },
+    {
+      // tap-chain where a NON-FIRST tap references its OWN arrow param — merging into the first tap's
+      // single param would leave that reference undeclared, so the rule must NOT merge (W-23138529).
+      code: `const program = x.pipe(
+  Effect.tap(a => Effect.annotateCurrentSpan({ a })),
+  Effect.tap(b => Effect.annotateCurrentSpan({ b }))
+);`,
+      filename
+    },
+    {
+      // 3 adjacent taps where later taps reference their OWN params (id, choice) — not mergeable (model on packageInstall.ts:178-184)
+      code: `const program = effect.pipe(
+  Effect.tap(id => Effect.annotateCurrentSpan('packageId', id)),
+  Effect.tap(key => Effect.annotateCurrentSpan('hasKey', hasKey)),
+  Effect.tap(choice => Effect.annotateCurrentSpan('shouldPoll', choice))
+);`,
+      filename
     }
   ],
   invalid: [
@@ -100,15 +126,40 @@ ruleTester.run('no-successive-annotate-current-span', noSuccessiveAnnotateCurren
       errors: [{ messageId: 'successiveAnnotate' }]
     },
     {
-      // tap-chain form (model on packageInstall.ts:178-184)
+      // tap-chain, 3 adjacent taps mergeable (no non-first tap references its own param)
       code: `const program = effect.pipe(
-  Effect.tap(id => Effect.annotateCurrentSpan('packageId', id)),
-  Effect.tap(key => Effect.annotateCurrentSpan('hasKey', hasKey)),
-  Effect.tap(choice => Effect.annotateCurrentSpan('shouldPoll', choice))
+  Effect.tap(() => Effect.annotateCurrentSpan('a', a)),
+  Effect.tap(() => Effect.annotateCurrentSpan('b', b)),
+  Effect.tap(() => Effect.annotateCurrentSpan('c', c))
 );`,
       output: `const program = effect.pipe(
-  Effect.tap(id => Effect.annotateCurrentSpan({ packageId: id, hasKey, shouldPoll: choice }))
+  Effect.tap(() => Effect.annotateCurrentSpan({ a, b, c }))
 );`,
+      filename,
+      errors: [{ messageId: 'successiveAnnotate' }]
+    },
+    {
+      // generator form, 3 adjacent yield* statements (multi-step run path)
+      code: `function* x() {
+  yield* Effect.annotateCurrentSpan('a', a);
+  yield* Effect.annotateCurrentSpan('b', b);
+  yield* Effect.annotateCurrentSpan('c', c);
+}`,
+      output: `function* x() {
+  yield* Effect.annotateCurrentSpan({ a, b, c });
+}`,
+      filename,
+      errors: [{ messageId: 'successiveAnnotate' }]
+    },
+    {
+      // 2-arg string-literal key that is NOT a valid identifier → quoted key in merged object
+      code: `function* x() {
+  yield* Effect.annotateCurrentSpan('kebab-key', v);
+  yield* Effect.annotateCurrentSpan('plain', p);
+}`,
+      output: `function* x() {
+  yield* Effect.annotateCurrentSpan({ 'kebab-key': v, plain: p });
+}`,
       filename,
       errors: [{ messageId: 'successiveAnnotate' }]
     },
@@ -133,6 +184,17 @@ ruleTester.run('no-successive-annotate-current-span', noSuccessiveAnnotateCurren
       output: `function* x() {
   yield* Effect.annotateCurrentSpan({ ...authInfo.getFields(), username });
 }`,
+      filename,
+      errors: [{ messageId: 'successiveAnnotate' }]
+    },
+    {
+      // comment between the two annotates → report but NO autofix (range replace would delete the comment)
+      code: `function* x() {
+  yield* Effect.annotateCurrentSpan('a', a);
+  // keep this comment
+  yield* Effect.annotateCurrentSpan('b', b);
+}`,
+      output: null,
       filename,
       errors: [{ messageId: 'successiveAnnotate' }]
     },

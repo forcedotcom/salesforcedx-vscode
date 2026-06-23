@@ -32,8 +32,10 @@ const annotateFromYieldStatement = (stmt: TSESTree.Statement): TSESTree.CallExpr
   return isAnnotateCurrentSpanCall(expr.argument) ? expr.argument : undefined;
 };
 
-/** `Effect.tap(arg => <annotate call>)` — returns the annotate call inside the arrow */
-const annotateFromTapCall = (node: TSESTree.CallExpressionArgument): TSESTree.CallExpression | undefined => {
+type TapMatch = { call: TSESTree.CallExpression; arrow: TSESTree.ArrowFunctionExpression };
+
+/** `Effect.tap(arg => <annotate call>)` — returns the validated arrow and the annotate call inside it */
+const annotateFromTapCall = (node: TSESTree.CallExpressionArgument): TapMatch | undefined => {
   if (node.type !== AST_NODE_TYPES.CallExpression) return undefined;
   const callee = node.callee;
   if (callee.type !== AST_NODE_TYPES.MemberExpression) return undefined;
@@ -43,8 +45,31 @@ const annotateFromTapCall = (node: TSESTree.CallExpressionArgument): TSESTree.Ca
   const arrow = node.arguments[0];
   if (arrow?.type !== AST_NODE_TYPES.ArrowFunctionExpression) return undefined;
   const body = arrow.body;
-  return body.type === AST_NODE_TYPES.CallExpression && isAnnotateCurrentSpanCall(body) ? body : undefined;
+  return body.type === AST_NODE_TYPES.CallExpression && isAnnotateCurrentSpanCall(body)
+    ? { call: body, arrow }
+    : undefined;
 };
+
+/** Every Identifier name referenced anywhere under `node` */
+const referencedIdentifiers = (node: TSESTree.Node): Set<string> => {
+  const names = new Set<string>();
+  const isNode = (value: unknown): value is TSESTree.Node =>
+    Boolean(value) && typeof value === 'object' && 'type' in (value as object);
+  const visit = (n: TSESTree.Node): void => {
+    if (n.type === AST_NODE_TYPES.Identifier) names.add(n.name);
+    Object.entries(n)
+      .filter(([prop]) => prop !== 'parent')
+      .flatMap(([, value]): unknown[] => (Array.isArray(value) ? (value as unknown[]) : [value]))
+      .filter(isNode)
+      .forEach(visit);
+  };
+  visit(node);
+  return names;
+};
+
+/** Param identifier names declared by an arrow */
+const arrowParamNames = (arrow: TSESTree.ArrowFunctionExpression): string[] =>
+  arrow.params.filter((p): p is TSESTree.Identifier => p.type === AST_NODE_TYPES.Identifier).map(p => p.name);
 
 type MergedProp = { text: string; key: string | undefined };
 
@@ -84,22 +109,40 @@ const propsFromAnnotateCall = (call: TSESTree.CallExpression, sourceCode: TSESLi
 
 /** Build merged object source `{ ...props }`, keeping last value for duplicate literal keys */
 const buildMergedObject = (props: MergedProp[]): { text: string; hasDup: boolean } => {
-  const seen = new Set<string>();
-  let hasDup = false;
-  // detect dups first
-  props.forEach(p => {
-    if (p.key !== undefined) {
-      if (seen.has(p.key)) hasDup = true;
-      seen.add(p.key);
-    }
-  });
-  // keep last occurrence per literal key
-  const lastIndex = new Map<string, number>();
-  props.forEach((p, i) => {
-    if (p.key !== undefined) lastIndex.set(p.key, i);
-  });
-  const kept = props.filter((p, i) => p.key === undefined || lastIndex.get(p.key) === i);
+  // last index per literal key (later wins); a key whose recorded last index differs is an earlier dup occurrence
+  const lastIndex = props.reduce<Record<string, number>>(
+    (acc, p, i) => (p.key === undefined ? acc : { ...acc, [p.key]: i }),
+    {}
+  );
+  const hasDup = props.some((p, i) => p.key !== undefined && lastIndex[p.key] !== i);
+  const kept = props.filter((p, i) => p.key === undefined || lastIndex[p.key] === i);
   return { text: `{ ${kept.map(p => p.text).join(', ')} }`, hasDup };
+};
+
+type Run<Match> = { matches: Match[]; from: TSESTree.Node; to: TSESTree.Node };
+
+/** Group `items` into runs of ≥2 consecutive elements that `match`, each paired with the source node spanning it */
+const findRuns = <Item, Match>(
+  items: readonly Item[],
+  nodeOf: (item: Item) => TSESTree.Node,
+  match: (item: Item) => Match | undefined
+): Run<Match>[] => {
+  type Entry = { item: Item; match: Match };
+  const toRun = (entries: Entry[]): Run<Match> => ({
+    matches: entries.map(e => e.match),
+    from: nodeOf(entries[0].item),
+    to: nodeOf(entries.at(-1)!.item)
+  });
+  const final = items.reduce<{ runs: Run<Match>[]; current: Entry[] }>(
+    (acc, item) => {
+      const m = match(item);
+      if (m !== undefined) return { runs: acc.runs, current: [...acc.current, { item, match: m }] };
+      const flushed = acc.current.length >= 2 ? [...acc.runs, toRun(acc.current)] : acc.runs;
+      return { runs: flushed, current: [] };
+    },
+    { runs: [], current: [] }
+  );
+  return final.current.length >= 2 ? [...final.runs, toRun(final.current)] : final.runs;
 };
 
 export const noSuccessiveAnnotateCurrentSpan = RuleCreator.withoutDocs({
@@ -130,70 +173,61 @@ export const noSuccessiveAnnotateCurrentSpan = RuleCreator.withoutDocs({
     ): void => {
       const props = annotateCalls.flatMap(call => propsFromAnnotateCall(call, sourceCode));
       const merged = buildMergedObject(props);
+      // a comment between the merged calls would be silently deleted by the range replace — report without autofix
+      const hasInterleavedComment = sourceCode
+        .getCommentsInside(fromNode.parent ?? fromNode)
+        .some(c => c.range[0] > fromNode.range[0] && c.range[1] < toNode.range[1]);
       context.report({
         node: fromNode,
         messageId: merged.hasDup ? 'duplicateKey' : 'successiveAnnotate',
-        fix: fixer =>
-          fixer.replaceTextRange(
-            [fromNode.range[0], toNode.range[1]],
-            wrap(`Effect.annotateCurrentSpan(${merged.text})`)
-          )
+        ...(hasInterleavedComment
+          ? {}
+          : {
+              fix: (fixer: TSESLint.RuleFixer) =>
+                fixer.replaceTextRange(
+                  [fromNode.range[0], toNode.range[1]],
+                  wrap(`Effect.annotateCurrentSpan(${merged.text})`)
+                )
+            })
       });
     };
 
     return {
       // generator form: consecutive `yield* Effect.annotateCurrentSpan(...)` statements
       BlockStatement: (block: TSESTree.BlockStatement): void => {
-        const body = block.body;
-        let i = 0;
-        while (i < body.length) {
-          const first = annotateFromYieldStatement(body[i]);
-          if (!first) {
-            i += 1;
-            continue;
-          }
-          const run: TSESTree.CallExpression[] = [first];
-          let j = i + 1;
-          while (j < body.length) {
-            const next = annotateFromYieldStatement(body[j]);
-            if (!next) break;
-            run.push(next);
-            j += 1;
-          }
-          if (run.length >= 2) {
-            reportRun(run, body[i], body[j - 1], merged => `yield* ${merged};`);
-          }
-          i = j > i + 1 ? j : i + 1;
-        }
+        findRuns(
+          block.body,
+          stmt => stmt,
+          stmt => annotateFromYieldStatement(stmt)
+        ).forEach(run => reportRun(run.matches, run.from, run.to, merged => `yield* ${merged};`));
       },
 
       // tap-chain form: consecutive Effect.tap(x => annotate) args in a pipe call
       CallExpression: (node: TSESTree.CallExpression): void => {
-        const args = node.arguments;
-        let i = 0;
-        while (i < args.length) {
-          const first = annotateFromTapCall(args[i]);
-          if (!first) {
-            i += 1;
-            continue;
-          }
-          const run: TSESTree.CallExpression[] = [first];
-          const tapArgs: TSESTree.CallExpressionArgument[] = [args[i]];
-          let j = i + 1;
-          while (j < args.length) {
-            const next = annotateFromTapCall(args[j]);
-            if (!next) break;
-            run.push(next);
-            tapArgs.push(args[j]);
-            j += 1;
-          }
-          if (run.length >= 2) {
-            const tapArrow = (args[i] as TSESTree.CallExpression).arguments[0] as TSESTree.ArrowFunctionExpression;
-            const paramText = tapArrow.params.map(p => sourceCode.getText(p)).join(', ');
-            reportRun(run, tapArgs[0], tapArgs.at(-1)!, merged => `Effect.tap(${paramText} => ${merged})`);
-          }
-          i = j > i + 1 ? j : i + 1;
-        }
+        findRuns(
+          node.arguments,
+          arg => arg,
+          arg => annotateFromTapCall(arg)
+        )
+          // skip runs where a non-first tap references its own arrow param — merging into the
+          // first tap's single param would leave that reference undeclared (see W-23138529 review)
+          .filter(run =>
+            run.matches.slice(1).every(({ call, arrow }) => {
+              const referenced = referencedIdentifiers(call);
+              return arrowParamNames(arrow).every(name => !referenced.has(name));
+            })
+          )
+          .forEach(run => {
+            const firstArrow = run.matches[0].arrow;
+            const paramText =
+              firstArrow.params.length === 0 ? '()' : firstArrow.params.map(p => sourceCode.getText(p)).join(', ');
+            reportRun(
+              run.matches.map(m => m.call),
+              run.from,
+              run.to,
+              merged => `Effect.tap(${paramText} => ${merged})`
+            );
+          });
       }
     };
   }
