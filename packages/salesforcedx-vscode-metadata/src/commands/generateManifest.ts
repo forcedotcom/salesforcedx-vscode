@@ -37,32 +37,34 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
   );
 });
 
-const generateManifestFromUris = (uris: URI[]) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const componentSetService = yield* api.services.ComponentSetService;
-    const componentSet = yield* componentSetService.getComponentSetFromUris(Array.from(uris));
-    return yield* Effect.promise(() => componentSet.getPackageXml());
-  });
+const generateManifestFromUris = Effect.fn('generateManifestFromUris')(function* (uris: URI[]) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const componentSetService = yield* api.services.ComponentSetService;
+  const componentSet = yield* componentSetService.getComponentSetFromUris(Array.from(uris));
+  return yield* Effect.promise(() => componentSet.getPackageXml());
+});
 
-const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: string) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const channelService = yield* api.services.ChannelService;
-    const fsService = yield* api.services.FsService;
-    const promptService = yield* api.services.PromptService;
-    // Build manifest directory path
-    const manifestFileUri = Utils.joinPath(workspacePath, 'manifest', fileName);
+const saveManifestFile = Effect.fn('saveManifestFile')(function* (
+  workspacePath: URI,
+  fileName: string,
+  packageXML: string
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelService = yield* api.services.ChannelService;
+  const fsService = yield* api.services.FsService;
+  const promptService = yield* api.services.PromptService;
+  // Build manifest directory path
+  const manifestFileUri = Utils.joinPath(workspacePath, 'manifest', fileName);
 
-    yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [manifestFileUri] });
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [manifestFileUri] });
 
-    yield* api.services.FsService.safeWriteFile(manifestFileUri, packageXML);
-    yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
+  yield* api.services.FsService.safeWriteFile(manifestFileUri, packageXML);
+  yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
 
-    yield* fsService.showTextDocument(manifestFileUri);
+  yield* fsService.showTextDocument(manifestFileUri);
 
-    return manifestFileUri;
-  });
+  return manifestFileUri;
+});
 
 export const generateManifestCommand = Effect.fn('generateManifest')(function* (
   sourceUri: URI | undefined,
