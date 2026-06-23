@@ -172,6 +172,7 @@ export default [
       'unicorn/no-array-sort': 'error',
       'unicorn/no-boolean-sort-comparator': 'error',
       'unicorn/no-constant-zero-expression': 'error',
+      'unicorn/no-double-comparison': 'error',
       'unicorn/no-duplicate-if-branches': 'error',
       'unicorn/no-duplicate-logical-operands': 'error',
       'unicorn/no-empty-file': 'error',
