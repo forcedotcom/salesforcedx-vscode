@@ -80,6 +80,36 @@ ruleTester.run('no-inline-esbuild-platform', noInlineEsbuildPlatform, {
       code: `platform = process.env.ESBUILD_PLATFORM;`,
       filename: 'packages/salesforcedx-vscode-services/src/test.ts',
       errors: [{ messageId: 'inlineLiteral' }]
+    },
+    {
+      // assignment-pattern destructure — esbuild cannot strip a binding extraction
+      code: `let p; ({ ESBUILD_PLATFORM: p } = process.env);`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'inlineLiteral' }]
+    },
+    {
+      // comparison against a non-literal — esbuild cannot constant-fold, dead branch survives
+      code: `if (process.env.ESBUILD_PLATFORM === someVar) { doWeb(); }`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'inlineLiteral' }]
+    },
+    {
+      // negation — not a literal comparison
+      code: `if (!process.env.ESBUILD_PLATFORM) { doNode(); }`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'inlineLiteral' }]
+    },
+    {
+      // nullish coalesce — not a literal comparison
+      code: `const p = process.env.ESBUILD_PLATFORM ?? 'node';`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'inlineLiteral' }]
+    },
+    {
+      // switch discriminant — not a literal comparison
+      code: `switch (process.env.ESBUILD_PLATFORM) { case 'web': doWeb(); }`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'inlineLiteral' }]
     }
   ]
 });

@@ -12,8 +12,14 @@ import { isEsbuildPlatformAccess, isProcessEnvAccess } from './astUtils';
 // Only a binary comparison lets esbuild `define` strip the dead branch (ADR 0013).
 const COMPARISON_OPERATORS = new Set(['===', '!==', '==', '!=']);
 
-const isAllowedComparison = (node: TSESTree.MemberExpression): boolean =>
-  node.parent.type === AST_NODE_TYPES.BinaryExpression && COMPARISON_OPERATORS.has(node.parent.operator);
+// Allowed only when compared against a string literal: esbuild folds `'web' === 'web'`,
+// not `'web' === someVar`, so a non-literal operand leaves the dead branch in the bundle.
+const isAllowedComparison = (node: TSESTree.MemberExpression): boolean => {
+  const parent = node.parent;
+  if (parent.type !== AST_NODE_TYPES.BinaryExpression || !COMPARISON_OPERATORS.has(parent.operator)) return false;
+  const sibling = parent.left === node ? parent.right : parent.left;
+  return sibling.type === AST_NODE_TYPES.Literal && typeof sibling.value === 'string';
+};
 
 export const noInlineEsbuildPlatform = RuleCreator.withoutDocs({
   meta: {
@@ -25,7 +31,7 @@ export const noInlineEsbuildPlatform = RuleCreator.withoutDocs({
     schema: [],
     messages: {
       inlineLiteral:
-        'process.env.ESBUILD_PLATFORM must be used inline in a comparison (=== / !== "web"). Assigning it to a variable, property, or destructuring it defeats esbuild dead-branch stripping (ADR 0013).'
+        'process.env.ESBUILD_PLATFORM must be used inline in a comparison against a string literal (e.g. === "web"). Assigning it to a variable, property, destructuring it, or comparing against a non-literal defeats esbuild dead-branch stripping (ADR 0013).'
     }
   },
   defaultOptions: [],
@@ -35,10 +41,16 @@ export const noInlineEsbuildPlatform = RuleCreator.withoutDocs({
         context.report({ node, messageId: 'inlineLiteral' });
       }
     },
-    // `const { ESBUILD_PLATFORM } = process.env` extracts the literal into a binding.
+    // `const { ESBUILD_PLATFORM } = process.env` (or assignment-pattern
+    // `({ ESBUILD_PLATFORM } = process.env)`) extracts the literal into a binding.
     ObjectPattern: (node: TSESTree.ObjectPattern): void => {
-      if (node.parent.type !== AST_NODE_TYPES.VariableDeclarator || !node.parent.init) return;
-      if (!isProcessEnvAccess(node.parent.init)) return;
+      const source =
+        node.parent.type === AST_NODE_TYPES.VariableDeclarator
+          ? node.parent.init
+          : node.parent.type === AST_NODE_TYPES.AssignmentExpression
+            ? node.parent.right
+            : undefined;
+      if (!source || !isProcessEnvAccess(source)) return;
       const destructured = node.properties.find(
         (prop): prop is TSESTree.Property =>
           prop.type === AST_NODE_TYPES.Property &&
