@@ -1,17 +1,17 @@
 # Source Tracking Service
 
-Retrieve tracked changes to metadata (local, remote, conflicts). Accessor pattern: call methods directly.
+Query tracked metadata changes (local, remote, conflicts). Direct method calls.
 
 ## OrgChange
 
-Owned DTO representing a tracked metadata change:
+Owned DTO for tracked metadata change:
 
 ```typescript
 type OrgChange = {
-  readonly fullName: string;    // Component name
-  readonly type: string;         // Metadata type
-  readonly state: string;        // "add", "modify", "delete", etc.
-  readonly filePath?: string;    // File path relative to project
+  readonly fullName: string;    // component name
+  readonly type: string;         // metadata type
+  readonly state: string;        // "add", "modify", "delete"
+  readonly filePath?: string;    // file path (relative to project)
 };
 ```
 
@@ -32,31 +32,39 @@ Returns all conflicting changes (local ≠ remote). Empty if no conflicts.
 
 ### getLocalChanges
 
-Local uncommitted changes:
+Uncommitted local changes:
 
 ```typescript
 const local = yield * api.services.SourceTrackingService.getLocalChanges();
 // local: OrgChange[]
+
+// Apply .forceignore filters
+const local = yield * api.services.SourceTrackingService.getLocalChanges({
+  applyIgnore: true
+});
 ```
 
-Returns changes not yet committed/deployed to org.
+**Options**:
+- `applyIgnore?: boolean` — filter with `.forceignore` rules (default: false)
+
+Returns changes pending commit/deploy.
 
 ### getRemoteChanges
 
-Remote org changes not in local repo:
+Remote org changes absent in local repo:
 
 ```typescript
 const remote = yield * api.services.SourceTrackingService.getRemoteChanges();
 // remote: OrgChange[]
 
-// With ignore rules applied
+// Apply .forceignore filters
 const remote = yield * api.services.SourceTrackingService.getRemoteChanges({
   applyIgnore: true
 });
 ```
 
 **Options**:
-- `applyIgnore?: boolean` — Filter remote changes using `.forceignore` rules (default: false)
+- `applyIgnore?: boolean` — filter with `.forceignore` rules (default: false)
 
 ## Usage
 
@@ -72,7 +80,7 @@ if (conflicts.length > 0) {
 }
 ```
 
-Show local pending changes:
+Show pending local changes:
 
 ```typescript
 const pending = yield * api.services.SourceTrackingService.getLocalChanges();
@@ -81,7 +89,7 @@ for (const change of pending) {
 }
 ```
 
-Query remote org changes:
+Query remote changes:
 
 ```typescript
 const orgChanges = yield * api.services.SourceTrackingService.getRemoteChanges({
@@ -91,6 +99,8 @@ const orgChanges = yield * api.services.SourceTrackingService.getRemoteChanges({
 
 ## Notes
 
-- All methods return `OrgChange[]` (owned, no external dependencies)
-- Traceable — spans annotated with method name + result count
+- Returns `OrgChange[]` (owned, no external deps)
+- Filters changes lacking `name` or `type` (optional in source-tracking's `ChangeResult`)
+- `applyIgnore` — filter marked changes in `.forceignore`
+- Traceable — spans annotated w/ method name + result count
 - Requires `SourceTrackingService` layer

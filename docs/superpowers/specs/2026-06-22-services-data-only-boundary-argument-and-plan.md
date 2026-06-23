@@ -389,7 +389,7 @@ type ComponentInfo = { fullName: string; type: string; state?: string; xmlPath?:
 `getConflicts`-as-ComponentSet):**
 ```ts
 getConflicts(): Promise<OrgChange[]>;
-getLocalChanges(): Promise<OrgChange[]>;
+getLocalChanges(opts?: { applyIgnore?: boolean }): Promise<OrgChange[]>;
 getRemoteChanges(opts?: { applyIgnore?: boolean }): Promise<OrgChange[]>;
 type OrgChange = { fullName: string; type: string; state: string; filePath?: string };
 ```

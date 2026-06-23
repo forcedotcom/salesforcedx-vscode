@@ -151,6 +151,8 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [ChannelService](references/channel-service.md) - Output channel
 - [ComponentSetService](references/component-set-service.md) - Build component sets (source, manifest, URIs)
 - [Metadata Deploy & Retrieve](references/metadata-deploy-retrieve-service.md) - Deploy/retrieve from SourceSpec
+- [Metadata Describe Service](references/metadata-describe-service.md) - Query metadata types and members (owned `MetadataTypeInfo` DTO)
+- [Template Service](references/template-service.md) - Generate artifacts from templates (`createFromTemplate`, `createFromTemplateOwned` with owned `TemplateCreateOutcome`)
 - [MediaService](references/media-service.md) - Icons (ICONS) and NLS descriptions
 - [WorkspaceService](references/workspace-service.md) - Workspace info
 - [ConnectionService](references/connection-service.md) - Org connections

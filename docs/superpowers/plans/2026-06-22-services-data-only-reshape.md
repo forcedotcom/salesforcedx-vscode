@@ -134,8 +134,10 @@ export type SourceSpec =
   | { readonly kind: 'manifest'; readonly manifestUri: string }
   | { readonly kind: 'projectDirectories' };
 
-export type DeployOptions = { readonly ignoreConflicts?: boolean; readonly checkOnly?: boolean };
-export type RetrieveOptions = { readonly ignoreConflicts?: boolean; readonly outputDir?: string };
+// NOTE: Final implementation uses DeployFromSourceOptions (not DeployOptions) with only ignoreConflicts.
+// checkOnly and outputDir were dropped during implementation.
+export type DeployFromSourceOptions = { readonly ignoreConflicts?: boolean };
+export type RetrieveOptions = { readonly ignoreConflicts?: boolean };
 
 export type FileResponseInfo = {
   readonly fullName: string;
@@ -356,7 +358,7 @@ export type MetadataTypeInfo = {
 export type TemplateCreateOutcome = {
   readonly outputDir: string;
   readonly created: readonly string[];
-  readonly rawOutput?: string;
+  readonly rawOutput: string;
 };
 export type ConnectionData = {
   readonly accessToken: string;
@@ -598,7 +600,7 @@ describe('toComponentSetInfo', () => {
 
 **Files:** Modify `core/sourceTrackingService.ts`, `src/contract.ts`, `src/plainApi.ts`; Create `owned/orgChangeMapper.ts` + test.
 
-**Interfaces:** Produces contract `getConflicts: () => OrgChange[]`, `getLocalChanges: () => OrgChange[]`, `getRemoteChanges: (opts?: { applyIgnore?: boolean }) => OrgChange[]`.
+**Interfaces:** Produces contract `getConflicts: () => OrgChange[]`, `getLocalChanges: (opts?: { applyIgnore?: boolean }) => OrgChange[]`, `getRemoteChanges: (opts?: { applyIgnore?: boolean }) => OrgChange[]`.
 
 - [ ] **Step 1: Mapper test**
 

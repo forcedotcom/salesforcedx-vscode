@@ -10,14 +10,16 @@ Unified input for deploy/retrieve: paths, manifest, or project directories.
 type SourceSpec =
   | { kind: 'paths'; uris: readonly string[] }           // File/dir URIs
   | { kind: 'manifest'; manifestUri: string }            // package.xml
-  | { kind: 'projectDirectories' };                      // All package dirs
+  | { kind: 'projectDirectories'; members?: readonly OwnedMetadataMember[] }; // All package dirs, optionally filtered by members
+
+type OwnedMetadataMember = { type: string; fullName: string };
 ```
 
 ## MetadataDeployService
 
 ### deployFromSource
 
-Deploy from SourceSpec → owned DeployOutcome (no options supported):
+Deploy from SourceSpec → owned DeployOutcome:
 
 ```typescript
 const outcome = yield * api.services.MetadataDeployService.deployFromSource(
@@ -33,19 +35,41 @@ const outcome = yield * api.services.MetadataDeployService.deployFromSource(
 const outcome = yield * api.services.MetadataDeployService.deployFromSource(
   { kind: 'projectDirectories' }
 );
+
+// With options
+const outcome = yield * api.services.MetadataDeployService.deployFromSource(
+  { kind: 'paths', uris: ['file:///path/to/ApexClass.cls'] },
+  { ignoreConflicts: true }
+);
 ```
+
+**DeployFromSourceOptions**:
+- `ignoreConflicts?: boolean` — Skip conflict checks
 
 **DeployOutcome** (owned DTO):
 - `success: boolean`
-- `status: string` (e.g., "Succeeded", "Failed")
+- `status: string` — SDR RequestStatus (e.g., "Succeeded", "SucceededPartial", "Failed", "Canceled")
+- `appliedToOrg: boolean` — True when org applied at least part of the deploy
+- `completedDate?: string` — ISO-8601 server completedDate when present
 - `fileResponses: FileResponseInfo[]`
+- `componentFailures: ComponentFailureInfo[]` — Server-level component failures from response.details.componentFailures
+- `errorMessage?: string` — Server-reported top-level error message when deploy failed
 
 **FileResponseInfo**:
 - `fullName: string` — Component name
 - `type: string` — Metadata type
-- `state: string` (e.g., "Changed", "Failed")
+- `state: string` — SDR file state (e.g., "Created", "Changed", "Unchanged", "Deleted", "Failed")
 - `filePath?: string`
-- `error?: string` (if failed)
+- `error?: string` — Error message (if failed)
+- `lineNumber?: number` — 1-based line of failure when org reported one
+- `columnNumber?: number` — 1-based column of failure when org reported one
+- `problemType?: string` — SDR problemType (e.g., "Error", "Warning"); absent for successes
+
+**ComponentFailureInfo**:
+- `fullName: string` — Component name
+- `type: string` — Metadata type
+- `problem: string` — Error message
+- `problemType: string` — "Error" or "Warning"
 
 ## MetadataRetrieveService
 
@@ -75,8 +99,14 @@ const outcome = yield * api.services.MetadataRetrieveService.retrieveToSource(
 
 **RetrieveOutcome** (owned DTO):
 - `success: boolean`
-- `status: string` — "Succeeded", "Failed"
+- `status: string` — SDR RequestStatus (e.g., "Succeeded", "Failed")
 - `fileResponses: FileResponseInfo[]`
+- `components: RetrievedComponentInfo[]` — Per-component server metadata from fileProperties
+
+**RetrievedComponentInfo**:
+- `type: string` — Metadata type
+- `fullName: string` — Component name
+- `lastModifiedDate: string` — ISO-8601 timestamp
 
 ## ComponentSetService
 

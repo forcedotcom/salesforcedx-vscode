@@ -2,7 +2,36 @@
 
 Build Salesforce component sets from source, manifests, or URIs. Accessor pattern: call methods directly.
 
-## Methods
+**Preferred:** Use owned `SourceSpec`-based methods (`deployFromSource`, `retrieveToSource`, `describeProjectComponents`) which return owned DTOs with zero external dependencies. The legacy getters below return live `ComponentSet` (3pp instance); migrate to owned surface per W-22419571.
+
+## Owned Methods (Import-Free)
+
+### describeProjectComponents
+
+Introspect components via owned `ComponentSetInfo` — no external SDR dependency:
+
+```typescript
+type ComponentInfo = {
+  fullName: string;
+  type: string;
+  xmlPath?: string;
+  contentPaths: string[];
+};
+
+type ComponentSetInfo = {
+  size: number;
+  sourceApiVersion?: string;
+  projectDirectory?: string;
+  components: ComponentInfo[];
+  packageXml: string;
+};
+
+const info: ComponentSetInfo = yield * api.services.ComponentSetService.describeProjectComponents(spec);
+```
+
+Maps `SourceSpec` to owned types (no external imports). Consumers inspect `components[]`, `packageXml`, metadata without live ComponentSet. Use for tooling needing component visibility (LSP, project browser, metadata validation).
+
+## Legacy Methods (Deprecated — Returns 3pp ComponentSet)
 
 ### getComponentSetFromProjectDirectories
 
@@ -52,37 +81,16 @@ Dispatch SourceSpec to appropriate getter (internal routing for deploy/retrieve)
 type SourceSpec =
   | { kind: 'paths'; uris: string[] }
   | { kind: 'manifest'; manifestUri: string }
-  | { kind: 'projectDirectories' };
+  | { kind: 'projectDirectories'; members?: readonly OwnedMetadataMember[] };
+
+type OwnedMetadataMember = { type: string; fullName: string };
 
 const componentSet = yield * api.services.ComponentSetService.buildComponentSet(spec);
 ```
 
 Maps to `getComponentSetFromUris()`, `getComponentSetFromManifest()`, or `getComponentSetFromProjectDirectories()`. Use via `MetadataDeployService.deployFromSource()` / `MetadataRetrieveService.retrieveToSource()` — see [Metadata Deploy & Retrieve Services](metadata-deploy-retrieve-service.md).
 
-### describeProjectComponents
-
-Introspect components via owned `ComponentSetInfo` — no external SDR dependency:
-
-```typescript
-type ComponentInfo = {
-  fullName: string;
-  type: string;
-  xmlPath?: string;
-  contentPaths: string[];
-};
-
-type ComponentSetInfo = {
-  size: number;
-  sourceApiVersion?: string;
-  projectDirectory?: string;
-  components: ComponentInfo[];
-  packageXml: string;
-};
-
-const info: ComponentSetInfo = yield * api.services.ComponentSetService.describeProjectComponents(spec);
-```
-
-Maps `SourceSpec` to owned types (no external imports). Consumers inspect `components[]`, `packageXml`, metadata without live ComponentSet. Use for tooling needing component visibility (LSP, project browser, metadata validation).
+**Note:** `buildComponentSet` is internal. Prefer owned methods `deployFromSource`, `retrieveToSource`, `describeProjectComponents` which take `SourceSpec` directly.
 
 ## Utilities
 
