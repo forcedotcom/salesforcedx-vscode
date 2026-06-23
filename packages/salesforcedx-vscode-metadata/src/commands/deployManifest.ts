@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
-import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployFromOutcome } from '../shared/deploy/deployFromOutcome';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 import { ManifestSelectionRequiredError } from './manifestErrors';
@@ -19,25 +19,39 @@ export const deployManifestCommand = Effect.fn('deployManifestCommand')(
   function* (manifestUri?: URI) {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const channelService = yield* api.services.ChannelService;
     const resolved = manifestUri ?? (yield* api.services.EditorService.getActiveEditorUri());
+    const spec = { kind: 'manifest' as const, manifestUri: resolved.toString() };
 
-    return yield* Effect.succeed(resolved).pipe(
-      Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
-      Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
-      withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy')),
-      Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
+    // Helper that performs the deploy. Closes over resolved URI so retry can re-use it.
+    const performDeploy = Effect.gen(function* () {
+      // Conflict detection stays on the existing ComponentSet path (deferred migration).
+      yield* Effect.succeed(resolved).pipe(
+        Effect.flatMap(uri => api.services.ComponentSetService.getComponentSetFromManifest(uri)),
+        Effect.flatMap(api.services.ComponentSetService.ensureNonEmptyComponentSet),
+        withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy'))
+      );
+
+      // Deploy is now DATA-ONLY: services builds + deploys + returns an owned DeployOutcome.
+      yield* channelService.appendToChannel('Starting metadata deployment...');
+      const outcome = yield* api.services.MetadataDeployService.deployFromSource(spec, { ignoreConflicts: true });
+      return yield* deployFromOutcome(outcome);
+    });
+
+    return yield* performDeploy.pipe(
+      Effect.catchTag('ConflictsDetectedError', err =>
+        handleConflictWithRetry({
+          pairs: err.pairs,
+          operationType: err.operationType,
+          // On retry, conflicts were acknowledged — re-run with the same spec (closes over `resolved`).
+          retryOperation: performDeploy
+        })
+      )
     );
   },
   Effect.catchTag(
     'NoActiveEditorError',
     () => new ManifestSelectionRequiredError({ message: nls.localize('deploy_select_manifest') })
-  ),
-  Effect.catchTag('ConflictsDetectedError', err =>
-    handleConflictWithRetry({
-      pairs: err.pairs,
-      operationType: err.operationType,
-      retryOperation: deployComponentSet({ componentSet: err.componentSet })
-    })
   ),
   withConfigurableSuccessNotification(nls.localize('command_succeeded_text', nls.localize('deploy_in_manifest_text')))
 );

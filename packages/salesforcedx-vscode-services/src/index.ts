@@ -449,6 +449,13 @@ export { type ExtensionContextService, type ExtensionContextServiceLayer } from 
 export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';
 export { type FileChangePubSub, type FileChangeEvent } from './vscode/fileChangePubSub';
 export { type FsService } from './vscode/fsService';
+export type {
+  DeployOutcome,
+  FileResponseInfo,
+  ComponentFailureInfo,
+  SourceSpec,
+  DeployFromSourceOptions
+} from './owned/deploy';
 export {
   MetadataDeleteService,
   type MetadataDeleteService as MetadataDeleteServiceType
