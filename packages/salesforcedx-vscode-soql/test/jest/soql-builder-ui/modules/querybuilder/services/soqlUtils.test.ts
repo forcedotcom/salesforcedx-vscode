@@ -24,6 +24,7 @@ import {
   SELECT_COUNT,
   ToolingModelJson
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/model';
+import { toolingModelTemplate } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 
 describe('SoqlUtils', () => {
   const uiModelOne: ToolingModelJson = {
@@ -188,6 +189,25 @@ describe('SoqlUtils', () => {
     const transformedUiModel = convertSoqlToUiModel(soqlError);
     expect(transformedUiModel.errors[0].type).toEqual(uiModelErrors.errors[0].type);
     expect(transformedUiModel.unsupported[0].reason).toEqual(uiModelErrors.unsupported[0].reason);
+  });
+
+  it('transform UI Model with allRows true to Soql with ALL ROWS', () => {
+    const transformedSoql = convertUiModelToSoql({ ...uiModelOne, allRows: true });
+    expect(transformedSoql).toContain('ALL ROWS');
+  });
+
+  it('transform UI Model with allRows false to Soql without ALL ROWS', () => {
+    const transformedSoql = convertUiModelToSoql({ ...uiModelOne, allRows: false });
+    expect(transformedSoql).not.toContain('ALL ROWS');
+  });
+
+  it('transforms Soql with ALL ROWS to UI Model with allRows true', () => {
+    const transformedUiModel = convertSoqlToUiModel(`${soqlOne} ALL ROWS`);
+    expect(transformedUiModel.allRows).toBe(true);
+  });
+
+  it('defaults toolingModelTemplate allRows to false (not undefined)', () => {
+    expect(toolingModelTemplate.allRows).toBe(false);
   });
 
   describe('soqlStringLiteralToDisplayValue should', () => {

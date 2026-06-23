@@ -16,6 +16,7 @@ import { ToolingModelJson, ModelProps } from './model';
 import { createQueryTelemetry } from './telemetryUtils';
 
 export const toolingModelTemplate: ToolingModelJson = {
+  allRows: false,
   sObject: '',
   fields: [],
   orderBy: [],
@@ -155,6 +156,12 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
       changeModel({ ...getModel(), [ModelProps.LIMIT]: limit || '' });
     };
 
+    /* ---- ALL ROWS ---- */
+
+    const setAllRows = (allRows: boolean): void => {
+      changeModel({ ...getModel(), allRows });
+    };
+
     /* ---- STATE ---- */
 
     const restoreViewState = (): void => {
@@ -173,6 +180,7 @@ export class ToolingModelService extends Effect.Service<ToolingModelService>()('
       upsertWhereFieldExpr,
       removeWhereFieldCondition,
       changeLimit,
+      setAllRows,
       sendMessageToBackend,
       sendTelemetryToBackend,
       restoreViewState

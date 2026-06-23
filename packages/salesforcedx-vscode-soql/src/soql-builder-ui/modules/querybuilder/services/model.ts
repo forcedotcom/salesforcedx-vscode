@@ -23,6 +23,7 @@ export const SELECT_COUNT = 'COUNT()';
 // Public interface for accessing modelService.query
 export type ToolingModelJson = JsonMap & {
   headerComments?: string;
+  allRows?: boolean;
   sObject: string;
   fields: string[];
   orderBy: JsonMap[];
