@@ -109,7 +109,7 @@ const refreshConnection = Effect.fn('updateConfigAndStateAggregators', {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ConfigService.invalidateConfigAggregator();
   yield* api.services.ConnectionService.invalidateCachedConnections();
-  yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
+  yield* Effect.promise(() => api.withDefaultOrg(() => undefined)).pipe(Effect.catchAll(() => Effect.void));
 });
 
 export const updateConfigAndStateAggregators = async (): Promise<void> => {
