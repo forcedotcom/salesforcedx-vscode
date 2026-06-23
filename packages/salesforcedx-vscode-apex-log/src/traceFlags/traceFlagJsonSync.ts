@@ -17,7 +17,6 @@ import * as Stream from 'effect/Stream';
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { isTraceFlagActive } from './traceFlagActive';
 import { TraceFlagsContentProviderService } from './traceFlagsContentProvider';
 
 export const readDefaultDurationMinutes = Effect.fn('ApexLog.readDefaultDurationMinutes')(function* () {
@@ -146,28 +145,25 @@ type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
 
 export type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: string };
 
-export type PickTraceFlagResult =
-  | { kind: 'noActive' }
-  | { kind: 'cancelled' }
-  | { kind: 'picked'; traceFlagId: string };
-
-/** Show a QuickPick of active trace flags. Returns a discriminated result indicating whether no active flags exist, user cancelled, or a flag was picked. */
-export const pickTraceFlag = async (items: TraceFlagItem[]): Promise<PickTraceFlagResult> => {
-  const active = items.filter(isTraceFlagActive);
-  if (active.length === 0) {
-    return { kind: 'noActive' };
-  }
-  const picked = await vscode.window.showQuickPick<TraceFlagQuickPickItem>(
-    active.map(tf => ({
-      label: tf.tracedEntityName ?? tf.tracedEntityId ?? tf.id,
-      description: tf.logType,
-      detail: `Expires ${tf.expirationDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-      traceFlagId: tf.id
-    })),
-    { placeHolder: nls.localize('trace_flag_pick_trace_flag') }
+/** Show a QuickPick of the given (already active) trace flags; resolves to the picked flag's id.
+ * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
+export const pickTraceFlag = Effect.fn('ApexLog.pickTraceFlag')(function* (active: TraceFlagItem[]) {
+  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<TraceFlagQuickPickItem>(
+      active.map(tf => ({
+        label: tf.tracedEntityName ?? tf.tracedEntityId ?? tf.id,
+        description: tf.logType,
+        detail: `Expires ${tf.expirationDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        traceFlagId: tf.id
+      })),
+      { placeHolder: nls.localize('trace_flag_pick_trace_flag') }
+    )
+  ).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    Effect.map(picked => picked.traceFlagId)
   );
-  return picked ? { kind: 'picked', traceFlagId: picked.traceFlagId } : { kind: 'cancelled' };
-};
+});
 
 /** Show a QuickPick of org DebugLevels. */
 export const pickDebugLevel = async (items: DebugLevelItem[]): Promise<DebugLevelQuickPickItem | undefined> =>

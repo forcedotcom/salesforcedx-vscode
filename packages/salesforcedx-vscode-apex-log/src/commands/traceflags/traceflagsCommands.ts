@@ -13,6 +13,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DebugLevelItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { isTraceFlagActive } from '../../traceFlags/traceFlagActive';
 import {
   pickDebugLevel,
   pickLogLevel,
@@ -225,14 +226,12 @@ export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTrac
   const resolvedId =
     traceFlagId ??
     (yield* Effect.gen(function* () {
-      const flags = yield* traceFlagService.getTraceFlags();
-      const result = yield* Effect.promise(() => pickTraceFlag(flags));
-      if (result.kind === 'noActive') {
+      const active = (yield* traceFlagService.getTraceFlags()).filter(isTraceFlagActive);
+      if (active.length === 0) {
         yield* noActiveFlagsInfo();
         return undefined;
       }
-      if (result.kind === 'cancelled') return undefined;
-      return result.traceFlagId;
+      return yield* pickTraceFlag(active);
     }));
   if (!resolvedId) return;
   yield* traceFlagService.deleteTraceFlag(resolvedId);
