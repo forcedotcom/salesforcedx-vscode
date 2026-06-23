@@ -10,6 +10,7 @@ import * as Array from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
+import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { TraceFlagItem } from 'salesforcedx-vscode-services';
@@ -17,6 +18,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { type LogCollectorState, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
+import { isTraceFlagActive } from '../traceFlags/traceFlagActive';
 
 const STATUS_BAR_ID = 'apex-trace-flag-status';
 const STATUS_BAR_PRIORITY = 46;
@@ -91,7 +93,12 @@ export const createTraceFlagStatusBar = () =>
           // because the trace flags changed
           currentTraceFlagsRef.changes.pipe(Stream.as(undefined)),
           // because new logs were retrieved
-          collectorRef.changes.pipe(Stream.as(undefined))
+          collectorRef.changes.pipe(Stream.as(undefined)),
+          // because a trace flag may have expired since the last render — re-eval live isTraceFlagActive
+          // so the footer clears within a minute of expiry without a manual toggle or reload. Unlike the
+          // cleanup scheduler (which hits the org), this is a cheap local re-render, so it is NOT gated on
+          // window.state.active — the footer must clear at expiry even while the window is unfocused.
+          Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(Stream.as(undefined))
         ],
         {
           concurrency: 'unbounded'
@@ -111,31 +118,34 @@ const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const ref = yield* api.services.TargetOrgRef();
-  const { orgId } = yield* SubscriptionRef.get(ref);
-  if (!orgId) {
+  const { orgId, userId } = yield* SubscriptionRef.get(ref);
+  if (!orgId || !userId) {
     return statusBarItem.hide();
   }
   const traceFlagsRef = yield* CurrentTraceFlags;
   const activeRecords = (yield* SubscriptionRef.get(traceFlagsRef))
-    .filter(rec => rec.isActive)
+    .filter(isTraceFlagActive)
     .toSorted(byExpirationDesc);
 
   const collectorRef = yield* LogCollectorStateRef;
   const collectorState = yield* SubscriptionRef.get(collectorRef);
-  const { userId } = yield* SubscriptionRef.get(ref);
   statusBarItem.tooltip = buildTooltip(activeRecords, collectorState, userId);
-  statusBarItem.text = getStatusBarText(collectorState, activeRecords[0]);
+  statusBarItem.text = getStatusBarText(collectorState, selectCurrentUserFlag(activeRecords, userId));
   statusBarItem.show();
 });
 
-const hasCurrentUserTraceFlag = (records: TraceFlagItem[], userId: string | undefined) =>
-  Boolean(userId && records.some(r => r.logType === 'DEVELOPER_LOG' && r.tracedEntityId === userId));
+const hasCurrentUserTraceFlag = (records: TraceFlagItem[], userId: string) =>
+  records.some(r => r.logType === 'DEVELOPER_LOG' && r.tracedEntityId === userId);
+
+/** Returns the first trace flag (any type) for the current user, or undefined if none is active. */
+export const selectCurrentUserFlag = (records: TraceFlagItem[], userId: string): TraceFlagItem | undefined =>
+  records.find(r => r.tracedEntityId === userId);
 
 /** Build the tooltip for the status bar item */
 const buildTooltip = (
   activeRecords: TraceFlagItem[],
   collectorState: LogCollectorState,
-  userId: string | undefined
+  userId: string
 ): vscode.MarkdownString => {
   const byKey = LOG_TYPE_ORDER.reduce<Record<(typeof LOG_TYPE_ORDER)[number], TraceFlagItem[]>>(
     (acc, key) => ({

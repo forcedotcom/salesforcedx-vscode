@@ -1102,12 +1102,16 @@ export class ApexTestController {
 
       const retrievedFileUri = getRetrievedFileUri(result);
       if (retrievedFileUri) {
-        const document = await vscode.workspace.openTextDocument(retrievedFileUri);
-        await vscode.window.showTextDocument(document, {
-          preview: false,
-          viewColumn: vscode.ViewColumn.Active,
-          preserveFocus: false
-        });
+        await getApexTestingRuntime().runPromise(
+          Effect.fn('ApexTesting.openRetrievedFile')(function* () {
+            const api = yield* (yield* ExtensionProviderService).getServicesApi;
+            yield* api.services.FsService.showTextDocument(retrievedFileUri, {
+              preview: false,
+              viewColumn: vscode.ViewColumn.Active,
+              preserveFocus: false
+            });
+          })()
+        );
         await closeEditorTabByUri(uri);
       }
 
@@ -1406,9 +1410,10 @@ export class ApexTestController {
       } catch (error) {
         const friendlyMessage = toUserFriendlyApexTestError(error);
         for (const test of testsToDebug) {
-          if (isClass(test.id) && getTestName(test) === className) {
-            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
-          } else if (isMethod(test.id) && extractClassName(test.id) === className) {
+          if (
+            (isClass(test.id) && getTestName(test) === className) ||
+            (isMethod(test.id) && extractClassName(test.id) === className)
+          ) {
             run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
           }
         }
@@ -1622,11 +1627,16 @@ const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
   if (!test.uri) {
     return;
   }
-  const document = await vscode.workspace.openTextDocument(test.uri);
-  const editor = await vscode.window.showTextDocument(document, {
-    preview: false,
-    viewColumn: vscode.ViewColumn.Active
-  });
+  const testUri = test.uri;
+  const editor = await getApexTestingRuntime().runPromise(
+    Effect.fn('ApexTesting.openOrgOnlyTest')(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      return yield* api.services.FsService.showTextDocument(testUri, {
+        preview: false,
+        viewColumn: vscode.ViewColumn.Active
+      });
+    })()
+  );
   if (isMethod(test.id) && test.range) {
     editor.selection = new vscode.Selection(test.range.start, test.range.start);
     editor.revealRange(test.range, vscode.TextEditorRevealType.InCenter);

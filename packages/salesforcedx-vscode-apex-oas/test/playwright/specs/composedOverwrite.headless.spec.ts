@@ -15,6 +15,7 @@ import {
   expectProblemsCount,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
+  reloadWindow,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -46,7 +47,7 @@ test('OAS: composed mode → overwrite → revalidate → deploy', async ({ page
     // OAS source emits `registrationProviderAsset` (API >=66.0). Default fixture is 64.0.
     // Must reload so source-deploy-retrieve picks up the new sourceApiVersion before deploy.
     await setWorkspaceApiVersion(workspaceDir);
-    await executeCommandWithCommandPalette(page, 'Developer: Reload Window');
+    await reloadWindow(page);
   });
 
   await test.step('wait for A4V + OAS commands available', async () => {

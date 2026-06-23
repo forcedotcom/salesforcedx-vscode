@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.1.0",
+  "version": "67.2.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -165,7 +165,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package",
+      "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
         "vscode:bundle"
       ],

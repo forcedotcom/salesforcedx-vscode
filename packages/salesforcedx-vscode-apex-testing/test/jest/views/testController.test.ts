@@ -868,15 +868,12 @@ describe('ApexTestController', () => {
 
       await controller.openOrgOnlyTest(classTestItem);
 
-      // Verify the underlying VS Code APIs were called
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
-      if ((vscode.workspace.openTextDocument as jest.Mock).mock.calls.length > 0) {
-        const openDocCall = (vscode.workspace.openTextDocument as jest.Mock).mock.calls[0][0];
-        expect(openDocCall).toBeDefined();
-        expect(openDocCall.toString()).toContain('sf-org-apex');
-        expect(openDocCall.toString()).toContain('OrgOnlyClass');
-        expect(vscode.window.showTextDocument).toHaveBeenCalled();
-      }
+      // fsService.showTextDocument opens the URI directly (no separate openTextDocument)
+      expect(vscode.window.showTextDocument).toHaveBeenCalled();
+      const showDocCall = (vscode.window.showTextDocument as jest.Mock).mock.calls[0][0];
+      expect(showDocCall).toBeDefined();
+      expect(showDocCall.toString()).toContain('sf-org-apex');
+      expect(showDocCall.toString()).toContain('OrgOnlyClass');
     });
 
     it('should open org-only method test and navigate to position', async () => {
@@ -913,8 +910,7 @@ describe('ApexTestController', () => {
 
       await controller.openOrgOnlyTest(methodTestItem);
 
-      // Verify the underlying VS Code APIs were called
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
+      // fsService.showTextDocument opens the URI directly
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
       expect(mockEditor.revealRange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -968,10 +964,10 @@ describe('ApexTestController', () => {
       expect(
         (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
       ).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'OrgOnlyClass' }], { ignoreConflicts: true });
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith(
-        expect.objectContaining({ fsPath: orgOnlyClassFileUri.fsPath })
+      expect(vscode.window.showTextDocument).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: orgOnlyClassFileUri.fsPath }),
+        expect.anything()
       );
-      expect(vscode.window.showTextDocument).toHaveBeenCalled();
       expect(refreshSpy).toHaveBeenCalled();
       expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
     });

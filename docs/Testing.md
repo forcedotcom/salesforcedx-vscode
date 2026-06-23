@@ -72,6 +72,7 @@ When the VSCode UI changes, you might have to update your e2e tests. And you mig
 - quick-pick rows: `waitForQuickInputFirstOption(page)` (ARIA options + Monaco list rows; attached-state waits)
 - accept first quick-pick option: `selectFirstQuickInputOption(page, { confirmCommitted?, commitTimeout? })` — unifies flaky `.click()` / Enter / `evaluate` click variants; commits via DOM `evaluate` click with optional Enter fallback when `confirmCommitted` predicate doesn't pass within `commitTimeout`
 - quick input text: fill `input.input`; avoid `keyboard.type` into ambiguous focus
+- editor content via keyboard: call `disableMonacoAutoClosing(page)` before `page.keyboard.type()` to prevent bracket/quote duplication; avoids clipboard (shared global resource + parallel worker races)
 - Problems view assertions: clear `Filter Problems` input before counting diagnostics
 - `expectProblemsCount*` helpers now clear Problems filter before assertion; use helpers over ad-hoc row counts
 

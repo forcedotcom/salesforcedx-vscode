@@ -87,6 +87,7 @@ test.describe('Aura Rename (Desktop Only)', () => {
     await test.step('rename again via editor context menu', async () => {
       await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.cmp`);
       await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
+      // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
       await activeQuickInputTextField(page).fill(finalName, { force: true });
       await page.keyboard.press('Enter');
       await saveScreenshot(page, 'auraRename.editor-menu-fired.png');

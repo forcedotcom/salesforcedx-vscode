@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TSESLint } from '@typescript-eslint/utils';
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
@@ -13,12 +14,14 @@ import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
+import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
 import { noVscodeQuickpickDescriptionLiterals } from './noVscodeQuickpickDescriptionLiterals';
+import { noVscodeShowTextDocument } from './noVscodeShowTextDocument';
 import { noVscodeUri } from './noVscodeUri';
 import { noVscodeValidateInputLiterals } from './noVscodeValidateInputLiterals';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
@@ -35,7 +38,7 @@ import { vscodeignoreContributesConflict } from './vscodeignoreContributesConfli
 import { vscodeignoreRequiredPatterns } from './vscodeignoreRequiredPatterns';
 import { vscodeignoreTextProcessor } from './vscodeignoreTextProcessor';
 
-const plugin = {
+const plugin: TSESLint.FlatConfig.Plugin = {
   processors: {
     vscodeignoreText: vscodeignoreTextProcessor
   },
@@ -51,11 +54,13 @@ const plugin = {
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
+    'no-inline-esbuild-platform': noInlineEsbuildPlatform,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
     'no-vscode-quickpick-description-literals': noVscodeQuickpickDescriptionLiterals,
+    'no-vscode-show-text-document': noVscodeShowTextDocument,
     'no-vscode-uri': noVscodeUri,
     'no-vscode-validateinput-literals': noVscodeValidateInputLiterals,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.1.0",
+  "version": "67.2.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -38,8 +38,10 @@
     "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
+    "@effect/opentelemetry": "0.63.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "jest-junit": "14.0.1"
+    "jest-junit": "14.0.1",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"

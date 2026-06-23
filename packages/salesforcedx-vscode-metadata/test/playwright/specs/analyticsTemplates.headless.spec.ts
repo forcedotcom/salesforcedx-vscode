@@ -8,20 +8,22 @@
 import { test } from '../fixtures';
 import { expect, type Page } from '@playwright/test';
 import {
-  setupConsoleMonitoring,
-  setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
-  waitForWorkspaceReady,
-  verifyCommandExists,
+  activeQuickInputWidget,
+  closeAllEditors,
   closeWelcomeTabs,
+  EDITOR,
+  ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
-  validateNoCriticalErrors,
+  focusOnFilesExplorer,
   saveScreenshot,
-  activeQuickInputWidget,
-  ensureSecondarySideBarHidden,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  validateNoCriticalErrors,
+  verifyCommandExists,
   waitForQuickInputFirstOption,
-  EDITOR
+  waitForVSCodeWorkbench,
+  waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 
@@ -49,7 +51,7 @@ const verifyGeneratedTemplate = async (page: Page, name: string) => {
     timeout: 10_000
   });
 
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  await focusOnFilesExplorer(page);
   await Promise.all(
     expectedFiles.map(file =>
       expect(
@@ -87,7 +89,7 @@ test('Analytics Templates: creates sample template via command palette and explo
 
   await test.step('create analytics template via explorer context menu', async () => {
     const name = `AnalyticsExplorer${Date.now()}`;
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+    await closeAllEditors(page);
     await executeExplorerContextMenuCommand(page, /^waveTemplates\b/, packageNls.analytics_generate_template_text);
     await enterTemplateName(page, name);
     await verifyGeneratedTemplate(page, name);

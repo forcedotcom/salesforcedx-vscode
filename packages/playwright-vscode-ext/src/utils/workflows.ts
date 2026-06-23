@@ -7,6 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
+import { closeAllEditors, closeWorkspace, hideSecondarySideBar, showRunningExtensions } from '../pages/nativeCommands';
 import { upsertSettings } from '../pages/settings';
 import {
   closeSettingsTab,
@@ -72,7 +73,7 @@ export const disableMonacoAutoClosing = async (page: Page): Promise<void> => {
  * @param timeout - Maximum ms to wait for all extensions to activate (default 120 000).
  */
 export const waitForExtensionsActivated = async (page: Page, timeout = 120_000): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Developer: Show Running Extensions');
+  await showRunningExtensions(page);
 
   // The editor container gets class "runtime-extensions-editor" via createEditor()
   const editor = page.locator('.runtime-extensions-editor');
@@ -88,7 +89,7 @@ export const waitForExtensionsActivated = async (page: Page, timeout = 120_000):
 
   // Close the Running Extensions tab via command palette (cross-platform, no hover needed)
   const tab = page.getByRole('tab', { name: /Running Extensions/i });
-  await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+  await closeAllEditors(page);
   await tab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
 };
 
@@ -111,7 +112,7 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
     // Focus workbench before opening palette (avoids F1/keystrokes going to auxiliary bar chat input)
     await page.locator(WORKBENCH).click({ timeout: 5000, force: true });
     // Use the explicit Hide command (not Toggle) to ensure we're hiding
-    await executeCommandWithCommandPalette(page, 'View: Hide Secondary Side Bar');
+    await hideSecondarySideBar(page);
 
     // Wait for it to actually hide
     await auxiliaryBar.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
@@ -125,7 +126,7 @@ export const ensureSecondarySideBarHidden = async (page: Page): Promise<void> =>
  * Call after {@link waitForVSCodeWorkbench} / {@link closeWelcomeTabs} / {@link ensureSecondarySideBarHidden} if needed.
  */
 export const closeWorkspaceToEmptyWindow = async (page: Page): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Workspaces: Close Workspace');
+  await closeWorkspace(page);
   await waitForVSCodeWorkbench(page);
 };
 

@@ -170,7 +170,8 @@ const MockConnectionServiceLayer = Layer.succeed(
   ConnectionService,
   new ConnectionService({
     getConnection: () => Effect.sync(() => mockConnection),
-    invalidateCachedConnections: () => Effect.void
+    invalidateCachedConnections: () => Effect.void,
+    listAllAuthorizations: () => Effect.succeed([])
   } as const)
 );
 

@@ -7,15 +7,18 @@
 
 import {
   buildAllServicesLayer,
+  closeExtensionScope,
   ExtensionPackageJsonSchema,
-  type ExtensionPackageJson
+  ExtensionProviderService,
+  type ExtensionPackageJson,
+  getExtensionScope
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
-import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
+import { checkAndResolveOrphanedLanguageServers } from './languageServerOrphanHandler';
 import {
   configureApexLanguage,
   getApexTests,
@@ -29,6 +32,11 @@ import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
+
+/** Internal-only; activate() rejects via runPromise on failure. */
+class TelemetryUnavailableError extends Schema.TaggedError<TelemetryUnavailableError>()('TelemetryUnavailableError', {
+  message: Schema.String
+}) {}
 
 export const activate = async (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
@@ -52,15 +60,15 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
     Effect.catchAll(() => Effect.succeed<ExtensionPackageJson>({}))
   );
   const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance(pjson.name);
-  yield* Effect.promise(() => telemetryService.initializeService(context));
   if (!telemetryService) {
-    throw new Error('Could not fetch a telemetry service instance');
+    return yield* new TelemetryUnavailableError({ message: 'Could not fetch a telemetry service instance' });
   }
+  yield* Effect.promise(() => telemetryService.initializeService(context));
   setTelemetryService(telemetryService);
 
-  if (!vscode.workspace?.workspaceFolders) {
-    throw new Error(nls.localize('cannot_determine_workspace'));
-  }
+  // fails with the typed NoWorkspaceOpenError from WorkspaceService when no workspace is open
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow();
 
   // Workspace Context
   yield* Effect.promise(() => workspaceContext.initialize(context));
@@ -87,10 +95,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
     context.subscriptions.push(commands);
   });
 
-  setImmediate(() => {
-    // Resolve any found orphan language servers in the background
-    void lsoh.resolveAnyFoundOrphanLanguageServers();
-  });
+  // Resolve any orphan language servers in the background on the extension scope.
+  const scope = yield* getExtensionScope();
+  yield* Effect.forkIn(checkAndResolveOrphanedLanguageServers(), scope).pipe(Effect.asVoid);
 });
 
 const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable => {
@@ -112,6 +119,7 @@ export const deactivate = async () => {
   await languageClientManager.getClientInstance()?.stop(30_000);
   languageClientManager.disposeOutputChannel();
   getTelemetryService().sendExtensionDeactivationEvent();
+  await getRuntime().runPromise(closeExtensionScope());
 };
 
 export type {

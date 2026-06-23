@@ -333,10 +333,7 @@ export const onCompletion = async (completionParams: CompletionParams): Promise<
       caseInsensitive: true
     });
     const items: CompletionItem[] = completions.map(completion => {
-      let kind = 18;
-      if (completion.type?.startsWith('fn')) {
-        kind = 3;
-      }
+      const kind = completion.type?.startsWith('fn') ? 3 : 18;
       return {
         documentation: completion.doc,
         detail: completion.type,

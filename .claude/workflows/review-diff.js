@@ -29,6 +29,9 @@ const SMALL_DIFF_LINES = 20
 const ALWAYS_APPLICABLE_SKILLS = ['typescript', 'concise', 'paths']
 const SKILLS_DIR = '.claude/skills'
 // Skills not relevant to code review of a diff — operational workflows or environmental setup.
+// thermonuclear-code-quality-review is excluded here because it already runs as the dedicated
+// thermoPrompt step below; the generic skill fan-out must not invoke it a second time. The skill
+// also carries `disable-model-invocation: true`, so it should never be auto-selected on its own.
 const REVIEW_SKILL_DENYLIST = [
   'changelog',
   'feature-branch',
@@ -40,6 +43,7 @@ const REVIEW_SKILL_DENYLIST = [
   'shipped-issues',
   'query-app-insights',
   'span-file-export',
+  'thermonuclear-code-quality-review',
 ]
 
 // Severity rank for sorting. effect 'must'/'should'/'consider' map to

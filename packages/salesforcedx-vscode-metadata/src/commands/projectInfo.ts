@@ -147,11 +147,12 @@ const gatherEnvironment = Effect.fn('gatherEnvironment')(function* () {
   const terminalService = yield* api.services.TerminalService;
   const [cliVersion, javaVersion] = yield* Effect.all(
     [
-      terminalService.simpleExec({ command: 'sf --version' }).pipe(Effect.orElseSucceed(() => 'unknown')),
-      terminalService.simpleExec({ command: 'java --version' }).pipe(
-        Effect.map(out => out.split('\n')[0]?.trim() ?? out),
-        Effect.orElseSucceed(() => 'unknown')
-      )
+      terminalService
+        .simpleExec({ command: 'sf --version', parse: s => s })
+        .pipe(Effect.orElseSucceed(() => 'unknown')),
+      terminalService
+        .simpleExec({ command: 'java --version', parse: out => out.split('\n')[0]?.trim() ?? out })
+        .pipe(Effect.orElseSucceed(() => 'unknown'))
     ],
     { concurrency: 'unbounded' }
   );
@@ -292,19 +293,19 @@ const doProjectInfo = Effect.fn('doProjectInfo')(function* () {
 
   yield* api.services.FsService.safeWriteFile(outputUri, content);
 
-  yield* Effect.sync(() => {
-    void vscode.window
-      .showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button'))
-      .then(selection => {
-        if (selection === nls.localize('open_button')) {
-          void vscode.window.showTextDocument(outputUri);
-        }
-      });
-  });
+  return outputUri;
 });
 
 export const projectInfoCommand = Effect.fn('projectInfoCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  return yield* doProjectInfo().pipe(promptService.withProgress(nls.localize('project_info_gathering_progress')));
+  const outputUri = yield* doProjectInfo().pipe(
+    promptService.withProgress(nls.localize('project_info_gathering_progress'))
+  );
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button'))
+  );
+  if (selection === nls.localize('open_button')) {
+    yield* api.services.FsService.showTextDocument(outputUri);
+  }
 });
