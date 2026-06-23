@@ -32,7 +32,7 @@ The rule allows template literals that contain `nls.localize()` calls.
 
 ### no-inline-esbuild-platform
 
-Enforces that `process.env.ESBUILD_PLATFORM` is used only as an inline literal inside a comparison (`=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so dead branches tree-shake (ADR 0013); assigning it to a variable, object/class property, or destructuring it defeats the strip and leaks node-only code into the web bundle.
+Enforces that `process.env.ESBUILD_PLATFORM` is compared inline against a string literal (e.g. `=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so `'web' === 'web'` constant-folds and dead branches tree-shake (ADR 0013); assigning it to a variable, object/class property, destructuring it, or comparing against a non-literal (`=== someVar`) defeats the strip and leaks node-only code into the web bundle.
 
 **Bad:**
 
@@ -40,6 +40,7 @@ Enforces that `process.env.ESBUILD_PLATFORM` is used only as an inline literal i
 const isWebMode = process.env.ESBUILD_PLATFORM === 'web';
 const { ESBUILD_PLATFORM } = process.env;
 doThing(process.env.ESBUILD_PLATFORM);
+if (process.env.ESBUILD_PLATFORM === someVar) { ... }
 ```
 
 **Good:**
