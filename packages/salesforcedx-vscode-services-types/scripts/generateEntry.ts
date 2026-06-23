@@ -27,6 +27,28 @@ const generateEntry = (): void => {
 export type { SalesforceVSCodeServicesApi } from '../../salesforcedx-vscode-services/out/src/index';
 export { DefaultOrgInfoSchema } from '../../salesforcedx-vscode-services/out/src/core/schemas/defaultOrgInfo';
 export { ICONS, type IconId } from './icons';
+// Owned data types (import-free DTOs)
+export type {
+  MetadataTypeInfo,
+  TemplateCreateOutcome,
+  ConnectionData
+} from '../../salesforcedx-vscode-services/out/src/owned/metadata';
+export type {
+  ComponentSetInfo,
+  ComponentInfo
+} from '../../salesforcedx-vscode-services/out/src/owned/components';
+export type {
+  DeployOutcome,
+  RetrieveOutcome,
+  FileResponseInfo,
+  ComponentFailureInfo,
+  SourceSpec,
+  DeployFromSourceOptions,
+  RetrieveOptions
+} from '../../salesforcedx-vscode-services/out/src/owned/deploy';
+export type { OrgChange } from '../../salesforcedx-vscode-services/out/src/owned/changes';
+export type { ProjectInfo, PackageDirInfo } from '../../salesforcedx-vscode-services/out/src/owned/projectInfo';
+export { toDeployOutcome, toRetrieveOutcome } from '../../salesforcedx-vscode-services/out/src/owned/deployMapper';
 `;
 
   fs.writeFileSync(entryPath, content, 'utf8');

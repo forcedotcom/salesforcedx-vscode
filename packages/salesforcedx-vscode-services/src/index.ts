@@ -206,6 +206,10 @@ export {
   PicklistValueSchema
 } from './core/transmogrifierService';
 export { toDeployOutcome, toRetrieveOutcome } from './owned/deployMapper';
+export type { MetadataTypeInfo, TemplateCreateOutcome, ConnectionData } from './owned/metadata';
+export type { ComponentSetInfo, ComponentInfo } from './owned/components';
+export type { OrgChange } from './owned/changes';
+export type { ProjectInfo, PackageDirInfo } from './owned/projectInfo';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
@@ -452,10 +456,12 @@ export { type FileChangePubSub, type FileChangeEvent } from './vscode/fileChange
 export { type FsService } from './vscode/fsService';
 export type {
   DeployOutcome,
+  RetrieveOutcome,
   FileResponseInfo,
   ComponentFailureInfo,
   SourceSpec,
-  DeployFromSourceOptions
+  DeployFromSourceOptions,
+  RetrieveOptions
 } from './owned/deploy';
 export {
   MetadataDeleteService,
