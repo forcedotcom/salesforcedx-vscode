@@ -220,7 +220,7 @@ describe('Apex Execute Tests', () => {
       apexFilePath: 'filepath/to/anonApex/file'
     });
     expect(response).toEqual(expectedResult);
-    expect(connRequestStub.calledTwice);
+    expect(connRequestStub.calledTwice).toBe(true);
   });
 
   it('should raise an error when the source file is not found', async () => {
