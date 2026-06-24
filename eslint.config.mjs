@@ -173,6 +173,7 @@ export default [
       'unicorn/no-array-sort-for-min-max': 'error',
       'unicorn/no-boolean-sort-comparator': 'error',
       'unicorn/no-chained-comparison': 'error',
+      'unicorn/no-collection-bracket-access': 'error',
       'unicorn/no-constant-zero-expression': 'error',
       'unicorn/no-double-comparison': 'error',
       'unicorn/no-duplicate-if-branches': 'error',
