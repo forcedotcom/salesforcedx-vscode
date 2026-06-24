@@ -148,6 +148,8 @@ export {
 export { webviewActiveFrame, hasTitle, hasContent } from './pages/webview';
 export type { ActiveFrameMatcher } from './pages/webview';
 
+export { TEST_EXPLORER_PANEL, TEST_EXPLORER_TREE_ITEM, focusAndTypeInFilter, clearFilter } from './pages/testExplorer';
+
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
 
