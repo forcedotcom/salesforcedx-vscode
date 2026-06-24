@@ -20,7 +20,6 @@
     "@salesforce/core": "^8.31.0",
     "@salesforce/kit": "^3.2.6",
     "@salesforce/ts-types": "^2.0.10",
-    "@types/istanbul-reports": "^3.0.4",
     "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
@@ -32,6 +31,7 @@
     "@jsforce/jsforce-node": "^3.10.16",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
+    "@types/istanbul-reports": "^3.0.4",
     "@types/sinon": "^17.0.3",
     "sinon": "^17.0.1"
   },
