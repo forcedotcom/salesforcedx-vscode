@@ -96,83 +96,102 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   ) {}
 
   public async gather(): Promise<CancelResponse | ContinueResponse<AuthParams>> {
-    const skipAlias = this.instanceUrl !== undefined;
-    // allow passing in the instance url programmatically instead of via quick pick
-    if (!this.instanceUrl) {
-      const orgTypes = buildOrgTypes(await getOrgRuntime().runPromise(getProjectLoginUrl));
-      const selection = await vscode.window.showQuickPick(Object.values(orgTypes));
-      if (!selection) {
-        return { type: 'CANCEL' };
-      }
+    const self = this;
+    return getOrgRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const promptService = yield* api.services.PromptService;
+        const skipAlias = self.instanceUrl !== undefined;
+        // allow passing in the instance url programmatically instead of via quick pick
+        if (!self.instanceUrl) {
+          const orgTypes = buildOrgTypes(yield* getProjectLoginUrl());
+          const selection = yield* Effect.promise(() => vscode.window.showQuickPick(Object.values(orgTypes))).pipe(
+            Effect.flatMap(promptService.considerUndefinedAsCancellation)
+          );
 
-      const orgType = selection.label;
-      if (orgType === orgTypes.custom?.label) {
-        const customUrlInputOptions = {
-          prompt: nls.localize('parameter_gatherer_enter_custom_url'),
-          placeHolder: PRODUCTION_URL,
-          validateInput: validateUrl
-        };
-        this.instanceUrl = await vscode.window.showInputBox(customUrlInputOptions);
-        if (this.instanceUrl === undefined) {
-          return { type: 'CANCEL' };
+          const orgType = selection.label;
+          if (orgType === orgTypes.custom?.label) {
+            self.instanceUrl = yield* Effect.promise(() =>
+              vscode.window.showInputBox({
+                prompt: nls.localize('parameter_gatherer_enter_custom_url'),
+                placeHolder: PRODUCTION_URL,
+                validateInput: validateUrl
+              })
+            ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+          } else if (orgType === orgTypes.project?.label) {
+            self.instanceUrl = yield* getProjectLoginUrl();
+          } else {
+            self.instanceUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
+          }
         }
-      } else if (orgType === orgTypes.project?.label) {
-        this.instanceUrl = await getOrgRuntime().runPromise(getProjectLoginUrl);
-      } else {
-        this.instanceUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
-      }
-    }
 
-    const reauthLabel = this.reauthAliasOrUsername?.trim();
-    const alias = skipAlias
-      ? reauthLabel && reauthLabel.length > 0
-        ? reauthLabel
-        : `reauth-${DEFAULT_ALIAS}`
-      : await vscode.window.showInputBox({
-          prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-          placeHolder: DEFAULT_ALIAS
-        });
-    // Closing the dialog (ESC/cancel) will cancel the operation
-    if (alias === undefined) {
-      return { type: 'CANCEL' };
-    }
-    // Hitting enter with no alias will default the alias to 'vscodeOrg'
-    return {
-      type: 'CONTINUE',
-      data: {
-        alias: alias || DEFAULT_ALIAS,
-        loginUrl: this.instanceUrl ?? PRODUCTION_URL
-      }
-    };
+        const reauthLabel = self.reauthAliasOrUsername?.trim();
+        // Closing the dialog (ESC/cancel) will cancel the operation; hitting enter with no alias defaults to 'vscodeOrg'
+        const alias = skipAlias
+          ? reauthLabel && reauthLabel.length > 0
+            ? reauthLabel
+            : `reauth-${DEFAULT_ALIAS}`
+          : yield* Effect.promise(() =>
+              vscode.window.showInputBox({
+                prompt: nls.localize('parameter_gatherer_enter_alias_name'),
+                placeHolder: DEFAULT_ALIAS
+              })
+            ).pipe(
+              // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels
+              Effect.flatMap(value =>
+                value === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(value)
+              )
+            );
+        return {
+          alias: alias || DEFAULT_ALIAS,
+          loginUrl: self.instanceUrl ?? PRODUCTION_URL
+        };
+      }).pipe(
+        Effect.map((data): ContinueResponse<AuthParams> => ({ type: 'CONTINUE', data })),
+        Effect.catchTag(
+          'UserCancellationError',
+          (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' })
+        )
+      )
+    );
   }
 }
 
 export class AccessTokenParamsGatherer implements ParametersGatherer<AccessTokenParams> {
   public async gather(): Promise<CancelResponse | ContinueResponse<AccessTokenParams>> {
-    const instanceUrl = await inputInstanceUrl();
-    if (instanceUrl === undefined) {
-      return { type: 'CANCEL' };
-    }
+    return getOrgRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const promptService = yield* api.services.PromptService;
 
-    const alias = await inputAlias();
-    // Closing the dialog (ESC/cancel) will cancel the operation
-    if (alias === undefined) {
-      return { type: 'CANCEL' };
-    }
+        const instanceUrl = yield* Effect.promise(inputInstanceUrl).pipe(
+          Effect.flatMap(promptService.considerUndefinedAsCancellation)
+        );
 
-    const accessToken = await inputAccessToken();
-    if (accessToken === undefined) {
-      return { type: 'CANCEL' };
-    }
-    // Hitting enter with no alias will default the alias to 'vscodeOrg'
-    return {
-      type: 'CONTINUE',
-      data: {
-        accessToken,
-        alias: alias || DEFAULT_ALIAS,
-        instanceUrl
-      }
-    };
+        // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels
+        const alias = yield* Effect.promise(inputAlias).pipe(
+          Effect.flatMap(value =>
+            value === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(value)
+          )
+        );
+
+        const accessToken = yield* Effect.promise(inputAccessToken).pipe(
+          Effect.flatMap(promptService.considerUndefinedAsCancellation)
+        );
+
+        return {
+          accessToken,
+          alias: alias || DEFAULT_ALIAS,
+          instanceUrl
+        };
+      }).pipe(
+        Effect.map((data): ContinueResponse<AccessTokenParams> => ({ type: 'CONTINUE', data })),
+        Effect.catchTag(
+          'UserCancellationError',
+          (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' })
+        )
+      )
+    );
   }
 }
 
@@ -183,15 +202,32 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
   ) {}
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    const prompt = nls.localize('org_logout_scratch_prompt', this.alias ?? this.username);
-    const logoutResponse = nls.localize('org_logout_scratch_logout');
+    const self = this;
+    return getOrgRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const prompt = nls.localize('org_logout_scratch_prompt', self.alias ?? self.username);
+        const logoutResponse = nls.localize('org_logout_scratch_logout');
 
-    const confirm = await vscode.window.showInformationMessage(prompt, { modal: true }, logoutResponse);
-    return confirm === logoutResponse ? { type: 'CONTINUE', data: this.username } : { type: 'CANCEL' };
+        const confirm = yield* Effect.promise(() =>
+          vscode.window.showInformationMessage(prompt, { modal: true }, logoutResponse)
+        );
+        if (confirm !== logoutResponse) {
+          return yield* new api.services.UserCancellationError({});
+        }
+        return self.username;
+      }).pipe(
+        Effect.map((data): ContinueResponse<string> => ({ type: 'CONTINUE', data })),
+        Effect.catchTag(
+          'UserCancellationError',
+          (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' })
+        )
+      )
+    );
   }
 }
 
-const getProjectLoginUrl = Effect.gen(function* () {
+const getProjectLoginUrl = Effect.fn('AuthParamsGatherer.getProjectLoginUrl')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const project = yield* api.services.ProjectService.getSfProject();
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
