@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join } from 'path';
+import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { createWriteStream, existsSync } from 'node:fs';
-import { tmpdir } from 'os';
-import { Readable } from 'stream';
+import { tmpdir } from 'node:os';
+import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import matchSnapshot from 'mocha-snap';
 import {
   writeResultFiles,
   ApexTestResultOutcome,
@@ -26,10 +25,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
   let tempDir: string;
 
   beforeEach(async function () {
-    tempDir = join(
-      tmpdir(),
-      `apex-snapshot-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    );
+    tempDir = join(tmpdir(), `apex-snapshot-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     await mkdir(tempDir, { recursive: true });
   });
 
@@ -39,11 +35,13 @@ describe('writeResultFiles - Snapshot Tests', () => {
     }
   });
 
+  // markdown/text reports embed `Run completed: <now>` when no timestamp is
+  // provided; normalize it so snapshots are deterministic.
+  const normalizeTimestamp = (content: string): string =>
+    content.replaceAll(/(Run completed:\*{0,2} ).+/g, '$1[TIMESTAMP]');
+
   // Mock runPipeline function for testing
-  const mockRunPipeline = async (
-    readable: Readable,
-    filePath: string
-  ): Promise<string> => {
+  const mockRunPipeline = async (readable: Readable, filePath: string): Promise<string> => {
     await pipeline(readable, createWriteStream(filePath));
     return filePath;
   };
@@ -81,7 +79,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         apexClass: {
           id: '01p000000000001AAA',
           name: 'SnapshotTestClass1',
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: 'SnapshotTestClass1'
         },
         runTime: 750,
@@ -119,7 +117,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         apexClass: {
           id: '01p000000000003AAA',
           name: 'SnapshotTestClass3',
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: 'SnapshotTestClass3'
         },
         runTime: 300,
@@ -157,22 +155,14 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: [ResultFormat.json]
     };
 
-    await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    const jsonFilePath = join(
-      tempDir,
-      'test-result-snapshot-test-run-456.json'
-    );
+    const jsonFilePath = join(tempDir, 'test-result-snapshot-test-run-456.json');
     const content = await readFile(jsonFilePath, 'utf8');
     const parsedContent = JSON.parse(content);
 
     // Snapshot the parsed JSON structure
-    matchSnapshot(parsedContent);
+    expect(parsedContent).toMatchSnapshot();
   });
 
   it('should produce consistent TAP output', async function () {
@@ -181,21 +171,13 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: [ResultFormat.tap]
     };
 
-    await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    const tapFilePath = join(
-      tempDir,
-      'test-result-snapshot-test-run-456-tap.txt'
-    );
+    const tapFilePath = join(tempDir, 'test-result-snapshot-test-run-456-tap.txt');
     const content = await readFile(tapFilePath, 'utf8');
 
     // Snapshot the TAP output
-    matchSnapshot(content);
+    expect(content).toMatchSnapshot();
   });
 
   it('should produce consistent JUnit output', async function () {
@@ -204,21 +186,13 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: [ResultFormat.junit]
     };
 
-    await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    const junitFilePath = join(
-      tempDir,
-      'test-result-snapshot-test-run-456-junit.xml'
-    );
+    const junitFilePath = join(tempDir, 'test-result-snapshot-test-run-456-junit.xml');
     const content = await readFile(junitFilePath, 'utf8');
 
     // Snapshot the JUnit XML output
-    matchSnapshot(content);
+    expect(content).toMatchSnapshot();
   });
 
   it('should produce consistent markdown output', async function () {
@@ -239,21 +213,13 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: [ResultFormat.markdown]
     };
 
-    await writeResultFiles(
-      testResultWithCoverage,
-      outputConfig,
-      true,
-      mockRunPipeline
-    );
+    await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
-    const markdownFilePath = join(
-      tempDir,
-      'test-result-snapshot-test-run-456.md'
-    );
+    const markdownFilePath = join(tempDir, 'test-result-snapshot-test-run-456.md');
     const content = await readFile(markdownFilePath, 'utf8');
 
     // Snapshot the markdown output
-    matchSnapshot(content);
+    expect(normalizeTimestamp(content)).toMatchSnapshot();
   });
 
   it('should produce consistent text output', async function () {
@@ -274,18 +240,13 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: [ResultFormat.text]
     };
 
-    await writeResultFiles(
-      testResultWithCoverage,
-      outputConfig,
-      true,
-      mockRunPipeline
-    );
+    await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
     const textFilePath = join(tempDir, 'test-result-snapshot-test-run-456.txt');
     const content = await readFile(textFilePath, 'utf8');
 
     // Snapshot the text output
-    matchSnapshot(content);
+    expect(normalizeTimestamp(content)).toMatchSnapshot();
   });
 
   it('should produce consistent code coverage output', async function () {
@@ -304,22 +265,14 @@ describe('writeResultFiles - Snapshot Tests', () => {
       dirPath: tempDir
     };
 
-    await writeResultFiles(
-      testResultWithCoverage,
-      outputConfig,
-      true,
-      mockRunPipeline
-    );
+    await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
-    const coverageFilePath = join(
-      tempDir,
-      'test-result-snapshot-test-run-456-codecoverage.json'
-    );
+    const coverageFilePath = join(tempDir, 'test-result-snapshot-test-run-456-codecoverage.json');
     const content = await readFile(coverageFilePath, 'utf8');
     const parsedContent = JSON.parse(content);
 
     // Snapshot the code coverage structure
-    matchSnapshot(parsedContent);
+    expect(parsedContent).toMatchSnapshot();
   });
 
   it('should produce consistent fileInfos output', async function () {
@@ -347,23 +300,18 @@ describe('writeResultFiles - Snapshot Tests', () => {
       ]
     };
 
-    await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
     // Test string content
     const textFilePath = join(tempDir, 'snapshot-custom.txt');
     const textContent = await readFile(textFilePath, 'utf8');
-    matchSnapshot(textContent);
+    expect(textContent).toMatchSnapshot();
 
     // Test JSON object content
     const jsonFilePath = join(tempDir, 'snapshot-metadata.json');
     const jsonContent = await readFile(jsonFilePath, 'utf8');
     const parsedJsonContent = JSON.parse(jsonContent);
-    matchSnapshot(parsedJsonContent);
+    expect(parsedJsonContent).toMatchSnapshot();
   });
 
   it('should produce consistent comprehensive output with all options', async function () {
@@ -405,18 +353,11 @@ describe('writeResultFiles - Snapshot Tests', () => {
       ]
     };
 
-    const result = await writeResultFiles(
-      testResultWithCoverage,
-      outputConfig,
-      true,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
     // Snapshot the list of created files (sorted for consistency)
-    const sortedResult = result
-      .map((path) => path.replace(tempDir, '[TEMP_DIR]'))
-      .sort();
-    matchSnapshot(sortedResult);
+    const sortedResult = result.map(path => path.replace(tempDir, '[TEMP_DIR]')).sort();
+    expect(sortedResult).toMatchSnapshot();
 
     // Snapshot each file's content
     for (const filePath of result) {
@@ -425,9 +366,9 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
       if (fileName?.endsWith('.json')) {
         const parsedContent = JSON.parse(content);
-        matchSnapshot(parsedContent);
+        expect(parsedContent).toMatchSnapshot();
       } else {
-        matchSnapshot(content);
+        expect(normalizeTimestamp(content)).toMatchSnapshot();
       }
     }
   });

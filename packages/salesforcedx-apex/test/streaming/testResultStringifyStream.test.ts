@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import { ApexTestResultOutcome } from '../../src';
 import { TestResultStringifyStream } from '../../src/streaming';
 import { CodeCoverageResult, TestResult } from '../../src/tests';
@@ -137,7 +136,7 @@ describe('TestResultStringifyStream', () => {
     };
   });
 
-  it('should transform TestResult into a JSON string with empty tests and no coverage', (done) => {
+  it('should transform TestResult into a JSON string with empty tests and no coverage', done => {
     let output = '';
     const emptyTestsNoCoverage = structuredClone(testResult);
     delete emptyTestsNoCoverage.codecoverage;
@@ -149,15 +148,15 @@ describe('TestResultStringifyStream', () => {
     });
 
     stream.on('end', () => {
-      expect(() => JSON.parse(output)).to.not.throw();
+      expect(() => JSON.parse(output)).not.toThrow();
       const expectedOutput = JSON.stringify(emptyTestsNoCoverage);
-      expect(output).to.equal(expectedOutput);
+      expect(output).toBe(expectedOutput);
       done();
     });
 
     stream._read();
   });
-  it('should transform TestResult into a JSON string with tests and no coverage', (done) => {
+  it('should transform TestResult into a JSON string with tests and no coverage', done => {
     let output = '';
     const testsWithoutCoverage = structuredClone(tests);
     const resultsWithTests = {
@@ -173,15 +172,15 @@ describe('TestResultStringifyStream', () => {
     });
 
     stream.on('end', () => {
-      expect(() => JSON.parse(output)).to.not.throw();
+      expect(() => JSON.parse(output)).not.toThrow();
       const expectedOutput = JSON.stringify(resultsWithTests);
-      expect(output).to.equal(expectedOutput);
+      expect(output).toBe(expectedOutput);
       done();
     });
 
     stream._read();
   });
-  it('should transform TestResult into a JSON string with tests and coverage both present', (done) => {
+  it('should transform TestResult into a JSON string with tests and coverage both present', done => {
     let output = '';
     const testsWithCoverage = structuredClone(tests);
     testsWithCoverage[0].perClassCoverage = [perClassCoverageData[0]];
@@ -199,9 +198,9 @@ describe('TestResultStringifyStream', () => {
     });
 
     stream.on('end', () => {
-      expect(() => JSON.parse(output)).to.not.throw();
+      expect(() => JSON.parse(output)).not.toThrow();
       const expectedOutput = JSON.stringify(resultsWithTests);
-      expect(output).to.equal(expectedOutput);
+      expect(output).toBe(expectedOutput);
       done();
     });
 

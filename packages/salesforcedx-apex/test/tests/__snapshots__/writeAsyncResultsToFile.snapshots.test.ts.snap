@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`writeAsyncResultsToFile - Snapshot Tests should produce consistent async results JSON output 1`] = `
-Object {
-  "summary": Object {
+{
+  "summary": {
     "commandTimeInMs": 4000,
     "failRate": "25%",
     "failing": 1,
@@ -21,9 +21,9 @@ Object {
     "userId": "005000000000000AAA",
     "username": "async-snapshot@example.com",
   },
-  "tests": Array [
-    Object {
-      "apexClass": Object {
+  "tests": [
+    {
+      "apexClass": {
         "fullName": "AsyncSnapshotTestClass1",
         "id": "01p000000000001AAA",
         "name": "AsyncSnapshotTestClass1",
@@ -41,8 +41,8 @@ Object {
       "stackTrace": null,
       "testTimestamp": "2023-01-01T14:30:00.500Z",
     },
-    Object {
-      "apexClass": Object {
+    {
+      "apexClass": {
         "fullName": "AsyncNamespace.AsyncSnapshotTestClass2",
         "id": "01p000000000002AAA",
         "name": "AsyncSnapshotTestClass2",
@@ -57,11 +57,11 @@ Object {
       "outcome": "Fail",
       "queueItemId": "709000000000002AAA",
       "runTime": 600,
-      "stackTrace": "System.AsyncException: Async operation failed\\\\nLine 15: someMethod()\\\\nLine 23: anotherMethod()",
+      "stackTrace": "System.AsyncException: Async operation failed\\nLine 15: someMethod()\\nLine 23: anotherMethod()",
       "testTimestamp": "2023-01-01T14:30:01.100Z",
     },
-    Object {
-      "apexClass": Object {
+    {
+      "apexClass": {
         "fullName": "AsyncSnapshotTestClass3",
         "id": "01p000000000003AAA",
         "name": "AsyncSnapshotTestClass3",
@@ -79,8 +79,8 @@ Object {
       "stackTrace": null,
       "testTimestamp": "2023-01-01T14:30:01.500Z",
     },
-    Object {
-      "apexClass": Object {
+    {
+      "apexClass": {
         "fullName": "AnotherNamespace.AsyncSnapshotTestClass4",
         "id": "01p000000000004AAA",
         "name": "AsyncSnapshotTestClass4",
@@ -103,8 +103,8 @@ Object {
 `;
 
 exports[`writeAsyncResultsToFile - Snapshot Tests should produce consistent output with complex nested data 1`] = `
-Object {
-  "summary": Object {
+{
+  "summary": {
     "commandTimeInMs": 4000,
     "failRate": "25%",
     "failing": 1,
@@ -123,9 +123,9 @@ Object {
     "userId": "005000000000000AAA",
     "username": "async-snapshot@example.com",
   },
-  "tests": Array [
-    Object {
-      "apexClass": Object {
+  "tests": [
+    {
+      "apexClass": {
         "fullName": "AsyncSnapshotTestClass1",
         "id": "01p000000000001AAA",
         "name": "AsyncSnapshotTestClass1",
@@ -138,14 +138,14 @@ Object {
       "message": null,
       "methodName": "testAsyncSnapshotMethod1",
       "outcome": "Pass",
-      "perClassCoverage": Array [],
+      "perClassCoverage": [],
       "queueItemId": "709000000000001AAA",
       "runTime": 800,
       "stackTrace": null,
       "testTimestamp": "2023-01-01T14:30:00.500Z",
     },
-    Object {
-      "apexClass": Object {
+    {
+      "apexClass": {
         "fullName": "AsyncNamespace.AsyncSnapshotTestClass2",
         "id": "01p000000000002AAA",
         "name": "AsyncSnapshotTestClass2",
@@ -160,7 +160,7 @@ Object {
       "outcome": "Fail",
       "queueItemId": "709000000000002AAA",
       "runTime": 600,
-      "stackTrace": "Multi-line\\\\nstack\\\\ntrace\\\\nwith\\\\nspecial\\\\ncharacters: \\"quotes\\", \\\\backslashes, and [brackets]",
+      "stackTrace": "Multi-line\\nstack\\ntrace\\nwith\\nspecial\\ncharacters: "quotes", \\backslashes, and [brackets]",
       "testTimestamp": "2023-01-01T14:30:01.100Z",
     },
   ],
@@ -168,8 +168,8 @@ Object {
 `;
 
 exports[`writeAsyncResultsToFile - Snapshot Tests should produce consistent output with empty test results 1`] = `
-Object {
-  "summary": Object {
+{
+  "summary": {
     "commandTimeInMs": 100,
     "failRate": "0%",
     "failing": 0,
@@ -188,13 +188,13 @@ Object {
     "userId": "005000000000000AAA",
     "username": "empty@example.com",
   },
-  "tests": Array [],
+  "tests": [],
 }
 `;
 
 exports[`writeAsyncResultsToFile - Snapshot Tests should produce consistent output with null values 1`] = `
-Object {
-  "summary": Object {
+{
+  "summary": {
     "commandTimeInMs": 4000,
     "failRate": "25%",
     "failing": 1,
@@ -213,9 +213,9 @@ Object {
     "userId": "005000000000000AAA",
     "username": "async-snapshot@example.com",
   },
-  "tests": Array [
-    Object {
-      "apexClass": Object {
+  "tests": [
+    {
+      "apexClass": {
         "fullName": "NullValuesTestClass",
         "id": "01p000000000001AAA",
         "name": "NullValuesTestClass",

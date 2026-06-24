@@ -5,46 +5,32 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SinonStub } from 'sinon';
 import { Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import { assert, expect } from 'chai';
-import fs from 'node:fs';
-import readline from 'readline';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import * as fs from 'node:fs';
+import * as readline from 'node:readline';
 import { ExecuteService } from '../../src/execute/executeService';
 import { nls } from '../../src/i18n';
-import {
-  ExecuteAnonymousResponse,
-  SoapResponse,
-  ExecAnonApiResponse
-} from '../../src/execute/types';
+import { ExecuteAnonymousResponse, SoapResponse, ExecAnonApiResponse } from '../../src/execute/types';
 import * as os from 'node:os';
 
-describe('Apex Execute Tests', async () => {
+describe('Apex Execute Tests', () => {
   const $$ = new TestContext();
 
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
-  let sandboxStub: SinonSandbox;
   let fsStub: SinonStub;
 
   beforeEach(async () => {
-    sandboxStub = createSandbox();
-
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
-    sandboxStub
-      .stub(Connection.prototype, 'retrieveMaxApiVersion')
-      .resolves('50.0');
+    $$.SANDBOX.stub(Connection.prototype, 'retrieveMaxApiVersion').resolves('50.0');
 
     await $$.stubAuths(testData);
     mockConnection = await testData.getConnection();
 
-    sandboxStub.stub(fs, 'readFileSync').returns('System.assert(true);');
-    fsStub = sandboxStub.stub(fs, 'existsSync').returns(true);
-  });
-
-  afterEach(() => {
-    sandboxStub.restore();
+    $$.SANDBOX.stub(fs, 'readFileSync').returns('System.assert(true);');
+    fsStub = $$.SANDBOX.stub(fs, 'existsSync').returns(true);
   });
 
   it('should execute and display successful result in correct format', async () => {
@@ -73,14 +59,12 @@ describe('Apex Execute Tests', async () => {
       success: true,
       logs: log
     };
-    sandboxStub
-      .stub(ExecuteService.prototype, 'connectionRequest')
-      .resolves(soapResponse);
+    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
 
-    expect(response).to.eql(expectedResult);
+    expect(response).toEqual(expectedResult);
   });
 
   it('should execute and display successful result when no DebuggingInfo header', async () => {
@@ -106,14 +90,12 @@ describe('Apex Execute Tests', async () => {
       success: true,
       logs: undefined
     };
-    sandboxStub
-      .stub(ExecuteService.prototype, 'connectionRequest')
-      .resolves(soapResponse);
+    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
 
-    expect(response).to.eql(expectedResult);
+    expect(response).toEqual(expectedResult);
   });
 
   it('should execute and display runtime issue in correct format', async () => {
@@ -151,14 +133,12 @@ describe('Apex Execute Tests', async () => {
         }
       ]
     };
-    sandboxStub
-      .stub(ExecuteService.prototype, 'connectionRequest')
-      .resolves(soapResponse);
+    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
 
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
-    expect(response).to.eql(expectedResult);
+    expect(response).toEqual(expectedResult);
   });
 
   it('should execute and display compile issue in correct format', async () => {
@@ -167,7 +147,7 @@ describe('Apex Execute Tests', async () => {
       column: 1,
       line: 6,
       compiled: 'false',
-      compileProblem: `Unexpected token '('.`,
+      compileProblem: "Unexpected token '('.",
       exceptionMessage: '',
       exceptionStackTrace: '',
       success: 'false'
@@ -189,20 +169,18 @@ describe('Apex Execute Tests', async () => {
         {
           columnNumber: 1,
           lineNumber: 6,
-          compileProblem: `Unexpected token '('.`,
+          compileProblem: "Unexpected token '('.",
           exceptionMessage: '',
           exceptionStackTrace: ''
         }
       ]
     };
-    sandboxStub
-      .stub(ExecuteService.prototype, 'connectionRequest')
-      .resolves(soapResponse);
+    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
 
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
-    expect(response).to.eql(expectedResult);
+    expect(response).toEqual(expectedResult);
   });
 
   it('should handle access token session id error correctly', async () => {
@@ -232,10 +210,7 @@ describe('Apex Execute Tests', async () => {
       logs: log
     };
 
-    const connRequestStub = sandboxStub.stub(
-      ExecuteService.prototype,
-      'connectionRequest'
-    );
+    const connRequestStub = $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest');
     const error = new Error('INVALID_SESSION_ID');
     error.name = 'ERROR_HTTP_500';
     connRequestStub.onFirstCall().throws(error);
@@ -244,7 +219,7 @@ describe('Apex Execute Tests', async () => {
     const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
-    expect(response).to.eql(expectedResult);
+    expect(response).toEqual(expectedResult);
     expect(connRequestStub.calledTwice);
   });
 
@@ -254,12 +229,9 @@ describe('Apex Execute Tests', async () => {
     fsStub.restore();
     fsStub.returns(false);
 
-    try {
-      await apexExecute.executeAnonymous({ apexFilePath: apexFile });
-      assert.fail('Expected an error');
-    } catch (e) {
-      assert.equal(nls.localize('fileNotFoundError', apexFile), e.message);
-    }
+    await expect(apexExecute.executeAnonymous({ apexFilePath: apexFile })).rejects.toThrow(
+      nls.localize('fileNotFoundError', apexFile)
+    );
   });
 
   it('should handle Buffer input correctly', async () => {
@@ -289,86 +261,68 @@ describe('Apex Execute Tests', async () => {
       success: true,
       logs: log
     };
-    sandboxStub
-      .stub(ExecuteService.prototype, 'connectionRequest')
-      .resolves(soapResponse);
+    $$.SANDBOX.stub(ExecuteService.prototype, 'connectionRequest').resolves(soapResponse);
     const response = await apexExecute.executeAnonymous({
       apexCode: bufferInput
     });
 
-    expect(response).to.eql(expectedResult);
+    expect(response).toEqual(expectedResult);
   });
 
   it('should throw an error if no option is specified', async () => {
-    try {
-      const executeService = new ExecuteService(mockConnection);
-      await executeService.executeAnonymous({});
-      assert.fail();
-    } catch (e) {
-      assert.equal(nls.localize('optionExecAnonError'), e.message);
-    }
+    const executeService = new ExecuteService(mockConnection);
+    await expect(executeService.executeAnonymous({})).rejects.toThrow(nls.localize('optionExecAnonError'));
   });
 
   it('should throw an error if user input fails', async () => {
     const errorText = 'This is the error';
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const on = (event: string, listener: (err?: Error) => {}) => {
-      try {
-        if (event === 'error') {
-          listener(new Error(errorText));
-        }
-        listener();
-      } catch (e) {
-        throw e;
+      if (event === 'error') {
+        listener(new Error(errorText));
       }
+      listener();
     };
-    sandboxStub
-      .stub(readline, 'createInterface')
+    $$.SANDBOX.stub(readline, 'createInterface')
       //@ts-ignore
       .returns({ on });
 
+    const executeService = new ExecuteService(mockConnection);
     try {
-      const executeService = new ExecuteService(mockConnection);
       await executeService.getUserInput();
     } catch (e) {
-      assert.equal(
-        nls.localize('unexpectedExecAnonInputError', errorText),
-        e.message
-      );
+      expect((e as Error).message).toEqual(nls.localize('unexpectedExecAnonInputError', errorText));
     }
   });
 
   it('should process user input correctly', async () => {
     const inputText = 'This should be the only text';
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const on = (event: string, listener: (input: string) => {}) => {
       listener(inputText);
     };
-    sandboxStub
-      .stub(readline, 'createInterface')
+    $$.SANDBOX.stub(readline, 'createInterface')
       //@ts-ignore
       .returns({ on });
 
     const executeService = new ExecuteService(mockConnection);
     const text = await executeService.getUserInput();
-    expect(text).to.equal(`${inputText}${os.EOL}`);
+    expect(text).toBe(`${inputText}${os.EOL}`);
   });
 
   it('should throw error if user is idle', async () => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const on = (event: string, listener: () => {}) => {
       listener();
     };
-    sandboxStub
-      .stub(readline, 'createInterface')
+    $$.SANDBOX.stub(readline, 'createInterface')
       //@ts-ignore
       .returns({ on });
 
+    const executeService = new ExecuteService(mockConnection);
     try {
-      const executeService = new ExecuteService(mockConnection);
       await executeService.getUserInput();
     } catch (e) {
-      assert.equal(nls.localize('execAnonInputTimeout'), e.message);
+      expect((e as Error).message).toEqual(nls.localize('execAnonInputTimeout'));
     }
   });
 });

@@ -5,25 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join } from 'path';
+import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { tmpdir } from 'os';
-import matchSnapshot from 'mocha-snap';
-import {
-  writeAsyncResultsToFile,
-  ApexTestResultOutcome,
-  TestResult
-} from '../../src';
+import { tmpdir } from 'node:os';
+import { writeAsyncResultsToFile, ApexTestResultOutcome, TestResult } from '../../src';
 
 describe('writeAsyncResultsToFile - Snapshot Tests', () => {
   let tempDir: string;
 
   beforeEach(async function () {
-    tempDir = join(
-      tmpdir(),
-      `apex-async-snapshot-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    );
+    tempDir = join(tmpdir(), `apex-async-snapshot-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     await mkdir(tempDir, { recursive: true });
   });
 
@@ -66,7 +58,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         apexClass: {
           id: '01p000000000001AAA',
           name: 'AsyncSnapshotTestClass1',
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: 'AsyncSnapshotTestClass1'
         },
         runTime: 800,
@@ -76,8 +68,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
       {
         id: '01p000000000002AAA',
         queueItemId: '709000000000002AAA',
-        stackTrace:
-          'System.AsyncException: Async operation failed\\nLine 15: someMethod()\\nLine 23: anotherMethod()',
+        stackTrace: 'System.AsyncException: Async operation failed\\nLine 15: someMethod()\\nLine 23: anotherMethod()',
         message: 'Async test failed with complex error details',
         asyncApexJobId: '707000000000001AAA',
         methodName: 'testAsyncSnapshotMethod2',
@@ -91,8 +82,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         },
         runTime: 600,
         testTimestamp: '2023-01-01T14:30:01.100Z',
-        fullName:
-          'AsyncNamespace.AsyncSnapshotTestClass2.testAsyncSnapshotMethod2'
+        fullName: 'AsyncNamespace.AsyncSnapshotTestClass2.testAsyncSnapshotMethod2'
       },
       {
         id: '01p000000000003AAA',
@@ -106,7 +96,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         apexClass: {
           id: '01p000000000003AAA',
           name: 'AsyncSnapshotTestClass3',
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: 'AsyncSnapshotTestClass3'
         },
         runTime: 400,
@@ -130,8 +120,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         },
         runTime: 200,
         testTimestamp: '2023-01-01T14:30:01.700Z',
-        fullName:
-          'AnotherNamespace.AsyncSnapshotTestClass4.testAsyncSnapshotMethod4'
+        fullName: 'AnotherNamespace.AsyncSnapshotTestClass4.testAsyncSnapshotMethod4'
       }
     ]
   };
@@ -146,7 +135,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
     const parsedContent = JSON.parse(content);
 
     // Snapshot the complete async results structure
-    matchSnapshot(parsedContent);
+    expect(parsedContent).toMatchSnapshot();
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -171,7 +160,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
           apexClass: {
             id: '01p000000000001AAA',
             name: 'NullValuesTestClass',
-            namespacePrefix: null as string | null,
+            namespacePrefix: null as unknown as string,
             fullName: 'NullValuesTestClass'
           },
           runTime: 250,
@@ -190,7 +179,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
     const parsedContent = JSON.parse(content);
 
     // Snapshot to ensure null values are handled consistently
-    matchSnapshot(parsedContent);
+    expect(parsedContent).toMatchSnapshot();
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -221,7 +210,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
     const parsedContent = JSON.parse(content);
 
     // Snapshot to ensure complex data structures are handled consistently
-    matchSnapshot(parsedContent);
+    expect(parsedContent).toMatchSnapshot();
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -260,7 +249,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
     const parsedContent = JSON.parse(content);
 
     // Snapshot to ensure empty results are handled consistently
-    matchSnapshot(parsedContent);
+    expect(parsedContent).toMatchSnapshot();
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });

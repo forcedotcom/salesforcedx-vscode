@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SinonStub } from 'sinon';
 import { Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { CodeCoverage } from '../../src/tests/codeCoverage';
 import {
   ApexCodeCoverageAggregate,
@@ -20,7 +19,6 @@ import {
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 
 let mockConnection: Connection;
-let sandboxStub: SinonSandbox;
 let toolingQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
@@ -28,19 +26,11 @@ describe('Get code coverage results', () => {
   const $$ = new TestContext();
 
   beforeEach(async () => {
-    sandboxStub = createSandbox();
-
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
-    sandboxStub
-      .stub(Connection.prototype, 'retrieveMaxApiVersion')
-      .resolves('50.0');
+    $$.SANDBOX.stub(Connection.prototype, 'retrieveMaxApiVersion').resolves('50.0');
     await $$.stubAuths(testData);
     mockConnection = await testData.getConnection();
-    toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
-  });
-
-  afterEach(() => {
-    sandboxStub.restore();
+    toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
   });
 
   it('should return org wide coverage result', async () => {
@@ -56,7 +46,7 @@ describe('Get code coverage results', () => {
     const codeCov = new CodeCoverage(mockConnection);
 
     const orgWideCoverageResult = await codeCov.getOrgWideCoverage();
-    expect(orgWideCoverageResult).to.equal('33%');
+    expect(orgWideCoverageResult).toBe('33%');
   });
 
   it('should return 0% org wide coverage when no records are available', async () => {
@@ -68,10 +58,8 @@ describe('Get code coverage results', () => {
     const codeCov = new CodeCoverage(mockConnection);
 
     const orgWideCoverageResult = await codeCov.getOrgWideCoverage();
-    expect(orgWideCoverageResult).to.equal('0%');
-    expect(toolingQueryStub.getCall(0).args[0]).to.equal(
-      'SELECT PercentCovered FROM ApexOrgWideCoverage'
-    );
+    expect(orgWideCoverageResult).toBe('0%');
+    expect(toolingQueryStub.getCall(0).args[0]).toBe('SELECT PercentCovered FROM ApexOrgWideCoverage');
   });
 
   it('should return aggregate code coverage result and testRunCoverage', async () => {
@@ -137,14 +125,13 @@ describe('Get code coverage results', () => {
       records: codeCoverageQueryResult
     } as ApexCodeCoverageAggregate);
     const codeCov = new CodeCoverage(mockConnection);
-    const { codeCoverageResults, totalLines, coveredLines } =
-      await codeCov.getAggregateCodeCoverage(
-        new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
-      );
+    const { codeCoverageResults, totalLines, coveredLines } = await codeCov.getAggregateCodeCoverage(
+      new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
+    );
 
-    expect(totalLines).to.equal(24);
-    expect(coveredLines).to.equal(18);
-    expect(codeCoverageResults).to.eql(expectedResult);
+    expect(totalLines).toBe(24);
+    expect(coveredLines).toBe(18);
+    expect(codeCoverageResults).toEqual(expectedResult);
   });
 
   it('should return aggregate code coverage result with all records from AggregateCodeCoverage table', async () => {
@@ -210,12 +197,11 @@ describe('Get code coverage results', () => {
       records: codeCoverageQueryResult
     } as ApexCodeCoverageAggregate);
     const codeCov = new CodeCoverage(mockConnection);
-    const { codeCoverageResults, totalLines, coveredLines } =
-      await codeCov.getAggregateCodeCoverage(new Set<string>());
+    const { codeCoverageResults, totalLines, coveredLines } = await codeCov.getAggregateCodeCoverage(new Set<string>());
 
-    expect(totalLines).to.equal(24);
-    expect(coveredLines).to.equal(18);
-    expect(codeCoverageResults).to.eql(expectedResult);
+    expect(totalLines).toBe(24);
+    expect(coveredLines).toBe(18);
+    expect(codeCoverageResults).toEqual(expectedResult);
   });
 
   it('should return per class code coverage for multiple test classes', async () => {
@@ -258,8 +244,8 @@ describe('Get code coverage results', () => {
     const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(
       new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
     );
-    expect(perClassCoverageMap.size).to.eql(3);
-    expect(perClassCoverageMap.get('0001x05958-MethodOne')).to.deep.equal([
+    expect(perClassCoverageMap.size).toBe(3);
+    expect(perClassCoverageMap.get('0001x05958-MethodOne')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger1',
         apexClassOrTriggerId: '0001x05958',
@@ -271,7 +257,7 @@ describe('Get code coverage results', () => {
         numLinesUncovered: 1
       }
     ]);
-    expect(perClassCoverageMap.get('0001x05959-MethodTwo')).to.deep.equal([
+    expect(perClassCoverageMap.get('0001x05959-MethodTwo')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger2',
         apexClassOrTriggerId: '0001x05959',
@@ -286,7 +272,7 @@ describe('Get code coverage results', () => {
         numLinesUncovered: 2
       }
     ]);
-    expect(perClassCoverageMap.get('0001x05951-MethodThree')).to.deep.equal([
+    expect(perClassCoverageMap.get('0001x05951-MethodThree')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger3',
         apexClassOrTriggerId: '0001x05951',
@@ -329,11 +315,9 @@ describe('Get code coverage results', () => {
     } as ApexCodeCoverage);
 
     const codeCov = new CodeCoverage(mockConnection);
-    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(
-      new Set<string>(['0001x05958'])
-    );
-    expect(perClassCoverageMap.size).to.eql(1);
-    expect(perClassCoverageMap.get('0001x05958-MethodOne')).to.deep.equal([
+    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(new Set<string>(['0001x05958']));
+    expect(perClassCoverageMap.size).toBe(1);
+    expect(perClassCoverageMap.get('0001x05958-MethodOne')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger1',
         apexClassOrTriggerId: '0001x05958',
@@ -363,11 +347,9 @@ describe('Get code coverage results', () => {
   it('should return per class coverage for test that covers 0 classes', async () => {
     toolingQueryStub.throws('Error at Row:1;Column:1');
     const codeCov = new CodeCoverage(mockConnection);
-    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(
-      new Set<string>([])
-    );
+    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(new Set<string>());
 
-    expect(perClassCoverageMap.size).to.equal(0);
+    expect(perClassCoverageMap.size).toBe(0);
   });
 
   it('should split the PerClassCodeCoverage queue into chunks of 500 records', async () => {
@@ -417,26 +399,18 @@ describe('Get code coverage results', () => {
     const codeCoverage = new CodeCoverage(mockConnection);
     await codeCoverage.getPerClassCodeCoverage(apexTestClassSet);
 
-    expect(toolingQueryStub.args.length).to.equal(3);
+    expect(toolingQueryStub.args).toHaveLength(3);
 
-    const idCountOfFirstCall =
-      toolingQueryStub.getCall(0).args[0].split(',').length -
-      queryStartSeparatorCount;
-    expect(idCountOfFirstCall).to.equal(QUERY_RECORD_LIMIT);
+    const idCountOfFirstCall = toolingQueryStub.getCall(0).args[0].split(',').length - queryStartSeparatorCount;
+    expect(idCountOfFirstCall).toBe(QUERY_RECORD_LIMIT);
 
-    const idCountOfSecondCall =
-      toolingQueryStub.getCall(1).args[0].split(',').length -
-      queryStartSeparatorCount;
-    expect(idCountOfSecondCall).to.equal(QUERY_RECORD_LIMIT);
+    const idCountOfSecondCall = toolingQueryStub.getCall(1).args[0].split(',').length - queryStartSeparatorCount;
+    expect(idCountOfSecondCall).toBe(QUERY_RECORD_LIMIT);
 
-    const idCountOfThirdCall =
-      toolingQueryStub.getCall(2).args[0].split(',').length -
-      queryStartSeparatorCount;
-    expect(idCountOfThirdCall).to.equal(400);
+    const idCountOfThirdCall = toolingQueryStub.getCall(2).args[0].split(',').length - queryStartSeparatorCount;
+    expect(idCountOfThirdCall).toBe(400);
 
-    expect(
-      idCountOfFirstCall + idCountOfSecondCall + idCountOfThirdCall
-    ).to.equal(recordCount);
+    expect(idCountOfFirstCall + idCountOfSecondCall + idCountOfThirdCall).toBe(recordCount);
   });
 
   it('should split the AggregateCodeCoverage queue into chunks of 500 records', async () => {
@@ -488,25 +462,17 @@ describe('Get code coverage results', () => {
     const codeCoverage = new CodeCoverage(mockConnection);
     await codeCoverage.getAggregateCodeCoverage(apexTestClassSet);
 
-    expect(toolingQueryStub.args.length).to.equal(3);
+    expect(toolingQueryStub.args).toHaveLength(3);
 
-    const idCountOfFirstCall =
-      toolingQueryStub.getCall(0).args[0].split(',').length -
-      queryStartSeparatorCount;
-    expect(idCountOfFirstCall).to.equal(QUERY_RECORD_LIMIT);
+    const idCountOfFirstCall = toolingQueryStub.getCall(0).args[0].split(',').length - queryStartSeparatorCount;
+    expect(idCountOfFirstCall).toBe(QUERY_RECORD_LIMIT);
 
-    const idCountOfSecondCall =
-      toolingQueryStub.getCall(1).args[0].split(',').length -
-      queryStartSeparatorCount;
-    expect(idCountOfSecondCall).to.equal(QUERY_RECORD_LIMIT);
+    const idCountOfSecondCall = toolingQueryStub.getCall(1).args[0].split(',').length - queryStartSeparatorCount;
+    expect(idCountOfSecondCall).toBe(QUERY_RECORD_LIMIT);
 
-    const idCountOfThirdCall =
-      toolingQueryStub.getCall(2).args[0].split(',').length -
-      queryStartSeparatorCount;
-    expect(idCountOfThirdCall).to.equal(300);
+    const idCountOfThirdCall = toolingQueryStub.getCall(2).args[0].split(',').length - queryStartSeparatorCount;
+    expect(idCountOfThirdCall).toBe(300);
 
-    expect(
-      idCountOfFirstCall + idCountOfSecondCall + idCountOfThirdCall
-    ).to.equal(recordCount);
+    expect(idCountOfFirstCall + idCountOfSecondCall + idCountOfThirdCall).toBe(recordCount);
   });
 });

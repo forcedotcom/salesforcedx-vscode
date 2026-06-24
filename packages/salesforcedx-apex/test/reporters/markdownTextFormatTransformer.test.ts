@@ -6,44 +6,43 @@
  */
 
 import { MarkdownTextFormatTransformer } from '../../src';
-import { expect } from 'chai';
 import { pipeline, Writable } from 'node:stream';
 import { getTestData, successResult } from './testResults';
-import { fail } from 'assert';
 import { ApexTestResultOutcome } from '../../src/tests/types';
 
 const { testResults } = getTestData();
 
 describe('MarkdownTextFormatTransformer', () => {
-  const createWritableAndPipeline = (
+  const runPipeline = (reporter: MarkdownTextFormatTransformer): Promise<string> =>
+    new Promise((resolve, reject) => {
+      let result = '';
+      const writable = new Writable({
+        write(chunk, encoding, done) {
+          result += chunk;
+          done();
+        }
+      });
+      writable.on('finish', () => resolve(result));
+      pipeline(reporter, writable, err => {
+        if (err) {
+          reject(err);
+        }
+      });
+    });
+
+  const createWritableAndPipeline = async (
     reporter: MarkdownTextFormatTransformer,
     callback: (result: string) => void
-  ): void => {
-    let result = '';
-
-    const writable = new Writable({
-      write(chunk, encoding, done) {
-        result += chunk;
-        done();
-      }
-    });
-
-    writable.on('finish', () => callback(result));
-
-    pipeline(reporter, writable, (err) => {
-      if (err) {
-        console.error('Pipeline failed', err);
-        fail(err);
-      }
-    });
+  ): Promise<void> => {
+    callback(await runPipeline(reporter));
   };
 
   describe('format differences', () => {
-    it('should produce different output for markdown vs text formats', (done) => {
+    it('should produce different output for markdown vs text formats', async () => {
       // Use test data with coverage to ensure table appears
       const testDataWithCoverage = {
         ...testResults,
-        tests: testResults.tests.map((test) => ({
+        tests: testResults.tests.map(test => ({
           ...test,
           perClassCoverage: [
             {
@@ -59,94 +58,71 @@ describe('MarkdownTextFormatTransformer', () => {
         }))
       };
 
-      let markdownResult = '';
-      let textResult = '';
-      let markdownDone = false;
-      let textDone = false;
-
-      const checkResults = () => {
-        if (markdownDone && textDone) {
-          // Markdown should have HTML table syntax, text should not
-          expect(markdownResult).to.contain('<table');
-          expect(textResult).to.not.contain('<table');
-          // Markdown should have markdown headers, text should have plain text
-          expect(markdownResult).to.contain('## Summary');
-          expect(textResult).to.contain('Summary');
-          expect(textResult).to.not.contain('##');
-          done();
-        }
-      };
-
-      const markdownReporter = new MarkdownTextFormatTransformer(
-        testDataWithCoverage,
-        {
+      const markdownResult = await runPipeline(
+        new MarkdownTextFormatTransformer(testDataWithCoverage, {
           format: 'markdown',
           codeCoverage: true
-        }
+        })
       );
-      createWritableAndPipeline(markdownReporter, (result) => {
-        markdownResult = result;
-        markdownDone = true;
-        checkResults();
-      });
-
-      const textReporter = new MarkdownTextFormatTransformer(
-        testDataWithCoverage,
-        {
+      const textResult = await runPipeline(
+        new MarkdownTextFormatTransformer(testDataWithCoverage, {
           format: 'text',
           codeCoverage: true
-        }
+        })
       );
-      createWritableAndPipeline(textReporter, (result) => {
-        textResult = result;
-        textDone = true;
-        checkResults();
-      });
+
+      // Markdown should have HTML table syntax, text should not
+      expect(markdownResult).toContain('<table');
+      expect(textResult).not.toContain('<table');
+      // Markdown should have markdown headers, text should have plain text
+      expect(markdownResult).toContain('## Summary');
+      expect(textResult).toContain('Summary');
+      expect(textResult).not.toContain('##');
     });
   });
 
   describe('summary accuracy', () => {
-    it('should accurately reflect test counts in summary', () => {
+    it('should accurately reflect test counts in summary', async () => {
       const reporter = new MarkdownTextFormatTransformer(testResults, {
         format: 'markdown'
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Extract summary numbers
         const totalMatch = result.match(/\*\*Total Tests:\*\* (\d+)/);
         const passedMatch = result.match(/✅ \*\*Passed:\*\* (\d+)/);
         const failedMatch = result.match(/❌ \*\*Failed:\*\* (\d+)/);
 
-        expect(totalMatch).to.not.be.null;
-        expect(passedMatch).to.not.be.null;
-        expect(failedMatch).to.not.be.null;
+        expect(totalMatch).not.toBeNull();
+        expect(passedMatch).not.toBeNull();
+        expect(failedMatch).not.toBeNull();
 
         const total = parseInt(totalMatch![1], 10);
         const passed = parseInt(passedMatch![1], 10);
         const failed = parseInt(failedMatch![1], 10);
 
         // Verify counts match actual test data
-        expect(total).to.equal(testResults.summary.testsRan);
-        expect(passed).to.equal(testResults.summary.passing);
-        expect(failed).to.equal(testResults.summary.failing);
-        expect(total).to.equal(passed + failed + testResults.summary.skipped);
+        expect(total).toBe(testResults.summary.testsRan);
+        expect(passed).toBe(testResults.summary.passing);
+        expect(failed).toBe(testResults.summary.failing);
+        expect(total).toBe(passed + failed + testResults.summary.skipped);
       });
     });
 
-    it('should format duration correctly', () => {
+    it('should format duration correctly', async () => {
       const reporter = new MarkdownTextFormatTransformer(testResults, {
         format: 'markdown'
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         const durationMatch = result.match(/⏱️ \*\*Duration:\*\* (.+)/);
-        expect(durationMatch).to.not.be.null;
+        expect(durationMatch).not.toBeNull();
         // Duration should be formatted (not raw milliseconds)
-        expect(durationMatch![1]).to.match(/\d+\.?\d*\s*(ms|s|m)/);
+        expect(durationMatch![1]).toMatch(/\d+\.?\d*\s*(ms|s|m)/);
       });
     });
   });
 
   describe('sorting behavior', () => {
-    it('should sort by runtime (slowest first) when sortOrder is runtime', () => {
+    it('should sort by runtime (slowest first) when sortOrder is runtime', async () => {
       // Create test data with known runtimes
       const testDataWithRuntimes = {
         ...successResult,
@@ -174,29 +150,28 @@ describe('MarkdownTextFormatTransformer', () => {
         format: 'markdown',
         sortOrder: 'runtime'
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Verify the report was generated
-        expect(result).to.contain('# Apex Test Results');
+        expect(result).toContain('# Apex Test Results');
         // For runtime sort, we verify that the sorting logic is applied
         // The actual order in the output depends on whether there's a table
         // If there's a table, extract runtime values from table cells
         const tableSection = result.match(/<tbody>([\s\S]*?)<\/tbody>/);
         if (tableSection) {
           // Extract runtime values from table rows
-          const runtimeCells =
-            tableSection[1].match(/<td[^>]*>(\d+\.?\d*)\s*(ms|s)<\/td>/g) || [];
+          const runtimeCells = tableSection[1].match(/<td[^>]*>(\d+\.?\d*)\s*(ms|s)<\/td>/g) ?? [];
           if (runtimeCells.length > 1) {
             const parsedRuntimes = runtimeCells
-              .map((cell) => {
+              .map(cell => {
                 const numMatch = cell.match(/(\d+\.?\d*)/);
                 return numMatch ? parseFloat(numMatch[1]) : 0;
               })
-              .filter((r) => r > 0);
+              .filter(r => r > 0);
 
             if (parsedRuntimes.length > 1) {
               // Verify descending order (slowest first)
               for (let i = 0; i < parsedRuntimes.length - 1; i++) {
-                expect(parsedRuntimes[i]).to.be.at.least(parsedRuntimes[i + 1]);
+                expect(parsedRuntimes[i]).toBeGreaterThanOrEqual(parsedRuntimes[i + 1]);
               }
             }
           }
@@ -204,7 +179,7 @@ describe('MarkdownTextFormatTransformer', () => {
       });
     });
 
-    it('should sort by severity (failures first) when sortOrder is severity', () => {
+    it('should sort by severity (failures first) when sortOrder is severity', async () => {
       const testDataWithFailures = {
         ...successResult,
         tests: [
@@ -226,19 +201,19 @@ describe('MarkdownTextFormatTransformer', () => {
         format: 'markdown',
         sortOrder: 'severity'
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Failures section should appear before passed tests
         const failuresIndex = result.indexOf('## ❌ Failures');
         const passedIndex = result.indexOf('## ✅ Passed Tests');
         if (failuresIndex !== -1 && passedIndex !== -1) {
-          expect(failuresIndex).to.be.lessThan(passedIndex);
+          expect(failuresIndex).toBeLessThan(passedIndex);
         }
       });
     });
   });
 
   describe('threshold warnings', () => {
-    it('should flag tests exceeding performance threshold with correct values', () => {
+    it('should flag tests exceeding performance threshold with correct values', async () => {
       const testDataWithSlowTest = {
         ...successResult,
         tests: [
@@ -259,18 +234,18 @@ describe('MarkdownTextFormatTransformer', () => {
         format: 'markdown',
         performanceThresholdMs: 5000
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should have warnings section
-        expect(result).to.contain('## ⚠️ Test Quality Warnings');
-        expect(result).to.contain('🐌 Poorly Performing Tests');
+        expect(result).toContain('## ⚠️ Test Quality Warnings');
+        expect(result).toContain('🐌 Poorly Performing Tests');
         // Should mention the threshold (formatDuration(5000) produces "5s")
-        expect(result).to.contain('Tests taking longer than');
+        expect(result).toContain('Tests taking longer than');
         // Should mention the slow test (name may be escaped or formatted)
-        expect(result).to.match(/SlowTest|AccountServiceTest/);
+        expect(result).toMatch(/SlowTest|AccountServiceTest/);
       });
     });
 
-    it('should flag tests below coverage threshold with correct percentage', () => {
+    it('should flag tests below coverage threshold with correct percentage', async () => {
       const testDataWithLowCoverage = {
         ...successResult,
         tests: [
@@ -292,27 +267,24 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(
-        testDataWithLowCoverage,
-        {
-          format: 'markdown',
-          codeCoverage: true,
-          coverageThresholdPercent: 75
-        }
-      );
-      createWritableAndPipeline(reporter, (result) => {
+      const reporter = new MarkdownTextFormatTransformer(testDataWithLowCoverage, {
+        format: 'markdown',
+        codeCoverage: true,
+        coverageThresholdPercent: 75
+      });
+      await createWritableAndPipeline(reporter, result => {
         // Should have warnings section
-        expect(result).to.contain('## ⚠️ Test Quality Warnings');
-        expect(result).to.contain('📉 Poorly Covered Tests');
+        expect(result).toContain('## ⚠️ Test Quality Warnings');
+        expect(result).toContain('📉 Poorly Covered Tests');
         // Should mention the threshold
-        expect(result).to.contain('75%');
+        expect(result).toContain('75%');
         // Should mention the low coverage test (name may be formatted as ClassName.methodName)
-        expect(result).to.match(/LowCoverageTest|AccountServiceTest/);
-        expect(result).to.contain('10%');
+        expect(result).toMatch(/LowCoverageTest|AccountServiceTest/);
+        expect(result).toContain('10%');
       });
     });
 
-    it('should not flag tests that meet thresholds', () => {
+    it('should not flag tests that meet thresholds', async () => {
       const testDataWithGoodTest = {
         ...successResult,
         tests: [
@@ -341,15 +313,15 @@ describe('MarkdownTextFormatTransformer', () => {
         performanceThresholdMs: 5000,
         coverageThresholdPercent: 75
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should not have warnings section
-        expect(result).to.not.contain('## ⚠️ Test Quality Warnings');
+        expect(result).not.toContain('## ⚠️ Test Quality Warnings');
       });
     });
   });
 
   describe('failure formatting', () => {
-    it('should format failure details with message and stack trace', () => {
+    it('should format failure details with message and stack trace', async () => {
       const testDataWithFailure = {
         ...successResult,
         tests: [
@@ -373,23 +345,21 @@ describe('MarkdownTextFormatTransformer', () => {
       const reporter = new MarkdownTextFormatTransformer(testDataWithFailure, {
         format: 'markdown'
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should have failures section
-        expect(result).to.contain('## ❌ Failures (1)');
+        expect(result).toContain('## ❌ Failures (1)');
         // Test name is formatted as ClassName.methodName
-        expect(result).to.contain('AccountServiceTest.FailingTest');
+        expect(result).toContain('AccountServiceTest.FailingTest');
         // Should have error message
-        expect(result).to.contain('**Error Message**');
-        expect(result).to.contain(
-          'Assertion failed: expected true but was false'
-        );
+        expect(result).toContain('**Error Message**');
+        expect(result).toContain('Assertion failed: expected true but was false');
         // Should have stack trace
-        expect(result).to.contain('**Stack Trace**');
-        expect(result).to.contain('Class.FailingTest.test: line 10, column 1');
+        expect(result).toContain('**Stack Trace**');
+        expect(result).toContain('Class.FailingTest.test: line 10, column 1');
       });
     });
 
-    it('should handle failures without message or stack trace', () => {
+    it('should handle failures without message or stack trace', async () => {
       const testDataWithFailure = {
         ...successResult,
         tests: [
@@ -413,20 +383,20 @@ describe('MarkdownTextFormatTransformer', () => {
       const reporter = new MarkdownTextFormatTransformer(testDataWithFailure, {
         format: 'markdown'
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should still have failures section
-        expect(result).to.contain('## ❌ Failures (1)');
+        expect(result).toContain('## ❌ Failures (1)');
         // Test name is formatted as ClassName.methodName
-        expect(result).to.contain('AccountServiceTest.FailingTest');
+        expect(result).toContain('AccountServiceTest.FailingTest');
         // Should not have error message or stack trace sections
-        expect(result).to.not.contain('**Error Message**');
-        expect(result).to.not.contain('**Stack Trace**');
+        expect(result).not.toContain('**Error Message**');
+        expect(result).not.toContain('**Stack Trace**');
       });
     });
   });
 
   describe('code coverage display', () => {
-    it('should not markdown-escape underscores in coverage table code cells', () => {
+    it('should not markdown-escape underscores in coverage table code cells', async () => {
       const testDataWithUnderscoreMethod = {
         ...successResult,
         tests: [
@@ -443,8 +413,7 @@ describe('MarkdownTextFormatTransformer', () => {
                 apexClassOrTriggerName: 'LCOUtilsTest',
                 apexClassOrTriggerId: '001',
                 apexTestClassId: successResult.tests[0].apexClass.id,
-                apexTestMethodName:
-                  'test_LCOSDCreateController_assignDefaultPAItems',
+                apexTestMethodName: 'test_LCOSDCreateController_assignDefaultPAItems',
                 numLinesCovered: 2,
                 numLinesUncovered: 98,
                 percentage: '2%'
@@ -454,24 +423,19 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(
-        testDataWithUnderscoreMethod,
-        {
-          format: 'markdown',
-          codeCoverage: true
-        }
-      );
-      createWritableAndPipeline(reporter, (result) => {
-        expect(result).to.contain('## Test Results with Coverage');
-        expect(result).to.contain(
-          '<code>lco1.LCOUtilsTest.test_LCOSDCreateController_assignDefaultPAItems</code>'
-        );
+      const reporter = new MarkdownTextFormatTransformer(testDataWithUnderscoreMethod, {
+        format: 'markdown',
+        codeCoverage: true
+      });
+      await createWritableAndPipeline(reporter, result => {
+        expect(result).toContain('## Test Results with Coverage');
+        expect(result).toContain('<code>lco1.LCOUtilsTest.test_LCOSDCreateController_assignDefaultPAItems</code>');
         // Ensure underscores inside <code> tags are not markdown-escaped with a backslash.
-        expect(result).to.not.match(/<code>[^<]*\\_[^<]*<\/code>/);
+        expect(result).not.toMatch(/<code>[^<]*\\_[^<]*<\/code>/);
       });
     });
 
-    it('should display coverage table with correct percentages', () => {
+    it('should display coverage table with correct percentages', async () => {
       const testDataWithCoverage = {
         ...successResult,
         codecoverage: [
@@ -502,19 +466,19 @@ describe('MarkdownTextFormatTransformer', () => {
         format: 'markdown',
         codeCoverage: true
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should have coverage section
-        expect(result).to.contain('## Code Coverage by Class');
+        expect(result).toContain('## Code Coverage by Class');
         // Should list both classes
-        expect(result).to.contain('ClassA');
-        expect(result).to.contain('ClassB');
+        expect(result).toContain('ClassA');
+        expect(result).toContain('ClassB');
         // Should show correct percentages
-        expect(result).to.contain('80%');
-        expect(result).to.contain('50%');
+        expect(result).toContain('80%');
+        expect(result).toContain('50%');
       });
     });
 
-    it('should not display coverage when codeCoverage option is false', () => {
+    it('should not display coverage when codeCoverage option is false', async () => {
       const testDataWithCoverage = {
         ...successResult,
         codecoverage: [
@@ -535,16 +499,16 @@ describe('MarkdownTextFormatTransformer', () => {
         format: 'markdown',
         codeCoverage: false
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should not have coverage sections
-        expect(result).to.not.contain('## Code Coverage');
-        expect(result).to.not.contain('ClassA');
+        expect(result).not.toContain('## Code Coverage');
+        expect(result).not.toContain('ClassA');
       });
     });
   });
 
   describe('edge cases', () => {
-    it('should handle empty test results', () => {
+    it('should handle empty test results', async () => {
       const emptyResult: typeof testResults = {
         summary: {
           failRate: '0%',
@@ -571,84 +535,81 @@ describe('MarkdownTextFormatTransformer', () => {
       const reporter = new MarkdownTextFormatTransformer(emptyResult, {
         format: 'markdown'
       });
-      createWritableAndPipeline(reporter, (result) => {
-        expect(result).to.contain('# Apex Test Results');
-        expect(result).to.contain('## Summary');
-        expect(result).to.contain('**Total Tests:** 0');
-        expect(result).to.contain('✅ **Passed:** 0');
-        expect(result).to.contain('❌ **Failed:** 0');
+      await createWritableAndPipeline(reporter, result => {
+        expect(result).toContain('# Apex Test Results');
+        expect(result).toContain('## Summary');
+        expect(result).toContain('**Total Tests:** 0');
+        expect(result).toContain('✅ **Passed:** 0');
+        expect(result).toContain('❌ **Failed:** 0');
         // Should not have test results sections
-        expect(result).to.not.contain('## ❌ Failures');
-        expect(result).to.not.contain('## ✅ Passed Tests');
-        expect(result).to.not.contain('Test Results with Coverage');
+        expect(result).not.toContain('## ❌ Failures');
+        expect(result).not.toContain('## ✅ Passed Tests');
+        expect(result).not.toContain('Test Results with Coverage');
       });
     });
 
-    it('should handle missing optional fields gracefully', () => {
+    it('should handle missing optional fields gracefully', async () => {
       const testDataWithMissingFields = {
         ...successResult,
         summary: {
           ...successResult.summary,
-          testRunId: undefined as string | undefined,
-          userId: undefined as string | undefined,
-          username: undefined as string | undefined
+          testRunId: undefined as unknown as string,
+          userId: undefined as unknown as string,
+          username: undefined as unknown as string
         }
       };
 
-      const reporter = new MarkdownTextFormatTransformer(
-        testDataWithMissingFields,
-        {
-          format: 'markdown'
-        }
-      );
-      createWritableAndPipeline(reporter, (result) => {
+      const reporter = new MarkdownTextFormatTransformer(testDataWithMissingFields, {
+        format: 'markdown'
+      });
+      await createWritableAndPipeline(reporter, result => {
         // Should still produce valid output
-        expect(result).to.contain('# Apex Test Results');
-        expect(result).to.contain('## Summary');
+        expect(result).toContain('# Apex Test Results');
+        expect(result).toContain('## Summary');
       });
     });
 
-    it('should use default options when none provided', () => {
+    it('should use default options when none provided', async () => {
       const reporter = new MarkdownTextFormatTransformer(testResults);
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should default to markdown format
-        expect(result).to.contain('# Apex Test Results');
-        expect(result).to.contain('## Summary');
+        expect(result).toContain('# Apex Test Results');
+        expect(result).toContain('## Summary');
         // Should use default threshold (5000ms)
         // If there are slow tests, they should be flagged
-        if (testResults.tests.some((t) => (t.runTime ?? 0) > 5000)) {
-          expect(result).to.contain('⚠️');
+        if (testResults.tests.some(t => (t.runTime ?? 0) > 5000)) {
+          expect(result).toContain('⚠️');
         }
       });
     });
   });
 
   describe('timestamp formatting', () => {
-    it('should use provided timestamp', () => {
+    it('should use provided timestamp', async () => {
       const timestamp = new Date('2025-01-15T10:30:00Z');
       const reporter = new MarkdownTextFormatTransformer(testResults, {
         format: 'markdown',
         timestamp
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should contain the timestamp
-        expect(result).to.contain('**Run completed:**');
+        expect(result).toContain('**Run completed:**');
         // The exact format may vary, but should contain date/time info
         const timestampStr = result.match(/\*\*Run completed:\*\* (.+)/)?.[1];
-        expect(timestampStr).to.not.be.undefined;
+        expect(timestampStr).toBeDefined();
       });
     });
 
-    it('should use current time when timestamp not provided', () => {
+    it('should use current time when timestamp not provided', async () => {
       const reporter = new MarkdownTextFormatTransformer(testResults, {
         format: 'markdown'
       });
-      createWritableAndPipeline(reporter, (result) => {
+      await createWritableAndPipeline(reporter, result => {
         // Should contain timestamp
-        expect(result).to.contain('**Run completed:**');
+        expect(result).toContain('**Run completed:**');
         // Extract and verify it's within reasonable range
         const timestampMatch = result.match(/\*\*Run completed:\*\* (.+)/);
-        expect(timestampMatch).to.not.be.null;
+        expect(timestampMatch).not.toBeNull();
       });
     });
   });

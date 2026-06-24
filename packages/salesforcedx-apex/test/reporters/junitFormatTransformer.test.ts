@@ -6,81 +6,58 @@
  */
 
 import { JUnitFormatTransformer } from '../../src';
-import { expect } from 'chai';
 import { pipeline, Writable } from 'node:stream';
 import { getTestData, junitSetup, setupResult } from './testResults';
-import { fail } from 'assert';
 
-const {
-  testResults,
-  junitResult,
-  junitSuccess,
-  junitCodeCov,
-  junitMissingVal,
-  successResult
-} = getTestData();
+const { testResults, junitResult, junitSuccess, junitCodeCov, junitMissingVal, successResult } = getTestData();
 
 describe('JUnitFormatTransformer', () => {
-  const createWritableAndPipeline = (
-    reporter: JUnitFormatTransformer,
-    callback: (result: string) => void
-  ): void => {
-    let result = '';
-
-    const writable = new Writable({
-      write(chunk, encoding, done) {
-        result += chunk;
-        done();
-      }
+  const runPipeline = (reporter: JUnitFormatTransformer): Promise<string> =>
+    new Promise((resolve, reject) => {
+      let result = '';
+      const writable = new Writable({
+        write(chunk, encoding, done) {
+          result += chunk;
+          done();
+        }
+      });
+      writable.on('finish', () => resolve(result));
+      pipeline(reporter, writable, err => {
+        if (err) {
+          reject(err);
+        }
+      });
     });
 
-    writable.on('finish', () => callback(result));
-
-    pipeline(reporter, writable, (err) => {
-      if (err) {
-        console.error('Pipeline failed', err);
-        fail(err);
-      }
-    });
-  };
-
-  it('should format test results with failures', () => {
-    const reporter = new JUnitFormatTransformer(testResults);
-    createWritableAndPipeline(reporter, (result) => {
-      expect(result).to.not.be.empty;
-      expect(result).to.eql(junitResult);
-      expect(result).to.contain('</failure>');
-    });
+  it('should format test results with failures', async () => {
+    const result = await runPipeline(new JUnitFormatTransformer(testResults));
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitResult);
+    expect(result).toContain('</failure>');
   });
 
-  it('should format tests with 0 failures', () => {
-    const reporter = new JUnitFormatTransformer(successResult);
-    createWritableAndPipeline(reporter, (result) => {
-      expect(result).to.not.be.empty;
-      expect(result).to.eql(junitSuccess);
-      expect(result).to.not.contain('</failure>');
-    });
+  it('should format tests with 0 failures', async () => {
+    const result = await runPipeline(new JUnitFormatTransformer(successResult));
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitSuccess);
+    expect(result).not.toContain('</failure>');
   });
 
   it('should format tests with setup methods', async () => {
-    const reporter = new JUnitFormatTransformer(setupResult);
-    createWritableAndPipeline(reporter, (result) => {
-      expect(result).to.not.be.empty;
-      expect(result).to.eql(junitSetup);
-      expect(result).to.not.contain('</failure>');
-    });
+    const result = await runPipeline(new JUnitFormatTransformer(setupResult));
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitSetup);
+    expect(result).not.toContain('</failure>');
   });
 
   it('should format test results with undefined or empty values', async () => {
     successResult.summary.testRunId = '';
-    successResult.summary.userId = undefined;
-    const reporter = new JUnitFormatTransformer(successResult);
-    createWritableAndPipeline(reporter, (result) => {
-      expect(result).to.not.be.empty;
-      expect(result).to.eql(junitMissingVal);
-      expect(result).to.not.contain('testRunId');
-      expect(result).to.not.contain('userId');
-    });
+    successResult.summary.userId = undefined as unknown as string;
+    const result = await runPipeline(new JUnitFormatTransformer(successResult));
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitMissingVal);
+    expect(result).not.toContain('testRunId');
+    expect(result).not.toContain('userId');
   });
 
   it('should format test results with code coverage', async () => {
@@ -97,11 +74,9 @@ describe('JUnitFormatTransformer', () => {
       }
     ];
     successResult.summary.orgWideCoverage = '85%';
-    const reporter = new JUnitFormatTransformer(successResult);
-    createWritableAndPipeline(reporter, (result) => {
-      expect(result).to.not.be.empty;
-      expect(result).to.eql(junitCodeCov);
-      expect(result).to.contain('orgWideCoverage');
-    });
+    const result = await runPipeline(new JUnitFormatTransformer(successResult));
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitCodeCov);
+    expect(result).toContain('orgWideCoverage');
   });
 });

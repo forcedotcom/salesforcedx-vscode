@@ -5,25 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import { join } from 'path';
+import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { tmpdir } from 'os';
-import {
-  writeAsyncResultsToFile,
-  ApexTestResultOutcome,
-  TestResult
-} from '../../src';
+import { tmpdir } from 'node:os';
+import { writeAsyncResultsToFile, ApexTestResultOutcome, TestResult } from '../../src';
 
 describe('writeAsyncResultsToFile', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = join(
-      tmpdir(),
-      `apex-async-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    );
+    tempDir = join(tmpdir(), `apex-async-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     await mkdir(tempDir, { recursive: true });
   });
 
@@ -66,7 +58,7 @@ describe('writeAsyncResultsToFile', () => {
         apexClass: {
           id: '01p000000000001AAA',
           name: 'AsyncTestClass1',
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: 'AsyncTestClass1'
         },
         runTime: 750,
@@ -85,7 +77,7 @@ describe('writeAsyncResultsToFile', () => {
         apexClass: {
           id: '01p000000000002AAA',
           name: 'AsyncTestClass2',
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: 'AsyncTestClass2'
         },
         runTime: 450,
@@ -101,14 +93,14 @@ describe('writeAsyncResultsToFile', () => {
     await writeAsyncResultsToFile(mockFormattedResults, runId);
 
     const expectedPath = join(tmpdir(), runId, 'rawResults.json');
-    expect(existsSync(expectedPath)).to.be.true;
+    expect(existsSync(expectedPath)).toBe(true);
 
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.summary.testRunId).to.equal('async-test-run-123');
-    expect(parsedContent.tests).to.have.length(2);
-    expect(parsedContent.tests[0].methodName).to.equal('testAsyncMethod1');
-    expect(parsedContent.tests[1].methodName).to.equal('testAsyncMethod2');
+    expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
+    expect(parsedContent.tests).toHaveLength(2);
+    expect(parsedContent.tests[0].methodName).toBe('testAsyncMethod1');
+    expect(parsedContent.tests[1].methodName).toBe('testAsyncMethod2');
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -124,30 +116,26 @@ describe('writeAsyncResultsToFile', () => {
     const parsedContent = JSON.parse(content);
 
     // Verify summary data
-    expect(parsedContent.summary.outcome).to.equal('Completed');
-    expect(parsedContent.summary.testsRan).to.equal(2);
-    expect(parsedContent.summary.passing).to.equal(1);
-    expect(parsedContent.summary.failing).to.equal(1);
-    expect(parsedContent.summary.passRate).to.equal('50%');
-    expect(parsedContent.summary.hostname).to.equal('test-host');
+    expect(parsedContent.summary.outcome).toBe('Completed');
+    expect(parsedContent.summary.testsRan).toBe(2);
+    expect(parsedContent.summary.passing).toBe(1);
+    expect(parsedContent.summary.failing).toBe(1);
+    expect(parsedContent.summary.passRate).toBe('50%');
+    expect(parsedContent.summary.hostname).toBe('test-host');
 
     // Verify test details
-    const passedTest = parsedContent.tests.find(
-      (t: TestResult['tests'][number]) => t.outcome === 'Pass'
-    );
-    const failedTest = parsedContent.tests.find(
-      (t: TestResult['tests'][number]) => t.outcome === 'Fail'
-    );
+    const passedTest = parsedContent.tests.find((t: TestResult['tests'][number]) => t.outcome === 'Pass');
+    const failedTest = parsedContent.tests.find((t: TestResult['tests'][number]) => t.outcome === 'Fail');
 
-    expect(passedTest).to.exist;
-    expect(passedTest.methodName).to.equal('testAsyncMethod1');
-    expect(passedTest.runTime).to.equal(750);
-    expect(passedTest.apexClass.name).to.equal('AsyncTestClass1');
+    expect(passedTest).toBeDefined();
+    expect(passedTest.methodName).toBe('testAsyncMethod1');
+    expect(passedTest.runTime).toBe(750);
+    expect(passedTest.apexClass.name).toBe('AsyncTestClass1');
 
-    expect(failedTest).to.exist;
-    expect(failedTest.methodName).to.equal('testAsyncMethod2');
-    expect(failedTest.stackTrace).to.include('System.AssertException');
-    expect(failedTest.message).to.equal('Async test failed');
+    expect(failedTest).toBeDefined();
+    expect(failedTest.methodName).toBe('testAsyncMethod2');
+    expect(failedTest.stackTrace).toContain('System.AssertException');
+    expect(failedTest.message).toBe('Async test failed');
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -162,13 +150,13 @@ describe('writeAsyncResultsToFile', () => {
     const content = await readFile(expectedPath, 'utf8');
 
     // Verify it's valid JSON
-    expect(() => JSON.parse(content)).to.not.throw();
+    expect(() => JSON.parse(content)).not.toThrow();
 
     // Verify JSON structure matches expected format
     const parsedContent = JSON.parse(content);
-    expect(parsedContent).to.have.property('summary');
-    expect(parsedContent).to.have.property('tests');
-    expect(parsedContent.tests).to.be.an('array');
+    expect(parsedContent).toHaveProperty('summary');
+    expect(parsedContent).toHaveProperty('tests');
+    expect(Array.isArray(parsedContent.tests)).toBe(true);
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -203,12 +191,12 @@ describe('writeAsyncResultsToFile', () => {
     await writeAsyncResultsToFile(emptyResults, runId);
 
     const expectedPath = join(tmpdir(), runId, 'rawResults.json');
-    expect(existsSync(expectedPath)).to.be.true;
+    expect(existsSync(expectedPath)).toBe(true);
 
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.summary.testsRan).to.equal(0);
-    expect(parsedContent.tests).to.have.length(0);
+    expect(parsedContent.summary.testsRan).toBe(0);
+    expect(parsedContent.tests).toHaveLength(0);
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -220,11 +208,11 @@ describe('writeAsyncResultsToFile', () => {
     await writeAsyncResultsToFile(mockFormattedResults, runId);
 
     const expectedPath = join(tmpdir(), runId, 'rawResults.json');
-    expect(existsSync(expectedPath)).to.be.true;
+    expect(existsSync(expectedPath)).toBe(true);
 
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.summary.testRunId).to.equal('async-test-run-123');
+    expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -236,7 +224,7 @@ describe('writeAsyncResultsToFile', () => {
     await writeAsyncResultsToFile(mockFormattedResults, runId);
 
     const expectedPath = join(tmpdir(), runId, 'rawResults.json');
-    expect(existsSync(expectedPath)).to.be.true;
+    expect(existsSync(expectedPath)).toBe(true);
 
     // Cleanup
     await rm(join(tmpdir(), 'nested'), { recursive: true, force: true });
@@ -255,18 +243,16 @@ describe('writeAsyncResultsToFile', () => {
       tests: Array.from({ length: 1000 }, (_, i) => ({
         id: `01p00000000000${i.toString().padStart(4, '0')}AAA`,
         queueItemId: `709000000000${i.toString().padStart(3, '0')}AAA`,
-        stackTrace:
-          i % 5 === 0 ? 'Stack trace for failed test' : (null as string | null),
+        stackTrace: i % 5 === 0 ? 'Stack trace for failed test' : (null as string | null),
         message: i % 5 === 0 ? 'Test failed' : (null as string | null),
         asyncApexJobId: '707000000000001AAA',
         methodName: `testMethod${i}`,
-        outcome:
-          i % 5 === 0 ? ApexTestResultOutcome.Fail : ApexTestResultOutcome.Pass,
+        outcome: i % 5 === 0 ? ApexTestResultOutcome.Fail : ApexTestResultOutcome.Pass,
         apexLogId: null as string | null,
         apexClass: {
           id: `01p00000000000${i.toString().padStart(4, '0')}AAA`,
           name: `TestClass${i}`,
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: `TestClass${i}`
         },
         runTime: Math.floor(Math.random() * 1000),
@@ -284,14 +270,14 @@ describe('writeAsyncResultsToFile', () => {
     const duration = endTime - startTime;
 
     // Should complete within reasonable time (less than 5 seconds)
-    expect(duration).to.be.lessThan(5000);
+    expect(duration).toBeLessThan(5000);
 
     const expectedPath = join(tmpdir(), runId, 'rawResults.json');
-    expect(existsSync(expectedPath)).to.be.true;
+    expect(existsSync(expectedPath)).toBe(true);
 
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.tests).to.have.length(1000);
+    expect(parsedContent.tests).toHaveLength(1000);
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -300,20 +286,18 @@ describe('writeAsyncResultsToFile', () => {
   it('should handle concurrent writes to different runIds', async () => {
     const runIds = ['concurrent-1', 'concurrent-2', 'concurrent-3'];
 
-    const writePromises = runIds.map((runId) =>
-      writeAsyncResultsToFile(mockFormattedResults, runId)
-    );
+    const writePromises = runIds.map(runId => writeAsyncResultsToFile(mockFormattedResults, runId));
 
     await Promise.all(writePromises);
 
     // Verify all files were created
     for (const runId of runIds) {
       const expectedPath = join(tmpdir(), runId, 'rawResults.json');
-      expect(existsSync(expectedPath)).to.be.true;
+      expect(existsSync(expectedPath)).toBe(true);
 
       const content = await readFile(expectedPath, 'utf8');
       const parsedContent = JSON.parse(content);
-      expect(parsedContent.summary.testRunId).to.equal('async-test-run-123');
+      expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
 
       // Cleanup
       await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -334,7 +318,7 @@ describe('writeAsyncResultsToFile', () => {
     const content2 = await readFile(path2, 'utf8');
 
     // Both files should have identical content
-    expect(content1).to.equal(content2);
+    expect(content1).toBe(content2);
 
     // Cleanup
     await rm(join(tmpdir(), runId1), { recursive: true, force: true });
@@ -375,7 +359,7 @@ describe('writeAsyncResultsToFile', () => {
           apexClass: {
             id: '01p000000000001AAA',
             name: 'TestClassWithNulls',
-            namespacePrefix: null as string | null,
+            namespacePrefix: null as unknown as string,
             fullName: 'TestClassWithNulls'
           },
           runTime: 250,
@@ -393,10 +377,10 @@ describe('writeAsyncResultsToFile', () => {
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
 
-    expect(parsedContent.tests[0].stackTrace).to.be.null;
-    expect(parsedContent.tests[0].message).to.be.null;
-    expect(parsedContent.tests[0].apexLogId).to.be.null;
-    expect(parsedContent.tests[0].apexClass.namespacePrefix).to.be.null;
+    expect(parsedContent.tests[0].stackTrace).toBeNull();
+    expect(parsedContent.tests[0].message).toBeNull();
+    expect(parsedContent.tests[0].apexLogId).toBeNull();
+    expect(parsedContent.tests[0].apexClass.namespacePrefix).toBeNull();
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -422,8 +406,8 @@ describe('writeAsyncResultsToFile', () => {
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
 
-    expect(parsedContent.tests[0]).to.have.property('perClassCoverage');
-    expect(parsedContent.tests[0].perClassCoverage).to.be.an('array');
+    expect(parsedContent.tests[0]).toHaveProperty('perClassCoverage');
+    expect(Array.isArray(parsedContent.tests[0].perClassCoverage)).toBe(true);
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });

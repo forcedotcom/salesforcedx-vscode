@@ -5,12 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import { join } from 'path';
+import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { createWriteStream, existsSync } from 'node:fs';
-import { tmpdir } from 'os';
-import { Readable } from 'stream';
+import { tmpdir } from 'node:os';
+import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import {
   writeResultFiles,
@@ -27,10 +26,7 @@ describe('writeResultFiles', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = join(
-      tmpdir(),
-      `apex-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    );
+    tempDir = join(tmpdir(), `apex-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     await mkdir(tempDir, { recursive: true });
   });
 
@@ -41,10 +37,7 @@ describe('writeResultFiles', () => {
   });
 
   // Mock runPipeline function for testing
-  const mockRunPipeline = async (
-    readable: Readable,
-    filePath: string
-  ): Promise<string> => {
+  const mockRunPipeline = async (readable: Readable, filePath: string): Promise<string> => {
     await pipeline(readable, createWriteStream(filePath));
     return filePath;
   };
@@ -82,7 +75,7 @@ describe('writeResultFiles', () => {
         apexClass: {
           id: '01p000000000001AAA',
           name: 'TestClass1',
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: 'TestClass1'
         },
         runTime: 500,
@@ -101,7 +94,7 @@ describe('writeResultFiles', () => {
         apexClass: {
           id: '01p000000000002AAA',
           name: 'TestClass2',
-          namespacePrefix: null as string | null,
+          namespacePrefix: null as unknown as string,
           fullName: 'TestClass2'
         },
         runTime: 300,
@@ -138,16 +131,11 @@ describe('writeResultFiles', () => {
       dirPath: tempDir
     };
 
-    const result = await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    expect(result).to.include(join(tempDir, 'test-run-id.txt'));
+    expect(result).toContain(join(tempDir, 'test-run-id.txt'));
     const content = await readFile(join(tempDir, 'test-run-id.txt'), 'utf8');
-    expect(content).to.equal('test-run-123');
+    expect(content).toBe('test-run-123');
   });
 
   it('should create JSON result file when format is specified', async () => {
@@ -156,21 +144,16 @@ describe('writeResultFiles', () => {
       resultFormats: [ResultFormat.json]
     };
 
-    const result = await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
     const jsonFilePath = join(tempDir, 'test-result-test-run-123.json');
-    expect(result).to.include(jsonFilePath);
-    expect(existsSync(jsonFilePath)).to.be.true;
+    expect(result).toContain(jsonFilePath);
+    expect(existsSync(jsonFilePath)).toBe(true);
 
     const content = await readFile(jsonFilePath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.summary.testRunId).to.equal('test-run-123');
-    expect(parsedContent.tests).to.have.length(2);
+    expect(parsedContent.summary.testRunId).toBe('test-run-123');
+    expect(parsedContent.tests).toHaveLength(2);
   });
 
   it('should create TAP result file when format is specified', async () => {
@@ -179,21 +162,16 @@ describe('writeResultFiles', () => {
       resultFormats: [ResultFormat.tap]
     };
 
-    const result = await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
     const tapFilePath = join(tempDir, 'test-result-test-run-123-tap.txt');
-    expect(result).to.include(tapFilePath);
-    expect(existsSync(tapFilePath)).to.be.true;
+    expect(result).toContain(tapFilePath);
+    expect(existsSync(tapFilePath)).toBe(true);
 
     const content = await readFile(tapFilePath, 'utf8');
-    expect(content).to.include('1..2');
-    expect(content).to.include('ok 1 TestClass1.testMethod1');
-    expect(content).to.include('not ok 2 TestClass2.testMethod2');
+    expect(content).toContain('1..2');
+    expect(content).toContain('ok 1 TestClass1.testMethod1');
+    expect(content).toContain('not ok 2 TestClass2.testMethod2');
   });
 
   it('should create JUnit result file when format is specified', async () => {
@@ -202,22 +180,17 @@ describe('writeResultFiles', () => {
       resultFormats: [ResultFormat.junit]
     };
 
-    const result = await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
     const junitFilePath = join(tempDir, 'test-result-test-run-123-junit.xml');
-    expect(result).to.include(junitFilePath);
-    expect(existsSync(junitFilePath)).to.be.true;
+    expect(result).toContain(junitFilePath);
+    expect(existsSync(junitFilePath)).toBe(true);
 
     const content = await readFile(junitFilePath, 'utf8');
-    expect(content).to.include('<?xml version="1.0" encoding="UTF-8"?>');
-    expect(content).to.include('<testsuite');
-    expect(content).to.include('testMethod1');
-    expect(content).to.include('testMethod2');
+    expect(content).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+    expect(content).toContain('<testsuite');
+    expect(content).toContain('testMethod1');
+    expect(content).toContain('testMethod2');
   });
 
   it('should create code coverage file when codeCoverage is true', async () => {
@@ -236,25 +209,17 @@ describe('writeResultFiles', () => {
       dirPath: tempDir
     };
 
-    const result = await writeResultFiles(
-      testResultWithCoverage,
-      outputConfig,
-      true,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
-    const coverageFilePath = join(
-      tempDir,
-      'test-result-test-run-123-codecoverage.json'
-    );
-    expect(result).to.include(coverageFilePath);
-    expect(existsSync(coverageFilePath)).to.be.true;
+    const coverageFilePath = join(tempDir, 'test-result-test-run-123-codecoverage.json');
+    expect(result).toContain(coverageFilePath);
+    expect(existsSync(coverageFilePath)).toBe(true);
 
     const content = await readFile(coverageFilePath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent).to.have.length(1);
-    expect(parsedContent[0]).to.have.length(1);
-    expect(parsedContent[0][0].apexClassOrTriggerName).to.equal('TestClass1');
+    expect(parsedContent).toHaveLength(1);
+    expect(parsedContent[0]).toHaveLength(1);
+    expect(parsedContent[0][0].apexClassOrTriggerName).toBe('TestClass1');
   });
 
   it('should create custom files when fileInfos is provided', async () => {
@@ -272,26 +237,21 @@ describe('writeResultFiles', () => {
       ]
     };
 
-    const result = await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
     const textFilePath = join(tempDir, 'custom.txt');
     const jsonFilePath = join(tempDir, 'custom.json');
 
-    expect(result).to.include(textFilePath);
-    expect(result).to.include(jsonFilePath);
+    expect(result).toContain(textFilePath);
+    expect(result).toContain(jsonFilePath);
 
     const textContent = await readFile(textFilePath, 'utf8');
-    expect(textContent).to.equal('Custom content');
+    expect(textContent).toBe('Custom content');
 
     const jsonContent = await readFile(jsonFilePath, 'utf8');
     const parsedJson = JSON.parse(jsonContent);
-    expect(parsedJson.key).to.equal('value');
-    expect(parsedJson.number).to.equal(42);
+    expect(parsedJson.key).toBe('value');
+    expect(parsedJson.number).toBe(42);
   });
 
   it('should handle TestRunIdResult type', async () => {
@@ -303,16 +263,11 @@ describe('writeResultFiles', () => {
       dirPath: tempDir
     };
 
-    const result = await writeResultFiles(
-      testRunIdResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(testRunIdResult, outputConfig, false, mockRunPipeline);
 
-    expect(result).to.include(join(tempDir, 'test-run-id.txt'));
+    expect(result).toContain(join(tempDir, 'test-run-id.txt'));
     const content = await readFile(join(tempDir, 'test-run-id.txt'), 'utf8');
-    expect(content).to.equal('run-id-456');
+    expect(content).toBe('run-id-456');
   });
 
   it('should throw error for invalid result format', async () => {
@@ -321,20 +276,10 @@ describe('writeResultFiles', () => {
       resultFormats: ['invalid' as ResultFormat]
     };
 
-    try {
-      await writeResultFiles(
-        mockTestResult,
-        outputConfig,
-        false,
-        mockRunPipeline
-      );
-      expect.fail('Should have thrown an error');
-    } catch (error) {
-      expect(error).to.be.instanceOf(Error);
-    }
+    await expect(writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline)).rejects.toThrow();
   });
 
-  it('should throw error when using TestRunIdResult with result formats', async () => {
+  it('should only write the test-run-id file for a TestRunIdResult with result formats', async () => {
     const testRunIdResult: TestRunIdResult = {
       testRunId: 'run-id-456'
     };
@@ -344,20 +289,12 @@ describe('writeResultFiles', () => {
       resultFormats: [ResultFormat.json]
     };
 
-    try {
-      await writeResultFiles(
-        testRunIdResult,
-        outputConfig,
-        false,
-        mockRunPipeline
-      );
-      expect.fail('Should have thrown an error');
-    } catch (error) {
-      expect(error).to.be.instanceOf(Error);
-    }
+    // A TestRunIdResult is not a full TestResult, so result-format files are skipped.
+    const result = await writeResultFiles(testRunIdResult, outputConfig, false, mockRunPipeline);
+    expect(result).toEqual([join(tempDir, 'test-run-id.txt')]);
   });
 
-  it('should throw error when using TestRunIdResult with code coverage', async () => {
+  it('should only write the test-run-id file for a TestRunIdResult with code coverage', async () => {
     const testRunIdResult: TestRunIdResult = {
       testRunId: 'run-id-456'
     };
@@ -366,17 +303,8 @@ describe('writeResultFiles', () => {
       dirPath: tempDir
     };
 
-    try {
-      await writeResultFiles(
-        testRunIdResult,
-        outputConfig,
-        true,
-        mockRunPipeline
-      );
-      expect.fail('Should have thrown an error');
-    } catch (error) {
-      expect(error).to.be.instanceOf(Error);
-    }
+    const result = await writeResultFiles(testRunIdResult, outputConfig, true, mockRunPipeline);
+    expect(result).toEqual([join(tempDir, 'test-run-id.txt')]);
   });
 
   it('should create nested directories', async () => {
@@ -385,15 +313,10 @@ describe('writeResultFiles', () => {
       dirPath: nestedDir
     };
 
-    const result = await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    expect(result).to.include(join(nestedDir, 'test-run-id.txt'));
-    expect(existsSync(join(nestedDir, 'test-run-id.txt'))).to.be.true;
+    expect(result).toContain(join(nestedDir, 'test-run-id.txt'));
+    expect(existsSync(join(nestedDir, 'test-run-id.txt'))).toBe(true);
   });
 
   it('should create markdown result file when format is specified', async () => {
@@ -422,15 +345,15 @@ describe('writeResultFiles', () => {
     );
 
     const markdownFilePath = join(tempDir, 'test-result-test-run-123.md');
-    expect(result).to.include(markdownFilePath);
-    expect(existsSync(markdownFilePath)).to.be.true;
+    expect(result).toContain(markdownFilePath);
+    expect(existsSync(markdownFilePath)).toBe(true);
 
     const content = await readFile(markdownFilePath, 'utf8');
-    expect(content).to.include('# Apex Test Results');
-    expect(content).to.include('## Summary');
-    expect(content).to.include('<table'); // Table appears when coverage is enabled
-    expect(content).to.include('TestClass1');
-    expect(content).to.include('TestClass2');
+    expect(content).toContain('# Apex Test Results');
+    expect(content).toContain('## Summary');
+    expect(content).toContain('<table'); // Table appears when coverage is enabled
+    expect(content).toContain('TestClass1');
+    expect(content).toContain('TestClass2');
   });
 
   it('should create text result file when format is specified', async () => {
@@ -439,22 +362,17 @@ describe('writeResultFiles', () => {
       resultFormats: [ResultFormat.text]
     };
 
-    const result = await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
     const textFilePath = join(tempDir, 'test-result-test-run-123.txt');
-    expect(result).to.include(textFilePath);
-    expect(existsSync(textFilePath)).to.be.true;
+    expect(result).toContain(textFilePath);
+    expect(existsSync(textFilePath)).toBe(true);
 
     const content = await readFile(textFilePath, 'utf8');
-    expect(content).to.include('Apex Test Results');
-    expect(content).to.include('Summary');
-    expect(content).to.not.include('<table'); // Text format should not have HTML
-    expect(content).to.not.include('##'); // Text format should not have markdown headers
+    expect(content).toContain('Apex Test Results');
+    expect(content).toContain('Summary');
+    expect(content).not.toContain('<table'); // Text format should not have HTML
+    expect(content).not.toContain('##'); // Text format should not have markdown headers
   });
 
   it('should create markdown file with code coverage when enabled', async () => {
@@ -475,51 +393,31 @@ describe('writeResultFiles', () => {
       resultFormats: [ResultFormat.markdown]
     };
 
-    const result = await writeResultFiles(
-      testResultWithCoverage,
-      outputConfig,
-      true,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
     const markdownFilePath = join(tempDir, 'test-result-test-run-123.md');
-    expect(result).to.include(markdownFilePath);
+    expect(result).toContain(markdownFilePath);
 
     const content = await readFile(markdownFilePath, 'utf8');
-    expect(content).to.include('Code Coverage');
-    expect(content).to.include('TestClass1');
+    expect(content).toContain('Code Coverage');
+    expect(content).toContain('TestClass1');
   });
 
   it('should handle all result formats together', async () => {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [
-        ResultFormat.json,
-        ResultFormat.tap,
-        ResultFormat.junit,
-        ResultFormat.markdown,
-        ResultFormat.text
-      ]
+      resultFormats: [ResultFormat.json, ResultFormat.tap, ResultFormat.junit, ResultFormat.markdown, ResultFormat.text]
     };
 
-    const result = await writeResultFiles(
-      mockTestResult,
-      outputConfig,
-      false,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    expect(result).to.have.length(6); // test-run-id.txt + 5 format files
-    expect(result).to.include(join(tempDir, 'test-run-id.txt'));
-    expect(result).to.include(join(tempDir, 'test-result-test-run-123.json'));
-    expect(result).to.include(
-      join(tempDir, 'test-result-test-run-123-tap.txt')
-    );
-    expect(result).to.include(
-      join(tempDir, 'test-result-test-run-123-junit.xml')
-    );
-    expect(result).to.include(join(tempDir, 'test-result-test-run-123.md'));
-    expect(result).to.include(join(tempDir, 'test-result-test-run-123.txt'));
+    expect(result).toHaveLength(6); // test-run-id.txt + 5 format files
+    expect(result).toContain(join(tempDir, 'test-run-id.txt'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123.json'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123-tap.txt'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123-junit.xml'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123.md'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123.txt'));
   });
 
   it('should handle comprehensive scenario with all options', async () => {
@@ -555,36 +453,25 @@ describe('writeResultFiles', () => {
       ]
     };
 
-    const result = await writeResultFiles(
-      testResultWithCoverage,
-      outputConfig,
-      true,
-      mockRunPipeline
-    );
+    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
     // Should have: test-run-id.txt + 5 formats + 1 coverage + 2 custom files = 9 files
-    expect(result).to.have.length(9);
+    expect(result).toHaveLength(9);
 
     // Verify all files exist
     for (const filePath of result) {
-      expect(existsSync(filePath)).to.be.true;
+      expect(existsSync(filePath)).toBe(true);
     }
 
     // Verify specific files
-    expect(result).to.include(join(tempDir, 'test-run-id.txt'));
-    expect(result).to.include(join(tempDir, 'test-result-test-run-123.json'));
-    expect(result).to.include(
-      join(tempDir, 'test-result-test-run-123-tap.txt')
-    );
-    expect(result).to.include(
-      join(tempDir, 'test-result-test-run-123-junit.xml')
-    );
-    expect(result).to.include(join(tempDir, 'test-result-test-run-123.md'));
-    expect(result).to.include(join(tempDir, 'test-result-test-run-123.txt'));
-    expect(result).to.include(
-      join(tempDir, 'test-result-test-run-123-codecoverage.json')
-    );
-    expect(result).to.include(join(tempDir, 'custom.txt'));
-    expect(result).to.include(join(tempDir, 'metadata.json'));
+    expect(result).toContain(join(tempDir, 'test-run-id.txt'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123.json'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123-tap.txt'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123-junit.xml'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123.md'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123.txt'));
+    expect(result).toContain(join(tempDir, 'test-result-test-run-123-codecoverage.json'));
+    expect(result).toContain(join(tempDir, 'custom.txt'));
+    expect(result).toContain(join(tempDir, 'metadata.json'));
   });
 });

@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import { JUnitReporter } from '../../src';
 import { getTestData } from './testResults';
 
@@ -24,34 +23,34 @@ describe('JUnit Reporter Tests', () => {
 
   it('should format test results with failures', () => {
     const result = reporter.format(testResults);
-    expect(result).to.not.be.empty;
-    expect(result).to.eql(junitResult);
-    expect(result).to.contain('</failure>');
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitResult);
+    expect(result).toContain('</failure>');
   });
 
   it('should format tests with 0 failures', async () => {
     const result = reporter.format(successResult);
-    expect(result).to.not.be.empty;
-    expect(result).to.eql(junitSuccess);
-    expect(result).to.not.contain('</failure>');
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitSuccess);
+    expect(result).not.toContain('</failure>');
   });
 
   it('should format tests with setup methods', async () => {
     const result = reporter.format(setupResult);
-    expect(result).to.not.be.empty;
-    expect(result).to.eql(junitSetup);
-    expect(result).to.not.contain('</failure>');
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitSetup);
+    expect(result).not.toContain('</failure>');
   });
 
   it('should format test results with undefined or empty values', () => {
     successResult.summary.testRunId = '';
-    successResult.summary.userId = undefined;
+    successResult.summary.userId = undefined as unknown as string;
 
     const result = reporter.format(successResult);
-    expect(result).to.not.be.empty;
-    expect(result).to.eql(junitMissingVal);
-    expect(result).to.not.contain('testRunId');
-    expect(result).to.not.contain('userId');
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitMissingVal);
+    expect(result).not.toContain('testRunId');
+    expect(result).not.toContain('userId');
   });
 
   it('should format test results with code coverage', () => {
@@ -69,8 +68,8 @@ describe('JUnit Reporter Tests', () => {
     ];
     successResult.summary.orgWideCoverage = '85%';
     const result = reporter.format(successResult);
-    expect(result).to.not.be.empty;
-    expect(result).to.eql(junitCodeCov);
-    expect(result).to.contain('orgWideCoverage');
+    expect(result).not.toHaveLength(0);
+    expect(result).toEqual(junitCodeCov);
+    expect(result).toContain('orgWideCoverage');
   });
 });

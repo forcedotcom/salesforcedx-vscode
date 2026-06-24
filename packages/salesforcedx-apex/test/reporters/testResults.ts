@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as util from 'util';
+import * as util from 'node:util';
 import { ApexTestResultOutcome, TestResult } from '../../src/tests/types';
 
 const testStartTime = '2020-11-09T18:02:50.000+0000';
@@ -47,7 +47,7 @@ export const coverageResult: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -66,7 +66,7 @@ export const coverageResult: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -123,7 +123,7 @@ export const setupResult: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -142,7 +142,7 @@ export const setupResult: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -161,7 +161,7 @@ export const setupResult: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountServiceTest'
       },
       testSetupTime: 24,
@@ -174,41 +174,37 @@ export const setupResult: TestResult = {
 export const coverageFailResult: TestResult = {
   summary: {
     ...coverageResult.summary,
-    ...{
-      testsRan: 3,
-      failing: 1,
-      failRate: '67%',
-      passRate: '33%'
-    }
+
+    testsRan: 3,
+    failing: 1,
+    failRate: '67%',
+    passRate: '33%'
   },
   tests: [
     ...coverageResult.tests,
-    ...[
-      {
-        id: '07M3t000003bQwgEAE',
-        queueItemId: '7093t000000c0eZAAQ',
-        stackTrace:
-          'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
-        message:
-          'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
-        asyncApexJobId: '7073t000061uwZIAAY',
-        methodName: 'testMissingAnimal',
-        outcome: ApexTestResultOutcome.Fail,
-        apexLogId: null,
-        apexClass: {
-          id: '01p3t000001ytUmAAI',
-          name: 'AnimalLocatorTest',
-          namespacePrefix: null,
-          fullName: 'AnimalLocatorTest'
-        },
-        runTime: 5,
-        testTimestamp: '2020-11-09T18:02:51.000+0000',
-        fullName: 'AnimalLocatorTest.testMissingAnimal'
-      }
-    ]
+
+    {
+      id: '07M3t000003bQwgEAE',
+      queueItemId: '7093t000000c0eZAAQ',
+      stackTrace: 'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
+      message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'testMissingAnimal',
+      outcome: ApexTestResultOutcome.Fail,
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000001ytUmAAI',
+        name: 'AnimalLocatorTest',
+        namespacePrefix: null as unknown as string,
+        fullName: 'AnimalLocatorTest'
+      },
+      runTime: 5,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AnimalLocatorTest.testMissingAnimal'
+    }
   ],
   setup: [],
-  codecoverage: [...coverageResult.codecoverage]
+  codecoverage: [...(coverageResult.codecoverage ?? [])]
 };
 
 export const successResult: TestResult = {
@@ -244,7 +240,7 @@ export const successResult: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -263,7 +259,7 @@ export const successResult: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -307,7 +303,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -326,7 +322,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -383,7 +379,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 16,
@@ -393,10 +389,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwmEAE',
       queueItemId: '7093t000000c0eZAAQ',
-      stackTrace:
-        'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
-      message:
-        'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
+      stackTrace: 'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
+      message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testMissingAnimal',
       outcome: ApexTestResultOutcome.Fail,
@@ -404,7 +398,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 5,
@@ -423,7 +417,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000i6dtAAA',
         name: 'LeadProcessorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'LeadProcessorTest'
       },
       runTime: 2256,
@@ -452,10 +446,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQx0EAE',
       queueItemId: '7093t000000c0efAAA',
-      stackTrace:
-        'Class.AccountProcessorTest.testCountContacts: line 47, column 1',
-      message:
-        'System.AssertException: Assertion Failed: Incorrect count: Expected: 3, Actual: 2',
+      stackTrace: 'Class.AccountProcessorTest.testCountContacts: line 47, column 1',
+      message: 'System.AssertException: Assertion Failed: Incorrect count: Expected: 3, Actual: 2',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testCountContacts',
       outcome: ApexTestResultOutcome.Fail,
@@ -463,7 +455,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountProcessorTest'
       },
       runTime: 241,
@@ -482,7 +474,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountProcessorTest'
       },
       runTime: 10,
@@ -501,7 +493,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountProcessorTest'
       },
       runTime: 10,
@@ -520,7 +512,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000ime6AAA',
         name: 'ParkLocatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'ParkLocatorTest'
       },
       runTime: 15,
@@ -531,8 +523,7 @@ export const testResults: TestResult = {
       id: '07M3t000003bQwREAU',
       queueItemId: '7093t000000c0eiAAA',
       stackTrace: null,
-      message:
-        'Weird characters <>&"\'\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r\n',
+      message: 'Weird characters <>&"\'\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r\n',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testGetCallout',
       outcome: ApexTestResultOutcome.Fail,
@@ -540,7 +531,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001ytK6AAI',
         name: 'AnimalsCalloutsTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AnimalsCalloutsTest'
       },
       runTime: 28,
@@ -559,7 +550,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001ytK6AAI',
         name: 'AnimalsCalloutsTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AnimalsCalloutsTest'
       },
       runTime: 7,
@@ -578,7 +569,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000iADsAAM',
         name: 'AddPrimaryContactTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AddPrimaryContactTest'
       },
       runTime: 250,
@@ -597,7 +588,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000iAZFAA2',
         name: 'DailyLeadProcessorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'DailyLeadProcessorTest'
       },
       runTime: 2196,
@@ -608,7 +599,7 @@ export const testResults: TestResult = {
   setup: []
 };
 
-export const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
+const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
     <testsuite name="force.apex" timestamp="2020-11-09T18:02:50.000Z" hostname="https://na139.salesforce.com" tests="16" failures="4"  errors="0"  time="5.46">
         <properties>
@@ -730,12 +721,9 @@ const successTemplate = `<?xml version="1.0" encoding="UTF-8"?>
     </testsuite>
 </testsuites>\n`;
 
-export const junitSuccess = util.format(successTemplate, successProperties);
-export const junitCodeCov = util.format(successTemplate, codeCovProperties);
-export const junitMissingVal = util.format(
-  successTemplate,
-  missingValProperties
-);
+const junitSuccess = util.format(successTemplate, successProperties);
+const junitCodeCov = util.format(successTemplate, codeCovProperties);
+const junitMissingVal = util.format(successTemplate, missingValProperties);
 export const junitSetup = util.format(successTemplate, setupProperties);
 
 // Test data with category field for testing showCategory functionality
@@ -772,7 +760,7 @@ export const testResultsWithCategory: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -792,7 +780,7 @@ export const testResultsWithCategory: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -803,10 +791,8 @@ export const testResultsWithCategory: TestResult = {
     {
       id: '07M3t000003bQwmEAE',
       queueItemId: '7093t000000c0eZAAQ',
-      stackTrace:
-        'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
-      message:
-        'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
+      stackTrace: 'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
+      message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testMissingAnimal',
       outcome: ApexTestResultOutcome.Fail,
@@ -814,7 +800,7 @@ export const testResultsWithCategory: TestResult = {
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null,
+        namespacePrefix: null as unknown as string,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 5,
@@ -927,8 +913,6 @@ export function getTestData() {
     successResult: structuredClone(successResult),
     testResultsWithCategory: structuredClone(testResultsWithCategory),
     coverageResultWithCategory: structuredClone(coverageResultWithCategory),
-    coverageFailResultWithCategory: structuredClone(
-      coverageFailResultWithCategory
-    )
+    coverageFailResultWithCategory: structuredClone(coverageFailResultWithCategory)
   };
 }

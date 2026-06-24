@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import { Table } from '../../src';
 
 describe('Table Utils', () => {
@@ -28,7 +27,7 @@ describe('Table Utils', () => {
 
     const table = new Table().createTable(rows, cols, 'Sample Table');
 
-    expect(table).to.eq(expectedTable);
+    expect(table).toBe(expectedTable);
   });
 
   it('Should set column width to length of the widest cell in that column', () => {
@@ -48,7 +47,7 @@ describe('Table Utils', () => {
 
     const table = new Table().createTable(rows, cols);
 
-    expect(table).to.eq(expectedTable);
+    expect(table).toBe(expectedTable);
   });
 
   it('Should correctly format a multiline cell', () => {
@@ -69,7 +68,7 @@ describe('Table Utils', () => {
 
     const table = new Table().createTable(rows, cols);
 
-    expect(table).to.eq(expectedTable);
+    expect(table).toBe(expectedTable);
   });
 
   it('Should correctly format another multiline cell', () => {
@@ -95,7 +94,7 @@ describe('Table Utils', () => {
 
     const table = new Table().createTable(rows, cols);
 
-    expect(table).to.eq(expectedTable);
+    expect(table).toBe(expectedTable);
   });
 
   it('Should throw an error if a row is missing the key of a given column', () => {
@@ -114,6 +113,6 @@ describe('Table Utils', () => {
     } catch (e) {
       err = e;
     }
-    expect(err.message).to.be.eq('Row is missing the key col3');
+    expect(err.message).toBe('Row is missing the key col3');
   });
 });

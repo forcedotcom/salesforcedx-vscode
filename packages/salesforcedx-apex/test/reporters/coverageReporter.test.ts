@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
 import { CoverageReporter } from '../../src/reporters/coverageReporter';
-import { tmpdir } from 'os';
-import * as path from 'path';
-import * as crypto from 'crypto';
-import * as fs from 'fs';
+import { tmpdir } from 'node:os';
+import * as path from 'node:path';
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 
 const multipleCoverageAggregate = {
   done: true,
@@ -52,8 +51,8 @@ const multipleCoverageAggregate = {
       NumLinesUncovered: 0,
       Coverage: {
         coveredLines: [
-          3, 4, 5, 6, 7, 9, 10, 11, 14, 15, 20, 21, 22, 23, 25, 28, 29, 34, 35,
-          36, 37, 39, 40, 43, 44, 49, 50, 51, 52, 54, 57, 58, 59, 60
+          3, 4, 5, 6, 7, 9, 10, 11, 14, 15, 20, 21, 22, 23, 25, 28, 29, 34, 35, 36, 37, 39, 40, 43, 44, 49, 50, 51, 52,
+          54, 57, 58, 59, 60
         ],
         uncoveredLines: []
       }
@@ -75,9 +74,8 @@ const multipleCoverageAggregate = {
       NumLinesUncovered: 3,
       Coverage: {
         coveredLines: [
-          2, 3, 16, 25, 27, 28, 29, 30, 32, 33, 35, 36, 38, 39, 40, 41, 45, 46,
-          47, 48, 49, 50, 52, 67, 68, 69, 70, 71, 72, 75, 76, 87, 88, 92, 97,
-          98, 101, 103, 104, 107, 110
+          2, 3, 16, 25, 27, 28, 29, 30, 32, 33, 35, 36, 38, 39, 40, 41, 45, 46, 47, 48, 49, 50, 52, 67, 68, 69, 70, 71,
+          72, 75, 76, 87, 88, 92, 97, 98, 101, 103, 104, 107, 110
         ],
         uncoveredLines: [26, 31, 78]
       }
@@ -99,8 +97,8 @@ const multipleCoverageAggregate = {
       NumLinesUncovered: 0,
       Coverage: {
         coveredLines: [
-          5, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-          26, 28, 29, 30, 31, 32, 33, 34, 35, 36, 38, 39, 40, 41, 42, 44, 48, 50
+          5, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+          38, 39, 40, 41, 42, 44, 48, 50
         ],
         uncoveredLines: []
       }
@@ -112,16 +110,13 @@ describe('coverageReports', () => {
   let testResultsDir: string;
 
   beforeEach(async () => {
-    testResultsDir = path.join(
-      tmpdir(),
-      crypto.randomBytes(10).toString('hex')
-    );
+    testResultsDir = path.join(tmpdir(), crypto.randomBytes(10).toString('hex'));
     await fs.promises.mkdir(testResultsDir, { recursive: true });
   });
   afterEach(async () => {
     try {
       await fs.promises.rmdir(testResultsDir, { recursive: true });
-    } catch (err) {}
+    } catch {}
   });
   it('should produce coverage report', async () => {
     const coverageReport = new CoverageReporter(
@@ -133,8 +128,7 @@ describe('coverageReports', () => {
         reportOptions: {
           clover: {
             file: 'clover.xml',
-            projectRoot:
-              'packages/apex-node/test/coverageReporters/testResources'
+            projectRoot: 'packages/apex-node/test/coverageReporters/testResources'
           }
         }
       }
@@ -144,11 +138,11 @@ describe('coverageReports', () => {
     const htmlFile = path.join(testResultsDir, 'html', 'index.html');
     const cloverFileStat = await fs.promises.stat(cloverFile);
     const htmlFileStat = await fs.promises.stat(htmlFile);
-    expect(cloverFileStat.isFile()).to.be.true;
-    expect(htmlFileStat.isFile()).to.be.true;
+    expect(cloverFileStat.isFile()).toBe(true);
+    expect(htmlFileStat.isFile()).toBe(true);
     // ensure no other coverage reports were created
     const dirEntries = await fs.promises.readdir(testResultsDir);
-    expect(dirEntries).to.have.lengthOf(2);
+    expect(dirEntries).toHaveLength(2);
   });
   it('should produce coverage report using default options', async () => {
     const coverageReport = new CoverageReporter(
@@ -159,15 +153,13 @@ describe('coverageReports', () => {
     coverageReport.generateReports();
     const textSummaryFile = path.join(testResultsDir, 'text-summary.txt');
     const textSummaryFileStat = await fs.promises.stat(textSummaryFile);
-    expect(textSummaryFileStat.isFile()).to.be.true;
+    expect(textSummaryFileStat.isFile()).toBe(true);
     // ensure no other coverage reports were created
     const dirEntries = await fs.promises.readdir(testResultsDir);
-    expect(dirEntries).to.have.lengthOf(1);
+    expect(dirEntries).toHaveLength(1);
   });
   it('should handle aggregate object with no coverage entries', async () => {
-    const coverageAggregate = JSON.parse(
-      JSON.stringify(multipleCoverageAggregate)
-    );
+    const coverageAggregate = structuredClone(multipleCoverageAggregate);
     coverageAggregate.totalSize = 0;
     coverageAggregate.records = [];
     const coverageReport = new CoverageReporter(
@@ -178,28 +170,21 @@ describe('coverageReports', () => {
     coverageReport.generateReports();
     const textSummaryFile = path.join(testResultsDir, 'text-summary.txt');
     const textSummaryFileStat = await fs.promises.stat(textSummaryFile);
-    expect(textSummaryFileStat.isFile()).to.be.true;
-    const textSummaryContents = await fs.promises.readFile(
-      textSummaryFile,
-      'utf8'
-    );
-    expect(textSummaryContents).to.include('Unknown%');
+    expect(textSummaryFileStat.isFile()).toBe(true);
+    const textSummaryContents = await fs.promises.readFile(textSummaryFile, 'utf8');
+    expect(textSummaryContents).toContain('Unknown%');
     // ensure no other coverage reports were created
     const dirEntries = await fs.promises.readdir(testResultsDir);
-    expect(dirEntries).to.have.lengthOf(1);
+    expect(dirEntries).toHaveLength(1);
   });
   it('should handle non-existent sourceDir', async () => {
-    const coverageReport = new CoverageReporter(
-      multipleCoverageAggregate,
-      testResultsDir,
-      'foo/bar/baz'
-    );
+    const coverageReport = new CoverageReporter(multipleCoverageAggregate, testResultsDir, 'foo/bar/baz');
     coverageReport.generateReports();
     const textSummaryFile = path.join(testResultsDir, 'text-summary.txt');
     const textSummaryFileStat = await fs.promises.stat(textSummaryFile);
-    expect(textSummaryFileStat.isFile()).to.be.true;
+    expect(textSummaryFileStat.isFile()).toBe(true);
     // ensure no other coverage reports were created
     const dirEntries = await fs.promises.readdir(testResultsDir);
-    expect(dirEntries).to.have.lengthOf(1);
+    expect(dirEntries).toHaveLength(1);
   });
 });

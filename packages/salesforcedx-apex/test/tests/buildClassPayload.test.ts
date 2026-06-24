@@ -7,8 +7,6 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import { expect } from 'chai';
-import { createSandbox, SinonSandbox } from 'sinon';
 import { TestLevel, TestService } from '../../src/tests';
 import * as utils from '../../src/tests/utils';
 
@@ -17,57 +15,43 @@ const testData = new MockTestOrgData();
 
 describe('buildAsyncClassPayload with namespaces', () => {
   const $$ = new TestContext();
-  let sandboxStub: SinonSandbox;
   let testService: TestService;
 
   beforeEach(async () => {
-    sandboxStub = createSandbox();
     await $$.stubAuths(testData);
-    sandboxStub
-      .stub(Connection.prototype, 'retrieveMaxApiVersion')
-      .resolves('50.0');
+    $$.SANDBOX.stub(Connection.prototype, 'retrieveMaxApiVersion').resolves('50.0');
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
       })
     });
-    sandboxStub
-      .stub(mockConnection, 'instanceUrl')
-      .get(() => 'https://na139.salesforce.com');
+    $$.SANDBOX.stub(mockConnection, 'instanceUrl').get(() => 'https://na139.salesforce.com');
     testService = new TestService(mockConnection);
   });
 
-  afterEach(() => {
-    sandboxStub.restore();
-  });
-
   it('should build async payload for single class without namespace', async () => {
-    const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
-    const payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'MyTestClass'
-    );
+    const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces');
+    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, undefined, 'MyTestClass');
 
-    expect(payload).to.deep.equal({
+    expect(payload).toEqual({
       tests: [{ className: 'MyTestClass' }],
       testLevel: TestLevel.RunSpecifiedTests,
       skipCodeCoverage: false
     });
-    expect(namespaceStub.notCalled).to.be.true;
+    expect(namespaceStub.notCalled).toBe(true);
   });
 
   it('should build async payload for single class with org namespace', async () => {
-    const namespaceStub = sandboxStub
-      .stub(utils, 'queryNamespaces')
-      .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
+    const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
+      { installedNs: false, namespace: 'myNamespace' }
+    ]);
     const payload = await testService.buildAsyncPayload(
       TestLevel.RunSpecifiedTests,
       undefined,
       'myNamespace.MyTestClass'
     );
 
-    expect(payload).to.deep.equal({
+    expect(payload).toEqual({
       tests: [
         {
           className: 'myNamespace.MyTestClass'
@@ -77,20 +61,20 @@ describe('buildAsyncClassPayload with namespaces', () => {
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
-    expect(namespaceStub.called).to.be.false;
+    expect(namespaceStub.called).toBe(false);
   });
 
   it('should build async payload for single class with installed package namespace', async () => {
-    const namespaceStub = sandboxStub
-      .stub(utils, 'queryNamespaces')
-      .resolves([{ installedNs: true, namespace: 'CodeBuilder' }]);
+    const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
+      { installedNs: true, namespace: 'CodeBuilder' }
+    ]);
     const payload = await testService.buildAsyncPayload(
       TestLevel.RunSpecifiedTests,
       undefined,
       'CodeBuilder.ApplicationTest'
     );
 
-    expect(payload).to.deep.equal({
+    expect(payload).toEqual({
       tests: [
         {
           className: 'CodeBuilder.ApplicationTest'
@@ -100,11 +84,11 @@ describe('buildAsyncClassPayload with namespaces', () => {
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
-    expect(namespaceStub.called).to.be.false;
+    expect(namespaceStub.called).toBe(false);
   });
 
   it('should build async payload for multiple classes with mixed namespaces', async () => {
-    const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces').resolves([
+    const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
       { installedNs: false, namespace: 'orgNs' },
       { installedNs: true, namespace: 'installedPkg' }
     ]);
@@ -114,7 +98,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
       'orgNs.TestClass1,installedPkg.TestClass2,TestClass3'
     );
 
-    expect(payload).to.deep.equal({
+    expect(payload).toEqual({
       tests: [
         {
           className: 'orgNs.TestClass1'
@@ -130,13 +114,13 @@ describe('buildAsyncClassPayload with namespaces', () => {
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
-    expect(namespaceStub.called).to.be.false;
+    expect(namespaceStub.called).toBe(false);
   });
 
   it('should build async payload for class with namespace not in org', async () => {
-    const namespaceStub = sandboxStub
-      .stub(utils, 'queryNamespaces')
-      .resolves([{ installedNs: false, namespace: 'differentNs' }]);
+    const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
+      { installedNs: false, namespace: 'differentNs' }
+    ]);
     const payload = await testService.buildAsyncPayload(
       TestLevel.RunSpecifiedTests,
       undefined,
@@ -144,7 +128,7 @@ describe('buildAsyncClassPayload with namespaces', () => {
     );
 
     // When namespace is not found, treat the whole thing as a class name
-    expect(payload).to.deep.equal({
+    expect(payload).toEqual({
       tests: [
         {
           className: 'unknownNs.MyTestClass'
@@ -154,20 +138,20 @@ describe('buildAsyncClassPayload with namespaces', () => {
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
-    expect(namespaceStub.called).to.be.false;
+    expect(namespaceStub.called).toBe(false);
   });
 
   it('should only query namespaces once for multiple classes', async () => {
-    const namespaceStub = sandboxStub
-      .stub(utils, 'queryNamespaces')
-      .resolves([{ installedNs: false, namespace: 'myNs' }]);
+    const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
+      { installedNs: false, namespace: 'myNs' }
+    ]);
     const payload = await testService.buildAsyncPayload(
       TestLevel.RunSpecifiedTests,
       undefined,
       'myNs.Class1,myNs.Class2,myNs.Class3'
     );
 
-    expect(payload).to.deep.equal({
+    expect(payload).toEqual({
       tests: [
         {
           className: 'myNs.Class1'
@@ -183,47 +167,32 @@ describe('buildAsyncClassPayload with namespaces', () => {
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
-    expect(namespaceStub.called).to.be.false;
+    expect(namespaceStub.called).toBe(false);
   });
 });
 
 describe('buildSyncPayload with class namespaces', () => {
   const $$ = new TestContext();
-  let sandboxStub: SinonSandbox;
   let testService: TestService;
 
   beforeEach(async () => {
-    sandboxStub = createSandbox();
     await $$.stubAuths(testData);
-    sandboxStub
-      .stub(Connection.prototype, 'retrieveMaxApiVersion')
-      .resolves('50.0');
+    $$.SANDBOX.stub(Connection.prototype, 'retrieveMaxApiVersion').resolves('50.0');
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
       })
     });
-    sandboxStub
-      .stub(mockConnection, 'instanceUrl')
-      .get(() => 'https://na139.salesforce.com');
+    $$.SANDBOX.stub(mockConnection, 'instanceUrl').get(() => 'https://na139.salesforce.com');
     testService = new TestService(mockConnection);
   });
-
-  afterEach(() => {
-    sandboxStub.restore();
-  });
-
   it('should build sync payload for class with org namespace', async () => {
-    const namespaceStub = sandboxStub
-      .stub(utils, 'queryNamespaces')
-      .resolves([{ installedNs: false, namespace: 'myNs' }]);
-    const payload = await testService.buildSyncPayload(
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      'myNs.MyTestClass'
-    );
+    const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
+      { installedNs: false, namespace: 'myNs' }
+    ]);
+    const payload = await testService.buildSyncPayload(TestLevel.RunSpecifiedTests, undefined, 'myNs.MyTestClass');
 
-    expect(payload).to.deep.equal({
+    expect(payload).toEqual({
       tests: [
         {
           className: 'myNs.MyTestClass'
@@ -233,20 +202,20 @@ describe('buildSyncPayload with class namespaces', () => {
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
-    expect(namespaceStub.called).to.be.false;
+    expect(namespaceStub.called).toBe(false);
   });
 
   it('should build sync payload for class with installed package namespace', async () => {
-    const namespaceStub = sandboxStub
-      .stub(utils, 'queryNamespaces')
-      .resolves([{ installedNs: true, namespace: 'installedPkg' }]);
+    const namespaceStub = $$.SANDBOX.stub(utils, 'queryNamespaces').resolves([
+      { installedNs: true, namespace: 'installedPkg' }
+    ]);
     const payload = await testService.buildSyncPayload(
       TestLevel.RunSpecifiedTests,
       undefined,
       'installedPkg.MyTestClass'
     );
 
-    expect(payload).to.deep.equal({
+    expect(payload).toEqual({
       tests: [
         {
           className: 'installedPkg.MyTestClass'
@@ -256,6 +225,6 @@ describe('buildSyncPayload with class namespaces', () => {
       skipCodeCoverage: false
     });
     // No longer queries namespaces for class-only runs
-    expect(namespaceStub.called).to.be.false;
+    expect(namespaceStub.called).toBe(false);
   });
 });
