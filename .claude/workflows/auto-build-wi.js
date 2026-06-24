@@ -291,24 +291,30 @@ const extractPrUrl = details => {
 // SF strips external hrefs from rich-text Details__c on save, leaving anchors like
 // <a href="">discussions/5867</a> — link TEXT survives, href is emptied. Reconstruct
 // the GitHub URL from the surviving text so the PR body can reference the originating
-// discussion/issue. Match ONLY empty/missing-href anchors whose TEXT is a discussions/NNN
-// or issues/NNN path: a populated href is a live user link (already correct — don't touch),
-// and the workflow's own PR snippet has text '#NNN' (not a path) so it can never produce a
-// ghost URL on re-tick. Empty href covers all SF storage forms: href="", whitespace-only,
-// entity-encoded href=&quot;&quot;, or no href attr at all.
-const extractDiscussionUrls = details => {
-  const s = String(details || '')
-  const urls = [...s.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)]
-    .filter(m => {
-      const href = m[1].match(/\bhref\s*=\s*(?:"([^"]*)"|&quot;([\s\S]*?)&quot;)/i)
-      const hrefValue = href ? (href[1] ?? href[2] ?? '').replace(/&quot;/g, '').trim() : ''
-      return hrefValue === ''
-    })
-    .map(m => m[2].match(/(discussions|issues)\/\d+/))
-    .filter(path => path)
-    .map(path => `https://github.com/forcedotcom/salesforcedx-vscode/${path[0]}`)
-  return [...new Set(urls)]
-}
+// discussion/issue. Match ONLY empty/missing-href anchors whose TEXT is exactly a
+// discussions/NNN or issues/NNN path: a populated href is a live user link (already correct
+// — don't touch), and the workflow's own PR snippet has text '#NNN' (not a path) so it can
+// never produce a ghost URL on re-tick. Empty href covers the SF storage forms emitted by
+// rich text and the gus-cli convention: double-quoted href="" (incl. whitespace-only),
+// entity-encoded href=&quot;&quot;, or no href attr at all. Single-quoted/unquoted hrefs are
+// not produced by these inputs; if ever encountered, a populated such href would be
+// misclassified as empty. The exact-path text match (^...$) guards against reconstructing a
+// foreign repo URL embedded as anchor text.
+const extractDiscussionUrls = details =>
+  [
+    ...new Set(
+      [...String(details || '').matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)]
+        .filter(m => {
+          const href = m[1].match(/\bhref\s*=\s*(?:"([^"]*)"|&quot;([\s\S]*?)&quot;)/i)
+          const hrefValue = href ? (href[1] ?? href[2] ?? '').trim() : ''
+          return hrefValue === ''
+        })
+        .flatMap(m => {
+          const path = m[2].trim().match(/^(discussions|issues)\/\d+$/)
+          return path ? [`https://github.com/forcedotcom/salesforcedx-vscode/${path[0]}`] : []
+        })
+    ),
+  ]
 
 // Only match PRs appended by the workflow — formatted as <strong>PR:</strong> <a href="...">
 // This avoids false positives from "Prior art" / reference links in the WI body.
