@@ -10,6 +10,8 @@
 
 **In this branch (`ph/W-23094301-lwc-test-feedback`):** Tasks 1-4 (run + debug routing), Task 8b (verify out-of-band listener still needed for watch — keep it), Task 9 (verification). One-shot run/debug from palette, editor-title button, and code lens all gain native feedback.
 
+**Progress:** ✓ Task 1 completed (getLwcTestController + runByExecutionInfo), ✓ Task 2 completed (runActiveEditorFile convenience method). Next: Task 3 (run command routing).
+
 **Deferred to follow-up WI:** Tasks 5-7 (native Continuous Run profile for watch, watch toggle methods, repointing watch handlers, deleting `TestWatcher`) AND the final removal of `executeAsSfTask` + the out-of-band results listener. These are interdependent: watch can't lose `executeAsSfTask` until it has the Continuous Run replacement. Tasks 5-7 below are retained for reference but **NOT executed in this branch** — they seed the follow-up plan.
 
 **Tech Stack:** TypeScript, VS Code Extension API (`vscode.tests`, `TestController`, `TestRunProfile`, `TestRunRequest`), Jest (`test/jest/...`), the existing `lwcTestIndexer` (discovery) and `TestRunner` (jest arg/shell construction).
@@ -52,7 +54,7 @@
   - New public method `public runByExecutionInfo = async (info: TestExecutionInfo, isDebug: boolean): Promise<void>` that resolves the matching `TestItem` (file or case), builds a `vscode.TestRunRequest([item], undefined, profile)`, and calls the run profile's `runHandler` (i.e. `this.runTests(request, token, isDebug)` with a fresh `CancellationTokenSource().token`).
   - New private helper `private resolveItemForExecutionInfo = async (info: TestExecutionInfo): Promise<vscode.TestItem | undefined>` — for `kind === 'testFile'` returns/creates the file item; for `kind === 'testCase'` ensures the parent file item exists, resolves its children, then returns the case item whose label matches `info.testName`.
 
-- [ ] **Step 1: Write the failing test** — add to `lwcTestController.test.ts` a new `describe('LwcTestController public run API', ...)`.
+- [x] **Step 1: Write the failing test** — add to `lwcTestController.test.ts` a new `describe('LwcTestController public run API', ...)`.
 
 ```typescript
 describe('LwcTestController public run API', () => {
@@ -111,12 +113,12 @@ describe('LwcTestController public run API', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/testExplorer/lwcTestController.test.ts -t "runByExecutionInfo"`
 Expected: FAIL — `ctrl.runByExecutionInfo is not a function` (and/or `getLwcTestController` not exported).
 
-- [ ] **Step 3: Write minimal implementation** — in `lwcTestController.ts`:
+- [x] **Step 3: Write minimal implementation** — in `lwcTestController.ts`:
 
 Promote the accessor to an export (change line ~537):
 
@@ -193,17 +195,19 @@ private setupProfiles = (): void => {
 
 Add the `isTestCaseInfo` import if not present: `import { ..., isTestCaseInfo } from '../types';`
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/testExplorer/lwcTestController.test.ts -t "runByExecutionInfo"`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/salesforcedx-vscode-lwc/src/testSupport/testExplorer/lwcTestController.ts packages/salesforcedx-vscode-lwc/test/jest/testSupport/testExplorer/lwcTestController.test.ts
 git commit -m "feat(lwc): add public runByExecutionInfo on LWC test controller"
 ```
+
+**✓ COMPLETED 2026-06-24** — Controller singleton + runByExecutionInfo committed.
 
 ---
 
@@ -218,7 +222,7 @@ git commit -m "feat(lwc): add public runByExecutionInfo on LWC test controller"
 - Produces:
   - `public runActiveEditorFile = (isDebug: boolean): Promise<void> | undefined` — reads `vscode.window.activeTextEditor`, guards with `isLwcJestTest`, builds a `TestFileInfo`, calls `runByExecutionInfo`.
 
-- [ ] **Step 1: Write the failing test** — add to the public-run-API describe block.
+- [x] **Step 1: Write the failing test** — add to the public-run-API describe block.
 
 ```typescript
 it('runActiveEditorFile no-ops when the active editor is not an LWC jest test', async () => {
@@ -243,12 +247,12 @@ it('runActiveEditorFile no-ops when the active editor is not an LWC jest test', 
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/testExplorer/lwcTestController.test.ts -t "runActiveEditorFile"`
 Expected: FAIL — `ctrl.runActiveEditorFile is not a function`.
 
-- [ ] **Step 3: Write minimal implementation** — add to `lwcTestController.ts`, and add `import { isLwcJestTest } from '../utils/isLwcJestTest';`:
+- [x] **Step 3: Write minimal implementation** — add to `lwcTestController.ts`, and add `import { isLwcJestTest } from '../utils/isLwcJestTest';`:
 
 ```typescript
 /** Public entry for the editor-title button / command palette: run the active LWC test file. */
@@ -262,17 +266,19 @@ public runActiveEditorFile = (isDebug: boolean): Promise<void> | undefined => {
 };
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/testExplorer/lwcTestController.test.ts -t "runActiveEditorFile"`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/salesforcedx-vscode-lwc/src/testSupport/testExplorer/lwcTestController.ts packages/salesforcedx-vscode-lwc/test/jest/testSupport/testExplorer/lwcTestController.test.ts
 git commit -m "feat(lwc): add runActiveEditorFile convenience method"
 ```
+
+**✓ COMPLETED 2026-06-24** — Both test + implementation committed.
 
 ---
 
