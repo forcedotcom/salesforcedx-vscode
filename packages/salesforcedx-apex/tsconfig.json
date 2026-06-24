@@ -1,18 +1,11 @@
 {
+  "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "module": "NodeNext", // Node.js 18 supports ECMAScript modules
-    "target": "ES2022", // Node.js 18 supports ES2022 features
-    "lib": ["ES2022", "dom"], // Include ES2022 standard library
-    "sourceMap": true,
-    "declaration": true,
-    "moduleResolution": "NodeNext",
-    "noImplicitAny": true,
     "rootDir": ".",
     "outDir": "lib",
-    "preserveConstEnums": true,
-    "skipLibCheck": true,
     "experimentalDecorators": true,
-    "noImplicitReturns": true
+    "isolatedModules": false,
+    "preserveConstEnums": true
   },
-  "exclude": ["node_modules", "lib"]
+  "include": ["src/**/*.ts", "typings/**/*.d.ts"]
 }
