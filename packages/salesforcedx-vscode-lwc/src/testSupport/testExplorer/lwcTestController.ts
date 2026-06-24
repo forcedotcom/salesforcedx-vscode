@@ -123,10 +123,12 @@ class LwcTestController {
   };
 
   private resolveItemForExecutionInfo = async (info: TestExecutionInfo): Promise<vscode.TestItem | undefined> => {
-    const fileUri = info.testUri;
-    const fileId = createFileId(fileUri);
+    // Normalize the URI to match how discovery/populateFiles keys items (strips /private on macOS)
+    const normalizedUri = URI.file(normalizeJestFsPath(info.testUri.fsPath));
+    const fileId = createFileId(normalizedUri);
     // discovery may not have run yet for this uri; create the item on demand
-    const fileItem = this.fileItems.get(fileId) ?? this.getOrCreateFileItem({ kind: 'testFile', testUri: fileUri });
+    const fileItem =
+      this.fileItems.get(fileId) ?? this.getOrCreateFileItem({ kind: 'testFile', testUri: normalizedUri });
     if (info.kind === 'testFile' || info.kind === 'testDirectory') {
       return fileItem;
     }

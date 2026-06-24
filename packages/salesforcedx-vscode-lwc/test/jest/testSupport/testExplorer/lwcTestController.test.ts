@@ -413,4 +413,110 @@ describe('LwcTestController public run API', () => {
     // Restore
     TestRunnerModule.TestRunner = originalTestRunner;
   });
+
+  it('runByExecutionInfo normalizes URI when resolving test item so tree item receives run updates', async () => {
+    // Mock platform to darwin for deterministic test
+    const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+    Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true });
+
+    try {
+      // Discovery returns normalized path (what findFiles produces on macOS)
+      const normalizedUri = URI.file('/var/folders/xx/foo/__tests__/foo.test.js');
+      // Command/code-lens supplies realpath with /private prefix
+      const realpathUri = URI.file('/private/var/folders/xx/foo/__tests__/foo.test.js');
+
+      let capturedTreeItems: FakeTestItem[] = [];
+      let capturedRunRequest: any;
+
+      const mockRun = {
+        started: jest.fn(),
+        passed: jest.fn(),
+        failed: jest.fn(),
+        skipped: jest.fn(),
+        errored: jest.fn(),
+        appendOutput: jest.fn(),
+        end: jest.fn()
+      };
+
+      const controller = {
+        resolveHandler: undefined,
+        refreshHandler: undefined,
+        items: {
+          replace: (items: FakeTestItem[]) => {
+            capturedTreeItems = items;
+          },
+          forEach: (cb: (item: FakeTestItem) => void) => capturedTreeItems.forEach(cb)
+        },
+        createTestItem: (id: string, label: string, uri?: URI) => ({
+          id,
+          label,
+          uri,
+          canResolveChildren: false,
+          tags: [],
+          children: { replace: jest.fn(), forEach: jest.fn() }
+        }),
+        createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+        createTestRun: jest.fn((request: any) => {
+          capturedRunRequest = request;
+          return mockRun;
+        }),
+        dispose: jest.fn()
+      };
+
+      // Mock TestRunRequest and CancellationTokenSource
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        this.include = include;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        this.exclude = exclude;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        this.profile = profile;
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      (vscode.CancellationTokenSource as any) = jest.fn(() => ({
+        token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
+        cancel: jest.fn(),
+        dispose: jest.fn()
+      }));
+
+      (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+      (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([
+        { kind: 'testFile' as const, testUri: normalizedUri }
+      ]);
+      (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const ctrl = getLwcTestController();
+      await ctrl.refresh();
+
+      // Capture the tree item created by populateFiles
+      expect(capturedTreeItems).toHaveLength(1);
+      const treeItem = capturedTreeItems[0];
+
+      jest
+        .spyOn(
+          require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype,
+          'getShellExecutionInfo'
+        )
+        .mockResolvedValue(undefined);
+
+      // Run with the /private-prefixed URI (what an editor/command would supply)
+      await ctrl.runByExecutionInfo({ kind: 'testFile' as const, testUri: realpathUri }, false);
+
+      expect(controller.createTestRun).toHaveBeenCalled();
+      // The run must target the SAME item instance in the tree (not a detached item)
+      expect(capturedRunRequest.include).toHaveLength(1);
+      const runTargetItem = capturedRunRequest.include[0];
+      expect(runTargetItem.id).toBe(treeItem.id);
+      expect(runTargetItem).toBe(treeItem);
+    } finally {
+      // Restore original platform
+      if (originalPlatform) {
+        Object.defineProperty(process, 'platform', originalPlatform);
+      }
+    }
+  });
 });
