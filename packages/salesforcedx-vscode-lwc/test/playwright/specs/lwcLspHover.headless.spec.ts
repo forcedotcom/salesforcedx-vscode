@@ -25,9 +25,6 @@ import {
 import { test } from '../fixtures';
 import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
 
-// Re-run to disprove flake: comment-only edit busts the wireit input fingerprint so CI runs
-// fresh (no cache hit) and re-validates the cold-LSP-readiness poll fix.
-
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
@@ -88,6 +85,9 @@ test('LWC LSP provides hover documentation for lightning-accordion in HTML templ
 
   await validateNoCriticalErrors(test, consoleErrors);
 });
+
+// Re-run to disprove flake: comment-only edit busts the wireit input fingerprint so CI runs
+// fresh (no cache hit) and re-validates the cold-LSP-readiness poll fix.
 
 test('LWC LSP provides hover type information for LightningElement in JS files', async ({ page }) => {
   test.skip(!isDesktop(), 'Desktop only — TypeScript hover for LWC JS imports is not stable on VS Code for Web E2E');
