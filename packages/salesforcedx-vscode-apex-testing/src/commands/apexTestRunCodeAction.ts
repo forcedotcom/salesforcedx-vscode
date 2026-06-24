@@ -7,109 +7,97 @@
 import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import { type NamedPackageDir } from '@salesforce/core';
-import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
-import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
-import { apexTestRunCacheService, isEmpty } from '../testRunCache/apexTestRunCacheService';
-import {
-  EmptyParametersGatherer,
-  LibraryCommandletExecutor,
-  SfCommandlet,
-  type ContinueResponse
-} from '../utils/commandletHelpers';
+import { ApexTestRunCacheService, isEmpty } from '../testRunCache/apexTestRunCacheService';
+import { apexTestingDiagnostics } from '../utils/diagnostics';
+import { withExecutionLog } from '../utils/executionLog';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
+import { ensureSalesforceProject } from '../utils/projectPrecheck';
 import { runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
-class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
-  protected cancellable: boolean = true;
-  private readonly tests: string[];
-  private readonly outputDir: URI;
-  private readonly codeCoverage: boolean;
-  private readonly concise: boolean;
-  public static diagnostics = vscode.languages.createDiagnosticCollection('apex-testing-errors');
+class WorkspaceFolderError extends Schema.TaggedError<WorkspaceFolderError>()('WorkspaceFolderError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.String)
+}) {}
 
-  constructor(
-    tests: string[],
-    outputDir: URI,
-    codeCoverage = settings.retrieveTestCodeCoverage(),
-    concise = settings.retrieveTestRunConcise()
-  ) {
-    super(nls.localize('apex_test_run_text'), 'apex_test_run_code_action_library', OUTPUT_CHANNEL);
-    this.tests = tests;
-    this.outputDir = outputDir;
-    this.codeCoverage = codeCoverage;
-    this.concise = concise;
-  }
+/** Run the given test class/method names, write diagnostics, and notify. */
+const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (tests: string[]) {
+  yield* ensureSalesforceProject();
 
-  public async run(
-    _response?: ContinueResponse<{}>,
-    progress?: vscode.Progress<{ message?: string }>,
-    token?: vscode.CancellationToken
-  ): Promise<boolean> {
-    const connection = await getConnection();
-    const testService = new TestService(connection);
-    const payload = await testService.buildAsyncPayload(
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  const outputDir = yield* getTempFolder();
+  const codeCoverage = settings.retrieveTestCodeCoverage();
+
+  const connection = yield* Effect.promise(() => getConnection());
+  const testService = new TestService(connection);
+  const payload = yield* Effect.promise(() =>
+    testService.buildAsyncPayload(
       TestLevel.RunSpecifiedTests,
-      this.tests.join(),
+      tests.join(),
       undefined,
       undefined,
       undefined,
-      !this.codeCoverage // the setting enables code coverage, so we need to pass false to disable it
-    );
+      !codeCoverage // the setting enables code coverage, so we need to pass false to disable it
+    )
+  );
 
-    const result = await getApexTestingRuntime().runPromise(
-      runApexTests(
-        {
-          payload,
-          outputDir: this.outputDir,
-          codeCoverage: this.codeCoverage,
-          concise: this.concise,
-          telemetryTrigger: 'codeAction'
-        },
-        progress,
-        token
-      )
-    );
+  const result = yield* runApexTests({
+    payload,
+    outputDir,
+    codeCoverage,
+    concise: settings.retrieveTestRunConcise(),
+    telemetryTrigger: 'codeAction'
+  }).pipe(
+    withExecutionLog(nls.localize('apex_test_run_text')),
+    promptService.withCancellableProgress(nls.localize('apex_test_run_text'))
+  );
 
-    if (!result) {
-      return false;
-    }
-
-    await handleDiagnostics(result);
-    return result.summary.outcome === 'Passed';
+  OUTPUT_CHANNEL.show();
+  if (result === undefined) {
+    notificationService.showFailedExecution(nls.localize('apex_test_run_text'));
+    return;
   }
-}
 
-const handleDiagnostics = async (result: TestResult): Promise<void> => {
-  ApexLibraryTestRunExecutor.diagnostics.clear();
+  yield* handleDiagnostics(result);
+  if (result.summary.outcome === 'Passed') {
+    notificationService.showSuccessfulExecution(nls.localize('apex_test_run_text'));
+  } else {
+    notificationService.showFailedExecution(nls.localize('apex_test_run_text'));
+  }
+});
+
+const handleDiagnostics = Effect.fn('apexTestRunCodeAction.handleDiagnostics')(function* (result: TestResult) {
+  apexTestingDiagnostics.clear();
 
   const testsWithDiagnostics = result.tests.filter(isTestWithDiagnostic);
   if (testsWithDiagnostics.length === 0) {
     return;
   }
 
-  // Get project from services extension
-  const sfProject = await getApexTestingRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      return yield* api.services.ProjectService.getSfProject();
-    })
-  );
-
-  if (!sfProject) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const maybeProject = yield* Effect.option(api.services.ProjectService.getSfProject());
+  if (Option.isNone(maybeProject)) {
     return;
   }
-  const packageDirectories = sfProject.getUniquePackageDirectories();
-  const correlatedArtifacts = await mapApexArtifactToFilesystem(testsWithDiagnostics, packageDirectories);
+
+  const packageDirectories = maybeProject.value.getUniquePackageDirectories();
+  const correlatedArtifacts = yield* Effect.promise(() =>
+    mapApexArtifactToFilesystem(testsWithDiagnostics, packageDirectories)
+  );
 
   testsWithDiagnostics.forEach(test => {
     const diagnostic = test.diagnostic;
@@ -123,10 +111,10 @@ const handleDiagnostics = async (result: TestResult): Promise<void> => {
         range: getZeroBasedRange(diagnostic.lineNumber ?? 1, diagnostic.columnNumber ?? 1)
       };
 
-      ApexLibraryTestRunExecutor.diagnostics.set(URI.file(componentPath), [vscDiagnostic]);
+      apexTestingDiagnostics.set(URI.file(componentPath), [vscDiagnostic]);
     }
   });
-};
+});
 
 const mapApexArtifactToFilesystem = async (
   tests: ApexTestResultData[],
@@ -166,20 +154,13 @@ const mapApexArtifactToFilesystem = async (
   return correlatedArtifacts;
 };
 
-const apexTestRunCodeAction = async (tests: string[]) => {
-  const outputDir = await getTempFolder();
-  const testRunExecutor = new ApexLibraryTestRunExecutor(tests, outputDir);
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), testRunExecutor);
-  await commandlet.run();
-};
-
-const getTempFolder = async (): Promise<URI> => {
-  try {
-    return await getTestResultsFolder();
-  } catch {
-    throw new Error(nls.localize('cannot_determine_workspace'));
-  }
-};
+const getTempFolder = Effect.fn('apexTestRunCodeAction.getTempFolder')(function* () {
+  return yield* Effect.tryPromise({
+    try: () => getTestResultsFolder(),
+    catch: cause =>
+      new WorkspaceFolderError({ message: nls.localize('cannot_determine_workspace'), cause: String(cause) })
+  });
+});
 
 //   T E S T   C L A S S
 
@@ -195,31 +176,30 @@ export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
 };
 
 // evaluate test class param: if not provided, apply cached value
-// exported for testability
-const resolveTestClassParam = async (testClass: string): Promise<string> => {
+const resolveTestClassParam = Effect.fn('apexTestRunCodeAction.resolveTestClassParam')(function* (testClass: string) {
   if (isEmpty(testClass)) {
-    // value not provided for re-run invocations
-    // apply cached value, if available
-    if (apexTestRunCacheService.hasCachedClassTestParam()) {
-      return apexTestRunCacheService.getLastClassTestParam();
+    // value not provided for re-run invocations; apply cached value, if available
+    if (yield* ApexTestRunCacheService.hasCachedClassTestParam()) {
+      return yield* ApexTestRunCacheService.getLastClassTestParam();
     }
   } else {
-    await apexTestRunCacheService.setCachedClassTestParam(testClass);
+    yield* ApexTestRunCacheService.setCachedClassTestParam(testClass);
   }
   return testClass;
-};
+});
 
 // invokes apex test run on all tests in a class
-export const apexTestClassRunCodeAction = async (testClass: string) => {
-  const resolved = await resolveTestClassParam(testClass);
+export const apexTestClassRunCodeAction = Effect.fn('apexTestClassRunCodeAction')(function* (testClass: string) {
+  const resolved = yield* resolveTestClassParam(testClass);
   if (isEmpty(resolved)) {
     // test param not provided: show error and terminate
-    void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_class_test_param_text'));
-    return;
+    notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_class_test_param_text'));
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* new api.services.UserCancellationError();
   }
 
-  await apexTestRunCodeAction([resolved]);
-};
+  yield* apexTestRunCodeAction([resolved]);
+});
 
 //   T E S T   M E T H O D
 
@@ -234,31 +214,32 @@ export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
 };
 
 // evaluate test method param: if not provided, apply cached value
-const resolveTestMethodParam = async (testMethod: string): Promise<string> => {
+const resolveTestMethodParam = Effect.fn('apexTestRunCodeAction.resolveTestMethodParam')(function* (
+  testMethod: string
+) {
   if (isEmpty(testMethod)) {
-    // value not provided for re-run invocations
-    // apply cached value, if available
-    if (apexTestRunCacheService.hasCachedMethodTestParam()) {
-      return apexTestRunCacheService.getLastMethodTestParam();
+    // value not provided for re-run invocations; apply cached value, if available
+    if (yield* ApexTestRunCacheService.hasCachedMethodTestParam()) {
+      return yield* ApexTestRunCacheService.getLastMethodTestParam();
     }
   } else {
-    await apexTestRunCacheService.setCachedMethodTestParam(testMethod);
+    yield* ApexTestRunCacheService.setCachedMethodTestParam(testMethod);
   }
-
   return testMethod;
-};
+});
 
 // invokes apex test run on a test method
-export const apexTestMethodRunCodeAction = async (testMethod: string) => {
-  const resolved = await resolveTestMethodParam(testMethod);
+export const apexTestMethodRunCodeAction = Effect.fn('apexTestMethodRunCodeAction')(function* (testMethod: string) {
+  const resolved = yield* resolveTestMethodParam(testMethod);
   if (isEmpty(resolved)) {
     // test param not provided: show error and terminate
-    void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_method_test_param_text'));
-    return;
+    notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_method_test_param_text'));
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* new api.services.UserCancellationError();
   }
 
-  await apexTestRunCodeAction([resolved]);
-};
+  yield* apexTestRunCodeAction([resolved]);
+});
 
 const isTestWithDiagnostic = (
   test: ApexTestResultData

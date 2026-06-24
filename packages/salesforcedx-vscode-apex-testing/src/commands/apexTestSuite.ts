@@ -7,6 +7,7 @@
 
 import { TestService } from '@salesforce/apex-node';
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
@@ -24,7 +25,7 @@ import {
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { getFullClassName, isFlowTest } from '../utils/testUtils';
 import { getTestController } from '../views/testController';
-import { ApexLibraryTestRunExecutor } from './apexTestRun';
+import { runSelectedTests } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
@@ -190,10 +191,14 @@ export const apexTestSuiteCreate = async () => {
 };
 
 export const apexTestSuiteRun = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new TestSuiteSelector(),
-    new ApexLibraryTestRunExecutor()
-  );
+  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new TestSuiteSelector(), {
+    execute: response =>
+      getApexTestingRuntime().runPromise(
+        runSelectedTests(response.data).pipe(
+          Effect.asVoid,
+          Effect.catchTag('UserCancellationError', () => Effect.void)
+        )
+      )
+  });
   await commandlet.run();
 };

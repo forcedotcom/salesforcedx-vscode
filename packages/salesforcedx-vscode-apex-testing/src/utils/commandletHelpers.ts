@@ -24,13 +24,6 @@ type CommandletExecutor<T> = {
   execute: (response: ContinueResponse<T>) => Promise<void> | void;
 };
 
-export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  // eslint-disable-next-line class-methods-use-this
-  public gather(): Promise<Response<{}>> {
-    return Promise.resolve({ type: 'CONTINUE', data: {} });
-  }
-}
-
 export class SfCommandlet<T> {
   private readonly prechecker: PreconditionChecker;
   private readonly gatherer: ParametersGatherer<T>;

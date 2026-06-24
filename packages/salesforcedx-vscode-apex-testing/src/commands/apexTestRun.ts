@@ -5,145 +5,119 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { type CancellationToken, CancellationError, languages, ProgressLocation, window } from 'vscode';
+import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { window } from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
-import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import {
-  type CancelResponse,
-  type ContinueResponse,
-  LibraryCommandletExecutor,
-  type ParametersGatherer,
-  SfCommandlet
-} from '../utils/commandletHelpers';
+import { withExecutionLog } from '../utils/executionLog';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
+import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
+import { ensureSalesforceProject } from '../utils/projectPrecheck';
 import { getFullClassName, isFlowTest } from '../utils/testUtils';
 import { runApexTests } from './apexTestRunUtils';
 
-class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
-  // eslint-disable-next-line class-methods-use-this
-  public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
-    let fileItems: ApexTestQuickPickItem[];
-    try {
-      fileItems = await window.withProgress(
-        {
-          location: ProgressLocation.Notification,
-          title: nls.localize('retrieving_tests_message'),
-          cancellable: true
-        },
-        async (_progress, token) => {
-          let suiteItems: ApexTestQuickPickItem[] = [];
-          let classItems: ApexTestQuickPickItem[] = [];
-          try {
-            const connection = await getConnection();
-            const testService = new TestService(connection);
-            const [suites, discoveryResult] = await Promise.all([
-              testService.retrieveAllSuites(),
-              getApexTestingRuntime().runPromise(discoverTests())
-            ]);
-            suiteItems = suites.map(
-              (suite): ApexTestQuickPickItem => ({
-                label: suite.TestSuiteName,
-                description: suite.id,
-                type: 'Suite' as const
-              })
-            );
-            classItems = discoveryResult.classes
-              .filter(cls => !isFlowTest(cls) && (cls.testMethods?.length ?? 0) > 0)
-              .map(
-                (cls): ApexTestQuickPickItem => ({
-                  label: cls.name,
-                  description: cls.namespacePrefix ?? '',
-                  type: 'Class' as const,
-                  fullClassName: getFullClassName(cls)
-                })
-              );
-          } catch {
-            // No org or discovery failed; quick pick will only show All/AllLocal
-          }
+/** Prompt the user to pick a test target (suite, class, or all). Fails with UserCancellationError on dismiss. */
+const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
 
-          const items = [
-            ...suiteItems,
-            {
-              label: nls.localize('apex_test_run_all_local_test_label'),
-              description: nls.localize('apex_test_run_all_local_tests_description_text'),
-              type: 'AllLocal' as const
-            },
-            {
-              label: nls.localize('apex_test_run_all_test_label'),
-              description: nls.localize('apex_test_run_all_tests_description_text'),
-              type: 'All' as const
-            },
-            ...classItems
-          ];
-          if (token.isCancellationRequested) {
-            throw new CancellationError();
-          }
-          return items;
-        }
+  const buildItems = Effect.fn('apexTestRun.selectTests.buildItems')(function* () {
+    const suiteAndClassItems = yield* Effect.gen(function* () {
+      const connection = yield* Effect.promise(() => getConnection());
+      const testService = new TestService(connection);
+      const suites = yield* Effect.promise(() => testService.retrieveAllSuites());
+      const discoveryResult = yield* discoverTests();
+      const suiteItems = suites.map(
+        (suite): ApexTestQuickPickItem => ({
+          label: suite.TestSuiteName,
+          description: suite.id,
+          type: 'Suite' as const
+        })
       );
-    } catch (e) {
-      if (e instanceof CancellationError) {
-        return { type: 'CANCEL' };
-      }
-      throw e;
-    }
-
-    const selection = await window.showQuickPick<ApexTestQuickPickItem>(fileItems);
-    return selection ? { type: 'CONTINUE', data: selection } : { type: 'CANCEL' };
-  }
-}
-
-export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTestQuickPickItem> {
-  protected cancellable: boolean = true;
-  public static diagnostics = languages.createDiagnosticCollection('apex-testing-errors');
-
-  constructor() {
-    super(nls.localize('apex_test_run_text'), 'apex_test_run_library', OUTPUT_CHANNEL);
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  public async run(
-    response: ContinueResponse<ApexTestQuickPickItem>,
-    progress?: Progress<{ message?: string }>,
-    token?: CancellationToken
-  ): Promise<boolean> {
-    const connection = await getConnection();
-    const testService = new TestService(connection);
-    const payload = await buildTestPayload(testService, response.data);
-
-    const result = await getApexTestingRuntime().runPromise(
-      runApexTests(
-        {
-          payload,
-          outputDir: await getTestResultsFolder(),
-          codeCoverage: settings.retrieveTestCodeCoverage(),
-          concise: settings.retrieveTestRunConcise(),
-          telemetryTrigger: 'quickPick'
-        },
-        progress,
-        token
-      )
+      const classItems = discoveryResult.classes
+        .filter(cls => !isFlowTest(cls) && (cls.testMethods?.length ?? 0) > 0)
+        .map(
+          (cls): ApexTestQuickPickItem => ({
+            label: cls.name,
+            description: cls.namespacePrefix ?? '',
+            type: 'Class' as const,
+            fullClassName: getFullClassName(cls)
+          })
+        );
+      return { suiteItems, classItems };
+    }).pipe(
+      // No org or discovery failed; quick pick will only show All/AllLocal
+      Effect.catchAll(() => Effect.succeed({ suiteItems: [], classItems: [] }))
     );
 
-    return result !== undefined;
-  }
-}
+    return [
+      ...suiteAndClassItems.suiteItems,
+      {
+        label: nls.localize('apex_test_run_all_local_test_label'),
+        description: nls.localize('apex_test_run_all_local_tests_description_text'),
+        type: 'AllLocal' as const
+      },
+      {
+        label: nls.localize('apex_test_run_all_test_label'),
+        description: nls.localize('apex_test_run_all_tests_description_text'),
+        type: 'All' as const
+      },
+      ...suiteAndClassItems.classItems
+    ];
+  });
 
-export const apexTestRun = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new TestsSelector(),
-    new ApexLibraryTestRunExecutor()
+  const items = yield* buildItems().pipe(
+    promptService.withCancellableProgress(nls.localize('retrieving_tests_message'))
   );
-  await commandlet.run();
-};
+
+  const selection = yield* Effect.promise(() => window.showQuickPick<ApexTestQuickPickItem>(items));
+  return yield* promptService.considerUndefinedAsCancellation(selection);
+});
+
+/** Command entrypoint: pick a test target and run it. */
+export const apexTestRun = Effect.fn('apexTestRun')(function* () {
+  yield* ensureSalesforceProject();
+  const selection = yield* selectTests();
+  yield* runSelectedTests(selection);
+});
+
+/** Shared helper: build the payload for a selected quick-pick item, run it with cancellable progress +
+ * completion sentinel, and notify success/failure. Returns the TestResult or undefined if cancelled.
+ * Used by the run-tests command palette and the suite-run command. */
+export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  const connection = yield* Effect.promise(() => getConnection());
+  const testService = new TestService(connection);
+  const payload = yield* Effect.promise(() => buildTestPayload(testService, selection));
+  const outputDir = yield* Effect.promise(() => getTestResultsFolder());
+
+  const result = yield* runApexTests({
+    payload,
+    outputDir,
+    codeCoverage: settings.retrieveTestCodeCoverage(),
+    concise: settings.retrieveTestRunConcise(),
+    telemetryTrigger: 'quickPick'
+  }).pipe(
+    withExecutionLog(nls.localize('apex_test_run_text')),
+    promptService.withCancellableProgress(nls.localize('apex_test_run_text'))
+  );
+
+  OUTPUT_CHANNEL.show();
+  if (result === undefined) {
+    notificationService.showFailedExecution(nls.localize('apex_test_run_text'));
+  } else {
+    notificationService.showSuccessfulExecution(nls.localize('apex_test_run_text'));
+  }
+  return result;
+});
 
 const buildTestPayload = async (
   testService: TestService,
