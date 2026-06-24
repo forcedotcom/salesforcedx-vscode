@@ -89,19 +89,16 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   // Register Effect-pipeline commands via the runtime so spans/tracing/error-handling and
   // UserCancellationError swallowing are wired by registerCommandWithRuntime.
   const registerCommand = api.services.registerCommandWithRuntime(getApexTestingRuntime());
-  yield* Effect.all(
-    [
-      registerCommand('sf.apex.test.run', apexTestRun),
-      registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd),
-      registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
-      registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
-      registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction),
-      registerCommand('sf.apex.test.last.class.run', apexTestClassRunCodeAction),
-      registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction),
-      registerCommand('sf.apex.test.last.method.run', apexTestMethodRunCodeAction)
-    ],
-    { concurrency: 'unbounded' }
-  );
+  yield* Effect.all([
+    registerCommand('sf.apex.test.run', apexTestRun),
+    registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd),
+    registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
+    registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
+    registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction),
+    registerCommand('sf.apex.test.last.class.run', apexTestClassRunCodeAction),
+    registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction),
+    registerCommand('sf.apex.test.last.method.run', apexTestMethodRunCodeAction)
+  ]);
 
   // Always register the remaining (non-Effect) commands (they'll be no-ops if not in a project)
   const commands = registerCommands();

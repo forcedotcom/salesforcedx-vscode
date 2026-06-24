@@ -88,7 +88,9 @@ export const apexTestRun = Effect.fn('apexTestRun')(function* () {
 });
 
 /** Shared helper: build the payload for a selected quick-pick item, run it with cancellable progress +
- * completion sentinel, and notify success/failure. Returns the TestResult or undefined if cancelled.
+ * completion sentinel, and notify success/failure. Returns the TestResult, or undefined when the run
+ * produced no usable result (e.g. timeout / no summary). User cancellation fails the fiber with
+ * UserCancellationError rather than resolving to undefined.
  * Used by the run-tests command palette and the suite-run command. */
 export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
