@@ -69,6 +69,25 @@ Desktop fixture sets `window.menuStyle: "custom"` (context menus stay in DOM on 
 - Fail early, avoid fallbacks/retries
 - Reusable locators belong in `locators.ts` - check before creating new ones
 
+## Hover Tooltips on Windows
+
+Clicking a tree item (e.g. a Test Explorer node) raises a Monaco hover widget (`.hover-contents`, e.g. `lwc1 (Not yet run)`). On Windows it lingers and **intercepts pointer events** on adjacent rows/buttons, so the next `.click()` times out with `subtree intercepts pointer events`. `keyboard.press('Escape')` does not reliably dismiss it.
+
+Fix — force the clicks and retry the whole select → reveal → act sequence (the sanctioned exception to "avoid retries"):
+
+```typescript
+await testCase.scrollIntoViewIfNeeded();
+await expect(async () => {
+  await testCase.click({ force: true });
+  await testCase.hover({ force: true });
+  const runButton = testCase.getByRole('button', { name: /^Run Test/ });
+  await runButton.waitFor({ state: 'visible', timeout: 3000 });
+  await runButton.click({ force: true });
+}).toPass({ timeout: 30_000 });
+```
+
+Reference: `salesforcedx-vscode-lwc` `lwcRunTests.desktop.spec.ts` / `lwcDebugTests.desktop.spec.ts`.
+
 ## Commands and Shortcuts
 
 - Use `f1` for commands, not meta-shift-P
