@@ -40,7 +40,7 @@ Use the **filter** box on the Testing view:
 | What you want           | How                                                                     |
 | ----------------------- | ----------------------------------------------------------------------- |
 | Name contains text      | Type a substring (e.g. `AccountService`).                               |
-| In-workspace tests only | `@in-workspace` (classes that map to local project files).              |
+| In-workspace tests only | `@in-workspace` (Apex/LWC tests mapping to local project files).        |
 | Org-only tests          | `@org-only` (deployed to org, not present locally).                     |
 | Suites only             | `@test-suite`                                                           |
 | Stale tests             | `@stale` (results restored from previous session or code changed since last run). |
