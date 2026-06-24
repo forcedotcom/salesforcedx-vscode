@@ -325,6 +325,27 @@ export const readAliasesByUsernameFromDisk = async (): Promise<Map<string, strin
     }).pipe(Effect.withSpan('OrgUtil.readAliasesByUsernameFromDisk'))
   );
 
+/**
+ * Loads default-org config + fresh org authorizations (alias-supplemented from disk) in one Effect.
+ * Authorizations come from `ConnectionService.listAllAuthorizations` (wraps `AuthInfo.listAllAuthorizations`).
+ * Consumed by the org pickers and `setDefaultOrg`.
+ */
+export const getFreshAuthorizations = Effect.fn('orgUtil.getFreshAuthorizations')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const [defaultConfig, authorizations, aliasesByUsername] = yield* Effect.all([
+    Effect.promise(() => getDefaultOrgConfiguration()),
+    api.services.ConnectionService.listAllAuthorizations(),
+    Effect.promise(() => readAliasesByUsernameFromDisk())
+  ]);
+
+  // Supplement stale StateAggregator alias data with fresh disk data
+  const freshAuthorizations: OrgAuthorization[] = authorizations.map(org =>
+    org.aliases?.length ? org : { ...org, aliases: aliasesByUsername.get(org.username) ?? [] }
+  );
+
+  return { defaultConfig, freshAuthorizations };
+});
+
 /** Get default org and devhub configuration */
 export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
   const configAggregator = await getOrgRuntime().runPromise(getConfigAggregatorEffect);
