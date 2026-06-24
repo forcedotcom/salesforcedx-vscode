@@ -95,7 +95,7 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       registerCommand('sf.apex.traceFlags.changeDebugLevel', (traceFlagId: string) =>
         changeDebugLevelCommand(traceFlagId)
       ),
-      registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId: string) =>
+      registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId?: string) =>
         deleteDebugLevelForIdCommand(debugLevelId)
       ),
       registerCommand('sf.create.anonymous.apex.script', createAnonymousApexScriptCommand),

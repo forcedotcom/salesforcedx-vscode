@@ -143,6 +143,30 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
 
 type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
 
+/** Show a QuickPick of the given DebugLevels for removal; resolves to the picked item's id.
+ * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
+export const pickDebugLevelToRemove = Effect.fn('ApexLog.pickDebugLevelToRemove')(function* (items: DebugLevelItem[]) {
+  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<DebugLevelQuickPickItem>(
+      items.map(dl => ({
+        label: dl.masterLabel,
+        description: `Apex=${dl.apexCode} Vf=${dl.visualforce} DB=${dl.database}`,
+        detail: dl.developerName,
+        debugLevelId: dl.id
+      })),
+      {
+        placeHolder: nls.localize('trace_flag_pick_debug_level_to_remove'),
+        matchOnDescription: true,
+        matchOnDetail: true
+      }
+    )
+  ).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    Effect.map(picked => picked.debugLevelId)
+  );
+});
+
 export type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: string };
 
 /** Show a QuickPick of the given (already active) trace flags; resolves to the picked flag's id.
