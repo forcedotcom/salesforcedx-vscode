@@ -326,8 +326,15 @@ const hasPrUrl = details =>
 // A blocker is "satisfied" only once its work has actually merged — i.e. the WI
 // reached a terminal closed/completed status. 'Ready for Review' / 'Fixed' mean
 // the PR exists but hasn't merged, so a dependency in those states is NOT met.
+// GUS "Bug no-fix" terminal statuses — terminal like Closed/Completed, but the
+// label carries no "Closed" prefix. `Duplicate` is the canonical state for a
+// duplicate WI (the `Closed - Duplicate` status does not persist — a GUS trigger
+// reverts it to `Duplicate`), so the sequencing/dependency gates must count it as done.
+const NO_FIX_TERMINAL = new Set([
+  'Duplicate', 'Inactive', 'Never', 'Not a bug', 'Not Reproducible', 'Rejected', 'Eng Internal',
+])
 const isBlockerSatisfied = status =>
-  status === 'Completed' || status.startsWith('Closed')
+  status === 'Completed' || status.startsWith('Closed') || NO_FIX_TERMINAL.has(status)
 
 // A PR whose ONLY changed file is its own plan (or otherwise empty) has no
 // implementation — the Build phase no-op'd but reported 'done'. Such a PR still

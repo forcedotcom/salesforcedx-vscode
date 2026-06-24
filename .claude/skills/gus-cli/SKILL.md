@@ -82,6 +82,8 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
 Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when querying team or epic work.
 
+**Open-WI queries must ALSO exclude the "Bug no-fix" terminals**: `Duplicate`, `Inactive`, `Never`, `Not a bug`, `Not Reproducible`, `Rejected`, `Eng Internal`. Terminal despite no "Closed" prefix — omit them and a `Duplicate` WI wrongly shows as open.
+
 **Create:** Always set `Story_Points__c=2`, `Product_Tag__c=a1aB000000005G3IAI`, `RecordTypeId`. Include `Subject__c`, `Assignee__c`, `Scrum_Team__c=a00B0000000w9xPIAQ`, `Epic__c` (optional), `QA_Engineer__c` (optional), `Details__c` (optional). Leave `Sprint__c` blank; never modify it. **Details\_\_c:** write concisely—fragments/bullets, minimal words, no repetition (see .claude/skills/concise/SKILL.md).
 
 **`Details__c` ≥20 chars required.** `Details__c` (field label "Description") has a User Story validation rule: <20 chars → create fails with `Description must be at least 20 characters to submit a User Story`. Despite docs marking it optional, treat as required on create. Note: `Description__c` is a DIFFERENT field (label "Comment", unvalidated)—don't confuse them; the validated body field is `Details__c`.
@@ -194,6 +196,8 @@ When unsure which epic: ask the user.
 
 When creating/updating, only use New,In Progress,Ready for Review,QA In Progress,Fixed,Waiting,Closed
 When completing a work item, use `Closed`.
+
+To mark a WI as a duplicate: set `Status__c='Duplicate'` + link the original via `Related_Work__c` (label "Duplicate Of"). `Closed - Duplicate` does NOT persist here — a trigger reverts it to `Duplicate` — so use `Duplicate` directly. `Duplicate` is terminal (treat like Closed) for open/unfinished queries.
 
 **Flow:** New → Acknowledged → Triaged → In Progress → Ready for Review → Fixed → QA In Progress → Completed/Closed
 
