@@ -448,7 +448,7 @@ git commit -m "feat(lwc): route LWC test run commands through the test controlle
 
 **Note on telemetry:** the controller's debug path sets `sfDebugSessionId` in its `vscode.debug.startDebugging` config (see `lwcTestController.executeOne`), and `handleDidStart/TerminateDebugSession` key off `sfDebugSessionId`, so debug telemetry continues to fire. Verify this id is present in the controller config (it is: `sfDebugSessionId: globalThis.crypto.randomUUID()` in `executeOne`).
 
-- [ ] **Step 1: Write the failing test** — create `lwcTestDebugAction.test.ts`.
+- [x] **Step 1: Write the failing test** — create `lwcTestDebugAction.test.ts`.
 
 ```typescript
 /*
@@ -466,33 +466,39 @@ jest.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
   getLwcTestController: () => ({ runByExecutionInfo, runActiveEditorFile })
 }));
 
-import { lwcTestFileDebug, lwcTestCaseDebug } from '../../../../src/testSupport/commands/lwcTestDebugAction';
+import { lwcTestFileDebug, lwcTestCaseDebug, lwcTestDebugActiveTextEditorTest } from '../../../../src/testSupport/commands/lwcTestDebugAction';
 
 describe('lwcTestDebugAction routes through the controller', () => {
   beforeEach(() => {
     runByExecutionInfo.mockClear();
+    runActiveEditorFile.mockClear();
   });
 
   it('lwcTestFileDebug calls controller.runByExecutionInfo with isDebug=true', async () => {
-    const testExecutionInfo = { kind: 'testFile', testUri: URI.file('/a/foo.test.js') };
+    const testExecutionInfo = { kind: 'testFile' as const, testUri: URI.file('/a/foo.test.js') };
     await lwcTestFileDebug({ testExecutionInfo });
     expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, true);
   });
 
   it('lwcTestCaseDebug calls controller.runByExecutionInfo with isDebug=true', async () => {
-    const testExecutionInfo = { kind: 'testCase', testUri: URI.file('/a/foo.test.js'), testName: 'does x' };
+    const testExecutionInfo = { kind: 'testCase' as const, testUri: URI.file('/a/foo.test.js'), testName: 'does x' };
     await lwcTestCaseDebug({ testExecutionInfo });
     expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, true);
+  });
+
+  it('lwcTestDebugActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=true', async () => {
+    await lwcTestDebugActiveTextEditorTest();
+    expect(runActiveEditorFile).toHaveBeenCalledWith(true);
   });
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/commands/lwcTestDebugAction.test.ts`
-Expected: FAIL — current code builds a debug config via `TestRunner`, not `runByExecutionInfo`.
+Expected: FAIL — current code routes via `TestRunner`, not controller.
 
-- [ ] **Step 3: Write minimal implementation** — replace the run-routing functions in `lwcTestDebugAction.ts`, KEEPING the two session handlers and the telemetry imports they use:
+- [x] **Step 3: Write minimal implementation** — replace run-routing functions in `lwcTestDebugAction.ts`, KEEP session handlers + telemetry imports:
 
 ```typescript
 /*
@@ -541,17 +547,19 @@ export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => 
 };
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/commands/lwcTestDebugAction.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/salesforcedx-vscode-lwc/src/testSupport/commands/lwcTestDebugAction.ts packages/salesforcedx-vscode-lwc/test/jest/testSupport/commands/lwcTestDebugAction.test.ts
 git commit -m "feat(lwc): route LWC test debug commands through the test controller"
 ```
+
+**✓ COMPLETED 2026-06-24** — Debug commands routed through controller; test now covers `lwcTestDebugActiveTextEditorTest` delegation. Debug telemetry (`lwc_test_debug_action`) fires via existing session handlers + controller's `sfDebugSessionId`.
 
 ---
 

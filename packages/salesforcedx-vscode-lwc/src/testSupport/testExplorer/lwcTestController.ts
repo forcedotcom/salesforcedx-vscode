@@ -177,7 +177,9 @@ class LwcTestController {
         void this.populateFiles();
       }),
       lwcTestIndexer.onDidUpdateTestResultsIndex(() => {
-        // Out-of-band results written by command-palette / code-lens / toolbar runs via executeAsSfTask.
+        // Out-of-band results written by watch-mode runs (still on the bare-task path via executeAsSfTask).
+        // Run/debug commands now route through this controller, so this listener exists only for watch.
+        // Remove alongside the watch -> Continuous Run migration (follow-up WI).
         // Apply the indexer's latest per-file results so the Test Explorer shows pass/fail icons.
         void this.applyIndexerResults();
       })
@@ -185,8 +187,9 @@ class LwcTestController {
   };
 
   /**
-   * Apply results stored in the indexer (e.g. from out-of-band runs via command palette /
-   * code-lens / toolbar) to the VS Code Test Explorer so pass/fail icons update.
+   * Apply results stored in the indexer (from out-of-band watch-mode runs) to the VS Code
+   * Test Explorer so pass/fail icons update. Run/debug now route through this controller and
+   * attribute results to their own run; only watch still produces out-of-band results.
    */
   private applyIndexerResults = async (): Promise<void> => {
     try {
