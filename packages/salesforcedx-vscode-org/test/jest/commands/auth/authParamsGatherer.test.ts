@@ -12,24 +12,26 @@ import {
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { AuthParamsGatherer, DEFAULT_ALIAS } from '../../../../src/commands/auth/authParamsGatherer';
+import * as vscode from 'vscode';
+import {
+  AccessTokenParamsGatherer,
+  AuthParamsGatherer,
+  DEFAULT_ALIAS,
+  ScratchOrgLogoutParamsGatherer
+} from '../../../../src/commands/auth/authParamsGatherer';
 import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
-
-/** Cancels iff the value is undefined / empty string, mirroring PromptService.considerUndefinedAsCancellation. */
-class UserCancellationError extends Error {
-  public readonly _tag = 'UserCancellationError';
-}
-const considerUndefinedAsCancellation = <T>(value: T | undefined): Effect.Effect<T, UserCancellationError> =>
-  value === undefined || (typeof value === 'string' && value.trim().length === 0)
-    ? Effect.fail(new UserCancellationError())
-    : Effect.succeed(value);
+import {
+  considerUndefinedAsCancellation,
+  makeConfirmOrThrow,
+  UserCancellationError
+} from '../../testHelpers/promptServiceStub';
 
 describe('AuthParamsGatherer', () => {
-  const buildLayer = () => {
+  const buildLayer = (confirm = true) => {
     const mockServicesApi = {
       services: {
         // PromptService has accessors:false, so consumers `yield*` the service first
-        PromptService: Effect.succeed({ considerUndefinedAsCancellation }),
+        PromptService: Effect.succeed({ considerUndefinedAsCancellation, confirmOrThrow: makeConfirmOrThrow(confirm) }),
         UserCancellationError
       }
     } as unknown as SalesforceVSCodeServicesApi;
@@ -38,11 +40,15 @@ describe('AuthParamsGatherer', () => {
     });
   };
 
-  beforeEach(() => {
+  const useLayer = (confirm = true): void => {
     resetOrgRuntimeForTesting();
     setAllServicesLayer(
-      buildLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
+      buildLayer(confirm) as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
     );
+  };
+
+  beforeEach(() => {
+    useLayer();
   });
 
   afterEach(() => {
@@ -86,6 +92,65 @@ describe('AuthParamsGatherer', () => {
         type: 'CONTINUE',
         data: { alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }
       });
+    });
+  });
+
+  describe('AccessTokenParamsGatherer', () => {
+    const instanceUrl = 'https://demo.my.salesforce.com';
+    const accessToken = 'token123';
+
+    it('CONTINUE happy path with explicit alias', async () => {
+      jest
+        .spyOn(vscode.window, 'showInputBox')
+        .mockResolvedValueOnce(instanceUrl)
+        .mockResolvedValueOnce('myAlias')
+        .mockResolvedValueOnce(accessToken);
+
+      const result = await new AccessTokenParamsGatherer().gather();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: { alias: 'myAlias', instanceUrl, accessToken } });
+    });
+
+    it('empty-string alias defaults to DEFAULT_ALIAS', async () => {
+      jest
+        .spyOn(vscode.window, 'showInputBox')
+        .mockResolvedValueOnce(instanceUrl)
+        .mockResolvedValueOnce('')
+        .mockResolvedValueOnce(accessToken);
+
+      const result = await new AccessTokenParamsGatherer().gather();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: { alias: DEFAULT_ALIAS, instanceUrl, accessToken } });
+    });
+
+    it('CANCEL when instance URL prompt is dismissed (undefined)', async () => {
+      jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
+
+      const result = await new AccessTokenParamsGatherer().gather();
+
+      expect(result).toEqual({ type: 'CANCEL' });
+    });
+
+    it('CANCEL when alias prompt is dismissed (undefined)', async () => {
+      jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(instanceUrl).mockResolvedValueOnce(undefined);
+
+      const result = await new AccessTokenParamsGatherer().gather();
+
+      expect(result).toEqual({ type: 'CANCEL' });
+    });
+  });
+
+  describe('ScratchOrgLogoutParamsGatherer', () => {
+    it('CONTINUE with the username when confirmed', async () => {
+      useLayer(true);
+      const result = await new ScratchOrgLogoutParamsGatherer('user@example.com', 'myScratch').gather();
+      expect(result).toEqual({ type: 'CONTINUE', data: 'user@example.com' });
+    });
+
+    it('CANCEL when the confirmation is dismissed', async () => {
+      useLayer(false);
+      const result = await new ScratchOrgLogoutParamsGatherer('user@example.com', 'myScratch').gather();
+      expect(result).toEqual({ type: 'CANCEL' });
     });
   });
 });
