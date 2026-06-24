@@ -16,6 +16,7 @@ import { nls } from '../../messages';
 import { isTraceFlagActive } from '../../traceFlags/traceFlagActive';
 import {
   pickDebugLevel,
+  pickDebugLevelToRemove,
   pickLogLevel,
   pickOrgUser,
   pickTraceFlag,
@@ -203,9 +204,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   yield* traceFlagService.createDebugLevel(payload).pipe(
     Effect.flatMap(() => refreshTraceFlagsView(orgId)),
     Effect.catchTag('DebugLevelCreateError', () =>
-      Effect.sync(() => {
-        void vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed'));
-      })
+      Effect.promise(() => vscode.window.showErrorMessage(nls.localize('trace_flag_create_log_level_failed')))
     )
   );
 });
@@ -248,15 +247,25 @@ export const changeDebugLevelCommand = Effect.fn('ApexLog.Command.changeDebugLev
   yield* refreshTraceFlagsView(orgId);
 });
 
-/** Delete debug level by Id via Tooling API, refresh virtual doc. */
+/** Resolve a debug level id via QuickPick; shows an info message and returns undefined when none exist. */
+const promptForDebugLevelId = Effect.fn('ApexLog.promptForDebugLevelId')(function* (levels: DebugLevelItem[]) {
+  if (levels.length === 0) {
+    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_no_debug_levels')));
+    return undefined;
+  }
+  return yield* pickDebugLevelToRemove(levels);
+});
+
+/** Delete debug level by Id via Tooling API, refresh virtual doc. When no Id is provided (e.g. command palette), prompts via QuickPick. */
 export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDebugLevelForId')(function* (
-  debugLevelId: string
+  debugLevelId?: string
 ) {
-  if (!debugLevelId) return;
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
-  yield* traceFlagService.deleteDebugLevel(debugLevelId);
+  const resolvedId = debugLevelId ?? (yield* promptForDebugLevelId(yield* traceFlagService.getDebugLevels()));
+  if (!resolvedId) return;
+  yield* traceFlagService.deleteDebugLevel(resolvedId);
   yield* refreshTraceFlagsView(orgId);
 });
