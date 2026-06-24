@@ -99,6 +99,8 @@ class LwcTestController {
     if (!item) {
       return;
     }
+    // Reveal the Test Results panel so command/code-lens/button runs surface progress immediately.
+    void vscode.commands.executeCommand('workbench.panel.testResults.view.focus');
     // If caller asked for a specific case but we could only resolve the file item,
     // pass the original case info so jest still gets --testNamePattern (don't silently run the whole file).
     const execOverride = info.kind === 'testCase' && getItemKind(item.id) === 'file' ? info : undefined;
@@ -123,7 +125,7 @@ class LwcTestController {
   };
 
   private resolveItemForExecutionInfo = async (info: TestExecutionInfo): Promise<vscode.TestItem | undefined> => {
-    // Normalize the URI to match how discovery/populateFiles keys items (strips /private on macOS)
+    // Normalize URI to match discovery keying (strips /private on macOS)
     const normalizedUri = URI.file(normalizeJestFsPath(info.testUri.fsPath));
     const fileId = createFileId(normalizedUri);
     // discovery may not have run yet for this uri; create the item on demand
@@ -507,8 +509,7 @@ class LwcTestController {
   /** Walk the Jest JSON output and attribute results to matching TestItems. */
   private applyResults = (run: vscode.TestRun, results: LwcJestTestResults): void => {
     for (const fileResult of results.testResults) {
-      // normalizeJestFsPath strips /private prefix on macOS so the URI matches
-      // what vscode.workspace.findFiles returns (symlink path, not realpath).
+      // Strip /private prefix on macOS so URI matches findFiles (symlink, not realpath)
       const testUri = URI.file(normalizeJestFsPath(fileResult.name));
       const fileId = createFileId(testUri);
       const fileItem = this.fileItems.get(fileId);

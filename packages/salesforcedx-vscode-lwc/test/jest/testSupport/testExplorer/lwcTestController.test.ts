@@ -519,4 +519,156 @@ describe('LwcTestController public run API', () => {
       }
     }
   });
+
+  it('runByExecutionInfo reveals Test Results panel when starting a run', async () => {
+    const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
+
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
+
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: {
+        replace: jest.fn(),
+        forEach: jest.fn()
+      },
+      createTestItem: (id: string, label: string, uri?: URI) => ({
+        id,
+        label,
+        uri,
+        canResolveChildren: false,
+        tags: [],
+        children: { replace: jest.fn(), forEach: jest.fn() }
+      }),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(() => mockRun),
+      dispose: jest.fn()
+    };
+
+    // Mock TestRunRequest and CancellationTokenSource
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.include = include;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.exclude = exclude;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.profile = profile;
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.CancellationTokenSource as any) = jest.fn(() => ({
+      token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
+      cancel: jest.fn(),
+      dispose: jest.fn()
+    }));
+
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([{ kind: 'testFile' as const, testUri }]);
+    (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
+
+    // Get fresh vscode mock to spy on executeCommand
+    const vscodeMock = jest.requireMock('vscode');
+    const executeCommandSpy = vscodeMock.commands.executeCommand as jest.Mock;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
+
+    // Short-circuit test execution
+    jest
+      .spyOn(require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype, 'getShellExecutionInfo')
+      .mockResolvedValue(undefined);
+
+    // Run the test via runByExecutionInfo (command entry point)
+    await ctrl.runByExecutionInfo({ kind: 'testFile' as const, testUri }, false);
+
+    // Assert Test Results panel reveal was called
+    expect(executeCommandSpy).toHaveBeenCalledWith('workbench.panel.testResults.view.focus');
+  });
+
+  it('runByExecutionInfo reveals Test Results panel when starting a debug run', async () => {
+    const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
+
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
+
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: {
+        replace: jest.fn(),
+        forEach: jest.fn()
+      },
+      createTestItem: (id: string, label: string, uri?: URI) => ({
+        id,
+        label,
+        uri,
+        canResolveChildren: false,
+        tags: [],
+        children: { replace: jest.fn(), forEach: jest.fn() }
+      }),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(() => mockRun),
+      dispose: jest.fn()
+    };
+
+    // Mock TestRunRequest and CancellationTokenSource
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.include = include;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.exclude = exclude;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.profile = profile;
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.CancellationTokenSource as any) = jest.fn(() => ({
+      token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
+      cancel: jest.fn(),
+      dispose: jest.fn()
+    }));
+
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([{ kind: 'testFile' as const, testUri }]);
+    (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
+
+    // Get fresh vscode mock to spy on executeCommand
+    const vscodeMock = jest.requireMock('vscode');
+    const executeCommandSpy = vscodeMock.commands.executeCommand as jest.Mock;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
+
+    // Short-circuit test execution
+    jest
+      .spyOn(require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype, 'getShellExecutionInfo')
+      .mockResolvedValue(undefined);
+
+    // Run the test via runByExecutionInfo with isDebug=true (debug command entry point)
+    await ctrl.runByExecutionInfo({ kind: 'testFile' as const, testUri }, true);
+
+    // Assert Test Results panel reveal was called for debug runs too
+    expect(executeCommandSpy).toHaveBeenCalledWith('workbench.panel.testResults.view.focus');
+  });
 });
