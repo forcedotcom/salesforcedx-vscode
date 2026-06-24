@@ -20,6 +20,7 @@ import {
   TestResultStatus,
   isTestCaseInfo
 } from '../types';
+import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import { workspace } from '../workspace';
 import { appendLine, appendRunHeader, appendTestResultsOutput, TestItemLookup } from './testResultsOutput';
@@ -106,14 +107,21 @@ class LwcTestController {
     }
   };
 
+  /** Public entry for the editor-title button / command palette: run the active LWC test file. */
+  public runActiveEditorFile = (isDebug: boolean): Promise<void> | undefined => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || !isLwcJestTest(editor.document)) {
+      return undefined;
+    }
+    const info: TestFileInfo = { kind: 'testFile', testUri: editor.document.uri };
+    return this.runByExecutionInfo(info, isDebug);
+  };
+
   private resolveItemForExecutionInfo = async (info: TestExecutionInfo): Promise<vscode.TestItem | undefined> => {
     const fileUri = info.testUri;
     const fileId = createFileId(fileUri);
-    let fileItem = this.fileItems.get(fileId);
-    if (!fileItem) {
-      // discovery may not have run yet for this uri; create the item on demand
-      fileItem = this.getOrCreateFileItem({ kind: 'testFile', testUri: fileUri });
-    }
+    // discovery may not have run yet for this uri; create the item on demand
+    const fileItem = this.fileItems.get(fileId) ?? this.getOrCreateFileItem({ kind: 'testFile', testUri: fileUri });
     if (info.kind === 'testFile' || info.kind === 'testDirectory') {
       return fileItem;
     }

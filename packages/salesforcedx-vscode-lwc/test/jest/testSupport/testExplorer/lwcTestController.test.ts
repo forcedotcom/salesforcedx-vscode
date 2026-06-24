@@ -100,8 +100,6 @@ describe('LwcTestController test item tags', () => {
 describe('LwcTestController public run API', () => {
   it('runByExecutionInfo resolves a file item and starts a test run', async () => {
     const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
-    const createdRuns: any[] = [];
-    let runHandler: ((request: any, token: any) => unknown) | undefined;
 
     const controller = {
       resolveHandler: undefined,
@@ -118,35 +116,30 @@ describe('LwcTestController public run API', () => {
         tags: [],
         children: { replace: jest.fn(), forEach: jest.fn() }
       }),
-      // capture the Run profile's handler so the test can assert a run is created
-      createRunProfile: jest.fn((_label, kind, handler) => {
-        if (kind === vscode.TestRunProfileKind.Run) {
-          runHandler = handler;
-        }
-        return { dispose: jest.fn() };
-      }),
-      createTestRun: jest.fn(() => {
-        const run = {
-          started: jest.fn(),
-          passed: jest.fn(),
-          failed: jest.fn(),
-          skipped: jest.fn(),
-          errored: jest.fn(),
-          appendOutput: jest.fn(),
-          end: jest.fn()
-        };
-        createdRuns.push(run);
-        return run;
-      }),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(() => ({
+        started: jest.fn(),
+        passed: jest.fn(),
+        failed: jest.fn(),
+        skipped: jest.fn(),
+        errored: jest.fn(),
+        appendOutput: jest.fn(),
+        end: jest.fn()
+      })),
       dispose: jest.fn()
     };
 
     // Mock TestRunRequest and CancellationTokenSource
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.include = include;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.exclude = exclude;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.profile = profile;
     });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     (vscode.CancellationTokenSource as any) = jest.fn(() => ({
       token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
       cancel: jest.fn(),
@@ -157,7 +150,9 @@ describe('LwcTestController public run API', () => {
     (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([{ kind: 'testFile', testUri }]);
     (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const ctrl = getLwcTestController();
     await ctrl.refresh();
 
@@ -169,5 +164,26 @@ describe('LwcTestController public run API', () => {
     await ctrl.runByExecutionInfo({ kind: 'testFile', testUri }, false);
 
     expect(controller.createTestRun).toHaveBeenCalled();
+  });
+
+  it('runActiveEditorFile no-ops when the active editor is not an LWC jest test', async () => {
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: { replace: jest.fn(), forEach: jest.fn() },
+      createTestItem: jest.fn(),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(),
+      dispose: jest.fn()
+    };
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    // no active editor
+    (vscode.window as any).activeTextEditor = undefined;
+
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    const ctrl = getLwcTestController();
+    await ctrl.runActiveEditorFile(false);
+
+    expect(controller.createTestRun).not.toHaveBeenCalled();
   });
 });
