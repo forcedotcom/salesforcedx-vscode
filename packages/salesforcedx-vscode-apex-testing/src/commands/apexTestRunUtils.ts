@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { CancellationError } from 'vscode';
+import { CancellationError, CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import * as settings from '../settings';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
@@ -45,7 +45,6 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
 /** Runs Apex tests and writes results. Returns undefined when the run produced no usable result (timeout / no summary). */
 export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTestRunOptions) {
   yield* Effect.annotateCurrentSpan('trigger', options.telemetryTrigger);
-  const startTime = Date.now();
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const connection = yield* api.services.ConnectionService.getConnection();
@@ -54,16 +53,25 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
   const Cancelled = { _tag: 'Cancelled' } as const;
   type Cancelled = typeof Cancelled;
 
+  // Bridge the fiber's interruption (e.g. user clicks Cancel on the progress notification) to a
+  // vscode CancellationToken so apex-node stops polling the org server-side, not just the UI.
+  const tokenSource = new CancellationTokenSource();
+
   // TODO: fix in apex-node W-18453221
   const result = yield* Effect.tryPromise({
-    try: () => testService.runTestAsynchronous(options.payload, options.codeCoverage, false),
+    try: () =>
+      testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token),
     catch: (e: unknown): Cancelled | Cause.UnknownException => {
       if (e instanceof CancellationError) {
         return Cancelled;
       }
       return new Cause.UnknownException(e);
     }
-  }).pipe(Effect.catchTag('Cancelled', () => Effect.succeed(undefined)));
+  }).pipe(
+    Effect.onInterrupt(() => Effect.sync(() => tokenSource.cancel())),
+    Effect.ensuring(Effect.sync(() => tokenSource.dispose())),
+    Effect.catchTag('Cancelled', () => Effect.succeed(undefined))
+  );
 
   if (result === undefined) {
     return undefined;
@@ -92,11 +100,10 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
     Effect.catchAll(error => Effect.logError(`Failed to generate test report: ${String(error)}`))
   );
 
-  const durationMs = Date.now() - startTime;
   const summary = result.summary;
+  // duration is captured automatically by the `apexTestRun` span below
   const telemetryAttrs = {
     trigger: options.telemetryTrigger,
-    durationMs,
     testsRan: Number(summary?.testsRan ?? 0),
     testsPassed: Number(summary?.passing ?? 0),
     testsFailed: Number(summary?.failing ?? 0)

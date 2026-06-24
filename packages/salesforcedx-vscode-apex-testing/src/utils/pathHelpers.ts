@@ -12,9 +12,6 @@ import { getDefaultOrgInfo } from '../coreExtensionUtils';
 import { resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryStore';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
-/** Gets the file system path from a URI, using fsPath for file:// scheme and path for other schemes (e.g., memfs://) */
-export const getUriPath = (uri: URI): string => (uri.scheme === 'file' ? uri.fsPath : uri.path);
-
 const STATE_FOLDER = '.sfdx';
 const TOOLS = 'tools';
 const TEST_RESULTS = 'testresults';

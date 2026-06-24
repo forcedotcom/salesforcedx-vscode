@@ -10,14 +10,11 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import { withExecutionLog } from '../utils/executionLog';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
-import { ensureSalesforceProject } from '../utils/projectPrecheck';
 import { getFullClassName, isFlowTest } from '../utils/testUtils';
 import { getTestController } from '../views/testController';
 import { runSelectedTests } from './apexTestRun';
@@ -43,9 +40,9 @@ const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(functio
 });
 
 const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')(function* () {
-  const connection = yield* Effect.promise(() => getConnection());
-  const testService = new TestService(connection);
-  const suites = yield* Effect.promise(() => testService.retrieveAllSuites());
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const connection = yield* api.services.ConnectionService.getConnection();
+  const suites = yield* Effect.promise(() => new TestService(connection).retrieveAllSuites());
   return suites.map(
     (testSuite): ApexTestQuickPickItem => ({
       label: testSuite.TestSuiteName,
@@ -106,13 +103,18 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const channelService = yield* api.services.ChannelService;
   const executionName = nls.localize(executionNameKey);
+  // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
+  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
-  yield* Effect.gen(function* () {
-    const connection = yield* Effect.promise(() => getConnection());
-    const testService = new TestService(connection);
-    yield* Effect.promise(() => testService.buildSuite(options.suitename, options.tests));
-  }).pipe(withExecutionLog(executionName), promptService.withCancellableProgress(executionName));
+  yield* api.services.ConnectionService.getConnection().pipe(
+    Effect.flatMap(connection =>
+      Effect.promise(() => new TestService(connection).buildSuite(options.suitename, options.tests))
+    ),
+    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+    promptService.withCancellableProgress(executionName)
+  );
 
   OUTPUT_CHANNEL.show();
   notificationService.showSuccessfulExecution(executionName);
@@ -124,20 +126,22 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
 });
 
 export const apexTestSuiteAdd = Effect.fn('apexTestSuiteAdd')(function* () {
-  yield* ensureSalesforceProject();
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ProjectService.getSfProject();
   const options = yield* gatherAddOptions();
   yield* buildSuite(options, 'apex_test_suite_add_text');
 });
 
 export const apexTestSuiteCreate = Effect.fn('apexTestSuiteCreate')(function* () {
-  yield* ensureSalesforceProject();
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ProjectService.getSfProject();
   const options = yield* gatherCreateOptions();
   yield* buildSuite(options, 'apex_test_suite_create_text');
 });
 
 export const apexTestSuiteRun = Effect.fn('apexTestSuiteRun')(function* () {
-  yield* ensureSalesforceProject();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ProjectService.getSfProject();
   const promptService = yield* api.services.PromptService;
 
   const quickPickItems = yield* listApexTestSuiteItems();

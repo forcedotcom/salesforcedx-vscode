@@ -36,8 +36,6 @@ export const messages = {
   apex_test_last_method_run_text: 'SFDX: Re-Run Last Run Apex Test Method',
   apex_test_method_run_text: 'SFDX: Run Apex Test Method',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
-  predicates_no_salesforce_project_found_text:
-    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   channel_name: 'Apex Testing',
   configuration_title: 'Salesforce Apex Testing Configuration',
   run_tests_workspace_default_title: 'SFDX: Run Apex Tests in Workspace',

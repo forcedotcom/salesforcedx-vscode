@@ -11,19 +11,17 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
+import * as Str from 'effect/String';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
-import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { ApexTestRunCacheService, isEmpty } from '../testRunCache/apexTestRunCacheService';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
-import { withExecutionLog } from '../utils/executionLog';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { ensureSalesforceProject } from '../utils/projectPrecheck';
 import { runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
@@ -33,25 +31,35 @@ class WorkspaceFolderError extends Schema.TaggedError<WorkspaceFolderError>()('W
 
 /** Run the given test class/method names, write diagnostics, and notify. */
 const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (tests: string[]) {
-  yield* ensureSalesforceProject();
-
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ProjectService.getSfProject();
   const promptService = yield* api.services.PromptService;
+  const channelService = yield* api.services.ChannelService;
+  const executionName = nls.localize('apex_test_run_text');
+  // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
+  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
-  const outputDir = yield* getTempFolder();
   const codeCoverage = settings.retrieveTestCodeCoverage();
 
-  const connection = yield* Effect.promise(() => getConnection());
-  const testService = new TestService(connection);
-  const payload = yield* Effect.promise(() =>
-    testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
-      tests.join(),
-      undefined,
-      undefined,
-      undefined,
-      !codeCoverage // the setting enables code coverage, so we need to pass false to disable it
-    )
+  const { payload, outputDir } = yield* Effect.all(
+    {
+      payload: api.services.ConnectionService.getConnection().pipe(
+        Effect.flatMap(connection =>
+          Effect.promise(() =>
+            new TestService(connection).buildAsyncPayload(
+              TestLevel.RunSpecifiedTests,
+              tests.join(),
+              undefined,
+              undefined,
+              undefined,
+              !codeCoverage // the setting enables code coverage, so we need to pass false to disable it
+            )
+          )
+        )
+      ),
+      outputDir: getTempFolder()
+    },
+    { concurrency: 'unbounded' }
   );
 
   const result = yield* runApexTests({
@@ -61,21 +69,21 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
     concise: settings.retrieveTestRunConcise(),
     telemetryTrigger: 'codeAction'
   }).pipe(
-    withExecutionLog(nls.localize('apex_test_run_text')),
-    promptService.withCancellableProgress(nls.localize('apex_test_run_text'))
+    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+    promptService.withCancellableProgress(executionName)
   );
 
   OUTPUT_CHANNEL.show();
   if (result === undefined) {
-    notificationService.showFailedExecution(nls.localize('apex_test_run_text'));
+    notificationService.showFailedExecution(executionName);
     return;
   }
 
   yield* handleDiagnostics(result);
   if (result.summary.outcome === 'Passed') {
-    notificationService.showSuccessfulExecution(nls.localize('apex_test_run_text'));
+    notificationService.showSuccessfulExecution(executionName);
   } else {
-    notificationService.showFailedExecution(nls.localize('apex_test_run_text'));
+    notificationService.showFailedExecution(executionName);
   }
 });
 
@@ -173,23 +181,20 @@ export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
   void vscode.commands.executeCommand('sf.apex.test.class.run', testClass);
 };
 
-// evaluate test class param: if not provided, apply cached value
+// evaluate test class param: if not provided, fall back to the cached value (if any)
 const resolveTestClassParam = Effect.fn('apexTestRunCodeAction.resolveTestClassParam')(function* (testClass: string) {
-  if (isEmpty(testClass)) {
+  if (Str.isEmpty(testClass)) {
     // value not provided for re-run invocations; apply cached value, if available
-    if (yield* ApexTestRunCacheService.hasCachedClassTestParam()) {
-      return yield* ApexTestRunCacheService.getLastClassTestParam();
-    }
-  } else {
-    yield* ApexTestRunCacheService.setCachedClassTestParam(testClass);
+    return yield* ApexTestRunCacheService.getLastClassTestParam();
   }
-  return testClass;
+  yield* ApexTestRunCacheService.setCachedClassTestParam(testClass);
+  return Option.some(testClass);
 });
 
 // invokes apex test run on all tests in a class
 export const apexTestClassRunCodeAction = Effect.fn('apexTestClassRunCodeAction')(function* (testClass: string) {
   const resolved = yield* resolveTestClassParam(testClass);
-  if (isEmpty(resolved)) {
+  if (Option.isNone(resolved)) {
     // test param not provided: show error and terminate
     yield* Effect.sync(() => {
       void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_class_test_param_text'));
@@ -198,7 +203,7 @@ export const apexTestClassRunCodeAction = Effect.fn('apexTestClassRunCodeAction'
     return yield* new api.services.UserCancellationError();
   }
 
-  yield* apexTestRunCodeAction([resolved]);
+  yield* apexTestRunCodeAction([resolved.value]);
 });
 
 //   T E S T   M E T H O D
@@ -213,25 +218,22 @@ export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
   });
 };
 
-// evaluate test method param: if not provided, apply cached value
+// evaluate test method param: if not provided, fall back to the cached value (if any)
 const resolveTestMethodParam = Effect.fn('apexTestRunCodeAction.resolveTestMethodParam')(function* (
   testMethod: string
 ) {
-  if (isEmpty(testMethod)) {
+  if (Str.isEmpty(testMethod)) {
     // value not provided for re-run invocations; apply cached value, if available
-    if (yield* ApexTestRunCacheService.hasCachedMethodTestParam()) {
-      return yield* ApexTestRunCacheService.getLastMethodTestParam();
-    }
-  } else {
-    yield* ApexTestRunCacheService.setCachedMethodTestParam(testMethod);
+    return yield* ApexTestRunCacheService.getLastMethodTestParam();
   }
-  return testMethod;
+  yield* ApexTestRunCacheService.setCachedMethodTestParam(testMethod);
+  return Option.some(testMethod);
 });
 
 // invokes apex test run on a test method
 export const apexTestMethodRunCodeAction = Effect.fn('apexTestMethodRunCodeAction')(function* (testMethod: string) {
   const resolved = yield* resolveTestMethodParam(testMethod);
-  if (isEmpty(resolved)) {
+  if (Option.isNone(resolved)) {
     // test param not provided: show error and terminate
     yield* Effect.sync(() => {
       void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_method_test_param_text'));
@@ -240,7 +242,7 @@ export const apexTestMethodRunCodeAction = Effect.fn('apexTestMethodRunCodeActio
     return yield* new api.services.UserCancellationError();
   }
 
-  yield* apexTestRunCodeAction([resolved]);
+  yield* apexTestRunCodeAction([resolved.value]);
 });
 
 const isTestWithDiagnostic = (

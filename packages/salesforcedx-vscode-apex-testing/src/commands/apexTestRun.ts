@@ -10,15 +10,12 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { window } from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import { withExecutionLog } from '../utils/executionLog';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { ensureSalesforceProject } from '../utils/projectPrecheck';
 import { getFullClassName, isFlowTest } from '../utils/testUtils';
 import { runApexTests } from './apexTestRunUtils';
 
@@ -28,30 +25,36 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
   const promptService = yield* api.services.PromptService;
 
   const buildItems = Effect.fn('apexTestRun.selectTests.buildItems')(function* () {
-    const suiteAndClassItems = yield* Effect.gen(function* () {
-      const connection = yield* Effect.promise(() => getConnection());
-      const testService = new TestService(connection);
-      const suites = yield* Effect.promise(() => testService.retrieveAllSuites());
-      const discoveryResult = yield* discoverTests();
-      const suiteItems = suites.map(
-        (suite): ApexTestQuickPickItem => ({
-          label: suite.TestSuiteName,
-          description: suite.id,
-          type: 'Suite' as const
-        })
-      );
-      const classItems = discoveryResult.classes
-        .filter(cls => !isFlowTest(cls) && (cls.testMethods?.length ?? 0) > 0)
-        .map(
-          (cls): ApexTestQuickPickItem => ({
-            label: cls.name,
-            description: cls.namespacePrefix ?? '',
-            type: 'Class' as const,
-            fullClassName: getFullClassName(cls)
-          })
-        );
-      return { suiteItems, classItems };
-    }).pipe(
+    const suiteAndClassItems = yield* Effect.all(
+      {
+        suiteItems: Effect.gen(function* () {
+          const connection = yield* api.services.ConnectionService.getConnection();
+          const suites = yield* Effect.promise(() => new TestService(connection).retrieveAllSuites());
+          return suites.map(
+            (suite): ApexTestQuickPickItem => ({
+              label: suite.TestSuiteName,
+              description: suite.id,
+              type: 'Suite' as const
+            })
+          );
+        }),
+        classItems: discoverTests().pipe(
+          Effect.map(discoveryResult =>
+            discoveryResult.classes
+              .filter(cls => !isFlowTest(cls) && (cls.testMethods?.length ?? 0) > 0)
+              .map(
+                (cls): ApexTestQuickPickItem => ({
+                  label: cls.name,
+                  description: cls.namespacePrefix ?? '',
+                  type: 'Class' as const,
+                  fullClassName: getFullClassName(cls)
+                })
+              )
+          )
+        )
+      },
+      { concurrency: 'unbounded' }
+    ).pipe(
       // No org or discovery failed; quick pick will only show All/AllLocal
       Effect.catchAll(() => Effect.succeed({ suiteItems: [], classItems: [] }))
     );
@@ -72,19 +75,18 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
     ];
   });
 
-  const items = yield* buildItems().pipe(
-    promptService.withCancellableProgress(nls.localize('retrieving_tests_message'))
+  return yield* buildItems().pipe(
+    promptService.withCancellableProgress(nls.localize('retrieving_tests_message')),
+    Effect.flatMap(items => Effect.promise(() => window.showQuickPick<ApexTestQuickPickItem>(items))),
+    Effect.flatMap(selection => promptService.considerUndefinedAsCancellation(selection))
   );
-
-  const selection = yield* Effect.promise(() => window.showQuickPick<ApexTestQuickPickItem>(items));
-  return yield* promptService.considerUndefinedAsCancellation(selection);
 });
 
 /** Command entrypoint: pick a test target and run it. */
 export const apexTestRun = Effect.fn('apexTestRun')(function* () {
-  yield* ensureSalesforceProject();
-  const selection = yield* selectTests();
-  yield* runSelectedTests(selection);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ProjectService.getSfProject();
+  yield* runSelectedTests(yield* selectTests());
 });
 
 /** Shared helper: build the payload for a selected quick-pick item, run it with cancellable progress +
@@ -95,11 +97,20 @@ export const apexTestRun = Effect.fn('apexTestRun')(function* () {
 export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const channelService = yield* api.services.ChannelService;
+  const executionName = nls.localize('apex_test_run_text');
+  // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
+  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
-  const connection = yield* Effect.promise(() => getConnection());
-  const testService = new TestService(connection);
-  const payload = yield* Effect.promise(() => buildTestPayload(testService, selection));
-  const outputDir = yield* Effect.promise(() => getTestResultsFolder());
+  const { payload, outputDir } = yield* Effect.all(
+    {
+      payload: api.services.ConnectionService.getConnection().pipe(
+        Effect.flatMap(connection => Effect.promise(() => buildTestPayload(new TestService(connection), selection)))
+      ),
+      outputDir: Effect.promise(() => getTestResultsFolder())
+    },
+    { concurrency: 'unbounded' }
+  );
 
   const result = yield* runApexTests({
     payload,
@@ -108,15 +119,15 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     concise: settings.retrieveTestRunConcise(),
     telemetryTrigger: 'quickPick'
   }).pipe(
-    withExecutionLog(nls.localize('apex_test_run_text')),
-    promptService.withCancellableProgress(nls.localize('apex_test_run_text'))
+    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+    promptService.withCancellableProgress(executionName)
   );
 
   OUTPUT_CHANNEL.show();
   if (result === undefined) {
-    notificationService.showFailedExecution(nls.localize('apex_test_run_text'));
+    notificationService.showFailedExecution(executionName);
   } else {
-    notificationService.showSuccessfulExecution(nls.localize('apex_test_run_text'));
+    notificationService.showSuccessfulExecution(executionName);
   }
   return result;
 });

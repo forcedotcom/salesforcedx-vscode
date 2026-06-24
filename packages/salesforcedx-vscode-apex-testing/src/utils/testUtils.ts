@@ -13,7 +13,6 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import { getUriPath } from '../utils/pathHelpers';
 import { ApexTestMethod } from '../views/lspConverter';
 
 /**
@@ -237,7 +236,10 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
         if (component.content && classNameSet.has(component.name)) {
           // Prefer shorter paths (files closer to workspace root)
           const existingUri = index.get(component.name);
-          if (!existingUri || component.content.length < getUriPath(existingUri).length) {
+          if (
+            !existingUri ||
+            component.content.length < (yield* api.services.FsService.uriToPath(existingUri)).length
+          ) {
             index.set(component.name, URI.file(component.content));
           }
         }
