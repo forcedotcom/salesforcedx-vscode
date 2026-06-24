@@ -49,8 +49,7 @@ const saveManifestFile = Effect.fn('saveManifestFile')(function* (
   fileName: string,
   packageXML: string
 ) {
-  yield* Effect.annotateCurrentSpan('fileName', fileName);
-  yield* Effect.annotateCurrentSpan('workspacePath', workspacePath.toString());
+  yield* Effect.annotateCurrentSpan({ fileName, workspacePath: workspacePath.toString() });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const promptService = yield* api.services.PromptService;
