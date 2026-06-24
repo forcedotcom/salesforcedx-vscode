@@ -58,7 +58,8 @@ Before finalizing body, fetch and analyze:
 3. **LLM relevance pass:** read PR diff/commits + all issue/discussion titles+bodies; identify candidates
 4. **Auto-include** any issue where a comment contains the PR's W-XXXXX (e.g. `W-12345`) — no prompt needed; Git2Gus already established the link
 5. **Show remaining candidates** (issues and discussions the LLM flagged as related); ask user which to include
-6. **Format:** issues as `#<number>`, discussions as full URL — both in the "What issues does this PR fix or reference?" section
+6. **Stripped-href anchors in WI `Details__c`:** SF empties external hrefs on save, leaving `<a href="">discussions/NNN</a>` (text survives, href empty). Scan `Details__c` for anchors whose text is a `discussions/`|`issues/` path and whose href is empty/missing in ANY stored form (`href=""`, `href=&quot;&quot;`, whitespace-only, absent). EXCLUDE anchors with a populated real href (already-live link). Auto-include the reconstructed `https://github.com/forcedotcom/salesforcedx-vscode/<path>` URL — no prompt.
+7. **Format:** issues as `#<number>`, discussions as full URL — both in the "What issues does this PR fix or reference?" section
 
 ## Body format
 
