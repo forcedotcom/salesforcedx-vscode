@@ -77,7 +77,7 @@ describe('Outer Suite', () => {
     fs.unlinkSync(tempFile);
   });
 
-  it('should return empty array when Jest Runner extension is present', () => {
+  it('should return code lenses EVEN WHEN Jest Runner extension is present (deferral removed)', () => {
     // Mock the Jest Runner extension as present and active
     const mockJestRunnerExtension = {
       isActive: true
@@ -101,23 +101,15 @@ describe('Test Suite', () => {
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
-    expect(codeLenses).toHaveLength(0);
-    expect(getExtensionSpy).toHaveBeenCalledWith('firsttris.vscode-jest-runner');
+    // Deferral is removed - lenses should be returned even with Jest Runner present
+    expect(codeLenses.length).toBeGreaterThan(0);
 
     // Restore the original function
     jest.restoreAllMocks();
   });
 
-  it('should return code lenses when Jest Runner extension is not present', () => {
-    // Mock the Jest Runner extension as not present
-    const getExtensionSpy = jest.spyOn(extensions, 'getExtension');
-    getExtensionSpy.mockImplementation((extensionId: string) => {
-      if (extensionId === 'firsttris.vscode-jest-runner') {
-        return undefined; // Jest Runner extension is not present
-      }
-      return undefined; // Other extensions are also not present
-    });
-
+  it('should return code lenses regardless of Jest Runner extension presence', () => {
+    // No need to mock Jest Runner - code lenses are always returned now
     const testContent = `
 describe('Test Suite', () => {
   it('should do something', () => {
@@ -129,10 +121,40 @@ describe('Test Suite', () => {
 
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
+    // Should always return code lenses, regardless of other extensions
     expect(codeLenses).toHaveLength(4); // Run and Debug for both describe and it blocks
-    expect(getExtensionSpy).toHaveBeenCalledWith('firsttris.vscode-jest-runner');
+  });
 
-    // Restore the original function
-    jest.restoreAllMocks();
+  it('should include (LWC) suffix in all code lens titles', () => {
+    const testContent = `
+describe('Test Suite', () => {
+  it('should do something', () => {
+    expect(true).toBe(true);
+  });
+});
+`;
+    (mockDocument.getText as jest.Mock).mockReturnValue(testContent);
+
+    const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
+
+    // Verify all code lenses have (LWC) in their titles
+    expect(codeLenses.length).toBeGreaterThan(0);
+
+    // Check the structure - CodeLens may need to be resolved first
+    // In VS Code, some CodeLens providers return unresolved lenses initially
+    // However, our implementation creates them with commands directly
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const firstLens = codeLenses[0] as any;
+
+    // The command should be on the lens when constructed with it
+    expect(firstLens).toHaveProperty('command');
+    expect(firstLens.command).toBeDefined();
+    expect(firstLens.command.title).toContain('(LWC)');
+
+    // Check all lenses
+    codeLenses.forEach((lens: any) => {
+      expect(lens.command).toBeDefined();
+      expect(lens.command.title).toContain('(LWC)');
+    });
   });
 });

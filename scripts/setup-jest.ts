@@ -152,7 +152,8 @@ const getMockVSCode = () => {
     },
     languages: {
       createDiagnosticCollection: jest.fn(),
-      createLanguageStatusItem: mockCreateLanguageStatusItem
+      createLanguageStatusItem: mockCreateLanguageStatusItem,
+      registerCodeLensProvider: jest.fn().mockReturnValue({ dispose: jest.fn() })
     },
     Uri: {
       ...Uri,
@@ -315,7 +316,12 @@ const getMockVSCode = () => {
       constructor(label: string) {}
     },
     CodeLens: class {
-      constructor(range: Range) {}
+      public range: any;
+      public command?: any;
+      constructor(range: any, command?: any) {
+        this.range = range;
+        this.command = command;
+      }
     },
     DocumentLink: class {
       constructor(range: Range, target?: Uri) {}
