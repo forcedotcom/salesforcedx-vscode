@@ -356,7 +356,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
     const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
     // Snapshot the list of created files (sorted for consistency)
-    const sortedResult = result.map(path => path.replace(tempDir, '[TEMP_DIR]')).sort();
+    const sortedResult = result.map(path => path.replace(tempDir, '[TEMP_DIR]').replaceAll('\\', '/')).sort();
     expect(sortedResult).toMatchSnapshot();
 
     // Snapshot each file's content
