@@ -117,13 +117,13 @@
   },
   "dependencies": {
     "@humanwhocodes/momoa": "^3.3.10",
-    "@typescript-eslint/parser": "^8.60.0",
+    "@typescript-eslint/parser": "^8.62.0",
     "@typescript-eslint/utils": "^8.62.0",
     "minimatch": "^10.2.4"
   },
   "devDependencies": {
     "@types/eslint": "^9.0.0",
     "@types/estree": "^1.0.0",
-    "@typescript-eslint/rule-tester": "^8.60.0"
+    "@typescript-eslint/rule-tester": "^8.62.0"
   }
 }
