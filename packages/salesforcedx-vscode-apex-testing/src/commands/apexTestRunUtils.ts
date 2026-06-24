@@ -6,10 +6,9 @@
  */
 import { AsyncTestConfiguration, HumanReporter, TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { CancellationError, CancellationTokenSource } from 'vscode';
+import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import * as settings from '../settings';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
@@ -50,34 +49,23 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
   const connection = yield* api.services.ConnectionService.getConnection();
   const testService = new TestService(connection);
 
-  const Cancelled = { _tag: 'Cancelled' } as const;
-  type Cancelled = typeof Cancelled;
-
   // Bridge the fiber's interruption (e.g. user clicks Cancel on the progress notification) to a
   // vscode CancellationToken so apex-node stops polling the org server-side, not just the UI.
+  // The interrupt itself raises UserCancellationError via promptService.withCancellableProgress;
+  // apex-node never throws on cancel (it returns null once the token is set), so there is no
+  // cancellation result to catch here.
   const tokenSource = new CancellationTokenSource();
 
   // TODO: fix in apex-node W-18453221
-  const result = yield* Effect.tryPromise({
-    try: () =>
-      testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token),
-    catch: (e: unknown): Cancelled | Cause.UnknownException => {
-      if (e instanceof CancellationError) {
-        return Cancelled;
-      }
-      return new Cause.UnknownException(e);
-    }
-  }).pipe(
+  const result = yield* Effect.tryPromise(() =>
+    testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token)
+  ).pipe(
     Effect.onInterrupt(() => Effect.sync(() => tokenSource.cancel())),
-    Effect.ensuring(Effect.sync(() => tokenSource.dispose())),
-    Effect.catchTag('Cancelled', () => Effect.succeed(undefined))
+    Effect.ensuring(Effect.sync(() => tokenSource.dispose()))
   );
 
-  if (result === undefined) {
-    return undefined;
-  }
   // runTestAsynchronous can return TestRunIdResult on timeout; we need full TestResult to continue
-  if (!('summary' in result)) {
+  if (!result || !('summary' in result)) {
     return undefined;
   }
 
