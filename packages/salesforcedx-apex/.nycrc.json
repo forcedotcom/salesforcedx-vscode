@@ -1,0 +1,9 @@
+{
+  "include": ["src/**/*.ts"],
+  "extension": [".ts"],
+  "reporter": ["text", "text-summary"],
+  "sourceMap": true,
+  "exclude-after-remap": false,
+  "report-dir": "./test-results/coverage",
+  "temp-dir": "./test-results/coverage/.nyc_output"
+}

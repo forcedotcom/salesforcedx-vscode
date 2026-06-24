@@ -1,0 +1,409 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent JSON output 1`] = `
+Object {
+  "summary": Object {
+    "commandTimeInMs": 3500,
+    "failRate": "33%",
+    "failing": 1,
+    "hostname": "snapshot-test-host",
+    "orgId": "00D000000000000EAA",
+    "outcome": "Completed",
+    "passRate": "67%",
+    "passing": 2,
+    "skipRate": "0%",
+    "skipped": 0,
+    "testExecutionTimeInMs": 1500,
+    "testRunId": "snapshot-test-run-456",
+    "testStartTime": "2023-01-01T12:00:00.000Z",
+    "testTotalTimeInMs": 2500,
+    "testsRan": 3,
+    "userId": "005000000000000AAA",
+    "username": "snapshot@example.com",
+  },
+  "tests": Array [
+    Object {
+      "apexClass": Object {
+        "fullName": "SnapshotTestClass1",
+        "id": "01p000000000001AAA",
+        "name": "SnapshotTestClass1",
+        "namespacePrefix": null,
+      },
+      "apexLogId": null,
+      "asyncApexJobId": "707000000000001AAA",
+      "fullName": "SnapshotTestClass1.testSnapshotMethod1",
+      "id": "01p000000000001AAA",
+      "message": null,
+      "methodName": "testSnapshotMethod1",
+      "outcome": "Pass",
+      "queueItemId": "709000000000001AAA",
+      "runTime": 750,
+      "stackTrace": null,
+      "testTimestamp": "2023-01-01T12:00:00.500Z",
+    },
+    Object {
+      "apexClass": Object {
+        "fullName": "TestNamespace.SnapshotTestClass2",
+        "id": "01p000000000002AAA",
+        "name": "SnapshotTestClass2",
+        "namespacePrefix": "TestNamespace",
+      },
+      "apexLogId": "07L000000000001AAA",
+      "asyncApexJobId": "707000000000001AAA",
+      "fullName": "TestNamespace.SnapshotTestClass2.testSnapshotMethod2",
+      "id": "01p000000000002AAA",
+      "message": "Snapshot test failed with detailed error message",
+      "methodName": "testSnapshotMethod2",
+      "outcome": "Fail",
+      "queueItemId": "709000000000002AAA",
+      "runTime": 450,
+      "stackTrace": "System.AssertException: Snapshot test assertion failed",
+      "testTimestamp": "2023-01-01T12:00:01.200Z",
+    },
+    Object {
+      "apexClass": Object {
+        "fullName": "SnapshotTestClass3",
+        "id": "01p000000000003AAA",
+        "name": "SnapshotTestClass3",
+        "namespacePrefix": null,
+      },
+      "apexLogId": null,
+      "asyncApexJobId": "707000000000001AAA",
+      "fullName": "SnapshotTestClass3.testSnapshotMethod3",
+      "id": "01p000000000003AAA",
+      "message": null,
+      "methodName": "testSnapshotMethod3",
+      "outcome": "Pass",
+      "queueItemId": "709000000000003AAA",
+      "runTime": 300,
+      "stackTrace": null,
+      "testTimestamp": "2023-01-01T12:00:01.800Z",
+    },
+  ],
+}
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent JUnit output 1`] = `
+"<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>
+<testsuites>
+    <testsuite name=\\"force.apex\\" timestamp=\\"2023-01-01T12:00:00.000Z\\" hostname=\\"snapshot-test-host\\" tests=\\"3\\" failures=\\"1\\"  errors=\\"0\\"  time=\\"1.50\\">
+        <properties>
+            <property name=\\"outcome\\" value=\\"Completed\\"/>
+            <property name=\\"testsRan\\" value=\\"3\\"/>
+            <property name=\\"passing\\" value=\\"2\\"/>
+            <property name=\\"failing\\" value=\\"1\\"/>
+            <property name=\\"skipped\\" value=\\"0\\"/>
+            <property name=\\"passRate\\" value=\\"67%\\"/>
+            <property name=\\"failRate\\" value=\\"33%\\"/>
+            <property name=\\"testStartTime\\" value=\\"Sun Jan 01 2023 9:00:00 AM\\"/>
+            <property name=\\"testExecutionTime\\" value=\\"1.50 s\\"/>
+            <property name=\\"testTotalTime\\" value=\\"2.50 s\\"/>
+            <property name=\\"commandTime\\" value=\\"3.50 s\\"/>
+            <property name=\\"hostname\\" value=\\"snapshot-test-host\\"/>
+            <property name=\\"orgId\\" value=\\"00D000000000000EAA\\"/>
+            <property name=\\"username\\" value=\\"snapshot@example.com\\"/>
+            <property name=\\"testRunId\\" value=\\"snapshot-test-run-456\\"/>
+            <property name=\\"userId\\" value=\\"005000000000000AAA\\"/>
+        </properties>
+        <testcase name=\\"testSnapshotMethod1\\" classname=\\"SnapshotTestClass1\\" time=\\"0.75\\">
+        </testcase>
+        <testcase name=\\"testSnapshotMethod2\\" classname=\\"TestNamespace.SnapshotTestClass2\\" time=\\"0.45\\">
+            <failure message=\\"Snapshot test failed with detailed error message\\"><![CDATA[System.AssertException: Snapshot test assertion failed]]></failure>
+        </testcase>
+        <testcase name=\\"testSnapshotMethod3\\" classname=\\"SnapshotTestClass3\\" time=\\"0.30\\">
+        </testcase>
+    </testsuite>
+</testsuites>
+"
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent TAP output 1`] = `
+"1..3
+ok 1 SnapshotTestClass1.testSnapshotMethod1
+not ok 2 TestNamespace.SnapshotTestClass2.testSnapshotMethod2
+# Snapshot test failed with detailed error message
+# System.AssertException: Snapshot test assertion failed
+ok 3 SnapshotTestClass3.testSnapshotMethod3
+"
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent code coverage output 1`] = `
+Array [
+  Array [
+    Object {
+      "apexClassOrTriggerId": "01p000000000001AAA",
+      "apexClassOrTriggerName": "SnapshotTestClass1",
+      "apexTestClassId": "01p000000000002AAA",
+      "apexTestMethodName": "testSnapshotMethod1",
+      "coverage": Object {
+        "apexId": "01p000000000001AAA",
+        "coveredLines": Array [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+        ],
+        "name": "SnapshotTestClass1",
+        "numLinesCovered": 8,
+        "numLinesUncovered": 2,
+        "percentage": "80%",
+        "type": "ApexClass",
+        "uncoveredLines": Array [
+          9,
+          10,
+        ],
+      },
+      "numLinesCovered": 8,
+      "numLinesUncovered": 2,
+      "percentage": "80%",
+    },
+  ],
+]
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent comprehensive output with all options 1`] = `
+Array [
+  "[TEMP_DIR]/comprehensive-config.json",
+  "[TEMP_DIR]/comprehensive-test.txt",
+  "[TEMP_DIR]/test-result-snapshot-test-run-456-codecoverage.json",
+  "[TEMP_DIR]/test-result-snapshot-test-run-456-junit.xml",
+  "[TEMP_DIR]/test-result-snapshot-test-run-456-tap.txt",
+  "[TEMP_DIR]/test-result-snapshot-test-run-456.json",
+  "[TEMP_DIR]/test-run-id.txt",
+]
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent comprehensive output with all options 2`] = `"snapshot-test-run-456"`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent comprehensive output with all options 3`] = `
+Object {
+  "summary": Object {
+    "commandTimeInMs": 3500,
+    "failRate": "33%",
+    "failing": 1,
+    "hostname": "snapshot-test-host",
+    "orgId": "00D000000000000EAA",
+    "outcome": "Completed",
+    "passRate": "67%",
+    "passing": 2,
+    "skipRate": "0%",
+    "skipped": 0,
+    "testExecutionTimeInMs": 1500,
+    "testRunId": "snapshot-test-run-456",
+    "testStartTime": "2023-01-01T12:00:00.000Z",
+    "testTotalTimeInMs": 2500,
+    "testsRan": 3,
+    "userId": "005000000000000AAA",
+    "username": "snapshot@example.com",
+  },
+  "tests": Array [
+    Object {
+      "apexClass": Object {
+        "fullName": "SnapshotTestClass1",
+        "id": "01p000000000001AAA",
+        "name": "SnapshotTestClass1",
+        "namespacePrefix": null,
+      },
+      "apexLogId": null,
+      "asyncApexJobId": "707000000000001AAA",
+      "fullName": "SnapshotTestClass1.testSnapshotMethod1",
+      "id": "01p000000000001AAA",
+      "message": null,
+      "methodName": "testSnapshotMethod1",
+      "outcome": "Pass",
+      "perClassCoverage": Array [
+        Object {
+          "apexClassOrTriggerId": "01p000000000001AAA",
+          "apexClassOrTriggerName": "SnapshotTestClass1",
+          "apexTestClassId": "01p000000000002AAA",
+          "apexTestMethodName": "testSnapshotMethod1",
+          "coverage": Object {
+            "apexId": "01p000000000001AAA",
+            "coveredLines": Array [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+            ],
+            "name": "SnapshotTestClass1",
+            "numLinesCovered": 8,
+            "numLinesUncovered": 2,
+            "percentage": "80%",
+            "type": "ApexClass",
+            "uncoveredLines": Array [
+              9,
+              10,
+            ],
+          },
+          "numLinesCovered": 8,
+          "numLinesUncovered": 2,
+          "percentage": "80%",
+        },
+      ],
+      "queueItemId": "709000000000001AAA",
+      "runTime": 750,
+      "stackTrace": null,
+      "testTimestamp": "2023-01-01T12:00:00.500Z",
+    },
+    Object {
+      "apexClass": Object {
+        "fullName": "TestNamespace.SnapshotTestClass2",
+        "id": "01p000000000002AAA",
+        "name": "SnapshotTestClass2",
+        "namespacePrefix": "TestNamespace",
+      },
+      "apexLogId": "07L000000000001AAA",
+      "asyncApexJobId": "707000000000001AAA",
+      "fullName": "TestNamespace.SnapshotTestClass2.testSnapshotMethod2",
+      "id": "01p000000000002AAA",
+      "message": "Snapshot test failed with detailed error message",
+      "methodName": "testSnapshotMethod2",
+      "outcome": "Fail",
+      "queueItemId": "709000000000002AAA",
+      "runTime": 450,
+      "stackTrace": "System.AssertException: Snapshot test assertion failed",
+      "testTimestamp": "2023-01-01T12:00:01.200Z",
+    },
+    Object {
+      "apexClass": Object {
+        "fullName": "SnapshotTestClass3",
+        "id": "01p000000000003AAA",
+        "name": "SnapshotTestClass3",
+        "namespacePrefix": null,
+      },
+      "apexLogId": null,
+      "asyncApexJobId": "707000000000001AAA",
+      "fullName": "SnapshotTestClass3.testSnapshotMethod3",
+      "id": "01p000000000003AAA",
+      "message": null,
+      "methodName": "testSnapshotMethod3",
+      "outcome": "Pass",
+      "queueItemId": "709000000000003AAA",
+      "runTime": 300,
+      "stackTrace": null,
+      "testTimestamp": "2023-01-01T12:00:01.800Z",
+    },
+  ],
+}
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent comprehensive output with all options 4`] = `
+"1..3
+ok 1 SnapshotTestClass1.testSnapshotMethod1
+not ok 2 TestNamespace.SnapshotTestClass2.testSnapshotMethod2
+# Snapshot test failed with detailed error message
+# System.AssertException: Snapshot test assertion failed
+ok 3 SnapshotTestClass3.testSnapshotMethod3
+"
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent comprehensive output with all options 5`] = `
+"<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>
+<testsuites>
+    <testsuite name=\\"force.apex\\" timestamp=\\"2023-01-01T12:00:00.000Z\\" hostname=\\"snapshot-test-host\\" tests=\\"3\\" failures=\\"1\\"  errors=\\"0\\"  time=\\"1.50\\">
+        <properties>
+            <property name=\\"outcome\\" value=\\"Completed\\"/>
+            <property name=\\"testsRan\\" value=\\"3\\"/>
+            <property name=\\"passing\\" value=\\"2\\"/>
+            <property name=\\"failing\\" value=\\"1\\"/>
+            <property name=\\"skipped\\" value=\\"0\\"/>
+            <property name=\\"passRate\\" value=\\"67%\\"/>
+            <property name=\\"failRate\\" value=\\"33%\\"/>
+            <property name=\\"testStartTime\\" value=\\"Sun Jan 01 2023 9:00:00 AM\\"/>
+            <property name=\\"testExecutionTime\\" value=\\"1.50 s\\"/>
+            <property name=\\"testTotalTime\\" value=\\"2.50 s\\"/>
+            <property name=\\"commandTime\\" value=\\"3.50 s\\"/>
+            <property name=\\"hostname\\" value=\\"snapshot-test-host\\"/>
+            <property name=\\"orgId\\" value=\\"00D000000000000EAA\\"/>
+            <property name=\\"username\\" value=\\"snapshot@example.com\\"/>
+            <property name=\\"testRunId\\" value=\\"snapshot-test-run-456\\"/>
+            <property name=\\"userId\\" value=\\"005000000000000AAA\\"/>
+        </properties>
+        <testcase name=\\"testSnapshotMethod1\\" classname=\\"SnapshotTestClass1\\" time=\\"0.75\\">
+        </testcase>
+        <testcase name=\\"testSnapshotMethod2\\" classname=\\"TestNamespace.SnapshotTestClass2\\" time=\\"0.45\\">
+            <failure message=\\"Snapshot test failed with detailed error message\\"><![CDATA[System.AssertException: Snapshot test assertion failed]]></failure>
+        </testcase>
+        <testcase name=\\"testSnapshotMethod3\\" classname=\\"SnapshotTestClass3\\" time=\\"0.30\\">
+        </testcase>
+    </testsuite>
+</testsuites>
+"
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent comprehensive output with all options 6`] = `
+Array [
+  Array [
+    Object {
+      "apexClassOrTriggerId": "01p000000000001AAA",
+      "apexClassOrTriggerName": "SnapshotTestClass1",
+      "apexTestClassId": "01p000000000002AAA",
+      "apexTestMethodName": "testSnapshotMethod1",
+      "coverage": Object {
+        "apexId": "01p000000000001AAA",
+        "coveredLines": Array [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+        ],
+        "name": "SnapshotTestClass1",
+        "numLinesCovered": 8,
+        "numLinesUncovered": 2,
+        "percentage": "80%",
+        "type": "ApexClass",
+        "uncoveredLines": Array [
+          9,
+          10,
+        ],
+      },
+      "numLinesCovered": 8,
+      "numLinesUncovered": 2,
+      "percentage": "80%",
+    },
+  ],
+]
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent comprehensive output with all options 7`] = `"Comprehensive test content"`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent comprehensive output with all options 8`] = `
+Object {
+  "settings": Object {
+    "parallel": true,
+    "verbose": false,
+  },
+  "test": "comprehensive",
+}
+`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent fileInfos output 1`] = `"Snapshot custom content for testing"`;
+
+exports[`writeResultFiles - Snapshot Tests should produce consistent fileInfos output 2`] = `
+Object {
+  "config": Object {
+    "debug": true,
+    "retries": 3,
+    "timeout": 5000,
+  },
+  "environment": "snapshot-test",
+  "features": Array [
+    "feature1",
+    "feature2",
+  ],
+  "timestamp": "2023-01-01T12:00:00.000Z",
+  "version": "2.0.0",
+}
+`;

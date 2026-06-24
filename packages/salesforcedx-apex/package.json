@@ -1,0 +1,91 @@
+{
+  "name": "@salesforce/apex-node",
+  "description": "Salesforce JS library for Apex",
+  "version": "8.4.30",
+  "author": "Salesforce",
+  "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
+  "main": "lib/src/index.js",
+  "dependencies": {
+    "@salesforce/core": "^8.31.2",
+    "@salesforce/kit": "^3.2.6",
+    "@types/istanbul-reports": "^3.0.4",
+    "json-stream-stringify": "^3.1.6",
+    "fast-glob": "^3.3.2",
+    "faye": "1.4.1",
+    "istanbul-lib-coverage": "^3.2.2",
+    "istanbul-lib-report": "^3.0.1",
+    "istanbul-reports": "^3.2.0"
+  },
+  "devDependencies": {
+    "@commitlint/config-conventional": "^18.6.3",
+    "@jsforce/jsforce-node": "^3.10.16",
+    "@salesforce/ts-types": "^2.0.10",
+    "@types/chai": "^4.3.17",
+    "@types/chai-jest-snapshot": "^1.3.8",
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/istanbul-lib-report": "^3.0.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^18",
+    "@types/sinon": "^17.0.3",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "chai": "^4.5.0",
+    "commitlint": "^18.6.1",
+    "esbuild": "^0.28.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-header": "^3.0.0",
+    "eslint-plugin-jsdoc": "^46.10.1",
+    "eslint-plugin-prettier": "^5.5.6",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.5.2",
+    "mocha": "^10.8.2",
+    "mocha-junit-reporter": "^2.2.1",
+    "mocha-snap": "^5.0.1",
+    "nyc": "^15.1.0",
+    "prettier": "^3.8.4",
+    "shx": "^0.4.0",
+    "sinon": "^17.0.1",
+    "source-map-support": "^0.5.16",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "resolutions": {
+    "@jsforce/jsforce-node/node-fetch/whatwg-url": "^14.0.0"
+  },
+  "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
+  "keywords": [
+    "apex",
+    "force",
+    "salesforce",
+    "sfdx",
+    "salesforcedx"
+  ],
+  "files": [
+    "lib/src"
+  ],
+  "scripts": {
+    "build": "shx rm -rf lib && tsc -b",
+    "compile": "shx rm -rf lib && tsc -b",
+    "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
+    "format": "prettier --config ./.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
+    "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
+    "test": "yarn build && nyc mocha ./lib/test/**/*.test.js",
+    "package": "yarn pack",
+    "prettier": "prettier ./**/*.{js,json,ts,md} --write",
+    "format:check": "prettier ./**/*.{js,json,ts,md} --debug-check",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "./{src,test}/**/*.{ts,js}": [
+      "eslint -c .eslintrc.json --fix"
+    ]
+  },
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=18.18.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

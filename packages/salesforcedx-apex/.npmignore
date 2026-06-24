@@ -1,0 +1,13 @@
+# Dev config folders
+/.vscode
+/src
+/test
+/lib/test
+
+# Configuration files
+.eslintrc.json
+.prettierrc
+tsconfig.json
+
+# Ignore artifacts
+*.tgz
