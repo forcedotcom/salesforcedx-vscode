@@ -222,10 +222,10 @@ git commit -m "feat(lwc): add public runByExecutionInfo on LWC test controller"
 - Produces:
   - `public runActiveEditorFile = (isDebug: boolean): Promise<void> | undefined` — reads `vscode.window.activeTextEditor`, guards with `isLwcJestTest`, builds a `TestFileInfo`, calls `runByExecutionInfo`.
 
-- [x] **Step 1: Write the failing test** — add to the public-run-API describe block.
+- [x] **Step 1: Write the failing test** — add to the public-run-API describe block. Tests 2 cases: no active editor + non-LWC-jest document.
 
 ```typescript
-it('runActiveEditorFile no-ops when the active editor is not an LWC jest test', async () => {
+it('runActiveEditorFile no-ops when there is no active editor', async () => {
   const controller = {
     resolveHandler: undefined,
     refreshHandler: undefined,
@@ -245,16 +245,67 @@ it('runActiveEditorFile no-ops when the active editor is not an LWC jest test', 
 
   expect(controller.createTestRun).not.toHaveBeenCalled();
 });
+
+it('runActiveEditorFile no-ops when the active editor is not an LWC jest test', async () => {
+  const controller = {
+    resolveHandler: undefined,
+    refreshHandler: undefined,
+    items: { replace: jest.fn(), forEach: jest.fn() },
+    createTestItem: jest.fn(),
+    createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+    createTestRun: jest.fn(),
+    dispose: jest.fn()
+  };
+  (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+
+  // active editor with a document that is NOT an LWC jest test
+  const mockDocument = {
+    uri: { fsPath: '/project/src/app.ts' },
+    languageId: 'typescript'
+  };
+  (vscode.window as any).activeTextEditor = {
+    document: mockDocument
+  };
+
+  // isLwcJestTest returns false for this document
+  (isLwcJestTest as jest.Mock).mockReturnValue(false);
+
+  const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+  const ctrl = getLwcTestController();
+  await ctrl.runActiveEditorFile(false);
+
+  expect(controller.createTestRun).not.toHaveBeenCalled();
+  expect(isLwcJestTest).toHaveBeenCalledWith(mockDocument);
+});
 ```
 
 - [x] **Step 2: Run test to verify it fails**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/testExplorer/lwcTestController.test.ts -t "runActiveEditorFile"`
-Expected: FAIL — `ctrl.runActiveEditorFile is not a function`.
+Expected: FAIL — `ctrl.runActiveEditorFile is not a function` (or mock not defined).
 
-- [x] **Step 3: Write minimal implementation** — add to `lwcTestController.ts`, and add `import { isLwcJestTest } from '../utils/isLwcJestTest';`:
+- [x] **Step 3: Write minimal implementation** — add to `lwcTestController.ts`, import `isLwcJestTest`, and add a `beforeEach` to reset mocks:
 
+In test file:
 ```typescript
+// Mock isLwcJestTest so we can control its return value per test
+jest.mock('../../../../src/testSupport/utils/isLwcJestTest', () => ({
+  isLwcJestTest: jest.fn()
+}));
+
+describe('LwcTestController public run API', () => {
+  beforeEach(() => {
+    // Reset the isLwcJestTest mock between tests
+    (isLwcJestTest as jest.Mock).mockReset();
+  });
+  // ... tests ...
+});
+```
+
+In source file, add import + method:
+```typescript
+import { isLwcJestTest } from '../utils/isLwcJestTest';
+
 /** Public entry for the editor-title button / command palette: run the active LWC test file. */
 public runActiveEditorFile = (isDebug: boolean): Promise<void> | undefined => {
   const editor = vscode.window.activeTextEditor;

@@ -19,7 +19,13 @@ jest.mock('../../../../src/testSupport/testIndexer', () => ({
   }
 }));
 
+// Mock isLwcJestTest so we can control its return value per test
+jest.mock('../../../../src/testSupport/utils/isLwcJestTest', () => ({
+  isLwcJestTest: jest.fn()
+}));
+
 import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer';
+import { isLwcJestTest } from '../../../../src/testSupport/utils/isLwcJestTest';
 import { registerLwcTestController } from '../../../../src/testSupport/testExplorer/lwcTestController';
 
 // Minimal mutable TestItem the controller writes `tags` onto.
@@ -98,8 +104,23 @@ describe('LwcTestController test item tags', () => {
 });
 
 describe('LwcTestController public run API', () => {
+  beforeEach(() => {
+    // Reset the isLwcJestTest mock between tests
+    (isLwcJestTest as jest.Mock).mockReset();
+  });
+
   it('runByExecutionInfo resolves a file item and starts a test run', async () => {
     const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
+
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
 
     const controller = {
       resolveHandler: undefined,
@@ -117,15 +138,7 @@ describe('LwcTestController public run API', () => {
         children: { replace: jest.fn(), forEach: jest.fn() }
       }),
       createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
-      createTestRun: jest.fn(() => ({
-        started: jest.fn(),
-        passed: jest.fn(),
-        failed: jest.fn(),
-        skipped: jest.fn(),
-        errored: jest.fn(),
-        appendOutput: jest.fn(),
-        end: jest.fn()
-      })),
+      createTestRun: jest.fn(() => mockRun),
       dispose: jest.fn()
     };
 
@@ -166,7 +179,7 @@ describe('LwcTestController public run API', () => {
     expect(controller.createTestRun).toHaveBeenCalled();
   });
 
-  it('runActiveEditorFile no-ops when the active editor is not an LWC jest test', async () => {
+  it('runActiveEditorFile no-ops when there is no active editor', async () => {
     const controller = {
       resolveHandler: undefined,
       refreshHandler: undefined,
@@ -185,5 +198,37 @@ describe('LwcTestController public run API', () => {
     await ctrl.runActiveEditorFile(false);
 
     expect(controller.createTestRun).not.toHaveBeenCalled();
+  });
+
+  it('runActiveEditorFile no-ops when the active editor is not an LWC jest test', async () => {
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: { replace: jest.fn(), forEach: jest.fn() },
+      createTestItem: jest.fn(),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(),
+      dispose: jest.fn()
+    };
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+
+    // active editor with a document that is NOT an LWC jest test
+    const mockDocument = {
+      uri: { fsPath: '/project/src/app.ts' },
+      languageId: 'typescript'
+    };
+    (vscode.window as any).activeTextEditor = {
+      document: mockDocument
+    };
+
+    // isLwcJestTest returns false for this document
+    (isLwcJestTest as jest.Mock).mockReturnValue(false);
+
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    const ctrl = getLwcTestController();
+    await ctrl.runActiveEditorFile(false);
+
+    expect(controller.createTestRun).not.toHaveBeenCalled();
+    expect(isLwcJestTest).toHaveBeenCalledWith(mockDocument);
   });
 });
