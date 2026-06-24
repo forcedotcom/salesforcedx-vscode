@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import { getUriPath } from '../utils/commandletHelpers';
+import { getUriPath } from '../utils/pathHelpers';
 import { ApexTestMethod } from '../views/lspConverter';
 
 /**

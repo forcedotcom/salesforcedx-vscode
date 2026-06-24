@@ -6,11 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import type { URI } from 'vscode-uri';
 import { notificationService } from './notificationHelpers';
-
-/** Gets the file system path from a URI, using fsPath for file:// scheme and path for other schemes (e.g., memfs://) */
-export const getUriPath = (uri: URI): string => (uri.scheme === 'file' ? uri.fsPath : uri.path);
 
 export type ContinueResponse<T> = { type: 'CONTINUE'; data: T };
 export type CancelResponse = { type: 'CANCEL'; msg?: string };

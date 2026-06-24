@@ -31,6 +31,7 @@ import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDis
 import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
 import { buildAllServicesLayer, getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
+import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
 import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';
@@ -87,7 +88,8 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Always register commands (they'll be no-ops if not in a project)
   const commands = registerCommands();
-  context.subscriptions.push(commands);
+  // apexTestingDiagnostics: single shared diagnostic collection for apex test failures
+  context.subscriptions.push(commands, apexTestingDiagnostics);
 
   yield* Effect.log('Salesforce Apex Testing extension is now active!');
 
