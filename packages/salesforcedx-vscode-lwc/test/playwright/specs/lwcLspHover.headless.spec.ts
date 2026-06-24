@@ -25,6 +25,9 @@ import {
 import { test } from '../fixtures';
 import { createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
 
+// Re-run to disprove flake: comment-only edit busts the wireit input fingerprint so CI runs
+// fresh (no cache hit) and re-validates the cold-LSP-readiness poll fix.
+
 test.beforeEach(async ({ page }) => {
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
