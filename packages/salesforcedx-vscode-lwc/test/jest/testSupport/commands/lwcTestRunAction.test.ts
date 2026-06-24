@@ -26,13 +26,13 @@ describe('lwcTestRunAction routes through the controller', () => {
   });
 
   it('lwcTestFileRun calls controller.runByExecutionInfo with isDebug=false', () => {
-    const testExecutionInfo = { kind: 'testFile', testUri: URI.file('/a/foo.test.js') };
+    const testExecutionInfo = { kind: 'testFile' as const, testUri: URI.file('/a/foo.test.js') };
     void lwcTestFileRun({ testExecutionInfo });
     expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, false);
   });
 
   it('lwcTestCaseRun calls controller.runByExecutionInfo with isDebug=false', () => {
-    const testExecutionInfo = { kind: 'testCase', testUri: URI.file('/a/foo.test.js'), testName: 'does x' };
+    const testExecutionInfo = { kind: 'testCase' as const, testUri: URI.file('/a/foo.test.js'), testName: 'does x' };
     void lwcTestCaseRun({ testExecutionInfo });
     expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, false);
   });
