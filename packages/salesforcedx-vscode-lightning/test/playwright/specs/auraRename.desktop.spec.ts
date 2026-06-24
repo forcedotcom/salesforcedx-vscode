@@ -72,10 +72,14 @@ test.describe('Aura Rename (Desktop Only)', () => {
         .locator('[role="treeitem"]')
         .filter({ hasText: new RegExp(`^${newName}$`, 'i') })
         .first();
-      await expect(newFolder).toBeVisible({ timeout: 10_000 });
+      // Debounced file watcher lags the tree refresh; poll until the renamed folder appears.
+      await expect(async () => {
+        await expect(newFolder).toBeVisible();
+      }).toPass({ timeout: 20_000 });
 
       const oldFolder = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`^${oldName}$`, 'i') });
-      await expect(oldFolder).toHaveCount(0, { timeout: 5000 });
+      // Same debounced watcher lag can delay the old-name treeitem disappearing.
+      await expect(oldFolder).toHaveCount(0, { timeout: 20_000 });
     });
 
     // Follow-up: rename again via editor context menu. The renamed bundle's main file is in the active editor.
