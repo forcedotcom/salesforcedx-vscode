@@ -233,6 +233,15 @@ export const changeDebugLevelCommand = Effect.fn('ApexLog.Command.changeDebugLev
   yield* refreshTraceFlagsView(orgId);
 });
 
+/** Resolve a debug level id via QuickPick; shows an info message and returns undefined when none exist. */
+const promptForDebugLevelId = Effect.fn('ApexLog.promptForDebugLevelId')(function* (levels: DebugLevelItem[]) {
+  if (levels.length === 0) {
+    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_no_debug_levels')));
+    return undefined;
+  }
+  return yield* pickDebugLevelToRemove(levels);
+});
+
 /** Delete debug level by Id via Tooling API, refresh virtual doc. When no Id is provided (e.g. command palette), prompts via QuickPick. */
 export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDebugLevelForId')(function* (
   debugLevelId?: string
@@ -241,18 +250,7 @@ export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDeb
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
-  const resolvedId =
-    debugLevelId ??
-    (yield* Effect.gen(function* () {
-      const levels = yield* traceFlagService.getDebugLevels();
-      const result = yield* Effect.promise(() => pickDebugLevelToRemove(levels));
-      if (result.kind === 'noLevels') {
-        yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_no_debug_levels')));
-        return undefined;
-      }
-      if (result.kind === 'cancelled') return undefined;
-      return result.debugLevelId;
-    }));
+  const resolvedId = debugLevelId ?? (yield* promptForDebugLevelId(yield* traceFlagService.getDebugLevels()));
   if (!resolvedId) return;
   yield* traceFlagService.deleteDebugLevel(resolvedId);
   yield* refreshTraceFlagsView(orgId);

@@ -5,9 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import { isString } from 'effect/Predicate';
 import type { DebugLevelItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { pickDebugLevelToRemove, type PickDebugLevelToRemoveResult } from '../../../src/traceFlags/traceFlagJsonSync';
+import { pickDebugLevelToRemove } from '../../../src/traceFlags/traceFlagJsonSync';
 
 const makeLevel = (id: string, overrides: Partial<DebugLevelItem> = {}): DebugLevelItem => ({
   id,
@@ -30,45 +34,59 @@ const makeLevel = (id: string, overrides: Partial<DebugLevelItem> = {}): DebugLe
 const LEVEL_A = makeLevel('dl-a', { masterLabel: 'My Level', developerName: 'My_Level' });
 const LEVEL_B = makeLevel('dl-b', { masterLabel: 'Other Level', developerName: 'Other_Level' });
 
-describe('pickDebugLevelToRemove', () => {
-  it('returns noLevels when the items array is empty', async () => {
-    const result = await pickDebugLevelToRemove([]);
-    expect(result).toEqual({ kind: 'noLevels' });
-    expect(vscode.window.showQuickPick).not.toHaveBeenCalled();
-  });
+const considerUndefinedAsCancellation = <T>(value: T | undefined) =>
+  value === undefined || (isString(value) && value.trim().length === 0)
+    ? Effect.fail({ _tag: 'UserCancellationError', message: 'User cancelled' })
+    : Effect.succeed(value);
 
-  it('calls showQuickPick with all levels and returns picked result', async () => {
+const run = (items: DebugLevelItem[]) =>
+  Effect.runPromiseExit(
+    pickDebugLevelToRemove(items).pipe(
+      Effect.provideService(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({
+          services: { PromptService: Effect.succeed({ considerUndefinedAsCancellation }) }
+        })
+      } as unknown as ExtensionProviderService)
+    ) as unknown as Effect.Effect<string, { _tag: string }, never>
+  );
+
+describe('pickDebugLevelToRemove', () => {
+  it('calls showQuickPick with all levels and resolves the picked debugLevelId', async () => {
     const mockPick = { label: LEVEL_A.masterLabel, debugLevelId: LEVEL_A.id };
     jest.mocked(vscode.window.showQuickPick).mockResolvedValue(mockPick as never);
 
-    const result = await pickDebugLevelToRemove([LEVEL_A, LEVEL_B]);
+    const exit = await run([LEVEL_A, LEVEL_B]);
 
     expect(vscode.window.showQuickPick).toHaveBeenCalledTimes(1);
     const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
-    expect(Array.isArray(items)).toBe(true);
     const typedItems = items as unknown as Array<{ debugLevelId: string; label: string; description: string }>;
     expect(typedItems.map(i => i.debugLevelId)).toEqual([LEVEL_A.id, LEVEL_B.id]);
     expect(typedItems[0].description).toBe('Apex=DEBUG Vf=INFO DB=INFO');
-    expect(result).toEqual({ kind: 'picked', debugLevelId: LEVEL_A.id });
+    expect(exit).toStrictEqual(Exit.succeed(LEVEL_A.id));
   });
 
-  it('returns cancelled when user cancels the QuickPick', async () => {
+  it('fails with UserCancellationError when the user dismisses the QuickPick', async () => {
     jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
 
-    const result: PickDebugLevelToRemoveResult = await pickDebugLevelToRemove([LEVEL_A]);
+    const exit = await run([LEVEL_A]);
 
     expect(vscode.window.showQuickPick).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ kind: 'cancelled' });
+    expect(Exit.isFailure(exit)).toBe(true);
+    expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
   });
 
-  it('uses masterLabel as the QuickPick label', async () => {
+  it.each([
+    ['masterLabel', { masterLabel: 'My Level', developerName: 'My_Level' }, 'My Level'],
+    ['developerName as detail', { masterLabel: 'My Level', developerName: 'My_Level' }, 'My Level']
+  ])('uses %s as the QuickPick label', async (_desc, overrides, expectedLabel) => {
+    const level = makeLevel('dl-test', overrides);
     jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
 
-    await pickDebugLevelToRemove([LEVEL_A]);
+    await run([level]);
 
     const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
     const typedItems = items as unknown as Array<{ label: string; detail: string }>;
-    expect(typedItems[0].label).toBe('My Level');
-    expect(typedItems[0].detail).toBe('My_Level');
+    expect(typedItems[0].label).toBe(expectedLabel);
+    expect(typedItems[0].detail).toBe(overrides.developerName ?? 'Dev_dl-test');
   });
 });

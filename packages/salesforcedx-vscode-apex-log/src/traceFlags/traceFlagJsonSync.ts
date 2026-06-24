@@ -143,23 +143,32 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
 
 type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
 
-export type PickDebugLevelToRemoveResult =
-  | { kind: 'noLevels' }
-  | { kind: 'cancelled' }
-  | { kind: 'picked'; debugLevelId: string };
-
-/** Show a QuickPick of org DebugLevels for removal. Returns a discriminated result. */
-export const pickDebugLevelToRemove = async (items: DebugLevelItem[]): Promise<PickDebugLevelToRemoveResult> => {
-  if (items.length === 0) return { kind: 'noLevels' };
-  const picked = await pickDebugLevel(items, nls.localize('trace_flag_pick_debug_level_to_remove'));
-  return picked ? { kind: 'picked', debugLevelId: picked.debugLevelId } : { kind: 'cancelled' };
-};
+/** Show a QuickPick of the given DebugLevels for removal; resolves to the picked item's id.
+ * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
+export const pickDebugLevelToRemove = Effect.fn('ApexLog.pickDebugLevelToRemove')(function* (items: DebugLevelItem[]) {
+  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<DebugLevelQuickPickItem>(
+      items.map(dl => ({
+        label: dl.masterLabel,
+        description: `Apex=${dl.apexCode} Vf=${dl.visualforce} DB=${dl.database}`,
+        detail: dl.developerName,
+        debugLevelId: dl.id
+      })),
+      {
+        placeHolder: nls.localize('trace_flag_pick_debug_level_to_remove'),
+        matchOnDescription: true,
+        matchOnDetail: true
+      }
+    )
+  ).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    Effect.map(picked => picked.debugLevelId)
+  );
+});
 
 /** Show a QuickPick of org DebugLevels. */
-export const pickDebugLevel = async (
-  items: DebugLevelItem[],
-  placeHolder: string = nls.localize('trace_flag_pick_debug_level')
-): Promise<DebugLevelQuickPickItem | undefined> =>
+export const pickDebugLevel = async (items: DebugLevelItem[]): Promise<DebugLevelQuickPickItem | undefined> =>
   vscode.window.showQuickPick<DebugLevelQuickPickItem>(
     items.map(dl => ({
       label: dl.masterLabel,
@@ -167,7 +176,7 @@ export const pickDebugLevel = async (
       detail: dl.developerName,
       debugLevelId: dl.id
     })),
-    { placeHolder, matchOnDescription: true, matchOnDetail: true }
+    { placeHolder: nls.localize('trace_flag_pick_debug_level'), matchOnDescription: true, matchOnDetail: true }
   );
 
 type LogCategoryLevel = 'NONE' | 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'FINE' | 'FINER' | 'FINEST';
