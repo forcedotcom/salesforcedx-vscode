@@ -10,9 +10,10 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DebugLevelItem } from 'salesforcedx-vscode-services';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { isTraceFlagActive } from '../../traceFlags/traceFlagActive';
 import {
   pickDebugLevel,
   pickLogLevel,
@@ -25,11 +26,6 @@ import {
 import { createTraceFlagsUri } from '../../traceFlags/traceFlagsContentProvider';
 
 const noOrgWarning = () => Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
-
-const noActiveFlagsInfo = () =>
-  Effect.sync(() => {
-    void vscode.window.showInformationMessage(nls.localize('trace_flags_none_active'));
-  });
 
 /** Resolves { api, orgId, userId? }. Shows warning and returns None when org (or userId if required) is missing. */
 const requireOrgContext = Effect.fn('ApexLog.requireOrgContext')(function* (opts?: { requireUserId?: boolean }) {
@@ -90,7 +86,7 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
     const traceFlagService = yield* api.services.TraceFlagService;
     const existing = yield* traceFlagService.getTraceFlagForUser(userId!);
     if (Option.isNone(existing)) {
-      yield* noActiveFlagsInfo();
+      yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active')));
       return;
     }
     yield* traceFlagService.deleteTraceFlag(existing.value.id);
@@ -214,6 +210,16 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   );
 });
 
+/** Resolve a trace flag id via QuickPick over the active subset of `flags`; shows an info message and returns undefined when none are active. */
+const promptForActiveTraceFlagId = Effect.fn('ApexLog.promptForActiveTraceFlagId')(function* (flags: TraceFlagItem[]) {
+  const active = flags.filter(isTraceFlagActive);
+  if (active.length === 0) {
+    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active')));
+    return undefined;
+  }
+  return yield* pickTraceFlag(active);
+});
+
 /** Delete trace flag by Id, refresh virtual doc. When no Id is provided (e.g. command palette), prompts via QuickPick. */
 export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTraceFlagForId')(function* (
   traceFlagId?: string
@@ -222,18 +228,7 @@ export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTrac
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
-  const resolvedId =
-    traceFlagId ??
-    (yield* Effect.gen(function* () {
-      const flags = yield* traceFlagService.getTraceFlags();
-      const result = yield* Effect.promise(() => pickTraceFlag(flags));
-      if (result.kind === 'noActive') {
-        yield* noActiveFlagsInfo();
-        return undefined;
-      }
-      if (result.kind === 'cancelled') return undefined;
-      return result.traceFlagId;
-    }));
+  const resolvedId = traceFlagId ?? (yield* promptForActiveTraceFlagId(yield* traceFlagService.getTraceFlags()));
   if (!resolvedId) return;
   yield* traceFlagService.deleteTraceFlag(resolvedId);
   yield* refreshTraceFlagsView(orgId);
