@@ -132,6 +132,8 @@ sf data query --query "SELECT Id, Name, Description__c FROM ADM_Epic__c WHERE Te
 
 Closed = `Health__c` in ('Completed', 'Canceled'). Use `Description__c` when populated to match work to epic.
 
+**`Description__c` is not filterable in SOQL** — `WHERE`/`LIKE` on it errors `field 'Description__c' can not be filtered in a query call`. To match an epic by text, fetch all open epics and match on `Name`, or post-filter `Description__c` client-side (e.g. with jq). Only `SELECT` it.
+
 ## Epic guide: which work items go where
 
 Use to pick the right Epic\_\_c when creating work. Query epics first; match by Name/Description. Key epics:
@@ -163,9 +165,9 @@ When unsure which epic: ask the user.
 
 `[ai-auto]` in `Subject__c` or `Details__c` opts a WI into the [auto-build-wi workflow](../../workflows/auto-build-wi.js) (claim → plan → build → review → draft PR). See [workflows/README.md](../../workflows/README.md).
 
-- Add only on explicit user request; prefer `Subject__c`
+- Add only on explicit user request; only `Subject__c` (title), never `Details__c`
 - Skip for WIs needing design/coordination
-- Query: `(Subject__c LIKE '%[ai-auto]%' OR Details__c LIKE '%[ai-auto]%')`
+- Query: `Subject__c LIKE '%[ai-auto]%'`
 
 ## Compound workflows
 
