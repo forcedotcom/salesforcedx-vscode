@@ -466,22 +466,15 @@ class LwcTestController {
         });
         await waitForResultFile(testResultFsPath, token);
       } else {
-        // Controller-driven test run: suppress the terminal as much as possible.
-        // The Task API always allocates a terminal for ShellExecution, but reveal:Never + focus:false + echo:false + Dedicated panel
-        // keeps it hidden from the user. The real result surface is the Test Results tab.
+        // Results surface in the Test Results tab. The Task API always allocates a terminal for a
+        // ShellExecution; createTask's default presentation (reveal:Never, shared panel) keeps it
+        // hidden and reused across runs rather than spawning a new terminal each run.
         const sfTask = taskService.createTask(
           globalThis.crypto.randomUUID(),
           nls.localize('run_test_task_name'),
           workspaceFolder,
           command,
-          args,
-          {
-            reveal: vscode.TaskRevealKind.Never,
-            focus: false,
-            echo: false,
-            panel: vscode.TaskPanelKind.Dedicated,
-            showReuseMessage: false
-          }
+          args
         );
         const ended = awaitTaskEnd(sfTask, token);
         await sfTask.execute();

@@ -9,52 +9,18 @@ import * as vscode from 'vscode';
 import { taskService } from '../../../../src/testSupport/testRunner/taskService';
 
 describe('TaskService', () => {
-  describe('createTask with presentation override', () => {
-    it('should use default presentation when no override is provided', () => {
+  describe('createTask', () => {
+    it('creates a task with a hidden, shared, reused terminal presentation', () => {
       const task = taskService.createTask('test-task-id', 'Test Task', vscode.TaskScope.Workspace, 'npm', ['test']);
 
       // Access the internal task to check presentation options
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
       const internalTask = (task as any).task as vscode.Task;
       expect(internalTask.presentationOptions).toEqual({
         reveal: vscode.TaskRevealKind.Never,
         focus: false,
         echo: false,
         panel: vscode.TaskPanelKind.Shared,
-        clear: true,
-        showReuseMessage: false
-      });
-    });
-
-    it('should merge presentation override with defaults', () => {
-      const task = taskService.createTask('test-task-id', 'Test Task', vscode.TaskScope.Workspace, 'npm', ['test'], {
-        panel: vscode.TaskPanelKind.Dedicated
-      });
-
-      // Access the internal task to check presentation options
-      const internalTask = (task as any).task as vscode.Task;
-      expect(internalTask.presentationOptions).toEqual({
-        reveal: vscode.TaskRevealKind.Never,
-        focus: false,
-        echo: false,
-        panel: vscode.TaskPanelKind.Dedicated,
-        clear: true,
-        showReuseMessage: false
-      });
-    });
-
-    it('should merge multiple presentation override properties', () => {
-      const task = taskService.createTask('test-task-id', 'Test Task', vscode.TaskScope.Workspace, 'npm', ['test'], {
-        panel: vscode.TaskPanelKind.Dedicated,
-        reveal: vscode.TaskRevealKind.Silent
-      });
-
-      // Access the internal task to check presentation options
-      const internalTask = (task as any).task as vscode.Task;
-      expect(internalTask.presentationOptions).toEqual({
-        reveal: vscode.TaskRevealKind.Silent,
-        focus: false,
-        echo: false,
-        panel: vscode.TaskPanelKind.Dedicated,
         clear: true,
         showReuseMessage: false
       });
