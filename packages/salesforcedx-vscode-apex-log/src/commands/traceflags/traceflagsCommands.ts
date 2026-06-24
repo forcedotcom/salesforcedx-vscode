@@ -10,14 +10,16 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DebugLevelItem } from 'salesforcedx-vscode-services';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { isTraceFlagActive } from '../../traceFlags/traceFlagActive';
 import {
   pickDebugLevel,
   pickDebugLevelToRemove,
   pickLogLevel,
   pickOrgUser,
+  pickTraceFlag,
   readDefaultDurationMinutes,
   refreshTraceFlagsView,
   sanitizeDeveloperName
@@ -84,10 +86,11 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
     const { api, orgId, userId } = ctx.value;
     const traceFlagService = yield* api.services.TraceFlagService;
     const existing = yield* traceFlagService.getTraceFlagForUser(userId!);
-    yield* Option.match(existing, {
-      onNone: () => Effect.void,
-      onSome: tf => traceFlagService.deleteTraceFlag(tf.id)
-    });
+    if (Option.isNone(existing)) {
+      yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active')));
+      return;
+    }
+    yield* traceFlagService.deleteTraceFlag(existing.value.id);
     yield* refreshTraceFlagsView(orgId);
   }
 );
@@ -206,16 +209,27 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   );
 });
 
-/** Delete trace flag by Id, refresh virtual doc. */
+/** Resolve a trace flag id via QuickPick over the active subset of `flags`; shows an info message and returns undefined when none are active. */
+const promptForActiveTraceFlagId = Effect.fn('ApexLog.promptForActiveTraceFlagId')(function* (flags: TraceFlagItem[]) {
+  const active = flags.filter(isTraceFlagActive);
+  if (active.length === 0) {
+    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active')));
+    return undefined;
+  }
+  return yield* pickTraceFlag(active);
+});
+
+/** Delete trace flag by Id, refresh virtual doc. When no Id is provided (e.g. command palette), prompts via QuickPick. */
 export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTraceFlagForId')(function* (
-  traceFlagId: string
+  traceFlagId?: string
 ) {
-  if (!traceFlagId) return;
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
-  yield* traceFlagService.deleteTraceFlag(traceFlagId);
+  const resolvedId = traceFlagId ?? (yield* promptForActiveTraceFlagId(yield* traceFlagService.getTraceFlags()));
+  if (!resolvedId) return;
+  yield* traceFlagService.deleteTraceFlag(resolvedId);
   yield* refreshTraceFlagsView(orgId);
 });
 

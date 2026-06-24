@@ -57,6 +57,8 @@ export const messages = {
   trace_flag_tooltip_stop: 'Remove',
   trace_flag_pick_debug_level_to_remove: 'Select a debug level to remove',
   trace_flags_no_debug_levels: 'No debug levels to remove',
+  trace_flag_pick_trace_flag: 'Select a trace flag to remove',
+  trace_flags_none_active: 'No active trace flags to remove',
   trace_flag_codelens_change_debug_level: 'Change',
   log_auto_collect_fetched: 'Auto-collected log %s (%s - %s)',
   log_auto_collect_tooltip: 'Auto-collected: %s logs',
