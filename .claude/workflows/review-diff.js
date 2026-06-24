@@ -137,9 +137,9 @@ const VERIFY_SCHEMA = {
   type: 'object',
   required: ['verdict', 'severity', 'rationale'],
   properties: {
-    // confirmed: premise verified, keep as-is.
-    // downgraded: real but lower severity than claimed.
-    // dropped: premise false, or already-covered (e.g. CI runs it), or zero affected consumers.
+    // confirmed: premise verified and could not be disproven — keep at claimed severity (default outcome).
+    // downgraded: impact PROVEN lower than claimed (not "seems minor") — severity = proven level.
+    // dropped: finding DISPROVEN — premise false, already-covered (CI runs it), or zero affected consumers.
     verdict: { enum: ['confirmed', 'downgraded', 'dropped'] },
     severity: { enum: ['critical', 'high', 'medium', 'low'] },
     rationale: { type: 'string' },
@@ -241,7 +241,7 @@ Read and apply ${wt}/${SKILLS_DIR}/thermonuclear-code-quality-review/SKILL.md (f
 const effectDiffReviewPrompt = `Review the diff in ${wt} (mode: diff review). Examine 'git diff ${base}...HEAD'.`
 
 const verifyFindingPrompt = finding =>
-  `Adversarially verify ONE code-review finding against the diff in ${wt}. Default to skepticism: a finding survives only if its premise is demonstrably true AND acting on it adds value beyond what CI/automation already provides.
+  `Adversarially verify ONE code-review finding against the diff in ${wt}. Your job is to DISPROVE the finding, not to justify it. The burden of proof is on dropping/downgrading — a finding is kept at its claimed severity UNLESS you can affirmatively prove it wrong (drop) or prove its impact is lower than claimed (downgrade). "I can't see what value this adds" / "both forms work" / "it's only style or architecture" is NOT grounds to drop or downgrade — that is a KEEP. You only act against a finding with EVIDENCE that disproves it.
 
 Finding (source: ${finding.source}):
 ${JSON.stringify({ severity: finding.severity, file: finding.file, line: finding.line, claim: finding.claim }, null, 2)}
@@ -249,16 +249,17 @@ ${JSON.stringify({ severity: finding.severity, file: finding.file, line: finding
 Establish the premise with EVIDENCE, not assumption. Read the cited file:line and 'git diff ${base}...HEAD' in ${wt}.
 
 Verdict rules:
-- **dropped** if ANY of:
-  - The premise is false (cited code doesn't do what the finding claims).
-  - It only asks to RUN tests/checks that CI already runs on the PR. CI runs Playwright e2e (with retries) and the stop-hook chain (compile/lint/knip/effect-LS/unit) as gating checks — re-running them by hand before merge is redundant. Inspect '.github/workflows/' in ${wt} to confirm what CI covers; a "run X before merge" finding where X is a gating CI job → dropped.
-  - It claims a BREAKING API change / removed export / dead code. PROVE affected consumers exist before keeping it. Read ${wt}/${SKILLS_DIR}/external-consumers/SKILL.md and run its gh searches across org:forcedotcom and org:salesforcecli for the exact removed symbol AND its public-export form (e.g. workspaceContextUtils.<name>). Discount false positives (unrelated same-named symbols, the ci-testing mirror repo, the export site itself, plan/doc files). Zero real consumers → dropped (note "removed unused export, no consumers" for the PR body instead).
-- **downgraded** if the premise holds but the real severity is lower than claimed (e.g. theoretical edge, no user-facing impact). Downgrade to 'low' — do NOT drop. A correct fix with no user-facing impact (misleading comment, dead/no-op config line, stale rationale) is still worth applying for free; keep it as a low-severity 'confirmed' or 'downgraded', never 'dropped'.
-- **confirmed** if premise verified and the fix is correct. "Adds genuine value" includes trivially-correct cleanups (delete a no-op line, fix a misleading comment) — these are cheap and unambiguous, so confirm them at low severity rather than discarding.
+- **dropped** — ONLY when you can affirmatively DISPROVE the finding via one of these (each is a proof, not a judgment call):
+  - **Premise false**: the cited code doesn't do what the finding claims. You read it; the claim is factually wrong.
+  - **Already covered by CI**: it only asks to RUN tests/checks that CI already runs on the PR. CI runs Playwright e2e (with retries) and the stop-hook chain (compile/lint/knip/effect-LS/unit) as gating checks — re-running them by hand before merge is redundant. Inspect '.github/workflows/' in ${wt} to confirm what CI covers; a "run X before merge" finding where X is a gating CI job → dropped.
+  - **Zero consumer**: it claims a BREAKING API change / removed export / dead code, but no consumer actually exists. PROVE this: read ${wt}/${SKILLS_DIR}/external-consumers/SKILL.md and run its gh searches across org:forcedotcom and org:salesforcecli for the exact removed symbol AND its public-export form (e.g. workspaceContextUtils.<name>). Discount false positives (unrelated same-named symbols, the ci-testing mirror repo, the export site itself, plan/doc files). Zero real consumers → the "breaking" premise is disproven → dropped (note "removed unused export, no consumers" for the PR body instead).
+  Inability to prove the finding VALUABLE is never a drop reason. If you cannot disprove it, it is kept.
+- **downgraded** — ONLY when you can affirmatively PROVE the real impact is lower than the claimed severity (e.g. claim says "critical: data loss" but you prove the path is behind an off-by-default flag → high; claim says "high" but you prove it's a theoretical edge that cannot occur given the surrounding code → low). Set 'severity' to the proven level. "No user-facing impact I can see" / "seems minor" / "it's just style" is NOT proof of lower impact — that keeps the claimed severity. Do not use downgrade as a soft drop.
+- **confirmed** — the premise is verified true and you could not disprove it. This is the DEFAULT outcome for any finding you can't drop or downgrade, INCLUDING true-but-unprovable-value style/architecture findings (reuse an existing service, prefer an Effect idiom, fewer short-term consts) and trivially-correct cleanups (delete a no-op line, fix a misleading comment). Keep 'severity' EQUAL to the claimed severity — do not lower it just because you can't independently confirm the payoff.
 
-'dropped' is ONLY for findings that are FALSE, ALREADY-COVERED (CI re-run), or ZERO-CONSUMER. A true-but-minor finding is low severity, not dropped.
+Summary: drop ⇔ you DISPROVED it (false / CI-covered / zero-consumer). downgrade ⇔ you PROVED lower impact. Everything else ⇒ confirmed at claimed severity. When in doubt, KEEP.
 
-Return ONLY the structured result. 'severity' = the corrected severity (== claimed if confirmed). 'evidence' = file:line or gh-search summary that grounds the verdict.`
+Return ONLY the structured result. 'severity' = claimed severity for confirmed; the proven-lower level for downgraded; the verified level for dropped (unused). 'evidence' = the file:line / workflow / gh-search summary that grounds the verdict — for 'confirmed', state what you checked and why you could not disprove it.`
 
 const fixerPrompt = verifiedFindings =>
   `Apply review findings to the code in ${wt}.
@@ -332,11 +333,13 @@ const effectDiffReview = await agent(effectDiffReviewPrompt, {
   agentType: 'effect-advocate',
 })
 
-// Verify every finding before fixing: each gets an adversarial verifier that
-// proves the premise (reads cited code; gh-searches consumers for breaking/
-// dead-code claims; checks CI coverage for "run X before merge" claims) and
-// returns confirmed / downgraded / dropped. Kills false positives, redundant
-// CI re-runs, and zero-consumer "breaking changes" before they reach the fixer.
+// Verify every finding before fixing: each gets an adversarial verifier whose
+// job is to DISPROVE the finding (reads cited code; gh-searches consumers for
+// breaking/dead-code claims; checks CI coverage for "run X before merge" claims).
+// It returns confirmed / downgraded / dropped, with the burden of proof on
+// dropping/downgrading: drop only on disproof (false / CI-covered / zero-consumer),
+// downgrade only on proven-lower impact, else keep at claimed severity. Kills false
+// positives without discarding true-but-unprovable-value style/architecture findings.
 phase('Verify findings')
 
 const rawFindings = normalizeFindings(skillFindings, skillsToCheck, thermo, effectDiffReview)
