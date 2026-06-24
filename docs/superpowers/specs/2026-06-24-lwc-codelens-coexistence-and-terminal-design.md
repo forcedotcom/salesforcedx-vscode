@@ -4,6 +4,8 @@
 
 **Goal:** Make our LWC code lenses always visible and identifiable, with a one-time heads-up when Jest Runner is also installed; stop showing the redundant jest terminal on controller runs (results already flow to Test Results).
 
+**Status:** Part A (Code-lens coexistence) implemented in commit d9c7c5206464f59fb278569e6594afdb3d018704. Part B (terminal suppression) implemented in commit 379161eda.
+
 ## Constraints
 
 - **Web/browser extension host compatible.** No `child_process` (Code Builder Web). Runs MUST stay on the `vscode.Task` mechanism.
@@ -45,3 +47,59 @@ Files: `src/testSupport/testRunner/taskService.ts`, `src/testSupport/testExplore
 ## Out of scope
 
 Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Continuous Run migration (separate follow-up WI).
+
+## Implementation Notes (Part A)
+
+**Commit:** d9c7c5206464f59fb278569e6594afdb3d018704
+
+**Changes made:**
+
+1. **Removed Jest Runner deferral logic** (`provideLwcTestCodeLens.ts`)
+   - Deleted `isJestRunnerExtensionPresent()` function
+   - Removed early `return []` check
+   - LWC code lenses now always render regardless of Jest Runner presence
+
+2. **Added (LWC) suffix to code lens titles** (`i18n.ts`, `i18n.ja.ts`)
+   - `run_test_title`: "Run Test (LWC)"
+   - `debug_test_title`: "Debug Test (LWC)"
+   - `run_all_tests_title`: "Run All Tests (LWC)"
+   - `debug_all_tests_title`: "Debug All Tests (LWC)"
+
+3. **Implemented one-time Jest Runner notification** (`lwcTestCodeLensProvider.ts`)
+   - Added `maybeNotifyJestRunnerDuplicate()` method to provider class
+   - Checks for active Jest Runner extension (`firsttris.vscode-jest-runner`)
+   - Uses globalState flag `LWC_JEST_RUNNER_DUPLICATE_LENS_NOTICE_DISMISSED` (added to `constants.ts`)
+   - Tracks session state with `notifiedThisSession` flag to prevent multiple notifications
+   - Shows non-blocking information message with "Don't show again" button
+   - New i18n strings: `jest_runner_duplicate_codelens_message`, `jest_runner_dont_show_again_button`
+
+4. **Test coverage**
+   - New test file: `lwcTestCodeLensProvider.test.ts` with comprehensive tests for notification logic
+   - Updated `provideLwcTestCodeLens.test.ts` to verify lenses always returned
+   - Fixed VS Code mocks in `setup-jest.ts` and `vscode.js` to support testing
+
+**Behavior:** Users with both extensions installed now see both sets of code lenses, with ours labeled "(LWC)" for clarity. A one-time notification explains the duplication and highlights that the (LWC) lenses integrate with Test Explorer.
+
+## Implementation Notes (Part B)
+
+**Commit:** 379161eda
+
+**Changes made:**
+
+1. **Added optional `presentationOverride` parameter to `taskService.createTask`** (`taskService.ts`)
+   - Parameter: `presentationOverride?: Partial<vscode.TaskPresentationOptions>`
+   - Merged with defaults to allow callers to override specific presentation options
+   - Default behavior preserved; watch path unaffected by change
+
+2. **Updated controller-driven run path** (`lwcTestController.ts`)
+   - In `executeOne` method (non-debug branch), pass presentation override to suppress terminal
+   - Override includes: `reveal: Never`, `panel: Dedicated`, `echo: false`, `focus: false`, `showReuseMessage: false`
+   - Dedicated panel ensures task output stays hidden while JSON result file is written and read
+   - Real feedback surface is Test Results tab; terminal remains hidden from user
+
+3. **Test coverage** (`taskService.test.ts`)
+   - New test file added to validate `presentationOverride` parameter
+   - Tests verify override merges with defaults
+   - Tests confirm watch caller's default presentation is unchanged
+
+**Behavior:** Controller-driven test runs no longer show a redundant jest terminal. Test output flows to JSON result file, which the controller reads and populates into Test Results tab. Watch mode remains unaffected (uses original presentation defaults).
