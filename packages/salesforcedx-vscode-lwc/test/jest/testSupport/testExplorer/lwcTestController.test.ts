@@ -96,3 +96,78 @@ describe('LwcTestController test item tags', () => {
     expect(tagIds(caseItems[0])).toContain('in-workspace');
   });
 });
+
+describe('LwcTestController public run API', () => {
+  it('runByExecutionInfo resolves a file item and starts a test run', async () => {
+    const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
+    const createdRuns: any[] = [];
+    let runHandler: ((request: any, token: any) => unknown) | undefined;
+
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: {
+        replace: jest.fn(),
+        forEach: jest.fn()
+      },
+      createTestItem: (id: string, label: string, uri?: URI) => ({
+        id,
+        label,
+        uri,
+        canResolveChildren: false,
+        tags: [],
+        children: { replace: jest.fn(), forEach: jest.fn() }
+      }),
+      // capture the Run profile's handler so the test can assert a run is created
+      createRunProfile: jest.fn((_label, kind, handler) => {
+        if (kind === vscode.TestRunProfileKind.Run) {
+          runHandler = handler;
+        }
+        return { dispose: jest.fn() };
+      }),
+      createTestRun: jest.fn(() => {
+        const run = {
+          started: jest.fn(),
+          passed: jest.fn(),
+          failed: jest.fn(),
+          skipped: jest.fn(),
+          errored: jest.fn(),
+          appendOutput: jest.fn(),
+          end: jest.fn()
+        };
+        createdRuns.push(run);
+        return run;
+      }),
+      dispose: jest.fn()
+    };
+
+    // Mock TestRunRequest and CancellationTokenSource
+    (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+      this.include = include;
+      this.exclude = exclude;
+      this.profile = profile;
+    });
+    (vscode.CancellationTokenSource as any) = jest.fn(() => ({
+      token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
+      cancel: jest.fn(),
+      dispose: jest.fn()
+    }));
+
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([{ kind: 'testFile', testUri }]);
+    (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
+
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
+
+    // executeOne will be invoked; stub the shell info so the run short-circuits without spawning a task.
+    jest
+      .spyOn(require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype, 'getShellExecutionInfo')
+      .mockResolvedValue(undefined);
+
+    await ctrl.runByExecutionInfo({ kind: 'testFile', testUri }, false);
+
+    expect(controller.createTestRun).toHaveBeenCalled();
+  });
+});

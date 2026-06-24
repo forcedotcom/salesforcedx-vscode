@@ -17,7 +17,8 @@ import {
   TestDirectoryInfo,
   TestExecutionInfo,
   TestFileInfo,
-  TestResultStatus
+  TestResultStatus,
+  isTestCaseInfo
 } from '../types';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import { workspace } from '../workspace';
@@ -65,6 +66,8 @@ class LwcTestController {
   // controller uses. VS Code's Test Explorer tag filter (@in-workspace) matches by tag id across all
   // controllers and hides untagged items, so without this the `@in-workspace` filter hides every LWC test.
   private readonly inWorkspaceTag = new vscode.TestTag('in-workspace');
+  private runProfile!: vscode.TestRunProfile;
+  private debugProfile!: vscode.TestRunProfile;
 
   constructor() {
     this.controller = vscode.tests.createTestController(TEST_CONTROLLER_ID, nls.localize('lwc_test_controller_label'));
@@ -87,14 +90,53 @@ class LwcTestController {
     await this.populateFiles();
   };
 
+  /** Public entry: run (or debug) the test(s) described by `info` through the native Test Run UI. */
+  public runByExecutionInfo = async (info: TestExecutionInfo, isDebug: boolean): Promise<void> => {
+    const item = await this.resolveItemForExecutionInfo(info);
+    if (!item) {
+      return;
+    }
+    const profile = isDebug ? this.debugProfile : this.runProfile;
+    const request = new vscode.TestRunRequest([item], undefined, profile);
+    const tokenSource = new vscode.CancellationTokenSource();
+    try {
+      await this.runTests(request, tokenSource.token, isDebug);
+    } finally {
+      tokenSource.dispose();
+    }
+  };
+
+  private resolveItemForExecutionInfo = async (info: TestExecutionInfo): Promise<vscode.TestItem | undefined> => {
+    const fileUri = info.testUri;
+    const fileId = createFileId(fileUri);
+    let fileItem = this.fileItems.get(fileId);
+    if (!fileItem) {
+      // discovery may not have run yet for this uri; create the item on demand
+      fileItem = this.getOrCreateFileItem({ kind: 'testFile', testUri: fileUri });
+    }
+    if (info.kind === 'testFile' || info.kind === 'testDirectory') {
+      return fileItem;
+    }
+    // testCase: ensure children are resolved, then match by label (== jest testName)
+    await this.resolveFileChildren(fileItem);
+    const targetName = isTestCaseInfo(info) ? info.testName : undefined;
+    let match: vscode.TestItem | undefined;
+    fileItem.children.forEach(child => {
+      if (!match && child.label === targetName) {
+        match = child;
+      }
+    });
+    return match ?? fileItem;
+  };
+
   private setupProfiles = (): void => {
-    this.controller.createRunProfile(
+    this.runProfile = this.controller.createRunProfile(
       nls.localize('lwc_test_run_profile_title'),
       vscode.TestRunProfileKind.Run,
       (request, token) => this.runTests(request, token, false),
       true
     );
-    this.controller.createRunProfile(
+    this.debugProfile = this.controller.createRunProfile(
       nls.localize('lwc_test_debug_profile_title'),
       vscode.TestRunProfileKind.Debug,
       (request, token) => this.runTests(request, token, true)
@@ -534,7 +576,7 @@ const jestStatusToStatus = (status: string): TestResultStatus => {
 
 let instance: LwcTestController | undefined;
 
-const getLwcTestController = (): LwcTestController => {
+export const getLwcTestController = (): LwcTestController => {
   instance ??= new LwcTestController();
   return instance;
 };
