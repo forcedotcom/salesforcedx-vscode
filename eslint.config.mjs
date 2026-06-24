@@ -209,6 +209,7 @@ export default [
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/prefer-object-from-entries': 'error',
       'unicorn/prefer-optional-catch-binding': 'error',
+      'unicorn/prefer-promise-with-resolvers': 'error',
       'unicorn/prefer-set-has': 'error',
       'unicorn/prefer-set-size': 'error',
       'unicorn/prefer-single-call': 'error',

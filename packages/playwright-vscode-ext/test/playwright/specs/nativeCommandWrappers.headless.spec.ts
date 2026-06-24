@@ -43,6 +43,7 @@ test.describe('Native command wrappers', () => {
   });
 
   test('focusOnFilesExplorer focuses the Files Explorer view', async ({ page }) => {
+    test.skip(!isDesktop(), 'Files Explorer tree requires an open workspace folder (desktop only)');
     await focusOnFilesExplorer(page);
     await expect(page.getByRole('tree', { name: /Files Explorer/i }).first()).toBeVisible({ timeout: 10_000 });
   });
@@ -93,6 +94,7 @@ test.describe('Native command wrappers', () => {
   });
 
   test('showExplorer reveals the Explorer sidebar', async ({ page }) => {
+    test.skip(!isDesktop(), 'Files Explorer tree requires an open workspace folder (desktop only)');
     await showExplorer(page);
     await expect(page.getByRole('tree', { name: /Files Explorer/i }).first()).toBeVisible({ timeout: 10_000 });
   });

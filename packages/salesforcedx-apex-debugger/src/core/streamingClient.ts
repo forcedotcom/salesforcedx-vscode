@@ -135,12 +135,7 @@ export class StreamingClient {
   }
 
   public async subscribe(): Promise<void> {
-    let subscribeAccept: () => void;
-    let subscribeReject: () => void;
-    const returnPromise = new Promise<void>((resolve: () => void, reject: () => void) => {
-      subscribeAccept = resolve;
-      subscribeReject = reject;
-    });
+    const { promise: returnPromise, resolve: subscribeAccept, reject: subscribeReject } = Promise.withResolvers<void>();
 
     this.client.on('transport:down', async () => {
       if (!this.connected) {
