@@ -388,6 +388,66 @@ const getMockVSCode = () => {
       Run: 1,
       Debug: 2,
       Coverage: 3
+    },
+    TaskRevealKind: {
+      Always: 1,
+      Silent: 2,
+      Never: 3
+    },
+    TaskPanelKind: {
+      Shared: 1,
+      Dedicated: 2,
+      New: 3
+    },
+    TaskScope: {
+      Global: 1,
+      Workspace: 2
+    },
+    ShellExecution: class {
+      public commandLine: string;
+      public options?: any;
+      constructor(commandOrCommandLine: string, argsOrOptions?: any, options?: any) {
+        if (Array.isArray(argsOrOptions)) {
+          // ShellExecution(command, args, options)
+          this.commandLine = commandOrCommandLine;
+          this.options = options;
+        } else {
+          // ShellExecution(commandLine, options)
+          this.commandLine = commandOrCommandLine;
+          this.options = argsOrOptions;
+        }
+      }
+    },
+    Task: class {
+      public definition: any;
+      public scope: any;
+      public name: string;
+      public source: string;
+      public execution: any;
+      public presentationOptions: any;
+      public isBackground = false;
+      public problemMatchers: string[] = [];
+      public runOptions: any = {};
+      constructor(
+        definition: any,
+        scope: any,
+        name: string,
+        source: string,
+        execution?: any,
+        problemMatchers?: string[]
+      ) {
+        this.definition = definition;
+        this.scope = scope;
+        this.name = name;
+        this.source = source;
+        this.execution = execution;
+        this.problemMatchers = problemMatchers || [];
+      }
+    },
+    tasks: {
+      executeTask: jest.fn(),
+      onDidStartTask: jest.fn(() => ({ dispose: jest.fn() })),
+      onDidEndTask: jest.fn(() => ({ dispose: jest.fn() }))
     }
   };
 

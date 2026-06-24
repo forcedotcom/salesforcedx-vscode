@@ -115,13 +115,15 @@ class TaskService {
    * @param taskScope task scope
    * @param cmd command line executable
    * @param args command line arguments
+   * @param presentationOverride optional presentation options override (merged with defaults)
    */
   public createTask(
     taskId: string,
     taskName: string,
     taskScope: vscode.WorkspaceFolder | vscode.TaskScope,
     cmd: string,
-    args: (string | vscode.ShellQuotedString)[]
+    args: (string | vscode.ShellQuotedString)[],
+    presentationOverride?: Partial<vscode.TaskPresentationOptions>
   ): SfTask {
     const taskDefinition: SfTaskDefinition = {
       type: 'sfLwcTest',
@@ -148,7 +150,8 @@ class TaskService {
       echo: false,
       panel: vscode.TaskPanelKind.Shared,
       clear: true,
-      showReuseMessage: false
+      showReuseMessage: false,
+      ...presentationOverride
     };
 
     const sfTask = new SfTask(task);
