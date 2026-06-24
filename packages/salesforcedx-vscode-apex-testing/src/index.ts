@@ -86,7 +86,24 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
     registerOrgOnlyRetrieveCodeLensProvider(context);
   }
 
-  // Always register commands (they'll be no-ops if not in a project)
+  // Register Effect-pipeline commands via the runtime so spans/tracing/error-handling and
+  // UserCancellationError swallowing are wired by registerCommandWithRuntime.
+  const registerCommand = api.services.registerCommandWithRuntime(getApexTestingRuntime());
+  yield* Effect.all(
+    [
+      registerCommand('sf.apex.test.run', apexTestRun),
+      registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd),
+      registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
+      registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
+      registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction),
+      registerCommand('sf.apex.test.last.class.run', apexTestClassRunCodeAction),
+      registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction),
+      registerCommand('sf.apex.test.last.method.run', apexTestMethodRunCodeAction)
+    ],
+    { concurrency: 'unbounded' }
+  );
+
+  // Always register the remaining (non-Effect) commands (they'll be no-ops if not in a project)
   const commands = registerCommands();
   // apexTestingDiagnostics: single shared diagnostic collection for apex test failures
   context.subscriptions.push(commands, apexTestingDiagnostics);
@@ -141,11 +158,6 @@ const registerCommands = (): vscode.Disposable => {
     'sf.apex.debug.class.run.delegate',
     apexDebugClassRunCodeActionDelegate
   );
-  const apexTestLastClassRunCmd = vscode.commands.registerCommand(
-    'sf.apex.test.last.class.run',
-    apexTestClassRunCodeAction
-  );
-  const apexTestClassRunCmd = vscode.commands.registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction);
   const apexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.test.method.run.delegate',
     apexTestMethodRunCodeActionDelegate
@@ -154,15 +166,6 @@ const registerCommands = (): vscode.Disposable => {
     'sf.apex.debug.method.run.delegate',
     apexDebugMethodRunCodeActionDelegate
   );
-  const apexTestLastMethodRunCmd = vscode.commands.registerCommand(
-    'sf.apex.test.last.method.run',
-    apexTestMethodRunCodeAction
-  );
-  const apexTestMethodRunCmd = vscode.commands.registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction);
-  const apexTestSuiteCreateCmd = vscode.commands.registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate);
-  const apexTestSuiteRunCmd = vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun);
-  const apexTestSuiteAddCmd = vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd);
-  const apexTestRunCmd = vscode.commands.registerCommand('sf.apex.test.run', apexTestRun);
   const retrieveOrgOnlyClassCmd = vscode.commands.registerCommand(
     'sf.apex.test.orgOnlyClass.retrieve',
     async (target?: vscode.TestItem | URI) => {
@@ -203,19 +206,11 @@ const registerCommands = (): vscode.Disposable => {
   return vscode.Disposable.from(
     apexToggleColorizerCmd,
     statusBarToggle,
-    apexTestClassRunCmd,
     apexTestClassRunDelegateCmd,
     apexDebugClassRunDelegateCmd,
-    apexTestLastClassRunCmd,
-    apexTestLastMethodRunCmd,
-    apexTestMethodRunCmd,
     apexTestMethodRunDelegateCmd,
     apexDebugMethodRunDelegateCmd,
     retrieveOrgOnlyClassCmd,
-    apexTestRunCmd,
-    apexTestSuiteCreateCmd,
-    apexTestSuiteRunCmd,
-    apexTestSuiteAddCmd,
     openOrgOnlyTestCmd,
     apexTestRefreshCmd,
     apexTestClearResultsCmd,
