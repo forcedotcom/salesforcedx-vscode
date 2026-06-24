@@ -13,7 +13,7 @@ import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
@@ -28,8 +28,7 @@ import { runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
 class WorkspaceFolderError extends Schema.TaggedError<WorkspaceFolderError>()('WorkspaceFolderError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.String)
+  message: Schema.String
 }) {}
 
 /** Run the given test class/method names, write diagnostics, and notify. */
@@ -145,7 +144,7 @@ const mapApexArtifactToFilesystem = async (
   )
     .map(filePath => URI.parse(filePath))
     .map(file => {
-      const fileName = path.basename(file.fsPath, '.cls');
+      const fileName = Utils.basename(file).slice(0, -'.cls'.length);
       if (correlatedArtifacts.has(fileName)) {
         correlatedArtifacts.set(fileName, file.fsPath);
       }
@@ -157,8 +156,7 @@ const mapApexArtifactToFilesystem = async (
 const getTempFolder = Effect.fn('apexTestRunCodeAction.getTempFolder')(function* () {
   return yield* Effect.tryPromise({
     try: () => getTestResultsFolder(),
-    catch: cause =>
-      new WorkspaceFolderError({ message: nls.localize('cannot_determine_workspace'), cause: String(cause) })
+    catch: () => new WorkspaceFolderError({ message: nls.localize('cannot_determine_workspace') })
   });
 });
 
@@ -193,7 +191,9 @@ export const apexTestClassRunCodeAction = Effect.fn('apexTestClassRunCodeAction'
   const resolved = yield* resolveTestClassParam(testClass);
   if (isEmpty(resolved)) {
     // test param not provided: show error and terminate
-    notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_class_test_param_text'));
+    yield* Effect.sync(() => {
+      void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_class_test_param_text'));
+    });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     return yield* new api.services.UserCancellationError();
   }
@@ -233,7 +233,9 @@ export const apexTestMethodRunCodeAction = Effect.fn('apexTestMethodRunCodeActio
   const resolved = yield* resolveTestMethodParam(testMethod);
   if (isEmpty(resolved)) {
     // test param not provided: show error and terminate
-    notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_method_test_param_text'));
+    yield* Effect.sync(() => {
+      void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_method_test_param_text'));
+    });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     return yield* new api.services.UserCancellationError();
   }

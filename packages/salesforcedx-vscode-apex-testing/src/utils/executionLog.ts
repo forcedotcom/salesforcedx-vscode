@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
 
 /**
@@ -20,8 +21,15 @@ export const withExecutionLog =
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const channelService = yield* api.services.ChannelService;
-      yield* channelService.appendToChannel(`Starting ${executionName} at ${new Date().toLocaleTimeString()}`);
+      const startMs = yield* Clock.currentTimeMillis;
+      yield* channelService.appendToChannel(`Starting ${executionName} at ${new Date(startMs).toLocaleTimeString()}`);
       return yield* self.pipe(
-        Effect.ensuring(channelService.appendToChannel(`Ended ${executionName} at ${new Date().toLocaleTimeString()}`))
+        Effect.ensuring(
+          Clock.currentTimeMillis.pipe(
+            Effect.flatMap(endMs =>
+              channelService.appendToChannel(`Ended ${executionName} at ${new Date(endMs).toLocaleTimeString()}`)
+            )
+          )
+        )
       );
     });

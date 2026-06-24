@@ -19,7 +19,9 @@ export const ensureSalesforceProject = Effect.fn('ensureSalesforceProject')(func
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const isProject = yield* api.services.ProjectService.isSalesforceProject();
   if (!isProject) {
-    notificationService.showErrorMessage(nls.localize('predicates_no_salesforce_project_found_text'));
+    yield* Effect.sync(() => {
+      void notificationService.showErrorMessage(nls.localize('predicates_no_salesforce_project_found_text'));
+    });
     return yield* new api.services.UserCancellationError();
   }
 });
