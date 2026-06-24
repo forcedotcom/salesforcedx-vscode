@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/eslint-plugin-vscode-extensions",
-  "version": "65.10.0",
+  "version": "65.12.0",
   "versionedIndependently": true,
   "description": "Custom ESLint rules for Salesforce VSCode extensions",
   "author": "Salesforce",

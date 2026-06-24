@@ -14,8 +14,10 @@ import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
+import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
+import { noSuccessiveAnnotateCurrentSpan } from './noSuccessiveAnnotateCurrentSpan';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 import { noVscodeProgressTitleLiterals } from './noVscodeProgressTitleLiterals';
@@ -48,11 +50,13 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-direct-services-imports': noDirectServicesImports,
     'no-self-barrel-import': noSelfBarrelImport,
     'no-effect-fn-wrapper': noEffectFnWrapper,
+    'no-successive-annotate-current-span': noSuccessiveAnnotateCurrentSpan,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
     'no-runtime-vscode-import': noRuntimeVscodeImport,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
+    'no-inline-esbuild-platform': noInlineEsbuildPlatform,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,

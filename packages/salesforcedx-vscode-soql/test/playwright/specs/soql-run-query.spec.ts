@@ -12,6 +12,7 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
+  saveFile,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOption,
@@ -69,7 +70,7 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
     // Type the query into the empty editor (file opens focused and ready for input)
     await page.locator(EDITOR).first().click();
     await page.keyboard.type(SOQL_QUERY);
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     await saveScreenshot(page, 'step1.query-saved.png');
   });
 
@@ -178,7 +179,7 @@ test('SOQL Run Query: code lens, current file, selected text via command palette
       timeout: 5000
     });
     await page.keyboard.type('SELECT Id, Name FROM ApexClass LIMIT 5');
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
     await saveScreenshot(page, 'step5.tooling-query-saved.png');
 
     const runQueryLens = page.getByRole('button', { name: 'Run Query' });

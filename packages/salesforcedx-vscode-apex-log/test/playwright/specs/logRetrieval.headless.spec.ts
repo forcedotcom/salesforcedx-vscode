@@ -16,10 +16,12 @@ import {
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
   saveScreenshot,
+  selectAll,
   selectFirstQuickInputOption,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
+  showExplorer,
   TAB,
   validateNoCriticalErrors,
   verifyCommandExists,
@@ -78,7 +80,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await editor.click();
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
-    await executeCommandWithCommandPalette(page, 'Select All');
+    await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('logtest');");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
@@ -117,7 +119,7 @@ test('Log retrieval: get logs, open folder', async ({ page }) => {
     const explorerHeading = page.getByRole('heading', { name: 'Explorer' }).first();
     const isExplorerVisible = await explorerHeading.isVisible().catch(() => false);
     if (!isExplorerVisible) {
-      await executeCommandWithCommandPalette(page, 'View: Show Explorer');
+      await showExplorer(page);
     }
     await expect(explorerHeading).toBeVisible({ timeout: 10_000 });
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.openLogsFolder']);

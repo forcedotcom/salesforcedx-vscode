@@ -640,10 +640,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
     });
     creatingCheckpoints = false;
   }
-  if (updateError) {
-    return false;
-  }
-  return true;
+  return !updateError;
 };
 
 // A couple of important notes about this command's processing

@@ -159,11 +159,11 @@ const fromKey = (key: string): WebConnectionKeyAndApiVersion => {
   return { instanceUrl, accessToken, apiVersion };
 };
 
-const createDesktopConnection = (username: string) =>
-  Effect.gen(function* () {
-    const authInfo = yield* createAuthInfoFromUsername(username);
-    return yield* createConnection(authInfo);
-  }).pipe(Effect.withSpan('createDesktopConnection (cache miss)', { attributes: { username } }));
+const createDesktopConnection = Effect.fn('createDesktopConnection (cache miss)')(function* (username: string) {
+  yield* Effect.annotateCurrentSpan({ username });
+  const authInfo = yield* createAuthInfoFromUsername(username);
+  return yield* createConnection(authInfo);
+});
 
 const connectionCache = Effect.runSync(
   Cache.makeWith({

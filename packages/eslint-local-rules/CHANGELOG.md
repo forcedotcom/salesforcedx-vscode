@@ -1,3 +1,21 @@
+# [65.12.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.11.0...eslint-plugin-vscode-extensions-v65.12.0) (2026-06-24)
+
+
+### Features
+
+* **eslint:** add no-successive-annotate-current-span rule - W-23138529 ([#7558](https://github.com/forcedotcom/salesforcedx-vscode/issues/7558)) ([5f8e42d](https://github.com/forcedotcom/salesforcedx-vscode/commit/5f8e42d3926d136bdd3dd74019b52db757d460e5))
+
+
+
+# [65.11.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.10.0...eslint-plugin-vscode-extensions-v65.11.0) (2026-06-23)
+
+
+### Features
+
+* **eslint:** add no-inline-esbuild-platform rule - W-23129250 ([#7546](https://github.com/forcedotcom/salesforcedx-vscode/issues/7546)) ([b716a80](https://github.com/forcedotcom/salesforcedx-vscode/commit/b716a8007b05d1bc99f2d769fb224634006c4e72))
+
+
+
 # [65.10.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.9.0...eslint-plugin-vscode-extensions-v65.10.0) (2026-06-09)
 
 

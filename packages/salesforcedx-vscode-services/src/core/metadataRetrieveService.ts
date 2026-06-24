@@ -171,9 +171,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
         onSuccess: outcome => Effect.succeed(outcome)
       });
 
-      yield* Effect.annotateCurrentSpan({ retrieveOutcome });
-
       yield* Effect.annotateCurrentSpan({
+        retrieveOutcome,
         fileResponses: retrieveOutcome.getFileResponses().map(r => r.filePath)
       });
       // only do tracking in the case where we retrieve to project

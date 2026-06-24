@@ -14,6 +14,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { normalize } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { toProjectInfo } from '../owned/projectInfoMapper';
@@ -29,11 +30,11 @@ export class FailedToResolveSfProjectError extends Schema.TaggedError<FailedToRe
   }
 ) {}
 
-const setProjectOpenedContext = (value: boolean, reason: string) =>
-  Effect.gen(function* () {
-    yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:project_opened', value));
-    yield* Effect.logInfo(`[ProjectService] sf:project_opened=${String(value)} reason=${reason}`);
-  }).pipe(Effect.withSpan('setProjectOpenedContext', { attributes: { value, reason } }));
+const setProjectOpenedContext = Effect.fn('setProjectOpenedContext')(function* (value: boolean, reason: string) {
+  yield* Effect.annotateCurrentSpan({ value, reason });
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:project_opened', value));
+  yield* Effect.logInfo(`[ProjectService] sf:project_opened=${String(value)} reason=${reason}`);
+});
 
 const resolveSfProject = (fsPath: string) =>
   Effect.tryPromise({
@@ -58,6 +59,20 @@ const globalSfProjectCache = Effect.runSync(
     lookup: resolveSfProject
   }).pipe(Effect.withSpan('sfProjectCache'))
 );
+
+/**
+ * Invalidate the SfProject cache so the next `getSfProject` re-reads sfdx-project.json from disk.
+ *
+ * Two caches must be dropped together:
+ * (1) our `globalSfProjectCache` — per-key invalidate (preserves sibling workspace entries).
+ * (2) `@salesforce/core`'s static `SfProject.instances` Map — `SfProject.resolve` returns the memoized
+ * instance per path, and each instance memoizes its parsed `sfProjectJson` (sfProject.js:468). Without
+ * clearing it, a fresh `globalSfProjectCache` lookup re-resolves the SAME stale instance, so the edited
+ * `sourceApiVersion` is never picked up. `clearInstances()` is the only public API (no per-path delete);
+ * clearing all is safe — siblings simply re-resolve from disk on next use.
+ */
+export const invalidateSfProjectCache = (cacheKey: string) =>
+  globalSfProjectCache.invalidate(cacheKey).pipe(Effect.tap(() => Effect.sync(() => SfProject.clearInstances())));
 
 const TOOLS_DIR = 'tools';
 const SOBJECTS_DIR = 'sobjects';
@@ -89,6 +104,14 @@ const readVsCodeTestWebDiskRootMarker = Effect.promise(async (): Promise<string 
     () => undefined
   );
 }).pipe(Effect.withSpan('readVsCodeTestWebDiskRootMarker'));
+
+/**
+ * Single source of truth for the `globalSfProjectCache` key, shared by `getSfProject` and `sfProjectFileWatcher`.
+ * `vscode-test-web` mounts key by the disk-root marker; desktop/Node keys by the workspace directory fsPath.
+ * @param workspaceDirFsPath the workspace folder fsPath (the directory containing sfdx-project.json)
+ */
+export const sfProjectCacheKey = (workspaceDirFsPath: string) =>
+  Effect.map(readVsCodeTestWebDiskRootMarker, markerPath => markerPath ?? normalize(workspaceDirFsPath));
 
 /** VS Code Web test mounts are not readable by Node `SfProject.resolve`; used when resolve fails on the disk key. */
 const workspaceRootSalesforceManifestExistsViaVscodeFs = Effect.promise(async (): Promise<boolean> => {
@@ -122,8 +145,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
         return false;
       }
 
-      const markerPath = yield* readVsCodeTestWebDiskRootMarker;
-      const cacheKey = markerPath ?? workspaceDescription.fsPath;
+      const cacheKey = yield* sfProjectCacheKey(workspaceDescription.fsPath);
 
       return yield* globalSfProjectCache.get(cacheKey).pipe(
         Effect.tap(() => setProjectOpenedContext(true, 'workspace_non_empty')),
@@ -141,9 +163,8 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 
     /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
     const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
-      const markerPath = yield* readVsCodeTestWebDiskRootMarker;
       const workspacePath = (yield* workspaceService.getWorkspaceInfoOrThrow()).fsPath;
-      const cacheKey = markerPath ?? workspacePath;
+      const cacheKey = yield* sfProjectCacheKey(workspacePath);
       const project = yield* globalSfProjectCache
         .get(cacheKey)
         .pipe(Effect.tapError(() => setProjectOpenedContext(false, 'workspace_empty')));

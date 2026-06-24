@@ -8,14 +8,16 @@
 import { expect } from '@playwright/test';
 
 import {
+  closeEditor,
+  EDITOR_WITH_URI,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   expectProblemsCountAtLeast,
-  EDITOR_WITH_URI,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
+  selectAll,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
@@ -23,8 +25,8 @@ import {
   TAB,
   validateNoCriticalErrors,
   verifyCommandExists,
-  waitForQuickInputFirstOption,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -66,7 +68,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
-    await executeCommandWithCommandPalette(page, 'Select All');
+    await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('hello');\nSystem.debug('selection');");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
@@ -84,7 +86,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await expect(logTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'exec-document.success.png');
     // Close debug.log so the .apex file is active for the next step (execute anonymous requires editorLangId apex)
-    await executeCommandWithCommandPalette(page, 'View: Close Editor');
+    await closeEditor(page);
     await expect(logTab).not.toBeVisible({ timeout: 5000 });
   });
 
@@ -130,14 +132,14 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await expect(logTab).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'exec-selection.success.png');
     // Close debug.log so the .apex file is active for the next step
-    await executeCommandWithCommandPalette(page, 'View: Close Editor');
+    await closeEditor(page);
     await expect(logTab).not.toBeVisible({ timeout: 5000 });
   });
 
   await test.step('execute with compile error and verify error notification', async () => {
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
-    await executeCommandWithCommandPalette(page, 'Select All');
+    await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("Integer x = 'bad';");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);
@@ -153,7 +155,7 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     await expectProblemsCountAtLeast(page, 1, { timeout: 15_000 });
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
-    await executeCommandWithCommandPalette(page, 'Select All');
+    await selectAll(page);
     await page.keyboard.press('Delete');
     await page.keyboard.type("System.debug('fixed');");
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.executeDocument']);

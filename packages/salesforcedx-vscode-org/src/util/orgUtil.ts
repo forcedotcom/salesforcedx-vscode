@@ -293,41 +293,39 @@ type DefaultOrgConfig = {
   defaultOrgUsername: string | undefined;
 };
 
-const resolveUsernameFromAliasEffect = (aliasOrUsername: string) =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const aliasService = yield* api.services.AliasService;
-    const opt = yield* aliasService.getUsernameFromAlias(aliasOrUsername);
-    return Option.getOrElse(opt, () => aliasOrUsername);
-  });
-
-const readAliasesByUsernameFromDiskEffect = () =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const aliasService = yield* api.services.AliasService;
-    const orgs = yield* aliasService.getAllAliases();
-    const result = new Map<string, string[]>();
-    for (const [alias, username] of Object.entries(orgs)) {
-      const existing = result.get(username) ?? [];
-      existing.push(alias);
-      result.set(username, existing);
-    }
-    return result;
-  });
-
 /**
  * Returns the resolved username for a given alias, or the input if it is already a username.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
 export const resolveUsernameFromAlias = async (aliasOrUsername: string): Promise<string> =>
-  getOrgRuntime().runPromise(resolveUsernameFromAliasEffect(aliasOrUsername));
+  getOrgRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const aliasService = yield* api.services.AliasService;
+      const opt = yield* aliasService.getUsernameFromAlias(aliasOrUsername);
+      return Option.getOrElse(opt, () => aliasOrUsername);
+    }).pipe(Effect.withSpan('OrgUtil.resolveUsernameFromAlias'))
+  );
 
 /**
  * Returns a map of username → aliases[]. Used to supplement stale StateAggregator data in the org picker.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
 export const readAliasesByUsernameFromDisk = async (): Promise<Map<string, string[]>> =>
-  getOrgRuntime().runPromise(readAliasesByUsernameFromDiskEffect());
+  getOrgRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const aliasService = yield* api.services.AliasService;
+      const orgs = yield* aliasService.getAllAliases();
+      const result = new Map<string, string[]>();
+      for (const [alias, username] of Object.entries(orgs)) {
+        const existing = result.get(username) ?? [];
+        existing.push(alias);
+        result.set(username, existing);
+      }
+      return result;
+    }).pipe(Effect.withSpan('OrgUtil.readAliasesByUsernameFromDisk'))
+  );
 
 /** Get default org and devhub configuration */
 export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
