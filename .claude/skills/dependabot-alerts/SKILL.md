@@ -40,17 +40,24 @@ Pick the **lowest** consumer version that resolves `<vuln-pkg>` to a patched ver
 
 ## Vet major-version bumps
 
-If the chosen bump crosses a **major version** (e.g. `^1.x` → `^3.0.0`), read the consumer's release notes / CHANGELOG for every major crossed **before** drafting the WI.
+If the chosen bump crosses a **major version** (e.g. `^1.x` → `^3.0.0`), **spawn one subagent per crossing bump** to vet it before drafting the WI. One bump may span several majors (1→3 = two changelogs); independent bumps vet in parallel.
 
-Look for:
+Each subagent's task:
 
-- **ESM-only** (`"type": "module"`). Our `.github/actions/*` and most packages are CJS (`tsc module: node16`, `require()` output). An ESM-only dep can't be `require()`d from a CJS build — that's a breaking migration, not a bump.
+1. Read the consumer's release notes / CHANGELOG for **every** major crossed (e.g. 1→3 means read 2.0.0 and 3.0.0). There may be one or five.
+2. For each breaking change found, `grep` our code for the affected API/behavior and decide if it breaks **us** specifically.
+3. Return: does the bump break us? What breaks, where (file:line), and the lowest version that clears the vuln without a breaking change.
+
+What the subagent looks for:
+
+- **ESM-only** (`"type": "module"`). Our `.github/actions/*` and most packages are CJS (`tsc module: node16`, `require()` output). An ESM-only dep can't be `require()`d from a CJS build — breaking migration, not a bump.
 - **Dropped Node engine support** — must satisfy the consuming context (`.github/actions/*` run `using: node20`; extensions target their own engine).
-- **Transitive major bumps** the consumer drags in (e.g. Octokit majors), and whether our actual usage touches the changed API. `grep` our usage first.
+- **Transitive major bumps** the consumer drags in (e.g. Octokit majors) — only breaking if our usage touches the changed API.
 
-If a lower major already clears the vuln while avoiding a breaking change (ESM, engine drop), **prefer it** and cap the range below the breaking major (e.g. `^2.0.0`, not `^3.0.0`). Note the cap and its reason in the WI `Details__c`.
+Act on the verdict:
 
-If the only version that clears the vuln forces a breaking migration, the WI is no longer a simple bump — say so in `Details__c` (what breaks, what must change) so auto-build-wi plans for it.
+- Breaking change avoidable at a lower major that still clears the vuln → **prefer it**, cap the range below the breaking major (e.g. `^2.0.0`, not `^3.0.0`). Note the cap + reason in `Details__c`.
+- Only fixing version forces a breaking migration → the WI is not a simple bump. Put the subagent's findings (what breaks, file:line, required changes) in `Details__c` so auto-build-wi plans for it.
 
 ## Dependabot dedup screen
 
