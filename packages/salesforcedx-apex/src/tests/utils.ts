@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { CodeCoverage } from './codeCoverage';
+import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { Connection, Logger } from '@salesforce/core';
+import { Progress } from '../common';
+import { nls } from '../i18n';
 import {
   ApexTestProgressValue,
   ApexTestResultData,
@@ -17,10 +21,6 @@ import {
   TestResult,
   TestResultRaw
 } from './types';
-import type { QueryResult } from '@jsforce/jsforce-node';
-import { Progress } from '../common';
-import { nls } from '../i18n';
-import { CodeCoverage } from './codeCoverage';
 
 const DEFAULT_BUFFER_SIZE = 256;
 const MIN_BUFFER_SIZE = 256;
@@ -45,22 +45,16 @@ export function calculatePercentage(dividend: number, divisor: number): string {
 type NsPrefixRecord = { NamespacePrefix: string };
 type InstalledSubscriberRecord = { SubscriberPackage: NsPrefixRecord };
 
-const resolveInstalledNsRecords = async (
-  connection: Connection
-): Promise<NsPrefixRecord[]> => {
+const resolveInstalledNsRecords = async (connection: Connection): Promise<NsPrefixRecord[]> => {
   try {
-    return (
-      await connection.query<NsPrefixRecord>(
-        'SELECT NamespacePrefix FROM PackageLicense'
-      )
-    ).records;
+    return (await connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM PackageLicense')).records;
   } catch {
     try {
       return (
         await connection.tooling.query<InstalledSubscriberRecord>(
           'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage'
         )
-      ).records.map((rec) => ({
+      ).records.map(rec => ({
         NamespacePrefix: rec.SubscriberPackage.NamespacePrefix
       }));
     } catch {
@@ -76,27 +70,20 @@ const toNamespaceInfo =
     namespace: record.NamespacePrefix
   });
 
-export const queryNamespaces = async (
-  connection: Connection
-): Promise<NamespaceInfo[]> => {
+export const queryNamespaces = async (connection: Connection): Promise<NamespaceInfo[]> => {
   const [installedResult, orgResult] = await Promise.allSettled([
     resolveInstalledNsRecords(connection),
     connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM Organization')
   ]);
 
   const installedNamespaces =
-    installedResult.status === 'fulfilled'
-      ? installedResult.value.map(toNamespaceInfo(true))
-      : [];
-  const orgNamespaces =
-    orgResult.status === 'fulfilled'
-      ? orgResult.value.records.map(toNamespaceInfo(false))
-      : [];
+    installedResult.status === 'fulfilled' ? installedResult.value.map(toNamespaceInfo(true)) : [];
+  const orgNamespaces = orgResult.status === 'fulfilled' ? orgResult.value.records.map(toNamespaceInfo(false)) : [];
 
   return [...orgNamespaces, ...installedNamespaces];
 };
 
-export const queryAll = async <R>(
+export const queryAll = async <R extends JsforceRecord>(
   connection: Connection,
   query: string,
   tooling = false
@@ -106,7 +93,7 @@ export const queryAll = async <R>(
   let result = await conn.query<R>(query);
   allRecords.push(...result.records);
   while (!result.done) {
-    result = (await conn.queryMore(result.nextRecordsUrl)) as QueryResult<R>;
+    result = (await conn.queryMore(result.nextRecordsUrl ?? '')) as QueryResult<R>;
     allRecords.push(...result.records);
   }
 
@@ -122,14 +109,14 @@ export const getJsonIndent = (): number | undefined => {
     return jsonIndent;
   }
 
-  let jsonIndentNum = DEFAULT_JSON_INDENT;
+  let jsonIndentNum: number | undefined = DEFAULT_JSON_INDENT;
   const envJsonIndent = process.env.SF_APEX_RESULTS_JSON_INDENT;
 
   if (envJsonIndent && Number.isInteger(Number(envJsonIndent))) {
     jsonIndentNum = Number(envJsonIndent);
   }
 
-  if (jsonIndentNum < MIN_JSON_INDENT || jsonIndentNum > MAX_JSON_INDENT) {
+  if (jsonIndentNum !== undefined && (jsonIndentNum < MIN_JSON_INDENT || jsonIndentNum > MAX_JSON_INDENT)) {
     const logger: Logger = Logger.childFromRoot('utils');
     logger.warn(
       `Json indent ${jsonIndentNum} is outside of the valid range (${MIN_JSON_INDENT}-${MAX_JSON_INDENT}). Using default json indent of ${DEFAULT_JSON_INDENT}.`
@@ -178,7 +165,7 @@ export const transformTestResult = (rawResult: TestResultRaw): TestResult => {
   const setupMethods: ApexTestSetupData[] = [];
 
   // Iterate through each item in rawResult.tests
-  rawResult.tests.forEach((test) => {
+  rawResult.tests.forEach(test => {
     const { isTestSetup, ...rest } = test;
     if (isTestSetup) {
       setupMethods.push(transformToApexTestSetupData(rest));
@@ -191,9 +178,7 @@ export const transformTestResult = (rawResult: TestResultRaw): TestResult => {
     summary: {
       ...rawResult.summary,
       testSetupTimeInMs: rawResult.summary.testSetupTimeInMs,
-      testTotalTimeInMs:
-        (rawResult.summary.testSetupTimeInMs || 0) +
-        rawResult.summary.testExecutionTimeInMs
+      testTotalTimeInMs: (rawResult.summary.testSetupTimeInMs || 0) + rawResult.summary.testExecutionTimeInMs
     },
     tests: regularTests,
     setup: setupMethods,
@@ -211,18 +196,15 @@ export const calculateCodeCoverage = async (
 ): Promise<void> => {
   const coveredApexClassIdSet = new Set<string>();
   if (codeCoverage) {
-    const perClassCovMap =
-      await codeCoverageInstance.getPerClassCodeCoverage(apexTestClassIdSet);
+    const perClassCovMap = await codeCoverageInstance.getPerClassCodeCoverage(apexTestClassIdSet);
 
     if (perClassCovMap.size > 0) {
-      result.tests.forEach((item) => {
+      result.tests.forEach(item => {
         const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
         const perClassCov = perClassCovMap.get(keyCodeCov);
         // Skipped test is not in coverage map, check to see if perClassCov exists first
         if (perClassCov) {
-          perClassCov.forEach((classCov) =>
-            coveredApexClassIdSet.add(classCov.apexClassOrTriggerId)
-          );
+          perClassCov.forEach(classCov => coveredApexClassIdSet.add(classCov.apexClassOrTriggerId));
           item.perClassCoverage = perClassCov;
         }
       });
@@ -235,32 +217,21 @@ export const calculateCodeCoverage = async (
       });
     }
     const { codeCoverageResults, totalLines, coveredLines } =
-      await codeCoverageInstance.getAggregateCodeCoverage(
-        coveredApexClassIdSet
-      );
+      await codeCoverageInstance.getAggregateCodeCoverage(coveredApexClassIdSet);
     result.codecoverage = codeCoverageResults;
     result.summary.totalLines = totalLines;
     result.summary.coveredLines = coveredLines;
-    result.summary.testRunCoverage = calculatePercentage(
-      coveredLines,
-      totalLines
-    );
-    result.summary.orgWideCoverage =
-      await codeCoverageInstance.getOrgWideCoverage();
+    result.summary.testRunCoverage = calculatePercentage(coveredLines, totalLines);
+    result.summary.orgWideCoverage = await codeCoverageInstance.getOrgWideCoverage();
   }
 };
 
-export const computeTestCategory = (
-  testNamespace: string | null
-): TestCategory =>
+export const computeTestCategory = (testNamespace: string | null): TestCategory =>
   isFlowTest(testNamespace) ? TestCategory.Flow : TestCategory.Apex;
 
-export const isFlowTest = (test: string | null): boolean =>
-  test?.startsWith(TestCategoryPrefix.FlowTest) ?? false;
+export const isFlowTest = (test: string | null): boolean => test?.startsWith(TestCategoryPrefix.FlowTest) ?? false;
 
-const transformToApexTestSetupData = (
-  testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>
-): ApexTestSetupData =>
+const transformToApexTestSetupData = (testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>): ApexTestSetupData =>
   // Assuming all necessary properties are present and optional properties are handled
   ({
     id: testData.id,

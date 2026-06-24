@@ -6,7 +6,7 @@
  */
 
 export { createFile } from './fileSystemHandler';
-export { ApexDiagnostic, CommonOptions, Row } from './types';
+export type { ApexDiagnostic, CommonOptions, Row } from './types';
 export { Table } from './table';
 export { getCurrentTime, formatStartTime, msToSecond } from './dateUtil';
 export { refreshAuth } from './authUtil';

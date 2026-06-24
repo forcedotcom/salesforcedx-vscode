@@ -6,23 +6,19 @@
  */
 
 export { TestService, writeResultFiles } from './testService';
-export {
+export { ApexTestResultOutcome, ApexTestRunResultStatus, ResultFormat, TestCategory, TestLevel } from './types';
+export type {
   ApexCodeCoverageAggregate,
   ApexCodeCoverageAggregateRecord,
   ApexTestProgressValue,
   ApexTestResultData,
-  ApexTestResultOutcome,
-  ApexTestRunResultStatus,
   ApexTestSetupData,
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
   CodeCoverageResult,
   OutputDirConfig,
-  ResultFormat,
   SyncTestConfiguration,
-  TestCategory,
   TestItem,
-  TestLevel,
   TestResult,
   TestRunIdResult,
   PerClassCoverage

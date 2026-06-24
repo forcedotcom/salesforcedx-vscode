@@ -13,8 +13,8 @@ function loadMessageBundle(): Message {
     return new Message(messages);
   } catch (e) {
     console.error('Cannot find messages in i18n module');
+    throw e;
   }
-  return undefined;
 }
 
 export const nls = new Localization(loadMessageBundle());

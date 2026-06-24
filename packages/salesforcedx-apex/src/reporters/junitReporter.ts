@@ -4,31 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ApexTestResultData,
-  ApexTestResultOutcome,
-  TestResult
-} from '../tests';
-import {
-  elapsedTime,
-  formatStartTime,
-  HeapMonitor,
-  msToSecond
-} from '../utils';
 import { LoggerLevel } from '@salesforce/core';
 import { isEmpty } from '../narrowing';
+import { type ApexTestResultData, type TestResult, ApexTestResultOutcome } from '../tests/types';
+import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
 
-const timeProperties = [
-  'testExecutionTimeInMs',
-  'testTotalTimeInMs',
-  'commandTimeInMs'
-];
+const timeProperties = new Set(['testExecutionTimeInMs', 'testTotalTimeInMs', 'commandTimeInMs']);
 
 // properties not in cli junit spec
-const skippedProperties = ['skipRate', 'totalLines', 'linesCovered'];
+const skippedProperties = new Set(['skipRate', 'totalLines', 'linesCovered']);
 export class JUnitReporter {
   @elapsedTime()
   public format(testResult: TestResult): string {
@@ -36,21 +23,21 @@ export class JUnitReporter {
     try {
       const { summary, tests } = testResult;
 
-      let output = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-      output += `<testsuites>\n`;
+      let output = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      output += '<testsuites>\n';
       output += `${tab}<testsuite name="force.apex" `;
       output += `timestamp="${summary.testStartTime}" `;
       output += `hostname="${summary.hostname}" `;
       output += `tests="${summary.testsRan}" `;
       output += `failures="${summary.failing}"  `;
-      output += `errors="0"  `;
+      output += 'errors="0"  ';
       output += `time="${msToSecond(summary.testExecutionTimeInMs)}">\n`;
 
       output += this.buildProperties(testResult);
       output += this.buildTestCases(tests);
 
       output += `${tab}</testsuite>\n`;
-      output += `</testsuites>\n`;
+      output += '</testsuites>\n';
       return output;
     } finally {
       HeapMonitor.getInstance().checkHeapSize('JUnitReporter.format');
@@ -62,11 +49,11 @@ export class JUnitReporter {
     let junitProperties = `${tab}${tab}<properties>\n`;
 
     Object.entries(testResult.summary).forEach(([key, value]) => {
-      if (isEmpty(value) || skippedProperties.includes(key)) {
+      if (isEmpty(value) || skippedProperties.has(key)) {
         return;
       }
 
-      if (timeProperties.includes(key)) {
+      if (timeProperties.has(key)) {
         value = `${msToSecond(value)} s`;
         key = key.replace('InMs', '');
       }
@@ -96,17 +83,15 @@ export class JUnitReporter {
         testCase.apexClass.fullName
       }" time="${msToSecond(testCase.runTime)}">\n`;
 
-      if (
-        testCase.outcome === ApexTestResultOutcome.Fail ||
-        testCase.outcome === ApexTestResultOutcome.CompileFail
-      ) {
-        let message = isEmpty(testCase.message) ? '' : testCase.message;
+      if (testCase.outcome === ApexTestResultOutcome.Fail || testCase.outcome === ApexTestResultOutcome.CompileFail) {
+        const rawMessage = testCase.message ?? '';
+        let message = isEmpty(rawMessage) ? '' : rawMessage;
         message = this.xmlEscape(message);
         junitTests += `${tab}${tab}${tab}<failure message="${message}">`;
         if (testCase.stackTrace) {
           junitTests += `<![CDATA[${testCase.stackTrace}]]>`;
         }
-        junitTests += `</failure>\n`;
+        junitTests += '</failure>\n';
       }
 
       junitTests += `${tab}${tab}</testcase>\n`;
@@ -117,10 +102,10 @@ export class JUnitReporter {
   @elapsedTime('elapsedTime', LoggerLevel.TRACE)
   private xmlEscape(value: string): string {
     return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&apos;');
   }
 }

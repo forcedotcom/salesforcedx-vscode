@@ -5,17 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Client } from 'faye';
 import { Connection, LoggerLevel } from '@salesforce/core';
-import {
-  RetrieveResultsInterval,
-  StreamMessage,
-  StreamingErrors,
-  TestResultMessage
-} from './types';
+import { Duration } from '@salesforce/kit';
+import { Client } from 'faye';
 import { Progress } from '../common';
 import { nls } from '../i18n';
-import { elapsedTime, refreshAuth } from '../utils';
 import {
   ApexTestProgressValue,
   ApexTestQueueItem,
@@ -24,10 +18,11 @@ import {
   TestRunIdResult
 } from '../tests/types';
 import { queryAll } from '../tests/utils';
-import { Duration } from '@salesforce/kit';
+import { elapsedTime, refreshAuth } from '../utils';
+import { RetrieveResultsInterval, StreamMessage, StreamingErrors, TestResultMessage } from './types';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
-const DEFAULT_STREAMING_TIMEOUT_SEC = 14400;
+const DEFAULT_STREAMING_TIMEOUT_SEC = 14_400;
 
 export interface AsyncTestRun {
   runId: string;
@@ -36,20 +31,20 @@ export interface AsyncTestRun {
 
 export class Deferred<T> {
   public promise: Promise<T>;
-  public resolve: Function;
+  public resolve!: Function;
   constructor() {
-    this.promise = new Promise((resolve) => (this.resolve = resolve));
+    this.promise = new Promise(resolve => (this.resolve = resolve));
   }
 }
 
 export class StreamingClient {
   // This should be a Client from Faye, but I'm not sure how to get around the type
   // that is exported from jsforce.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   private client: any;
   private readonly conn: Connection;
   private progress?: Progress<ApexTestProgressValue>;
-  public subscribedTestRunId: string;
+  public subscribedTestRunId!: string;
   private subscribedTestRunIdDeferred = new Deferred<string>();
   public get subscribedTestRunIdPromise(): Promise<string> {
     return this.subscribedTestRunIdDeferred.promise;
@@ -60,18 +55,11 @@ export class StreamingClient {
   }
 
   public getStreamURL(instanceUrl: string): string {
-    const urlElements = [
-      this.removeTrailingSlashURL(instanceUrl),
-      'cometd',
-      this.conn.getApiVersion()
-    ];
+    const urlElements = [this.removeTrailingSlashURL(instanceUrl), 'cometd', this.conn.getApiVersion()];
     return urlElements.join('/');
   }
 
-  public constructor(
-    connection: Connection,
-    progress?: Progress<ApexTestProgressValue>
-  ) {
+  constructor(connection: Connection, progress?: Progress<ApexTestProgressValue>) {
     this.conn = connection;
     this.progress = progress;
     const streamUrl = this.getStreamURL(this.conn.instanceUrl);
@@ -96,17 +84,12 @@ export class StreamingClient {
     });
 
     this.client.addExtension({
-      incoming: async (
-        message: StreamMessage,
-        callback: (message: StreamMessage) => void
-      ) => {
+      incoming: async (message: StreamMessage, callback: (message: StreamMessage) => void) => {
         if (message?.error) {
           // throw errors on handshake errors
           if (message.channel === '/meta/handshake') {
             this.disconnect();
-            throw new Error(
-              nls.localize('streamingHandshakeFail', message.error)
-            );
+            throw new Error(nls.localize('streamingHandshakeFail', message.error));
           }
 
           // refresh auth on 401 errors
@@ -117,7 +100,7 @@ export class StreamingClient {
           }
 
           // call faye callback on handshake advice
-          if (message.advice && message.advice.reconnect === 'handshake') {
+          if (message.advice?.reconnect === 'handshake') {
             callback(message);
             return;
           }
@@ -151,7 +134,7 @@ export class StreamingClient {
   }
 
   public handshake(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.client.handshake(() => {
         resolve();
       });
@@ -172,38 +155,35 @@ export class StreamingClient {
     timeout?: Duration
   ): Promise<AsyncTestRun | TestRunIdResult> {
     return new Promise((subscriptionResolve, subscriptionReject) => {
-      let intervalId: NodeJS.Timeout;
+      let intervalId: NodeJS.Timeout | undefined;
       // start timeout
       const timeoutId = setTimeout(
         () => {
           this.disconnect();
           clearInterval(intervalId);
-          subscriptionResolve({ testRunId });
+          subscriptionResolve({ testRunId: testRunId ?? '' });
         },
         timeout?.milliseconds ?? DEFAULT_STREAMING_TIMEOUT_SEC * 1000
       );
 
       try {
-        this.client.subscribe(
-          TEST_RESULT_CHANNEL,
-          async (message: TestResultMessage) => {
-            const result = await this.handler(message);
+        this.client.subscribe(TEST_RESULT_CHANNEL, async (message: TestResultMessage) => {
+          const result = await this.handler(message);
 
-            if (result) {
-              this.disconnect();
-              clearInterval(intervalId);
-              clearTimeout(timeoutId);
-              subscriptionResolve({
-                runId: this.subscribedTestRunId,
-                queueItem: result
-              });
-            }
+          if (result) {
+            this.disconnect();
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+            subscriptionResolve({
+              runId: this.subscribedTestRunId,
+              queueItem: result
+            });
           }
-        );
+        });
 
         if (action) {
           action()
-            .then((id) => {
+            .then(id => {
               this.subscribedTestRunId = id;
               this.subscribedTestRunIdDeferred.resolve(id);
 
@@ -222,19 +202,20 @@ export class StreamingClient {
                 }, RetrieveResultsInterval);
               }
             })
-            .catch((e) => {
+            .catch(e => {
               this.disconnect();
               clearInterval(intervalId);
               clearTimeout(timeoutId);
               subscriptionReject(e);
             });
         } else {
-          this.subscribedTestRunId = testRunId;
-          this.subscribedTestRunIdDeferred.resolve(testRunId);
+          const resolvedTestRunId = testRunId ?? '';
+          this.subscribedTestRunId = resolvedTestRunId;
+          this.subscribedTestRunIdDeferred.resolve(resolvedTestRunId);
 
           if (!this.hasDisconnected) {
             intervalId = setInterval(async () => {
-              const result = await this.getCompletedTestRun(testRunId);
+              const result = await this.getCompletedTestRun(resolvedTestRunId);
               if (result) {
                 this.disconnect();
                 clearInterval(intervalId);
@@ -270,12 +251,9 @@ export class StreamingClient {
   }
 
   @elapsedTime()
-  public async handler(
-    message?: TestResultMessage,
-    runId?: string
-  ): Promise<ApexTestQueueItem> {
-    const testRunId = runId || message.sobject.Id;
-    if (!this.isValidTestRunID(testRunId, this.subscribedTestRunId)) {
+  public async handler(message?: TestResultMessage, runId?: string): Promise<ApexTestQueueItem | null> {
+    const testRunId = runId || message?.sobject.Id;
+    if (!testRunId || !this.isValidTestRunID(testRunId, this.subscribedTestRunId)) {
       return null;
     }
 
@@ -294,15 +272,9 @@ export class StreamingClient {
   }
 
   @elapsedTime('elapsedTime', LoggerLevel.TRACE)
-  private async getCompletedTestRun(
-    testRunId: string
-  ): Promise<ApexTestQueueItem> {
+  private async getCompletedTestRun(testRunId: string): Promise<ApexTestQueueItem | null> {
     const queryApexTestQueueItem = `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`;
-    const result = await queryAll<ApexTestQueueItemRecord>(
-      this.conn,
-      queryApexTestQueueItem,
-      true
-    );
+    const result = await queryAll<ApexTestQueueItemRecord>(this.conn, queryApexTestQueueItem, true);
 
     if (result.records.length === 0) {
       throw new Error(nls.localize('noTestQueueResults', testRunId));
@@ -315,7 +287,7 @@ export class StreamingClient {
 
     if (
       result.records.some(
-        (item) =>
+        item =>
           item.Status === ApexTestQueueItemStatus.Queued ||
           item.Status === ApexTestQueueItemStatus.Holding ||
           item.Status === ApexTestQueueItemStatus.Preparing ||

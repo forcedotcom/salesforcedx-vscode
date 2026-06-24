@@ -4,27 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Connection,
-  Logger,
-  Org,
-  StatusResult,
-  StreamingClient
-} from '@salesforce/core';
+import { Connection, Logger, Org, StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
-import type { AnyJson } from '@salesforce/ts-types';
-import {
-  LISTENER_ABORTED_ERROR_NAME,
-  LOG_TIMER_LENGTH_MINUTES,
-  MAX_NUM_LOGS,
-  STREAMING_LOG_TOPIC
-} from './constants';
-import { ApexLogGetOptions, LogRecord, LogResult } from './types';
-import * as path from 'path';
+import type { AnyJson, JsonMap } from '@salesforce/ts-types';
+import * as path from 'node:path';
 import { nls } from '../i18n';
 import { createFile } from '../utils';
-import { TraceFlags } from '../utils/traceFlags';
 import { elapsedTime } from '../utils/elapsedTime';
+import { TraceFlags } from '../utils/traceFlags';
+import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, MAX_NUM_LOGS, STREAMING_LOG_TOPIC } from './constants';
+import { ApexLogGetOptions, LogRecord, LogResult } from './types';
 
 type StreamingLogMessage = {
   errorName?: string;
@@ -33,7 +22,7 @@ type StreamingLogMessage = {
 
 export class LogService {
   public readonly connection: Connection;
-  private logger: Logger;
+  private logger!: Logger;
   private logTailer?: (log: string) => void;
 
   constructor(connection: Connection) {
@@ -42,20 +31,15 @@ export class LogService {
 
   @elapsedTime()
   public async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
-    if (
-      !(
-        typeof options.logId === 'string' ||
-        typeof options.numberOfLogs === 'number'
-      )
-    ) {
+    if (!(typeof options.logId === 'string' || typeof options.numberOfLogs === 'number')) {
       throw new Error(nls.localize('missingInfoLogError'));
     }
 
     if (typeof options.numberOfLogs === 'number') {
       const logIdRecordList = await this.getLogRecords(options.numberOfLogs);
-      return logIdRecordList.map((logRecord) => logRecord.Id);
+      return logIdRecordList.map(logRecord => logRecord.Id);
     }
-    return [options.logId];
+    return options.logId ? [options.logId] : [];
   }
 
   // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
@@ -63,7 +47,7 @@ export class LogService {
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
     const logs = (
       await Promise.all(
-        (await this.getLogIds(options)).map(async (id) => ({
+        (await this.getLogIds(options)).map(async id => ({
           ...(await this.getLogById(id)),
           logId: id
         }))
@@ -85,7 +69,7 @@ export class LogService {
     const baseUrl = this.connection.tooling._baseUrl();
     const url = `${baseUrl}/sobjects/ApexLog/${logId}/Body`;
     const response = await this.toolingRequest(url);
-    return { log: response.toString() || '' };
+    return { log: response?.toString() || '' };
   }
 
   @elapsedTime()
@@ -105,8 +89,7 @@ export class LogService {
       apexLogQuery += ` LIMIT ${numberOfLogs}`;
     }
 
-    return (await this.connection.tooling.query<LogRecord>(apexLogQuery))
-      .records;
+    return (await this.connection.tooling.query<LogRecord>(apexLogQuery)).records;
   }
 
   @elapsedTime()
@@ -125,11 +108,7 @@ export class LogService {
 
   @elapsedTime()
   public async createStreamingClient(org: Org): Promise<StreamingClient> {
-    const options = new StreamingClient.DefaultOptions(
-      org,
-      STREAMING_LOG_TOPIC,
-      this.streamingCallback.bind(this)
-    );
+    const options = new StreamingClient.DefaultOptions(org, STREAMING_LOG_TOPIC, this.streamingCallback.bind(this));
     options.setSubscribeTimeout(Duration.minutes(LOG_TIMER_LENGTH_MINUTES));
 
     return await StreamingClient.create(options);
@@ -146,13 +125,14 @@ export class LogService {
   }
 
   @elapsedTime()
-  private streamingCallback(message: StreamingLogMessage): StatusResult {
+  private streamingCallback(rawMessage: JsonMap): StatusResult {
+    const message = rawMessage as unknown as StreamingLogMessage;
     if (message.errorName === LISTENER_ABORTED_ERROR_NAME) {
       return { completed: true };
     }
 
     if (message.sobject?.Id) {
-      this.logCallback(message);
+      void this.logCallback(message);
     }
 
     return { completed: false };

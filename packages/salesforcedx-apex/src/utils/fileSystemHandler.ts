@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import type { AnyJson } from '@salesforce/ts-types';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 /**
  * Method to save a file on disk.

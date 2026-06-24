@@ -6,9 +6,4 @@
  */
 
 export { LogService } from './logService';
-export { ApexLogGetOptions, LogRecord, LogResult } from './types';
-export {
-  DEFAULT_DEBUG_LEVEL_NAME,
-  LOG_TYPE,
-  LOG_TIMER_LENGTH_MINUTES
-} from './constants';
+export type { ApexLogGetOptions, LogRecord, LogResult } from './types';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-enum logLevel {
+enum LogLevel {
   trace = 'trace',
   debug = 'debug',
   info = 'info',
@@ -24,7 +24,7 @@ export const xmlCharMap: { [index: string]: string } = {
 
 export type CommonOptions = {
   json?: boolean;
-  loglevel?: logLevel;
+  loglevel?: LogLevel;
 };
 
 export type ApexDiagnostic = {

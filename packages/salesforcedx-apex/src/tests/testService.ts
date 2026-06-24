@@ -5,6 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
+import { Duration } from '@salesforce/kit';
+import { JsonStreamStringify } from 'json-stream-stringify';
+import { createWriteStream } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { Readable, Writable, Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { CancellationToken, Progress } from '../common';
+import { nls } from '../i18n';
+import { isTestResult, isValidApexClassID } from '../narrowing';
+import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
+import { TestResultStringifyStream } from '../streaming';
+import { elapsedTime, HeapMonitor } from '../utils';
+import { QueryResult } from '../utils/types';
+import { AsyncTests } from './asyncTests';
+import { formatTestErrors } from './diagnosticUtil';
+import { SyncTests } from './syncTests';
 import {
   ApexTestProgressValue,
   AsyncTestArrayConfiguration,
@@ -19,35 +36,7 @@ import {
   TestRunIdResult,
   TestSuiteMembershipRecord
 } from './types';
-import { join } from 'path';
-import { CancellationToken, Progress } from '../common';
-import { nls } from '../i18n';
-import {
-  JUnitFormatTransformer,
-  TapFormatTransformer,
-  MarkdownTextFormatTransformer
-} from '../reporters';
-import {
-  getBufferSize,
-  getJsonIndent,
-  isFlowTest,
-  queryNamespaces
-} from './utils';
-import { AsyncTests } from './asyncTests';
-import { SyncTests } from './syncTests';
-import { formatTestErrors } from './diagnosticUtil';
-import { QueryResult } from '../utils/types';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { Readable, Writable } from 'node:stream';
-import { TestResultStringifyStream } from '../streaming';
-import { elapsedTime, HeapMonitor } from '../utils';
-import { isTestResult, isValidApexClassID } from '../narrowing';
-import { Duration } from '@salesforce/kit';
-import { Transform } from 'stream';
-import { pipeline } from 'node:stream/promises';
-import { createWriteStream } from 'node:fs';
-
-import { JsonStreamStringify } from 'json-stream-stringify';
+import { getBufferSize, getJsonIndent, isFlowTest, queryNamespaces } from './utils';
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -56,27 +45,18 @@ export const writeResultFiles = async (
   result: TestResult | TestRunIdResult,
   outputDirConfig: OutputDirConfig,
   codeCoverage = false,
-  runPipeline: (
-    readable: Readable,
-    filePath: string,
-    transform?: Transform
-  ) => Promise<string>
+  runPipeline: (readable: Readable, filePath: string, transform?: Transform) => Promise<string>
 ): Promise<string[]> => {
   const filesWritten: string[] = [];
   const { dirPath, resultFormats, fileInfos } = outputDirConfig;
 
-  if (
-    resultFormats &&
-    !resultFormats.every((format) => format in ResultFormat)
-  ) {
+  if (resultFormats && !resultFormats.every(format => format in ResultFormat)) {
     throw new Error(nls.localize('resultFormatErr'));
   }
 
   await mkdir(dirPath, { recursive: true });
 
-  const testRunId = isTestResult(result)
-    ? result.summary.testRunId
-    : result.testRunId;
+  const testRunId = isTestResult(result) ? result.summary.testRunId : result.testRunId;
 
   try {
     await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
@@ -91,10 +71,7 @@ export const writeResultFiles = async (
       let readable;
       switch (format) {
         case ResultFormat.json:
-          filePath = join(
-            dirPath,
-            `test-result-${testRunId || 'default'}.json`
-          );
+          filePath = join(dirPath, `test-result-${testRunId || 'default'}.json`);
           readable = TestResultStringifyStream.fromTestResult(result, {
             bufferSize: getBufferSize()
           });
@@ -106,10 +83,7 @@ export const writeResultFiles = async (
           });
           break;
         case ResultFormat.junit:
-          filePath = join(
-            dirPath,
-            `test-result-${testRunId || 'default'}-junit.xml`
-          );
+          filePath = join(dirPath, `test-result-${testRunId || 'default'}-junit.xml`);
           readable = new JUnitFormatTransformer(result, {
             bufferSize: getBufferSize()
           });
@@ -140,19 +114,9 @@ export const writeResultFiles = async (
   }
 
   if (codeCoverage && isTestResult(result)) {
-    const filePath = join(
-      dirPath,
-      `test-result-${testRunId}-codecoverage.json`
-    );
-    const c = result.tests
-      .map((record) => record.perClassCoverage)
-      .filter((pcc) => pcc?.length);
-    filesWritten.push(
-      await runPipeline(
-        new JsonStreamStringify(c, null, getJsonIndent()),
-        filePath
-      )
-    );
+    const filePath = join(dirPath, `test-result-${testRunId}-codecoverage.json`);
+    const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
+    filesWritten.push(await runPipeline(new JsonStreamStringify(c, undefined, getJsonIndent()), filePath));
   }
 
   if (fileInfos) {
@@ -161,7 +125,7 @@ export const writeResultFiles = async (
       const readable =
         typeof fileInfo.content === 'string'
           ? Readable.from([fileInfo.content])
-          : new JsonStreamStringify(fileInfo.content, null, getJsonIndent());
+          : new JsonStreamStringify(fileInfo.content, undefined, getJsonIndent());
       filesWritten.push(await runPipeline(readable, filePath));
     }
   }
@@ -218,20 +182,16 @@ export class TestService {
    * @returns list of Suites in org
    */
   @elapsedTime()
-  public async retrieveAllSuites(): Promise<
-    { id: string; TestSuiteName: string }[]
-  > {
+  public async retrieveAllSuites(): Promise<{ id: string; TestSuiteName: string }[]> {
     const testSuiteRecords = (await this.connection.tooling.query(
-      `SELECT id, TestSuiteName FROM ApexTestSuite`
+      'SELECT id, TestSuiteName FROM ApexTestSuite'
     )) as QueryResult<{ id: string; TestSuiteName: string }>;
 
     return testSuiteRecords.records;
   }
 
   @elapsedTime()
-  private async retrieveSuiteId(
-    suitename: string
-  ): Promise<string | undefined> {
+  private async retrieveSuiteId(suitename: string): Promise<string | undefined> {
     const suiteResult = (await this.connection.tooling.query(
       `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${suitename}'`
     )) as QueryResult;
@@ -249,7 +209,7 @@ export class TestService {
    */
   @elapsedTime()
   private async getOrCreateSuiteIds(suitenames: string[]): Promise<string[]> {
-    const suiteIds = suitenames.map(async (suite) => {
+    const suiteIds = suitenames.map(async suite => {
       const suiteId = await this.retrieveSuiteId(suite);
 
       if (suiteId === undefined) {
@@ -270,10 +230,7 @@ export class TestService {
    * @returns list of test classes in the suite
    */
   @elapsedTime()
-  public async getTestsInSuite(
-    suitename?: string,
-    suiteId?: string
-  ): Promise<TestSuiteMembershipRecord[]> {
+  public async getTestsInSuite(suitename?: string, suiteId?: string): Promise<TestSuiteMembershipRecord[]> {
     if (suitename === undefined && suiteId === undefined) {
       throw new Error(nls.localize('suitenameErr'));
     }
@@ -298,11 +255,9 @@ export class TestService {
    */
   @elapsedTime()
   public async getApexClassIds(testClasses: string[]): Promise<string[]> {
-    const classIds = testClasses.map(async (testClass) => {
+    const classIds = testClasses.map(async testClass => {
       const soql = apexClassIdQueryForTestSuiteMember(testClass);
-      const apexClass = (await this.connection.tooling.query(
-        soql
-      )) as QueryResult;
+      const apexClass = (await this.connection.tooling.query(soql)) as QueryResult;
       if (apexClass.records.length === 0) {
         throw new Error(nls.localize('missingTestClassErr', testClass));
       }
@@ -317,20 +272,15 @@ export class TestService {
    * @param testClasses
    */
   @elapsedTime()
-  public async buildSuite(
-    suitename: string,
-    testClasses: string[]
-  ): Promise<void> {
+  public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
     const testSuiteId = (await this.getOrCreateSuiteIds([suitename]))[0];
 
     const classesInSuite = await this.getTestsInSuite(undefined, testSuiteId);
     const testClassIds = await this.getApexClassIds(testClasses);
 
     await Promise.all(
-      testClassIds.map(async (classId) => {
-        const existingClass = classesInSuite.filter(
-          (rec) => rec.ApexClassId === classId
-        );
+      testClassIds.map(async classId => {
+        const existingClass = classesInSuite.filter(rec => rec.ApexClassId === classId);
 
         const testClass = testClasses[testClassIds.indexOf(classId)];
         if (existingClass.length > 0) {
@@ -357,7 +307,7 @@ export class TestService {
     options: SyncTestConfiguration,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult | TestRunIdResult> {
+  ): Promise<TestResult | TestRunIdResult | null> {
     HeapMonitor.getInstance().startMonitoring();
     try {
       return await this.syncService.runTests(options, codeCoverage, token);
@@ -384,7 +334,7 @@ export class TestService {
     token?: CancellationToken,
     timeout?: Duration,
     interval?: Duration
-  ): Promise<TestResult | TestRunIdResult> {
+  ): Promise<TestResult | TestRunIdResult | null> {
     HeapMonitor.getInstance().startMonitoring();
     try {
       return await this.asyncService.runTests(
@@ -412,14 +362,10 @@ export class TestService {
     testRunId: string,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult> {
+  ): Promise<TestResult | null> {
     HeapMonitor.getInstance().startMonitoring();
     try {
-      return await this.asyncService.reportAsyncResults(
-        testRunId,
-        codeCoverage,
-        token
-      );
+      return await this.asyncService.reportAsyncResults(testRunId, codeCoverage, token);
     } finally {
       HeapMonitor.getInstance().stopMonitoring();
     }
@@ -441,12 +387,7 @@ export class TestService {
     HeapMonitor.getInstance().startMonitoring();
     HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
     try {
-      return await writeResultFiles(
-        result,
-        outputDirConfig,
-        codeCoverage,
-        this.runPipeline.bind(this)
-      );
+      return await writeResultFiles(result, outputDirConfig, codeCoverage, this.runPipeline.bind(this));
     } finally {
       HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
       HeapMonitor.getInstance().stopMonitoring();
@@ -474,32 +415,23 @@ export class TestService {
     try {
       if (tests) {
         const payload = await this.buildTestPayload(tests, skipCodeCoverage);
-        const classes = payload.tests
-          ?.filter((testItem) => testItem.className)
-          .map((testItem) => testItem.className);
+        const classes = payload.tests?.filter(testItem => testItem.className).map(testItem => testItem.className);
         if (new Set(classes).size !== 1) {
           throw new Error(nls.localize('syncClassErr'));
         }
         return payload;
       } else if (classnames) {
         if (this.hasCategory(category)) {
-          const payload = await this.buildClassPayloadForFlow(
-            classnames,
-            skipCodeCoverage
-          );
+          const payload = await this.buildClassPayloadForFlow(classnames, skipCodeCoverage);
           const classes = (payload.tests || [])
-            .filter((testItem) => testItem.className)
-            .map((testItem) => testItem.className);
+            .filter(testItem => testItem.className)
+            .map(testItem => testItem.className);
           if (new Set(classes).size !== 1) {
             throw new Error(nls.localize('syncClassErr'));
           }
           return payload;
         } else {
-          return await this.buildSyncClassPayload(
-            classnames,
-            testLevel,
-            skipCodeCoverage
-          );
+          return await this.buildSyncClassPayload(classnames, testLevel, skipCodeCoverage);
         }
       } else if (this.hasCategory(category)) {
         return {
@@ -535,16 +467,11 @@ export class TestService {
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
     try {
       if (tests) {
-        return (await this.buildTestPayload(
-          tests,
-          skipCodeCoverage
-        )) as AsyncTestArrayConfiguration;
+        return (await this.buildTestPayload(tests, skipCodeCoverage)) as AsyncTestArrayConfiguration;
       } else if (classNames) {
-        if (this.hasCategory(category)) {
-          return this.buildClassPayloadForFlow(classNames, skipCodeCoverage);
-        } else {
-          return this.buildAsyncClassPayload(classNames, skipCodeCoverage);
-        }
+        return this.hasCategory(category)
+          ? this.buildClassPayloadForFlow(classNames, skipCodeCoverage)
+          : this.buildAsyncClassPayload(classNames, skipCodeCoverage);
       } else {
         return {
           suiteNames,
@@ -576,13 +503,8 @@ export class TestService {
   }
 
   @elapsedTime()
-  private buildAsyncClassPayload(
-    classNames: string,
-    skipCodeCoverage: boolean
-  ): AsyncTestArrayConfiguration {
-    const classItems = classNames
-      .split(',')
-      .map((className) => resolveClassNamespace(className));
+  private buildAsyncClassPayload(classNames: string, skipCodeCoverage: boolean): AsyncTestArrayConfiguration {
+    const classItems = classNames.split(',').map(className => resolveClassNamespace(className));
 
     return {
       tests: classItems,
@@ -592,13 +514,8 @@ export class TestService {
   }
 
   @elapsedTime()
-  private buildClassPayloadForFlow(
-    classNames: string,
-    skipCodeCoverage: boolean
-  ): AsyncTestArrayConfiguration {
-    const classItems = classNames
-      .split(',')
-      .map((item): TestItem => ({ className: item }));
+  private buildClassPayloadForFlow(classNames: string, skipCodeCoverage: boolean): AsyncTestArrayConfiguration {
+    const classItems = classNames.split(',').map((item): TestItem => ({ className: item }));
     return {
       tests: classItems,
       testLevel: TestLevel.RunSpecifiedTests,
@@ -614,28 +531,16 @@ export class TestService {
     const testNameArray = testNames.split(',');
     const testItems: TestItem[] = [];
     const classes: string[] = [];
-    let namespaceInfos: NamespaceInfo[];
+    let namespaceInfos: NamespaceInfo[] | undefined;
 
     for (const test of testNameArray) {
       if (test.indexOf('.') > 0) {
         const testParts = test.split('.');
         const isFlow = isFlowTest(test);
 
-        if (isFlow) {
-          namespaceInfos = await this.processFlowTest(
-            testParts,
-            testItems,
-            classes,
-            namespaceInfos
-          );
-        } else {
-          namespaceInfos = await this.processApexTest(
-            testParts,
-            testItems,
-            classes,
-            namespaceInfos
-          );
-        }
+        namespaceInfos = isFlow
+          ? await this.processFlowTest(testParts, testItems, classes, namespaceInfos)
+          : await this.processApexTest(testParts, testItems, classes, namespaceInfos);
       } else {
         const prop = isValidApexClassID(test) ? 'classId' : 'className';
         testItems.push({ [prop]: test });
@@ -653,8 +558,8 @@ export class TestService {
     testParts: string[],
     testItems: TestItem[],
     classes: string[],
-    namespaceInfos: NamespaceInfo[]
-  ): Promise<NamespaceInfo[]> {
+    namespaceInfos: NamespaceInfo[] | undefined
+  ): Promise<NamespaceInfo[] | undefined> {
     if (testParts.length === 4) {
       // flowtesting.namespace.FlowName.testMethod
       const [flowTestingPrefix, namespace, flowName, methodName] = testParts;
@@ -668,24 +573,21 @@ export class TestService {
         });
         classes.push(fullClassName);
       } else {
-        testItems.forEach((element) => {
+        testItems.forEach(element => {
           if (element.className === fullClassName) {
             element.namespace = `${flowTestingPrefix}.${namespace}`;
-            element.testMethods.push(methodName);
+            element.testMethods!.push(methodName);
           }
         });
       }
     } else {
       // Handle 3-part Flow tests: flowtesting.FlowName.testMethod
-      const [flowTestingPrefix, flowOrNamespace, testMethodOrFlowName] =
-        testParts;
+      const [flowTestingPrefix, flowOrNamespace, testMethodOrFlowName] = testParts;
 
-      if (typeof namespaceInfos === 'undefined') {
+      if (namespaceInfos === undefined) {
         namespaceInfos = await queryNamespaces(this.connection);
       }
-      const currentNamespace = namespaceInfos.find(
-        (namespaceInfo) => namespaceInfo.namespace === flowOrNamespace
-      );
+      const currentNamespace = namespaceInfos.find(namespaceInfo => namespaceInfo.namespace === flowOrNamespace);
 
       if (currentNamespace) {
         if (currentNamespace.installedNs) {
@@ -707,9 +609,9 @@ export class TestService {
           });
           classes.push(flowClassName);
         } else {
-          testItems.forEach((element) => {
+          testItems.forEach(element => {
             if (element.className === flowClassName) {
-              element.testMethods.push(testMethodOrFlowName);
+              element.testMethods!.push(testMethodOrFlowName);
             }
           });
         }
@@ -722,8 +624,8 @@ export class TestService {
     testParts: string[],
     testItems: TestItem[],
     classes: string[],
-    namespaceInfos: NamespaceInfo[]
-  ): Promise<NamespaceInfo[]> {
+    namespaceInfos: NamespaceInfo[] | undefined
+  ): Promise<NamespaceInfo[] | undefined> {
     if (testParts.length === 3) {
       // namespace.ClassName.testMethod
       const [namespace, className, methodName] = testParts;
@@ -736,7 +638,7 @@ export class TestService {
         });
         classes.push(fullClassName);
       } else {
-        testItems.forEach((element) => {
+        testItems.forEach(element => {
           if (element.className === fullClassName) {
             element.testMethods!.push(methodName);
           }
@@ -747,14 +649,12 @@ export class TestService {
       const [firstPart, secondPart] = testParts;
 
       // First check if this could be a namespace by seeing if we have any namespace info
-      if (typeof namespaceInfos === 'undefined') {
+      if (namespaceInfos === undefined) {
         namespaceInfos = await queryNamespaces(this.connection);
       }
-      const currentNamespace = namespaceInfos.find(
-        (namespaceInfo) => namespaceInfo.namespace === firstPart
-      );
+      const hasNamespace = namespaceInfos.some(namespaceInfo => namespaceInfo.namespace === firstPart);
 
-      if (currentNamespace) {
+      if (hasNamespace) {
         // This is namespace.Class - use full className format for all namespace types
         testItems.push({
           className: `${firstPart}.${secondPart}`
@@ -768,9 +668,9 @@ export class TestService {
           });
           classes.push(firstPart);
         } else {
-          testItems.forEach((element) => {
+          testItems.forEach(element => {
             if (element.className === firstPart) {
-              element.testMethods.push(secondPart);
+              element.testMethods!.push(secondPart);
             }
           });
         }
@@ -779,11 +679,7 @@ export class TestService {
     return namespaceInfos;
   }
 
-  private async runPipeline(
-    readable: Readable,
-    filePath: string,
-    transform?: Transform
-  ): Promise<string> {
+  private async runPipeline(readable: Readable, filePath: string, transform?: Transform): Promise<string> {
     const writable = this.createStream(filePath);
     if (transform) {
       await pipeline(readable, transform, writable);
@@ -796,7 +692,8 @@ export class TestService {
   public createStream(filePath: string): Writable {
     return createWriteStream(filePath, 'utf8');
   }
-  private hasCategory(category?: string): boolean {
-    return category && category.length !== 0;
+  private hasCategory(category?: string): category is string {
+    // loose `!= null` rejects both null and undefined before reading length
+    return category != null && category.length > 0;
   }
 }

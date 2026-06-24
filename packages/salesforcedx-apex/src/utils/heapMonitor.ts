@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Logger, LoggerLevel } from '@salesforce/core';
-import v8 from 'node:v8';
 import { clearInterval } from 'node:timers';
+import * as v8 from 'node:v8';
 
 const INTERVAL_DEFAULT = 500;
 const INTERVAL_MIN = 100;
@@ -23,7 +23,7 @@ export class NullHeapMonitor implements Disposable {
  * Class responsible for monitoring heap memory usage.
  */
 export class HeapMonitor implements Disposable {
-  private static instance: HeapMonitor | NullHeapMonitor;
+  private static instance: HeapMonitor | NullHeapMonitor | undefined;
   private logger: Logger;
   private intervalId?: NodeJS.Timeout;
   private isMonitoring: boolean;
@@ -57,11 +57,7 @@ export class HeapMonitor implements Disposable {
    */
   public static getInstance(): HeapMonitor | NullHeapMonitor {
     if (!HeapMonitor.instance) {
-      if (Logger.getRoot().shouldLog(LoggerLevel.DEBUG)) {
-        HeapMonitor.instance = new HeapMonitor();
-      } else {
-        HeapMonitor.instance = new NullHeapMonitor();
-      }
+      HeapMonitor.instance = Logger.getRoot().shouldLog(LoggerLevel.DEBUG) ? new HeapMonitor() : new NullHeapMonitor();
     }
     return HeapMonitor.instance;
   }
@@ -81,7 +77,7 @@ export class HeapMonitor implements Disposable {
 
     const logRecord: { [name: string]: string | number } = {
       msg: 'Memory usage',
-      applicationArea,
+      applicationArea: applicationArea ?? '',
       rss: Number(memoryUsage.rss),
       heapTotal: Number(memoryUsage.heapTotal),
       heapUsed: Number(memoryUsage.heapUsed),
@@ -94,12 +90,10 @@ export class HeapMonitor implements Disposable {
     }
 
     // Flatten heapSpaces into individual properties
-    heapSpaceStats.forEach((space) => {
+    heapSpaceStats.forEach(space => {
       logRecord[`${space.space_name}_total`] = Number(space.space_size);
       logRecord[`${space.space_name}_used`] = Number(space.space_used_size);
-      logRecord[`${space.space_name}_available`] = Number(
-        space.space_available_size
-      );
+      logRecord[`${space.space_name}_available`] = Number(space.space_available_size);
     });
 
     this.logger.debug(logRecord);
@@ -168,6 +162,6 @@ export class HeapMonitor implements Disposable {
   [Symbol.dispose](): void {
     this.stopMonitoring();
     this.logger.debug('HeapMonitor disposed');
-    HeapMonitor.instance = null;
+    HeapMonitor.instance = undefined;
   }
 }

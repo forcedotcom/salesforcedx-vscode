@@ -38,8 +38,7 @@ export interface MarkdownTextReporterOptions {
 }
 
 /** Escapes markdown special characters */
-export const escapeMarkdown = (text: string): string =>
-  text.replaceAll(/[\\`*_{}[\]()#+\-!]/g, '\\$&');
+export const escapeMarkdown = (text: string): string => text.replaceAll(/[\\`*_{}[\]()#+\-!]/g, '\\$&');
 
 /** Escapes HTML special characters */
 export const escapeHtml = (text: string): string =>
@@ -64,16 +63,11 @@ export const formatDuration = (ms: number): string => {
 };
 
 /** Checks if a test is poorly performing (takes too long) */
-export const isPoorlyPerforming = (
-  runTime: number | undefined,
-  thresholdMs: number
-): boolean => runTime !== undefined && runTime > thresholdMs;
+export const isPoorlyPerforming = (runTime: number | undefined, thresholdMs: number): boolean =>
+  runTime !== undefined && runTime > thresholdMs;
 
 /** Checks if a test has poor coverage */
-export const hasPoorCoverage = (
-  coverage: string | number | undefined,
-  thresholdPercent: number
-): boolean => {
+export const hasPoorCoverage = (coverage: string | number | undefined, thresholdPercent: number): boolean => {
   if (coverage === undefined || coverage === 'N/A') {
     return false;
   }
@@ -85,9 +79,7 @@ export const hasPoorCoverage = (
 };
 
 /** Extracts numeric coverage percentage from coverage value */
-export const getCoveragePercentage = (
-  coverage?: string | number
-): number | null => {
+export const getCoveragePercentage = (coverage?: string | number): number | null => {
   if (coverage === undefined || coverage === 'N/A') {
     return null;
   }
@@ -102,9 +94,7 @@ export const getCoveragePercentage = (
 export const getTestNameInfo = (test: ApexTestResultData) => {
   const className = test.apexClass?.name ?? 'Unknown';
   const namespacePrefix = test.apexClass?.namespacePrefix;
-  const fullClassName = namespacePrefix
-    ? `${namespacePrefix}.${className}`
-    : className;
+  const fullClassName = namespacePrefix ? `${namespacePrefix}.${className}` : className;
   const methodName = test.methodName ?? 'Unknown';
   const testName = `${fullClassName}.${methodName}`;
   return { className, namespacePrefix, fullClassName, methodName, testName };
@@ -129,9 +119,7 @@ export const getSummaryInfo = (summary: TestResult['summary']) => {
   const skipped = summary?.skipped ?? 0;
   const total = summary?.testsRan ?? 0;
   const duration =
-    summary?.outcome === 'Passed' || summary?.outcome === 'Failed'
-      ? (summary?.testExecutionTimeInMs ?? 0)
-      : 0;
+    summary?.outcome === 'Passed' || summary?.outcome === 'Failed' ? (summary?.testExecutionTimeInMs ?? 0) : 0;
   return { passed, failed, skipped, total, duration };
 };
 
@@ -147,17 +135,11 @@ export const getSeverityScore = (
   // Both issues = highest priority (score 10000+)
   const isSlow = isPoorlyPerforming(test.runTime, performanceThresholdMs);
   const hasLowCoverage =
-    codeCoverage &&
-    hasPoorCoverage(
-      test.perClassCoverage?.[0]?.percentage,
-      coverageThresholdPercent
-    );
+    codeCoverage && hasPoorCoverage(test.perClassCoverage?.[0]?.percentage, coverageThresholdPercent);
 
   if (isSlow && hasLowCoverage) {
     score += 10_000;
-  } else if (isSlow) {
-    score += 5000;
-  } else if (hasLowCoverage) {
+  } else if (isSlow || hasLowCoverage) {
     score += 5000;
   }
 
@@ -168,9 +150,7 @@ export const getSeverityScore = (
 
   // Subtract coverage (lower = worse, but only if it's a problem)
   if (codeCoverage && hasLowCoverage) {
-    const coverage = getCoveragePercentage(
-      test.perClassCoverage?.[0]?.percentage
-    );
+    const coverage = getCoveragePercentage(test.perClassCoverage?.[0]?.percentage);
     if (coverage !== null) {
       score += (100 - coverage) * 100; // Lower coverage = higher score
     }

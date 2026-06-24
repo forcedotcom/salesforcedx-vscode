@@ -6,20 +6,11 @@
  */
 import { Connection } from '@salesforce/core';
 import { nls } from '../i18n';
-import {
-  DEFAULT_DEBUG_LEVEL_NAME,
-  LOG_TIMER_LENGTH_MINUTES,
-  LOG_TYPE
-} from '../logs';
-import {
-  IdRecord,
-  DataRecordResult,
-  QueryRecords,
-  TraceFlagRecord
-} from './types';
-import { MILLISECONDS_PER_MINUTE } from './dateUtil';
+import { DEFAULT_DEBUG_LEVEL_NAME, LOG_TIMER_LENGTH_MINUTES, LOG_TYPE } from '../logs/constants';
 import { escapeXml } from './authUtil';
+import { MILLISECONDS_PER_MINUTE } from './dateUtil';
 import { elapsedTime } from './elapsedTime';
+import { IdRecord, DataRecordResult, QueryRecords, TraceFlagRecord } from './types';
 
 export class TraceFlags {
   private connection: Connection;
@@ -44,17 +35,15 @@ export class TraceFlags {
       }
 
       const expirationDate = this.calculateExpirationDate(
-        traceFlag.ExpirationDate
-          ? new Date(traceFlag.ExpirationDate)
-          : new Date()
+        traceFlag.ExpirationDate ? new Date(traceFlag.ExpirationDate) : new Date()
       );
       return await this.updateTraceFlag(traceFlag.Id, expirationDate);
     } else {
-      const debugLevelId = await this.getDebugLevelId(debugLevelName);
+      const debugLevelId = await this.getDebugLevelId(debugLevelName ?? '');
 
       // create a trace flag
       const expirationDate = this.calculateExpirationDate(new Date());
-      if (!(await this.createTraceFlag(userId, debugLevelId, expirationDate))) {
+      if (!(await this.createTraceFlag(userId ?? '', debugLevelId ?? '', expirationDate))) {
         return false;
       }
     }
@@ -63,38 +52,28 @@ export class TraceFlags {
   }
 
   @elapsedTime()
-  private async getDebugLevelId(
-    debugLevelName: string
-  ): Promise<string | undefined> {
+  private async getDebugLevelId(debugLevelName: string): Promise<string | undefined> {
     let debugLevelId;
     if (debugLevelName) {
       debugLevelId = await this.findDebugLevel(debugLevelName);
       if (!debugLevelId) {
-        throw new Error(
-          nls.localize('trace_flags_failed_to_find_debug_level', debugLevelName)
-        );
+        throw new Error(nls.localize('trace_flags_failed_to_find_debug_level', debugLevelName));
       }
     } else {
       debugLevelId = await this.createDebugLevel(DEFAULT_DEBUG_LEVEL_NAME);
       if (!debugLevelId) {
-        throw new Error(
-          nls.localize('trace_flags_failed_to_create_debug_level')
-        );
+        throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
       }
     }
     return debugLevelId;
   }
 
   @elapsedTime()
-  private async findDebugLevel(
-    debugLevelName: string
-  ): Promise<string | undefined> {
+  private async findDebugLevel(debugLevelName: string): Promise<string | undefined> {
     const escapedDebugLevel = escapeXml(debugLevelName);
     const query = `SELECT Id FROM DebugLevel WHERE DeveloperName = '${escapedDebugLevel}'`;
     const result = (await this.connection.tooling.query(query)) as QueryRecords;
-    return result.totalSize && result.totalSize > 0 && result.records
-      ? result.records[0].Id
-      : undefined;
+    return result.totalSize && result.totalSize > 0 && result.records ? result.records[0].Id : undefined;
   }
 
   @elapsedTime()
@@ -104,17 +83,12 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.update(
-      'DebugLevel',
-      debugLevel
-    )) as DataRecordResult;
+    const result = (await this.connection.tooling.update('DebugLevel', debugLevel)) as DataRecordResult;
     return result.success;
   }
 
   @elapsedTime()
-  private async createDebugLevel(
-    debugLevelName: string
-  ): Promise<string | undefined> {
+  private async createDebugLevel(debugLevelName: string): Promise<string | undefined> {
     const developerName = debugLevelName;
     const debugLevel = {
       developerName,
@@ -122,27 +96,18 @@ export class TraceFlags {
       ApexCode: 'FINEST',
       Visualforce: 'FINER'
     };
-    const result = (await this.connection.tooling.create(
-      'DebugLevel',
-      debugLevel
-    )) as DataRecordResult;
+    const result = (await this.connection.tooling.create('DebugLevel', debugLevel)) as DataRecordResult;
     return result.success && result.id ? result.id : undefined;
   }
 
   @elapsedTime()
-  private async updateTraceFlag(
-    id: string,
-    expirationDate: Date
-  ): Promise<boolean> {
+  private async updateTraceFlag(id: string, expirationDate: Date): Promise<boolean> {
     const traceFlag = {
       Id: id,
       StartDate: Date.now(),
       ExpirationDate: expirationDate.toUTCString()
     };
-    const result = (await this.connection.tooling.update(
-      'TraceFlag',
-      traceFlag
-    )) as DataRecordResult;
+    const result = (await this.connection.tooling.update('TraceFlag', traceFlag)) as DataRecordResult;
     return result.success;
   }
 
@@ -160,26 +125,18 @@ export class TraceFlags {
       ExpirationDate: expirationDate.toUTCString()
     };
 
-    const result = (await this.connection.tooling.create(
-      'TraceFlag',
-      traceFlag
-    )) as DataRecordResult;
+    const result = (await this.connection.tooling.create('TraceFlag', traceFlag)) as DataRecordResult;
     return result.success && result.id ? result.id : undefined;
   }
 
   private isValidDateLength(expirationDate: Date): boolean {
     const currDate = Date.now();
-    return (
-      expirationDate.getTime() - currDate >
-      LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE
-    );
+    return expirationDate.getTime() - currDate > LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE;
   }
 
   private calculateExpirationDate(expirationDate: Date): Date {
     if (!this.isValidDateLength(expirationDate)) {
-      expirationDate = new Date(
-        Date.now() + LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE
-      );
+      expirationDate = new Date(Date.now() + LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE);
     }
     return expirationDate;
   }
@@ -197,9 +154,7 @@ export class TraceFlags {
   }
 
   @elapsedTime()
-  private async getTraceFlagForUser(
-    userId: string
-  ): Promise<TraceFlagRecord | undefined> {
+  private async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
     const traceFlagQuery = `
       SELECT Id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce
       FROM TraceFlag
@@ -207,8 +162,7 @@ export class TraceFlags {
       ORDER BY CreatedDate DESC
       LIMIT 1
     `;
-    const traceFlagResult =
-      await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
+    const traceFlagResult = await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
 
     if (traceFlagResult.totalSize > 0) {
       return traceFlagResult.records[0];

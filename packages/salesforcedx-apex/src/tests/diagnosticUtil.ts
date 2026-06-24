@@ -10,23 +10,16 @@ import { ApexDiagnostic } from '../utils';
 import { ApexTestResultRecord, SyncTestFailure } from './types';
 
 export function formatTestErrors(error: Error): Error {
-  const matches = error.message?.match(
-    /\bsObject type ["'](.*?)["'] is not supported\b/
-  );
+  const matches = error.message?.match(/\bsObject type ["'](.*?)["'] is not supported\b/);
   if (matches?.[0] && matches?.[1]) {
-    error.message = nls.localize('invalidsObjectErr', [
-      matches[1],
-      error.message
-    ]);
+    error.message = nls.localize('invalidsObjectErr', [matches[1], error.message]);
     return error;
   }
 
   return error;
 }
 
-export function getDiagnostic(
-  record: SyncTestFailure | ApexTestResultRecord
-): ApexDiagnostic {
+export function getDiagnostic(record: SyncTestFailure | ApexTestResultRecord): ApexDiagnostic {
   const { message, stackTrace } =
     'message' in record
       ? record
@@ -38,11 +31,11 @@ export function getDiagnostic(
   const matches = stackTrace?.match(/(line (\d+), column (\d+))/);
 
   return {
-    exceptionMessage: message,
-    exceptionStackTrace: stackTrace,
+    exceptionMessage: message ?? '',
+    exceptionStackTrace: stackTrace ?? '',
     className: stackTrace ? stackTrace.split('.')[1] : undefined,
     compileProblem: '',
-    ...(matches && matches[2] && { lineNumber: Number(matches[2]) }),
-    ...(matches && matches[3] && { columnNumber: Number(matches[3]) })
+    ...(matches?.[2] && { lineNumber: Number(matches[2]) }),
+    ...(matches?.[3] && { columnNumber: Number(matches[3]) })
   };
 }

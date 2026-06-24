@@ -14,8 +14,7 @@ const xmlCharMap: { [key: string]: string } = {
   "'": '&apos;'
 };
 
-const escapeXml = (data: string): string =>
-  data.replace(/[<>&'\"]/g, (char: string) => xmlCharMap[char]);
+const escapeXml = (data: string): string => data.replaceAll(/[<>&'\"]/g, (char: string) => xmlCharMap[char]);
 
 export function encodeBody(accessToken: string, data: string): string {
   const escapedData = escapeXml(data);

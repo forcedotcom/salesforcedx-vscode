@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { elapsedTime } from './elapsedTime';
 import { LoggerLevel } from '@salesforce/core';
+import { elapsedTime } from './elapsedTime';
 import { Column, Row } from './types';
 
 const COLUMN_SEPARATOR = '  ';
@@ -31,12 +31,7 @@ export class Table {
       const width = maxColWidths.get(col.key);
       if (width) {
         const isLastCol = index === arr.length - 1;
-        columnHeader += this.fillColumn(
-          col.label || col.key,
-          width,
-          COLUMN_FILLER,
-          isLastCol
-        );
+        columnHeader += this.fillColumn(col.label || col.key, width, COLUMN_FILLER, isLastCol);
         headerSeparator += this.fillColumn('', width, HEADER_FILLER, isLastCol);
       }
     });
@@ -45,7 +40,7 @@ export class Table {
       table += `${title ? '\n' : ''}${columnHeader}\n${headerSeparator}\n`;
     }
 
-    rows.forEach((row) => {
+    rows.forEach(row => {
       let outputRow = '';
       cols.forEach((col, colIndex, colArr) => {
         const cell = row[col.key];
@@ -54,38 +49,26 @@ export class Table {
         cell.split('\n').forEach((line, lineIndex) => {
           const cellWidth = maxColWidths.get(col.key);
           if (cellWidth) {
-            if (lineIndex === 0) {
-              outputRow += this.fillColumn(
-                line,
-                cellWidth,
-                COLUMN_FILLER,
-                isLastCol
-              );
-            } else {
-              // If the cell is multiline, add an additional line to the table
-              // and pad it to the beginning of the current column.
-              // Only add col separator padding once to additional line.
-              outputRow +=
-                '\n' +
-                this.fillColumn('', rowWidth, COLUMN_FILLER, true) +
-                this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol);
-            }
+            // If the cell is multiline, add an additional line to the table
+            // and pad it to the beginning of the current column.
+            // Only add col separator padding once to additional line.
+            outputRow +=
+              lineIndex === 0
+                ? this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol)
+                : `\n${this.fillColumn('', rowWidth, COLUMN_FILLER, true)}${this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol)}`;
           }
         });
       });
-      table += outputRow + '\n';
+      table += `${outputRow}\n`;
     });
 
     return table;
   }
 
-  private calculateMaxColumnWidths(
-    rows: Row[],
-    cols: Column[]
-  ): Map<string, number> {
+  private calculateMaxColumnWidths(rows: Row[], cols: Column[]): Map<string, number> {
     const maxColWidths = new Map<string, number>();
-    cols.forEach((col) => {
-      rows.forEach((row) => {
+    cols.forEach(col => {
+      rows.forEach(row => {
         const cell = row[col.key];
         if (cell === undefined) {
           throw Error(`Row is missing the key ${col.key}`);
@@ -100,9 +83,7 @@ export class Table {
         // if a cell is multiline, find the line that's the longest
         const longestLineWidth = cell
           .split('\n')
-          .reduce((maxLine, line) =>
-            line.length > maxLine.length ? line : maxLine
-          ).length;
+          .reduce((maxLine, line) => (line.length > maxLine.length ? line : maxLine)).length;
         if (longestLineWidth > maxColWidth) {
           maxColWidths.set(col.key, longestLineWidth);
         }
@@ -112,12 +93,7 @@ export class Table {
   }
 
   @elapsedTime('elapsedTime', LoggerLevel.TRACE)
-  private fillColumn(
-    label: string,
-    width: number,
-    filler: string,
-    isLastCol: boolean
-  ): string {
+  private fillColumn(label: string, width: number, filler: string, isLastCol: boolean): string {
     let filled = label;
     for (let i = 0; i < width - label.length; i++) {
       filled += filler;

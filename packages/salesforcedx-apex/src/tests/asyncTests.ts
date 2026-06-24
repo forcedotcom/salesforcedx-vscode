@@ -5,22 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  AuthInfo,
-  Connection,
-  Logger,
-  LoggerLevel,
-  PollingClient
-} from '@salesforce/core';
+import { AuthInfo, Connection, Logger, LoggerLevel, PollingClient } from '@salesforce/core';
+import { Duration } from '@salesforce/kit';
+import { JsonStreamStringify } from 'json-stream-stringify';
+import { createWriteStream } from 'node:fs';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import * as util from 'node:util';
 import { CancellationToken, Progress } from '../common';
 import { nls } from '../i18n';
+import { isValidTestRunID } from '../narrowing';
 import { AsyncTestRun, StreamingClient } from '../streaming';
-import {
-  elapsedTime,
-  formatStartTime,
-  getCurrentTime,
-  HeapMonitor
-} from '../utils';
+import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
+import { CodeCoverage } from './codeCoverage';
+import { QUERY_RECORD_LIMIT } from './constants';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {
   ApexTestProgressValue,
@@ -41,53 +41,26 @@ import {
   ApexTestResultRecord,
   TestCategory
 } from './types';
-import {
-  calculatePercentage,
-  getJsonIndent,
-  transformTestResult,
-  queryAll,
-  calculateCodeCoverage
-} from './utils';
-import * as util from 'util';
-import { QUERY_RECORD_LIMIT } from './constants';
-import { CodeCoverage } from './codeCoverage';
-import { isValidTestRunID } from '../narrowing';
-import { Duration } from '@salesforce/kit';
-import { createWriteStream } from 'node:fs';
-import { pipeline } from 'node:stream/promises';
-import * as os from 'node:os';
-import path from 'path';
-import fs from 'node:fs/promises';
-
-import { JsonStreamStringify } from 'json-stream-stringify';
+import { calculatePercentage, getJsonIndent, transformTestResult, queryAll, calculateCodeCoverage } from './utils';
 
 /**
  * Standalone function for writing async test results to file - easier to test
  */
-export const writeAsyncResultsToFile = async (
-  formattedResults: TestResult,
-  runId: string
-): Promise<void> => {
+export const writeAsyncResultsToFile = async (formattedResults: TestResult, runId: string): Promise<void> => {
   const rawResultsPath = path.join(os.tmpdir(), runId, 'rawResults.json');
   await fs.mkdir(path.dirname(rawResultsPath), { recursive: true });
-  const writeStream = createWriteStream(
-    path.join(os.tmpdir(), runId, 'rawResults.json')
-  );
-  const stringifyStream = new JsonStreamStringify(
-    formattedResults,
-    null,
-    getJsonIndent()
-  );
+  const writeStream = createWriteStream(path.join(os.tmpdir(), runId, 'rawResults.json'));
+  const stringifyStream = new JsonStreamStringify(formattedResults, undefined, getJsonIndent());
   return await pipeline(stringifyStream, writeStream);
 };
 
-const finishedStatuses = [
+const finishedStatuses = new Set([
   ApexTestRunResultStatus.Aborted,
   ApexTestRunResultStatus.Failed,
   ApexTestRunResultStatus.Completed,
   ApexTestRunResultStatus.Passed,
   ApexTestRunResultStatus.Skipped
-];
+]);
 
 const MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS = 61.0;
 const POLLING_FREQUENCY = Duration.seconds(1);
@@ -112,7 +85,7 @@ export class AsyncTests {
    * @param progress progress reporter
    * @param token cancellation token
    * @param timeout Duration to wait before returning a TestRunIdResult. If the polling client times out,
-   *                the method will return the test run ID so you can retrieve results later.
+   * the method will return the test run ID so you can retrieve results later.
    */
   @elapsedTime()
   public async runTests(
@@ -123,9 +96,9 @@ export class AsyncTests {
     token?: CancellationToken,
     timeout?: Duration,
     interval: Duration = POLLING_FREQUENCY
-  ): Promise<TestResult | TestRunIdResult> {
+  ): Promise<TestResult | TestRunIdResult | null> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.runTests');
-    let testRunId: string;
+    let testRunId = '';
 
     try {
       testRunId = await this.getTestRunRequestAction(options)();
@@ -168,23 +141,14 @@ export class AsyncTests {
             : `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
 
           // Query for test run summary first to check overall status
-          const testRunSummary =
-            await this.connection.tooling.query<ApexTestRunResult>(
-              testRunSummaryQuery
-            );
+          const testRunSummary = await this.connection.tooling.query<ApexTestRunResult>(testRunSummaryQuery);
 
-          if (
-            !testRunSummary ||
-            !testRunSummary.records ||
-            testRunSummary.records.length === 0
-          ) {
-            throw new Error(
-              `No test run summary found for test run ID: ${testRunId}`
-            );
+          if (!testRunSummary?.records || testRunSummary.records.length === 0) {
+            throw new Error(`No test run summary found for test run ID: ${testRunId}`);
           }
 
           const summary = testRunSummary.records[0];
-          const isCompleted = finishedStatuses.includes(summary.Status);
+          const isCompleted = finishedStatuses.has(summary.Status);
 
           // Query queue items to get detailed status (use queryAll to fetch all pages)
           const queryResult = await queryAll<ApexTestQueueItemRecord>(
@@ -194,15 +158,13 @@ export class AsyncTests {
           );
 
           if (!queryResult.records || queryResult.records.length === 0) {
-            throw new Error(
-              `No test queue items found for test run ID: ${testRunId}`
-            );
+            throw new Error(`No test queue items found for test run ID: ${testRunId}`);
           }
 
           const queueItem: ApexTestQueueItem = {
             done: isCompleted,
             totalSize: queryResult.records.length,
-            records: queryResult.records.map((record) => ({
+            records: queryResult.records.map(record => ({
               Id: record.Id,
               Status: record.Status,
               ApexClassId: record.ApexClassId,
@@ -240,10 +202,8 @@ export class AsyncTests {
         );
 
         // Log the proper 'apex get test' command for the user to run later
-        const username = this.connection.getUsername();
-        this.logger.info(
-          nls.localize('runTestReportCommand', [testRunId, username])
-        );
+        const username = this.connection.getUsername() ?? '';
+        this.logger.info(nls.localize('runTestReportCommand', [testRunId, username]));
 
         return { testRunId };
       }
@@ -253,17 +213,12 @@ export class AsyncTests {
     }
   }
 
-  private async writeResultsToFile(
-    formattedResults: TestResult,
-    runId: string
-  ): Promise<void> {
+  private async writeResultsToFile(formattedResults: TestResult, runId: string): Promise<void> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.writeResultsToFile');
     try {
       if (this.logger.shouldLog(LoggerLevel.DEBUG)) {
         await writeAsyncResultsToFile(formattedResults, runId);
-        this.logger.debug(
-          `Raw results written to: ${path.join(os.tmpdir(), runId, 'rawResults.json')}`
-        );
+        this.logger.debug(`Raw results written to: ${path.join(os.tmpdir(), runId, 'rawResults.json')}`);
       }
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.writeResultsToFile');
@@ -281,21 +236,19 @@ export class AsyncTests {
     testRunId: string,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult> {
+  ): Promise<TestResult | null> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.reportAsyncResults');
     try {
       const sClient = new StreamingClient(this.connection);
       await sClient.init();
       await sClient.handshake();
-      let queueItem: ApexTestQueueItem;
+      let queueItem: ApexTestQueueItem | null;
       let runResult = await this.checkRunStatus(testRunId);
 
       if (runResult.testsComplete) {
         queueItem = await sClient.handler(undefined, testRunId);
       } else {
-        queueItem = (
-          (await sClient.subscribe(undefined, testRunId)) as AsyncTestRun
-        ).queueItem;
+        queueItem = ((await sClient.subscribe(undefined, testRunId)) as AsyncTestRun).queueItem;
         runResult = await this.checkRunStatus(testRunId);
       }
 
@@ -308,7 +261,7 @@ export class AsyncTests {
       }
 
       const formattedResults = await this.formatAsyncResults(
-        { queueItem, runId: testRunId },
+        { queueItem: queueItem as ApexTestQueueItem, runId: testRunId },
         getCurrentTime(),
         codeCoverage,
         runResult.testRunSummary
@@ -359,8 +312,7 @@ export class AsyncTests {
 
     try {
       const connection = await this.defineApiVersion();
-      const testRunSummaryResults =
-        await connection.tooling.query<ApexTestRunResult>(testRunSummaryQuery);
+      const testRunSummaryResults = await connection.tooling.query<ApexTestRunResult>(testRunSummaryQuery);
 
       if (!testRunSummaryResults?.records) {
         // If test run was aborted, return a dummy summary
@@ -388,9 +340,7 @@ export class AsyncTests {
       }
 
       return {
-        testsComplete: finishedStatuses.includes(
-          testRunSummaryResults.records[0].Status
-        ),
+        testsComplete: finishedStatuses.has(testRunSummaryResults.records[0].Status),
         testRunSummary: testRunSummaryResults.records[0]
       };
     } catch (e) {
@@ -422,11 +372,8 @@ export class AsyncTests {
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
     try {
-      const apexTestResults = await this.getAsyncTestResults(
-        asyncRunResult.queueItem
-      );
-      const { apexTestClassIdSet, testResults, globalTests } =
-        await this.buildAsyncTestResults(apexTestResults);
+      const apexTestResults = await this.getAsyncTestResults(asyncRunResult.queueItem);
+      const { apexTestClassIdSet, testResults, globalTests } = await this.buildAsyncTestResults(apexTestResults);
 
       let outcome = testRunSummary.Status;
       if (globalTests.failed > 0) {
@@ -446,32 +393,22 @@ export class AsyncTests {
           skipped: globalTests.skipped,
           passRate: calculatePercentage(globalTests.passed, testResults.length),
           failRate: calculatePercentage(globalTests.failed, testResults.length),
-          skipRate: calculatePercentage(
-            globalTests.skipped,
-            testResults.length
-          ),
+          skipRate: calculatePercentage(globalTests.skipped, testResults.length),
           testStartTime: formatStartTime(testRunSummary.StartTime, 'ISO'),
           testSetupTimeInMs: testRunSummary.TestSetupTime,
           testExecutionTimeInMs: testRunSummary.TestTime ?? 0,
           testTotalTimeInMs: testRunSummary.TestTime ?? 0,
           commandTimeInMs: getCurrentTime() - commandStartTime,
           hostname: this.connection.instanceUrl,
-          orgId: this.connection.getAuthInfoFields().orgId,
-          username: this.connection.getUsername(),
+          orgId: this.connection.getAuthInfoFields().orgId ?? '',
+          username: this.connection.getUsername() ?? '',
           testRunId: asyncRunResult.runId,
           userId: testRunSummary.UserId
         },
         tests: testResults
       };
 
-      await calculateCodeCoverage(
-        this.codecoverage,
-        codeCoverage,
-        apexTestClassIdSet,
-        rawResult,
-        true,
-        progress
-      );
+      await calculateCodeCoverage(this.codecoverage, codeCoverage, apexTestClassIdSet, rawResult, true, progress);
       return transformTestResult(rawResult);
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
@@ -479,21 +416,15 @@ export class AsyncTests {
   }
 
   @elapsedTime()
-  public async getAsyncTestResults(
-    testQueueResult: ApexTestQueueItem
-  ): Promise<ApexTestResult[]> {
+  public async getAsyncTestResults(testQueueResult: ApexTestQueueItem): Promise<ApexTestResult[]> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
     const hasIsTestSetupField = await this.supportsTestSetupFeature();
     try {
-      const { apexTestIds, flowTestIds } = this.mapTestResultsByCategory(
-        testQueueResult.records
-      );
+      const { apexTestIds, flowTestIds } = this.mapTestResultsByCategory(testQueueResult.records);
 
       const allTestResults: ApexTestResult[] = [];
       if (apexTestIds.length > 0) {
-        allTestResults.push(
-          ...(await this.getApexTestResults(apexTestIds, hasIsTestSetupField))
-        );
+        allTestResults.push(...(await this.getApexTestResults(apexTestIds, hasIsTestSetupField)));
       }
       if (flowTestIds.length > 0) {
         allTestResults.push(...(await this.getFlowTestResults(flowTestIds)));
@@ -508,37 +439,33 @@ export class AsyncTests {
    * @returns Convert FlowTest result to ApexTestResult type
    */
 
-  private convertFlowTestResult(
-    flowtestResults: FlowTestResult[]
-  ): ApexTestResult[] {
-    return flowtestResults.map((flowtestResult) => {
-      const tmpRecords: ApexTestResultRecord[] = flowtestResult.records.map(
-        (record) => ({
-          Id: record.Id,
-          QueueItemId: record.ApexTestQueueItemId,
-          StackTrace: '', // Default value
-          Message: '', // Default value
-          AsyncApexJobId: record.ApexTestQueueItemId, // Assuming this maps from ApexTestQueueItem
-          MethodName: record.FlowTest.DeveloperName,
-          Outcome: record.Result,
-          ApexLogId: '', // Default value
-          IsTestSetup: false,
-          ApexClass: {
-            Id: record.ApexTestQueueItemId,
-            Name: record.FlowDefinition.DeveloperName,
-            NamespacePrefix: record.FlowDefinition.NamespacePrefix,
-            FullName: record.FlowDefinition.NamespacePrefix
-              ? `${record.FlowDefinition.NamespacePrefix}.${record.FlowTest.DeveloperName}`
-              : record.FlowTest.DeveloperName
-          },
-          RunTime: Number.isNaN(Number(record.TestEndDateTime))
+  private convertFlowTestResult(flowtestResults: FlowTestResult[]): ApexTestResult[] {
+    return flowtestResults.map(flowtestResult => {
+      const tmpRecords: ApexTestResultRecord[] = flowtestResult.records.map(record => ({
+        Id: record.Id,
+        QueueItemId: record.ApexTestQueueItemId,
+        StackTrace: '', // Default value
+        Message: '', // Default value
+        AsyncApexJobId: record.ApexTestQueueItemId, // Assuming this maps from ApexTestQueueItem
+        MethodName: record.FlowTest.DeveloperName,
+        Outcome: record.Result,
+        ApexLogId: '', // Default value
+        IsTestSetup: false,
+        ApexClass: {
+          Id: record.ApexTestQueueItemId,
+          Name: record.FlowDefinition.DeveloperName,
+          NamespacePrefix: record.FlowDefinition.NamespacePrefix,
+          FullName: record.FlowDefinition.NamespacePrefix
+            ? `${record.FlowDefinition.NamespacePrefix}.${record.FlowTest.DeveloperName}`
+            : record.FlowTest.DeveloperName
+        },
+        RunTime: Number.isNaN(Number(record.TestEndDateTime))
+          ? 0
+          : Number(record.TestEndDateTime) - Number(record.TestStartDateTime)
             ? 0
-            : Number(record.TestEndDateTime) - Number(record.TestStartDateTime)
-              ? 0
-              : Number(record.TestStartDateTime), // Default value, replace with actual runtime if available
-          TestTimestamp: record.TestStartDateTime
-        })
-      );
+            : Number(record.TestStartDateTime), // Default value, replace with actual runtime if available
+        TestTimestamp: record.TestStartDateTime
+      }));
 
       return {
         done: flowtestResult.done,
@@ -550,9 +477,7 @@ export class AsyncTests {
   }
 
   @elapsedTime()
-  private async buildAsyncTestResults(
-    apexTestResults: ApexTestResult[]
-  ): Promise<{
+  private async buildAsyncTestResults(apexTestResults: ApexTestResult[]): Promise<{
     apexTestClassIdSet: Set<string>;
     testResults: ApexTestResultDataRaw[];
     globalTests: {
@@ -571,7 +496,7 @@ export class AsyncTests {
       // Iterate over test results, format and add them as results.tests
       const testResults: ApexTestResultDataRaw[] = [];
       for (const result of apexTestResults) {
-        result.records.forEach((item) => {
+        result.records.forEach(item => {
           switch (item.Outcome) {
             case ApexTestResultOutcome.Pass:
               passed++;
@@ -591,8 +516,7 @@ export class AsyncTests {
             ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`
             : item.ApexClass.Name;
 
-          const diagnostic =
-            item.Message || item.StackTrace ? getDiagnostic(item) : null;
+          const diagnostic = item.Message || item.StackTrace ? getDiagnostic(item) : null;
 
           testResults.push({
             id: item.Id,
@@ -625,9 +549,7 @@ export class AsyncTests {
         globalTests: { passed, failed, skipped }
       };
     } finally {
-      HeapMonitor.getInstance().checkHeapSize(
-        'asyncTests.buildAsyncTestResults'
-      );
+      HeapMonitor.getInstance().checkHeapSize('asyncTests.buildAsyncTestResults');
     }
   }
 
@@ -636,10 +558,7 @@ export class AsyncTests {
    * @param testRunId
    * @param progress
    */
-  public async abortTestRun(
-    testRunId: string,
-    progress?: Progress<ApexTestProgressValue>
-  ): Promise<void> {
+  public async abortTestRun(testRunId: string, progress?: Progress<ApexTestProgressValue>): Promise<void> {
     progress?.report({
       type: 'AbortTestRunProgress',
       value: 'abortingTestRun',
@@ -647,18 +566,14 @@ export class AsyncTests {
       testRunId
     });
 
-    const testQueueItems =
-      await this.connection.tooling.query<ApexTestQueueItemRecord>(
-        `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`
-      );
+    const testQueueItems = await this.connection.tooling.query<ApexTestQueueItemRecord>(
+      `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`
+    );
 
     for (const record of testQueueItems.records) {
       record.Status = ApexTestQueueItemStatus.Aborted;
     }
-    await this.connection.tooling.update(
-      'ApexTestQueueItem',
-      testQueueItems.records
-    );
+    await this.connection.tooling.update('ApexTestQueueItem', testQueueItems.records);
 
     progress?.report({
       type: 'AbortTestRunProgress',
@@ -674,17 +589,12 @@ export class AsyncTests {
     return async (): Promise<string> => {
       const url = `${this.connection.tooling._baseUrl()}/runTestsAsynchronous`;
 
-      try {
-        const testRunId = await this.connection.tooling.request<string>({
-          method: 'POST',
-          url,
-          body: JSON.stringify(options),
-          headers: { 'content-type': 'application/json' }
-        });
-        return Promise.resolve(testRunId);
-      } catch (e) {
-        return Promise.reject(e);
-      }
+      return this.connection.tooling.request<string>({
+        method: 'POST',
+        url,
+        body: JSON.stringify(options),
+        headers: { 'content-type': 'application/json' }
+      });
     };
   }
 
@@ -693,12 +603,9 @@ export class AsyncTests {
    */
   public async supportsTestSetupFeature(): Promise<boolean> {
     try {
-      return (
-        parseFloat(await this.connection.retrieveMaxApiVersion()) >=
-        MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS
-      );
-    } catch (e) {
-      throw new Error(`Error retrieving max api version`);
+      return parseFloat(await this.connection.retrieveMaxApiVersion()) >= MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS;
+    } catch {
+      throw new Error('Error retrieving max api version');
     }
   }
 
@@ -707,14 +614,11 @@ export class AsyncTests {
    */
   public async isJobIdForFlowTestRun(testRunId: string): Promise<boolean> {
     try {
-      const testRunApexIdResults =
-        await this.connection.tooling.query<ApexTestQueueItemRecord>(
-          `SELECT ApexClassId FROM ApexTestQueueItem WHERE Id = '${testRunId}'`
-        );
-      return testRunApexIdResults.records.some(
-        (record) => record.ApexClassId === null
+      const testRunApexIdResults = await this.connection.tooling.query<ApexTestQueueItemRecord>(
+        `SELECT ApexClassId FROM ApexTestQueueItem WHERE Id = '${testRunId}'`
       );
-    } catch (e) {
+      return testRunApexIdResults.records.some(record => record.ApexClassId === null);
+    } catch {
       return false;
     }
   }
@@ -726,9 +630,8 @@ export class AsyncTests {
     const maxApiVersion = await this.connection.retrieveMaxApiVersion();
 
     if (
-      parseFloat(this.connection.getApiVersion()) <
-        MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS &&
-      this.supportsTestSetupFeature()
+      parseFloat(this.connection.getApiVersion()) < MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS &&
+      (await this.supportsTestSetupFeature())
     ) {
       return await this.cloneConnectionWithNewVersion(maxApiVersion);
     }
@@ -738,15 +641,13 @@ export class AsyncTests {
   /**
    * @returns A new connection similar to the current one but with a new api version.
    */
-  public async cloneConnectionWithNewVersion(
-    newVersion: string
-  ): Promise<Connection> {
+  public async cloneConnectionWithNewVersion(newVersion: string): Promise<Connection> {
     try {
       const authInfo = await AuthInfo.create({
         username: this.connection.getUsername()
       });
       const newConn = await Connection.create({
-        authInfo: authInfo,
+        authInfo,
         connectionOptions: {
           ...this.connection.getConnectionOptions(),
           version: newVersion
@@ -754,9 +655,7 @@ export class AsyncTests {
       });
       return newConn;
     } catch (e) {
-      throw new Error(
-        `Error creating new connection with API version ${newVersion}: ${e.message}`
-      );
+      throw new Error(`Error creating new connection with API version ${newVersion}: ${e.message}`);
     }
   }
 
@@ -771,47 +670,35 @@ export class AsyncTests {
       return { apexTestIds: [], flowTestIds: [] };
     }
     return {
-      apexTestIds: records
-        .filter((r) => r.ApexClassId !== null)
-        .map((r) => r.Id),
-      flowTestIds: records
-        .filter((r) => r.ApexClassId === null)
-        .map((r) => r.Id)
+      apexTestIds: records.filter(r => r.ApexClassId !== null).map(r => r.Id),
+      flowTestIds: records.filter(r => r.ApexClassId === null).map(r => r.Id)
     };
   }
 
-  public async getFlowTestResults(
-    recordIds: string[]
-  ): Promise<ApexTestResult[]> {
-    const queryTemplate = `SELECT Id, ApexTestQueueItemId, Result, TestStartDateTime,TestEndDateTime, FlowTest.DeveloperName, FlowDefinition.DeveloperName, FlowDefinition.NamespacePrefix FROM FlowTestResult WHERE ApexTestQueueItemId IN (%s)`;
+  public async getFlowTestResults(recordIds: string[]): Promise<ApexTestResult[]> {
+    const queryTemplate =
+      'SELECT Id, ApexTestQueueItemId, Result, TestStartDateTime,TestEndDateTime, FlowTest.DeveloperName, FlowDefinition.DeveloperName, FlowDefinition.NamespacePrefix FROM FlowTestResult WHERE ApexTestQueueItemId IN (%s)';
     const queries = this.buildChunkedQueries(queryTemplate, recordIds);
 
     const connection = await this.defineApiVersion();
-    const queryPromises = queries.map(async (query) =>
-      queryAll(connection, query, true)
-    );
+    const queryPromises = queries.map(async query => queryAll(connection, query, true));
 
     const testResults = await Promise.all(queryPromises);
     return this.convertFlowTestResult(testResults as FlowTestResult[]);
   }
 
-  public async getApexTestResults(
-    recordIds: string[],
-    isTestSetup: boolean
-  ): Promise<ApexTestResult[]> {
+  public async getApexTestResults(recordIds: string[], isTestSetup: boolean): Promise<ApexTestResult[]> {
     const queryTemplate = isTestSetup
-      ? `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`
-      : `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`;
+      ? 'SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)'
+      : 'SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)';
     const queries = this.buildChunkedQueries(queryTemplate, recordIds);
 
     const connection = await this.defineApiVersion();
-    const queryPromises = queries.map(async (query) =>
-      queryAll(connection, query, true)
-    );
+    const queryPromises = queries.map(async query => queryAll(connection, query, true));
 
     const testResults = await Promise.all(queryPromises);
     return testResults.map(
-      (result) =>
+      result =>
         ({
           ...result,
           category: TestCategory.Apex
@@ -825,14 +712,9 @@ export class AsyncTests {
    * @param recordIds Array of record IDs to include in queries
    * @returns Array of complete SOQL queries ready to execute
    */
-  public buildChunkedQueries(
-    queryTemplate: string,
-    recordIds: string[]
-  ): string[] {
+  public buildChunkedQueries(queryTemplate: string, recordIds: string[]): string[] {
     if (!queryTemplate?.includes('%s')) {
-      throw new Error(
-        'Query template must contain %s placeholder for record IDs'
-      );
+      throw new Error('Query template must contain %s placeholder for record IDs');
     }
 
     if (!recordIds?.length) {
@@ -843,7 +725,7 @@ export class AsyncTests {
 
     for (let i = 0; i < recordIds.length; i += QUERY_RECORD_LIMIT) {
       const chunk = recordIds.slice(i, i + QUERY_RECORD_LIMIT);
-      const quotedIds = chunk.map((id) => `'${id}'`).join(',');
+      const quotedIds = chunk.map(id => `'${id}'`).join(',');
       const query = util.format(queryTemplate, quotedIds);
       queries.push(query);
     }

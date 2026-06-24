@@ -5,17 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestResult, ApexTestResultData } from '../tests/types';
-import { Readable, ReadableOptions } from 'node:stream';
 import { Logger } from '@salesforce/core';
+import { Readable, ReadableOptions } from 'node:stream';
+import { TestResult, ApexTestResultData } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
-import {
-  ReportData,
-  FailureTest,
-  WarningTest,
-  TestTableRow,
-  CoverageTableRow
-} from './markdownReportTemplate';
+import { ReportData, FailureTest, WarningTest, TestTableRow, CoverageTableRow } from './markdownReportTemplate';
 import {
   escapeMarkdown,
   escapeHtml,
@@ -51,10 +45,7 @@ export class MarkdownTextFormatTransformer extends Readable {
   private readonly codeCoverage: boolean;
   private readonly timestamp: Date;
 
-  constructor(
-    testResult: TestResult,
-    options?: MarkdownTextFormatTransformerOptions
-  ) {
+  constructor(testResult: TestResult, options?: MarkdownTextFormatTransformerOptions) {
     super(options);
     this.testResult = testResult;
     this.logger = Logger.childFromRoot('MarkdownTextFormatTransformer');
@@ -78,18 +69,14 @@ export class MarkdownTextFormatTransformer extends Readable {
 
   _read(): void {
     this.logger.trace('starting format');
-    HeapMonitor.getInstance().checkHeapSize(
-      'MarkdownTextFormatTransformer._read'
-    );
+    HeapMonitor.getInstance().checkHeapSize('MarkdownTextFormatTransformer._read');
     this.format();
     if (this.buffer.length > 0) {
       this.push(this.buffer);
     }
     this.push(null); // Signal the end of the stream
     this.logger.trace('finishing format');
-    HeapMonitor.getInstance().checkHeapSize(
-      'MarkdownTextFormatTransformer._read'
-    );
+    HeapMonitor.getInstance().checkHeapSize('MarkdownTextFormatTransformer._read');
   }
 
   @elapsedTime()
@@ -112,9 +99,7 @@ export class MarkdownTextFormatTransformer extends Readable {
   }
 
   private buildReportData(): ReportData {
-    const { passed, failed, skipped, total, duration } = getSummaryInfo(
-      this.testResult.summary
-    );
+    const { passed, failed, skipped, total, duration } = getSummaryInfo(this.testResult.summary);
     const timestampStr = formatTimestamp(this.timestamp);
 
     // Helper function to sort tests based on sort order
@@ -125,21 +110,13 @@ export class MarkdownTextFormatTransformer extends Readable {
       return [...tests].sort((a: ApexTestResultData, b: ApexTestResultData) => {
         const runtimeA = a.runTime ?? 0;
         const runtimeB = b.runTime ?? 0;
-        const coverageA = this.codeCoverage
-          ? (getCoveragePercentage(a.perClassCoverage?.[0]?.percentage) ?? 100)
-          : 100;
-        const coverageB = this.codeCoverage
-          ? (getCoveragePercentage(b.perClassCoverage?.[0]?.percentage) ?? 100)
-          : 100;
+        const coverageA = this.codeCoverage ? (getCoveragePercentage(a.perClassCoverage?.[0]?.percentage) ?? 100) : 100;
+        const coverageB = this.codeCoverage ? (getCoveragePercentage(b.perClassCoverage?.[0]?.percentage) ?? 100) : 100;
 
         if (this.sortOrder === 'runtime') {
-          return runtimeB !== runtimeA
-            ? runtimeB - runtimeA
-            : coverageA - coverageB;
+          return runtimeB !== runtimeA ? runtimeB - runtimeA : coverageA - coverageB;
         } else if (this.sortOrder === 'coverage') {
-          return coverageA !== coverageB
-            ? coverageA - coverageB
-            : runtimeB - runtimeA;
+          return coverageA !== coverageB ? coverageA - coverageB : runtimeB - runtimeA;
         } else {
           const scoreA = getSeverityScore(
             a,
@@ -159,21 +136,12 @@ export class MarkdownTextFormatTransformer extends Readable {
     };
 
     // Build data structures using spread operators
-    const failedTests =
-      this.testResult.tests?.filter(
-        (test) => test.outcome?.toString() === 'Fail'
-      ) ?? [];
-    const passedTests =
-      this.testResult.tests?.filter(
-        (test) => test.outcome?.toString() === 'Pass'
-      ) ?? [];
-    const skippedTests =
-      this.testResult.tests?.filter(
-        (test) => test.outcome?.toString() === 'Skip'
-      ) ?? [];
+    const failedTests = this.testResult.tests?.filter(test => test.outcome?.toString() === 'Fail') ?? [];
+    const passedTests = this.testResult.tests?.filter(test => test.outcome?.toString() === 'Pass') ?? [];
+    const skippedTests = this.testResult.tests?.filter(test => test.outcome?.toString() === 'Skip') ?? [];
 
     // Build failures data
-    const failures: FailureTest[] = failedTests.map((test) => {
+    const failures: FailureTest[] = failedTests.map(test => {
       const { testName } = getTestNameInfo(test);
       return {
         testName: escapeMarkdown(testName),
@@ -187,40 +155,32 @@ export class MarkdownTextFormatTransformer extends Readable {
 
     // Identify poorly performing and poorly covered tests
     const poorlyPerformingTests =
-      this.testResult.tests?.filter((test) =>
-        isPoorlyPerforming(test.runTime, this.performanceThresholdMs)
-      ) ?? [];
+      this.testResult.tests?.filter(test => isPoorlyPerforming(test.runTime, this.performanceThresholdMs)) ?? [];
     const poorlyCoveredTests = this.codeCoverage
-      ? (this.testResult.tests?.filter((test) =>
-          hasPoorCoverage(
-            test.perClassCoverage?.[0]?.percentage,
-            this.coverageThresholdPercent
-          )
+      ? (this.testResult.tests?.filter(test =>
+          hasPoorCoverage(test.perClassCoverage?.[0]?.percentage, this.coverageThresholdPercent)
         ) ?? [])
       : [];
 
     // Build warnings data
     const poorlyPerformingWarnings: WarningTest[] = [...poorlyPerformingTests]
       .sort((a, b) => (b.runTime ?? 0) - (a.runTime ?? 0))
-      .map((test) => {
+      .map(test => {
         const { testName } = getTestNameInfo(test);
         return {
           testName: escapeMarkdown(testName),
-          value:
-            test.runTime !== undefined ? formatDuration(test.runTime) : 'N/A',
+          value: test.runTime !== undefined ? formatDuration(test.runTime) : 'N/A',
           type: 'performance' as const
         };
       });
 
     const poorlyCoveredWarnings: WarningTest[] = [...poorlyCoveredTests]
       .sort((a, b) => {
-        const coverageA =
-          getCoveragePercentage(a.perClassCoverage?.[0]?.percentage) ?? 0;
-        const coverageB =
-          getCoveragePercentage(b.perClassCoverage?.[0]?.percentage) ?? 0;
+        const coverageA = getCoveragePercentage(a.perClassCoverage?.[0]?.percentage) ?? 0;
+        const coverageB = getCoveragePercentage(b.perClassCoverage?.[0]?.percentage) ?? 0;
         return coverageA - coverageB;
       })
-      .map((test) => {
+      .map(test => {
         const { testName } = getTestNameInfo(test);
         const coverage = test.perClassCoverage?.[0]?.percentage ?? 'N/A';
         return {
@@ -233,23 +193,15 @@ export class MarkdownTextFormatTransformer extends Readable {
     // Build test table data
     const testTableRows: TestTableRow[] =
       this.codeCoverage && this.testResult.tests
-        ? sortTests(this.testResult.tests).map((test) => {
+        ? sortTests(this.testResult.tests).map(test => {
             const { fullClassName, testName } = getTestNameInfo(test);
             const outcome = test.outcome?.toString() ?? 'Unknown';
             const coverage = test.perClassCoverage?.[0]?.percentage ?? 'N/A';
             const coverageStr = typeof coverage === 'string' ? coverage : 'N/A';
-            const runtime =
-              test.runTime !== undefined ? formatDuration(test.runTime) : 'N/A';
-            const outcomeEmoji =
-              outcome === 'Pass' ? '✅' : outcome === 'Fail' ? '❌' : '⏭️';
-            const isSlow = isPoorlyPerforming(
-              test.runTime,
-              this.performanceThresholdMs
-            );
-            const hasLowCoverage = hasPoorCoverage(
-              coverage,
-              this.coverageThresholdPercent
-            );
+            const runtime = test.runTime !== undefined ? formatDuration(test.runTime) : 'N/A';
+            const outcomeEmoji = outcome === 'Pass' ? '✅' : outcome === 'Fail' ? '❌' : '⏭️';
+            const isSlow = isPoorlyPerforming(test.runTime, this.performanceThresholdMs);
+            const hasLowCoverage = hasPoorCoverage(coverage, this.coverageThresholdPercent);
 
             return {
               // Table rows are rendered as HTML, so HTML-escape instead of markdown-escape.
@@ -265,18 +217,11 @@ export class MarkdownTextFormatTransformer extends Readable {
         : [];
 
     // Build passed tests data
-    const passedTestsData = sortTests(passedTests).map((test) => {
+    const passedTestsData = sortTests(passedTests).map(test => {
       const { testName } = getTestNameInfo(test);
-      const isSlow = isPoorlyPerforming(
-        test.runTime,
-        this.performanceThresholdMs
-      );
+      const isSlow = isPoorlyPerforming(test.runTime, this.performanceThresholdMs);
       const hasLowCoverage =
-        this.codeCoverage &&
-        hasPoorCoverage(
-          test.perClassCoverage?.[0]?.percentage,
-          this.coverageThresholdPercent
-        );
+        this.codeCoverage && hasPoorCoverage(test.perClassCoverage?.[0]?.percentage, this.coverageThresholdPercent);
 
       return {
         testName: escapeMarkdown(testName),
@@ -293,7 +238,7 @@ export class MarkdownTextFormatTransformer extends Readable {
     });
 
     // Build skipped tests data
-    const skippedTestsData = skippedTests.map((test) => {
+    const skippedTestsData = skippedTests.map(test => {
       const { testName } = getTestNameInfo(test);
       return { testName: escapeMarkdown(testName) };
     });
@@ -307,7 +252,7 @@ export class MarkdownTextFormatTransformer extends Readable {
               const percentageB = getCoveragePercentage(b.percentage) ?? 0;
               return percentageA - percentageB;
             })
-            .map((coverageItem) => {
+            .map(coverageItem => {
               const className = coverageItem.name ?? 'Unknown';
               const percentage = coverageItem.percentage ?? '0%';
               const uncoveredLines = coverageItem.uncoveredLines ?? [];
@@ -315,8 +260,7 @@ export class MarkdownTextFormatTransformer extends Readable {
                 // Coverage table is rendered as HTML <code> so keep markdown escapes out.
                 className: escapeHtml(className),
                 percentage,
-                uncoveredLines:
-                  uncoveredLines.length > 0 ? uncoveredLines.join(', ') : 'None'
+                uncoveredLines: uncoveredLines.length > 0 ? uncoveredLines.join(', ') : 'None'
               };
             })
         : [];
@@ -392,16 +336,12 @@ export class MarkdownTextFormatTransformer extends Readable {
     }
 
     // Warnings section
-    const hasWarnings =
-      data.warnings.poorlyPerforming.length > 0 ||
-      data.warnings.poorlyCovered.length > 0;
+    const hasWarnings = data.warnings.poorlyPerforming.length > 0 || data.warnings.poorlyCovered.length > 0;
     if (hasWarnings) {
       this.pushToBuffer('## ⚠️ Test Quality Warnings\n\n');
 
       if (data.warnings.poorlyPerforming.length > 0) {
-        this.pushToBuffer(
-          `### 🐌 Poorly Performing Tests (${data.warnings.poorlyPerforming.length})\n\n`
-        );
+        this.pushToBuffer(`### 🐌 Poorly Performing Tests (${data.warnings.poorlyPerforming.length})\n\n`);
         this.pushToBuffer(
           `*Tests taking longer than ${formatDuration(this.performanceThresholdMs)} (sorted by runtime, slowest first)*\n\n`
         );
@@ -412,16 +352,10 @@ export class MarkdownTextFormatTransformer extends Readable {
       }
 
       if (data.warnings.poorlyCovered.length > 0) {
-        this.pushToBuffer(
-          `### 📉 Poorly Covered Tests (${data.warnings.poorlyCovered.length})\n\n`
-        );
-        this.pushToBuffer(
-          `*Tests with coverage below ${this.coverageThresholdPercent}%*\n\n`
-        );
+        this.pushToBuffer(`### 📉 Poorly Covered Tests (${data.warnings.poorlyCovered.length})\n\n`);
+        this.pushToBuffer(`*Tests with coverage below ${this.coverageThresholdPercent}%*\n\n`);
         for (const test of data.warnings.poorlyCovered) {
-          this.pushToBuffer(
-            `- **${test.testName}** - ${test.value} coverage\n`
-          );
+          this.pushToBuffer(`- **${test.testName}** - ${test.value} coverage\n`);
         }
         this.pushToBuffer('\n');
       }
@@ -433,50 +367,28 @@ export class MarkdownTextFormatTransformer extends Readable {
       if (data.testTable.note) {
         this.pushToBuffer(`*${data.testTable.note}*\n\n`);
       }
-      this.pushToBuffer(
-        '<table style="width: 100%; border-collapse: collapse;">\n'
-      );
+      this.pushToBuffer('<table style="width: 100%; border-collapse: collapse;">\n');
       this.pushToBuffer('<thead>\n');
       this.pushToBuffer('<tr style="border-bottom: 2px solid;">\n');
-      this.pushToBuffer(
-        '<th style="text-align: left; padding: 8px; width: 45%;">Test Name</th>\n'
-      );
-      this.pushToBuffer(
-        '<th style="text-align: left; padding: 8px; width: 20%;">Class Being Tested</th>\n'
-      );
-      this.pushToBuffer(
-        '<th style="text-align: left; padding: 8px; width: 12%;">Outcome</th>\n'
-      );
-      this.pushToBuffer(
-        '<th style="text-align: left; padding: 8px; width: 10%;">Per-Test Coverage</th>\n'
-      );
-      this.pushToBuffer(
-        '<th style="text-align: left; padding: 8px; width: 13%;">Runtime</th>\n'
-      );
+      this.pushToBuffer('<th style="text-align: left; padding: 8px; width: 45%;">Test Name</th>\n');
+      this.pushToBuffer('<th style="text-align: left; padding: 8px; width: 20%;">Class Being Tested</th>\n');
+      this.pushToBuffer('<th style="text-align: left; padding: 8px; width: 12%;">Outcome</th>\n');
+      this.pushToBuffer('<th style="text-align: left; padding: 8px; width: 10%;">Per-Test Coverage</th>\n');
+      this.pushToBuffer('<th style="text-align: left; padding: 8px; width: 13%;">Runtime</th>\n');
       this.pushToBuffer('</tr>\n');
       this.pushToBuffer('</thead>\n');
       this.pushToBuffer('<tbody>\n');
       for (const row of data.testTable.rows) {
         const coverageStyle =
-          row.coverage && row.hasWarning
-            ? 'padding: 8px; font-weight: bold; color: #d32f2f;'
-            : 'padding: 8px;';
-        const runtimeStyle = row.hasWarning
-          ? 'padding: 8px; font-weight: bold; color: #d32f2f;'
-          : 'padding: 8px;';
+          row.coverage && row.hasWarning ? 'padding: 8px; font-weight: bold; color: #d32f2f;' : 'padding: 8px;';
+        const runtimeStyle = row.hasWarning ? 'padding: 8px; font-weight: bold; color: #d32f2f;' : 'padding: 8px;';
         this.pushToBuffer('<tr style="border-bottom: 1px solid #ddd;">\n');
         this.pushToBuffer(
-          `<td style="padding: 8px;"><code>${row.testName}</code>${
-            row.hasWarning ? ' ⚠️' : ''
-          }</td>\n`
+          `<td style="padding: 8px;"><code>${row.testName}</code>${row.hasWarning ? ' ⚠️' : ''}</td>\n`
         );
         this.pushToBuffer(`<td style="padding: 8px;">${row.className}</td>\n`);
-        this.pushToBuffer(
-          `<td style="padding: 8px;">${row.outcomeEmoji} ${row.outcome}</td>\n`
-        );
-        this.pushToBuffer(
-          `<td style="${coverageStyle}">${row.coverage || 'N/A'}</td>\n`
-        );
+        this.pushToBuffer(`<td style="padding: 8px;">${row.outcomeEmoji} ${row.outcome}</td>\n`);
+        this.pushToBuffer(`<td style="${coverageStyle}">${row.coverage || 'N/A'}</td>\n`);
         this.pushToBuffer(`<td style="${runtimeStyle}">${row.runtime}</td>\n`);
         this.pushToBuffer('</tr>\n');
       }
@@ -490,17 +402,11 @@ export class MarkdownTextFormatTransformer extends Readable {
       for (const test of data.passedTests) {
         this.pushToBuffer(`- ${test.testName}`);
         if (test.runtime) {
-          this.pushToBuffer(
-            test.isSlow
-              ? ` (🐌 **${test.runtime}** - slow)`
-              : ` (${test.runtime})`
-          );
+          this.pushToBuffer(test.isSlow ? ` (🐌 **${test.runtime}** - slow)` : ` (${test.runtime})`);
         }
         if (test.coverage) {
           this.pushToBuffer(
-            test.hasLowCoverage
-              ? ` (📉 **${test.coverage}** coverage - low)`
-              : ` - ${test.coverage} coverage`
+            test.hasLowCoverage ? ` (📉 **${test.coverage}** coverage - low)` : ` - ${test.coverage} coverage`
           );
         }
         this.pushToBuffer('\n');
@@ -523,32 +429,20 @@ export class MarkdownTextFormatTransformer extends Readable {
       if (data.coverageTable.note) {
         this.pushToBuffer(`*${data.coverageTable.note}*\n\n`);
       }
-      this.pushToBuffer(
-        '<table style="width: 100%; border-collapse: collapse;">\n'
-      );
+      this.pushToBuffer('<table style="width: 100%; border-collapse: collapse;">\n');
       this.pushToBuffer('<thead>\n');
       this.pushToBuffer('<tr style="border-bottom: 2px solid;">\n');
-      this.pushToBuffer(
-        '<th style="text-align: left; padding: 8px; width: 30%;">Class</th>\n'
-      );
-      this.pushToBuffer(
-        '<th style="text-align: left; padding: 8px; width: 15%;">Coverage</th>\n'
-      );
-      this.pushToBuffer(
-        '<th style="text-align: left; padding: 8px; width: 55%;">Uncovered Lines</th>\n'
-      );
+      this.pushToBuffer('<th style="text-align: left; padding: 8px; width: 30%;">Class</th>\n');
+      this.pushToBuffer('<th style="text-align: left; padding: 8px; width: 15%;">Coverage</th>\n');
+      this.pushToBuffer('<th style="text-align: left; padding: 8px; width: 55%;">Uncovered Lines</th>\n');
       this.pushToBuffer('</tr>\n');
       this.pushToBuffer('</thead>\n');
       this.pushToBuffer('<tbody>\n');
       for (const row of data.coverageTable.rows) {
         this.pushToBuffer('<tr style="border-bottom: 1px solid #ddd;">\n');
-        this.pushToBuffer(
-          `<td style="padding: 8px;"><code>${row.className}</code></td>\n`
-        );
+        this.pushToBuffer(`<td style="padding: 8px;"><code>${row.className}</code></td>\n`);
         this.pushToBuffer(`<td style="padding: 8px;">${row.percentage}</td>\n`);
-        this.pushToBuffer(
-          `<td style="padding: 8px;">${row.uncoveredLines}</td>\n`
-        );
+        this.pushToBuffer(`<td style="padding: 8px;">${row.uncoveredLines}</td>\n`);
         this.pushToBuffer('</tr>\n');
       }
       this.pushToBuffer('</tbody>\n');
@@ -618,9 +512,7 @@ export class MarkdownTextFormatTransformer extends Readable {
       this.pushToBuffer('Code Coverage by Class:\n');
       this.pushToBuffer('=======================\n\n');
       for (const row of data.coverageTable.rows) {
-        this.pushToBuffer(
-          `  ${row.className}: ${row.percentage} (Uncovered: ${row.uncoveredLines})\n`
-        );
+        this.pushToBuffer(`  ${row.className}: ${row.percentage} (Uncovered: ${row.uncoveredLines})\n`);
       }
       this.pushToBuffer('\n');
     }

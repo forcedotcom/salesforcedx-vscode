@@ -4,11 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ApexTestResultData,
-  ApexTestResultOutcome,
-  TestResult
-} from '../tests';
+import { ApexTestResultData, ApexTestResultOutcome, TestResult } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 
@@ -28,13 +24,13 @@ export class TapReporter {
 
       const lines = [
         `1..${results.length}`,
-        ...results.flatMap((testPoint) => [
+        ...results.flatMap(testPoint => [
           `${testPoint.outcome} ${testPoint.testNumber} ${testPoint.description}`,
-          ...testPoint.diagnostics.map((s) => `# ${s}`)
+          ...testPoint.diagnostics.map(s => `# ${s}`)
         ]),
-        ...(epilog ? epilog.map((c) => `# ${c}`) : [])
+        ...(epilog ? epilog.map(c => `# ${c}`) : [])
       ];
-      return lines.join('\n') + '\n';
+      return `${lines.join('\n')}\n`;
     } finally {
       HeapMonitor.getInstance().checkHeapSize('TapReporter.format');
     }

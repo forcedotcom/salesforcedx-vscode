@@ -8,17 +8,8 @@ export { TapReporter } from './tapReporter';
 export { JUnitReporter } from './junitReporter';
 export { JUnitFormatTransformer } from './junitFormatTransformer';
 export { HumanReporter } from './humanReporter';
-export {
-  CoverageReporter,
-  CoverageReporterOptions,
-  CoverageReportFormats,
-  DefaultReportOptions,
-  DefaultWatermarks
-} from './coverageReporter';
+export { CoverageReporter, DefaultReportOptions, DefaultWatermarks } from './coverageReporter';
+export type { CoverageReporterOptions, CoverageReportFormats } from './coverageReporter';
 export { TapFormatTransformer } from './tapFormatTransform';
-export {
-  MarkdownTextReporterOptions,
-  OutputFormat,
-  TestSortOrder
-} from './markdownTextReporter';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from './markdownTextReporter';
 export { MarkdownTextFormatTransformer } from './markdownTextFormatTransformer';

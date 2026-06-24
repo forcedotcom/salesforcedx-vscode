@@ -5,16 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-return */
-
 import { Logger, LoggerLevel, LoggerLevelValue } from '@salesforce/core';
 
-const log = (
-  level: LoggerLevelValue,
-  logger: Logger,
-  msg: string,
-  properties: Record<string, any> = {}
-): void => {
+const log = (level: LoggerLevelValue, logger: Logger, msg: string, properties: Record<string, any> = {}): void => {
   if (!logger.shouldLog(level)) {
     return;
   }
@@ -49,15 +42,8 @@ const log = (
  * @param loggerName - name of the child logger, defaults to 'elapsedTime'
  * @param level - log level - defaults to debug
  */
-export function elapsedTime(
-  loggerName: string = 'elapsedTime',
-  level: LoggerLevelValue = LoggerLevel.DEBUG
-) {
-  return function (
-    target: object,
-    propertyKey: string,
-    descriptor: TypedPropertyDescriptor<any>
-  ) {
+export function elapsedTime(loggerName: string = 'elapsedTime', level: LoggerLevelValue = LoggerLevel.DEBUG) {
+  return function (target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) {
     const originalMethod = descriptor.value;
     const className = target.constructor.name;
     descriptor.value = function (...args: any[]) {
@@ -84,13 +70,13 @@ export function elapsedTime(
 
       if (wrappedResult instanceof Promise) {
         return wrappedResult
-          .then((results) => {
+          .then(results => {
             handleResult();
             return results;
           })
-          .catch((e) => {
+          .catch(e => {
             handleResult();
-            return Promise.reject(e);
+            throw e;
           });
       } else {
         handleResult();

@@ -4,24 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { HttpRequest } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core';
-import { existsSync, readFileSync } from 'fs';
-import {
-  action,
-  ApexExecuteOptions,
-  ExecuteAnonymousResponse,
-  soapBody,
-  soapEnv,
-  soapHeader,
-  SoapResponse
-} from './types';
+import { existsSync, readFileSync } from 'node:fs';
+import * as os from 'node:os';
+import * as readline from 'node:readline';
 import { nls } from '../i18n';
 import { refreshAuth } from '../utils';
-import { encodeBody } from './utils';
-import * as readline from 'readline';
-import type { HttpRequest } from '@jsforce/jsforce-node';
 import { elapsedTime } from '../utils/elapsedTime';
-import * as os from 'node:os';
+import {
+  type ApexExecuteOptions,
+  type ExecuteAnonymousResponse,
+  type SoapResponse,
+  action,
+  soapBody,
+  soapEnv,
+  soapHeader
+} from './types';
+import { encodeBody } from './utils';
 
 export class ExecuteService {
   public readonly connection: Connection;
@@ -31,9 +31,7 @@ export class ExecuteService {
   }
 
   @elapsedTime()
-  public async executeAnonymous(
-    options: ApexExecuteOptions
-  ): Promise<ExecuteAnonymousResponse> {
+  public async executeAnonymous(options: ApexExecuteOptions): Promise<ExecuteAnonymousResponse> {
     const data = await this.getApexCode(options);
 
     let count = 0;
@@ -43,16 +41,11 @@ export class ExecuteService {
         const result = await this.connectionRequest(request);
         return this.jsonFormat(result);
       } catch (e) {
-        if (
-          e.name === 'ERROR_HTTP_500' &&
-          e.message?.includes('INVALID_SESSION_ID')
-        ) {
+        if (e.name === 'ERROR_HTTP_500' && e.message?.includes('INVALID_SESSION_ID')) {
           await refreshAuth(this.connection);
           count += 1;
         } else {
-          throw new Error(
-            nls.localize('unexpectedExecuteCommandError', e.message)
-          );
+          throw new Error(nls.localize('unexpectedExecuteCommandError', e.message));
         }
       }
     }
@@ -84,14 +77,11 @@ export class ExecuteService {
   public async getUserInput(): Promise<string> {
     process.stdout.write(nls.localize('execAnonInputPrompt'));
     return new Promise<string>((resolve, reject) => {
-      const readInterface = readline.createInterface(
-        process.stdin,
-        process.stdout
-      );
+      const readInterface = readline.createInterface(process.stdin, process.stdout);
       const timeout = setTimeout(() => {
         reject(new Error(nls.localize('execAnonInputTimeout')));
         readInterface.close();
-      }, 60000);
+      }, 60_000);
 
       let apexCode = '';
       readInterface.on('line', (input: string) => {
@@ -103,9 +93,7 @@ export class ExecuteService {
         clearTimeout(timeout);
       });
       readInterface.on('error', (err: Error) => {
-        reject(
-          new Error(nls.localize('unexpectedExecAnonInputError', err.message))
-        );
+        reject(new Error(nls.localize('unexpectedExecAnonInputError', err.message)));
       });
     });
   }
@@ -113,10 +101,11 @@ export class ExecuteService {
   // Tooling API execute anonymous apex REST endpoint was not used because
   // it requires multiple api calls to turn on trace flag, execute anonymous apex, and get the generated debug log
   private buildExecRequest(data: string): HttpRequest {
-    const body = encodeBody(this.connection.accessToken, data);
+    const accessToken = this.connection.accessToken ?? '';
+    const body = encodeBody(accessToken, data);
     const postEndpoint = `${this.connection.instanceUrl}/services/Soap/s/${
       this.connection.version
-    }/${this.connection.accessToken.split('!')[0]}`;
+    }/${accessToken.split('!')[0]}`;
 
     return {
       method: 'POST',
@@ -131,13 +120,16 @@ export class ExecuteService {
 
   @elapsedTime()
   public jsonFormat(soapResponse: SoapResponse): ExecuteAnonymousResponse {
-    const execAnonResponse =
-      soapResponse[soapEnv][soapBody].executeAnonymousResponse.result;
+    const envelope = soapResponse[soapEnv];
+    if (!envelope) {
+      throw new Error(nls.localize('unexpectedExecuteCommandError', ''));
+    }
+    const execAnonResponse = envelope[soapBody].executeAnonymousResponse.result;
 
     const formattedResponse: ExecuteAnonymousResponse = {
       compiled: execAnonResponse.compiled === 'true',
       success: execAnonResponse.success === 'true',
-      logs: soapResponse[soapEnv][soapHeader]?.DebuggingInfo.debugLog
+      logs: envelope[soapHeader]?.DebuggingInfo.debugLog
     };
 
     if (!formattedResponse.success) {
@@ -145,18 +137,11 @@ export class ExecuteService {
         {
           lineNumber: execAnonResponse.line,
           columnNumber: execAnonResponse.column,
-          compileProblem:
-            typeof execAnonResponse.compileProblem === 'object'
-              ? ''
-              : execAnonResponse.compileProblem,
+          compileProblem: typeof execAnonResponse.compileProblem === 'object' ? '' : execAnonResponse.compileProblem,
           exceptionMessage:
-            typeof execAnonResponse.exceptionMessage === 'object'
-              ? ''
-              : execAnonResponse.exceptionMessage,
+            typeof execAnonResponse.exceptionMessage === 'object' ? '' : execAnonResponse.exceptionMessage,
           exceptionStackTrace:
-            typeof execAnonResponse.exceptionStackTrace === 'object'
-              ? ''
-              : execAnonResponse.exceptionStackTrace
+            typeof execAnonResponse.exceptionStackTrace === 'object' ? '' : execAnonResponse.exceptionStackTrace
         }
       ];
     }
@@ -165,9 +150,7 @@ export class ExecuteService {
   }
 
   @elapsedTime()
-  public async connectionRequest(
-    requestData: HttpRequest
-  ): Promise<SoapResponse> {
+  public async connectionRequest(requestData: HttpRequest): Promise<SoapResponse> {
     return this.connection.request(requestData);
   }
 }

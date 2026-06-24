@@ -5,47 +5,54 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CancellationToken, CancellationTokenSource, Progress } from './common';
-export { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
+export { CancellationTokenSource } from './common';
+export type { CancellationToken, Progress } from './common';
+export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
 export { ExecuteService } from './execute/executeService';
-export { LogService, ApexLogGetOptions, LogRecord, LogResult } from './logs';
+export { LogService } from './logs';
+export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
 export {
   JUnitReporter,
   JUnitFormatTransformer,
   TapReporter,
   TapFormatTransformer,
   HumanReporter,
-  CoverageReporterOptions,
   CoverageReporter,
-  CoverageReportFormats,
   DefaultReportOptions,
   DefaultWatermarks,
+  MarkdownTextFormatTransformer
+} from './reporters';
+export type {
+  CoverageReporterOptions,
+  CoverageReportFormats,
   MarkdownTextReporterOptions,
-  MarkdownTextFormatTransformer,
   OutputFormat,
   TestSortOrder
 } from './reporters';
 export {
+  ApexTestResultOutcome,
+  ApexTestRunResultStatus,
+  ResultFormat,
+  TestLevel,
+  TestService,
+  writeResultFiles,
+  writeAsyncResultsToFile
+} from './tests';
+export type {
   ApexCodeCoverageAggregate,
   ApexCodeCoverageAggregateRecord,
   ApexTestProgressValue,
   ApexTestResultData,
-  ApexTestResultOutcome,
-  ApexTestRunResultStatus,
   ApexTestSetupData,
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
   CodeCoverageResult,
   OutputDirConfig,
-  ResultFormat,
   SyncTestConfiguration,
   TestItem,
-  TestLevel,
   TestResult,
-  TestService,
   TestRunIdResult,
-  writeResultFiles,
-  writeAsyncResultsToFile,
   PerClassCoverage
 } from './tests';
-export { ApexDiagnostic, Row, Table } from './utils';
+export { Table } from './utils';
+export type { ApexDiagnostic, Row } from './utils';

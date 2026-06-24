@@ -6,11 +6,7 @@
  */
 import { Logger } from '@salesforce/core';
 import { Readable, ReadableOptions } from 'node:stream';
-import {
-  ApexTestResultData,
-  ApexTestResultOutcome,
-  TestResult
-} from '../tests';
+import { ApexTestResultData, ApexTestResultOutcome, TestResult } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 
@@ -25,11 +21,7 @@ export class TapFormatTransformer extends Readable {
   private buffer: string;
   private bufferSize: number;
 
-  constructor(
-    testResult: TestResult,
-    epilogue?: string[],
-    options?: TapFormatTransformerOptions
-  ) {
+  constructor(testResult: TestResult, epilogue?: string[], options?: TapFormatTransformerOptions) {
     super(options);
     this.testResult = testResult;
     this.epilogue = epilogue;
@@ -65,7 +57,7 @@ export class TapFormatTransformer extends Readable {
     this.pushToBuffer(`1..${testPointCount}\n`);
     this.buildTapResults();
 
-    this.epilogue?.forEach((c) => {
+    this.epilogue?.forEach(c => {
       this.pushToBuffer(`# ${c}\n`);
     });
   }
@@ -74,10 +66,9 @@ export class TapFormatTransformer extends Readable {
   public buildTapResults(): void {
     this.testResult.tests.forEach((test: ApexTestResultData, index: number) => {
       const testNumber = index + 1;
-      const outcome =
-        test.outcome === ApexTestResultOutcome.Pass ? 'ok' : 'not ok';
+      const outcome = test.outcome === ApexTestResultOutcome.Pass ? 'ok' : 'not ok';
       this.pushToBuffer(`${outcome} ${testNumber} ${test.fullName}\n`);
-      buildTapDiagnostics(test).forEach((s) => {
+      buildTapDiagnostics(test).forEach(s => {
         this.pushToBuffer(`# ${s}\n`);
       });
     });

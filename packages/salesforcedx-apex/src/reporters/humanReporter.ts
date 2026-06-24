@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { elapsedTime, HeapMonitor, Row, Table } from '../utils';
-import {
-  ApexTestResultData,
-  ApexTestResultOutcome,
-  CodeCoverageResult,
-  TestResult
-} from '../tests';
-import { nls } from '../i18n';
 import * as os from 'node:os';
+import { nls } from '../i18n';
+import {
+  type ApexTestResultData,
+  type CodeCoverageResult,
+  type TestResult,
+  ApexTestResultOutcome
+} from '../tests/types';
+import { elapsedTime, HeapMonitor, Row, Table } from '../utils';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 
@@ -34,9 +34,7 @@ export class HumanReporter {
         ...(testResult.codecoverage && detailedCoverage
           ? [this.formatDetailedCov(testResult, concise, showCategory)]
           : []),
-        ...(testResult.codecoverage && !concise
-          ? [this.formatCodeCov(testResult.codecoverage)]
-          : []),
+        ...(testResult.codecoverage && !concise ? [this.formatCodeCov(testResult.codecoverage)] : []),
         ...(testResult.setup && !concise ? [this.formatSetup(testResult)] : []),
         this.formatSummary(testResult)
       ].join(os.EOL.repeat(2));
@@ -117,59 +115,50 @@ export class HumanReporter {
   }
 
   @elapsedTime()
-  private formatTestResults(
-    tests: ApexTestResultData[],
-    concise: boolean,
-    showCategory: boolean
-  ): string {
+  private formatTestResults(tests: ApexTestResultData[], concise: boolean, showCategory: boolean): string {
     const testRowArray: Row[] = tests
       .filter(
-        (elem) =>
-          !concise ||
-          elem.outcome === ApexTestResultOutcome.Fail ||
-          elem.outcome === ApexTestResultOutcome.CompileFail
+        elem =>
+          !concise || elem.outcome === ApexTestResultOutcome.Fail || elem.outcome === ApexTestResultOutcome.CompileFail
       )
-      .map((elem) => ({
+      .map(elem => ({
         name: elem.fullName,
         ...(showCategory && { category: elem.category }),
         outcome: elem.outcome,
         msg: buildMsg(elem),
-        runtime:
-          elem.outcome !== ApexTestResultOutcome.Fail ? `${elem.runTime}` : ''
+        runtime: elem.outcome !== ApexTestResultOutcome.Fail ? `${elem.runTime}` : ''
       }));
 
     if (testRowArray.length > 0) {
-      if (showCategory) {
-        return new Table().createTable(
-          testRowArray,
-          [
-            { key: 'name', label: nls.localize('testNameColHeader') },
-            { key: 'category', label: nls.localize('categoryColHeader') },
-            { key: 'outcome', label: nls.localize('outcomeColHeader') },
-            { key: 'msg', label: nls.localize('msgColHeader') },
-            { key: 'runtime', label: nls.localize('runtimeColHeader') }
-          ],
-          nls.localize('testResultsHeader')
-        );
-      } else {
-        return new Table().createTable(
-          testRowArray,
-          [
-            { key: 'name', label: nls.localize('testNameColHeader') },
-            { key: 'outcome', label: nls.localize('outcomeColHeader') },
-            { key: 'msg', label: nls.localize('msgColHeader') },
-            { key: 'runtime', label: nls.localize('runtimeColHeader') }
-          ],
-          nls.localize('testResultsHeader')
-        );
-      }
+      return showCategory
+        ? new Table().createTable(
+            testRowArray,
+            [
+              { key: 'name', label: nls.localize('testNameColHeader') },
+              { key: 'category', label: nls.localize('categoryColHeader') },
+              { key: 'outcome', label: nls.localize('outcomeColHeader') },
+              { key: 'msg', label: nls.localize('msgColHeader') },
+              { key: 'runtime', label: nls.localize('runtimeColHeader') }
+            ],
+            nls.localize('testResultsHeader')
+          )
+        : new Table().createTable(
+            testRowArray,
+            [
+              { key: 'name', label: nls.localize('testNameColHeader') },
+              { key: 'outcome', label: nls.localize('outcomeColHeader') },
+              { key: 'msg', label: nls.localize('msgColHeader') },
+              { key: 'runtime', label: nls.localize('runtimeColHeader') }
+            ],
+            nls.localize('testResultsHeader')
+          );
     }
     return '';
   }
 
   @elapsedTime()
   private formatSetup(testResult: TestResult): string {
-    const testRowArray: Row[] = testResult.setup.map((elem) => ({
+    const testRowArray: Row[] = (testResult.setup ?? []).map(elem => ({
       name: elem.fullName,
       time: `${elem.testSetupTime}`,
       runId: testResult.summary.testRunId
@@ -184,28 +173,20 @@ export class HumanReporter {
           },
           { key: 'time', label: nls.localize('setupTimeColHeader') }
         ],
-        nls
-          .localize('testSetupResultsHeader')
-          .replace('runId', testRowArray[0].runId)
+        nls.localize('testSetupResultsHeader').replace('runId', testRowArray[0].runId)
       );
     }
     return '';
   }
 
   @elapsedTime()
-  private formatDetailedCov(
-    testResult: TestResult,
-    concise: boolean,
-    showCategory: boolean
-  ): string {
+  private formatDetailedCov(testResult: TestResult, concise: boolean, showCategory: boolean): string {
     const testRowArray: Row[] = testResult.tests
       .filter(
         (elem: ApexTestResultData) =>
-          !concise ||
-          elem.outcome === ApexTestResultOutcome.Fail ||
-          elem.outcome === ApexTestResultOutcome.CompileFail
+          !concise || elem.outcome === ApexTestResultOutcome.Fail || elem.outcome === ApexTestResultOutcome.CompileFail
       )
-      .flatMap((elem) => {
+      .flatMap(elem => {
         const base = {
           name: elem.fullName,
           ...(showCategory && { category: elem.category }),
@@ -214,7 +195,7 @@ export class HumanReporter {
           runtime: `${elem.runTime}`
         };
         if (elem.perClassCoverage) {
-          return elem.perClassCoverage.map((perClassCov) => ({
+          return elem.perClassCoverage.map(perClassCov => ({
             ...base,
             coveredClassName: perClassCov.apexClassOrTriggerName,
             coveredClassPercentage: perClassCov.percentage
@@ -290,7 +271,7 @@ export class HumanReporter {
 
   @elapsedTime()
   private formatCodeCov(codeCoverages: CodeCoverageResult[]): string {
-    const codeCovRowArray: Row[] = codeCoverages.map((elem) => ({
+    const codeCovRowArray: Row[] = codeCoverages.map(elem => ({
       name: elem.name,
       percent: elem.percentage,
       uncoveredLines: formatUncoveredLines(elem.uncoveredLines)
@@ -318,17 +299,13 @@ export class HumanReporter {
 }
 
 const buildMsg = (elem: ApexTestResultData): string =>
-  elem.stackTrace
-    ? `${elem.message}\n${elem.stackTrace}`
-    : (elem.message ?? '');
+  elem.stackTrace ? `${elem.message}\n${elem.stackTrace}` : (elem.message ?? '');
 
 const formatUncoveredLines = (uncoveredLines: number[]): string =>
   uncoveredLines.length === 0
     ? ''
     : uncoveredLines
         .slice(0, Math.min(uncoveredLines.length, UNCOVERED_LINES_ARRAY_LIMIT))
-        .map((line) => line.toString())
-        .concat(
-          uncoveredLines.length > UNCOVERED_LINES_ARRAY_LIMIT ? ['...'] : []
-        )
+        .map(line => line.toString())
+        .concat(uncoveredLines.length > UNCOVERED_LINES_ARRAY_LIMIT ? ['...'] : [])
         .join(',');

@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const MILLISECONDS_PER_MINUTE = 60000;
+export const MILLISECONDS_PER_MINUTE = 60_000;
 
 export function getCurrentTime(): number {
-  return new Date().getTime();
+  // use Date.prototype.getTime (not Date.now) so tests can stub it deterministically
+  return Date.now();
 }
 
 /**
@@ -17,10 +18,7 @@ export function getCurrentTime(): number {
  * @param format either 'ISO' or 'locale'. Defaults to 'locale' to keep backward compatible.
  * @returns formatted date and time
  */
-export function formatStartTime(
-  startTime: string | number | undefined,
-  format: 'ISO' | 'locale' = 'locale'
-): string {
+export function formatStartTime(startTime: string | number | undefined, format: 'ISO' | 'locale' = 'locale'): string {
   if (!startTime) {
     return '';
   }

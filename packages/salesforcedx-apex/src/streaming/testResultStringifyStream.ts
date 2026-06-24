@@ -6,7 +6,7 @@
  */
 import { Logger } from '@salesforce/core';
 import { Readable, ReadableOptions } from 'node:stream';
-import { TestResult } from '../tests';
+import { TestResult } from '../tests/types';
 import { elapsedTime } from '../utils';
 
 type TestResultStringifyStreamOptions = ReadableOptions & {
@@ -62,7 +62,7 @@ export class TestResultStringifyStream extends Readable {
     this.buildCodeCoverage();
 
     // closing outer curly
-    this.pushToBuffer(`}`);
+    this.pushToBuffer('}');
   }
 
   @elapsedTime()
@@ -125,10 +125,7 @@ export class TestResultStringifyStream extends Readable {
     }
   }
 
-  public static fromTestResult(
-    testResult: TestResult,
-    options?: TestResultStringifyStreamOptions
-  ) {
+  public static fromTestResult(testResult: TestResult, options?: TestResultStringifyStreamOptions) {
     return new TestResultStringifyStream(testResult, options);
   }
 

@@ -4,28 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ApexTestResultOutcome, TestResult } from '../tests';
-import {
-  elapsedTime,
-  formatStartTime,
-  HeapMonitor,
-  msToSecond
-} from '../utils';
+import { Logger } from '@salesforce/core';
 import { Readable, ReadableOptions } from 'node:stream';
 import { isEmpty } from '../narrowing';
-import { Logger } from '@salesforce/core';
+import { type TestResult, ApexTestResultOutcome } from '../tests/types';
+import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
 
-const timeProperties = [
-  'testExecutionTimeInMs',
-  'testTotalTimeInMs',
-  'commandTimeInMs'
-];
+const timeProperties = new Set(['testExecutionTimeInMs', 'testTotalTimeInMs', 'commandTimeInMs']);
 
 // properties not in cli junit spec
-const skippedProperties = ['skipRate', 'totalLines', 'linesCovered'];
+const skippedProperties = new Set(['skipRate', 'totalLines', 'linesCovered']);
 
 type JUnitFormatTransformerOptions = ReadableOptions & {
   bufferSize?: number;
@@ -71,21 +62,21 @@ export class JUnitFormatTransformer extends Readable {
   public format(): void {
     const { summary } = this.testResult;
 
-    this.pushToBuffer(`<?xml version="1.0" encoding="UTF-8"?>\n`);
-    this.pushToBuffer(`<testsuites>\n`);
+    this.pushToBuffer('<?xml version="1.0" encoding="UTF-8"?>\n');
+    this.pushToBuffer('<testsuites>\n');
     this.pushToBuffer(`${tab}<testsuite name="force.apex" `);
     this.pushToBuffer(`timestamp="${summary.testStartTime}" `);
     this.pushToBuffer(`hostname="${summary.hostname}" `);
     this.pushToBuffer(`tests="${summary.testsRan}" `);
     this.pushToBuffer(`failures="${summary.failing}"  `);
-    this.pushToBuffer(`errors="0"  `);
+    this.pushToBuffer('errors="0"  ');
     this.pushToBuffer(`time="${msToSecond(summary.testExecutionTimeInMs)}">\n`);
 
     this.buildProperties();
     this.buildTestCases();
 
     this.pushToBuffer(`${tab}</testsuite>\n`);
-    this.pushToBuffer(`</testsuites>\n`);
+    this.pushToBuffer('</testsuites>\n');
   }
 
   @elapsedTime()
@@ -93,11 +84,11 @@ export class JUnitFormatTransformer extends Readable {
     this.pushToBuffer(`${tab}${tab}<properties>\n`);
 
     Object.entries(this.testResult.summary).forEach(([key, value]) => {
-      if (isEmpty(value) || skippedProperties.includes(key)) {
+      if (isEmpty(value) || skippedProperties.has(key)) {
         return;
       }
 
-      if (timeProperties.includes(key)) {
+      if (timeProperties.has(key)) {
         value = `${msToSecond(value)} s`;
         key = key.replace('InMs', '');
       }
@@ -110,9 +101,7 @@ export class JUnitFormatTransformer extends Readable {
         value = formatStartTime(value);
       }
 
-      this.pushToBuffer(
-        `${tab}${tab}${tab}<property name="${key}" value="${value}"/>\n`
-      );
+      this.pushToBuffer(`${tab}${tab}${tab}<property name="${key}" value="${value}"/>\n`);
       // this call to setImmediate will schedule the closure on the event loop
       // this action causing the current code to yield to the event loop
       // allowing other processes to get time on the event loop
@@ -134,17 +123,15 @@ export class JUnitFormatTransformer extends Readable {
         }" time="${msToSecond(testCase.runTime)}">\n`
       );
 
-      if (
-        testCase.outcome === ApexTestResultOutcome.Fail ||
-        testCase.outcome === ApexTestResultOutcome.CompileFail
-      ) {
-        let message = isEmpty(testCase.message) ? '' : testCase.message;
+      if (testCase.outcome === ApexTestResultOutcome.Fail || testCase.outcome === ApexTestResultOutcome.CompileFail) {
+        const rawMessage = testCase.message ?? '';
+        let message = isEmpty(rawMessage) ? '' : rawMessage;
         message = JUnitFormatTransformer.xmlEscape(message);
         this.pushToBuffer(`${tab}${tab}${tab}<failure message="${message}">`);
         if (testCase.stackTrace) {
           this.pushToBuffer(`<![CDATA[${testCase.stackTrace}]]>`);
         }
-        this.pushToBuffer(`</failure>\n`);
+        this.pushToBuffer('</failure>\n');
       }
 
       this.pushToBuffer(`${tab}${tab}</testcase>\n`);
@@ -157,10 +144,10 @@ export class JUnitFormatTransformer extends Readable {
 
   private static xmlEscape(value: string): string {
     return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&apos;');
   }
 }
