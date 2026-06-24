@@ -6,31 +6,26 @@
  */
 
 import { TestService } from '@salesforce/apex-node';
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
-import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import {
-  CancelResponse,
-  ContinueResponse,
-  LibraryCommandletExecutor,
-  ParametersGatherer,
-  SfCommandlet
-} from '../utils/commandletHelpers';
+import { withExecutionLog } from '../utils/executionLog';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
+import { notificationService } from '../utils/notificationHelpers';
+import { ensureSalesforceProject } from '../utils/projectPrecheck';
 import { getFullClassName, isFlowTest } from '../utils/testUtils';
 import { getTestController } from '../views/testController';
 import { runSelectedTests } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
-const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const result = await getApexTestingRuntime().runPromise(discoverTests());
+const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(function* () {
+  const result = yield* discoverTests();
   return result.classes
     .filter(cls => !isFlowTest(cls))
     .map(
@@ -45,160 +40,110 @@ const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
       const byLabel = a.label.localeCompare(b.label);
       return byLabel !== 0 ? byLabel : (a.fullClassName ?? '').localeCompare(b.fullClassName ?? '');
     });
-};
+});
 
-const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const connection = await getConnection();
+const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')(function* () {
+  const connection = yield* Effect.promise(() => getConnection());
   const testService = new TestService(connection);
-  return (await testService.retrieveAllSuites()).map(testSuite => ({
-    label: testSuite.TestSuiteName,
-    description: testSuite.id,
-    type: 'Suite'
-  }));
-};
+  const suites = yield* Effect.promise(() => testService.retrieveAllSuites());
+  return suites.map(
+    (testSuite): ApexTestQuickPickItem => ({
+      label: testSuite.TestSuiteName,
+      description: testSuite.id,
+      type: 'Suite'
+    })
+  );
+});
 
-class TestSuiteSelector implements ParametersGatherer<ApexTestQuickPickItem> {
-  // eslint-disable-next-line class-methods-use-this
-  public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
-    const quickPickItems = await listApexTestSuiteItems();
+/** Prompt for the apex classes to include in a suite. Fails with UserCancellationError on dismiss/empty. */
+const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
 
-    const testSuiteName = await vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems);
+  const apexClassItems = yield* listApexClassItems().pipe(
+    promptService.withCancellableProgress(nls.localize('retrieving_tests_message'))
+  );
 
-    return testSuiteName ? { type: 'CONTINUE', data: testSuiteName } : { type: 'CANCEL' };
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, { canPickMany: true })
+  );
+  // considerUndefinedAsCancellation does not handle empty arrays, so guard explicitly
+  if (!selection || selection.length === 0) {
+    return yield* new api.services.UserCancellationError();
   }
-}
+  return selection.map(item => item.fullClassName ?? item.label);
+});
 
-class TestSuiteBuilder implements ParametersGatherer<ApexTestSuiteOptions> {
-  // eslint-disable-next-line class-methods-use-this
-  public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
-    const quickPickItems = await listApexTestSuiteItems();
+/** Gather suite options for adding tests to an existing suite. */
+const gatherAddOptions = Effect.fn('apexTestSuite.gatherAddOptions')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
 
-    const testSuiteName = await vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems);
+  const quickPickItems = yield* listApexTestSuiteItems();
+  const testSuite = yield* Effect.promise(() =>
+    vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems)
+  ).pipe(Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value)));
+  const tests = yield* selectApexClasses();
+  return { suitename: testSuite.label, tests };
+});
 
-    if (testSuiteName) {
-      const apexClassItems = await listApexClassItems();
+/** Gather suite options for creating a new suite. */
+const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
 
-      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
-        canPickMany: true
-      });
-      if (!apexClassSelection || apexClassSelection.length === 0) {
-        return { type: 'CANCEL' };
-      }
-      const apexClassNames = apexClassSelection.map(selection => selection.fullClassName ?? selection.label);
-      return {
-        type: 'CONTINUE',
-        data: { suitename: testSuiteName.label, tests: apexClassNames }
-      };
-    }
-    return { type: 'CANCEL' };
-  }
-}
+  const suitename = yield* Effect.promise(() =>
+    vscode.window.showInputBox({ prompt: nls.localize('apex_test_suite_name_input_prompt') })
+  ).pipe(Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value)));
+  const tests = yield* selectApexClasses();
+  return { suitename, tests };
+});
 
-class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
-  // eslint-disable-next-line class-methods-use-this
-  public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestSuiteOptions>> {
-    const testSuiteInput: vscode.InputBoxOptions = {
-      prompt: nls.localize('apex_test_suite_name_input_prompt')
-    };
-    const testSuiteName = await vscode.window.showInputBox(testSuiteInput);
+/** Build (or extend) a suite via the apex-node TestService, with cancellable progress + completion sentinel. */
+const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
+  options: ApexTestSuiteOptions,
+  executionNameKey: MessageKey
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const executionName = nls.localize(executionNameKey);
 
-    if (testSuiteName) {
-      let apexClassItems: ApexTestQuickPickItem[];
-      try {
-        apexClassItems = await vscode.window.withProgress(
-          {
-            location: vscode.ProgressLocation.Notification,
-            title: nls.localize('retrieving_tests_message'),
-            cancellable: true
-          },
-          async (_progress, token) => {
-            const items = await listApexClassItems();
-            if (token.isCancellationRequested) {
-              throw new vscode.CancellationError();
-            }
-            return items;
-          }
-        );
-      } catch (e) {
-        if (e instanceof vscode.CancellationError) {
-          return { type: 'CANCEL' };
-        }
-        throw e;
-      }
-
-      const apexClassSelection = await vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, {
-        canPickMany: true
-      });
-      if (!apexClassSelection || apexClassSelection.length === 0) {
-        return { type: 'CANCEL' };
-      }
-      const apexClassNames = apexClassSelection.map(selection => selection.fullClassName ?? selection.label);
-      return {
-        type: 'CONTINUE',
-        data: { suitename: testSuiteName, tests: apexClassNames }
-      };
-    }
-    return { type: 'CANCEL' };
-  }
-}
-
-class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuiteOptions> {
-  public static diagnostics = vscode.languages.createDiagnosticCollection('apex-testing-errors');
-
-  constructor(notificationMessageKey: MessageKey) {
-    super(nls.localize(notificationMessageKey), 'apex_test_suite_build_library', OUTPUT_CHANNEL);
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  public async run(response: ContinueResponse<ApexTestSuiteOptions>): Promise<boolean> {
-    const connection = await getConnection();
+  yield* Effect.gen(function* () {
+    const connection = yield* Effect.promise(() => getConnection());
     const testService = new TestService(connection);
-    await testService.buildSuite(response.data.suitename, response.data.tests);
-    return true;
-  }
-}
+    yield* Effect.promise(() => testService.buildSuite(options.suitename, options.tests));
+  }).pipe(withExecutionLog(executionName), promptService.withCancellableProgress(executionName));
 
-export const apexTestSuiteAdd = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new TestSuiteBuilder(),
-    new ApexLibraryTestSuiteBuilder('apex_test_suite_add_text')
-  );
-  const didRun = await commandlet.run();
-  if (didRun) {
-    // Clear all suite children so they re-query from org instead of using stale local files
-    const testController = getTestController();
-    testController.clearAllSuiteChildren();
-    // Refresh to update the tree with latest suite data from org
-    void testController.refresh();
-  }
-};
+  OUTPUT_CHANNEL.show();
+  notificationService.showSuccessfulExecution(executionName);
 
-export const apexTestSuiteCreate = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new TestSuiteCreator(),
-    new ApexLibraryTestSuiteBuilder('apex_test_suite_create_text')
-  );
-  const didRun = await commandlet.run();
-  if (didRun) {
-    // Clear all suite children so they re-query from org instead of using stale local files
-    const testController = getTestController();
-    testController.clearAllSuiteChildren();
-    // Refresh to update the tree with the newly created suite
-    void testController.refresh();
-  }
-};
+  // Clear all suite children so they re-query from org instead of using stale local files, then refresh
+  const testController = getTestController();
+  testController.clearAllSuiteChildren();
+  yield* Effect.promise(() => testController.refresh());
+});
 
-export const apexTestSuiteRun = async () => {
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new TestSuiteSelector(), {
-    execute: response =>
-      getApexTestingRuntime().runPromise(
-        runSelectedTests(response.data).pipe(
-          Effect.asVoid,
-          Effect.catchTag('UserCancellationError', () => Effect.void)
-        )
-      )
-  });
-  await commandlet.run();
-};
+export const apexTestSuiteAdd = Effect.fn('apexTestSuiteAdd')(function* () {
+  yield* ensureSalesforceProject();
+  const options = yield* gatherAddOptions();
+  yield* buildSuite(options, 'apex_test_suite_add_text');
+});
+
+export const apexTestSuiteCreate = Effect.fn('apexTestSuiteCreate')(function* () {
+  yield* ensureSalesforceProject();
+  const options = yield* gatherCreateOptions();
+  yield* buildSuite(options, 'apex_test_suite_create_text');
+});
+
+export const apexTestSuiteRun = Effect.fn('apexTestSuiteRun')(function* () {
+  yield* ensureSalesforceProject();
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  const quickPickItems = yield* listApexTestSuiteItems();
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems)
+  ).pipe(Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value)));
+
+  yield* runSelectedTests(selection);
+});
