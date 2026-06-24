@@ -27,10 +27,6 @@ export const SF_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sf:lwc_jest_file_focused';
 export const SF_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT = 'sf:lwc_jest_is_watching_focused_file';
 
 /**
- * Run LWC test telemetry log name
- */
-export const LWC_TEST_RUN_LOG_NAME = 'lwc_test_run_action';
-/**
  * Debug LWC test telemetry log name
  */
 export const LWC_TEST_DEBUG_LOG_NAME = 'lwc_test_debug_action';
