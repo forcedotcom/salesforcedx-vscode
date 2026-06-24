@@ -212,6 +212,7 @@ export default [
       'unicorn/prefer-set-has': 'error',
       'unicorn/prefer-set-size': 'error',
       'unicorn/prefer-single-call': 'error',
+      'unicorn/prefer-single-replace': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
       'unicorn/prefer-structured-clone': 'error',
