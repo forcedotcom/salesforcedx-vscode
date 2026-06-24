@@ -589,7 +589,8 @@ export const getLwcTestController = (): LwcTestController => {
   return instance;
 };
 
-const disposeLwcTestController = (): void => {
+// Exposed for test isolation: allows tests to reset the singleton between test cases
+export const disposeLwcTestController = (): void => {
   if (instance) {
     instance.dispose();
     instance = undefined;

@@ -26,7 +26,10 @@ jest.mock('../../../../src/testSupport/utils/isLwcJestTest', () => ({
 
 import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer';
 import { isLwcJestTest } from '../../../../src/testSupport/utils/isLwcJestTest';
-import { registerLwcTestController } from '../../../../src/testSupport/testExplorer/lwcTestController';
+import {
+  registerLwcTestController,
+  disposeLwcTestController
+} from '../../../../src/testSupport/testExplorer/lwcTestController';
 
 // Minimal mutable TestItem the controller writes `tags` onto.
 type FakeTestItem = {
@@ -105,6 +108,8 @@ describe('LwcTestController test item tags', () => {
 
 describe('LwcTestController public run API', () => {
   beforeEach(() => {
+    // Dispose the singleton so each test gets a fresh controller bound to its own mocks
+    disposeLwcTestController();
     // Reset the isLwcJestTest mock between tests
     (isLwcJestTest as jest.Mock).mockReset();
   });
