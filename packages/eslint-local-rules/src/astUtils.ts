@@ -64,6 +64,25 @@ export const isVscodeWindowMethodCall = (
   return false;
 };
 
+/** Type predicate: node is the `process.env.ESBUILD_PLATFORM` member expression. */
+export const isEsbuildPlatformAccess = (node: TSESTree.Node): node is TSESTree.MemberExpression =>
+  node.type === AST_NODE_TYPES.MemberExpression &&
+  node.property.type === AST_NODE_TYPES.Identifier &&
+  node.property.name === 'ESBUILD_PLATFORM' &&
+  node.object.type === AST_NODE_TYPES.MemberExpression &&
+  node.object.property.type === AST_NODE_TYPES.Identifier &&
+  node.object.property.name === 'env' &&
+  node.object.object.type === AST_NODE_TYPES.Identifier &&
+  node.object.object.name === 'process';
+
+/** Type predicate: node is `process.env` (member expression). */
+export const isProcessEnvAccess = (node: TSESTree.Node): node is TSESTree.MemberExpression =>
+  node.type === AST_NODE_TYPES.MemberExpression &&
+  node.property.type === AST_NODE_TYPES.Identifier &&
+  node.property.name === 'env' &&
+  node.object.type === AST_NODE_TYPES.Identifier &&
+  node.object.name === 'process';
+
 /** Find a property by name in an ObjectExpression */
 export const findObjectProperty = (obj: TSESTree.ObjectExpression, name: string): TSESTree.Property | undefined =>
   obj.properties.find(

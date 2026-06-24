@@ -1,3 +1,21 @@
+## [1.3.2](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.1...playwright-vscode-ext-v1.3.2) (2026-06-24)
+
+
+### Bug Fixes
+
+* **lwc:** keep LWC tests visible under [@in-workspace](https://github.com/in-workspace) filter - W-22691592 ([#7529](https://github.com/forcedotcom/salesforcedx-vscode/issues/7529)) ([a2b91d8](https://github.com/forcedotcom/salesforcedx-vscode/commit/a2b91d862fff0db535bf30fc93cb6e94810ba71b))
+
+
+
+## [1.3.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.0...playwright-vscode-ext-v1.3.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* **metadata:** refresh sourceApiVersion mid-session for retrieve/deploy - W-23095743 ([#7521](https://github.com/forcedotcom/salesforcedx-vscode/issues/7521)) ([98551d7](https://github.com/forcedotcom/salesforcedx-vscode/commit/98551d7c035c88a987daafb86b6aed02ad18d874))
+
+
+
 # [1.3.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.2.0...playwright-vscode-ext-v1.3.0) (2026-06-12)
 
 

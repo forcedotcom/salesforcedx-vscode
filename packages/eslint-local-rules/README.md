@@ -30,6 +30,47 @@ vscode.window.showErrorMessage(`${nls.localize('prefix')} - ${details}`);
 
 The rule allows template literals that contain `nls.localize()` calls.
 
+### no-inline-esbuild-platform
+
+Enforces that `process.env.ESBUILD_PLATFORM` is compared inline against a string literal (e.g. `=== 'web'` / `!== 'web'`, including ternary tests). esbuild's `define` replaces the literal at bundle time so `'web' === 'web'` constant-folds and dead branches tree-shake (ADR 0013); assigning it to a variable, object/class property, destructuring it, or comparing against a non-literal (`=== someVar`) defeats the strip and leaks node-only code into the web bundle.
+
+**Bad:**
+
+```typescript
+const isWebMode = process.env.ESBUILD_PLATFORM === 'web';
+const { ESBUILD_PLATFORM } = process.env;
+doThing(process.env.ESBUILD_PLATFORM);
+if (process.env.ESBUILD_PLATFORM === someVar) { ... }
+```
+
+**Good:**
+
+```typescript
+if (process.env.ESBUILD_PLATFORM === 'web') { ... }
+const reporter = process.env.ESBUILD_PLATFORM === 'web' ? webReporter : nodeReporter;
+```
+
+Test files set/delete/save-restore the env var as jest plumbing; that is allowed via an `off` override in `eslint.config.mjs`, not the rule.
+
+### no-successive-annotate-current-span
+
+Enforces that back-to-back `Effect.annotateCurrentSpan` calls are merged into a single call. Each call opens and annotates the current span independently, so two or more adjacent calls do redundant work that a single object-argument call expresses more cheaply. The rule detects two forms: consecutive `yield* Effect.annotateCurrentSpan(...)` statements inside a generator, and consecutive `Effect.tap(x => Effect.annotateCurrentSpan(...))` arguments inside one `.pipe(...)` chain. Any intervening statement or non-annotate `.tap` breaks the run, so only genuinely successive calls are flagged. Array forms (`Effect.all`/`forEach`) and `andThen` chains are out of scope.
+
+The autofix merges the calls into one `Effect.annotateCurrentSpan({ ... })`: the `(key, value)` form becomes `key: value` (computed `[key]: value` when the key is not a string literal), and the single-object form is spread (`...obj`). When the merged calls set the same key more than once the rule reports `duplicateKey` and the autofix keeps the last value (object-literal later-wins semantics).
+
+**Bad:**
+
+```typescript
+yield* Effect.annotateCurrentSpan('fileName', fileName);
+yield* Effect.annotateCurrentSpan('workspacePath', workspacePath.toString());
+```
+
+**Good:**
+
+```typescript
+yield* Effect.annotateCurrentSpan({ fileName, workspacePath: workspacePath.toString() });
+```
+
 ### package-json-i18n-descriptions
 
 Enforces that user-facing strings in `package.json` `contributes` sections use i18n placeholders (`%key%`) and that those keys exist in the sibling `package.nls.json` file.

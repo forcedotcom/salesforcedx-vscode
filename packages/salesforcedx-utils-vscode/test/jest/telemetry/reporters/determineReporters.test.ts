@@ -156,18 +156,11 @@ describe('initializeO11yReporter', () => {
   it('should wait for in-progress initialization if called concurrently', async () => {
     const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
     const webUserId = 'test-webUserId';
-    let resolveInit: (() => void) | undefined;
-    initializeMock.mockImplementation(
-      () =>
-        new Promise<void>(res => {
-          resolveInit = res;
-        })
-    );
+    const { promise, resolve: resolveInit } = Promise.withResolvers<void>();
+    initializeMock.mockImplementation(() => promise);
     const p1 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
     const p2 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
-    if (resolveInit) {
-      resolveInit();
-    }
+    resolveInit();
     await Promise.all([p1, p2]);
     expect(O11yReporterMock).toHaveBeenCalledTimes(1);
     expect(initializeMock).toHaveBeenCalledTimes(1);

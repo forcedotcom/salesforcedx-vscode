@@ -10,7 +10,7 @@ import stylistic from '@stylistic/eslint-plugin-ts';
 import tsParser from '@typescript-eslint/parser';
 import globals from 'globals';
 import header from '@tony.ganchev/eslint-plugin-header';
-import eslintPluginImport from 'eslint-plugin-import';
+import eslintPluginImport from 'eslint-plugin-import-x';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
 import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
@@ -127,6 +127,8 @@ export default [
     },
     rules: {
       'local/no-vscode-uri': 'error',
+      'local/no-vscode-show-text-document': 'warn',
+      'local/no-inline-esbuild-platform': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -168,6 +170,12 @@ export default [
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-array-reverse': 'error',
       'unicorn/no-array-sort': 'error',
+      'unicorn/no-boolean-sort-comparator': 'error',
+      'unicorn/no-chained-comparison': 'error',
+      'unicorn/no-constant-zero-expression': 'error',
+      'unicorn/no-double-comparison': 'error',
+      'unicorn/no-duplicate-if-branches': 'error',
+      'unicorn/no-duplicate-logical-operands': 'error',
       'unicorn/no-empty-file': 'error',
       'unicorn/no-immediate-mutation': 'error',
       'unicorn/no-instanceof-builtins': 'error',
@@ -184,32 +192,40 @@ export default [
       'unicorn/no-useless-spread': 'error',
       'unicorn/no-useless-switch-case': 'error',
       'unicorn/numeric-separators-style': 'error',
-      'unicorn/prefer-at': 'error',
       'unicorn/prefer-array-find': 'error',
       'unicorn/prefer-array-flat': 'error',
       'unicorn/prefer-array-flat-map': 'error',
       'unicorn/prefer-array-some': 'error',
+      'unicorn/prefer-at': 'error',
+      'unicorn/prefer-boolean-return': 'error',
       'unicorn/prefer-class-fields': 'error',
       'unicorn/prefer-date-now': 'error',
       'unicorn/prefer-export-from': 'error',
+      'unicorn/prefer-flat-math-min-max': 'error',
+      'unicorn/prefer-hoisting-branch-code': 'error',
       'unicorn/prefer-includes': 'error',
       'unicorn/prefer-modern-math-apis': 'error',
       'unicorn/prefer-native-coercion-functions': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/prefer-object-from-entries': 'error',
       'unicorn/prefer-optional-catch-binding': 'error',
+      'unicorn/prefer-promise-with-resolvers': 'error',
       'unicorn/prefer-set-has': 'error',
       'unicorn/prefer-set-size': 'error',
       'unicorn/prefer-single-call': 'error',
+      'unicorn/prefer-single-replace': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
+      'unicorn/prefer-simple-condition-first': 'error',
       'unicorn/prefer-structured-clone': 'error',
       'unicorn/prefer-ternary': ['error'],
-      'unicorn/prefer-simple-condition-first': 'error',
+      'unicorn/prefer-while-loop-condition': 'error',
       'unicorn/filename-case': [
         'error',
         {
-          case: 'camelCase'
+          case: 'camelCase',
+          // v68 added directory-name checks; preserve prior file-only behavior
+          checkDirectories: false
         }
       ],
       'header/header': [
@@ -641,6 +657,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-successive-annotate-current-span': 'error',
 
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
@@ -700,7 +717,8 @@ export default [
     // salesforcedx-vscode-services exports errors for consumption by other packages — knip already sees them as used.
     files: ['packages/salesforcedx-vscode-services/**/*.ts'],
     rules: {
-      'local/no-export-tagged-error-in-services': 'error'
+      'local/no-export-tagged-error-in-services': 'error',
+      'local/no-vscode-show-text-document': 'off'
     }
   },
   {
@@ -756,6 +774,9 @@ export default [
       'packages/salesforcedx-vscode-visualforce/playwright*.ts'
     ],
     rules: {
+      'local/no-vscode-show-text-document': 'off',
+      // Tests set/delete/save-restore process.env.ESBUILD_PLATFORM as jest setup/teardown plumbing
+      'local/no-inline-esbuild-platform': 'off',
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
 

@@ -7,6 +7,7 @@
 
 import { AuthInfo, Config, Org, StateAggregator, OrgConfigProperties } from '@salesforce/core';
 import {
+  buildAllServicesLayer,
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
@@ -435,7 +436,7 @@ describe('updateConfigAndStateAggregators', () => {
     });
 
     resetOrgRuntimeForTesting();
-    setAllServicesLayer(layer as ReturnType<typeof extensionProvider.buildAllServicesLayer>);
+    setAllServicesLayer(layer as ReturnType<typeof buildAllServicesLayer>);
   });
 
   afterEach(() => {

@@ -137,7 +137,7 @@ import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
-import { ApexTestController, getTestController } from '../../../src/views/testController';
+import { ApexTestController, getTestController, sortUrisByMtimeAscending } from '../../../src/views/testController';
 
 // Mock vscode.tests API
 const mockTestController = {
@@ -868,15 +868,12 @@ describe('ApexTestController', () => {
 
       await controller.openOrgOnlyTest(classTestItem);
 
-      // Verify the underlying VS Code APIs were called
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
-      if ((vscode.workspace.openTextDocument as jest.Mock).mock.calls.length > 0) {
-        const openDocCall = (vscode.workspace.openTextDocument as jest.Mock).mock.calls[0][0];
-        expect(openDocCall).toBeDefined();
-        expect(openDocCall.toString()).toContain('sf-org-apex');
-        expect(openDocCall.toString()).toContain('OrgOnlyClass');
-        expect(vscode.window.showTextDocument).toHaveBeenCalled();
-      }
+      // fsService.showTextDocument opens the URI directly (no separate openTextDocument)
+      expect(vscode.window.showTextDocument).toHaveBeenCalled();
+      const showDocCall = (vscode.window.showTextDocument as jest.Mock).mock.calls[0][0];
+      expect(showDocCall).toBeDefined();
+      expect(showDocCall.toString()).toContain('sf-org-apex');
+      expect(showDocCall.toString()).toContain('OrgOnlyClass');
     });
 
     it('should open org-only method test and navigate to position', async () => {
@@ -913,8 +910,7 @@ describe('ApexTestController', () => {
 
       await controller.openOrgOnlyTest(methodTestItem);
 
-      // Verify the underlying VS Code APIs were called
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
+      // fsService.showTextDocument opens the URI directly
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
       expect(mockEditor.revealRange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -968,10 +964,10 @@ describe('ApexTestController', () => {
       expect(
         (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve
       ).toHaveBeenCalledWith([{ type: 'ApexClass', fullName: 'OrgOnlyClass' }], { ignoreConflicts: true });
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith(
-        expect.objectContaining({ fsPath: orgOnlyClassFileUri.fsPath })
+      expect(vscode.window.showTextDocument).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: orgOnlyClassFileUri.fsPath }),
+        expect.anything()
       );
-      expect(vscode.window.showTextDocument).toHaveBeenCalled();
       expect(refreshSpy).toHaveBeenCalled();
       expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
     });
@@ -1245,5 +1241,43 @@ describe('getTestController', () => {
     const instance1 = getTestController();
     const instance2 = getTestController();
     expect(instance1).toBe(instance2);
+  });
+});
+
+describe('sortUrisByMtimeAscending', () => {
+  const uriFor = (runId: string): URI => URI.file(`/results/test-result-${runId}.json`);
+
+  it('orders by mtime so the newest run is applied last (most recent result wins)', () => {
+    // Regression for W-XXXXXXXX: Salesforce test-run-id filenames are NOT chronologically
+    // sortable. Here the lexicographically-last file (CrPFqQ) is actually an OLDER run than
+    // CrOq5E/CrOtvg. Sorting by filename would apply the older failing run last and clobber the
+    // newer passing run. Sorting by mtime applies oldest-first so the newest run wins.
+    const items = [
+      { uri: uriFor('CrOtvg'), mtime: 4000 }, // newest run (all green)
+      { uri: uriFor('CrP6pE'), mtime: 1000 }, // oldest run (had the failure)
+      { uri: uriFor('CrPFqQ'), mtime: 2000 }, // lexicographically last, but older than CrO* runs
+      { uri: uriFor('CrOq5E'), mtime: 3000 }
+    ];
+
+    const ordered = sortUrisByMtimeAscending(items).map(uri => uri.path);
+
+    expect(ordered).toEqual([
+      uriFor('CrP6pE').path,
+      uriFor('CrPFqQ').path,
+      uriFor('CrOq5E').path,
+      uriFor('CrOtvg').path
+    ]);
+    // The newest-by-mtime run is applied last regardless of filename ordering.
+    expect(ordered.at(-1)).toBe(uriFor('CrOtvg').path);
+  });
+
+  it('does not mutate the input array', () => {
+    const items = [
+      { uri: uriFor('b'), mtime: 2000 },
+      { uri: uriFor('a'), mtime: 1000 }
+    ];
+    const snapshot = items.map(i => i.uri.path);
+    sortUrisByMtimeAscending(items);
+    expect(items.map(i => i.uri.path)).toEqual(snapshot);
   });
 });

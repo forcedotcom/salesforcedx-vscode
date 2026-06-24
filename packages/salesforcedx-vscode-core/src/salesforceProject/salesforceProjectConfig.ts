@@ -59,10 +59,10 @@ export class SalesforceProjectConfig {
   }
 
   private static handleError(error: any) {
-    let errorMessage = error.message;
-    if (error.name === 'JsonParseError') {
-      errorMessage = nls.localize('error_parsing_sfdx_project_file', error.path, error.message);
-    }
+    const errorMessage =
+      error.name === 'JsonParseError'
+        ? nls.localize('error_parsing_sfdx_project_file', error.path, error.message)
+        : error.message;
     notificationService.showErrorMessage(errorMessage);
     telemetryService.sendException('project_config', errorMessage);
   }

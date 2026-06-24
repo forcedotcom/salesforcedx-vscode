@@ -8,27 +8,28 @@
 import { test } from '../fixtures';
 import { expect, Page } from '@playwright/test';
 import {
+  clearOutputChannel,
+  closeAllEditors,
+  closeWelcomeTabs,
+  createApexClass,
+  createMinimalOrg,
+  editOpenFile,
+  ensureOutputPanelOpen,
+  ensureSecondarySideBarHidden,
+  executeCommandWithCommandPalette,
+  executeExplorerContextMenuCommand,
+  openFileByName,
+  outputChannelContains,
+  saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
-  createApexClass,
-  editOpenFile,
-  openFileByName,
-  executeCommandWithCommandPalette,
-  verifyCommandExists,
-  executeExplorerContextMenuCommand,
-  saveScreenshot,
   validateNoCriticalErrors,
-  ensureOutputPanelOpen,
-  selectOutputChannel,
-  clearOutputChannel,
+  verifyCommandExists,
   waitForOutputChannelText,
-  outputChannelContains,
-  ensureSecondarySideBarHidden
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -114,7 +115,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
   });
 
   await test.step('create local change and diff via command palette', async () => {
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+    await closeAllEditors(page);
 
     await openFileByName(page, `${classNamePalette}.cls`);
 
@@ -137,7 +138,7 @@ test('Source Diff: diff shows diff editor', async ({ page }) => {
   });
 
   await test.step('create local change and diff via explorer context menu', async () => {
-    await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+    await closeAllEditors(page);
 
     await openFileByName(page, `${classNamePalette}.cls`);
 

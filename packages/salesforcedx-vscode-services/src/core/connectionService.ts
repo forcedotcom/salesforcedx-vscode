@@ -78,6 +78,14 @@ class FailedToGetTracksSourceError extends Schema.TaggedError<FailedToGetTracksS
   }
 ) {}
 
+export class FailedToListAuthorizationsError extends Schema.TaggedError<FailedToListAuthorizationsError>()(
+  'FailedToListAuthorizationsError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.instanceOf(Error))
+  }
+) {}
+
 /** side effect: save the auth info in the background */
 const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
   Effect.tryPromise({
@@ -148,11 +156,11 @@ const fromKey = (key: string): WebConnectionKeyAndApiVersion => {
   return { instanceUrl, accessToken, apiVersion };
 };
 
-const createDesktopConnection = (username: string) =>
-  Effect.gen(function* () {
-    const authInfo = yield* createAuthInfoFromUsername(username);
-    return yield* createConnection(authInfo);
-  }).pipe(Effect.withSpan('createDesktopConnection (cache miss)', { attributes: { username } }));
+const createDesktopConnection = Effect.fn('createDesktopConnection (cache miss)')(function* (username: string) {
+  yield* Effect.annotateCurrentSpan({ username });
+  const authInfo = yield* createAuthInfoFromUsername(username);
+  return yield* createConnection(authInfo);
+});
 
 const connectionCache = Effect.runSync(
   Cache.makeWith({
@@ -239,7 +247,21 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       yield* connectionCache.invalidateAll;
     });
 
-    return { getConnection, invalidateCachedConnections };
+    /** List all org authorizations known to the CLI (wraps `AuthInfo.listAllAuthorizations`). */
+    const listAllAuthorizations = Effect.fn('ConnectionService.listAllAuthorizations')(function* () {
+      return yield* Effect.tryPromise({
+        try: () => AuthInfo.listAllAuthorizations(),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new FailedToListAuthorizationsError({
+            message: `Failed to list authorizations: ${cause.message}`,
+            cause
+          });
+        }
+      });
+    });
+
+    return { getConnection, invalidateCachedConnections, listAllAuthorizations };
   })
 }) {}
 

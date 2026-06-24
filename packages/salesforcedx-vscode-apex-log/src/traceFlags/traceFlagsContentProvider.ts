@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
 import { getRuntime } from '../services/runtime';
+import { isTraceFlagActive } from './traceFlagActive';
 
 export const SCHEME = 'sf-traceflags';
 
@@ -23,7 +24,7 @@ type TraceFlagsByLogType = {
 };
 
 const groupByLogType = (items: TraceFlagItem[]): TraceFlagsByLogType => {
-  const active = items.filter(item => item.isActive);
+  const active = items.filter(isTraceFlagActive);
   const g = Object.groupBy(active, item => (item.tracedEntityId?.startsWith('01q') ? 'TRIGGERS' : item.logType));
   // Object.groupBy returns Partial; we ensure all keys exist
   // const g: Partial<Record<keyof TraceFlagsByLogType, TraceFlagItem[]>> = grouped;

@@ -129,6 +129,17 @@ const data = yield * api.services.FsService.readJSON(filePath, MyConfigSchema);
 
 Prefer the schema approach when customers might have corrupted JSON—validation fails with a clear error instead of silently returning bad data.
 
+### showTextDocument
+
+Open file in editor:
+
+```typescript
+const editor = yield * api.services.FsService.showTextDocument(filePath, options);
+// filePath: string | URI
+// options?: vscode.TextDocumentShowOptions
+// Returns: vscode.TextEditor
+```
+
 ### toUri
 
 Convert path to URI:
