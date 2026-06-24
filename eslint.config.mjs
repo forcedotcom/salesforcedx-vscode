@@ -214,9 +214,10 @@ export default [
       'unicorn/prefer-single-call': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
+      'unicorn/prefer-simple-condition-first': 'error',
       'unicorn/prefer-structured-clone': 'error',
       'unicorn/prefer-ternary': ['error'],
-      'unicorn/prefer-simple-condition-first': 'error',
+      'unicorn/prefer-while-loop-condition': 'error',
       'unicorn/filename-case': [
         'error',
         {
