@@ -104,6 +104,8 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 
 Constraints: File single-line (flags-dir treats each line as a separate flag invocation). Values in single quotes. HTML: `<p>`, `<strong>`, `<code>`, `<ul><li>`, `<a href="...">`. Escape `"` inside value as `&quot;`.
 
+**SF strips external hrefs on save:** `<a href=&quot;https://github.com/...discussions/5867&quot;>discussions/5867</a>` persists as `<a href="">discussions/5867</a>` — link text survives, href empties. Write full `href` regardless — surviving `discussions/NNN`|`issues/NNN` path text lets auto-build reconstruct the PR URL. Prefer link text that IS the path (`discussions/5867`), not a label.
+
 **After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
 
 **CRITICAL:** After creation, you MUST query the `Name` (W-XXXXX) to append to the PR title as ` - W-XXXXX`. The `id` returned by `sf data create` is NOT the `W-XXXXX` name.
