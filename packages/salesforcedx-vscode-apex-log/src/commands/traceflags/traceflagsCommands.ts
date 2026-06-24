@@ -27,9 +27,6 @@ import { createTraceFlagsUri } from '../../traceFlags/traceFlagsContentProvider'
 
 const noOrgWarning = () => Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
 
-const noActiveFlagsInfo = () =>
-  Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active')));
-
 /** Resolves { api, orgId, userId? }. Shows warning and returns None when org (or userId if required) is missing. */
 const requireOrgContext = Effect.fn('ApexLog.requireOrgContext')(function* (opts?: { requireUserId?: boolean }) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -89,7 +86,7 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
     const traceFlagService = yield* api.services.TraceFlagService;
     const existing = yield* traceFlagService.getTraceFlagForUser(userId!);
     if (Option.isNone(existing)) {
-      yield* noActiveFlagsInfo();
+      yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active')));
       return;
     }
     yield* traceFlagService.deleteTraceFlag(existing.value.id);
@@ -217,7 +214,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
 const promptForActiveTraceFlagId = Effect.fn('ApexLog.promptForActiveTraceFlagId')(function* (flags: TraceFlagItem[]) {
   const active = flags.filter(isTraceFlagActive);
   if (active.length === 0) {
-    yield* noActiveFlagsInfo();
+    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('trace_flags_none_active')));
     return undefined;
   }
   return yield* pickTraceFlag(active);
