@@ -123,12 +123,13 @@ test('LWC Run Tests: run all via Test Explorer and verify both suites pass', asy
     await waitForJestResults(workspaceDir, runStartMs!);
     await saveScreenshot(page, 'run-all.results.png');
 
-    // Native Test Controller surfaces results in the Test Results panel (auto-revealed on run).
+    // Native Test Controller auto-reveals the Test Results panel on a code-lens/command/button run.
+    // (Unlike Apex, the LWC run output is jest-style "Test Suites:/Tests:" written to the run's
+    // xterm output stream — there is no "Pass Rate" text — so assert the panel is revealed, not its text.)
     const testResultsTab = page.locator(TEST_RESULTS_TAB);
     await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
     await testResultsTab.click();
     await saveScreenshot(page, 'run-all.test-results-tab.png');
-    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: 60_000 });
 
     // Native Test Controller marks the tree item passed (aria-label carries "(Passed)").
     await expect(page.getByRole('treeitem', { name: /lwc1/i })).toHaveAttribute('aria-label', /Passed/i, {
