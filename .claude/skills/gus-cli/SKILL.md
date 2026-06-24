@@ -203,6 +203,6 @@ When completing a work item, use `Closed`.
 
 ## CLI tips
 
-- `--result-format json` for parseable output
-- Strip CLI version warning before JSON parse (`tail -1` or parse last object)
+- `--json` for parseable output (not `--result-format json`)
+- Parse with `jq`, not python
 - `sf data create record` / `sf data update record` for single-record writes
