@@ -11,7 +11,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import * as Str from 'effect/String';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -26,6 +25,11 @@ import { runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
 class WorkspaceFolderError extends Schema.TaggedError<WorkspaceFolderError>()('WorkspaceFolderError', {
+  message: Schema.String
+}) {}
+
+// raised when a `last.*` re-run is invoked but nothing has been cached yet
+class NoCachedTestError extends Schema.TaggedError<NoCachedTestError>()('NoCachedTestError', {
   message: Schema.String
 }) {}
 
@@ -181,29 +185,22 @@ export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
   void vscode.commands.executeCommand('sf.apex.test.class.run', testClass);
 };
 
-// evaluate test class param: if not provided, fall back to the cached value (if any)
-const resolveTestClassParam = Effect.fn('apexTestRunCodeAction.resolveTestClassParam')(function* (testClass: string) {
-  if (Str.isEmpty(testClass)) {
-    // value not provided for re-run invocations; apply cached value, if available
-    return yield* ApexTestRunCacheService.getLastClassTestParam();
-  }
+// invokes apex test run on all tests in a class; caches the class for later re-run
+export const apexTestClassRunCodeAction = Effect.fn('apexTestClassRunCodeAction')(function* (testClass: string) {
   yield* ApexTestRunCacheService.setCachedClassTestParam(testClass);
-  return Option.some(testClass);
+  yield* apexTestRunCodeAction([testClass]);
 });
 
-// invokes apex test run on all tests in a class
-export const apexTestClassRunCodeAction = Effect.fn('apexTestClassRunCodeAction')(function* (testClass: string) {
-  const resolved = yield* resolveTestClassParam(testClass);
-  if (Option.isNone(resolved)) {
-    // test param not provided: show error and terminate
-    yield* Effect.sync(() => {
-      void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_class_test_param_text'));
+// re-runs the last cached test class; invoked with no param, so resolves from cache
+export const apexTestLastClassRunCodeAction = Effect.fn('apexTestLastClassRunCodeAction')(function* () {
+  const cached = yield* ApexTestRunCacheService.getLastClassTestParam();
+  if (Option.isNone(cached)) {
+    // no cached class: nothing to re-run — surface a real error (the runtime toasts the message)
+    return yield* new NoCachedTestError({
+      message: nls.localize('apex_test_run_codeAction_no_class_test_param_text')
     });
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* new api.services.UserCancellationError();
   }
-
-  yield* apexTestRunCodeAction([resolved.value]);
+  yield* apexTestClassRunCodeAction(cached.value);
 });
 
 //   T E S T   M E T H O D
@@ -218,31 +215,22 @@ export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
   });
 };
 
-// evaluate test method param: if not provided, fall back to the cached value (if any)
-const resolveTestMethodParam = Effect.fn('apexTestRunCodeAction.resolveTestMethodParam')(function* (
-  testMethod: string
-) {
-  if (Str.isEmpty(testMethod)) {
-    // value not provided for re-run invocations; apply cached value, if available
-    return yield* ApexTestRunCacheService.getLastMethodTestParam();
-  }
+// invokes apex test run on a test method; caches the method for later re-run
+export const apexTestMethodRunCodeAction = Effect.fn('apexTestMethodRunCodeAction')(function* (testMethod: string) {
   yield* ApexTestRunCacheService.setCachedMethodTestParam(testMethod);
-  return Option.some(testMethod);
+  yield* apexTestRunCodeAction([testMethod]);
 });
 
-// invokes apex test run on a test method
-export const apexTestMethodRunCodeAction = Effect.fn('apexTestMethodRunCodeAction')(function* (testMethod: string) {
-  const resolved = yield* resolveTestMethodParam(testMethod);
-  if (Option.isNone(resolved)) {
-    // test param not provided: show error and terminate
-    yield* Effect.sync(() => {
-      void notificationService.showErrorMessage(nls.localize('apex_test_run_codeAction_no_method_test_param_text'));
+// re-runs the last cached test method; invoked with no param, so resolves from cache
+export const apexTestLastMethodRunCodeAction = Effect.fn('apexTestLastMethodRunCodeAction')(function* () {
+  const cached = yield* ApexTestRunCacheService.getLastMethodTestParam();
+  if (Option.isNone(cached)) {
+    // no cached method: nothing to re-run — surface a real error (the runtime toasts the message)
+    return yield* new NoCachedTestError({
+      message: nls.localize('apex_test_run_codeAction_no_method_test_param_text')
     });
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* new api.services.UserCancellationError();
   }
-
-  yield* apexTestRunCodeAction([resolved.value]);
+  yield* apexTestMethodRunCodeAction(cached.value);
 });
 
 const isTestWithDiagnostic = (

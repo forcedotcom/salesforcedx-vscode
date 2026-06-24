@@ -18,6 +18,8 @@ import {
   apexDebugMethodRunCodeActionDelegate,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
+  apexTestLastClassRunCodeAction,
+  apexTestLastMethodRunCodeAction,
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate,
   apexTestRun,
@@ -95,9 +97,9 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
     registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
     registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
     registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction),
-    registerCommand('sf.apex.test.last.class.run', apexTestClassRunCodeAction),
+    registerCommand('sf.apex.test.last.class.run', apexTestLastClassRunCodeAction),
     registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction),
-    registerCommand('sf.apex.test.last.method.run', apexTestMethodRunCodeAction)
+    registerCommand('sf.apex.test.last.method.run', apexTestLastMethodRunCodeAction)
   ]);
 
   // Always register the remaining (non-Effect) commands (they'll be no-ops if not in a project)
