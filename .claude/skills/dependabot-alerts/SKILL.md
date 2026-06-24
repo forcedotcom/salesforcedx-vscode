@@ -36,6 +36,22 @@ Try in order; **stop at the first that works**:
 2. **`npm update <consumer>`.** Consumer's existing semver range already allows a patched `<vuln-pkg>`, but the lockfile is stale. No `package.json` change. *Second best.*
 3. **Unfixable** — consumer's latest still pins the vulnerable version. **Skip this path silently. No WI.**
 
+Pick the **lowest** consumer version that resolves `<vuln-pkg>` to a patched version, never `latest` — fewer majors crossed, fewer breaking changes to vet.
+
+## Vet major-version bumps
+
+If the chosen bump crosses a **major version** (e.g. `^1.x` → `^3.0.0`), read the consumer's release notes / CHANGELOG for every major crossed **before** drafting the WI.
+
+Look for:
+
+- **ESM-only** (`"type": "module"`). Our `.github/actions/*` and most packages are CJS (`tsc module: node16`, `require()` output). An ESM-only dep can't be `require()`d from a CJS build — that's a breaking migration, not a bump.
+- **Dropped Node engine support** — must satisfy the consuming context (`.github/actions/*` run `using: node20`; extensions target their own engine).
+- **Transitive major bumps** the consumer drags in (e.g. Octokit majors), and whether our actual usage touches the changed API. `grep` our usage first.
+
+If a lower major already clears the vuln while avoiding a breaking change (ESM, engine drop), **prefer it** and cap the range below the breaking major (e.g. `^2.0.0`, not `^3.0.0`). Note the cap and its reason in the WI `Details__c`.
+
+If the only version that clears the vuln forces a breaking migration, the WI is no longer a simple bump — say so in `Details__c` (what breaks, what must change) so auto-build-wi plans for it.
+
 ## Dependabot dedup screen
 
 Before creating a WI for a bump, check for an existing Dependabot PR proposing the same bump (`gh pr list --author 'app/dependabot' --state open`):
