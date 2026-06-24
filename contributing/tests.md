@@ -79,3 +79,5 @@ describe('my singleton tests', () => {
 ```
 
 This ensures each test gets a fresh singleton bound to its own mocks.
+
+**URI Normalization:** Test controllers may normalize URIs to handle platform-specific paths. LWC test controller strips `/private` prefix on macOS (via `normalizeJestFsPath`) to match discovery keying, preventing test runs from targeting detached tree items. When testing URI resolution, supply paths matching both symlinks and realpaths.
