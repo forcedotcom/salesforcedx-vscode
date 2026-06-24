@@ -10,7 +10,7 @@
 
 **In this branch (`ph/W-23094301-lwc-test-feedback`):** Tasks 1-4 (run + debug routing), Task 8b (verify out-of-band listener still needed for watch — keep it), Task 9 (verification). One-shot run/debug from palette, editor-title button, and code lens all gain native feedback.
 
-**Progress:** ✓ Task 1 completed (getLwcTestController + runByExecutionInfo), ✓ Task 2 completed (runActiveEditorFile convenience method). Next: Task 3 (run command routing).
+**Progress:** ✓ Task 1 completed (getLwcTestController + runByExecutionInfo), ✓ Task 2 completed (runActiveEditorFile convenience method), ✓ Task 3 completed (run command routing + telemetry preservation). Next: Task 4 (debug command routing).
 
 **Deferred to follow-up WI:** Tasks 5-7 (native Continuous Run profile for watch, watch toggle methods, repointing watch handlers, deleting `TestWatcher`) AND the final removal of `executeAsSfTask` + the out-of-band results listener. These are interdependent: watch can't lose `executeAsSfTask` until it has the Continuous Run replacement. Tasks 5-7 below are retained for reference but **NOT executed in this branch** — they seed the follow-up plan.
 
@@ -346,7 +346,7 @@ git commit -m "feat(lwc): add runActiveEditorFile convenience method"
   - `lwcTestFileRun(data: { testExecutionInfo: TestExecutionInfo })`
   - `lwcTestRunActiveTextEditorTest()`
 
-- [ ] **Step 1: Write the failing test** — create `test/jest/testSupport/commands/lwcTestRunAction.test.ts`.
+- [x] **Step 1: Write the failing test** — create `test/jest/testSupport/commands/lwcTestRunAction.test.ts`.
 
 ```typescript
 /*
@@ -364,7 +364,7 @@ jest.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
   getLwcTestController: () => ({ runByExecutionInfo, runActiveEditorFile })
 }));
 
-import { lwcTestFileRun, lwcTestCaseRun } from '../../../../src/testSupport/commands/lwcTestRunAction';
+import { lwcTestFileRun, lwcTestCaseRun, lwcTestRunActiveTextEditorTest } from '../../../../src/testSupport/commands/lwcTestRunAction';
 
 describe('lwcTestRunAction routes through the controller', () => {
   beforeEach(() => {
@@ -374,24 +374,29 @@ describe('lwcTestRunAction routes through the controller', () => {
 
   it('lwcTestFileRun calls controller.runByExecutionInfo with isDebug=false', () => {
     const testExecutionInfo = { kind: 'testFile', testUri: URI.file('/a/foo.test.js') };
-    lwcTestFileRun({ testExecutionInfo });
+    void lwcTestFileRun({ testExecutionInfo });
     expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, false);
   });
 
   it('lwcTestCaseRun calls controller.runByExecutionInfo with isDebug=false', () => {
     const testExecutionInfo = { kind: 'testCase', testUri: URI.file('/a/foo.test.js'), testName: 'does x' };
-    lwcTestCaseRun({ testExecutionInfo });
+    void lwcTestCaseRun({ testExecutionInfo });
     expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, false);
+  });
+
+  it('lwcTestRunActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=false', () => {
+    void lwcTestRunActiveTextEditorTest();
+    expect(runActiveEditorFile).toHaveBeenCalledWith(false);
   });
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/commands/lwcTestRunAction.test.ts`
 Expected: FAIL — current implementation calls `TestRunner`/`executeAsSfTask`, not `runByExecutionInfo`.
 
-- [ ] **Step 3: Write minimal implementation** — replace the body of `lwcTestRunAction.ts`:
+- [x] **Step 3: Write minimal implementation** — replace the body of `lwcTestRunAction.ts`:
 
 ```typescript
 /*
@@ -403,29 +408,31 @@ Expected: FAIL — current implementation calls `TestRunner`/`executeAsSfTask`, 
 import { getLwcTestController } from '../testExplorer/lwcTestController';
 import { TestExecutionInfo } from '../types';
 
-/** Run an individual test case (code lens). */
+/** Run individual test case (code lens). */
 export const lwcTestCaseRun = (data: { testExecutionInfo: TestExecutionInfo }) =>
   getLwcTestController().runByExecutionInfo(data.testExecutionInfo, false);
 
-/** Run a test file (command palette / test explorer node). */
+/** Run test file (command palette / explorer node). */
 export const lwcTestFileRun = (data: { testExecutionInfo: TestExecutionInfo }) =>
   getLwcTestController().runByExecutionInfo(data.testExecutionInfo, false);
 
-/** Run the test of the currently focused editor (editor-title play button). */
+/** Run test from editor-title play button. */
 export const lwcTestRunActiveTextEditorTest = () => getLwcTestController().runActiveEditorFile(false);
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd packages/salesforcedx-vscode-lwc && npx jest test/jest/testSupport/commands/lwcTestRunAction.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/salesforcedx-vscode-lwc/src/testSupport/commands/lwcTestRunAction.ts packages/salesforcedx-vscode-lwc/test/jest/testSupport/commands/lwcTestRunAction.test.ts
 git commit -m "feat(lwc): route LWC test run commands through the test controller"
 ```
+
+**✓ COMPLETED 2026-06-24** — Run commands routed through controller. Run telemetry (`lwc_test_run_action`) preserved via controller's `runTests` method emit in `finally` block (fires only for !isDebug).
 
 ---
 
