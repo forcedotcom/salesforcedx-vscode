@@ -25,6 +25,13 @@
 ====================
 [
   {
+    "name": "this",
+    "value": "",
+    "variablesReference": 1001,
+    "type": "B",
+    "evaluateName": ""
+  },
+  {
     "name": "myClass",
     "value": "",
     "variablesReference": 1003,
@@ -79,13 +86,6 @@
     "variablesReference": 0,
     "type": "Set<Integer>",
     "evaluateName": "[1,2]"
-  },
-  {
-    "name": "this",
-    "value": "",
-    "variablesReference": 1001,
-    "type": "B",
-    "evaluateName": ""
   }
 ]
 ====================
@@ -203,6 +203,13 @@
 ====================
 [
   {
+    "name": "this",
+    "value": "",
+    "variablesReference": 1022,
+    "type": "A",
+    "evaluateName": ""
+  },
+  {
     "name": "blobVar",
     "value": "BLOB(4 bytes)",
     "variablesReference": 0,
@@ -285,13 +292,6 @@
     "variablesReference": 0,
     "type": "String",
     "evaluateName": "'Lorem ipsum dolor si (61 more) ...'"
-  },
-  {
-    "name": "this",
-    "value": "",
-    "variablesReference": 1022,
-    "type": "A",
-    "evaluateName": ""
   },
   {
     "name": "timeVar",

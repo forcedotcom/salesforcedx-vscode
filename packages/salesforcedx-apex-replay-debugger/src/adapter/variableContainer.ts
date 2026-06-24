@@ -34,7 +34,13 @@ export class ApexVariableContainer {
   public getAllVariables(): ApexVariable[] {
     return Array.from(this.variables.values())
       .map(container => new ApexVariable(container.name, container.value, container.type, container.variablesRef))
-      .toSorted((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }));
+      .toSorted((a, b) =>
+        a.name === 'this'
+          ? -1
+          : b.name === 'this'
+            ? 1
+            : a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true })
+      );
   }
 
   public copy(): ApexVariableContainer {
