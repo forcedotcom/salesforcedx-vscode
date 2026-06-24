@@ -4,13 +4,29 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, OrgAuthorization } from '@salesforce/core';
-import { ICONS } from '@salesforce/vscode-services';
+import { OrgAuthorization } from '@salesforce/core';
+import {
+  ExtensionProviderService,
+  type ExtensionProviderService as ExtensionProviderServiceType
+} from '@salesforce/effect-ext-utils';
+import { ICONS, type SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
+import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import * as orgListModule from '../../../src/orgPicker/orgList';
 import { authorizationsToQuickPickItems } from '../../../src/orgPicker/orgList';
 import * as orgUtil from '../../../src/util/orgUtil';
+
+/** Cancels iff the value is undefined / empty string, mirroring PromptService.considerUndefinedAsCancellation. */
+class UserCancellationError extends Error {
+  public readonly _tag = 'UserCancellationError';
+}
+const considerUndefinedAsCancellation = <T>(value: T | undefined): Effect.Effect<T, UserCancellationError> =>
+  value === undefined || (typeof value === 'string' && value.trim().length === 0)
+    ? Effect.fail(new UserCancellationError())
+    : Effect.succeed(value);
 
 describe('OrgList tests', () => {
   const createOrgAuthorization = (overrides: Partial<OrgAuthorization> = {}): OrgAuthorization => ({
@@ -90,7 +106,7 @@ describe('OrgList tests', () => {
     describe('setDefaultOrg tests', () => {
       let showQuickPickMock: jest.SpyInstance;
       let executeCommandMock: jest.SpyInstance;
-      let listAllAuthorizationsMock: jest.SpyInstance;
+      let listAllAuthorizationsMock: jest.Mock;
       let getDefaultOrgConfigurationMock: jest.SpyInstance;
       const defaultConfig = {
         defaultDevHubProperty: undefined,
@@ -99,14 +115,35 @@ describe('OrgList tests', () => {
         defaultOrgUsername: undefined
       };
 
+      const buildLayer = () => {
+        const mockServicesApi = {
+          services: {
+            // setDefaultOrg loads orgs through ConnectionService (not AuthInfo direct) post-migration
+            ConnectionService: {
+              listAllAuthorizations: listAllAuthorizationsMock
+            },
+            // PromptService has accessors:false, so consumers `yield*` the service first
+            PromptService: Effect.succeed({ considerUndefinedAsCancellation })
+          }
+        } as unknown as SalesforceVSCodeServicesApi;
+        return Layer.succeed(ExtensionProviderService, {
+          getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+        });
+      };
+
       beforeEach(() => {
         showQuickPickMock = jest.spyOn(vscode.window, 'showQuickPick');
         executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
-        listAllAuthorizationsMock = jest.spyOn(AuthInfo, 'listAllAuthorizations');
+        // ConnectionService.listAllAuthorizations returns an Effect; default to the seeded (empty) list
+        listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
         getDefaultOrgConfigurationMock = jest.spyOn(orgUtil, 'getDefaultOrgConfiguration');
         jest.spyOn(orgUtil, 'readAliasesByUsernameFromDisk').mockResolvedValue(new Map());
-        listAllAuthorizationsMock.mockResolvedValue([]);
         getDefaultOrgConfigurationMock.mockResolvedValue(defaultConfig);
+
+        resetOrgRuntimeForTesting();
+        setAllServicesLayer(
+          buildLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
+        );
       });
 
       afterEach(() => {
@@ -181,6 +218,40 @@ describe('OrgList tests', () => {
 
           expect(result).toEqual({ type: 'CANCEL' });
           expect(executeCommandMock).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('org selection (data-loading path via ConnectionService)', () => {
+        const seededOrg = createOrgAuthorization({ username: 'seeded@example.com', aliases: ['SeededOrg'] });
+
+        beforeEach(() => {
+          listAllAuthorizationsMock.mockReturnValue(Effect.succeed([seededOrg]));
+        });
+
+        it('lists the seeded org from ConnectionService in the picker', async () => {
+          showQuickPickMock.mockResolvedValueOnce(undefined);
+
+          await orgListModule.setDefaultOrg();
+
+          // The list passed to showQuickPick must contain the org loaded via ConnectionService.
+          // (Fails if the mock returns nothing — guards against a vacuous pass.)
+          const items = showQuickPickMock.mock.calls[0][0] as Array<{ orgUsername?: string }>;
+          expect(items.some(i => i.orgUsername === 'seeded@example.com')).toBe(true);
+          expect(listAllAuthorizationsMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('sets the picked org as default via sf.config.set', async () => {
+          showQuickPickMock.mockResolvedValueOnce({
+            label: '$(cloud) SeededOrg',
+            orgUsername: 'seeded@example.com',
+            orgAlias: 'SeededOrg',
+            orgType: 'Org'
+          });
+
+          const result = await orgListModule.setDefaultOrg();
+
+          expect(result).toEqual({ type: 'CONTINUE', data: {} });
+          expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'SeededOrg');
         });
       });
     });
