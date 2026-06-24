@@ -99,11 +99,14 @@ class LwcTestController {
     if (!item) {
       return;
     }
+    // If caller asked for a specific case but we could only resolve the file item,
+    // pass the original case info so jest still gets --testNamePattern (don't silently run the whole file).
+    const execOverride = info.kind === 'testCase' && getItemKind(item.id) === 'file' ? info : undefined;
     const profile = isDebug ? this.debugProfile : this.runProfile;
     const request = new vscode.TestRunRequest([item], undefined, profile);
     const tokenSource = new vscode.CancellationTokenSource();
     try {
-      await this.runTests(request, tokenSource.token, isDebug);
+      await this.runTests(request, tokenSource.token, isDebug, execOverride);
     } finally {
       tokenSource.dispose();
     }
@@ -366,7 +369,8 @@ class LwcTestController {
   private runTests = async (
     request: vscode.TestRunRequest,
     token: vscode.CancellationToken,
-    isDebug: boolean
+    isDebug: boolean,
+    execOverride?: TestExecutionInfo
   ): Promise<void> => {
     const startTime = globalThis.performance.now();
     const run = this.controller.createTestRun(request);
@@ -399,7 +403,11 @@ class LwcTestController {
           break;
         }
         this.markRunning(run, target.item);
-        await this.executeOne(run, target.exec, target.item, isDebug, token);
+        // When execOverride is provided AND this is a single-item request, use the override
+        // to preserve the original testName for --testNamePattern (e.g., when a case item
+        // couldn't be resolved but we still want to run that specific test, not the whole file).
+        const exec = execOverride && request.include?.length === 1 ? execOverride : target.exec;
+        await this.executeOne(run, exec, target.item, isDebug, token);
       }
     } finally {
       run.end();

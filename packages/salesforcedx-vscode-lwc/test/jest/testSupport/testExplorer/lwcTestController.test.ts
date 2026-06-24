@@ -252,4 +252,165 @@ describe('LwcTestController public run API', () => {
     expect(controller.createTestRun).not.toHaveBeenCalled();
     expect(isLwcJestTest).toHaveBeenCalledWith(mockDocument);
   });
+
+  it('runByExecutionInfo runs the resolved case item when a matching case is found', async () => {
+    const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
+
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
+
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: {
+        replace: jest.fn(),
+        forEach: jest.fn()
+      },
+      createTestItem: (id: string, label: string, uri?: URI) => ({
+        id,
+        label,
+        uri,
+        canResolveChildren: false,
+        tags: [],
+        children: { replace: jest.fn(), forEach: jest.fn() }
+      }),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(() => mockRun),
+      dispose: jest.fn()
+    };
+
+    // Mock TestRunRequest and CancellationTokenSource
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.include = include;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.exclude = exclude;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.profile = profile;
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.CancellationTokenSource as any) = jest.fn(() => ({
+      token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
+      cancel: jest.fn(),
+      dispose: jest.fn()
+    }));
+
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([{ kind: 'testFile', testUri }]);
+    // Return a matching case
+    (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([
+      { kind: 'testCase', testUri, testName: 'should do something', ancestorTitles: [] }
+    ]);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
+
+    // Short-circuit test execution
+    jest
+      .spyOn(require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype, 'getShellExecutionInfo')
+      .mockResolvedValue(undefined);
+
+    await ctrl.runByExecutionInfo({ kind: 'testCase', testUri, testName: 'should do something' }, false);
+
+    // Verify the test run was created (which proves the code path executed)
+    expect(controller.createTestRun).toHaveBeenCalled();
+    expect(mockRun.end).toHaveBeenCalled();
+  });
+
+  it('runByExecutionInfo preserves testName when no matching case item is found (execOverride path)', async () => {
+    const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
+
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
+
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: {
+        replace: jest.fn(),
+        forEach: jest.fn()
+      },
+      createTestItem: (id: string, label: string, uri?: URI) => ({
+        id,
+        label,
+        uri,
+        canResolveChildren: false,
+        tags: [],
+        children: { replace: jest.fn(), forEach: jest.fn() }
+      }),
+      createRunProfile: jest.fn(() => ({ dispose: jest.fn() })),
+      createTestRun: jest.fn(() => mockRun),
+      dispose: jest.fn()
+    };
+
+    // Mock TestRunRequest and CancellationTokenSource
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.include = include;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.exclude = exclude;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      this.profile = profile;
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    (vscode.CancellationTokenSource as any) = jest.fn(() => ({
+      token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
+      cancel: jest.fn(),
+      dispose: jest.fn()
+    }));
+
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([{ kind: 'testFile', testUri }]);
+    // Return NO matching cases (simulates cold cache or dynamic test name)
+    (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
+
+    // Capture TestRunner construction to verify it receives testCase exec (not testFile)
+    const TestRunnerModule = require('../../../../src/testSupport/testRunner/testRunner');
+    const originalTestRunner = TestRunnerModule.TestRunner;
+    let capturedExecInfo: any;
+    TestRunnerModule.TestRunner = class extends originalTestRunner {
+      constructor(execInfo: any, mode: any) {
+        capturedExecInfo = execInfo;
+        super(execInfo, mode);
+      }
+    };
+    jest.spyOn(TestRunnerModule.TestRunner.prototype, 'getShellExecutionInfo').mockResolvedValue(undefined);
+
+    // Request a specific test case that doesn't exist in the index
+    await ctrl.runByExecutionInfo({ kind: 'testCase', testUri, testName: 'missing test case' }, false);
+
+    expect(controller.createTestRun).toHaveBeenCalled();
+    // The run.started is called with the file item (fallback, id starts with 'file:')
+    expect(mockRun.started).toHaveBeenCalledWith(expect.objectContaining({ id: expect.stringContaining('file:') }));
+    // But the TestRunner should still receive the testCase exec info (the override)
+    expect(capturedExecInfo).toMatchObject({ kind: 'testCase', testName: 'missing test case' });
+
+    // Restore
+    TestRunnerModule.TestRunner = originalTestRunner;
+  });
 });
