@@ -64,3 +64,18 @@ Best Practices around the mocked vscode modules.
 - If you find a property that is not currently available in the mock please add it.
 - The mocked module should only mock the high level properties. Resolving/returning values should be left to the individual test suite setup so that we can avoid having to adhere to particular behavior across tests.
 - Be aware that the mock call is only executed once during test execution and then resolves for all imports executed during the test run. Individual mocked properties on the module are reset after each test.
+
+#### Singleton Test Isolation
+
+Singletons bypass Jest's automatic mock reset, causing tests to inherit stale state from prior test runs. If a module exports a singleton accessor (e.g., `getLwcTestController()`), expose a disposal/reset export and call it in `beforeEach` to isolate each test:
+
+```typescript
+describe('my singleton tests', () => {
+  beforeEach(() => {
+    disposeLwcTestController(); // resets instance to undefined
+  });
+  // ... tests ...
+});
+```
+
+This ensures each test gets a fresh singleton bound to its own mocks.

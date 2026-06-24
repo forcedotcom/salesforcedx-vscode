@@ -13,7 +13,11 @@ jest.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
   getLwcTestController: () => ({ runByExecutionInfo, runActiveEditorFile })
 }));
 
-import { lwcTestFileRun, lwcTestCaseRun } from '../../../../src/testSupport/commands/lwcTestRunAction';
+import {
+  lwcTestFileRun,
+  lwcTestCaseRun,
+  lwcTestRunActiveTextEditorTest
+} from '../../../../src/testSupport/commands/lwcTestRunAction';
 
 describe('lwcTestRunAction routes through the controller', () => {
   beforeEach(() => {
@@ -23,13 +27,18 @@ describe('lwcTestRunAction routes through the controller', () => {
 
   it('lwcTestFileRun calls controller.runByExecutionInfo with isDebug=false', () => {
     const testExecutionInfo = { kind: 'testFile', testUri: URI.file('/a/foo.test.js') };
-    lwcTestFileRun({ testExecutionInfo });
+    void lwcTestFileRun({ testExecutionInfo });
     expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, false);
   });
 
   it('lwcTestCaseRun calls controller.runByExecutionInfo with isDebug=false', () => {
     const testExecutionInfo = { kind: 'testCase', testUri: URI.file('/a/foo.test.js'), testName: 'does x' };
-    lwcTestCaseRun({ testExecutionInfo });
+    void lwcTestCaseRun({ testExecutionInfo });
     expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, false);
+  });
+
+  it('lwcTestRunActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=false', () => {
+    void lwcTestRunActiveTextEditorTest();
+    expect(runActiveEditorFile).toHaveBeenCalledWith(false);
   });
 });

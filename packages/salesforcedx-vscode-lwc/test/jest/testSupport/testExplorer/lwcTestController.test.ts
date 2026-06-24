@@ -24,6 +24,22 @@ jest.mock('../../../../src/testSupport/utils/isLwcJestTest', () => ({
   isLwcJestTest: jest.fn()
 }));
 
+// Mock telemetry and workspace services
+jest.mock('../../../../src/telemetry', () => ({
+  telemetryService: {
+    sendEventData: jest.fn()
+  }
+}));
+
+jest.mock('../../../../src/testSupport/workspace', () => ({
+  workspace: {
+    getTestWorkspaceFolder: jest.fn()
+  },
+  workspaceService: {
+    getCurrentWorkspaceTypeForTelemetry: jest.fn(() => 'SFDX')
+  }
+}));
+
 import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer';
 import { isLwcJestTest } from '../../../../src/testSupport/utils/isLwcJestTest';
 import {

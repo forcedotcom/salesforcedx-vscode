@@ -8,6 +8,7 @@ import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
+import { telemetryService } from '../../telemetry';
 import { lwcTestIndexer } from '../testIndexer';
 import { taskService, SfTask } from '../testRunner/taskService';
 import { TestRunner } from '../testRunner/testRunner';
@@ -20,9 +21,10 @@ import {
   TestResultStatus,
   isTestCaseInfo
 } from '../types';
+import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
-import { workspace } from '../workspace';
+import { workspace, workspaceService } from '../workspace';
 import { appendLine, appendRunHeader, appendTestResultsOutput, TestItemLookup } from './testResultsOutput';
 
 const TEST_CONTROLLER_ID = 'sf.lwc.testController';
@@ -363,6 +365,7 @@ class LwcTestController {
     token: vscode.CancellationToken,
     isDebug: boolean
   ): Promise<void> => {
+    const startTime = globalThis.performance.now();
     const run = this.controller.createTestRun(request);
     try {
       const targets = this.gatherTargets(request);
@@ -397,6 +400,13 @@ class LwcTestController {
       }
     } finally {
       run.end();
+      if (!isDebug) {
+        telemetryService.sendEventData(
+          LWC_TEST_RUN_LOG_NAME,
+          { workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry() },
+          { executionTime: globalThis.performance.now() - startTime }
+        );
+      }
     }
   };
 
