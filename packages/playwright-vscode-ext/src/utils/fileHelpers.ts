@@ -193,7 +193,7 @@ export const deployCurrentSourceToOrg = async (
 };
 
 /**
- * Open a file by clicking its entry in the Files Explorer tree. Works on both web and desktop.
+ * Open a file by clicking its entry in the Files Explorer tree. Desktop only; web headless has no workspace folder.
  *
  * Use this when {@link openFileByName} (Quick Open) won't work — notably on VS Code Web where
  * the `vscode-test-web` file system provider doesn't implement `provideFileSearch`, so Quick
