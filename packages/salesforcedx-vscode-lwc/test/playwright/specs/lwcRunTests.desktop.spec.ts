@@ -37,6 +37,9 @@ const JEST_RUN_TIMEOUT = 3 * 60 * 1000;
 /** Test Explorer sidebar tree item by label. */
 const testItem = (page: Page, label: string) => page.getByRole('treeitem', { name: new RegExp(label, 'i') });
 
+/** The Test Results panel tab in the bottom panel. */
+const TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]';
+
 /**
  * Poll `.sfdx/tools/testresults/lwc/` for a Jest JSON result file written after `afterMs`.
  * The LWC extension writes one JSON file per run (test-result-<uuid>.json); we consider
@@ -119,6 +122,18 @@ test('LWC Run Tests: run all via Test Explorer and verify both suites pass', asy
   await test.step('verify both suites pass', async () => {
     await waitForJestResults(workspaceDir, runStartMs!);
     await saveScreenshot(page, 'run-all.results.png');
+
+    // Native Test Controller surfaces results in the Test Results panel (auto-revealed on run).
+    const testResultsTab = page.locator(TEST_RESULTS_TAB);
+    await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
+    await testResultsTab.click();
+    await saveScreenshot(page, 'run-all.test-results-tab.png');
+    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: 60_000 });
+
+    // Native Test Controller marks the tree item passed (aria-label carries "(Passed)").
+    await expect(page.getByRole('treeitem', { name: /lwc1/i })).toHaveAttribute('aria-label', /Passed/i, {
+      timeout: 60_000
+    });
   });
 
   await validateNoCriticalErrors(test, consoleErrors);
@@ -258,8 +273,8 @@ test('LWC Run Tests: run all tests via Run All Tests code lens', async ({ page, 
   await test.step('click Run All Tests code lens', async () => {
     const editor = page.locator('[data-uri*="lwc1.test.js"]');
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
-    // Code lenses appear above the describe block — wait for the "Run All Tests" link
-    const runAllLens = page.getByRole('button', { name: /Run All Tests/i }).first();
+    // Code lenses appear above the describe block — wait for the "Run All Tests (LWC)" link
+    const runAllLens = page.getByRole('button', { name: /Run All Tests \(LWC\)/i }).first();
     await runAllLens.waitFor({ state: 'visible', timeout: 30_000 });
     runStartMs = Date.now();
     await runAllLens.click();
@@ -289,8 +304,8 @@ test('LWC Run Tests: run single test via Run Test code lens', async ({ page, wor
 
   let runStartMs: number;
   await test.step('click Run Test code lens on first it() block', async () => {
-    // The "Run Test" code lens appears above the it() call — find the first one
-    const runLens = page.getByRole('button', { name: /^Run Test$/i }).first();
+    // The "Run Test (LWC)" code lens appears above the it() call — find the first one
+    const runLens = page.getByRole('button', { name: /^Run Test \(LWC\)$/i }).first();
     await runLens.waitFor({ state: 'visible', timeout: 30_000 });
     runStartMs = Date.now();
     await runLens.click();
