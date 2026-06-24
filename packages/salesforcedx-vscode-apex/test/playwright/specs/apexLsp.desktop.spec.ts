@@ -8,9 +8,10 @@
 import { expect } from '@playwright/test';
 import {
   EDITOR_WITH_URI,
-  executeCommandWithCommandPalette,
+  goToLineColumn,
   openFileByName,
   openFileFromExplorerTree,
+  saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -85,7 +86,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
     // Line 7 is blank per fixture layout (desktopFixtures.ts:37) — load-bearing for autocompletion test.
     // Insert "\tExampleClass.say" at line 7 col 1 to trigger autocompletion.
-    await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+    await goToLineColumn(page);
     await page.keyboard.type('7:1');
     await page.keyboard.press('Enter');
     await page.keyboard.type('\tExampleClass.say');
@@ -98,11 +99,11 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     // Type the argument; the completion inserted `SayHello(name)` with `name` selected as snippet placeholder.
     await page.keyboard.type("'Jack");
     // Position at col 38 (after `);`) and append `;` to mirror WDIO line 165.
-    await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+    await goToLineColumn(page);
     await page.keyboard.type('7:38');
     await page.keyboard.press('Enter');
     await page.keyboard.type(';');
-    await executeCommandWithCommandPalette(page, 'File: Save');
+    await saveFile(page);
 
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="ExampleClassTest.cls"]`).first();
     const lineSeven = editor.locator('.view-line').nth(6);
@@ -124,7 +125,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     // Whether anonymous Apex resolves project ApexClass symbols through the same jorje LSP is not
     // runtime-confirmed locally (see .claude/plans/W-22918963.md "Symbol-resolution risk"); CI is the
     // verification path for this assertion.
-    await executeCommandWithCommandPalette(page, 'Go to Line/Column...');
+    await goToLineColumn(page);
     await page.keyboard.type('2:1');
     await page.keyboard.press('Enter');
     await page.keyboard.type('ExampleClass.say');

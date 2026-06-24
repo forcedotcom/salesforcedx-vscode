@@ -8,7 +8,7 @@
 import { type Page } from '@playwright/test';
 import { escapeRegExp } from '../utils/helpers';
 import { CODELENS_ITEM, EDITOR_WITH_URI } from '../utils/locators';
-import { executeCommandWithCommandPalette } from './commands';
+import { focusActiveEditorGroup } from './nativeCommands';
 
 /**
  * Click the first code lens whose visible text matches `text` (whitespace-tolerant exact match).
@@ -27,7 +27,7 @@ export const clickCodeLens = async (page: Page, text: string, opts?: { timeout?:
 
   // Ensure an editor is the active part of the workbench (output/terminal panels can steal focus).
   // No-op if already focused; "View: Focus Active Editor Group" exists in all VS Code versions.
-  await executeCommandWithCommandPalette(page, 'View: Focus Active Editor Group').catch(() => {});
+  await focusActiveEditorGroup(page).catch(() => {});
   await page
     .locator(EDITOR_WITH_URI)
     .first()

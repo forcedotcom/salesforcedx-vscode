@@ -6,7 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { executeCommandWithCommandPalette } from './commands';
+import { focusOnProblemsView } from './nativeCommands';
 
 /** Problems view container (panel or sidebar). VS Code uses workbench.panel.markers for the Problems panel. */
 const PROBLEMS_VIEW = '[id="workbench.panel.markers"]';
@@ -20,7 +20,7 @@ export const ensureProblemsViewOpen = async (page: Page): Promise<void> => {
   if (await view.isVisible().catch(() => false)) {
     return;
   }
-  await executeCommandWithCommandPalette(page, 'Problems: Focus on Problems View');
+  await focusOnProblemsView(page);
   await expect(view).toBeVisible({ timeout: 10_000 });
 };
 

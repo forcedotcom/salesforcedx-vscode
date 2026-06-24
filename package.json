@@ -95,7 +95,7 @@
     "markdown-link-check": "^3.14.2",
     "nyc": "15.1.0",
     "os-browserify": "0.3.0",
-    "ovsx": "0.10.7",
+    "ovsx": "0.10.12",
     "path-browserify": "^1.0.1",
     "playwright": "^1.60.0",
     "prettier": "3.8.3",

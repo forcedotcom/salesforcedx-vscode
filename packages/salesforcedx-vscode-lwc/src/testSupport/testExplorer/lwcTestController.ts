@@ -61,6 +61,10 @@ class LwcTestController {
   private readonly fileItems = new Map<string, vscode.TestItem>();
   private readonly caseItems = new Map<string, vscode.TestItem>();
   private readonly disposables: vscode.Disposable[] = [];
+  // All LWC Jest tests are workspace-only, so tag every item with the same `in-workspace` tag id the Apex
+  // controller uses. VS Code's Test Explorer tag filter (@in-workspace) matches by tag id across all
+  // controllers and hides untagged items, so without this the `@in-workspace` filter hides every LWC test.
+  private readonly inWorkspaceTag = new vscode.TestTag('in-workspace');
 
   constructor() {
     this.controller = vscode.tests.createTestController(TEST_CONTROLLER_ID, nls.localize('lwc_test_controller_label'));
@@ -212,6 +216,7 @@ class LwcTestController {
     }
     const item = this.controller.createTestItem(id, getFileLabel(fileInfo.testUri), fileInfo.testUri);
     item.canResolveChildren = true;
+    item.tags = [this.inWorkspaceTag];
     this.fileItems.set(id, item);
     return item;
   };
@@ -230,6 +235,7 @@ class LwcTestController {
       let caseItem = this.caseItems.get(id);
       if (!caseItem) {
         caseItem = this.controller.createTestItem(id, testCase.testName, testCase.testUri);
+        caseItem.tags = [this.inWorkspaceTag];
         this.caseItems.set(id, caseItem);
       }
       if (testCase.testLocation?.range) {
