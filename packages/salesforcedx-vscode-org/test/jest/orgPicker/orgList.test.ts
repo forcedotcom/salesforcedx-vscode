@@ -12,21 +12,14 @@ import {
 import { ICONS, type SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import * as orgListModule from '../../../src/orgPicker/orgList';
 import { authorizationsToQuickPickItems } from '../../../src/orgPicker/orgList';
 import * as orgUtil from '../../../src/util/orgUtil';
-
-/** Cancels iff the value is undefined / empty string, mirroring PromptService.considerUndefinedAsCancellation. */
-class UserCancellationError extends Error {
-  public readonly _tag = 'UserCancellationError';
-}
-const considerUndefinedAsCancellation = <T>(value: T | undefined): Effect.Effect<T, UserCancellationError> =>
-  value === undefined || (typeof value === 'string' && value.trim().length === 0)
-    ? Effect.fail(new UserCancellationError())
-    : Effect.succeed(value);
+import { considerUndefinedAsCancellation } from '../testHelpers/promptServiceStub';
 
 describe('OrgList tests', () => {
   const createOrgAuthorization = (overrides: Partial<OrgAuthorization> = {}): OrgAuthorization => ({
@@ -107,13 +100,6 @@ describe('OrgList tests', () => {
       let showQuickPickMock: jest.SpyInstance;
       let executeCommandMock: jest.SpyInstance;
       let listAllAuthorizationsMock: jest.Mock;
-      let getDefaultOrgConfigurationMock: jest.SpyInstance;
-      const defaultConfig = {
-        defaultDevHubProperty: undefined,
-        defaultOrgProperty: undefined,
-        defaultDevHubUsername: undefined,
-        defaultOrgUsername: undefined
-      };
 
       const buildLayer = () => {
         const mockServicesApi = {
@@ -122,6 +108,15 @@ describe('OrgList tests', () => {
             ConnectionService: {
               listAllAuthorizations: listAllAuthorizationsMock
             },
+            // getFreshAuthorizations yields ConfigService (default-org config) + AliasService (disk aliases)
+            // through getOrgRuntime; stub both so the data-loading path runs against fakes (no real I/O).
+            ConfigService: Effect.succeed({
+              getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => undefined })
+            }),
+            AliasService: Effect.succeed({
+              getAllAliases: () => Effect.succeed({}),
+              getUsernameFromAlias: () => Effect.succeed(Option.none())
+            }),
             // PromptService has accessors:false, so consumers `yield*` the service first
             PromptService: Effect.succeed({ considerUndefinedAsCancellation })
           }
@@ -136,9 +131,6 @@ describe('OrgList tests', () => {
         executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
         // ConnectionService.listAllAuthorizations returns an Effect; default to the seeded (empty) list
         listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
-        getDefaultOrgConfigurationMock = jest.spyOn(orgUtil, 'getDefaultOrgConfiguration');
-        jest.spyOn(orgUtil, 'readAliasesByUsernameFromDisk').mockResolvedValue(new Map());
-        getDefaultOrgConfigurationMock.mockResolvedValue(defaultConfig);
 
         resetOrgRuntimeForTesting();
         setAllServicesLayer(

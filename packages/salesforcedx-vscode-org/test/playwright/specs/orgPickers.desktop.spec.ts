@@ -14,6 +14,7 @@ import {
   executeCommandWithCommandPalette,
   expectOrgPickerListsOrg,
   MINIMAL_ORG_ALIAS,
+  NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   selectOrgInPicker,
@@ -127,7 +128,7 @@ const toggleMultiPickRow = async (page: import('@playwright/test').Page, alias: 
 /** Assert no error toast surfaced (UserCancellationError must map to CANCEL, never an error notification). */
 const expectNoErrorNotification = async (page: import('@playwright/test').Page): Promise<void> => {
   await expect(
-    page.locator('.notification-toast').filter({ has: page.locator('.codicon-error') }),
+    page.locator(NOTIFICATION_LIST_ITEM).filter({ has: page.locator('.codicon-error') }),
     'a CANCEL flow must not surface an error notification'
   ).toHaveCount(0);
 };

@@ -185,31 +185,33 @@ export const buildOrgQuickPickItems = (
   });
 };
 
+const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
+
+  const quickPickList = [...ACTION_ITEMS, ...buildOrgQuickPickItems(freshAuthorizations, defaultConfig)];
+
+  const selection: OrgQuickPickItem = yield* Effect.promise(() =>
+    vscode.window.showQuickPick(quickPickList, {
+      placeHolder: nls.localize('org_select_text'),
+      matchOnDescription: true,
+      matchOnDetail: true
+    })
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+
+  if (selection.commandId) {
+    vscode.commands.executeCommand(selection.commandId);
+    return;
+  }
+
+  const usernameOrAlias = selection.orgAlias ?? selection.orgUsername ?? '';
+  vscode.commands.executeCommand('sf.config.set', usernameOrAlias);
+});
+
 export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> =>
   getOrgRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const promptService = yield* api.services.PromptService;
-      const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
-
-      const quickPickList = [...ACTION_ITEMS, ...buildOrgQuickPickItems(freshAuthorizations, defaultConfig)];
-
-      const selection: OrgQuickPickItem = yield* Effect.promise(() =>
-        vscode.window.showQuickPick(quickPickList, {
-          placeHolder: nls.localize('org_select_text'),
-          matchOnDescription: true,
-          matchOnDetail: true
-        })
-      ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
-
-      if (selection.commandId) {
-        vscode.commands.executeCommand(selection.commandId);
-        return;
-      }
-
-      const usernameOrAlias = selection.orgAlias ?? selection.orgUsername ?? '';
-      vscode.commands.executeCommand('sf.config.set', usernameOrAlias);
-    }).pipe(
+    setDefaultOrgEffect().pipe(
       Effect.map((): ContinueResponse<{}> => ({ type: 'CONTINUE', data: {} })),
       Effect.catchTag('UserCancellationError', (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' }))
     )
