@@ -81,3 +81,5 @@ describe('my singleton tests', () => {
 This ensures each test gets a fresh singleton bound to its own mocks.
 
 **URI Normalization:** Test controllers may normalize URIs to handle platform-specific paths. LWC test controller strips `/private` prefix on macOS (via `normalizeJestFsPath`) to match discovery keying, preventing test runs from targeting detached tree items. When testing URI resolution, supply paths matching both symlinks and realpaths.
+
+**Test Results Panel Auto-Reveal:** LWC test controller auto-reveals the Test Results panel when running tests from command palette, editor code lenses, or editor-title buttons (via `runByExecutionInfo`). Native Test Explorer run-profile clicks call `runTests` directly and don't trigger reveal. Test the feature by mocking `vscode.commands.executeCommand` and verifying it receives `'workbench.panel.testResults.view.focus'`.
