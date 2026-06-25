@@ -5,117 +5,104 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import {
-  CliCommandExecutor,
-  ContinueResponse,
-  EmptyParametersGatherer,
-  ProgressNotification,
-  SfCommandlet,
-  SfCommandletExecutor,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
+import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import {
-  OrgOpenContainerResultParser,
-  OrgOpenErrorResult,
-  OrgOpenSuccessResult
-} from '../parsers/orgOpenContainerResultParser';
-import { telemetryService } from '../telemetry';
 
-const isSFContainerMode = (): boolean => (process.env.SF_CONTAINER_MODE ? true : false);
+/** Shown when there is no open Salesforce project; surfaced through the command error channel so
+ * ErrorHandlerService renders it via a single showErrorMessage (parity with sfProjectPreconditionChecker). */
+class NoSalesforceProjectError extends Schema.TaggedError<NoSalesforceProjectError>()('NoSalesforceProjectError', {
+  message: Schema.String
+}) {}
 
-class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
-  public build(_data: {}): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('org_open_default_scratch_org_text'))
-      .withArg('org:open')
-      .withLogName('org_open_default_scratch_org')
-      .withArg('--url-only')
-      .withJson()
-      .build();
-  }
+/** Raised when `sf org open --url-only --json` stdout cannot be decoded into either result shape. */
+class OrgOpenParseError extends Schema.TaggedError<OrgOpenParseError>()('OrgOpenParseError', {
+  message: Schema.String
+}) {}
 
-  public buildUserMessageWith(orgData: OrgOpenSuccessResult): string {
-    return nls.localize(
-      'org_open_container_mode_message_text',
-      orgData.result.orgId,
-      orgData.result.username,
-      orgData.result.url
-    );
-  }
+const OrgOpenSuccess = Schema.Struct({
+  status: Schema.Literal(0),
+  result: Schema.Struct({
+    orgId: Schema.String,
+    url: Schema.String,
+    username: Schema.String
+  })
+});
 
-  public execute(response: ContinueResponse<string>): void {
-    const startTime = globalThis.performance.now();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SF_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
+/** sf prints `{ status: 1, message }` on failure; preserve the old channel-message behavior. */
+const OrgOpenFailure = Schema.Struct({
+  status: Schema.Number,
+  message: Schema.String
+});
 
-    channelService.streamCommandStartStop(execution);
+/** Decodes the sf CLI JSON string from stdout, mapping a malformed JSON / unexpected shape to a tagged
+ * error rather than letting a SyntaxError/ParseError escape as a defect. */
+const OrgOpenResponse = Schema.parseJson(Schema.Union(OrgOpenSuccess, OrgOpenFailure));
+const decodeOrgOpenResponse = (stdout: string) =>
+  Schema.decodeUnknown(OrgOpenResponse)(stdout).pipe(
+    Effect.mapError(error => new OrgOpenParseError({ message: `Failed to parse org open response: ${error.message}` }))
+  );
 
-    let stdOut: string = '';
-    execution.stdoutSubject.subscribe(cliResponse => {
-      stdOut += cliResponse.toString();
+/**
+ * Effect command for `sf.org.open`: open the default org in the browser.
+ *
+ * Runs `sf org open --url-only --json` and opens the returned URL via `vscode.env.openExternal`.
+ * Unlike the old non-container executor (which let the CLI open the browser directly), this single
+ * path always resolves the URL and opens it via openExternal — an intentional behavior unification
+ * of the old container/non-container split.
+ */
+export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  // precondition (load-bearing): isSalesforceProject also sets the sf:project_opened context as a side
+  // effect (parity with sfProjectPreconditionChecker). Surface as a tagged error so ErrorHandlerService
+  // shows the localized message via a single showErrorMessage.
+  const isProject = yield* api.services.ProjectService.isSalesforceProject();
+  if (!isProject) {
+    return yield* new NoSalesforceProjectError({
+      message: nls.localize('org_open_no_salesforce_project_text')
     });
+  }
 
-    execution.processExitSubject.subscribe(() => {
-      this.logMetric(execution.command.logName, startTime);
-      try {
-        const orgOpenParser = new OrgOpenContainerResultParser(stdOut);
+  // pass --target-org so sf resolves the default org by username rather than the extension-host cwd
+  // (simpleExec runs without a workspace cwd). orgDelete uses the same pattern.
+  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const targetOrgFlag = orgInfo.username ? ` --target-org ${orgInfo.username}` : '';
+  if (!orgInfo.username) {
+    yield* Effect.logInfo('[orgOpen] no target-org username; falling back to sf default-org resolution');
+  }
 
-        if (orgOpenParser.openIsSuccessful()) {
-          // remove when we drop CLI invocations
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const cliOrgData = orgOpenParser.getResult() as OrgOpenSuccessResult;
-          const authenticatedOrgUrl: string = cliOrgData.result.url;
+  const terminalService = yield* api.services.TerminalService;
+  // SF_JSON_TO_STDOUT keeps JSON stdout clean across sf CLI versions (the old container path set it);
+  // required because we decode stdout as JSON.
+  const stdout = yield* terminalService.simpleExec({
+    command: `sf org open --url-only --json${targetOrgFlag}`,
+    parse: identity,
+    env: { SF_JSON_TO_STDOUT: 'true' }
+  });
+  const response = yield* decodeOrgOpenResponse(stdout);
 
-          channelService.appendLine(this.buildUserMessageWith(cliOrgData));
-          // open the default browser
-          vscode.env.openExternal(URI.parse(authenticatedOrgUrl));
-        } else {
-          // remove when we drop CLI invocations
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const errorResponse = orgOpenParser.getResult() as OrgOpenErrorResult;
-          channelService.appendLine(errorResponse.message);
-        }
-      } catch (error) {
-        channelService.appendLine(nls.localize('org_open_default_scratch_org_container_error'));
-        telemetryService.sendException(
-          'org_open_container',
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          `There was an error when parsing the org open response ${error}`
-        );
-      }
+  const channel = yield* api.services.ChannelService;
+
+  if (!('result' in response)) {
+    // failure branch: sf prints `{ status: 1, message }` — surface the message to the channel
+    yield* channel.appendToChannel(response.message);
+    yield* Effect.sync(() => {
+      channelService.showChannelOutput();
     });
-
-    notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
-    ProgressNotification.show(execution, cancellationTokenSource);
+    return;
   }
-}
-class OrgOpenExecutor extends SfCommandletExecutor<{}> {
-  protected showChannelOutput = false;
 
-  public build(_data: {}): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('org_open_default_scratch_org_text'))
-      .withArg('org:open')
-      .withLogName('org_open_default_scratch_org')
-      .build();
-  }
-}
-
-const getExecutor = (): SfCommandletExecutor<{}> =>
-  isSFContainerMode() ? new OrgOpenContainerExecutor() : new OrgOpenExecutor();
-
-export const orgOpen = (): void => {
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new EmptyParametersGatherer(), getExecutor());
-  void commandlet.run();
-};
+  const { orgId, username, url } = response.result;
+  yield* Effect.sync(() => void vscode.env.openExternal(URI.parse(url)));
+  yield* channel.appendToChannel(nls.localize('org_open_container_mode_message_text', orgId, username, url));
+  yield* Effect.sync(() => {
+    channelService.showChannelOutput();
+  });
+});
