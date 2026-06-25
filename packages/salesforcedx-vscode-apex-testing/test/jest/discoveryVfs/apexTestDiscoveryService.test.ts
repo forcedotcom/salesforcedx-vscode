@@ -5,23 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
-import * as Option from 'effect/Option';
-import {
-  ApexTestDiscoveryService,
-  DiscoveryReadError,
-  resolveDiscoveryOrgKey
-} from '../../../src/discoveryVfs/apexTestDiscoveryService';
+import { ApexTestDiscoveryService, resolveDiscoveryOrgKey } from '../../../src/discoveryVfs/apexTestDiscoveryService';
 import {
   ApexTestingDiscoveryFsProviderLive,
   ApexTestingDiscoveryFsProviderTag
 } from '../../../src/discoveryVfs/apexTestDiscoveryFsProviderTag';
-import { getOrgDiscoveryUri, getOrgIndexUri } from '../../../src/discoveryVfs/apexTestingDiscoveryFs';
+import { getApexTestingClassUri, getOrgDiscoveryUri } from '../../../src/discoveryVfs/apexTestingDiscoveryFs';
 import { ApexTestingDiscoveryFsProvider } from '../../../src/discoveryVfs/apexTestingDiscoveryFsProvider';
 import type { ToolingTestClass } from '../../../src/testDiscovery/schemas';
+
+const decoder = new TextDecoder();
 
 const classOf = (name: string, methods: string[]): ToolingTestClass => ({
   id: `id-${name}`,
@@ -48,117 +44,79 @@ const runExit = <A, E>(
   effect: Effect.Effect<A, E, ApexTestDiscoveryService>
 ) => Effect.runPromise(Effect.exit(Effect.provide(effect, serviceLayer)));
 
+const readClassBody = (provider: ApexTestingDiscoveryFsProvider, orgKey: string, fullClassName: string): string =>
+  decoder.decode(provider.readFile(getApexTestingClassUri(orgKey, fullClassName)));
+
 describe('ApexTestDiscoveryService', () => {
-  it('round-trips a saved index on read', async () => {
-    const { serviceLayer } = buildLayer();
+  it('writes a per-class .cls body into the VFS on save', async () => {
+    const { provider, serviceLayer } = buildLayer();
     const classes = [classOf('MyTest', ['testOne'])];
     const bodies = new Map([['MyTest', '@isTest private class MyTest {}']]);
 
-    const result = await run(
-      serviceLayer,
-      Effect.gen(function* () {
-        yield* ApexTestDiscoveryService.saveDiscoveredClasses('org123', classes, bodies);
-        return yield* ApexTestDiscoveryService.readDiscoveredClassesIndex('org123');
-      })
-    );
+    await run(serviceLayer, ApexTestDiscoveryService.saveDiscoveredClasses('org123', classes, bodies));
 
-    expect(Option.isSome(result)).toBe(true);
-    expect(Option.getOrThrow(result).orgKey).toBe('org123');
-    expect(Option.getOrThrow(result).classes).toEqual(classes);
+    expect(readClassBody(provider, 'org123', 'MyTest')).toBe('@isTest private class MyTest {}');
   });
 
-  it('returns Option.none for a never-saved org (FileNotFound), not an error', async () => {
-    const { serviceLayer } = buildLayer();
-
-    const result = await run(serviceLayer, ApexTestDiscoveryService.readDiscoveredClassesIndex('missing-org'));
-
-    expect(Option.isNone(result)).toBe(true);
-  });
-
-  it('fails with DiscoveryReadError on a corrupt index', async () => {
+  it('writes a localized placeholder when no class body is supplied', async () => {
     const { provider, serviceLayer } = buildLayer();
-    // Write garbage bytes directly so the decode step fails (not swallowed).
-    provider.createDirectoryInternal(getOrgDiscoveryUri('corrupt-org'));
-    provider.writeFileInternal(getOrgIndexUri('corrupt-org'), new TextEncoder().encode('{ not json'), {
-      create: true,
-      overwrite: true
-    });
+    const classes = [classOf('MyTest', ['testOne'])];
 
-    const exit = await runExit(serviceLayer, ApexTestDiscoveryService.readDiscoveredClassesIndex('corrupt-org'));
+    await run(serviceLayer, ApexTestDiscoveryService.saveDiscoveredClasses('org123', classes, new Map()));
 
-    expect(Exit.isFailure(exit)).toBe(true);
-    const failure = Exit.isFailure(exit) ? Option.getOrUndefined(Cause.failureOption(exit.cause)) : undefined;
-    expect(failure).toBeInstanceOf(DiscoveryReadError);
-    expect((failure as DiscoveryReadError).orgKey).toBe('corrupt-org');
+    expect(readClassBody(provider, 'org123', 'MyTest').length).toBeGreaterThan(0);
   });
 
   it('clearOrg removes a saved org and succeeds when the org is absent', async () => {
-    const { serviceLayer } = buildLayer();
+    const { provider, serviceLayer } = buildLayer();
     const classes = [classOf('MyTest', ['testOne'])];
 
-    const afterClear = await run(
+    await run(
       serviceLayer,
       Effect.gen(function* () {
         yield* ApexTestDiscoveryService.saveDiscoveredClasses('org123', classes, new Map());
         yield* ApexTestDiscoveryService.clearOrg('org123');
-        return yield* ApexTestDiscoveryService.readDiscoveredClassesIndex('org123');
       })
     );
-    expect(Option.isNone(afterClear)).toBe(true);
+    expect(() => provider.readFile(getApexTestingClassUri('org123', 'MyTest'))).toThrow();
+    expect(() => provider.readDirectory(getOrgDiscoveryUri('org123'))).toThrow();
 
     // Clearing an org that was never discovered is a no-op (FileNotFound → void), not an error.
     const exit = await runExit(serviceLayer, ApexTestDiscoveryService.clearOrg('never-existed'));
     expect(Exit.isSuccess(exit)).toBe(true);
   });
 
-  it('keeps orgs isolated', async () => {
-    const { serviceLayer } = buildLayer();
-    const aClasses = [classOf('AcctTest', ['a'])];
-    const bClasses = [classOf('OppTest', ['b'])];
-
-    const [a, b] = await run(
-      serviceLayer,
-      Effect.gen(function* () {
-        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgA', aClasses, new Map());
-        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgB', bClasses, new Map());
-        const readA = yield* ApexTestDiscoveryService.readDiscoveredClassesIndex('orgA');
-        const readB = yield* ApexTestDiscoveryService.readDiscoveredClassesIndex('orgB');
-        return [readA, readB] as const;
-      })
-    );
-
-    expect(Option.getOrThrow(a).classes).toEqual(aClasses);
-    expect(Option.getOrThrow(b).classes).toEqual(bClasses);
-  });
-
-  it('serves the second read from cache, and invalidates on save', async () => {
+  it('re-saving an org replaces its prior classes', async () => {
     const { provider, serviceLayer } = buildLayer();
-    const classes = [classOf('MyTest', ['testOne'])];
-    const readFileSpy = jest.spyOn(provider, 'readFile');
-
-    await run(serviceLayer, ApexTestDiscoveryService.saveDiscoveredClasses('org123', classes, new Map()));
-    const callsAfterSave = readFileSpy.mock.calls.length;
 
     await run(
       serviceLayer,
       Effect.gen(function* () {
-        yield* ApexTestDiscoveryService.readDiscoveredClassesIndex('org123');
-        yield* ApexTestDiscoveryService.readDiscoveredClassesIndex('org123');
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('org123', [classOf('OldTest', ['a'])], new Map());
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('org123', [classOf('NewTest', ['b'])], new Map());
       })
     );
-    // Two reads of the same org hit the VFS once; the second is served from cache.
-    expect(readFileSpy.mock.calls.length - callsAfterSave).toBe(1);
 
-    // A save invalidates the cache so the next read reflects the new classes.
-    const updated = [classOf('MyTest', ['testOne']), classOf('OtherTest', ['testTwo'])];
-    const afterResave = await run(
+    expect(readClassBody(provider, 'org123', 'NewTest').length).toBeGreaterThan(0);
+    // clearOrg ran before the re-save, so the prior class is gone.
+    expect(() => provider.readFile(getApexTestingClassUri('org123', 'OldTest'))).toThrow();
+  });
+
+  it('keeps orgs isolated', async () => {
+    const { provider, serviceLayer } = buildLayer();
+
+    await run(
       serviceLayer,
       Effect.gen(function* () {
-        yield* ApexTestDiscoveryService.saveDiscoveredClasses('org123', updated, new Map());
-        return yield* ApexTestDiscoveryService.readDiscoveredClassesIndex('org123');
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgA', [classOf('AcctTest', ['a'])], new Map());
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgB', [classOf('OppTest', ['b'])], new Map());
       })
     );
-    expect(Option.getOrThrow(afterResave).classes).toEqual(updated);
+
+    expect(readClassBody(provider, 'orgA', 'AcctTest').length).toBeGreaterThan(0);
+    expect(readClassBody(provider, 'orgB', 'OppTest').length).toBeGreaterThan(0);
+    // An org's classes are not visible under the other org.
+    expect(() => provider.readFile(getApexTestingClassUri('orgA', 'OppTest'))).toThrow();
   });
 
   it('resolveDiscoveryOrgKey prefers orgId, falls back to username, else unknown-org', () => {

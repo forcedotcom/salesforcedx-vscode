@@ -15,7 +15,6 @@ import { URI, Utils } from 'vscode-uri';
 export const APEX_TESTING_SCHEME = 'apex-testing';
 const ORGS_ROOT = 'orgs';
 const CLASSES_ROOT = 'classes';
-const INDEX_FILE = 'index.json';
 const CLASS_FILE_EXT = '.cls';
 
 const sanitizeOrgKey = (orgKey: string): string => encodeURIComponent(orgKey.trim().toLowerCase());
@@ -26,8 +25,6 @@ const getOrgsRootUri = (): URI => URI.from({ scheme: APEX_TESTING_SCHEME, path: 
 export const getOrgDiscoveryUri = (orgKey: string): URI => Utils.joinPath(getOrgsRootUri(), sanitizeOrgKey(orgKey));
 
 export const getOrgClassesDirUri = (orgKey: string): URI => Utils.joinPath(getOrgDiscoveryUri(orgKey), CLASSES_ROOT);
-
-export const getOrgIndexUri = (orgKey: string): URI => Utils.joinPath(getOrgDiscoveryUri(orgKey), INDEX_FILE);
 
 export const getApexTestingClassUri = (orgKey: string, fullClassName: string): URI => {
   const parts = fullClassName.split('.').map(sanitizePathPart);
