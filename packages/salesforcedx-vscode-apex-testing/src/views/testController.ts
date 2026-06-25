@@ -261,7 +261,13 @@ export class ApexTestController {
         const orgKey = resolveDiscoveryOrgKey(orgInfo);
         const classBodiesByFullName = yield* Effect.tryPromise(() => fetchClassBodies(apexClasses));
         yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgKey, apexClasses, classBodiesByFullName);
-      }).pipe(Effect.catchAll(error => Effect.logWarning('failed to persist discovered Apex classes', { error })))
+      }).pipe(
+        Effect.catchTags({
+          UnknownException: error => Effect.logWarning('failed to persist discovered Apex classes', { error }),
+          DiscoveryClearError: error => Effect.logWarning('failed to persist discovered Apex classes', { error })
+        }),
+        Effect.withSpan('ApexTestController.persistDiscoveredClasses')
+      )
     );
   }
 

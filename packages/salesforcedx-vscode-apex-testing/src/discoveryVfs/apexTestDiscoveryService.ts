@@ -7,12 +7,14 @@
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import * as Cache from 'effect/Cache';
+import * as Clock from 'effect/Clock';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { getFullClassName } from '../utils/testUtils';
 import {
@@ -62,7 +64,8 @@ export class DiscoveryReadError extends Schema.TaggedError<DiscoveryReadError>()
   cause: Schema.optional(Schema.Unknown)
 }) {}
 
-class DiscoveryClearError extends Schema.TaggedError<DiscoveryClearError>()('DiscoveryClearError', {
+/** @ExportTaggedError */
+export class DiscoveryClearError extends Schema.TaggedError<DiscoveryClearError>()('DiscoveryClearError', {
   orgKey: Schema.String,
   message: Schema.String,
   cause: Schema.optional(Schema.Unknown)
@@ -154,35 +157,35 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
       classes: readonly ToolingTestClass[],
       classBodiesByFullName: ReadonlyMap<string, string>
     ) {
+      const ms = yield* Clock.currentTimeMillis;
       const indexPayload: DiscoveredApexClassesIndex = {
         orgKey,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(ms).toISOString(),
         classes
       };
-      const encoded = yield* Schema.encode(DiscoveredApexClassesIndex)(indexPayload);
 
+      // clearOrg already invalidates the cache, so the next read reflects the new data.
       yield* clearOrg(orgKey);
       yield* Effect.sync(() => {
         provider.createDirectoryInternal(getOrgDiscoveryUri(orgKey));
         provider.createDirectoryInternal(getOrgClassesDirUri(orgKey));
-        classes.forEach(cls => {
+        classes.map(cls => {
           const fullClassName = getFullClassName(cls);
           const content =
             classBodiesByFullName.get(fullClassName) ??
             nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName);
           const classUri = getApexTestingClassUri(orgKey, fullClassName);
-          const parentPath = `/${classUri.path.split('/').filter(Boolean).slice(0, -1).join('/')}`;
-          provider.createDirectoryInternal(classUri.with({ path: parentPath }));
-          provider.writeFileInternal(classUri, encoder.encode(content), { create: true, overwrite: true });
+          provider.createDirectoryInternal(Utils.dirname(classUri));
+          return provider.writeFileInternal(classUri, encoder.encode(content), { create: true, overwrite: true });
         });
-        provider.writeFileInternal(getOrgIndexUri(orgKey), encoder.encode(JSON.stringify(encoded, null, 2)), {
+        // The index schema is a flat struct with no transforms, so JSON.stringify of the typed
+        // payload is equivalent to encoding it first.
+        provider.writeFileInternal(getOrgIndexUri(orgKey), encoder.encode(JSON.stringify(indexPayload, null, 2)), {
           create: true,
           overwrite: true
         });
       });
       yield* Effect.log('persisted discovered classes', { orgKey, count: classes.length });
-      // New data written; drop the stale cached snapshot so the next read reflects it.
-      yield* indexCache.invalidate(orgKey);
     });
 
     const readDiscoveredClassesIndex = Effect.fn('ApexTestDiscoveryService.readDiscoveredClassesIndex')(function* (
