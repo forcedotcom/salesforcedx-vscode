@@ -52,7 +52,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
@@ -155,7 +155,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
@@ -252,7 +252,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
@@ -349,7 +349,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
