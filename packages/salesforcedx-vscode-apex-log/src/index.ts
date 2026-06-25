@@ -89,13 +89,13 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
       registerCommand('sf.apex.traceFlags.deleteForCurrentUser', () => deleteTraceFlagForCurrentUserCommand()),
       registerCommand('sf.apex.traceFlags.createForUser', () => createTraceFlagForUserCommand()),
       registerCommand('sf.apex.traceFlags.createLogLevel', () => createLogLevelCommand()),
-      registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId: string) =>
+      registerCommand('sf.apex.traceFlags.deleteForId', (traceFlagId?: string) =>
         deleteTraceFlagForIdCommand(traceFlagId)
       ),
       registerCommand('sf.apex.traceFlags.changeDebugLevel', (traceFlagId: string) =>
         changeDebugLevelCommand(traceFlagId)
       ),
-      registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId: string) =>
+      registerCommand('sf.apex.traceFlags.deleteDebugLevelForId', (debugLevelId?: string) =>
         deleteDebugLevelForIdCommand(debugLevelId)
       ),
       registerCommand('sf.create.anonymous.apex.script', createAnonymousApexScriptCommand),

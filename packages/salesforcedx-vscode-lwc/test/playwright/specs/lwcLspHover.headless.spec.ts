@@ -64,15 +64,23 @@ test('LWC LSP provides hover documentation for lightning-accordion in HTML templ
       .filter({ hasText: /^lightning-accordion$/ })
       .first();
     await tagToken.waitFor({ state: 'visible', timeout: 10_000 });
-    await tagToken.hover();
-    // The LWC LSP hover provider (doHover) returns markdown documentation for the component;
-    // at minimum the component name appears in the hover card.
-    // The LWC LSP hover returns the component description (not the tag name itself).
+    // Cold-LSP race: the index-status item can show before doHover is ready, so a single hover
+    // that lands before the provider responds never re-triggers. Poll: each attempt clears any
+    // open hover and moves the pointer off the token so the next hover() is a genuine pointer
+    // transition that re-drives the provider, then asserts the card appears.
     // "View in Component Library" appears in every lightning-* component hover.
-    await expect(
-      page.locator('.monaco-hover').filter({ hasText: /View in Component Library/i }),
-      'LWC LSP hover card should appear with lightning-accordion component documentation'
-    ).toBeVisible({ timeout: 15_000 });
+    await expect(async () => {
+      await page.keyboard.press('Escape');
+      // Move the pointer off the token to an editor-body coordinate so the next hover() is a
+      // genuine pointer transition (avoids targeting the workbench title bar at 0,0).
+      const editorBox = await editor.boundingBox();
+      await page.mouse.move((editorBox?.x ?? 0) + 10, (editorBox?.y ?? 0) + (editorBox?.height ?? 0) - 10);
+      await tagToken.hover();
+      await expect(
+        page.locator('.monaco-hover').filter({ hasText: /View in Component Library/i }),
+        'LWC LSP hover card should appear with lightning-accordion component documentation'
+      ).toBeVisible({ timeout: 3000 });
+    }).toPass({ timeout: 45_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors);
@@ -105,11 +113,20 @@ test('LWC LSP provides hover type information for LightningElement in JS files',
       .filter({ hasText: /^LightningElement$/ })
       .first();
     await lightningToken.waitFor({ state: 'visible', timeout: 10_000 });
-    await lightningToken.hover();
-    await expect(
-      page.locator('.monaco-hover').filter({ hasText: /LightningElement/ }),
-      'hover card should show LightningElement type information from the LWC engine typings'
-    ).toBeVisible({ timeout: 20_000 });
+    // Same cold-LSP race as the HTML hover: poll re-hover so a hover that lands before the TS
+    // language service is ready gets re-driven.
+    await expect(async () => {
+      await page.keyboard.press('Escape');
+      // Move the pointer off the token to an editor-body coordinate so the next hover() is a
+      // genuine pointer transition (avoids targeting the workbench title bar at 0,0).
+      const editorBox = await editor.boundingBox();
+      await page.mouse.move((editorBox?.x ?? 0) + 10, (editorBox?.y ?? 0) + (editorBox?.height ?? 0) - 10);
+      await lightningToken.hover();
+      await expect(
+        page.locator('.monaco-hover').filter({ hasText: /LightningElement/ }),
+        'hover card should show LightningElement type information from the LWC engine typings'
+      ).toBeVisible({ timeout: 3000 });
+    }).toPass({ timeout: 45_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors);

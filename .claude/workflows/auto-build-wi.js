@@ -288,6 +288,34 @@ const extractPrUrl = details => {
   return null
 }
 
+// SF strips external hrefs from rich-text Details__c on save, leaving anchors like
+// <a href="">discussions/5867</a> — link TEXT survives, href is emptied. Reconstruct
+// the GitHub URL from the surviving text so the PR body can reference the originating
+// discussion/issue. Match ONLY empty/missing-href anchors whose TEXT is exactly a
+// discussions/NNN or issues/NNN path: a populated href is a live user link (already correct
+// — don't touch), and the workflow's own PR snippet has text '#NNN' (not a path) so it can
+// never produce a ghost URL on re-tick. Empty href covers the SF storage forms emitted by
+// rich text and the gus-cli convention: double-quoted href="" (incl. whitespace-only),
+// entity-encoded href=&quot;&quot;, or no href attr at all. Single-quoted/unquoted hrefs are
+// not produced by these inputs; if ever encountered, a populated such href would be
+// misclassified as empty. The exact-path text match (^...$) guards against reconstructing a
+// foreign repo URL embedded as anchor text.
+const extractDiscussionUrls = details =>
+  [
+    ...new Set(
+      [...String(details || '').matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)]
+        .filter(m => {
+          const href = m[1].match(/\bhref\s*=\s*(?:"([^"]*)"|&quot;([\s\S]*?)&quot;)/i)
+          const hrefValue = href ? (href[1] ?? href[2] ?? '').trim() : ''
+          return hrefValue === ''
+        })
+        .flatMap(m => {
+          const path = m[2].trim().match(/^(discussions|issues)\/\d+$/)
+          return path ? [`https://github.com/forcedotcom/salesforcedx-vscode/${path[0]}`] : []
+        })
+    ),
+  ]
+
 // Only match PRs appended by the workflow — formatted as <strong>PR:</strong> <a href="...">
 // This avoids false positives from "Prior art" / reference links in the WI body.
 const hasPrUrl = details =>
@@ -298,8 +326,15 @@ const hasPrUrl = details =>
 // A blocker is "satisfied" only once its work has actually merged — i.e. the WI
 // reached a terminal closed/completed status. 'Ready for Review' / 'Fixed' mean
 // the PR exists but hasn't merged, so a dependency in those states is NOT met.
+// GUS "Bug no-fix" terminal statuses — terminal like Closed/Completed, but the
+// label carries no "Closed" prefix. `Duplicate` is the canonical state for a
+// duplicate WI (the `Closed - Duplicate` status does not persist — a GUS trigger
+// reverts it to `Duplicate`), so the sequencing/dependency gates must count it as done.
+const NO_FIX_TERMINAL = new Set([
+  'Duplicate', 'Inactive', 'Never', 'Not a bug', 'Not Reproducible', 'Rejected', 'Eng Internal',
+])
 const isBlockerSatisfied = status =>
-  status === 'Completed' || status.startsWith('Closed')
+  status === 'Completed' || status.startsWith('Closed') || NO_FIX_TERMINAL.has(status)
 
 // A PR whose ONLY changed file is its own plan (or otherwise empty) has no
 // implementation — the Build phase no-op'd but reported 'done'. Such a PR still
@@ -523,7 +558,7 @@ Return ONLY the structured result.`
 
 const closeMergedPrompt = (r, identity) => {
   const { wt, branch } = pathsFor(identity, r.wi)
-  return `WI ${r.wi.name} has its PR (${r.wi.prUrl}) ${r.prState.state} on GitHub. Close out.
+  return `WI ${r.wi.name} has its PR (${r.wi.prUrl}) merged on GitHub. Close out.
 
 Steps (idempotent):
 1. If WI Status__c is not already a closed terminal value, update:
@@ -892,6 +927,7 @@ Return {ok: true} on success.`
 
 const draftPrPrompt = (chosen, identity, fixerResult) => {
   const { wt, branch } = pathsFor(identity, chosen)
+  const reconstructedUrls = extractDiscussionUrls(chosen.details)
   return `Push the branch and open a draft PR for WI ${chosen.name}.
 
 Worktree: ${wt}
@@ -910,7 +946,7 @@ Steps:
    - ## Plan — link to .claude/plans/${chosen.name}.md
    - ## Reviewer notes — list the remaining findings (skip if empty)
    - ## Test plan — items from the plan's verification section, but ONLY genuine human/manual verification steps. EXCLUDE: (a) items covered by new/modified e2e tests on the branch (inspect 'git diff --name-only origin/develop...HEAD' for files matching '**/e2e/**' or '*.e2e.*' or 'packages/*-e2e/**'); (b) anything already enforced automatically by hooks/CI — typecheck, lint, eslint, prettier/format, effect-language-service diagnostics, and unit/jest tests passing. A reviewer must never be asked to run a gate that a git hook, agent hook, or CI job already guarantees. If nothing manual remains after these exclusions, omit the section entirely rather than listing automated gates.
-   - GUS reference per pr-draft skill. CRITICAL: the repo's 'pr-validation' CI gate (salesforcecli validatePR) hard-fails (exit 1) unless the PR BODY contains the work item wrapped in @-signs — literally '@${chosen.name}@' (e.g. @W-12345678@), not just a bare 'W-...' or a markdown link. Ensure the exact token '@${chosen.name}@' appears somewhere in the body (the GUS reference line is the natural place). The title already carries the bare WI; the body needs the @-wrapped form.
+${reconstructedUrls.length ? `   - ## References — the originating GitHub discussion/issue links (SF stripped their hrefs; reconstructed below). Include each verbatim in the body:\n${reconstructedUrls.map(u => `     ${u}`).join('\n')}\n` : ''}   - GUS reference per pr-draft skill. CRITICAL: the repo's 'pr-validation' CI gate (salesforcecli validatePR) hard-fails (exit 1) unless the PR BODY contains the work item wrapped in @-signs — literally '@${chosen.name}@' (e.g. @W-12345678@), not just a bare 'W-...' or a markdown link. Ensure the exact token '@${chosen.name}@' appears somewhere in the body (the GUS reference line is the natural place). The title already carries the bare WI; the body needs the @-wrapped form.
    - Footer: '🤖 Generated by auto-build pipeline. Original WI: <gus link>'
 5. Before creating the PR, check for an existing open PR on this branch:
    gh pr list --head ${branch} --state open --json number,url --limit 1 --repo forcedotcom/salesforcedx-vscode
@@ -1040,9 +1076,15 @@ const monitorInFlight = async identity => {
     async result => {
       if (!result || result.action === 'no-pr-restart') return result
       const { prState } = result
-      if (prState.state === 'merged' || prState.state === 'closed') {
+      // Only MERGED means the WI's work shipped — close it out. A bare CLOSED PR is NOT a
+      // completion signal: a WI may carry 2+ PR URLs in Details__c (an abandoned first attempt
+      // plus the live PR), and URL extraction can match the abandoned one. Closing the WI on
+      // its CLOSED state would strand the live PR (it drops out of the monitor query and never
+      // gets flipped draft→ready). So a closed-not-merged PR falls through to 'wait'.
+      if (prState.state === 'merged') {
         return { ...result, decision: 'close-wi' }
       }
+      if (prState.state === 'closed') return { ...result, decision: 'wait' }
       // A green PR whose ONLY change is its own plan file has no implementation — the
       // Build phase no-op'd but reported 'done', and a docs-only diff trivially passes CI.
       // Refuse to open it for review; bounce the WI for human takeover instead. (Catches
