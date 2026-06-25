@@ -27,6 +27,7 @@ import { notificationService } from '../utils/notificationHelpers';
 import { getOrgApexClassProvider } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
+import { sortByMtimeAscending } from '../utils/sortHelpers';
 import {
   createMethodId,
   createNamespaceId,
@@ -1724,10 +1725,8 @@ export const disposeTestController = (): void => {
 };
 
 /**
- * Returns the URIs sorted oldest-first by mtime. Result filenames embed Salesforce test-run IDs,
- * which are NOT chronologically sortable, so alphabetical (filename) order can disagree with run
- * order. Restoration applies results oldest-first so the most recent run wins per method; sorting
- * by mtime keeps that ordering correct. Does not mutate the input. (Mirrors colorizer.ts.)
+ * Returns the URIs sorted oldest-first by mtime. Restoration applies results oldest-first so the
+ * most recent run wins per method. See {@link sortByMtimeAscending} for why mtime, not filename.
  */
 export const sortUrisByMtimeAscending = (items: readonly { uri: URI; mtime: number }[]): URI[] =>
-  items.toSorted((a, b) => a.mtime - b.mtime).map(item => item.uri);
+  sortByMtimeAscending(items).map(item => item.uri);

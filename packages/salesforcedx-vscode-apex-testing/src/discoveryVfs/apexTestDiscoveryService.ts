@@ -76,7 +76,7 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
       // The orgs root is absent until the first org is discovered; a failed/missing read just means
       // there is nothing to prune.
       const orgDirNames = yield* Effect.try(() => provider.readDirectory(getOrgsRootUri()).map(([name]) => name)).pipe(
-        Effect.orElseSucceed<string[]>(() => [])
+        Effect.orElseSucceed(() => [])
       );
 
       yield* Effect.forEach(
