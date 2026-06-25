@@ -15,7 +15,7 @@
     "node": ">=22.15.1"
   },
   "dependencies": {
-    "@actions/core": "^1.11.0",
+    "@actions/core": "^2.0.3",
     "@actions/github": "^6.0.0",
     "@salesforce/o11y-reporter": "^1.8.1",
     "@salesforce/vscode-service-provider": "1.5.0",
