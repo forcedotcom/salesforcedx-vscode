@@ -283,9 +283,13 @@ const extractPrUrl = details => {
   // Only extract PR URLs appended by the workflow (<strong>PR:</strong> <a href="...">).
   // Avoids treating "Prior art" / reference links as the WI's own PR.
   const s = String(details || '')
-  const prSection = s.match(/<strong>PR:<\/strong>[\s\S]*?(https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+)/)
-  if (prSection) return prSection[1]
-  return null
+  // The workflow only ever APPENDS PR markers, so the LAST match is the most recently
+  // opened = live PR; earlier markers are superseded/abandoned attempts. matchAll the
+  // global regex and take the last so monitor + picker check the live PR, not an old one.
+  const matches = [
+    ...s.matchAll(/<strong>PR:<\/strong>[\s\S]*?(https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+)/g),
+  ]
+  return matches.length ? matches[matches.length - 1][1] : undefined
 }
 
 // SF strips external hrefs from rich-text Details__c on save, leaving anchors like
