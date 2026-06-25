@@ -286,10 +286,13 @@ const extractPrUrl = details => {
   // The workflow only ever APPENDS PR markers, so the LAST match is the most recently
   // opened = live PR; earlier markers are superseded/abandoned attempts. matchAll the
   // global regex and take the last so monitor + picker check the live PR, not an old one.
+  // Caveat: a match requires the PR URL to survive in the href. If SF strips the live PR's
+  // href but an earlier abandoned PR's href survives, last-match falls back to the abandoned
+  // URL (pre-existing exposure; the workflow's own '#NNN' text holds no URL to reconstruct).
   const matches = [
     ...s.matchAll(/<strong>PR:<\/strong>[\s\S]*?(https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+)/g),
   ]
-  return matches.length ? matches[matches.length - 1][1] : undefined
+  return matches.at(-1)?.[1]
 }
 
 // SF strips external hrefs from rich-text Details__c on save, leaving anchors like
