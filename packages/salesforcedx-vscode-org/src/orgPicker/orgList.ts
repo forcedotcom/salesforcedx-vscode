@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, OrgAuthorization } from '@salesforce/core';
+import { OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS, type DefaultOrgInfoSchema } from '@salesforce/vscode-services';
@@ -14,12 +14,13 @@ import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
+import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import {
   determineOrgMarkers,
   getAuthFieldsFor,
   getDefaultOrgConfiguration,
-  readAliasesByUsernameFromDisk
+  getFreshAuthorizations
 } from '../util/orgUtil';
 
 type OrgType = 'DevHub' | 'Sandbox' | 'Scratch' | 'Org';
@@ -184,40 +185,37 @@ export const buildOrgQuickPickItems = (
   });
 };
 
-export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> => {
-  const [defaultConfig, authorizations, aliasesByUsername] = await Promise.all([
-    getDefaultOrgConfiguration(),
-    AuthInfo.listAllAuthorizations(),
-    readAliasesByUsernameFromDisk()
-  ]);
-
-  // Supplement stale StateAggregator alias data with fresh disk data
-  const freshAuthorizations = authorizations.map(org =>
-    org.aliases?.length ? org : { ...org, aliases: aliasesByUsername.get(org.username) ?? [] }
-  );
+const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
 
   const quickPickList = [...ACTION_ITEMS, ...buildOrgQuickPickItems(freshAuthorizations, defaultConfig)];
 
-  const selection = await vscode.window.showQuickPick(quickPickList, {
-    placeHolder: nls.localize('org_select_text'),
-    matchOnDescription: true,
-    matchOnDetail: true
-  });
+  const selection: OrgQuickPickItem = yield* Effect.promise(() =>
+    vscode.window.showQuickPick(quickPickList, {
+      placeHolder: nls.localize('org_select_text'),
+      matchOnDescription: true,
+      matchOnDetail: true
+    })
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
-  if (!selection) {
-    return { type: 'CANCEL' };
+  if (selection.commandId) {
+    vscode.commands.executeCommand(selection.commandId);
+    return;
   }
 
-  const orgItem: OrgQuickPickItem = selection;
-  if (orgItem.commandId) {
-    vscode.commands.executeCommand(orgItem.commandId);
-    return { type: 'CONTINUE', data: {} };
-  }
-
-  const usernameOrAlias = orgItem.orgAlias ?? orgItem.orgUsername ?? '';
+  const usernameOrAlias = selection.orgAlias ?? selection.orgUsername ?? '';
   vscode.commands.executeCommand('sf.config.set', usernameOrAlias);
-  return { type: 'CONTINUE', data: {} };
-};
+});
+
+export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> =>
+  getOrgRuntime().runPromise(
+    setDefaultOrgEffect().pipe(
+      Effect.map((): ContinueResponse<{}> => ({ type: 'CONTINUE', data: {} })),
+      Effect.catchTag('UserCancellationError', (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' }))
+    )
+  );
 
 /** Create and initialize OrgList with Effect-based TargetOrgRef watching */
 export const createOrgPicker = Effect.fn('OrgPicker.createOrgPicker')(function* () {

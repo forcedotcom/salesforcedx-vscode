@@ -225,6 +225,10 @@ const getMockVSCode = () => {
       Left: 1,
       Right: 2
     },
+    QuickPickItemKind: {
+      Separator: -1,
+      Default: 0
+    },
     ThemeColor: jest.fn(),
     window: {
       activeTextEditor: jest.fn(),

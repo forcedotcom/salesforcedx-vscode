@@ -25,8 +25,11 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Single persistent runtime for org extension Effect executions.
  * Built once on first use to avoid rebuilding services across commands.
  */
+/** Services provided by the org runtime (the `R` channel an Effect may require when run via {@link getOrgRuntime}). */
+export type OrgRuntimeContext = Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
+
 type OrgRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  OrgRuntimeContext,
   Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 let _orgRuntime: OrgRuntime | undefined;

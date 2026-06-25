@@ -295,49 +295,77 @@ type DefaultOrgConfig = {
  * Returns the resolved username for a given alias, or the input if it is already a username.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
+const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
+  aliasOrUsername: string
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const aliasService = yield* api.services.AliasService;
+  const opt = yield* aliasService.getUsernameFromAlias(aliasOrUsername);
+  return Option.getOrElse(opt, () => aliasOrUsername);
+});
+
+/** Promise wrapper for {@link resolveUsernameFromAliasEffect}. */
 export const resolveUsernameFromAlias = async (aliasOrUsername: string): Promise<string> =>
-  getOrgRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const aliasService = yield* api.services.AliasService;
-      const opt = yield* aliasService.getUsernameFromAlias(aliasOrUsername);
-      return Option.getOrElse(opt, () => aliasOrUsername);
-    }).pipe(Effect.withSpan('OrgUtil.resolveUsernameFromAlias'))
-  );
+  getOrgRuntime().runPromise(resolveUsernameFromAliasEffect(aliasOrUsername));
 
 /**
  * Returns a map of username → aliases[]. Used to supplement stale StateAggregator data in the org picker.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
+const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const aliasService = yield* api.services.AliasService;
+  const orgs = yield* aliasService.getAllAliases();
+  return Object.entries(orgs).reduce((result, [alias, username]) => {
+    result.set(username, [...(result.get(username) ?? []), alias]);
+    return result;
+  }, new Map<string, string[]>());
+});
+
+/** Promise wrapper for {@link readAliasesByUsernameFromDiskEffect}. */
 export const readAliasesByUsernameFromDisk = async (): Promise<Map<string, string[]>> =>
-  getOrgRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const aliasService = yield* api.services.AliasService;
-      const orgs = yield* aliasService.getAllAliases();
-      const result = new Map<string, string[]>();
-      for (const [alias, username] of Object.entries(orgs)) {
-        const existing = result.get(username) ?? [];
-        existing.push(alias);
-        result.set(username, existing);
-      }
-      return result;
-    }).pipe(Effect.withSpan('OrgUtil.readAliasesByUsernameFromDisk'))
+  getOrgRuntime().runPromise(readAliasesByUsernameFromDiskEffect());
+
+/**
+ * Loads default-org config + fresh org authorizations (alias-supplemented from disk) in one Effect.
+ * Authorizations come from `ConnectionService.listAllAuthorizations` (wraps `AuthInfo.listAllAuthorizations`).
+ * Consumed by the org pickers and `setDefaultOrg`.
+ */
+export const getFreshAuthorizations = Effect.fn('orgUtil.getFreshAuthorizations')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const [defaultConfig, authorizations, aliasesByUsername] = yield* Effect.all([
+    getDefaultOrgConfigurationEffect(),
+    api.services.ConnectionService.listAllAuthorizations(),
+    readAliasesByUsernameFromDiskEffect()
+  ]);
+
+  // Supplement stale StateAggregator alias data with fresh disk data
+  const freshAuthorizations = authorizations.map(org =>
+    org.aliases?.length ? org : { ...org, aliases: aliasesByUsername.get(org.username) ?? [] }
   );
 
+  return { defaultConfig, freshAuthorizations };
+});
+
 /** Get default org and devhub configuration */
-export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> => {
-  const configAggregator = await getOrgRuntime().runPromise(getConfigAggregatorEffect);
+const getDefaultOrgConfigurationEffect = Effect.fn('OrgUtil.getDefaultOrgConfiguration')(function* () {
+  const configAggregator = yield* getConfigAggregatorEffect;
   const defaultDevHubProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
   const defaultOrgProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
 
   return {
     defaultDevHubProperty,
     defaultOrgProperty,
-    defaultDevHubUsername: defaultDevHubProperty ? await resolveUsernameFromAlias(defaultDevHubProperty) : undefined,
-    defaultOrgUsername: defaultOrgProperty ? await resolveUsernameFromAlias(defaultOrgProperty) : undefined
-  };
-};
+    defaultDevHubUsername: defaultDevHubProperty
+      ? yield* resolveUsernameFromAliasEffect(defaultDevHubProperty)
+      : undefined,
+    defaultOrgUsername: defaultOrgProperty ? yield* resolveUsernameFromAliasEffect(defaultOrgProperty) : undefined
+  } satisfies DefaultOrgConfig;
+});
+
+/** Promise wrapper for {@link getDefaultOrgConfigurationEffect}. */
+export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> =>
+  getOrgRuntime().runPromise(getDefaultOrgConfigurationEffect());
 
 /** Determine the type of org (DevHub, Sandbox, Org, or Scratch) */
 const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
