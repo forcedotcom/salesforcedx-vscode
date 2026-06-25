@@ -15,14 +15,23 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 
-/** Shown when there is no open Salesforce project; surfaced through the command error channel so
- * ErrorHandlerService renders it via a single showErrorMessage (parity with sfProjectPreconditionChecker). */
-class NoSalesforceProjectError extends Schema.TaggedError<NoSalesforceProjectError>()('NoSalesforceProjectError', {
-  message: Schema.String
-}) {}
+/**
+ * Shown when there is no open Salesforce project; surfaced through the command error channel so
+ * ErrorHandlerService renders it via a single showErrorMessage (parity with sfProjectPreconditionChecker).
+ * @ExportTaggedError
+ */
+export class NoSalesforceProjectError extends Schema.TaggedError<NoSalesforceProjectError>()(
+  'NoSalesforceProjectError',
+  {
+    message: Schema.String
+  }
+) {}
 
-/** Raised when `sf org open --url-only --json` stdout cannot be decoded into either result shape. */
-class OrgOpenParseError extends Schema.TaggedError<OrgOpenParseError>()('OrgOpenParseError', {
+/**
+ * Raised when `sf org open --url-only --json` stdout cannot be decoded into either result shape.
+ * @ExportTaggedError
+ */
+export class OrgOpenParseError extends Schema.TaggedError<OrgOpenParseError>()('OrgOpenParseError', {
   message: Schema.String
 }) {}
 
@@ -44,14 +53,18 @@ const OrgOpenFailure = Schema.Struct({
 
 const OrgOpenResponse = Schema.Union(OrgOpenSuccess, OrgOpenFailure);
 type OrgOpenResponse = Schema.Schema.Type<typeof OrgOpenResponse>;
+type OrgOpenSuccess = Schema.Schema.Type<typeof OrgOpenSuccess>;
+type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
 
 /**
  * Decodes the sf CLI JSON from stdout. The CLI emits `{ result }` (success) or `{ status, message }`
- * (failure) — neither carries a `_tag`. The `'result' in raw` test lives ONLY here in the parse
- * adapter, where it injects the discriminant; all downstream dispatch is on `_tag` via Match.
- * Malformed JSON / unexpected shape maps to a tagged error rather than escaping as a defect.
+ * (failure) — neither carries a `_tag`. The `'result' in raw` test lives ONLY in the parse adapter
+ * below (`RawObject` + `decodeOrgOpenResponse`), where it injects the discriminant; all downstream
+ * dispatch is on `_tag` via Match. Malformed JSON / unexpected shape maps to a tagged error rather
+ * than escaping as a defect.
+ *
+ * `RawObject` parses stdout into a plain object so `_tag` can be injected before the tagged-union decode.
  */
-/** Parse stdout into a plain object so `_tag` can be injected before the tagged-union decode. */
 const RawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }));
 const decodeOrgOpenResponse = (stdout: string) =>
   Schema.decodeUnknown(RawObject)(stdout).pipe(
@@ -86,7 +99,7 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
   const targetOrgFlag = orgInfo.username ? ` --target-org ${orgInfo.username}` : '';
   if (!orgInfo.username) {
-    yield* Effect.logInfo('[orgOpen] no target-org username; falling back to sf default-org resolution');
+    yield* Effect.log('no target-org username; falling back to sf default-org resolution', { module: 'orgOpen' });
   }
 
   const terminalService = yield* api.services.TerminalService;
@@ -102,23 +115,25 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
 
   const channel = yield* api.services.ChannelService;
 
+  // both branches share the same channel epilogue (append the message, then reveal the channel);
+  // they differ only in the message and the success-only openExternal side effect.
+  const handleOrgOpenSuccess = Effect.fn('orgOpenCommand.handleSuccess')(function* ({
+    result: { orgId, username, url }
+  }: OrgOpenSuccess) {
+    yield* Effect.sync(() => void vscode.env.openExternal(URI.parse(url)));
+    yield* channel.appendToChannel(nls.localize('org_open_container_mode_message_text', orgId, username, url));
+    yield* channel.showChannel;
+  });
+
+  // failure branch: sf prints `{ status: 1, message }` — surface the message to the channel
+  const handleOrgOpenFailure = Effect.fn('orgOpenCommand.handleFailure')(function* ({ message }: OrgOpenFailure) {
+    yield* channel.appendToChannel(message);
+    yield* channel.showChannel;
+  });
+
   yield* Match.type<OrgOpenResponse>().pipe(
-    Match.tag('OrgOpenSuccess', ({ result: { orgId, username, url } }) =>
-      Effect.gen(function* () {
-        yield* Effect.sync(() => void vscode.env.openExternal(URI.parse(url)));
-        yield* channel.appendToChannel(nls.localize('org_open_container_mode_message_text', orgId, username, url));
-        const outputChannel = yield* channel.getChannel;
-        yield* Effect.sync(() => outputChannel.show());
-      })
-    ),
-    // failure branch: sf prints `{ status: 1, message }` — surface the message to the channel
-    Match.tag('OrgOpenFailure', ({ message }) =>
-      Effect.gen(function* () {
-        yield* channel.appendToChannel(message);
-        const outputChannel = yield* channel.getChannel;
-        yield* Effect.sync(() => outputChannel.show());
-      })
-    ),
+    Match.tag('OrgOpenSuccess', handleOrgOpenSuccess),
+    Match.tag('OrgOpenFailure', handleOrgOpenFailure),
     Match.exhaustive
   )(response);
 });
