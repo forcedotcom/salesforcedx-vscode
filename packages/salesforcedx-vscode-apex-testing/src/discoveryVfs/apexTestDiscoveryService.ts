@@ -7,7 +7,6 @@
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import * as Cache from 'effect/Cache';
-import * as Clock from 'effect/Clock';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -53,7 +52,6 @@ const ToolingTestClassSchema = Schema.Struct({
 /** Serialized index persisted to the discovery VFS. */
 const DiscoveredApexClassesIndex = Schema.Struct({
   orgKey: Schema.String,
-  updatedAt: Schema.String,
   classes: Schema.Array(ToolingTestClassSchema)
 });
 type DiscoveredApexClassesIndex = Schema.Schema.Type<typeof DiscoveredApexClassesIndex>;
@@ -157,10 +155,8 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
       classes: readonly ToolingTestClass[],
       classBodiesByFullName: ReadonlyMap<string, string>
     ) {
-      const ms = yield* Clock.currentTimeMillis;
       const indexPayload: DiscoveredApexClassesIndex = {
         orgKey,
-        updatedAt: new Date(ms).toISOString(),
         classes
       };
 
