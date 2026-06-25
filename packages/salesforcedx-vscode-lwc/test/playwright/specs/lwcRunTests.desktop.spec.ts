@@ -132,7 +132,11 @@ test('LWC Run Tests: run all via Test Explorer and verify both suites pass', asy
     await saveScreenshot(page, 'run-all.test-results-tab.png');
 
     // Native Test Controller marks the tree item passed (aria-label carries "(Passed)").
-    await expect(page.getByRole('treeitem', { name: /lwc1/i })).toHaveAttribute('aria-label', /Passed/i, {
+    // After the run the file/suite row (level 1, "lwc1 (Passed)") and its child test-case row
+    // (level 2, "lwc1") both match /lwc1/i, so scope to the top-level row to avoid a strict-mode
+    // violation — only the suite row carries the pass decoration.
+    const lwc1SuiteRow = page.getByRole('treeitem', { name: /lwc1/i, level: 1 });
+    await expect(lwc1SuiteRow).toHaveAttribute('aria-label', /Passed/i, {
       timeout: 60_000
     });
   });

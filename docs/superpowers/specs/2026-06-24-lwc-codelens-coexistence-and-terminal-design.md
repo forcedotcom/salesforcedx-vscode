@@ -4,7 +4,7 @@
 
 **Goal:** Make our LWC code lenses always visible and identifiable, with a one-time heads-up when Jest Runner is also installed; stop showing the redundant jest terminal on controller runs (results already flow to Test Results).
 
-**Status:** Part A (Code-lens coexistence) implemented in commit d9c7c5206464f59fb278569e6594afdb3d018704. Part B (terminal suppression) implemented in commit 379161eda.
+**Status:** Part A (Code-lens coexistence) implemented in commit d9c7c5206. Part B (terminal suppression) implemented in commits 379161eda (initial) and f33fac77b (refinement).
 
 ## Constraints
 
@@ -82,24 +82,24 @@ Watch mode behavior and its terminal; any change to Jest Runner; the watch -> Co
 
 ## Implementation Notes (Part B)
 
-**Commit:** 379161eda
+**Commits:** 379161eda (initial), f33fac77b (refinement)
+
+**Initial approach (379161eda):** Added optional `presentationOverride` parameter to `taskService.createTask` for callers to customize terminal presentation.
+
+**Refined approach (f33fac77b):** Reverted to simpler design using default shared panels.
 
 **Changes made:**
 
-1. **Added optional `presentationOverride` parameter to `taskService.createTask`** (`taskService.ts`)
-   - Parameter: `presentationOverride?: Partial<vscode.TaskPresentationOptions>`
-   - Merged with defaults to allow callers to override specific presentation options
-   - Default behavior preserved; watch path unaffected by change
+1. **`taskService.createTask` defaults** (`taskService.ts`)
+   - Removed `presentationOverride` parameter
+   - Default presentation: `Shared` panel (reused across runs, not spawned per-run), `reveal: Never`, `echo: false`, `focus: false`, `clear: true`, `showReuseMessage: false`
 
-2. **Updated controller-driven run path** (`lwcTestController.ts`)
-   - In `executeOne` method (non-debug branch), pass presentation override to suppress terminal
-   - Override includes: `reveal: Never`, `panel: Dedicated`, `echo: false`, `focus: false`, `showReuseMessage: false`
-   - Dedicated panel ensures task output stays hidden while JSON result file is written and read
-   - Real feedback surface is Test Results tab; terminal remains hidden from user
+2. **Controller-driven run path** (`lwcTestController.ts`)
+   - In `executeOne` method (non-debug branch), removed custom presentation override
+   - Uses default presentation from `createTask` — terminal hidden yet shared, avoiding redundant terminals spawned per run
+   - Real feedback surface is Test Results tab
 
 3. **Test coverage** (`taskService.test.ts`)
-   - New test file added to validate `presentationOverride` parameter
-   - Tests verify override merges with defaults
-   - Tests confirm watch caller's default presentation is unchanged
+   - Single test verifies default presentation includes hidden shared panel
 
-**Behavior:** Controller-driven test runs no longer show a redundant jest terminal. Test output flows to JSON result file, which the controller reads and populates into Test Results tab. Watch mode remains unaffected (uses original presentation defaults).
+**Behavior:** Controller-driven test runs reuse a single shared terminal (hidden from user) across multiple runs, eliminating redundant terminals. Test output flows to JSON result file, which the controller reads and populates into Test Results tab. Watch mode unaffected.

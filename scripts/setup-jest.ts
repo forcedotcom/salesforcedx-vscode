@@ -407,15 +407,9 @@ const getMockVSCode = () => {
       public commandLine: string;
       public options?: any;
       constructor(commandOrCommandLine: string, argsOrOptions?: any, options?: any) {
-        if (Array.isArray(argsOrOptions)) {
-          // ShellExecution(command, args, options)
-          this.commandLine = commandOrCommandLine;
-          this.options = options;
-        } else {
-          // ShellExecution(commandLine, options)
-          this.commandLine = commandOrCommandLine;
-          this.options = argsOrOptions;
-        }
+        // ShellExecution(command, args, options) | ShellExecution(commandLine, options)
+        this.commandLine = commandOrCommandLine;
+        this.options = Array.isArray(argsOrOptions) ? options : argsOrOptions;
       }
     },
     Task: class {

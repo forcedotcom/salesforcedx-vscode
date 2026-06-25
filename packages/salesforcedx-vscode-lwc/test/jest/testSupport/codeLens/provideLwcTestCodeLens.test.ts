@@ -102,7 +102,7 @@ describe('Test Suite', () => {
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
     // Deferral is removed - lenses should be returned even with Jest Runner present
-    expect(codeLenses.length).toBeGreaterThan(0);
+    expect(codeLenses).toHaveLength(4); // Run and Debug for both describe and it blocks
 
     // Restore the original function
     jest.restoreAllMocks();
