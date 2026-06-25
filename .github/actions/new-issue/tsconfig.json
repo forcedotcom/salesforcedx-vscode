@@ -1,7 +1,13 @@
 {
   "extends": "../../../tsconfig.common.json",
   "compilerOptions": {
-    "outDir": "./lib"
+    "outDir": "./lib",
+    // @actions/github@8 ships type declarations that deep-import `@octokit/core/dist-types/types`,
+    // a subpath @octokit/core@7 no longer exposes via its `exports` map. Under moduleResolution Node16
+    // this fails to resolve and collapses the Octokit type to `any`. Map it to the on-disk declaration.
+    "paths": {
+      "@octokit/core/dist-types/types": ["../../../node_modules/@octokit/core/dist-types/types.d.ts"]
+    }
   },
   "files": [
     "src/index.ts"
