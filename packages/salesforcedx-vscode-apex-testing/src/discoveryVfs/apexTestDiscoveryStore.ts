@@ -17,25 +17,26 @@ import {
 } from './apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './apexTestingDiscoveryFsProvider';
 
+// resolveDiscoveryOrgKey now lives with the Effect service; re-export keeps consumer imports stable
+// through Phase 2 (this whole file is deleted once consumers migrate to apexTestDiscoveryService).
+export { resolveDiscoveryOrgKey } from './apexTestDiscoveryService';
+
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
-type DiscoveredApexClassesIndex = {
+type DiscoveredApexClassesIndexLegacy = {
   orgKey: string;
   updatedAt: string;
   classes: ToolingTestClass[];
 };
 
-const isDiscoveredApexClassesIndex = (value: unknown): value is DiscoveredApexClassesIndex => {
+const isDiscoveredApexClassesIndex = (value: unknown): value is DiscoveredApexClassesIndexLegacy => {
   if (!isPlainObject(value)) {
     return false;
   }
   const { orgKey, updatedAt, classes } = value;
   return typeof orgKey === 'string' && typeof updatedAt === 'string' && Array.isArray(classes);
 };
-
-export const resolveDiscoveryOrgKey = (orgInfo: { orgId?: string; username?: string }): string =>
-  orgInfo.orgId ?? orgInfo.username ?? 'unknown-org';
 
 export class ApexTestDiscoveryStore {
   private readonly provider = getApexTestingDiscoveryFsProvider();
@@ -48,7 +49,7 @@ export class ApexTestDiscoveryStore {
     const orgUri = getOrgDiscoveryUri(orgKey);
     const classesDirUri = getOrgClassesDirUri(orgKey);
     const indexUri = getOrgIndexUri(orgKey);
-    const indexPayload: DiscoveredApexClassesIndex = {
+    const indexPayload: DiscoveredApexClassesIndexLegacy = {
       orgKey,
       updatedAt: new Date().toISOString(),
       classes
@@ -73,7 +74,7 @@ export class ApexTestDiscoveryStore {
     });
   }
 
-  public readDiscoveredClassesIndex(orgKey: string): DiscoveredApexClassesIndex | undefined {
+  public readDiscoveredClassesIndex(orgKey: string): DiscoveredApexClassesIndexLegacy | undefined {
     try {
       const content = this.provider.readFile(getOrgIndexUri(orgKey));
       const parsed: unknown = JSON.parse(decoder.decode(content));
