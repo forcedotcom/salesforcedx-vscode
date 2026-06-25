@@ -14,7 +14,10 @@ describe('resolveExecOptions', () => {
     // parent env key still present (PATH-survival proxy) AND override applied
     expect(env?.CHILD_PROCESS_TEST_PARENT).toBe('parent-value');
     expect(env?.SF_JSON_TO_STDOUT).toBe('true');
-    expect(env?.PATH).toBe(process.env.PATH);
+    // PATH survives — spread of process.env keeps the OS-native key casing (Path on Windows, PATH on posix),
+    // so look it up case-insensitively rather than assuming the uppercase key.
+    const pathEntry = Object.entries(env ?? {}).find(([key]) => key.toUpperCase() === 'PATH');
+    expect(pathEntry?.[1]).toBe(process.env.PATH);
     delete process.env.CHILD_PROCESS_TEST_PARENT;
   });
 
