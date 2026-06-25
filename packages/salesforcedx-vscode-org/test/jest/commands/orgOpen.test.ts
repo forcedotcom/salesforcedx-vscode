@@ -12,11 +12,6 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { orgOpenCommand } from '../../../src/commands/orgOpen';
 
-jest.mock('../../../src/channels', () => ({
-  channelService: { appendLine: jest.fn(), showChannelOutput: jest.fn() },
-  OUTPUT_CHANNEL: {}
-}));
-
 const SUCCESS_STDOUT = JSON.stringify({
   status: 0,
   result: { orgId: '00Dxx', username: 'me@scratch.org', url: 'https://example.my.salesforce.com/secur/frontdoor.jsp' }
@@ -29,6 +24,7 @@ const buildServices = (opts: {
   orgInfo: OrgSnapshot;
   simpleExec: jest.Mock;
   appendToChannel: jest.Mock;
+  show: jest.Mock;
 }) => ({
   ProjectService: { isSalesforceProject: () => Effect.succeed(opts.isProject) },
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
@@ -36,12 +32,20 @@ const buildServices = (opts: {
     appendToChannel: (msg: string) =>
       Effect.sync(() => {
         opts.appendToChannel(msg);
-      })
+      }),
+    // in-layer getChannel returns the OutputChannel; the command calls .show() on it (no legacy ../channels singleton)
+    getChannel: Effect.sync(() => ({ show: opts.show }))
   }),
   TargetOrgRef: () => SubscriptionRef.make(opts.orgInfo)
 });
 
-const run = (opts: { isProject: boolean; orgInfo: OrgSnapshot; simpleExec: jest.Mock; appendToChannel: jest.Mock }) =>
+const run = (opts: {
+  isProject: boolean;
+  orgInfo: OrgSnapshot;
+  simpleExec: jest.Mock;
+  appendToChannel: jest.Mock;
+  show: jest.Mock;
+}) =>
   Effect.runPromiseExit(
     orgOpenCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
@@ -52,41 +56,46 @@ const run = (opts: { isProject: boolean; orgInfo: OrgSnapshot; simpleExec: jest.
 
 describe('orgOpenCommand', () => {
   let openExternal: jest.Mock;
+  let show: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     openExternal = jest.fn().mockResolvedValue(true);
+    show = jest.fn();
     // the global vscode mock has no env.openExternal; stub it per-test
     (vscode.env as unknown as { openExternal: jest.Mock }).openExternal = openExternal;
   });
 
-  it('runs `sf org open --url-only --json` with --target-org and SF_JSON_TO_STDOUT, opens the url, appends the access message', async () => {
+  it('runs `sf org open --url-only --json` with --target-org and SF_JSON_TO_STDOUT, opens the url, appends the access message, shows the channel', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const appendToChannel = jest.fn();
     const exit = await run({
       isProject: true,
       orgInfo: { orgId: '00Dxx', username: 'me@scratch.org' },
       simpleExec,
-      appendToChannel
+      appendToChannel,
+      show
     });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
       command: 'sf org open --url-only --json --target-org me@scratch.org',
       parse: expect.any(Function),
-      env: { SF_JSON_TO_STDOUT: 'true' }
+      env: { SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' }
     });
     expect(openExternal).toHaveBeenCalledTimes(1);
     expect(String(openExternal.mock.calls[0][0])).toContain('frontdoor.jsp');
     expect(appendToChannel).toHaveBeenCalledWith(
       expect.stringContaining('https://example.my.salesforce.com/secur/frontdoor.jsp')
     );
+    // in-layer getChannel().show(), not the legacy ../channels singleton
+    expect(show).toHaveBeenCalledTimes(1);
   });
 
   it('omits --target-org when there is no default-org username', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const appendToChannel = jest.fn();
-    const exit = await run({ isProject: true, orgInfo: {}, simpleExec, appendToChannel });
+    const exit = await run({ isProject: true, orgInfo: {}, simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(expect.objectContaining({ command: 'sf org open --url-only --json' }));
@@ -95,7 +104,13 @@ describe('orgOpenCommand', () => {
   it('fails with NoSalesforceProjectError and does not exec or open when not in a project', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const appendToChannel = jest.fn();
-    const exit = await run({ isProject: false, orgInfo: { username: 'me@scratch.org' }, simpleExec, appendToChannel });
+    const exit = await run({
+      isProject: false,
+      orgInfo: { username: 'me@scratch.org' },
+      simpleExec,
+      appendToChannel,
+      show
+    });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('NoSalesforceProjectError');
@@ -107,7 +122,13 @@ describe('orgOpenCommand', () => {
     const failureStdout = JSON.stringify({ status: 1, message: 'No default org set' });
     const simpleExec = jest.fn(() => Effect.succeed(failureStdout));
     const appendToChannel = jest.fn();
-    const exit = await run({ isProject: true, orgInfo: { username: 'me@scratch.org' }, simpleExec, appendToChannel });
+    const exit = await run({
+      isProject: true,
+      orgInfo: { username: 'me@scratch.org' },
+      simpleExec,
+      appendToChannel,
+      show
+    });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(appendToChannel).toHaveBeenCalledWith('No default org set');
@@ -117,7 +138,13 @@ describe('orgOpenCommand', () => {
   it('fails with OrgOpenParseError on malformed stdout and does not open', async () => {
     const simpleExec = jest.fn(() => Effect.succeed('not json at all'));
     const appendToChannel = jest.fn();
-    const exit = await run({ isProject: true, orgInfo: { username: 'me@scratch.org' }, simpleExec, appendToChannel });
+    const exit = await run({
+      isProject: true,
+      orgInfo: { username: 'me@scratch.org' },
+      simpleExec,
+      appendToChannel,
+      show
+    });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgOpenParseError');
