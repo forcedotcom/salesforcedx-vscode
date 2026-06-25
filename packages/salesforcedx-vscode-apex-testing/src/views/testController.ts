@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
-import { ApexTestDiscoveryService, resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryService';
+import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { APEX_TESTING_SCHEME } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
@@ -257,10 +257,11 @@ export class ApexTestController {
     // optimization, not required for the test tree to render).
     await getApexTestingRuntime().runPromise(
       Effect.gen(function* () {
-        const orgInfo = yield* Effect.tryPromise(() => getDefaultOrgInfo());
-        const orgKey = resolveDiscoveryOrgKey(orgInfo);
+        const { orgId } = yield* Effect.tryPromise(() => getDefaultOrgInfo());
+        // No default org → nothing to key the snapshot by; persistence is best-effort, so skip.
+        if (!orgId) return;
         const classBodiesByFullName = yield* Effect.tryPromise(() => fetchClassBodies(apexClasses));
-        yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgKey, apexClasses, classBodiesByFullName);
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgId, apexClasses, classBodiesByFullName);
       }).pipe(
         Effect.catchTags({
           UnknownException: error => Effect.logWarning('failed to persist discovered Apex classes', { error }),
@@ -658,8 +659,9 @@ export class ApexTestController {
     }
 
     const classNameToUri = await buildClassToUriIndex(apexClasses.map(cls => cls.name));
-    const orgInfo = await getDefaultOrgInfo();
-    const orgKey = resolveDiscoveryOrgKey(orgInfo);
+    const { orgId } = await getDefaultOrgInfo();
+    // No default org → no org-scoped tree to diff against.
+    if (!orgId) return;
 
     for (const [fullName, changeType] of changes) {
       const discoveredClass = discoveryMap.get(fullName);
@@ -668,7 +670,7 @@ export class ApexTestController {
       if (changeType === 'created' || (!existingClassItem && discoveredClass)) {
         // New class: add to tree
         if (discoveredClass) {
-          await this.addClassToTree(discoveredClass, classNameToUri, orgKey);
+          await this.addClassToTree(discoveredClass, classNameToUri, orgId);
         }
       } else if (changeType === 'changed' && existingClassItem && discoveredClass) {
         // Always apply stale tags for filtering (remove active tags)
@@ -894,7 +896,9 @@ export class ApexTestController {
       .map(cls => cls.id)
       .filter((id): id is string => typeof id === 'string' && id.length > 0);
     const [connection, orgInfo] = await Promise.all([this.getConnection(), getDefaultOrgInfo()]);
-    const orgKey = resolveDiscoveryOrgKey(orgInfo);
+    // No default org → no org-scoped tree to build.
+    if (!orgInfo.orgId) return;
+    const orgKey = orgInfo.orgId;
     const classIdToPackage = await resolvePackage2Members(
       connection,
       classIds,

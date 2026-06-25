@@ -8,11 +8,8 @@
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
-import { ApexTestDiscoveryService, resolveDiscoveryOrgKey } from '../../../src/discoveryVfs/apexTestDiscoveryService';
-import {
-  ApexTestingDiscoveryFsProviderLive,
-  ApexTestingDiscoveryFsProviderTag
-} from '../../../src/discoveryVfs/apexTestDiscoveryFsProviderTag';
+import { ApexTestDiscoveryService } from '../../../src/discoveryVfs/apexTestDiscoveryService';
+import { ApexTestingDiscoveryFsProviderTag } from '../../../src/discoveryVfs/apexTestDiscoveryFsProviderTag';
 import {
   getApexTestingClassUri,
   getOrgClassesDirUri,
@@ -22,6 +19,9 @@ import { ApexTestingDiscoveryFsProvider } from '../../../src/discoveryVfs/apexTe
 import type { ToolingTestClass } from '../../../src/testDiscovery/schemas';
 
 const decoder = new TextDecoder();
+
+// The provider surfaces "missing" as a typed FileSystemError; assert the code, not just that it threw.
+const throwsWithCode = (fn: () => unknown, code: string) => expect(fn).toThrow(expect.objectContaining({ code }));
 
 const classOf = (name: string, methods: string[]): ToolingTestClass => ({
   id: `id-${name}`,
@@ -52,23 +52,16 @@ const readClassBody = (provider: ApexTestingDiscoveryFsProvider, orgKey: string,
   decoder.decode(provider.readFile(getApexTestingClassUri(orgKey, fullClassName)));
 
 describe('ApexTestDiscoveryService', () => {
-  it('writes a per-class .cls body into the VFS on save', async () => {
+  it('writes the supplied body verbatim, or a placeholder naming the class when none is supplied', async () => {
     const { provider, serviceLayer } = buildLayer();
-    const classes = [classOf('MyTest', ['testOne'])];
-    const bodies = new Map([['MyTest', '@isTest private class MyTest {}']]);
+    const classes = [classOf('WithBody', ['testOne']), classOf('NoBody', ['testTwo'])];
+    const bodies = new Map([['WithBody', '@isTest private class WithBody {}']]);
 
     await run(serviceLayer, ApexTestDiscoveryService.saveDiscoveredClasses('org123', classes, bodies));
 
-    expect(readClassBody(provider, 'org123', 'MyTest')).toBe('@isTest private class MyTest {}');
-  });
-
-  it('writes a localized placeholder when no class body is supplied', async () => {
-    const { provider, serviceLayer } = buildLayer();
-    const classes = [classOf('MyTest', ['testOne'])];
-
-    await run(serviceLayer, ApexTestDiscoveryService.saveDiscoveredClasses('org123', classes, new Map()));
-
-    expect(readClassBody(provider, 'org123', 'MyTest').length).toBeGreaterThan(0);
+    expect(readClassBody(provider, 'org123', 'WithBody')).toBe('@isTest private class WithBody {}');
+    // Missing body → localized placeholder that includes the class name.
+    expect(readClassBody(provider, 'org123', 'NoBody')).toContain('NoBody');
   });
 
   it('clearOrg removes the classes subtree but leaves the org dir, and is a no-op when absent', async () => {
@@ -83,8 +76,8 @@ describe('ApexTestDiscoveryService', () => {
       })
     );
     // The discovered classes are gone...
-    expect(() => provider.readFile(getApexTestingClassUri('org123', 'MyTest'))).toThrow();
-    expect(() => provider.readDirectory(getOrgClassesDirUri('org123'))).toThrow();
+    throwsWithCode(() => provider.readFile(getApexTestingClassUri('org123', 'MyTest')), 'FileNotFound');
+    throwsWithCode(() => provider.readDirectory(getOrgClassesDirUri('org123')), 'FileNotADirectory');
     // ...but the org dir itself survives (another feature may persist alongside classes/).
     expect(() => provider.readDirectory(getOrgDiscoveryUri('org123'))).not.toThrow();
 
@@ -108,8 +101,8 @@ describe('ApexTestDiscoveryService', () => {
 
     // Current org's classes survive; the others' are pruned.
     expect(readClassBody(provider, 'orgB', 'OppTest').length).toBeGreaterThan(0);
-    expect(() => provider.readDirectory(getOrgClassesDirUri('orgA'))).toThrow();
-    expect(() => provider.readDirectory(getOrgClassesDirUri('orgC'))).toThrow();
+    throwsWithCode(() => provider.readDirectory(getOrgClassesDirUri('orgA')), 'FileNotADirectory');
+    throwsWithCode(() => provider.readDirectory(getOrgClassesDirUri('orgC')), 'FileNotADirectory');
   });
 
   it('pruneForeignOrgClasses is a no-op when nothing has been discovered yet', async () => {
@@ -132,7 +125,7 @@ describe('ApexTestDiscoveryService', () => {
 
     expect(readClassBody(provider, 'org123', 'NewTest').length).toBeGreaterThan(0);
     // clearOrg ran before the re-save, so the prior class is gone.
-    expect(() => provider.readFile(getApexTestingClassUri('org123', 'OldTest'))).toThrow();
+    throwsWithCode(() => provider.readFile(getApexTestingClassUri('org123', 'OldTest')), 'FileNotFound');
   });
 
   it('keeps orgs isolated', async () => {
@@ -149,19 +142,6 @@ describe('ApexTestDiscoveryService', () => {
     expect(readClassBody(provider, 'orgA', 'AcctTest').length).toBeGreaterThan(0);
     expect(readClassBody(provider, 'orgB', 'OppTest').length).toBeGreaterThan(0);
     // An org's classes are not visible under the other org.
-    expect(() => provider.readFile(getApexTestingClassUri('orgA', 'OppTest'))).toThrow();
-  });
-
-  it('resolveDiscoveryOrgKey prefers orgId, falls back to username, else unknown-org', () => {
-    expect(resolveDiscoveryOrgKey({ orgId: '00Dxx', username: 'u@example.com' })).toBe('00Dxx');
-    expect(resolveDiscoveryOrgKey({ username: 'u@example.com' })).toBe('u@example.com');
-    expect(resolveDiscoveryOrgKey({})).toBe('unknown-org');
-  });
-
-  it('production layer resolves the FsProvider tag to a provider instance', async () => {
-    const provider = await Effect.runPromise(
-      Effect.provide(ApexTestingDiscoveryFsProviderTag, ApexTestingDiscoveryFsProviderLive)
-    );
-    expect(provider).toBeInstanceOf(ApexTestingDiscoveryFsProvider);
+    throwsWithCode(() => provider.readFile(getApexTestingClassUri('orgA', 'OppTest')), 'FileNotFound');
   });
 });

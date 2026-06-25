@@ -103,8 +103,7 @@ jest.mock('../../../src/discoveryVfs/apexTestDiscoveryService', () => {
         mockSaveDiscoveredClasses(...args);
         return EffectLib.void;
       }
-    },
-    resolveDiscoveryOrgKey: jest.fn().mockReturnValue('org123')
+    }
   };
 });
 

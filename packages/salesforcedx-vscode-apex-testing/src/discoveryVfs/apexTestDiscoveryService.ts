@@ -33,10 +33,6 @@ export class DiscoveryClearError extends Schema.TaggedError<DiscoveryClearError>
   cause: Schema.optional(Schema.Unknown)
 }) {}
 
-/** Org cache key resolution (pure). orgId preferred; username fallback; else a stable placeholder. */
-export const resolveDiscoveryOrgKey = (orgInfo: { orgId?: string; username?: string }): string =>
-  orgInfo.orgId ?? orgInfo.username ?? 'unknown-org';
-
 // Deleting an absent entry walks a missing parent dir; the provider surfaces this as either FileNotFound
 // (the target) or FileNotADirectory (an ancestor like /orgs). Both mean "nothing to clear".
 const isAbsent = (error: unknown): boolean =>
