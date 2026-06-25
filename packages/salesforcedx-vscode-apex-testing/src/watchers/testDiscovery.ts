@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
+import { ApexTestDiscoveryService, resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryService';
 import { getTestController } from '../views/testController';
 
 /** Initialize test discovery when an org is available, and re-discover on org changes */
@@ -25,8 +26,10 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
       Stream.filter(isString),
       Stream.changes,
       Stream.tap(orgId => channelService.appendToChannel(`Discovering tests for org: ${orgId}`)),
-      Stream.runForEach(() =>
+      Stream.runForEach(orgId =>
         Effect.promise(() => testController.refresh()).pipe(
+          // Drop other orgs' discovered classes so the in-memory VFS holds only the current org's tree.
+          Effect.zipRight(ApexTestDiscoveryService.pruneForeignOrgClasses(resolveDiscoveryOrgKey({ orgId }))),
           Effect.catchAll(error => {
             console.debug('[Apex Testing] Test discovery setup failed:', error);
             return Effect.void;

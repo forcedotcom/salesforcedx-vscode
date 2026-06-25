@@ -13,7 +13,11 @@ import {
   ApexTestingDiscoveryFsProviderLive,
   ApexTestingDiscoveryFsProviderTag
 } from '../../../src/discoveryVfs/apexTestDiscoveryFsProviderTag';
-import { getApexTestingClassUri, getOrgDiscoveryUri } from '../../../src/discoveryVfs/apexTestingDiscoveryFs';
+import {
+  getApexTestingClassUri,
+  getOrgClassesDirUri,
+  getOrgDiscoveryUri
+} from '../../../src/discoveryVfs/apexTestingDiscoveryFs';
 import { ApexTestingDiscoveryFsProvider } from '../../../src/discoveryVfs/apexTestingDiscoveryFsProvider';
 import type { ToolingTestClass } from '../../../src/testDiscovery/schemas';
 
@@ -67,7 +71,7 @@ describe('ApexTestDiscoveryService', () => {
     expect(readClassBody(provider, 'org123', 'MyTest').length).toBeGreaterThan(0);
   });
 
-  it('clearOrg removes a saved org and succeeds when the org is absent', async () => {
+  it('clearOrg removes the classes subtree but leaves the org dir, and is a no-op when absent', async () => {
     const { provider, serviceLayer } = buildLayer();
     const classes = [classOf('MyTest', ['testOne'])];
 
@@ -78,11 +82,40 @@ describe('ApexTestDiscoveryService', () => {
         yield* ApexTestDiscoveryService.clearOrg('org123');
       })
     );
+    // The discovered classes are gone...
     expect(() => provider.readFile(getApexTestingClassUri('org123', 'MyTest'))).toThrow();
-    expect(() => provider.readDirectory(getOrgDiscoveryUri('org123'))).toThrow();
+    expect(() => provider.readDirectory(getOrgClassesDirUri('org123'))).toThrow();
+    // ...but the org dir itself survives (another feature may persist alongside classes/).
+    expect(() => provider.readDirectory(getOrgDiscoveryUri('org123'))).not.toThrow();
 
     // Clearing an org that was never discovered is a no-op (FileNotFound → void), not an error.
     const exit = await runExit(serviceLayer, ApexTestDiscoveryService.clearOrg('never-existed'));
+    expect(Exit.isSuccess(exit)).toBe(true);
+  });
+
+  it('pruneForeignOrgClasses drops other orgs classes but keeps the current org', async () => {
+    const { provider, serviceLayer } = buildLayer();
+
+    await run(
+      serviceLayer,
+      Effect.gen(function* () {
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgA', [classOf('AcctTest', ['a'])], new Map());
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgB', [classOf('OppTest', ['b'])], new Map());
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgC', [classOf('CaseTest', ['c'])], new Map());
+        yield* ApexTestDiscoveryService.pruneForeignOrgClasses('orgB');
+      })
+    );
+
+    // Current org's classes survive; the others' are pruned.
+    expect(readClassBody(provider, 'orgB', 'OppTest').length).toBeGreaterThan(0);
+    expect(() => provider.readDirectory(getOrgClassesDirUri('orgA'))).toThrow();
+    expect(() => provider.readDirectory(getOrgClassesDirUri('orgC'))).toThrow();
+  });
+
+  it('pruneForeignOrgClasses is a no-op when nothing has been discovered yet', async () => {
+    const { serviceLayer } = buildLayer();
+
+    const exit = await runExit(serviceLayer, ApexTestDiscoveryService.pruneForeignOrgClasses('orgA'));
     expect(Exit.isSuccess(exit)).toBe(true);
   });
 

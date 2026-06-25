@@ -9,14 +9,20 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { getFullClassName } from '../utils/testUtils';
 import {
   ApexTestingDiscoveryFsProviderLive,
   ApexTestingDiscoveryFsProviderTag
 } from './apexTestDiscoveryFsProviderTag';
-import { getApexTestingClassUri, getOrgClassesDirUri, getOrgDiscoveryUri } from './apexTestingDiscoveryFs';
+import {
+  getApexTestingClassUri,
+  getForeignOrgClassesDirUris,
+  getOrgClassesDirUri,
+  getOrgDiscoveryUri,
+  getOrgsRootUri
+} from './apexTestingDiscoveryFs';
 
 const encoder = new TextEncoder();
 
@@ -31,13 +37,13 @@ export class DiscoveryClearError extends Schema.TaggedError<DiscoveryClearError>
 export const resolveDiscoveryOrgKey = (orgInfo: { orgId?: string; username?: string }): string =>
   orgInfo.orgId ?? orgInfo.username ?? 'unknown-org';
 
-// Deleting a never-discovered org walks a missing parent dir; the provider surfaces this as either
-// FileNotFound (the org dir) or FileNotADirectory (an ancestor like /orgs). Both mean "nothing to clear".
+// Deleting an absent entry walks a missing parent dir; the provider surfaces this as either FileNotFound
+// (the target) or FileNotADirectory (an ancestor like /orgs). Both mean "nothing to clear".
 const isAbsent = (error: unknown): boolean =>
   error instanceof vscode.FileSystemError && (error.code === 'FileNotFound' || error.code === 'FileNotADirectory');
 
-/** Internal sentinel: the org dir is absent, so a clear is a no-op (recovered to Effect.void). */
-class IndexNotFound extends Schema.TaggedError<IndexNotFound>()('IndexNotFound', {}) {}
+/** Internal sentinel: the target entry is absent, so a delete is a no-op (recovered to Effect.void). */
+class AbsentEntry extends Schema.TaggedError<AbsentEntry>()('AbsentEntry', {}) {}
 
 export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoveryService>()('ApexTestDiscoveryService', {
   accessors: true,
@@ -45,22 +51,42 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
   effect: Effect.gen(function* () {
     const provider = yield* ApexTestingDiscoveryFsProviderTag;
 
-    const clearOrg = Effect.fn('ApexTestDiscoveryService.clearOrg')(function* (orgKey: string) {
-      yield* Effect.try({
-        try: () => provider.deleteInternal(getOrgDiscoveryUri(orgKey), { recursive: true }),
-        // Absent org becomes IndexNotFound (nothing to clear, recovered below); any other
-        // delete failure becomes a surfaced DiscoveryClearError.
+    // Best-effort recursive delete. Absent target (FileNotFound/FileNotADirectory) is fine; any other
+    // failure surfaces as a DiscoveryClearError tagged with the org it was clearing.
+    const deleteDir = (uri: URI, orgKey: string) =>
+      Effect.try({
+        try: () => provider.deleteInternal(uri, { recursive: true }),
         catch: error =>
           isAbsent(error)
-            ? new IndexNotFound()
+            ? new AbsentEntry()
             : new DiscoveryClearError({
                 orgKey,
-                message: `Failed to clear discovery state for ${orgKey}`,
+                message: `Failed to clear discovery classes for ${orgKey}`,
                 cause: error
               })
-      }).pipe(
-        // Nothing to clear (org never discovered) is fine.
-        Effect.catchTag('IndexNotFound', () => Effect.void)
+      }).pipe(Effect.catchTag('AbsentEntry', () => Effect.void));
+
+    // Clears only the org's discovered `classes/` subtree, leaving the org dir (and anything else another
+    // feature may persist under it) intact.
+    const clearOrg = Effect.fn('ApexTestDiscoveryService.clearOrg')(function* (orgKey: string) {
+      yield* deleteDir(getOrgClassesDirUri(orgKey), orgKey);
+    });
+
+    // On a default-org change, drop every OTHER org's discovered classes so the in-memory VFS holds only
+    // the current org's tree. Only touches `classes/` subtrees — never the org dirs themselves.
+    const pruneForeignOrgClasses = Effect.fn('ApexTestDiscoveryService.pruneForeignOrgClasses')(function* (
+      currentOrgKey: string
+    ) {
+      // The orgs root is absent until the first org is discovered; a failed/missing read just means
+      // there is nothing to prune.
+      const orgDirNames = yield* Effect.try(() => provider.readDirectory(getOrgsRootUri()).map(([name]) => name)).pipe(
+        Effect.orElseSucceed<string[]>(() => [])
+      );
+
+      yield* Effect.forEach(
+        getForeignOrgClassesDirUris(currentOrgKey, orgDirNames),
+        dir => deleteDir(dir, currentOrgKey),
+        { discard: true }
       );
     });
 
@@ -73,8 +99,7 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
       yield* Effect.sync(() => {
         provider.createDirectoryInternal(getOrgDiscoveryUri(orgKey));
         provider.createDirectoryInternal(getOrgClassesDirUri(orgKey));
-        classes.map(cls => {
-          const fullClassName = getFullClassName(cls);
+        classes.map(getFullClassName).map(fullClassName => {
           const content =
             classBodiesByFullName.get(fullClassName) ??
             nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName);
@@ -86,6 +111,6 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
       yield* Effect.log('persisted discovered classes', { orgKey, count: classes.length });
     });
 
-    return { saveDiscoveredClasses, clearOrg };
+    return { saveDiscoveredClasses, clearOrg, pruneForeignOrgClasses };
   })
 }) {}

@@ -20,7 +20,7 @@ const CLASS_FILE_EXT = '.cls';
 const sanitizeOrgKey = (orgKey: string): string => encodeURIComponent(orgKey.trim().toLowerCase());
 const sanitizePathPart = (part: string): string => encodeURIComponent(part.trim());
 
-const getOrgsRootUri = (): URI => URI.from({ scheme: APEX_TESTING_SCHEME, path: `/${ORGS_ROOT}` });
+export const getOrgsRootUri = (): URI => URI.from({ scheme: APEX_TESTING_SCHEME, path: `/${ORGS_ROOT}` });
 
 export const getOrgDiscoveryUri = (orgKey: string): URI => Utils.joinPath(getOrgsRootUri(), sanitizeOrgKey(orgKey));
 
@@ -30,4 +30,16 @@ export const getApexTestingClassUri = (orgKey: string, fullClassName: string): U
   const parts = fullClassName.split('.').map(sanitizePathPart);
   const classFile = `${parts.pop() ?? 'Unknown'}${CLASS_FILE_EXT}`;
   return Utils.joinPath(getOrgClassesDirUri(orgKey), ...parts, classFile);
+};
+
+/**
+ * Given the org-root directory entry names (each is a sanitized orgKey) and the current orgKey,
+ * the `classes/` dir URIs for every OTHER org. Used to prune stale per-org discovered classes when
+ * the default org changes, without touching the current org or anything outside `classes/`.
+ */
+export const getForeignOrgClassesDirUris = (currentOrgKey: string, orgDirNames: readonly string[]): URI[] => {
+  const currentDirName = sanitizeOrgKey(currentOrgKey);
+  return orgDirNames
+    .filter(name => name !== currentDirName)
+    .map(name => Utils.joinPath(getOrgsRootUri(), name, CLASSES_ROOT));
 };
