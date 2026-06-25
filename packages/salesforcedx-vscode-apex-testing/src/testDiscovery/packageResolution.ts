@@ -8,6 +8,7 @@
 import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
+import * as Schema from 'effect/Schema';
 
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
 
@@ -62,12 +63,9 @@ const isNoSuchColumnForField = (error: unknown, field: string): boolean => {
 };
 
 /** Thrown when MetadataComponentId is not available so caller should try SubjectId. */
-class TrySubjectIdError extends Error {
-  constructor() {
-    super('TrySubjectId');
-    this.name = 'TrySubjectIdError';
-  }
-}
+class TrySubjectIdError extends Schema.TaggedError<TrySubjectIdError>()('TrySubjectIdError', {
+  message: Schema.String
+}) {}
 
 const getComponentId = (m: Package2MemberRecord): string | undefined => m.MetadataComponentId ?? m.SubjectId;
 
@@ -264,7 +262,7 @@ export const resolvePackage2Members = async (
         }
       } catch (error) {
         if (field === 'MetadataComponentId' && isNoSuchColumnForField(error, 'MetadataComponentId')) {
-          throw new TrySubjectIdError();
+          throw new TrySubjectIdError({ message: 'TrySubjectId' });
         }
         if (isPackage2UnavailableError(error)) {
           packageResolutionUnavailableOrgs.add(cacheKey);
