@@ -15,7 +15,9 @@ export type ExecOptions = { timeout?: number; signal?: AbortSignal; env?: Record
  * is omitted entirely, so a partial env override would otherwise drop PATH and break the child. When no
  * override is given we omit `env` so node keeps inheriting the full parent env. Extracted as a pure
  * function so the merge is unit-testable without the lazy node import. */
-export const resolveExecOptions = (options: ExecOptions) => {
+export const resolveExecOptions = (
+  options: ExecOptions
+): { timeout?: number; signal?: AbortSignal; env?: NodeJS.ProcessEnv } => {
   const { env, ...rest } = options;
   return env ? { ...rest, env: { ...process.env, ...env } } : rest;
 };
