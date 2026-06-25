@@ -153,6 +153,27 @@ describe('orgOpenCommand', () => {
     expect(show).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the url when stdout is prefixed with a CLI warning (expiration notice)', async () => {
+    // sf can prepend non-JSON warning lines to stdout even with --json + SF_JSON_TO_STDOUT (seen on macOS CI);
+    // the parse adapter must slice out the JSON object rather than choke on the prefix.
+    const noisyStdout = `Warning: The following orgs expire in the next 5 days:\nminimalTestOrg - me@scratch.org (expires on 2026-06-26)\n${SUCCESS_STDOUT}`;
+    const simpleExec = jest.fn(() => Effect.succeed(noisyStdout));
+    const appendToChannel = jest.fn();
+    const exit = await run({
+      isProject: true,
+      orgInfo: { orgId: '00Dxx', username: 'me@scratch.org' },
+      simpleExec,
+      appendToChannel,
+      show
+    });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(openExternal).toHaveBeenCalledTimes(1);
+    expect(appendToChannel).toHaveBeenCalledWith(
+      expect.stringContaining('https://example.my.salesforce.com/secur/frontdoor.jsp')
+    );
+  });
+
   it('fails with OrgOpenParseError on malformed stdout and does not open', async () => {
     const simpleExec = jest.fn(() => Effect.succeed('not json at all'));
     const appendToChannel = jest.fn();

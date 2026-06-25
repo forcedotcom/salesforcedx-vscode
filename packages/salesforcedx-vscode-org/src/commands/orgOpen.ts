@@ -66,8 +66,16 @@ type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
  * `RawObject` parses stdout into a plain object so `_tag` can be injected before the tagged-union decode.
  */
 const RawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }));
+/**
+ * The sf CLI can prepend non-JSON lines to stdout even with `--json` + `SF_JSON_TO_STDOUT=true` — e.g. the
+ * scratch-org expiration warning ("Warning: The following orgs expire in the next 5 days: ...") observed on
+ * macOS CI. Slice from the first `{` to the last `}` to isolate the JSON payload before decoding (parity with
+ * the old OrgOpenContainerResultParser, which sanitized the same way). When no braces are present the slice
+ * yields '' and the decode below produces an OrgOpenParseError rather than a defect.
+ */
+const sanitizeJson = (stdout: string) => stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
 const decodeOrgOpenResponse = (stdout: string) =>
-  Schema.decodeUnknown(RawObject)(stdout).pipe(
+  Schema.decodeUnknown(RawObject)(sanitizeJson(stdout)).pipe(
     Effect.map(raw => ({ ...raw, _tag: 'result' in raw ? 'OrgOpenSuccess' : 'OrgOpenFailure' })),
     Effect.flatMap(tagged => Schema.decodeUnknown(OrgOpenResponse)(tagged)),
     Effect.mapError(error => new OrgOpenParseError({ message: `Failed to parse org open response: ${error.message}` }))
