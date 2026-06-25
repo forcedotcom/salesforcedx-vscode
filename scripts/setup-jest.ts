@@ -330,6 +330,37 @@ const getMockVSCode = () => {
       File: 1,
       Directory: 2
     },
+    FileChangeType: {
+      Changed: 1,
+      Created: 2,
+      Deleted: 3
+    },
+    FileSystemError: class FileSystemError extends Error {
+      public readonly code: string;
+      constructor(messageOrUri?: any, code: string = 'Unknown') {
+        super(typeof messageOrUri === 'string' ? messageOrUri : String(messageOrUri ?? ''));
+        this.name = 'FileSystemError';
+        this.code = code;
+      }
+      static FileNotFound(messageOrUri?: any) {
+        return new this(messageOrUri, 'FileNotFound');
+      }
+      static FileExists(messageOrUri?: any) {
+        return new this(messageOrUri, 'FileExists');
+      }
+      static FileNotADirectory(messageOrUri?: any) {
+        return new this(messageOrUri, 'FileNotADirectory');
+      }
+      static FileIsADirectory(messageOrUri?: any) {
+        return new this(messageOrUri, 'FileIsADirectory');
+      }
+      static NoPermissions(messageOrUri?: any) {
+        return new this(messageOrUri, 'NoPermissions');
+      }
+      static Unavailable(messageOrUri?: any) {
+        return new this(messageOrUri, 'Unavailable');
+      }
+    },
     CallHierarchyItem: class {
       constructor(kind: any, name: string, detail: string, uri: Uri, range: Range, selectionRange: Range) {}
     },

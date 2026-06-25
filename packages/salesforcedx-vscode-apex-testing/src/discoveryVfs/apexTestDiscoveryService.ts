@@ -56,7 +56,7 @@ const DiscoveredApexClassesIndex = Schema.Struct({
 });
 type DiscoveredApexClassesIndex = Schema.Schema.Type<typeof DiscoveredApexClassesIndex>;
 
-class DiscoveryReadError extends Schema.TaggedError<DiscoveryReadError>()('DiscoveryReadError', {
+export class DiscoveryReadError extends Schema.TaggedError<DiscoveryReadError>()('DiscoveryReadError', {
   orgKey: Schema.String,
   message: Schema.String,
   cause: Schema.optional(Schema.Unknown)
@@ -74,6 +74,11 @@ export const resolveDiscoveryOrgKey = (orgInfo: { orgId?: string; username?: str
 
 const isFileNotFound = (error: unknown): boolean =>
   error instanceof vscode.FileSystemError && error.code === 'FileNotFound';
+
+// Deleting a never-discovered org walks a missing parent dir; the provider surfaces this as either
+// FileNotFound (the org dir) or FileNotADirectory (an ancestor like /orgs). Both mean "nothing to clear".
+const isAbsent = (error: unknown): boolean =>
+  error instanceof vscode.FileSystemError && (error.code === 'FileNotFound' || error.code === 'FileNotADirectory');
 
 /** Internal sentinel: the org has no persisted index yet (expected, recovered to Option.none). */
 class IndexNotFound extends Schema.TaggedError<IndexNotFound>()('IndexNotFound', {}) {}
@@ -127,10 +132,10 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
     const clearOrg = Effect.fn('ApexTestDiscoveryService.clearOrg')(function* (orgKey: string) {
       yield* Effect.try({
         try: () => provider.deleteInternal(getOrgDiscoveryUri(orgKey), { recursive: true }),
-        // FileNotFound becomes IndexNotFound (nothing to clear, recovered below); any other
+        // Absent org becomes IndexNotFound (nothing to clear, recovered below); any other
         // delete failure becomes a surfaced DiscoveryClearError.
         catch: error =>
-          isFileNotFound(error)
+          isAbsent(error)
             ? new IndexNotFound()
             : new DiscoveryClearError({
                 orgKey,
