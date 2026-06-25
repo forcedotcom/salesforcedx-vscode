@@ -558,7 +558,7 @@ Return ONLY the structured result.`
 
 const closeMergedPrompt = (r, identity) => {
   const { wt, branch } = pathsFor(identity, r.wi)
-  return `WI ${r.wi.name} has its PR (${r.wi.prUrl}) ${r.prState.state} on GitHub. Close out.
+  return `WI ${r.wi.name} has its PR (${r.wi.prUrl}) merged on GitHub. Close out.
 
 Steps (idempotent):
 1. If WI Status__c is not already a closed terminal value, update:
@@ -1076,9 +1076,15 @@ const monitorInFlight = async identity => {
     async result => {
       if (!result || result.action === 'no-pr-restart') return result
       const { prState } = result
-      if (prState.state === 'merged' || prState.state === 'closed') {
+      // Only MERGED means the WI's work shipped — close it out. A bare CLOSED PR is NOT a
+      // completion signal: a WI may carry 2+ PR URLs in Details__c (an abandoned first attempt
+      // plus the live PR), and URL extraction can match the abandoned one. Closing the WI on
+      // its CLOSED state would strand the live PR (it drops out of the monitor query and never
+      // gets flipped draft→ready). So a closed-not-merged PR falls through to 'wait'.
+      if (prState.state === 'merged') {
         return { ...result, decision: 'close-wi' }
       }
+      if (prState.state === 'closed') return { ...result, decision: 'wait' }
       // A green PR whose ONLY change is its own plan file has no implementation — the
       // Build phase no-op'd but reported 'done', and a docs-only diff trivially passes CI.
       // Refuse to open it for review; bounce the WI for human takeover instead. (Catches
