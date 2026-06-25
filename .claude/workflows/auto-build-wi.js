@@ -283,16 +283,12 @@ const extractPrUrl = details => {
   // Only extract PR URLs appended by the workflow (<strong>PR:</strong> <a href="...">).
   // Avoids treating "Prior art" / reference links as the WI's own PR.
   const s = String(details || '')
-  // The workflow only ever APPENDS PR markers, so the LAST match is the most recently
-  // opened = live PR; earlier markers are superseded/abandoned attempts. matchAll the
-  // global regex and take the last so monitor + picker check the live PR, not an old one.
-  // Caveat: a match requires the PR URL to survive in the href. If SF strips the live PR's
-  // href but an earlier abandoned PR's href survives, last-match falls back to the abandoned
-  // URL (pre-existing exposure; the workflow's own '#NNN' text holds no URL to reconstruct).
-  const matches = [
-    ...s.matchAll(/<strong>PR:<\/strong>[\s\S]*?(https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+)/g),
-  ]
-  return matches.at(-1)?.[1]
+  // Exactly one PR marker exists: the write sites (PR-open + reconcile) REPLACE any prior
+  // <strong>PR:</strong> block before appending, so a rebuild's live PR supersedes the
+  // abandoned attempt's marker rather than adding a second. Single-match is therefore the
+  // live PR by construction.
+  const prSection = s.match(/<strong>PR:<\/strong>[\s\S]*?(https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+)/)
+  return prSection?.[1]
 }
 
 // SF strips external hrefs from rich-text Details__c on save, leaving anchors like
@@ -553,12 +549,12 @@ Steps:
 2. An open PR exists → capture its url + number. Re-persist into Details__c so future ticks stop rebuilding:
    a. Fetch existing: \`sf data query --query "SELECT Details__c FROM ADM_Work__c WHERE Id = '${wi.wiId}'" -o gus --result-format json\`. Parse \`result.records[0].Details__c\`.
    b. If it ALREADY contains 'pull/<number>' under a '<strong>PR:</strong>' marker → return {found: true, prUrl, persisted: true, detail: "already present"} (the extraction must have transiently failed; nothing to write).
-   c. Else compose new value = existing Details__c + this exact snippet (PR_URL/PR_NUMBER substituted): <p><strong>PR:</strong> <a href="PR_URL">#PR_NUMBER</a></p>
+   c. Else compose new value. FIRST strip any existing PR marker block from the existing Details__c — delete every \`<p><strong>PR:</strong> ... </p>\` paragraph (an abandoned attempt may have left one) so exactly ONE marker survives. THEN concatenate this exact snippet (PR_URL/PR_NUMBER substituted): <p><strong>PR:</strong> <a href="PR_URL">#PR_NUMBER</a></p>
    d. Write via --flags-dir with a SINGLE-QUOTE-wrapped value (the body's apostrophes are HTML-entity-encoded so it contains no literal single-quotes; the href's literal double-quotes are safe inside single quotes):
       - mkdir -p /tmp/gus-flags-${wi.name}
       - Write a SINGLE-LINE file /tmp/gus-flags-${wi.name}/values: Details__c='<NEW_VALUE>'
       - sf data update record -s ADM_Work__c -i ${wi.wiId} -o gus --flags-dir /tmp/gus-flags-${wi.name}
-   e. Verify: re-query Details__c; confirm 'pull/<number>' is now present under '<strong>PR:</strong>'. Present → {found: true, prUrl, persisted: true}. Absent → {found: true, prUrl, persisted: false, detail: "<why write failed>"}.
+   e. Verify: re-query Details__c; confirm 'pull/<number>' is now present under a single '<strong>PR:</strong>' marker (exactly one marker total). Present → {found: true, prUrl, persisted: true}. Absent or duplicate marker → {found: true, prUrl, persisted: false, detail: "<why write failed>"}.
 
 Return ONLY the structured result.`
 }
@@ -960,17 +956,17 @@ ${reconstructedUrls.length ? `   - ## References — the originating GitHub disc
    If one exists → skip gh pr create. Use that existing PR's url/number as the result. Skip to step 7.
 6. Create draft PR: gh pr create --draft --title "<title>" --body "<body>" --base develop
    Take the PR URL from gh's output.
-7. Append a PR link to the WI Details__c. CRITICAL: do NOT replace Details__c — read it first, then APPEND.
+7. Record the PR link in the WI Details__c. CRITICAL: do NOT blow away Details__c — read it first, strip any prior PR marker, then append the new one. Exactly ONE \`<strong>PR:</strong>\` marker must exist (a rebuild after an abandoned attempt must REPLACE the old marker, never add a second — the monitor/picker read the sole marker as the live PR).
    a. Fetch existing: \`sf data query --query "SELECT Details__c FROM ADM_Work__c WHERE Id = '${chosen.wiId}'" -o gus --result-format json\`. Parse \`result.records[0].Details__c\` (may be null/empty).
-   b. If existing already contains this exact PR URL, skip the update (idempotent — return success).
-   c. Compose new value: take the existing Details__c (or empty string if null), then concatenate this exact HTML snippet, with PR_URL replaced by the actual URL string from gh (e.g. https://github.com/forcedotcom/salesforcedx-vscode/pull/7382) and PR_NUMBER replaced by the integer:
+   b. If existing already contains this exact PR URL under a single \`<strong>PR:</strong>\` marker (no other PR marker present), skip the update (idempotent — return success).
+   c. Compose new value: take the existing Details__c (or empty string if null), STRIP every existing \`<p><strong>PR:</strong> ... </p>\` paragraph (delete any abandoned-attempt marker), then concatenate this exact HTML snippet, with PR_URL replaced by the actual URL string from gh (e.g. https://github.com/forcedotcom/salesforcedx-vscode/pull/7382) and PR_NUMBER replaced by the integer:
         <p><strong>PR:</strong> <a href="PR_URL">#PR_NUMBER</a></p>
       VERIFY before writing: the substring 'href="https://github.com/forcedotcom/salesforcedx-vscode/pull/' must appear in your new value. If 'href=""' appears anywhere in the appended snippet, you have failed substitution — abort and return {prUrl, prNumber} only after fixing it. Do NOT preserve angle-bracket placeholders like <prUrl> or <prNumber> in the output.
    d. Write via --flags-dir to handle quotes safely:
       - mkdir -p /tmp/gus-flags-${chosen.name}
       - Write a SINGLE-LINE file at /tmp/gus-flags-${chosen.name}/values. Format: Details__c="<NEW_VALUE>" using double-quotes around the value. Inside the value, all HTML attribute quotes must remain as plain double-quotes (the file uses single-quote-shell-escaping at the sf CLI layer; per gus-cli skill, single-line values with double-quote outer + literal double-quote inner work). If the existing Details__c contains a literal " character that would break the value file, fall back to appending using the plain-text form: Details__c='<existing-stripped>\\nPR: <prUrl>' but log a warning that the original HTML was lossy.
       - sf data update record -s ADM_Work__c -i ${chosen.wiId} -o gus --flags-dir /tmp/gus-flags-${chosen.name}
-   e. Verify: re-query Details__c and confirm BOTH (i) the new PR URL is present AND (ii) at least one original Goal/Done-when/Why marker from the prior content is still present. If either check fails, do NOT claim success — log the failure detail and return so the workflow retries next tick.
+   e. Verify: re-query Details__c and confirm ALL of (i) the new PR URL is present, (ii) exactly ONE \`<strong>PR:</strong>\` marker exists (no abandoned-attempt marker survived the strip), AND (iii) at least one original Goal/Done-when/Why marker from the prior content is still present. If any check fails, do NOT claim success — log the failure detail and return so the workflow retries next tick.
 
 Return {prUrl, prNumber}.`
 }
