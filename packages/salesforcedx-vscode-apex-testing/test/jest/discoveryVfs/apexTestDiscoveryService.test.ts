@@ -167,8 +167,10 @@ describe('ApexTestDiscoveryService', () => {
     expect(resolveDiscoveryOrgKey({})).toBe('unknown-org');
   });
 
-  it('production layer wires the module FsProvider singleton', () => {
-    // Smoke: ApexTestingDiscoveryFsProviderLive builds without throwing (single getter call site).
-    expect(ApexTestingDiscoveryFsProviderLive).toBeDefined();
+  it('production layer resolves the FsProvider tag to a provider instance', async () => {
+    const provider = await Effect.runPromise(
+      Effect.provide(ApexTestingDiscoveryFsProviderTag, ApexTestingDiscoveryFsProviderLive)
+    );
+    expect(provider).toBeInstanceOf(ApexTestingDiscoveryFsProvider);
   });
 });

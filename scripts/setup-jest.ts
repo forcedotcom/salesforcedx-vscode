@@ -337,27 +337,27 @@ const getMockVSCode = () => {
     },
     FileSystemError: class FileSystemError extends Error {
       public readonly code: string;
-      constructor(messageOrUri?: any, code: string = 'Unknown') {
+      constructor(messageOrUri?: string | Uri, code: string = 'Unknown') {
         super(typeof messageOrUri === 'string' ? messageOrUri : String(messageOrUri ?? ''));
         this.name = 'FileSystemError';
         this.code = code;
       }
-      static FileNotFound(messageOrUri?: any) {
+      static FileNotFound(messageOrUri?: string | Uri) {
         return new this(messageOrUri, 'FileNotFound');
       }
-      static FileExists(messageOrUri?: any) {
+      static FileExists(messageOrUri?: string | Uri) {
         return new this(messageOrUri, 'FileExists');
       }
-      static FileNotADirectory(messageOrUri?: any) {
+      static FileNotADirectory(messageOrUri?: string | Uri) {
         return new this(messageOrUri, 'FileNotADirectory');
       }
-      static FileIsADirectory(messageOrUri?: any) {
+      static FileIsADirectory(messageOrUri?: string | Uri) {
         return new this(messageOrUri, 'FileIsADirectory');
       }
-      static NoPermissions(messageOrUri?: any) {
+      static NoPermissions(messageOrUri?: string | Uri) {
         return new this(messageOrUri, 'NoPermissions');
       }
-      static Unavailable(messageOrUri?: any) {
+      static Unavailable(messageOrUri?: string | Uri) {
         return new this(messageOrUri, 'Unavailable');
       }
     },
