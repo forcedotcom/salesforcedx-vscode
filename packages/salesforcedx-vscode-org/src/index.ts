@@ -31,7 +31,7 @@ import {
 import { orgDeleteDefaultCommand } from './commands/orgDelete';
 import { orgOpenCommand } from './commands/orgOpen';
 import { ORG_OPEN_COMMAND } from './constants';
-import { AllServicesLayer, setAllServicesLayer } from './extensionProvider';
+import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { nls } from './messages';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
 import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
@@ -77,9 +77,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const extensionScope = Effect.runSync(getExtensionScope());
   // fallbackDisplayName only fires if package.json displayName is absent; channel_name must match displayName ('Salesforce Org Management')
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
-  await Effect.runPromise(
-    activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer)).pipe(Scope.extend(extensionScope))
-  );
+  await getOrgRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
 
   const api: SalesforceVSCodeOrgApi = {
     channelService

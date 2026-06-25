@@ -33,8 +33,10 @@ const buildServices = (opts: {
       Effect.sync(() => {
         opts.appendToChannel(msg);
       }),
-    // in-layer getChannel returns the OutputChannel; the command calls .show() on it (no legacy ../channels singleton)
-    getChannel: Effect.sync(() => ({ show: opts.show }))
+    // in-layer showChannel reveals the OutputChannel (no legacy ../channels singleton)
+    showChannel: Effect.sync(() => {
+      opts.show();
+    })
   }),
   TargetOrgRef: () => SubscriptionRef.make(opts.orgInfo)
 });
@@ -66,7 +68,7 @@ describe('orgOpenCommand', () => {
     (vscode.env as unknown as { openExternal: jest.Mock }).openExternal = openExternal;
   });
 
-  it('runs `sf org open --url-only --json` with --target-org and SF_JSON_TO_STDOUT, opens the url, appends the access message, shows the channel', async () => {
+  it('runs `sf org open --url-only --json` with --target-org and SF_JSON_TO_STDOUT', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const appendToChannel = jest.fn();
     const exit = await run({
@@ -83,12 +85,26 @@ describe('orgOpenCommand', () => {
       parse: expect.any(Function),
       env: { SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' }
     });
+  });
+
+  it('opens the url, appends the access message, and shows the channel on success', async () => {
+    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    const appendToChannel = jest.fn();
+    const exit = await run({
+      isProject: true,
+      orgInfo: { orgId: '00Dxx', username: 'me@scratch.org' },
+      simpleExec,
+      appendToChannel,
+      show
+    });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
     expect(openExternal).toHaveBeenCalledTimes(1);
     expect(String(openExternal.mock.calls[0][0])).toContain('frontdoor.jsp');
     expect(appendToChannel).toHaveBeenCalledWith(
       expect.stringContaining('https://example.my.salesforce.com/secur/frontdoor.jsp')
     );
-    // in-layer getChannel().show(), not the legacy ../channels singleton
+    // in-layer showChannel, not the legacy ../channels singleton
     expect(show).toHaveBeenCalledTimes(1);
   });
 
@@ -133,6 +149,8 @@ describe('orgOpenCommand', () => {
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(appendToChannel).toHaveBeenCalledWith('No default org set');
     expect(openExternal).not.toHaveBeenCalled();
+    // failure branch still reveals the channel so the error message is visible
+    expect(show).toHaveBeenCalledTimes(1);
   });
 
   it('fails with OrgOpenParseError on malformed stdout and does not open', async () => {

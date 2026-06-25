@@ -95,6 +95,9 @@ describe('TerminalService.simpleExec', () => {
       withExec(exec)
     );
 
+    // pre-merge value: this asserts simpleExec forwards `env` to childProcess.exec, NOT the
+    // `{ ...process.env, ...env }` merge. The injected stub bypasses resolveExecOptions (which does
+    // the merge inside the default ChildProcess impl); the merge is covered in childProcess.test.ts.
     expect(capturedOptions?.env).toEqual({ SF_JSON_TO_STDOUT: 'true' });
   });
 
