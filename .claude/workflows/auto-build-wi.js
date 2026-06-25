@@ -1083,10 +1083,12 @@ const monitorInFlight = async identity => {
     async result => {
       if (!result || result.action === 'no-pr-restart') return result
       const { prState } = result
-      // Only 'merged' is a terminal success. With the live-PR fix in extractPrUrl, a
+      // Only 'merged' is a terminal success. A bare CLOSED PR is NOT a completion signal: a WI
+      // may carry 2+ PR URLs in Details__c (an abandoned first attempt plus the live PR), and URL
+      // extraction can match the abandoned one. With the live-PR fix in extractPrUrl, a
       // 'closed'-not-merged state means the live PR itself was abandoned — wait, don't
       // auto-close the WI (human/picker handles re-queue); closing here would mark a WI
-      // Closed with no resolution.
+      // Closed with no resolution and strand the live PR.
       if (prState.state === 'merged') {
         return { ...result, decision: 'close-wi' }
       }
