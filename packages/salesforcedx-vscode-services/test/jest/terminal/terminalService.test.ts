@@ -79,6 +79,25 @@ describe('TerminalService.simpleExec', () => {
     expect(capturedOptions?.timeout).toBe(30_000);
   });
 
+  it('forwards env to the injected ChildProcess.exec', async () => {
+    let capturedOptions: ExecOptions | undefined;
+    const exec = (_command: string, options: ExecOptions): Promise<ExecResult> => {
+      capturedOptions = options;
+      return Promise.resolve({ stdout: '', stderr: '' });
+    };
+
+    await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal =>
+          terminal.simpleExec({ command: 'sf org open', parse: s => s, env: { SF_JSON_TO_STDOUT: 'true' } })
+        )
+      ),
+      withExec(exec)
+    );
+
+    expect(capturedOptions?.env).toEqual({ SF_JSON_TO_STDOUT: 'true' });
+  });
+
   it('fails with TerminalServiceError on web', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
     const exec = (): Promise<ExecResult> => Promise.reject(new Error('should not be called on web'));

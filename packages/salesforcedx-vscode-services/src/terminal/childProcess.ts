@@ -8,7 +8,17 @@
 import * as Effect from 'effect/Effect';
 
 export type ExecResult = { stdout: string; stderr: string };
-export type ExecOptions = { timeout?: number; signal?: AbortSignal };
+export type ExecOptions = { timeout?: number; signal?: AbortSignal; env?: Record<string, string> };
+
+/** Resolve the options passed to node's exec from our ExecOptions. When an `env` override is present we
+ * spread `process.env` under it so PATH etc. survive — node's exec only inherits the parent env when `env`
+ * is omitted entirely, so a partial env override would otherwise drop PATH and break the child. When no
+ * override is given we omit `env` so node keeps inheriting the full parent env. Extracted as a pure
+ * function so the merge is unit-testable without the lazy node import. */
+export const resolveExecOptions = (options: ExecOptions) => {
+  const { env, ...rest } = options;
+  return env ? { ...rest, env: { ...process.env, ...env } } : rest;
+};
 
 /** Thin injectable seam over node:child_process exec (promisified). Lets consumers (and tests) swap the
  * implementation via the Effect layer instead of mocking node:child_process, which keeps ts-jest on
@@ -21,7 +31,7 @@ export class ChildProcess extends Effect.Service<ChildProcess>()('ChildProcess',
     exec: async (command: string, options: ExecOptions): Promise<ExecResult> => {
       const { exec } = await import('node:child_process');
       const { promisify } = await import('node:util');
-      return promisify(exec)(command, options);
+      return promisify(exec)(command, resolveExecOptions(options));
     }
   })
 }) {}
