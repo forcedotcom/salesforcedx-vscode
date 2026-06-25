@@ -180,6 +180,7 @@ export default [
       'unicorn/no-duplicate-logical-operands': 'error',
       'unicorn/no-empty-file': 'error',
       'unicorn/no-immediate-mutation': 'error',
+      'unicorn/no-impossible-length-comparison': 'error',
       'unicorn/no-instanceof-builtins': 'error',
       'unicorn/no-single-promise-in-promise-methods': 'error',
       'unicorn/no-static-only-class': 'error',
