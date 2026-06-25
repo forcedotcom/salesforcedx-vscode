@@ -134,6 +134,22 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     ).toContainText("SELECT Id, Name FROM Account WHERE Name != 'Test' ORDER BY Name DESC LIMIT 10");
     await saveScreenshot(page, 'step2.query-preview-verified.png');
 
+    // Toggle ALL ROWS on: preview should include the ALL ROWS clause
+    await soqlFrame.locator('[data-el-all-rows]').check();
+    await expect(
+      soqlFrame.locator('.query-preview-container pre'),
+      'query preview should include ALL ROWS when checkbox is checked'
+    ).toContainText('ALL ROWS');
+    await saveScreenshot(page, 'step2.all-rows-checked.png');
+
+    // Toggle ALL ROWS off: preview should no longer include the ALL ROWS clause
+    await soqlFrame.locator('[data-el-all-rows]').uncheck();
+    await expect(
+      soqlFrame.locator('.query-preview-container pre'),
+      'query preview should not include ALL ROWS when checkbox is unchecked'
+    ).not.toContainText('ALL ROWS');
+    await saveScreenshot(page, 'step2.all-rows-unchecked.png');
+
     await saveFile(page);
     await saveScreenshot(page, 'step2.query-saved.png');
   });

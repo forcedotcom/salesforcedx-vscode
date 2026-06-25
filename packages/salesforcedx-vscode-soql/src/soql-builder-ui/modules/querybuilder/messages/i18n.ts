@@ -67,6 +67,9 @@ export const messages = {
   label_limit: 'Limit',
   placeholder_limit: 'Limit...',
 
+  // all rows
+  label_all_rows: 'Include deleted/archived records',
+
   // customSelect / shared
   label_no_results_found: 'No results found.',
   label_loading: 'Loading...',

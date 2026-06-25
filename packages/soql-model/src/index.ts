@@ -35,6 +35,7 @@ export type { ColumnData } from './analyzers/selectAnalyzer';
 
 export { ModelSerializer } from './serialization/serializer';
 export { deserialize } from './serialization/deserializer';
+export { stripAllRows } from './serialization/allRows';
 
 export {
   getFieldInputValidator,
