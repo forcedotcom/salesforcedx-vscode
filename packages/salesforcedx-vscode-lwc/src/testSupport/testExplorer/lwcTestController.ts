@@ -46,6 +46,41 @@ const createCaseId = (testUri: URI, testName: string, ancestorTitles: string[] |
   return `case:${testUri.toString()}::${suffix}`;
 };
 
+/**
+ * Normalize a file URI to a comparison key that is invariant to OS path aliasing: forward slashes and (on
+ * Windows, whose filesystem is case-insensitive) lower case. Used to reconcile jest-reported long paths with
+ * findFiles-reported short (8.3) paths when their shared suffix matches. The leading separator is dropped so the
+ * key is a clean segment list.
+ */
+const toNormalizedPathKey = (testUri: URI): string => {
+  const lower = process.platform === 'win32' ? testUri.fsPath.toLowerCase() : testUri.fsPath;
+  return lower.replaceAll('\\', '/').replace(/^\/+/, '');
+};
+
+/**
+ * True when two normalized path keys identify the same test file despite an aliased ancestor segment (e.g. the
+ * Windows 8.3 short name `runner~1` vs `runneradmin`). We require the trailing path segments to match exactly up
+ * to the first divergence and that divergence to be the only difference — i.e. one path is the other with a
+ * single ancestor segment swapped, or they share a deep (>= 3 segment) suffix anchored at the filename. Three
+ * segments is the LWC layout floor (`<component>/__tests__/<file>.test.js`), enough to be unambiguous.
+ */
+const sharePathTail = (a: string, b: string): boolean => {
+  if (a === b) {
+    return true;
+  }
+  const aSeg = a.split('/');
+  const bSeg = b.split('/');
+  let matched = 0;
+  while (
+    matched < aSeg.length &&
+    matched < bSeg.length &&
+    aSeg[aSeg.length - 1 - matched] === bSeg[bSeg.length - 1 - matched]
+  ) {
+    matched++;
+  }
+  return matched >= 3;
+};
+
 const getItemKind = (id: string): ItemKind | undefined => {
   if (id.startsWith('file:')) {
     return 'file';
@@ -64,6 +99,13 @@ class LwcTestController {
   private readonly controller: vscode.TestController;
   private readonly fileItems = new Map<string, vscode.TestItem>();
   private readonly caseItems = new Map<string, vscode.TestItem>();
+  // Secondary index from a normalized (case- and separator-insensitive) path to the discovery URI used to key
+  // fileItems/caseItems. Jest reports test paths with the OS-resolved long name (e.g. C:\Users\runneradmin\...)
+  // while VS Code's findFiles can return an 8.3 short name (C:\Users\RUNNER~1\...). Those produce different
+  // URI.toString() keys, so an exact fileItems.get() on the jest path misses and the run row is left undecorated
+  // (ending up "(Skipped)"). This index lets results map back to the discovery URI without fs.realpath, which is
+  // banned for web-extension compatibility.
+  private readonly discoveryUriByNormalizedPath = new Map<string, URI>();
   private readonly disposables: vscode.Disposable[] = [];
   // All LWC Jest tests are workspace-only, so tag every item with the same `in-workspace` tag id the Apex
   // controller uses. VS Code's Test Explorer tag filter (@in-workspace) matches by tag id across all
@@ -259,6 +301,13 @@ class LwcTestController {
           this.fileItems.delete(id);
         }
       }
+      // Rebuild the normalized-path index from the surviving file items so removed files don't linger.
+      this.discoveryUriByNormalizedPath.clear();
+      for (const item of this.fileItems.values()) {
+        if (item.uri) {
+          this.discoveryUriByNormalizedPath.set(toNormalizedPathKey(URI.revive(item.uri)), URI.revive(item.uri));
+        }
+      }
       for (const [id, item] of this.caseItems.entries()) {
         const parent = item.parent;
         if (!parent || !seen.has(parent.id)) {
@@ -280,7 +329,31 @@ class LwcTestController {
     item.canResolveChildren = true;
     item.tags = [this.inWorkspaceTag];
     this.fileItems.set(id, item);
+    this.discoveryUriByNormalizedPath.set(toNormalizedPathKey(fileInfo.testUri), fileInfo.testUri);
     return item;
+  };
+
+  /**
+   * Map a jest-reported test URI back to the URI discovery used to key fileItems/caseItems. Jest emits the
+   * OS-resolved long path while findFiles can emit an 8.3 short path (Windows), so an exact match may fail.
+   * Try the normalized exact key first, then fall back to the unique discovery URI whose normalized path shares
+   * the same trailing segments (the divergence is always in an ancestor segment, never the component/file tail).
+   * Returns the jest URI unchanged when nothing matches, preserving prior behaviour.
+   */
+  private resolveDiscoveryUri = (jestUri: URI): URI => {
+    const key = toNormalizedPathKey(jestUri);
+    const exact = this.discoveryUriByNormalizedPath.get(key);
+    if (exact) {
+      return exact;
+    }
+    const matches: URI[] = [];
+    for (const [candidateKey, candidateUri] of this.discoveryUriByNormalizedPath.entries()) {
+      if (sharePathTail(key, candidateKey)) {
+        matches.push(candidateUri);
+      }
+    }
+    // Only trust the fallback when it is unambiguous; otherwise leave the jest URI so we don't mis-attribute.
+    return matches.length === 1 ? matches[0] : jestUri;
   };
 
   private resolveFileChildren = async (fileItem: vscode.TestItem): Promise<void> => {
@@ -505,17 +578,21 @@ class LwcTestController {
 
   /** Contract used by the output module to resolve TestItems for a Jest result. */
   private readonly testItemLookup: TestItemLookup = {
-    findFileItem: testUri => this.fileItems.get(createFileId(URI.file(normalizeJestFsPath(testUri.fsPath)))),
-    findCaseItem: (testUri, title, ancestorTitles) => this.caseItems.get(createCaseId(testUri, title, ancestorTitles))
+    findFileItem: testUri =>
+      this.fileItems.get(createFileId(this.resolveDiscoveryUri(URI.file(normalizeJestFsPath(testUri.fsPath))))),
+    findCaseItem: (testUri, title, ancestorTitles) =>
+      this.caseItems.get(
+        createCaseId(this.resolveDiscoveryUri(URI.file(normalizeJestFsPath(testUri.fsPath))), title, ancestorTitles)
+      )
   };
 
   /** Walk the Jest JSON output and attribute results to matching TestItems. */
   private applyResults = (run: vscode.TestRun, results: LwcJestTestResults): void => {
     for (const fileResult of results.testResults) {
-      // Strip /private prefix on macOS so URI matches findFiles (symlink, not realpath)
-      const testUri = URI.file(normalizeJestFsPath(fileResult.name));
-      const fileId = createFileId(testUri);
-      const fileItem = this.fileItems.get(fileId);
+      // Strip /private prefix on macOS so URI matches findFiles (symlink, not realpath), then reconcile any
+      // remaining short/long (8.3) path divergence back to the discovery URI that keys the items.
+      const testUri = this.resolveDiscoveryUri(URI.file(normalizeJestFsPath(fileResult.name)));
+      const fileItem = this.fileItems.get(createFileId(testUri));
       for (const assertion of fileResult.assertionResults) {
         const id = createCaseId(testUri, assertion.title, assertion.ancestorTitles);
         const caseItem = this.caseItems.get(id);

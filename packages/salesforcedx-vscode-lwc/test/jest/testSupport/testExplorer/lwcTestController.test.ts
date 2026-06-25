@@ -526,6 +526,140 @@ describe('LwcTestController public run API', () => {
     });
   });
 
+  // Regression for the Windows run-all "(Skipped)" decoration bug: VS Code's findFiles can return an 8.3 short
+  // path (C:\Users\RUNNER~1\...) while jest's result `name` carries the OS-resolved long path
+  // (C:\Users\runneradmin\...). Those produce different URI.toString() keys, so applyResults' exact
+  // fileItems.get() misses, the run.started() row is never resolved, and run.end() flips it to Skipped even
+  // though jest passed. resolveDiscoveryUri reconciles the long jest path back to the short discovery URI via a
+  // shared-suffix match. We model the divergence with POSIX-style paths (forward slashes, distinct ancestor
+  // segment) so it reproduces faithfully on the non-Windows CI host without mocking process.platform.
+  it('applyResults marks the discovery file item passed when jest reports an aliased (long) path', async () => {
+    // Discovery URI (what findFiles surfaces): aliased ancestor segment `RUNNER~1`.
+    const discoveryUri = URI.file('/c/Users/RUNNER~1/work/proj/force-app/lwc/lwc1/__tests__/lwc1.test.js');
+    // Jest result URI (what the result JSON `name` carries): long ancestor segment `runneradmin`.
+    const jestPath = '/c/Users/runneradmin/work/proj/force-app/lwc/lwc1/__tests__/lwc1.test.js';
+    // Sanity: the two URIs really do key differently, so an exact lookup would miss without reconciliation.
+    expect(URI.file(jestPath).toString()).not.toBe(discoveryUri.toString());
+
+    let capturedTreeItems: FakeTestItem[] = [];
+    let runAllHandler: ((request: any, token: any) => Promise<void>) | undefined;
+
+    const mockRun = {
+      started: jest.fn(),
+      passed: jest.fn(),
+      failed: jest.fn(),
+      skipped: jest.fn(),
+      errored: jest.fn(),
+      appendOutput: jest.fn(),
+      end: jest.fn()
+    };
+
+    const controller = {
+      resolveHandler: undefined,
+      refreshHandler: undefined,
+      items: {
+        replace: (items: FakeTestItem[]) => {
+          capturedTreeItems = items;
+        },
+        forEach: (cb: (item: FakeTestItem) => void) => capturedTreeItems.forEach(cb)
+      },
+      createTestItem: (id: string, label: string, uri?: URI) => ({
+        id,
+        label,
+        uri,
+        canResolveChildren: false,
+        tags: [],
+        children: { replace: jest.fn(), forEach: jest.fn() }
+      }),
+      // The Run profile's runHandler drives the implicit run-all; capture it so the test can invoke it.
+      createRunProfile: jest.fn((_label: string, kind: any, handler: any) => {
+        if (kind === vscode.TestRunProfileKind.Run) {
+          runAllHandler = handler;
+        }
+        return { dispose: jest.fn() };
+      }),
+      createTestRun: jest.fn(() => mockRun),
+      dispose: jest.fn()
+    };
+
+    (vscode.tests.createTestController as jest.Mock).mockReturnValue(controller);
+    (lwcTestIndexer.findAllTestFileInfo as jest.Mock).mockResolvedValue([
+      { kind: 'testFile' as const, testUri: discoveryUri }
+    ]);
+    (lwcTestIndexer.findTestInfoFromLwcJestTestFile as jest.Mock).mockResolvedValue([]);
+
+    // Implicit run-all routes through runAllAsDirectory, which needs a workspace folder.
+    const { workspace: lwcWorkspace } = require('../../../../src/testSupport/workspace');
+    (lwcWorkspace.getTestWorkspaceFolder as jest.Mock).mockReturnValue({
+      uri: URI.file('/c/Users/RUNNER~1/work/proj')
+    });
+
+    // Stub the runner so executeOne proceeds to the task/results phase without spawning a real jest process.
+    jest
+      .spyOn(require('../../../../src/testSupport/testRunner/testRunner').TestRunner.prototype, 'getShellExecutionInfo')
+      .mockResolvedValue({
+        command: 'node',
+        args: [],
+        workspaceFolder: { uri: URI.file('/c/Users/RUNNER~1/work/proj') },
+        testResultFsPath: '/c/Users/RUNNER~1/work/proj/.sfdx/tools/testresults/lwc/test-result-1.json'
+      });
+
+    // Fake task that ends right after execute resolves, so awaitTaskEnd resolves. The real SfTask fires onDidEnd
+    // asynchronously via the task-end event; fire on the next tick here too, otherwise awaitTaskEnd's
+    // endDisposable isn't assigned yet when the handler runs (its .dispose() would throw).
+    const taskServiceModule = require('../../../../src/testSupport/testRunner/taskService');
+    jest.spyOn(taskServiceModule.taskService, 'createTask').mockImplementation(() => {
+      let endCb: (() => void) | undefined;
+      return {
+        onDidEnd: (cb: () => void) => {
+          endCb = cb;
+          return { dispose: jest.fn() };
+        },
+        execute: jest.fn().mockImplementation(() => {
+          setImmediate(() => endCb?.());
+          return Promise.resolve();
+        }),
+        terminate: jest.fn()
+      };
+    });
+
+    // readJestResults -> readFile -> vscode.workspace.fs.readFile. Return a passing suite whose `name` is the
+    // LONG (jest) path, so applyResults must reconcile it back to the short discovery URI.
+    const resultJson = JSON.stringify({
+      testResults: [
+        {
+          name: jestPath,
+          status: 'passed',
+          assertionResults: []
+        }
+      ]
+    });
+    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(Buffer.from(resultJson, 'utf8'));
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const ctrl = getLwcTestController();
+    await ctrl.refresh();
+
+    expect(capturedTreeItems).toHaveLength(1);
+    const treeItem = capturedTreeItems[0];
+    expect(runAllHandler).toBeDefined();
+
+    // Implicit run-all: empty include + no exclude. onCancellationRequested must return a disposable —
+    // awaitTaskEnd disposes it inside its onDidEnd handler before resolving.
+    await runAllHandler!(
+      { include: undefined, exclude: undefined },
+      { isCancellationRequested: false, onCancellationRequested: jest.fn(() => ({ dispose: jest.fn() })) }
+    );
+
+    // The discovery row was marked running...
+    expect(mockRun.started).toHaveBeenCalledWith(treeItem);
+    // ...and applyResults must mark that SAME discovery item passed despite the aliased jest path.
+    expect(mockRun.passed).toHaveBeenCalledWith(treeItem);
+    expect(mockRun.skipped).not.toHaveBeenCalledWith(treeItem);
+  });
+
   it('runByExecutionInfo reveals Test Results panel when starting a run', async () => {
     const testUri = URI.file('/project/force-app/lwc/foo/__tests__/foo.test.js');
 
