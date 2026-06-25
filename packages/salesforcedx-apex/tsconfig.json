@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "lib",
+    "experimentalDecorators": true,
+    "isolatedModules": false,
+    "preserveConstEnums": true
+  },
+  "include": ["src/**/*.ts", "typings/**/*.d.ts"]
+}

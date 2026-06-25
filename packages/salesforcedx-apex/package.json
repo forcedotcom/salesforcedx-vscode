@@ -1,0 +1,121 @@
+{
+  "name": "@salesforce/apex-node",
+  "description": "Salesforce JS library for Apex",
+  "version": "8.4.30",
+  "author": "Salesforce",
+  "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
+  "main": "lib/src/index.js",
+  "types": "lib/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/src/index.d.ts",
+      "default": "./lib/src/index.js"
+    },
+    "./lib/src/utils": {
+      "types": "./lib/src/utils/index.d.ts",
+      "default": "./lib/src/utils/index.js"
+    }
+  },
+  "dependencies": {
+    "@salesforce/core": "^8.31.0",
+    "@salesforce/kit": "^3.2.6",
+    "@salesforce/ts-types": "^2.0.10",
+    "fast-glob": "^3.3.2",
+    "faye": "1.4.1",
+    "istanbul-lib-coverage": "^3.2.2",
+    "istanbul-lib-report": "^3.0.1",
+    "istanbul-reports": "^3.2.0",
+    "json-stream-stringify": "^3.1.6"
+  },
+  "devDependencies": {
+    "@jsforce/jsforce-node": "^3.10.16",
+    "@types/istanbul-lib-coverage": "^2.0.6",
+    "@types/istanbul-lib-report": "^3.0.3",
+    "@types/istanbul-reports": "^3.0.4",
+    "@types/sinon": "^17.0.3",
+    "sinon": "^17.0.1"
+  },
+  "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
+  "keywords": [
+    "apex",
+    "force",
+    "salesforce",
+    "sfdx",
+    "salesforcedx"
+  ],
+  "files": [
+    "lib/src"
+  ],
+  "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
+    "compile": "wireit",
+    "lint": "wireit",
+    "check:circular-deps": "wireit",
+    "clean": "shx rm -rf node_modules lib dist coverage .wireit .eslintcache .circular-deps.json",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "clean": "if-file-deleted",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "lib/**"
+      ]
+    },
+    "test": {
+      "command": "jest",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json"
+      ],
+      "output": []
+    },
+    "check:circular-deps": {
+      "command": "dpdm -T --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/index.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    }
+  },
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=18.18.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -28,7 +28,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.27",
+    "@salesforce/apex-node": "*",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -71,6 +71,7 @@
       "dependencies": [
         "copy:grammars",
         "copy:jar",
+        "../salesforcedx-apex:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",

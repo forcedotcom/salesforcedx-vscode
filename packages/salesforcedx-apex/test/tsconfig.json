@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    // bundler resolution resolves @salesforce/core/testSetup (export maps a bare
+    // string with no `types` condition) reliably; node16 subpath type resolution
+    // races/fails intermittently under parallel ts-jest workers.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    // explicit path so the subpath always resolves to its declaration, avoiding the
+    // intermittent node16 cold-cache resolution failure under parallel ts-jest workers.
+    "paths": {
+      "@salesforce/core/testSetup": ["../../../node_modules/@salesforce/core/lib/testSetup"]
+    }
+  },
+  "include": ["**/*.ts"]
+}
