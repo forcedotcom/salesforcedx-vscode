@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
-import { getApexTestDiscoveryStore, resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryStore';
+import { ApexTestDiscoveryService, resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryService';
 import { APEX_TESTING_SCHEME } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
@@ -250,15 +250,19 @@ export class ApexTestController {
   }
 
   private async persistDiscoveredClasses(classes: ToolingTestClass[]): Promise<void> {
-    try {
-      const orgInfo = await getDefaultOrgInfo();
-      const orgKey = resolveDiscoveryOrgKey(orgInfo);
-      const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
-      const classBodiesByFullName = await this.fetchClassBodiesByFullName(apexClasses);
-      getApexTestDiscoveryStore().saveDiscoveredClasses(orgKey, apexClasses, classBodiesByFullName);
-    } catch (error) {
-      console.debug('Failed to persist discovered Apex classes into apex-testing VFS:', error);
-    }
+    const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
+    const fetchClassBodies = (input: ToolingTestClass[]) => this.fetchClassBodiesByFullName(input);
+    // Discovery persistence is best-effort: org-info lookup, class-body fetch, and the VFS write are
+    // logged and ignored on failure so they never fail the discovery run (the snapshot is an
+    // optimization, not required for the test tree to render).
+    await getApexTestingRuntime().runPromise(
+      Effect.gen(function* () {
+        const orgInfo = yield* Effect.tryPromise(() => getDefaultOrgInfo());
+        const orgKey = resolveDiscoveryOrgKey(orgInfo);
+        const classBodiesByFullName = yield* Effect.tryPromise(() => fetchClassBodies(apexClasses));
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgKey, apexClasses, classBodiesByFullName);
+      }).pipe(Effect.catchAll(error => Effect.logWarning('failed to persist discovered Apex classes', { error })))
+    );
   }
 
   private async fetchClassBodiesByFullName(classes: ToolingTestClass[]): Promise<Map<string, string>> {

@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI, Utils } from 'vscode-uri';
 import { getDefaultOrgInfo } from '../coreExtensionUtils';
-import { resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryStore';
+import { resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryService';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
 const STATE_FOLDER = '.sfdx';
