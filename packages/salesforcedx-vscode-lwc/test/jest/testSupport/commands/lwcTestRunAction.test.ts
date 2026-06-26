@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { URI } from 'vscode-uri';
+
+const runByExecutionInfo = jest.fn();
+const runActiveEditorFile = jest.fn();
+
+jest.mock('../../../../src/testSupport/testExplorer/lwcTestController', () => ({
+  getLwcTestController: () => ({ runByExecutionInfo, runActiveEditorFile })
+}));
+
+import {
+  lwcTestFileRun,
+  lwcTestCaseRun,
+  lwcTestRunActiveTextEditorTest
+} from '../../../../src/testSupport/commands/lwcTestRunAction';
+
+describe('lwcTestRunAction routes through the controller', () => {
+  beforeEach(() => {
+    runByExecutionInfo.mockClear();
+    runActiveEditorFile.mockClear();
+  });
+
+  it('lwcTestFileRun calls controller.runByExecutionInfo with isDebug=false', () => {
+    const testExecutionInfo = { kind: 'testFile' as const, testUri: URI.file('/a/foo.test.js') };
+    void lwcTestFileRun({ testExecutionInfo });
+    expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, false);
+  });
+
+  it('lwcTestCaseRun calls controller.runByExecutionInfo with isDebug=false', () => {
+    const testExecutionInfo = { kind: 'testCase' as const, testUri: URI.file('/a/foo.test.js'), testName: 'does x' };
+    void lwcTestCaseRun({ testExecutionInfo });
+    expect(runByExecutionInfo).toHaveBeenCalledWith(testExecutionInfo, false);
+  });
+
+  it('lwcTestRunActiveTextEditorTest calls controller.runActiveEditorFile with isDebug=false', () => {
+    void lwcTestRunActiveTextEditorTest();
+    expect(runActiveEditorFile).toHaveBeenCalledWith(false);
+  });
+});

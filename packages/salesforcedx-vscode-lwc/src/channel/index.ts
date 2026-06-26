@@ -20,16 +20,28 @@ const getChannelService = () =>
 
 let _channelService: Awaited<ReturnType<typeof getChannelService>> | undefined;
 
-/** Fire-and-forget log to the services ChannelService. Safe to call at any point after setAllServicesLayer. */
+/**
+ * Fire-and-forget log to the services ChannelService. Safe to call at any point after setAllServicesLayer.
+ * Guarded so a logging side-effect can never throw into its caller when the services runtime is not yet
+ * available (e.g. before activation, or in unit tests where no layer has been set).
+ */
 export const appendToChannel = (message: string): void => {
-  if (_channelService) {
-    getRuntime().runFork(_channelService.appendToChannel(message));
-    return;
+  try {
+    if (_channelService) {
+      getRuntime().runFork(_channelService.appendToChannel(message));
+      return;
+    }
+    void getChannelService()
+      .then(svc => {
+        _channelService = svc;
+        getRuntime().runFork(svc.appendToChannel(message));
+      })
+      .catch(() => {
+        /* runtime not ready — drop the log */
+      });
+  } catch {
+    /* runtime not ready — drop the log */
   }
-  void getChannelService().then(svc => {
-    _channelService = svc;
-    getRuntime().runFork(svc.appendToChannel(message));
-  });
 };
 
 /** Adapter satisfying `Pick<OutputChannel, 'appendLine'>` for APIs that need it (e.g. registerWorkspaceReadFileHandler). */
