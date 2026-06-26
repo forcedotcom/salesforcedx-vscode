@@ -11,6 +11,7 @@ import * as soqlComments from '@salesforce/soql-common/soqlComments';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { stripAllRows } from './allRows';
 
 const hasMessage = (obj: unknown): obj is { message: unknown } =>
   typeof obj === 'object' && obj !== null && 'message' in obj;
@@ -26,9 +27,10 @@ export const runQuery =
   ): Promise<QueryResult<JsonMap>> => {
     const { maxRows } = options;
     const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
+    const { soql, scanAll } = stripAllRows(pureSOQLText);
 
     try {
-      const rawQueryData = await conn.query(pureSOQLText, { autoFetch: true, maxFetch: maxRows ?? 50_000 });
+      const rawQueryData = await conn.query(soql, { autoFetch: true, maxFetch: maxRows ?? 50_000, scanAll });
       return {
         ...rawQueryData,
         records: flattenQueryRecords(rawQueryData.records)

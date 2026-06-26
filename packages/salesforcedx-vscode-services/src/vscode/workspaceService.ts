@@ -44,9 +44,9 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
     cwd: process.cwd()
   };
 }).pipe(
-  Effect.tap(info => Effect.annotateCurrentSpan(info)),
-  Effect.tap(() =>
+  Effect.tap(info =>
     Effect.annotateCurrentSpan({
+      ...info,
       folders: vscode.workspace.workspaceFolders,
       home: os.homedir(),
       workspaceName: vscode.workspace.name

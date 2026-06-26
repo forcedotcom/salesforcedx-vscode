@@ -10,6 +10,7 @@ import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
+import { stripAllRows } from '../editor/allRows';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
@@ -25,12 +26,13 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
  * `salesforcedx-vscode-soql.maxQueryLimit` setting (default 50,000).
+ * Detects and strips `ALL ROWS` clauses, routing to `/queryAll` endpoint via `scanAll` option.
  * Shows a progress notification while query executes.
  *
- * @param query - SOQL query string to execute
+ * @param query - SOQL query string to execute (may contain trailing `ALL ROWS`)
  * @param useTooling - Whether to use the Tooling API instead of REST
  */
-const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
+export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const connection = yield* api.services.ConnectionService.getConnection();
   const channelService = yield* api.services.ChannelService;
@@ -40,11 +42,12 @@ const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTool
   );
 
   const maxFetch = vscode.workspace.getConfiguration('salesforcedx-vscode-soql').get<number>('maxQueryLimit') ?? 50_000;
+  const { soql, scanAll } = stripAllRows(query);
   const promptService = yield* api.services.PromptService;
   return yield* Effect.promise(() =>
     useTooling
-      ? connection.tooling.query(query, { autoFetch: true, maxFetch })
-      : connection.query(query, { autoFetch: true, maxFetch })
+      ? connection.tooling.query(soql, { autoFetch: true, maxFetch, scanAll })
+      : connection.query(soql, { autoFetch: true, maxFetch, scanAll })
   ).pipe(promptService.withProgress(nls.localize('progress_running_query'), getProgressLocation(COMMAND)));
 });
 

@@ -64,3 +64,26 @@ Best Practices around the mocked vscode modules.
 - If you find a property that is not currently available in the mock please add it.
 - The mocked module should only mock the high level properties. Resolving/returning values should be left to the individual test suite setup so that we can avoid having to adhere to particular behavior across tests.
 - Be aware that the mock call is only executed once during test execution and then resolves for all imports executed during the test run. Individual mocked properties on the module are reset after each test.
+
+#### Singleton Test Isolation
+
+Singletons bypass Jest's automatic mock reset, causing tests to inherit stale state from prior test runs. If a module exports a singleton accessor (e.g., `getLwcTestController()`), expose a disposal/reset export and call it in `beforeEach` to isolate each test:
+
+```typescript
+describe('my singleton tests', () => {
+  beforeEach(() => {
+    disposeLwcTestController(); // resets instance to undefined
+  });
+  // ... tests ...
+});
+```
+
+This ensures each test gets a fresh singleton bound to its own mocks.
+
+**URI Normalization:** Test controllers may normalize URIs to handle platform-specific paths. LWC test controller strips `/private` prefix on macOS (via `normalizeJestFsPath`) to match discovery keying, preventing test runs from targeting detached tree items. When testing URI resolution, supply paths matching both symlinks and realpaths.
+
+**Test Results Panel Auto-Reveal:** LWC test controller auto-reveals the Test Results panel when running tests from command palette, editor code lenses, or editor-title buttons (via `runByExecutionInfo`). Native Test Explorer run-profile clicks call `runTests` directly and don't trigger reveal. Test the feature by mocking `vscode.commands.executeCommand` and verifying it receives `'workbench.panel.testResults.view.focus'`.
+
+**Native Test Controller Assertions:** E2E tests verify native surfaces:
+- Test Results panel displays Pass Rate text after runs
+- Tree items carry aria-label with "(Passed)" decoration for completed tests

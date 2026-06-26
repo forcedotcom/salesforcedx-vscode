@@ -6,11 +6,20 @@
  */
 
 import { expect, type Locator, type Page } from '@playwright/test';
-import { EDITOR, executeCommandWithCommandPalette } from '@salesforce/playwright-vscode-ext';
+import {
+  executeCommandWithCommandPalette,
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM
+} from '@salesforce/playwright-vscode-ext';
 import { messages } from '../../../src/messages/i18n';
 
-export const TEST_EXPLORER_PANEL = '[id="workbench.view.extension.test"]';
-export const TEST_EXPLORER_TREE_ITEM = '[role="treeitem"]';
+// Re-exported from the shared package so existing spec imports from this module keep working.
+export {
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM,
+  focusAndTypeInFilter,
+  clearFilter
+} from '@salesforce/playwright-vscode-ext';
 export const TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]';
 const LOCAL_NAMESPACE_LABEL = messages.test_explorer_local_namespace_label;
 const UNPACKAGED_METADATA_LABEL = messages.test_explorer_unpackaged_metadata_label;
@@ -122,29 +131,4 @@ export const clickTreeItemAction = async (treeItem: Locator, actionLabel: string
   const action = treeItem.locator(`[aria-label="${actionLabel}"]`).first();
   await action.waitFor({ state: 'visible', timeout: 10_000 });
   await action.click();
-};
-
-export const focusAndTypeInFilter = async (page: Page, text: string): Promise<void> => {
-  // Desktop uses a Monaco editor (data-uri="testing:filter") backed by a hidden
-  // <textarea>; web uses a plain input. The Monaco view-lines layer intercepts
-  // pointer events, so click the wrapper (force) and drive keys via page.keyboard
-  // (focused on the hidden textarea). On macOS Ctrl+A is bound to "cursor home"
-  // in Monaco, not select-all, so use Home → Shift+End → Delete to clear.
-  const monacoFilter = page.locator(`${EDITOR}[data-uri="testing:filter"]`);
-  const inputFilter = page.locator('input[placeholder*="Filter"][placeholder*="@tag"]');
-  if (await monacoFilter.isVisible().catch(() => false)) {
-    await monacoFilter.click({ force: true });
-    await page.keyboard.press('Home');
-    await page.keyboard.press('Shift+End');
-    await page.keyboard.press('Delete');
-    if (text) await page.keyboard.type(text);
-  } else {
-    await inputFilter.waitFor({ state: 'visible', timeout: 10_000 });
-    await inputFilter.fill(text);
-  }
-};
-
-export const clearFilter = async (page: Page): Promise<void> => {
-  await focusAndTypeInFilter(page, '');
-  await page.keyboard.press('Escape');
 };

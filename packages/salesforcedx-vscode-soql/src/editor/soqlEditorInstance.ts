@@ -95,10 +95,6 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
   }
   const queryText = document.getText();
   const conn = yield* Effect.promise(() => getConnection());
-  // PromptService cannot be added to this Effect's R type without widening the entire
-  // handleMessageEffect switch union to unknown. Use vscode.window.withProgress directly
-  // so all switch cases share a compatible R type. This shares the same notification
-  // location setting as dataQuery.ts via getProgressLocation('SOQL Builder Run Query').
   const queryData = yield* Effect.promise(() =>
     vscode.window.withProgress(
       {

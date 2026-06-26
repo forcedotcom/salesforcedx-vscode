@@ -86,6 +86,14 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
         ? Effect.fail(new UserCancellationError())
         : Effect.succeed(value);
 
+    /** Multi-pick sibling of {@link considerUndefinedAsCancellation}: treats `undefined` (Esc) AND an empty
+     * selection array (picked nothing then accepted) as cancellation. `canPickMany` quick picks resolve to
+     * `[]` on pick-nothing, which `considerUndefinedAsCancellation` would let through. */
+    const considerEmptySelectionAsCancellation: <T>(
+      value: readonly T[] | undefined
+    ) => Effect.Effect<readonly T[], UserCancellationError, never> = value =>
+      value === undefined || value.length === 0 ? Effect.fail(new UserCancellationError()) : Effect.succeed(value);
+
     /** BFS search for all directories named `folderName` under `rootUri`. Swallows read errors on any subtree. */
     const findFoldersByName = (rootUri: URI, folderName: string) => {
       const init: { queue: URI[]; results: URI[] } = { queue: [rootUri], results: [] };
@@ -237,6 +245,8 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
        * Otherwise, return `value` with `undefined` removed from its type. */
       considerUndefinedAsCancellation,
+      /** Multi-pick sibling: treats `undefined` (Esc) AND an empty selection array as {@link UserCancellationError}. */
+      considerEmptySelectionAsCancellation,
       /** Prompt user to select output directory from available package directories, or choose a custom one. */
       promptForOutputDir,
       /** Pipeable operator: ties a vscode progress notification lifetime to an Effect.
