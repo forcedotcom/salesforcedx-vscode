@@ -47,6 +47,18 @@ const isWindowClosedError = (error: unknown): boolean => {
   return message.includes('has been closed') || message.includes('Target page');
 };
 
+/** Run `op`; if it fails with a window-closed error, rethrow as a named instability error (triggers win32 relaunch). */
+const wrapWindowClose = async <T>(message: string, op: () => Promise<T>): Promise<T> => {
+  try {
+    return await op();
+  } catch (error) {
+    if (isWindowClosedError(error)) {
+      throw new WindowsDesktopLaunchInstabilityError(message, { cause: error });
+    }
+    throw error;
+  }
+};
+
 /**
  * Obtain a ready workbench Page from a freshly launched app. Builds readiness around
  * the first window of THIS app instance; never calls `firstWindow()` twice on the same
@@ -57,32 +69,21 @@ const waitForWorkbenchWindow = async (
   electronApp: ElectronApplication,
   workbenchTimeout: number
 ): Promise<Page> => {
-  const page = await electronApp.firstWindow();
-  await page.waitForLoadState('domcontentloaded');
+  const page = await wrapWindowClose('Electron window closed before first window was ready', async () => {
+    const firstWindow = await electronApp.firstWindow();
+    await firstWindow.waitForLoadState('domcontentloaded');
+    return firstWindow;
+  });
 
-  try {
-    // Electron ignores config's use.viewport — set explicitly for consistent sizing across CI runners
-    await page.setViewportSize({ width: 1920, height: 1080 });
-  } catch (error) {
-    if (isWindowClosedError(error)) {
-      throw new WindowsDesktopLaunchInstabilityError('Electron window closed before viewport could be set', {
-        cause: error
-      });
-    }
-    throw error;
-  }
+  // Electron ignores config's use.viewport — set explicitly for consistent sizing across CI runners
+  await wrapWindowClose('Electron window closed before viewport could be set', () =>
+    page.setViewportSize({ width: 1920, height: 1080 })
+  );
 
   const { WORKBENCH } = await import('../utils/locators.js');
-  try {
-    await page.waitForSelector(WORKBENCH, { timeout: workbenchTimeout });
-  } catch (error) {
-    if (isWindowClosedError(error)) {
-      throw new WindowsDesktopLaunchInstabilityError('Electron window closed before workbench was ready', {
-        cause: error
-      });
-    }
-    throw error;
-  }
+  await wrapWindowClose('Electron window closed before workbench was ready', () =>
+    page.waitForSelector(WORKBENCH, { timeout: workbenchTimeout })
+  );
 
   return page;
 };
@@ -104,6 +105,17 @@ const forceKillProcessGroup = (proc: ChildProcess): void => {
   proc.stdout?.destroy();
   proc.stderr?.destroy();
 };
+
+/** Resolve once `proc` exits (via the given event) or after `timeoutMs`, whichever comes first. */
+const awaitProcExit = (proc: ChildProcess, { event, timeoutMs }: { event: 'close' | 'exit'; timeoutMs: number }): Promise<void> =>
+  new Promise<void>(resolve => {
+    if (proc.exitCode !== null) {
+      resolve();
+      return;
+    }
+    proc.on(event, () => resolve());
+    setTimeout(resolve, timeoutMs);
+  });
 
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
@@ -462,14 +474,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           if (proc) {
             forceKillProcessGroup(proc);
             // Wait for Node.js to register the exit (pipes closed → 'close' event → 'exit' event)
-            await new Promise<void>(resolve => {
-              if (proc.exitCode !== null) {
-                resolve();
-                return;
-              }
-              proc.on('close', () => resolve());
-              setTimeout(resolve, 10_000);
-            });
+            await awaitProcExit(proc, { event: 'close', timeoutMs: 10_000 });
           }
           console.log(`[teardown] exitCode=${proc?.exitCode} killed=${proc?.killed}`);
         } else {
@@ -487,14 +492,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             // Wait for the process to actually exit before callers run fs.rm — a still-running
             // VS Code holds file handles (e.g. @unrs/resolver-binding-wasm32-wasi) under userDataDir,
             // causing EPERM on cleanup. Race a short timeout so teardown never hangs.
-            await new Promise<void>(resolve => {
-              if (proc.exitCode !== null) {
-                resolve();
-                return;
-              }
-              proc.on('exit', () => resolve());
-              setTimeout(resolve, 5000);
-            });
+            await awaitProcExit(proc, { event: 'exit', timeoutMs: 5000 });
           }
         }
       };
@@ -505,9 +503,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
 
       const relaunch = async (): Promise<ElectronApplication> => {
         await killApp(current.app);
-        const next = await launchElectron();
-        current.app = next;
-        return next;
+        current.app = await launchElectron();
+        return current.app;
       };
 
       try {
