@@ -219,9 +219,16 @@ const runsResult = await agent(
 
 Run this command and parse the output:
 \`\`\`bash
+# Filter to E2E workflows by name. The aggregator workflow is literally named
+# "End to End Tests" (no "e2e"/"E2E" substring) and runs the daily-failing
+# playwright-soql / e2e-desktop (windows-latest) suite, so a naive "e2e"
+# substring match silently drops it. Job names (e2e-desktop / e2e-web) are the
+# source-of-truth E2E signal, but gh run list filters on workflowName only.
+# Regex matches: "End to End Tests" + "Nightly Build *" + every "*Playwright*"/
+# "*E2E*" workflow, while the (?!.*Publish) lookahead excludes any Publish* run.
 gh run list --repo ${REPO} --branch develop --limit 200 \\
   --json databaseId,workflowName,conclusion,createdAt,attempt \\
-  --jq '[.[] | select(.workflowName | test("Playwright|E2E|e2e"; "i"))]'
+  --jq '[.[] | select(.workflowName | test("End to End|Nightly Build|(Playwright|E2E)(?!.*Publish)"; "i"))]'
 \`\`\`
 
 For each run, also check if it was re-attempted (attempt > 1) — that's a strong signal of flakiness even if the final conclusion is "success".
@@ -231,11 +238,21 @@ Return all runs from the last ${DAYS} days (filter by createdAt). Include runs w
 )
 
 if (!runsResult || !runsResult.runs.length) {
-  log('No Playwright E2E runs found in the last ' + DAYS + ' days — nothing to analyze.')
+  log(
+    `WARNING: filter matched 0 E2E workflows in the last ${DAYS} days. ` +
+      `develop almost always has E2E runs, so this likely means the workflowName ` +
+      `regex is stale — NOT that CI is stable. Regex used: ` +
+      `test("End to End|Nightly Build|(Playwright|E2E)(?!.*Publish)"; "i"). ` +
+      `Compare against \`gh workflow list --all --json name\` and update the filter.`
+  )
   return { hypotheses: [], wis: [] }
 }
 
-log(`Found ${runsResult.runs.length} E2E runs. Collecting metrics...`)
+const matchedWorkflows = [...new Set(runsResult.runs.map((r) => r.workflowName))].sort()
+log(
+  `Found ${runsResult.runs.length} E2E runs across ${matchedWorkflows.length} workflows: ` +
+    `${matchedWorkflows.join(', ')}. Collecting metrics...`
+)
 
 // =====================================================================
 // PHASE 2: COLLECT METRICS
