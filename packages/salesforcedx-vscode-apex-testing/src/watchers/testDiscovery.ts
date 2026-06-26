@@ -19,18 +19,18 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const channelService = yield* api.services.ChannelService;
   // Subscribe to org changes: discover tests when an org is available, clear the tree when it goes away (logout/delete)
-  yield* Effect.forkDaemon(
-    targetOrgRef.changes.pipe(
-      Stream.map(org => org.orgId),
-      Stream.changes,
-      Stream.runForEach(orgId =>
-        isString(orgId)
-          ? channelService
-              .appendToChannel(`Discovering tests for org: ${orgId}`)
-              .pipe(Effect.zipRight(Effect.tryPromise(() => testController.refresh())))
-          : Effect.tryPromise(() => testController.clearAllTestItems())
-      ),
-      Effect.catchAll(error => Effect.log('[Apex Testing] Test discovery setup failed', { error }))
+  yield* targetOrgRef.changes.pipe(
+    Stream.map(org => org.orgId),
+    Stream.changes,
+    Stream.runForEach(orgId =>
+      (isString(orgId)
+        ? channelService
+            .appendToChannel(`Discovering tests for org: ${orgId}`)
+            .pipe(Effect.zipRight(Effect.tryPromise(() => testController.refresh())))
+        : Effect.tryPromise(() => testController.clearAllTestItems())
+      ).pipe(
+        Effect.catchTag('UnknownException', error => Effect.log('[Apex Testing] Test discovery failed', { error }))
+      )
     )
   );
 });
