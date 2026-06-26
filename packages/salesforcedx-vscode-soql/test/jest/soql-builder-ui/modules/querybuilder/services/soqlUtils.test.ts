@@ -27,6 +27,7 @@ import {
 
 describe('SoqlUtils', () => {
   const uiModelOne: ToolingModelJson = {
+    allRows: false,
     sObject: 'Account',
     fields: ['Name', 'Id'],
     where: {
@@ -63,6 +64,7 @@ describe('SoqlUtils', () => {
     originalSoqlStatement: ''
   };
   const uiModelCount: ToolingModelJson = {
+    allRows: false,
     sObject: 'Account',
     fields: [SELECT_COUNT],
     where: {
@@ -76,6 +78,7 @@ describe('SoqlUtils', () => {
     originalSoqlStatement: ''
   };
   const uiModelErrors: ToolingModelJson = {
+    allRows: false,
     sObject: 'Account',
     fields: ['Name'],
     orderBy: [],
@@ -130,6 +133,7 @@ describe('SoqlUtils', () => {
   it('transform UI Model with comments to Soql Model', () => {
     const modelWithComments: ToolingModelJson = {
       headerComments: `// Comments here${EOL}`,
+      allRows: false,
       sObject: 'Foo',
       fields: ['Id'],
       where: { andOr: undefined, conditions: [] },
@@ -162,6 +166,7 @@ describe('SoqlUtils', () => {
     const transformedUiModel = convertSoqlToUiModel(`// Comments here${EOL}SELECT Id FROM Foo`);
     const expectedUiModel: ToolingModelJson = {
       headerComments: `// Comments here${EOL}`,
+      allRows: false,
       sObject: 'Foo',
       fields: ['Id'],
       where: { andOr: undefined, conditions: [] },
@@ -188,6 +193,21 @@ describe('SoqlUtils', () => {
     const transformedUiModel = convertSoqlToUiModel(soqlError);
     expect(transformedUiModel.errors[0].type).toEqual(uiModelErrors.errors[0].type);
     expect(transformedUiModel.unsupported[0].reason).toEqual(uiModelErrors.unsupported[0].reason);
+  });
+
+  it('transform UI Model with allRows true to Soql with ALL ROWS', () => {
+    const transformedSoql = convertUiModelToSoql({ ...uiModelOne, allRows: true });
+    expect(transformedSoql).toContain('ALL ROWS');
+  });
+
+  it('transform UI Model with allRows false to Soql without ALL ROWS', () => {
+    const transformedSoql = convertUiModelToSoql({ ...uiModelOne, allRows: false });
+    expect(transformedSoql).not.toContain('ALL ROWS');
+  });
+
+  it('transforms Soql with ALL ROWS to UI Model with allRows true', () => {
+    const transformedUiModel = convertSoqlToUiModel(`${soqlOne} ALL ROWS`);
+    expect(transformedUiModel.allRows).toBe(true);
   });
 
   describe('soqlStringLiteralToDisplayValue should', () => {

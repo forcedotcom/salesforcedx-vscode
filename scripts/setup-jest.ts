@@ -152,7 +152,8 @@ const getMockVSCode = () => {
     },
     languages: {
       createDiagnosticCollection: jest.fn(),
-      createLanguageStatusItem: mockCreateLanguageStatusItem
+      createLanguageStatusItem: mockCreateLanguageStatusItem,
+      registerCodeLensProvider: jest.fn().mockReturnValue({ dispose: jest.fn() })
     },
     Uri: {
       ...Uri,
@@ -224,6 +225,10 @@ const getMockVSCode = () => {
     StatusBarAlignment: {
       Left: 1,
       Right: 2
+    },
+    QuickPickItemKind: {
+      Separator: -1,
+      Default: 0
     },
     ThemeColor: jest.fn(),
     window: {
@@ -315,7 +320,12 @@ const getMockVSCode = () => {
       constructor(label: string) {}
     },
     CodeLens: class {
-      constructor(range: Range) {}
+      public range: any;
+      public command?: any;
+      constructor(range: any, command?: any) {
+        this.range = range;
+        this.command = command;
+      }
     },
     DocumentLink: class {
       constructor(range: Range, target?: Uri) {}
@@ -382,6 +392,60 @@ const getMockVSCode = () => {
       Run: 1,
       Debug: 2,
       Coverage: 3
+    },
+    TaskRevealKind: {
+      Always: 1,
+      Silent: 2,
+      Never: 3
+    },
+    TaskPanelKind: {
+      Shared: 1,
+      Dedicated: 2,
+      New: 3
+    },
+    TaskScope: {
+      Global: 1,
+      Workspace: 2
+    },
+    ShellExecution: class {
+      public commandLine: string;
+      public options?: any;
+      constructor(commandOrCommandLine: string, argsOrOptions?: any, options?: any) {
+        // ShellExecution(command, args, options) | ShellExecution(commandLine, options)
+        this.commandLine = commandOrCommandLine;
+        this.options = Array.isArray(argsOrOptions) ? options : argsOrOptions;
+      }
+    },
+    Task: class {
+      public definition: any;
+      public scope: any;
+      public name: string;
+      public source: string;
+      public execution: any;
+      public presentationOptions: any;
+      public isBackground = false;
+      public problemMatchers: string[] = [];
+      public runOptions: any = {};
+      constructor(
+        definition: any,
+        scope: any,
+        name: string,
+        source: string,
+        execution?: any,
+        problemMatchers?: string[]
+      ) {
+        this.definition = definition;
+        this.scope = scope;
+        this.name = name;
+        this.source = source;
+        this.execution = execution;
+        this.problemMatchers = problemMatchers || [];
+      }
+    },
+    tasks: {
+      executeTask: jest.fn(),
+      onDidStartTask: jest.fn(() => ({ dispose: jest.fn() })),
+      onDidEndTask: jest.fn(() => ({ dispose: jest.fn() }))
     }
   };
 

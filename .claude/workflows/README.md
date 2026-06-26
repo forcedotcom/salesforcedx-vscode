@@ -91,8 +91,9 @@ Cached at `$HOME/.claude/runner-identity.json` after first resolve. If any of th
                                      │
        ┌──────────┬───────┬──────────┼───────────┬────────────┐
        ▼          ▼       ▼          ▼           ▼            ▼
-   merged/     green/  running/    no-pr/      failed +     failed +
-   closed     finalize   wait     restart    gha retries   exhausted
+   merged      green/  running/    no-pr/      failed +     failed +
+              finalize  closed/    restart    gha retries   exhausted
+                         wait
        │          │       │          │       remaining        │
        ▼          │       │          │           │            ▼
   ┌─────────┐     │       │          │           │       ┌─────────┐
@@ -196,9 +197,9 @@ The owner gets GitHub's native approval notification — no Slack DM (it would l
 
 **Reap stranded worktrees.** Runs before monitoring (single haiku agent). Lists `git worktree list`, and for any worktree on an `<ownerPrefix>/W-` branch whose PR is already `MERGED`/`CLOSED` (e.g. user merged manually, so the WI dropped out of the in-flight query), removes the worktree and deletes the local branch. Skips the main worktree, workflow-isolation worktrees under `.claude/worktrees/`, and branches with no PR (still building). Never errors — partial progress is fine.
 
-**Monitor in-flight.** For each in-flight WI, parses `PR: <url>` out of `Details__c`. Pipeline stage 1 reads PR state; stage 2 decides close/finalize/wait/restart/triage. PRs with no recorded URL are treated as crashed builders (rare). Failed PRs check the `gha-rerun` daemon's retry budget (3 attempts via GitHub `run_attempt`) and only triage once exhausted — otherwise the daemon handles it.
+**Monitor in-flight.** For each in-flight WI, parses `PR: <url>` out of `Details__c`. `Details__c` carries exactly one `<strong>PR:</strong>` marker: when a rebuild opens a new PR after an abandoned attempt, the write sites REPLACE the old marker rather than append a second, so the sole marker is always the live PR. Pipeline stage 1 reads PR state; stage 2 decides close/finalize/wait/restart/triage. Only `merged` closes the WI; `closed`-not-merged → wait. PRs with no recorded URL are treated as crashed builders (rare). Failed PRs check the `gha-rerun` daemon's retry budget (3 attempts via GitHub `run_attempt`) and only triage once exhausted — otherwise the daemon handles it.
 
-**Close merged WIs.** For WIs whose PR came back `merged` or `closed`, runs one haiku agent each (parallel, idempotent): sets `Status__c='Closed'`, removes the worktree, deletes the local branch.
+**Close merged WIs.** For WIs whose live PR came back `merged` (only — `closed`-not-merged waits), runs one haiku agent each (parallel, idempotent): sets `Status__c='Closed'`, removes the worktree, deletes the local branch.
 
 **Triage failures → Fix CI failures.** Triage classifies one of `flake-or-infra` / `e2e-test-issue` / `code-bug` / `unknown`. Each route runs in parallel: flakes/unknowns DM the runner; e2e issues spawn a fixer using the `analyze-e2e` command and `playwright-e2e` skill; code bugs re-enter a builder agent with the failure context and the original plan.
 

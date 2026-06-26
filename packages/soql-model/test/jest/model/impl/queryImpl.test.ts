@@ -106,4 +106,15 @@ describe('QueryImpl should', () => {
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });
+  it('emit ALL ROWS as the last clause when allRows is set for toSoqlSyntax()', () => {
+    const expected = 'SELECT \n' + '  FROM songs\n' + '  ALL ROWS\n';
+    const query = new QueryImpl(new SelectExprsImpl([]), new FromImpl('songs'));
+    query.allRows = true;
+    expect(query.toSoqlSyntax()).toEqual(expected);
+  });
+  it('omit ALL ROWS when allRows is unset for toSoqlSyntax()', () => {
+    const expected = 'SELECT \n' + '  FROM songs\n';
+    const actual = new QueryImpl(new SelectExprsImpl([]), new FromImpl('songs')).toSoqlSyntax();
+    expect(actual).toEqual(expected);
+  });
 });
