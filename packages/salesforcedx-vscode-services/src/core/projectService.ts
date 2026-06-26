@@ -40,8 +40,10 @@ const resolveSfProject = (fsPath: string) =>
     try: () => SfProject.resolve(fsPath),
     catch: error => {
       const { cause } = unknownToErrorCause(error);
+      // sfdx-core already produces a complete, user-readable sentence (e.g.
+      // "<path> does not contain a valid Salesforce DX project."); don't re-wrap and double the path.
       return new FailedToResolveSfProjectError({
-        message: `Failed to resolve SfProject at "${fsPath}": ${cause.message}`,
+        message: cause.message,
         cause
       });
     }
