@@ -57,9 +57,9 @@ test('Aura LSP: go to definition', async ({ page }) => {
 
   await test.step('position cursor on the simpleNewContact reference (L8)', async () => {
     // Place the cursor inside `simpleNewContact` on the ref line (8:15). Click the editor first so
-    // it owns focus before the command-palette
-    // cursor placement (mirrors lwcLspGoToDefinitionHtml precedent); without focus, the
-    // subsequent Go to Definition runs against a stale/unfocused editor and resolves nothing.
+    // it owns focus before the command-palette cursor placement (mirrors lwcLspGoToDefinitionHtml
+    // precedent); without focus, the subsequent Go to Definition runs against a stale/unfocused
+    // editor and resolves nothing.
     await page.locator(`${EDITOR_WITH_URI}[data-uri$="aura1.cmp"]`).first().click();
     await goToLineCol(page, 8, 15);
     await expect(positionItem).toContainText(/Ln 8, Col 15/, { timeout: 10_000 });
@@ -68,8 +68,8 @@ test('Aura LSP: go to definition', async ({ page }) => {
 
   await test.step('Go to Definition lands on the attribute definition (L3)', async () => {
     // Within-file nav (no new tab), so no Ctrl+Click (apex used Ctrl+Click only for its
-    // cross-file nav). LSP readiness already
-    // synced by `waitForAuraLspReady`. Use the command palette (lwcLspGoToDefinitionHtml precedent)
+    // cross-file nav). LSP readiness already synced by `waitForAuraLspReady`. Use the command
+    // palette (lwcLspGoToDefinitionHtml precedent)
     // rather than F12, which is more host/environment-sensitive (can be intercepted as a global
     // shortcut). `preserveSelection` keeps the 8:15 cursor placed above — otherwise the palette's
     // workbench focus-click re-parks the cursor at end-of-document (below the last line of this

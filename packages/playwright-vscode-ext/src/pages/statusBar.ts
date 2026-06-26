@@ -13,8 +13,8 @@ import { activeQuickInputWidget } from '../utils/quickInput';
 /**
  * Locate the org-picker / default-org status bar item by its rendered label text. The org-picker item
  * has no stable DOM id, so we find it by the visible label (`STATUS_BAR_ITEM_LABEL` + `hasText`).
- * `currentText` is the label the
- * item currently shows ("No Default Org Set" before an org is set, then the org alias).
+ * `currentText` is the label the item currently shows ("No Default Org Set" before an org is set,
+ * then the org alias).
  * `.first()`: only the org-picker item shows a user alias; other Salesforce status-bar items render
  * fixed icons/text that cannot contain the alias, so the first label match is the org-picker item.
  */

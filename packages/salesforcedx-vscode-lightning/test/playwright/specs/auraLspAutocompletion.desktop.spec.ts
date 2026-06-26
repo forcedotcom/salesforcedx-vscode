@@ -25,9 +25,8 @@ import { test } from '../fixtures';
 import { waitForAuraLspReady } from '../utils/auraLspUtils';
 
 // Specs are independent (separate VS Code session per spec), so the Aura LS re-indexes the
-// pre-seeded aura1 bundle here. Types `<aura:appl`
-// at L2 C1 (the blank tab line in the seeded `aura1.cmp`), selects the `aura:application`
-// completion, and asserts it was inserted.
+// pre-seeded aura1 bundle here. Types `<aura:appl` at L2 C1 (the blank tab line in the seeded
+// `aura1.cmp`), selects the `aura:application` completion, and asserts it was inserted.
 test('Aura LSP: autocompletion', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);

@@ -131,8 +131,8 @@ test('org picker: set default org, create scratch org, switch default org', asyn
     await expectOrgPickerStatusBar(page, scratchAlias, { timeout: 30_000 });
   });
 
-  // Switch default org back and forth. No window reload — `setDefaultOrg` re-reads auth state from
-  // disk on every picker open (orgList.ts AuthInfo.listAllAuthorizations + disk aliases).
+  // Switch default org back and forth. No window reload — `setDefaultOrg` re-reads auth state
+  // from disk on every picker open (orgList.ts AuthInfo.listAllAuthorizations + disk aliases).
   await test.step('switch default org back to dev hub', async () => {
     await clickOrgPickerStatusBar(page, scratchAlias);
     // Staleness guard: confirm the freshly created scratch org appears without a reload.
@@ -150,8 +150,8 @@ test('org picker: set default org, create scratch org, switch default org', asyn
   });
 
   // Clean up the scratch org created above. Best-effort: the org auto-expires in 1 day and a
-  // nightly cron sweeps leftovers, but deleting here avoids
-  // leaking a real org on every run. Guarded so a delete failure doesn't fail a passing test.
+  // nightly cron sweeps leftovers, but deleting here avoids leaking a real org on every run.
+  // Guarded so a delete failure doesn't fail a passing test.
   await test.step('delete the created scratch org', async () => {
     await execAsync(`sf org delete scratch --target-org ${scratchAlias} --no-prompt`, { env }).catch(
       (error: unknown) => {

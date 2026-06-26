@@ -135,8 +135,8 @@ type TriggerLspRestartOptions = {
  * await Prelude STARTING → await indexing complete + StandardApexLibrary on disk.
  *
  * The intermediate `restarting` button check fails fast if the restart command was ignored —
- * important because the next two waits could
- * otherwise spuriously pass against the prior session's state.
+ * important because the next two waits could otherwise spuriously pass against the prior
+ * session's state.
  */
 export const triggerLspRestart = async (
   page: Page,
