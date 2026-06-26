@@ -11,28 +11,26 @@ import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import { getTestController } from '../views/testController';
 
-/** Initialize test discovery when an org is available, and re-discover on org changes */
+/** Initialize test discovery when an org is available, and clear/re-discover on org changes */
 export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDiscovery')(function* (
   testController: ReturnType<typeof getTestController>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const channelService = yield* api.services.ChannelService;
-  // Subscribe to org changes and re-discover tests when org changes
+  // Subscribe to org changes: discover tests when an org is available, clear the tree when it goes away (logout/delete)
   yield* Effect.forkDaemon(
     targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
-      Stream.filter(isString),
       Stream.changes,
-      Stream.tap(orgId => channelService.appendToChannel(`Discovering tests for org: ${orgId}`)),
-      Stream.runForEach(() =>
-        Effect.promise(() => testController.refresh()).pipe(
-          Effect.catchAll(error => {
-            console.debug('[Apex Testing] Test discovery setup failed:', error);
-            return Effect.void;
-          })
-        )
-      )
+      Stream.runForEach(orgId =>
+        isString(orgId)
+          ? channelService
+              .appendToChannel(`Discovering tests for org: ${orgId}`)
+              .pipe(Effect.zipRight(Effect.tryPromise(() => testController.refresh())))
+          : Effect.tryPromise(() => testController.clearAllTestItems())
+      ),
+      Effect.catchAll(error => Effect.log('[Apex Testing] Test discovery setup failed', { error }))
     )
   );
 });
