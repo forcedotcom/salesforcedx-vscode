@@ -25,9 +25,8 @@ import {
 import { test } from '../fixtures';
 import { waitForAuraLspReady } from '../utils/auraLspUtils';
 
-// Migrated from WDIO `auraLsp.e2e.ts` "Go to Definition". The aura1 bundle is pre-seeded onto disk
-// before launch (fixtures/desktopFixtures.ts); the Aura LS indexes it on its startup scan, so no
-// `reloadWindow` workaround is needed. Go to Definition here is WITHIN-file: ref site L8
+// The aura1 bundle is pre-seeded onto disk before launch (fixtures/desktopFixtures.ts); the Aura LS
+// indexes it on its startup scan. Go to Definition here is WITHIN-file: ref site L8
 // `{!v.simpleNewContact}` → def site L3 `<aura:attribute name="simpleNewContact" …/>`.
 //
 // The Go to Definition command MUST run with `preserveSelection: true`. Without it,
@@ -57,10 +56,10 @@ test('Aura LSP: go to definition', async ({ page }) => {
   const positionItem = page.locator(WORKBENCH).getByRole('button', { name: /Ln \d+, Col \d+/ });
 
   await test.step('position cursor on the simpleNewContact reference (L8)', async () => {
-    // Mirrors WDIO `moveCursorWithFallback(textEditor, 8, 15)` — cursor inside `simpleNewContact`
-    // on the ref line. Click the editor first so it owns focus before the command-palette
-    // cursor placement (mirrors lwcLspGoToDefinitionHtml precedent); without focus, the
-    // subsequent Go to Definition runs against a stale/unfocused editor and resolves nothing.
+    // Place the cursor inside `simpleNewContact` on the ref line (8:15). Click the editor first so
+    // it owns focus before the command-palette cursor placement (mirrors lwcLspGoToDefinitionHtml
+    // precedent); without focus, the subsequent Go to Definition runs against a stale/unfocused
+    // editor and resolves nothing.
     await page.locator(`${EDITOR_WITH_URI}[data-uri$="aura1.cmp"]`).first().click();
     await goToLineCol(page, 8, 15);
     await expect(positionItem).toContainText(/Ln 8, Col 15/, { timeout: 10_000 });
@@ -68,9 +67,9 @@ test('Aura LSP: go to definition', async ({ page }) => {
   });
 
   await test.step('Go to Definition lands on the attribute definition (L3)', async () => {
-    // Matches WDIO `executeQuickPick('Go to Definition')`. Within-file nav (no new tab), so
-    // no Ctrl+Click (apex used Ctrl+Click only for its cross-file nav). LSP readiness already
-    // synced by `waitForAuraLspReady`. Use the command palette (lwcLspGoToDefinitionHtml precedent)
+    // Within-file nav (no new tab), so no Ctrl+Click (apex used Ctrl+Click only for its
+    // cross-file nav). LSP readiness already synced by `waitForAuraLspReady`. Use the command
+    // palette (lwcLspGoToDefinitionHtml precedent)
     // rather than F12, which is more host/environment-sensitive (can be intercepted as a global
     // shortcut). `preserveSelection` keeps the 8:15 cursor placed above — otherwise the palette's
     // workbench focus-click re-parks the cursor at end-of-document (below the last line of this
@@ -81,8 +80,7 @@ test('Aura LSP: go to definition', async ({ page }) => {
     // resolves the def to the `simpleNewContact` name-attribute value range on L3
     // (`getAuraBindingTemplateDeclaration`); Go to Definition selects that range and places the
     // cursor at its END. Local run 2026-06-12 (test:desktop, VS Code 1.124.2): status bar read
-    // exactly `Ln 3, Col 27` — matches WDIO `getCoordinates()` → [3, 27], so the assertion is
-    // locked to the exact value.
+    // exactly `Ln 3, Col 27`, so the assertion is locked to the exact value.
     await expect(positionItem).toContainText(/Ln 3, Col 27/, { timeout: 15_000 });
 
     // SECONDARY (defense): aura1.cmp is still the active tab — confirms within-file nav (no spurious
