@@ -17,6 +17,7 @@ import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { nls } from '../messages';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 
 const CHANNEL_NAME = nls.localize('channel_name');
 
@@ -53,7 +54,8 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         channelLayer,
         errorHandlerWithChannel,
         // ApexTestDiscoveryService.Default carries ApexTestingDiscoveryFsProviderLive via its dependencies.
-        ApexTestDiscoveryService.Default
+        ApexTestDiscoveryService.Default,
+        ApexTestRunCacheService.Default
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );

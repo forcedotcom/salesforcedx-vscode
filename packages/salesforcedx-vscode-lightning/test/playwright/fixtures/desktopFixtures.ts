@@ -37,7 +37,7 @@ const AURA_CMP_META = [
 
 // aura LSP specs do not exercise Push/Pull, so the workspace has no org. The aura1 bundle is
 // pre-seeded onto disk before Electron launches so the Aura Language Server's startup scan picks
-// it up — drops the WDIO `reloadWindow` workaround.
+// it up.
 const baseTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs: ['salesforcedx-vscode-core'],

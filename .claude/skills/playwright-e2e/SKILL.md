@@ -96,6 +96,14 @@ To run only your new test in CI while iterating:
 3. **Optional** — skip org setup steps not needed for your test (e.g. minimal/non-tracking orgs)
 4. **Restore** — remove branch from `branches-ignore`, remove `--grep`, uncomment skipped steps
 
+## Test Controller Native Surfaces
+
+When testing native Test Controller surfaces (Test Explorer, Test Results panel):
+
+- **Test Results panel**: Wait for tab visibility, then assert Pass Rate text (e.g., `getByText(/Pass Rate/i)`)
+- **Tree items**: Assert aria-label contains expected decoration (e.g., `toHaveAttribute('aria-label', /Passed/i)` for completed tests)
+- **Locators**: Use `TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]'` to target panel tab reliably
+
 ## Reliable Assertions for Async Operations
 
 For desktop-only tests, prefer durable success signals over flaky UI assertions:
