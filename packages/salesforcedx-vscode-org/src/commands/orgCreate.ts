@@ -44,7 +44,7 @@ const isIntegerInRange = (value: string | undefined, range: [number, number]): b
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
 
-class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
+export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       workspaceUtils.getRootWorkspacePath(), // this is safe because of workspaceChecker

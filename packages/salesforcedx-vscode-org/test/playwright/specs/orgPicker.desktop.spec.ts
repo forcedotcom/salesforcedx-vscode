@@ -18,6 +18,7 @@ import {
   expectOrgPickerListsOrg,
   expectOrgPickerStatusBar,
   getTargetDevHub,
+  NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_LIST_ROW,
   selectOrgInPicker,
   selectOutputChannel,
@@ -40,6 +41,12 @@ const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 // `%s successfully ran` (`salesforcedx-utils-vscode/src/messages/i18n.ts`), %s = command description.
 const SET_DEFAULT_ORG_RAN = /SFDX: Set a Default Org successfully ran/;
 const CREATE_SCRATCH_ORG_RAN = /SFDX: Create a Default Scratch Org\.\.\. successfully ran/;
+// Terminal failure/cancel toasts from `salesforcedx-utils-vscode/src/messages/i18n.ts`
+// (`notification_canceled_execution_text` `'%s was canceled'`, `notification_unsuccessful_execution_text`
+// `'%s failed to run'`), %s = command description. The 3min orgCreate timeout (W-23195499) surfaces the
+// canceled toast; matching it lets the create step fast-fail instead of burning the full 600s wait.
+const CREATE_SCRATCH_ORG_CANCELED = /SFDX: Create a Default Scratch Org\.\.\. was canceled/;
+const CREATE_SCRATCH_ORG_FAILED = /SFDX: Create a Default Scratch Org\.\.\. failed to run/;
 
 // The 5 ACTION_ITEMS rendered in the picker (orgList.ts ACTION_ITEMS); labels carry an icon prefix.
 const PICKER_ACTION_ITEMS = [
@@ -125,7 +132,20 @@ test('org picker: set default org, create scratch org, switch default org', asyn
   // `--set-default` makes the new org the default. Wait for the create command's success
   // notification (multi-minute command), then assert the persistent status-bar signal.
   await test.step('scratch org create completes and is auto-set as default', async () => {
-    await waitForNotification(page, CREATE_SCRATCH_ORG_RAN, { timeout: 600_000 });
+    // Race the success toast against the failure/cancel toasts so this step resolves the instant any
+    // terminal toast appears. Each waiter shares the 600s timeout, so none rejects early; a cancel/fail
+    // toast (e.g. the 3min orgCreate timeout) resolves the race in seconds instead of burning 600s.
+    await Promise.race([
+      waitForNotification(page, CREATE_SCRATCH_ORG_RAN, { timeout: 600_000 }),
+      waitForNotification(page, CREATE_SCRATCH_ORG_CANCELED, { timeout: 600_000 }),
+      waitForNotification(page, CREATE_SCRATCH_ORG_FAILED, { timeout: 600_000 })
+    ]);
+    // Assert success explicitly so a cancel/fail toast fails the test loudly (and surfaces the
+    // channel-captured CLI --json body in CI artifacts) instead of timing out silently.
+    await expect(
+      page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: CREATE_SCRATCH_ORG_RAN }).first(),
+      'scratch org create should succeed (cancel/fail toast means the CLI errored; see Org Management channel output)'
+    ).toBeVisible({ timeout: 5000 });
     // The success notification signals the command finished; the status bar updates within seconds, so
     // a short timeout here keeps the two sequential waits from summing past the 720s test budget.
     await expectOrgPickerStatusBar(page, scratchAlias, { timeout: 30_000 });
