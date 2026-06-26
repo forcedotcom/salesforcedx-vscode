@@ -258,6 +258,56 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
     expect(querySpy).not.toHaveBeenCalled();
   });
 
+  it('populates debugLevelName from the DebugLevel.DeveloperName relationship join', async () => {
+    const u1 = '005000000000001';
+    const rows: TraceFlagRow[] = [
+      {
+        ...makeTraceFlagRow('7tf1', u1),
+        DebugLevel: { DeveloperName: 'SFDC_DevConsole' }
+      }
+    ];
+    const { layer } = buildMockConnectionLayer({
+      traceFlagRowsBySequence: [rows],
+      toolingNameRowsBySoql: new Map(),
+      userNameRowsBySoql: new Map([[userIdInClause([u1]), [{ Id: u1, Name: 'Alice' }]]])
+    });
+
+    const result = await runScoped(
+      Effect.gen(function* () {
+        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        const svc = yield* TraceFlagService;
+        return yield* svc.getTraceFlags();
+      }),
+      layer
+    );
+
+    expect(result.find(f => f.id === '7tf1')?.debugLevelName).toBe('SFDC_DevConsole');
+  });
+
+  it('leaves debugLevelName undefined when the DebugLevel relationship is absent (orphaned)', async () => {
+    const u1 = '005000000000001';
+    // DebugLevelId set, but the relationship row is missing — orphaned debug level
+    const rows: TraceFlagRow[] = [makeTraceFlagRow('7tf1', u1)];
+    const { layer } = buildMockConnectionLayer({
+      traceFlagRowsBySequence: [rows],
+      toolingNameRowsBySoql: new Map(),
+      userNameRowsBySoql: new Map([[userIdInClause([u1]), [{ Id: u1, Name: 'Alice' }]]])
+    });
+
+    const result = await runScoped(
+      Effect.gen(function* () {
+        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        const svc = yield* TraceFlagService;
+        return yield* svc.getTraceFlags();
+      }),
+      layer
+    );
+
+    const flag = result.find(f => f.id === '7tf1');
+    expect(flag?.debugLevelId).toBe('dl1');
+    expect(flag?.debugLevelName).toBeUndefined();
+  });
+
   it('queries ApexTrigger names with the 01q prefix branch', async () => {
     const t1 = '01q000000000001';
     const rows = [makeTraceFlagRow('7tf1', t1)];

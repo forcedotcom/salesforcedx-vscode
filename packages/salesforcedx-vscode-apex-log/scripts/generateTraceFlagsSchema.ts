@@ -16,6 +16,7 @@ import { buildTraceFlagsSchemas } from '../src/schemas/traceFlagsSchema';
 const TraceFlagItemStruct = Schema.Struct({
   id: Schema.String,
   debugLevelId: Schema.optional(Schema.String),
+  debugLevelName: Schema.optional(Schema.String),
   tracedEntityName: Schema.optional(Schema.String),
   tracedEntityId: Schema.optional(Schema.String),
   logType: Schema.Literal('USER_DEBUG', 'DEVELOPER_LOG', 'CLASS_TRACING'),

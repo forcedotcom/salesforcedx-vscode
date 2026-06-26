@@ -17,6 +17,11 @@ const NullableString = Schema.Union(Schema.String, Schema.Null);
 export const TraceFlagLogType = Schema.Literal('USER_DEBUG', 'DEVELOPER_LOG', 'CLASS_TRACING');
 export type TraceFlagLogType = Schema.Schema.Type<typeof TraceFlagLogType>;
 
+/** Nested DebugLevel relationship from the TraceFlag query (DebugLevel.DeveloperName). Absent when the trace flag references a missing/inaccessible DebugLevel. */
+const ToolingTraceFlagDebugLevel = Schema.Struct({
+  DeveloperName: Schema.optional(NullableString)
+});
+
 /** Tooling API record shape from TraceFlag query. TracedEntityName is injected by getTraceFlags when resolving entity names. */
 const ToolingTraceFlagRecordSchema = Schema.Struct({
   Id: Schema.String,
@@ -24,6 +29,7 @@ const ToolingTraceFlagRecordSchema = Schema.Struct({
   StartDate: Schema.optional(NullableString),
   ExpirationDate: Schema.String,
   DebugLevelId: Schema.optional(NullableString),
+  DebugLevel: Schema.optional(Schema.NullOr(ToolingTraceFlagDebugLevel)),
   TracedEntityId: Schema.optional(NullableString),
   TracedEntityName: Schema.optional(NullableString)
 });
@@ -34,6 +40,7 @@ export type ToolingTraceFlagRecord = Schema.Schema.Type<typeof ToolingTraceFlagR
 export const TraceFlagItemStruct = Schema.Struct({
   id: Schema.String,
   debugLevelId: Schema.optional(Schema.String),
+  debugLevelName: Schema.optional(Schema.String),
   tracedEntityName: Schema.optional(Schema.String),
   tracedEntityId: Schema.optional(Schema.String),
   logType: TraceFlagLogType,
@@ -49,6 +56,7 @@ export const TraceFlagItemSchema = Schema.transform(ToolingTraceFlagRecordSchema
   decode: rec => ({
     id: rec.Id,
     debugLevelId: rec.DebugLevelId ?? undefined,
+    debugLevelName: rec.DebugLevel?.DeveloperName ?? undefined,
     tracedEntityId: rec.TracedEntityId ?? undefined,
     tracedEntityName: rec.TracedEntityName ?? undefined,
     logType: rec.LogType,
@@ -62,6 +70,7 @@ export const TraceFlagItemSchema = Schema.transform(ToolingTraceFlagRecordSchema
     LogType: toA.logType,
     ExpirationDate: toA.expirationDate.toISOString(),
     DebugLevelId: toA.debugLevelId,
+    DebugLevel: toA.debugLevelName ? { DeveloperName: toA.debugLevelName } : undefined,
     TracedEntityId: toA.tracedEntityId,
     TracedEntityName: toA.tracedEntityName,
     StartDate: toA.startDate?.toISOString()

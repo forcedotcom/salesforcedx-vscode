@@ -10,8 +10,7 @@ import * as Effect from 'effect/Effect';
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { TraceFlagOrphanedDebugLevelError } from '../errors/commandErrors';
-import { buildExtendedTraceFlagItemStruct, buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
+import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
 import { getRuntime } from '../services/runtime';
 import { isTraceFlagActive } from './traceFlagActive';
 
@@ -37,10 +36,35 @@ const groupByLogType = (items: TraceFlagItem[]): TraceFlagsByLogType => {
   };
 };
 
+/**
+ * A trace flag is orphaned when it references a DebugLevel (debugLevelId is set) that could not be
+ * resolved to a name — neither from the TraceFlag→DebugLevel join nor the separate DebugLevel query.
+ * Operate on an already-enriched item (one whose debugLevelName has been populated by enrichTraceFlags).
+ */
+export const isOrphanedTraceFlag = (tf: TraceFlagItem): boolean =>
+  tf.debugLevelId !== undefined && tf.debugLevelName === undefined;
+
+/**
+ * Resolves each trace flag's debug level name, preferring the name carried on the trace flag
+ * (from the TraceFlag→DebugLevel relationship join) and falling back to the separate DebugLevel
+ * query. A trace flag whose debugLevelId resolves to no name is returned as an orphan but still
+ * included in `enriched` — an unresolvable debug level must never block the whole view (#7528).
+ */
+export const enrichTraceFlags = (
+  traceFlags: TraceFlagItem[],
+  debugLevels: DebugLevelItem[]
+): { enriched: TraceFlagItem[]; orphans: TraceFlagItem[] } => {
+  const debugLevelMap = new Map(debugLevels.map(dl => [dl.id, dl.developerName]));
+  const enriched = traceFlags.map(tf => ({
+    ...tf,
+    debugLevelName: tf.debugLevelName ?? (tf.debugLevelId ? debugLevelMap.get(tf.debugLevelId) : undefined)
+  }));
+  return { enriched, orphans: enriched.filter(isOrphanedTraceFlag) };
+};
+
 const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ExtendedItemStruct = buildExtendedTraceFlagItemStruct(api.services.TraceFlagItemStruct);
-  const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas(ExtendedItemStruct);
+  const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
   const traceFlagService = yield* api.services.TraceFlagService;
   const channelService = yield* api.services.ChannelService;
 
@@ -68,22 +92,11 @@ const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(funct
     { concurrency: 'unbounded' }
   );
 
-  const debugLevelMap = new Map(debugLevels.map(dl => [dl.id, dl.developerName]));
-  const enriched = yield* Effect.all(
-    traceFlags.map(tf => {
-      const name = tf.debugLevelId ? debugLevelMap.get(tf.debugLevelId) : undefined;
-      if (tf.debugLevelId && name === undefined) {
-        return Effect.fail(
-          new TraceFlagOrphanedDebugLevelError({
-            message: `Trace flag ${tf.id} references missing DebugLevel ${tf.debugLevelId}`,
-            traceFlagId: tf.id,
-            debugLevelId: tf.debugLevelId
-          })
-        );
-      }
-      return Effect.succeed({ ...tf, debugLevelName: name });
-    }),
-    { concurrency: 'unbounded' }
+  const { enriched, orphans } = enrichTraceFlags(traceFlags, debugLevels);
+  yield* Effect.forEach(orphans, tf =>
+    channelService.appendToChannel(
+      `Trace flag ${tf.id} references DebugLevel ${tf.debugLevelId} not returned by the DebugLevel query; showing without a name.`
+    )
   );
 
   return encodeTraceFlagsConfigToJson({

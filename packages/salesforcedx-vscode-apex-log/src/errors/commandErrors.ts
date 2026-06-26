@@ -15,8 +15,3 @@ export class OpenLogsFolderError extends Schema.TaggedError<OpenLogsFolderError>
   message: Schema.String,
   cause: Schema.instanceOf(Error)
 }) {}
-
-export class TraceFlagOrphanedDebugLevelError extends Schema.TaggedError<TraceFlagOrphanedDebugLevelError>()(
-  'TraceFlagOrphanedDebugLevelError',
-  { message: Schema.String, traceFlagId: Schema.String, debugLevelId: Schema.String }
-) {}
