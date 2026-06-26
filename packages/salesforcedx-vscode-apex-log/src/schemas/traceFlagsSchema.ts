@@ -56,11 +56,7 @@ const DebugLevelItemStruct = Schema.Struct({
 
 const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
-/** TraceFlagItem + debugLevelName. Apex-log enriches from DebugLevel lookup. Kept optional for defensive parsing. */
-export const buildExtendedTraceFlagItemStruct = <A, I>(base: Schema.Schema<A, I, never>) =>
-  base.pipe(Schema.extend(Schema.Struct({ debugLevelName: Schema.optional(Schema.String) })));
-
-/** Build trace-flags JSON schemas from the shared TraceFlagItemStruct (provided by services API at runtime, or directly in build scripts). */
+/** Build trace-flags JSON schemas from the shared TraceFlagItemStruct (provided by services API at runtime, or directly in build scripts). The struct already carries debugLevelName from the TraceFlag→DebugLevel relationship join. */
 export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, never>) => {
   const TraceFlagsByLogTypeSchema = Schema.Struct({
     DEVELOPER_LOG: Schema.optional(
