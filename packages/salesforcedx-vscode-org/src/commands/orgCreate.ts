@@ -46,17 +46,23 @@ const isIntegerInRange = (value: string | undefined, range: [number, number]): b
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
 
-// Persist the raw scratch-create CLI --json body to ~/.sf/vscode-spans on failure. That dir is the
-// only sink e2e CI uploads as an artifact (orgE2E.yml copies it to test-results), and the channel it
-// also streams to is a virtualized Monaco editor whose scrollback no artifact captures. Best-effort:
-// a write failure must never mask the real CLI error.
-const dumpCreateFailureBody = async (stdOut: string): Promise<void> => {
+// Persist the raw scratch-create CLI output to ~/.sf/vscode-spans on failure. That dir is the only
+// sink e2e CI uploads as an artifact (orgE2E.yml copies it to test-results), and the channel it also
+// streams to is a virtualized Monaco editor whose scrollback no artifact captures. Captures stdout,
+// stderr, and exit code since a failing create may report its error on any of them. Best-effort: a
+// write failure must never mask the real CLI error.
+const dumpCreateFailureBody = async (parts: {
+  exitCode: number | undefined;
+  stdOut: string;
+  stdErr: string;
+}): Promise<void> => {
   try {
     const dir = URI.file(path.join(Global.SF_DIR, 'vscode-spans'));
     await vscode.workspace.fs.createDirectory(dir);
     const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
     const file = URI.file(path.join(dir.fsPath, `org-create-failure-${timestamp}.txt`));
-    await vscode.workspace.fs.writeFile(file, new TextEncoder().encode(stdOut));
+    const body = `exitCode: ${parts.exitCode}\n\n=== stdout ===\n${parts.stdOut}\n\n=== stderr ===\n${parts.stdErr}\n`;
+    await vscode.workspace.fs.writeFile(file, new TextEncoder().encode(body));
   } catch {
     // best-effort diagnostics only
   }
@@ -95,13 +101,19 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
     execution.stdoutSubject.subscribe(realData => {
       stdOut += realData.toString();
     });
+    // accumulate stderr too: a failing scratch create may write its error there (or nothing to
+    // stdout at all), so the failure dump needs both streams to capture the real CLI error.
+    let stdErr = '';
+    execution.stderrSubject.subscribe(realData => {
+      stdErr += realData.toString();
+    });
 
     // 3min hard timeout: if the CLI never exits, cancel so the 1s watcher SIGKILLs the child.
     const timer = setTimeout(() => cancellationTokenSource.cancel(), 180_000);
 
     // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async () => {
+    execution.processExitSubject.subscribe(async (exitCode: number | undefined) => {
       clearTimeout(timer);
       this.logMetric(execution.command.logName, startTime);
       try {
@@ -112,7 +124,7 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
         } else {
           // raw CLI --json body already streamed live to the channel via streamCommandOutput;
           // also persist it to the CI-collected spans dir since the channel scrollback isn't artifacted
-          await dumpCreateFailureBody(stdOut);
+          await dumpCreateFailureBody({ exitCode, stdOut, stdErr });
           // remove when we drop CLI invocations
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
@@ -124,7 +136,7 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
       } catch (err) {
         // raw CLI --json body already streamed live to the channel via streamCommandOutput;
         // also persist it to the CI-collected spans dir since the channel scrollback isn't artifacted
-        await dumpCreateFailureBody(stdOut);
+        await dumpCreateFailureBody({ exitCode, stdOut, stdErr });
         channelService.appendLine(nls.localize('org_create_result_parsing_error'));
         const stringError = errorToString(err);
         channelService.appendLine(errorToString(stringError));

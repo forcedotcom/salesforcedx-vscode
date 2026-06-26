@@ -19,6 +19,7 @@ const fakeSubject = <T>(): FakeSubject<T> => {
 
 // subjects the test drives to simulate the CLI's stdout stream and process exit.
 let stdoutSubject: FakeSubject<string>;
+let stderrSubject: FakeSubject<string>;
 let processExitSubject: FakeSubject<number | undefined>;
 const executeMock = jest.fn();
 
@@ -68,6 +69,7 @@ describe('OrgCreateExecutor.execute', () => {
     // keep setImmediate real so `flush()` drains the async processExitSubject subscriber microtasks
     jest.useFakeTimers({ doNotFake: ['setImmediate'] });
     stdoutSubject = fakeSubject<string>();
+    stderrSubject = fakeSubject<string>();
     processExitSubject = fakeSubject<number | undefined>();
     appendLine.mockClear();
     mockUpdateConfigAndStateAggregators.mockClear();
@@ -78,7 +80,7 @@ describe('OrgCreateExecutor.execute', () => {
     executeMock.mockReturnValue({
       command: { logName: 'org_create_default_scratch_org', toString: () => 'sf', toCommand: () => 'sf' },
       stdoutSubject,
-      stderrSubject: fakeSubject<string>(),
+      stderrSubject,
       processExitSubject,
       processErrorSubject: fakeSubject<Error | undefined>()
     });
@@ -152,7 +154,29 @@ describe('OrgCreateExecutor.execute', () => {
       const [uri, content] = writeFile.mock.calls[0];
       expect(uri.fsPath).toContain('vscode-spans');
       expect(uri.fsPath).toMatch(/org-create-failure-.*\.txt$/);
-      expect(new TextDecoder().decode(content)).toBe(body);
+      const dumped = new TextDecoder().decode(content);
+      expect(dumped).toContain('exitCode: 1');
+      expect(dumped).toContain(body);
+    } finally {
+      createDirectory.mockRestore();
+      writeFile.mockRestore();
+    }
+  });
+
+  it('(e) dumps stderr and exit code when the CLI writes nothing to stdout', async () => {
+    const createDirectory = jest.spyOn(vscode.workspace.fs, 'createDirectory').mockResolvedValue();
+    const writeFile = jest.spyOn(vscode.workspace.fs, 'writeFile').mockResolvedValue();
+    try {
+      new OrgCreateExecutor().execute(response);
+      // empty stdout (the real failure mode): error surfaces on stderr instead
+      stderrSubject.next('ERROR running org:create:scratch: The signup request failed');
+      processExitSubject.next(1);
+      await flush();
+      await flush();
+
+      const dumped = new TextDecoder().decode(writeFile.mock.calls[0][1]);
+      expect(dumped).toContain('exitCode: 1');
+      expect(dumped).toContain('The signup request failed');
     } finally {
       createDirectory.mockRestore();
       writeFile.mockRestore();
