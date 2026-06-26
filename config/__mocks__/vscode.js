@@ -83,8 +83,18 @@ const vscode = {
   },
 
   // Position and Range
-  Position: jest.fn(),
-  Range: jest.fn(),
+  Position: class {
+    constructor(line, character) {
+      this.line = line;
+      this.character = character;
+    }
+  },
+  Range: class {
+    constructor(start, end) {
+      this.start = start;
+      this.end = end;
+    }
+  },
 
   // Enums
   ProgressLocation: {
@@ -127,7 +137,8 @@ const vscode = {
   // Languages
   languages: {
     createDiagnosticCollection: jest.fn(),
-    createLanguageStatusItem: mockCreateLanguageStatusItem
+    createLanguageStatusItem: mockCreateLanguageStatusItem,
+    registerCodeLensProvider: jest.fn().mockReturnValue({ dispose: jest.fn() })
   },
 
   // Theme
@@ -238,7 +249,10 @@ const vscode = {
     constructor(label) {}
   },
   CodeLens: class {
-    constructor(range) {}
+    constructor(range, command) {
+      this.range = range;
+      this.command = command;
+    }
   },
   DocumentLink: class {
     constructor(range, target) {}
