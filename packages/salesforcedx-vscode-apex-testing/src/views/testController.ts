@@ -131,6 +131,19 @@ export class ApexTestController {
     await this.discoverTests();
   }
 
+  /**
+   * Clears all test items without re-discovering. Used to reach the no-org state
+   * (e.g. logout / delete default org) without requiring a window reload.
+   */
+  public async clearAllTestItems(): Promise<void> {
+    if (this.discoveryInProgress) {
+      await this.discoveryInProgress;
+    }
+    this.invalidateConnection();
+    this.clearTestItems();
+    this.hasRestoredResults = false;
+  }
+
   // eslint-disable-next-line class-methods-use-this
   public async clearResults(): Promise<void> {
     void vscode.commands.executeCommand('testing.clearTestResults');
