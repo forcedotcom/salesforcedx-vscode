@@ -185,6 +185,7 @@ export default [
       'unicorn/no-impossible-length-comparison': 'error',
       'unicorn/no-instanceof-builtins': 'error',
       'unicorn/no-invalid-character-comparison': 'error',
+      'unicorn/no-loop-iterable-mutation': 'error',
       'unicorn/no-single-promise-in-promise-methods': 'error',
       'unicorn/no-static-only-class': 'error',
       'unicorn/no-typeof-undefined': 'error',
