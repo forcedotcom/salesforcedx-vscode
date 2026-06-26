@@ -30,8 +30,8 @@ const getOutputChannel = (): vscode.OutputChannel => {
   return _outputChannel;
 };
 
-// For backward compatibility with LibraryCommandletExecutor
-// Uses a Proxy to defer access until after initialization
+// Direct channel handle for synchronous callers (e.g. OUTPUT_CHANNEL.show()).
+// Uses a Proxy to defer access until after initialization.
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 export const OUTPUT_CHANNEL: vscode.OutputChannel = new Proxy({} as vscode.OutputChannel, {
   get: (_target, prop: keyof vscode.OutputChannel) => {
