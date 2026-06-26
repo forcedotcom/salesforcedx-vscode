@@ -71,16 +71,20 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
       env: { SF_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
-    channelService.streamCommandStartStop(execution);
+    channelService.streamCommandOutput(execution);
 
     let stdOut = '';
     execution.stdoutSubject.subscribe(realData => {
       stdOut += realData.toString();
     });
 
+    // 3min hard timeout: if the CLI never exits, cancel so the 1s watcher SIGKILLs the child.
+    const timer = setTimeout(() => cancellationTokenSource.cancel(), 180_000);
+
     // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     execution.processExitSubject.subscribe(async () => {
+      clearTimeout(timer);
       this.logMetric(execution.command.logName, startTime);
       try {
         const createParser = new OrgCreateResultParser(stdOut);
@@ -88,6 +92,8 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
         if (createParser.createIsSuccessful()) {
           await updateConfigAndStateAggregators();
         } else {
+          // surface the raw CLI --json body even when the parser returns no result (CI artifact diagnosability)
+          channelService.appendLine(stdOut);
           // remove when we drop CLI invocations
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
@@ -97,6 +103,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
           }
         }
       } catch (err) {
+        channelService.appendLine(stdOut);
         channelService.appendLine(nls.localize('org_create_result_parsing_error'));
         const stringError = errorToString(err);
         channelService.appendLine(errorToString(stringError));
