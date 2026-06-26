@@ -484,6 +484,17 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             try {
               process.kill(proc.pid!, 'SIGKILL');
             } catch {}
+            // Wait for the process to actually exit before callers run fs.rm — a still-running
+            // VS Code holds file handles (e.g. @unrs/resolver-binding-wasm32-wasi) under userDataDir,
+            // causing EPERM on cleanup. Race a short timeout so teardown never hangs.
+            await new Promise<void>(resolve => {
+              if (proc.exitCode !== null) {
+                resolve();
+                return;
+              }
+              proc.on('exit', () => resolve());
+              setTimeout(resolve, 5000);
+            });
           }
         }
       };
@@ -506,9 +517,14 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         // Remove the temp user-data dir (and its nested extensions dir) now that the process is gone.
         // On Windows the just-killed VS Code may still hold file handles briefly, so fs.rm hits EBUSY/EPERM
         // (force only suppresses ENOENT). maxRetries retries those with backoff; best-effort so a leftover
-        // temp dir never fails the test.
+        // temp dir never fails the test. win32 gets more retries/longer delay — file-handle release lags there.
         try {
-          await fs.rm(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+          await fs.rm(userDataDir, {
+            recursive: true,
+            force: true,
+            maxRetries: process.platform === 'win32' ? 20 : 10,
+            retryDelay: process.platform === 'win32' ? 300 : 200
+          });
         } catch {}
         console.log('[teardown] done');
       }
