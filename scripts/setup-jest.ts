@@ -287,7 +287,8 @@ const getMockVSCode = () => {
     workspace: {
       getConfiguration: () => ({
         get: () => true,
-        update: jest.fn()
+        update: jest.fn(),
+        inspect: () => undefined
       }),
       onDidChangeConfiguration: jest.fn(),
       findFiles: jest.fn().mockResolvedValue([]),
