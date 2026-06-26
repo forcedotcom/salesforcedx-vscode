@@ -55,6 +55,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         errorHandlerWithChannel,
         // ApexTestDiscoveryService.Default carries ApexTestingDiscoveryFsProviderLive via its dependencies.
         ApexTestDiscoveryService.Default,
+        // ApexTestRunCacheService.Default tracks last executed test class/method for rerun commands.
         ApexTestRunCacheService.Default
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
