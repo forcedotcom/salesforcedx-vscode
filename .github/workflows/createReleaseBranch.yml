@@ -38,7 +38,7 @@ jobs:
           ssh-strict: false
           token: ${{ secrets.IDEE_GH_TOKEN }}
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - uses: ./.github/actions/gitConfig
