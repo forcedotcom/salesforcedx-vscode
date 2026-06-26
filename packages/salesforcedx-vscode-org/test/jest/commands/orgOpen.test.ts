@@ -26,7 +26,12 @@ const buildServices = (opts: {
   appendToChannel: jest.Mock;
   show: jest.Mock;
 }) => ({
-  ProjectService: { isSalesforceProject: () => Effect.succeed(opts.isProject) },
+  // getSfProject sets the project context and fails when there's no project; orgOpen ignores the
+  // returned SfProject, so the success path just yields a sentinel.
+  ProjectService: {
+    getSfProject: () =>
+      opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
+  },
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>
@@ -68,7 +73,7 @@ describe('orgOpenCommand', () => {
     (vscode.env as unknown as { openExternal: jest.Mock }).openExternal = openExternal;
   });
 
-  it('runs `sf org open --url-only --json` with --target-org and SF_JSON_TO_STDOUT', async () => {
+  it('runs `sf org open --url-only --json` with --target-org (env injected by simpleExec)', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const appendToChannel = jest.fn();
     const exit = await run({
@@ -80,10 +85,10 @@ describe('orgOpenCommand', () => {
     });
 
     expect(Exit.isSuccess(exit)).toBe(true);
+    // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR for sf commands; orgOpen no longer passes env
     expect(simpleExec).toHaveBeenCalledWith({
       command: 'sf org open --url-only --json --target-org me@scratch.org',
-      parse: expect.any(Function),
-      env: { SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' }
+      parse: expect.any(Function)
     });
   });
 
@@ -117,7 +122,7 @@ describe('orgOpenCommand', () => {
     expect(simpleExec).toHaveBeenCalledWith(expect.objectContaining({ command: 'sf org open --url-only --json' }));
   });
 
-  it('fails with NoSalesforceProjectError and does not exec or open when not in a project', async () => {
+  it('fails (getSfProject) and does not exec or open when not in a project', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const appendToChannel = jest.fn();
     const exit = await run({
@@ -129,7 +134,7 @@ describe('orgOpenCommand', () => {
     });
 
     expect(Exit.isFailure(exit)).toBe(true);
-    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('NoSalesforceProjectError');
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
     expect(simpleExec).not.toHaveBeenCalled();
     expect(openExternal).not.toHaveBeenCalled();
   });

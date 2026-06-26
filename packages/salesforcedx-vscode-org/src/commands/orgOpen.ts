@@ -16,18 +16,6 @@ import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 
 /**
- * Shown when there is no open Salesforce project; surfaced through the command error channel so
- * ErrorHandlerService renders it via a single showErrorMessage (parity with sfProjectPreconditionChecker).
- * @ExportTaggedError
- */
-export class NoSalesforceProjectError extends Schema.TaggedError<NoSalesforceProjectError>()(
-  'NoSalesforceProjectError',
-  {
-    message: Schema.String
-  }
-) {}
-
-/**
  * Raised when `sf org open --url-only --json` stdout cannot be decoded into either result shape.
  * @ExportTaggedError
  */
@@ -58,20 +46,15 @@ type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
 
 /**
  * Decodes the sf CLI JSON from stdout. The CLI emits `{ result }` (success) or `{ status, message }`
- * (failure) — neither carries a `_tag`. The `'result' in raw` test lives ONLY in the parse adapter
- * below (`RawObject` + `decodeOrgOpenResponse`), where it injects the discriminant; all downstream
- * dispatch is on `_tag` via Match. Malformed JSON / unexpected shape maps to a tagged error rather
- * than escaping as a defect.
- *
- * `RawObject` parses stdout into a plain object so `_tag` can be injected before the tagged-union decode.
+ * (failure) — neither carries a `_tag`. `RawObject` parses stdout to a plain object so the `'result' in raw`
+ * test can inject the discriminant before the tagged-union decode; all downstream dispatch is on `_tag` via
+ * Match. Malformed/unexpected shape maps to a tagged error rather than escaping as a defect.
  */
 const RawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }));
 /**
- * The sf CLI can prepend non-JSON lines to stdout even with `--json` + `SF_JSON_TO_STDOUT=true` — e.g. the
- * scratch-org expiration warning ("Warning: The following orgs expire in the next 5 days: ...") observed on
- * macOS CI. Slice from the first `{` to the last `}` to isolate the JSON payload before decoding (parity with
- * the old OrgOpenContainerResultParser, which sanitized the same way). When no braces are present the slice
- * yields '' and the decode below produces an OrgOpenParseError rather than a defect.
+ * The sf CLI can prepend non-JSON lines to stdout even with `--json` (e.g. the scratch-org expiration warning,
+ * seen on macOS CI). Slice from the first `{` to the last `}` to isolate the JSON payload before decoding
+ * (parity with the old OrgOpenContainerResultParser). No braces → slice yields '' → OrgOpenParseError, not a defect.
  */
 const sanitizeJson = (stdout: string) => stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
 const decodeOrgOpenResponse = (stdout: string) =>
@@ -92,15 +75,9 @@ const decodeOrgOpenResponse = (stdout: string) =>
 export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  // precondition (load-bearing): isSalesforceProject also sets the sf:project_opened context as a side
-  // effect (parity with sfProjectPreconditionChecker). Surface as a tagged error so ErrorHandlerService
-  // shows the localized message via a single showErrorMessage.
-  const isProject = yield* api.services.ProjectService.isSalesforceProject();
-  if (!isProject) {
-    return yield* new NoSalesforceProjectError({
-      message: nls.localize('org_open_no_salesforce_project_text')
-    });
-  }
+  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  yield* api.services.ProjectService.getSfProject();
 
   // pass --target-org so sf resolves the default org by username rather than the extension-host cwd
   // (simpleExec runs without a workspace cwd). orgDelete uses the same pattern.
@@ -111,13 +88,10 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
   }
 
   const terminalService = yield* api.services.TerminalService;
-  // SF_JSON_TO_STDOUT keeps the JSON payload on stdout (the old container path set it); FORCE_COLOR=0
-  // strips the ANSI color escapes the sf CLI otherwise wraps the JSON in (e.g. `[97m{...`), which
-  // would break JSON.parse. Both are required because we decode stdout as JSON.
+  // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
   const stdout = yield* terminalService.simpleExec({
     command: `sf org open --url-only --json${targetOrgFlag}`,
-    parse: identity,
-    env: { SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' }
+    parse: identity
   });
   const response = yield* decodeOrgOpenResponse(stdout);
 

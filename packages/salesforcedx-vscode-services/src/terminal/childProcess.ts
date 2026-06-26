@@ -10,11 +10,9 @@ import * as Effect from 'effect/Effect';
 export type ExecResult = { stdout: string; stderr: string };
 export type ExecOptions = { timeout?: number; signal?: AbortSignal; env?: Record<string, string> };
 
-/** Resolve the options passed to node's exec from our ExecOptions. When an `env` override is present we
- * spread `process.env` under it so PATH etc. survive — node's exec only inherits the parent env when `env`
- * is omitted entirely, so a partial env override would otherwise drop PATH and break the child. When no
- * override is given we omit `env` so node keeps inheriting the full parent env. Extracted as a pure
- * function so the merge is unit-testable without the lazy node import. */
+/** Resolve node exec options from our ExecOptions. With an `env` override, spread `process.env` under it so
+ * PATH survives (node only inherits the parent env when `env` is omitted entirely); without one, omit `env`
+ * so node inherits the full parent env. Pure fn so the merge is unit-testable without the lazy node import. */
 export const resolveExecOptions = (
   options: ExecOptions
 ): { timeout?: number; signal?: AbortSignal; env?: NodeJS.ProcessEnv } => {
@@ -22,11 +20,9 @@ export const resolveExecOptions = (
   return env ? { ...rest, env: { ...process.env, ...env } } : rest;
 };
 
-/** Thin injectable seam over node:child_process exec (promisified). Lets consumers (and tests) swap the
- * implementation via the Effect layer instead of mocking node:child_process, which keeps ts-jest on
- * isolatedModules:true for the whole package.
- * The node import stays lazy (inside exec, not at layer build) so this service is safe to construct on
- * web, where node:child_process is unavailable — callers guard the web case before invoking exec. */
+/** Thin injectable seam over node:child_process exec (promisified). Consumers/tests swap the impl via the
+ * Effect layer instead of mocking node:child_process (keeps ts-jest on isolatedModules:true). The node import
+ * stays lazy (inside exec) so the service is safe to construct on web; callers guard the web case first. */
 export class ChildProcess extends Effect.Service<ChildProcess>()('ChildProcess', {
   accessors: false,
   effect: Effect.succeed({

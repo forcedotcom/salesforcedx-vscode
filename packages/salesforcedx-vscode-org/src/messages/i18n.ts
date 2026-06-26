@@ -80,8 +80,6 @@ export const messages = {
     'Log out of %s org(s)?\n\nBefore logging out, ensure that you or someone on your team has a username and password for any scratch orgs. Otherwise you might lose all access.',
   org_open_default_scratch_org_text: 'SFDX: Open Default Org',
   org_open_container_mode_message_text: 'Access org %s as user %s with the following URL: %s',
-  org_open_no_salesforce_project_text:
-    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   org_select_text: 'Select an org to set as default',
   parameter_gatherer_enter_alias_name: 'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url: 'Enter a custom login URL or use the default URL',

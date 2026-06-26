@@ -79,26 +79,63 @@ describe('TerminalService.simpleExec', () => {
     expect(capturedOptions?.timeout).toBe(30_000);
   });
 
-  it('forwards env to the injected ChildProcess.exec', async () => {
-    let capturedOptions: ExecOptions | undefined;
-    const exec = (_command: string, options: ExecOptions): Promise<ExecResult> => {
-      capturedOptions = options;
-      return Promise.resolve({ stdout: '', stderr: '' });
-    };
+  // shared exec stub that captures the options simpleExec forwards to childProcess.exec
+  const capturingExec = (capture: { options?: ExecOptions }) => (_command: string, options: ExecOptions) => {
+    capture.options = options;
+    return Promise.resolve({ stdout: '', stderr: '' });
+  };
 
+  it('forwards a caller env to the injected ChildProcess.exec (non-sf command)', async () => {
+    const capture: { options?: ExecOptions } = {};
     await run(
       TerminalService.pipe(
         Effect.flatMap(terminal =>
-          terminal.simpleExec({ command: 'sf org open', parse: s => s, env: { SF_JSON_TO_STDOUT: 'true' } })
+          terminal.simpleExec({ command: 'java --version', parse: s => s, env: { FOO: 'bar' } })
         )
       ),
-      withExec(exec)
+      withExec(capturingExec(capture))
     );
 
-    // pre-merge value: this asserts simpleExec forwards `env` to childProcess.exec, NOT the
-    // `{ ...process.env, ...env }` merge. The injected stub bypasses resolveExecOptions (which does
-    // the merge inside the default ChildProcess impl); the merge is covered in childProcess.test.ts.
-    expect(capturedOptions?.env).toEqual({ SF_JSON_TO_STDOUT: 'true' });
+    // pre-merge value: asserts simpleExec forwards `env` to childProcess.exec, NOT the
+    // `{ ...process.env, ...env }` merge (that merge lives in resolveExecOptions, covered in childProcess.test.ts).
+    expect(capture.options?.env).toEqual({ FOO: 'bar' });
+  });
+
+  it('auto-injects SF_JSON_TO_STDOUT + FORCE_COLOR for sf commands', async () => {
+    const capture: { options?: ExecOptions } = {};
+    await run(
+      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
+      withExec(capturingExec(capture))
+    );
+
+    expect(capture.options?.env).toEqual({ SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' });
+  });
+
+  it('lets a caller env override the auto-injected sf env', async () => {
+    const capture: { options?: ExecOptions } = {};
+    await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal =>
+          terminal.simpleExec({ command: 'sf org open', parse: s => s, env: { FORCE_COLOR: '1', EXTRA: 'x' } })
+        )
+      ),
+      withExec(capturingExec(capture))
+    );
+
+    // caller FORCE_COLOR wins over the injected '0'; injected SF_JSON_TO_STDOUT and caller EXTRA both present
+    expect(capture.options?.env).toEqual({ SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '1', EXTRA: 'x' });
+  });
+
+  it('does not inject sf env for non-sf commands without a caller env', async () => {
+    const capture: { options?: ExecOptions } = {};
+    await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ command: 'java --version', parse: s => s }))
+      ),
+      withExec(capturingExec(capture))
+    );
+
+    expect(capture.options?.env).toBeUndefined();
   });
 
   it('fails with TerminalServiceError on web', async () => {
