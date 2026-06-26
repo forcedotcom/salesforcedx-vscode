@@ -15,6 +15,7 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
+import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { nls } from '../messages';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 
@@ -52,6 +53,9 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.SdkLayerFor(context),
         channelLayer,
         errorHandlerWithChannel,
+        // ApexTestDiscoveryService.Default carries ApexTestingDiscoveryFsProviderLive via its dependencies.
+        ApexTestDiscoveryService.Default,
+        // ApexTestRunCacheService.Default tracks last executed test class/method for rerun commands.
         ApexTestRunCacheService.Default
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
