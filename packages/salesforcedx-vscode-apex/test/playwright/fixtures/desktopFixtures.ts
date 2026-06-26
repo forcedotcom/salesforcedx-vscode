@@ -58,7 +58,7 @@ const userSettings = {
 };
 
 // Files are pre-seeded onto disk before Electron launches so the jorje LSP startup scan picks
-// them up — drops the WDIO Windows-only `reloadWindow` workaround.
+// them up.
 const baseTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs: ['salesforcedx-vscode-core'],

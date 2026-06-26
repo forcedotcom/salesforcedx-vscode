@@ -30,8 +30,8 @@ const PRELUDE_STARTING = 'Apex Prelude Service STARTING';
 
 /**
  * Locate the `<release>` directory under `.sfdx/tools/` (e.g. `254`, `262`). The Apex LSP creates
- * one such directory at the API version it was built against. Drops the WDIO `'254'` fallback
- * because a missing dir means the LSP never finished startup — failing fast surfaces that.
+ * one such directory at the API version it was built against. A missing dir means the LSP never
+ * finished startup — failing fast surfaces that.
  */
 export const findReleaseDir = (workspaceDir: string): string => {
   const toolsDir = path.join(workspaceDir, '.sfdx', 'tools');
@@ -134,8 +134,8 @@ type TriggerLspRestartOptions = {
  * Drive a full restart cycle: clear output → invoke restart → verify intermediate "restarting" state →
  * await Prelude STARTING → await indexing complete + StandardApexLibrary on disk.
  *
- * The intermediate `restarting` button check (matches WDIO `verifyLspStatus(LSP_STATUS.restarting)`)
- * fails fast if the restart command was ignored — important because the next two waits could
+ * The intermediate `restarting` button check fails fast if the restart command was ignored —
+ * important because the next two waits could
  * otherwise spuriously pass against the prior session's state.
  */
 export const triggerLspRestart = async (

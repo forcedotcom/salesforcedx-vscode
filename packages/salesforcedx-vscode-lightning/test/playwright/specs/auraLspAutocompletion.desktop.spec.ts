@@ -24,8 +24,8 @@ import {
 import { test } from '../fixtures';
 import { waitForAuraLspReady } from '../utils/auraLspUtils';
 
-// Migrated from WDIO `auraLsp.e2e.ts` "Autocompletion". Specs are independent (separate VS Code
-// session per spec), so the Aura LS re-indexes the pre-seeded aura1 bundle here. Types `<aura:appl`
+// Specs are independent (separate VS Code session per spec), so the Aura LS re-indexes the
+// pre-seeded aura1 bundle here. Types `<aura:appl`
 // at L2 C1 (the blank tab line in the seeded `aura1.cmp`), selects the `aura:application`
 // completion, and asserts it was inserted.
 test('Aura LSP: autocompletion', async ({ page }) => {
@@ -51,7 +51,7 @@ test('Aura LSP: autocompletion', async ({ page }) => {
 
   await test.step('type <aura:appl and select the aura:application completion', async () => {
     // L2 is the blank tab line per the seeded layout (fixtures/desktopFixtures.ts) — load-bearing
-    // typing target, mirrors WDIO `typeTextAt(2, 1, '<aura:appl')`.
+    // typing target.
     await goToLineCol(page, 2, 1);
     await page.keyboard.type('<aura:appl');
 
@@ -60,7 +60,7 @@ test('Aura LSP: autocompletion', async ({ page }) => {
     await expect(firstRow).toHaveAttribute('aria-label', /aura:application/, { timeout: 30_000 });
     await firstRow.click();
 
-    // Close the tag and save (mirrors WDIO `typeText('>')` + `save()`).
+    // Close the tag and save.
     await page.keyboard.type('>');
     await saveFile(page);
   });
