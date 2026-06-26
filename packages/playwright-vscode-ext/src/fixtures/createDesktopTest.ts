@@ -7,7 +7,7 @@
 
 // This is Node.js test infrastructure, not extension code
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
-import { test as base, _electron as electron } from '@playwright/test';
+import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
 import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as crypto from 'node:crypto';
@@ -16,12 +16,76 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-import { filterErrors } from '../utils/helpers';
+import { filterErrors, isWindowsDesktop } from '../utils/helpers';
 import { resolveRepoRoot } from '../utils/repoRoot';
 import { createEmptyTestWorkspace, createTestWorkspace } from './desktopWorkspace';
 
 /** Close timeout before force-kill (non-macOS-CI path). */
 const CLOSE_TIMEOUT_MS = 5000;
+
+/** Per-fixture timeout (ms) for the `page` fixture setup — independent of the test-level timeout. */
+const PAGE_FIXTURE_TIMEOUT_MS = isWindowsDesktop() ? 180_000 : 90_000;
+
+/** Workbench-selector wait budget (ms) for a single `waitForWorkbenchWindow` attempt. */
+const WORKBENCH_TIMEOUT_MS = 60_000;
+
+/**
+ * Thrown when the Electron window closes (or never becomes ready) during page setup.
+ * On win32 this triggers a full app relaunch, then (if still failing) a Playwright
+ * test-level retry — both yield a fresh window, avoiding the stale-page trap where
+ * `firstWindow()` returns the same closed Page on a second call.
+ */
+class WindowsDesktopLaunchInstabilityError extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = 'WindowsDesktopLaunchInstabilityError';
+  }
+}
+
+const isWindowClosedError = (error: unknown): boolean => {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes('has been closed') || message.includes('Target page');
+};
+
+/**
+ * Obtain a ready workbench Page from a freshly launched app. Builds readiness around
+ * the first window of THIS app instance; never calls `firstWindow()` twice on the same
+ * instance (a second call returns the same, possibly-closed Page — a stale-page trap).
+ * Throws {@link WindowsDesktopLaunchInstabilityError} when the window closes before ready.
+ */
+const waitForWorkbenchWindow = async (
+  electronApp: ElectronApplication,
+  workbenchTimeout: number
+): Promise<Page> => {
+  const page = await electronApp.firstWindow();
+  await page.waitForLoadState('domcontentloaded');
+
+  try {
+    // Electron ignores config's use.viewport — set explicitly for consistent sizing across CI runners
+    await page.setViewportSize({ width: 1920, height: 1080 });
+  } catch (error) {
+    if (isWindowClosedError(error)) {
+      throw new WindowsDesktopLaunchInstabilityError('Electron window closed before viewport could be set', {
+        cause: error
+      });
+    }
+    throw error;
+  }
+
+  const { WORKBENCH } = await import('../utils/locators.js');
+  try {
+    await page.waitForSelector(WORKBENCH, { timeout: workbenchTimeout });
+  } catch (error) {
+    if (isWindowClosedError(error)) {
+      throw new WindowsDesktopLaunchInstabilityError('Electron window closed before workbench was ready', {
+        cause: error
+      });
+    }
+    throw error;
+  }
+
+  return page;
+};
 
 /**
  * Force-kill an Electron process tree on macOS/Linux. Playwright spawns Electron
@@ -374,21 +438,21 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           ];
         })();
 
-      const electronApp = await electron.launch({
-        executablePath: vscodeExecutable,
-        args: launchArgs,
-        env: { ...process.env, VSCODE_DESKTOP: '1' } as Record<string, string>,
-        timeout: 60_000,
-        recordVideo: {
-          dir: videosDir,
-          size: { width: 1920, height: 1080 }
-        }
-      });
+      const launchElectron = (): Promise<ElectronApplication> =>
+        electron.launch({
+          executablePath: vscodeExecutable,
+          args: launchArgs,
+          env: { ...process.env, VSCODE_DESKTOP: '1' } as Record<string, string>,
+          timeout: 60_000,
+          recordVideo: {
+            dir: videosDir,
+            size: { width: 1920, height: 1080 }
+          }
+        });
 
-      try {
-        await use(electronApp);
-      } finally {
-        const proc = electronApp.process?.();
+      // Best-effort kill of one app instance so a relaunch (or teardown) does not leak processes.
+      const killApp = async (app: ElectronApplication): Promise<void> => {
+        const proc = app.process?.();
         console.log(`[teardown] pid=${proc?.pid} platform=${process.platform} CI=${process.env.CI}`);
 
         if (process.platform !== 'win32' && process.env.CI) {
@@ -411,7 +475,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         } else {
           try {
             await Promise.race([
-              electronApp.close(),
+              app.close(),
               new Promise<false>(resolve => setTimeout(() => resolve(false), CLOSE_TIMEOUT_MS))
             ]);
           } catch {}
@@ -422,6 +486,23 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             } catch {}
           }
         }
+      };
+
+      const firstApp = await launchElectron();
+      // Mutable holder so teardown always kills the latest-launched app (after any relaunch).
+      const current: { app: ElectronApplication } = { app: firstApp };
+
+      const relaunch = async (): Promise<ElectronApplication> => {
+        await killApp(current.app);
+        const next = await launchElectron();
+        current.app = next;
+        return next;
+      };
+
+      try {
+        await use({ app: firstApp, relaunch });
+      } finally {
+        await killApp(current.app);
         // Remove the temp user-data dir (and its nested extensions dir) now that the process is gone.
         // On Windows the just-killed VS Code may still hold file handles briefly, so fs.rm hits EBUSY/EPERM
         // (force only suppresses ENOENT). maxRetries retries those with backoff; best-effort so a leftover
@@ -433,36 +514,54 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       }
     },
 
-    // Get first window from Electron app
-    page: async ({ electronApp }, use) => {
-      const page = await electronApp.firstWindow();
+    // Build a ready workbench Page. firstWindow() is never retried on the same app instance
+    // (a second call returns the same, possibly-closed Page). On win32 launch instability the
+    // whole app is relaunched once for a fresh window; if that still fails, a named error
+    // triggers Playwright's test-level retries (fresh worker + fresh app).
+    page: [
+      async ({ electronApp }, use) => {
+        const setupPage = async (app: ElectronApplication): Promise<Page> => {
+          const page = await waitForWorkbenchWindow(app, WORKBENCH_TIMEOUT_MS);
 
-      // Grant clipboard permissions for desktop (Electron)
-      await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+          // Grant clipboard permissions for desktop (Electron)
+          await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-      // Capture console logs (especially errors) for debugging
-      page.on('console', msg => {
-        if (
-          msg.type() !== 'error' ||
-          filterErrors([{ text: msg.text(), url: msg.location()?.url || '' }]).length === 0
-        ) {
-          return;
-        }
-        console.log(`[Electron Console Error] ${msg.text()}`);
-        // Also log the location if available
-        const { url, lineNumber } = msg.location() ?? {};
-        if (url) {
-          console.log(`  at ${url}:${lineNumber}`);
-        }
-      });
+          // Capture console logs (especially errors) for debugging
+          page.on('console', msg => {
+            if (
+              msg.type() !== 'error' ||
+              filterErrors([{ text: msg.text(), url: msg.location()?.url || '' }]).length === 0
+            ) {
+              return;
+            }
+            console.log(`[Electron Console Error] ${msg.text()}`);
+            // Also log the location if available
+            const { url, lineNumber } = msg.location() ?? {};
+            if (url) {
+              console.log(`  at ${url}:${lineNumber}`);
+            }
+          });
 
-      // Electron ignores config's use.viewport — set explicitly for consistent sizing across CI runners
-      await page.setViewportSize({ width: 1920, height: 1080 });
+          return page;
+        };
 
-      const { WORKBENCH } = await import('../utils/locators.js');
-      await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
-      await use(page);
-    }
+        const readyPage = await (async (): Promise<Page> => {
+          try {
+            return await setupPage(electronApp.app);
+          } catch (error) {
+            if (!(isWindowsDesktop() && error instanceof WindowsDesktopLaunchInstabilityError)) {
+              throw error;
+            }
+            console.log(`[page] win32 launch instability — relaunching electron app: ${error.message}`);
+            const relaunched = await electronApp.relaunch();
+            return await setupPage(relaunched);
+          }
+        })();
+
+        await use(readyPage);
+      },
+      { scope: 'test', timeout: PAGE_FIXTURE_TIMEOUT_MS }
+    ]
   });
   test.afterEach(async ({ page }, testInfo) => {
     // When hooks time out or the page fixture tears down early, `page` can be null — guard all access
