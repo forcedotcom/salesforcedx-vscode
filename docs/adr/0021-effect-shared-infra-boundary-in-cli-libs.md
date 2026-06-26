@@ -1,6 +1,6 @@
 # How far Effect/shared infra goes into a CLI-consumed library
 
-A published, CLI-consumed library (first: `@salesforce/apex-node`, `packages/salesforcedx-apex`; `@salesforce/templates` likely next, TBD) MAY take `effect` and the spans-only observability surface as runtime `dependencies`, but MUST keep vscode-named infra — the [services API](./0008-services-sole-host-heavy-deps.md) (`@salesforce/vscode-services`), `@salesforce/effect-ext-utils`, and shared vscode i18n — out of its runtime deps (vscode-only; peer/dev at most). The split exists because these libs are plain npm packages consumed *transitively* by CLI plugins (plugin-apex, plugin-flow): every runtime `dependency` ships to each consumer, and the CLI has no services extension/runtime to route deps through the way vscode extensions do ([0008](./0008-services-sole-host-heavy-deps.md)).
+A published, CLI-consumed library (first: `@salesforce/apex-node`, `packages/salesforcedx-apex`; `@salesforce/templates` likely next, TBD) MAY take `effect` and the spans-only observability surface as runtime `dependencies`, but MUST keep vscode-named infra — the [services API](./0008-services-sole-host-heavy-deps.md) (`@salesforce/vscode-services`), `@salesforce/effect-ext-utils`, and shared vscode i18n — out of its runtime deps (vscode-only; peer/dev at most). These libs are plain npm packages consumed *transitively* by CLI plugins (plugin-apex, plugin-flow): every runtime `dependency` ships to each consumer, and the CLI has no services extension/runtime to route deps through the way vscode extensions do ([0008](./0008-services-sole-host-heavy-deps.md)).
 
 ## Considered Options
 
@@ -12,6 +12,6 @@ A published, CLI-consumed library (first: `@salesforce/apex-node`, `packages/sal
 
 - Runtime deps added here flow transitively to every CLI consumer (plugin-apex, plugin-flow) and count toward their install/bundle weight; keep the runtime surface to `effect` + observability only.
 - This is the boundary cited by the dependent work items above and by future CLI-lib migrations. `@salesforce/templates` is a separate npm package outside this monorepo — it cites this decision by ADR number/title ("vscode ADR-0021"), not by relative link.
-- vscode-side guidance is unchanged: route heavy deps through the services API ([0008](./0008-services-sole-host-heavy-deps.md)). That path does not exist for CLI libs, which is the whole reason this ADR is separate.
+- vscode-side guidance is unchanged: route heavy deps through the services API ([0008](./0008-services-sole-host-heavy-deps.md)). That path does not exist for CLI libs.
 
 See [ADR-FORMAT.md](../../.claude/skills/grill-me/ADR-FORMAT.md) and [README.md](./README.md).
