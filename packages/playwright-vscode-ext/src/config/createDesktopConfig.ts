@@ -41,7 +41,10 @@ export const createDesktopConfig = (options: DesktopConfigOptions) => {
     // test-level budget so the page fixture's own setup budget plus the test body both fit.
     // A caller-supplied options.timeout always wins (the ?? short-circuits before the win32 ternary).
     // Use process.platform (not isWindowsDesktop()) — VSCODE_DESKTOP is a job env var, not guaranteed
-    // at config-load time; process.platform is the reliable signal in the config module.
+    // at config-load time; process.platform is the reliable signal in the config module. In CI both
+    // modules see VSCODE_DESKTOP (set at job env scope), so this matches the fixture's isWindowsDesktop()
+    // budget. On a local win32 dev run without VSCODE_DESKTOP they diverge (test-level 120s here, but
+    // the page-fixture budget falls back to its non-desktop value) — acceptable; win32 is validated in CI.
     timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? (process.platform === 'win32' ? 120_000 : 60_000)),
     maxFailures: process.env.CI ? 3 : 0,
     globalSetup: require.resolve('./downloadVSCode'),
