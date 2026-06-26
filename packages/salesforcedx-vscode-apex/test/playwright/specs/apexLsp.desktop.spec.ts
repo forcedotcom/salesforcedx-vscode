@@ -98,7 +98,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
 
     // Type the argument; the completion inserted `SayHello(name)` with `name` selected as snippet placeholder.
     await page.keyboard.type("'Jack");
-    // Position at col 38 (after `);`) and append `;` to mirror WDIO line 165.
+    // Position at col 38 (after `);`) and append `;`.
     await goToLineColumn(page);
     await page.keyboard.type('7:38');
     await page.keyboard.press('Enter');
