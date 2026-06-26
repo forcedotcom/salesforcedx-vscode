@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
+import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { getTestController } from '../views/testController';
 
 /** Initialize test discovery when an org is available, and clear/re-discover on org changes */
@@ -19,17 +20,24 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const channelService = yield* api.services.ChannelService;
   // Subscribe to org changes: discover tests when an org is available, clear the tree when it goes away (logout/delete)
-  yield* targetOrgRef.changes.pipe(
-    Stream.map(org => org.orgId),
-    Stream.changes,
-    Stream.runForEach(orgId =>
-      (isString(orgId)
-        ? channelService
-            .appendToChannel(`Discovering tests for org: ${orgId}`)
-            .pipe(Effect.zipRight(Effect.tryPromise(() => testController.refresh())))
-        : Effect.tryPromise(() => testController.clearAllTestItems())
-      ).pipe(
-        Effect.catchTag('UnknownException', error => Effect.log('[Apex Testing] Test discovery failed', { error }))
+  yield* Effect.forkDaemon(
+    targetOrgRef.changes.pipe(
+      Stream.map(org => org.orgId),
+      Stream.changes,
+      Stream.runForEach(orgId =>
+        (isString(orgId)
+          ? channelService.appendToChannel(`Discovering tests for org: ${orgId}`).pipe(
+              Effect.zipRight(Effect.promise(() => testController.refresh())),
+              // Drop other orgs' discovered classes so the in-memory VFS holds only the current org's tree.
+              Effect.zipRight(ApexTestDiscoveryService.pruneForeignOrgClasses(orgId))
+            )
+          : Effect.promise(() => testController.clearAllTestItems())
+        ).pipe(
+          Effect.catchAll(error => {
+            console.debug('[Apex Testing] Test discovery setup failed:', error);
+            return Effect.void;
+          })
+        )
       )
     )
   );

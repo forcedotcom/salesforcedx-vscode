@@ -75,7 +75,7 @@ jobs:
         with:
           ref: 'main'
           token: ${{ secrets.IDEE_GH_TOKEN }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - name: downloadExtensionsFromRelease
