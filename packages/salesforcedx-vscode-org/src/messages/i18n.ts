@@ -78,7 +78,6 @@ export const messages = {
   org_logout_confirm_prompt: 'Log out of %s org(s)? You will need to re-authenticate to use them again.',
   org_logout_confirm_scratch_prompt:
     'Log out of %s org(s)?\n\nBefore logging out, ensure that you or someone on your team has a username and password for any scratch orgs. Otherwise you might lose all access.',
-  org_open_default_scratch_org_container_error: 'There was an unexpected error when processing the org open response.',
   org_open_default_scratch_org_text: 'SFDX: Open Default Org',
   org_open_container_mode_message_text: 'Access org %s as user %s with the following URL: %s',
   org_select_text: 'Select an org to set as default',

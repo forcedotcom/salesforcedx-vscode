@@ -18,6 +18,8 @@ export class ChannelService extends Effect.Service<ChannelService>()('ChannelSer
     return {
       /** Get the OutputChannel for this ChannelService */
       getChannel: Effect.sync(() => channel),
+      /** Reveal the OutputChannel in the UI */
+      showChannel: Effect.sync(() => channel.show()),
       /** Clear the OutputChannel */
       clearChannel: Effect.try(() => channel.clear()).pipe(Effect.catchAll(() => Effect.void)),
       /** Append a message to this OutputChannel */
@@ -41,6 +43,10 @@ export const ChannelServiceLayer = (channelName: string): Layer.Layer<ChannelSer
     ChannelService,
     new ChannelService({
       getChannel: cache.get(channelName),
+      showChannel: Effect.gen(function* () {
+        const channel = yield* cache.get(channelName);
+        return yield* Effect.sync(() => channel.show());
+      }),
       clearChannel: Effect.gen(function* () {
         const channel = yield* cache.get(channelName);
         return yield* Effect.try(() => channel.clear());
