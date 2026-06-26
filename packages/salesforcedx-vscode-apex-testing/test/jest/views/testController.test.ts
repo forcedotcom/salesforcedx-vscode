@@ -91,14 +91,21 @@ jest.mock('../../../src/testDiscovery/packageResolution', () => ({
   resolvePackage2Members: jest.fn().mockResolvedValue(new Map())
 }));
 
-const mockSaveDiscoveredClasses = jest.fn().mockResolvedValue(undefined);
+const mockSaveDiscoveredClasses = jest.fn();
 
-jest.mock('../../../src/discoveryVfs/apexTestDiscoveryStore', () => ({
-  getApexTestDiscoveryStore: () => ({
-    saveDiscoveredClasses: mockSaveDiscoveredClasses
-  }),
-  resolveDiscoveryOrgKey: jest.fn().mockReturnValue('org123')
-}));
+jest.mock('../../../src/discoveryVfs/apexTestDiscoveryService', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  return {
+    // saveDiscoveredClasses is consumed via `yield* ApexTestDiscoveryService.saveDiscoveredClasses(...)`,
+    // so the mock records the call and returns an Effect the persist program can run on any runtime.
+    ApexTestDiscoveryService: {
+      saveDiscoveredClasses: (...args: unknown[]) => {
+        mockSaveDiscoveredClasses(...args);
+        return EffectLib.void;
+      }
+    }
+  };
+});
 
 // Mock TestService before imports
 const mockTestServiceMethods = {
@@ -185,7 +192,6 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSaveDiscoveredClasses.mockResolvedValue(undefined);
 
     // Mock vscode.tests.createTestController
     (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);

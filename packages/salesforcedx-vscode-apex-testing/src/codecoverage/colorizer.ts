@@ -15,6 +15,7 @@ import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { getTestResultsFolder } from '../utils/pathHelpers';
+import { sortByMtimeAscending } from '../utils/sortHelpers';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
@@ -93,15 +94,14 @@ const getCoverageData = async (): Promise<(CoverageItem | CodeCoverageResult)[]>
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
 
-  // Sort oldest-first by mtime: filenames contain non-monotonic test-run IDs, so
-  // alphabetical order doesn't match chronological order. Last-write-wins aggregation
+  // Sort oldest-first by mtime (see sortByMtimeAscending): last-write-wins aggregation
   // and the .at(-1) fallback below both depend on chronological order.
-  recentEntries.sort((a, b) => a.mtime - b.mtime);
+  const sortedEntries = sortByMtimeAscending(recentEntries);
 
   // When restore-previous-results is disabled, only use the most recent file
   const filesToRead = settings.retrieveRestorePreviousResults()
-    ? recentEntries.map(e => e.name)
-    : [recentEntries.at(-1)!.name];
+    ? sortedEntries.map(e => e.name)
+    : [sortedEntries.at(-1)!.name];
 
   type TestResultWithCoverage = {
     codecoverage?: CodeCoverageResult[];

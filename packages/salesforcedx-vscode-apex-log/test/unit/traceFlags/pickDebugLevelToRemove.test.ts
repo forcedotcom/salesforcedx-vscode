@@ -75,18 +75,15 @@ describe('pickDebugLevelToRemove', () => {
     expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
   });
 
-  it.each([
-    ['masterLabel', { masterLabel: 'My Level', developerName: 'My_Level' }, 'My Level'],
-    ['developerName as detail', { masterLabel: 'My Level', developerName: 'My_Level' }, 'My Level']
-  ])('uses %s as the QuickPick label', async (_desc, overrides, expectedLabel) => {
-    const level = makeLevel('dl-test', overrides);
+  it('uses masterLabel as the QuickPick label and developerName as the detail', async () => {
+    const level = makeLevel('dl-test', { masterLabel: 'My Level', developerName: 'My_Level' });
     jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
 
     await run([level]);
 
     const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
     const typedItems = items as unknown as Array<{ label: string; detail: string }>;
-    expect(typedItems[0].label).toBe(expectedLabel);
-    expect(typedItems[0].detail).toBe(overrides.developerName ?? 'Dev_dl-test');
+    expect(typedItems[0].label).toBe('My Level');
+    expect(typedItems[0].detail).toBe('My_Level');
   });
 });
