@@ -48,7 +48,7 @@ const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void>
 /**
  * Clicks a Test Explorer tree row's "Debug Test" action button using the retry/force-click pattern.
  * Clicking a tree row re-renders the tree (selection highlight + action buttons), invalidating element
- * refs — mirrors the WDIO StaleElementReferenceError handling in the source spec.
+ * refs — retry/force-click to tolerate the stale refs.
  */
 const debugTestFromTreeItem = async (page: Page, name: RegExp): Promise<void> => {
   const item = page.getByRole('treeitem', { name });

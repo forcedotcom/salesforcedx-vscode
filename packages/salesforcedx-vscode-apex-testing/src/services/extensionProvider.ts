@@ -16,6 +16,7 @@ import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
 import { nls } from '../messages';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 
 const CHANNEL_NAME = nls.localize('channel_name');
 
@@ -50,7 +51,8 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.ExtensionContextServiceLayer(context),
         api.services.SdkLayerFor(context),
         channelLayer,
-        errorHandlerWithChannel
+        errorHandlerWithChannel,
+        ApexTestRunCacheService.Default
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
