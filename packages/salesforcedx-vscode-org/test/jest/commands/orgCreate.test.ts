@@ -97,26 +97,21 @@ describe('OrgCreateExecutor.execute', () => {
     vscode.CancellationTokenSource = RealCancellationTokenSource;
   });
 
-  it('(a) clears the 3min timer on normal exit so a fresh command is not late-cancelled', async () => {
+  it('(a) success exit runs the success branch and clears the 3min timer', async () => {
     new OrgCreateExecutor().execute(response);
     stdoutSubject.next(JSON.stringify({ status: 0, result: { orgId: '00D', username: 'u' } }));
     processExitSubject.next(0);
     await flush();
 
-    jest.advanceTimersByTime(180_000);
-    expect(lastCancelSpy).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
+    // timer cleared: advancing past 180s must not late-cancel a since-completed command
+    jest.advanceTimersByTime(180_000);
+    expect(lastCancelSpy).not.toHaveBeenCalled();
   });
 
-  it('(b) cancels at 180s when the CLI never exits', () => {
+  it('(b) cancels at 180s when the CLI never exits, and a later exit does not throw', async () => {
     new OrgCreateExecutor().execute(response);
     expect(lastCancelSpy).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(180_000);
-    expect(lastCancelSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('(c) exit after cancellation does not throw and appends stdOut on the failure branch', async () => {
-    new OrgCreateExecutor().execute(response);
     jest.advanceTimersByTime(180_000);
     expect(lastCancelSpy).toHaveBeenCalledTimes(1);
 
@@ -124,17 +119,16 @@ describe('OrgCreateExecutor.execute', () => {
     stdoutSubject.next(body);
     expect(() => processExitSubject.next(1)).not.toThrow();
     await flush();
-    expect(appendLine).toHaveBeenCalledWith(body);
+    expect(appendLine).toHaveBeenCalledWith('boom');
   });
 
-  it('(d) appends the raw stdOut to the channel on the failure branch', async () => {
+  it('(c) appends the parsed error message to the channel on the failure branch', async () => {
     new OrgCreateExecutor().execute(response);
     const body = JSON.stringify({ status: 1, name: 'E', message: 'boom', exitCode: 1 });
     stdoutSubject.next(body);
     processExitSubject.next(1);
     await flush();
 
-    expect(appendLine).toHaveBeenCalledWith(body);
     expect(appendLine).toHaveBeenCalledWith('boom');
     expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
   });

@@ -92,8 +92,7 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
         if (createParser.createIsSuccessful()) {
           await updateConfigAndStateAggregators();
         } else {
-          // surface the raw CLI --json body even when the parser returns no result (CI artifact diagnosability)
-          channelService.appendLine(stdOut);
+          // raw CLI --json body already streamed live to the channel via streamCommandOutput
           // remove when we drop CLI invocations
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
@@ -103,7 +102,7 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
           }
         }
       } catch (err) {
-        channelService.appendLine(stdOut);
+        // raw CLI --json body already streamed live to the channel via streamCommandOutput
         channelService.appendLine(nls.localize('org_create_result_parsing_error'));
         const stringError = errorToString(err);
         channelService.appendLine(errorToString(stringError));
