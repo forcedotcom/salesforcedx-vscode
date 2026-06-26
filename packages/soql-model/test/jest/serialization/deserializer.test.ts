@@ -766,6 +766,25 @@ describe('deserialize should', () => {
     expect(actual.headerComments).toEqual(expected.headerComments);
   });
 
+  it('parse trailing ALL ROWS as allRows flag without parse errors', () => {
+    const expected = {
+      select: {
+        kind: 'selectExprs',
+        selectExpressions: [testQueryModel.select.selectExpressions[0]]
+      },
+      from: testQueryModel.from,
+      allRows: true,
+      errors: []
+    };
+    const actual = deserialize('SELECT field1 FROM object1 ALL ROWS');
+    expect(actual).toEqual(expected);
+  });
+
+  it('leave allRows falsy when ALL ROWS is absent', () => {
+    const actual = deserialize('SELECT field1 FROM object1');
+    expect(actual.allRows).toBeFalsy();
+  });
+
   it('identify unexpected end of file', () => {
     expectError("SELECT field1 FROM obejct1 WHERE field = '", 'UNEXPECTEDEOF');
     expectError('SELECT field1 FROM object1 GROUP BY', 'UNEXPECTEDEOF');

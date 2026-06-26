@@ -1,0 +1,111 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { LoggerLevel } from '@salesforce/core';
+import { isEmpty } from '../narrowing';
+import { type ApexTestResultData, type TestResult, ApexTestResultOutcome } from '../tests/types';
+import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
+
+// cli currently has spaces in multiples of four for junit format
+const tab = '    ';
+
+const timeProperties = new Set(['testExecutionTimeInMs', 'testTotalTimeInMs', 'commandTimeInMs']);
+
+// properties not in cli junit spec
+const skippedProperties = new Set(['skipRate', 'totalLines', 'linesCovered']);
+export class JUnitReporter {
+  @elapsedTime()
+  public format(testResult: TestResult): string {
+    HeapMonitor.getInstance().checkHeapSize('JUnitReporter.format');
+    try {
+      const { summary, tests } = testResult;
+
+      let output = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      output += '<testsuites>\n';
+      output += `${tab}<testsuite name="force.apex" `;
+      output += `timestamp="${summary.testStartTime}" `;
+      output += `hostname="${summary.hostname}" `;
+      output += `tests="${summary.testsRan}" `;
+      output += `failures="${summary.failing}"  `;
+      output += 'errors="0"  ';
+      output += `time="${msToSecond(summary.testExecutionTimeInMs)}">\n`;
+
+      output += this.buildProperties(testResult);
+      output += this.buildTestCases(tests);
+
+      output += `${tab}</testsuite>\n`;
+      output += '</testsuites>\n';
+      return output;
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize('JUnitReporter.format');
+    }
+  }
+
+  @elapsedTime()
+  private buildProperties(testResult: TestResult): string {
+    let junitProperties = `${tab}${tab}<properties>\n`;
+
+    Object.entries(testResult.summary).forEach(([key, value]) => {
+      if (isEmpty(value) || skippedProperties.has(key)) {
+        return;
+      }
+
+      if (timeProperties.has(key)) {
+        value = `${msToSecond(value)} s`;
+        key = key.replace('InMs', '');
+      }
+
+      if (key === 'outcome' && value === 'Passed') {
+        value = 'Successful';
+      }
+
+      if (key === 'testStartTime') {
+        value = formatStartTime(value);
+      }
+
+      junitProperties += `${tab}${tab}${tab}<property name="${key}" value="${value}"/>\n`;
+    });
+
+    junitProperties += `${tab}${tab}</properties>\n`;
+    return junitProperties;
+  }
+
+  @elapsedTime()
+  private buildTestCases(tests: ApexTestResultData[]): string {
+    let junitTests = '';
+
+    for (const testCase of tests) {
+      const methodName = this.xmlEscape(testCase.methodName);
+      junitTests += `${tab}${tab}<testcase name="${methodName}" classname="${
+        testCase.apexClass.fullName
+      }" time="${msToSecond(testCase.runTime)}">\n`;
+
+      if (testCase.outcome === ApexTestResultOutcome.Fail || testCase.outcome === ApexTestResultOutcome.CompileFail) {
+        const rawMessage = testCase.message ?? '';
+        let message = isEmpty(rawMessage) ? '' : rawMessage;
+        message = this.xmlEscape(message);
+        junitTests += `${tab}${tab}${tab}<failure message="${message}">`;
+        if (testCase.stackTrace) {
+          junitTests += `<![CDATA[${testCase.stackTrace}]]>`;
+        }
+        junitTests += '</failure>\n';
+      }
+
+      junitTests += `${tab}${tab}</testcase>\n`;
+    }
+    return junitTests;
+  }
+
+  @elapsedTime('elapsedTime', LoggerLevel.TRACE)
+  private xmlEscape(value: string): string {
+    return value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&apos;');
+  }
+}

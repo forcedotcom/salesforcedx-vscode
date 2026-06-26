@@ -87,7 +87,7 @@ export const runApexTests = Effect.fn('runApexTests')(function* (
     }
   }).pipe(Effect.catchTag('Cancelled', () => Effect.succeed(undefined)));
 
-  if (result === undefined || token?.isCancellationRequested) {
+  if (result == null || token?.isCancellationRequested) {
     return undefined;
   }
   // runTestAsynchronous can return TestRunIdResult on timeout; we need full TestResult to continue
