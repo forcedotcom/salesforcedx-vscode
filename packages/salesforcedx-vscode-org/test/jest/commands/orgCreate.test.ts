@@ -48,6 +48,10 @@ jest.mock('../../../src/telemetry', () => ({
   telemetryService: { sendException: jest.fn() }
 }));
 
+// Global.SF_DIR derives from os.homedir(), undefined under the jest env mock; pin it so the
+// failure-body dump resolves a real path.
+jest.mock('@salesforce/core/global', () => ({ Global: { SF_DIR: '/tmp/sf-test' } }));
+
 const flush = () => new Promise<void>(resolve => setImmediate(resolve));
 
 const response: ContinueResponse<{ alias: string; expirationDays: string; file: string }> = {
@@ -131,5 +135,27 @@ describe('OrgCreateExecutor.execute', () => {
 
     expect(appendLine).toHaveBeenCalledWith('boom');
     expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
+  });
+
+  it('(d) dumps the raw CLI --json body to the spans dir on the failure branch', async () => {
+    const createDirectory = jest.spyOn(vscode.workspace.fs, 'createDirectory').mockResolvedValue();
+    const writeFile = jest.spyOn(vscode.workspace.fs, 'writeFile').mockResolvedValue();
+    try {
+      new OrgCreateExecutor().execute(response);
+      const body = JSON.stringify({ status: 1, name: 'E', message: 'boom', exitCode: 1 });
+      stdoutSubject.next(body);
+      processExitSubject.next(1);
+      await flush();
+      await flush();
+
+      expect(createDirectory).toHaveBeenCalledTimes(1);
+      const [uri, content] = writeFile.mock.calls[0];
+      expect(uri.fsPath).toContain('vscode-spans');
+      expect(uri.fsPath).toMatch(/org-create-failure-.*\.txt$/);
+      expect(new TextDecoder().decode(content)).toBe(body);
+    } finally {
+      createDirectory.mockRestore();
+      writeFile.mockRestore();
+    }
   });
 });

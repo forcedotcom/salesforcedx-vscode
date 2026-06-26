@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Global } from '@salesforce/core/global';
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
@@ -21,6 +22,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector';
@@ -43,6 +45,22 @@ const isIntegerInRange = (value: string | undefined, range: [number, number]): b
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
+
+// Persist the raw scratch-create CLI --json body to ~/.sf/vscode-spans on failure. That dir is the
+// only sink e2e CI uploads as an artifact (orgE2E.yml copies it to test-results), and the channel it
+// also streams to is a virtualized Monaco editor whose scrollback no artifact captures. Best-effort:
+// a write failure must never mask the real CLI error.
+const dumpCreateFailureBody = async (stdOut: string): Promise<void> => {
+  try {
+    const dir = URI.file(path.join(Global.SF_DIR, 'vscode-spans'));
+    await vscode.workspace.fs.createDirectory(dir);
+    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+    const file = URI.file(path.join(dir.fsPath, `org-create-failure-${timestamp}.txt`));
+    await vscode.workspace.fs.writeFile(file, new TextEncoder().encode(stdOut));
+  } catch {
+    // best-effort diagnostics only
+  }
+};
 
 export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   public build(data: AliasAndFileSelection): Command {
@@ -92,7 +110,9 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
         if (createParser.createIsSuccessful()) {
           await updateConfigAndStateAggregators();
         } else {
-          // raw CLI --json body already streamed live to the channel via streamCommandOutput
+          // raw CLI --json body already streamed live to the channel via streamCommandOutput;
+          // also persist it to the CI-collected spans dir since the channel scrollback isn't artifacted
+          await dumpCreateFailureBody(stdOut);
           // remove when we drop CLI invocations
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
@@ -102,7 +122,9 @@ export class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelectio
           }
         }
       } catch (err) {
-        // raw CLI --json body already streamed live to the channel via streamCommandOutput
+        // raw CLI --json body already streamed live to the channel via streamCommandOutput;
+        // also persist it to the CI-collected spans dir since the channel scrollback isn't artifacted
+        await dumpCreateFailureBody(stdOut);
         channelService.appendLine(nls.localize('org_create_result_parsing_error'));
         const stringError = errorToString(err);
         channelService.appendLine(errorToString(stringError));
