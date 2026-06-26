@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import {
+  clickModalDialogButton,
   createAndDeployApexTestClass,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -29,16 +30,6 @@ import { TEST_EXPLORER_TREE_ITEM, openTestExplorerAndDiscover } from '../helpers
 const LOGOUT_COMMAND = 'SFDX: Log Out from Default Org';
 // Confirm button on the scratch-org logout modal (`org_logout_scratch_logout` in salesforcedx-vscode-org i18n).
 const LOGOUT_CONFIRM_LABEL = 'Logout';
-
-/** Click a button on a `showWarningMessage({ modal: true })` dialog (requires `window.dialogStyle: custom`). */
-const clickModalDialogButton = async (page: Page, label: string, timeout = 60_000): Promise<void> => {
-  const dialogButton = page
-    .locator('.monaco-dialog-box, .dialog-shadow')
-    .getByRole('button', { name: label, exact: true })
-    .first();
-  await expect(dialogButton).toBeVisible({ timeout });
-  await dialogButton.click();
-};
 
 (isDesktop() ? test : test.skip.bind(test))(
   'Apex Testing view clears on Log Out from Default Org without a window reload',
@@ -75,7 +66,7 @@ public class ${className} {
 
     await test.step('log out from the default org and confirm the scratch-org prompt', async () => {
       await executeCommandWithCommandPalette(page, LOGOUT_COMMAND);
-      await clickModalDialogButton(page, LOGOUT_CONFIRM_LABEL);
+      await clickModalDialogButton(page, LOGOUT_CONFIRM_LABEL, 60_000);
       await saveScreenshot(page, 'step.logged-out.png');
     });
 

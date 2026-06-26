@@ -81,17 +81,9 @@ export const setWorkspaceApiVersion = async (workspaceDir: string, version = '66
   await fs.writeFile(file, JSON.stringify(project, null, 2));
 };
 
-/** Click a modal-dialog button by its label (e.g., 'Overwrite', 'Manually merge with existing ESR').
- * Short timeout — most dialogs only appear when an ESR already exists; callers wrap with .catch
- * to skip when absent without burning the success-notification window. */
-export const clickModalDialogButton = async (page: Page, label: string, timeout = 5000): Promise<void> => {
-  const dialogButton = page
-    .locator('.monaco-dialog-box, .dialog-shadow')
-    .getByRole('button', { name: label, exact: true })
-    .first();
-  await expect(dialogButton).toBeVisible({ timeout });
-  await dialogButton.click();
-};
+// Re-exported from the shared package so existing spec imports keep working; the default 5000ms timeout
+// suits OAS callers that wrap with `.catch` to skip dialogs that only appear when an ESR already exists.
+export { clickModalDialogButton } from '@salesforce/playwright-vscode-ext';
 
 /**
  * Confirms the "Select folder to store OpenAPI Document" InputBox by pressing Enter
