@@ -76,6 +76,7 @@ const PR_STATE_SCHEMA = {
     failedLogsExcerpt: { type: ['string', 'null'] },
     maxRunAttempt: { type: ['number', 'null'] },
     files: { type: 'array', items: { type: 'string' } },
+    headSha: { type: ['string', 'null'] },
   },
 }
 
@@ -530,6 +531,7 @@ Run:
   - 'failed' otherwise (any FAILURE / CANCELLED / TIMED_OUT / ERROR, with NO running rows remaining)
 - If state is 'failed', collect failed job names. Run 'gh run view --log-failed <runId>' for the most recent failed/cancelled run linked to the PR head SHA, capture last ~100 lines as failedLogsExcerpt. Also gather the maximum 'run_attempt' across the workflow runs for the PR head SHA (gh api repos/forcedotcom/salesforcedx-vscode/actions/runs?head_sha=<sha> → max .run_attempt). Return that as maxRunAttempt.
 - ALWAYS run 'gh pr diff ${wi.prUrl} --name-only' and return the changed paths (one per line) as 'files'. Empty list if the command yields nothing.
+- ALWAYS capture the PR head commit SHA into 'headSha' (gh pr view ${wi.prUrl} --json headRefOid --jq .headRefOid). Full 40-char SHA.
 
 Return ONLY the structured result.`
 
@@ -614,14 +616,29 @@ Tasks:
 Return ONLY the structured result.`
 }
 
-const dmCiFailurePrompt = (r, identity) =>
-  `DM the runner about a CI failure that needs human attention.
+const dmCiFailurePrompt = (r, identity) => {
+  const sha = r.prState.headSha || ''
+  const shaTag = sha ? ` [sha:${sha.slice(0, 12)}]` : ''
+  return `DM the runner about a CI failure that needs human attention — but only ONCE per failing commit.
 
-Slack ID: ${identity.slackId}
-Use mcp__slack__slack_send_message to send a DM with content:
-"⚠️ ${r.wi.name} CI failed after rerun budget exhausted (route=${r.triage.route}): ${r.triage.summary}\nPR: ${r.wi.prUrl}"
+Slack ID (DM channel): ${identity.slackId}
+PR head SHA: ${sha || '(unknown)'}
 
-Return {ok: true} on success.`
+DEDUP FIRST — this step runs every /loop tick while the PR sits failed; without this guard it re-DMs every tick.
+${
+  sha
+    ? `1. Search for a prior DM about THIS commit:
+   mcp__slack__slack_search_public_and_private with query "sha:${sha.slice(0, 12)} to:<@${identity.slackId}>" (you are the sender, user WB4TF6RFY).
+2. If ANY result contains the literal text "sha:${sha.slice(0, 12)}" → a DM for this commit already sent. Return {ok: true} WITHOUT sending. Do not send a duplicate.
+3. Otherwise send the DM (step below).`
+    : `1. headSha unknown — cannot dedup. Send the DM (step below).`
+}
+
+Send via mcp__slack__slack_send_message (channel_id=${identity.slackId}) with content:
+"⚠️ ${r.wi.name} CI failed after rerun budget exhausted (route=${r.triage.route}): ${r.triage.summary}\nPR: ${r.wi.prUrl}${shaTag}"
+
+The trailing${shaTag ? ` "${shaTag.trim()}"` : ' sha tag'} is the dedup marker — keep it verbatim. Return {ok: true} on success.`
+}
 
 const e2eFixPrompt = (r, identity) => {
   const { wt } = pathsFor(identity, r.wi)
