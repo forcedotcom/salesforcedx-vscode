@@ -13,6 +13,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
+import { ApexTestDiscoveryService } from '../../../src/discoveryVfs/apexTestDiscoveryService';
 import { initializeTestDiscovery } from '../../../src/watchers/testDiscovery';
 import { getTestController } from '../../../src/views/testController';
 
@@ -46,8 +47,15 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
     typeof ChannelService
   >);
 
+  // `ApexTestDiscoveryService.pruneForeignOrgClasses` is called for every non-undefined orgId transition.
+  const discoveryServiceLayer = Layer.succeed(ApexTestDiscoveryService, {
+    pruneForeignOrgClasses: () => Effect.void
+  } as unknown as InstanceType<typeof ApexTestDiscoveryService>);
+
   yield* Effect.forkScoped(
-    initializeTestDiscovery(testController).pipe(Effect.provide(Layer.mergeAll(extensionProviderLayer, channelLayer)))
+    initializeTestDiscovery(testController).pipe(
+      Effect.provide(Layer.mergeAll(extensionProviderLayer, channelLayer, discoveryServiceLayer))
+    )
   );
 
   return { targetOrgRef, refresh, clearAllTestItems };
