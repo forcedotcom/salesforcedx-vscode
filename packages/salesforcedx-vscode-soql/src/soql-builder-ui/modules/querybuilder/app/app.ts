@@ -289,6 +289,11 @@ export default class App extends LightningElement {
     this._modelService?.changeLimit(e.detail.limit);
   }
 
+  /* ---- ALL ROWS HANDLERS ---- */
+  public handleAllRowsChanged(e: Event): void {
+    this._modelService?.setAllRows((e.target as HTMLInputElement).checked);
+  }
+
   /* ---- WHERE HANDLERS ---- */
   public handleWhereSelection(e: CustomEvent): void {
     this._modelService?.upsertWhereFieldExpr(e.detail);

@@ -109,6 +109,7 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
 
   const toolingModelTemplate: ToolingModelJson = {
     headerComments,
+    allRows: queryModel.allRows ?? false,
     sObject: sObject || '',
     fields: fields || [],
     where: where || { conditions: [], andOr: undefined },
@@ -218,6 +219,7 @@ const convertUiModelToSoqlModel = (uiModel: ToolingModelJson): Query => {
   if (uiModel.headerComments) {
     queryModel.headerComments = new HeaderCommentsImpl(uiModel.headerComments);
   }
+  queryModel.allRows = uiModel.allRows;
   return queryModel;
 };
 
