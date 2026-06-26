@@ -7,16 +7,25 @@
 import type { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
+
+/** Layer of apex-testing-specific services merged on top of the shared all-services layer. */
+const ApexTestingServicesLayer = ApexTestRunCacheService.Default;
 
 /**
- * Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Built via the shared buildAllServicesLayer(context, fallbackDisplayName) at activation.
+ * Layer that provides all services from the SalesforceVSCodeServicesApi plus apex-testing-specific
+ * services. Built via the shared buildAllServicesLayer(context, fallbackDisplayName) at activation,
+ * then merged with the apex-testing services.
  */
+type AllServicesLayerType = Layer.Layer<
+  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>> | ApexTestRunCacheService,
+  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+>;
 
-let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+let AllServicesLayer: AllServicesLayerType;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
-  AllServicesLayer = layer;
+  AllServicesLayer = Layer.merge(layer, ApexTestingServicesLayer);
 };
 
 /**
@@ -25,8 +34,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * stateful services across test discovery, runs, and code-completion calls
  */
 type ApexTestingRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+  Layer.Layer.Success<AllServicesLayerType>,
+  Layer.Layer.Error<AllServicesLayerType>
 >;
 let _apexTestingRuntime: ApexTestingRuntime | undefined;
 export const getApexTestingRuntime = () => (_apexTestingRuntime ??= ManagedRuntime.make(AllServicesLayer));
