@@ -207,8 +207,18 @@ To mark a WI as a duplicate: set `Status__c='Duplicate'` + link the original via
 
 **Bug no-fix:** Duplicate | Inactive | Never | Not a bug | Not Reproducible | Rejected | Eng Internal
 
+### Open queries: WHITELIST, never blacklist
+
+For "open / unfinished" queries use `Status__c IN (<open list>)`, **not** `NOT IN (<terminal list>)`. Legacy/inactive records carry statuses absent from the current picklist (seen: `Closed-U/Ftest`, `Closed-Untested`, `Tested`) — a `NOT IN` exclusion silently lets these terminal records through. A whitelist can't.
+
+**Open (work pending):** `New | Acknowledged | Triaged | In Progress | Investigating | More Info Reqd from Support | Waiting On Customer | Waiting On 3rd Party | Waiting | Ready for Review | Fixed | QA In Progress | Integrate | Pending Release | Deferred`
+
+(`Fixed`/`Ready for Review`/`QA In Progress` are open — PR not merged yet, per [work-item-sequencing](../work-item-sequencing/SKILL.md). Everything else — any `Closed*`, `Completed`, `Tested`, the Bug-no-fix set, and any unrecognized value — is terminal.)
+
 ## CLI tips
 
 - `--json` for parseable output (not `--result-format json`)
 - Parse with `jq`, not python
 - `sf data create record` / `sf data update record` for single-record writes
+- **Aggregate (`COUNT`/`GROUP BY`) can't paginate** — no `queryMore`, hard cap 200 rows. Errors `Aggregate query does not support queryMore()` past that. Always add `LIMIT`, and scope (e.g. `Epic__c IN (...)`) so the group set stays ≤200. Plain (non-aggregate) `SELECT` also returns one 200-row batch per call via the CLI — for full sets, filter narrower or page, don't assume one query returns everything.
+- **Salesforce Ids come in 15-char (case-sensitive) and 18-char (case-insensitive) forms — same record.** A lookup field (`Epic__c`) and the parent's `Id` may differ in length across queries. Match on the first 15 chars (`id[0:15]`), never raw string equality.
