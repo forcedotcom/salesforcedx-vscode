@@ -20,3 +20,15 @@ export const orgDesktopMinimalDefaultTest = createDesktopTest({
   additionalExtensionDirs: ['salesforcedx-vscode-core'],
   orgAlias: MINIMAL_ORG_ALIAS
 });
+
+/** `sfdx-project.json` workspace, no seeded default org. `window.dialogStyle: custom` routes
+ * `showWarningMessage({ modal: true })` through VS Code's DOM (.monaco-dialog-box) so Playwright can
+ * click the scratch-org logout confirm button; native Electron dialogs are inaccessible. The test
+ * creates its own default scratch org through the extension so logout never destroys a shared org. */
+export const orgDesktopLogoutTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-core'],
+  userSettings: {
+    'window.dialogStyle': 'custom'
+  }
+});
