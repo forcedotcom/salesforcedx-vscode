@@ -1618,6 +1618,13 @@ export class ApexTestController {
     }
   }
 
+  // Close every open `apex-testing:` virtual editor tab. Called on org loss (logout / delete default org),
+  // when the bodies those tabs render belong to an org that is no longer the default.
+  // eslint-disable-next-line class-methods-use-this
+  public async closeAllApexTestingTabs(): Promise<void> {
+    await closeMatchingTabs(uri => uri.scheme === APEX_TESTING_SCHEME);
+  }
+
   public dispose(): void {
     this.controller.dispose();
   }
@@ -1698,22 +1705,24 @@ const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
   return filePath ? URI.file(filePath) : undefined;
 };
 
-const closeEditorTabByUri = async (uri: URI): Promise<void> => {
+// Collect every open text-input tab whose URI matches the predicate, then close them in one call.
+// `tabGroups` is absent on web; treat that as "nothing to close".
+const closeMatchingTabs = async (predicate: (uri: URI) => boolean): Promise<void> => {
   const tabGroupsApi = vscode.window.tabGroups;
   if (!tabGroupsApi) {
     return;
   }
-  const tabsToClose: vscode.Tab[] = [];
-  for (const group of tabGroupsApi.all) {
-    for (const tab of group.tabs) {
-      if (tab.input instanceof vscode.TabInputText && tab.input.uri.toString() === uri.toString()) {
-        tabsToClose.push(tab);
-      }
-    }
-  }
+  const tabsToClose = tabGroupsApi.all.flatMap(group =>
+    group.tabs.filter(tab => tab.input instanceof vscode.TabInputText && predicate(tab.input.uri))
+  );
   if (tabsToClose.length > 0) {
     await tabGroupsApi.close(tabsToClose, true);
   }
+};
+
+const closeEditorTabByUri = async (uri: URI): Promise<void> => {
+  const target = uri.toString();
+  await closeMatchingTabs(tabUri => tabUri.toString() === target);
 };
 
 const getTempFolder = async (): Promise<URI> => {
