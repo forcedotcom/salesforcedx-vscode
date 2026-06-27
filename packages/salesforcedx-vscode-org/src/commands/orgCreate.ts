@@ -4,29 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import {
-  notificationService,
-  CompositeParametersGatherer,
-  CancelResponse,
-  CliCommandExecutor,
-  ContinueResponse,
-  ParametersGatherer,
-  ProgressNotification,
-  SfCommandlet,
-  SfCommandletExecutor,
-  workspaceUtils,
-  errorToString
-} from '@salesforce/salesforcedx-utils-vscode';
+
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { getTargetDevHubOrAlias, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
+import * as Match from 'effect/Match';
+import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector';
-import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreateResultParser';
-import { checkDevHubConfigured } from '../preconditionCheckers/devUsernameChecker';
-import { telemetryService } from '../telemetry';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 const isAlphaNumSpaceString = (value: string | undefined): boolean =>
@@ -44,130 +32,163 @@ const isIntegerInRange = (value: string | undefined, range: [number, number]): b
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
 
-class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
-  public build(data: AliasAndFileSelection): Command {
-    const selectionPath = path.relative(
-      workspaceUtils.getRootWorkspacePath(), // this is safe because of workspaceChecker
-      data.file
-    );
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('org_create_default_scratch_org_text'))
-      .withArg('org:create:scratch')
-      .withFlag('--definition-file', `${selectionPath}`)
-      .withFlag('--alias', data.alias)
-      .withFlag('--duration-days', data.expirationDays)
-      .withArg('--set-default')
-      .withLogName('org_create_default_scratch_org')
-      .withJson()
-      .build();
+/** scratch-org creation can run several minutes; the default 30s simpleExec timeout would kill it. */
+const CREATE_TIMEOUT = Duration.minutes(15);
+
+/**
+ * Raised when `sf org create scratch --json` stdout cannot be decoded into either result shape.
+ * @ExportTaggedError
+ */
+export class OrgCreateParseError extends Schema.TaggedError<OrgCreateParseError>()('OrgCreateParseError', {
+  message: Schema.String
+}) {}
+
+const OrgCreateSuccess = Schema.Struct({
+  _tag: Schema.Literal('OrgCreateSuccess'),
+  status: Schema.Literal(0),
+  result: Schema.Struct({
+    orgId: Schema.String,
+    username: Schema.String
+  })
+});
+
+/** sf prints `{ status, message }` (status !== 0) on failure; preserve the old channel-message behavior. */
+const OrgCreateFailure = Schema.Struct({
+  _tag: Schema.Literal('OrgCreateFailure'),
+  status: Schema.Number,
+  message: Schema.String
+});
+
+const OrgCreateResponse = Schema.Union(OrgCreateSuccess, OrgCreateFailure);
+type OrgCreateResponse = Schema.Schema.Type<typeof OrgCreateResponse>;
+type OrgCreateSuccess = Schema.Schema.Type<typeof OrgCreateSuccess>;
+type OrgCreateFailure = Schema.Schema.Type<typeof OrgCreateFailure>;
+
+/**
+ * Decodes the sf CLI JSON from stdout. The CLI emits `{ status: 0, result }` (success) or
+ * `{ status, message }` (failure) — neither carries a `_tag`. `RawObject` parses stdout to a plain
+ * object so the `status === 0` test can inject the discriminant before the tagged-union decode; all
+ * downstream dispatch is on `_tag` via Match. Malformed/unexpected shape maps to a tagged error.
+ */
+const RawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }));
+/**
+ * The sf CLI can prepend non-JSON lines to stdout even with `--json` (e.g. the scratch-org expiration
+ * warning, seen on macOS CI). Slice from the first `{` to the last `}` to isolate the JSON payload
+ * before decoding. No braces → slice yields '' → OrgCreateParseError, not a defect.
+ */
+const sanitizeJson = (stdout: string) => stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
+const decodeOrgCreateResponse = (stdout: string) =>
+  Schema.decodeUnknown(RawObject)(sanitizeJson(stdout)).pipe(
+    Effect.map(raw => ({ ...raw, _tag: raw.status === 0 ? 'OrgCreateSuccess' : 'OrgCreateFailure' })),
+    Effect.flatMap(tagged => Schema.decodeUnknown(OrgCreateResponse)(tagged)),
+    Effect.mapError(() => new OrgCreateParseError({ message: nls.localize('org_create_result_parsing_error') }))
+  );
+
+/**
+ * Effect command for `sf.org.create`: create a default scratch org.
+ *
+ * Gates on a configured Dev Hub and an open SfProject, prompts for a scratch-def file / alias /
+ * expiration, then runs `sf org create scratch ... --set-default --json` via TerminalService inside a
+ * cancellable progress. Success refreshes the config/state aggregators and reports to the channel; a
+ * non-zero CLI status surfaces the message to the channel (parity with the old executor).
+ */
+export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  yield* api.services.ProjectService.getSfProject();
+
+  // devhub gate: yield ConfigService directly (NOT the old checkDevHubConfigured, which nests a
+  // runPromise inside an Effect). No devhub → show the same "no dev hub" warning and cancel.
+  const devHub = yield* api.services.ConfigService.getTargetDevHub();
+  if (devHub === undefined) {
+    yield* Effect.sync(() => {
+      void getTargetDevHubOrAlias(true);
+    });
+    return yield* new api.services.UserCancellationError({});
   }
 
-  public execute(response: ContinueResponse<AliasAndFileSelection>): void {
-    const startTime = globalThis.performance.now();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SF_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
+  const promptService = yield* api.services.PromptService;
 
-    channelService.streamCommandStartStop(execution);
-
-    let stdOut = '';
-    execution.stdoutSubject.subscribe(realData => {
-      stdOut += realData.toString();
-    });
-
-    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async () => {
-      this.logMetric(execution.command.logName, startTime);
-      try {
-        const createParser = new OrgCreateResultParser(stdOut);
-
-        if (createParser.createIsSuccessful()) {
-          await updateConfigAndStateAggregators();
-        } else {
-          // remove when we drop CLI invocations
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const errorResponse = createParser.getResult() as OrgCreateErrorResult;
-          if (errorResponse) {
-            channelService.appendLine(errorResponse.message);
-            telemetryService.sendException('org_create', errorResponse.message);
-          }
-        }
-      } catch (err) {
-        channelService.appendLine(nls.localize('org_create_result_parsing_error'));
-        const stringError = errorToString(err);
-        channelService.appendLine(errorToString(stringError));
-        telemetryService.sendException('org_create_scratch', `Error while parsing org create response ${stringError}`);
-      }
-    });
-
-    notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
-    ProgressNotification.show(execution, cancellationTokenSource);
+  // def-file pick: empty match → show the no-scratch-def error and cancel (parity with FileSelector).
+  const files = yield* Effect.promise(() => vscode.workspace.findFiles('config/**/*-scratch-def.json'));
+  if (files.length === 0) {
+    yield* Effect.sync(() => void vscode.window.showErrorMessage(nls.localize('error_no_scratch_def')));
+    return yield* new api.services.UserCancellationError({});
   }
-}
+  const fileItems = files.map(file => ({ label: path.basename(file.fsPath), description: file.fsPath }));
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showQuickPick(fileItems, {
+      placeHolder: nls.localize('parameter_gatherer_enter_scratch_org_def_files')
+    })
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  const relPath = path.relative(workspaceUtils.getRootWorkspacePath(), selection.description);
 
-class AliasGatherer implements ParametersGatherer<Alias> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
-    const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
-    let defaultAlias = DEFAULT_ALIAS;
-    if (workspaceUtils.hasRootWorkspace()) {
-      const folderName = workspaceUtils
-        .getRootWorkspace()
-        .name.replaceAll(/\W/g /* Replace all non-alphanumeric characters */, '');
-      defaultAlias = isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
-    }
-    const aliasInputOptions: vscode.InputBoxOptions = {
+  // alias default = sanitized folder name (or DEFAULT_ALIAS). Empty input (Enter) keeps the default,
+  // so DON'T route through considerUndefinedAsCancellation (it also rejects ''); check undefined (Esc).
+  const defaultAlias = workspaceUtils.hasRootWorkspace()
+    ? (() => {
+        const folderName = workspaceUtils.getRootWorkspace().name.replaceAll(/\W/g, '');
+        return isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
+      })()
+    : DEFAULT_ALIAS;
+  const aliasInput = yield* Effect.promise(() =>
+    vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias,
       validateInput: value =>
-        isAlphaNumSpaceString(value) || value === '' ? null : nls.localize('error_invalid_org_alias')
-    };
-    const alias = await vscode.window.showInputBox(aliasInputOptions);
-    // Hitting enter with no alias will use the value of `defaultAlias`
-    if (alias === undefined) {
-      return { type: 'CANCEL' };
-    }
-    const expirationDaysInputOptions: vscode.InputBoxOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
-      placeHolder: defaultExpirationdate,
-      validateInput: value =>
-        isIntegerInRange(value, [1, 30]) || value === '' ? null : nls.localize('error_invalid_expiration_days')
-    };
-    const scratchOrgExpirationInDays = await vscode.window.showInputBox(expirationDaysInputOptions);
-    if (scratchOrgExpirationInDays === undefined) {
-      return { type: 'CANCEL' };
-    }
-    return {
-      type: 'CONTINUE',
-      data: {
-        alias: alias === '' ? defaultAlias : alias,
-        expirationDays: scratchOrgExpirationInDays === '' ? defaultExpirationdate : scratchOrgExpirationInDays
-      }
-    };
-  }
-}
-type Alias = {
-  alias: string;
-  expirationDays: string;
-};
-
-type AliasAndFileSelection = Alias & FileSelection;
-
-export const orgCreate = async (): Promise<void> => {
-  if (!(await checkDevHubConfigured())) {
-    return;
-  }
-  const parameterGatherer = new CompositeParametersGatherer(
-    new FileSelector(
-      nls.localize('parameter_gatherer_enter_scratch_org_def_files'),
-      nls.localize('error_no_scratch_def'),
-      'config/**/*-scratch-def.json'
-    ),
-    new AliasGatherer()
+        isAlphaNumSpaceString(value) || value === '' ? undefined : nls.localize('error_invalid_org_alias')
+    })
   );
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, new OrgCreateExecutor());
-  void commandlet.run();
-};
+  if (aliasInput === undefined) {
+    return yield* new api.services.UserCancellationError({});
+  }
+  const alias = aliasInput === '' ? defaultAlias : aliasInput;
+
+  const daysInput = yield* Effect.promise(() =>
+    vscode.window.showInputBox({
+      prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
+      placeHolder: DEFAULT_EXPIRATION_DAYS,
+      validateInput: value =>
+        isIntegerInRange(value, [1, 30]) || value === '' ? undefined : nls.localize('error_invalid_expiration_days')
+    })
+  );
+  if (daysInput === undefined) {
+    return yield* new api.services.UserCancellationError({});
+  }
+  const days = daysInput === '' ? DEFAULT_EXPIRATION_DAYS : daysInput;
+
+  const terminalService = yield* api.services.TerminalService;
+  // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON clean.
+  // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
+  const command = `sf org create scratch --definition-file ${relPath} --alias ${alias} --duration-days ${days} --set-default --json`;
+  const stdout = yield* terminalService
+    .simpleExec({ command, parse: identity, timeout: CREATE_TIMEOUT })
+    .pipe(promptService.withCancellableProgress(nls.localize('org_create_progress')));
+
+  const response = yield* decodeOrgCreateResponse(stdout);
+
+  const channel = yield* api.services.ChannelService;
+
+  // success: refresh the config/state aggregators (default org flipped by --set-default), then report.
+  const handleSuccess = Effect.fn('orgCreateCommand.handleSuccess')(function* ({
+    result: { orgId, username }
+  }: OrgCreateSuccess) {
+    yield* Effect.promise(() => updateConfigAndStateAggregators());
+    yield* channel.appendToChannel(nls.localize('org_create_success', alias, username, orgId));
+    yield* channel.showChannel;
+  });
+
+  // failure branch: sf prints `{ status, message }` — surface the message to the channel (no aggregator refresh).
+  const handleFailure = Effect.fn('orgCreateCommand.handleFailure')(function* ({ message }: OrgCreateFailure) {
+    yield* channel.appendToChannel(message);
+    yield* channel.showChannel;
+  });
+
+  yield* Match.type<OrgCreateResponse>().pipe(
+    Match.tag('OrgCreateSuccess', handleSuccess),
+    Match.tag('OrgCreateFailure', handleFailure),
+    Match.exhaustive
+  )(response);
+});

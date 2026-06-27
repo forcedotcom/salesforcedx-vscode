@@ -18,7 +18,6 @@ import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from './channels';
 import {
   configSet,
-  orgCreate,
   orgDelete,
   orgDisplay,
   orgList,
@@ -28,6 +27,7 @@ import {
   orgLogoutAll,
   orgLogoutDefault
 } from './commands';
+import { orgCreateCommand } from './commands/orgCreate';
 import { orgDeleteDefaultCommand } from './commands/orgDelete';
 import { orgOpenCommand } from './commands/orgOpen';
 import { ORG_OPEN_COMMAND } from './constants';
@@ -42,7 +42,6 @@ const registerCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
     vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken),
-    vscode.commands.registerCommand('sf.org.create', orgCreate),
     vscode.commands.registerCommand('sf.org.delete.username', orgDelete, {
       flag: '--target-org'
     }),
@@ -94,6 +93,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   // Register Effect-based commands with AllServicesLayer for proper tracing
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
 
