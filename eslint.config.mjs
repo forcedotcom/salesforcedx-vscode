@@ -189,6 +189,7 @@ export default [
       'unicorn/no-single-promise-in-promise-methods': 'error',
       'unicorn/no-static-only-class': 'error',
       'unicorn/no-typeof-undefined': 'error',
+      'unicorn/no-unnecessary-boolean-comparison': 'error',
       'unicorn/no-unused-properties': 'error',
       'unicorn/no-useless-collection-argument': 'error',
       'unicorn/no-useless-error-capture-stack-trace': 'error',
