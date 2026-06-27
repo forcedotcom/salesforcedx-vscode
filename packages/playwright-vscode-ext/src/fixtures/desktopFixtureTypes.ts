@@ -14,9 +14,20 @@ export type WorkerFixtures = {
   installedExtensionsDir: string | undefined;
 };
 
+/**
+ * Launcher handle for the per-test Electron app. `app` is the current instance;
+ * `relaunch` closes it best-effort and launches a fresh one (used by the page
+ * fixture to recover from win32 launch instability). Teardown always kills the
+ * latest launched app + cleans its temp dir.
+ */
+type ElectronAppHandle = {
+  app: ElectronApplication;
+  relaunch: () => Promise<ElectronApplication>;
+};
+
 /** Test-scoped fixtures (fresh for each test) */
 export type TestFixtures = {
   workspaceDir: string;
-  electronApp: ElectronApplication;
+  electronApp: ElectronAppHandle;
   page: Page;
 };
