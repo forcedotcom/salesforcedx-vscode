@@ -158,6 +158,26 @@ describe('orgOpenCommand', () => {
     expect(show).toHaveBeenCalledTimes(1);
   });
 
+  it('surfaces the message for a non-1 failure status (e.g. NoDefaultEnvError status 68)', async () => {
+    // discrimination is on `status === 0`, not `status === 1`; any non-zero status takes the failure branch
+    // and surfaces the CLI message (parity with the old parser, which returned `.message` for any non-zero status).
+    const failureStdout = JSON.stringify({ status: 68, message: 'No default environment found' });
+    const simpleExec = jest.fn(() => Effect.succeed(failureStdout));
+    const appendToChannel = jest.fn();
+    const exit = await run({
+      isProject: true,
+      orgInfo: { username: 'me@scratch.org' },
+      simpleExec,
+      appendToChannel,
+      show
+    });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('No default environment found');
+    expect(openExternal).not.toHaveBeenCalled();
+    expect(show).toHaveBeenCalledTimes(1);
+  });
+
   it('opens the url when stdout is prefixed with a CLI warning (expiration notice)', async () => {
     // sf can prepend non-JSON warning lines to stdout even with --json + SF_JSON_TO_STDOUT (seen on macOS CI);
     // the parse adapter must slice out the JSON object rather than choke on the prefix.

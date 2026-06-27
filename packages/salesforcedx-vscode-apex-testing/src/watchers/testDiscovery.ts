@@ -31,8 +31,10 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
               // Drop other orgs' discovered classes so the in-memory VFS holds only the current org's tree.
               Effect.zipRight(ApexTestDiscoveryService.pruneForeignOrgClasses(orgId))
             )
-          : // No org (logout / delete default org): clear the tree, close the now-stale virtual editor tabs,
-            // then purge the VFS orgs root so a later login to another org shows no stale classes.
+          : // No org: clear the tree, close the now-stale virtual editor tabs, then purge the VFS orgs root so a
+            // later login to another org shows no stale classes. `Stream.changes` emits the current value as
+            // element-0, so this also fires on activation when no default org is set yet — that startup purge is
+            // intentional: it removes any stale tabs/VFS state left over from a previous session before a login.
             Effect.promise(() => testController.clearAllTestItems()).pipe(
               Effect.zipRight(Effect.promise(() => testController.closeAllApexTestingTabs())),
               Effect.zipRight(ApexTestDiscoveryService.clearAll())
