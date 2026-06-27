@@ -192,6 +192,7 @@ export default [
       'unicorn/no-unnecessary-boolean-comparison': 'error',
       'unicorn/no-unused-properties': 'error',
       'unicorn/no-useless-collection-argument': 'error',
+      'unicorn/no-useless-compound-assignment': 'error',
       'unicorn/no-useless-error-capture-stack-trace': 'error',
       'unicorn/no-useless-iterator-to-array': 'error',
       'unicorn/no-useless-fallback-in-spread': 'error',
