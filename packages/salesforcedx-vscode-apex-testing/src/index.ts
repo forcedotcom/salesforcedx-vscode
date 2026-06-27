@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer,
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -30,8 +35,9 @@ import {
 import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
 import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
+import { nls } from './messages';
 import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
-import { buildAllServicesLayer, getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
+import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
 import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
@@ -124,7 +130,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 });
 
 export const activate = (context: vscode.ExtensionContext) => {
-  setAllServicesLayer(buildAllServicesLayer(context));
+  setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   const extensionScope = getApexTestingRuntime().runSync(getExtensionScope());
 
   return getApexTestingRuntime().runPromise(
