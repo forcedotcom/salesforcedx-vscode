@@ -33,18 +33,14 @@ export const createDesktopConfig = (options: DesktopConfigOptions) => {
     use: {
       trace: 'on',
       screenshot: 'on',
-      // win32 desktop launch/file-handle contention makes individual actions slower; give them more room.
+      // win32 file-handle contention slows individual actions; give them more room.
       actionTimeout: process.platform === 'win32' ? 20_000 : 15_000,
       viewport: { width: 1920, height: 1080 }
     },
-    // win32 desktop electron launch + workbench-ready is slower (file-handle contention); raise the
-    // test-level budget so the page fixture's own setup budget plus the test body both fit.
-    // A caller-supplied options.timeout always wins (the ?? short-circuits before the win32 ternary).
-    // Use process.platform (not isWindowsDesktop()) — VSCODE_DESKTOP is a job env var, not guaranteed
-    // at config-load time; process.platform is the reliable signal in the config module. In CI both
-    // modules see VSCODE_DESKTOP (set at job env scope), so this matches the fixture's isWindowsDesktop()
-    // budget. On a local win32 dev run without VSCODE_DESKTOP they diverge (test-level 120s here, but
-    // the page-fixture budget falls back to its non-desktop value) — acceptable; win32 is validated in CI.
+    // win32 electron launch + workbench-ready is slower; raise the test-level budget so the page
+    // fixture's setup budget plus the test body both fit. options.timeout wins (?? short-circuits).
+    // process.platform (not isWindowsDesktop()): VSCODE_DESKTOP isn't guaranteed at config-load time.
+    // In CI both modules see it, so budgets match; local win32 without it diverges — fine, win32 is CI-only.
     timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? (process.platform === 'win32' ? 120_000 : 60_000)),
     maxFailures: process.env.CI ? 3 : 0,
     globalSetup: require.resolve('./downloadVSCode'),
