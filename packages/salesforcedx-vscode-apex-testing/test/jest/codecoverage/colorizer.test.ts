@@ -177,7 +177,10 @@ describe('CodeCoverageHandler', () => {
 describe('CodeCoverageService', () => {
   // One disposable runtime per test: fresh Refs for isolation, disposed in afterEach so no scopes leak.
   let runtime: ReturnType<typeof getApexTestingRuntime>;
-  const run = <A, E>(effect: Effect.Effect<A, E, CodeCoverageService>) => runtime.runPromise(effect);
+  // R channel is broader than CodeCoverageService because getCoverageData also yields
+  // ExtensionProviderService and SettingsService — both are provided by TestLayer at runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const run = <A, E>(effect: Effect.Effect<A, E, any>) => runtime.runPromise(effect);
 
   beforeEach(() => {
     jest.restoreAllMocks();
