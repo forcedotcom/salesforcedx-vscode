@@ -97,7 +97,10 @@ describe('orgCreateCommand', () => {
     showInputBox = vscode.window.showInputBox as unknown as jest.Mock;
     showErrorMessage = vscode.window.showErrorMessage as unknown as jest.Mock;
     findFiles = vscode.workspace.findFiles as unknown as jest.Mock;
-    findFiles.mockResolvedValue([{ fsPath: '/repo/config/project-scratch-def.json' }]);
+    // Utils.basename(uri) reads uri.path (not fsPath); provide both so the quickpick item label resolves
+    findFiles.mockResolvedValue([
+      { fsPath: '/repo/config/project-scratch-def.json', path: '/repo/config/project-scratch-def.json' }
+    ]);
     showQuickPick.mockResolvedValue({ description: '/repo/config/project-scratch-def.json' });
     showInputBox.mockResolvedValue('myAlias');
   });
@@ -114,7 +117,7 @@ describe('orgCreateCommand', () => {
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
         command:
-          'sf org create scratch --definition-file config/project-scratch-def.json --alias myAlias --duration-days 14 --set-default --json'
+          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias myAlias --duration-days 14 --set-default --json'
       })
     );
     expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
@@ -147,7 +150,7 @@ describe('orgCreateCommand', () => {
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
         command:
-          'sf org create scratch --definition-file config/project-scratch-def.json --alias myproject --duration-days 7 --set-default --json'
+          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias myproject --duration-days 7 --set-default --json'
       })
     );
   });

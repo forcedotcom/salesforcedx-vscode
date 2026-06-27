@@ -12,8 +12,8 @@ import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
 import * as Schema from 'effect/Schema';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
@@ -43,8 +43,7 @@ export class OrgCreateParseError extends Schema.TaggedError<OrgCreateParseError>
   message: Schema.String
 }) {}
 
-const OrgCreateSuccess = Schema.Struct({
-  _tag: Schema.Literal('OrgCreateSuccess'),
+const OrgCreateSuccess = Schema.TaggedStruct('OrgCreateSuccess', {
   status: Schema.Literal(0),
   result: Schema.Struct({
     orgId: Schema.String,
@@ -53,8 +52,7 @@ const OrgCreateSuccess = Schema.Struct({
 });
 
 /** sf prints `{ status, message }` (status !== 0) on failure; preserve the old channel-message behavior. */
-const OrgCreateFailure = Schema.Struct({
-  _tag: Schema.Literal('OrgCreateFailure'),
+const OrgCreateFailure = Schema.TaggedStruct('OrgCreateFailure', {
   status: Schema.Number,
   message: Schema.String
 });
@@ -77,12 +75,13 @@ const RawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Sc
  * before decoding. No braces → slice yields '' → OrgCreateParseError, not a defect.
  */
 const sanitizeJson = (stdout: string) => stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
-const decodeOrgCreateResponse = (stdout: string) =>
-  Schema.decodeUnknown(RawObject)(sanitizeJson(stdout)).pipe(
+const decodeOrgCreateResponse = Effect.fn('decodeOrgCreateResponse')(function* (stdout: string) {
+  return yield* Schema.decodeUnknown(RawObject)(sanitizeJson(stdout)).pipe(
     Effect.map(raw => ({ ...raw, _tag: raw.status === 0 ? 'OrgCreateSuccess' : 'OrgCreateFailure' })),
     Effect.flatMap(tagged => Schema.decodeUnknown(OrgCreateResponse)(tagged)),
     Effect.mapError(() => new OrgCreateParseError({ message: nls.localize('org_create_result_parsing_error') }))
   );
+});
 
 /**
  * Effect command for `sf.org.create`: create a default scratch org.
@@ -103,9 +102,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   // runPromise inside an Effect). No devhub → show the same "no dev hub" warning and cancel.
   const devHub = yield* api.services.ConfigService.getTargetDevHub();
   if (devHub === undefined) {
-    yield* Effect.sync(() => {
-      void getTargetDevHubOrAlias(true);
-    });
+    yield* Effect.promise(() => getTargetDevHubOrAlias(true)).pipe(Effect.ignore);
     return yield* new api.services.UserCancellationError({});
   }
 
@@ -117,22 +114,23 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
     yield* Effect.sync(() => void vscode.window.showErrorMessage(nls.localize('error_no_scratch_def')));
     return yield* new api.services.UserCancellationError({});
   }
-  const fileItems = files.map(file => ({ label: path.basename(file.fsPath), description: file.fsPath }));
+  const fileItems = files.map(file => ({ label: Utils.basename(file), description: file.fsPath }));
   const selection = yield* Effect.promise(() =>
     vscode.window.showQuickPick(fileItems, {
       placeHolder: nls.localize('parameter_gatherer_enter_scratch_org_def_files')
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
-  const relPath = path.relative(workspaceUtils.getRootWorkspacePath(), selection.description);
+  // absolute fsPath, NOT a workspace-relative path: simpleExec runs the sf child with no cwd (it inherits the
+  // extension-host process.cwd(), not the workspace root), so a relative --definition-file would not resolve.
+  // double-quote it so paths containing spaces survive shell word-splitting (childProcess.exec → /bin/sh|cmd.exe).
+  const defFilePath = selection.description;
 
   // alias default = sanitized folder name (or DEFAULT_ALIAS). Empty input (Enter) keeps the default,
   // so DON'T route through considerUndefinedAsCancellation (it also rejects ''); check undefined (Esc).
-  const defaultAlias = workspaceUtils.hasRootWorkspace()
-    ? (() => {
-        const folderName = workspaceUtils.getRootWorkspace().name.replaceAll(/\W/g, '');
-        return isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
-      })()
-    : DEFAULT_ALIAS;
+  const folderName = workspaceUtils.hasRootWorkspace()
+    ? workspaceUtils.getRootWorkspace().name.replaceAll(/\W/g, '')
+    : '';
+  const defaultAlias = isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
   const aliasInput = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
@@ -162,7 +160,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const terminalService = yield* api.services.TerminalService;
   // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON clean.
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
-  const command = `sf org create scratch --definition-file ${relPath} --alias ${alias} --duration-days ${days} --set-default --json`;
+  const command = `sf org create scratch --definition-file "${defFilePath}" --alias ${alias} --duration-days ${days} --set-default --json`;
   const stdout = yield* terminalService
     .simpleExec({ command, parse: identity, timeout: CREATE_TIMEOUT })
     .pipe(promptService.withCancellableProgress(nls.localize('org_create_progress')));
@@ -181,6 +179,10 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   });
 
   // failure branch: sf prints `{ status, message }` — surface the message to the channel (no aggregator refresh).
+  // NOTE: the old executor sent telemetryService.sendException('org_create', message) here and
+  // 'org_create_scratch' on parse errors. Both are intentionally dropped: migrated Effect org commands
+  // (orgOpen, orgDeleteDefaultCommand) emit no failure-exception telemetry; OrgCreateParseError flows to
+  // ErrorHandlerService for user-facing rendering instead.
   const handleFailure = Effect.fn('orgCreateCommand.handleFailure')(function* ({ message }: OrgCreateFailure) {
     yield* channel.appendToChannel(message);
     yield* channel.showChannel;
