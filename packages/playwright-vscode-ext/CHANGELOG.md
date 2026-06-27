@@ -1,3 +1,12 @@
+## [1.3.3](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.2...playwright-vscode-ext-v1.3.3) (2026-06-27)
+
+
+### Bug Fixes
+
+* **playwright:** stabilize windows-latest desktop E2E page fixture - W-23196265 ([#7606](https://github.com/forcedotcom/salesforcedx-vscode/issues/7606)) ([ecae789](https://github.com/forcedotcom/salesforcedx-vscode/commit/ecae789007fa1dad795ced652b5e7a859c9d1a14))
+
+
+
 ## [1.3.2](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.1...playwright-vscode-ext-v1.3.2) (2026-06-24)
 
 
