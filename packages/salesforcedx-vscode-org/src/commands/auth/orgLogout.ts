@@ -11,11 +11,11 @@ import {
   ContinueResponse,
   LibraryCommandletExecutor,
   ParametersGatherer,
-  SfCommandlet,
-  notificationService
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { getOrgRuntime } from '../../extensionProvider';
 import { nls } from '../../messages';
@@ -42,21 +42,17 @@ export class OrgLogoutSelected extends LibraryCommandletExecutor<{ usernames: st
   public async run(response: ContinueResponse<{ usernames: string[] }>): Promise<boolean> {
     const { usernames } = response.data;
     try {
+      // Clear the cached StateAggregator singleton so AuthRemover.init() rebuilds aliases
+      // from disk; removeAuth reads aliases via the in-memory singleton, so a stale cache
+      // would silently miss aliases added after the extension booted.
+      await StateAggregator.clearInstanceAsync();
       const authRemover = await AuthRemover.create();
       for (const username of usernames) {
-        // Fetch aliases before removal so they can be used for config matching
-        const aliases = await getOrgRuntime().runPromise(getAliasesForUsername(username));
+        // removeAuth clears all global+local config keys pointing at the username/aliases
+        // (target-org and target-dev-hub) and removes all aliases on disk.
         await authRemover.removeAuth(username);
-        await getOrgRuntime().runPromise(removeOrgAliases(username));
-        const isTarget = await getOrgRuntime().runPromise(checkIsCurrentTargetOrg(username, aliases));
-        const isDevHub = await getOrgRuntime().runPromise(checkIsCurrentTargetDevHub(username, aliases));
-        if (isTarget) {
-          await getOrgRuntime().runPromise(doUnsetTargetOrg());
-        }
-        if (isDevHub) {
-          await getOrgRuntime().runPromise(doUnsetTargetDevHub());
-        }
       }
+      // refresh the extension's cached aggregators/connection after the on-disk change.
       await updateConfigAndStateAggregators();
       return true;
     } catch (e) {
@@ -71,43 +67,6 @@ export const orgLogoutAll = async () => {
   const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new SelectOrgsForLogout(), new OrgLogoutSelected());
   await commandlet.run();
 };
-
-const getAliasesForUsername = Effect.fn('OrgLogout.getAliasesForUsername')(function* (username: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.AliasService.getAliasesFromUsername(username);
-});
-
-const checkIsCurrentTargetOrg = Effect.fn('OrgLogout.checkIsCurrentTargetOrg')(function* (
-  username: string,
-  aliases: readonly string[]
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
-});
-
-const checkIsCurrentTargetDevHub = Effect.fn('OrgLogout.checkIsCurrentTargetDevHub')(function* (
-  username: string,
-  aliases: readonly string[]
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.ConfigService.isCurrentTargetDevHub(username, aliases);
-});
-
-const removeOrgAliases = Effect.fn('OrgLogout.removeOrgAliases')(function* (username: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const allAliasesOnDisk = yield* api.services.AliasService.getAliasesFromUsername(username);
-  yield* api.services.AliasService.unsetAliases(allAliasesOnDisk);
-});
-
-const doUnsetTargetOrg = Effect.fn('OrgLogout.doUnsetTargetOrg')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ConfigService.unsetTargetOrg();
-});
-
-const doUnsetTargetDevHub = Effect.fn('OrgLogout.doUnsetTargetDevHub')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ConfigService.unsetTargetDevHub();
-});
 
 export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
   constructor() {
@@ -147,7 +106,7 @@ export const orgLogoutDefault = async () => {
     );
     await logoutCommandlet.run();
   } else {
-    void notificationService.showInformationMessage(nls.localize('org_logout_no_default_org'));
+    void vscode.window.showInformationMessage(nls.localize('org_logout_no_default_org'));
   }
 };
 
