@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core';
+import { AuthRemover, StateAggregator } from '@salesforce/core';
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
   ContinueResponse,
@@ -110,22 +110,22 @@ const doUnsetTargetDevHub = Effect.fn('OrgLogout.doUnsetTargetDevHub')(function*
 });
 
 export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
-  private readonly orgAliases: readonly string[];
-
-  constructor(aliases: readonly string[] = []) {
+  constructor() {
     super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
-    this.orgAliases = aliases;
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
-      const shouldUnset = await getOrgRuntime().runPromise(checkIsCurrentTargetOrg(response.data, this.orgAliases));
+      // Clear the cached StateAggregator singleton so AuthRemover.init() rebuilds aliases
+      // from disk; removeAuth reads aliases via the in-memory singleton, so a stale cache
+      // would silently miss aliases added after the extension booted.
+      await StateAggregator.clearInstanceAsync();
       const authRemover = await AuthRemover.create();
+      // removeAuth clears all global+local config keys pointing at the username/aliases
+      // (target-org and target-dev-hub) and removes all aliases on disk.
       await authRemover.removeAuth(response.data);
-      await getOrgRuntime().runPromise(removeOrgAliases(response.data));
-      if (shouldUnset) {
-        await getOrgRuntime().runPromise(doUnsetTargetOrg());
-      }
+      // refresh the extension's cached aggregators/connection after the on-disk change.
+      await updateConfigAndStateAggregators();
     } catch (e) {
       const err = e instanceof Error ? e : new Error(String(e));
       telemetryService.sendException('org_logout_default', `Error: name = ${err.name} message = ${err.message}`);
@@ -143,7 +143,7 @@ export const orgLogoutDefault = async () => {
     const logoutCommandlet = new SfCommandlet(
       sfProjectPreconditionChecker,
       isScratch ? new ScratchOrgLogoutParamsGatherer(username, aliases[0]) : new SimpleGatherer<string>(username),
-      new OrgLogoutDefault(aliases)
+      new OrgLogoutDefault()
     );
     await logoutCommandlet.run();
   } else {
