@@ -46,12 +46,11 @@ import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
 import {
   buildClassToUriIndex,
-  getFullClassName,
   getMethodLocationsFromSymbols,
-  isFlowTest,
   readTestRunIdFile,
   writeTestResultJsonFile
 } from '../utils/testUtils';
+import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
