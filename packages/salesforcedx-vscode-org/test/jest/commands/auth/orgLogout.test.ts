@@ -39,10 +39,12 @@ describe('OrgLogoutDefault', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-    jest.clearAllMocks();
   });
 
-  it('removes auth for the username and refreshes extension caches', async () => {
+  // Asserts the full happy path: removeAuth routed the username, caches refreshed, result true, and
+  // (regression guard) the StateAggregator singleton is cleared BEFORE the AuthRemover is created so
+  // removeAuth's in-memory alias read cannot drop an alias added after extension boot.
+  it('clears the singleton, removes auth for the username, and refreshes extension caches', async () => {
     const username = 'user@example.com';
 
     const executor = new OrgLogoutDefault();
@@ -51,16 +53,6 @@ describe('OrgLogoutDefault', () => {
     expect(result).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
     expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
-  });
-
-  // Models the regression where an alias added after extension boot would be dropped by
-  // removeAuth's in-memory alias read if the StateAggregator singleton were stale.
-  it('clears the StateAggregator singleton before creating the AuthRemover', async () => {
-    const executor = new OrgLogoutDefault();
-    await executor.run({ type: 'CONTINUE', data: 'user@example.com' });
-
-    expect(clearInstanceAsyncMock).toHaveBeenCalled();
-    expect(createMock).toHaveBeenCalled();
     expect(clearInstanceAsyncMock.mock.invocationCallOrder[0]).toBeLessThan(createMock.mock.invocationCallOrder[0]);
   });
 

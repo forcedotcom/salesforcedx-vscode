@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import {
   activeQuickInputTextField,
   activeQuickInputWidget,
+  clickModalDialogButton,
   clickOrgPickerStatusBar,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
@@ -91,7 +92,7 @@ test('org logout: SFDX Log Out from Default Org removes auth from the default sc
   // confirm modal; confirm it to proceed (dialogStyle: custom routes it through the DOM).
   await test.step('log out from the default org and confirm the scratch modal', async () => {
     await executeCommandWithCommandPalette(page, packageNls.org_logout_default_text);
-    await clickModalDialogButton(page, LOGOUT_CONFIRM_LABEL);
+    await clickModalDialogButton(page, LOGOUT_CONFIRM_LABEL, 15_000);
   });
 
   // Durable success signal: removeAuth ran end-to-end and the command reported success. The status bar
@@ -112,13 +113,3 @@ test('org logout: SFDX Log Out from Default Org removes auth from the default sc
     );
   });
 });
-
-/** Click a VS Code custom modal-dialog button by its label (requires `window.dialogStyle: custom`). */
-const clickModalDialogButton = async (page: Page, label: string, timeout = 15_000): Promise<void> => {
-  const dialogButton = page
-    .locator('.monaco-dialog-box, .dialog-shadow')
-    .getByRole('button', { name: label, exact: true })
-    .first();
-  await expect(dialogButton).toBeVisible({ timeout });
-  await dialogButton.click();
-};

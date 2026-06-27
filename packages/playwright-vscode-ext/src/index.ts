@@ -19,6 +19,7 @@ export {
   closeSettingsTab,
   waitForWorkspaceReady,
   typingSpeed,
+  clickModalDialogButton,
   isDesktop,
   isMacDesktop,
   isWindowsDesktop,
