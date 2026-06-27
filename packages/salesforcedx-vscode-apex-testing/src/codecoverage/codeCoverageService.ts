@@ -22,6 +22,7 @@ const SFDX_FOLDER = '.sfdx';
 const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
 
 /** No coverage discoverable for the project (no workspace, unreadable results dir, no result files, or all stale). */
+/** @ExportTaggedError */
 export class NoCoverageOnProjectError extends Schema.TaggedError<NoCoverageOnProjectError>()(
   'NoCoverageOnProjectError',
   {
@@ -30,18 +31,26 @@ export class NoCoverageOnProjectError extends Schema.TaggedError<NoCoverageOnPro
 ) {}
 
 /** Result files exist but none carry coverage keys. */
+/** @ExportTaggedError */
 export class StaleResultsError extends Schema.TaggedError<StaleResultsError>()('StaleResultsError', {
   message: Schema.String
 }) {}
 
 /** No coverage entry matches the current file. */
+/** @ExportTaggedError */
 export class NoCoverageForFileError extends Schema.TaggedError<NoCoverageForFileError>()('NoCoverageForFileError', {
-  message: Schema.String,
-  filePath: Schema.String
+  message: Schema.String
 }) {}
 
 /** A covered/uncovered line number falls outside the document's range (results out of sync with source). */
+/** @ExportTaggedError */
 export class OutOfSyncCoverageError extends Schema.TaggedError<OutOfSyncCoverageError>()('OutOfSyncCoverageError', {
+  message: Schema.String
+}) {}
+
+/** Failed to read/decode a result file (swallowed per-file; skips the unreadable file). */
+/** @ExportTaggedError */
+export class ReadFileError extends Schema.TaggedError<ReadFileError>()('ReadFileError', {
   message: Schema.String
 }) {}
 
@@ -72,9 +81,8 @@ const getApexMemberName = (document: TextDocument): string => {
   if (!isApexMetadata(pathStr)) {
     return '';
   }
-  const base = Utils.basename(document.uri);
-  const ext = base.includes('.') ? base.slice(base.lastIndexOf('.')) : '';
-  return ext ? base.slice(0, -ext.length) : base;
+  // isApexMetadata guarantees a .cls/.trigger suffix here, so the replace always matches.
+  return Utils.basename(document.uri).replace(IS_CLS_OR_TRIGGER, '');
 };
 
 const isCodeCoverageItem = (item: CoverageItem | CodeCoverageResult): item is CoverageItem => 'lines' in item;
@@ -94,16 +102,40 @@ const getLineRange = (document: TextDocument, lineNumber: number): Effect.Effect
     catch: () => new OutOfSyncCoverageError({ message: nls.localize('colorizer_out_of_sync_code_coverage_data') })
   });
 
-const readFileUri = (uri: URI): Effect.Effect<string, unknown> =>
-  Effect.tryPromise(async () => {
-    const data = await workspace.fs.readFile(uri);
-    return new TextDecoder().decode(data);
+const readFileUri = (uri: URI): Effect.Effect<string, ReadFileError> =>
+  Effect.tryPromise({
+    try: async () => {
+      const data = await workspace.fs.readFile(uri);
+      return new TextDecoder().decode(data);
+    },
+    catch: () => new ReadFileError({ message: `Failed to read ${uri.path}` })
   });
+
+/** Stat one result file; Some(name, mtime) if within the max age, None if stale. */
+const statRecent = Effect.fn('CodeCoverageService.statRecent')(function* (
+  apexTestResultsUri: URI,
+  now: number,
+  name: string
+) {
+  const uri = Utils.joinPath(apexTestResultsUri, name);
+  const stat = yield* Effect.tryPromise(() => workspace.fs.stat(uri));
+  return now - stat.mtime <= RESULT_MAX_AGE_MS ? Option.some({ name, mtime: stat.mtime }) : Option.none();
+});
+
+/** Read+parse one result file, returning its coverage items (empty if the file carries none). */
+const readResult = Effect.fn('CodeCoverageService.readResult')(function* (apexTestResultsUri: URI, name: string) {
+  const uri = Utils.joinPath(apexTestResultsUri, name);
+  const content = yield* readFileUri(uri);
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
+  const testResult = JSON.parse(content) as TestResultWithCoverage;
+  return testResult.codecoverage ?? testResult.coverage?.coverage ?? [];
+});
 
 /**
  * CodeCoverageService — owns coverage Ref state and the coverage-data pipeline.
- * SettingsService is reached ambiently (prebuiltServicesDependencies); it is NOT declared as a
- * hard Default dependency (that would double-provision and conflict at runtime).
+ * SettingsService and ChannelService are reached ambiently (prebuiltServicesDependencies) via
+ * api.services; they are NOT declared as hard Default dependencies (that would double-provision
+ * and conflict at runtime).
  */
 export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('CodeCoverageService', {
   accessors: true,
@@ -123,7 +155,11 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
         });
       }
 
-      const apexTestResultsUri = yield* Effect.promise(() => getTestResultsFolder());
+      const apexTestResultsUri = yield* Effect.tryPromise({
+        try: () => getTestResultsFolder(),
+        // no default org / cannot resolve results folder
+        catch: () => new NoCoverageOnProjectError({ message: nls.localize('colorizer_no_code_coverage_on_project') })
+      });
 
       const entries = yield* Effect.tryPromise({
         try: () => workspace.fs.readDirectory(apexTestResultsUri),
@@ -149,17 +185,13 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
       }
 
       const now = Date.now();
-      const statRecent = Effect.fn('CodeCoverageService.statRecent')(function* (name: string) {
-        const uri = Utils.joinPath(apexTestResultsUri, name);
-        const stat = yield* Effect.tryPromise(() => workspace.fs.stat(uri));
-        return now - stat.mtime <= RESULT_MAX_AGE_MS ? Option.some({ name, mtime: stat.mtime }) : Option.none();
-      });
-
       const recentEntries = (yield* Effect.forEach(
         resultNames,
         // skip files we can't stat (stat order does not matter; sort happens after)
         name =>
-          statRecent(name).pipe(Effect.catchAll(() => Effect.succeed(Option.none<{ name: string; mtime: number }>()))),
+          statRecent(apexTestResultsUri, now, name).pipe(
+            Effect.catchAll(() => Effect.succeed(Option.none<{ name: string; mtime: number }>()))
+          ),
         { concurrency: 'unbounded' }
       )).flatMap(Option.toArray);
 
@@ -180,25 +212,18 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
         true;
       const filesToRead = restorePrevious ? sortedEntries.map(e => e.name) : [sortedEntries.at(-1)!.name];
 
-      const coverageByName = new Map<string, CoverageItem | CodeCoverageResult>();
-
-      const readResult = Effect.fn('CodeCoverageService.readResult')(function* (name: string) {
-        const uri = Utils.joinPath(apexTestResultsUri, name);
-        const content = yield* readFileUri(uri);
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
-        const testResult = JSON.parse(content) as TestResultWithCoverage;
-        const items: (CoverageItem | CodeCoverageResult)[] | undefined =
-          testResult.codecoverage ?? testResult.coverage?.coverage;
-        items?.forEach(item => coverageByName.set(item.name, item));
-      });
-
-      // concurrency: 1 (sequential) is required — last-write-wins aggregation into coverageByName
-      // depends on chronological (sortByMtimeAscending) order; unbounded concurrency would race the Map.set.
-      yield* Effect.forEach(
+      // concurrency: 1 (sequential) is required — last-write-wins aggregation depends on chronological
+      // (sortByMtimeAscending) order; unbounded concurrency would race the per-file results.
+      const perFileItems = yield* Effect.forEach(
         filesToRead,
         // skip files we can't read or parse
-        name => readResult(name).pipe(Effect.catchAll(() => Effect.void)),
+        name => readResult(apexTestResultsUri, name).pipe(Effect.catchAll(() => Effect.succeed([]))),
         { concurrency: 1 }
+      );
+
+      // last-write-wins: later (newer) files overwrite earlier entries for the same class name.
+      const coverageByName = new Map<string, CoverageItem | CodeCoverageResult>(
+        perFileItems.flat().map(item => [item.name, item] as const)
       );
 
       if (coverageByName.size === 0) {
@@ -225,8 +250,7 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
 
       if (!codeCovItem) {
         return yield* new NoCoverageForFileError({
-          message: nls.localize('colorizer_no_code_coverage_current_file', docPath(document)),
-          filePath: docPath(document)
+          message: nls.localize('colorizer_no_code_coverage_current_file', docPath(document))
         });
       }
 
@@ -250,14 +274,6 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
           getLineRange(document, Number(uncov))
         )
       };
-    });
-
-    /** Compute coverage for the editor's document, store it in Refs, and return the ranges. */
-    const applyForEditor = Effect.fn('CodeCoverageService.applyForEditor')(function* (document: TextDocument) {
-      const ranges = yield* computeRanges(document);
-      yield* Ref.set(coveredLines, ranges.coveredLines);
-      yield* Ref.set(uncoveredLines, ranges.uncoveredLines);
-      return ranges;
     });
 
     /** Reset coverage Refs to empty. */
@@ -288,12 +304,39 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
         const svc = yield* api.services.ChannelService;
         yield* svc.appendToChannel(e.message);
       } else {
-        yield* Effect.tryPromise(() =>
-          window.showWarningMessage(nls.localize('colorizer_coverage_apply_failed_message', e.message))
-        );
+        yield* Effect.sync(() => {
+          void window.showWarningMessage(nls.localize('colorizer_coverage_apply_failed_message', e.message));
+        });
       }
     });
 
-    return { applyForEditor, clear, getRanges, handleCoverageException };
+    /** Compute coverage for the editor's document, store it in Refs, and return the ranges. */
+    const applyForEditor = Effect.fn('CodeCoverageService.applyForEditor')(function* (document: TextDocument) {
+      const ranges = yield* computeRanges(document);
+      yield* Ref.set(coveredLines, ranges.coveredLines);
+      yield* Ref.set(uncoveredLines, ranges.uncoveredLines);
+      return ranges;
+    });
+
+    /**
+     * Apply coverage for the editor, handling every coverage failure and returning the ranges to decorate.
+     * On failure the Refs are reset to empty so the editor clears stale decorations instead of redrawing
+     * the previous file's ranges.
+     */
+    const applyForEditorHandled = Effect.fn('CodeCoverageService.applyForEditorHandled')(function* (
+      document: TextDocument
+    ) {
+      return yield* applyForEditor(document).pipe(
+        // Enumerate tags (not catchAll) so a new failure type forces a compile decision.
+        Effect.catchTags({
+          NoCoverageOnProjectError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
+          StaleResultsError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
+          NoCoverageForFileError: e => handleCoverageException(e).pipe(Effect.zipRight(clear())),
+          OutOfSyncCoverageError: e => handleCoverageException(e).pipe(Effect.zipRight(clear()))
+        })
+      );
+    });
+
+    return { applyForEditor, applyForEditorHandled, clear, getRanges, handleCoverageException };
   })
 }) {}
