@@ -39,7 +39,10 @@ const NO_DEFAULT_ORG = 'No Default Org Set';
 const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 // `%s successfully ran` (`salesforcedx-utils-vscode/src/messages/i18n.ts`), %s = command description.
 const SET_DEFAULT_ORG_RAN = /SFDX: Set a Default Org successfully ran/;
-const CREATE_SCRATCH_ORG_RAN = /SFDX: Create a Default Scratch Org\.\.\. successfully ran/;
+// Leading fragment of `org_create_success` (`salesforcedx-vscode-org/src/messages/i18n.ts`). The
+// migrated Effect command reports success via this channel line (orgCreate.ts handleSuccess), NOT a
+// `... successfully ran` toast — that toast came only from the old SfCommandletExecutor.
+const CREATE_SUCCESS_PREFIX = 'Successfully created scratch org ';
 
 // The 5 ACTION_ITEMS rendered in the picker (orgList.ts ACTION_ITEMS); labels carry an icon prefix.
 const PICKER_ACTION_ITEMS = [
@@ -122,11 +125,16 @@ test('org picker: set default org, create scratch org, switch default org', asyn
     await page.keyboard.press('Enter');
   });
 
-  // `--set-default` makes the new org the default. Wait for the create command's success
-  // notification (multi-minute command), then assert the persistent status-bar signal.
+  // `--set-default` makes the new org the default. The migrated Effect command signals success via an
+  // output-channel line (orgCreate.ts handleSuccess), not a toast, so wait for that channel text
+  // (multi-minute command) — the alias is echoed in the message — then assert the status-bar signal.
   await test.step('scratch org create completes and is auto-set as default', async () => {
-    await waitForNotification(page, CREATE_SCRATCH_ORG_RAN, { timeout: 600_000 });
-    // The success notification signals the command finished; the status bar updates within seconds, so
+    await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
+    await waitForOutputChannelText(page, {
+      expectedText: `${CREATE_SUCCESS_PREFIX}${scratchAlias}`,
+      timeout: 600_000
+    });
+    // The channel line signals the command finished; the status bar updates within seconds, so
     // a short timeout here keeps the two sequential waits from summing past the 720s test budget.
     await expectOrgPickerStatusBar(page, scratchAlias, { timeout: 30_000 });
   });
@@ -158,5 +166,46 @@ test('org picker: set default org, create scratch org, switch default org', asyn
         console.warn(`Failed to delete scratch org ${scratchAlias}; it will expire in 1 day. ${String(error)}`);
       }
     );
+  });
+});
+
+// Cancelling at the scratch-def picker must be silent: no org created, no set-default, no success
+// channel line. The migrated command's devhub gate bails BEFORE any picker when no dev hub is set, so
+// the cancel path is only reachable once a default org is configured — set the dev hub as default
+// first (mirrors the success test) to avoid a vacuous local pass.
+test('org create: cancel at def-file picker is silent', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await waitForVSCodeWorkbench(page);
+  await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
+
+  // getTargetDevHub throws when no dev hub is configured. Without one, the command bails at the devhub
+  // gate before any picker, so the cancel path is unreachable — skip rather than pass vacuously.
+  const maybeDevHubAlias = await getTargetDevHub().catch(() => undefined);
+  test.skip(!maybeDevHubAlias, 'no dev hub configured; org-create cancel path is unreachable');
+  const devHubAlias = maybeDevHubAlias!;
+
+  await test.step('set dev hub as default org via picker', async () => {
+    await clickOrgPickerStatusBar(page, NO_DEFAULT_ORG);
+    await selectOrgInPicker(page, devHubAlias);
+    await waitForNotification(page, SET_DEFAULT_ORG_RAN);
+    await expectOrgPickerStatusBar(page, devHubAlias);
+  });
+
+  await test.step('cancel at the scratch-def picker via Escape', async () => {
+    await clickOrgPickerStatusBar(page, devHubAlias);
+    await selectQuickInputOptionByTyping(page, packageNls.org_create_default_scratch_org_text);
+    // Wait for the def-file quickpick to render its first row, then dismiss it.
+    await waitForQuickInputFirstOption(page);
+    await page.keyboard.press('Escape');
+  });
+
+  // Positive deterministic signal: the status bar still shows the dev hub. A created+set-default org
+  // would have flipped it to a new scratch alias, so an unchanged dev-hub status bar proves the cancel
+  // produced no org. (Asserting non-appearance of a toast/channel line would require a flaky
+  // timeout-based negative expect — avoided per plan.)
+  await test.step('cancel is silent: status bar still shows the dev hub', async () => {
+    await expectOrgPickerStatusBar(page, devHubAlias);
   });
 });
