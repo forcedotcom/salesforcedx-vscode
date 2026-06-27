@@ -8,7 +8,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
-import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getPortKillInstructions, isAuthPortConflictError } from '../../util/authErrorParser';
@@ -43,45 +42,49 @@ export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
 
   const { alias, loginUrl } = yield* gatherAuthParams({ instanceUrl, reauthAliasOrUsername });
 
-  const promptService = yield* api.services.PromptService;
-  const terminalService = yield* api.services.TerminalService;
   const channel = yield* api.services.ChannelService;
+
+  // Code Builder only (gated on CODE_BUILDER_STATE inside the helper). Fork so the modal does not
+  // block the login child; forkDaemon keeps it alive independent of this fiber. Best-effort: a
+  // rejection from the VS Code message API becomes an Effect.promise defect — catch it explicitly so
+  // the swallow is intentional and visible rather than a silent daemon-fiber drop.
+  yield* Effect.forkDaemon(
+    Effect.promise(() => showVerificationCodeIfNeeded()).pipe(Effect.catchAllDefect(() => Effect.void))
+  );
+
+  // quote alias + url so spaces/special chars in the alias don't split the shell command. Note: double
+  // quotes do NOT neutralize $, backticks, or an embedded " under /bin/sh -c; real-world risk is low
+  // (alias is locally user-typed, loginUrl is validateUrl-checked) but this is not full shell escaping.
+  const command = `sf org login web --alias "${alias}" --instance-url "${loginUrl}" --set-default --json`;
 
   // Render the port-conflict notification (persistent showErrorMessage + Show Output action) directly,
   // mirroring ErrorHandlerService's pattern — no legacy notificationService/channelService singleton.
+  // The conflict branch performs its own UI and short-circuits, so the happy path stays straight-line.
   const showPortConflict = Effect.fn('orgLoginWebCommand.showPortConflict')(function* () {
+    const conflictChannel = yield* api.services.ChannelService;
     const message = `${nls.localize('org_login_web_port_conflict_notification_message')}\n\n${getPortKillInstructions()}`;
     const showOutputText = nls.localize('org_login_web_show_output_button_text');
-    const selection = yield* Effect.promise(() =>
-      Promise.resolve(vscode.window.showErrorMessage(message, showOutputText))
-    );
-    if (selection === showOutputText) yield* channel.showChannel;
-    return Option.none<string>();
+    const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(message, showOutputText));
+    if (selection === showOutputText) yield* conflictChannel.showChannel;
   });
 
-  // Code Builder only (gated on CODE_BUILDER_STATE inside the helper). Fork so the modal does not
-  // block the login child; forkDaemon keeps it alive independent of this fiber.
-  yield* Effect.forkDaemon(Effect.promise(() => showVerificationCodeIfNeeded()));
+  // success: append output + success message, reveal channel, refresh aggregators
+  const handleSuccess = Effect.fn('orgLoginWebCommand.handleSuccess')(function* (output: string) {
+    yield* channel.appendToChannel(output);
+    yield* channel.appendToChannel(nls.localize('org_login_web_success'));
+    yield* channel.showChannel;
+    yield* Effect.promise(() => updateConfigAndStateAggregators());
+  });
 
-  // quote alias + url so spaces/special chars in the alias don't split the shell command
-  const command = `sf org login web --alias "${alias}" --instance-url "${loginUrl}" --set-default --json`;
-
-  // Option.some(output) on success; Option.none() when the port-conflict branch already handled it.
-  const result = yield* terminalService.simpleExec({ command, parse: identity, timeout: LOGIN_TIMEOUT }).pipe(
-    Effect.map(Option.some<string>),
-    promptService.withCancellableProgress(nls.localize('org_login_web_progress')),
+  yield* (yield* api.services.TerminalService).simpleExec({ command, parse: identity, timeout: LOGIN_TIMEOUT }).pipe(
+    (yield* api.services.PromptService).withCancellableProgress(nls.localize('org_login_web_progress')),
+    Effect.flatMap(handleSuccess),
     Effect.catchTag('TerminalServiceError', error =>
       isAuthPortConflictError(error.message)
-        ? showPortConflict()
+        ? // port-conflict: handle the conflict UI inline and short-circuit
+          showPortConflict()
         : // non-conflict failure: rethrow to the generic ErrorHandlerService
           Effect.fail(error)
     )
   );
-
-  if (Option.isNone(result)) return;
-
-  yield* channel.appendToChannel(result.value);
-  yield* channel.appendToChannel(nls.localize('org_login_web_success'));
-  yield* channel.showChannel;
-  yield* Effect.promise(() => updateConfigAndStateAggregators());
 });

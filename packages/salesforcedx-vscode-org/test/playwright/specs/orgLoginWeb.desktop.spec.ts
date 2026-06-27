@@ -13,6 +13,7 @@ import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  selectOutputChannel,
   selectQuickInputOption,
   verifyCommandExists,
   waitForNotification,
@@ -98,11 +99,8 @@ test('org extension: SFDX: Authorize an Org surfaces the port-1717 conflict noti
     // click the action immediately (palette/maximize ops would hide the toast first)
     await acceptNotification(page, conflictMessage, messages.org_login_web_show_output_button_text);
     // the conflict branch reveals the channel (it does not append output), so assert the output
-    // panel surfaced the Salesforce Org Management channel rather than any specific content.
-    const dropdown = page.locator('[id="workbench.panel.output"]').locator('select.monaco-select-box');
-    await expect(dropdown, 'Salesforce Org Management output channel should be revealed').toHaveValue(
-      messages.channel_name,
-      { timeout: 30_000 }
-    );
+    // panel surfaced the Salesforce Org Management channel rather than any specific content. The
+    // shared helper waits for the panel, re-queries the dropdown per attempt, and retries via toPass.
+    await selectOutputChannel(page, messages.channel_name);
   });
 });

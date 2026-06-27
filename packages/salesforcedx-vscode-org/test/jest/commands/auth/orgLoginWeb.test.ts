@@ -11,6 +11,7 @@ import * as Exit from 'effect/Exit';
 import { identity } from 'effect/Function';
 import * as vscode from 'vscode';
 import { orgLoginWebCommand } from '../../../../src/commands/auth/orgLoginWeb';
+import { nls } from '../../../../src/messages';
 import { updateConfigAndStateAggregators } from '../../../../src/util/orgUtil';
 
 jest.mock('../../../../src/util/orgUtil', () => ({
@@ -33,6 +34,7 @@ const buildServices = (opts: {
   simpleExec: jest.Mock;
   appendToChannel: jest.Mock;
   showChannel: jest.Mock;
+  captureProgressTitle: (title: string) => void;
 }) => ({
   ProjectService: {
     // gatherAuthParams' QuickPick branch reads sfdcLoginUrl off the project json to offer a "project"
@@ -48,7 +50,10 @@ const buildServices = (opts: {
   PromptService: Effect.succeed({
     considerUndefinedAsCancellation: (value: unknown) =>
       value === undefined ? Effect.fail({ _tag: 'UserCancellationError' as const }) : Effect.succeed(value),
-    withCancellableProgress: (_title: string) => identity
+    withCancellableProgress: (title: string) => {
+      opts.captureProgressTitle(title);
+      return identity;
+    }
   }),
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   ChannelService: Effect.succeed({
@@ -65,7 +70,13 @@ const buildServices = (opts: {
   }
 });
 
-const run = (opts: { isProject: boolean; simpleExec: jest.Mock; appendToChannel: jest.Mock; showChannel: jest.Mock }) =>
+const run = (opts: {
+  isProject: boolean;
+  simpleExec: jest.Mock;
+  appendToChannel: jest.Mock;
+  showChannel: jest.Mock;
+  captureProgressTitle: (title: string) => void;
+}) =>
   Effect.runPromiseExit(
     orgLoginWebCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
@@ -78,6 +89,7 @@ describe('orgLoginWebCommand', () => {
   let appendToChannel: jest.Mock;
   let showChannel: jest.Mock;
   let showErrorMessage: jest.Mock;
+  let captureProgressTitle: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -85,6 +97,7 @@ describe('orgLoginWebCommand', () => {
     appendToChannel = jest.fn();
     showChannel = jest.fn();
     showErrorMessage = jest.fn();
+    captureProgressTitle = jest.fn();
     stubWithProgress();
     (vscode.window as unknown as { showErrorMessage: jest.Mock }).showErrorMessage = showErrorMessage;
     // gatherAuthParams: select the production org-type QuickPick option, then commit an empty alias
@@ -97,7 +110,7 @@ describe('orgLoginWebCommand', () => {
 
   it('runs `sf org login web` with alias + --instance-url + --set-default flags', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
@@ -110,19 +123,21 @@ describe('orgLoginWebCommand', () => {
 
   it('appends the output + success message, shows the channel, and refreshes aggregators on success', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(appendToChannel).toHaveBeenCalledWith(SUCCESS_STDOUT);
     expect(showChannel).toHaveBeenCalled();
     expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
+    // the cancellable progress is titled with the localized login key (regression guard on the key)
+    expect(captureProgressTitle).toHaveBeenCalledWith(nls.localize('org_login_web_progress'));
     // success path must never touch the port-conflict notification
     expect(showErrorMessage).not.toHaveBeenCalled();
   });
 
   it('does not exec when not in a project (getSfProject precondition fails)', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const exit = await run({ isProject: false, simpleExec, appendToChannel, showChannel });
+    const exit = await run({ isProject: false, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
@@ -139,7 +154,7 @@ describe('orgLoginWebCommand', () => {
         command: 'sf org login web'
       })
     );
-    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     // the command swallows the conflict (success exit) and renders the notification itself
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -162,7 +177,7 @@ describe('orgLoginWebCommand', () => {
         command: 'sf org login web'
       })
     );
-    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(showErrorMessage).toHaveBeenCalledTimes(1);
@@ -177,7 +192,7 @@ describe('orgLoginWebCommand', () => {
         command: 'sf org login web'
       })
     );
-    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('TerminalServiceError');
