@@ -211,6 +211,7 @@ const registerCommands = (): vscode.Disposable => {
   return vscode.Disposable.from(
     apexToggleColorizerCmd,
     statusBarToggle,
+    colorizer,
     apexTestClassRunDelegateCmd,
     apexDebugClassRunDelegateCmd,
     apexTestMethodRunDelegateCmd,
