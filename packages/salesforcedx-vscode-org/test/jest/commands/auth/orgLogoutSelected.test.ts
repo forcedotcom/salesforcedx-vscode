@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core';
+import { AuthRemover, StateAggregator } from '@salesforce/core';
 import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
@@ -64,6 +64,7 @@ describe('OrgLogoutSelected', () => {
     jest.spyOn(AuthRemover, 'create').mockResolvedValue({
       removeAuth: removeAuthMock
     } as unknown as AuthRemover);
+    jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue(undefined);
 
     isCurrentTargetOrgMock = jest.fn().mockReturnValue(Effect.succeed(false));
     isCurrentTargetDevHubMock = jest.fn().mockReturnValue(Effect.succeed(false));

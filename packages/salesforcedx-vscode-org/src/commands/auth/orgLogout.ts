@@ -42,12 +42,28 @@ export class OrgLogoutSelected extends LibraryCommandletExecutor<{ usernames: st
   public async run(response: ContinueResponse<{ usernames: string[] }>): Promise<boolean> {
     const { usernames } = response.data;
     try {
+      const api = await getOrgRuntime().runPromise(
+        Effect.gen(function* () {
+          return yield* (yield* ExtensionProviderService).getServicesApi;
+        })
+      );
+      const { ConfigService, AliasService } = api.services;
+
       // Clear the cached StateAggregator singleton so AuthRemover.init() rebuilds aliases
       // from disk; removeAuth reads aliases via the in-memory singleton, so a stale cache
       // would silently miss aliases added after the extension booted.
       await StateAggregator.clearInstanceAsync();
       const authRemover = await AuthRemover.create();
       for (const username of usernames) {
+        const aliases = await getOrgRuntime().runPromise(AliasService.getAliasesFromUsername(username));
+        const isTargetOrg = await getOrgRuntime().runPromise(ConfigService.isCurrentTargetOrg(username, aliases));
+        const isTargetDevHub = await getOrgRuntime().runPromise(ConfigService.isCurrentTargetDevHub(username, aliases));
+        if (isTargetOrg) {
+          await getOrgRuntime().runPromise(ConfigService.unsetTargetOrg());
+        }
+        if (isTargetDevHub) {
+          await getOrgRuntime().runPromise(ConfigService.unsetTargetDevHub());
+        }
         // removeAuth clears all global+local config keys pointing at the username/aliases
         // (target-org and target-dev-hub) and removes all aliases on disk.
         await authRemover.removeAuth(username);
