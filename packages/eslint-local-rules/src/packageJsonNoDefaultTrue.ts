@@ -140,7 +140,7 @@ export const packageJsonNoDefaultTrue: Rule.RuleModule = {
           }
 
           // Check if this is a boolean type with default: true
-          if (typeNode && isBooleanType(typeNode) && defaultNode?.type === 'Boolean' && defaultNode.value === true) {
+          if (typeNode && isBooleanType(typeNode) && defaultNode?.type === 'Boolean' && defaultNode.value) {
             context.report({
               node: defaultMemberNode as unknown as Rule.Node,
               messageId: 'defaultTrue',

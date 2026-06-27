@@ -11,8 +11,8 @@ import { SObjectCategory, SObjectRefreshSource } from './types/general';
 /** filter out standard or custom if necessary and handle the "required" sobject types */
 export const sobjectTypeFilter =
   (category: SObjectCategory, source: SObjectRefreshSource) => (sobject: SObjectShortDescription) => {
-    const isCustomObject = sobject.custom === true && category === 'CUSTOM';
-    const isStandardObject = sobject.custom === false && category === 'STANDARD';
+    const isCustomObject = sobject.custom && category === 'CUSTOM';
+    const isStandardObject = !sobject.custom && category === 'STANDARD';
 
     return (
       (category === 'ALL' && source === 'manual') ||
