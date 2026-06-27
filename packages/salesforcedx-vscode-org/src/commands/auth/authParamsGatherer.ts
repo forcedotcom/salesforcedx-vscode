@@ -88,7 +88,7 @@ const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.Qu
       )
   );
 
-const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function* (params: {
+export const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function* (params: {
   readonly instanceUrl: string | undefined;
   readonly reauthAliasOrUsername: string | undefined;
 }) {
