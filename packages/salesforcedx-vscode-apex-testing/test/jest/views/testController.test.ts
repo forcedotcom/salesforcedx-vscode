@@ -48,7 +48,6 @@ jest.mock('../../../src/services/extensionProvider', () => {
     getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
     AllServicesLayer: MockAllServicesLayer,
     setAllServicesLayer: jest.fn(),
-    buildAllServicesLayer: jest.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
     },
