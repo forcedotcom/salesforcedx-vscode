@@ -81,10 +81,6 @@ export const setWorkspaceApiVersion = async (workspaceDir: string, version = '66
   await fs.writeFile(file, JSON.stringify(project, null, 2));
 };
 
-// Re-exported from the shared package so existing spec imports keep working; the default 5000ms timeout
-// suits OAS callers that wrap with `.catch` to skip dialogs that only appear when an ESR already exists.
-export { clickModalDialogButton } from '@salesforce/playwright-vscode-ext';
-
 /**
  * Confirms the "Select folder to store OpenAPI Document" InputBox by pressing Enter
  * to accept the prefilled default ESR path. Must be called immediately after invoking
