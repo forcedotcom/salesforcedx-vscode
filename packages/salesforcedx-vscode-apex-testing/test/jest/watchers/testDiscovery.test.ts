@@ -30,7 +30,12 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
 
   const refresh = jest.fn<Promise<void>, []>(() => Promise.resolve());
   const clearAllTestItems = jest.fn<Promise<void>, []>(() => Promise.resolve());
-  const testController = { refresh, clearAllTestItems } as unknown as ReturnType<typeof getTestController>;
+  const closeAllApexTestingTabs = jest.fn<Promise<void>, []>(() => Promise.resolve());
+  const testController = {
+    refresh,
+    clearAllTestItems,
+    closeAllApexTestingTabs
+  } as unknown as ReturnType<typeof getTestController>;
 
   const appendToChannel = jest.fn(() => Effect.void);
   const extensionProviderLayer = Layer.succeed(ExtensionProviderService, {
@@ -47,9 +52,11 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
     typeof ChannelService
   >);
 
-  // `ApexTestDiscoveryService.pruneForeignOrgClasses` is called for every non-undefined orgId transition.
+  // `pruneForeignOrgClasses` runs for every non-undefined orgId; `clearAll` runs on the org -> undefined
+  // (no-org) transition. Both return Effect.void here so the watcher's typed VFS-clear channel stays clean.
   const discoveryServiceLayer = Layer.succeed(ApexTestDiscoveryService, {
-    pruneForeignOrgClasses: () => Effect.void
+    pruneForeignOrgClasses: () => Effect.void,
+    clearAll: () => Effect.void
   } as unknown as InstanceType<typeof ApexTestDiscoveryService>);
 
   yield* Effect.forkScoped(

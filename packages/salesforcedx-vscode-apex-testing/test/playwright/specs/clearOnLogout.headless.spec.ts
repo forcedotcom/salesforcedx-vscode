@@ -8,7 +8,9 @@
 import { expect } from '@playwright/test';
 import {
   clickModalDialogButton,
+  closeAllEditors,
   createAndDeployApexTestClass,
+  EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   isDesktop,
@@ -24,7 +26,14 @@ import {
 // Auth + deploy + logout need a real org on disk, so this is desktop only.
 import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
-import { TEST_EXPLORER_TREE_ITEM, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
+import {
+  findTestExplorerItem,
+  TEST_EXPLORER_TREE_ITEM,
+  openTestExplorerAndDiscover
+} from '../helpers/testExplorerHelpers';
+
+// The `apex-testing:` virtual editor opened from the tree leaf method; closed on org loss by the fix.
+const APEX_TESTING_EDITOR = `${EDITOR_WITH_URI}[data-uri^="apex-testing:"]`;
 
 // `SFDX: Log Out from Default Org` — title from salesforcedx-vscode-org package.nls (`org_logout_default_text`).
 const LOGOUT_COMMAND = 'SFDX: Log Out from Default Org';
@@ -64,6 +73,19 @@ public class ${className} {
       await saveScreenshot(page, 'step.class-discovered.png');
     });
 
+    await test.step('open the class apex-testing: virtual doc', async () => {
+      // Same open-virtual-doc sequence as orgOnlyClassRetrieve: a leftover active editor blocks the
+      // test-item navigation, so close editors, then expand the class and double-click its leaf method
+      // (only a leaf with a range triggers VS Code's "go to test", which opens the `apex-testing:` doc).
+      await closeAllEditors(page);
+      await classItem.locator('.monaco-tl-twistie').click({ force: true });
+      const methodItem = findTestExplorerItem(page, 'clearsOnLogout');
+      await methodItem.waitFor({ state: 'visible', timeout: 60_000 });
+      await methodItem.dblclick();
+      await expect(page.locator(APEX_TESTING_EDITOR).first()).toBeVisible({ timeout: 60_000 });
+      await saveScreenshot(page, 'step.virtual-doc-opened.png');
+    });
+
     await test.step('log out from the default org and confirm the scratch-org prompt', async () => {
       await executeCommandWithCommandPalette(page, LOGOUT_COMMAND);
       await clickModalDialogButton(page, LOGOUT_CONFIRM_LABEL, 60_000);
@@ -75,6 +97,12 @@ public class ${className} {
       // The org -> no-org transition alone must empty the tree.
       await expect(classItem).toBeHidden({ timeout: 60_000 });
       await saveScreenshot(page, 'step.tree-cleared.png');
+    });
+
+    await test.step('the apex-testing: virtual editor closes on the org -> no-org transition', async () => {
+      // The tab is backed by a now-gone org; the no-org reactor closes it alongside clearing the tree.
+      await expect(page.locator(APEX_TESTING_EDITOR)).toBeHidden({ timeout: 60_000 });
+      await saveScreenshot(page, 'step.virtual-doc-closed.png');
     });
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);

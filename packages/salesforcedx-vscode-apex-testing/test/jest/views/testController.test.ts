@@ -1286,3 +1286,44 @@ describe('sortUrisByMtimeAscending', () => {
     expect(items.map(i => i.uri.path)).toEqual(snapshot);
   });
 });
+
+describe('closeAllApexTestingTabs', () => {
+  // Real-ish tab fixtures: the production code does `tab.input instanceof vscode.TabInputText`, so the
+  // fixtures must be actual instances of the mock's TabInputText, carrying a real URI of a given scheme.
+  const tabFor = (uri: URI): vscode.Tab =>
+    ({ input: new (vscode as unknown as { TabInputText: new (u: URI) => unknown }).TabInputText(uri) }) as vscode.Tab;
+
+  const setTabGroups = (tabs: vscode.Tab[]): jest.Mock => {
+    const close = jest.fn().mockResolvedValue(undefined);
+    (vscode.window as unknown as { tabGroups: unknown }).tabGroups = { all: [{ tabs }], close };
+    return close;
+  };
+
+  beforeEach(() => {
+    (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
+  });
+
+  afterEach(() => {
+    delete (vscode.window as unknown as { tabGroups?: unknown }).tabGroups;
+  });
+
+  it('closes apex-testing: tabs and leaves other-scheme tabs open', async () => {
+    const apexTestingTab = tabFor(URI.parse('apex-testing:/orgs/org123/classes/MyTest.cls'));
+    const fileTab = tabFor(URI.file('/workspace/MyTest.cls'));
+    const close = setTabGroups([apexTestingTab, fileTab]);
+
+    await new ApexTestController().closeAllApexTestingTabs();
+
+    // Exactly the apex-testing tab is closed; the file tab is untouched.
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledWith([apexTestingTab], true);
+  });
+
+  it('is a no-op when no apex-testing: tab is open', async () => {
+    const close = setTabGroups([tabFor(URI.file('/workspace/MyTest.cls'))]);
+
+    await new ApexTestController().closeAllApexTestingTabs();
+
+    expect(close).not.toHaveBeenCalled();
+  });
+});

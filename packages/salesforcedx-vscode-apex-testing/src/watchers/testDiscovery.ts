@@ -31,12 +31,21 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
               // Drop other orgs' discovered classes so the in-memory VFS holds only the current org's tree.
               Effect.zipRight(ApexTestDiscoveryService.pruneForeignOrgClasses(orgId))
             )
-          : Effect.promise(() => testController.clearAllTestItems())
+          : // No org (logout / delete default org): clear the tree, close the now-stale virtual editor tabs,
+            // then purge the VFS orgs root so a later login to another org shows no stale classes.
+            Effect.promise(() => testController.clearAllTestItems()).pipe(
+              Effect.zipRight(Effect.promise(() => testController.closeAllApexTestingTabs())),
+              Effect.zipRight(ApexTestDiscoveryService.clearAll())
+            )
         ).pipe(
-          Effect.catchAll(error => {
-            console.debug('[Apex Testing] Test discovery setup failed:', error);
-            return Effect.void;
-          })
+          // The only typed failure here is a VFS clear (pruneForeignOrgClasses / clearAll). A failed purge
+          // must not break the org-change reactor, so ignore it intentionally — but scoped to that one tag
+          // and structured-logged, never a blanket catchAll.
+          Effect.catchTag('DiscoveryClearError', error =>
+            Effect.logDebug('Apex Testing: discovery VFS clear failed').pipe(
+              Effect.annotateLogs({ orgKey: error.orgKey, scheme: 'apex-testing' })
+            )
+          )
         )
       )
     )
