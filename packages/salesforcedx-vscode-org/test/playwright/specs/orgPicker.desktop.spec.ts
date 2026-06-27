@@ -39,10 +39,7 @@ const NO_DEFAULT_ORG = 'No Default Org Set';
 const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 // `%s successfully ran` (`salesforcedx-utils-vscode/src/messages/i18n.ts`), %s = command description.
 const SET_DEFAULT_ORG_RAN = /SFDX: Set a Default Org successfully ran/;
-// Leading fragment of `org_create_success` (`salesforcedx-vscode-org/src/messages/i18n.ts`). The
-// migrated Effect command reports success via this channel line (orgCreate.ts handleSuccess), NOT a
-// `... successfully ran` toast — that toast came only from the old SfCommandletExecutor.
-const CREATE_SUCCESS_PREFIX = 'Successfully created scratch org ';
+const CREATE_SCRATCH_ORG_RAN = /SFDX: Create a Default Scratch Org\.\.\. successfully ran/;
 
 // The 5 ACTION_ITEMS rendered in the picker (orgList.ts ACTION_ITEMS); labels carry an icon prefix.
 const PICKER_ACTION_ITEMS = [
@@ -125,16 +122,12 @@ test('org picker: set default org, create scratch org, switch default org', asyn
     await page.keyboard.press('Enter');
   });
 
-  // `--set-default` makes the new org the default. The migrated Effect command signals success via an
-  // output-channel line (orgCreate.ts handleSuccess), not a toast, so wait for that channel text
-  // (multi-minute command) — the alias is echoed in the message — then assert the status-bar signal.
+  // `--set-default` makes the new org the default. The migrated Effect command shows the
+  // `... successfully ran` toast on completion (orgCreate.ts handleSuccess); wait for it (multi-minute
+  // command), then assert the persistent status-bar signal.
   await test.step('scratch org create completes and is auto-set as default', async () => {
-    await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
-    await waitForOutputChannelText(page, {
-      expectedText: `${CREATE_SUCCESS_PREFIX}${scratchAlias}`,
-      timeout: 600_000
-    });
-    // The channel line signals the command finished; the status bar updates within seconds, so
+    await waitForNotification(page, CREATE_SCRATCH_ORG_RAN, { timeout: 600_000 });
+    // The success notification signals the command finished; the status bar updates within seconds, so
     // a short timeout here keeps the two sequential waits from summing past the 720s test budget.
     await expectOrgPickerStatusBar(page, scratchAlias, { timeout: 30_000 });
   });

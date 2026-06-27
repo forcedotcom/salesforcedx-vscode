@@ -21,10 +21,13 @@ jest.mock('../../../src/util/orgUtil', () => ({
 const getTargetDevHubOrAlias = jest.fn<Promise<string | undefined>, [boolean]>();
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   getTargetDevHubOrAlias: (...args: [boolean]) => getTargetDevHubOrAlias(...args),
-  workspaceUtils: {
-    hasRootWorkspace: () => true,
-    getRootWorkspace: () => ({ name: 'my-project' }),
-    getRootWorkspacePath: () => '/repo'
+  // channels/index.ts calls these at module-load; the real Effect ChannelService is mocked in buildServices
+  ChannelService: {
+    getInstance: () => ({}),
+    getChannel: () => ({})
+  },
+  notificationService: {
+    showSuccessfulExecution: () => Promise.resolve()
   }
 }));
 
@@ -51,6 +54,10 @@ const buildServices = (opts: Services) => ({
       opts.isProject === false ? Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const }) : Effect.succeed({})
   },
   ConfigService: { getTargetDevHub: () => Effect.succeed(opts.devHub) },
+  // alias default derives from Utils.basename(uri) → 'my-project' → sanitized 'myproject'
+  WorkspaceService: {
+    getWorkspaceInfo: () => Effect.succeed({ uri: { path: '/repo/my-project' } })
+  },
   PromptService: Effect.succeed({
     // production: fails on undefined/empty-trimmed; here we only need undefined → cancel
     considerUndefinedAsCancellation: <T>(value: T | undefined) =>
@@ -137,16 +144,17 @@ describe('orgCreateCommand', () => {
     expect(updateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 
-  it('empty alias/days inputs fall back to the defaults', async () => {
+  it('accepting the prefilled alias/days defaults uses them in the command', async () => {
     const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
     const appendToChannel = jest.fn();
     const show = jest.fn();
-    showInputBox.mockResolvedValueOnce('').mockResolvedValueOnce('');
+    // production prefills the boxes (`value`) and validateInput rejects empty, so accepting (Enter)
+    // returns the prefilled defaults: alias = sanitized folder name 'myproject', days = '7'
+    showInputBox.mockResolvedValueOnce('myproject').mockResolvedValueOnce('7');
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    // empty alias → sanitized folder name 'myproject'; empty days → DEFAULT_EXPIRATION_DAYS '7'
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
         command:

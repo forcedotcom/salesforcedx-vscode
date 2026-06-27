@@ -6,7 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getTargetDevHubOrAlias, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { getTargetDevHubOrAlias, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -14,6 +14,7 @@ import * as Match from 'effect/Match';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
+import { channelService } from '../channels';
 import { nls } from '../messages';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
@@ -125,40 +126,30 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   // double-quote it so paths containing spaces survive shell word-splitting (childProcess.exec → /bin/sh|cmd.exe).
   const defFilePath = selection.description;
 
-  // alias default = sanitized folder name (or DEFAULT_ALIAS). Empty input (Enter) keeps the default,
-  // so DON'T route through considerUndefinedAsCancellation (it also rejects ''); check undefined (Esc).
-  const folderName = workspaceUtils.hasRootWorkspace()
-    ? workspaceUtils.getRootWorkspace().name.replaceAll(/\W/g, '')
-    : '';
+  // alias default = sanitized workspace folder name (or DEFAULT_ALIAS), pre-filled as the input `value`
+  // so Enter accepts it. The default is always a valid value, so an empty box only happens if the user
+  // clears it (validation then rejects it); Esc → undefined → considerUndefinedAsCancellation.
+  const { uri } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  const folderName = Utils.basename(uri).replaceAll(/\W/g, '');
   const defaultAlias = isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
-  const aliasInput = yield* Effect.promise(() =>
+  const alias = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-      placeHolder: defaultAlias,
-      validateInput: value =>
-        isAlphaNumSpaceString(value) || value === '' ? undefined : nls.localize('error_invalid_org_alias')
+      value: defaultAlias,
+      validateInput: value => (isAlphaNumSpaceString(value) ? undefined : nls.localize('error_invalid_org_alias'))
     })
-  );
-  if (aliasInput === undefined) {
-    return yield* new api.services.UserCancellationError({});
-  }
-  const alias = aliasInput === '' ? defaultAlias : aliasInput;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
-  const daysInput = yield* Effect.promise(() =>
+  const days = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
-      placeHolder: DEFAULT_EXPIRATION_DAYS,
+      value: DEFAULT_EXPIRATION_DAYS,
       validateInput: value =>
-        isIntegerInRange(value, [1, 30]) || value === '' ? undefined : nls.localize('error_invalid_expiration_days')
+        isIntegerInRange(value, [1, 30]) ? undefined : nls.localize('error_invalid_expiration_days')
     })
-  );
-  if (daysInput === undefined) {
-    return yield* new api.services.UserCancellationError({});
-  }
-  const days = daysInput === '' ? DEFAULT_EXPIRATION_DAYS : daysInput;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
   const terminalService = yield* api.services.TerminalService;
-  // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON clean.
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
   const command = `sf org create scratch --definition-file "${defFilePath}" --alias ${alias} --duration-days ${days} --set-default --json`;
   const stdout = yield* terminalService
@@ -169,13 +160,17 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
 
   const channel = yield* api.services.ChannelService;
 
-  // success: refresh the config/state aggregators (default org flipped by --set-default), then report.
+  // success: refresh the config/state aggregators (default org flipped by --set-default), report to the
+  // channel, then show the `... successfully ran` toast (parity with the old SfCommandletExecutor).
   const handleSuccess = Effect.fn('orgCreateCommand.handleSuccess')(function* ({
     result: { orgId, username }
   }: OrgCreateSuccess) {
     yield* Effect.promise(() => updateConfigAndStateAggregators());
     yield* channel.appendToChannel(nls.localize('org_create_success', alias, username, orgId));
     yield* channel.showChannel;
+    yield* Effect.promise(() =>
+      notificationService.showSuccessfulExecution(nls.localize('org_create_default_scratch_org_text'), channelService)
+    );
   });
 
   // failure branch: sf prints `{ status, message }` — surface the message to the channel (no aggregator refresh).
