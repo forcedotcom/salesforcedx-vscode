@@ -328,8 +328,8 @@ const getMockVSCode = () => {
       }
     },
     TabInputText: class {
-      public uri: any;
-      constructor(uri: any) {
+      public uri: unknown;
+      constructor(uri: unknown) {
         this.uri = uri;
       }
     },

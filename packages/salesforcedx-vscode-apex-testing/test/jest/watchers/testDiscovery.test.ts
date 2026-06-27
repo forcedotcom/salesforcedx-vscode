@@ -45,7 +45,7 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
         ChannelService: Effect.succeed({ appendToChannel })
       }
     })
-  } as any);
+  } as unknown as ExtensionProviderService);
 
   // `yield* api.services.ChannelService` resolves the `ChannelService` tag, so the watcher requires it in context.
   const channelLayer = Layer.succeed(ChannelService, { appendToChannel } as unknown as InstanceType<
