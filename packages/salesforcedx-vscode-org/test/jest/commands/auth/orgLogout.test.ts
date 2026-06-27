@@ -5,16 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core';
-import {
-  ExtensionProviderService,
-  type ExtensionProviderService as ExtensionProviderServiceType
-} from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
-import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
+import { AuthRemover, StateAggregator } from '@salesforce/core';
 import { OrgLogoutDefault } from '../../../../src/commands/auth/orgLogout';
-import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
+import { updateConfigAndStateAggregators } from '../../../../src/util/orgUtil';
 
 jest.mock('../../../../src/telemetry', () => ({
   telemetryService: { sendException: jest.fn() }
@@ -24,137 +17,60 @@ jest.mock('../../../../src/channels', () => ({
   OUTPUT_CHANNEL: {}
 }));
 
+jest.mock('../../../../src/util/orgUtil', () => ({
+  updateConfigAndStateAggregators: jest.fn().mockResolvedValue(undefined)
+}));
+
 // selectOrgsForLogout imports orgList.ts which has a pre-existing toSorted ts-jest issue
 jest.mock('../../../../src/parameterGatherers/selectOrgsForLogout');
 
 describe('OrgLogoutDefault', () => {
   let removeAuthMock: jest.Mock;
-  let isCurrentTargetOrgMock: jest.Mock;
-  let unsetTargetOrgMock: jest.Mock;
-  let unsetAliasesMock: jest.Mock;
-  let getAliasesFromUsernameMock: jest.Mock;
-
-  const buildLayer = () => {
-    const mockServicesApi = {
-      services: {
-        ConfigService: {
-          isCurrentTargetOrg: isCurrentTargetOrgMock,
-          unsetTargetOrg: unsetTargetOrgMock
-        },
-        AliasService: {
-          unsetAliases: unsetAliasesMock,
-          getAliasesFromUsername: getAliasesFromUsernameMock
-        }
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    return Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
-  };
+  let clearInstanceAsyncMock: jest.SpyInstance;
+  let createMock: jest.SpyInstance;
 
   beforeEach(() => {
     removeAuthMock = jest.fn().mockResolvedValue(undefined);
-    jest.spyOn(AuthRemover, 'create').mockResolvedValue({
+    createMock = jest.spyOn(AuthRemover, 'create').mockResolvedValue({
       removeAuth: removeAuthMock
     } as unknown as AuthRemover);
-
-    isCurrentTargetOrgMock = jest.fn().mockReturnValue(Effect.succeed(false));
-    unsetTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
-    unsetAliasesMock = jest.fn().mockReturnValue(Effect.void);
-    getAliasesFromUsernameMock = jest.fn().mockReturnValue(Effect.succeed([]));
-
-    resetOrgRuntimeForTesting();
-    setAllServicesLayer(
-      buildLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
-    );
+    clearInstanceAsyncMock = jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
-  it('unsets target-org when target-org matches an alias from TargetOrgRef', async () => {
+  it('removes auth for the username and refreshes extension caches', async () => {
     const username = 'user@example.com';
-    const aliases = ['myAlias', 'otherAlias'];
-    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(true));
-    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed(aliases));
 
-    const executor = new OrgLogoutDefault(aliases);
+    const executor = new OrgLogoutDefault();
     const result = await executor.run({ type: 'CONTINUE', data: username });
 
     expect(result).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
-    expect(isCurrentTargetOrgMock).toHaveBeenCalledWith(username, aliases);
-    expect(unsetAliasesMock).toHaveBeenCalledWith(aliases);
-    expect(unsetTargetOrgMock).toHaveBeenCalled();
+    expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
   });
 
-  it('removes all aliases from disk including those added after org was set as default', async () => {
-    const username = 'user@example.com';
-    const aliasesAtSetTime = ['originalAlias'];
-    const allAliasesOnDisk = ['originalAlias', 'extraAlias'];
-    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(true));
-    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed(allAliasesOnDisk));
+  // Models the regression where an alias added after extension boot would be dropped by
+  // removeAuth's in-memory alias read if the StateAggregator singleton were stale.
+  it('clears the StateAggregator singleton before creating the AuthRemover', async () => {
+    const executor = new OrgLogoutDefault();
+    await executor.run({ type: 'CONTINUE', data: 'user@example.com' });
 
-    const executor = new OrgLogoutDefault(aliasesAtSetTime);
-    const result = await executor.run({ type: 'CONTINUE', data: username });
-
-    expect(result).toBe(true);
-    expect(unsetAliasesMock).toHaveBeenCalledWith(allAliasesOnDisk);
-    expect(unsetTargetOrgMock).toHaveBeenCalled();
+    expect(clearInstanceAsyncMock).toHaveBeenCalled();
+    expect(createMock).toHaveBeenCalled();
+    expect(clearInstanceAsyncMock.mock.invocationCallOrder[0]).toBeLessThan(createMock.mock.invocationCallOrder[0]);
   });
 
-  it('unsets target-org when target-org is set directly to the username', async () => {
-    const username = 'user@example.com';
-    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(true));
-    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed([]));
-
-    const executor = new OrgLogoutDefault([]);
-    const result = await executor.run({ type: 'CONTINUE', data: username });
-
-    expect(result).toBe(true);
-    expect(removeAuthMock).toHaveBeenCalledWith(username);
-    expect(unsetTargetOrgMock).toHaveBeenCalled();
-  });
-
-  it('does not unset target-org when the logged-out org aliases do not match', async () => {
-    const username = 'other@example.com';
-    const aliases = ['differentAlias'];
-    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(false));
-    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed(aliases));
-
-    const executor = new OrgLogoutDefault(aliases);
-    const result = await executor.run({ type: 'CONTINUE', data: username });
-
-    expect(result).toBe(true);
-    expect(removeAuthMock).toHaveBeenCalledWith(username);
-    expect(unsetAliasesMock).toHaveBeenCalledWith(aliases);
-    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
-  });
-
-  it('does not unset target-org when auth removal fails', async () => {
-    const username = 'user@example.com';
-    const aliases = ['myAlias'];
-    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(true));
+  it('returns false and does not refresh caches when auth removal fails', async () => {
     removeAuthMock.mockRejectedValue(new Error('removal failed'));
 
-    const executor = new OrgLogoutDefault(aliases);
-    const result = await executor.run({ type: 'CONTINUE', data: username });
+    const executor = new OrgLogoutDefault();
+    const result = await executor.run({ type: 'CONTINUE', data: 'user@example.com' });
 
     expect(result).toBe(false);
-    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
-  });
-
-  it('does not unset target-org when no target org is configured', async () => {
-    const username = 'user@example.com';
-    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(false));
-    getAliasesFromUsernameMock.mockReturnValue(Effect.succeed([]));
-
-    const executor = new OrgLogoutDefault([]);
-    const result = await executor.run({ type: 'CONTINUE', data: username });
-
-    expect(result).toBe(true);
-    expect(removeAuthMock).toHaveBeenCalledWith(username);
-    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+    expect(updateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 });
