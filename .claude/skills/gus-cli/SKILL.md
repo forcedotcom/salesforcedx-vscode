@@ -69,6 +69,15 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
 **Base select:** `SELECT Id, Name, Subject__c, Status__c, Story_Points__c, Epic__c, RecordType.Name FROM ADM_Work__c`
 
+**Optional display/detail fields** (append to SELECT only when a query needs them; do NOT add to bulk team/epic queries unless asked—keeps base lean, avoids widening every result set/terminal table):
+
+- `Priority__c` — picklist `P0`-`P4`. Single-WI/triage views, not bulk lists.
+- `Epic_Name__c` — formula/string; epic name w/o `Epic__r` join. Single-WI display only; bulk lists use existing `Epic__c` id or a separate epic-name lookup (formula evaluated per-row otherwise).
+- `Due_Date__c` (datetime) + `Out_of_SLA__c` (boolean) — SLA tracking; SLA-focused queries only.
+- Security trio — security-WI triage only: `Security__c` (label "Locked by Security", boolean), `Security_Vulnerability_Category__c` (picklist), `Security_Source__c` (label "Source", picklist).
+
+**Bug body field:** Bug records store body in `Details_and_Steps_to_Reproduce__c` (richtextarea), not `Details__c`. `Details__c` = User Story body. Querying only `Details__c` misses Bug/PVR content. Single-WI fetch of unknown/mixed record type → SELECT both. Single-record only, not bulk.
+
 **Query patterns** (combine as needed; use LIMIT on broad queries):
 
 | Filter      | WHERE clause                                                                                                                                                                                     |
