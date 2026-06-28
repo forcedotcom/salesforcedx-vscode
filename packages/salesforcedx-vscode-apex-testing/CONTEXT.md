@@ -35,20 +35,20 @@
 
 ## Effect-TS Architecture
 
-### Error handling
+### Errors
 
-- Services throw errors as `Schema.TaggedError` types, never raw exceptions
-- Callers use `Effect.catchTags` to handle specific error types by tag
-- Errors not caught are converted to UserCancellationError or logged/shown
+- `Schema.TaggedError`, never raw exceptions
+- handle by tag via `Effect.catchTags`
+- uncaught → UserCancellationError or logged/shown
 
-### State management
+### State
 
-- Coverage decorations stored in `Ref<Range[]>` (mutable state within `CodeCoverageService`)
-- Active-editor repainting via `EditorService.pubsub` fork (`watchActiveEditorForCoverage`) from `index.ts`
-- No disposables; lifecycle managed by extension scope
+- coverage decorations in `Ref<Range[]>` within `CodeCoverageService`
+- active-editor repaint via `EditorService.pubsub` fork (`watchActiveEditorForCoverage`) from `index.ts`
+- no disposables; lifecycle = extension scope
 
-### File operations
+### File ops
 
-- All file I/O via `FsService` (not raw `workspace.fs`)
-- `stat` accepts `string | URI`; `readFile`/`readDirectoryWithTypes` for batch operations
-- Result file aggregation uses sequential reads + chronological sort (last-write-wins)
+- all I/O via `FsService`, not raw `workspace.fs`
+- `stat` takes `string | URI`; `readFile`/`readDirectoryWithTypes` for batch
+- result aggregation: sequential reads + mtime sort (last-write-wins)
