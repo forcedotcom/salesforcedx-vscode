@@ -118,6 +118,8 @@ sf data query --query "SELECT Name FROM ADM_Work__c WHERE Id = '<id_from_create>
 
 **Update:** If User Story has null `Story_Points__c`, set `Story_Points__c=2`. Never modify `Sprint__c`. `Details__c` can store PR links, notes.
 
+**Verify the target Id before+after an update.** `sf data update record -i <id>` echoes only `success`, never the record's `Name`/`Subject__c` — so a wrong Id silently overwrites the wrong WI (esp. with `--flags-dir`, where the value file carries no Id). Before updating, query `SELECT Name, Subject__c FROM ADM_Work__c WHERE Id='<id>'` to confirm it's the intended WI; re-query after to confirm the write. Match the W-NNNNN, not just "an update succeeded."
+
 ```
 sf data update record -s ADM_Work__c -i <recordId> -o gus -v "Status__c='In Progress' Subject__c='...' Details__c='...'"
 ```
