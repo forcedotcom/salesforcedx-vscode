@@ -25,7 +25,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import { desktopTest as test } from '../fixtures/desktopFixtures';
+import { desktopTest as test } from '../fixtures';
 
 // A *Package.xml file outside manifest/ must still get the forcesourcemanifest language
 // (filenamePatterns "**/*[Pp]ackage.xml"), so the in-manifest deploy/retrieve menus appear.
@@ -75,7 +75,10 @@ const PLAIN_XML = `<?xml version="1.0" encoding="UTF-8"?>
       await verifyCommandExists(page, packageNls.retrieve_in_manifest_text);
     });
 
-    await test.step('plain xml does not show in-manifest commands (pattern not over-broad)', async () => {
+    // guards only the basename suffix: a plain .xml file is not matched. It does not
+    // exercise a *Package.xml file inside a package dir (that case is covered by the
+    // boundary rationale in the plan: no real metadata source file ends in *Package.xml).
+    await test.step('plain xml does not match the *Package.xml suffix', async () => {
       await fs.writeFile(path.join(workspaceDir, 'foo.xml'), PLAIN_XML);
 
       await openFileByName(page, 'foo.xml');

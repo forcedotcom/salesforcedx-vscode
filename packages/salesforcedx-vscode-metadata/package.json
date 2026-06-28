@@ -341,7 +341,6 @@
         ],
         "filenamePatterns": [
           "**/manifest/**/*.xml",
-          "package.xml",
           "**/*[Pp]ackage.xml"
         ]
       }
