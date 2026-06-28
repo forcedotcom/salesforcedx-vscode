@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+
 import { expect } from '@playwright/test';
 import {
   clickModalDialogButton,
@@ -42,7 +45,7 @@ const LOGOUT_CONFIRM_LABEL = 'Logout';
 
 (isDesktop() ? test : test.skip.bind(test))(
   'Apex Testing view clears on Log Out from Default Org without a window reload',
-  async ({ page }) => {
+  async ({ page, workspaceDir }) => {
     test.setTimeout(TEST_RUN_TIMEOUT);
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
@@ -55,6 +58,8 @@ public class ${className} {
         System.assertEquals(1, 1, 'should clear on logout');
     }
 }`;
+    const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
+    const localClsPath = path.join(classesDir, `${className}.cls`);
     const classItem = page
       .locator(TEST_EXPLORER_TREE_ITEM)
       .filter({ hasText: new RegExp(className, 'i') })
@@ -65,6 +70,19 @@ public class ${className} {
       await ensureSecondarySideBarHidden(page);
       await createAndDeployApexTestClass(page, className, classContent);
       await saveScreenshot(page, 'setup.class-deployed.png');
+    });
+
+    await test.step('delete local source so the class is org-only', async () => {
+      // The `apex-testing:` virtual doc only opens for an org-only class (one in the org but absent
+      // from local source). With the `.cls` on disk, the method TestItem.uri points at the local file
+      // (testController.ts diffClassMethods: `localUri ?? classItem.uri`), so the double-click navigates
+      // to the on-disk `.cls` instead. Remove both the `.cls` and its `-meta.xml` (org copy stays).
+      await fs.rm(localClsPath, { force: true });
+      await fs.rm(`${localClsPath}-meta.xml`, { force: true });
+      await expect(async () => {
+        await expect(fs.access(localClsPath)).rejects.toThrow();
+      }).toPass({ timeout: 10_000 });
+      await saveScreenshot(page, 'setup.local-source-removed.png');
     });
 
     await test.step('discover tests and confirm the class is in the tree', async () => {
