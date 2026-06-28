@@ -8,6 +8,8 @@ Each: trigger → proposed action. All proposals; user confirms in step 6.
 
 One axis. A WI is **ready** iff an AI workflow could execute it as written: clear goal/done-definition, verification (test/behavior), where-to-change (files/area), context (ADR/CONTEXT/link), actionable scope. Char count is not the test — substance is.
 
+**Read the right body field.** Bug-type WIs store the body in `Details_and_Steps_to_Reproduce__c`, not `Details__c`. `SELECT` both; judge on whichever is populated. Null `Details__c` alone ≠ under-specified — check the bug field first.
+
 - Fails bar → **propose grill** ([grill-me](../grill-me/SKILL.md)). Triage lists them; user picks which to grill. Don't grill inline.
 - Passes bar + small + independent → **propose `[ai-auto]` tag** (Subject\_\_c only; see [gus-cli ## ai-auto tag](../gus-cli/SKILL.md#ai-auto-tag)). **Disqualifiers** (ready but NOT ai-auto): WI modifies the auto-build harness itself (`auto-build-wi.js`/workflow internals), needs design/coordination, or the WI text says build-by-hand. When in doubt, don't propose the tag.
 

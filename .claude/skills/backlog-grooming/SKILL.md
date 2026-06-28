@@ -38,7 +38,7 @@ Aggregates over the whole team — one query each, no per-WI memory. Mind the [g
 
 ### 3. Per-epic deep pass (scope b only)
 
-For the chosen epic, pull its open WIs (whitelist `Status__c IN (<open list>)`; `SELECT` Id, Name, Subject\_\_c, Status\_\_c, Story_Points\_\_c, Details\_\_c, Assignee\_\_c). Run the per-WI checks in [checks.md](./checks.md): readiness (grill / ai-auto), wrong-epic, open-vs-open dup, dead-link, merged-not-Completed, sequencing-health. Then the gated done-but-open investigation (step 4).
+For the chosen epic, pull its open WIs (whitelist `Status__c IN (<open list>)`; `SELECT` Id, Name, Subject\_\_c, Status\_\_c, Story_Points\_\_c, RecordType.Name, Details\_\_c, **Details_and_Steps_to_Reproduce\_\_c** (Bug-type body — see [checks.md](./checks.md) Readiness), Assignee\_\_c). Run the per-WI checks in [checks.md](./checks.md): readiness (grill / ai-auto), wrong-epic, open-vs-open dup, dead-link, merged-not-Completed, sequencing-health. Then the gated done-but-open investigation (step 4).
 
 **Done when:** every open WI in the epic evaluated by every per-WI check; each emits a list (possibly empty) of {WI, evidence, proposed action}.
 
