@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
-import { FileType, Range, TextDocument, window, workspace } from 'vscode';
+import { FileType, Range, TextDocument, window } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { IS_TEST_REG_EXP, RESULT_MAX_AGE_MS } from '../constants';
 import { nls } from '../messages';
@@ -48,18 +48,13 @@ export class OutOfSyncCoverageError extends Schema.TaggedError<OutOfSyncCoverage
   message: Schema.String
 }) {}
 
-/** Failed to read/decode a result file (swallowed per-file; skips the unreadable file). */
-/** @ExportTaggedError */
-export class ReadFileError extends Schema.TaggedError<ReadFileError>()('ReadFileError', {
-  message: Schema.String
-}) {}
-
-type CoverageItem = {
-  id: string;
-  name: string;
-  totalLines: number;
-  lines: { [key: string]: number };
-};
+const CoverageItem = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  totalLines: Schema.Number,
+  lines: Schema.Record({ key: Schema.String, value: Schema.Number })
+});
+type CoverageItem = Schema.Schema.Type<typeof CoverageItem>;
 
 type TestResultWithCoverage = {
   codecoverage?: CodeCoverageResult[];
@@ -69,6 +64,9 @@ type TestResultWithCoverage = {
 export type CoverageRanges = { coveredLines: Range[]; uncoveredLines: Range[] };
 
 const emptyRanges = (): CoverageRanges => ({ coveredLines: [], uncoveredLines: [] });
+
+const noCoverage = (): NoCoverageOnProjectError =>
+  new NoCoverageOnProjectError({ message: nls.localize('colorizer_no_code_coverage_on_project') });
 
 /** Use document.uri.path for Web/Desktop compatibility (fsPath may be empty in Web for some schemes). */
 const docPath = (document: TextDocument): string => document.uri.fsPath || document.uri.path;
@@ -85,10 +83,11 @@ const getApexMemberName = (document: TextDocument): string => {
   return Utils.basename(document.uri).replace(IS_CLS_OR_TRIGGER, '');
 };
 
-const isCodeCoverageItem = (item: CoverageItem | CodeCoverageResult): item is CoverageItem => 'lines' in item;
+/** CoverageItem carries a per-line map; CodeCoverageResult carries covered/uncovered arrays. */
+const isCodeCoverageItem = Schema.is(CoverageItem);
 
-const getLineRange = (document: TextDocument, lineNumber: number): Effect.Effect<Range, OutOfSyncCoverageError> =>
-  Effect.try({
+const getLineRange = Effect.fn('CodeCoverageService.getLineRange')(function* (document: TextDocument, lineNumber: number) {
+  return yield* Effect.try({
     try: () => {
       const adjustedLineNumber = lineNumber - 1;
       const firstLine = document.lineAt(adjustedLineNumber);
@@ -101,15 +100,7 @@ const getLineRange = (document: TextDocument, lineNumber: number): Effect.Effect
     },
     catch: () => new OutOfSyncCoverageError({ message: nls.localize('colorizer_out_of_sync_code_coverage_data') })
   });
-
-const readFileUri = (uri: URI): Effect.Effect<string, ReadFileError> =>
-  Effect.tryPromise({
-    try: async () => {
-      const data = await workspace.fs.readFile(uri);
-      return new TextDecoder().decode(data);
-    },
-    catch: () => new ReadFileError({ message: `Failed to read ${uri.path}` })
-  });
+});
 
 /** Stat one result file; Some(name, mtime) if within the max age, None if stale. */
 const statRecent = Effect.fn('CodeCoverageService.statRecent')(function* (
@@ -117,15 +108,17 @@ const statRecent = Effect.fn('CodeCoverageService.statRecent')(function* (
   now: number,
   name: string
 ) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const uri = Utils.joinPath(apexTestResultsUri, name);
-  const stat = yield* Effect.tryPromise(() => workspace.fs.stat(uri));
+  const stat = yield* api.services.FsService.stat(uri);
   return now - stat.mtime <= RESULT_MAX_AGE_MS ? Option.some({ name, mtime: stat.mtime }) : Option.none();
 });
 
 /** Read+parse one result file, returning its coverage items (empty if the file carries none). */
 const readResult = Effect.fn('CodeCoverageService.readResult')(function* (apexTestResultsUri: URI, name: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const uri = Utils.joinPath(apexTestResultsUri, name);
-  const content = yield* readFileUri(uri);
+  const content = yield* api.services.FsService.readFile(uri);
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
   const testResult = JSON.parse(content) as TestResultWithCoverage;
   return testResult.codecoverage ?? testResult.coverage?.coverage ?? [];
@@ -148,40 +141,27 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const settings = yield* api.services.SettingsService;
 
-      if (!workspace.workspaceFolders?.[0]?.uri) {
-        // no workspace folder open
-        return yield* new NoCoverageOnProjectError({
-          message: nls.localize('colorizer_no_code_coverage_on_project')
-        });
-      }
+      // no workspace folder open, or no default org / cannot resolve results folder
+      const apexTestResultsUri = yield* getTestResultsFolder().pipe(
+        Effect.catchTags({ NoDefaultOrgError: noCoverage, NoWorkspaceOpenError: noCoverage })
+      );
 
-      const apexTestResultsUri = yield* Effect.tryPromise({
-        try: () => getTestResultsFolder(),
-        // no default org / cannot resolve results folder
-        catch: () => new NoCoverageOnProjectError({ message: nls.localize('colorizer_no_code_coverage_on_project') })
-      });
-
-      const entries = yield* Effect.tryPromise({
-        try: () => workspace.fs.readDirectory(apexTestResultsUri),
-        // readDirectory failed (results dir missing/unreadable)
-        catch: () => new NoCoverageOnProjectError({ message: nls.localize('colorizer_no_code_coverage_on_project') })
-      });
+      // readDirectoryWithTypes failed (results dir missing/unreadable)
+      const entries = yield* api.services.FsService.readDirectoryWithTypes(apexTestResultsUri).pipe(
+        Effect.catchAll(() => noCoverage())
+      );
 
       const resultNames = entries
+        .filter(({ type }) => type === FileType.File)
+        .map(({ uri }) => Utils.basename(uri))
         .filter(
-          ([name, type]) =>
-            type === FileType.File &&
-            name.startsWith('test-result') &&
-            name.endsWith('.json') &&
-            !name.endsWith('-codecoverage.json')
-        )
-        .map(([name]) => name);
+          name =>
+            name.startsWith('test-result') && name.endsWith('.json') && !name.endsWith('-codecoverage.json')
+        );
 
       if (resultNames.length === 0) {
         // no test-result files in the directory
-        return yield* new NoCoverageOnProjectError({
-          message: nls.localize('colorizer_no_code_coverage_on_project')
-        });
+        return yield* noCoverage();
       }
 
       const now = Date.now();
@@ -197,9 +177,7 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
 
       if (recentEntries.length === 0) {
         // all result files are older than RESULT_MAX_AGE_MS
-        return yield* new NoCoverageOnProjectError({
-          message: nls.localize('colorizer_no_code_coverage_on_project')
-        });
+        return yield* noCoverage();
       }
 
       // Sort oldest-first by mtime (see sortByMtimeAscending): last-write-wins aggregation

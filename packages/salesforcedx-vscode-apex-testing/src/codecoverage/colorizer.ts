@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type Disposable, TextEditor, window } from 'vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
+import { TextEditor, window } from 'vscode';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { CodeCoverageService, type CoverageRanges } from './codeCoverageService';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
@@ -16,28 +19,41 @@ const setCoverageDecorators = (editor: TextEditor, ranges: CoverageRanges): void
   editor.setDecorations(uncoveredLinesDecorationType, ranges.uncoveredLines);
 };
 
+/** Compute+store coverage for the editor's document and paint the returned ranges. */
+const applyForEditor = Effect.fn('colorizer.applyForEditor')(function* (editor: TextEditor) {
+  const ranges = yield* CodeCoverageService.applyForEditorHandled(editor.document);
+  yield* Effect.sync(() => setCoverageDecorators(editor, ranges));
+});
+
 /**
- * Disposable vscode edge glue: subscribes to editor changes and the toggle command, delegates all
- * coverage computation/state to CodeCoverageService, and applies the returned ranges as decorations.
+ * Subscribe to active-editor changes via EditorService (instead of a raw window.onDidChangeActiveTextEditor
+ * disposable) and repaint coverage when highlighting is enabled. Seed the current editor because the PubSub
+ * only delivers changes that occur after this subscription, so the already-active editor would otherwise be
+ * skipped. Fork this into the extension scope so it's torn down on deactivation.
  */
-export class CodeCoverageHandler implements Disposable {
-  private readonly editorChangeSub: Disposable;
+export const watchActiveEditorForCoverage = Effect.fn('colorizer.watchActiveEditorForCoverage')(function* (
+  statusBar: StatusBarToggle
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const editorService = yield* api.services.EditorService;
+  yield* Stream.merge(
+    Stream.fromEffect(Effect.sync(() => window.activeTextEditor)),
+    Stream.fromPubSub(editorService.pubsub)
+  ).pipe(
+    Stream.runForEach(editor =>
+      editor && statusBar.isHighlightingEnabled ? applyForEditor(editor) : Effect.void
+    )
+  );
+});
 
-  constructor(private statusBar: StatusBarToggle) {
-    this.editorChangeSub = window.onDidChangeActiveTextEditor(editor => this.onDidChangeActiveTextEditor(editor), this);
-    void this.onDidChangeActiveTextEditor(window.activeTextEditor);
-  }
+/**
+ * Owns the colorizer toggle command. Editor-change repainting is handled by watchActiveEditorForCoverage;
+ * this only flips the status bar and (re)paints/clears the active editor on toggle.
+ */
+export class CodeCoverageHandler {
+  constructor(private statusBar: StatusBarToggle) {}
 
-  public async onDidChangeActiveTextEditor(editor?: TextEditor) {
-    if (editor && this.statusBar.isHighlightingEnabled) {
-      const ranges = await getApexTestingRuntime().runPromise(
-        CodeCoverageService.applyForEditorHandled(editor.document)
-      );
-      setCoverageDecorators(editor, ranges);
-    }
-  }
-
-  public async toggleCoverage() {
+  public async toggleCoverage(): Promise<void> {
     const editor = window.activeTextEditor;
     if (this.statusBar.isHighlightingEnabled) {
       this.statusBar.toggle(false);
@@ -46,17 +62,10 @@ export class CodeCoverageHandler implements Disposable {
         setCoverageDecorators(editor, ranges);
       }
     } else {
-      if (editor?.document) {
-        const ranges = await getApexTestingRuntime().runPromise(
-          CodeCoverageService.applyForEditorHandled(editor.document)
-        );
-        setCoverageDecorators(editor, ranges);
+      if (editor) {
+        await getApexTestingRuntime().runPromise(applyForEditor(editor));
       }
       this.statusBar.toggle(true);
     }
-  }
-
-  public dispose(): void {
-    this.editorChangeSub.dispose();
   }
 }

@@ -23,6 +23,11 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const { CodeCoverageService: CodeCoverageServiceActual } = jest.requireActual(
     '../../../src/codecoverage/codeCoverageService'
   );
+  // require (not import) so this resolves the same mocked vscode the tests spy on (vscode.workspace.fs)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const vscodeMock = require('vscode');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Utils: UtilsActual } = require('vscode-uri');
 
   const mockSettingsService = {
     getValue: (_section: string, key: string, _default: unknown) =>
@@ -33,10 +38,27 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const mockChannelService = {
     appendToChannel: (message: string) => EffectActual.sync(() => mockAppendToChannel(message))
   };
+  // Mock FsService delegates to vscode.workspace.fs (which the tests spy on). tryPromise so a rejected
+  // fs op surfaces as an Effect failure the service's catchAll can handle (not a defect).
+  const mockFsService = {
+    readFile: (uri: unknown) =>
+      EffectActual.tryPromise(async () => new TextDecoder().decode(await vscodeMock.workspace.fs.readFile(uri))),
+    stat: (uri: unknown) => EffectActual.tryPromise(() => vscodeMock.workspace.fs.stat(uri)),
+    readDirectoryWithTypes: (dirUri: unknown) =>
+      EffectActual.tryPromise(async () =>
+        (await vscodeMock.workspace.fs.readDirectory(dirUri)).map(([name, type]: [string, unknown]) => ({
+          uri: UtilsActual.joinPath(dirUri, name),
+          type
+        }))
+      )
+  };
   const mockServicesApi = {
     services: {
       SettingsService: EffectActual.succeed(mockSettingsService),
-      ChannelService: EffectActual.succeed(mockChannelService)
+      ChannelService: EffectActual.succeed(mockChannelService),
+      // FsService methods are reached via static accessors (api.services.FsService.readFile), not yielded,
+      // so expose the object directly rather than wrapping in Effect.succeed.
+      FsService: mockFsService
     }
   };
   const ExtensionProviderLive = LayerActual.succeed(ExtensionProviderService, {
@@ -100,7 +122,6 @@ describe('CodeCoverageHandler', () => {
   let mockStatusBar: StatusBarToggle;
   let mockEditor: vscode.TextEditor;
   let handler: CodeCoverageHandler;
-  let onDidChangeActiveTextEditorDisposable: { dispose: jest.Mock };
 
   beforeEach(() => {
     settingsValues.restorePrevious = true;
@@ -118,8 +139,6 @@ describe('CodeCoverageHandler', () => {
       setDecorations: jest.fn()
     } as unknown as vscode.TextEditor;
 
-    onDidChangeActiveTextEditorDisposable = { dispose: jest.fn() };
-    jest.spyOn(vscode.window, 'onDidChangeActiveTextEditor').mockReturnValue(onDidChangeActiveTextEditorDisposable);
     Object.defineProperty(vscode.window, 'activeTextEditor', {
       value: mockEditor,
       configurable: true,
@@ -127,15 +146,6 @@ describe('CodeCoverageHandler', () => {
     });
 
     handler = new CodeCoverageHandler(mockStatusBar);
-  });
-
-  it('should subscribe to onDidChangeActiveTextEditor on construction', () => {
-    expect(vscode.window.onDidChangeActiveTextEditor).toHaveBeenCalled();
-  });
-
-  it('dispose() disposes the editor-change subscription', () => {
-    handler.dispose();
-    expect(onDidChangeActiveTextEditorDisposable.dispose).toHaveBeenCalled();
   });
 
   describe('toggleCoverage', () => {
@@ -154,7 +164,7 @@ describe('CodeCoverageHandler', () => {
     it('when highlighting is disabled should turn on and apply coverage decorations', async () => {
       (mockStatusBar as { isHighlightingEnabled: boolean }).isHighlightingEnabled = false;
       setWorkspaceFolders();
-      (getTestResultsFolder as jest.Mock).mockResolvedValue(orgScopedFolder);
+      (getTestResultsFolder as jest.Mock).mockReturnValue(Effect.succeed(orgScopedFolder));
       jest
         .spyOn(vscode.workspace.fs, 'readDirectory')
         .mockResolvedValue([['test-result-001.json', vscode.FileType.File]]);
@@ -188,7 +198,7 @@ describe('CodeCoverageService', () => {
     settingsValues.restorePrevious = true;
     settingsValues.disableWarnings = false;
     setWorkspaceFolders();
-    (getTestResultsFolder as jest.Mock).mockResolvedValue(orgScopedFolder);
+    (getTestResultsFolder as jest.Mock).mockReturnValue(Effect.succeed(orgScopedFolder));
     runtime = getApexTestingRuntime();
   });
 

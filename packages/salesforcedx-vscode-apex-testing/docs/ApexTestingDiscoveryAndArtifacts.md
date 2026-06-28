@@ -22,7 +22,7 @@ This note documents how Apex Testing currently handles test discovery data and t
 ## Test Run Artifact Persistence
 
 - Test execution writes files to `.sfdx/tools/testresults/apex` via:
-  - `src/utils/pathHelpers.ts`
+  - `src/utils/pathHelpers.ts` — `getTestResultsFolder()` returns `Effect.fn`, yields `NoDefaultOrgError` or folder URI
   - `src/utils/testUtils.ts`
   - `src/utils/testReportGenerator.ts`
 - Expected files include:
@@ -32,6 +32,18 @@ This note documents how Apex Testing currently handles test discovery data and t
   - report output (`.md` / `.txt`)
 - `src/index.ts` listens for file changes and routes matching result JSON events to
   `testController.onResultFileCreate(...)` for Test Explorer result updates.
+- Callers: `apexTestRun.ts`, `apexTestRunCodeAction.ts`, `testController.ts` use `getApexTestingRuntime().runPromise(getTestResultsFolder)` or wrap via Effect directly
+
+## Code Coverage Flow
+
+- `CodeCoverageService` — Effect.Service holding mutable `Ref<Range[]>` state for decorations
+- `codeCoverageService.ts` reads test result files via `FsService` (not `workspace.fs`); `CoverageItem` is `Schema.Struct`
+- Pipeline: stat result files → filter recent → read+parse (sequential, last-write-wins) → find file's coverage → compute line ranges
+- No `ReadFileError` thrown; errors caught + user notified (or logged to channel if warnings disabled)
+- `colorizer.ts` — not a Disposable; repainting via `watchActiveEditorForCoverage` Effect fork in `index.ts`
+  - Subscribes to `EditorService.pubsub` (instead of raw `window.onDidChangeActiveTextEditor`)
+  - Seed current editor so already-active editor repaints on subscription
+  - Tears down on extension deactivation via scope
 
 ## VFS For Discovered Classes
 
