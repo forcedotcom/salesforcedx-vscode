@@ -88,6 +88,8 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 
 **`Details__c` ≥20 chars required.** `Details__c` (field label "Description") has a User Story validation rule: <20 chars → create fails with `Description must be at least 20 characters to submit a User Story`. Despite docs marking it optional, treat as required on create. Note: `Description__c` is a DIFFERENT field (label "Comment", unvalidated)—don't confuse them; the validated body field is `Details__c`.
 
+**Bug-type WIs store the body in `Details_and_Steps_to_Reproduce__c`, not `Details__c`.** When reading a WI body (grooming, triage, auto-build), `SELECT` both and use whichever is populated. A null `Details__c` on a Bug-type record doesn't mean under-specified—check the bug field first.
+
 **Sequencing prefix:** When planning an epic or when the user states a dependency between work items, prefix `Subject__c` with a sequence number + space (e.g. `1.2 Add config loader`). See [work-item-sequencing](../work-item-sequencing/SKILL.md). Optional—skip for independent work.
 
 **`-v` + `--flags-dir` don't combine on create:** `-v` takes precedence; flags-dir values are dropped. Workaround: create without Details, then update with `--flags-dir` only.
