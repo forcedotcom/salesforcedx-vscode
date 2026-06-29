@@ -28,7 +28,13 @@ import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import { SelectOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { OrgInfo } from '../types/orgInfo';
-import { getOrgInfo } from '../util/orgDisplay';
+import { getOrgInfo, getOrgInfoFromConnectionEffect } from '../util/orgDisplay';
+
+/** Sensitive-info warning prepended to the org-details table; shared by the legacy executor and the Effect command. */
+const ACCESS_WARNING =
+  'Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.\n' +
+  'Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.\n' +
+  'For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.';
 
 class NoTargetOrgError extends Schema.TaggedError<NoTargetOrgError>()('NoTargetOrgError', {
   message: Schema.String
@@ -105,11 +111,7 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       const orgInfo = await getOrgInfo(targetUsername);
 
       // Display warning about sensitive information
-      const warning =
-        'Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.\n' +
-        'Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.\n' +
-        'For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.';
-      channelService.appendLine(warning);
+      channelService.appendLine(ACCESS_WARNING);
       channelService.appendLine('');
 
       // Display the org information
@@ -133,3 +135,27 @@ export async function orgDisplay(this: FlagParameter<string>) {
   const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, executor);
   await commandlet.run();
 }
+
+/**
+ * Effect command for `sf.org.display.default`: display details for the default org.
+ *
+ * Resolves the default-org `Connection` via `ConnectionService.getConnection()` (no username
+ * resolution — the connection carries the username), derives `OrgInfo` from it, and renders the
+ * warning + table to the channel. The `.username` picker path stays on the legacy `orgDisplay`.
+ */
+export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  yield* api.services.ProjectService.getSfProject();
+
+  // resolves TARGET_ORG; fails typed NoTargetOrgConfiguredError (rendered by ErrorHandlerService)
+  const conn = yield* api.services.ConnectionService.getConnection();
+  const orgInfo = yield* getOrgInfoFromConnectionEffect(conn);
+
+  const channel = yield* api.services.ChannelService;
+  yield* channel.appendToChannel(ACCESS_WARNING);
+  yield* channel.appendToChannel(formatOrgInfoAsTable(orgInfo));
+  yield* channel.showChannel;
+});
