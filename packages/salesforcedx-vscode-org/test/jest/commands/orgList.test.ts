@@ -5,10 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, AuthInfo, Org } from '@salesforce/core';
-import { createTable } from '@salesforce/effect-ext-utils';
+import { AuthRemover, AuthInfo, Org, OrgAuthorization } from '@salesforce/core';
+import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { channelService } from '../../../src/channels';
+import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import {
   determineConnectedStatusForNonScratchOrg,
@@ -18,6 +22,11 @@ import {
   getConnectionStatusFromError
 } from '../../../src/util/orgUtil';
 import * as orgUtil from '../../../src/util/orgUtil';
+
+// ConnectionService.listAllAuthorizations returns an Effect; post-migration removeExpiredAndDeletedOrgs/
+// displayRemainingOrgs resolve org auths through it (via getOrgRuntime), not bare AuthInfo.listAllAuthorizations.
+let listAllAuthorizationsMock: jest.Mock;
+
 // Mock the dependencies
 jest.mock('@salesforce/core', () => ({
   AuthRemover: {
@@ -42,9 +51,13 @@ jest.mock('@salesforce/core', () => ({
     TARGET_ORG: 'target-org'
   }
 }));
-jest.mock('@salesforce/effect-ext-utils', () => ({
-  createTable: jest.fn()
-}));
+jest.mock('@salesforce/effect-ext-utils', () => {
+  const actual = jest.requireActual('@salesforce/effect-ext-utils');
+  return {
+    createTable: jest.fn(),
+    ExtensionProviderService: actual.ExtensionProviderService
+  };
+});
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   notificationService: {
     showSuccessfulExecution: jest.fn()
@@ -81,29 +94,25 @@ const mockConfigAggregatorStore: {
   }
 };
 
-jest.mock('../../../src/util/configAggregatorEffect', () => {
-  const Effect = require('effect/Effect');
+jest.mock('../../../src/util/configAggregatorEffect', () => ({
   // Reference mockConfigAggregatorStore from closure
-  return {
-    get getConfigAggregatorEffect() {
-      return Effect.succeed(mockConfigAggregatorStore.value);
-    }
-  };
-});
+  get getConfigAggregatorEffect() {
+    return Effect.succeed(mockConfigAggregatorStore.value);
+  }
+}));
 
-// Mock extensionProvider to provide AllServicesLayer and getOrgRuntime (getConfigAggregatorEffect is fully mocked)
-jest.mock('../../../src/extensionProvider', () => {
-  const Layer = require('effect/Layer');
-  const Context = require('effect/Context');
-  const ManagedRuntime = require('effect/ManagedRuntime');
-  const DummyService = Context.GenericTag('DummyService');
-  const AllServicesLayer = Layer.succeed(DummyService, {});
-  return {
-    AllServicesLayer,
-    setAllServicesLayer: jest.fn(),
-    getOrgRuntime: () => ManagedRuntime.make(AllServicesLayer)
-  };
-});
+// Use the real extensionProvider so setAllServicesLayer/getOrgRuntime drive a runtime whose
+// ConnectionService.listAllAuthorizations is the mock seeded in beforeEach.
+const buildServicesLayer = () =>
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({
+      services: {
+        ConnectionService: {
+          listAllAuthorizations: listAllAuthorizationsMock
+        }
+      }
+    } as unknown as SalesforceVSCodeServicesApi)
+  } as unknown as ExtensionProviderService);
 
 describe('orgList command', () => {
   let mockGetAuthFieldsFor: jest.SpyInstance;
@@ -111,6 +120,13 @@ describe('orgList command', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
+
+    // Default the ConnectionService.listAllAuthorizations mock to an empty Effect; suites override below.
+    listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
+    resetOrgRuntimeForTesting();
+    setAllServicesLayer(
+      buildServicesLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
+    );
 
     // Mock createTable function
     (createTable as jest.Mock).mockReturnValue('mocked table output');
@@ -272,8 +288,7 @@ describe('orgList command', () => {
     ];
 
     beforeEach(() => {
-      jest.clearAllMocks();
-      (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue(mockOrgAuths);
+      listAllAuthorizationsMock.mockReturnValue(Effect.succeed(mockOrgAuths as unknown as OrgAuthorization[]));
       (AuthRemover.create as jest.Mock).mockResolvedValue(mockAuthRemover);
       mockAuthRemover.removeAuth.mockResolvedValue(undefined);
     });
@@ -328,14 +343,13 @@ describe('orgList command', () => {
     };
 
     beforeEach(() => {
-      jest.clearAllMocks();
-      (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue(mockOrgAuths);
+      listAllAuthorizationsMock.mockReturnValue(Effect.succeed(mockOrgAuths as unknown as OrgAuthorization[]));
       mockGetAuthFieldsFor.mockResolvedValue({});
       jest.spyOn(orgUtil, 'getDefaultOrgConfiguration').mockResolvedValue(defaultConfig);
     });
 
     it('should display message when no orgs found', async () => {
-      (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue([]);
+      listAllAuthorizationsMock.mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
 
       await displayRemainingOrgs();
 
@@ -360,7 +374,7 @@ describe('orgList command', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      (AuthInfo.listAllAuthorizations as jest.Mock).mockRejectedValue(new Error('List error'));
+      listAllAuthorizationsMock.mockReturnValue(Effect.fail(new Error('List error')));
 
       await displayRemainingOrgs();
 

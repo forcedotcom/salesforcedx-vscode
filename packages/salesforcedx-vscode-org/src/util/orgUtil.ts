@@ -256,12 +256,18 @@ const processOrgForRemoval = async (
   }
 };
 
+/** Lists all org authorizations via `ConnectionService.listAllAuthorizations` (wraps `AuthInfo.listAllAuthorizations`). */
+const listAllAuthorizationsEffect = Effect.fn('OrgUtil.listAllAuthorizations')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ConnectionService.listAllAuthorizations();
+});
+
 /** Remove expired and deleted orgs from local configuration */
 export const removeExpiredAndDeletedOrgs = async (): Promise<string[]> => {
   const removedOrgs: string[] = [];
 
   try {
-    const orgAuthorizations = await AuthInfo.listAllAuthorizations();
+    const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
     if (!orgAuthorizations?.length) {
       return removedOrgs;
     }
@@ -467,7 +473,7 @@ const createAndDisplayOrgTable = (orgData: Row[]): void => {
 /** Display remaining orgs in a table format */
 export const displayRemainingOrgs = async (): Promise<void> => {
   try {
-    const orgAuthorizations = await AuthInfo.listAllAuthorizations();
+    const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
     if (orgAuthorizations?.length === 0) {
       channelService.appendLine(`\n${nls.localize('org_list_no_orgs_found')}`);
       return;
