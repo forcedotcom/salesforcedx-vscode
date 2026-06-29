@@ -156,3 +156,4 @@ npm-packages-offline-cache/
 .claude/worktrees/
 .claude/scheduled_tasks.lock
 .claude/auto-build-wi.lock
+.claude/backlog-grooming-*.md
