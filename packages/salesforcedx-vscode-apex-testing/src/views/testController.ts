@@ -10,6 +10,7 @@ import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
@@ -1624,17 +1625,16 @@ const cacheSingleSelection = async (request: vscode.TestRunRequest, isDebug: boo
   if (isDebug || !single) {
     return;
   }
-  const cacheEffect =
-    isClass(single.id) || isSuiteClass(single.id)
-      ? ApexTestRunCacheService.setCachedClassTestParam(getTestName(single))
-      : isMethod(single.id)
-        ? ApexTestRunCacheService.setCachedMethodTestParam(getTestName(single))
-        : Effect.void;
-  await getApexTestingRuntime().runPromise(
-    cacheEffect.pipe(
-      Effect.tapError(error => Effect.logWarning('apex test re-run cache set failed', { error })),
-      Effect.ignore
-    )
+  await Match.value(single.id).pipe(
+    Match.when(
+      id => isClass(id) || isSuiteClass(id),
+      () => ApexTestRunCacheService.setCachedClassTestParam(getTestName(single))
+    ),
+    Match.when(isMethod, () => ApexTestRunCacheService.setCachedMethodTestParam(getTestName(single))),
+    Match.orElse(() => Effect.void),
+    Effect.tapError(error => Effect.logWarning('apex test re-run cache set failed', { error })),
+    Effect.ignore,
+    getApexTestingRuntime().runPromise
   );
 };
 

@@ -113,15 +113,11 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     { concurrency: 'unbounded' }
   );
 
-  // Cache single-class palette runs so Re-Run Last Class surfaces (matches code-lens order: set before run).
-  // Suite/All/AllLocal leave the cache untouched; the shared apexTestSuite caller passes type 'Suite'.
-  // NOT best-effort (unlike the sidebar path in testController.cacheSingleSelection): this runs inside the
-  // palette Effect, so a setContext/Ref.set failure here aborts the run, surfacing the error to the user.
   if (selection.type === 'Class' && selection.fullClassName) {
     yield* ApexTestRunCacheService.setCachedClassTestParam(selection.fullClassName);
   }
 
-  const result = yield* runApexTests({
+  return yield* runApexTests({
     payload,
     outputDir,
     codeCoverage: settings.retrieveTestCodeCoverage(),
@@ -129,16 +125,18 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     telemetryTrigger: 'quickPick'
   }).pipe(
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName)
+    promptService.withCancellableProgress(executionName),
+    // Terminal notify on the success value (undefined = soft failure: timeout/no summary).
+    // Cancellation stays on the failure channel, so this tap never fires a bogus toast.
+    Effect.tap(result =>
+      Effect.sync(() => {
+        OUTPUT_CHANNEL.show();
+        (result === undefined ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
+          executionName
+        );
+      })
+    )
   );
-
-  OUTPUT_CHANNEL.show();
-  if (result === undefined) {
-    notificationService.showFailedExecution(executionName);
-  } else {
-    notificationService.showSuccessfulExecution(executionName);
-  }
-  return result;
 });
 
 const buildTestPayload = async (
