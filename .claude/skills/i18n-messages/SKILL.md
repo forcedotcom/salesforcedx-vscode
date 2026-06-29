@@ -5,7 +5,10 @@ description: Editing extension i18n message files and their consumers. Use when 
 
 # i18n Messages
 
-Scope: `packages/*/src/messages/i18n.ts` + code consuming those messages via `nls.localize`. NOT `package.json`/`package.nls.json` nls strings (command titles etc.), NOT unrelated code.
+Scope:
+- `packages/*/src/messages/i18n.ts` + code consuming those messages via `nls.localize`
+- NOT `package.json`/`package.nls.json` nls strings (command titles etc.)
+- NOT unrelated code
 
 ## Placeholder semantics
 
@@ -20,7 +23,7 @@ Scope: `packages/*/src/messages/i18n.ts` + code consuming those messages via `nl
 | `%j` | value | JSON |
 | `%o` `%O` | value | inspected object |
 | `%c` | — | CSS directive, no output |
-| `%%` | literal `%` | `%` only when args present; bare string keeps `%%` |
+| `%%` | literal `%` | `%` only when args present; bare string skips `format()` (`message.ts:37` `args.length > 0` guard) and keeps `%%` |
 | `%n` | NONE | unsupported — renders literal `%n`, NOT substituted |
 
 Default: counts → `%d`, strings → `%s`. (Origin: `Removed %n orgs` shipped literal `%n`.)
@@ -34,11 +37,11 @@ Default: counts → `%d`, strings → `%s`. (Origin: `Removed %n orgs` shipped l
 
 ## Reuse first
 
-Before adding a string, `grep` `package.nls.json` for an existing equivalent and reuse it. Don't duplicate.
+`grep` `package.nls.json` for an existing equivalent before adding — reuse, don't duplicate.
 
 ## Per-surface style
 
-Empirical, from `salesforcedx-vscode-org` (`src/messages/i18n.ts`, `package.nls.json`):
+From `salesforcedx-vscode-org` (`src/messages/i18n.ts`, `package.nls.json`):
 
 | Surface | Example | Cap | Punctuation |
 |---|---|---|---|
