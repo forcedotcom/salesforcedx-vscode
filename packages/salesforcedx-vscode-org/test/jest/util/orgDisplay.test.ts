@@ -27,9 +27,11 @@ type Services = {
 
 // Provide ExtensionProviderService with AliasService (alias resolution + alias-by-username) and
 // ConfigService (config aggregator) — the only services the org-info Effects read from context.
-const provide = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService>, opts: Services) =>
+// R includes AliasService | ConfigService via accessors:true on those service classes; after
+// provideService the effect is fully satisfied at runtime, so the any-cast to never is safe.
+const provide = <A, E>(effect: Effect.Effect<A, E, any>, opts: Services) =>
   Effect.runPromiseExit(
-    effect.pipe(
+    (effect as Effect.Effect<A, E, ExtensionProviderService>).pipe(
       Effect.provideService(ExtensionProviderService, {
         getServicesApi: Effect.succeed({
           services: {
@@ -83,9 +85,9 @@ describe('orgDisplay Effect util', () => {
 
     mockOrg = { getDevHubOrg: jest.fn() };
 
-    jest.mocked(AuthInfo).create.mockResolvedValue(mockAuthInfo);
-    jest.mocked(Connection).create.mockResolvedValue(mockConnection);
-    jest.mocked(Org).create.mockResolvedValue(mockOrg);
+    jest.mocked(AuthInfo).create.mockResolvedValue(mockAuthInfo as unknown as AuthInfo);
+    jest.mocked(Connection).create.mockResolvedValue(mockConnection as unknown as Connection);
+    jest.mocked(Org).create.mockResolvedValue(mockOrg as unknown as Org);
   });
 
   it('gets org info with a username provided', async () => {
@@ -154,7 +156,7 @@ describe('orgDisplay Effect util', () => {
 
   it('SOQL-failure path: returns a degraded OrgInfo with error status', async () => {
     const queryError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
-    mockConnection.singleRecordQuery.mockRejectedValue(queryError);
+    mockConnection.singleRecordQuery!.mockRejectedValue(queryError);
 
     const exit = await provide(getOrgInfoEffect('test@example.com'), { aliases: {} });
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -168,7 +170,7 @@ describe('orgDisplay Effect util', () => {
   });
 
   it('detects a scratch org via the dev hub query', async () => {
-    mockAuthInfo.getFields.mockReturnValue({
+    mockAuthInfo.getFields!.mockReturnValue({
       username: 'test@example.com',
       orgId: '00D1234567890123',
       accessToken: 'test-token',
@@ -176,7 +178,7 @@ describe('orgDisplay Effect util', () => {
       clientId: 'test-client-id',
       devHubUsername: 'devhub@example.com'
     });
-    mockOrg.getDevHubOrg.mockResolvedValue({
+    mockOrg.getDevHubOrg!.mockResolvedValue({
       getConnection: jest.fn().mockReturnValue({
         singleRecordQuery: jest.fn().mockResolvedValue({
           Status: 'Active',
@@ -187,7 +189,7 @@ describe('orgDisplay Effect util', () => {
           OrgName: 'Test Scratch Org'
         })
       })
-    });
+    } as unknown as Org);
 
     const exit = await provide(getOrgInfoEffect('test@example.com'), { aliases: {} });
     expect(Exit.isSuccess(exit)).toBe(true);
