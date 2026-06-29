@@ -21,10 +21,8 @@ const run = (effect: Effect.Effect<unknown, unknown, ConnectionService>) =>
   Effect.runPromiseExit(effect.pipe(Effect.provide(ConnectionService.Default)));
 
 describe('ConnectionService.loginWithAccessToken', () => {
-  let createSpy: jest.SpyInstance;
-
   afterEach(() => {
-    createSpy?.mockRestore();
+    jest.restoreAllMocks();
   });
 
   it('creates AuthInfo with loginUrl=instanceUrl, awaits save() before handleAliasAndDefaultSettings', async () => {
@@ -36,7 +34,7 @@ describe('ConnectionService.loginWithAccessToken', () => {
       callOrder.push('alias');
     });
     const getFields = jest.fn(() => ({ username: 'me@org.com' }));
-    createSpy = jest
+    const createSpy = jest
       .spyOn(AuthInfo, 'create')
       .mockResolvedValue({ save, handleAliasAndDefaultSettings, getFields } as unknown as AuthInfo);
 
@@ -61,7 +59,7 @@ describe('ConnectionService.loginWithAccessToken', () => {
   });
 
   it('maps Bad_OAuth_Token create rejection to BadOAuthTokenError', async () => {
-    createSpy = jest.spyOn(AuthInfo, 'create').mockRejectedValue(new Error('Bad_OAuth_Token: invalid'));
+    jest.spyOn(AuthInfo, 'create').mockRejectedValue(new Error('Bad_OAuth_Token: invalid'));
 
     const exit = await run(ConnectionService.loginWithAccessToken(PARAMS));
 
@@ -70,7 +68,7 @@ describe('ConnectionService.loginWithAccessToken', () => {
   });
 
   it('maps a non-Bad_OAuth_Token create rejection to FailedToCreateAuthInfoError', async () => {
-    createSpy = jest.spyOn(AuthInfo, 'create').mockRejectedValue(new Error('network down'));
+    jest.spyOn(AuthInfo, 'create').mockRejectedValue(new Error('network down'));
 
     const exit = await run(ConnectionService.loginWithAccessToken(PARAMS));
 
@@ -81,7 +79,7 @@ describe('ConnectionService.loginWithAccessToken', () => {
   it('maps a save() rejection to FailedToSaveAuthInfoError (not alias)', async () => {
     const save = jest.fn().mockRejectedValue(new Error('disk full'));
     const handleAliasAndDefaultSettings = jest.fn().mockResolvedValue(undefined);
-    createSpy = jest
+    jest
       .spyOn(AuthInfo, 'create')
       .mockResolvedValue({ save, handleAliasAndDefaultSettings, getFields: () => ({}) } as unknown as AuthInfo);
 
@@ -99,7 +97,7 @@ describe('ConnectionService.loginWithAccessToken', () => {
   it('maps a handleAliasAndDefaultSettings rejection to FailedToHandleAliasSettingsError (not save)', async () => {
     const save = jest.fn().mockResolvedValue(undefined);
     const handleAliasAndDefaultSettings = jest.fn().mockRejectedValue(new Error('alias clash'));
-    createSpy = jest
+    jest
       .spyOn(AuthInfo, 'create')
       .mockResolvedValue({ save, handleAliasAndDefaultSettings, getFields: () => ({}) } as unknown as AuthInfo);
 

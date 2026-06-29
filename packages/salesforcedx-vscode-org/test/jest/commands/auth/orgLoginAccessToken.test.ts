@@ -52,9 +52,7 @@ const buildServices = (opts: Opts) => ({
   },
   ConnectionService: { loginWithAccessToken: opts.loginWithAccessToken },
   ChannelService: Effect.succeed({
-    showChannel: Effect.sync(() => {
-      opts.showChannel();
-    })
+    showChannel: Effect.sync(opts.showChannel)
   })
 });
 
