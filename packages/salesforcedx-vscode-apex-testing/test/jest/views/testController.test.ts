@@ -20,6 +20,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const mockFsService = {
     readFile: mockReadFile,
     createDirectory: () => EffectLib.void,
+    safeDelete: () => EffectLib.void,
     showTextDocument: (uri: unknown, options?: unknown) =>
       EffectLib.tryPromise({
         try: () => require('vscode').window.showTextDocument(uri, options),
@@ -320,9 +321,10 @@ describe('ApexTestController', () => {
     let getTestResultsFolderSpy: jest.SpiedFunction<typeof pathHelpers.getTestResultsFolder>;
 
     beforeEach(() => {
+      const Effect = jest.requireActual('effect/Effect');
       getTestResultsFolderSpy = jest
         .spyOn(pathHelpers, 'getTestResultsFolder')
-        .mockResolvedValue(URI.file(path.join('/tmp', 'apex-test-results')));
+        .mockReturnValue(Effect.succeed(URI.file(path.join('/tmp', 'apex-test-results'))));
       mockTestServiceMethods.buildAsyncPayload.mockResolvedValue({
         testLevel: 'RunSpecifiedTests',
         skipCodeCoverage: true

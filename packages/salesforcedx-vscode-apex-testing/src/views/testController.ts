@@ -153,8 +153,13 @@ export class ApexTestController {
     void vscode.commands.executeCommand('testing.clearTestResults');
 
     try {
-      const resultDir = await getTestResultsFolder();
-      await vscode.workspace.fs.delete(resultDir, { recursive: true });
+      await getApexTestingRuntime().runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          const resultDir = yield* getTestResultsFolder();
+          yield* api.services.FsService.safeDelete(resultDir, { recursive: true });
+        })
+      );
     } catch (error) {
       // Non-fatal: result folder may not exist yet, or deletion may fail
       console.debug('Failed to delete test results folder:', error);
@@ -340,10 +345,10 @@ export class ApexTestController {
         return;
       }
 
-      const resultDir = await getTestResultsFolder();
       const entries = await getApexTestingRuntime().runPromise(
         Effect.gen(function* () {
           const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          const resultDir = yield* getTestResultsFolder();
           return yield* api.services.FsService.readDirectory(resultDir);
         })
       );
@@ -1724,7 +1729,7 @@ const closeEditorTabByUri = async (uri: URI): Promise<void> => {
 
 const getTempFolder = async (): Promise<URI> => {
   try {
-    return await getTestResultsFolder();
+    return await getApexTestingRuntime().runPromise(getTestResultsFolder());
   } catch {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
