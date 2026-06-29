@@ -7,10 +7,20 @@
 
 import { AuthFields, AuthInfo, Connection, Org, OrgConfigProperties } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import { AllServicesLayer } from '../extensionProvider';
 import { OrgInfo } from '../types/orgInfo';
 import { getConfigAggregatorEffect } from './configAggregatorEffect';
 import { getConnectionStatusFromError, readAliasesByUsernameFromDisk, resolveUsernameFromAlias } from './orgUtil';
+
+/**
+ * Typed failure for the connection-driven org-info path (SOQL / connection-info derivation).
+ * Keeps rejections in the Effect failure channel instead of escaping as untyped defects.
+ * @ExportTaggedError
+ */
+export class OrgInfoQueryError extends Schema.TaggedError<OrgInfoQueryError>()('OrgInfoQueryError', {
+  message: Schema.String
+}) {}
 
 type OrgQueryResult = {
   Id: string;
@@ -143,6 +153,52 @@ const getOrgInfoFromConnection = async (
     status: scratchOrgQuery?.Status ?? connectionStatus
   });
 };
+
+/**
+ * Connection-driven Effect variant of {@link getOrgInfoFromConnection} for the `.default` path.
+ * Derives authInfo/username/Org from the bare default-org `Connection` (no `resolveUsername`,
+ * no nested `runPromise`/`AllServicesLayer`). Failures surface as typed `OrgInfoQueryError`.
+ */
+export const getOrgInfoFromConnectionEffect = Effect.fn('getOrgInfoFromConnectionEffect')(function* (conn: Connection) {
+  const authInfo = conn.getAuthInfo();
+  const authFields = authInfo.getFields(true);
+  const username = conn.getUsername() ?? authFields.username;
+  if (!username) {
+    return yield* new OrgInfoQueryError({ message: messages.no_username_provided });
+  }
+
+  const org = yield* Effect.tryPromise({
+    try: () => Org.create({ connection: conn }),
+    catch: error => new OrgInfoQueryError({ message: error instanceof Error ? error.message : String(error) })
+  });
+
+  const aliases = yield* Effect.promise(() => getAllAliases(username));
+  const isScratchOrg = Boolean(authFields.devHubUsername);
+
+  const orgQuery = yield* Effect.tryPromise({
+    try: () =>
+      conn.singleRecordQuery<OrgQueryResult>(
+        'SELECT Id, Name, CreatedDate, CreatedBy.Username, OrganizationType, InstanceName, NamespacePrefix, IsSandbox FROM Organization'
+      ),
+    catch: error => new OrgInfoQueryError({ message: error instanceof Error ? error.message : String(error) })
+  });
+
+  const scratchOrgQuery =
+    isScratchOrg && authFields.orgId ? yield* Effect.promise(() => queryScratchOrg(org, authFields.orgId!)) : undefined;
+  const connectionStatus = yield* Effect.promise(() => getConnectionStatus(conn, username));
+
+  // scratch org query results, when present, are preferred over org query results
+  return createOrgInfo(username, authFields, aliases, connectionStatus, {
+    id: authFields.orgId ?? orgQuery.Id,
+    createdBy: scratchOrgQuery?.CreatedBy.Username ?? orgQuery.CreatedBy.Username,
+    createdDate: scratchOrgQuery?.CreatedDate ?? orgQuery.CreatedDate,
+    expirationDate: scratchOrgQuery?.ExpirationDate ?? authFields.expirationDate ?? '',
+    edition: scratchOrgQuery?.Edition ?? getEdition(orgQuery),
+    orgName: scratchOrgQuery?.OrgName ?? orgQuery.Name,
+    ...(authFields.password ? { password: authFields.password } : {}),
+    status: scratchOrgQuery?.Status ?? connectionStatus
+  });
+});
 
 const getEdition = (orgQuery: OrgQueryResult): string => {
   if (orgQuery.IsSandbox) {
