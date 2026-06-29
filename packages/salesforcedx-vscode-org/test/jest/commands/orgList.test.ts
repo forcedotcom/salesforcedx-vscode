@@ -62,11 +62,6 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   notificationService: {
     showSuccessfulExecution: jest.fn()
   },
-  ContinueResponse: jest.fn(),
-  LibraryCommandletExecutor: jest.fn(),
-  // Add these to align with command imports
-  PromptConfirmGatherer: jest.fn(),
-  SfCommandlet: jest.fn(),
   ConfigUtil: {
     getConfigValue: jest.fn(),
     getUsernameFor: jest.fn()

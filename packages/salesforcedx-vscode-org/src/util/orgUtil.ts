@@ -262,31 +262,25 @@ const listAllAuthorizationsEffect = Effect.fn('OrgUtil.listAllAuthorizations')(f
   return yield* api.services.ConnectionService.listAllAuthorizations();
 });
 
-/** Remove expired and deleted orgs from local configuration */
+/**
+ * Remove expired and deleted orgs from local configuration.
+ * Rejects on failure; the Effect caller (orgListCleanCommand) maps the rejection to OrgListCleanError.
+ */
 export const removeExpiredAndDeletedOrgs = async (): Promise<string[]> => {
-  const removedOrgs: string[] = [];
-
-  try {
-    const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
-    if (!orgAuthorizations?.length) {
-      return removedOrgs;
-    }
-
-    const authRemover = await AuthRemover.create();
-
-    // Process each org for potential removal
-    for (const orgAuth of orgAuthorizations) {
-      const removedUsername = await processOrgForRemoval(orgAuth, authRemover);
-      if (removedUsername) {
-        removedOrgs.push(removedUsername);
-      }
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(nls.localize('org_list_clean_general_error', errorMessage));
+  const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
+  if (!orgAuthorizations?.length) {
+    return [];
   }
 
-  return removedOrgs;
+  const authRemover = await AuthRemover.create();
+
+  // Process each org for potential removal sequentially (AuthRemover mutates shared auth state)
+  const removed = await orgAuthorizations.reduce<Promise<string[]>>(async (accP, orgAuth) => {
+    const acc = await accP;
+    const removedUsername = await processOrgForRemoval(orgAuth, authRemover);
+    return removedUsername ? [...acc, removedUsername] : acc;
+  }, Promise.resolve([]));
+  return removed;
 };
 
 /** Default org configuration type */
