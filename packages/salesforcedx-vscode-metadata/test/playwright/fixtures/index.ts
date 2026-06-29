@@ -31,4 +31,4 @@ export const test = isDesktop ? desktopTest : webTest;
 export const dreamhouseTest = isDesktop ? dreamhouseDesktopTest : webTest;
 export const nonTrackingTest = isDesktop ? nonTrackingDesktopTest : webTest;
 export const trackingConflictTest = isDesktop ? trackingConflictDesktopTest : webTrackingConflictTest;
-export { emptyWorkspaceDesktopTest } from './desktopFixtures';
+export { emptyWorkspaceDesktopTest, desktopTest } from './desktopFixtures';
