@@ -20,7 +20,6 @@ import { APEX_TESTING_SCHEME } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
-import { logTelemetry } from '../telemetry/telemetry';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
@@ -1227,7 +1226,6 @@ export class ApexTestController {
     isDebug: boolean,
     runScope: ApexTestRunScope
   ): Promise<void> {
-    const startTime = Date.now();
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
 
@@ -1374,15 +1372,13 @@ export class ApexTestController {
         await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, runAllTestsInOrg);
       }
 
-      const durationMs = Date.now() - startTime;
       const testCount = testsToRun.length;
       getApexTestingRuntime().runFork(
-        logTelemetry('apexTestRun', {
+        Effect.annotateCurrentSpan({
           trigger: 'testController',
           isDebug: String(isDebug),
-          durationMs,
           testsRan: testCount
-        })
+        }).pipe(Effect.withSpan('apexTestRun'))
       );
     } catch (error) {
       const friendlyMessage = toUserFriendlyApexTestError(error);
@@ -1549,18 +1545,12 @@ export class ApexTestController {
     this.lastProcessedResultFile = Utils.joinPath(outputDir, writtenResultFilename);
 
     // Generate and open test report (forked; continue even if report generation fails)
-    const reportStartTime = Date.now();
     const outputFormat = settings.retrieveOutputFormat();
     const sortOrder = settings.retrieveTestSortOrder();
     getApexTestingRuntime().runFork(
       writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
-        Effect.tap(() =>
-          logTelemetry('apexTestReportGenerated', {
-            outputFormat,
-            trigger: 'testExplorer',
-            reportDurationMs: Date.now() - reportStartTime
-          })
-        ),
+        Effect.tap(() => Effect.annotateCurrentSpan({ trigger: 'testExplorer' })),
+        Effect.withSpan('apexTestReportGenerated'),
         Effect.catchAllCause(cause => Effect.logError('Failed to generate test report', cause))
       )
     );

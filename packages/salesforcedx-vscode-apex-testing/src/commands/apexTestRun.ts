@@ -127,14 +127,11 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     promptService.withCancellableProgress(executionName),
     // Terminal notify on the success value (undefined = soft failure: timeout/no summary).
     // Cancellation stays on the failure channel, so this tap never fires a bogus toast.
+    Effect.tap(() => channelService.showChannel),
     Effect.tap(result =>
-      channelService.showChannel.pipe(
-        Effect.andThen(
-          Effect.sync(() =>
-            (result === undefined
-              ? notificationService.showFailedExecution
-              : notificationService.showSuccessfulExecution)(executionName)
-          )
+      Effect.sync(() =>
+        (result === undefined ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
+          executionName
         )
       )
     )
