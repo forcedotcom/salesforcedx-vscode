@@ -185,6 +185,7 @@ export const buildOrgQuickPickItems = (
   });
 };
 
+// Orgs are sourced via getFreshAuthorizations → ConnectionService.listAllAuthorizations (no direct AuthInfo).
 const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
