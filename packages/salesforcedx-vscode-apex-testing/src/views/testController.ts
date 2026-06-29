@@ -10,6 +10,7 @@ import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
@@ -22,6 +23,7 @@ import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { notificationService } from '../utils/notificationHelpers';
 import { getOrgApexClassProvider } from '../utils/orgApexClassProvider';
@@ -40,7 +42,8 @@ import {
   getTestName,
   isClass,
   isMethod,
-  isSuite
+  isSuite,
+  isSuiteClass
 } from '../utils/testItemUtils';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
@@ -125,10 +128,28 @@ export class ApexTestController {
       await this.discoveryInProgress;
       return;
     }
+    this.resetState();
+    await this.discoverTests();
+  }
+
+  /**
+   * Clears all test items without re-discovering. Used to reach the no-org state
+   * (e.g. logout / delete default org) without requiring a window reload.
+   */
+  public async clearAllTestItems(): Promise<void> {
+    // Unlike refresh(), drain any in-flight discovery without early-returning, then clear so the
+    // reset lands after the discovery that would otherwise repopulate the tree.
+    if (this.discoveryInProgress) {
+      await this.discoveryInProgress;
+    }
+    this.resetState();
+  }
+
+  /** Drop the connection/caches, empty the tree, and re-arm result restoration for the next discovery. */
+  private resetState(): void {
     this.invalidateConnection();
     this.clearTestItems();
     this.hasRestoredResults = false;
-    await this.discoverTests();
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -1210,6 +1231,8 @@ export class ApexTestController {
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
 
+    await cacheSingleSelection(request, isDebug);
+
     // Implicit full run: no explicit selection. Restrict to in-workspace tests for the default Run/Debug profiles.
     // When the user (or explorer filter) supplies request.include, run exactly that set—e.g. filtered-visible tests.
     const isImplicitFullRun = !request.include?.length;
@@ -1611,6 +1634,32 @@ export class ApexTestController {
 }
 
 // Module-level utility functions extracted from ApexTestController
+
+// Cache single class/method selections so Re-Run Last Class/Method surfaces (esp. web, no code lenses).
+// Detect from the RAW request.include before suite resolution/expansion. Run-profile only (not Debug).
+// Suite-class ids (suite-class:Suite:Class) are a single class hit; getTestName yields the bare class name.
+// Bare suite/namespace/package/multi-select/implicit-full leave the cache untouched.
+// Cache is set before run viability is known (matches code-lens order): a single class/method that resolves
+// to zero runnable tests still populates Re-Run Last and flips sf:has_cached_test_*. Acceptable—single targets
+// are normally non-empty, and re-running a no-op selection is harmless.
+// Best-effort: failures are logged (tapError) then swallowed (ignore) so they never fail the run.
+const cacheSingleSelection = async (request: vscode.TestRunRequest, isDebug: boolean): Promise<void> => {
+  const single = request.include?.length === 1 ? request.include[0] : undefined;
+  if (isDebug || !single) {
+    return;
+  }
+  await Match.value(single.id).pipe(
+    Match.when(
+      id => isClass(id) || isSuiteClass(id),
+      () => ApexTestRunCacheService.setCachedClassTestParam(getTestName(single))
+    ),
+    Match.when(isMethod, () => ApexTestRunCacheService.setCachedMethodTestParam(getTestName(single))),
+    Match.orElse(() => Effect.void),
+    Effect.tapError(error => Effect.logWarning('apex test re-run cache set failed', { error })),
+    Effect.ignore,
+    getApexTestingRuntime().runPromise
+  );
+};
 
 const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Promise<void> => {
   if (!classItem.uri) {
