@@ -9,20 +9,20 @@ import type { OrgAuthResult } from './types';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { execAsync, env, tryUseExistingOrg, extractAuthFields, requireOrgInCI } from './shared';
+import { execAsync, env, tryUseExistingOrg, extractAuthFields } from './shared';
 
 /**
- * Dedicated throwaway org for the real-logout e2e step. FIXED (not timestamped/uuid) because a
- * non-pre-seeded alias trips `requireOrgInCI` before any create code runs. CI pre-seeds this alias
- * (orgE2E.yml) so `tryUseExistingOrg` hits and the gate is never reached; the org being logged out
- * by the test is fine since it is single-purpose and re-seeded each run.
+ * Dedicated throwaway org for the real-logout e2e step. FIXED alias (not timestamped/uuid) so CI's
+ * pre-seed step (orgE2E.yml) can hit the `tryUseExistingOrg` fast path.
  */
 export const THROWAWAY_ORG_ALIAS = 'logoutThrowawayOrg';
 
 /**
- * Create a throwaway scratch org for the logout test. Mirrors {@link createMinimalOrg}:
- * tryUseExistingOrg fast path, then requireOrgInCI on a miss, then `sf org create scratch`.
- * Locally (non-CI) a miss re-creates the org; CI relies on the pre-seeded alias.
+ * Create a throwaway scratch org for the logout test. Unlike {@link createMinimalOrg}, this org is
+ * CONSUMED by the test (real logout removes its auth), so a miss must re-create it even in CI:
+ * Playwright retries + the sequential `--last-failed` retry step both re-run setup after attempt 1
+ * has already logged the org out. No `requireOrgInCI` gate — a miss recreates via `sf org create
+ * scratch` (CI has dev-hub auth). The CI pre-seed only saves the first attempt a create.
  */
 export const createThrowawayOrg = async (alias: string = THROWAWAY_ORG_ALIAS): Promise<OrgAuthResult> => {
   // Fast path: use provided org if it exists
@@ -30,8 +30,6 @@ export const createThrowawayOrg = async (alias: string = THROWAWAY_ORG_ALIAS): P
   if (existingOrg) {
     return existingOrg;
   }
-
-  requireOrgInCI(alias);
 
   // Create minimal scratch org without any deployment
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'logout-throwaway-org-'));

@@ -143,7 +143,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await expect(
       activeQuickInputWidget(page).locator(QUICK_INPUT_LIST_ROW).filter({ hasText: THROWAWAY_ORG_ALIAS }),
       `logged-out org "${THROWAWAY_ORG_ALIAS}" should no longer be listed`
-    ).toHaveCount(0);
+    ).toHaveCount(0, { timeout: 15_000 });
     await page.keyboard.press('Escape');
     await expect(page.locator(QUICK_INPUT_WIDGET)).toBeHidden({ timeout: 10_000 });
   });
