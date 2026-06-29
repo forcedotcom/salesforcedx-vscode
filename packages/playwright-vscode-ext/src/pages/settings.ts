@@ -28,8 +28,9 @@ export const openSettingsUI = async (page: Page): Promise<void> => {
   const shortcut = isMacDesktop() ? 'Meta+,' : 'Control+,';
   await page.keyboard.press(shortcut);
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
-  // Always switch to Workspace settings tab
-  const workspaceTab = page.getByRole('tab', { name: 'Workspace' });
+  // Always switch to Workspace settings tab. Use exact match: a non-exact name substring-matches editor tabs
+  // for files whose name contains "Workspace" (e.g. InWorkspaceClass*.cls), causing a strict-mode violation.
+  const workspaceTab = page.getByRole('tab', { name: 'Workspace', exact: true });
   await workspaceTab.click();
   await expect(workspaceTab).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
 };

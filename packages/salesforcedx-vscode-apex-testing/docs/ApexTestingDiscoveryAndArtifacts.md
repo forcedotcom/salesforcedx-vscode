@@ -35,8 +35,12 @@ This note documents how Apex Testing currently handles test discovery data and t
 - `src/index.ts` listens for file changes and routes matching result JSON events to
   `testController.onResultFileCreate(...)` for Test Explorer result updates.
 
-## Scope For VFS Work
+## VFS For Discovered Classes
 
-- Keep test run artifact persistence in `.sfdx/tools/testresults/apex` unchanged.
-- Introduce VFS management only for discovered Apex test class metadata using `apex-testing:`.
-- Metadata XML files (e.g. Apex `-meta.xml` companions in a source-formatted project) are **not** necessarily part of the `apex-testing:` VFS. The virtual tree focuses on discovered class **`.cls`** paths under each org; do not assume XML sidecars are mirrored or addressable on that scheme.
+- Test run artifact persistence (`.sfdx/tools/testresults/apex`) unchanged.
+- `apex-testing:` VFS serves per-org discovered Apex class `.cls` bodies (virtual files, write-only):
+  - On discovery refresh, `ApexTestDiscoveryService.saveDiscoveredClasses(orgKey, classes, bodies)` writes per-class `.cls` files to `apex-testing:/orgs/<orgKey>/classes/<namespace>/<className>.cls`.
+  - Enables org-only TestItems to open class source for inspection (read-only in editor).
+  - `clearOrg(orgKey)` removes the org directory on org removal.
+  - Index persistence removed (dead code; test tree always rebuilt from live Tooling API queries).
+- Metadata XML files (e.g. `-meta.xml` in source-formatted projects) are **not** part of the `apex-testing:` VFS.

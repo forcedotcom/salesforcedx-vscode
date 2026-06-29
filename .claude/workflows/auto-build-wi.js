@@ -76,6 +76,7 @@ const PR_STATE_SCHEMA = {
     failedLogsExcerpt: { type: ['string', 'null'] },
     maxRunAttempt: { type: ['number', 'null'] },
     files: { type: 'array', items: { type: 'string' } },
+    headSha: { type: ['string', 'null'] },
   },
 }
 
@@ -283,10 +284,41 @@ const extractPrUrl = details => {
   // Only extract PR URLs appended by the workflow (<strong>PR:</strong> <a href="...">).
   // Avoids treating "Prior art" / reference links as the WI's own PR.
   const s = String(details || '')
+  // Exactly one PR marker exists: the write sites (PR-open + reconcile) REPLACE any prior
+  // <strong>PR:</strong> block before appending, so a rebuild's live PR supersedes the
+  // abandoned attempt's marker rather than adding a second. Single-match is therefore the
+  // live PR by construction.
   const prSection = s.match(/<strong>PR:<\/strong>[\s\S]*?(https?:\/\/github\.com\/forcedotcom\/salesforcedx-vscode\/pull\/\d+)/)
-  if (prSection) return prSection[1]
-  return null
+  return prSection?.[1]
 }
+
+// SF strips external hrefs from rich-text Details__c on save, leaving anchors like
+// <a href="">discussions/5867</a> — link TEXT survives, href is emptied. Reconstruct
+// the GitHub URL from the surviving text so the PR body can reference the originating
+// discussion/issue. Match ONLY empty/missing-href anchors whose TEXT is exactly a
+// discussions/NNN or issues/NNN path: a populated href is a live user link (already correct
+// — don't touch), and the workflow's own PR snippet has text '#NNN' (not a path) so it can
+// never produce a ghost URL on re-tick. Empty href covers the SF storage forms emitted by
+// rich text and the gus-cli convention: double-quoted href="" (incl. whitespace-only),
+// entity-encoded href=&quot;&quot;, or no href attr at all. Single-quoted/unquoted hrefs are
+// not produced by these inputs; if ever encountered, a populated such href would be
+// misclassified as empty. The exact-path text match (^...$) guards against reconstructing a
+// foreign repo URL embedded as anchor text.
+const extractDiscussionUrls = details =>
+  [
+    ...new Set(
+      [...String(details || '').matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)]
+        .filter(m => {
+          const href = m[1].match(/\bhref\s*=\s*(?:"([^"]*)"|&quot;([\s\S]*?)&quot;)/i)
+          const hrefValue = href ? (href[1] ?? href[2] ?? '').trim() : ''
+          return hrefValue === ''
+        })
+        .flatMap(m => {
+          const path = m[2].trim().match(/^(discussions|issues)\/\d+$/)
+          return path ? [`https://github.com/forcedotcom/salesforcedx-vscode/${path[0]}`] : []
+        })
+    ),
+  ]
 
 // Only match PRs appended by the workflow — formatted as <strong>PR:</strong> <a href="...">
 // This avoids false positives from "Prior art" / reference links in the WI body.
@@ -298,8 +330,15 @@ const hasPrUrl = details =>
 // A blocker is "satisfied" only once its work has actually merged — i.e. the WI
 // reached a terminal closed/completed status. 'Ready for Review' / 'Fixed' mean
 // the PR exists but hasn't merged, so a dependency in those states is NOT met.
+// GUS "Bug no-fix" terminal statuses — terminal like Closed/Completed, but the
+// label carries no "Closed" prefix. `Duplicate` is the canonical state for a
+// duplicate WI (the `Closed - Duplicate` status does not persist — a GUS trigger
+// reverts it to `Duplicate`), so the sequencing/dependency gates must count it as done.
+const NO_FIX_TERMINAL = new Set([
+  'Duplicate', 'Inactive', 'Never', 'Not a bug', 'Not Reproducible', 'Rejected', 'Eng Internal',
+])
 const isBlockerSatisfied = status =>
-  status === 'Completed' || status.startsWith('Closed')
+  status === 'Completed' || status.startsWith('Closed') || NO_FIX_TERMINAL.has(status)
 
 // A PR whose ONLY changed file is its own plan (or otherwise empty) has no
 // implementation — the Build phase no-op'd but reported 'done'. Such a PR still
@@ -492,6 +531,7 @@ Run:
   - 'failed' otherwise (any FAILURE / CANCELLED / TIMED_OUT / ERROR, with NO running rows remaining)
 - If state is 'failed', collect failed job names. Run 'gh run view --log-failed <runId>' for the most recent failed/cancelled run linked to the PR head SHA, capture last ~100 lines as failedLogsExcerpt. Also gather the maximum 'run_attempt' across the workflow runs for the PR head SHA (gh api repos/forcedotcom/salesforcedx-vscode/actions/runs?head_sha=<sha> → max .run_attempt). Return that as maxRunAttempt.
 - ALWAYS run 'gh pr diff ${wi.prUrl} --name-only' and return the changed paths (one per line) as 'files'. Empty list if the command yields nothing.
+- ALWAYS capture the PR head commit SHA into 'headSha' (gh pr view ${wi.prUrl} --json headRefOid --jq .headRefOid). Full 40-char SHA.
 
 Return ONLY the structured result.`
 
@@ -511,19 +551,19 @@ Steps:
 2. An open PR exists → capture its url + number. Re-persist into Details__c so future ticks stop rebuilding:
    a. Fetch existing: \`sf data query --query "SELECT Details__c FROM ADM_Work__c WHERE Id = '${wi.wiId}'" -o gus --result-format json\`. Parse \`result.records[0].Details__c\`.
    b. If it ALREADY contains 'pull/<number>' under a '<strong>PR:</strong>' marker → return {found: true, prUrl, persisted: true, detail: "already present"} (the extraction must have transiently failed; nothing to write).
-   c. Else compose new value = existing Details__c + this exact snippet (PR_URL/PR_NUMBER substituted): <p><strong>PR:</strong> <a href="PR_URL">#PR_NUMBER</a></p>
+   c. Else compose new value. FIRST strip any existing PR marker block from the existing Details__c — delete every \`<p><strong>PR:</strong> ... </p>\` paragraph (an abandoned attempt may have left one) so exactly ONE marker survives. THEN concatenate this exact snippet (PR_URL/PR_NUMBER substituted): <p><strong>PR:</strong> <a href="PR_URL">#PR_NUMBER</a></p>
    d. Write via --flags-dir with a SINGLE-QUOTE-wrapped value (the body's apostrophes are HTML-entity-encoded so it contains no literal single-quotes; the href's literal double-quotes are safe inside single quotes):
       - mkdir -p /tmp/gus-flags-${wi.name}
       - Write a SINGLE-LINE file /tmp/gus-flags-${wi.name}/values: Details__c='<NEW_VALUE>'
       - sf data update record -s ADM_Work__c -i ${wi.wiId} -o gus --flags-dir /tmp/gus-flags-${wi.name}
-   e. Verify: re-query Details__c; confirm 'pull/<number>' is now present under '<strong>PR:</strong>'. Present → {found: true, prUrl, persisted: true}. Absent → {found: true, prUrl, persisted: false, detail: "<why write failed>"}.
+   e. Verify: re-query Details__c; confirm 'pull/<number>' is now present under a single '<strong>PR:</strong>' marker (exactly one marker total). Present → {found: true, prUrl, persisted: true}. Absent or duplicate marker → {found: true, prUrl, persisted: false, detail: "<why write failed>"}.
 
 Return ONLY the structured result.`
 }
 
 const closeMergedPrompt = (r, identity) => {
   const { wt, branch } = pathsFor(identity, r.wi)
-  return `WI ${r.wi.name} has its PR (${r.wi.prUrl}) ${r.prState.state} on GitHub. Close out.
+  return `WI ${r.wi.name} has its PR (${r.wi.prUrl}) merged on GitHub. Close out.
 
 Steps (idempotent):
 1. If WI Status__c is not already a closed terminal value, update:
@@ -576,14 +616,29 @@ Tasks:
 Return ONLY the structured result.`
 }
 
-const dmCiFailurePrompt = (r, identity) =>
-  `DM the runner about a CI failure that needs human attention.
+const dmCiFailurePrompt = (r, identity) => {
+  const sha = r.prState.headSha || ''
+  const shaTag = sha ? ` [sha:${sha.slice(0, 12)}]` : ''
+  return `DM the runner about a CI failure that needs human attention — but only ONCE per failing commit.
 
-Slack ID: ${identity.slackId}
-Use mcp__slack__slack_send_message to send a DM with content:
-"⚠️ ${r.wi.name} CI failed after rerun budget exhausted (route=${r.triage.route}): ${r.triage.summary}\nPR: ${r.wi.prUrl}"
+Slack ID (DM channel): ${identity.slackId}
+PR head SHA: ${sha || '(unknown)'}
 
-Return {ok: true} on success.`
+DEDUP FIRST — this step runs every /loop tick while the PR sits failed; without this guard it re-DMs every tick.
+${
+  sha
+    ? `1. Search for a prior DM about THIS commit:
+   mcp__slack__slack_search_public_and_private with query "sha:${sha.slice(0, 12)} to:<@${identity.slackId}>" (you are the sender, user WB4TF6RFY).
+2. If ANY result contains the literal text "sha:${sha.slice(0, 12)}" → a DM for this commit already sent. Return {ok: true} WITHOUT sending. Do not send a duplicate.
+3. Otherwise send the DM (step below).`
+    : `1. headSha unknown — cannot dedup. Send the DM (step below).`
+}
+
+Send via mcp__slack__slack_send_message (channel_id=${identity.slackId}) with content:
+"⚠️ ${r.wi.name} CI failed after rerun budget exhausted (route=${r.triage.route}): ${r.triage.summary}\nPR: ${r.wi.prUrl}${shaTag}"
+
+The trailing${shaTag ? ` "${shaTag.trim()}"` : ' sha tag'} is the dedup marker — keep it verbatim. Return {ok: true} on success.`
+}
 
 const e2eFixPrompt = (r, identity) => {
   const { wt } = pathsFor(identity, r.wi)
@@ -892,6 +947,7 @@ Return {ok: true} on success.`
 
 const draftPrPrompt = (chosen, identity, fixerResult) => {
   const { wt, branch } = pathsFor(identity, chosen)
+  const reconstructedUrls = extractDiscussionUrls(chosen.details)
   return `Push the branch and open a draft PR for WI ${chosen.name}.
 
 Worktree: ${wt}
@@ -910,24 +966,24 @@ Steps:
    - ## Plan — link to .claude/plans/${chosen.name}.md
    - ## Reviewer notes — list the remaining findings (skip if empty)
    - ## Test plan — items from the plan's verification section, but ONLY genuine human/manual verification steps. EXCLUDE: (a) items covered by new/modified e2e tests on the branch (inspect 'git diff --name-only origin/develop...HEAD' for files matching '**/e2e/**' or '*.e2e.*' or 'packages/*-e2e/**'); (b) anything already enforced automatically by hooks/CI — typecheck, lint, eslint, prettier/format, effect-language-service diagnostics, and unit/jest tests passing. A reviewer must never be asked to run a gate that a git hook, agent hook, or CI job already guarantees. If nothing manual remains after these exclusions, omit the section entirely rather than listing automated gates.
-   - GUS reference per pr-draft skill. CRITICAL: the repo's 'pr-validation' CI gate (salesforcecli validatePR) hard-fails (exit 1) unless the PR BODY contains the work item wrapped in @-signs — literally '@${chosen.name}@' (e.g. @W-12345678@), not just a bare 'W-...' or a markdown link. Ensure the exact token '@${chosen.name}@' appears somewhere in the body (the GUS reference line is the natural place). The title already carries the bare WI; the body needs the @-wrapped form.
+${reconstructedUrls.length ? `   - ## References — the originating GitHub discussion/issue links (SF stripped their hrefs; reconstructed below). Include each verbatim in the body:\n${reconstructedUrls.map(u => `     ${u}`).join('\n')}\n` : ''}   - GUS reference per pr-draft skill. CRITICAL: the repo's 'pr-validation' CI gate (salesforcecli validatePR) hard-fails (exit 1) unless the PR BODY contains the work item wrapped in @-signs — literally '@${chosen.name}@' (e.g. @W-12345678@), not just a bare 'W-...' or a markdown link. Ensure the exact token '@${chosen.name}@' appears somewhere in the body (the GUS reference line is the natural place). The title already carries the bare WI; the body needs the @-wrapped form.
    - Footer: '🤖 Generated by auto-build pipeline. Original WI: <gus link>'
 5. Before creating the PR, check for an existing open PR on this branch:
    gh pr list --head ${branch} --state open --json number,url --limit 1 --repo forcedotcom/salesforcedx-vscode
    If one exists → skip gh pr create. Use that existing PR's url/number as the result. Skip to step 7.
 6. Create draft PR: gh pr create --draft --title "<title>" --body "<body>" --base develop
    Take the PR URL from gh's output.
-7. Append a PR link to the WI Details__c. CRITICAL: do NOT replace Details__c — read it first, then APPEND.
+7. Record the PR link in the WI Details__c. CRITICAL: do NOT blow away Details__c — read it first, strip any prior PR marker, then append the new one. Exactly ONE \`<strong>PR:</strong>\` marker must exist (a rebuild after an abandoned attempt must REPLACE the old marker, never add a second — the monitor/picker read the sole marker as the live PR).
    a. Fetch existing: \`sf data query --query "SELECT Details__c FROM ADM_Work__c WHERE Id = '${chosen.wiId}'" -o gus --result-format json\`. Parse \`result.records[0].Details__c\` (may be null/empty).
-   b. If existing already contains this exact PR URL, skip the update (idempotent — return success).
-   c. Compose new value: take the existing Details__c (or empty string if null), then concatenate this exact HTML snippet, with PR_URL replaced by the actual URL string from gh (e.g. https://github.com/forcedotcom/salesforcedx-vscode/pull/7382) and PR_NUMBER replaced by the integer:
+   b. If existing already contains this exact PR URL under a single \`<strong>PR:</strong>\` marker (no other PR marker present), skip the update (idempotent — return success).
+   c. Compose new value: take the existing Details__c (or empty string if null), STRIP every existing \`<p><strong>PR:</strong> ... </p>\` paragraph (delete any abandoned-attempt marker), then concatenate this exact HTML snippet, with PR_URL replaced by the actual URL string from gh (e.g. https://github.com/forcedotcom/salesforcedx-vscode/pull/7382) and PR_NUMBER replaced by the integer:
         <p><strong>PR:</strong> <a href="PR_URL">#PR_NUMBER</a></p>
       VERIFY before writing: the substring 'href="https://github.com/forcedotcom/salesforcedx-vscode/pull/' must appear in your new value. If 'href=""' appears anywhere in the appended snippet, you have failed substitution — abort and return {prUrl, prNumber} only after fixing it. Do NOT preserve angle-bracket placeholders like <prUrl> or <prNumber> in the output.
    d. Write via --flags-dir to handle quotes safely:
       - mkdir -p /tmp/gus-flags-${chosen.name}
       - Write a SINGLE-LINE file at /tmp/gus-flags-${chosen.name}/values. Format: Details__c="<NEW_VALUE>" using double-quotes around the value. Inside the value, all HTML attribute quotes must remain as plain double-quotes (the file uses single-quote-shell-escaping at the sf CLI layer; per gus-cli skill, single-line values with double-quote outer + literal double-quote inner work). If the existing Details__c contains a literal " character that would break the value file, fall back to appending using the plain-text form: Details__c='<existing-stripped>\\nPR: <prUrl>' but log a warning that the original HTML was lossy.
       - sf data update record -s ADM_Work__c -i ${chosen.wiId} -o gus --flags-dir /tmp/gus-flags-${chosen.name}
-   e. Verify: re-query Details__c and confirm BOTH (i) the new PR URL is present AND (ii) at least one original Goal/Done-when/Why marker from the prior content is still present. If either check fails, do NOT claim success — log the failure detail and return so the workflow retries next tick.
+   e. Verify: re-query Details__c and confirm ALL of (i) the new PR URL is present, (ii) exactly ONE \`<strong>PR:</strong>\` marker exists (no abandoned-attempt marker survived the strip), AND (iii) at least one original Goal/Done-when/Why marker from the prior content is still present. If any check fails, do NOT claim success — log the failure detail and return so the workflow retries next tick.
 
 Return {prUrl, prNumber}.`
 }
@@ -1040,8 +1096,18 @@ const monitorInFlight = async identity => {
     async result => {
       if (!result || result.action === 'no-pr-restart') return result
       const { prState } = result
-      if (prState.state === 'merged' || prState.state === 'closed') {
+      // Only 'merged' is a terminal success. A bare CLOSED PR is NOT a completion signal: a WI
+      // may carry 2+ PR URLs in Details__c (an abandoned first attempt plus the live PR), and URL
+      // extraction can match the abandoned one. With the live-PR fix in extractPrUrl, a
+      // 'closed'-not-merged state means the live PR itself was abandoned — wait, don't
+      // auto-close the WI (human/picker handles re-queue); closing here would mark a WI
+      // Closed with no resolution and strand the live PR.
+      if (prState.state === 'merged') {
         return { ...result, decision: 'close-wi' }
+      }
+      if (prState.state === 'closed') {
+        log(`${result.wi.name}: live PR closed without merging — abandoned attempt, waiting (not closing WI)`)
+        return { ...result, decision: 'wait' }
       }
       // A green PR whose ONLY change is its own plan file has no implementation — the
       // Build phase no-op'd but reported 'done', and a docs-only diff trivially passes CI.

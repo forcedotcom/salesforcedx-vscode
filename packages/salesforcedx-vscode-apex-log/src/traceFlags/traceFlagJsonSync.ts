@@ -14,7 +14,7 @@ import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
-import type { DebugLevelItem } from 'salesforcedx-vscode-services';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { TraceFlagsContentProviderService } from './traceFlagsContentProvider';
@@ -141,6 +141,52 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
 });
 
 type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
+
+/** Show a QuickPick of the given DebugLevels for removal; resolves to the picked item's id.
+ * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
+export const pickDebugLevelToRemove = Effect.fn('ApexLog.pickDebugLevelToRemove')(function* (items: DebugLevelItem[]) {
+  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<DebugLevelQuickPickItem>(
+      items.map(dl => ({
+        label: dl.masterLabel,
+        description: `Apex=${dl.apexCode} Vf=${dl.visualforce} DB=${dl.database}`,
+        detail: dl.developerName,
+        debugLevelId: dl.id
+      })),
+      {
+        placeHolder: nls.localize('trace_flag_pick_debug_level_to_remove'),
+        matchOnDescription: true,
+        matchOnDetail: true
+      }
+    )
+  ).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    Effect.map(picked => picked.debugLevelId)
+  );
+});
+
+export type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: string };
+
+/** Show a QuickPick of the given (already active) trace flags; resolves to the picked flag's id.
+ * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
+export const pickTraceFlag = Effect.fn('ApexLog.pickTraceFlag')(function* (active: TraceFlagItem[]) {
+  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<TraceFlagQuickPickItem>(
+      active.map(tf => ({
+        label: tf.tracedEntityName ?? tf.tracedEntityId ?? tf.id,
+        description: tf.logType,
+        detail: `Expires ${tf.expirationDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        traceFlagId: tf.id
+      })),
+      { placeHolder: nls.localize('trace_flag_pick_trace_flag') }
+    )
+  ).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    Effect.map(picked => picked.traceFlagId)
+  );
+});
 
 /** Show a QuickPick of org DebugLevels. */
 export const pickDebugLevel = async (items: DebugLevelItem[]): Promise<DebugLevelQuickPickItem | undefined> =>

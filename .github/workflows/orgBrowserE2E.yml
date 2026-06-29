@@ -54,9 +54,9 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
@@ -89,7 +89,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npm i -g @salesforce/cli
+          command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
       - name: Clone dreamhouse
@@ -200,9 +200,9 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
@@ -236,7 +236,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npm i -g @salesforce/cli
+          command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
       - name: Install Playwright browsers and OS deps

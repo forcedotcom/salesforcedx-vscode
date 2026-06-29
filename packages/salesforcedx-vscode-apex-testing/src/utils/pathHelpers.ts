@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI, Utils } from 'vscode-uri';
 import { getDefaultOrgInfo } from '../coreExtensionUtils';
-import { resolveDiscoveryOrgKey } from '../discoveryVfs/apexTestDiscoveryStore';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
 const STATE_FOLDER = '.sfdx';
@@ -19,9 +18,11 @@ const TEST_TYPE = 'apex';
 
 /** Gets the org-scoped apex test results folder URI and creates it if it doesn't exist. */
 export const getTestResultsFolder = async (): Promise<URI> => {
-  const orgInfo = await getDefaultOrgInfo();
-  const orgKey = resolveDiscoveryOrgKey(orgInfo);
-  return getTestResultsFolderForOrg(orgKey);
+  const { orgId } = await getDefaultOrgInfo();
+  if (!orgId) {
+    throw new Error('No default org; cannot resolve apex test results folder.');
+  }
+  return getTestResultsFolderForOrg(orgId);
 };
 
 /** Gets the apex test results folder URI for a specific org and creates it if it doesn't exist. */

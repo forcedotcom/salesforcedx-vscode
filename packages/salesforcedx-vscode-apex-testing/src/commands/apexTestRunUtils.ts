@@ -4,19 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ApexTestProgressValue,
-  AsyncTestConfiguration,
-  HumanReporter,
-  Progress,
-  TestResult,
-  TestService
-} from '@salesforce/apex-node';
+import { AsyncTestConfiguration, HumanReporter, TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { CancellationToken, CancellationError } from 'vscode';
+import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import { getConnection } from '../coreExtensionUtils';
 import * as settings from '../settings';
@@ -50,14 +42,9 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
   );
 });
 
-/** Runs Apex tests and writes results. Returns undefined if cancelled. */
-export const runApexTests = Effect.fn('runApexTests')(function* (
-  options: ApexTestRunOptions,
-  progress?: Progress<{ message?: string }>,
-  token?: CancellationToken
-) {
+/** Runs Apex tests and writes results. Returns undefined when the run produced no usable result (timeout / no summary). */
+export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTestRunOptions) {
   yield* Effect.annotateCurrentSpan('trigger', options.telemetryTrigger);
-  const startTime = Date.now();
 
   const connection = yield* Effect.tryPromise({
     try: () => getConnection(),
@@ -65,36 +52,23 @@ export const runApexTests = Effect.fn('runApexTests')(function* (
   });
   const testService = new TestService(connection);
 
-  const progressReporter: Progress<ApexTestProgressValue> = {
-    report: value => {
-      if (value.type === 'StreamingClientProgress' || value.type === 'FormatTestResultProgress') {
-        progress?.report({ message: value.message });
-      }
-    }
-  };
-
-  const Cancelled = { _tag: 'Cancelled' } as const;
-  type Cancelled = typeof Cancelled;
+  // Bridge the fiber's interruption (e.g. user clicks Cancel on the progress notification) to a
+  // vscode CancellationToken so apex-node stops polling the org server-side, not just the UI.
+  // The interrupt itself raises UserCancellationError via promptService.withCancellableProgress;
+  // apex-node never throws on cancel (it returns null once the token is set), so there is no
+  // cancellation result to catch here.
+  const tokenSource = new CancellationTokenSource();
 
   // TODO: fix in apex-node W-18453221
-  const result = yield* Effect.tryPromise({
-    try: () => testService.runTestAsynchronous(options.payload, options.codeCoverage, false, progressReporter, token),
-    catch: (e: unknown): Cancelled | Cause.UnknownException => {
-      if (token?.isCancellationRequested) {
-        return Cancelled;
-      }
-      if (e instanceof CancellationError) {
-        return Cancelled;
-      }
-      return new Cause.UnknownException(e);
-    }
-  }).pipe(Effect.catchTag('Cancelled', () => Effect.succeed(undefined)));
+  const result = yield* Effect.tryPromise(() =>
+    testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token)
+  ).pipe(
+    Effect.onInterrupt(() => Effect.sync(() => tokenSource.cancel())),
+    Effect.ensuring(Effect.sync(() => tokenSource.dispose()))
+  );
 
-  if (result === undefined || token?.isCancellationRequested) {
-    return undefined;
-  }
   // runTestAsynchronous can return TestRunIdResult on timeout; we need full TestResult to continue
-  if (!('summary' in result)) {
+  if (!result || !('summary' in result)) {
     return undefined;
   }
 
@@ -117,11 +91,10 @@ export const runApexTests = Effect.fn('runApexTests')(function* (
     Effect.catchAll(error => Effect.logError(`Failed to generate test report: ${String(error)}`))
   );
 
-  const durationMs = Date.now() - startTime;
   const summary = result.summary;
+  // duration is captured automatically by the `apexTestRun` span below
   const telemetryAttrs = {
     trigger: options.telemetryTrigger,
-    durationMs,
     testsRan: Number(summary?.testsRan ?? 0),
     testsPassed: Number(summary?.passing ?? 0),
     testsFailed: Number(summary?.failing ?? 0)

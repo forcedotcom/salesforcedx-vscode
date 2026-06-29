@@ -10,6 +10,8 @@ export {
   apexDebugMethodRunCodeActionDelegate,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
+  apexTestLastClassRunCodeAction,
+  apexTestLastMethodRunCodeAction,
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate
 } from './apexTestRunCodeAction';

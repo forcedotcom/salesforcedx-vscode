@@ -11,7 +11,7 @@ import type { FileResponseInfo, RetrieveOutcome } from 'salesforcedx-vscode-serv
 import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
-import { retrieveHasErrors, RetrieveCompletedWithErrorsError } from './retrieveOutcome';
+import { RetrieveCompletedWithErrorsError } from './retrieveOutcome';
 
 /** Present + persist an already-completed (data-only) retrieve outcome. The retrieve itself ran in services. */
 export const retrieveFromOutcome = Effect.fn('retrieveFromOutcome')(function* (
@@ -29,7 +29,12 @@ export const retrieveFromOutcome = Effect.fn('retrieveFromOutcome')(function* (
 
   yield* maybeStoreRetrieveResult(outcome);
 
-  if (retrieveHasErrors(outcome)) {
+  // Check for errors in the outcome (data-only version)
+  const RETRIEVE_FAILURE_STATUSES = new Set(['Failed', 'FinalizingFailed', 'SucceededPartial']);
+  const hasFileFailures = outcome.fileResponses.some(fr => fr.state === 'Failed');
+  const hasStatusFailure = RETRIEVE_FAILURE_STATUSES.has(outcome.status);
+
+  if (hasFileFailures || !outcome.success || hasStatusFailure) {
     const channel = yield* channelService.getChannel;
     yield* Effect.sync(() => channel.show());
     return yield* new RetrieveCompletedWithErrorsError({

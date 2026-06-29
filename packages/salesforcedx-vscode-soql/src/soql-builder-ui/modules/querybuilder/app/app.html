@@ -81,6 +81,21 @@
             onlimit__changed={handleLimitChanged}
             class={theme}
           ></querybuilder-limit>
+          <div class="section-container">
+            <div class="section_selection-container">
+              <label for="query-all-rows">
+                <input
+                  id="query-all-rows"
+                  type="checkbox"
+                  name="allRows"
+                  checked={query.allRows}
+                  data-el-all-rows
+                  onchange={handleAllRowsChanged}
+                />
+                {i18n.label_all_rows}
+              </label>
+            </div>
+          </div>
         </template>
         <template if:true={showBlockedQueryBuilder}>
           <div class="warning-notification">

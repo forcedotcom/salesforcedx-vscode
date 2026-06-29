@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer,
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -18,6 +23,8 @@ import {
   apexDebugMethodRunCodeActionDelegate,
   apexTestClassRunCodeAction,
   apexTestClassRunCodeActionDelegate,
+  apexTestLastClassRunCodeAction,
+  apexTestLastMethodRunCodeAction,
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate,
   apexTestRun,
@@ -28,9 +35,11 @@ import {
 import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
 import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
+import { nls } from './messages';
 import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
-import { buildAllServicesLayer, getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
+import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
+import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
 import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';
@@ -85,9 +94,24 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
     registerOrgOnlyRetrieveCodeLensProvider(context);
   }
 
-  // Always register commands (they'll be no-ops if not in a project)
+  // Register Effect-pipeline commands via the runtime so spans/tracing/error-handling and
+  // UserCancellationError swallowing are wired by registerCommandWithRuntime.
+  const registerCommand = api.services.registerCommandWithRuntime(getApexTestingRuntime());
+  yield* Effect.all([
+    registerCommand('sf.apex.test.run', apexTestRun),
+    registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd),
+    registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
+    registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
+    registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction),
+    registerCommand('sf.apex.test.last.class.run', apexTestLastClassRunCodeAction),
+    registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction),
+    registerCommand('sf.apex.test.last.method.run', apexTestLastMethodRunCodeAction)
+  ]);
+
+  // Always register the remaining (non-Effect) commands (they'll be no-ops if not in a project)
   const commands = registerCommands();
-  context.subscriptions.push(commands);
+  // apexTestingDiagnostics: single shared diagnostic collection for apex test failures
+  context.subscriptions.push(commands, apexTestingDiagnostics);
 
   yield* Effect.log('Salesforce Apex Testing extension is now active!');
 
@@ -106,7 +130,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 });
 
 export const activate = (context: vscode.ExtensionContext) => {
-  setAllServicesLayer(buildAllServicesLayer(context));
+  setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   const extensionScope = getApexTestingRuntime().runSync(getExtensionScope());
 
   return getApexTestingRuntime().runPromise(
@@ -139,11 +163,6 @@ const registerCommands = (): vscode.Disposable => {
     'sf.apex.debug.class.run.delegate',
     apexDebugClassRunCodeActionDelegate
   );
-  const apexTestLastClassRunCmd = vscode.commands.registerCommand(
-    'sf.apex.test.last.class.run',
-    apexTestClassRunCodeAction
-  );
-  const apexTestClassRunCmd = vscode.commands.registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction);
   const apexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.test.method.run.delegate',
     apexTestMethodRunCodeActionDelegate
@@ -152,15 +171,6 @@ const registerCommands = (): vscode.Disposable => {
     'sf.apex.debug.method.run.delegate',
     apexDebugMethodRunCodeActionDelegate
   );
-  const apexTestLastMethodRunCmd = vscode.commands.registerCommand(
-    'sf.apex.test.last.method.run',
-    apexTestMethodRunCodeAction
-  );
-  const apexTestMethodRunCmd = vscode.commands.registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction);
-  const apexTestSuiteCreateCmd = vscode.commands.registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate);
-  const apexTestSuiteRunCmd = vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun);
-  const apexTestSuiteAddCmd = vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd);
-  const apexTestRunCmd = vscode.commands.registerCommand('sf.apex.test.run', apexTestRun);
   const retrieveOrgOnlyClassCmd = vscode.commands.registerCommand(
     'sf.apex.test.orgOnlyClass.retrieve',
     async (target?: vscode.TestItem | URI) => {
@@ -201,19 +211,11 @@ const registerCommands = (): vscode.Disposable => {
   return vscode.Disposable.from(
     apexToggleColorizerCmd,
     statusBarToggle,
-    apexTestClassRunCmd,
     apexTestClassRunDelegateCmd,
     apexDebugClassRunDelegateCmd,
-    apexTestLastClassRunCmd,
-    apexTestLastMethodRunCmd,
-    apexTestMethodRunCmd,
     apexTestMethodRunDelegateCmd,
     apexDebugMethodRunDelegateCmd,
     retrieveOrgOnlyClassCmd,
-    apexTestRunCmd,
-    apexTestSuiteCreateCmd,
-    apexTestSuiteRunCmd,
-    apexTestSuiteAddCmd,
     openOrgOnlyTestCmd,
     apexTestRefreshCmd,
     apexTestClearResultsCmd,

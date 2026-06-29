@@ -13,7 +13,7 @@ import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } fr
 import { getApexTestingClassUri } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { createClassId, createMethodId, createPackageId } from '../utils/testItemUtils';
-import { getFullClassName } from '../utils/testUtils';
+import { getFullClassName } from '../utils/toolingTestClassHelpers';
 
 /**
  * A test class grouped by full name, with one or more Tooling API entries (e.g. from multiple discovery runs).

@@ -38,6 +38,8 @@ export default [
     ignores: [
       '**/out/**',
       '**/dist/**',
+      // salesforcedx-apex emits to lib/ (deep-import compat) instead of out/; don't lint build output
+      'packages/salesforcedx-apex/lib/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',
@@ -170,23 +172,30 @@ export default [
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-array-reverse': 'error',
       'unicorn/no-array-sort': 'error',
+      'unicorn/no-array-sort-for-min-max': 'error',
       'unicorn/no-boolean-sort-comparator': 'error',
       'unicorn/no-chained-comparison': 'error',
+      'unicorn/no-collection-bracket-access': 'error',
       'unicorn/no-constant-zero-expression': 'error',
       'unicorn/no-double-comparison': 'error',
       'unicorn/no-duplicate-if-branches': 'error',
       'unicorn/no-duplicate-logical-operands': 'error',
       'unicorn/no-empty-file': 'error',
       'unicorn/no-immediate-mutation': 'error',
+      'unicorn/no-impossible-length-comparison': 'error',
       'unicorn/no-instanceof-builtins': 'error',
+      'unicorn/no-invalid-character-comparison': 'error',
+      'unicorn/no-loop-iterable-mutation': 'error',
       'unicorn/no-single-promise-in-promise-methods': 'error',
       'unicorn/no-static-only-class': 'error',
       'unicorn/no-typeof-undefined': 'error',
+      'unicorn/no-unnecessary-boolean-comparison': 'error',
       'unicorn/no-unused-properties': 'error',
       'unicorn/no-useless-collection-argument': 'error',
+      'unicorn/no-useless-compound-assignment': 'error',
       'unicorn/no-useless-error-capture-stack-trace': 'error',
-      'unicorn/no-useless-iterator-to-array': 'error',
       'unicorn/no-useless-fallback-in-spread': 'error',
+      'unicorn/no-useless-iterator-to-array': 'error',
       'unicorn/no-useless-length-check': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
       'unicorn/no-useless-spread': 'error',
@@ -213,6 +222,7 @@ export default [
       'unicorn/prefer-set-has': 'error',
       'unicorn/prefer-set-size': 'error',
       'unicorn/prefer-single-call': 'error',
+      'unicorn/prefer-single-replace': 'error',
       'unicorn/prefer-string-replace-all': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
       'unicorn/prefer-simple-condition-first': 'error',
@@ -545,6 +555,7 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/test/**/*',
       'packages/salesforcedx-lightning-lsp-common/src/testSupport/**/*',
       'packages/soql-model/test/**/*',
+      'packages/salesforcedx-apex/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],
@@ -613,6 +624,7 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
       'packages/salesforcedx-apex-replay-debugger/**',
+      'packages/salesforcedx-apex/**',
       'packages/salesforcedx-vscode-soql/**',
       'packages/soql-model/**'
     ],
@@ -621,10 +633,29 @@ export default [
     }
   },
   {
+    // history-preserving import of forcedotcom/salesforcedx-apex: the upstream
+    // published library predates the monorepo's stricter style rules. Relax the
+    // upstream-style rules for its src (test/** is already relaxed above) to avoid
+    // restyling imported, history-tracked code. Matches the legacy-package blocks.
+    files: ['packages/salesforcedx-apex/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-assertions': 'off',
+      '@typescript-eslint/explicit-member-accessibility': 'off',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-shadow': 'off',
+      'no-param-reassign': 'off',
+      'no-restricted-imports': 'off',
+      'unicorn/no-array-sort': 'off',
+      'unicorn/prefer-single-call': 'off'
+    }
+  },
+  {
     // Override header rules
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**/*.ts',
-      'packages/salesforcedx-visualforce-language-server/**/*.ts'
+      'packages/salesforcedx-visualforce-language-server/**/*.ts',
+      // history-preserving import; do not rewrite upstream Copyright (c) 2020 headers
+      'packages/salesforcedx-apex/**/*.ts'
     ],
     rules: {
       'header/header': 'off'
@@ -736,6 +767,7 @@ export default [
     files: [
       'packages/salesforcedx-apex-debugger/**/*.ts',
       'packages/salesforcedx-apex-replay-debugger/**/*.ts',
+      'packages/salesforcedx-apex/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-org/**/*.ts',
       'packages/salesforcedx-vscode-core/**/*.ts'

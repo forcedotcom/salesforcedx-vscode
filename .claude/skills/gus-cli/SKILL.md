@@ -69,6 +69,15 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
 **Base select:** `SELECT Id, Name, Subject__c, Status__c, Story_Points__c, Epic__c, RecordType.Name FROM ADM_Work__c`
 
+**Optional display/detail fields** (append to SELECT only for single-WI/triage queries; do NOT add to bulk team/epic queries unless asked—keeps base lean, avoids widening every result set/terminal table):
+
+- `Priority__c` — picklist `P0`-`P4`.
+- `Epic_Name__c` — formula/string; epic name w/o `Epic__r` join. Bulk lists use existing `Epic__c` id or a separate epic-name lookup (formula evaluated per-row otherwise).
+- `Due_Date__c` (datetime) + `Out_of_SLA__c` (boolean) — SLA tracking.
+- Security trio: `Security__c` (label "Locked by Security", boolean), `Security_Vulnerability_Category__c` (picklist, 30+ values), `Security_Source__c` (label "Source", picklist, 30+ values—run `sf sobject describe` for full lists).
+
+**Bug body field:** Bug records store body in `Details_and_Steps_to_Reproduce__c` (richtextarea), not `Details__c`. `Details__c` = User Story body. Querying only `Details__c` misses Bug/PVR content. Single-WI fetch of unknown/mixed record type → SELECT both.
+
 **Query patterns** (combine as needed; use LIMIT on broad queries):
 
 | Filter      | WHERE clause                                                                                                                                                                                     |
@@ -81,6 +90,8 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 | Epic + open | `Epic__c = '<epicId>' AND Status__c NOT IN ('Closed', 'Completed', ...)`                                                                                                                         |
 
 Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when querying team or epic work.
+
+**Open-WI queries must ALSO exclude the "Bug no-fix" terminals**: `Duplicate`, `Inactive`, `Never`, `Not a bug`, `Not Reproducible`, `Rejected`, `Eng Internal`. Terminal despite no "Closed" prefix — omit them and a `Duplicate` WI wrongly shows as open.
 
 **Create:** Always set `Story_Points__c=2`, `Product_Tag__c=a1aB000000005G3IAI`, `RecordTypeId`. Include `Subject__c`, `Assignee__c`, `Scrum_Team__c=a00B0000000w9xPIAQ`, `Epic__c` (optional), `QA_Engineer__c` (optional), `Details__c` (optional). Leave `Sprint__c` blank; never modify it. **Details\_\_c:** write concisely—fragments/bullets, minimal words, no repetition (see .claude/skills/concise/SKILL.md).
 
@@ -103,6 +114,8 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 3. `sf data update record -s ADM_Work__c -i <id> -o gus --flags-dir /tmp/gus-flags`
 
 Constraints: File single-line (flags-dir treats each line as a separate flag invocation). Values in single quotes. HTML: `<p>`, `<strong>`, `<code>`, `<ul><li>`, `<a href="...">`. Escape `"` inside value as `&quot;`.
+
+**SF strips external hrefs on save:** `<a href=&quot;https://github.com/...discussions/5867&quot;>discussions/5867</a>` persists as `<a href="">discussions/5867</a>` — link text survives, href empties. Write full `href` regardless — surviving `discussions/NNN`|`issues/NNN` path text lets auto-build reconstruct the PR URL. Prefer link text that IS the path (`discussions/5867`), not a label.
 
 **After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
 
@@ -129,6 +142,8 @@ sf data query --query "SELECT Id, Name, Description__c FROM ADM_Epic__c WHERE Te
 ```
 
 Closed = `Health__c` in ('Completed', 'Canceled'). Use `Description__c` when populated to match work to epic.
+
+**`Description__c` is not filterable in SOQL** — `WHERE`/`LIKE` on it errors `field 'Description__c' can not be filtered in a query call`. To match an epic by text, fetch all open epics and match on `Name`, or post-filter `Description__c` client-side (e.g. with jq). Only `SELECT` it.
 
 ## Epic guide: which work items go where
 
@@ -161,9 +176,9 @@ When unsure which epic: ask the user.
 
 `[ai-auto]` in `Subject__c` or `Details__c` opts a WI into the [auto-build-wi workflow](../../workflows/auto-build-wi.js) (claim → plan → build → review → draft PR). See [workflows/README.md](../../workflows/README.md).
 
-- Add only on explicit user request; prefer `Subject__c`
+- Add only on explicit user request; only `Subject__c` (title), never `Details__c`
 - Skip for WIs needing design/coordination
-- Query: `(Subject__c LIKE '%[ai-auto]%' OR Details__c LIKE '%[ai-auto]%')`
+- Query: `Subject__c LIKE '%[ai-auto]%'`
 
 ## Compound workflows
 
@@ -191,6 +206,8 @@ When unsure which epic: ask the user.
 When creating/updating, only use New,In Progress,Ready for Review,QA In Progress,Fixed,Waiting,Closed
 When completing a work item, use `Closed`.
 
+To mark a WI as a duplicate: set `Status__c='Duplicate'` + link the original via `Related_Work__c` (label "Duplicate Of"). `Closed - Duplicate` does NOT persist here — a trigger reverts it to `Duplicate` — so use `Duplicate` directly. `Duplicate` is terminal (treat like Closed) for open/unfinished queries.
+
 **Flow:** New → Acknowledged → Triaged → In Progress → Ready for Review → Fixed → QA In Progress → Completed/Closed
 
 **Blocked:** Investigating | More Info Reqd from Support | Waiting On Customer | Waiting On 3rd Party | Waiting | Deferred | Integrate | Pending Release
@@ -201,6 +218,6 @@ When completing a work item, use `Closed`.
 
 ## CLI tips
 
-- `--result-format json` for parseable output
-- Strip CLI version warning before JSON parse (`tail -1` or parse last object)
+- `--json` for parseable output (not `--result-format json`)
+- Parse with `jq`, not python
 - `sf data create record` / `sf data update record` for single-record writes

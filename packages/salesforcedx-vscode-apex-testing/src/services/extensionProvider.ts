@@ -4,67 +4,31 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ExtensionPackageJsonSchema,
-  ExtensionProviderService,
-  type ExtensionPackageJson,
-  getServicesApi
-} from '@salesforce/effect-ext-utils';
-import * as Effect from 'effect/Effect';
+import type { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
-import * as Schema from 'effect/Schema';
-import type { ExtensionContext } from 'vscode';
-import { nls } from '../messages';
+import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 
-const CHANNEL_NAME = nls.localize('channel_name');
-
-const ExtensionProviderServiceLive = Layer.effect(
-  ExtensionProviderService,
-  Effect.sync(() => ({
-    getServicesApi
-  }))
-);
+/** Layer of apex-testing-specific services merged on top of the shared all-services layer. */
+// ApexTestDiscoveryService.Default carries ApexTestingDiscoveryFsProviderLive via its dependencies.
+// ApexTestRunCacheService.Default tracks last executed test class/method for rerun commands.
+const ApexTestingServicesLayer = Layer.merge(ApexTestDiscoveryService.Default, ApexTestRunCacheService.Default);
 
 /**
- * Factory for a Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Pass the ExtensionContext to include a working ExtensionContextServiceLayer.
- * When context is not provided, ExtensionContextService.Default is used (fails if getContext is called).
+ * Layer that provides all services from the SalesforceVSCodeServicesApi plus apex-testing-specific
+ * services. Built via the shared buildAllServicesLayer(context, fallbackDisplayName) at activation,
+ * then merged with the apex-testing services.
  */
-export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
-    Effect.gen(function* () {
-      const extensionProvider = yield* ExtensionProviderService;
-      const api = yield* extensionProvider.getServicesApi;
-      const emptyPjson: ExtensionPackageJson = {};
-      const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
-        Effect.catchAll(() => Effect.succeed(emptyPjson))
-      );
-      const displayName = pjson.displayName ?? CHANNEL_NAME;
-      // ErrorHandlerService depends on ChannelService, provide the extension's channel
-      const channelLayer = api.services.ChannelServiceLayer(displayName);
-      const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
-      return Layer.mergeAll(
-        ExtensionProviderServiceLive,
-        Layer.succeedContext(api.services.prebuiltServicesDependencies),
-        api.services.ExtensionContextServiceLayer(context),
-        api.services.SdkLayerFor(context),
-        channelLayer,
-        errorHandlerWithChannel
-      );
-    }).pipe(Effect.provide(ExtensionProviderServiceLive))
-  );
+type AllServicesLayerType = Layer.Layer<
+  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>> | ApexTestDiscoveryService | ApexTestRunCacheService,
+  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+>;
 
-/**
- * Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Uses ExtensionContextService.Default (fails if getContext is called).
- * Use buildAllServicesLayer(context) to provide a working ExtensionContextService.
- */
-
-let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+let AllServicesLayer: AllServicesLayerType;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
-  AllServicesLayer = layer;
+  AllServicesLayer = Layer.merge(layer, ApexTestingServicesLayer);
 };
 
 /**
@@ -73,8 +37,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * stateful services across test discovery, runs, and code-completion calls
  */
 type ApexTestingRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+  Layer.Layer.Success<AllServicesLayerType>,
+  Layer.Layer.Error<AllServicesLayerType>
 >;
 let _apexTestingRuntime: ApexTestingRuntime | undefined;
 export const getApexTestingRuntime = () => (_apexTestingRuntime ??= ManagedRuntime.make(AllServicesLayer));

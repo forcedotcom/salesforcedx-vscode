@@ -50,9 +50,9 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
@@ -153,9 +153,9 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
@@ -250,9 +250,9 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2
@@ -347,9 +347,9 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '22.22.3'
           cache: 'npm'
 
       - uses: google/wireit@setup-github-actions-caching/v2

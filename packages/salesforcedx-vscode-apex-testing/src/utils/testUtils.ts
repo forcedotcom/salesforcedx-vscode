@@ -13,19 +13,8 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import { getUriPath } from '../utils/commandletHelpers';
 import { ApexTestMethod } from '../views/lspConverter';
-
-/**
- * Builds a full class name from a ToolingTestClass, including namespace prefix if present
- */
-export const getFullClassName = (cls: ToolingTestClass): string =>
-  cls.namespacePrefix ? `${cls.namespacePrefix}.${cls.name}` : cls.name;
-
-/**
- * Checks if a ToolingTestClass is a Flow test (Flow tests have namespacePrefix starting with 'FlowTesting')
- */
-export const isFlowTest = (cls: ToolingTestClass): boolean => cls.namespacePrefix?.startsWith('FlowTesting') ?? false;
+import { getFullClassName } from './toolingTestClassHelpers';
 
 /**
  * Checks if a ToolingTestClass has a non-empty namespace prefix
@@ -237,7 +226,10 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
         if (component.content && classNameSet.has(component.name)) {
           // Prefer shorter paths (files closer to workspace root)
           const existingUri = index.get(component.name);
-          if (!existingUri || component.content.length < getUriPath(existingUri).length) {
+          if (
+            !existingUri ||
+            component.content.length < (yield* api.services.FsService.uriToPath(existingUri)).length
+          ) {
             index.set(component.name, URI.file(component.content));
           }
         }

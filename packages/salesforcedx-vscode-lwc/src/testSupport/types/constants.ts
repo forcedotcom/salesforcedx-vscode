@@ -38,3 +38,7 @@ export const LWC_TEST_DEBUG_LOG_NAME = 'lwc_test_debug_action';
  * Watch LWC test telemetry log name
  */
 export const LWC_TEST_WATCH_LOG_NAME = 'lwc_test_watch_action';
+/**
+ * GlobalState key for dismissing the Jest Runner duplicate code lens notification
+ */
+export const LWC_JEST_RUNNER_DUPLICATE_LENS_NOTICE_DISMISSED = 'lwc.jestRunnerDuplicateLensNoticeDismissed';

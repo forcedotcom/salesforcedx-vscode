@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Data from 'effect/Data';
-import type { RetrieveOutcome } from 'salesforcedx-vscode-services';
+import * as Effect from 'effect/Effect';
+import type { RequestStatusValue } from 'salesforcedx-vscode-services';
 
 /** Retrieve finished but the org reported failures (file responses and/or retrieve status). */
 export class RetrieveCompletedWithErrorsError extends Data.TaggedError('RetrieveCompletedWithErrorsError')<{
@@ -17,20 +20,30 @@ export class RetrieveCompletedWithErrorsError extends Data.TaggedError('Retrieve
   }
 }
 
-const RETRIEVE_FAILURE_STATUSES: ReadonlySet<string> = new Set(['Failed', 'FinalizingFailed', 'SucceededPartial']);
+const RETRIEVE_FAILURE_STATUSES: ReadonlySet<RequestStatusValue> = new Set([
+  'Failed',
+  'FinalizingFailed',
+  'SucceededPartial'
+]);
 
 /**
  * Whether retrieve should be treated as failed for UX (no success toast, surface
  * {@link RetrieveCompletedWithErrorsError}). File-level failures are primary; also
  * handle API status when SDR does not surface every issue as a failed file response.
- * Now operates on owned RetrieveOutcome (sync).
  */
-export const retrieveHasErrors = (outcome: RetrieveOutcome): boolean => {
-  if (outcome.fileResponses.some(fr => fr.state === 'Failed')) {
+export const retrieveHasErrors = Effect.fn('retrieveHasErrors')(function* (result: RetrieveResult) {
+  const { isSDRFailure, toRequestStatus } = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
+    .ComponentSetService;
+
+  if (result.getFileResponses().some(isSDRFailure)) {
     return true;
   }
-  if (outcome.success === false) {
+  const resp = result.response;
+  if (resp === undefined) {
+    return false;
+  }
+  if (!resp.success) {
     return true;
   }
-  return RETRIEVE_FAILURE_STATUSES.has(outcome.status);
-};
+  return RETRIEVE_FAILURE_STATUSES.has(toRequestStatus(resp.status));
+});

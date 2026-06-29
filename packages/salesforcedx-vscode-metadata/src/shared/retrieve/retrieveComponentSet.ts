@@ -34,7 +34,7 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 
   yield* maybeStoreRetrieveResult(outcome);
 
-  if (retrieveHasErrors(outcome)) {
+  if (yield* retrieveHasErrors(result)) {
     const channel = yield* channelService.getChannel;
     yield* Effect.sync(() => channel.show());
     return yield* new RetrieveCompletedWithErrorsError({

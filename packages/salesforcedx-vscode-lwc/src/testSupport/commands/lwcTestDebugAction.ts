@@ -6,90 +6,23 @@
  */
 import * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
-import { TestRunner } from '../testRunner';
-import { TestCaseInfo, TestExecutionInfo, TestFileInfo } from '../types';
+import { getLwcTestController } from '../testExplorer/lwcTestController';
+import { TestCaseInfo, TestExecutionInfo } from '../types';
 import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
-import { isLwcJestTest } from '../utils/isLwcJestTest';
-
 import { workspaceService } from '../workspace/workspaceService';
 
 const debugSessionStartTimes = new Map<string, number>();
 
-/**
- * Create a VS Code debug configuration for LWC Jest tests.
- * @param command LWC test runner executable
- * @param args CLI arguments
- * @param cwd current working directory
- */
-const getDebugConfiguration = async (
-  command: Promise<string>,
-  args: string[],
-  cwd: string
-): Promise<vscode.DebugConfiguration> => {
-  const sfDebugSessionId = globalThis.crypto.randomUUID();
-  const debugConfiguration: vscode.DebugConfiguration = {
-    sfDebugSessionId,
-    type: 'node',
-    request: 'launch',
-    name: 'Debug LWC test(s)',
-    cwd,
-    runtimeExecutable: await command,
-    args,
-    resolveSourceMapLocations: ['**', '!**/node_modules/**'],
-    console: 'integratedTerminal',
-    internalConsoleOptions: 'openOnSessionStart',
-    port: 9229,
-    disableOptimisticBPs: true
-  };
-  return debugConfiguration;
-};
+/** Debug an individual test case (code lens). */
+export const lwcTestCaseDebug = (data: { testExecutionInfo: TestCaseInfo }) =>
+  getLwcTestController().runByExecutionInfo(data.testExecutionInfo, true);
 
-/**
- * Start a debug session with provided test execution information
- * @param testExecutionInfo test execution information
- */
-const lwcTestDebug = async (testExecutionInfo: TestExecutionInfo) => {
-  const testRunner = new TestRunner(testExecutionInfo, 'debug');
-  const shellExecutionInfo = await testRunner.getShellExecutionInfo();
-  if (shellExecutionInfo) {
-    const { command, args, workspaceFolder, testResultFsPath } = shellExecutionInfo;
-    testRunner.startWatchingTestResults(testResultFsPath);
-    const debugConfiguration = await getDebugConfiguration(Promise.resolve(command), args, workspaceFolder.uri.fsPath);
-    await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
-  }
-};
+/** Debug a test file (test explorer node). */
+export const lwcTestFileDebug = (data: { testExecutionInfo: TestExecutionInfo }) =>
+  getLwcTestController().runByExecutionInfo(data.testExecutionInfo, true);
 
-/**
- * Debug an individual test case
- * @param data a test explorer node or information provided by code lens
- */
-export const lwcTestCaseDebug = async (data: { testExecutionInfo: TestCaseInfo }) => {
-  const { testExecutionInfo } = data;
-  await lwcTestDebug(testExecutionInfo);
-};
-
-/**
- * Debug a test file
- * @param data a test explorer node
- */
-export const lwcTestFileDebug = async (data: { testExecutionInfo: TestExecutionInfo }) => {
-  const { testExecutionInfo } = data;
-  await lwcTestDebug(testExecutionInfo);
-};
-
-/**
- * Debug the test of currently focused editor
- */
-export const lwcTestDebugActiveTextEditorTest = async () => {
-  const { activeTextEditor } = vscode.window;
-  if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
-    const testExecutionInfo: TestFileInfo = {
-      kind: 'testFile',
-      testUri: activeTextEditor.document.uri
-    };
-    await lwcTestFileDebug({ testExecutionInfo });
-  }
-};
+/** Debug the test of the currently focused editor (editor-title debug button). */
+export const lwcTestDebugActiveTextEditorTest = () => getLwcTestController().runActiveEditorFile(true);
 
 /**
  * Log the start time of debug session
