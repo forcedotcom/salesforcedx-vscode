@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Cause from 'effect/Cause';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -135,12 +136,23 @@ class UserCancellationError extends Schema.TaggedError<UserCancellationError>()(
 
 const appendToChannel = jest.fn<Effect.Effect<void>, [string]>();
 
+// Mirrors the real withCancellableProgress (promptService.ts): a fiber interrupt (Cancel) is converted into a
+// typed UserCancellationError. Modeling it this way lets the cancellation test interrupt mid-loop the same way
+// clicking Cancel does, instead of faking a typed failure out of simpleExec.
 const buildUsernameServices = (simpleExec: jest.Mock) => ({
   PromptService: Effect.succeed({
     withCancellableProgress:
       <A, E>(_message: string) =>
       (effect: Effect.Effect<A, E>) =>
-        effect
+        effect.pipe(
+          Effect.catchAllCause(cause =>
+            Cause.isInterruptedOnly(cause)
+              ? Effect.fail<UserCancellationError | E>(
+                  new UserCancellationError({ message: 'User cancelled progress' })
+                )
+              : Effect.failCause<UserCancellationError | E>(cause)
+          )
+        )
   }),
   TerminalService: Effect.succeed({ simpleExec }),
   ChannelService: Effect.succeed({ appendToChannel, showChannel: Effect.void })
@@ -222,14 +234,14 @@ describe('orgDeleteUsernameCommand', () => {
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgDeleteFailedError');
   });
 
-  it('aborts the loop on cancellation (UserCancellationError is not caught per-org)', async () => {
+  it('aborts the loop on cancellation (interrupt is not bucketed by partition)', async () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
-    // Cancelling mid-delete: withCancellableProgress converts the fiber interrupt into a UserCancellationError.
-    // Unlike a TerminalServiceError, it must propagate and stop the remaining orgs (user asked to stop).
+    // Cancelling mid-delete: clicking Cancel interrupts the loop fiber. Because withCancellableProgress wraps the
+    // whole partition (not each org), the interrupt aborts the loop; partition's per-element Effect.either only
+    // recovers typed failures, so it does NOT bucket the interrupt and continue. The progress wrapper then turns
+    // the interrupt into a UserCancellationError. (A typed TerminalServiceError, by contrast, IS bucketed.)
     const simpleExec = jest.fn((args: { command: string }) =>
-      args.command.includes('a@scratch.org')
-        ? Effect.fail(new UserCancellationError({ message: 'User cancelled progress' }))
-        : Effect.succeed('deleted')
+      args.command.includes('a@scratch.org') ? Effect.interrupt : Effect.succeed('deleted')
     );
 
     const exit = await runUsername(simpleExec);
