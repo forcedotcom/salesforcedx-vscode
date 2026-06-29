@@ -10,15 +10,18 @@ import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { CodeCoverageService } from '../codecoverage/codeCoverageService';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
+import { ApexTestTreeService } from '../views/apexTestTreeService';
 
 /** Layer of apex-testing-specific services merged on top of the shared all-services layer. */
 // ApexTestDiscoveryService.Default carries ApexTestingDiscoveryFsProviderLive via its dependencies.
 // ApexTestRunCacheService.Default tracks last executed test class/method for rerun commands.
 // CodeCoverageService.Default owns coverage Ref state + the coverage-data pipeline (colorizer).
+// ApexTestTreeService.Default owns the test-item tree Refs + discovery/restore coordination.
 const ApexTestingServicesLayer = Layer.mergeAll(
   ApexTestDiscoveryService.Default,
   ApexTestRunCacheService.Default,
-  CodeCoverageService.Default
+  CodeCoverageService.Default,
+  ApexTestTreeService.Default
 );
 
 /**
@@ -30,7 +33,8 @@ type AllServicesLayerType = Layer.Layer<
   | Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>
   | ApexTestDiscoveryService
   | ApexTestRunCacheService
-  | CodeCoverageService,
+  | CodeCoverageService
+  | ApexTestTreeService,
   Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 
