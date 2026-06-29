@@ -415,18 +415,15 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       // Most recent result's mtime (notification only); reuse the scan's mtime, no extra FsService.stat.
       const runDate = new Date(sortedRecent.at(-1)!.mtime).toLocaleString();
       const disableAction = nls.localize('apex_test_results_restored_disable_action');
-      yield* Effect.sync(() => {
-        void vscode.window
-          .showInformationMessage(
-            nls.localize('apex_test_results_restored_message', String(recentUris.length), runDate),
-            disableAction
-          )
-          .then(selection => {
-            if (selection === disableAction) {
-              void settings.disableRestorePreviousResults();
-            }
-          });
-      });
+      const selection = yield* Effect.promise(() =>
+        vscode.window.showInformationMessage(
+          nls.localize('apex_test_results_restored_message', recentUris.length, runDate),
+          disableAction
+        )
+      );
+      if (selection === disableAction) {
+        yield* Effect.promise(() => settings.disableRestorePreviousResults());
+      }
     });
 
     /**
@@ -497,7 +494,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * (logWarning), preserving the legacy non-fatal behavior of those two paths.
      */
     const doDiscover = Effect.fn('ApexTestTreeService.doDiscover')(function* (ctx: DiscoveryContext) {
-      yield* discoverBody(ctx).pipe(Effect.catchAll(notifyDiscoveryFailure));
+      yield* discoverBody(ctx).pipe(
+        Effect.catchTags({
+          DiscoveryError: notifyDiscoveryFailure,
+          PackageResolutionError: notifyDiscoveryFailure
+        })
+      );
     });
 
     /**
