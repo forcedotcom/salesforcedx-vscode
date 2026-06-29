@@ -229,6 +229,36 @@ export class SessionExpiredError extends Schema.TaggedError<SessionExpiredError>
 // - SessionExpiredError → "Your session expired. Please log in again."
 ```
 
+### Accumulating Errors Across a Collection
+
+When running an effect per item and you want to **continue past failures** instead of short-circuiting on the first one, do NOT hand-roll `Either` + `catchTag` + a second loop. Use the built-in error-accumulation combinators:
+
+| Combinator | Returns | Use when |
+|-----------|---------|----------|
+| `Effect.partition(items, f)` | `Effect<[failures[], successes[]], never, R>` | Process all, handle both buckets (log failures, keep going) |
+| `Effect.validateAll(items, f)` | `Effect<successes[], failures[], R>` | All-or-nothing: succeed only if every item succeeds |
+| `Effect.validateFirst(items, f)` | first success | Stop at first success |
+
+```typescript
+// WRONG - hand-rolled accumulation: Either wrapping + catchTag + a re-loop to split
+const each = Effect.fn('each')(function* (item: Item) {
+  const either = yield* doThing(item).pipe(
+    Effect.map(Either.right),
+    Effect.catchTag('ThingError', e => Effect.succeed(Either.left(e)))
+  );
+  return { item, either };
+});
+const results = yield* Effect.forEach(items, each);
+const failed = results.filter(r => Either.isLeft(r.either)); // manual split
+
+// CORRECT - partition does the split, never short-circuits
+const [failures, successes] = yield* Effect.partition(items, doThing, { concurrency: 1 });
+```
+
+**Critical: `partition`/`validateAll` recover the typed error channel per item via `Effect.either` — they do NOT capture interruption.** So a fiber interrupt (e.g. a `withCancellableProgress` Cancel) still aborts the whole loop. Exploit this: wrap the *entire* `partition` in one cancellable progress so Cancel interrupts and stops, while per-item typed failures accumulate. Do NOT wrap each item — that converts a Cancel into a typed `UserCancellationError` per item, which `partition` would then bucket as a failure and keep going.
+
+`partition` keeps only the **error channel** on the failures side, not the input. To name the failing item, tag it on via an `Effect.fn` trailing pipeable: `Effect.fn('f')(function*(item){...}, (effect, item) => effect.pipe(Effect.mapError(() => item)))` — the pipeable receives `(self, ...args)`.
+
 See `references/error-patterns.md` for error remapping and retry patterns.
 
 ## Schema & Branded Types Pattern
