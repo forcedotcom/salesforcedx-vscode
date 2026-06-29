@@ -14,12 +14,12 @@ import {
   openFileByName,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  clickModalDialogButton
 } from '@salesforce/playwright-vscode-ext';
 import { caseManagerClassText } from '../testData/sampleClassData';
 import {
   assertGenerationOrSkipOnRateLimit,
-  clickModalDialogButton,
   confirmEsrFolderPrompt,
   pushSource,
   setupWorkbenchAndAuth,

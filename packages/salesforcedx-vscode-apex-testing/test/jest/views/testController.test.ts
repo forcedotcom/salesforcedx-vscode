@@ -10,6 +10,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const Layer = jest.requireActual('effect/Layer');
   const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
   const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
+  const { ApexTestRunCacheService } = jest.requireActual('../../../src/testRunCache/apexTestRunCacheService');
   const { URI: UriClass } = jest.requireActual('vscode-uri');
 
   let mockConnectionRef: any;
@@ -40,9 +41,12 @@ jest.mock('../../../src/services/extensionProvider', () => {
       }
     }
   };
-  const MockAllServicesLayer = Layer.effect(
-    ExtensionProviderService,
-    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+  const MockAllServicesLayer = Layer.mergeAll(
+    Layer.effect(
+      ExtensionProviderService,
+      EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+    ),
+    ApexTestRunCacheService.Default
   );
 
   return {
