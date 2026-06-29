@@ -29,8 +29,9 @@ import {
   orgLogoutDefault
 } from './commands';
 import { orgDeleteDefaultCommand } from './commands/orgDelete';
+import { orgDisplayDefaultCommand } from './commands/orgDisplay';
 import { orgOpenCommand } from './commands/orgOpen';
-import { ORG_OPEN_COMMAND } from './constants';
+import { ORG_DISPLAY_DEFAULT_COMMAND, ORG_OPEN_COMMAND } from './constants';
 import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { nls } from './messages';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
@@ -46,7 +47,6 @@ const registerCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.org.delete.username', orgDelete, {
       flag: '--target-org'
     }),
-    vscode.commands.registerCommand('sf.org.display.default', orgDisplay),
     vscode.commands.registerCommand('sf.org.display.username', orgDisplay, {
       flag: '--target-org'
     }),
@@ -96,6 +96,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
+  yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
 
   // Initialize org picker and status bar
   yield* initializeStatusBarItems;

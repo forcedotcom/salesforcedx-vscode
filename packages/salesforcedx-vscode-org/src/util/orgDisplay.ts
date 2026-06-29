@@ -7,10 +7,24 @@
 
 import { AuthFields, AuthInfo, Connection, Org, OrgConfigProperties } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import { AllServicesLayer } from '../extensionProvider';
 import { OrgInfo } from '../types/orgInfo';
 import { getConfigAggregatorEffect } from './configAggregatorEffect';
 import { getConnectionStatusFromError, readAliasesByUsernameFromDisk, resolveUsernameFromAlias } from './orgUtil';
+
+/**
+ * Typed failure for the connection-driven org-info path (SOQL / connection-info derivation).
+ * Keeps rejections in the Effect failure channel instead of escaping as untyped defects.
+ * @ExportTaggedError
+ */
+export class OrgInfoQueryError extends Schema.TaggedError<OrgInfoQueryError>()('OrgInfoQueryError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
+
+const toOrgInfoQueryError = (error: unknown) =>
+  new OrgInfoQueryError({ message: error instanceof Error ? error.message : String(error), cause: error });
 
 type OrgQueryResult = {
   Id: string;
@@ -104,6 +118,32 @@ const createOrgInfo = (
   ...overrides
 });
 
+/**
+ * Build the scratch-preferred OrgInfo field overrides shared by the async and Effect paths.
+ * Scratch-org query results, when present, are preferred over Organization query results.
+ */
+const buildScratchPreferredOrgInfo = (
+  username: string,
+  authFields: AuthFields,
+  aliases: string[],
+  connectionStatus: string,
+  orgQuery: OrgQueryResult,
+  scratchOrgQuery: ScratchOrgQueryResult | undefined
+): OrgInfo =>
+  createOrgInfo(username, authFields, aliases, connectionStatus, {
+    id: authFields.orgId ?? orgQuery.Id,
+    createdBy: scratchOrgQuery?.CreatedBy.Username ?? orgQuery.CreatedBy.Username,
+    createdDate: scratchOrgQuery?.CreatedDate ?? orgQuery.CreatedDate,
+    expirationDate: scratchOrgQuery?.ExpirationDate ?? authFields.expirationDate ?? '',
+    edition: scratchOrgQuery?.Edition ?? getEdition(orgQuery),
+    orgName: scratchOrgQuery?.OrgName ?? orgQuery.Name,
+    ...(authFields.password ? { password: authFields.password } : {}),
+    status: scratchOrgQuery?.Status ?? connectionStatus
+  });
+
+const ORG_QUERY =
+  'SELECT Id, Name, CreatedDate, CreatedBy.Username, OrganizationType, InstanceName, NamespacePrefix, IsSandbox FROM Organization';
+
 /** Get org info from an established connection */
 const getOrgInfoFromConnection = async (
   org: Org,
@@ -120,9 +160,7 @@ const getOrgInfoFromConnection = async (
   // Get organization details via SOQL
   let orgQuery: OrgQueryResult;
   try {
-    orgQuery = await connection.singleRecordQuery<OrgQueryResult>(
-      'SELECT Id, Name, CreatedDate, CreatedBy.Username, OrganizationType, InstanceName, NamespacePrefix, IsSandbox FROM Organization'
-    );
+    orgQuery = await connection.singleRecordQuery<OrgQueryResult>(ORG_QUERY);
   } catch (error) {
     // If SOQL query fails, return basic info with error status
     return getOrgInfoWithError(username, error);
@@ -131,18 +169,42 @@ const getOrgInfoFromConnection = async (
   const scratchOrgQuery = isScratchOrg && authFields.orgId ? await queryScratchOrg(org, authFields.orgId) : undefined;
   const connectionStatus = await getConnectionStatus(connection, username);
 
-  // scratch org query results, when present, are preferred over org query results
-  return createOrgInfo(username, authFields, aliases, connectionStatus, {
-    id: authFields.orgId ?? orgQuery.Id,
-    createdBy: scratchOrgQuery?.CreatedBy.Username ?? orgQuery.CreatedBy.Username,
-    createdDate: scratchOrgQuery?.CreatedDate ?? orgQuery.CreatedDate,
-    expirationDate: scratchOrgQuery?.ExpirationDate ?? authFields.expirationDate ?? '',
-    edition: scratchOrgQuery?.Edition ?? getEdition(orgQuery),
-    orgName: scratchOrgQuery?.OrgName ?? orgQuery.Name,
-    ...(authFields.password ? { password: authFields.password } : {}),
-    status: scratchOrgQuery?.Status ?? connectionStatus
-  });
+  return buildScratchPreferredOrgInfo(username, authFields, aliases, connectionStatus, orgQuery, scratchOrgQuery);
 };
+
+/**
+ * Connection-driven Effect variant of {@link getOrgInfoFromConnection} for the `.default` path.
+ * Derives authInfo/username/Org from the bare default-org `Connection` (no `resolveUsername`,
+ * no nested `runPromise`/`AllServicesLayer`). Connection/SOQL failures degrade gracefully to an
+ * error-status table (matching the legacy path) via `getOrgInfoWithError`; only an absent username
+ * surfaces as a typed `OrgInfoQueryError`.
+ */
+export const orgInfoFromConnection = Effect.fn('orgInfoFromConnection')(function* (conn: Connection) {
+  const authInfo = conn.getAuthInfo();
+  const authFields = authInfo.getFields(true);
+  const username = conn.getUsername() ?? authFields.username;
+  if (!username) {
+    return yield* new OrgInfoQueryError({ message: messages.no_username_provided });
+  }
+
+  const aliases = yield* Effect.tryPromise({ try: () => getAllAliases(username), catch: toOrgInfoQueryError });
+  const isScratchOrg = Boolean(authFields.devHubUsername);
+
+  // Connection-creation + SOQL failures degrade to an error-status table, matching the legacy path.
+  const orgInfoOrError = yield* Effect.tryPromise({
+    try: async () => {
+      const org = await Org.create({ connection: conn });
+      const orgQuery = await conn.singleRecordQuery<OrgQueryResult>(ORG_QUERY);
+      const orgId = authFields.orgId;
+      const scratchOrgQuery = isScratchOrg && orgId ? await queryScratchOrg(org, orgId) : undefined;
+      const connectionStatus = await getConnectionStatus(conn, username);
+      return buildScratchPreferredOrgInfo(username, authFields, aliases, connectionStatus, orgQuery, scratchOrgQuery);
+    },
+    catch: toOrgInfoQueryError
+  }).pipe(Effect.catchAll(error => Effect.promise(() => getOrgInfoWithError(username, error.cause ?? error))));
+
+  return orgInfoOrError;
+});
 
 const getEdition = (orgQuery: OrgQueryResult): string => {
   if (orgQuery.IsSandbox) {
