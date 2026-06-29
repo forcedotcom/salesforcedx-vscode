@@ -32,3 +32,23 @@
 ### namespace/package grouping
 
 - tree: namespace → package (2GP/1GP/unpackaged) → class → method
+
+## Effect-TS Architecture
+
+### Errors
+
+- `Schema.TaggedError`, never raw exceptions
+- handle by tag via `Effect.catchTags`
+- uncaught → UserCancellationError or logged/shown
+
+### State
+
+- coverage decorations in `Ref<Range[]>` within `CodeCoverageService`
+- active-editor repaint via `EditorService.pubsub` fork (`watchActiveEditorForCoverage`) from `index.ts`
+- no disposables; lifecycle = extension scope
+
+### File ops
+
+- all I/O via `FsService`, not raw `workspace.fs`
+- `stat` takes `string | URI`; `readFile`/`readDirectoryWithTypes` for batch
+- result aggregation: sequential reads + mtime sort (last-write-wins)

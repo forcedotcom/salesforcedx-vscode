@@ -16,7 +16,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { initializeOutputChannel } from './channels';
-import { CodeCoverageHandler } from './codecoverage/colorizer';
+import { CodeCoverageHandler, watchActiveEditorForCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
   apexDebugClassRunCodeActionDelegate,
@@ -109,9 +109,12 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   ]);
 
   // Always register the remaining (non-Effect) commands (they'll be no-ops if not in a project)
-  const commands = registerCommands();
+  const { commands, statusBarToggle } = registerCommands();
   // apexTestingDiagnostics: single shared diagnostic collection for apex test failures
   context.subscriptions.push(commands, apexTestingDiagnostics);
+
+  // Repaint code-coverage decorations on active-editor changes (forked so it tears down on deactivation).
+  yield* Effect.forkIn(watchActiveEditorForCoverage(statusBarToggle), yield* getExtensionScope());
 
   yield* Effect.log('Salesforce Apex Testing extension is now active!');
 
@@ -146,7 +149,7 @@ export const activate = (context: vscode.ExtensionContext) => {
   );
 };
 
-const registerCommands = (): vscode.Disposable => {
+const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: StatusBarToggle } => {
   // Code coverage highlighting (owned by Apex Testing; works in Desktop and Web)
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverageHandler(statusBarToggle);
@@ -208,7 +211,7 @@ const registerCommands = (): vscode.Disposable => {
     )
   );
 
-  return vscode.Disposable.from(
+  const commands = vscode.Disposable.from(
     apexToggleColorizerCmd,
     statusBarToggle,
     apexTestClassRunDelegateCmd,
@@ -221,6 +224,7 @@ const registerCommands = (): vscode.Disposable => {
     apexTestClearResultsCmd,
     apexTestingWalkthroughOpenCmd
   );
+  return { commands, statusBarToggle };
 };
 
 export const deactivate = () => {

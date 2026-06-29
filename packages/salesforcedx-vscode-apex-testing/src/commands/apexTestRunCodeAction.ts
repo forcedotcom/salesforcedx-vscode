@@ -28,6 +28,8 @@ class WorkspaceFolderError extends Schema.TaggedError<WorkspaceFolderError>()('W
   message: Schema.String
 }) {}
 
+const toWorkspaceFolderError = () => new WorkspaceFolderError({ message: nls.localize('cannot_determine_workspace') });
+
 // raised when a `last.*` re-run is invoked but nothing has been cached yet
 class NoCachedTestError extends Schema.TaggedError<NoCachedTestError>()('NoCachedTestError', {
   message: Schema.String
@@ -166,10 +168,12 @@ const mapApexArtifactToFilesystem = async (
 };
 
 const getTempFolder = Effect.fn('apexTestRunCodeAction.getTempFolder')(function* () {
-  return yield* Effect.tryPromise({
-    try: () => getTestResultsFolder(),
-    catch: () => new WorkspaceFolderError({ message: nls.localize('cannot_determine_workspace') })
-  });
+  return yield* getTestResultsFolder().pipe(
+    Effect.catchTags({
+      NoDefaultOrgError: toWorkspaceFolderError,
+      NoWorkspaceOpenError: toWorkspaceFolderError
+    })
+  );
 });
 
 //   T E S T   C L A S S
