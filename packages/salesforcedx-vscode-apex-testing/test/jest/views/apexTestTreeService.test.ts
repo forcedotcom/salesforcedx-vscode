@@ -5,16 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-const mockShowWarningMessage = jest.fn();
-const mockShowErrorMessage = jest.fn();
-jest.mock('../../../src/utils/notificationHelpers', () => ({
-  notificationService: {
-    showWarningMessage: (...args: unknown[]) => mockShowWarningMessage(...args),
-    showErrorMessage: (...args: unknown[]) => mockShowErrorMessage(...args),
-    showInformationMessage: jest.fn().mockResolvedValue(undefined)
-  }
-}));
-
 // discoverTests is a module-level Effect; the dedup tests count body runs via ensureInitialized, so a
 // trivially-succeeding discovery keeps the body cheap. The mock returns an Effect (consumed via yield*).
 const mockDiscoverTests = jest.fn();
@@ -50,7 +40,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import * as Ref from 'effect/Ref';
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
 import { ApexTestTreeService, type DiscoveryContext } from '../../../src/views/apexTestTreeService';
@@ -61,6 +51,10 @@ const ExtensionProviderLayer = Layer.succeed(ExtensionProviderService, {
   getServicesApi: Effect.succeed(mockServicesApi)
 } as unknown as ExtensionProviderService);
 
+// baseLayer() constructs a fresh service instance (fresh Refs) per call, so every run() is isolated.
+// The restore-apply test builds its own layerWithFs instead of reusing baseLayer: it needs a real FsService
+// in the ambient env (the restore body yields ExtensionProviderService at call time), which the bare
+// ExtensionProviderLayer here does not provide.
 const baseLayer = () => Layer.provide(ApexTestTreeService.Default, ExtensionProviderLayer);
 
 const run = <A, E, R>(effect: Effect.Effect<A, E, ApexTestTreeService | R>) =>
@@ -170,8 +164,8 @@ describe('ApexTestTreeService', () => {
         clearTree: jest.fn()
       });
       await run(ApexTestTreeService.discover(ctx));
-      expect(mockShowErrorMessage).toHaveBeenCalledWith('boom: connection failed');
-      expect(mockShowWarningMessage).not.toHaveBeenCalled();
+      expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('boom: connection failed');
+      expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     });
 
     it('shows a warning (not error) when discovery fails with the partial-discovery message', async () => {
@@ -180,8 +174,10 @@ describe('ApexTestTreeService', () => {
         onEnsureInitialized: () => Promise.reject(new Error('431 Request Header Fields Too Large'))
       });
       await run(ApexTestTreeService.discover(ctx));
-      expect(mockShowWarningMessage).toHaveBeenCalledWith(nls.localize('apex_test_discovery_partial_warning'));
-      expect(mockShowErrorMessage).not.toHaveBeenCalled();
+      expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
+        nls.localize('apex_test_discovery_partial_warning')
+      );
+      expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
     });
   });
 
