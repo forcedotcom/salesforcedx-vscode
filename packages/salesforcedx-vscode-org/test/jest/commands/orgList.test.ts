@@ -5,19 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, AuthInfo, Org } from '@salesforce/core';
-import { createTable } from '@salesforce/effect-ext-utils';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { AuthRemover, Org, OrgAuthorization } from '@salesforce/core';
+import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { channelService } from '../../../src/channels';
+import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import {
   determineConnectedStatusForNonScratchOrg,
+  findRemovableOrgs,
   removeExpiredAndDeletedOrgs,
   displayRemainingOrgs,
   shouldRemoveOrg,
   getConnectionStatusFromError
 } from '../../../src/util/orgUtil';
 import * as orgUtil from '../../../src/util/orgUtil';
+
+// ConnectionService.listAllAuthorizations returns an Effect; post-migration removeExpiredAndDeletedOrgs/
+// displayRemainingOrgs resolve org auths through it (via getOrgRuntime), not bare AuthInfo.listAllAuthorizations.
+let listAllAuthorizationsMock: jest.Mock;
+
 // Mock the dependencies
 jest.mock('@salesforce/core', () => ({
   AuthRemover: {
@@ -42,18 +51,17 @@ jest.mock('@salesforce/core', () => ({
     TARGET_ORG: 'target-org'
   }
 }));
-jest.mock('@salesforce/effect-ext-utils', () => ({
-  createTable: jest.fn()
-}));
+jest.mock('@salesforce/effect-ext-utils', () => {
+  const actual = jest.requireActual('@salesforce/effect-ext-utils');
+  return {
+    createTable: jest.fn(),
+    ExtensionProviderService: actual.ExtensionProviderService
+  };
+});
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   notificationService: {
     showSuccessfulExecution: jest.fn()
   },
-  ContinueResponse: jest.fn(),
-  LibraryCommandletExecutor: jest.fn(),
-  // Add these to align with command imports
-  PromptConfirmGatherer: jest.fn(),
-  SfCommandlet: jest.fn(),
   ConfigUtil: {
     getConfigValue: jest.fn(),
     getUsernameFor: jest.fn()
@@ -81,29 +89,25 @@ const mockConfigAggregatorStore: {
   }
 };
 
-jest.mock('../../../src/util/configAggregatorEffect', () => {
-  const Effect = require('effect/Effect');
+jest.mock('../../../src/util/configAggregatorEffect', () => ({
   // Reference mockConfigAggregatorStore from closure
-  return {
-    get getConfigAggregatorEffect() {
-      return Effect.succeed(mockConfigAggregatorStore.value);
-    }
-  };
-});
+  get getConfigAggregatorEffect() {
+    return Effect.succeed(mockConfigAggregatorStore.value);
+  }
+}));
 
-// Mock extensionProvider to provide AllServicesLayer and getOrgRuntime (getConfigAggregatorEffect is fully mocked)
-jest.mock('../../../src/extensionProvider', () => {
-  const Layer = require('effect/Layer');
-  const Context = require('effect/Context');
-  const ManagedRuntime = require('effect/ManagedRuntime');
-  const DummyService = Context.GenericTag('DummyService');
-  const AllServicesLayer = Layer.succeed(DummyService, {});
-  return {
-    AllServicesLayer,
-    setAllServicesLayer: jest.fn(),
-    getOrgRuntime: () => ManagedRuntime.make(AllServicesLayer)
-  };
-});
+// Use the real extensionProvider so setAllServicesLayer/getOrgRuntime drive a runtime whose
+// ConnectionService.listAllAuthorizations is the mock seeded in beforeEach.
+const buildServicesLayer = (mock: jest.Mock) =>
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({
+      services: {
+        ConnectionService: {
+          listAllAuthorizations: mock
+        }
+      }
+    } as unknown as SalesforceVSCodeServicesApi)
+  } as unknown as ExtensionProviderService);
 
 describe('orgList command', () => {
   let mockGetAuthFieldsFor: jest.SpyInstance;
@@ -111,6 +115,15 @@ describe('orgList command', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
+
+    // Default the ConnectionService.listAllAuthorizations mock to an empty Effect; suites override below.
+    listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
+    resetOrgRuntimeForTesting();
+    setAllServicesLayer(
+      buildServicesLayer(listAllAuthorizationsMock) as ReturnType<
+        typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer
+      >
+    );
 
     // Mock createTable function
     (createTable as jest.Mock).mockReturnValue('mocked table output');
@@ -126,15 +139,6 @@ describe('orgList command', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-  });
-
-  it('should be a simple smoke test to verify basic functionality', () => {
-    // Basic test to ensure the command structure is correct
-    expect(typeof orgUtil.getAuthFieldsFor).toBe('function');
-    expect(channelService.appendLine).toBeDefined();
-    expect(notificationService.showSuccessfulExecution).toBeDefined();
-    expect(AuthInfo.listAllAuthorizations).toBeDefined();
-    expect(AuthRemover.create).toBeDefined();
   });
 
   describe('determineConnectedStatusForNonScratchOrg', () => {
@@ -175,9 +179,8 @@ describe('orgList command', () => {
 
       const result = await determineConnectedStatusForNonScratchOrg('invalid@example.com');
 
-      // Should return error status from getConnectionStatusFromError
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
+      // getConnectionStatusFromError falls through to the raw message for unrecognized errors
+      expect(result).toBe('Connection failed');
     });
 
     it('should handle org creation failure', async () => {
@@ -185,8 +188,7 @@ describe('orgList command', () => {
 
       const result = await determineConnectedStatusForNonScratchOrg('notfound@example.com');
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
+      expect(result).toBe('Org not found');
     });
   });
 
@@ -248,11 +250,7 @@ describe('orgList command', () => {
     });
   });
 
-  describe('removeExpiredAndDeletedOrgs', () => {
-    const mockAuthRemover = {
-      removeAuth: jest.fn()
-    };
-
+  describe('findRemovableOrgs', () => {
     const mockOrgAuths = [
       {
         username: 'valid@example.com',
@@ -272,40 +270,75 @@ describe('orgList command', () => {
     ];
 
     beforeEach(() => {
-      jest.clearAllMocks();
-      (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue(mockOrgAuths);
-      (AuthRemover.create as jest.Mock).mockResolvedValue(mockAuthRemover);
-      mockAuthRemover.removeAuth.mockResolvedValue(undefined);
+      listAllAuthorizationsMock.mockReturnValue(Effect.succeed(mockOrgAuths as unknown as OrgAuthorization[]));
     });
 
     it('should skip dev hubs', async () => {
       mockGetAuthFieldsFor.mockResolvedValue({});
 
-      await removeExpiredAndDeletedOrgs();
+      await findRemovableOrgs();
 
       expect(mockGetAuthFieldsFor).not.toHaveBeenCalledWith('devhub@example.com');
     });
 
-    it('should remove expired orgs', async () => {
+    it('should classify expired orgs as removable without removing them', async () => {
       const pastDate = new Date('2020-01-01').toISOString();
-      mockGetAuthFieldsFor
-        .mockResolvedValueOnce({}) // valid@example.com - no expiration
-        .mockResolvedValueOnce({ expirationDate: pastDate }); // expired@example.com
+      mockGetAuthFieldsFor.mockImplementation((username: string) =>
+        Promise.resolve(username === 'expired@example.com' ? { expirationDate: pastDate } : {})
+      );
 
-      const result = await removeExpiredAndDeletedOrgs();
+      const result = await findRemovableOrgs();
 
-      expect(mockAuthRemover.removeAuth).toHaveBeenCalledWith('expired@example.com');
-      expect(result).toContain('expired@example.com');
+      expect(result.map(o => o.username)).toEqual(['expired@example.com']);
+      // classification must not mutate auth state
+      expect(AuthRemover.create).not.toHaveBeenCalled();
     });
 
-    it('should handle getAuthFieldsFor errors', async () => {
+    it('should not classify orgs when getAuthFieldsFor fails with a non-removable error', async () => {
       mockGetAuthFieldsFor.mockRejectedValue(new Error('Auth fields error'));
 
-      const result = await removeExpiredAndDeletedOrgs();
+      const result = await findRemovableOrgs();
 
-      // Should handle gracefully and continue
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual([]);
+      expect(channelService.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining(
+          nls.localize('org_list_clean_error_checking_org', 'valid@example.com', 'Auth fields error')
+        )
+      );
+    });
+  });
+
+  describe('removeExpiredAndDeletedOrgs', () => {
+    const mockAuthRemover = {
+      removeAuth: jest.fn()
+    };
+
+    beforeEach(() => {
+      (AuthRemover.create as jest.Mock).mockResolvedValue(mockAuthRemover);
+      mockAuthRemover.removeAuth.mockResolvedValue(undefined);
+    });
+
+    it('should remove each given org and return removed usernames', async () => {
+      const result = await removeExpiredAndDeletedOrgs([
+        { username: 'expired@example.com', logLine: 'removing expired' }
+      ]);
+
+      expect(mockAuthRemover.removeAuth).toHaveBeenCalledWith('expired@example.com');
+      expect(result).toEqual(['expired@example.com']);
+    });
+
+    it('should keep removing after a removal failure and exclude the failed org', async () => {
+      mockAuthRemover.removeAuth.mockRejectedValueOnce(new Error('remove failed')).mockResolvedValueOnce(undefined);
+
+      const result = await removeExpiredAndDeletedOrgs([
+        { username: 'bad@example.com', logLine: 'removing bad' },
+        { username: 'expired@example.com', logLine: 'removing expired' }
+      ]);
+
+      expect(result).toEqual(['expired@example.com']);
+      expect(channelService.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining(nls.localize('org_list_clean_failed_to_remove_org', 'bad@example.com', 'remove failed'))
+      );
     });
   });
 
@@ -328,14 +361,13 @@ describe('orgList command', () => {
     };
 
     beforeEach(() => {
-      jest.clearAllMocks();
-      (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue(mockOrgAuths);
+      listAllAuthorizationsMock.mockReturnValue(Effect.succeed(mockOrgAuths as unknown as OrgAuthorization[]));
       mockGetAuthFieldsFor.mockResolvedValue({});
       jest.spyOn(orgUtil, 'getDefaultOrgConfiguration').mockResolvedValue(defaultConfig);
     });
 
     it('should display message when no orgs found', async () => {
-      (AuthInfo.listAllAuthorizations as jest.Mock).mockResolvedValue([]);
+      listAllAuthorizationsMock.mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
 
       await displayRemainingOrgs();
 
@@ -360,7 +392,7 @@ describe('orgList command', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      (AuthInfo.listAllAuthorizations as jest.Mock).mockRejectedValue(new Error('List error'));
+      listAllAuthorizationsMock.mockReturnValue(Effect.fail(new Error('List error')));
 
       await displayRemainingOrgs();
 
