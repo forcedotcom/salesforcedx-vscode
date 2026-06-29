@@ -11,7 +11,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { getFullClassName } from '../utils/testUtils';
+import { getFullClassName } from '../utils/toolingTestClassHelpers';
 import {
   ApexTestingDiscoveryFsProviderLive,
   ApexTestingDiscoveryFsProviderTag

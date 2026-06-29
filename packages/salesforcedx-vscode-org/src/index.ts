@@ -26,12 +26,13 @@ import {
   orgLoginWeb,
   orgLoginWebDevHub,
   orgLogoutAll,
-  orgLogoutDefault,
-  orgOpen
+  orgLogoutDefault
 } from './commands';
 import { orgDeleteDefaultCommand } from './commands/orgDelete';
-import { ORG_OPEN_COMMAND } from './constants';
-import { AllServicesLayer, setAllServicesLayer } from './extensionProvider';
+import { orgDisplayDefaultCommand } from './commands/orgDisplay';
+import { orgOpenCommand } from './commands/orgOpen';
+import { ORG_DISPLAY_DEFAULT_COMMAND, ORG_OPEN_COMMAND } from './constants';
+import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { nls } from './messages';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
 import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
@@ -46,15 +47,13 @@ const registerCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.org.delete.username', orgDelete, {
       flag: '--target-org'
     }),
-    vscode.commands.registerCommand('sf.org.display.default', orgDisplay),
     vscode.commands.registerCommand('sf.org.display.username', orgDisplay, {
       flag: '--target-org'
     }),
     vscode.commands.registerCommand('sf.org.list.clean', orgList),
     vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
     vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
-    vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault),
-    vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen)
+    vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault)
   );
 
 /** Initialize org picker and org status bar */
@@ -78,9 +77,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const extensionScope = Effect.runSync(getExtensionScope());
   // fallbackDisplayName only fires if package.json displayName is absent; channel_name must match displayName ('Salesforce Org Management')
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
-  await Effect.runPromise(
-    activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer)).pipe(Scope.extend(extensionScope))
-  );
+  await getOrgRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
 
   const api: SalesforceVSCodeOrgApi = {
     channelService
@@ -98,6 +95,8 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
+  yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
+  yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
 
   // Initialize org picker and status bar
   yield* initializeStatusBarItems;

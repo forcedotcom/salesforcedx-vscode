@@ -16,7 +16,7 @@ import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { getFullClassName, isFlowTest } from '../utils/testUtils';
+import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { runApexTests } from './apexTestRunUtils';
 
 /** Prompt the user to pick a test target (suite, class, or all). Fails with UserCancellationError on dismiss. */
@@ -107,7 +107,7 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
       payload: api.services.ConnectionService.getConnection().pipe(
         Effect.flatMap(connection => Effect.promise(() => buildTestPayload(new TestService(connection), selection)))
       ),
-      outputDir: Effect.promise(() => getTestResultsFolder())
+      outputDir: getTestResultsFolder()
     },
     { concurrency: 'unbounded' }
   );

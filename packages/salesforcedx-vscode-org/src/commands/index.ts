@@ -10,7 +10,6 @@ export { orgCreate } from './orgCreate';
 export { orgDelete } from './orgDelete';
 export { orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
-export { orgOpen } from './orgOpen';
 export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export { orgLoginWeb } from './auth/orgLoginWeb';
 export { orgLoginWebDevHub } from './auth/orgLoginWebDevHub';

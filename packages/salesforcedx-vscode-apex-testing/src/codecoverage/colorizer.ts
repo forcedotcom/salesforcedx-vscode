@@ -5,260 +5,67 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CodeCoverageResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { FileType, Range, TextDocument, TextEditor, window, workspace } from 'vscode';
-import { URI, Utils } from 'vscode-uri';
-import { IS_TEST_REG_EXP, RESULT_MAX_AGE_MS } from '../constants';
-import { nls } from '../messages';
+import * as Stream from 'effect/Stream';
+import { TextEditor, window } from 'vscode';
 import { getApexTestingRuntime } from '../services/extensionProvider';
-import * as settings from '../settings';
-import { getTestResultsFolder } from '../utils/pathHelpers';
-import { sortByMtimeAscending } from '../utils/sortHelpers';
+import { CodeCoverageService, type CoverageRanges } from './codeCoverageService';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-const SFDX_FOLDER = '.sfdx';
-const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
-
-const getLineRange = (document: TextDocument, lineNumber: number): Range => {
-  const adjustedLineNumber = lineNumber - 1;
-  try {
-    const firstLine = document.lineAt(adjustedLineNumber);
-    return new Range(
-      adjustedLineNumber,
-      firstLine.range.start.character,
-      adjustedLineNumber,
-      firstLine.range.end.character
-    );
-  } catch {
-    throw new Error(nls.localize('colorizer_out_of_sync_code_coverage_data'));
-  }
+const setCoverageDecorators = (editor: TextEditor, ranges: CoverageRanges): void => {
+  editor.setDecorations(coveredLinesDecorationType, ranges.coveredLines);
+  editor.setDecorations(uncoveredLinesDecorationType, ranges.uncoveredLines);
 };
 
-type CoverageItem = {
-  id: string;
-  name: string;
-  totalLines: number;
-  lines: { [key: string]: number };
-};
-
-const readFileUri = async (uri: URI): Promise<string> => {
-  const data = await workspace.fs.readFile(uri);
-  return new TextDecoder().decode(data);
-};
-
-const getCoverageData = async (): Promise<(CoverageItem | CodeCoverageResult)[]> => {
-  if (!workspace.workspaceFolders?.[0]?.uri) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
-  }
-  const apexTestResultsUri = await getTestResultsFolder();
-
-  let entries: [string, FileType][];
-  try {
-    entries = await workspace.fs.readDirectory(apexTestResultsUri);
-  } catch {
-    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
-  }
-
-  const resultNames = entries
-    .filter(
-      ([name, type]) =>
-        type === FileType.File &&
-        name.startsWith('test-result') &&
-        name.endsWith('.json') &&
-        !name.endsWith('-codecoverage.json')
-    )
-    .map(([name]) => name);
-
-  if (resultNames.length === 0) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
-  }
-
-  const now = Date.now();
-  const recentEntries: { name: string; mtime: number }[] = [];
-  for (const name of resultNames) {
-    const uri = Utils.joinPath(apexTestResultsUri, name);
-    try {
-      const stat = await workspace.fs.stat(uri);
-      if (now - stat.mtime <= RESULT_MAX_AGE_MS) {
-        recentEntries.push({ name, mtime: stat.mtime });
-      }
-    } catch {
-      // Skip files we can't stat
-    }
-  }
-
-  if (recentEntries.length === 0) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
-  }
-
-  // Sort oldest-first by mtime (see sortByMtimeAscending): last-write-wins aggregation
-  // and the .at(-1) fallback below both depend on chronological order.
-  const sortedEntries = sortByMtimeAscending(recentEntries);
-
-  // When restore-previous-results is disabled, only use the most recent file
-  const filesToRead = settings.retrieveRestorePreviousResults()
-    ? sortedEntries.map(e => e.name)
-    : [sortedEntries.at(-1)!.name];
-
-  type TestResultWithCoverage = {
-    codecoverage?: CodeCoverageResult[];
-    coverage?: { coverage: CodeCoverageResult[] };
-  };
-  const coverageByName = new Map<string, CoverageItem | CodeCoverageResult>();
-
-  for (const name of filesToRead) {
-    const uri = Utils.joinPath(apexTestResultsUri, name);
-    try {
-      const content = await readFileUri(uri);
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
-      const testResult = JSON.parse(content) as TestResultWithCoverage;
-      const items: (CoverageItem | CodeCoverageResult)[] | undefined =
-        testResult.codecoverage ?? testResult.coverage?.coverage;
-      if (items) {
-        for (const item of items) {
-          coverageByName.set(item.name, item);
-        }
-      }
-    } catch {
-      // Skip files we can't read or parse
-    }
-  }
-
-  if (coverageByName.size === 0) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_in_recent_results'));
-  }
-
-  return [...coverageByName.values()];
-};
-
-/** Use document.uri.path for Web/Desktop compatibility (fsPath may be empty in Web for some schemes). */
-const docPath = (document: TextDocument): string => document.uri.fsPath || document.uri.path;
-
-const isApexMetadata = (pathOrUri: string): boolean => IS_CLS_OR_TRIGGER.test(pathOrUri);
-
-/** Get Apex class/trigger name from document URI (no Node path APIs). */
-const getApexMemberName = (document: TextDocument): string => {
-  const pathStr = docPath(document);
-  if (!isApexMetadata(pathStr)) {
-    return '';
-  }
-  const base = Utils.basename(document.uri);
-  const ext = base.includes('.') ? base.slice(base.lastIndexOf('.')) : '';
-  return ext ? base.slice(0, -ext.length) : base;
-};
-
-/** Log coverage error to channel (if warnings disabled) or show as warning message */
-const handleCoverageException = Effect.fn('handleCoverageException')(function* (e: Error) {
-  const disableWarning = workspace
-    .getConfiguration()
-    .get<boolean>('salesforcedx-vscode-apex-testing.disable-warnings-for-missing-coverage', false);
-  if (disableWarning) {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const svc = yield* api.services.ChannelService;
-    yield* svc.appendToChannel(e.message);
-  } else {
-    yield* Effect.tryPromise(() =>
-      window.showWarningMessage(nls.localize('colorizer_coverage_apply_failed_message', e.message))
-    );
-  }
+/** Compute+store coverage for the editor's document and paint the returned ranges. */
+const applyForEditor = Effect.fn('colorizer.applyForEditor')(function* (editor: TextEditor) {
+  const ranges = yield* CodeCoverageService.applyForEditorHandled(editor.document);
+  yield* Effect.sync(() => setCoverageDecorators(editor, ranges));
 });
 
+/**
+ * Subscribe to active-editor changes via EditorService (instead of a raw window.onDidChangeActiveTextEditor
+ * disposable) and repaint coverage when highlighting is enabled. Seed the current editor because the PubSub
+ * only delivers changes that occur after this subscription, so the already-active editor would otherwise be
+ * skipped. Fork this into the extension scope so it's torn down on deactivation.
+ */
+export const watchActiveEditorForCoverage = Effect.fn('colorizer.watchActiveEditorForCoverage')(function* (
+  statusBar: StatusBarToggle
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const editorService = yield* api.services.EditorService;
+  yield* Stream.merge(
+    Stream.fromEffect(Effect.sync(() => window.activeTextEditor)),
+    Stream.fromPubSub(editorService.pubsub)
+  ).pipe(
+    Stream.runForEach(editor =>
+      editor && statusBar.isHighlightingEnabled ? applyForEditor(editor) : Effect.void
+    )
+  );
+});
+
+/**
+ * Owns the colorizer toggle command. Editor-change repainting is handled by watchActiveEditorForCoverage;
+ * this only flips the status bar and (re)paints/clears the active editor on toggle.
+ */
 export class CodeCoverageHandler {
-  public coveredLines: Range[] = [];
-  public uncoveredLines: Range[] = [];
+  constructor(private statusBar: StatusBarToggle) {}
 
-  constructor(private statusBar: StatusBarToggle) {
-    window.onDidChangeActiveTextEditor(async editor => await this.onDidChangeActiveTextEditor(editor), this);
-    void this.onDidChangeActiveTextEditor(window.activeTextEditor);
-  }
-
-  public async onDidChangeActiveTextEditor(editor?: TextEditor) {
-    if (editor && this.statusBar.isHighlightingEnabled) {
-      try {
-        const coverage = await applyCoverageToSource(editor.document);
-        this.coveredLines = coverage.coveredLines;
-        this.uncoveredLines = coverage.uncoveredLines;
-        this.setCoverageDecorators(editor);
-      } catch (e) {
-        const err = e instanceof Error ? e : new Error(String(e));
-        void getApexTestingRuntime().runPromise(handleCoverageException(err));
-      }
-    }
-  }
-
-  public async toggleCoverage() {
+  public async toggleCoverage(): Promise<void> {
     const editor = window.activeTextEditor;
     if (this.statusBar.isHighlightingEnabled) {
       this.statusBar.toggle(false);
-      this.coveredLines = [];
-      this.uncoveredLines = [];
+      const ranges = await getApexTestingRuntime().runPromise(CodeCoverageService.clear());
       if (editor) {
-        this.setCoverageDecorators(editor);
+        setCoverageDecorators(editor, ranges);
       }
     } else {
-      try {
-        if (editor?.document) {
-          const coverage = await applyCoverageToSource(editor.document);
-          this.coveredLines = coverage.coveredLines;
-          this.uncoveredLines = coverage.uncoveredLines;
-          this.setCoverageDecorators(editor);
-        }
-      } catch (e) {
-        const err = e instanceof Error ? e : new Error(String(e));
-        void getApexTestingRuntime().runPromise(handleCoverageException(err));
+      if (editor) {
+        await getApexTestingRuntime().runPromise(applyForEditor(editor));
       }
       this.statusBar.toggle(true);
     }
   }
-
-  private setCoverageDecorators(editor: TextEditor) {
-    editor.setDecorations(coveredLinesDecorationType, this.coveredLines);
-    editor.setDecorations(uncoveredLinesDecorationType, this.uncoveredLines);
-  }
 }
-
-const applyCoverageToSource = async (
-  document?: TextDocument
-): Promise<{
-  coveredLines: Range[];
-  uncoveredLines: Range[];
-}> => {
-  if (
-    document &&
-    !docPath(document).includes(SFDX_FOLDER) &&
-    isApexMetadata(docPath(document)) &&
-    !IS_TEST_REG_EXP.test(document.getText())
-  ) {
-    const codeCovArray = await getCoverageData();
-    const apexMemberName = getApexMemberName(document);
-    const codeCovItem = codeCovArray.find(covItem => covItem.name === apexMemberName);
-
-    if (!codeCovItem) {
-      throw new Error(nls.localize('colorizer_no_code_coverage_current_file', docPath(document)));
-    }
-
-    if (isCodeCoverageItem(codeCovItem)) {
-      return {
-        coveredLines: Object.entries(codeCovItem.lines)
-          .filter(([, value]) => value === 1)
-          .map(([key]) => getLineRange(document, Number(key))),
-        uncoveredLines: Object.entries(codeCovItem.lines)
-          .filter(([, value]) => value !== 1)
-          .map(([key]) => getLineRange(document, Number(key)))
-      };
-    }
-    return {
-      coveredLines: codeCovItem.coveredLines.map(cov => getLineRange(document, Number(cov))),
-      uncoveredLines: codeCovItem.uncoveredLines.map(uncov => getLineRange(document, Number(uncov)))
-    };
-  }
-  return {
-    coveredLines: [],
-    uncoveredLines: []
-  };
-};
-
-const isCodeCoverageItem = (item: CoverageItem | CodeCoverageResult): item is CoverageItem => 'lines' in item;
