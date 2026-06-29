@@ -255,7 +255,7 @@ const failed = results.filter(r => Either.isLeft(r.either)); // manual split
 const [failures, successes] = yield* Effect.partition(items, doThing, { concurrency: 1 });
 ```
 
-**Critical:** `partition`/`validateAll` use `Effect.either` per item — interruption still propagates (`withCancellableProgress` Cancel aborts the loop). Wrap the *entire* `partition` in one cancellable progress; per-item wrapping converts Cancel→`UserCancellationError`, which `partition` buckets as a failure and continues.
+**Critical: `partition`/`validateAll` recover the typed error channel per item via `Effect.either` — they do NOT capture interruption.** So a fiber interrupt (e.g. a `withCancellableProgress` Cancel) still aborts the whole loop. Exploit this: wrap the *entire* `partition` in one cancellable progress so Cancel interrupts and stops, while per-item typed failures accumulate. Do NOT wrap each item — that converts a Cancel into a typed `UserCancellationError` per item, which `partition` would then bucket as a failure and keep going.
 
 `partition` keeps only the **error channel** on the failures side, not the input. To name the failing item, tag it on via an `Effect.fn` trailing pipeable: `Effect.fn('f')(function*(item){...}, (effect, item) => effect.pipe(Effect.mapError(() => item)))` — the pipeable receives `(self, ...args)`.
 
