@@ -5,16 +5,43 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ToolingTestClass } from '../testDiscovery/schemas';
+import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
+import { RESULT_MAX_AGE_MS } from '../constants';
+import { getDefaultOrgInfo } from '../coreExtensionUtils';
 import { nls } from '../messages';
+import * as settings from '../settings';
+import { resolvePackage2Members } from '../testDiscovery/packageResolution';
+import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { notificationService } from '../utils/notificationHelpers';
+import { getTestResultsFolder } from '../utils/pathHelpers';
+import { sortByMtimeAscending } from '../utils/sortHelpers';
+import { createNamespaceId, createSuiteId } from '../utils/testItemUtils';
+import { buildClassToUriIndex } from '../utils/testUtils';
+import { isFlowTest } from '../utils/toolingTestClassHelpers';
+import {
+  buildClassIdToNamespace,
+  buildNamespacePackageStructure,
+  createClassAndMethodsFactory,
+  getNamespaceDisplayLabel,
+  getPackageKeysOrdered,
+  getPackageLabelAndId,
+  isNonEmptyClassEntriesList,
+  sortNamespaceKeys
+} from './orgTestItems';
+
+/** Extract a string message from an unknown thrown value for typed-error payloads. */
+const errorToString = (error: unknown): string =>
+  error instanceof Error ? error.message : typeof error === 'string' ? error : String(error);
 
 /** Top-level discovery failure surfaced to the user. */
 class DiscoveryError extends Schema.TaggedError<DiscoveryError>()('DiscoveryError', {
@@ -44,6 +71,32 @@ class RestoreResultsError extends Schema.TaggedError<RestoreResultsError>()('Res
 type DiscoveryFailure = DiscoveryError | PackageResolutionError | SuiteRetrievalError | RestoreResultsError;
 
 /**
+ * Runtime data the shell passes into discovery methods: vscode lifecycle objects (controller, tags),
+ * the lazily-initialized org connection/testService, and callbacks to shell-resident helpers that stay
+ * out of scope for 4.1 (persist, result application, stale tagging). These are params (per-invocation
+ * runtime data), not service dependencies.
+ */
+export type DiscoveryContext = {
+  controller: vscode.TestController;
+  suiteTag: vscode.TestTag | undefined;
+  orgOnlyTag: vscode.TestTag | undefined;
+  inWorkspaceTag: vscode.TestTag | undefined;
+  sessionStartTime: number;
+  ensureInitialized: () => Promise<void>;
+  /** Full tree clear (controller.items + tree maps + shell-resident suiteToClasses), replicating the
+   * legacy clearTestItems the discovery body ran at its start. */
+  clearTree: () => void;
+  getConnection: () => Connection;
+  getTestService: () => { retrieveAllSuites: () => Promise<{ id: string; TestSuiteName: string }[]> };
+  persistDiscoveredClasses: (classes: ToolingTestClass[]) => Promise<void>;
+  updateTestResults: (uri: URI) => Promise<void>;
+  applyStaleTags: (staleMethodIds?: Set<string>) => void;
+  getMethodIdsFromResultFile: (uri: URI) => Promise<Set<string>>;
+};
+
+const BATCH_SIZE = 50;
+
+/**
  * Surface a discovery-path failure to the user: warning when the friendly message is the
  * partial-discovery warning, error otherwise. Mirrors the legacy doDiscoverTests catch.
  */
@@ -61,8 +114,12 @@ const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFai
 /**
  * ApexTestTreeService — owns the test-item tree Refs (suite/class/method maps, class-to-parent map)
  * plus the discovery/restore coordination flags. The shell ApexTestController holds vscode lifecycle
- * objects (controller, tags) and passes them to service methods as runtime params; the service holds
- * only the Refs that out-of-scope shell methods also read.
+ * objects (controller, tags) and passes them to service methods via DiscoveryContext (runtime data); the
+ * service holds only the Refs that out-of-scope shell methods also read.
+ *
+ * The Refs hold mutable Map objects: discovery helpers (createClassAndMethodsFactory) mutate the map
+ * in place, and the Ref keeps pointing at the same object, so no per-entry write-back is needed. reset
+ * swaps in fresh Maps.
  *
  * SettingsService / FsService / ConnectionService etc. are reached ambiently via api.services; they are
  * NOT declared as hard Default dependencies (that would double-provision at runtime).
@@ -78,8 +135,11 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     const hasRestoredResults = yield* Ref.make(false);
     const isRestoringResults = yield* Ref.make(false);
     // Zero-arg single-shot dedup: first discover() creates+stores the Deferred, late callers await it.
-    // Reset to None on completion (see discover, Phase 2). NOT cachedFunction (arg-keyed memoization).
-    const inFlightDiscovery = yield* Ref.make<Option.Option<Deferred.Deferred<void, DiscoveryError>>>(Option.none());
+    // Reset to None on completion. NOT cachedFunction (arg-keyed memoization); must re-run next refresh.
+    // doDiscover handles every discovery failure (notify) and cannot fail, so the Deferred carries no
+    // error — late callers await completion, matching the legacy discoveryInProgress Promise (resolves
+    // after the catch+notify, never rejects).
+    const inFlightDiscovery = yield* Ref.make<Option.Option<Deferred.Deferred<void>>>(Option.none());
 
     /** Read the current method-items map (async accessor for shell methods that can await). */
     const getMethodItems = Effect.fn('ApexTestTreeService.getMethodItems')(function* () {
@@ -101,34 +161,388 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       return yield* Ref.get(classToParentItem);
     });
 
-    /** Reset all tree Refs to empty maps (shell clearTestItems delegates the moved-map clears here). */
-    const reset = Effect.fn('ApexTestTreeService.reset')(function* () {
-      yield* Ref.set(suiteItems, new Map());
-      yield* Ref.set(classItems, new Map());
-      yield* Ref.set(methodItems, new Map());
-      yield* Ref.set(classToParentItem, new Map());
+    /** Snapshot all four tree maps at once (shell caches these stable references during 4.1→4.2). */
+    const getMaps = Effect.fn('ApexTestTreeService.getMaps')(function* () {
+      return {
+        suiteItems: yield* Ref.get(suiteItems),
+        classItems: yield* Ref.get(classItems),
+        methodItems: yield* Ref.get(methodItems),
+        classToParentItem: yield* Ref.get(classToParentItem)
+      };
     });
 
-    // Phase 1 stub: the discovery body lands in Phase 2 (reads the Refs above, resolves the org tree,
-    // restores results). The handler shape is declared now so the four typed errors are wired into the
-    // catchTags boundary from the start — no interim catchAll. The body currently resolves the services
-    // api (the ambient handle Phase 2 builds on) and yields nothing.
-    const discoverBody = Effect.fn('ApexTestTreeService.discoverBody')(function* () {
-      yield* (yield* ExtensionProviderService).getServicesApi;
-      // typed-error channel placeholder: Phase 2 replaces this with the real discovery pipeline whose
-      // tryPromise boundaries fail with these tags. Empty here so no failure is raised yet.
-      const failures: DiscoveryFailure[] = [];
-      yield* Effect.forEach(failures, Effect.fail);
+    /**
+     * Clear all tree maps in place (shell clearTestItems delegates the moved-map clears here).
+     * Clears in place rather than swapping in fresh Maps so any holder of the map reference (the shell,
+     * during the 4.1→4.2 transition) keeps observing the same object.
+     */
+    const reset = Effect.fn('ApexTestTreeService.reset')(function* () {
+      yield* Effect.all([
+        Ref.get(suiteItems),
+        Ref.get(classItems),
+        Ref.get(methodItems),
+        Ref.get(classToParentItem)
+      ]).pipe(
+        Effect.flatMap(maps =>
+          Effect.sync(() => {
+            for (const map of maps) {
+              map.clear();
+            }
+          })
+        )
+      );
     });
-    const doDiscover = Effect.fn('ApexTestTreeService.doDiscover')(function* () {
-      yield* discoverBody().pipe(
+
+    /**
+     * Populate the "Apex Test Suites" parent node and its suite children from the org (Tooling API).
+     * retrieveAllSuites failure is mapped to SuiteRetrievalError and recovered to "no suites" (the legacy
+     * behavior: log + return early), so a suites outage never fails the whole discovery run.
+     */
+    const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(function* (ctx: DiscoveryContext) {
+      yield* Effect.tryPromise({
+        try: () => ctx.ensureInitialized(),
+        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
+      });
+
+      const suites = yield* Effect.tryPromise({
+        try: () => ctx.getTestService().retrieveAllSuites(),
+        catch: e => new SuiteRetrievalError({ message: errorToString(e) })
+      }).pipe(
+        Effect.catchTag('SuiteRetrievalError', e =>
+          Effect.logError('Error retrieving suites', { error: e.message }).pipe(Effect.as([]))
+        )
+      );
+
+      if (suites.length === 0) {
+        return;
+      }
+
+      const currentSuiteItems = yield* Ref.get(suiteItems);
+      yield* Effect.sync(() => {
+        const suiteParentId = 'apex-test-suites-parent';
+        const suiteParentItem = ctx.controller.createTestItem(
+          suiteParentId,
+          nls.localize('apex_test_suites_parent_text'),
+          undefined
+        );
+        if (ctx.suiteTag) {
+          suiteParentItem.tags = [ctx.suiteTag];
+        }
+        for (const suite of suites) {
+          const suiteId = createSuiteId(suite.TestSuiteName);
+          const suiteItem = ctx.controller.createTestItem(suiteId, suite.TestSuiteName, undefined);
+          suiteItem.canResolveChildren = true;
+          if (ctx.suiteTag) {
+            suiteItem.tags = [ctx.suiteTag];
+          }
+          currentSuiteItems.set(suite.TestSuiteName, suiteItem);
+          suiteParentItem.children.add(suiteItem);
+        }
+        ctx.controller.items.add(suiteParentItem);
+      });
+    });
+
+    /**
+     * Build the org test tree (Namespace → Package → Class → Method) from Tooling API classes.
+     * The resolvePackage2Members boundary maps its re-thrown tooling-query error to PackageResolutionError.
+     * Yields cooperatively every BATCH_SIZE classes (Effect.yieldNow) so a large org tree doesn't block.
+     */
+    const populateTestItemsFromOrg = Effect.fn('ApexTestTreeService.populateTestItemsFromOrg')(function* (
+      ctx: DiscoveryContext,
+      classes: ToolingTestClass[]
+    ) {
+      const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
+      if (apexClasses.length === 0) {
+        return;
+      }
+
+      const classNameToUri = yield* Effect.tryPromise({
+        try: () => buildClassToUriIndex(apexClasses.map(cls => cls.name)),
+        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
+      });
+
+      const classIds = apexClasses
+        .map(cls => cls.id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0);
+      const { connection, orgInfo } = yield* Effect.tryPromise({
+        try: async () => {
+          const [conn, info] = await Promise.all([ctx.getConnection(), getDefaultOrgInfo()]);
+          return { connection: conn, orgInfo: info };
+        },
+        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
+      });
+      // No default org → no org-scoped tree to build.
+      if (!orgInfo.orgId) return;
+      const orgKey = orgInfo.orgId;
+      const classIdToPackage = yield* Effect.tryPromise({
+        try: () => resolvePackage2Members(connection, classIds, buildClassIdToNamespace(apexClasses), orgInfo),
+        catch: e => new PackageResolutionError({ message: errorToString(e) })
+      });
+
+      const structure = buildNamespacePackageStructure(apexClasses, classIdToPackage);
+      const currentClassItems = yield* Ref.get(classItems);
+      const currentMethodItems = yield* Ref.get(methodItems);
+      const currentClassToParent = yield* Ref.get(classToParentItem);
+      const createClassAndMethods = createClassAndMethodsFactory({
+        controller: ctx.controller,
+        classItems: currentClassItems,
+        methodItems: currentMethodItems,
+        classNameToUri,
+        orgKey,
+        orgOnlyTag: ctx.orgOnlyTag,
+        inWorkspaceTag: ctx.inWorkspaceTag
+      });
+
+      let processed = 0;
+      for (const nsKey of sortNamespaceKeys(structure)) {
+        const pkMap = structure.get(nsKey);
+        if (!pkMap) {
+          continue;
+        }
+
+        const namespaceItem = ctx.controller.createTestItem(
+          createNamespaceId(nsKey),
+          getNamespaceDisplayLabel(nsKey),
+          undefined
+        );
+
+        for (const pkgKey of getPackageKeysOrdered(nsKey, [...pkMap.keys()])) {
+          const classEntriesList = pkMap.get(pkgKey);
+          if (!isNonEmptyClassEntriesList(classEntriesList)) {
+            continue;
+          }
+
+          const { packageLabel, packageId } = getPackageLabelAndId(nsKey, pkgKey, classEntriesList, classIdToPackage);
+          const packageItem = ctx.controller.createTestItem(packageId, packageLabel, undefined);
+
+          for (const { fullClassName, entries } of classEntriesList) {
+            packageItem.children.add(createClassAndMethods(fullClassName, entries));
+            currentClassToParent.set(fullClassName, packageItem);
+            processed++;
+            if (processed % BATCH_SIZE === 0) {
+              yield* Effect.yieldNow();
+            }
+          }
+          namespaceItem.children.add(packageItem);
+        }
+        ctx.controller.items.add(namespaceItem);
+      }
+    });
+
+    /**
+     * Restore previous test results from on-disk result files (oldest-first so the newest run wins per
+     * method), tag pre-session methods stale, and notify. test-and-set on isRestoringResults guards
+     * against concurrent restores; the flag is reset in ensuring. Any failure is mapped to
+     * RestoreResultsError and recovered (logWarning), since a failed restore leaves a valid empty tree.
+     */
+    const restorePreviousResults = Effect.fn('ApexTestTreeService.restorePreviousResults')(function* (
+      ctx: DiscoveryContext
+    ) {
+      const proceed = yield* Ref.modify(isRestoringResults, prev => (prev ? [false, prev] : [true, true]));
+      if (!proceed) {
+        return;
+      }
+
+      yield* restoreResultsBody(ctx).pipe(
+        Effect.catchTag('RestoreResultsError', e =>
+          Effect.logWarning('Failed to restore previous test results', { error: e.message })
+        ),
+        Effect.ensuring(Ref.set(isRestoringResults, false))
+      );
+    });
+
+    const restoreResultsBody = Effect.fn('ApexTestTreeService.restoreResultsBody')(function* (ctx: DiscoveryContext) {
+      if (!settings.retrieveRestorePreviousResults()) {
+        return;
+      }
+
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const entries = yield* Effect.gen(function* () {
+        const resultDir = yield* getTestResultsFolder();
+        return yield* api.services.FsService.readDirectory(resultDir);
+      }).pipe(Effect.catchAll(e => new RestoreResultsError({ message: errorToString(e) })));
+
+      // Find all test-result JSON files. Filenames embed Salesforce test-run IDs, which are NOT
+      // chronologically sortable, so we order by mtime below rather than by filename.
+      const resultUris = entries.filter(
+        uri =>
+          uri.path.includes('test-result') && uri.path.endsWith('.json') && !uri.path.endsWith('-codecoverage.json')
+      );
+
+      if (resultUris.length === 0) {
+        return;
+      }
+
+      // Filter to files within the age threshold and track which methods are pre-session
+      const now = Date.now();
+      const recentResults: { uri: URI; mtime: number }[] = [];
+      const staleMethodIds = new Set<string>();
+      const sessionMethodIds = new Set<string>();
+      yield* Effect.tryPromise({
+        try: async () => {
+          for (const uri of resultUris) {
+            const stat = await vscode.workspace.fs.stat(uri);
+            if (now - stat.mtime <= RESULT_MAX_AGE_MS) {
+              recentResults.push({ uri, mtime: stat.mtime });
+              const methodsInFile = await ctx.getMethodIdsFromResultFile(uri);
+              const targetSet = stat.mtime < ctx.sessionStartTime ? staleMethodIds : sessionMethodIds;
+              for (const methodId of methodsInFile) {
+                targetSet.add(methodId);
+              }
+            }
+          }
+        },
+        catch: e => new RestoreResultsError({ message: errorToString(e) })
+      });
+
+      if (recentResults.length === 0) {
+        return;
+      }
+
+      // Apply oldest-first (by mtime) so the most recent run's result wins for each method.
+      const recentUris = sortUrisByMtimeAscending(recentResults);
+
+      // Session results override stale (a method run this session is not stale)
+      for (const methodId of sessionMethodIds) {
+        staleMethodIds.delete(methodId);
+      }
+
+      // Apply oldest-first so most recent result for each method wins
+      yield* Effect.tryPromise({
+        try: async () => {
+          for (const uri of recentUris) {
+            await ctx.updateTestResults(uri);
+          }
+        },
+        catch: e => new RestoreResultsError({ message: errorToString(e) })
+      });
+
+      // Only mark pre-session methods as stale
+      yield* Effect.sync(() => ctx.applyStaleTags(staleMethodIds));
+
+      // Invalidate stale methods and classes where ALL methods are stale
+      const currentMethodItems = yield* Ref.get(methodItems);
+      const currentClassItems = yield* Ref.get(classItems);
+      yield* Effect.sync(() => {
+        const affectedClasses = new Set<string>();
+        for (const methodId of staleMethodIds) {
+          const methodItem = currentMethodItems.get(methodId);
+          if (methodItem) {
+            ctx.controller.invalidateTestResults(methodItem);
+            affectedClasses.add(methodId.split('.')[0]);
+          }
+        }
+        for (const className of affectedClasses) {
+          const classPrefix = `${className}.`;
+          const allMethodsStale = [...currentMethodItems.entries()]
+            .filter(([id]) => id.startsWith(classPrefix))
+            .every(([id]) => staleMethodIds.has(id));
+          if (allMethodsStale) {
+            const classItem = currentClassItems.get(className);
+            if (classItem) {
+              ctx.controller.invalidateTestResults(classItem);
+            }
+          }
+        }
+      });
+
+      // Get stat for most recent result (used for notification only)
+      const lastStat = yield* Effect.tryPromise({
+        try: () => Promise.resolve(vscode.workspace.fs.stat(recentUris.at(-1)!)),
+        catch: e => new RestoreResultsError({ message: errorToString(e) })
+      });
+
+      const runDate = new Date(lastStat.mtime).toLocaleString();
+      const disableAction = nls.localize('apex_test_results_restored_disable_action');
+      yield* Effect.sync(() => {
+        void notificationService
+          .showInformationMessage(
+            nls.localize('apex_test_results_restored_message', String(recentUris.length), runDate),
+            disableAction
+          )
+          .then(selection => {
+            if (selection === disableAction) {
+              void settings.disableRestorePreviousResults();
+            }
+          });
+      });
+    });
+
+    /**
+     * Discovery pipeline body: ensure init, populate suites, run discovery, persist, build the org tree,
+     * and restore results once per session. Each tryPromise boundary fails with a declared tagged error
+     * (no UnknownException bucket). doDiscover catches the union and notifies.
+     */
+    const discoverBody = Effect.fn('ApexTestTreeService.discoverBody')(function* (ctx: DiscoveryContext) {
+      yield* Effect.tryPromise({
+        try: () => ctx.ensureInitialized(),
+        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
+      });
+
+      // Replicates the legacy clearTestItems the discovery body ran before populating.
+      yield* Effect.sync(() => ctx.clearTree());
+
+      yield* populateSuiteItems(ctx);
+
+      const discoveryResult = yield* discoverTests().pipe(
+        Effect.catchAll(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+      );
+
+      yield* Effect.tryPromise({
+        try: () => ctx.persistDiscoveredClasses(discoveryResult.classes),
+        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
+      });
+
+      if (discoveryResult.classes.length > 0) {
+        yield* populateTestItemsFromOrg(ctx, discoveryResult.classes);
+      }
+
+      const alreadyRestored = yield* Ref.getAndSet(hasRestoredResults, true);
+      if (!alreadyRestored) {
+        yield* restorePreviousResults(ctx);
+      }
+    });
+
+    /**
+     * Run the discovery body and surface any declared failure to the user (warning vs error).
+     * Only DiscoveryError and PackageResolutionError reach here: SuiteRetrievalError is recovered inside
+     * populateSuiteItems (log + no suites) and RestoreResultsError inside restorePreviousResults
+     * (logWarning), preserving the legacy non-fatal behavior of those two paths.
+     */
+    const doDiscover = Effect.fn('ApexTestTreeService.doDiscover')(function* (ctx: DiscoveryContext) {
+      yield* discoverBody(ctx).pipe(
         Effect.catchTags({
           DiscoveryError: notifyDiscoveryFailure,
-          PackageResolutionError: notifyDiscoveryFailure,
-          SuiteRetrievalError: notifyDiscoveryFailure,
-          RestoreResultsError: notifyDiscoveryFailure
+          PackageResolutionError: notifyDiscoveryFailure
         })
       );
+    });
+
+    /**
+     * Single-shot dedup over doDiscover: the first caller creates+stores a Deferred and runs the body,
+     * completing it and clearing the Ref in ensuring; concurrent callers await the same in-flight
+     * Deferred. doDiscover handles all failures, so completion is success-only. Re-runs on the next
+     * discover (not memoized).
+     */
+    const discover = Effect.fn('ApexTestTreeService.discover')(function* (ctx: DiscoveryContext) {
+      const existing = yield* Ref.get(inFlightDiscovery);
+      if (Option.isSome(existing)) {
+        yield* Deferred.await(existing.value);
+        return;
+      }
+      const deferred = yield* Deferred.make<void>();
+      yield* Ref.set(inFlightDiscovery, Option.some(deferred));
+      yield* doDiscover(ctx).pipe(
+        Effect.ensuring(
+          Deferred.succeed(deferred, undefined).pipe(Effect.zipRight(Ref.set(inFlightDiscovery, Option.none())))
+        )
+      );
+      yield* Deferred.await(deferred);
+    });
+
+    /** Mark restored-results state cleared (shell refresh resets it before re-discovery). */
+    const clearRestoredResults = Effect.fn('ApexTestTreeService.clearRestoredResults')(function* () {
+      yield* Ref.set(hasRestoredResults, false);
     });
 
     return {
@@ -143,8 +557,20 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       getClassItems,
       getSuiteItems,
       getClassToParentItem,
+      getMaps,
       reset,
-      doDiscover
+      clearRestoredResults,
+      populateSuiteItems,
+      populateTestItemsFromOrg,
+      restorePreviousResults,
+      discover
     };
   })
 }) {}
+
+/**
+ * Returns the URIs sorted oldest-first by mtime. Restoration applies results oldest-first so the
+ * most recent run wins per method (see sortByMtimeAscending for why mtime, not filename).
+ */
+const sortUrisByMtimeAscending = (items: readonly { uri: URI; mtime: number }[]): URI[] =>
+  sortByMtimeAscending(items).map(item => item.uri);
