@@ -105,6 +105,36 @@ describe('orgLogoutAllCommand', () => {
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
   });
 
+  it('logs out a scratch org after the scratch confirm prompt is accepted', async () => {
+    const auths: Authorization[] = [{ username: 'scratch@example.com', isScratchOrg: true }];
+    mockGetFreshAuthorizations.mockReturnValue(Effect.succeed({ defaultConfig: {}, freshAuthorizations: auths }));
+    selectAll(auths);
+
+    const exit = await run({ isProject: true, confirm: true });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(removeAuthMock).toHaveBeenCalledTimes(1);
+    expect(removeAuthMock).toHaveBeenCalledWith('scratch@example.com');
+    expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
+  });
+
+  it('short-circuits on the first removeAuth failure (fail-fast, no refresh)', async () => {
+    const auths: Authorization[] = [{ username: 'user1@example.com' }, { username: 'user2@example.com' }];
+    mockGetFreshAuthorizations.mockReturnValue(Effect.succeed({ defaultConfig: {}, freshAuthorizations: auths }));
+    selectAll(auths);
+    // first org rejects; Effect.forEach is sequential + non-concurrent, so it stops before the second.
+    removeAuthMock.mockRejectedValueOnce(new Error('removal failed'));
+
+    const exit = await run({ isProject: true, confirm: true });
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgLogoutError');
+    expect(removeAuthMock).toHaveBeenCalledTimes(1);
+    expect(removeAuthMock).toHaveBeenCalledWith('user1@example.com');
+    expect(removeAuthMock).not.toHaveBeenCalledWith('user2@example.com');
+    expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
+  });
+
   it('cancels (no removeAuth, no refresh) when the confirm modal is declined', async () => {
     const auths: Authorization[] = [{ username: 'scratch@example.com', isScratchOrg: true }];
     mockGetFreshAuthorizations.mockReturnValue(Effect.succeed({ defaultConfig: {}, freshAuthorizations: auths }));

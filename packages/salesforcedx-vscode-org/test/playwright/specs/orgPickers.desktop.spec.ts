@@ -157,8 +157,9 @@ const clickModalButton = async (page: import('@playwright/test').Page, label: st
 };
 
 /** Poll the CLI until the alias is no longer authorized (durable, non-racy removal signal). */
-const expectOrgLoggedOut = async (alias: string): Promise<void> => {
-  await expect(async () => {
+const expectOrgLoggedOut = async (alias: string, timeoutMs = 30_000): Promise<void> => {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
     const { stdout } = await execAsync('sf org list --json', { env });
     const parsed = JSON.parse(stdout) as {
       result: {
@@ -169,8 +170,10 @@ const expectOrgLoggedOut = async (alias: string): Promise<void> => {
     const stillListed = [...(parsed.result.scratchOrgs ?? []), ...(parsed.result.nonScratchOrgs ?? [])].some(
       org => org.alias === alias
     );
-    expect(stillListed, `org "${alias}" should be logged out (absent from sf org list)`).toBe(false);
-  }).toPass({ timeout: 30_000 });
+    if (!stillListed) return;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  throw new Error(`org "${alias}" still listed in sf org list after ${timeoutMs}ms (logout did not remove auth)`);
 };
 
 /** Toggle a `canPickMany` quick-pick row's checkbox by typing the alias and clicking the matching org row. */

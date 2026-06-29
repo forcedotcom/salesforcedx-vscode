@@ -48,15 +48,16 @@ export class OrgLogoutError extends Schema.TaggedError<OrgLogoutError>()('OrgLog
 }) {}
 
 /**
- * Logs out a single org. `AuthRemover.removeAuth` already calls `unsetConfigValues` + `unsetAliases`
- * (node_modules/@salesforce/core/lib/org/authRemover.js L50-54), which unsets every global+local
- * config key matching the username/aliases — covering target-org AND target-dev-hub. No separate
- * alias/config-unset calls are needed here.
+ * Logs out a single org via a shared `AuthRemover`. `AuthRemover.removeAuth` already calls
+ * `unsetConfigValues` + `unsetAliases` (node_modules/@salesforce/core/lib/org/authRemover.js L50-54),
+ * which unsets every global+local config key matching the username/aliases — covering target-org AND
+ * target-dev-hub. No separate alias/config-unset calls are needed here. The `AuthRemover` is created
+ * once in `orgLogoutAllCommand` and reused (each `.create()` does a full disk read of all org files).
  */
-const removeAuth = Effect.fn('orgLogoutAllCommand.removeAuth')(function* (username: string) {
+const removeAuth = Effect.fn('orgLogoutAllCommand.removeAuth')(function* (authRemover: AuthRemover, username: string) {
   yield* Effect.annotateCurrentSpan('username', username);
   yield* Effect.tryPromise({
-    try: () => AuthRemover.create().then(r => r.removeAuth(username)),
+    try: () => authRemover.removeAuth(username),
     catch: cause => new OrgLogoutError({ username, message: `Failed to log out of ${username}`, cause: String(cause) })
   });
 });
@@ -69,14 +70,19 @@ const selectOrgsForLogout = Effect.fn('orgLogoutAllCommand.selectOrgs')(function
 
   const items = buildOrgQuickPickItems(freshAuthorizations, defaultConfig);
 
-  const selections = yield* Effect.promise(() =>
-    vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('org_logout_select_orgs_placeholder'),
-      canPickMany: true,
-      matchOnDescription: true,
-      matchOnDetail: true
-    })
-  ).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation));
+  const selections = yield* Effect.tryPromise({
+    try: () =>
+      Promise.resolve(
+        vscode.window.showQuickPick(items, {
+          placeHolder: nls.localize('org_logout_select_orgs_placeholder'),
+          canPickMany: true,
+          matchOnDescription: true,
+          matchOnDetail: true
+        })
+      ),
+    catch: cause =>
+      new OrgLogoutError({ username: 'unknown', message: 'Org selection QuickPick failed', cause: String(cause) })
+  }).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation));
 
   const targetAuthorizations = freshAuthorizations.filter(org =>
     selections.some(s => isOrgItem(s) && s.orgUsername === org.username)
@@ -110,53 +116,38 @@ export const orgLogoutAllCommand = Effect.fn('orgLogoutAllCommand')(
     yield* api.services.ProjectService.getSfProject();
 
     const usernames = yield* selectOrgsForLogout();
-    yield* Effect.forEach(usernames, removeAuth, { discard: true });
+    // One shared AuthRemover for all orgs: each .create() reloads ConfigAggregator + reads all org
+    // files from disk (authRemover.js L92-97), so creating per-org would repeat that I/O N times.
+    const authRemover = yield* Effect.tryPromise({
+      try: () => AuthRemover.create(),
+      catch: cause =>
+        new OrgLogoutError({
+          username: usernames[0],
+          message: 'Failed to initialize AuthRemover',
+          cause: String(cause)
+        })
+    });
+    // Sequential (no concurrency): AuthRemover writes to shared on-disk config/alias/state files;
+    // the library itself serializes removals to avoid a ConfigFile collision bug (authRemover.js L64-65).
+    yield* Effect.forEach(usernames, username => removeAuth(authRemover, username), { discard: true });
     yield* updateConfigAndStateAggregatorsEffect();
   },
   // Cancellation is intentional; swallow it. All other errors surface to ErrorHandlerService.
   Effect.catchTag('UserCancellationError', () => Effect.void)
 );
 
-const removeOrgAliases = Effect.fn('OrgLogout.removeOrgAliases')(function* (username: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const allAliasesOnDisk = yield* api.services.AliasService.getAliasesFromUsername(username);
-  yield* api.services.AliasService.unsetAliases(allAliasesOnDisk);
-});
-
-const checkIsCurrentTargetOrg = Effect.fn('OrgLogout.checkIsCurrentTargetOrg')(function* (
-  username: string,
-  aliases: readonly string[]
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
-});
-
-const doUnsetTargetOrg = Effect.fn('OrgLogout.doUnsetTargetOrg')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ConfigService.unsetTargetOrg();
-});
-
 export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
-  private readonly orgAliases: readonly string[];
-
-  constructor(aliases: readonly string[] = []) {
+  constructor() {
     super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
-    this.orgAliases = aliases;
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
-      const shouldUnset = await getOrgRuntime().runPromise(checkIsCurrentTargetOrg(response.data, this.orgAliases));
       const authRemover = await AuthRemover.create();
+      // removeAuth already runs unsetConfigValues + unsetAliases
+      // (node_modules/@salesforce/core/lib/org/authRemover.js L50-54), unsetting every global+local
+      // config key matching the username/aliases (incl. target-org). No separate alias/config-unset needed.
       await authRemover.removeAuth(response.data);
-      // TODO(W-23069610 follow-up): removeAuth already runs unsetConfigValues + unsetAliases
-      // (node_modules/@salesforce/core/lib/org/authRemover.js L50-54), so removeOrgAliases +
-      // checkIsCurrentTargetOrg + doUnsetTargetOrg below are redundant. Remove this block when the
-      // default path migrates to a services-based Effect command (mirror orgLogoutAllCommand).
-      await getOrgRuntime().runPromise(removeOrgAliases(response.data));
-      if (shouldUnset) {
-        await getOrgRuntime().runPromise(doUnsetTargetOrg());
-      }
     } catch (e) {
       const err = e instanceof Error ? e : new Error(String(e));
       telemetryService.sendException('org_logout_default', `Error: name = ${err.name} message = ${err.message}`);
@@ -174,7 +165,7 @@ export const orgLogoutDefault = async () => {
     const logoutCommandlet = new SfCommandlet(
       sfProjectPreconditionChecker,
       isScratch ? new ScratchOrgLogoutParamsGatherer(username, aliases[0]) : new SimpleGatherer<string>(username),
-      new OrgLogoutDefault(aliases)
+      new OrgLogoutDefault()
     );
     await logoutCommandlet.run();
   } else {
