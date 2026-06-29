@@ -67,7 +67,8 @@ const buildMockConnectionLayer = (opts: {
           query: querySpy
         } as unknown as Connection),
       invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
+      listAllAuthorizations: () => Effect.succeed([]),
+      loginWithAccessToken: () => Effect.succeed({} as never)
     })
   );
   return { layer, toolingSpy, querySpy };
@@ -348,7 +349,8 @@ const buildToolingMutationLayer = (opts: {
           tooling: { create: createSpy, delete: deleteSpy }
         } as unknown as Connection),
       invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
+      listAllAuthorizations: () => Effect.succeed([]),
+      loginWithAccessToken: () => Effect.succeed({} as never)
     })
   );
   return { layer, createSpy, deleteSpy };
