@@ -15,6 +15,7 @@ export const desktopTest = createDesktopTest({
   orgAlias: NON_TRACKING_ORG_ALIAS,
   additionalExtensionDirs: [
     'salesforcedx-vscode-core',
+    'salesforcedx-vscode-org',
     'salesforcedx-vscode-metadata',
     'salesforcedx-vscode-apex-log',
     'salesforcedx-vscode-apex'
@@ -22,7 +23,10 @@ export const desktopTest = createDesktopTest({
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,
-    'git.autofetch': false
+    'git.autofetch': false,
+    // Render `showWarningMessage({ modal: true })` (e.g. the scratch-org logout confirm) as an
+    // in-DOM dialog so Playwright can click its button; native OS dialogs are not reachable.
+    'window.dialogStyle': 'custom'
   }
 });
 

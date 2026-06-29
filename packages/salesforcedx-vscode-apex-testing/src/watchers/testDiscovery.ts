@@ -12,24 +12,27 @@ import * as Stream from 'effect/Stream';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { getTestController } from '../views/testController';
 
-/** Initialize test discovery when an org is available, and re-discover on org changes */
+/** Initialize test discovery when an org is available, and clear/re-discover on org changes */
 export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDiscovery')(function* (
   testController: ReturnType<typeof getTestController>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const channelService = yield* api.services.ChannelService;
-  // Subscribe to org changes and re-discover tests when org changes
+  // Subscribe to org changes: discover tests when an org is available, clear the tree when it goes away (logout/delete)
   yield* Effect.forkDaemon(
     targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
-      Stream.filter(isString),
       Stream.changes,
-      Stream.tap(orgId => channelService.appendToChannel(`Discovering tests for org: ${orgId}`)),
       Stream.runForEach(orgId =>
-        Effect.promise(() => testController.refresh()).pipe(
-          // Drop other orgs' discovered classes so the in-memory VFS holds only the current org's tree.
-          Effect.zipRight(ApexTestDiscoveryService.pruneForeignOrgClasses(orgId)),
+        (isString(orgId)
+          ? channelService.appendToChannel(`Discovering tests for org: ${orgId}`).pipe(
+              Effect.zipRight(Effect.promise(() => testController.refresh())),
+              // Drop other orgs' discovered classes so the in-memory VFS holds only the current org's tree.
+              Effect.zipRight(ApexTestDiscoveryService.pruneForeignOrgClasses(orgId))
+            )
+          : Effect.promise(() => testController.clearAllTestItems())
+        ).pipe(
           Effect.catchAll(error => {
             console.debug('[Apex Testing] Test discovery setup failed:', error);
             return Effect.void;

@@ -125,10 +125,28 @@ export class ApexTestController {
       await this.discoveryInProgress;
       return;
     }
+    this.resetState();
+    await this.discoverTests();
+  }
+
+  /**
+   * Clears all test items without re-discovering. Used to reach the no-org state
+   * (e.g. logout / delete default org) without requiring a window reload.
+   */
+  public async clearAllTestItems(): Promise<void> {
+    // Unlike refresh(), drain any in-flight discovery without early-returning, then clear so the
+    // reset lands after the discovery that would otherwise repopulate the tree.
+    if (this.discoveryInProgress) {
+      await this.discoveryInProgress;
+    }
+    this.resetState();
+  }
+
+  /** Drop the connection/caches, empty the tree, and re-arm result restoration for the next discovery. */
+  private resetState(): void {
     this.invalidateConnection();
     this.clearTestItems();
     this.hasRestoredResults = false;
-    await this.discoverTests();
   }
 
   // eslint-disable-next-line class-methods-use-this
