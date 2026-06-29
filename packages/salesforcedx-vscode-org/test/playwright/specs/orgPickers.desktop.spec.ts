@@ -81,7 +81,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
   });
 
   await test.step('DELETE: selectDeletableOrg multi-pick lists the scratch org, then cancel confirm', async () => {
-    // sf.org.delete.username routes to the SelectDeletableOrg picker (index.ts -> orgDelete -> new SelectDeletableOrg()).
+    // sf.org.delete.username routes to orgDeleteUsernameCommand (index.ts), which yields the selectDeletableOrg `gather`.
     await executeCommandWithCommandPalette(page, packageNls.org_delete_username_text);
     await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
     // Toggle the scratch org row (canPickMany), then accept to reach the confirm modal.
