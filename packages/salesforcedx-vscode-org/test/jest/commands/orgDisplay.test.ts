@@ -71,8 +71,12 @@ const buildServices = (opts: {
   })
 });
 
+// The real command Effects require more than ExtensionProviderService in their R channel (the
+// org-info/picker helpers add Alias/Channel/Connection/Project services); those are satisfied at
+// runtime by the jest-mocked modules, so widen the command's R to ExtensionProviderService for the
+// type-only provide and erase the remaining R via the final cast.
 const runCommand = (
-  command: () => Effect.Effect<void, unknown, ExtensionProviderService>,
+  command: typeof orgDisplayDefaultCommand | typeof orgDisplayUsernameCommand,
   opts: {
     isProject: boolean;
     getConnection: Effect.Effect<Connection, unknown>;
@@ -81,7 +85,7 @@ const runCommand = (
   }
 ) =>
   Effect.runPromiseExit(
-    command().pipe(
+    (command() as Effect.Effect<void, unknown, ExtensionProviderService>).pipe(
       Effect.provideService(ExtensionProviderService, {
         getServicesApi: Effect.succeed({ services: buildServices(opts) })
       } as unknown as ExtensionProviderService)
