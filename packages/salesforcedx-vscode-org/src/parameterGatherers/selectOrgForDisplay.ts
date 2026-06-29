@@ -6,15 +6,14 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { buildOrgQuickPickItems, isOrgItem } from '../orgPicker/orgList';
 import { getFreshAuthorizations } from '../util/orgUtil';
-import { runGatherer } from './runGatherer';
 
-const gather = Effect.fn('SelectOrgForDisplay.gather')(function* () {
+/** QuickPick that shows all authenticated orgs for the user to pick one to display info for. */
+export const gatherOrgForDisplay = Effect.fn('SelectOrgForDisplay.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
@@ -34,10 +33,3 @@ const gather = Effect.fn('SelectOrgForDisplay.gather')(function* () {
 
   return { username: selection.orgUsername };
 });
-
-/** QuickPick that shows all authenticated orgs for the user to pick one to display info for. */
-export class SelectOrgForDisplay implements ParametersGatherer<{ username: string }> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{ username: string }>> {
-    return runGatherer(gather());
-  }
-}
