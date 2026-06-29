@@ -13,6 +13,7 @@ import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -111,6 +112,12 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     },
     { concurrency: 'unbounded' }
   );
+
+  // Cache single-class palette runs so Re-Run Last Class surfaces (matches code-lens order: set before run).
+  // Suite/All/AllLocal leave the cache untouched; the shared apexTestSuite caller passes type 'Suite'.
+  if (selection.type === 'Class' && selection.fullClassName) {
+    yield* ApexTestRunCacheService.setCachedClassTestParam(selection.fullClassName);
+  }
 
   const result = yield* runApexTests({
     payload,
