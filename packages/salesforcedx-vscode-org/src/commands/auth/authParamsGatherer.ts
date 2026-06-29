@@ -164,7 +164,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   }
 }
 
-const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
+export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 

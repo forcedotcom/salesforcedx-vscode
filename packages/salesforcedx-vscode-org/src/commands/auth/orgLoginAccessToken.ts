@@ -5,58 +5,38 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, type AuthSideEffects } from '@salesforce/core';
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { ContinueResponse, LibraryCommandletExecutor, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../channels';
-import { nls } from '../../messages';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
 import { updateConfigAndStateAggregators } from '../../util/orgUtil';
-import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
+import { gatherAccessTokenParams } from './authParamsGatherer';
 
-class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
-  constructor() {
-    super(nls.localize('org_login_access_token_text'), 'org_login_access_token', OUTPUT_CHANNEL);
-  }
+/**
+ * Effect command for `sf.org.login.access.token`: authorize an org from a session ID.
+ *
+ * Gathers instanceUrl/alias/token, then shells `sf org login access-token --instance-url <url>
+ * --alias "<alias>" --no-prompt`. The token never touches argv/span/history — it rides the
+ * `SF_ACCESS_TOKEN` env var, which plugin-auth reads pre-prompt (`@salesforce/core` recognizes it),
+ * making the CLI headless. The alias is regex-validated at the prompt (rejects shell metachars), so
+ * the quoted `--alias` arg is injection-safe. No project root required (matches orgDeleteDefaultCommand).
+ *
+ * Cancellation (gatherer ESC) surfaces as UserCancellationError and is swallowed by registerCommand;
+ * a CLI failure surfaces as TerminalServiceError → ErrorHandlerService toast with the CLI's own message.
+ */
+export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand')(function* () {
+  const { instanceUrl, alias, accessToken } = yield* gatherAccessTokenParams();
 
-  public async run(
-    response: ContinueResponse<AccessTokenParams>,
-    _progress?: vscode.Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
-    _token?: vscode.CancellationToken
-  ): Promise<boolean> {
-    const { instanceUrl, accessToken, alias } = response.data;
-    try {
-      const authInfo = await AuthInfo.create({
-        accessTokenOptions: { accessToken, instanceUrl }
-      });
-      const sideEffects: AuthSideEffects = {
-        alias,
-        setDefault: true,
-        setDefaultDevHub: false
-      };
-      await authInfo.handleAliasAndDefaultSettings(sideEffects);
-      // Refresh state aggregators after config is updated
-      await updateConfigAndStateAggregators();
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Bad_OAuth_Token')) {
-        // Provide a user-friendly message for invalid / expired session ID
-        channelService.appendLine(nls.localize('org_login_access_token_bad_oauth_token_message'));
-      }
-      throw error;
-    }
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const terminalService = yield* api.services.TerminalService;
+  const output = yield* terminalService.simpleExec({
+    command: `sf org login access-token --instance-url ${instanceUrl} --alias "${alias}" --no-prompt`,
+    parse: identity,
+    env: { SF_ACCESS_TOKEN: accessToken }
+  });
 
-    return true;
-  }
-}
+  const channel = yield* api.services.ChannelService;
+  yield* channel.appendToChannel(output);
+  yield* channel.showChannel;
 
-export const orgLoginAccessToken = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new AccessTokenParamsGatherer(),
-    new OrgLoginAccessTokenExecutor()
-  );
-  await commandlet.run();
-};
+  yield* Effect.promise(() => updateConfigAndStateAggregators());
+});

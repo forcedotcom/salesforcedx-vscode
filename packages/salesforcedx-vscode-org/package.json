@@ -217,8 +217,7 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.org.login.access.token",
-          "when": "sf:project_opened"
+          "command": "sf.org.login.access.token"
         },
         {
           "command": "sf.org.login.web",

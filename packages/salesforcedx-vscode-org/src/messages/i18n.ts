@@ -49,8 +49,6 @@ export const messages = {
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   org_list_no_orgs_found: 'No orgs found.',
   org_list_display_error: 'Error displaying org list: %s',
-  org_login_access_token_bad_oauth_token_message:
-    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
   org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
