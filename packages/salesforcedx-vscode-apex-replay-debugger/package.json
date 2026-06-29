@@ -45,7 +45,7 @@
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-metadata": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",

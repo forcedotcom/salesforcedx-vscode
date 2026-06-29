@@ -31,7 +31,7 @@
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.21.2",
     "@salesforce/vscode-i18n": "*",
-    "salesforcedx-vscode-services": "*",
+    "@salesforce/vscode-services": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {

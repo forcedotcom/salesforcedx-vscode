@@ -69,7 +69,7 @@
     "@types/papaparse": "^5.2.3",
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
