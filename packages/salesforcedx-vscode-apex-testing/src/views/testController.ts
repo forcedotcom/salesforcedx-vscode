@@ -19,7 +19,6 @@ import { APEX_TESTING_SCHEME } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
-import { telemetryService } from '../telemetry/telemetry';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
@@ -1353,13 +1352,13 @@ export class ApexTestController {
 
       const durationMs = Date.now() - startTime;
       const testCount = testsToRun.length;
-      telemetryService.sendEventData(
-        'apexTestRun',
-        { trigger: 'testController', isDebug: String(isDebug) },
-        {
-          durationMs,
-          testsRan: testCount
-        }
+      getApexTestingRuntime().runFork(
+        Effect.log('[Telemetry] apexTestRun').pipe(
+          Effect.annotateLogs({ trigger: 'testController', isDebug: String(isDebug), durationMs, testsRan: testCount }),
+          Effect.withSpan('apexTestRun', {
+            attributes: { trigger: 'testController', isDebug: String(isDebug), durationMs, testsRan: testCount }
+          })
+        )
       );
     } catch (error) {
       const friendlyMessage = toUserFriendlyApexTestError(error);
@@ -1525,24 +1524,24 @@ export class ApexTestController {
       : TEST_RESULT_JSON_FILE;
     this.lastProcessedResultFile = Utils.joinPath(outputDir, writtenResultFilename);
 
-    // Generate and open test report
+    // Generate and open test report (forked; continue even if report generation fails)
     const reportStartTime = Date.now();
     const outputFormat = settings.retrieveOutputFormat();
     const sortOrder = settings.retrieveTestSortOrder();
-    try {
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder)
-      );
-      const reportDurationMs = Date.now() - reportStartTime;
-      telemetryService.sendEventData(
-        'apexTestReportGenerated',
-        { outputFormat, trigger: 'testExplorer' },
-        { reportDurationMs }
-      );
-    } catch (error) {
-      console.error('Failed to generate test report:', error);
-      // Continue even if report generation fails
-    }
+    getApexTestingRuntime().runFork(
+      writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
+        Effect.tap(() => {
+          const reportDurationMs = Date.now() - reportStartTime;
+          return Effect.log('[Telemetry] apexTestReportGenerated').pipe(
+            Effect.annotateLogs({ outputFormat, trigger: 'testExplorer', reportDurationMs }),
+            Effect.withSpan('apexTestReportGenerated', {
+              attributes: { outputFormat, trigger: 'testExplorer', reportDurationMs }
+            })
+          );
+        }),
+        Effect.catchAllCause(cause => Effect.logError('Failed to generate test report', cause))
+      )
+    );
 
     // Clear stale indicators and apply active tags BEFORE updating results.
     // VS Code snapshots item.description when run.passed() is called.

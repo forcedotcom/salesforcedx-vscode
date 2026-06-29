@@ -38,7 +38,6 @@ import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDis
 import { nls } from './messages';
 import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
 import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
-import { telemetryService } from './telemetry/telemetry';
 import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
@@ -230,7 +229,6 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
 export const deactivate = () => {
   void getApexTestingRuntime().runPromise(closeExtensionScope());
   disposeTestController();
-  telemetryService.sendExtensionDeactivationEvent();
 };
 
 export type ApexTestingVSCodeApi = {
