@@ -280,6 +280,103 @@
           "minimum": 1,
           "maximum": 1440,
           "description": "%apexLog.configuration.traceFlagsDefaultDurationMinutes.description%"
+        },
+        "salesforcedx-vscode-apex-log.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-apex-log.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "SFDX: Execute Anonymous Apex with Currently Open Editor": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_execute_anonymous_document_description%"
+            },
+            "SFDX: Execute Anonymous Apex with Editor's Selected Text": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_execute_anonymous_selection_description%"
+            },
+            "SFDX: Remove Trace Flag for Current User": {
+              "type": "string",
+              "enum": [
+                "toast",
+                "statusBar",
+                "off"
+              ],
+              "enumDescriptions": [
+                "%notifications.toast.description%",
+                "%notifications.statusBar.description%",
+                "%notifications.off.description%"
+              ],
+              "description": "%notifications_remove_trace_flag_current_user_description%"
+            },
+            "SFDX: Remove Trace Flag": {
+              "type": "string",
+              "enum": [
+                "toast",
+                "statusBar",
+                "off"
+              ],
+              "enumDescriptions": [
+                "%notifications.toast.description%",
+                "%notifications.statusBar.description%",
+                "%notifications.off.description%"
+              ],
+              "description": "%notifications_remove_trace_flag_description%"
+            },
+            "SFDX: Remove Debug Level": {
+              "type": "string",
+              "enum": [
+                "toast",
+                "statusBar",
+                "off"
+              ],
+              "enumDescriptions": [
+                "%notifications.toast.description%",
+                "%notifications.statusBar.description%",
+                "%notifications.off.description%"
+              ],
+              "description": "%notifications_remove_debug_level_description%"
+            }
+          },
+          "additionalProperties": false
         }
       }
     },

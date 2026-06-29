@@ -19,5 +19,19 @@
   "apexLog.command.traceFlagsDeleteForId": "SFDX: Remove Trace Flag",
   "apexLog.command.traceFlagsChangeDebugLevel": "SFDX: Change Trace Flag Debug Level",
   "apexLog.command.traceFlagsCreateLogLevel": "SFDX: Create Debug Level",
-  "apexLog.command.traceFlagsDeleteDebugLevelForId": "SFDX: Remove Debug Level"
+  "apexLog.command.traceFlagsDeleteDebugLevelForId": "SFDX: Remove Debug Level",
+  "extension_level_notifications_description": "Notification style for all Apex Log commands. Overrides the global salesforcedx-vscode-services.notifications setting. Individual commands can be further overridden in salesforcedx-vscode-apex-log.commandLevelNotifications.",
+  "command_level_notifications_description": "Notification style for each Apex Log command. Overrides the global salesforcedx-vscode-services.notifications and extension-level salesforcedx-vscode-apex-log.extensionLevelNotifications settings.",
+  "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
+  "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
+  "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
+  "notifications.toast.description": "Show the confirmation as a toast notification.",
+  "notifications.statusBar.description": "Show the confirmation in the status bar.",
+  "notifications.off.description": "Suppress the confirmation notification.",
+  "notifications_execute_anonymous_document_description": "Notification style for Execute Anonymous Apex with Currently Open Editor.",
+  "notifications_execute_anonymous_selection_description": "Notification style for Execute Anonymous Apex with Editor's Selected Text.",
+  "notifications_remove_trace_flag_current_user_description": "Notification style for Remove Trace Flag for Current User.",
+  "notifications_remove_trace_flag_description": "Notification style for Remove Trace Flag.",
+  "notifications_remove_debug_level_description": "Notification style for Remove Debug Level."
 }
