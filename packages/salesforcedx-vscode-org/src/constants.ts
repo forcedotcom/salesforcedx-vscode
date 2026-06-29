@@ -8,3 +8,4 @@
 // Commands
 export const ORG_OPEN_COMMAND = 'sf.org.open';
 export const ORG_LOGIN_WEB = 'org:login:web';
+export const ORG_LOGIN_WEB_DEV_HUB = 'sf.org.login.web.dev.hub';

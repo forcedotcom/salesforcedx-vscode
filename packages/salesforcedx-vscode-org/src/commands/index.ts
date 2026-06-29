@@ -12,5 +12,4 @@ export { orgDisplay } from './orgDisplay';
 export { orgList } from './orgList';
 export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export { orgLoginWeb } from './auth/orgLoginWeb';
-export { orgLoginWebDevHub } from './auth/orgLoginWebDevHub';
 export { orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
