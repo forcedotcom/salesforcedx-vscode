@@ -36,8 +36,9 @@ const DELETE_CONFIRM_LABEL = 'Delete';
 test('org delete username: deletes a dedicated scratch org and refreshes the picker list', async ({
   page
 }, testInfo) => {
-  // Scratch org creation + delete are multi-minute CLI operations.
-  test.setTimeout(720_000);
+  // Scratch org creation + delete are multi-minute CLI operations. Worst case: create -w 10 (~600s) +
+  // waitForOrgGone (120s) + workbench startup + two picker opens + modal. 15 min leaves headroom on slow CI.
+  test.setTimeout(900_000);
 
   const alias = `TempDeleteOrg_${Date.now()}_${testInfo.workerIndex}_${Math.random().toString(36).slice(2)}`;
 
@@ -69,7 +70,9 @@ test('org delete username: deletes a dedicated scratch org and refreshes the pic
     });
 
     await test.step('delete completes: org auth is gone (CLI check)', async () => {
-      await waitForOrgGone(alias, 600_000);
+      // CLI delete completes in seconds on success; 2 min is ample and keeps the worst-case step budget
+      // (org create -w 10 = 600s + this) under test.setTimeout.
+      await waitForOrgGone(alias, 120_000);
     });
 
     await test.step('picker list refreshed: reopening the delete picker no longer lists the org', async () => {
@@ -115,16 +118,20 @@ const clickModalDialogButton = async (page: Page, label: string, timeout = 10_00
   await dialogButton.click();
 };
 
-/** Poll `sf org display` until it fails (org auth removed), confirming the delete actually happened. */
+/** Poll `sf org display` until it fails (org auth removed), confirming the delete actually happened.
+ * Exponential backoff (1s, doubling, capped at 10s) so a fast delete is detected quickly without
+ * accumulating unnecessary delay on slow runs. */
 const waitForOrgGone = async (alias: string, timeoutMs: number): Promise<void> => {
   const deadline = Date.now() + timeoutMs;
+  let delay = 1000;
   while (Date.now() < deadline) {
     try {
       await execAsync(`sf org display -o ${alias} --json`, { env });
     } catch {
       return; // display failed -> org auth is gone -> delete succeeded
     }
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, delay));
+    delay = Math.min(delay * 2, 10_000);
   }
   throw new Error(`Org ${alias} was still resolvable after ${timeoutMs}ms; delete did not complete`);
 };
