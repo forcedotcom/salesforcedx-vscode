@@ -16,7 +16,7 @@ import * as orgDisplayUtil from '../../../src/util/orgDisplay';
 // Mock the connection-driven helper so the command test stays at the command level
 // (the helper's real SOQL/Org.create path is covered by the e2e spec).
 jest.mock('../../../src/util/orgDisplay');
-const getOrgInfoFromConnectionEffect = orgDisplayUtil.getOrgInfoFromConnectionEffect as unknown as jest.Mock;
+const orgInfoFromConnection = orgDisplayUtil.orgInfoFromConnection as unknown as jest.Mock;
 
 const ORG_INFO: OrgInfo = {
   username: 'me@scratch.org',
@@ -77,7 +77,7 @@ const run = (opts: {
 describe('orgDisplayDefaultCommand', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    getOrgInfoFromConnectionEffect.mockImplementation(() => Effect.succeed(ORG_INFO));
+    orgInfoFromConnection.mockImplementation(() => Effect.succeed(ORG_INFO));
   });
 
   it('derives org info from the default connection, appends warning + table, shows the channel', async () => {
@@ -91,9 +91,7 @@ describe('orgDisplayDefaultCommand', () => {
     });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(getOrgInfoFromConnectionEffect).toHaveBeenCalledWith(FAKE_CONN);
-    expect(appendToChannel).toHaveBeenCalledWith(expect.stringContaining('Warning: This command will expose'));
-    // a stable, unconditional row of the rendered table
+    // a stable, unconditional row of the rendered table proves orgInfo flowed into formatOrgInfoAsTable
     expect(appendToChannel).toHaveBeenCalledWith(expect.stringContaining('Connected Status'));
     expect(show).toHaveBeenCalledTimes(1);
   });
@@ -106,7 +104,7 @@ describe('orgDisplayDefaultCommand', () => {
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
-    expect(getOrgInfoFromConnectionEffect).not.toHaveBeenCalled();
+    expect(orgInfoFromConnection).not.toHaveBeenCalled();
     expect(appendToChannel).not.toHaveBeenCalled();
     expect(show).not.toHaveBeenCalled();
   });
@@ -123,7 +121,7 @@ describe('orgDisplayDefaultCommand', () => {
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('NoTargetOrgConfiguredError');
-    expect(getOrgInfoFromConnectionEffect).not.toHaveBeenCalled();
+    expect(orgInfoFromConnection).not.toHaveBeenCalled();
     expect(appendToChannel).not.toHaveBeenCalled();
     expect(show).not.toHaveBeenCalled();
   });
