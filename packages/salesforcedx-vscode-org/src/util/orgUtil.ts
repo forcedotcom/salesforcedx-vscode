@@ -196,63 +196,43 @@ export const determineConnectedStatusForNonScratchOrg = async (username: string)
   }
 };
 
-/** Process a single org for potential removal */
-const processOrgForRemoval = async (
-  orgAuth: OrgAuthorization,
-  authRemover: AuthRemover
-): Promise<string | undefined> => {
+/** A removable org plus the channel line describing why it's removable. */
+type RemovableOrg = { username: string; logLine: string };
+
+/** Classify a single org for removal WITHOUT mutating auth state, so the caller can confirm first. */
+const classifyOrgForRemoval = async (orgAuth: OrgAuthorization): Promise<RemovableOrg | undefined> => {
+  // Skip dev hubs
+  if (orgAuth.isDevHub) {
+    return undefined;
+  }
+
+  // Skip orgs with errors - they are likely already invalid
+  if (orgAuth.error) {
+    channelService.appendLine(nls.localize('org_list_clean_skipping_org_with_error', orgAuth.username, orgAuth.error));
+    return undefined;
+  }
+
   try {
-    // Skip dev hubs
-    if (orgAuth.isDevHub) {
-      return undefined;
-    }
-
-    // Skip orgs with errors - they are likely already invalid
-    if (orgAuth.error) {
-      channelService.appendLine(
-        nls.localize('org_list_clean_skipping_org_with_error', orgAuth.username, orgAuth.error)
-      );
-      return undefined;
-    }
-
     const authFields: AuthFields = await getAuthFieldsFor(orgAuth.username);
 
-    // Check if this is a scratch org with an expiration date
-    if (authFields.expirationDate) {
-      const expirationDate = new Date(authFields.expirationDate);
-
-      // Check if org has expired
-      if (expirationDate < new Date()) {
-        channelService.appendLine(
-          nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
-        );
-        await authRemover.removeAuth(orgAuth.username);
-        return orgAuth.username;
-      }
-    }
-    return undefined;
+    // Scratch org whose expiration date has passed
+    return authFields.expirationDate && new Date(authFields.expirationDate) < new Date()
+      ? {
+          username: orgAuth.username,
+          logLine: nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
+        }
+      : undefined;
   } catch (error) {
-    // If we can't get auth fields, the org might be deleted/invalid - try to remove it
+    // If we can't get auth fields, the org might be deleted/invalid - mark it for removal
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (shouldRemoveOrg(error)) {
-      try {
-        channelService.appendLine(nls.localize('org_list_clean_removing_invalid_org', orgAuth.username, errorMessage));
-        await authRemover.removeAuth(orgAuth.username);
-        return orgAuth.username;
-      } catch (removeError) {
-        channelService.appendLine(
-          nls.localize(
-            'org_list_clean_failed_to_remove_org',
-            orgAuth.username,
-            removeError instanceof Error ? removeError.message : String(removeError)
-          )
-        );
-        return undefined;
-      }
-    } else {
-      channelService.appendLine(nls.localize('org_list_clean_error_checking_org', orgAuth.username, errorMessage));
-      return undefined;
+      return {
+        username: orgAuth.username,
+        logLine: nls.localize('org_list_clean_removing_invalid_org', orgAuth.username, errorMessage)
+      };
     }
+    channelService.appendLine(nls.localize('org_list_clean_error_checking_org', orgAuth.username, errorMessage));
+    return undefined;
   }
 };
 
@@ -263,19 +243,36 @@ const listAllAuthorizationsEffect = Effect.fn('OrgUtil.listAllAuthorizations')(f
 });
 
 /**
- * Remove expired and deleted orgs from local configuration.
+ * Find expired/deleted orgs WITHOUT removing them, so the caller can show a confirm prompt
+ * (or skip it entirely when there's nothing to remove).
+ */
+export const findRemovableOrgs = async (): Promise<RemovableOrg[]> => {
+  const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
+  return (await Promise.all(orgAuthorizations.map(classifyOrgForRemoval))).filter(isNotUndefined);
+};
+
+/**
+ * Remove the given orgs from local configuration.
  * Rejects on failure; the Effect caller (orgListCleanCommand) maps the rejection to OrgListCleanError.
  */
-export const removeExpiredAndDeletedOrgs = async (): Promise<string[]> => {
-  const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
+export const removeExpiredAndDeletedOrgs = async (removable: readonly RemovableOrg[]): Promise<string[]> => {
   const authRemover = await AuthRemover.create();
 
-  // Process each org for potential removal sequentially (AuthRemover mutates shared auth state)
+  // Remove sequentially (AuthRemover mutates shared auth state)
   const removed: string[] = [];
-  for (const orgAuth of orgAuthorizations) {
-    const removedUsername = await processOrgForRemoval(orgAuth, authRemover);
-    if (removedUsername) {
-      removed.push(removedUsername);
+  for (const { username, logLine } of removable) {
+    try {
+      channelService.appendLine(logLine);
+      await authRemover.removeAuth(username);
+      removed.push(username);
+    } catch (removeError) {
+      channelService.appendLine(
+        nls.localize(
+          'org_list_clean_failed_to_remove_org',
+          username,
+          removeError instanceof Error ? removeError.message : String(removeError)
+        )
+      );
     }
   }
   return removed;

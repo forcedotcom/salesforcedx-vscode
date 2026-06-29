@@ -15,6 +15,7 @@ import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/ext
 import { nls } from '../../../src/messages';
 import {
   determineConnectedStatusForNonScratchOrg,
+  findRemovableOrgs,
   removeExpiredAndDeletedOrgs,
   displayRemainingOrgs,
   shouldRemoveOrg,
@@ -249,11 +250,7 @@ describe('orgList command', () => {
     });
   });
 
-  describe('removeExpiredAndDeletedOrgs', () => {
-    const mockAuthRemover = {
-      removeAuth: jest.fn()
-    };
-
+  describe('findRemovableOrgs', () => {
     const mockOrgAuths = [
       {
         username: 'valid@example.com',
@@ -274,42 +271,73 @@ describe('orgList command', () => {
 
     beforeEach(() => {
       listAllAuthorizationsMock.mockReturnValue(Effect.succeed(mockOrgAuths as unknown as OrgAuthorization[]));
-      (AuthRemover.create as jest.Mock).mockResolvedValue(mockAuthRemover);
-      mockAuthRemover.removeAuth.mockResolvedValue(undefined);
     });
 
     it('should skip dev hubs', async () => {
       mockGetAuthFieldsFor.mockResolvedValue({});
 
-      await removeExpiredAndDeletedOrgs();
+      await findRemovableOrgs();
 
       expect(mockGetAuthFieldsFor).not.toHaveBeenCalledWith('devhub@example.com');
     });
 
-    it('should remove expired orgs', async () => {
+    it('should classify expired orgs as removable without removing them', async () => {
       const pastDate = new Date('2020-01-01').toISOString();
-      mockGetAuthFieldsFor
-        .mockResolvedValueOnce({}) // valid@example.com - no expiration
-        .mockResolvedValueOnce({ expirationDate: pastDate }); // expired@example.com
+      mockGetAuthFieldsFor.mockImplementation((username: string) =>
+        Promise.resolve(username === 'expired@example.com' ? { expirationDate: pastDate } : {})
+      );
 
-      const result = await removeExpiredAndDeletedOrgs();
+      const result = await findRemovableOrgs();
 
-      expect(mockAuthRemover.removeAuth).toHaveBeenCalledWith('expired@example.com');
-      expect(result).toContain('expired@example.com');
+      expect(result.map(o => o.username)).toEqual(['expired@example.com']);
+      // classification must not mutate auth state
+      expect(AuthRemover.create).not.toHaveBeenCalled();
     });
 
-    it('should handle getAuthFieldsFor errors', async () => {
+    it('should not classify orgs when getAuthFieldsFor fails with a non-removable error', async () => {
       mockGetAuthFieldsFor.mockRejectedValue(new Error('Auth fields error'));
 
-      const result = await removeExpiredAndDeletedOrgs();
+      const result = await findRemovableOrgs();
 
-      // Non-removable errors are logged per org; no org removed, processing continues through all orgs
       expect(result).toEqual([]);
-      expect(mockAuthRemover.removeAuth).not.toHaveBeenCalled();
       expect(channelService.appendLine).toHaveBeenCalledWith(
         expect.stringContaining(
           nls.localize('org_list_clean_error_checking_org', 'valid@example.com', 'Auth fields error')
         )
+      );
+    });
+  });
+
+  describe('removeExpiredAndDeletedOrgs', () => {
+    const mockAuthRemover = {
+      removeAuth: jest.fn()
+    };
+
+    beforeEach(() => {
+      (AuthRemover.create as jest.Mock).mockResolvedValue(mockAuthRemover);
+      mockAuthRemover.removeAuth.mockResolvedValue(undefined);
+    });
+
+    it('should remove each given org and return removed usernames', async () => {
+      const result = await removeExpiredAndDeletedOrgs([
+        { username: 'expired@example.com', logLine: 'removing expired' }
+      ]);
+
+      expect(mockAuthRemover.removeAuth).toHaveBeenCalledWith('expired@example.com');
+      expect(result).toEqual(['expired@example.com']);
+    });
+
+    it('should keep removing after a removal failure and exclude the failed org', async () => {
+      mockAuthRemover.removeAuth.mockRejectedValueOnce(new Error('remove failed')).mockResolvedValueOnce(undefined);
+
+      const result = await removeExpiredAndDeletedOrgs([
+        { username: 'bad@example.com', logLine: 'removing bad' },
+        { username: 'expired@example.com', logLine: 'removing expired' }
+      ]);
+
+      expect(result).toEqual(['expired@example.com']);
+      expect(channelService.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining(nls.localize('org_list_clean_failed_to_remove_org', 'bad@example.com', 'remove failed'))
       );
     });
   });
