@@ -276,11 +276,13 @@ describe('ApexTestTreeService', () => {
         logged.push({ message, annotations: Object.fromEntries(annotations) });
       });
 
+      // R carries WorkspaceService | FsService from the restore body's ambient api.services reads; the
+      // mocked api satisfies them at runtime, so narrow R to what layerWithFs provides (matches `run`).
       await Effect.runPromise(
         Effect.provide(
           ApexTestTreeService.restorePreviousResults(ctx).pipe(
             Effect.provide(Logger.replace(Logger.defaultLogger, captureLogger))
-          ),
+          ) as Effect.Effect<void, never, ApexTestTreeService>,
           layerWithFs
         )
       );

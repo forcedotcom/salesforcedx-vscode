@@ -41,7 +41,7 @@ import { getApexTestingRuntime, setAllServicesLayer } from './services/extension
 import { telemetryService } from './telemetry/telemetry';
 import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
-import { disposeTestController, getTestController } from './views/testController';
+import { disposeTestController, getTestClassName, getTestController } from './views/testController';
 import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';
 import { initializeTestDiscovery } from './watchers/testDiscovery';
 import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
@@ -122,8 +122,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   return {
     getTestClassName: (uri: URI): Promise<string | undefined> => {
       try {
-        const controller = getTestController();
-        return Promise.resolve(controller.getTestClassName(uri));
+        return Promise.resolve(getTestClassName(uri));
       } catch (error) {
         console.debug('Failed to get test class name:', error);
         return Promise.resolve(undefined);

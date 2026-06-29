@@ -7,7 +7,7 @@
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import type { Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -38,10 +38,6 @@ import {
   sortNamespaceKeys
 } from './orgTestItems';
 
-/** Extract a string message from an unknown thrown value for typed-error payloads. */
-const errorToString = (error: unknown): string =>
-  error instanceof Error ? error.message : typeof error === 'string' ? error : String(error);
-
 /** Top-level discovery failure surfaced to the user. */
 class DiscoveryError extends Schema.TaggedError<DiscoveryError>()('DiscoveryError', {
   message: Schema.String
@@ -56,11 +52,6 @@ class PackageResolutionError extends Schema.TaggedError<PackageResolutionError>(
   message: Schema.String
 }) {}
 
-/** retrieveAllSuites failure during suite population (current behavior: log + continue with no suites). */
-class SuiteRetrievalError extends Schema.TaggedError<SuiteRetrievalError>()('SuiteRetrievalError', {
-  message: Schema.String
-}) {}
-
 /**
  * Restore-previous-results path failure (non-fatal: the tree is valid without restored results).
  * `uri` carries the offending result file so a per-item apply/scan failure identifies which URI failed;
@@ -70,9 +61,6 @@ class RestoreResultsError extends Schema.TaggedError<RestoreResultsError>()('Res
   uri: Schema.optional(Schema.String),
   message: Schema.String
 }) {}
-
-/** Union of declared discovery-path failures handled by the doDiscover catchTags boundary. */
-type DiscoveryFailure = DiscoveryError | PackageResolutionError | SuiteRetrievalError | RestoreResultsError;
 
 /**
  * Runtime data the shell passes into discovery methods: vscode lifecycle objects (controller, tags),
@@ -104,15 +92,16 @@ const BATCH_SIZE = 50;
  * Surface a discovery-path failure to the user: warning when the friendly message is the
  * partial-discovery warning, error otherwise. Mirrors the legacy doDiscoverTests catch.
  */
-const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFailure')(function* (e: DiscoveryFailure) {
+const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFailure')(function* (
+  e: DiscoveryError | PackageResolutionError
+) {
   const friendlyMessage = toUserFriendlyApexTestError(e);
-  yield* Effect.sync(() => {
-    if (friendlyMessage === nls.localize('apex_test_discovery_partial_warning')) {
-      void vscode.window.showWarningMessage(friendlyMessage);
-    } else {
-      void vscode.window.showErrorMessage(friendlyMessage);
-    }
-  });
+  yield* Effect.sync(
+    () =>
+      void (friendlyMessage === nls.localize('apex_test_discovery_partial_warning')
+        ? vscode.window.showWarningMessage(friendlyMessage)
+        : vscode.window.showErrorMessage(friendlyMessage))
+  );
 });
 
 /**
@@ -182,8 +171,8 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
     /**
      * Populate the "Apex Test Suites" parent node and its suite children from the org (Tooling API).
-     * retrieveAllSuites failure is mapped to SuiteRetrievalError and recovered to "no suites" (the legacy
-     * behavior: log + return early), so a suites outage never fails the whole discovery run.
+     * retrieveAllSuites failure is logged and recovered to "no suites" (the legacy behavior: log + return
+     * early), so a suites outage never fails the whole discovery run.
      */
     const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(function* (ctx: DiscoveryContext) {
       yield* Effect.tryPromise({
@@ -191,12 +180,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
       });
 
-      const suites = yield* Effect.tryPromise({
-        try: () => ctx.getTestService().retrieveAllSuites(),
-        catch: e => new SuiteRetrievalError({ message: errorToString(e) })
-      }).pipe(
-        Effect.catchTag('SuiteRetrievalError', e =>
-          Effect.logError('Error retrieving suites', { error: e.message }).pipe(Effect.as([]))
+      const suites = yield* Effect.tryPromise(() => ctx.getTestService().retrieveAllSuites()).pipe(
+        Effect.catchAll(e =>
+          Effect.logError('Error retrieving suites', { error: getMessageFromError(e) }).pipe(Effect.as([]))
         )
       );
 
@@ -269,7 +255,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const orgKey = orgInfo.orgId;
       const classIdToPackage = yield* Effect.tryPromise({
         try: () => resolvePackage2Members(connection, classIds, buildClassIdToNamespace(apexClasses), orgInfo),
-        catch: e => new PackageResolutionError({ message: errorToString(e) })
+        catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
       });
 
       const structure = buildNamespacePackageStructure(apexClasses, classIdToPackage);
@@ -333,7 +319,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const entries = yield* api.services.FsService.readDirectory(resultDir).pipe(
         Effect.catchTag(
           'FsServiceError',
-          e => new RestoreResultsError({ uri: resultDir.toString(), message: errorToString(e) })
+          e => new RestoreResultsError({ uri: resultDir.toString(), message: getMessageFromError(e) })
         )
       );
 
@@ -354,14 +340,14 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         api.services.FsService.stat(uri).pipe(
           Effect.catchTag(
             'FsServiceError',
-            e => new RestoreResultsError({ uri: uri.toString(), message: errorToString(e) })
+            e => new RestoreResultsError({ uri: uri.toString(), message: getMessageFromError(e) })
           ),
           Effect.flatMap(stat =>
             now - stat.mtime > RESULT_MAX_AGE_MS
               ? Effect.succeed(Option.none<{ uri: URI; mtime: number }>())
               : Effect.tryPromise({
                   try: () => ctx.getMethodIdsFromResultFile(uri),
-                  catch: e => new RestoreResultsError({ uri: uri.toString(), message: errorToString(e) })
+                  catch: e => new RestoreResultsError({ uri: uri.toString(), message: getMessageFromError(e) })
                 }).pipe(
                   Effect.map(methodsInFile => {
                     const targetSet = stat.mtime < ctx.sessionStartTime ? staleMethodIds : sessionMethodIds;
@@ -392,7 +378,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         uri =>
           Effect.tryPromise({
             try: () => ctx.updateTestResults(uri),
-            catch: e => new RestoreResultsError({ uri: uri.toString(), message: errorToString(e) })
+            catch: e => new RestoreResultsError({ uri: uri.toString(), message: getMessageFromError(e) })
           }),
         { concurrency: 1 }
       );
@@ -458,9 +444,11 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       }
 
       yield* restoreResultsBody(ctx).pipe(
-        Effect.catchTag('RestoreResultsError', e =>
-          Effect.logWarning('Failed to restore previous test results', e.message).pipe(
-            Effect.annotateLogs({ uri: e.uri })
+        // Restore is non-fatal: any failure (RestoreResultsError, or a services/workspace lookup failure)
+        // leaves a valid empty tree, so recover all of them with a warning.
+        Effect.catchAll(e =>
+          Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)).pipe(
+            Effect.annotateLogs({ uri: e._tag === 'RestoreResultsError' ? e.uri : undefined })
           )
         ),
         Effect.ensuring(Ref.set(isRestoringResults, false))
@@ -504,17 +492,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
     /**
      * Run the discovery body and surface any declared failure to the user (warning vs error).
-     * Only DiscoveryError and PackageResolutionError reach here: SuiteRetrievalError is recovered inside
-     * populateSuiteItems (log + no suites) and RestoreResultsError inside restorePreviousResults
+     * Only DiscoveryError and PackageResolutionError reach here: the retrieveAllSuites failure is recovered
+     * inside populateSuiteItems (log + no suites) and RestoreResultsError inside restorePreviousResults
      * (logWarning), preserving the legacy non-fatal behavior of those two paths.
      */
     const doDiscover = Effect.fn('ApexTestTreeService.doDiscover')(function* (ctx: DiscoveryContext) {
-      yield* discoverBody(ctx).pipe(
-        Effect.catchTags({
-          DiscoveryError: notifyDiscoveryFailure,
-          PackageResolutionError: notifyDiscoveryFailure
-        })
-      );
+      yield* discoverBody(ctx).pipe(Effect.catchAll(notifyDiscoveryFailure));
     });
 
     /**

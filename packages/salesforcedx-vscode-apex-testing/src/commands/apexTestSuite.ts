@@ -16,7 +16,7 @@ import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
-import { getTestController } from '../views/testController';
+import { clearAllSuiteChildren, getTestController } from '../views/testController';
 import { runSelectedTests } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
@@ -120,9 +120,8 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
   notificationService.showSuccessfulExecution(executionName);
 
   // Clear all suite children so they re-query from org instead of using stale local files, then refresh
-  const testController = getTestController();
-  testController.clearAllSuiteChildren();
-  yield* Effect.promise(() => testController.refresh());
+  clearAllSuiteChildren();
+  yield* Effect.promise(() => getTestController().refresh());
 });
 
 export const apexTestSuiteAdd = Effect.fn('apexTestSuiteAdd')(function* () {

@@ -179,6 +179,13 @@ import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
 
+// The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
+// the production module accessors use) to seed test state.
+const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map<string, vscode.TestItem> => {
+  const ApexTestTreeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+  return extensionProvider.getApexTestingRuntime().runSync(ApexTestTreeService[key]());
+};
+
 // Mock vscode.tests API
 const mockTestController = {
   items: {
@@ -1222,8 +1229,7 @@ describe('ApexTestController', () => {
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
-      const suiteItems = (controller as any).suiteItems as Map<string, vscode.TestItem>;
-      suiteItems.set('MySuite', suiteItem);
+      treeMap('getSuiteItems').set('MySuite', suiteItem);
 
       await controller.incrementalUpdate(changes, true);
 
@@ -1234,8 +1240,8 @@ describe('ApexTestController', () => {
       const Effect = jest.requireActual('effect/Effect');
 
       // Set up an existing class item in the controller
-      const classItems = (controller as any).classItems as Map<string, vscode.TestItem>;
-      const methodItems = (controller as any).methodItems as Map<string, vscode.TestItem>;
+      const classItems = treeMap('getClassItems');
+      const methodItems = treeMap('getMethodItems');
 
       const existingMethodItem = {
         id: 'method:MyTestClass.testMethod1',

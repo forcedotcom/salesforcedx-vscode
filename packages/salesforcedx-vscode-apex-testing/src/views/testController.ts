@@ -63,6 +63,37 @@ import {
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
 
+// The suite/class/method/classToParent maps live in ApexTestTreeService Refs (single source of truth).
+// These read the live Map object via a synchronous Ref read; reset clears them in place, so callers that
+// mutate the returned map (removeClassFromTree.delete, diffClassMethods.set) keep writing through to the
+// service. Sync TestRun callers (applyStaleTags/clearStaleTagsForTests) read through the same accessors.
+const suiteItems = (): Map<string, vscode.TestItem> =>
+  getApexTestingRuntime().runSync(ApexTestTreeService.getSuiteItems());
+const classItems = (): Map<string, vscode.TestItem> =>
+  getApexTestingRuntime().runSync(ApexTestTreeService.getClassItems());
+const methodItems = (): Map<string, vscode.TestItem> =>
+  getApexTestingRuntime().runSync(ApexTestTreeService.getMethodItems());
+const classToParentItem = (): Map<string, vscode.TestItem> =>
+  getApexTestingRuntime().runSync(ApexTestTreeService.getClassToParentItem());
+
+/** Apex test class name for the given file URI, if it is a known test class. */
+export const getTestClassName = (uri: URI): string | undefined => {
+  const uriStr = uri.toString();
+  for (const [className, item] of classItems()) {
+    if (item.uri?.toString() === uriStr) {
+      return className;
+    }
+  }
+  return undefined;
+};
+
+/** Clear all suite children so they re-query from the org. */
+export const clearAllSuiteChildren = (): void => {
+  for (const suiteItem of suiteItems().values()) {
+    suiteItem.children.replace([]);
+  }
+};
+
 /** How the run profile constrains an implicit "run all" (no explicit test selection). */
 type ApexTestRunScope = 'workspace-first' | 'all-org' | 'stale-workspace' | 'stale-org';
 
@@ -79,28 +110,6 @@ export class ApexTestController {
   private suiteTag: vscode.TestTag | undefined;
   private staleTag: vscode.TestTag | undefined;
   private readonly sessionStartTime = Date.now();
-
-  // The suite/class/method/classToParent maps are owned by ApexTestTreeService Refs (single source of
-  // truth). These getters return the live Map objects via a synchronous Ref read — the deliberate
-  // vscode-sync bridge (getX only reads a Ref). reset clears them in place, so callers that mutate the
-  // returned map (e.g. removeClassFromTree.delete, diffClassMethods.set) keep writing through to the
-  // service. Sync TestRun callers (applyStaleTags/clearStaleTagsForTests) read via the same getters.
-  // eslint-disable-next-line class-methods-use-this
-  private get suiteItems(): Map<string, vscode.TestItem> {
-    return getApexTestingRuntime().runSync(ApexTestTreeService.getSuiteItems());
-  }
-  // eslint-disable-next-line class-methods-use-this
-  private get classItems(): Map<string, vscode.TestItem> {
-    return getApexTestingRuntime().runSync(ApexTestTreeService.getClassItems());
-  }
-  // eslint-disable-next-line class-methods-use-this
-  private get methodItems(): Map<string, vscode.TestItem> {
-    return getApexTestingRuntime().runSync(ApexTestTreeService.getMethodItems());
-  }
-  // eslint-disable-next-line class-methods-use-this
-  private get classToParentItem(): Map<string, vscode.TestItem> {
-    return getApexTestingRuntime().runSync(ApexTestTreeService.getClassToParentItem());
-  }
 
   constructor() {
     this.controller = vscode.tests.createTestController(TEST_CONTROLLER_ID, nls.localize('test_view_name'));
@@ -119,19 +128,6 @@ export class ApexTestController {
 
   public getController(): vscode.TestController {
     return this.controller;
-  }
-
-  /**
-   * Returns the Apex test class name for the given file URI, if it is a known test class in the controller.
-   */
-  public getTestClassName(uri: URI): string | undefined {
-    const uriStr = uri.toString();
-    for (const [className, item] of this.classItems) {
-      if (item.uri?.toString() === uriStr) {
-        return className;
-      }
-    }
-    return undefined;
   }
 
   public async refresh(): Promise<void> {
@@ -193,15 +189,6 @@ export class ApexTestController {
         Effect.withSpan('ApexTestController.clearResults')
       )
     );
-  }
-
-  /**
-   * Clears all suite children so they will be re-queried from the org
-   */
-  public clearAllSuiteChildren(): void {
-    for (const suiteItem of this.suiteItems.values()) {
-      suiteItem.children.replace([]);
-    }
   }
 
   /**
@@ -337,7 +324,7 @@ export class ApexTestController {
    * @param staleMethodIds Set of method IDs to mark as stale. If undefined, marks all methods.
    */
   private applyStaleTags(staleMethodIds?: Set<string>): void {
-    for (const [methodId, methodItem] of this.methodItems) {
+    for (const [methodId, methodItem] of methodItems()) {
       if (staleMethodIds && !staleMethodIds.has(methodId)) {
         continue;
       }
@@ -348,9 +335,9 @@ export class ApexTestController {
     }
 
     // Propagate stale tag to class items that have any stale methods
-    for (const [className, classItem] of this.classItems) {
+    for (const [className, classItem] of classItems()) {
       const classPrefix = `${className}.`;
-      const hasStaleMethod = [...this.methodItems.entries()].some(
+      const hasStaleMethod = [...methodItems().entries()].some(
         ([id, item]) => id.startsWith(classPrefix) && item.tags?.some(t => t.id === 'stale')
       );
       if (hasStaleMethod) {
@@ -362,11 +349,11 @@ export class ApexTestController {
     }
 
     // Propagate stale tag to suite items that contain any stale classes
-    for (const [suiteName, suiteItem] of this.suiteItems) {
+    for (const [suiteName, suiteItem] of suiteItems()) {
       const classNames = this.suiteToClasses.get(suiteName);
       if (classNames) {
         const hasStaleClass = [...classNames].some(cn => {
-          const classItem = this.classItems.get(cn);
+          const classItem = classItems().get(cn);
           return classItem?.tags?.some(t => t.id === 'stale');
         });
         if (hasStaleClass) {
@@ -393,7 +380,7 @@ export class ApexTestController {
         const className = extractClassName(test.id);
         if (className) {
           const classPrefix = `${className}.`;
-          for (const methodId of this.methodItems.keys()) {
+          for (const methodId of methodItems().keys()) {
             if (methodId.startsWith(classPrefix)) {
               runMethodIds.add(methodId);
             }
@@ -406,7 +393,7 @@ export class ApexTestController {
         if (classNames) {
           for (const className of classNames) {
             const classPrefix = `${className}.`;
-            for (const methodId of this.methodItems.keys()) {
+            for (const methodId of methodItems().keys()) {
               if (methodId.startsWith(classPrefix)) {
                 runMethodIds.add(methodId);
               }
@@ -419,7 +406,7 @@ export class ApexTestController {
     // Clear stale tags from methods that were run
     const affectedClasses = new Set<string>();
     for (const methodId of runMethodIds) {
-      const methodItem = this.methodItems.get(methodId);
+      const methodItem = methodItems().get(methodId);
       if (methodItem) {
         const nextTags = (methodItem.tags ?? []).filter(t => t.id !== 'stale');
         methodItem.tags = nextTags;
@@ -429,10 +416,10 @@ export class ApexTestController {
 
     // Remove stale tag from parent class items if no methods remain stale
     for (const className of affectedClasses) {
-      const classItem = this.classItems.get(className);
+      const classItem = classItems().get(className);
       if (classItem) {
         const classPrefix = `${className}.`;
-        const hasStaleMethod = [...this.methodItems.entries()].some(
+        const hasStaleMethod = [...methodItems().entries()].some(
           ([id, item]) => id.startsWith(classPrefix) && item.tags?.some(t => t.id === 'stale')
         );
         if (!hasStaleMethod) {
@@ -443,11 +430,11 @@ export class ApexTestController {
     }
 
     // Remove stale tag from suite items if no member classes remain stale
-    for (const [suiteName, suiteItem] of this.suiteItems) {
+    for (const [suiteName, suiteItem] of suiteItems()) {
       const classNames = this.suiteToClasses.get(suiteName);
       if (classNames) {
         const hasStaleClass = [...classNames].some(cn => {
-          const classItem = this.classItems.get(cn);
+          const classItem = classItems().get(cn);
           return classItem?.tags?.some(t => t.id === 'stale');
         });
         if (!hasStaleClass) {
@@ -483,7 +470,7 @@ export class ApexTestController {
       }
 
       if (includesSuiteChange) {
-        this.clearAllSuiteChildren();
+        clearAllSuiteChildren();
       }
     } catch {
       // Non-fatal: incremental update failure doesn't affect existing tree state
@@ -491,18 +478,18 @@ export class ApexTestController {
   }
 
   private removeClassFromTree(fullClassName: string): void {
-    const classItem = this.classItems.get(fullClassName);
+    const classItem = classItems().get(fullClassName);
     if (!classItem) {
       return;
     }
 
     // Remove method items
     classItem.children.forEach(methodItem => {
-      this.methodItems.delete(methodItem.id);
+      methodItems().delete(methodItem.id);
     });
 
     // Remove class from parent
-    const parentItem = this.classToParentItem.get(fullClassName);
+    const parentItem = classToParentItem().get(fullClassName);
     if (parentItem) {
       parentItem.children.delete(classItem.id);
       // Clean up empty parent nodes
@@ -511,8 +498,8 @@ export class ApexTestController {
       }
     }
 
-    this.classItems.delete(fullClassName);
-    this.classToParentItem.delete(fullClassName);
+    classItems().delete(fullClassName);
+    classToParentItem().delete(fullClassName);
   }
 
   private removeEmptyAncestors(item: vscode.TestItem): void {
@@ -547,7 +534,7 @@ export class ApexTestController {
 
     for (const [fullName, changeType] of changes) {
       const discoveredClass = discoveryMap.get(fullName);
-      const existingClassItem = this.classItems.get(fullName);
+      const existingClassItem = classItems().get(fullName);
 
       if (changeType === 'created' || (!existingClassItem && discoveredClass)) {
         // New class: add to tree
@@ -586,8 +573,8 @@ export class ApexTestController {
     const structure = buildNamespacePackageStructure([cls], classIdToPackage);
     const createClassAndMethods = createClassAndMethodsFactory({
       controller: this.controller,
-      classItems: this.classItems,
-      methodItems: this.methodItems,
+      classItems: classItems(),
+      methodItems: methodItems(),
       classNameToUri,
       orgKey,
       orgOnlyTag: this.orgOnlyTag,
@@ -631,7 +618,7 @@ export class ApexTestController {
 
           const classItem = createClassAndMethods(fcn, entries);
           packageItem.children.add(classItem);
-          this.classToParentItem.set(fcn, packageItem);
+          classToParentItem().set(fcn, packageItem);
         }
       }
     }
@@ -679,7 +666,7 @@ export class ApexTestController {
     // Remove methods no longer in discovery
     for (const [methodName, methodItem] of existingMethodsByName) {
       if (!discoveredMethodNames.has(methodName)) {
-        this.methodItems.delete(methodItem.id);
+        methodItems().delete(methodItem.id);
         existingMethodsByName.delete(methodName);
       }
     }
@@ -714,7 +701,7 @@ export class ApexTestController {
         } else if (this.inWorkspaceTag) {
           methodItem.tags = [this.inWorkspaceTag];
         }
-        this.methodItems.set(methodId, methodItem);
+        methodItems().set(methodId, methodItem);
         orderedChildren.push(methodItem);
       }
     }
@@ -927,7 +914,7 @@ export class ApexTestController {
 
       // Add class items as children of the suite (placeholders; actual class items live under namespace/package)
       for (const className of classNames) {
-        const existingClassItem = this.classItems.get(className);
+        const existingClassItem = classItems().get(className);
         const classItem = this.controller.createTestItem(
           createSuiteClassId(suiteName, className),
           className,
@@ -949,7 +936,7 @@ export class ApexTestController {
   ): Promise<void> {
     const startTime = Date.now();
     const run = this.controller.createTestRun(request);
-    let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
+    let testsToRun = gatherTests(request, this.controller.items, suiteItems());
 
     await cacheSingleSelection(request, isDebug);
 
@@ -990,7 +977,7 @@ export class ApexTestController {
 
           for (const className of classNames) {
             const classPrefix = `${className}.`;
-            for (const [methodId, methodItem] of this.methodItems) {
+            for (const [methodId, methodItem] of methodItems()) {
               if (methodId.startsWith(classPrefix) && isStaleAndMatchesLocation(methodItem)) {
                 staleMethods.push(methodItem);
               }
@@ -1028,7 +1015,7 @@ export class ApexTestController {
             if (classNames && classNames.size > 0) {
               // Find the actual class items and add their methods
               for (const className of classNames) {
-                const classItem = this.classItems.get(className);
+                const classItem = classItems().get(className);
                 if (classItem) {
                   // Add all methods from this class
                   classItem.children.forEach(methodItem => {
@@ -1296,8 +1283,8 @@ export class ApexTestController {
       result,
       run,
       testsToRun,
-      methodItems: this.methodItems,
-      classItems: this.classItems,
+      methodItems: methodItems(),
+      classItems: classItems(),
       codeCoverage
     });
 
@@ -1338,8 +1325,8 @@ export class ApexTestController {
         result: resultContent,
         run,
         testsToRun: [],
-        methodItems: this.methodItems,
-        classItems: this.classItems,
+        methodItems: methodItems(),
+        classItems: classItems(),
         codeCoverage,
         concise
       });
