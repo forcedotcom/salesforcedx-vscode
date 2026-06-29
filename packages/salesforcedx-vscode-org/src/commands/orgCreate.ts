@@ -27,10 +27,8 @@ import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector'
 import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreateResultParser';
 import { checkDevHubConfigured } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
+import { isAlphaNumSpaceString } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
-
-const isAlphaNumSpaceString = (value: string | undefined): boolean =>
-  value !== undefined && /^\w+( *\w*)*$/.test(value);
 
 const isInteger = (value: string | undefined): boolean =>
   value !== undefined && !/\D/.test(value) && Number.isSafeInteger(Number.parseInt(value, 10));

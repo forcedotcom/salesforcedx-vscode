@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { runGatherer } from '../../parameterGatherers/runGatherer';
+import { isAlphaNumSpaceString } from '../../util/orgAlias';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 const PRODUCTION_URL = 'https://login.salesforce.com';
@@ -40,7 +41,10 @@ const inputAlias = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
-    ignoreFocusOut: true
+    ignoreFocusOut: true,
+    // empty string is a valid "use default alias" answer; otherwise reject shell metachars so the quoted CLI alias arg stays injection-safe
+    validateInput: value =>
+      isAlphaNumSpaceString(value) || value === '' ? null : nls.localize('error_invalid_org_alias')
   });
 
 const inputAccessToken = async (): Promise<string | undefined> =>
