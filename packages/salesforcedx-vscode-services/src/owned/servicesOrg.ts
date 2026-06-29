@@ -36,8 +36,14 @@ export type ToolingOpt = { readonly tooling?: boolean };
 
 export type ServicesOrg = {
   readonly apiVersion: string;
-  readonly query: <T = Record<string, unknown>>(soql: string, opts?: QueryOpts) => Promise<OwnedQueryResult<T>>;
-  readonly singleRecordQuery: <T = Record<string, unknown>>(soql: string, opts?: ToolingOpt) => Promise<T>;
+  readonly query: <T extends Record<string, unknown> = Record<string, unknown>>(
+    soql: string,
+    opts?: QueryOpts
+  ) => Promise<OwnedQueryResult<T>>;
+  readonly singleRecordQuery: <T extends Record<string, unknown> = Record<string, unknown>>(
+    soql: string,
+    opts?: ToolingOpt
+  ) => Promise<T>;
   readonly create: (
     sobjectType: string,
     record: Readonly<Record<string, unknown>>,

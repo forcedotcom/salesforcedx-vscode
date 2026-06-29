@@ -14,37 +14,52 @@ import type {
   ToolingOpt
 } from '../owned/servicesOrg';
 
-import type { Record as JSForceRecord, SaveResult } from '@jsforce/jsforce-node';
+import type { Record as JSForceRecord, SaveResult, HttpRequest, HttpMethods } from '@jsforce/jsforce-node';
 import type { Connection } from '@salesforce/core';
+
+// Helper to remove readonly from a type (safe for serialization boundaries)
+type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+
+// Check if a string is a valid HTTP method for jsforce
+const isHttpMethod = (method: string): method is HttpMethods =>
+  ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'].includes(method);
 
 /** Wraps a live Connection in the services-owned ServicesOrg facade. The Connection never escapes. */
 export const makeServicesOrg = (conn: Connection): ServicesOrg => ({
   apiVersion: conn.getApiVersion(),
-  query: async <T = Record<string, unknown>>(soql: string, opts?: QueryOpts): Promise<OwnedQueryResult<T>> => {
+  query: async <T extends Record<string, unknown> = Record<string, unknown>>(
+    soql: string,
+    opts?: QueryOpts
+  ): Promise<OwnedQueryResult<T>> => {
     const api = opts?.tooling ? conn.tooling : conn;
-    const r = await api.query<JSForceRecord>(soql, { autoFetch: opts?.autoFetch, maxFetch: opts?.maxFetch });
-    // jsforce's `Record[]` is structurally unrelated to the owned generic `T[]` plus differs in mutability, so a double-cast is required at this boundary.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return { done: r.done, totalSize: r.totalSize, records: r.records as unknown as readonly T[] };
+    // jsforce query is typed as returning JSForceRecord (which is any), so we constrain T to Record<string, unknown>
+    // and pass it through. The caller asserts the shape matches their expected T.
+    const r = await api.query<T>(soql, { autoFetch: opts?.autoFetch, maxFetch: opts?.maxFetch });
+    return { done: r.done, totalSize: r.totalSize, records: r.records };
   },
-  singleRecordQuery: async <T = Record<string, unknown>>(soql: string, opts?: ToolingOpt): Promise<T> => {
-    const result = await conn.singleRecordQuery<JSForceRecord>(soql, { tooling: opts?.tooling });
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return result as T;
-  },
+  singleRecordQuery: async <T extends Record<string, unknown> = Record<string, unknown>>(
+    soql: string,
+    opts?: ToolingOpt
+  ): Promise<T> =>
+    // Pass the generic through to jsforce - the caller asserts the shape matches their expected T
+    conn.singleRecordQuery<T>(soql, { tooling: opts?.tooling }),
   create: async (sobjectType, record, opts?: ToolingOpt): Promise<OwnedSaveResult> => {
     const api = opts?.tooling ? conn.tooling : conn;
-    // jsforce serializes the record to JSON and does not mutate it, so dropping `readonly` is safe.
+    // jsforce serializes the record to JSON and does not mutate it, so dropping readonly is safe at the serialization boundary
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const r = await api.sobject(sobjectType).create(record as JSForceRecord);
+    const mutableRecord: Mutable<typeof record> = record as Mutable<typeof record>;
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const r = await api.sobject(sobjectType).create(mutableRecord as JSForceRecord);
     return toSaveResult(r);
   },
   update: async (sobjectType, record, opts?: ToolingOpt): Promise<OwnedSaveResult> => {
     const api = opts?.tooling ? conn.tooling : conn;
-    // jsforce serializes the record to JSON and does not mutate it, so dropping `readonly` is safe.
-    // the owned `update` accepts a plain record; Id presence is validated server-side (owned contract is intentionally looser than jsforce's compile-time `Id` requirement).
+    // jsforce serializes the record to JSON and does not mutate it, so dropping readonly is safe at the serialization boundary.
+    // The owned update accepts a plain record; Id presence is validated server-side.
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const r = await api.sobject(sobjectType).update(record as JSForceRecord & { Id: string });
+    const mutableRecord: Mutable<typeof record> = record as Mutable<typeof record>;
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const r = await api.sobject(sobjectType).update(mutableRecord as JSForceRecord & { Id: string });
     return toSaveResult(r);
   },
   delete: async (sobjectType, id, opts?: ToolingOpt): Promise<OwnedSaveResult> => {
@@ -52,10 +67,28 @@ export const makeServicesOrg = (conn: Connection): ServicesOrg => ({
     const r = await api.sobject(sobjectType).destroy(id);
     return toSaveResult(r);
   },
-  request: async <R>(req: string | OwnedHttpRequest): Promise<R> =>
-    // `OwnedHttpRequest.method` is intentionally `string` (broader than jsforce's literal HTTP-verb union, to allow Salesforce custom methods); the cast bridges to jsforce's narrower type.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    conn.request<R>(req as never),
+  request: async <R = unknown>(req: string | OwnedHttpRequest): Promise<R> => {
+    // Bridge OwnedHttpRequest to jsforce's HttpRequest type
+    if (typeof req === 'string') {
+      return conn.request<R>(req);
+    }
+    // Validate that the method is a standard HTTP method jsforce recognizes
+    if (!isHttpMethod(req.method)) {
+      // This is a Promise-based API (not Effect), so throwing is the correct error mechanism
+      // eslint-disable-next-line functional/no-throw-statements
+      throw new Error(
+        `Invalid HTTP method: ${req.method}. Must be one of: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD`
+      );
+    }
+    // Map owned request shape to jsforce shape
+    const jsforceReq: HttpRequest = {
+      method: req.method,
+      url: req.url,
+      headers: req.headers ? { ...req.headers } : undefined,
+      body: req.body
+    };
+    return conn.request<R>(jsforceReq);
+  },
   identity: async (): Promise<OwnedIdentityInfo> => {
     const i = await conn.identity();
     return {
