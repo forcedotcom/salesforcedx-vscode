@@ -7,36 +7,38 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { URI, Utils } from 'vscode-uri';
-import { getDefaultOrgInfo } from '../coreExtensionUtils';
-import { getApexTestingRuntime } from '../services/extensionProvider';
+import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { Utils } from 'vscode-uri';
 
 const STATE_FOLDER = '.sfdx';
 const TOOLS = 'tools';
 const TEST_RESULTS = 'testresults';
 const TEST_TYPE = 'apex';
 
-/** Gets the org-scoped apex test results folder URI and creates it if it doesn't exist. */
-export const getTestResultsFolder = async (): Promise<URI> => {
-  const { orgId } = await getDefaultOrgInfo();
-  if (!orgId) {
-    throw new Error('No default org; cannot resolve apex test results folder.');
-  }
-  return getTestResultsFolderForOrg(orgId);
-};
+/**
+ * No default org set, so the org-scoped test results folder can't be resolved.
+ * @ExportTaggedError
+ */
+export class NoDefaultOrgError extends Schema.TaggedError<NoDefaultOrgError>()('NoDefaultOrgError', {
+  message: Schema.String
+}) {}
 
-/** Gets the apex test results folder URI for a specific org and creates it if it doesn't exist. */
-const getTestResultsFolderForOrg = async (orgKey: string): Promise<URI> =>
-  getApexTestingRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const workspaceService = yield* api.services.WorkspaceService;
-      const workspace = yield* workspaceService.getWorkspaceInfoOrThrow();
-      const folderUri = Utils.joinPath(workspace.uri, STATE_FOLDER, TOOLS, TEST_RESULTS, TEST_TYPE, orgKey);
-      yield* api.services.FsService.createDirectory(folderUri).pipe(
-        Effect.tapError(error => Effect.logError(error)),
-        Effect.catchAll(() => Effect.void)
-      );
-      return folderUri;
-    })
+/**
+ * Gets the org-scoped apex test results folder URI, creating it if it doesn't exist.
+ * Effect-native: provides its own NoDefaultOrgError / NoWorkspaceOpenError instead of wrapping in tryPromise.
+ */
+export const getTestResultsFolder = Effect.fn('pathHelpers.getTestResultsFolder')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  if (!orgId) {
+    return yield* new NoDefaultOrgError({ message: 'No default org; cannot resolve apex test results folder.' });
+  }
+  const workspace = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const folderUri = Utils.joinPath(workspace.uri, STATE_FOLDER, TOOLS, TEST_RESULTS, TEST_TYPE, orgId);
+  yield* api.services.FsService.createDirectory(folderUri).pipe(
+    Effect.tapError(error => Effect.logError(error)),
+    Effect.catchAll(() => Effect.void)
   );
+  return folderUri;
+});
