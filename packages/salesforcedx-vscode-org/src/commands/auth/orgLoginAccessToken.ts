@@ -14,10 +14,11 @@ import { gatherAccessTokenParams } from './authParamsGatherer';
  * Effect command for `sf.org.login.access.token`: authorize an org from a session ID.
  *
  * Prompts (instanceUrl/alias/accessToken) via the PromptService-backed gatherer, then delegates auth to
- * `ConnectionService.loginWithAccessToken` (create → save → alias/default). On `BadOAuthTokenError` it
- * reveals the channel and re-fails the ORIGINAL error so ErrorHandlerService appends the friendly,
- * services-localized message to the channel AND toasts it (preserving the old executor's UX). Other
- * auth failures (create/save/alias) propagate untouched to the registerCommand-layer ErrorHandlerService.
+ * `ConnectionService.loginWithAccessToken` (create → save → alias/default). ErrorHandlerService already
+ * appends each error's friendly message to the channel and toasts it for every auth failure. The
+ * `BadOAuthTokenError` branch adds one thing on top of that: it reveals the channel panel so the bad-session
+ * message is visible without re-failing differently. Other auth failures (create/save/alias) propagate
+ * untouched (append + toast, no reveal).
  */
 export const orgLoginAccessToken = Effect.fn('orgLoginAccessToken')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -34,14 +35,12 @@ export const orgLoginAccessToken = Effect.fn('orgLoginAccessToken')(function* ()
     alias,
     setDefault: true
   }).pipe(
+    // reveal the channel panel (ErrorHandlerService already appends e.message + toasts it), then re-fail
     Effect.catchTag('BadOAuthTokenError', e =>
-      Effect.gen(function* () {
-        // reveal the channel, then re-fail the original error so ErrorHandlerService appends e.message
-        // (the friendly, services-localized text) to the channel and toasts it.
-        const channel = yield* api.services.ChannelService;
-        yield* channel.showChannel;
-        return yield* e;
-      })
+      api.services.ChannelService.pipe(
+        Effect.flatMap(channel => channel.showChannel),
+        Effect.andThen(Effect.fail(e))
+      )
     )
   );
 

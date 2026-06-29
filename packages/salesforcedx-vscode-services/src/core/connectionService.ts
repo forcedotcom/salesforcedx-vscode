@@ -59,7 +59,8 @@ export class BadOAuthTokenError extends Schema.TaggedError<BadOAuthTokenError>()
 
 /**
  * Raised when `authInfo.handleAliasAndDefaultSettings` fails — distinct from `FailedToSaveAuthInfoError`
- * (which is bound to `authInfo.save()`) so callers can tell the alias/default step apart from the save step.
+ * (which is bound to `authInfo.save()`). No caller currently branches on the two tags (both render as a
+ * plain toast); the separate tag exists for span/telemetry legibility so the failing step is identifiable.
  */
 export class FailedToHandleAliasSettingsError extends Schema.TaggedError<FailedToHandleAliasSettingsError>()(
   'FailedToHandleAliasSettingsError',
@@ -336,7 +337,9 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       });
 
       const authFields = authInfo.getFields();
-      yield* Effect.annotateCurrentSpan({ authFields });
+      // annotate only non-sensitive fields (never the accessToken) onto the span
+      const { username, orgId, instanceUrl } = authFields;
+      yield* Effect.annotateCurrentSpan({ username, orgId, instanceUrl });
       return authFields;
     });
 
