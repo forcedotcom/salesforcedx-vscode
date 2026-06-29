@@ -1,3 +1,12 @@
+## [1.3.4](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.3...playwright-vscode-ext-v1.3.4) (2026-06-29)
+
+
+### Bug Fixes
+
+* **apex-testing:** clear test tree on logout/delete default org - W-23202998 ([#7605](https://github.com/forcedotcom/salesforcedx-vscode/issues/7605)) ([bfbe6c9](https://github.com/forcedotcom/salesforcedx-vscode/commit/bfbe6c90dee848a8a439fcb556c412e52b7f2f83))
+
+
+
 ## [1.3.3](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.2...playwright-vscode-ext-v1.3.3) (2026-06-27)
 
 
