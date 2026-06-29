@@ -18,8 +18,7 @@ const ApexTestingServicesLayer = Layer.merge(ApexTestDiscoveryService.Default, A
 /**
  * Layer that provides all services from the SalesforceVSCodeServicesApi plus apex-testing-specific
  * services. Built via the shared buildAllServicesLayer(context, fallbackDisplayName) at activation,
- * then merged with the apex-testing services. Type is derived from the `Layer.merge` call itself
- * (`mergeAllServices`) so the success/error union is expressed once and stays in sync automatically.
+ * then merged with the apex-testing services. Type derived from the `Layer.merge` to keep the union in sync.
  */
 const mergeAllServices = (layer: ReturnType<typeof buildAllServicesLayer>) =>
   Layer.merge(layer, ApexTestingServicesLayer);

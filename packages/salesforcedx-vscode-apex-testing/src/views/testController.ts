@@ -134,8 +134,7 @@ export class ApexTestController {
    * (e.g. logout / delete default org) without requiring a window reload.
    */
   public async clearAllTestItems(): Promise<void> {
-    // Unlike refresh(), drain any in-flight discovery without early-returning, then clear so the
-    // reset lands after the discovery that would otherwise repopulate the tree.
+    // Wait for in-flight discovery so the reset lands after it, not before.
     if (this.discoveryInProgress) {
       await this.discoveryInProgress;
     }
@@ -1618,8 +1617,7 @@ export class ApexTestController {
     }
   }
 
-  // Close every open `apex-testing:` virtual editor tab. Called on org loss (logout / delete default org),
-  // when the bodies those tabs render belong to an org that is no longer the default.
+  // Close apex-testing: tabs on org loss; their bodies belong to a no-longer-default org.
   // eslint-disable-next-line class-methods-use-this
   public async closeAllApexTestingTabs(): Promise<void> {
     await closeMatchingTabs(uri => uri.scheme === APEX_TESTING_SCHEME);
@@ -1705,8 +1703,7 @@ const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
   return filePath ? URI.file(filePath) : undefined;
 };
 
-// Collect every open text-input tab whose URI matches the predicate, then close them in one call.
-// `tabGroups` is absent on web; treat that as "nothing to close".
+// Batch-close text-input tabs matching predicate. No-op on web (tabGroups absent).
 const closeMatchingTabs = async (predicate: (uri: URI) => boolean): Promise<void> => {
   const tabGroupsApi = vscode.window.tabGroups;
   if (!tabGroupsApi) {

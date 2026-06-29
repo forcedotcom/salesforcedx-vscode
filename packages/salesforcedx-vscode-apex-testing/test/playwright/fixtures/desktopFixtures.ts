@@ -24,8 +24,7 @@ export const desktopTest = createDesktopTest({
   userSettings: {
     'git.terminalAuthentication': false,
     'git.autofetch': false,
-    // Render `showWarningMessage({ modal: true })` (e.g. the scratch-org logout confirm) as an
-    // in-DOM dialog so Playwright can click its button; native OS dialogs are not reachable.
+    // Render modals in-DOM so Playwright can click them; native OS dialogs are unreachable.
     'window.dialogStyle': 'custom'
   }
 });

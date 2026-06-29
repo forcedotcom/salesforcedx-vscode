@@ -24,9 +24,7 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-// Import the desktop fixture directly (not the web/desktop union from `../fixtures`) so the
-// web run still collects this file but `test.skip` (below) never runs the desktop-only body.
-// Auth + deploy + logout need a real org on disk, so this is desktop only.
+// Desktop fixture directly (not the union) so the web run collects but skips this org-on-disk spec.
 import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
@@ -35,12 +33,11 @@ import {
   openTestExplorerAndDiscover
 } from '../helpers/testExplorerHelpers';
 
-// The `apex-testing:` virtual editor opened from the tree leaf method; closed on org loss by the fix.
 const APEX_TESTING_EDITOR = `${EDITOR_WITH_URI}[data-uri^="apex-testing:"]`;
 
-// `SFDX: Log Out from Default Org` — title from salesforcedx-vscode-org package.nls (`org_logout_default_text`).
+// org_logout_default_text in salesforcedx-vscode-org
 const LOGOUT_COMMAND = 'SFDX: Log Out from Default Org';
-// Confirm button on the scratch-org logout modal (`org_logout_scratch_logout` in salesforcedx-vscode-org i18n).
+// org_logout_scratch_logout confirm button
 const LOGOUT_CONFIRM_LABEL = 'Logout';
 
 (isDesktop() ? test : test.skip.bind(test))(
@@ -73,10 +70,8 @@ public class ${className} {
     });
 
     await test.step('delete local source so the class is org-only', async () => {
-      // The `apex-testing:` virtual doc only opens for an org-only class (one in the org but absent
-      // from local source). With the `.cls` on disk, the method TestItem.uri points at the local file
-      // (testController.ts diffClassMethods: `localUri ?? classItem.uri`), so the double-click navigates
-      // to the on-disk `.cls` instead. Remove both the `.cls` and its `-meta.xml` (org copy stays).
+      // Virtual doc only opens for org-only classes; with the `.cls` on disk, double-click opens the
+      // local file instead (diffClassMethods: `localUri ?? classItem.uri`). Remove `.cls` + `-meta.xml`.
       await fs.rm(localClsPath, { force: true });
       await fs.rm(`${localClsPath}-meta.xml`, { force: true });
       await expect(async () => {
@@ -92,9 +87,8 @@ public class ${className} {
     });
 
     await test.step('open the class apex-testing: virtual doc', async () => {
-      // Same open-virtual-doc sequence as orgOnlyClassRetrieve: a leftover active editor blocks the
-      // test-item navigation, so close editors, then expand the class and double-click its leaf method
-      // (only a leaf with a range triggers VS Code's "go to test", which opens the `apex-testing:` doc).
+      // Close editors (a leftover active one blocks test-item nav), expand the class, double-click the
+      // leaf method (only a leaf with a range triggers "go to test", which opens the apex-testing: doc).
       await closeAllEditors(page);
       await classItem.locator('.monaco-tl-twistie').click({ force: true });
       const methodItem = findTestExplorerItem(page, 'clearsOnLogout');
@@ -111,14 +105,13 @@ public class ${className} {
     });
 
     await test.step('the org-discovered class disappears from the tree without a reload', async () => {
-      // This is the bug: before the fix, the tree kept org-discovered tests until a window reload.
-      // The org -> no-org transition alone must empty the tree.
+      // The bug: tree kept org tests until reload. org -> no-org alone must empty it.
       await expect(classItem).toBeHidden({ timeout: 60_000 });
       await saveScreenshot(page, 'step.tree-cleared.png');
     });
 
     await test.step('the apex-testing: virtual editor closes on the org -> no-org transition', async () => {
-      // The tab is backed by a now-gone org; the no-org reactor closes it alongside clearing the tree.
+      // no-org reactor closes the stale-org tab alongside clearing the tree.
       await expect(page.locator(APEX_TESTING_EDITOR)).toBeHidden({ timeout: 60_000 });
       await saveScreenshot(page, 'step.virtual-doc-closed.png');
     });

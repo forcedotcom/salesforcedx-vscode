@@ -8,9 +8,8 @@
 import { expect, type Page } from '@playwright/test';
 
 /**
- * Click a button on a `showWarningMessage/showInformationMessage({ modal: true })` dialog by its label
- * (e.g. 'Overwrite', 'Logout'). Requires `window.dialogStyle: custom`. Callers that expect the dialog
- * to be optional should pass a short timeout and wrap with `.catch`.
+ * Click a modal dialog button by label (e.g. 'Overwrite', 'Logout'). Requires `window.dialogStyle: custom`.
+ * For optional dialogs, pass a short timeout and `.catch`.
  */
 export const clickModalDialogButton = async (page: Page, label: string, timeout = 5000): Promise<void> => {
   const dialogButton = page
