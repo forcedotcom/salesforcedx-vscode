@@ -107,3 +107,4 @@ export const deactivate = (): void => {
 };
 
 export type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
+export type { OrgListCleanError } from './commands/orgList';

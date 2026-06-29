@@ -8,11 +8,11 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { channelService } from '../channels';
 import { nls } from '../messages';
 import { displayRemainingOrgs, removeExpiredAndDeletedOrgs, updateConfigAndStateAggregators } from '../util/orgUtil';
 
-class OrgListCleanError extends Schema.TaggedError<OrgListCleanError>()('OrgListCleanError', {
+/** @ExportTaggedError */
+export class OrgListCleanError extends Schema.TaggedError<OrgListCleanError>()('OrgListCleanError', {
   message: Schema.String
 }) {}
 
@@ -36,13 +36,12 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
       })
   });
 
-  yield* Effect.sync(() => {
-    channelService.appendLine(
-      removedOrgs.length > 0
-        ? nls.localize('org_list_clean_success_message', removedOrgs.length)
-        : nls.localize('org_list_clean_no_orgs_message')
-    );
-  });
+  const channel = yield* api.services.ChannelService;
+  yield* channel.appendToChannel(
+    removedOrgs.length > 0
+      ? nls.localize('org_list_clean_success_message', removedOrgs.length)
+      : nls.localize('org_list_clean_no_orgs_message')
+  );
 
   // Flush ConfigAggregator + StateAggregator so the org picker doesn't show just-removed orgs,
   // and so the table below reflects post-flush state.
