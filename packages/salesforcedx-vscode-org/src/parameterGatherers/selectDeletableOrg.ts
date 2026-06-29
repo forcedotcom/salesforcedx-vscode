@@ -7,19 +7,18 @@
 
 import { OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { buildOrgQuickPickItems, isOrgItem } from '../orgPicker/orgList';
 import { getFreshAuthorizations } from '../util/orgUtil';
-import { runGatherer } from './runGatherer';
 
 export type OrgToDelete = { username: string; orgType: 'scratch' | 'sandbox' };
 
 const isDeletable = (org: OrgAuthorization): boolean => org.isScratchOrg === true || org.isSandbox === true;
 
-const gather = Effect.fn('SelectDeletableOrg.gather')(function* () {
+/** Multi-select QuickPick filtered to scratch orgs and sandboxes with a delete confirmation. */
+export const gather = Effect.fn('SelectDeletableOrg.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
@@ -52,10 +51,3 @@ const gather = Effect.fn('SelectDeletableOrg.gather')(function* () {
 
   return { orgs: targetOrgs };
 });
-
-/** Multi-select QuickPick filtered to scratch orgs and sandboxes with a delete confirmation. */
-export class SelectDeletableOrg implements ParametersGatherer<{ orgs: OrgToDelete[] }> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{ orgs: OrgToDelete[] }>> {
-    return runGatherer(gather());
-  }
-}
