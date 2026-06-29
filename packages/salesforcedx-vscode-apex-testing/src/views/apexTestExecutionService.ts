@@ -92,10 +92,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
     /** Read the JSON result file and parse it as a TestResult. */
     const readTestResult = Effect.fn('ApexTestExecutionService.readTestResult')(function* (testResultUri: URI) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const fsService = yield* api.services.FsService;
-      const resultText = yield* fsService
-        .readFile(testResultUri)
-        .pipe(Effect.mapError(e => new TestExecutionError({ message: getMessageFromError(e) })));
+      const resultText = yield* api.services.FsService.readFile(testResultUri).pipe(
+        Effect.mapError(e => new TestExecutionError({ message: getMessageFromError(e) }))
+      );
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       return JSON.parse(resultText) as TestResult;
     });
@@ -333,7 +332,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
             )
           )
         ),
-        Effect.catchAll(error => Effect.logError('Failed to generate test report', { error }))
+        // Report generation is best-effort; recover failures AND defects (e.g. a transformer throwing
+        // synchronously) so a broken report never fails the test run, matching the legacy try/catch.
+        Effect.catchAllCause(cause => Effect.logError('Failed to generate test report', { cause }))
       );
 
       // Clear stale indicators and apply active tags BEFORE updating results: VS Code snapshots

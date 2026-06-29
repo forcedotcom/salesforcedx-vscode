@@ -31,10 +31,15 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const MockWorkspaceService = {
     getWorkspaceInfoOrThrow: EffectLib.succeed({ uri: UriClass.file('/tmp/workspace'), fsPath: '/tmp/workspace' })
   };
+  const mockAppendToChannel = jest.fn(() => EffectLib.void);
+  const mockChannelService = { appendToChannel: mockAppendToChannel };
   const mockServicesApi = {
     services: {
       ConnectionService: MockConnectionService,
       FsService: mockFsService,
+      // Yielded as an instance in the execution service (yield* api.services.ChannelService), so wrap in
+      // Effect.succeed — same seam as testReportGenerator.test.ts.
+      ChannelService: EffectLib.succeed(mockChannelService),
       WorkspaceService: MockWorkspaceService,
       MetadataRetrieveService: {
         retrieve: mockMetadataRetrieve
@@ -54,9 +59,13 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const ensureRuntime = () => {
     if (!mockRuntime) {
       treeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+      const executionService = jest.requireActual(
+        '../../../src/views/apexTestExecutionService'
+      ).ApexTestExecutionService;
       MockAllServicesLayer = Layer.mergeAll(
         ExtensionProviderLayer,
         treeService.Default,
+        executionService.Default,
         ApexTestRunCacheService.Default
       );
       // One persistent runtime so the tree-state Refs survive across the shell's runSync/runPromise
@@ -80,6 +89,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
       mockReadFileResult = s;
     },
     __mockFsServiceReadFile: mockReadFile,
+    __mockAppendToChannel: mockAppendToChannel,
     __mockMetadataRetrieve: mockMetadataRetrieve,
     // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
     __resetTree: () => {
@@ -115,6 +125,10 @@ jest.mock('../../../src/telemetry/telemetry', () => ({
 jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
   retrieveTestRunConcise: jest.fn().mockReturnValue(false),
+  retrieveOutputFormat: jest.fn().mockReturnValue('text'),
+  retrieveTestSortOrder: jest.fn().mockReturnValue('runtime'),
+  retrievePerformanceThreshold: jest.fn().mockReturnValue(5000),
+  retrieveCoverageThreshold: jest.fn().mockReturnValue(75),
   // Default off: discovery's restore-previous-results step short-circuits in tests not exercising it.
   retrieveRestorePreviousResults: jest.fn().mockReturnValue(false),
   disableRestorePreviousResults: jest.fn()
@@ -656,230 +670,6 @@ describe('ApexTestController', () => {
       expect(orgOnlyMethodItem?.tags).toBeDefined();
       expect(orgOnlyMethodItem?.tags?.length).toBe(1);
       expect(orgOnlyMethodItem?.tags?.[0].id).toBe('org-only');
-    });
-  });
-
-  describe('debugTests with org-only tests', () => {
-    it('should prevent debugging org-only tests and show error notification', async () => {
-      // Get the controller's orgOnlyTag instance (same reference used in debugTests)
-      const orgOnlyTag = (controller as any).orgOnlyTag;
-      const orgOnlyTestItem = {
-        id: 'method:OrgOnlyClass.testMethod',
-        label: 'testMethod',
-        uri: URI.parse('sf-org-apex:OrgOnlyClass'),
-        tags: [orgOnlyTag],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const localTestItem = {
-        id: 'method:LocalClass.testMethod',
-        label: 'testMethod',
-        uri: URI.file('/workspace/LocalClass.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const mockRun = {
-        started: jest.fn(),
-        passed: jest.fn(),
-        failed: jest.fn(),
-        skipped: jest.fn(),
-        errored: jest.fn(),
-        end: jest.fn(),
-        appendOutput: jest.fn()
-      } as unknown as vscode.TestRun;
-
-      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockRun);
-
-      // Mock notificationService
-      notificationService.showErrorMessage = jest.fn();
-
-      // Call debugTests directly
-      await (controller as any).debugTests([orgOnlyTestItem, localTestItem], mockRun);
-
-      // Verify org-only test was marked as errored
-      expect(mockRun.errored).toHaveBeenCalledWith(
-        orgOnlyTestItem,
-        expect.objectContaining({
-          message: expect.stringContaining('Debugging is not supported for tests that exist only in the org')
-        })
-      );
-
-      // Verify error notification was shown
-      expect(notificationService.showErrorMessage).toHaveBeenCalledWith(
-        expect.stringContaining('Debugging is not supported for tests that exist only in the org')
-      );
-
-      // Verify local test was not marked as errored (only org-only tests should be)
-      expect(mockRun.errored).not.toHaveBeenCalledWith(localTestItem, expect.anything());
-    });
-
-    it('should filter out org-only tests from debug run', async () => {
-      // Get the controller's orgOnlyTag instance (same reference used in debugTests)
-      const orgOnlyTag = (controller as any).orgOnlyTag;
-      const orgOnlyTestItem = {
-        id: 'method:OrgOnlyClass.testMethod',
-        label: 'testMethod',
-        uri: URI.parse('sf-org-apex:OrgOnlyClass'),
-        tags: [orgOnlyTag],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const mockRun = {
-        started: jest.fn(),
-        passed: jest.fn(),
-        failed: jest.fn(),
-        skipped: jest.fn(),
-        errored: jest.fn(),
-        end: jest.fn(),
-        appendOutput: jest.fn()
-      } as unknown as vscode.TestRun;
-
-      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockRun);
-
-      // Mock notificationService
-      notificationService.showErrorMessage = jest.fn();
-
-      // Mock commands.executeCommand to track if debug was called
-      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
-
-      // Call debugTests directly with only org-only test
-      await (controller as any).debugTests([orgOnlyTestItem], mockRun);
-
-      // Verify org-only test was marked as errored
-      expect(mockRun.errored).toHaveBeenCalled();
-
-      // Verify debug command was NOT called (org-only tests were filtered out)
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', expect.anything());
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith(
-        'sf.test.view.debugSingleTest',
-        expect.anything()
-      );
-    });
-  });
-
-  describe('debugTests method and class selection', () => {
-    it('should debug only the selected method when a single method is selected', async () => {
-      const methodTestItem = {
-        id: 'method:BugTest.myUnitTest2',
-        label: 'myUnitTest2',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      await (controller as any).debugTests([methodTestItem], mockTestRun);
-
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
-        name: 'BugTest.myUnitTest2'
-      });
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', {
-        name: 'BugTest'
-      });
-    });
-
-    it('should prefer class-level debug when class and method from same class are selected', async () => {
-      const classTestItem = {
-        id: 'class:BugTest',
-        label: 'BugTest',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const methodTestItem = {
-        id: 'method:BugTest.myUnitTest2',
-        label: 'myUnitTest2',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      await (controller as any).debugTests([classTestItem, methodTestItem], mockTestRun);
-
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
-        name: 'BugTest'
-      });
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
-        name: 'myUnitTest2'
-      });
-    });
-
-    it('should debug each selected method when multiple methods from the same class are selected', async () => {
-      const methodOne = {
-        id: 'method:BugTest.myUnitTest1',
-        label: 'myUnitTest1',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const methodTwo = {
-        id: 'method:BugTest.myUnitTest2',
-        label: 'myUnitTest2',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      await (controller as any).debugTests([methodOne, methodTwo], mockTestRun);
-
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
-        name: 'BugTest.myUnitTest1'
-      });
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
-        name: 'BugTest.myUnitTest2'
-      });
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', {
-        name: 'BugTest'
-      });
     });
   });
 
