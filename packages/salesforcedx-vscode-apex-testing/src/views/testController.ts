@@ -27,7 +27,6 @@ import { notificationService } from '../utils/notificationHelpers';
 import { getOrgApexClassProvider } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
-import { sortByMtimeAscending } from '../utils/sortHelpers';
 import {
   createMethodId,
   createNamespaceId,
@@ -168,7 +167,10 @@ export class ApexTestController {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const resultDir = yield* getTestResultsFolder();
         yield* api.services.FsService.safeDelete(resultDir, { recursive: true });
-      }).pipe(Effect.catchAll(error => Effect.logWarning('Failed to delete test results folder', { error })))
+      }).pipe(
+        Effect.catchAll(error => Effect.logWarning('Failed to delete test results folder', { error })),
+        Effect.withSpan('ApexTestController.clearResults')
+      )
     );
   }
 
@@ -1445,10 +1447,3 @@ export const disposeTestController = (): void => {
     testControllerInst = undefined;
   }
 };
-
-/**
- * Returns the URIs sorted oldest-first by mtime. Restoration applies results oldest-first so the
- * most recent run wins per method. See {@link sortByMtimeAscending} for why mtime, not filename.
- */
-export const sortUrisByMtimeAscending = (items: readonly { uri: URI; mtime: number }[]): URI[] =>
-  sortByMtimeAscending(items).map(item => item.uri);

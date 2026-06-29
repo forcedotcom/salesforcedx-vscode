@@ -119,7 +119,7 @@ const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFai
  *
  * The Refs hold mutable Map objects: discovery helpers (createClassAndMethodsFactory) mutate the map
  * in place, and the Ref keeps pointing at the same object, so no per-entry write-back is needed. reset
- * swaps in fresh Maps.
+ * clears the Maps in place (same object identity).
  *
  * SettingsService / FsService / ConnectionService etc. are reached ambiently via api.services; they are
  * NOT declared as hard Default dependencies (that would double-provision at runtime).
@@ -167,20 +167,13 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * during the 4.1→4.2 transition) keeps observing the same object.
      */
     const reset = Effect.fn('ApexTestTreeService.reset')(function* () {
-      yield* Effect.all([
+      const maps = yield* Effect.all([
         Ref.get(suiteItems),
         Ref.get(classItems),
         Ref.get(methodItems),
         Ref.get(classToParentItem)
-      ]).pipe(
-        Effect.flatMap(maps =>
-          Effect.sync(() => {
-            for (const map of maps) {
-              map.clear();
-            }
-          })
-        )
-      );
+      ]);
+      yield* Effect.sync(() => maps.forEach(map => map.clear()));
     });
 
     /**
@@ -254,13 +247,19 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const classIds = apexClasses
         .map(cls => cls.id)
         .filter((id): id is string => typeof id === 'string' && id.length > 0);
-      const { connection, orgInfo } = yield* Effect.tryPromise({
-        try: async () => {
-          const [conn, info] = await Promise.all([ctx.getConnection(), getDefaultOrgInfo()]);
-          return { connection: conn, orgInfo: info };
-        },
-        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-      });
+      const [connection, orgInfo] = yield* Effect.all(
+        [
+          Effect.try({
+            try: () => ctx.getConnection(),
+            catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
+          }),
+          Effect.tryPromise({
+            try: () => getDefaultOrgInfo(),
+            catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
+          })
+        ],
+        { concurrency: 'unbounded' }
+      );
       // No default org → no org-scoped tree to build.
       if (!orgInfo.orgId) return;
       const orgKey = orgInfo.orgId;
@@ -283,61 +282,37 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         inWorkspaceTag: ctx.inWorkspaceTag
       });
 
-      let processed = 0;
-      for (const nsKey of sortNamespaceKeys(structure)) {
+      // Create the namespace/package nodes (order-dependent) and collect a flat list of class-add ops.
+      // Flattening lets the cooperative yield run off a single index (no mutable counter).
+      const classOps = sortNamespaceKeys(structure).flatMap(nsKey => {
         const pkMap = structure.get(nsKey);
         if (!pkMap) {
-          continue;
+          return [];
         }
-
         const namespaceItem = ctx.controller.createTestItem(
           createNamespaceId(nsKey),
           getNamespaceDisplayLabel(nsKey),
           undefined
         );
-
-        for (const pkgKey of getPackageKeysOrdered(nsKey, [...pkMap.keys()])) {
+        const ops = getPackageKeysOrdered(nsKey, [...pkMap.keys()]).flatMap(pkgKey => {
           const classEntriesList = pkMap.get(pkgKey);
           if (!isNonEmptyClassEntriesList(classEntriesList)) {
-            continue;
+            return [];
           }
-
           const { packageLabel, packageId } = getPackageLabelAndId(nsKey, pkgKey, classEntriesList, classIdToPackage);
           const packageItem = ctx.controller.createTestItem(packageId, packageLabel, undefined);
-
-          for (const { fullClassName, entries } of classEntriesList) {
-            packageItem.children.add(createClassAndMethods(fullClassName, entries));
-            currentClassToParent.set(fullClassName, packageItem);
-            processed++;
-            if (processed % BATCH_SIZE === 0) {
-              yield* Effect.yieldNow();
-            }
-          }
           namespaceItem.children.add(packageItem);
-        }
+          return classEntriesList.map(({ fullClassName, entries }) => ({ packageItem, fullClassName, entries }));
+        });
         ctx.controller.items.add(namespaceItem);
-      }
-    });
+        return ops;
+      });
 
-    /**
-     * Restore previous test results from on-disk result files (oldest-first so the newest run wins per
-     * method), tag pre-session methods stale, and notify. test-and-set on isRestoringResults guards
-     * against concurrent restores; the flag is reset in ensuring. Any failure is mapped to
-     * RestoreResultsError and recovered (logWarning), since a failed restore leaves a valid empty tree.
-     */
-    const restorePreviousResults = Effect.fn('ApexTestTreeService.restorePreviousResults')(function* (
-      ctx: DiscoveryContext
-    ) {
-      const proceed = yield* Ref.modify(isRestoringResults, prev => (prev ? [false, prev] : [true, true]));
-      if (!proceed) {
-        return;
-      }
-
-      yield* restoreResultsBody(ctx).pipe(
-        Effect.catchTag('RestoreResultsError', e =>
-          Effect.logWarning('Failed to restore previous test results', { error: e.message })
-        ),
-        Effect.ensuring(Ref.set(isRestoringResults, false))
+      yield* Effect.forEach(classOps, ({ packageItem, fullClassName, entries }, index) =>
+        Effect.sync(() => {
+          packageItem.children.add(createClassAndMethods(fullClassName, entries));
+          currentClassToParent.set(fullClassName, packageItem);
+        }).pipe(Effect.zipRight((index + 1) % BATCH_SIZE === 0 ? Effect.yieldNow() : Effect.void))
       );
     });
 
@@ -347,10 +322,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       }
 
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const entries = yield* Effect.gen(function* () {
-        const resultDir = yield* getTestResultsFolder();
-        return yield* api.services.FsService.readDirectory(resultDir);
-      }).pipe(Effect.catchAll(e => new RestoreResultsError({ message: errorToString(e) })));
+      const resultDir = yield* getTestResultsFolder().pipe(
+        Effect.catchTag('NoDefaultOrgError', e => new RestoreResultsError({ message: e.message }))
+      );
+      const entries = yield* api.services.FsService.readDirectory(resultDir).pipe(
+        Effect.catchTag('FsServiceError', e => new RestoreResultsError({ message: errorToString(e) }))
+      );
 
       // Find all test-result JSON files. Filenames embed Salesforce test-run IDs, which are NOT
       // chronologically sortable, so we order by mtime below rather than by filename.
@@ -363,39 +340,44 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         return;
       }
 
-      // Filter to files within the age threshold and track which methods are pre-session
+      // Filter to files within the age threshold and track which methods are pre-session. Per-file
+      // (Effect.forEach) so a single unreadable file fails with its own RestoreResultsError context
+      // rather than aborting the whole scan.
       const now = Date.now();
-      const recentResults: { uri: URI; mtime: number }[] = [];
       const staleMethodIds = new Set<string>();
       const sessionMethodIds = new Set<string>();
-      yield* Effect.tryPromise({
-        try: async () => {
-          for (const uri of resultUris) {
-            const stat = await vscode.workspace.fs.stat(uri);
-            if (now - stat.mtime <= RESULT_MAX_AGE_MS) {
-              recentResults.push({ uri, mtime: stat.mtime });
-              const methodsInFile = await ctx.getMethodIdsFromResultFile(uri);
-              const targetSet = stat.mtime < ctx.sessionStartTime ? staleMethodIds : sessionMethodIds;
-              for (const methodId of methodsInFile) {
-                targetSet.add(methodId);
-              }
-            }
-          }
-        },
-        catch: e => new RestoreResultsError({ message: errorToString(e) })
-      });
+      const scanned = yield* Effect.forEach(resultUris, uri =>
+        api.services.FsService.stat(uri).pipe(
+          Effect.catchTag('FsServiceError', e => new RestoreResultsError({ message: errorToString(e) })),
+          Effect.flatMap(stat =>
+            now - stat.mtime > RESULT_MAX_AGE_MS
+              ? Effect.succeed(Option.none<{ uri: URI; mtime: number }>())
+              : Effect.tryPromise({
+                  try: () => ctx.getMethodIdsFromResultFile(uri),
+                  catch: e => new RestoreResultsError({ message: errorToString(e) })
+                }).pipe(
+                  Effect.map(methodsInFile => {
+                    const targetSet = stat.mtime < ctx.sessionStartTime ? staleMethodIds : sessionMethodIds;
+                    for (const methodId of methodsInFile) {
+                      targetSet.add(methodId);
+                    }
+                    return Option.some({ uri, mtime: stat.mtime });
+                  })
+                )
+          )
+        )
+      );
+      const recentResults = scanned.filter(Option.isSome).map(o => o.value);
 
       if (recentResults.length === 0) {
         return;
       }
 
       // Apply oldest-first (by mtime) so the most recent run's result wins for each method.
-      const recentUris = sortUrisByMtimeAscending(recentResults);
+      const recentUris = sortByMtimeAscending(recentResults).map(item => item.uri);
 
       // Session results override stale (a method run this session is not stale)
-      for (const methodId of sessionMethodIds) {
-        staleMethodIds.delete(methodId);
-      }
+      sessionMethodIds.forEach(methodId => staleMethodIds.delete(methodId));
 
       // Apply oldest-first so most recent result for each method wins
       yield* Effect.tryPromise({
@@ -437,10 +419,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       });
 
       // Get stat for most recent result (used for notification only)
-      const lastStat = yield* Effect.tryPromise({
-        try: () => Promise.resolve(vscode.workspace.fs.stat(recentUris.at(-1)!)),
-        catch: e => new RestoreResultsError({ message: errorToString(e) })
-      });
+      const lastStat = yield* api.services.FsService.stat(recentUris.at(-1)!).pipe(
+        Effect.catchTag('FsServiceError', e => new RestoreResultsError({ message: errorToString(e) }))
+      );
 
       const runDate = new Date(lastStat.mtime).toLocaleString();
       const disableAction = nls.localize('apex_test_results_restored_disable_action');
@@ -456,6 +437,28 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
             }
           });
       });
+    });
+
+    /**
+     * Restore previous test results from on-disk result files (oldest-first so the newest run wins per
+     * method), tag pre-session methods stale, and notify. test-and-set on isRestoringResults guards
+     * against concurrent restores; the flag is reset in ensuring. Any failure is mapped to
+     * RestoreResultsError and recovered (logWarning), since a failed restore leaves a valid empty tree.
+     */
+    const restorePreviousResults = Effect.fn('ApexTestTreeService.restorePreviousResults')(function* (
+      ctx: DiscoveryContext
+    ) {
+      const proceed = yield* Ref.modify(isRestoringResults, prev => (prev ? [false, prev] : [true, true]));
+      if (!proceed) {
+        return;
+      }
+
+      yield* restoreResultsBody(ctx).pipe(
+        Effect.catchTag('RestoreResultsError', e =>
+          Effect.logWarning('Failed to restore previous test results', { error: e.message })
+        ),
+        Effect.ensuring(Ref.set(isRestoringResults, false))
+      );
     });
 
     /**
@@ -475,7 +478,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       yield* populateSuiteItems(ctx);
 
       const discoveryResult = yield* discoverTests().pipe(
-        Effect.catchAll(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
 
       yield* Effect.tryPromise({
@@ -539,30 +542,18 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     });
 
     return {
-      suiteItems,
-      classItems,
-      methodItems,
-      classToParentItem,
-      hasRestoredResults,
+      // isRestoringResults is exposed only as a test seam for the test-and-set guard; the other Refs
+      // and the discovery sub-steps (populateSuiteItems/populateTestItemsFromOrg) stay private so callers
+      // cannot bypass discover()'s single-shot dedup or mutate tree state directly.
       isRestoringResults,
-      inFlightDiscovery,
       getMethodItems,
       getClassItems,
       getSuiteItems,
       getClassToParentItem,
       reset,
       clearRestoredResults,
-      populateSuiteItems,
-      populateTestItemsFromOrg,
       restorePreviousResults,
       discover
     };
   })
 }) {}
-
-/**
- * Returns the URIs sorted oldest-first by mtime. Restoration applies results oldest-first so the
- * most recent run wins per method (see sortByMtimeAscending for why mtime, not filename).
- */
-const sortUrisByMtimeAscending = (items: readonly { uri: URI; mtime: number }[]): URI[] =>
-  sortByMtimeAscending(items).map(item => item.uri);
