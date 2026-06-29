@@ -283,6 +283,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           return new DebugLevelDeleteError({ message: `Failed to delete debug level: ${cause.message}`, cause: error });
         }
       });
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
     });
 
     const createTraceFlag = Effect.fn('TraceFlagService.createTraceFlag')(function* (
