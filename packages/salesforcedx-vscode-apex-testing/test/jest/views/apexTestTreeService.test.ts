@@ -53,8 +53,8 @@ const ExtensionProviderLayer = Layer.succeed(ExtensionProviderService, {
 
 const baseLayer = () => Layer.provide(ApexTestTreeService.Default, ExtensionProviderLayer);
 
-const run = <A, E>(effect: Effect.Effect<A, E, ApexTestTreeService>) =>
-  Effect.runPromise(Effect.provide(effect, baseLayer()));
+const run = <A, E, R>(effect: Effect.Effect<A, E, ApexTestTreeService | R>) =>
+  Effect.runPromise(Effect.provide(effect as Effect.Effect<A, E, ApexTestTreeService>, baseLayer()));
 
 const fakeTestItem = (id: string): vscode.TestItem => ({ id, label: id }) as unknown as vscode.TestItem;
 
