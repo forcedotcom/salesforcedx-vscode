@@ -23,4 +23,4 @@
 ### sf.org.delete.default vs sf.org.delete.username
 
 - `sf.org.delete.default` → Effect `orgDeleteDefaultCommand` (no picker; confirm modal; `org delete sandbox` for sandbox else `org delete scratch`)
-- `sf.org.delete.username` → `orgDelete` with `{ flag: '--target-org' }` → picker (`SelectDeletableOrg` + `OrgDeleteExecutor`)
+- `sf.org.delete.username` → Effect `orgDeleteUsernameCommand` (multi-select `gather` picker + confirm; per-org `sf org delete scratch|sandbox --target-org <u>` via `TerminalService.simpleExec`; continues past a failed org via `Effect.either`, then fails `OrgDeleteFailedError` if any failed). CLI removes auth + aliases + unsets config, so no separate cleanup.
