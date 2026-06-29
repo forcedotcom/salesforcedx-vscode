@@ -108,18 +108,7 @@ describe('ApexTestTreeService', () => {
     });
   });
 
-  describe('getters', () => {
-    it('return the live Ref maps so caller mutations persist', async () => {
-      await run(
-        Effect.gen(function* () {
-          const methods = yield* ApexTestTreeService.getMethodItems();
-          methods.set('A.t', fakeTestItem('method:A.t'));
-          const again = yield* ApexTestTreeService.getMethodItems();
-          expect(again.get('A.t')?.id).toBe('method:A.t');
-        })
-      );
-    });
-  });
+  // getter live-Ref behavior is already exercised by the reset test (mutate via getX, assert identity).
 
   describe('discover dedup', () => {
     it('runs the body once when two callers overlap; the second awaits the same in-flight run', async () => {
@@ -171,7 +160,7 @@ describe('ApexTestTreeService', () => {
         clearTree: jest.fn()
       });
       await run(ApexTestTreeService.discover(ctx));
-      expect(mockShowErrorMessage).toHaveBeenCalled();
+      expect(mockShowErrorMessage).toHaveBeenCalledWith('boom: connection failed');
       expect(mockShowWarningMessage).not.toHaveBeenCalled();
     });
 
