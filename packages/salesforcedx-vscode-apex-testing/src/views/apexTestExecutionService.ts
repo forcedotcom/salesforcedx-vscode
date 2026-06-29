@@ -491,6 +491,40 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
     });
 
     /**
+     * Debug-or-execute branch for the resolved tests, with per-error run.errored mapping and run.end in
+     * ensuring. Named so it carries its own span (vs an inline Effect.gen) for the debug/execute work.
+     */
+    const runTestPipeline = Effect.fn('ApexTestExecutionService.runTestPipeline')(function* (
+      ctx: ExecutionContext,
+      request: vscode.TestRunRequest,
+      token: vscode.CancellationToken,
+      isDebug: boolean,
+      runScope: ApexTestRunScope,
+      isImplicitFullRun: boolean,
+      finalTests: vscode.TestItem[],
+      run: vscode.TestRun,
+      startTime: number
+    ) {
+      if (isDebug) {
+        yield* debugTests(ctx, finalTests, run);
+      } else {
+        const testNames = finalTests.map(test => getTestName(test));
+        const tmpFolder = yield* getTempFolder();
+        const codeCoverage = settings.retrieveTestCodeCoverage();
+        const runAllTestsInOrg =
+          runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
+        yield* executeTests(ctx, testNames, tmpFolder, codeCoverage, token, run, finalTests, runAllTestsInOrg);
+      }
+      yield* Effect.sync(() =>
+        telemetryService.sendEventData(
+          'apexTestRun',
+          { trigger: 'testController', isDebug: String(isDebug) },
+          { durationMs: Date.now() - startTime, testsRan: finalTests.length }
+        )
+      );
+    });
+
+    /**
      * Run-profile callback body: gather the requested tests, narrow per run scope (workspace-first /
      * all-org / stale-*), expand suites, then either debug or execute. Errors from the execution pipeline
      * are surfaced per test item (run.errored) so the run always ends cleanly.
@@ -586,7 +620,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
                   for (const className of classNames) {
                     const classItem = classItems.get(className);
                     if (classItem) {
-                      classItem.children.forEach(methodItem => expanded.push(methodItem));
+                      expanded.push(...Array.from(classItem.children, ([, item]) => item));
                     }
                   }
                 } else {
@@ -636,25 +670,17 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         }
       });
 
-      yield* Effect.gen(function* () {
-        if (isDebug) {
-          yield* debugTests(ctx, finalTests, run);
-        } else {
-          const testNames = finalTests.map(test => getTestName(test));
-          const tmpFolder = yield* getTempFolder();
-          const codeCoverage = settings.retrieveTestCodeCoverage();
-          const runAllTestsInOrg =
-            runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
-          yield* executeTests(ctx, testNames, tmpFolder, codeCoverage, token, run, finalTests, runAllTestsInOrg);
-        }
-        yield* Effect.sync(() =>
-          telemetryService.sendEventData(
-            'apexTestRun',
-            { trigger: 'testController', isDebug: String(isDebug) },
-            { durationMs: Date.now() - startTime, testsRan: finalTests.length }
-          )
-        );
-      }).pipe(
+      yield* runTestPipeline(
+        ctx,
+        request,
+        token,
+        isDebug,
+        runScope,
+        isImplicitFullRun,
+        finalTests,
+        run,
+        startTime
+      ).pipe(
         Effect.catchTags({
           PayloadBuildError: e => erroredAll(run, finalTests, e.message),
           SuiteNameUnresolvedError: e => erroredAll(run, finalTests, e.message),
