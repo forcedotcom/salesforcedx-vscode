@@ -5,58 +5,45 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, type AuthSideEffects } from '@salesforce/core';
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { ContinueResponse, LibraryCommandletExecutor, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../channels';
-import { nls } from '../../messages';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import { updateConfigAndStateAggregators } from '../../util/orgUtil';
-import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
+import { gatherAccessTokenParams } from './authParamsGatherer';
 
-class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
-  constructor() {
-    super(nls.localize('org_login_access_token_text'), 'org_login_access_token', OUTPUT_CHANNEL);
-  }
+/**
+ * Effect command for `sf.org.login.access.token`: authorize an org from a session ID.
+ *
+ * Prompts (instanceUrl/alias/accessToken) via the PromptService-backed gatherer, then delegates auth to
+ * `ConnectionService.loginWithAccessToken` (create → save → alias/default). On `BadOAuthTokenError` it
+ * reveals the channel and re-fails the ORIGINAL error so ErrorHandlerService appends the friendly,
+ * services-localized message to the channel AND toasts it (preserving the old executor's UX). Other
+ * auth failures (create/save/alias) propagate untouched to the registerCommand-layer ErrorHandlerService.
+ */
+export const orgLoginAccessToken = Effect.fn('orgLoginAccessToken')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  public async run(
-    response: ContinueResponse<AccessTokenParams>,
-    _progress?: vscode.Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
-    _token?: vscode.CancellationToken
-  ): Promise<boolean> {
-    const { instanceUrl, accessToken, alias } = response.data;
-    try {
-      const authInfo = await AuthInfo.create({
-        accessTokenOptions: { accessToken, instanceUrl }
-      });
-      const sideEffects: AuthSideEffects = {
-        alias,
-        setDefault: true,
-        setDefaultDevHub: false
-      };
-      await authInfo.handleAliasAndDefaultSettings(sideEffects);
-      // Refresh state aggregators after config is updated
-      await updateConfigAndStateAggregators();
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Bad_OAuth_Token')) {
-        // Provide a user-friendly message for invalid / expired session ID
-        channelService.appendLine(nls.localize('org_login_access_token_bad_oauth_token_message'));
-      }
-      throw error;
-    }
+  // precondition: getSfProject sets sf:project_opened and fails with a typed error (rendered by
+  // ErrorHandlerService) when there's no project — matches orgOpenCommand.
+  yield* api.services.ProjectService.getSfProject();
 
-    return true;
-  }
-}
+  const { instanceUrl, accessToken, alias } = yield* gatherAccessTokenParams();
 
-export const orgLoginAccessToken = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new AccessTokenParamsGatherer(),
-    new OrgLoginAccessTokenExecutor()
+  yield* api.services.ConnectionService.loginWithAccessToken({
+    instanceUrl,
+    accessToken,
+    alias,
+    setDefault: true
+  }).pipe(
+    Effect.catchTag('BadOAuthTokenError', e =>
+      Effect.gen(function* () {
+        // reveal the channel, then re-fail the original error so ErrorHandlerService appends e.message
+        // (the friendly, services-localized text) to the channel and toasts it.
+        const channel = yield* api.services.ChannelService;
+        yield* channel.showChannel;
+        return yield* e;
+      })
+    )
   );
-  await commandlet.run();
-};
+
+  yield* Effect.promise(() => updateConfigAndStateAggregators());
+});

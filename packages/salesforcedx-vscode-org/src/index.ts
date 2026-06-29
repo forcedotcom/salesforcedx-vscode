@@ -41,7 +41,6 @@ const registerCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
-    vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken),
     vscode.commands.registerCommand('sf.org.create', orgCreate),
     vscode.commands.registerCommand('sf.org.delete.username', orgDelete, {
       flag: '--target-org'
@@ -96,6 +95,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
+  yield* registerCommand('sf.org.login.access.token', orgLoginAccessToken);
 
   // Initialize org picker and status bar
   yield* initializeStatusBarItems;

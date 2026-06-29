@@ -14,11 +14,12 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import {
-  AccessTokenParamsGatherer,
   AuthParamsGatherer,
   DEFAULT_ALIAS,
+  gatherAccessTokenParams,
   ScratchOrgLogoutParamsGatherer
 } from '../../../../src/commands/auth/authParamsGatherer';
+import { runGatherer } from '../../../../src/parameterGatherers/runGatherer';
 import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
 import {
   considerUndefinedAsCancellation,
@@ -106,7 +107,7 @@ describe('AuthParamsGatherer', () => {
         .mockResolvedValueOnce('myAlias')
         .mockResolvedValueOnce(accessToken);
 
-      const result = await new AccessTokenParamsGatherer().gather();
+      const result = await runGatherer(gatherAccessTokenParams());
 
       expect(result).toEqual({ type: 'CONTINUE', data: { alias: 'myAlias', instanceUrl, accessToken } });
     });
@@ -118,7 +119,7 @@ describe('AuthParamsGatherer', () => {
         .mockResolvedValueOnce('')
         .mockResolvedValueOnce(accessToken);
 
-      const result = await new AccessTokenParamsGatherer().gather();
+      const result = await runGatherer(gatherAccessTokenParams());
 
       expect(result).toEqual({ type: 'CONTINUE', data: { alias: DEFAULT_ALIAS, instanceUrl, accessToken } });
     });
@@ -126,7 +127,7 @@ describe('AuthParamsGatherer', () => {
     it('CANCEL when instance URL prompt is dismissed (undefined)', async () => {
       jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
 
-      const result = await new AccessTokenParamsGatherer().gather();
+      const result = await runGatherer(gatherAccessTokenParams());
 
       expect(result).toEqual({ type: 'CANCEL' });
     });
@@ -134,7 +135,7 @@ describe('AuthParamsGatherer', () => {
     it('CANCEL when alias prompt is dismissed (undefined)', async () => {
       jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(instanceUrl).mockResolvedValueOnce(undefined);
 
-      const result = await new AccessTokenParamsGatherer().gather();
+      const result = await runGatherer(gatherAccessTokenParams());
 
       expect(result).toEqual({ type: 'CANCEL' });
     });

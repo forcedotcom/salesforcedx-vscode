@@ -22,12 +22,6 @@ export type AuthParams = {
   loginUrl: string;
 };
 
-export type AccessTokenParams = {
-  alias: string;
-  instanceUrl: string;
-  accessToken: string;
-};
-
 const inputInstanceUrl = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),
@@ -160,7 +154,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   }
 }
 
-const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
+export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 
@@ -183,12 +177,6 @@ const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(fu
     instanceUrl
   };
 });
-
-export class AccessTokenParamsGatherer implements ParametersGatherer<AccessTokenParams> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<AccessTokenParams>> {
-    return runGatherer(gatherAccessTokenParams());
-  }
-}
 
 const gatherScratchOrgLogout = Effect.fn('ScratchOrgLogoutParamsGatherer.gather')(function* (params: {
   readonly username: string;
