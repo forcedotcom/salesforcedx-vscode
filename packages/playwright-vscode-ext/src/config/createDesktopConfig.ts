@@ -33,10 +33,15 @@ export const createDesktopConfig = (options: DesktopConfigOptions) => {
     use: {
       trace: 'on',
       screenshot: 'on',
-      actionTimeout: 15_000,
+      // win32 file-handle contention slows individual actions; give them more room.
+      actionTimeout: process.platform === 'win32' ? 20_000 : 15_000,
       viewport: { width: 1920, height: 1080 }
     },
-    timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? 60 * 1000),
+    // win32 electron launch + workbench-ready is slower; raise the test-level budget so the page
+    // fixture's setup budget plus the test body both fit. options.timeout wins (?? short-circuits).
+    // process.platform (not isWindowsDesktop()): VSCODE_DESKTOP isn't guaranteed at config-load time.
+    // In CI both modules see it, so budgets match; local win32 without it diverges — fine, win32 is CI-only.
+    timeout: process.env.DEBUG_MODE ? 0 : (options.timeout ?? (process.platform === 'win32' ? 120_000 : 60_000)),
     maxFailures: process.env.CI ? 3 : 0,
     globalSetup: require.resolve('./downloadVSCode'),
     projects: [

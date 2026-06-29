@@ -107,7 +107,7 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
       payload: api.services.ConnectionService.getConnection().pipe(
         Effect.flatMap(connection => Effect.promise(() => buildTestPayload(new TestService(connection), selection)))
       ),
-      outputDir: Effect.promise(() => getTestResultsFolder())
+      outputDir: getTestResultsFolder()
     },
     { concurrency: 'unbounded' }
   );
