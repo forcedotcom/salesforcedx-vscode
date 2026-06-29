@@ -5,143 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, Global } from '@salesforce/core';
-import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import {
-  FlagParameter,
-  LibraryCommandletExecutor,
-  SfCommandlet,
-  CliCommandExecutor,
-  ContinueResponse,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import { identity } from 'effect/Function';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import * as path from 'node:path';
-import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { getOrgRuntime } from '../extensionProvider';
+import { channelService } from '../channels';
 import { nls } from '../messages';
-import { OrgToDelete, SelectDeletableOrg } from '../parameterGatherers/selectDeletableOrg';
-import { telemetryService } from '../telemetry';
+import { gather, OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
-
-const getAliasesForUsername = Effect.fn('OrgDelete.getAliasesForUsername')(function* (username: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.AliasService.getAliasesFromUsername(username);
-});
-
-const removeOrgAliases = Effect.fn('OrgDelete.removeOrgAliases')(function* (username: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const aliases = yield* api.services.AliasService.getAliasesFromUsername(username);
-  yield* api.services.AliasService.unsetAliases(aliases);
-});
-
-const unsetTargetOrgIfMatch = Effect.fn('OrgDelete.unsetTargetOrgIfMatch')(function* (
-  username: string,
-  aliases: readonly string[]
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const isTarget = yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
-  if (isTarget) yield* api.services.ConfigService.unsetTargetOrg();
-});
-
-const unsetTargetDevHubIfMatch = Effect.fn('OrgDelete.unsetTargetDevHubIfMatch')(function* (
-  username: string,
-  aliases: readonly string[]
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const isDevHub = yield* api.services.ConfigService.isCurrentTargetDevHub(username, aliases);
-  if (isDevHub) yield* api.services.ConfigService.unsetTargetDevHub();
-});
-
-/** Checks if the auth file exists in .sfdx or .sf; sf org delete may already remove it (idempotent). */
-const authFileExists = Effect.fn('OrgDelete.authFileExists')(function* (username: string) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const authFileName = `${username}.json`;
-  const inSfdx = yield* api.services.FsService.fileOrFolderExists(path.join(Global.SFDX_DIR, authFileName));
-  if (inSfdx) return true;
-  return yield* api.services.FsService.fileOrFolderExists(path.join(Global.SF_DIR, authFileName));
-});
-
-/** Runs sf org:delete:scratch or org:delete:sandbox for a single org and resolves when done. */
-const runDeleteCli = (username: string, orgType: 'scratch' | 'sandbox'): Promise<boolean> => {
-  const deleteArg = orgType === 'sandbox' ? 'org:delete:sandbox' : 'org:delete:scratch';
-  const command = new SfCommandBuilder()
-    .withDescription(nls.localize('org_delete_username_text'))
-    .withArg(deleteArg)
-    .withArg('--no-prompt')
-    .withFlag('--target-org', username)
-    .withLogName('org_delete_username')
-    .build();
-
-  return new Promise<boolean>(resolve => {
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const execution = new CliCommandExecutor(command, {
-      cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SF_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationTokenSource.token);
-
-    channelService.streamCommandOutput(execution);
-
-    execution.processExitSubject.subscribe(data => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const exitCode = Array.isArray(data) ? data[0] : data;
-      resolve(exitCode === 0);
-    });
-  });
-};
-
-class OrgDeleteExecutor extends LibraryCommandletExecutor<{ orgs: OrgToDelete[] }> {
-  constructor() {
-    super(nls.localize('org_delete_username_text'), 'org_delete_selected', OUTPUT_CHANNEL);
-  }
-
-  public async run(response: ContinueResponse<{ orgs: OrgToDelete[] }>): Promise<boolean> {
-    const { orgs } = response.data;
-    try {
-      const authRemover = await AuthRemover.create();
-      let allSucceeded = true;
-      for (const { username, orgType } of orgs) {
-        // Fetch aliases before cleanup so they can be used for config matching
-        const aliases = await getOrgRuntime().runPromise(getAliasesForUsername(username));
-        const success = await runDeleteCli(username, orgType);
-        if (success) {
-          // sf org delete scratch may already remove the auth file; only call removeAuth if file exists (idempotent)
-          const authFileExistsResult = await getOrgRuntime().runPromise(authFileExists(username));
-          if (authFileExistsResult) {
-            await authRemover.removeAuth(username);
-          }
-          await getOrgRuntime().runPromise(removeOrgAliases(username));
-          await getOrgRuntime().runPromise(unsetTargetOrgIfMatch(username, aliases));
-          await getOrgRuntime().runPromise(unsetTargetDevHubIfMatch(username, aliases));
-        } else {
-          allSucceeded = false;
-          channelService.appendLine(
-            nls.localize('org_delete_failed_for_org', username, orgType === 'scratch' ? 'scratch org' : 'sandbox')
-          );
-        }
-      }
-      await updateConfigAndStateAggregators();
-      return allSucceeded;
-    } catch (e) {
-      const err = e instanceof Error ? e : new Error(String(e));
-      telemetryService.sendException('org_delete_selected', `Error: name = ${err.name} message = ${err.message}`);
-      channelService.appendLine(err.message);
-      channelService.showChannelOutput();
-      return false;
-    }
-  }
-}
 
 /** sf org delete can take longer than the default 30s simpleExec timeout. */
 const DELETE_TIMEOUT = Duration.seconds(120);
 
 class OrgNotDeletableError extends Schema.TaggedError<OrgNotDeletableError>()('OrgNotDeletableError', {
+  message: Schema.String
+}) {}
+
+class OrgDeleteFailedError extends Schema.TaggedError<OrgDeleteFailedError>()('OrgDeleteFailedError', {
   message: Schema.String
 }) {}
 
@@ -190,8 +73,55 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   yield* Effect.promise(() => updateConfigAndStateAggregators());
 });
 
-/** Picker-based delete (sf.org.delete.username). Default-org delete is handled by orgDeleteDefaultCommand. */
-export async function orgDelete(this: FlagParameter<string>) {
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, new SelectDeletableOrg(), new OrgDeleteExecutor());
-  await commandlet.run();
-}
+/** Runs `sf org delete scratch|sandbox --target-org <username> --no-prompt` for a single org, wrapped in a
+ * cancellable progress, through `Effect.either` so a single non-zero exit (TerminalServiceError) does NOT
+ * short-circuit the surrounding `Effect.forEach`. Cancellation interrupts the fiber and is NOT caught by
+ * `Effect.either` (it only catches typed failures), so it still aborts the whole loop. */
+const deleteOne = Effect.fn('orgDeleteUsername.deleteOne')(function* (org: OrgToDelete) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const terminalService = yield* api.services.TerminalService;
+  const subcommand = org.orgType === 'sandbox' ? 'sandbox' : 'scratch';
+  const either = yield* terminalService
+    .simpleExec({
+      command: `sf org delete ${subcommand} --target-org ${org.username} --no-prompt`,
+      parse: identity,
+      timeout: DELETE_TIMEOUT
+    })
+    .pipe(promptService.withCancellableProgress(nls.localize('org_delete_username_text')), Effect.either);
+  return { org, either };
+});
+
+/**
+ * Effect command for `sf.org.delete.username`: pick deletable orgs, confirm, then delete each via
+ * `sf org delete scratch|sandbox`. The CLI removes the auth file + aliases and unsets config itself,
+ * so no separate cleanup is needed. Continues past a single failed org (per-org `Effect.either`) and
+ * surfaces a partial failure at the end so the user gets an error notification.
+ */
+export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(function* () {
+  const { orgs } = yield* gather();
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channel = yield* api.services.ChannelService;
+
+  const results = yield* Effect.forEach(orgs, deleteOne);
+
+  yield* Effect.forEach(results, ({ org, either }) =>
+    Either.isRight(either)
+      ? channel.appendToChannel(either.right)
+      : channel.appendToChannel(
+          nls.localize('org_delete_failed_for_org', org.username, org.orgType === 'scratch' ? 'scratch org' : 'sandbox')
+        )
+  );
+
+  yield* Effect.sync(() => {
+    channelService.showChannelOutput();
+  });
+
+  // unconditional, after the loop: reflect whatever was actually deleted in the picker/cache even on partial failure
+  yield* Effect.promise(() => updateConfigAndStateAggregators());
+
+  const failed = results.filter(({ either }) => Either.isLeft(either)).map(({ org }) => org.username);
+  if (failed.length > 0) {
+    return yield* new OrgDeleteFailedError({ message: nls.localize('org_delete_failed_summary', failed.join(', ')) });
+  }
+});
