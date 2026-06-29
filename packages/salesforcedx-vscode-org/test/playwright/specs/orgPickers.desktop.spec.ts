@@ -128,7 +128,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await toggleMultiPickRow(page, THROWAWAY_ORG_ALIAS);
     await page.keyboard.press('Enter');
     // CONFIRM (not cancel): click the modal's confirm button so the logout proceeds.
-    await clickModalButton(page, packageNls.org_logout_scratch_logout);
+    await clickModalButton(page, 'Logout');
     await expectNoErrorNotification(page);
 
     // Primary durable signal: poll the CLI until the throwaway org is no longer authorized.

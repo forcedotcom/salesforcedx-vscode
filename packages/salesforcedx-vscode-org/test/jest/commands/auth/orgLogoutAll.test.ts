@@ -52,8 +52,8 @@ const run = (opts: { isProject: boolean; confirm: boolean }) =>
     orgLogoutAllCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
         getServicesApi: Effect.succeed({ services: buildServices(opts) })
-      } as unknown as ExtensionProviderService) as Effect.Effect<void, unknown, never>
-    )
+      } as unknown as ExtensionProviderService)
+    ) as Effect.Effect<void, unknown, never>
   );
 
 describe('orgLogoutAllCommand', () => {
