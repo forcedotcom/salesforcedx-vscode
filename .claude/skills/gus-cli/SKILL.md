@@ -69,6 +69,15 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 
 **Base select:** `SELECT Id, Name, Subject__c, Status__c, Story_Points__c, Epic__c, RecordType.Name FROM ADM_Work__c`
 
+**Optional display/detail fields** (append to SELECT only for single-WI/triage queries; do NOT add to bulk team/epic queries unless asked—keeps base lean, avoids widening every result set/terminal table):
+
+- `Priority__c` — picklist `P0`-`P4`.
+- `Epic_Name__c` — formula/string; epic name w/o `Epic__r` join. Bulk lists use existing `Epic__c` id or a separate epic-name lookup (formula evaluated per-row otherwise).
+- `Due_Date__c` (datetime) + `Out_of_SLA__c` (boolean) — SLA tracking.
+- Security trio: `Security__c` (label "Locked by Security", boolean), `Security_Vulnerability_Category__c` (picklist, 30+ values), `Security_Source__c` (label "Source", picklist, 30+ values—run `sf sobject describe` for full lists).
+
+**Bug body field:** Bug records store body in `Details_and_Steps_to_Reproduce__c` (richtextarea), not `Details__c`. `Details__c` = User Story body. Querying only `Details__c` misses Bug/PVR content. Single-WI fetch of unknown/mixed record type → SELECT both.
+
 **Query patterns** (combine as needed; use LIMIT on broad queries):
 
 | Filter      | WHERE clause                                                                                                                                                                                     |
@@ -87,6 +96,8 @@ Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when queryin
 **Create:** Always set `Story_Points__c=2`, `Product_Tag__c=a1aB000000005G3IAI`, `RecordTypeId`. Include `Subject__c`, `Assignee__c`, `Scrum_Team__c=a00B0000000w9xPIAQ`, `Epic__c` (optional), `QA_Engineer__c` (optional), `Details__c` (optional). Leave `Sprint__c` blank; never modify it. **Details\_\_c:** write concisely—fragments/bullets, minimal words, no repetition (see .claude/skills/concise/SKILL.md).
 
 **`Details__c` ≥20 chars required.** `Details__c` (field label "Description") has a User Story validation rule: <20 chars → create fails with `Description must be at least 20 characters to submit a User Story`. Despite docs marking it optional, treat as required on create. Note: `Description__c` is a DIFFERENT field (label "Comment", unvalidated)—don't confuse them; the validated body field is `Details__c`.
+
+**Bug-type WIs store the body in `Details_and_Steps_to_Reproduce__c`, not `Details__c`.** When reading a WI body (grooming, triage, auto-build), `SELECT` both and use whichever is populated. A null `Details__c` on a Bug-type record doesn't mean under-specified—check the bug field first.
 
 **Sequencing prefix:** When planning an epic or when the user states a dependency between work items, prefix `Subject__c` with a sequence number + space (e.g. `1.2 Add config loader`). See [work-item-sequencing](../work-item-sequencing/SKILL.md). Optional—skip for independent work.
 
@@ -117,6 +128,8 @@ sf data query --query "SELECT Name FROM ADM_Work__c WHERE Id = '<id_from_create>
 ```
 
 **Update:** If User Story has null `Story_Points__c`, set `Story_Points__c=2`. Never modify `Sprint__c`. `Details__c` can store PR links, notes.
+
+**Verify the target Id before+after an update.** `sf data update record -i <id>` echoes only `success`, never the record's `Name`/`Subject__c` — so a wrong Id silently overwrites the wrong WI (esp. with `--flags-dir`, where the value file carries no Id). Before updating, query `SELECT Name, Subject__c FROM ADM_Work__c WHERE Id='<id>'` to confirm it's the intended WI; re-query after to confirm the write. Match the W-NNNNN, not just "an update succeeded."
 
 ```
 sf data update record -s ADM_Work__c -i <recordId> -o gus -v "Status__c='In Progress' Subject__c='...' Details__c='...'"
@@ -207,8 +220,19 @@ To mark a WI as a duplicate: set `Status__c='Duplicate'` + link the original via
 
 **Bug no-fix:** Duplicate | Inactive | Never | Not a bug | Not Reproducible | Rejected | Eng Internal
 
+### Open queries: WHITELIST, never blacklist
+
+For "open / unfinished" queries use `Status__c IN (<open list>)`, **not** `NOT IN (<terminal list>)`. Legacy/inactive records carry statuses absent from the current picklist (seen: `Closed-U/Ftest`, `Closed-Untested`, `Tested`) — a `NOT IN` exclusion silently lets these terminal records through. A whitelist can't.
+
+**Open (work pending):** `New | Acknowledged | Triaged | In Progress | Investigating | More Info Reqd from Support | Waiting On Customer | Waiting On 3rd Party | Waiting | Ready for Review | Fixed | QA In Progress | Integrate | Pending Release | Deferred`
+
+(`Fixed`/`Ready for Review`/`QA In Progress` are open — PR not merged yet, per [work-item-sequencing](../work-item-sequencing/SKILL.md). Everything else — any `Closed*`, `Completed`, `Tested`, the Bug-no-fix set, and any unrecognized value — is terminal.)
+
 ## CLI tips
 
 - `--json` for parseable output (not `--result-format json`)
 - Parse with `jq`, not python
 - `sf data create record` / `sf data update record` for single-record writes
+- **Aggregate (`COUNT`/`GROUP BY`) can't paginate** — no `queryMore`, hard cap 200 rows. Errors `Aggregate query does not support queryMore()` past that. Always add `LIMIT`, and scope (e.g. `Epic__c IN (...)`) so the group set stays ≤200. Plain (non-aggregate) `SELECT` also returns one 200-row batch per call via the CLI — for full sets, filter narrower or page, don't assume one query returns everything.
+- **Salesforce Ids come in 15-char (case-sensitive) and 18-char (case-insensitive) forms — same record.** A lookup field (`Epic__c`) and the parent's `Id` may differ in length across queries. Match on the first 15 chars (`id[0:15]`), never raw string equality.
+- **Field aliasing is aggregate-only.** `SELECT Name n FROM ...` on a plain query errors `only aggregate expressions use field aliasing`. Alias only `COUNT()`/`GROUP BY` selects; for plain selects use the full path (`Development_Lead__r.Name`) and read it by that key in jq.

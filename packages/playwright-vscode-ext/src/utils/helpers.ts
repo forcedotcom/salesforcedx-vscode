@@ -420,18 +420,6 @@ export const waitForWorkspaceReady = async (page: Page, timeout = 30_000): Promi
 
 export const typingSpeed = 50; // ms
 
-/** Click a VS Code custom modal-dialog button by its label (requires `window.dialogStyle: custom`).
- * Pass a longer `timeout` for dialogs that only appear after a slow operation; callers may wrap with
- * `.catch` to skip when a dialog is absent. */
-export const clickModalDialogButton = async (page: Page, label: string, timeout = 5000): Promise<void> => {
-  const dialogButton = page
-    .locator('.monaco-dialog-box, .dialog-shadow')
-    .getByRole('button', { name: label, exact: true })
-    .first();
-  await expect(dialogButton).toBeVisible({ timeout });
-  await dialogButton.click();
-};
-
 /** Escape regex metacharacters in `s` so it can be embedded in a `RegExp`. */
 export const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

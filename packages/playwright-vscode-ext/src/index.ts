@@ -19,7 +19,6 @@ export {
   closeSettingsTab,
   waitForWorkspaceReady,
   typingSpeed,
-  clickModalDialogButton,
   isDesktop,
   isMacDesktop,
   isWindowsDesktop,
@@ -113,6 +112,8 @@ export {
 } from './pages/nativeCommands';
 
 export { executeEditorContextMenuCommand, executeExplorerContextMenuCommand } from './pages/contextMenu';
+
+export { clickModalDialogButton } from './pages/dialogs';
 
 export {
   ensureOutputPanelOpen,
