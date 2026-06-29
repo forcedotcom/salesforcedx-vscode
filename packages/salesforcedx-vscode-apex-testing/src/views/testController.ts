@@ -22,6 +22,7 @@ import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { notificationService } from '../utils/notificationHelpers';
 import { getOrgApexClassProvider } from '../utils/orgApexClassProvider';
@@ -40,7 +41,8 @@ import {
   getTestName,
   isClass,
   isMethod,
-  isSuite
+  isSuite,
+  isSuiteClass
 } from '../utils/testItemUtils';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
@@ -1204,6 +1206,26 @@ export class ApexTestController {
     const startTime = Date.now();
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
+
+    // Cache single class/method selections so Re-Run Last Class/Method surfaces (esp. web, no code lenses).
+    // Detect from the RAW request.include before suite resolution/expansion. Run-profile only (not Debug).
+    // Suite-class ids (suite-class:Suite:Class) are a single class hit; getTestName yields the bare class name.
+    // Bare suite/namespace/package/multi-select/implicit-full leave the cache untouched. Best-effort: never fail the run.
+    const single = request.include?.length === 1 ? request.include[0] : undefined;
+    if (!isDebug && single) {
+      const cacheEffect =
+        isClass(single.id) || isSuiteClass(single.id)
+          ? ApexTestRunCacheService.setCachedClassTestParam(getTestName(single))
+          : isMethod(single.id)
+            ? ApexTestRunCacheService.setCachedMethodTestParam(getTestName(single))
+            : Effect.void;
+      await getApexTestingRuntime().runPromise(
+        cacheEffect.pipe(
+          Effect.tapError(error => Effect.logWarning('apex test re-run cache set failed', error)),
+          Effect.ignore
+        )
+      );
+    }
 
     // Implicit full run: no explicit selection. Restrict to in-workspace tests for the default Run/Debug profiles.
     // When the user (or explorer filter) supplies request.include, run exactly that set—e.g. filtered-visible tests.
