@@ -76,7 +76,7 @@ describe('TerminalService.simpleExec', () => {
       withExec(exec)
     );
 
-    expect(capturedOptions?.timeout).toBe(120_000);
+    expect(capturedOptions?.timeout).toBe(30_000);
   });
 
   // shared exec stub that captures the options simpleExec forwards to childProcess.exec
