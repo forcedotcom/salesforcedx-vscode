@@ -74,7 +74,7 @@ const resolveUsernameEffect = Effect.fn('orgDisplay.resolveUsername')(function* 
   return yield* resolveUsernameFromAliasEffect(usernameOrAlias);
 });
 
-const getOrgInfoEffect = Effect.fn('orgDisplay.getOrgInfo')(function* (username?: string) {
+export const getOrgInfoEffect = Effect.fn('orgDisplay.getOrgInfo')(function* (username?: string) {
   const resolvedUsername = yield* resolveUsernameEffect(username);
 
   return yield* Effect.tryPromise({

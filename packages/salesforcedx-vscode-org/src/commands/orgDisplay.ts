@@ -15,7 +15,6 @@ import {
 import {
   ConfigUtil,
   FlagParameter,
-  ContinueResponse,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   SfCommandlet
@@ -26,15 +25,21 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
-import { SelectOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
+import { gatherOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { OrgInfo } from '../types/orgInfo';
-import { getOrgInfo } from '../util/orgDisplay';
+import { getOrgInfo, getOrgInfoEffect } from '../util/orgDisplay';
+
+/** Shared sensitive-info warning shown before the org-details table (both display paths). */
+const ACCESS_WARNING =
+  'Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.\n' +
+  'Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.\n' +
+  'For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.';
 
 class NoTargetOrgError extends Schema.TaggedError<NoTargetOrgError>()('NoTargetOrgError', {
   message: Schema.String
 }) {}
 
-const getTargetUsernameEffect = Effect.fn('getTargetUsernameEffect')(function* () {
+const getTargetUsername = Effect.fn('getTargetUsername')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const currentOrgInfo = yield* SubscriptionRef.get(targetOrgRef);
@@ -82,40 +87,18 @@ const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
   return createTable(rows, columns, 'Org Description');
 };
 
-class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {
-  private flag: string | undefined;
-
-  constructor(flag?: string) {
-    super(
-      nls.localize(flag ? 'org_display_username_text' : 'org_display_default_text'),
-      'org_display_library',
-      OUTPUT_CHANNEL
-    );
-    this.flag = flag;
+/** Legacy default-org display (sf.org.display.default). The picker path is handled by orgDisplayUsernameCommand. */
+class OrgDisplayExecutor extends LibraryCommandletExecutor<Record<string, never>> {
+  constructor() {
+    super(nls.localize('org_display_default_text'), 'org_display_library', OUTPUT_CHANNEL);
   }
 
-  public async run(response: ContinueResponse<{ username?: string }>): Promise<boolean> {
+  public async run(): Promise<boolean> {
     try {
-      const { username } = response.data;
-      const targetUsername =
-        this.flag === '--target-org' && username
-          ? username
-          : await getOrgRuntime().runPromise(getTargetUsernameEffect());
-
+      const targetUsername = await getOrgRuntime().runPromise(getTargetUsername());
       const orgInfo = await getOrgInfo(targetUsername);
 
-      // Display warning about sensitive information
-      const warning =
-        'Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.\n' +
-        'Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.\n' +
-        'For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.';
-      channelService.appendLine(warning);
-      channelService.appendLine('');
-
-      // Display the org information
-      const output = formatOrgInfoAsTable(orgInfo);
-      channelService.appendLine(output);
-
+      appendOrgInfoToChannel(orgInfo);
       return true;
     } catch (error) {
       if (error instanceof Error) {
@@ -127,9 +110,39 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
 }
 
 export async function orgDisplay(this: FlagParameter<string>) {
-  const flag = this ? this.flag : undefined;
-  const parameterGatherer = flag ? new SelectOrgForDisplay() : new EmptyParametersGatherer();
-  const executor = new OrgDisplayExecutor(flag);
-  const commandlet = new SfCommandlet(sfProjectPreconditionChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(
+    sfProjectPreconditionChecker,
+    new EmptyParametersGatherer(),
+    new OrgDisplayExecutor()
+  );
   await commandlet.run();
 }
+
+/** Append the sensitive-info warning followed by the org-details table to the output channel. */
+const appendOrgInfoToChannel = (orgInfo: OrgInfo): void => {
+  channelService.appendLine(ACCESS_WARNING);
+  channelService.appendLine('');
+  channelService.appendLine(formatOrgInfoAsTable(orgInfo));
+};
+
+/**
+ * Effect command for `sf.org.display.username`: pick an authed org, then write its details table
+ * (preceded by the sensitive-info warning) to the output channel.
+ */
+export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  yield* api.services.ProjectService.getSfProject();
+
+  // picker selection; UserCancellationError propagates to ErrorHandlerService (no error toast on Esc).
+  const { username } = yield* gatherOrgForDisplay();
+  const orgInfo = yield* getOrgInfoEffect(username);
+
+  const channel = yield* api.services.ChannelService;
+  yield* channel.appendToChannel(ACCESS_WARNING);
+  yield* channel.appendToChannel('');
+  yield* channel.appendToChannel(formatOrgInfoAsTable(orgInfo));
+  yield* channel.showChannel;
+});
