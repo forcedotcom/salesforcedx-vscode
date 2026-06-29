@@ -33,7 +33,7 @@ const OrgOpenSuccess = Schema.Struct({
   })
 });
 
-/** sf prints `{ status: <non-zero>, message }` on failure; preserve the old channel-message behavior. */
+/** sf failure shape: `{ status: <non-zero>, message }`. */
 const OrgOpenFailure = Schema.Struct({
   _tag: Schema.Literal('OrgOpenFailure'),
   status: Schema.Number,
@@ -46,11 +46,8 @@ type OrgOpenSuccess = Schema.Schema.Type<typeof OrgOpenSuccess>;
 type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
 
 /**
- * Decodes the sf CLI JSON from stdout. The CLI emits `{ status: 0, result }` (success) or
- * `{ status: <non-zero>, message }` (failure) — neither carries a `_tag`. `RawObject` parses stdout to a
- * plain object so the authoritative `status` field can inject the discriminant before the tagged-union decode;
- * all downstream dispatch is on `_tag` via Match. Malformed/unexpected shape maps to a tagged error rather
- * than escaping as a defect.
+ * Decode sf CLI JSON. Inject `_tag` from `status` (0 = success) before the union decode, since the
+ * raw shapes carry no discriminant. Malformed shape → tagged error, not a defect.
  */
 const RawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }));
 /**
@@ -109,7 +106,6 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
     yield* channel.showChannel;
   });
 
-  // failure branch: sf prints `{ status: <non-zero>, message }` — surface the message to the channel
   const handleOrgOpenFailure = Effect.fn('orgOpenCommand.handleFailure')(function* ({ message }: OrgOpenFailure) {
     yield* channel.appendToChannel(message);
     yield* channel.showChannel;
