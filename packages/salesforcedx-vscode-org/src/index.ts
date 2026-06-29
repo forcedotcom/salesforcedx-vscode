@@ -76,7 +76,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const extensionScope = Effect.runSync(getExtensionScope());
   // fallbackDisplayName only fires if package.json displayName is absent; channel_name must match displayName ('Salesforce Org Management')
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
-  await getOrgRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
+  await activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 
   const api: SalesforceVSCodeOrgApi = {
     channelService
