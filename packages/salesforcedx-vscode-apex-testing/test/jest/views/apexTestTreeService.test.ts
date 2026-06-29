@@ -28,6 +28,14 @@ jest.mock('../../../src/settings', () => ({
   disableRestorePreviousResults: jest.fn()
 }));
 
+// getTestResultsFolder normally needs TargetOrgRef/WorkspaceService/FsService.createDirectory; the
+// restore-apply test only cares about the dir-listing + apply loop, so return a fixed folder URI.
+const mockGetTestResultsFolder = jest.fn();
+jest.mock('../../../src/utils/pathHelpers', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  return { getTestResultsFolder: () => mockGetTestResultsFolder() ?? EffectLib.succeed({ toString: () => 'dir' }) };
+});
+
 // Break the import cycle apexTestTreeService -> coreExtensionUtils -> extensionProvider (whose layer
 // references ApexTestTreeService.Default at module-eval). The tests provide layers directly via
 // Effect.provide, so the runtime accessor here is never used.
@@ -40,8 +48,10 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Logger from 'effect/Logger';
 import * as Ref from 'effect/Ref';
 import type * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
 import { ApexTestTreeService, type DiscoveryContext } from '../../../src/views/apexTestTreeService';
 
@@ -219,6 +229,70 @@ describe('ApexTestTreeService', () => {
       );
 
       expect(bodyEntries).toBe(1);
+    });
+  });
+
+  describe('restore apply-loop per-item failure', () => {
+    // Three result files, increasing mtime (so oldest-first apply order is u1, u2, u3). updateTestResults
+    // rejects on the 2nd URI. Asserts the surfaced RestoreResultsError.uri is that 2nd URI (per-item catch,
+    // not one outer bucket) and that concurrency:1 stopped before applying the 3rd (ordering preserved).
+    const fakeUri = (path: string): URI => ({ path, toString: () => path }) as unknown as URI;
+    const u1 = fakeUri('/r/test-result-1.json');
+    const u2 = fakeUri('/r/test-result-2.json');
+    const u3 = fakeUri('/r/test-result-3.json');
+
+    it('surfaces the offending URI and preserves oldest-first ordering', async () => {
+      const settings = jest.requireMock('../../../src/settings');
+      settings.retrieveRestorePreviousResults.mockReturnValue(true);
+      mockGetTestResultsFolder.mockReturnValue(Effect.succeed(fakeUri('/r')));
+
+      // Recent mtimes (within RESULT_MAX_AGE_MS of now), increasing so oldest-first apply order is u1,u2,u3.
+      const now = Date.now();
+      const mtimes = new Map<string, number>([
+        [u1.path, now - 3000],
+        [u2.path, now - 2000],
+        [u3.path, now - 1000]
+      ]);
+      const fsService = {
+        readDirectory: () => Effect.succeed([u1, u2, u3]),
+        stat: (uri: URI) => Effect.succeed({ mtime: mtimes.get(uri.path)! })
+      };
+      const ExtProviderWithFs = Layer.succeed(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({ services: { FsService: fsService } })
+      } as unknown as ExtensionProviderService);
+      // ExtProviderWithFs both satisfies ApexTestTreeService.Default and stays in the ambient env (the
+      // restore body yields ExtensionProviderService at call time in the caller's context).
+      const layerWithFs = Layer.merge(Layer.provide(ApexTestTreeService.Default, ExtProviderWithFs), ExtProviderWithFs);
+
+      const applied: string[] = [];
+      const ctx = makeContext({
+        sessionStartTime: 0,
+        getMethodIdsFromResultFile: () => Promise.resolve(new Set<string>()),
+        updateTestResults: (uri: URI) => {
+          applied.push(uri.path);
+          return uri.path === u2.path ? Promise.reject(new Error('apply failed')) : Promise.resolve();
+        }
+      });
+
+      // Capture the logWarning that the restore recover emits, to read RestoreResultsError.uri.
+      const logged: Array<{ message: unknown; annotations: Record<string, unknown> }> = [];
+      const captureLogger = Logger.make(({ message, annotations }) => {
+        logged.push({ message, annotations: Object.fromEntries(annotations) });
+      });
+
+      await Effect.runPromise(
+        Effect.provide(
+          ApexTestTreeService.restorePreviousResults(ctx).pipe(
+            Effect.provide(Logger.replace(Logger.defaultLogger, captureLogger))
+          ),
+          layerWithFs
+        )
+      );
+
+      // u1 applied, u2 attempted (rejects), u3 NOT reached -> concurrency:1 sequential ordering.
+      expect(applied).toEqual([u1.path, u2.path]);
+      // Per-item RestoreResultsError carries the offending URI, not an opaque bucket.
+      expect(logged.some(l => l.annotations.uri === u2.path)).toBe(true);
     });
   });
 });

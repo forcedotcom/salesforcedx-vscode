@@ -62,8 +62,12 @@ class SuiteRetrievalError extends Schema.TaggedError<SuiteRetrievalError>()('Sui
   message: Schema.String
 }) {}
 
-/** Restore-previous-results path failure (non-fatal: the tree is valid without restored results). */
+/**
+ * Restore-previous-results path failure (non-fatal: the tree is valid without restored results).
+ * `uri` carries the offending result file so a per-item apply/scan failure identifies which URI failed.
+ */
 class RestoreResultsError extends Schema.TaggedError<RestoreResultsError>()('RestoreResultsError', {
+  uri: Schema.String,
   message: Schema.String
 }) {}
 
@@ -323,10 +327,13 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const resultDir = yield* getTestResultsFolder().pipe(
-        Effect.catchTag('NoDefaultOrgError', e => new RestoreResultsError({ message: e.message }))
+        Effect.catchTag('NoDefaultOrgError', e => new RestoreResultsError({ uri: '', message: e.message }))
       );
       const entries = yield* api.services.FsService.readDirectory(resultDir).pipe(
-        Effect.catchTag('FsServiceError', e => new RestoreResultsError({ message: errorToString(e) }))
+        Effect.catchTag(
+          'FsServiceError',
+          e => new RestoreResultsError({ uri: resultDir.toString(), message: errorToString(e) })
+        )
       );
 
       // Find all test-result JSON files. Filenames embed Salesforce test-run IDs, which are NOT
@@ -348,13 +355,16 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const sessionMethodIds = new Set<string>();
       const scanned = yield* Effect.forEach(resultUris, uri =>
         api.services.FsService.stat(uri).pipe(
-          Effect.catchTag('FsServiceError', e => new RestoreResultsError({ message: errorToString(e) })),
+          Effect.catchTag(
+            'FsServiceError',
+            e => new RestoreResultsError({ uri: uri.toString(), message: errorToString(e) })
+          ),
           Effect.flatMap(stat =>
             now - stat.mtime > RESULT_MAX_AGE_MS
               ? Effect.succeed(Option.none<{ uri: URI; mtime: number }>())
               : Effect.tryPromise({
                   try: () => ctx.getMethodIdsFromResultFile(uri),
-                  catch: e => new RestoreResultsError({ message: errorToString(e) })
+                  catch: e => new RestoreResultsError({ uri: uri.toString(), message: errorToString(e) })
                 }).pipe(
                   Effect.map(methodsInFile => {
                     const targetSet = stat.mtime < ctx.sessionStartTime ? staleMethodIds : sessionMethodIds;
@@ -379,15 +389,17 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       // Session results override stale (a method run this session is not stale)
       sessionMethodIds.forEach(methodId => staleMethodIds.delete(methodId));
 
-      // Apply oldest-first so most recent result for each method wins
-      yield* Effect.tryPromise({
-        try: async () => {
-          for (const uri of recentUris) {
-            await ctx.updateTestResults(uri);
-          }
-        },
-        catch: e => new RestoreResultsError({ message: errorToString(e) })
-      });
+      // Apply oldest-first so most recent result for each method wins. Per-item tryPromise so a failing
+      // URI surfaces in its own RestoreResultsError (not bucketed); concurrency:1 preserves oldest-first.
+      yield* Effect.forEach(
+        recentUris,
+        uri =>
+          Effect.tryPromise({
+            try: () => ctx.updateTestResults(uri),
+            catch: e => new RestoreResultsError({ uri: uri.toString(), message: errorToString(e) })
+          }),
+        { concurrency: 1 }
+      );
 
       // Only mark pre-session methods as stale
       yield* Effect.sync(() => ctx.applyStaleTags(staleMethodIds));
@@ -419,8 +431,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       });
 
       // Get stat for most recent result (used for notification only)
-      const lastStat = yield* api.services.FsService.stat(recentUris.at(-1)!).pipe(
-        Effect.catchTag('FsServiceError', e => new RestoreResultsError({ message: errorToString(e) }))
+      const lastUri = recentUris.at(-1)!;
+      const lastStat = yield* api.services.FsService.stat(lastUri).pipe(
+        Effect.catchTag(
+          'FsServiceError',
+          e => new RestoreResultsError({ uri: lastUri.toString(), message: errorToString(e) })
+        )
       );
 
       const runDate = new Date(lastStat.mtime).toLocaleString();
@@ -455,7 +471,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
       yield* restoreResultsBody(ctx).pipe(
         Effect.catchTag('RestoreResultsError', e =>
-          Effect.logWarning('Failed to restore previous test results', { error: e.message })
+          Effect.logWarning('Failed to restore previous test results', e.message).pipe(
+            Effect.annotateLogs({ uri: e.uri })
+          )
         ),
         Effect.ensuring(Ref.set(isRestoringResults, false))
       );
