@@ -20,7 +20,6 @@ import {
   configSet,
   orgCreate,
   orgDelete,
-  orgDisplay,
   orgList,
   orgLoginAccessToken,
   orgLoginWeb,
@@ -29,9 +28,9 @@ import {
   orgLogoutDefault
 } from './commands';
 import { orgDeleteDefaultCommand } from './commands/orgDelete';
-import { orgDisplayUsernameCommand } from './commands/orgDisplay';
+import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from './commands/orgDisplay';
 import { orgOpenCommand } from './commands/orgOpen';
-import { ORG_DISPLAY_USERNAME_COMMAND, ORG_OPEN_COMMAND } from './constants';
+import { ORG_DISPLAY_DEFAULT_COMMAND, ORG_DISPLAY_USERNAME_COMMAND, ORG_OPEN_COMMAND } from './constants';
 import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { nls } from './messages';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
@@ -47,7 +46,6 @@ const registerCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.org.delete.username', orgDelete, {
       flag: '--target-org'
     }),
-    vscode.commands.registerCommand('sf.org.display.default', orgDisplay),
     vscode.commands.registerCommand('sf.org.list.clean', orgList),
     vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
     vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
@@ -94,6 +92,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
+  yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
   yield* registerCommand(ORG_DISPLAY_USERNAME_COMMAND, orgDisplayUsernameCommand);
 
   // Initialize org picker and status bar

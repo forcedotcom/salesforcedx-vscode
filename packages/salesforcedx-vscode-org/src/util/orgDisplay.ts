@@ -8,7 +8,6 @@
 import { AuthFields, AuthInfo, Connection, Org, OrgConfigProperties } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { getOrgRuntime } from '../extensionProvider';
 import { OrgInfo } from '../types/orgInfo';
 import { getConfigAggregatorEffect } from './configAggregatorEffect';
 import {
@@ -50,18 +49,21 @@ export class NoUsernameError extends Schema.TaggedError<NoUsernameError>()('NoUs
 }) {}
 
 /**
- * Connection/query to the resolved org failed. Carries the resolved username plus a string `cause`
- * derived from the caught error (never `any`) so the table can render a degraded OrgInfo.
+ * Connection/query to the resolved org failed. Carries the resolved username plus a status message
+ * so the table can render a degraded OrgInfo.
  * @ExportTaggedError
  */
 export class OrgInfoConnectionError extends Schema.TaggedError<OrgInfoConnectionError>()('OrgInfoConnectionError', {
   username: Schema.String,
-  message: Schema.String,
-  cause: Schema.optional(Schema.String)
+  message: Schema.String
 }) {}
 
+/** Build the typed connection failure from a caught (unknown) error. */
+const connectionError = (username: string, error: unknown): OrgInfoConnectionError =>
+  new OrgInfoConnectionError({ username, message: getConnectionStatusFromError(error, username) });
+
 /** Resolve username from provided username or project config. */
-const resolveUsernameEffect = Effect.fn('orgDisplay.resolveUsername')(function* (username?: string) {
+const resolveUsername = Effect.fn('orgDisplay.resolveUsername')(function* (username?: string) {
   const fromConfig = username
     ? undefined
     : (yield* getConfigAggregatorEffect).getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
@@ -75,7 +77,7 @@ const resolveUsernameEffect = Effect.fn('orgDisplay.resolveUsername')(function* 
 });
 
 export const getOrgInfoEffect = Effect.fn('orgDisplay.getOrgInfo')(function* (username?: string) {
-  const resolvedUsername = yield* resolveUsernameEffect(username);
+  const resolvedUsername = yield* resolveUsername(username);
 
   return yield* Effect.tryPromise({
     try: async () => {
@@ -84,25 +86,16 @@ export const getOrgInfoEffect = Effect.fn('orgDisplay.getOrgInfo')(function* (us
       const org = await Org.create({ connection });
       return { authInfo, connection, org };
     },
-    catch: error =>
-      new OrgInfoConnectionError({
-        username: resolvedUsername,
-        message: getConnectionStatusFromError(error, resolvedUsername),
-        cause: error instanceof Error ? error.message : String(error)
-      })
+    catch: error => connectionError(resolvedUsername, error)
   }).pipe(
     Effect.flatMap(({ authInfo, connection, org }) =>
-      getOrgInfoFromConnectionEffect(org, connection, authInfo, resolvedUsername)
+      getOrgInfoFromConnection(org, connection, authInfo, resolvedUsername)
     ),
     // graceful degradation: still render a populated OrgInfo with error/connection status for
     // offline/expired orgs. The failure stays typed up to this catch point (no untyped die).
-    Effect.catchTag('OrgInfoConnectionError', err => buildErrorOrgInfoEffect(err.username, err.message))
+    Effect.catchTag('OrgInfoConnectionError', err => buildErrorOrgInfo(err.username, err.message))
   );
 });
-
-/** Promise wrapper for {@link getOrgInfoEffect}, used by the legacy `sf.org.display.default` executor. */
-export const getOrgInfo = async (username?: string): Promise<OrgInfo> =>
-  getOrgRuntime().runPromise(getOrgInfoEffect(username));
 
 /** Create OrgInfo object with common fields and fallback values full of empty strings */
 const createOrgInfo = (
@@ -132,14 +125,14 @@ const createOrgInfo = (
 });
 
 /** Get org info from an established connection */
-const getOrgInfoFromConnectionEffect = Effect.fn('orgDisplay.getOrgInfoFromConnection')(function* (
+const getOrgInfoFromConnection = Effect.fn('orgDisplay.getOrgInfoFromConnection')(function* (
   org: Org,
   connection: Connection,
   authInfo: AuthInfo,
   username: string
 ) {
   const authFields = authInfo.getFields(true);
-  const aliases = yield* getAllAliasesEffect(username);
+  const aliases = yield* getAllAliases(username);
 
   // Check if this is a scratch org
   const isScratchOrg = Boolean(authFields.devHubUsername);
@@ -150,17 +143,11 @@ const getOrgInfoFromConnectionEffect = Effect.fn('orgDisplay.getOrgInfoFromConne
       connection.singleRecordQuery<OrgQueryResult>(
         'SELECT Id, Name, CreatedDate, CreatedBy.Username, OrganizationType, InstanceName, NamespacePrefix, IsSandbox FROM Organization'
       ),
-    catch: error =>
-      new OrgInfoConnectionError({
-        username,
-        message: getConnectionStatusFromError(error, username),
-        cause: error instanceof Error ? error.message : String(error)
-      })
+    catch: error => connectionError(username, error)
   });
 
-  const scratchOrgQuery =
-    isScratchOrg && authFields.orgId ? yield* queryScratchOrgEffect(org, authFields.orgId) : undefined;
-  const connectionStatus = yield* getConnectionStatusEffect(connection, username);
+  const scratchOrgQuery = isScratchOrg && authFields.orgId ? yield* queryScratchOrg(org, authFields.orgId) : undefined;
+  const connectionStatus = yield* getConnectionStatus(connection, username);
 
   // scratch org query results, when present, are preferred over org query results
   return createOrgInfo(username, authFields, aliases, connectionStatus, {
@@ -186,32 +173,35 @@ const getEdition = (orgQuery: OrgQueryResult): string => {
   return 'Developer';
 };
 
-const queryScratchOrgEffect = Effect.fn('orgDisplay.queryScratchOrg')(function* (org: Org, orgId: string) {
-  return yield* Effect.tryPromise(async () => {
-    const hubOrg = await org.getDevHubOrg();
-    if (!hubOrg) {
-      return undefined;
-    }
-    const hubConnection = hubOrg.getConnection();
-    // Query the dev hub for scratch org information
-    return await hubConnection.singleRecordQuery<ScratchOrgQueryResult>(
-      `SELECT Status, CreatedBy.Username, CreatedDate, ExpirationDate, Edition, OrgName FROM ScratchOrgInfo WHERE ScratchOrg = '${orgId.substring(
-        0,
-        15
-      )}'`
-    );
+const queryScratchOrg = Effect.fn('orgDisplay.queryScratchOrg')(function* (org: Org, orgId: string) {
+  return yield* Effect.tryPromise({
+    try: async () => {
+      const hubOrg = await org.getDevHubOrg();
+      if (!hubOrg) {
+        return undefined;
+      }
+      const hubConnection = hubOrg.getConnection();
+      // Query the dev hub for scratch org information
+      return await hubConnection.singleRecordQuery<ScratchOrgQueryResult>(
+        `SELECT Status, CreatedBy.Username, CreatedDate, ExpirationDate, Edition, OrgName FROM ScratchOrgInfo WHERE ScratchOrg = '${orgId.substring(
+          0,
+          15
+        )}'`
+      );
+    },
+    catch: error => connectionError(orgId, error)
   }).pipe(Effect.orElseSucceed(() => undefined));
 });
 
 /** Build OrgInfo with error/connection status when the connection fails (graceful degradation). */
-const buildErrorOrgInfoEffect = Effect.fn('orgDisplay.buildErrorOrgInfo')(function* (
+const buildErrorOrgInfo = Effect.fn('orgDisplay.buildErrorOrgInfo')(function* (
   username: string,
   connectionStatus: string
 ) {
   // Try to get basic auth info without creating a connection
   return yield* Effect.tryPromise(() => AuthInfo.create({ username })).pipe(
     Effect.flatMap(authInfo =>
-      getAllAliasesEffect(username).pipe(
+      getAllAliases(username).pipe(
         Effect.map(aliases => createOrgInfo(username, authInfo.getFields(true), aliases, connectionStatus))
       )
     ),
@@ -220,20 +210,14 @@ const buildErrorOrgInfoEffect = Effect.fn('orgDisplay.buildErrorOrgInfo')(functi
   );
 });
 
-const getAllAliasesEffect = Effect.fn('orgDisplay.getAllAliases')(function* (username: string) {
+const getAllAliases = Effect.fn('orgDisplay.getAllAliases')(function* (username: string) {
   return (yield* readAliasesByUsernameFromDiskEffect()).get(username) ?? [];
 });
 
 /** Test connection to determine status */
-const getConnectionStatusEffect = Effect.fn('orgDisplay.getConnectionStatus')(function* (
-  conn: Connection,
-  username: string
-) {
+const getConnectionStatus = Effect.fn('orgDisplay.getConnectionStatus')(function* (conn: Connection, username: string) {
   return yield* Effect.tryPromise({
     try: () => conn.identity(),
     catch: error => getConnectionStatusFromError(error, username)
-  }).pipe(
-    Effect.as('Connected'),
-    Effect.catchAll(status => Effect.succeed(status))
-  );
+  }).pipe(Effect.match({ onSuccess: () => 'Connected', onFailure: status => status }));
 });
