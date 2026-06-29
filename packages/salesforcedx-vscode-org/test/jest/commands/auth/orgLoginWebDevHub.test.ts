@@ -23,6 +23,13 @@ const buildServices = (opts: { isProject: boolean; simpleExec: jest.Mock }) => (
       opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
+  // withCancellableProgress is a pipeable operator; the stub is identity so the exec effect runs unchanged.
+  PromptService: Effect.succeed({
+    withCancellableProgress:
+      () =>
+      <A, E, R>(self: Effect.Effect<A, E, R>) =>
+        self
+  }),
   UserCancellationError
 });
 
@@ -58,7 +65,7 @@ describe('orgLoginWebDevHubCommand', () => {
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledTimes(1);
     const arg = simpleExec.mock.calls[0][0] as { command: string; parse: unknown };
-    expect(arg.command).toBe('sf org login web --alias myHub --set-default-dev-hub');
+    expect(arg.command).toBe("sf org login web --alias 'myHub' --set-default-dev-hub");
     expect(arg.parse).toEqual(expect.any(Function));
   });
 
@@ -70,7 +77,7 @@ describe('orgLoginWebDevHubCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
-      expect.objectContaining({ command: `sf org login web --alias ${DEFAULT_ALIAS} --set-default-dev-hub` })
+      expect.objectContaining({ command: `sf org login web --alias '${DEFAULT_ALIAS}' --set-default-dev-hub` })
     );
   });
 
@@ -97,14 +104,16 @@ describe('orgLoginWebDevHubCommand', () => {
     expect(simpleExec).not.toHaveBeenCalled();
   });
 
-  it('updates the config/state aggregators after a successful exec', async () => {
+  it('does not update the config/state aggregators when the exec fails', async () => {
     jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
-    const simpleExec = jest.fn(() => Effect.succeed(''));
+    const simpleExec = jest.fn(() => Effect.fail({ _tag: 'TerminalServiceError' as const }));
 
     const exit = await run({ isProject: true, simpleExec });
 
-    expect(Exit.isSuccess(exit)).toBe(true);
-    expect(updateAggregators).toHaveBeenCalledTimes(1);
+    expect(Exit.isFailure(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenCalledTimes(1);
+    // aggregators run only after a successful exec; the failed fiber short-circuits before reaching them
+    expect(updateAggregators).not.toHaveBeenCalled();
   });
 
   it('shows the verification-code modal before exec (no-op branch returns void)', async () => {
