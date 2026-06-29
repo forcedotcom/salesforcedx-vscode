@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { runGatherer } from '../../parameterGatherers/runGatherer';
-import { isAlphaNumSpaceString } from '../../util/orgAlias';
+import { validateAliasInput } from '../../util/orgAlias';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 const PRODUCTION_URL = 'https://login.salesforce.com';
@@ -42,9 +42,7 @@ const inputAlias = async (): Promise<string | undefined> =>
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
     ignoreFocusOut: true,
-    // empty string is a valid "use default alias" answer; otherwise reject shell metachars so the quoted CLI alias arg stays injection-safe
-    validateInput: value =>
-      isAlphaNumSpaceString(value) || value === '' ? null : nls.localize('error_invalid_org_alias')
+    validateInput: validateAliasInput
   });
 
 const inputAccessToken = async (): Promise<string | undefined> =>
@@ -58,13 +56,9 @@ const inputAccessToken = async (): Promise<string | undefined> =>
       text && text?.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
   });
 
-const validateUrl = (url: string): string | null => {
-  const expr = /https?:\/\/(.*)/;
-  if (expr.test(url)) {
-    return null;
-  }
-  return nls.localize('auth_invalid_url');
-};
+// http(s):// host/port/path only — rejects shell metachars (`;|&$()`, backticks, quotes, spaces) so the CLI --instance-url arg stays injection-safe
+const validateUrl = (url: string): string | undefined =>
+  /^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/.test(url) ? undefined : nls.localize('auth_invalid_url');
 
 const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> =>
   Object.fromEntries(
@@ -172,7 +166,8 @@ export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gath
     Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 
-  // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels
+  // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels.
+  // NB: cannot use considerUndefinedAsCancellation here — it also cancels on empty/whitespace strings.
   const alias = yield* Effect.promise(inputAlias).pipe(
     Effect.flatMap(value => (value === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(value)))
   );

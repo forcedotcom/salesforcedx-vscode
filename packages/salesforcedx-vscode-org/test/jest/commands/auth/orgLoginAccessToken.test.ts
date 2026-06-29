@@ -53,7 +53,7 @@ describe('orgLoginAccessTokenCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org login access-token --instance-url https://my.salesforce.com --alias "MyOrg" --no-prompt',
+      command: 'sf org login access-token --instance-url "https://my.salesforce.com" --alias "MyOrg" --no-prompt',
       parse: expect.any(Function),
       env: { SF_ACCESS_TOKEN: 'sid-secret-123' }
     });
