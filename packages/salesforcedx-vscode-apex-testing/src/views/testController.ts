@@ -52,6 +52,7 @@ import {
   writeTestResultJsonFile
 } from '../utils/testUtils';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
+import { TestTempFolderError } from './apexTestExecutionErrors';
 import { ApexTestTreeService, type DiscoveryContext } from './apexTestTreeService';
 import {
   buildClassIdToNamespace,
@@ -1073,7 +1074,7 @@ export class ApexTestController {
       } else {
         // For run, execute tests using existing Apex test execution
         const testNames = testsToRun.map(test => getTestName(test));
-        const tmpFolder = await getTempFolder();
+        const tmpFolder = await getApexTestingRuntime().runPromise(getTempFolder());
         const codeCoverage = settings.retrieveTestCodeCoverage();
         // RunAllTestsInOrg only for the explicit "all org" profile on an implicit full run
         const runAllTestsInOrg =
@@ -1215,11 +1216,7 @@ export class ApexTestController {
           hasSuite: false,
           hasClass: false
         }
-      : await buildTestPayload(testService, testsToRun, testNames, codeCoverage);
-
-    if (!payload) {
-      throw new Error(nls.localize('apex_test_payload_build_failed_message'));
-    }
+      : await getApexTestingRuntime().runPromise(buildTestPayload(testService, testsToRun, testNames, codeCoverage));
 
     // TODO: fix in apex-node W-18453221
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -1459,13 +1456,11 @@ const closeEditorTabByUri = async (uri: URI): Promise<void> => {
   }
 };
 
-const getTempFolder = async (): Promise<URI> => {
-  try {
-    return await getApexTestingRuntime().runPromise(getTestResultsFolder());
-  } catch {
-    throw new Error(nls.localize('cannot_determine_workspace'));
-  }
-};
+const getTempFolder = Effect.fn('ApexTesting.getTempFolder')(function* () {
+  return yield* getTestResultsFolder().pipe(
+    Effect.catchAll(() => new TestTempFolderError({ message: nls.localize('cannot_determine_workspace') }))
+  );
+});
 
 let testControllerInst: ApexTestController | undefined;
 
