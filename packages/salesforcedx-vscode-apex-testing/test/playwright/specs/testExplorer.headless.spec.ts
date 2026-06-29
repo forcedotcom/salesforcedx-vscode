@@ -109,6 +109,13 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
   await test.step('run all tests on a class via Test Explorer tree-item action', async () => {
     const classRow = findTestExplorerItem(page, testClassName);
     await classRow.waitFor({ state: 'visible', timeout: 30_000 });
+
+    // Gate the Explorer run-path completion sentinel (net-new in 4.2; emitted by ApexTestExecutionService
+    // on the run path only). Clear the channel first so the assertion can't match a prior run's output.
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+
     await clickTreeItemAction(classRow, 'Run Test');
     await saveScreenshot(page, 'step.class-run-action-clicked.png');
 
@@ -117,6 +124,10 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     // Test Results panel re-renders Pass Rate after the new run completes.
     await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
     await expect(page.getByText(testClassName).first()).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
+
+    // Explorer run path must emit the completion sentinel to the Apex Testing channel.
+    await selectOutputChannel(page, 'Apex Testing');
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.class-run-done.png');
   });
 

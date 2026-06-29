@@ -83,11 +83,15 @@ const ServicesUnderTest = Layer.mergeAll(
 );
 const buildLayer = () => Layer.merge(Layer.provide(ServicesUnderTest, ExtProviderLayer), ExtProviderLayer);
 
-const runEff = <A, E>(effect: Effect.Effect<A, E, ApexTestExecutionService | ApexTestTreeService>) =>
-  Effect.runPromise(Effect.provide(effect, buildLayer()) as Effect.Effect<A, E, never>);
+// R is whatever the service methods require (ExecutionService/TreeService/CacheService/ExtensionProvider);
+// buildLayer provides all of them, so erase R to never at the boundary.
+const runEff = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+  Effect.runPromise(Effect.provide(effect as Effect.Effect<A, E, never>, buildLayer()) as Effect.Effect<A, E, never>);
 
-const runExit = <A, E>(effect: Effect.Effect<A, E, ApexTestExecutionService | ApexTestTreeService>) =>
-  Effect.runPromiseExit(Effect.provide(effect, buildLayer()) as Effect.Effect<A, E, never>);
+const runExit = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+  Effect.runPromiseExit(
+    Effect.provide(effect as Effect.Effect<A, E, never>, buildLayer()) as Effect.Effect<A, E, never>
+  );
 
 const tag = (id: string): vscode.TestTag => ({ id }) as vscode.TestTag;
 const inWorkspaceTag = tag('in-workspace');
@@ -162,11 +166,11 @@ describe('ApexTestExecutionService', () => {
     readFile.mockImplementation(() => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
     // updateTestResults uses `new vscode.TestRunRequest()` / `new vscode.TestMessage()` — make them
     // constructable under the jest vscode mock.
-    (vscode as typeof vscode & { TestRunRequest: new () => vscode.TestRunRequest }).TestRunRequest =
-      class {} as new () => vscode.TestRunRequest;
-    (vscode as typeof vscode & { TestMessage: new (m: string) => vscode.TestMessage }).TestMessage = class {
+    const vscodeMutable = vscode as unknown as { TestRunRequest: unknown; TestMessage: unknown };
+    vscodeMutable.TestRunRequest = class {};
+    vscodeMutable.TestMessage = class {
       constructor(public message: string) {}
-    } as unknown as new (m: string) => vscode.TestMessage;
+    };
   });
 
   describe('executeTests', () => {
@@ -326,11 +330,11 @@ describe('ApexTestExecutionService', () => {
       await runEff(
         ApexTestExecutionService.runTests(
           ctx,
-          { include: [method] } as vscode.TestRunRequest,
+          { include: [method] } as unknown as vscode.TestRunRequest,
           cancellationToken,
           false,
           'workspace-first'
-        ) as unknown as Effect.Effect<void, never, ApexTestExecutionService | ApexTestTreeService>
+        )
       );
       expect(errored.map(e => e.test)).toContain(method);
       expect(end).toHaveBeenCalled();
@@ -351,11 +355,11 @@ describe('ApexTestExecutionService', () => {
       await runEff(
         ApexTestExecutionService.runTests(
           ctx,
-          { include: [method] } as vscode.TestRunRequest,
+          { include: [method] } as unknown as vscode.TestRunRequest,
           cancellationToken,
           false,
           'workspace-first'
-        ) as unknown as Effect.Effect<void, never, ApexTestExecutionService | ApexTestTreeService>
+        )
       );
       // getTempFolder maps the org-config failure to TestTempFolderError; runTests surfaces it per item.
       expect(errored.map(e => e.test)).toContain(method);
@@ -377,11 +381,11 @@ describe('ApexTestExecutionService', () => {
       await runEff(
         ApexTestExecutionService.runTests(
           ctx,
-          { include: [suite] } as vscode.TestRunRequest,
+          { include: [suite] } as unknown as vscode.TestRunRequest,
           cancellationToken,
           false,
           'workspace-first'
-        ) as unknown as Effect.Effect<void, never, ApexTestExecutionService | ApexTestTreeService>
+        )
       );
       expect(errored.map(e => e.test)).toContain(suite);
       expect(runTestAsynchronous).not.toHaveBeenCalled();
