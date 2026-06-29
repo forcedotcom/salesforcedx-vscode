@@ -24,9 +24,6 @@ jest.mock('../../../../src/channels', () => ({
   OUTPUT_CHANNEL: {}
 }));
 
-// selectOrgsForLogout imports orgList.ts which has a pre-existing toSorted ts-jest issue
-jest.mock('../../../../src/parameterGatherers/selectOrgsForLogout');
-
 describe('OrgLogoutDefault', () => {
   let removeAuthMock: jest.Mock;
   let isCurrentTargetOrgMock: jest.Mock;
