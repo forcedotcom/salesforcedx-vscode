@@ -295,7 +295,7 @@ type DefaultOrgConfig = {
  * Returns the resolved username for a given alias, or the input if it is already a username.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
-const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
+export const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
   aliasOrUsername: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -304,15 +304,11 @@ const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAli
   return Option.getOrElse(opt, () => aliasOrUsername);
 });
 
-/** Promise wrapper for {@link resolveUsernameFromAliasEffect}. */
-export const resolveUsernameFromAlias = async (aliasOrUsername: string): Promise<string> =>
-  getOrgRuntime().runPromise(resolveUsernameFromAliasEffect(aliasOrUsername));
-
 /**
  * Returns a map of username → aliases[]. Used to supplement stale StateAggregator data in the org picker.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
-const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
+export const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const aliasService = yield* api.services.AliasService;
   const orgs = yield* aliasService.getAllAliases();
@@ -321,10 +317,6 @@ const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUser
     return result;
   }, new Map<string, string[]>());
 });
-
-/** Promise wrapper for {@link readAliasesByUsernameFromDiskEffect}. */
-export const readAliasesByUsernameFromDisk = async (): Promise<Map<string, string[]>> =>
-  getOrgRuntime().runPromise(readAliasesByUsernameFromDiskEffect());
 
 /**
  * Loads default-org config + fresh org authorizations (alias-supplemented from disk) in one Effect.
