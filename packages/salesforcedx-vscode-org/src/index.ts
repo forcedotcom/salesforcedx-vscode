@@ -21,7 +21,7 @@ import {
   orgCreate,
   orgDelete,
   orgDisplay,
-  orgList,
+  orgListCleanCommand,
   orgLoginAccessToken,
   orgLoginWeb,
   orgLoginWebDevHub,
@@ -50,7 +50,6 @@ const registerCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.org.display.username', orgDisplay, {
       flag: '--target-org'
     }),
-    vscode.commands.registerCommand('sf.org.list.clean', orgList),
     vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
     vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault)
   );
@@ -76,7 +75,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const extensionScope = Effect.runSync(getExtensionScope());
   // fallbackDisplayName only fires if package.json displayName is absent; channel_name must match displayName ('Salesforce Org Management')
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
-  await getOrgRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
+  await activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 
   const api: SalesforceVSCodeOrgApi = {
     channelService
@@ -94,6 +93,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
+  yield* registerCommand('sf.org.list.clean', orgListCleanCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
   yield* registerCommand(ORG_LOGOUT_ALL_COMMAND, orgLogoutAllCommand);
   yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
@@ -108,3 +108,4 @@ export const deactivate = (): void => {
 };
 
 export type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
+export type { OrgListCleanError } from './commands/orgList';

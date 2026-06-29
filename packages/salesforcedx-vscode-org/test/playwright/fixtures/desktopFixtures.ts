@@ -23,3 +23,15 @@ export const orgDesktopMinimalDefaultTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   userSettings: { 'window.dialogStyle': 'custom' }
 });
+
+/** Minimal-scratch-default fixture that also routes `showWarningMessage({ modal: true })` through VS Code's
+ * DOM (`.monaco-dialog-box`) so Playwright can click/dismiss the `PromptService.confirmOrThrow` modal
+ * (org list clean). Native Electron dialogs are inaccessible to Playwright. */
+export const orgDesktopMinimalDefaultCustomDialogTest = createDesktopTest({
+  fixturesDir: __dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-core'],
+  orgAlias: MINIMAL_ORG_ALIAS,
+  userSettings: {
+    'window.dialogStyle': 'custom'
+  }
+});

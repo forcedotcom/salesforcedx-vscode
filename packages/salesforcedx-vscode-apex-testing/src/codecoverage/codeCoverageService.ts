@@ -22,7 +22,6 @@ const SFDX_FOLDER = '.sfdx';
 const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
 
 /** No coverage discoverable for the project (no workspace, unreadable results dir, no result files, or all stale). */
-/** @ExportTaggedError */
 export class NoCoverageOnProjectError extends Schema.TaggedError<NoCoverageOnProjectError>()(
   'NoCoverageOnProjectError',
   {
@@ -31,19 +30,16 @@ export class NoCoverageOnProjectError extends Schema.TaggedError<NoCoverageOnPro
 ) {}
 
 /** Result files exist but none carry coverage keys. */
-/** @ExportTaggedError */
 export class StaleResultsError extends Schema.TaggedError<StaleResultsError>()('StaleResultsError', {
   message: Schema.String
 }) {}
 
 /** No coverage entry matches the current file. */
-/** @ExportTaggedError */
 export class NoCoverageForFileError extends Schema.TaggedError<NoCoverageForFileError>()('NoCoverageForFileError', {
   message: Schema.String
 }) {}
 
 /** A covered/uncovered line number falls outside the document's range (results out of sync with source). */
-/** @ExportTaggedError */
 export class OutOfSyncCoverageError extends Schema.TaggedError<OutOfSyncCoverageError>()('OutOfSyncCoverageError', {
   message: Schema.String
 }) {}
