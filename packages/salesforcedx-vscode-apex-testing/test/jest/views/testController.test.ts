@@ -40,14 +40,33 @@ jest.mock('../../../src/services/extensionProvider', () => {
       }
     }
   };
-  const MockAllServicesLayer = Layer.effect(
+  const ExtensionProviderLayer = Layer.effect(
     ExtensionProviderService,
     EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
   );
+  // ApexTestTreeService owns the tree Refs; the shell reads them via this runtime, so the mock runtime
+  // must provide its Default layer. Built lazily (not at module-eval) to avoid the import cycle
+  // apexTestTreeService -> testUtils -> extensionProvider (this mock).
+  let mockRuntime: any;
+  let MockAllServicesLayer: any;
+  let treeService: any;
+  const ensureRuntime = () => {
+    if (!mockRuntime) {
+      treeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+      MockAllServicesLayer = Layer.merge(ExtensionProviderLayer, treeService.Default);
+      // One persistent runtime so the tree-state Refs survive across the shell's runSync/runPromise
+      // calls within a test (matching the production single-runtime behavior).
+      mockRuntime = ManagedRuntime.make(MockAllServicesLayer);
+    }
+    return mockRuntime;
+  };
 
   return {
-    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
-    AllServicesLayer: MockAllServicesLayer,
+    getApexTestingRuntime: () => ensureRuntime(),
+    get AllServicesLayer() {
+      ensureRuntime();
+      return MockAllServicesLayer;
+    },
     setAllServicesLayer: jest.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
@@ -56,7 +75,13 @@ jest.mock('../../../src/services/extensionProvider', () => {
       mockReadFileResult = s;
     },
     __mockFsServiceReadFile: mockReadFile,
-    __mockMetadataRetrieve: mockMetadataRetrieve
+    __mockMetadataRetrieve: mockMetadataRetrieve,
+    // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
+    __resetTree: () => {
+      ensureRuntime();
+      mockRuntime.runSync(treeService.reset());
+      mockRuntime.runSync(treeService.clearRestoredResults());
+    }
   };
 });
 
@@ -84,7 +109,10 @@ jest.mock('../../../src/telemetry/telemetry', () => ({
 
 jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
-  retrieveTestRunConcise: jest.fn().mockReturnValue(false)
+  retrieveTestRunConcise: jest.fn().mockReturnValue(false),
+  // Default off: discovery's restore-previous-results step short-circuits in tests not exercising it.
+  retrieveRestorePreviousResults: jest.fn().mockReturnValue(false),
+  disableRestorePreviousResults: jest.fn()
 }));
 
 jest.mock('../../../src/testDiscovery/packageResolution', () => ({
@@ -192,6 +220,8 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Clear the singleton runtime's tree Refs so per-test map state does not leak.
+    (extensionProvider as unknown as { __resetTree: () => void }).__resetTree();
 
     // Mock vscode.tests.createTestController
     (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
