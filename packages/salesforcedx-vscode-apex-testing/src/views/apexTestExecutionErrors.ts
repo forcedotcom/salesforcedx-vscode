@@ -21,3 +21,8 @@ export class PayloadBuildError extends Schema.TaggedError<PayloadBuildError>()('
 export class TestTempFolderError extends Schema.TaggedError<TestTempFolderError>()('TestTempFolderError', {
   message: Schema.String
 }) {}
+
+/** Asynchronous test execution (or its result file read) failed. */
+export class TestExecutionError extends Schema.TaggedError<TestExecutionError>()('TestExecutionError', {
+  message: Schema.String
+}) {}
