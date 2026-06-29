@@ -24,7 +24,8 @@ class OrgNotDeletableError extends Schema.TaggedError<OrgNotDeletableError>()('O
   message: Schema.String
 }) {}
 
-class OrgDeleteFailedError extends Schema.TaggedError<OrgDeleteFailedError>()('OrgDeleteFailedError', {
+/** @ExportTaggedError */
+export class OrgDeleteFailedError extends Schema.TaggedError<OrgDeleteFailedError>()('OrgDeleteFailedError', {
   message: Schema.String
 }) {}
 
@@ -73,49 +74,55 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   yield* Effect.promise(() => updateConfigAndStateAggregators());
 });
 
-/** Runs `sf org delete scratch|sandbox --target-org <username> --no-prompt` for a single org, wrapped in a
- * cancellable progress, through `Effect.either` so a single non-zero exit (TerminalServiceError) does NOT
- * short-circuit the surrounding `Effect.forEach`. Cancellation interrupts the fiber and is NOT caught by
- * `Effect.either` (it only catches typed failures), so it still aborts the whole loop. */
-const deleteOne = Effect.fn('orgDeleteUsername.deleteOne')(function* (org: OrgToDelete) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const terminalService = yield* api.services.TerminalService;
-  const subcommand = org.orgType === 'sandbox' ? 'sandbox' : 'scratch';
-  const either = yield* terminalService
-    .simpleExec({
-      command: `sf org delete ${subcommand} --target-org ${org.username} --no-prompt`,
-      parse: identity,
-      timeout: DELETE_TIMEOUT
-    })
-    .pipe(promptService.withCancellableProgress(nls.localize('org_delete_username_text')), Effect.either);
-  return { org, either };
-});
+/** Display label for an org's type, used in user-facing channel/notification text. */
+const orgTypeLabel = (orgType: OrgToDelete['orgType']): string => (orgType === 'scratch' ? 'scratch org' : 'sandbox');
 
 /**
  * Effect command for `sf.org.delete.username`: pick deletable orgs, confirm, then delete each via
  * `sf org delete scratch|sandbox`. The CLI removes the auth file + aliases and unsets config itself,
- * so no separate cleanup is needed. Continues past a single failed org (per-org `Effect.either`) and
- * surfaces a partial failure at the end so the user gets an error notification.
+ * so no separate cleanup is needed. Continues past a single failed org (per-org failure captured into an
+ * `Either.left`) and surfaces a partial failure at the end so the user gets an error notification.
  */
 export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(function* () {
   const { orgs } = yield* gather();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
+  // services are stateless and constant across orgs: resolve once, capture by closure in deleteOne
+  const promptService = yield* api.services.PromptService;
+  const terminalService = yield* api.services.TerminalService;
+
+  /** Runs `sf org delete scratch|sandbox --target-org <username> --no-prompt` for a single org, wrapped in a
+   * cancellable progress. Only a `TerminalServiceError` (non-zero exit) is captured into an `Either.left` so a
+   * single failed org does NOT short-circuit the surrounding `Effect.forEach`. Cancellation surfaces a
+   * `UserCancellationError` (withCancellableProgress converts the fiber interrupt to that typed failure); it is
+   * deliberately NOT captured here, so it propagates and aborts the whole loop (user cancelled). */
+  const deleteOne = Effect.fn('orgDeleteUsername.deleteOne')(function* (org: OrgToDelete) {
+    const either = yield* terminalService
+      .simpleExec({
+        command: `sf org delete ${org.orgType} --target-org ${org.username} --no-prompt`,
+        parse: identity,
+        timeout: DELETE_TIMEOUT
+      })
+      .pipe(
+        promptService.withCancellableProgress(nls.localize('org_delete_username_text')),
+        Effect.map(Either.right<string>),
+        Effect.catchTag('TerminalServiceError', error => Effect.succeed(Either.left(error)))
+      );
+    return { org, either };
+  });
 
   const results = yield* Effect.forEach(orgs, deleteOne);
 
-  yield* Effect.forEach(results, ({ org, either }) =>
-    Either.isRight(either)
-      ? channel.appendToChannel(either.right)
-      : channel.appendToChannel(
-          nls.localize('org_delete_failed_for_org', org.username, org.orgType === 'scratch' ? 'scratch org' : 'sandbox')
-        )
+  yield* Effect.forEach(
+    results,
+    ({ org, either }) =>
+      Either.isRight(either)
+        ? channel.appendToChannel(either.right)
+        : channel.appendToChannel(nls.localize('org_delete_failed_for_org', org.username, orgTypeLabel(org.orgType))),
+    { discard: true }
   );
 
-  yield* Effect.sync(() => {
-    channelService.showChannelOutput();
-  });
+  yield* channel.showChannel;
 
   // unconditional, after the loop: reflect whatever was actually deleted in the picker/cache even on partial failure
   yield* Effect.promise(() => updateConfigAndStateAggregators());

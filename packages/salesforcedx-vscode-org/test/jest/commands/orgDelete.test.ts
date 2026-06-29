@@ -121,10 +121,16 @@ describe('orgDeleteDefaultCommand', () => {
 });
 
 // Mirrors the real TerminalServiceError (terminalService.ts) so the partial-failure test exercises the
-// actual error shape Effect.either captures, not a hand-rolled stand-in.
+// actual error shape the catchTag captures, not a hand-rolled stand-in.
 class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
   message: Schema.String,
   command: Schema.String
+}) {}
+
+// Mirrors the real UserCancellationError (promptService.ts) that withCancellableProgress surfaces when the
+// user clicks Cancel. Unlike a TerminalServiceError it must NOT be caught per-org; it aborts the whole loop.
+class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
+  message: Schema.String
 }) {}
 
 const appendToChannel = jest.fn<Effect.Effect<void>, [string]>();
@@ -137,7 +143,7 @@ const buildUsernameServices = (simpleExec: jest.Mock) => ({
         effect
   }),
   TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({ appendToChannel })
+  ChannelService: Effect.succeed({ appendToChannel, showChannel: Effect.void })
 });
 
 const runUsername = (simpleExec: jest.Mock) =>
@@ -180,7 +186,7 @@ describe('orgDeleteUsernameCommand', () => {
     expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
   });
 
-  it('continues past a failed org (Effect.either), appends a failure line, and fails overall', async () => {
+  it('continues past a failed org (TerminalServiceError caught), appends a failure line, and fails overall', async () => {
     mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
     // org-1 fails the way the real service does: childProcess.exec rejects on non-zero exit, wrapped in
     // Effect.tryPromise -> TerminalServiceError. A bare simpleExec loop would short-circuit here and never run org-2.
@@ -214,6 +220,30 @@ describe('orgDeleteUsernameCommand', () => {
     // overall failure surfaces (reaches handleCause)
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgDeleteFailedError');
+  });
+
+  it('aborts the loop on cancellation (UserCancellationError is not caught per-org)', async () => {
+    mockGather.mockReturnValue(Effect.succeed({ orgs: [scratchOrg, sandboxOrg] }));
+    // Cancelling mid-delete: withCancellableProgress converts the fiber interrupt into a UserCancellationError.
+    // Unlike a TerminalServiceError, it must propagate and stop the remaining orgs (user asked to stop).
+    const simpleExec = jest.fn((args: { command: string }) =>
+      args.command.includes('a@scratch.org')
+        ? Effect.fail(new UserCancellationError({ message: 'User cancelled progress' }))
+        : Effect.succeed('deleted')
+    );
+
+    const exit = await runUsername(simpleExec);
+
+    // loop aborted: org-2 never ran
+    expect(simpleExec).toHaveBeenCalledTimes(1);
+    // no partial-failure summary; the cancellation propagates as-is
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) {
+      expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+      expect(JSON.stringify(exit.cause)).not.toContain('OrgDeleteFailedError');
+    }
+    // cache flush does NOT run: the fiber short-circuited before reaching it
+    expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 
   it('does not delete or flush when the picker cancels', async () => {
