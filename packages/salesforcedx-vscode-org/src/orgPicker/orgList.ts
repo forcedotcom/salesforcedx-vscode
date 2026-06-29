@@ -210,12 +210,11 @@ const setDefaultOrgImpl = Effect.fn('OrgList.setDefaultOrg')(function* () {
   yield* Effect.promise(() => Promise.resolve(vscode.commands.executeCommand('sf.config.set', usernameOrAlias)));
 });
 
-export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> =>
-  getOrgRuntime().runPromise(
-    setDefaultOrgImpl().pipe(
-      Effect.map((): ContinueResponse<{}> => ({ type: 'CONTINUE', data: {} })),
-      Effect.catchTag('UserCancellationError', (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' }))
-    )
+export const setDefaultOrg = (): Promise<CancelResponse | ContinueResponse<{}>> =>
+  setDefaultOrgImpl().pipe(
+    Effect.map((): ContinueResponse<{}> => ({ type: 'CONTINUE', data: {} })),
+    Effect.catchTag('UserCancellationError', (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' })),
+    getOrgRuntime().runPromise
   );
 
 /** Create and initialize OrgList with Effect-based TargetOrgRef watching */
