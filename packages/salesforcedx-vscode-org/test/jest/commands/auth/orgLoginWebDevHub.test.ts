@@ -64,7 +64,7 @@ describe('orgLoginWebDevHubCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledTimes(1);
-    const arg = simpleExec.mock.calls[0][0] as { command: string; parse: unknown };
+    const arg = (simpleExec.mock.calls as unknown as [{ command: string; parse: unknown }][])[0][0];
     expect(arg.command).toBe("sf org login web --alias 'myHub' --set-default-dev-hub");
     expect(arg.parse).toEqual(expect.any(Function));
   });
