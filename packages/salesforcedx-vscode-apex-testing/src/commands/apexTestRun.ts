@@ -9,7 +9,6 @@ import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { window } from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
@@ -123,7 +122,7 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     promptService.withCancellableProgress(executionName)
   );
 
-  OUTPUT_CHANNEL.show();
+  yield* channelService.showChannel;
   if (result === undefined) {
     notificationService.showFailedExecution(executionName);
   } else {

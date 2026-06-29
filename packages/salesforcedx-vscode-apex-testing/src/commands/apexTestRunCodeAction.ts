@@ -14,7 +14,6 @@ import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
@@ -79,7 +78,7 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
     promptService.withCancellableProgress(executionName)
   );
 
-  OUTPUT_CHANNEL.show();
+  yield* channelService.showChannel;
   if (result === undefined) {
     notificationService.showFailedExecution(executionName);
     return;
