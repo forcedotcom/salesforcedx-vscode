@@ -6,37 +6,15 @@
  */
 
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as Schema from 'effect/Schema';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { nls } from '../messages';
 import { gatherOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { OrgInfo } from '../types/orgInfo';
-import { getOrgInfoEffect } from '../util/orgDisplay';
+import { getOrgInfoEffect, orgInfoFromConnection } from '../util/orgDisplay';
 
 /** Shared sensitive-info warning shown before the org-details table (both display paths). */
 const ACCESS_WARNING = `Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.
 Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.
 For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.`;
-
-class NoTargetOrgError extends Schema.TaggedError<NoTargetOrgError>()('NoTargetOrgError', {
-  message: Schema.String
-}) {}
-
-const getTargetUsername = Effect.fn('getTargetUsername')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const targetOrgRef = yield* api.services.TargetOrgRef();
-  const currentOrgInfo = yield* SubscriptionRef.get(targetOrgRef);
-  if (currentOrgInfo.username) {
-    return currentOrgInfo.username;
-  }
-  const fromProjectConfig = yield* Effect.promise(() => ConfigUtil.getUsername());
-  if (fromProjectConfig) {
-    return fromProjectConfig;
-  }
-  return yield* new NoTargetOrgError({ message: nls.localize('error_no_target_org') });
-});
 
 const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
   const columns: Column[] = [
@@ -83,8 +61,9 @@ const writeOrgInfoToChannel = Effect.fn('orgDisplay.writeOrgInfoToChannel')(func
 });
 
 /**
- * Effect command for `sf.org.display.default`: resolve the default org, then write its details table
- * (preceded by the sensitive-info warning) to the output channel.
+ * Effect command for `sf.org.display.default`: derive the default org's `Connection` via
+ * `ConnectionService.getConnection()` (no username resolution — the connection carries the
+ * username), derive `OrgInfo` from it, and write the warning + details table to the channel.
  */
 export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -93,14 +72,16 @@ export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(fu
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
   yield* api.services.ProjectService.getSfProject();
 
-  const targetUsername = yield* getTargetUsername();
-  const orgInfo = yield* getOrgInfoEffect(targetUsername);
+  // resolves TARGET_ORG; fails typed NoTargetOrgConfiguredError (rendered by ErrorHandlerService)
+  const conn = yield* api.services.ConnectionService.getConnection();
+  const orgInfo = yield* orgInfoFromConnection(conn);
   yield* writeOrgInfoToChannel(orgInfo);
 });
 
 /**
  * Effect command for `sf.org.display.username`: pick an authed org, then write its details table
- * (preceded by the sensitive-info warning) to the output channel.
+ * (preceded by the sensitive-info warning) to the output channel. Resolves `OrgInfo` for the
+ * picked username directly (ConnectionService only resolves the default org).
  */
 export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
