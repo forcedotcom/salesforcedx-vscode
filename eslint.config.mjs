@@ -16,6 +16,7 @@ import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
+import eslintPluginPlaywright from 'eslint-plugin-playwright';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
 import functional from 'eslint-plugin-functional';
@@ -928,6 +929,14 @@ export default [
     rules: {
       'local/query-builder-html-i18n-keys': 'error'
     }
+  },
+  {
+    // Register eslint-plugin-playwright for the e2e specs but enable NO rules yet.
+    // Individual playwright/* rules are turned on (and their violations fixed) in
+    // separate follow-up WIs, one rule at a time.
+    files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
+    plugins: { playwright: eslintPluginPlaywright },
+    rules: {}
   },
   eslintConfigPrettier
 ];
