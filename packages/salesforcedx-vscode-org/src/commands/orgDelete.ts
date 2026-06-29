@@ -187,7 +187,7 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
     channelService.showChannelOutput();
   });
 
-  yield* Effect.promise(() => updateConfigAndStateAggregators());
+  yield* Effect.tryPromise(() => updateConfigAndStateAggregators());
 });
 
 /** Picker-based delete (sf.org.delete.username). Default-org delete is handled by orgDeleteDefaultCommand. */

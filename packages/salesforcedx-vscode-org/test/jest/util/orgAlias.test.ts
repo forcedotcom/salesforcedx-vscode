@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isAlphaNumSpaceString } from '../../../src/util/orgAlias';
+import { isAlphaNumSpaceString, validateAliasInput } from '../../../src/util/orgAlias';
 
 describe('isAlphaNumSpaceString', () => {
   it.each(['MyOrg', 'org123', 'my org', 'snake_case', 'a b c', 'Org_1 Org_2'])('accepts %p', value => {
@@ -18,5 +18,15 @@ describe('isAlphaNumSpaceString', () => {
 
   it('rejects undefined', () => {
     expect(isAlphaNumSpaceString(undefined)).toBe(false);
+  });
+});
+
+describe('validateAliasInput', () => {
+  it.each(['MyOrg', 'org123', 'my org', 'snake_case', ''])('returns undefined (valid) for %p', value => {
+    expect(validateAliasInput(value)).toBeUndefined();
+  });
+
+  it.each(['my;org', 'a|b', 'x&y', 'cost$', '`x`', '$(x)'])('returns an error message for %p', value => {
+    expect(validateAliasInput(value)).toBeTruthy();
   });
 });

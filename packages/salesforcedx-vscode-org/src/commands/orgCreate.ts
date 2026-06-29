@@ -27,7 +27,7 @@ import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector'
 import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreateResultParser';
 import { checkDevHubConfigured } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
-import { isAlphaNumSpaceString } from '../util/orgAlias';
+import { isAlphaNumSpaceString, validateAliasInput } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 const isInteger = (value: string | undefined): boolean =>
@@ -120,8 +120,7 @@ class AliasGatherer implements ParametersGatherer<Alias> {
     const aliasInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias,
-      validateInput: value =>
-        isAlphaNumSpaceString(value) || value === '' ? null : nls.localize('error_invalid_org_alias')
+      validateInput: validateAliasInput
     };
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will use the value of `defaultAlias`

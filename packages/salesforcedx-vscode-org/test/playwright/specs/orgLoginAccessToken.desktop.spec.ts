@@ -8,15 +8,12 @@
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
-  closeWelcomeTabs,
-  createMinimalOrg,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
-  upsertScratchOrgAuthFieldsToSettings,
-  verifyCommandExists,
-  waitForVSCodeWorkbench
+  setupMinimalOrgAndAuth,
+  verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
@@ -31,11 +28,8 @@ test('org extension: Authorize an Org using Session ID prompts then cancels clea
   test.setTimeout(120_000);
 
   await test.step('setup scratch default org', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
+    await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   });
 
   // Gate on an always-present activation command so we don't false-negative on slow startup.

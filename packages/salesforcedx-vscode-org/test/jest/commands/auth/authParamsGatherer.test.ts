@@ -20,6 +20,7 @@ import {
   ScratchOrgLogoutParamsGatherer
 } from '../../../../src/commands/auth/authParamsGatherer';
 import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
+import { nls } from '../../../../src/messages';
 import {
   considerUndefinedAsCancellation,
   makeConfirmOrThrow,
@@ -137,6 +138,27 @@ describe('AuthParamsGatherer', () => {
       const result = await new AccessTokenParamsGatherer().gather();
 
       expect(result).toEqual({ type: 'CANCEL' });
+    });
+
+    it('wires validateInput on the instance-url and alias prompts', async () => {
+      const spy = jest
+        .spyOn(vscode.window, 'showInputBox')
+        .mockResolvedValueOnce(instanceUrl)
+        .mockResolvedValueOnce('myAlias')
+        .mockResolvedValueOnce(accessToken);
+
+      await new AccessTokenParamsGatherer().gather();
+
+      // first prompt = instance URL: rejects shell metachars, accepts a valid https url
+      const validateUrl = spy.mock.calls[0][0]?.validateInput?.bind(undefined);
+      expect(validateUrl?.('https://x.com; touch /tmp/pwned')).toBe(nls.localize('auth_invalid_url'));
+      expect(validateUrl?.('https://my.salesforce.com')).toBeUndefined();
+
+      // second prompt = alias: rejects shell metachars, accepts alphanumeric and empty (use default)
+      const validateAlias = spy.mock.calls[1][0]?.validateInput?.bind(undefined);
+      expect(validateAlias?.('bad;alias')).toBe(nls.localize('error_invalid_org_alias'));
+      expect(validateAlias?.('GoodAlias')).toBeUndefined();
+      expect(validateAlias?.('')).toBeUndefined();
     });
   });
 
