@@ -15,7 +15,7 @@ import { MessageKey } from '../messages/i18n';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
-import { getFullClassName, isFlowTest } from '../utils/testUtils';
+import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { getTestController } from '../views/testController';
 import { runSelectedTests } from './apexTestRun';
 

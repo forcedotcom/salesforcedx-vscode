@@ -10,6 +10,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const Layer = jest.requireActual('effect/Layer');
   const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
   const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
+  const { ApexTestRunCacheService } = jest.requireActual('../../../src/testRunCache/apexTestRunCacheService');
   const { URI: UriClass } = jest.requireActual('vscode-uri');
 
   let mockConnectionRef: any;
@@ -20,6 +21,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const mockFsService = {
     readFile: mockReadFile,
     createDirectory: () => EffectLib.void,
+    safeDelete: () => EffectLib.void,
     showTextDocument: (uri: unknown, options?: unknown) =>
       EffectLib.tryPromise({
         try: () => require('vscode').window.showTextDocument(uri, options),
@@ -39,16 +41,18 @@ jest.mock('../../../src/services/extensionProvider', () => {
       }
     }
   };
-  const MockAllServicesLayer = Layer.effect(
-    ExtensionProviderService,
-    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+  const MockAllServicesLayer = Layer.mergeAll(
+    Layer.effect(
+      ExtensionProviderService,
+      EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+    ),
+    ApexTestRunCacheService.Default
   );
 
   return {
     getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
     AllServicesLayer: MockAllServicesLayer,
     setAllServicesLayer: jest.fn(),
-    buildAllServicesLayer: jest.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
     },
@@ -321,9 +325,10 @@ describe('ApexTestController', () => {
     let getTestResultsFolderSpy: jest.SpiedFunction<typeof pathHelpers.getTestResultsFolder>;
 
     beforeEach(() => {
+      const Effect = jest.requireActual('effect/Effect');
       getTestResultsFolderSpy = jest
         .spyOn(pathHelpers, 'getTestResultsFolder')
-        .mockResolvedValue(URI.file(path.join('/tmp', 'apex-test-results')));
+        .mockReturnValue(Effect.succeed(URI.file(path.join('/tmp', 'apex-test-results'))));
       mockTestServiceMethods.buildAsyncPayload.mockResolvedValue({
         testLevel: 'RunSpecifiedTests',
         skipCodeCoverage: true
