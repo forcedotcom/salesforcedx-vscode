@@ -107,18 +107,22 @@ test('org picker: set default org, create scratch org, switch default org', asyn
       .first()
       .waitFor({ state: 'visible', timeout: 30_000 });
     await page.keyboard.press('Enter');
-    // Prompt 2: alias input box. Wait for the prior picker text to clear before typing the alias.
+    // Prompt 2: alias input box. orgCreate.ts pre-fills `value` with the sanitized workspace folder
+    // name, so wait for that non-empty default to appear (proves the alias prompt rendered, not the
+    // stale def-picker) before overwriting it. fill('', force) clears then types, reliable on CI.
     const input = activeQuickInputTextField(page);
-    await expect(input, 'alias input box should be empty after the file picker commits').toHaveValue('', {
-      timeout: 30_000
-    });
-    await page.keyboard.type(scratchAlias);
+    await expect(input, 'alias input box should show the pre-filled default after the file picker commits').toHaveValue(
+      /.+/,
+      { timeout: 30_000 }
+    );
+    await input.fill(scratchAlias, { force: true });
     await page.keyboard.press('Enter');
-    // Prompt 3: expiration days input box.
-    await expect(input, 'expiration-days input box should be empty after the alias commits').toHaveValue('', {
-      timeout: 30_000
-    });
-    await page.keyboard.type('1');
+    // Prompt 3: expiration days input box, pre-filled with the DEFAULT_EXPIRATION_DAYS default.
+    await expect(
+      input,
+      'expiration-days input box should show the pre-filled default after the alias commits'
+    ).toHaveValue(/.+/, { timeout: 30_000 });
+    await input.fill('1', { force: true });
     await page.keyboard.press('Enter');
   });
 
