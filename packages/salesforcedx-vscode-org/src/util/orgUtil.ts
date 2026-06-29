@@ -268,18 +268,16 @@ const listAllAuthorizationsEffect = Effect.fn('OrgUtil.listAllAuthorizations')(f
  */
 export const removeExpiredAndDeletedOrgs = async (): Promise<string[]> => {
   const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
-  if (!orgAuthorizations?.length) {
-    return [];
-  }
-
   const authRemover = await AuthRemover.create();
 
   // Process each org for potential removal sequentially (AuthRemover mutates shared auth state)
-  const removed = await orgAuthorizations.reduce<Promise<string[]>>(async (accP, orgAuth) => {
-    const acc = await accP;
+  const removed: string[] = [];
+  for (const orgAuth of orgAuthorizations) {
     const removedUsername = await processOrgForRemoval(orgAuth, authRemover);
-    return removedUsername ? [...acc, removedUsername] : acc;
-  }, Promise.resolve([]));
+    if (removedUsername) {
+      removed.push(removedUsername);
+    }
+  }
   return removed;
 };
 

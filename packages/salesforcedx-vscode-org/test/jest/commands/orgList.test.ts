@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, AuthInfo, Org, OrgAuthorization } from '@salesforce/core';
+import { AuthRemover, Org, OrgAuthorization } from '@salesforce/core';
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -98,12 +97,12 @@ jest.mock('../../../src/util/configAggregatorEffect', () => ({
 
 // Use the real extensionProvider so setAllServicesLayer/getOrgRuntime drive a runtime whose
 // ConnectionService.listAllAuthorizations is the mock seeded in beforeEach.
-const buildServicesLayer = () =>
+const buildServicesLayer = (mock: jest.Mock) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
         ConnectionService: {
-          listAllAuthorizations: listAllAuthorizationsMock
+          listAllAuthorizations: mock
         }
       }
     } as unknown as SalesforceVSCodeServicesApi)
@@ -120,7 +119,9 @@ describe('orgList command', () => {
     listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
     resetOrgRuntimeForTesting();
     setAllServicesLayer(
-      buildServicesLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
+      buildServicesLayer(listAllAuthorizationsMock) as ReturnType<
+        typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer
+      >
     );
 
     // Mock createTable function
@@ -137,15 +138,6 @@ describe('orgList command', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-  });
-
-  it('should be a simple smoke test to verify basic functionality', () => {
-    // Basic test to ensure the command structure is correct
-    expect(typeof orgUtil.getAuthFieldsFor).toBe('function');
-    expect(channelService.appendLine).toBeDefined();
-    expect(notificationService.showSuccessfulExecution).toBeDefined();
-    expect(AuthInfo.listAllAuthorizations).toBeDefined();
-    expect(AuthRemover.create).toBeDefined();
   });
 
   describe('determineConnectedStatusForNonScratchOrg', () => {
@@ -186,9 +178,8 @@ describe('orgList command', () => {
 
       const result = await determineConnectedStatusForNonScratchOrg('invalid@example.com');
 
-      // Should return error status from getConnectionStatusFromError
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
+      // getConnectionStatusFromError falls through to the raw message for unrecognized errors
+      expect(result).toBe('Connection failed');
     });
 
     it('should handle org creation failure', async () => {
@@ -196,8 +187,7 @@ describe('orgList command', () => {
 
       const result = await determineConnectedStatusForNonScratchOrg('notfound@example.com');
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('string');
+      expect(result).toBe('Org not found');
     });
   });
 
@@ -313,9 +303,14 @@ describe('orgList command', () => {
 
       const result = await removeExpiredAndDeletedOrgs();
 
-      // Should handle gracefully and continue
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
+      // Non-removable errors are logged per org; no org removed, processing continues through all orgs
+      expect(result).toEqual([]);
+      expect(mockAuthRemover.removeAuth).not.toHaveBeenCalled();
+      expect(channelService.appendLine).toHaveBeenCalledWith(
+        expect.stringContaining(
+          nls.localize('org_list_clean_error_checking_org', 'valid@example.com', 'Auth fields error')
+        )
+      );
     });
   });
 
