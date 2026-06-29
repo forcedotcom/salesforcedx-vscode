@@ -66,13 +66,6 @@ type ApexTestRunScope = 'workspace-first' | 'all-org' | 'stale-workspace' | 'sta
 
 export class ApexTestController {
   private controller: vscode.TestController;
-  // The tree maps live in ApexTestTreeService Refs (single source of truth). These fields cache the
-  // same Map object references (reset clears them in place, so identity is stable), letting the shell's
-  // sync map readers keep working during the 4.1→4.2 transition. Lazily initialized via treeMaps().
-  private suiteItems: Map<string, vscode.TestItem>;
-  private classItems: Map<string, vscode.TestItem>;
-  private methodItems: Map<string, vscode.TestItem>;
-  private classToParentItem: Map<string, vscode.TestItem>;
   private lastProcessedResultFile: URI | null = null;
   private connection: Connection | undefined;
   private testService: TestService | undefined;
@@ -85,14 +78,29 @@ export class ApexTestController {
   private staleTag: vscode.TestTag | undefined;
   private readonly sessionStartTime = Date.now();
 
+  // The suite/class/method/classToParent maps are owned by ApexTestTreeService Refs (single source of
+  // truth). These getters return the live Map objects via a synchronous Ref read — the deliberate
+  // vscode-sync bridge (getX only reads a Ref). reset clears them in place, so callers that mutate the
+  // returned map (e.g. removeClassFromTree.delete, diffClassMethods.set) keep writing through to the
+  // service. Sync TestRun callers (applyStaleTags/clearStaleTagsForTests) read via the same getters.
+  // eslint-disable-next-line class-methods-use-this
+  private get suiteItems(): Map<string, vscode.TestItem> {
+    return getApexTestingRuntime().runSync(ApexTestTreeService.getSuiteItems());
+  }
+  // eslint-disable-next-line class-methods-use-this
+  private get classItems(): Map<string, vscode.TestItem> {
+    return getApexTestingRuntime().runSync(ApexTestTreeService.getClassItems());
+  }
+  // eslint-disable-next-line class-methods-use-this
+  private get methodItems(): Map<string, vscode.TestItem> {
+    return getApexTestingRuntime().runSync(ApexTestTreeService.getMethodItems());
+  }
+  // eslint-disable-next-line class-methods-use-this
+  private get classToParentItem(): Map<string, vscode.TestItem> {
+    return getApexTestingRuntime().runSync(ApexTestTreeService.getClassToParentItem());
+  }
+
   constructor() {
-    // Cache the service's tree-map references (stable identity: reset clears in place). getMaps only
-    // reads Refs, so runSync is a cheap synchronous bridge, not the forbidden in-service runSync.
-    const maps = getApexTestingRuntime().runSync(ApexTestTreeService.getMaps());
-    this.suiteItems = maps.suiteItems;
-    this.classItems = maps.classItems;
-    this.methodItems = maps.methodItems;
-    this.classToParentItem = maps.classToParentItem;
     this.controller = vscode.tests.createTestController(TEST_CONTROLLER_ID, nls.localize('test_view_name'));
     // Create a tag for tests that exist in both workspace and org (enables filtering in Test Explorer)
     this.inWorkspaceTag = new vscode.TestTag('in-workspace');

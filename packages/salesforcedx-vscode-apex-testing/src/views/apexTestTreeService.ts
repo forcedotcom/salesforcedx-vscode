@@ -161,16 +161,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       return yield* Ref.get(classToParentItem);
     });
 
-    /** Snapshot all four tree maps at once (shell caches these stable references during 4.1→4.2). */
-    const getMaps = Effect.fn('ApexTestTreeService.getMaps')(function* () {
-      return {
-        suiteItems: yield* Ref.get(suiteItems),
-        classItems: yield* Ref.get(classItems),
-        methodItems: yield* Ref.get(methodItems),
-        classToParentItem: yield* Ref.get(classToParentItem)
-      };
-    });
-
     /**
      * Clear all tree maps in place (shell clearTestItems delegates the moved-map clears here).
      * Clears in place rather than swapping in fresh Maps so any holder of the map reference (the shell,
@@ -525,19 +515,22 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * discover (not memoized).
      */
     const discover = Effect.fn('ApexTestTreeService.discover')(function* (ctx: DiscoveryContext) {
-      const existing = yield* Ref.get(inFlightDiscovery);
-      if (Option.isSome(existing)) {
-        yield* Deferred.await(existing.value);
+      const fresh = yield* Deferred.make<void>();
+      // Atomic test-and-set: install the fresh Deferred only if none is in flight. winner === fresh
+      // means this fiber leads; otherwise it observed an in-flight Deferred to await.
+      const winner = yield* Ref.modify(inFlightDiscovery, prev =>
+        Option.isSome(prev) ? [prev.value, prev] : [fresh, Option.some(fresh)]
+      );
+      if (winner !== fresh) {
+        yield* Deferred.await(winner);
         return;
       }
-      const deferred = yield* Deferred.make<void>();
-      yield* Ref.set(inFlightDiscovery, Option.some(deferred));
       yield* doDiscover(ctx).pipe(
         Effect.ensuring(
-          Deferred.succeed(deferred, undefined).pipe(Effect.zipRight(Ref.set(inFlightDiscovery, Option.none())))
+          Deferred.succeed(fresh, undefined).pipe(Effect.zipRight(Ref.set(inFlightDiscovery, Option.none())))
         )
       );
-      yield* Deferred.await(deferred);
+      yield* Deferred.await(fresh);
     });
 
     /** Mark restored-results state cleared (shell refresh resets it before re-discovery). */
@@ -557,7 +550,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       getClassItems,
       getSuiteItems,
       getClassToParentItem,
-      getMaps,
       reset,
       clearRestoredResults,
       populateSuiteItems,
