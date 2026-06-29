@@ -22,7 +22,6 @@ import * as settings from '../settings';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
-import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { sortByMtimeAscending } from '../utils/sortHelpers';
 import { createNamespaceId, createSuiteId } from '../utils/testItemUtils';
@@ -64,10 +63,11 @@ class SuiteRetrievalError extends Schema.TaggedError<SuiteRetrievalError>()('Sui
 
 /**
  * Restore-previous-results path failure (non-fatal: the tree is valid without restored results).
- * `uri` carries the offending result file so a per-item apply/scan failure identifies which URI failed.
+ * `uri` carries the offending result file so a per-item apply/scan failure identifies which URI failed;
+ * it is optional because pre-scan failures (e.g. no default org) have no file URI to attribute.
  */
 class RestoreResultsError extends Schema.TaggedError<RestoreResultsError>()('RestoreResultsError', {
-  uri: Schema.String,
+  uri: Schema.optional(Schema.String),
   message: Schema.String
 }) {}
 
@@ -108,9 +108,9 @@ const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFai
   const friendlyMessage = toUserFriendlyApexTestError(e);
   yield* Effect.sync(() => {
     if (friendlyMessage === nls.localize('apex_test_discovery_partial_warning')) {
-      void notificationService.showWarningMessage(friendlyMessage);
+      void vscode.window.showWarningMessage(friendlyMessage);
     } else {
-      void notificationService.showErrorMessage(friendlyMessage);
+      void vscode.window.showErrorMessage(friendlyMessage);
     }
   });
 });
@@ -215,7 +215,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         if (ctx.suiteTag) {
           suiteParentItem.tags = [ctx.suiteTag];
         }
-        for (const suite of suites) {
+        suites.forEach(suite => {
           const suiteId = createSuiteId(suite.TestSuiteName);
           const suiteItem = ctx.controller.createTestItem(suiteId, suite.TestSuiteName, undefined);
           suiteItem.canResolveChildren = true;
@@ -224,7 +224,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           }
           currentSuiteItems.set(suite.TestSuiteName, suiteItem);
           suiteParentItem.children.add(suiteItem);
-        }
+        });
         ctx.controller.items.add(suiteParentItem);
       });
     });
@@ -327,7 +327,8 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const resultDir = yield* getTestResultsFolder().pipe(
-        Effect.catchTag('NoDefaultOrgError', e => new RestoreResultsError({ uri: '', message: e.message }))
+        // Pre-scan org-config failure: no result file to attribute, so uri is omitted (non-fatal).
+        Effect.catchTag('NoDefaultOrgError', e => new RestoreResultsError({ message: e.message }))
       );
       const entries = yield* api.services.FsService.readDirectory(resultDir).pipe(
         Effect.catchTag(
@@ -342,10 +343,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         uri =>
           uri.path.includes('test-result') && uri.path.endsWith('.json') && !uri.path.endsWith('-codecoverage.json')
       );
-
-      if (resultUris.length === 0) {
-        return;
-      }
 
       // Filter to files within the age threshold and track which methods are pre-session. Per-file
       // (Effect.forEach) so a single unreadable file fails with its own RestoreResultsError context
@@ -368,9 +365,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
                 }).pipe(
                   Effect.map(methodsInFile => {
                     const targetSet = stat.mtime < ctx.sessionStartTime ? staleMethodIds : sessionMethodIds;
-                    for (const methodId of methodsInFile) {
-                      targetSet.add(methodId);
-                    }
+                    methodsInFile.forEach(methodId => targetSet.add(methodId));
                     return Option.some({ uri, mtime: stat.mtime });
                   })
                 )
@@ -384,7 +379,8 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       }
 
       // Apply oldest-first (by mtime) so the most recent run's result wins for each method.
-      const recentUris = sortByMtimeAscending(recentResults).map(item => item.uri);
+      const sortedRecent = sortByMtimeAscending(recentResults);
+      const recentUris = sortedRecent.map(item => item.uri);
 
       // Session results override stale (a method run this session is not stale)
       sessionMethodIds.forEach(methodId => staleMethodIds.delete(methodId));
@@ -409,14 +405,14 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const currentClassItems = yield* Ref.get(classItems);
       yield* Effect.sync(() => {
         const affectedClasses = new Set<string>();
-        for (const methodId of staleMethodIds) {
+        staleMethodIds.forEach(methodId => {
           const methodItem = currentMethodItems.get(methodId);
           if (methodItem) {
             ctx.controller.invalidateTestResults(methodItem);
             affectedClasses.add(methodId.split('.')[0]);
           }
-        }
-        for (const className of affectedClasses) {
+        });
+        affectedClasses.forEach(className => {
           const classPrefix = `${className}.`;
           const allMethodsStale = [...currentMethodItems.entries()]
             .filter(([id]) => id.startsWith(classPrefix))
@@ -427,22 +423,14 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
               ctx.controller.invalidateTestResults(classItem);
             }
           }
-        }
+        });
       });
 
-      // Get stat for most recent result (used for notification only)
-      const lastUri = recentUris.at(-1)!;
-      const lastStat = yield* api.services.FsService.stat(lastUri).pipe(
-        Effect.catchTag(
-          'FsServiceError',
-          e => new RestoreResultsError({ uri: lastUri.toString(), message: errorToString(e) })
-        )
-      );
-
-      const runDate = new Date(lastStat.mtime).toLocaleString();
+      // Most recent result's mtime (notification only); reuse the scan's mtime, no extra FsService.stat.
+      const runDate = new Date(sortedRecent.at(-1)!.mtime).toLocaleString();
       const disableAction = nls.localize('apex_test_results_restored_disable_action');
       yield* Effect.sync(() => {
-        void notificationService
+        void vscode.window
           .showInformationMessage(
             nls.localize('apex_test_results_restored_message', String(recentUris.length), runDate),
             disableAction

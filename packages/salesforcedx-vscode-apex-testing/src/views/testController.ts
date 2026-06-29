@@ -168,7 +168,12 @@ export class ApexTestController {
         const resultDir = yield* getTestResultsFolder();
         yield* api.services.FsService.safeDelete(resultDir, { recursive: true });
       }).pipe(
-        Effect.catchAll(error => Effect.logWarning('Failed to delete test results folder', { error })),
+        Effect.catchTags({
+          NoDefaultOrgError: error => Effect.logWarning('Failed to delete test results folder', { error }),
+          NoWorkspaceOpenError: error => Effect.logWarning('Failed to delete test results folder', { error }),
+          ServicesExtensionNotFoundError: error => Effect.logWarning('Failed to delete test results folder', { error }),
+          InvalidServicesApiError: error => Effect.logWarning('Failed to delete test results folder', { error })
+        }),
         Effect.withSpan('ApexTestController.clearResults')
       )
     );
@@ -856,8 +861,8 @@ export class ApexTestController {
 
       try {
         await this.refresh();
-      } catch (error) {
-        console.debug('Failed to refresh Apex tests after retrieve:', error);
+      } catch (error: unknown) {
+        getApexTestingRuntime().runSync(Effect.logWarning('Failed to refresh Apex tests after retrieve', { error }));
       }
 
       notificationService.showSuccessfulExecution(executionName);
@@ -885,7 +890,7 @@ export class ApexTestController {
       const classesInSuite = await this.getTestService().getTestsInSuite(suiteName);
 
       if (classesInSuite.length === 0) {
-        console.debug(`No test classes found for suite: ${suiteName}`);
+        getApexTestingRuntime().runSync(Effect.logDebug('No test classes found for suite', { suiteName }));
         return;
       }
 
@@ -1259,8 +1264,8 @@ export class ApexTestController {
         { outputFormat, trigger: 'testExplorer' },
         { reportDurationMs }
       );
-    } catch (error) {
-      console.error('Failed to generate test report:', error);
+    } catch (error: unknown) {
+      getApexTestingRuntime().runSync(Effect.logError('Failed to generate test report', { error }));
       // Continue even if report generation fails
     }
 
