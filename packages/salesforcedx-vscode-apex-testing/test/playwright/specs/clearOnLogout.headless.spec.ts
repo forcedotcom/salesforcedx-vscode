@@ -24,7 +24,9 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-// Desktop fixture directly (not the union) so the web run collects but skips this org-on-disk spec.
+// Import the desktop fixture directly (not the web/desktop union from `../fixtures`) so the
+// web run still collects this file but `test.skip` (below) never runs the desktop-only body.
+// Auth + deploy + logout need a real org on disk, so this is desktop only.
 import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
@@ -35,9 +37,9 @@ import {
 
 const APEX_TESTING_EDITOR = `${EDITOR_WITH_URI}[data-uri^="apex-testing:"]`;
 
-// org_logout_default_text in salesforcedx-vscode-org
+// `SFDX: Log Out from Default Org` — title from salesforcedx-vscode-org package.nls (`org_logout_default_text`).
 const LOGOUT_COMMAND = 'SFDX: Log Out from Default Org';
-// org_logout_scratch_logout confirm button
+// Confirm button on the scratch-org logout modal (`org_logout_scratch_logout` in salesforcedx-vscode-org i18n).
 const LOGOUT_CONFIRM_LABEL = 'Logout';
 
 (isDesktop() ? test : test.skip.bind(test))(
@@ -105,7 +107,8 @@ public class ${className} {
     });
 
     await test.step('the org-discovered class disappears from the tree without a reload', async () => {
-      // The bug: tree kept org tests until reload. org -> no-org alone must empty it.
+      // This is the bug: before the fix, the tree kept org-discovered tests until a window reload.
+      // The org -> no-org transition alone must empty the tree.
       await expect(classItem).toBeHidden({ timeout: 60_000 });
       await saveScreenshot(page, 'step.tree-cleared.png');
     });

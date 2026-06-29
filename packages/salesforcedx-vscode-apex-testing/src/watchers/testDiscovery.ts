@@ -43,7 +43,11 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
             Effect.logDebug('Apex Testing: discovery VFS clear failed').pipe(
               Effect.annotateLogs({ orgKey: error.orgKey, scheme: 'apex-testing' })
             )
-          )
+          ),
+          Effect.catchAll(error => {
+            console.debug('[Apex Testing] Test discovery setup failed:', error);
+            return Effect.void;
+          })
         )
       )
     )
