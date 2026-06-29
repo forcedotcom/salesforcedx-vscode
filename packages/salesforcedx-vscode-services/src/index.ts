@@ -182,7 +182,9 @@ export type {
   FailedToCreateConnectionError,
   FailedToResolveUsernameError,
   NoTargetOrgConfiguredError,
-  FailedToListAuthorizationsError
+  FailedToListAuthorizationsError,
+  BadOAuthTokenError,
+  FailedToHandleAliasSettingsError
 } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';

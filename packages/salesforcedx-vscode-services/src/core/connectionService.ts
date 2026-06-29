@@ -14,6 +14,7 @@ import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { nls } from '../messages';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
 import { ExtensionContextService } from '../vscode/extensionContextService';
@@ -41,6 +42,27 @@ export class FailedToCreateAuthInfoError extends Schema.TaggedError<FailedToCrea
 
 export class FailedToSaveAuthInfoError extends Schema.TaggedError<FailedToSaveAuthInfoError>()(
   'FailedToSaveAuthInfoError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.instanceOf(Error))
+  }
+) {}
+
+/**
+ * Raised when `AuthInfo.create` rejects with a `Bad_OAuth_Token` (invalid/expired session ID).
+ * Carries ONLY a friendly `message` (no `cause`) so ErrorHandlerService's getBaseMessage surfaces the
+ * localized copy rather than the raw `Bad_OAuth_Token` text.
+ */
+export class BadOAuthTokenError extends Schema.TaggedError<BadOAuthTokenError>()('BadOAuthTokenError', {
+  message: Schema.String
+}) {}
+
+/**
+ * Raised when `authInfo.handleAliasAndDefaultSettings` fails — distinct from `FailedToSaveAuthInfoError`
+ * (which is bound to `authInfo.save()`) so callers can tell the alias/default step apart from the save step.
+ */
+export class FailedToHandleAliasSettingsError extends Schema.TaggedError<FailedToHandleAliasSettingsError>()(
+  'FailedToHandleAliasSettingsError',
   {
     message: Schema.String,
     cause: Schema.optional(Schema.instanceOf(Error))
@@ -261,7 +283,64 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       });
     });
 
-    return { getConnection, invalidateCachedConnections, listAllAuthorizations };
+    /**
+     * Authorize an org from a session ID (access token): create AuthInfo, persist it, then apply
+     * alias/default settings. Unlike `createWebAuthInfo` (which forks `save()` for the read-path cache),
+     * this AWAITS each step so the command only reports success once the auth is persisted.
+     */
+    const loginWithAccessToken = Effect.fn('ConnectionService.loginWithAccessToken')(function* (params: {
+      instanceUrl: string;
+      accessToken: string;
+      alias: string;
+      setDefault: boolean;
+    }) {
+      const authInfo = yield* Effect.tryPromise({
+        try: () =>
+          AuthInfo.create({
+            accessTokenOptions: {
+              accessToken: params.accessToken,
+              loginUrl: params.instanceUrl,
+              instanceUrl: params.instanceUrl
+            }
+          }),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return cause.message.includes('Bad_OAuth_Token')
+            ? new BadOAuthTokenError({ message: nls.localize('bad_oauth_token_message') })
+            : new FailedToCreateAuthInfoError({ message: `Failed to create auth info: ${cause.message}`, cause });
+        }
+      });
+
+      yield* Effect.tryPromise({
+        try: () => authInfo.save(),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new FailedToSaveAuthInfoError({ message: `Failed to save auth info: ${cause.message}`, cause });
+        }
+      });
+
+      yield* Effect.tryPromise({
+        try: () =>
+          authInfo.handleAliasAndDefaultSettings({
+            alias: params.alias,
+            setDefault: params.setDefault,
+            setDefaultDevHub: false
+          }),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new FailedToHandleAliasSettingsError({
+            message: `Failed to set alias and default settings: ${cause.message}`,
+            cause
+          });
+        }
+      });
+
+      const authFields = authInfo.getFields();
+      yield* Effect.annotateCurrentSpan({ authFields });
+      return authFields;
+    });
+
+    return { getConnection, invalidateCachedConnections, listAllAuthorizations, loginWithAccessToken };
   })
 }) {}
 
