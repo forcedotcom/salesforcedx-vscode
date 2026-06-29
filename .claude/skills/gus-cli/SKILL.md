@@ -76,8 +76,6 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 - `Due_Date__c` (datetime) + `Out_of_SLA__c` (boolean) — SLA tracking.
 - Security trio: `Security__c` (label "Locked by Security", boolean), `Security_Vulnerability_Category__c` (picklist, 30+ values), `Security_Source__c` (label "Source", picklist, 30+ values—run `sf sobject describe` for full lists).
 
-**Bug body field:** Bug records store body in `Details_and_Steps_to_Reproduce__c` (richtextarea), not `Details__c`. `Details__c` = User Story body. Querying only `Details__c` misses Bug/PVR content. Single-WI fetch of unknown/mixed record type → SELECT both.
-
 **Query patterns** (combine as needed; use LIMIT on broad queries):
 
 | Filter      | WHERE clause                                                                                                                                                                                     |
@@ -86,54 +84,24 @@ Objects: `ADM_Work__c`, `ADM_Epic__c` (not ADM_Theme\_\_c).
 | By status   | `Status__c = 'In Progress'` (or other)                                                                                                                                                           |
 | By epic     | `Epic__c = '<epicId>'`                                                                                                                                                                           |
 | Unpointed   | `Story_Points__c = null`                                                                                                                                                                         |
-| Team's open | `Scrum_Team__c = 'a00B0000000w9xPIAQ' AND Status__c NOT IN ('Closed', 'Completed', 'Closed - Duplicate', 'Closed - Resolved With Internal Tools', 'Closed - No Fix - Working as Designed', ...)` |
-| Epic + open | `Epic__c = '<epicId>' AND Status__c NOT IN ('Closed', 'Completed', ...)`                                                                                                                         |
+| Team's open | `Scrum_Team__c = 'a00B0000000w9xPIAQ' AND Status__c IN (<open list>)`                                                                                                                            |
+| Epic + open | `Epic__c = '<epicId>' AND Status__c IN (<open list>)`                                                                                                                                            |
 
-Closed statuses: see ## Status\_\_c values. Use `LIMIT 50` (or 100) when querying team or epic work.
+**Open/unfinished filters use the WHITELIST `Status__c IN (<open list>)`, never `NOT IN (<terminal>)`** — the open list + why a blacklist leaks legacy terminals (incl. the Bug-no-fix set) live in [statuses.md](./statuses.md). Use `LIMIT 50` (or 100) when querying team or epic work.
 
-**Open-WI queries must ALSO exclude the "Bug no-fix" terminals**: `Duplicate`, `Inactive`, `Never`, `Not a bug`, `Not Reproducible`, `Rejected`, `Eng Internal`. Terminal despite no "Closed" prefix — omit them and a `Duplicate` WI wrongly shows as open.
+### Body fields (`Details__c` vs `Details_and_Steps_to_Reproduce__c`)
 
-**Create:** Always set `Story_Points__c=2`, `Product_Tag__c=a1aB000000005G3IAI`, `RecordTypeId`. Include `Subject__c`, `Assignee__c`, `Scrum_Team__c=a00B0000000w9xPIAQ`, `Epic__c` (optional), `QA_Engineer__c` (optional), `Details__c` (optional). Leave `Sprint__c` blank; never modify it. **Details\_\_c:** write concisely—fragments/bullets, minimal words, no repetition (see .claude/skills/concise/SKILL.md).
+The validated User Story body is `Details__c`. Three rules, one place:
 
-**`Details__c` ≥20 chars required.** `Details__c` (field label "Description") has a User Story validation rule: <20 chars → create fails with `Description must be at least 20 characters to submit a User Story`. Despite docs marking it optional, treat as required on create. Note: `Description__c` is a DIFFERENT field (label "Comment", unvalidated)—don't confuse them; the validated body field is `Details__c`.
+- **≥20 chars required.** `Details__c` (field label "Description") has a User Story validation rule: <20 chars → create fails with `Description must be at least 20 characters to submit a User Story`. Despite docs marking it optional, treat as required on create.
+- **Don't confuse with `Description__c`** — a DIFFERENT field (label "Comment", unvalidated). The validated body is `Details__c`.
+- **Bug records store the body in `Details_and_Steps_to_Reproduce__c`** (richtextarea), not `Details__c`. Querying only `Details__c` misses Bug/PVR content, and a null `Details__c` on a Bug record ≠ under-specified. Single-WI fetch of unknown/mixed record type → `SELECT` both, use whichever is populated.
 
-**Bug-type WIs store the body in `Details_and_Steps_to_Reproduce__c`, not `Details__c`.** When reading a WI body (grooming, triage, auto-build), `SELECT` both and use whichever is populated. A null `Details__c` on a Bug-type record doesn't mean under-specified—check the bug field first.
+**Sequencing prefix:** When planning an epic or when the user states a dependency, prefix `Subject__c` with a sequence number + space (e.g. `1.2 Add config loader`). See [work-item-sequencing](../work-item-sequencing/SKILL.md). Optional — skip for independent work.
 
-**Sequencing prefix:** When planning an epic or when the user states a dependency between work items, prefix `Subject__c` with a sequence number + space (e.g. `1.2 Add config loader`). See [work-item-sequencing](../work-item-sequencing/SKILL.md). Optional—skip for independent work.
+### Create & update → [writes.md](./writes.md)
 
-**`-v` + `--flags-dir` don't combine on create:** `-v` takes precedence; flags-dir values are dropped. Workaround: create without Details, then update with `--flags-dir` only.
-
-**Values strings space-split, even in single quotes.** Both `-v` and `--flags-dir`'s `values` file split on spaces inside quotes (this CLI version), truncating any multi-word `Subject__c`/`Details__c` at the first space—often surfacing as the misleading 20-char error. Working recipe:
-
-1. **Create** with no-space placeholder tokens via `-v` (underscores, no quotes): `-v "Subject__c=temp Details__c=Consolidate_..._20+_chars RecordTypeId=... Assignee__c=... Scrum_Team__c=... Story_Points__c=2 Product_Tag__c=... Epic__c=..."`
-2. Find Id: `sf data query --query "SELECT Id,Name FROM ADM_Work__c WHERE Subject__c='temp' ORDER BY CreatedDate DESC LIMIT 1"`
-3. **Update** real `Subject__c` + HTML `Details__c` via `--flags-dir` (step below). Update path tolerates spaces in the single-line value.
-
-**Details\_\_c formatting (readable WI body):** Details\_\_c is a Rich Text Area (extraTypeInfo: richtextarea)—use HTML, not markdown. Set via `--flags-dir` with a `values` file ([ref](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_flag_values_in_files.htm)):
-
-1. `mkdir -p /tmp/gus-flags`
-2. Create `values` with one line: `Subject__c='...' Details__c='<p><strong>Section</strong></p><p>Content. <code>inline code</code></p><ul><li>item</li></ul><p><strong>Ref:</strong> <a href=&quot;https://...&quot;>url</a></p>'`
-3. `sf data update record -s ADM_Work__c -i <id> -o gus --flags-dir /tmp/gus-flags`
-
-Constraints: File single-line (flags-dir treats each line as a separate flag invocation). Values in single quotes. HTML: `<p>`, `<strong>`, `<code>`, `<ul><li>`, `<a href="...">`. Escape `"` inside value as `&quot;`.
-
-**SF strips external hrefs on save:** `<a href=&quot;https://github.com/...discussions/5867&quot;>discussions/5867</a>` persists as `<a href="">discussions/5867</a>` — link text survives, href empties. Write full `href` regardless — surviving `discussions/NNN`|`issues/NNN` path text lets auto-build reconstruct the PR URL. Prefer link text that IS the path (`discussions/5867`), not a label.
-
-**After create:** Always provide the work item link. Format: `https://gus.lightning.force.com/lightning/r/ADM_Work__c/<recordId>/view` (replace `<recordId>` with the Id from the create output, e.g. `a07EE00002V3a8YYAR`). Example: [a07EE00002V3a8YYAR](https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00002V3a8YYAR/view).
-
-**CRITICAL:** After creation, you MUST query the `Name` (W-XXXXX) to append to the PR title as ` - W-XXXXX`. The `id` returned by `sf data create` is NOT the `W-XXXXX` name.
-
-```bash
-sf data query --query "SELECT Name FROM ADM_Work__c WHERE Id = '<id_from_create>'" -o gus --json
-```
-
-**Update:** If User Story has null `Story_Points__c`, set `Story_Points__c=2`. Never modify `Sprint__c`. `Details__c` can store PR links, notes.
-
-**Verify the target Id before+after an update.** `sf data update record -i <id>` echoes only `success`, never the record's `Name`/`Subject__c` — so a wrong Id silently overwrites the wrong WI (esp. with `--flags-dir`, where the value file carries no Id). Before updating, query `SELECT Name, Subject__c FROM ADM_Work__c WHERE Id='<id>'` to confirm it's the intended WI; re-query after to confirm the write. Match the W-NNNNN, not just "an update succeeded."
-
-```
-sf data update record -s ADM_Work__c -i <recordId> -o gus -v "Status__c='In Progress' Subject__c='...' Details__c='...'"
-```
+`sf data create/update record` has real traps — `-v`/`--flags-dir` incompatibility, space-splitting that truncates multi-word values, HTML-only `Details__c`, href-stripping, and silent wrong-Id overwrites. The create-then-update recipe, formatting, and verify-Id steps live in **[writes.md](./writes.md)**. Read it before any write.
 
 ## Epics (ADM_Epic\_\_c)
 
@@ -186,47 +154,21 @@ When unsure which epic: ask the user.
 
 ## Compound workflows
 
-**Create a WI from this PR**
+Non-obvious defaults only — assemble the mechanical steps from the sections above.
 
-1. Get PR context: title, body/description, URL (from git/GitHub if available)
-2. Resolve User Id (reuse from conversation if known)
-3. Pick epic: IDEx - Trust (`a3QEE0000023FPZ2A2`) for bug-like issues unless PR/context indicates otherwise
-4. Subject\_\_c: concise from PR title
-5. Details\_\_c: PR link + key bullets; see .claude/skills/concise/SKILL.md
-6. RecordTypeId: `0129000000006gDAAQ` (User Story — always, even for bug-like issues)
-7. Show draft, ask "Create this work item?" — run `sf data create record` only after yes
-8. After create: provide WI link (see **After create** above)
+**Create a WI from this PR** — Subject from PR title, Details = PR link + concise bullets, RecordTypeId always User Story (`0129000000006gDAAQ`, even for bug-like issues). Epic default: **IDEx - Trust** (`a3QEE0000023FPZ2A2`) for bug-like issues unless context says otherwise. Then create + provide link per [writes.md](./writes.md).
 
-**What's unfinished in this epic**
-
-1. Get epic Id from user or context (branch name, prior query)
-2. Query: `Epic__c = '<epicId>' AND Status__c NOT IN (...)` — use all values from ## Status\_\_c values "Closed (terminal)" and "Bug no-fix"
-3. Add `LIMIT 100`; order by Status\_\_c or Name
-4. Present as table: Name, Subject**c, Status**c, Assignee (or run separate query for assignee names)
-5. If any `Subject__c` carries a sequence-number prefix (`1`, `1.2`, …), compute ready/blocked per [work-item-sequencing](../work-item-sequencing/SKILL.md) instead of a flat list. "What's ready / unblocked in this epic?" routes there.
+**What's unfinished in this epic** — query `Epic__c = '<epicId>' AND Status__c IN (<open list>)` (whitelist per [statuses.md](./statuses.md)), `LIMIT 100`, present as a table. If any `Subject__c` carries a sequence-number prefix (`1`, `1.2`, …), compute ready/blocked per [work-item-sequencing](../work-item-sequencing/SKILL.md) instead of a flat list — "what's ready / unblocked in this epic?" routes there.
 
 ## Status\_\_c values
 
-When creating/updating, only use New,In Progress,Ready for Review,QA In Progress,Fixed,Waiting,Closed
-When completing a work item, use `Closed`.
+Full picklist, flow, and terminal lists → **[statuses.md](./statuses.md)**.
 
-To mark a WI as a duplicate: set `Status__c='Duplicate'` + link the original via `Related_Work__c` (label "Duplicate Of"). `Closed - Duplicate` does NOT persist here — a trigger reverts it to `Duplicate` — so use `Duplicate` directly. `Duplicate` is terminal (treat like Closed) for open/unfinished queries.
-
-**Flow:** New → Acknowledged → Triaged → In Progress → Ready for Review → Fixed → QA In Progress → Completed/Closed
-
-**Blocked:** Investigating | More Info Reqd from Support | Waiting On Customer | Waiting On 3rd Party | Waiting | Deferred | Integrate | Pending Release
-
-**Closed (terminal):** Closed | Completed | Closed - Defunct | Closed - Duplicate | Closed - Eng Internal | Closed - Known Bug Exists | Closed - New Bug Logged | Closed - Resolved With Internal Tools | Closed - Resolved Without Code Change | Closed - Doc/Usability | Closed - Resolved with DB Script | Closed - No Fix - Working as Documented | Closed - No Fix - Working as Designed | Closed - No Fix - Feature Request | Closed - No Fix - Will Not Fix | Closed - Transitioned to Incident | Closed - Resolved by 3rd Party
-
-**Bug no-fix:** Duplicate | Inactive | Never | Not a bug | Not Reproducible | Rejected | Eng Internal
+For create/update use only: `New, In Progress, Ready for Review, QA In Progress, Fixed, Waiting, Closed`. Complete a WI → `Closed`. Mark a duplicate → `Status__c='Duplicate'` + `Related_Work__c` (NOT `Closed - Duplicate`, which a trigger reverts).
 
 ### Open queries: WHITELIST, never blacklist
 
-For "open / unfinished" queries use `Status__c IN (<open list>)`, **not** `NOT IN (<terminal list>)`. Legacy/inactive records carry statuses absent from the current picklist (seen: `Closed-U/Ftest`, `Closed-Untested`, `Tested`) — a `NOT IN` exclusion silently lets these terminal records through. A whitelist can't.
-
-**Open (work pending):** `New | Acknowledged | Triaged | In Progress | Investigating | More Info Reqd from Support | Waiting On Customer | Waiting On 3rd Party | Waiting | Ready for Review | Fixed | QA In Progress | Integrate | Pending Release | Deferred`
-
-(`Fixed`/`Ready for Review`/`QA In Progress` are open — PR not merged yet, per [work-item-sequencing](../work-item-sequencing/SKILL.md). Everything else — any `Closed*`, `Completed`, `Tested`, the Bug-no-fix set, and any unrecognized value — is terminal.)
+"Open/unfinished" queries MUST use `Status__c IN (<open list>)`, **not** `NOT IN (<terminal>)` — a blacklist leaks legacy terminals (`Closed-U/Ftest`, `Tested`, the Bug-no-fix set) absent from the current picklist. The open list lives in [statuses.md](./statuses.md#open-queries-whitelist-never-blacklist).
 
 ## CLI tips
 
