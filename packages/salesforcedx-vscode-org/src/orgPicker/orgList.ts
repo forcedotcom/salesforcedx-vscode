@@ -185,8 +185,7 @@ export const buildOrgQuickPickItems = (
   });
 };
 
-// Orgs are sourced via getFreshAuthorizations → ConnectionService.listAllAuthorizations (no direct AuthInfo).
-const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
+const setDefaultOrgImpl = Effect.fn('OrgList.setDefaultOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
@@ -202,17 +201,18 @@ const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
   if (selection.commandId) {
-    vscode.commands.executeCommand(selection.commandId);
+    const { commandId } = selection;
+    yield* Effect.promise(() => Promise.resolve(vscode.commands.executeCommand(commandId)));
     return;
   }
 
   const usernameOrAlias = selection.orgAlias ?? selection.orgUsername ?? '';
-  vscode.commands.executeCommand('sf.config.set', usernameOrAlias);
+  yield* Effect.promise(() => Promise.resolve(vscode.commands.executeCommand('sf.config.set', usernameOrAlias)));
 });
 
 export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> =>
   getOrgRuntime().runPromise(
-    setDefaultOrgEffect().pipe(
+    setDefaultOrgImpl().pipe(
       Effect.map((): ContinueResponse<{}> => ({ type: 'CONTINUE', data: {} })),
       Effect.catchTag('UserCancellationError', (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' }))
     )
