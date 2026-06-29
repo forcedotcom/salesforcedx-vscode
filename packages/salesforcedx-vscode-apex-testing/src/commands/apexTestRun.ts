@@ -115,6 +115,8 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
 
   // Cache single-class palette runs so Re-Run Last Class surfaces (matches code-lens order: set before run).
   // Suite/All/AllLocal leave the cache untouched; the shared apexTestSuite caller passes type 'Suite'.
+  // NOT best-effort (unlike the sidebar path in testController.cacheSingleSelection): this runs inside the
+  // palette Effect, so a setContext/Ref.set failure here aborts the run, surfacing the error to the user.
   if (selection.type === 'Class' && selection.fullClassName) {
     yield* ApexTestRunCacheService.setCachedClassTestParam(selection.fullClassName);
   }

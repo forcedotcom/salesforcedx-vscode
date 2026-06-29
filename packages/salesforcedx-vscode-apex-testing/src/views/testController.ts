@@ -1207,25 +1207,7 @@ export class ApexTestController {
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
 
-    // Cache single class/method selections so Re-Run Last Class/Method surfaces (esp. web, no code lenses).
-    // Detect from the RAW request.include before suite resolution/expansion. Run-profile only (not Debug).
-    // Suite-class ids (suite-class:Suite:Class) are a single class hit; getTestName yields the bare class name.
-    // Bare suite/namespace/package/multi-select/implicit-full leave the cache untouched. Best-effort: never fail the run.
-    const single = request.include?.length === 1 ? request.include[0] : undefined;
-    if (!isDebug && single) {
-      const cacheEffect =
-        isClass(single.id) || isSuiteClass(single.id)
-          ? ApexTestRunCacheService.setCachedClassTestParam(getTestName(single))
-          : isMethod(single.id)
-            ? ApexTestRunCacheService.setCachedMethodTestParam(getTestName(single))
-            : Effect.void;
-      await getApexTestingRuntime().runPromise(
-        cacheEffect.pipe(
-          Effect.tapError(error => Effect.logWarning('apex test re-run cache set failed', error)),
-          Effect.ignore
-        )
-      );
-    }
+    await cacheSingleSelection(request, isDebug);
 
     // Implicit full run: no explicit selection. Restrict to in-workspace tests for the default Run/Debug profiles.
     // When the user (or explorer filter) supplies request.include, run exactly that set—e.g. filtered-visible tests.
@@ -1628,6 +1610,33 @@ export class ApexTestController {
 }
 
 // Module-level utility functions extracted from ApexTestController
+
+// Cache single class/method selections so Re-Run Last Class/Method surfaces (esp. web, no code lenses).
+// Detect from the RAW request.include before suite resolution/expansion. Run-profile only (not Debug).
+// Suite-class ids (suite-class:Suite:Class) are a single class hit; getTestName yields the bare class name.
+// Bare suite/namespace/package/multi-select/implicit-full leave the cache untouched.
+// Cache is set before run viability is known (matches code-lens order): a single class/method that resolves
+// to zero runnable tests still populates Re-Run Last and flips sf:has_cached_test_*. Acceptable—single targets
+// are normally non-empty, and re-running a no-op selection is harmless.
+// Best-effort: failures are logged (tapError) then swallowed (ignore) so they never fail the run.
+const cacheSingleSelection = async (request: vscode.TestRunRequest, isDebug: boolean): Promise<void> => {
+  const single = request.include?.length === 1 ? request.include[0] : undefined;
+  if (isDebug || !single) {
+    return;
+  }
+  const cacheEffect =
+    isClass(single.id) || isSuiteClass(single.id)
+      ? ApexTestRunCacheService.setCachedClassTestParam(getTestName(single))
+      : isMethod(single.id)
+        ? ApexTestRunCacheService.setCachedMethodTestParam(getTestName(single))
+        : Effect.void;
+  await getApexTestingRuntime().runPromise(
+    cacheEffect.pipe(
+      Effect.tapError(error => Effect.logWarning('apex test re-run cache set failed', { error })),
+      Effect.ignore
+    )
+  );
+};
 
 const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Promise<void> => {
   if (!classItem.uri) {
