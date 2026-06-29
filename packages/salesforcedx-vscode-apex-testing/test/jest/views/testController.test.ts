@@ -10,6 +10,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const Layer = jest.requireActual('effect/Layer');
   const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
   const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
+  const { ApexTestRunCacheService } = jest.requireActual('../../../src/testRunCache/apexTestRunCacheService');
   const { URI: UriClass } = jest.requireActual('vscode-uri');
 
   let mockConnectionRef: any;
@@ -53,7 +54,11 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const ensureRuntime = () => {
     if (!mockRuntime) {
       treeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
-      MockAllServicesLayer = Layer.merge(ExtensionProviderLayer, treeService.Default);
+      MockAllServicesLayer = Layer.mergeAll(
+        ExtensionProviderLayer,
+        treeService.Default,
+        ApexTestRunCacheService.Default
+      );
       // One persistent runtime so the tree-state Refs survive across the shell's runSync/runPromise
       // calls within a test (matching the production single-runtime behavior).
       mockRuntime = ManagedRuntime.make(MockAllServicesLayer);
