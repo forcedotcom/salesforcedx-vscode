@@ -50,9 +50,9 @@ const provide = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService>, op
   );
 
 describe('orgDisplay Effect util', () => {
-  let mockAuthInfo: any;
-  let mockConnection: any;
-  let mockOrg: any;
+  let mockAuthInfo: Partial<jest.Mocked<AuthInfo>>;
+  let mockConnection: Partial<jest.Mocked<Connection>>;
+  let mockOrg: Partial<jest.Mocked<Org>>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -137,6 +137,8 @@ describe('orgDisplay Effect util', () => {
 
   it('connection-failure path: returns a degraded OrgInfo (typed catch, not a die)', async () => {
     // AuthInfo.create throwing maps to OrgInfoConnectionError -> graceful degradation via buildErrorOrgInfo.
+    // Two rejections: AuthInfo.create is called at two sites — first in getOrgInfoEffect (primary path),
+    // then again inside buildErrorOrgInfo (fallback). Both must reject to exercise the fully-degraded branch.
     const authError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
     jest.mocked(AuthInfo).create.mockRejectedValueOnce(authError).mockRejectedValueOnce(authError);
 
@@ -195,5 +197,20 @@ describe('orgDisplay Effect util', () => {
       expect(exit.value.status).toBe('Active');
       expect(exit.value.expirationDate).toBe('2024-12-31T00:00:00.000+0000');
     }
+  });
+
+  it('maps a sandbox org (IsSandbox: true) to edition Sandbox', async () => {
+    mockConnection.singleRecordQuery!.mockResolvedValue({
+      Id: '00D1234567890123',
+      Name: 'Test Org',
+      CreatedDate: '2024-01-01T00:00:00.000+0000',
+      CreatedBy: { Username: 'admin@example.com' },
+      OrganizationType: 'Enterprise',
+      IsSandbox: true
+    });
+
+    const exit = await provide(getOrgInfoEffect('test@example.com'), { aliases: {} });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) expect(exit.value.edition).toBe('Sandbox');
   });
 });
