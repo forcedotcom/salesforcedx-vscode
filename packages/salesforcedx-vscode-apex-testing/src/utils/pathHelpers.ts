@@ -16,8 +16,7 @@ const TOOLS = 'tools';
 const TEST_RESULTS = 'testresults';
 const TEST_TYPE = 'apex';
 
-/** No default org set, so the org-scoped test results folder can't be resolved. */
-/** @ExportTaggedError */
+/** No default org set, so the org-scoped test results folder can't be resolved. @ExportTaggedError */
 export class NoDefaultOrgError extends Schema.TaggedError<NoDefaultOrgError>()('NoDefaultOrgError', {
   message: Schema.String
 }) {}

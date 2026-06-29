@@ -544,6 +544,7 @@ See `references/observability-patterns.md` for metrics and tracing patterns.
 
 For detailed patterns, consult these reference files in the `references/` directory:
 
+- `composition-style.md` - Effects as flat build-then-run pipes: terminal runner, point-free safety, keep side effects (even terminal) in tap, Match dispatch, guard clauses
 - `service-patterns.md` - Service definition, Effect.fn, Context.Tag exceptions
 - `error-patterns.md` - Schema.TaggedError, error remapping, retry patterns
 - `schema-patterns.md` - Branded types, transforms, Schema.Class
