@@ -71,6 +71,7 @@ export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSI
 
 export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
+export { createThrowawayOrg, THROWAWAY_ORG_ALIAS } from './orgs/logoutThrowawayOrgSetup';
 export { createNonTrackingOrg, NON_TRACKING_ORG_ALIAS, HUB_ORG_ALIAS } from './orgs/nonTrackingScratchOrgSetup';
 export { getTargetDevHub } from './orgs/devHub';
 export { execAsync, env } from './orgs/shared';

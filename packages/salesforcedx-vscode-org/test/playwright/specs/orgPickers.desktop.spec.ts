@@ -10,7 +10,10 @@ import {
   activeQuickInputWidget,
   closeWelcomeTabs,
   createMinimalOrg,
+  createThrowawayOrg,
   ensureSecondarySideBarHidden,
+  env,
+  execAsync,
   executeCommandWithCommandPalette,
   expectOrgPickerListsOrg,
   MINIMAL_ORG_ALIAS,
@@ -19,6 +22,7 @@ import {
   QUICK_INPUT_WIDGET,
   selectOrgInPicker,
   selectOutputChannel,
+  THROWAWAY_ORG_ALIAS,
   upsertScratchOrgAuthFieldsToSettings,
   verifyCommandExists,
   waitForOutputChannelText,
@@ -33,16 +37,20 @@ const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 // Exercises the three migrated org pickers (Effect + PromptService.considerUndefinedAsCancellation):
 //   - selectOrgForDisplay (single-pick)  -> sf.org.display.username
 //   - selectDeletableOrg (multi-pick + confirm) -> sf.org.delete.username
-//   - selectOrgsForLogout (multi-pick + confirm) -> sf.org.logout.all
-// plus the cancel mappings: Esc (UserCancellationError -> CANCEL) and multi-pick "pick nothing" ([] -> CANCEL).
+//   - orgLogoutAllCommand inline multi-pick + confirm -> sf.org.logout.all
+// plus the cancel mappings: Esc (UserCancellationError -> CANCEL) and multi-pick "pick nothing" ([] -> CANCEL),
+// and a REAL logout against a dedicated throwaway org (removeAuth actually runs, asserted via the CLI).
 // The fixture sets a SCRATCH org (MINIMAL_ORG_ALIAS) as default, satisfying sf:project_opened +
-// sf:has_target_org + sf:default_org_deletable. We cancel at every confirm modal so the fixture org
-// is never actually deleted or logged out.
+// sf:has_target_org + sf:default_org_deletable. The display/delete confirm modals are cancelled so the
+// fixture org is never deleted; only the throwaway org is actually logged out.
 test('org pickers: display, delete, logout pick + confirm + cancel flows', async ({ page }) => {
   test.setTimeout(180_000);
 
-  await test.step('setup scratch default org', async () => {
+  await test.step('setup scratch default org + throwaway logout org', async () => {
     const createResult = await createMinimalOrg();
+    // Dedicated throwaway org for the real-logout step; never MINIMAL_ORG_ALIAS (shared with siblings
+    // + relied on staying authed by the cancel steps). Authed on disk so the logout picker lists it.
+    await createThrowawayOrg();
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
@@ -93,8 +101,8 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await expectNoErrorNotification(page);
   });
 
-  await test.step('LOGOUT: selectOrgsForLogout multi-pick lists the org, then cancel confirm', async () => {
-    // sf.org.logout.all routes to the SelectOrgsForLogout picker (index.ts -> orgLogoutAll -> new SelectOrgsForLogout()).
+  await test.step('LOGOUT: orgLogoutAllCommand multi-pick lists the org, then cancel confirm', async () => {
+    // sf.org.logout.all routes to orgLogoutAllCommand (index.ts), whose inline multi-pick lists the org.
     await executeCommandWithCommandPalette(page, packageNls.org_logout_all_text);
     await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
     await toggleMultiPickRow(page, MINIMAL_ORG_ALIAS);
@@ -111,7 +119,59 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await expect(page.locator(QUICK_INPUT_WIDGET)).toBeHidden({ timeout: 10_000 });
     await expectNoErrorNotification(page);
   });
+
+  // Real logout against the dedicated THROWAWAY org (never MINIMAL_ORG_ALIAS). Confirm the modal
+  // (do NOT Escape) so removeAuth actually runs, then assert removal durably via the CLI.
+  await test.step('LOGOUT real: confirm removes auth for the throwaway org', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.org_logout_all_text);
+    await expectOrgPickerListsOrg(page, THROWAWAY_ORG_ALIAS);
+    await toggleMultiPickRow(page, THROWAWAY_ORG_ALIAS);
+    await page.keyboard.press('Enter');
+    // CONFIRM (not cancel): click the modal's confirm button so the logout proceeds.
+    await clickModalButton(page, packageNls.org_logout_scratch_logout);
+    await expectNoErrorNotification(page);
+
+    // Primary durable signal: poll the CLI until the throwaway org is no longer authorized.
+    await expectOrgLoggedOut(THROWAWAY_ORG_ALIAS);
+  });
+
+  // Secondary UI signal: the logout picker no longer lists the throwaway org.
+  await test.step('LOGOUT real: picker no longer lists the throwaway org', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.org_logout_all_text);
+    // MINIMAL_ORG_ALIAS is still authed, so the picker opens and lists it; the throwaway is gone.
+    await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
+    await expect(
+      activeQuickInputWidget(page).locator(QUICK_INPUT_LIST_ROW).filter({ hasText: THROWAWAY_ORG_ALIAS }),
+      `logged-out org "${THROWAWAY_ORG_ALIAS}" should no longer be listed`
+    ).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(page.locator(QUICK_INPUT_WIDGET)).toBeHidden({ timeout: 10_000 });
+  });
 });
+
+/** Click a button (e.g. the confirm action) in a VS Code custom-style modal dialog. */
+const clickModalButton = async (page: import('@playwright/test').Page, label: string): Promise<void> => {
+  const button = page.locator('.monaco-dialog-box').getByRole('button', { name: label }).first();
+  await button.waitFor({ state: 'visible', timeout: 10_000 });
+  await button.click();
+};
+
+/** Poll the CLI until the alias is no longer authorized (durable, non-racy removal signal). */
+const expectOrgLoggedOut = async (alias: string): Promise<void> => {
+  await expect(async () => {
+    const { stdout } = await execAsync('sf org list --json', { env });
+    const parsed = JSON.parse(stdout) as {
+      result: {
+        scratchOrgs?: Array<{ alias?: string; username?: string }>;
+        nonScratchOrgs?: Array<{ alias?: string }>;
+      };
+    };
+    const stillListed = [...(parsed.result.scratchOrgs ?? []), ...(parsed.result.nonScratchOrgs ?? [])].some(
+      org => org.alias === alias
+    );
+    expect(stillListed, `org "${alias}" should be logged out (absent from sf org list)`).toBe(false);
+  }).toPass({ timeout: 30_000 });
+};
 
 /** Toggle a `canPickMany` quick-pick row's checkbox by typing the alias and clicking the matching org row. */
 const toggleMultiPickRow = async (page: import('@playwright/test').Page, alias: string): Promise<void> => {
