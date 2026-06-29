@@ -28,13 +28,12 @@ import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import { SelectOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { OrgInfo } from '../types/orgInfo';
-import { getOrgInfo, getOrgInfoFromConnectionEffect } from '../util/orgDisplay';
+import { getOrgInfo, orgInfoFromConnection } from '../util/orgDisplay';
 
 /** Sensitive-info warning prepended to the org-details table; shared by the legacy executor and the Effect command. */
-const ACCESS_WARNING =
-  'Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.\n' +
-  'Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.\n' +
-  'For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.';
+const ACCESS_WARNING = `Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.
+Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.
+For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.`;
 
 class NoTargetOrgError extends Schema.TaggedError<NoTargetOrgError>()('NoTargetOrgError', {
   message: Schema.String
@@ -152,7 +151,7 @@ export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(fu
 
   // resolves TARGET_ORG; fails typed NoTargetOrgConfiguredError (rendered by ErrorHandlerService)
   const conn = yield* api.services.ConnectionService.getConnection();
-  const orgInfo = yield* getOrgInfoFromConnectionEffect(conn);
+  const orgInfo = yield* orgInfoFromConnection(conn);
 
   const channel = yield* api.services.ChannelService;
   yield* channel.appendToChannel(ACCESS_WARNING);
