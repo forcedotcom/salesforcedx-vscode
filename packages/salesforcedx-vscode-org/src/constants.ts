@@ -7,4 +7,5 @@
 
 // Commands
 export const ORG_OPEN_COMMAND = 'sf.org.open';
+export const ORG_LOGOUT_ALL_COMMAND = 'sf.org.logout.all';
 export const ORG_LOGIN_WEB = 'org:login:web';
