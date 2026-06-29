@@ -15,7 +15,6 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { initializeOutputChannel } from './channels';
 import { CodeCoverageHandler, watchActiveEditorForCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
@@ -48,9 +47,6 @@ import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
 /** Effect-based activation that provides automatic timing via span */
 const activateEffect = Effect.fn('apex-testing.activation')(function* (context: vscode.ExtensionContext) {
   yield* Effect.log('Salesforce Apex Testing extension is activating...');
-
-  // Initialize the shared output channel from services API
-  yield* initializeOutputChannel;
 
   // Check if we're in a Salesforce project (also sets VS Code context as side effect)
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

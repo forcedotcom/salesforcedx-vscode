@@ -11,6 +11,7 @@ import * as Stream from 'effect/Stream';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import * as settings from '../settings';
+import { logTelemetry } from '../telemetry/telemetry';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
 
@@ -77,29 +78,18 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
   const outputFormat = settings.retrieveOutputFormat();
   const sortOrder = settings.retrieveTestSortOrder();
   yield* writeAndOpenTestReport(result, options.outputDir, outputFormat, options.codeCoverage, sortOrder).pipe(
-    Effect.tap(() =>
-      Effect.log('[Telemetry] apexTestReportGenerated').pipe(
-        Effect.annotateLogs({ outputFormat, trigger: options.telemetryTrigger }),
-        Effect.withSpan('apexTestReportGenerated', {
-          attributes: { outputFormat, trigger: options.telemetryTrigger }
-        })
-      )
-    ),
+    Effect.tap(() => logTelemetry('apexTestReportGenerated', { outputFormat, trigger: options.telemetryTrigger })),
     Effect.catchAll(error => Effect.logError(`Failed to generate test report: ${String(error)}`))
   );
 
   const summary = result.summary;
   // duration is captured automatically by the `apexTestRun` span below
-  const telemetryAttrs = {
+  yield* logTelemetry('apexTestRun', {
     trigger: options.telemetryTrigger,
     testsRan: Number(summary?.testsRan ?? 0),
     testsPassed: Number(summary?.passing ?? 0),
     testsFailed: Number(summary?.failing ?? 0)
-  };
-  yield* Effect.log('[Telemetry] apexTestRun').pipe(
-    Effect.annotateLogs(telemetryAttrs),
-    Effect.withSpan('apexTestRun', { attributes: telemetryAttrs })
-  );
+  });
 
   return result;
 });

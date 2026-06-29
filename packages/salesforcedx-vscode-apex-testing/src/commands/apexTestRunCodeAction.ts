@@ -11,7 +11,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
@@ -146,7 +145,7 @@ const mapApexArtifactToFilesystem = async (
       (
         await Promise.all(
           packageDirectories
-            .map(pkgDir => `${path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath)}/**/*.cls`)
+            .map(pkgDir => new vscode.RelativePattern(URI.file(pkgDir.fullPath), '**/*.cls'))
             .flatMap(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'))
         )
       )
