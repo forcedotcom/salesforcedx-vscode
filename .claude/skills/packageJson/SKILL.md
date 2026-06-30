@@ -1,27 +1,26 @@
 ---
 name: packageJson
-description: Guidelines for package.json files in packages
+description: package.json conventions for this repo. Use when editing/reviewing a package.json — name, types, browser, files, dependencies, devDependencies, packaging, scripts, or vscode contributes.
 ---
 
-## Name
+## name
 
-any package that's not an npm package should be named @salesforce/foo (whether it actually published to npm or not)
-any package that publishes a vscode extension should be named salesforcedx-vscode-foo
-don't rename packages, but do tell the user when stuff doesn't match the rules
+- non-npm package → `@salesforce/foo` (whether published or not)
+- vscode-extension package → `salesforcedx-vscode-foo`
+- don't rename; flag mismatches to the user
 
 ## types
 
-on an extension, you only need a `types` prop if your extension will be an extensionDependency of some other extension.
-
-probably not necessary for non-extension packages.
+- extension: needed only if it's an extensionDependency of another extension
+- non-extension package: not needed
 
 ## browser
 
-only for web-enabled extensions. Must point to a bundled dist file
+- web-enabled extensions only; must point to a bundled dist file
 
-## npm packages
+## files
 
-packages that publish to npm should have a `files` property in the package.json
+- packages that publish to npm need a `files` prop
 
 ## scripts
 
@@ -29,24 +28,24 @@ See [wireit skill](.claude/skills/wireit/SKILL.md)
 
 ## dependencies
 
-use `*` as the version for anything that's another package in this repo
-there should be no dependency on salesforcedx-vscode-services. extensionDependency is ok, devDependency is ok.
+- another package in this repo → version `*`
+- no dependency on salesforcedx-vscode-services (extensionDependency / devDependency ok)
 
 ## devDependencies
 
-packages should not duplicate devDependencies that exist at the top level of the repo.
+- don't duplicate devDependencies already at repo top level
 
 ## packaging
 
-The `packaging` property is legacy vsce packaging script (modifying pjson during package time). Avoid creating it, we eventually want them all gone.
+- legacy vsce script (mutates pjson at package time); don't create new ones, want them gone
 
 ## vscode "contributes"
 
-### Tips
+### tips
 
-- anything in `commands` will appear in command palette. If you don't want that, you have to `never` or use some `when` under commandPalette
-- commands need a unique ID, 2 extensions contributing the same config will produce a UI warning
-- never create a "default:true" boolean configuration (it's hard to override user/workspace)
+- `commands` show in command palette by default; suppress via `never`/`when` under `commandPalette`
+- commands need a unique ID; 2 extensions with the same config → UI warning
+- never a `default:true` boolean config (hard to override user/workspace)
 
 ### ESLint rules
 
