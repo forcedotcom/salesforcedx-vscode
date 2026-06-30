@@ -125,6 +125,103 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
   yield* Effect.promise(() => testController.refresh());
 });
 
+/** QuickPickItem carrying the TestSuiteMembership record ID for removal. */
+type RemovableClassItem = ApexTestQuickPickItem & { membershipId: string };
+
+/** Prompt user to pick a suite and select which classes to remove. Returns membership IDs to delete. */
+const gatherRemoveOptions = Effect.fn('apexTestSuite.gatherRemoveOptions')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  // Pick the suite
+  const quickPickItems = yield* listApexTestSuiteItems();
+  const testSuite = yield* Effect.promise(() =>
+    vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems)
+  ).pipe(Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value)));
+
+  const suiteId = testSuite.description ?? '';
+  const escapedSuiteId = suiteId.replaceAll("'", "''");
+
+  // Query TestSuiteMembership records for the selected suite
+  const connection = yield* api.services.ConnectionService.getConnection();
+  const memberships = yield* Effect.promise(() =>
+    connection.tooling.query<{ Id: string; ApexClassId: string }>(
+      `SELECT Id, ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${escapedSuiteId}'`
+    )
+  );
+
+  if (memberships.records.length === 0) {
+    return yield* new api.services.UserCancellationError();
+  }
+
+  // Resolve class names from ApexClassIds
+  const classIds = memberships.records.map(r => r.ApexClassId);
+  const inClause = classIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
+  const classResult = yield* Effect.promise(() =>
+    connection.tooling.query<{ Id: string; Name: string; NamespacePrefix?: string | null }>(
+      `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Id IN (${inClause})`
+    )
+  );
+
+  // Build a map from ApexClassId -> class info
+  const classInfoById = new Map(classResult.records.map(r => [r.Id, r]));
+
+  // Build RemovableClassItem[] for multi-select quick pick
+  const removableItems: RemovableClassItem[] = memberships.records
+    .map((membership): RemovableClassItem | undefined => {
+      const classInfo = classInfoById.get(membership.ApexClassId);
+      if (!classInfo) return undefined;
+      return {
+        label: classInfo.Name,
+        description: classInfo.NamespacePrefix ?? '',
+        type: 'Class' as const,
+        membershipId: membership.Id
+      };
+    })
+    .filter((item): item is RemovableClassItem => item !== undefined)
+    .toSorted((a, b) => a.label.localeCompare(b.label));
+
+  // Show multi-select quick pick
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showQuickPick<RemovableClassItem>(removableItems, { canPickMany: true })
+  );
+  if (!selection || selection.length === 0) {
+    return yield* new api.services.UserCancellationError();
+  }
+
+  return selection.map(item => item.membershipId);
+});
+
+/** Delete selected TestSuiteMembership records and refresh the test controller. */
+const removeSuiteMembers = Effect.fn('apexTestSuite.removeSuiteMembers')(function* (membershipIds: string[]) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const channelService = yield* api.services.ChannelService;
+  const executionName = nls.localize('apex_test_suite_remove_text');
+  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
+
+  yield* api.services.ConnectionService.getConnection().pipe(
+    Effect.flatMap(connection => Effect.promise(() => connection.tooling.delete('TestSuiteMembership', membershipIds))),
+    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+    promptService.withCancellableProgress(executionName)
+  );
+
+  OUTPUT_CHANNEL.show();
+  notificationService.showSuccessfulExecution(executionName);
+
+  // Clear all suite children so they re-query from org instead of using stale local files, then refresh
+  const testController = getTestController();
+  testController.clearAllSuiteChildren();
+  yield* Effect.promise(() => testController.refresh());
+});
+
+export const apexTestSuiteRemove = Effect.fn('apexTestSuiteRemove')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ProjectService.getSfProject();
+  const membershipIds = yield* gatherRemoveOptions();
+  yield* removeSuiteMembers(membershipIds);
+});
+
 export const apexTestSuiteAdd = Effect.fn('apexTestSuiteAdd')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ProjectService.getSfProject();

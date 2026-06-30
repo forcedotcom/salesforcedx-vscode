@@ -15,4 +15,4 @@ export {
   apexTestMethodRunCodeAction,
   apexTestMethodRunCodeActionDelegate
 } from './apexTestRunCodeAction';
-export { apexTestSuiteAdd, apexTestSuiteCreate, apexTestSuiteRun } from './apexTestSuite';
+export { apexTestSuiteAdd, apexTestSuiteCreate, apexTestSuiteRemove, apexTestSuiteRun } from './apexTestSuite';

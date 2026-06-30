@@ -30,6 +30,7 @@ import {
   apexTestRun,
   apexTestSuiteAdd,
   apexTestSuiteCreate,
+  apexTestSuiteRemove,
   apexTestSuiteRun
 } from './commands';
 import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
@@ -101,6 +102,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
     registerCommand('sf.apex.test.run', apexTestRun),
     registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd),
     registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
+    registerCommand('sf.apex.test.suite.remove', apexTestSuiteRemove),
     registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
     registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction),
     registerCommand('sf.apex.test.last.class.run', apexTestLastClassRunCodeAction),
