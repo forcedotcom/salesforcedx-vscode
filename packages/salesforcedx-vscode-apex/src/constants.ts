@@ -16,3 +16,5 @@ export const API = {
   doneIndexing: 'indexer/done'
 };
 export const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
+export const APEX_SETTINGS_SECTION = 'salesforcedx-vscode-apex';
+export const AUTO_TERMINATE_KEY = 'autoTerminateOrphanedProcesses';

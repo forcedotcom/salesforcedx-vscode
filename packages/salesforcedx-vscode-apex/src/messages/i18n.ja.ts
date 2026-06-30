@@ -58,6 +58,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   wrong_java_version_text:
     'サポートされていない Java バージョンを検出しました。Java 11 以上がサポートされています。拡張機能の実行には [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) を推奨します。詳細については、[Java バージョンの設定](%s) を参照してください。',
   always_auto_terminate: '常に自動終了',
+  always_auto_terminate_modal_title: '孤立したプロセスの自動終了を有効にする',
   auto_terminate_confirm_modal:
     '自動終了設定を有効にし、孤立したプロセスを今すぐ終了します。今後のアクティベーション時にも孤立したプロセスを自動的に終了します。この設定は後から設定画面で無効にできます。',
   confirm: '確認',

@@ -43,7 +43,11 @@ const makeSimpleExec =
       : Effect.fail({ _tag: 'TerminalServiceError', message: hit.result.fail, command });
   };
 
-type Choices = { warning?: string[]; confirm?: string[]; autoTerminateConfirm?: string[] };
+type Choices = {
+  warning?: (string | undefined)[];
+  confirm?: (string | undefined)[];
+  autoTerminateConfirm?: (string | undefined)[];
+};
 
 /** PromptService stub mirroring considerUndefinedAsCancellation (undefined/'' → UserCancellationError by tag). */
 const makePromptService = () => ({
@@ -191,14 +195,15 @@ const setWarningChoices = ({ warning = [], confirm = [], autoTerminateConfirm = 
   const confirmQueue = [...confirm];
   const autoTerminateConfirmQueue = [...autoTerminateConfirm];
   (vscode.window.showWarningMessage as jest.Mock).mockImplementation((message: string, ...args: unknown[]) => {
-    // Route based on message content and modal option presence
-    const hasModal = args.some(
-      a => typeof a === 'object' && a !== null && 'modal' in a && (a as { modal: boolean }).modal
+    // Route based on message content and modal option presence.
+    // Use detail text as discriminator for the auto-terminate confirmation modal (unique substring).
+    const modalOpts = args.find(
+      (a): a is { modal: boolean; detail?: string } => typeof a === 'object' && a !== null && 'modal' in a
     );
     if (message.includes('Terminate them?')) {
       return Promise.resolve(confirmQueue.shift());
     }
-    if (hasModal && message.includes(nls.localize('always_auto_terminate'))) {
+    if (modalOpts?.modal && modalOpts.detail?.includes(nls.localize('auto_terminate_confirm_modal'))) {
       return Promise.resolve(autoTerminateConfirmQueue.shift());
     }
     return Promise.resolve(queue.shift());
@@ -245,7 +250,7 @@ describe('languageServerOrphanHandler', () => {
   });
 
   it('user dismisses prompt → UserCancellationError caught → no kill', async () => {
-    setWarningChoices({ warning: [undefined as unknown as string] });
+    setWarningChoices({ warning: [undefined] });
     await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).not.toHaveBeenCalled();
   });
@@ -287,9 +292,11 @@ describe('languageServerOrphanHandler', () => {
   describe('autoTerminateOrphanedProcesses setting', () => {
     it('setting true + orphans found → kills without prompt', async () => {
       const stub = makeSettingsStub({ getValueResult: true });
-      await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
+      const holder: { root?: Tracer.Span } = {};
+      await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], holder, stub);
       expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
       expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+      expect(holder.root?.attributes.get('didTerminate')).toBe(1);
       expect(stub.getValueCalls).toEqual([
         { section: 'salesforcedx-vscode-apex', key: 'autoTerminateOrphanedProcesses', defaultValue: false }
       ]);
@@ -312,7 +319,7 @@ describe('languageServerOrphanHandler', () => {
       const stub = makeSettingsStub({ getValueResult: false });
       setWarningChoices({
         warning: [nls.localize('always_auto_terminate')],
-        autoTerminateConfirm: [undefined as unknown as string]
+        autoTerminateConfirm: [undefined]
       });
       await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
       expect(stub.setValueCalls).toEqual([]);

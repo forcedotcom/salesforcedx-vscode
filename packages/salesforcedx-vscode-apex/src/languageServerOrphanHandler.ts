@@ -16,7 +16,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
-import { UBER_JAR_NAME } from './constants';
+import { APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, UBER_JAR_NAME } from './constants';
 import { nls } from './messages';
 
 // these messages contain replaceable parameters, cannot localize yet
@@ -145,14 +145,21 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
   }
 
   // When auto-terminate is enabled, silently kill orphans without prompting.
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const settings = yield* api.services.SettingsService;
-  const autoTerminate = yield* settings
-    .getValue<boolean>('salesforcedx-vscode-apex', 'autoTerminateOrphanedProcesses', false)
-    .pipe(
-      Effect.map(v => v === true),
-      Effect.catchTag('MissingSettingsError', () => Effect.succeed(false))
+  const autoTerminate = yield* Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* (yield* api.services.SettingsService).getValue<boolean>(
+      APEX_SETTINGS_SECTION,
+      AUTO_TERMINATE_KEY,
+      false
     );
+  }).pipe(
+    Effect.map(v => v === true),
+    Effect.catchTags({
+      MissingSettingsError: () => Effect.succeed(false),
+      ServicesExtensionNotFoundError: () => Effect.succeed(false),
+      InvalidServicesApiError: () => Effect.succeed(false)
+    })
+  );
 
   if (autoTerminate) {
     yield* annotateRootSpan('didTerminate', 1);
@@ -264,7 +271,7 @@ const requestsAlwaysAutoTerminate = (choice: string): boolean => choice === nls.
 const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTerminateConfirmation')(function* () {
   const choice = yield* Effect.promise(() =>
     vscode.window.showWarningMessage(
-      nls.localize('always_auto_terminate'),
+      nls.localize('always_auto_terminate_modal_title'),
       { modal: true, detail: nls.localize('auto_terminate_confirm_modal') },
       nls.localize('confirm')
     )
@@ -273,9 +280,10 @@ const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTermina
     return false;
   }
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const settings = yield* api.services.SettingsService;
-  yield* settings
-    .setValue('salesforcedx-vscode-apex', 'autoTerminateOrphanedProcesses', true)
+  // Intentional: swallow MissingSettingsError after recording telemetry — graceful degradation
+  // ensures the kill still proceeds even if the setting write fails to persist.
+  yield* (yield* api.services.SettingsService)
+    .setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)
     .pipe(Effect.catchTag('MissingSettingsError', e => annotateRootSpan('settingsWriteError', e.message)));
   return true;
 });
