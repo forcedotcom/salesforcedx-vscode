@@ -9,7 +9,7 @@ import type { OrgAuthResult } from './types';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { execAsync, env, tryUseExistingOrg, extractAuthFields } from './shared';
+import { tryUseExistingOrg, extractAuthFields, runScratchOrgCreate } from './shared';
 
 /**
  * Dedicated throwaway org for the real-logout e2e step. FIXED alias (not timestamped/uuid) so CI's
@@ -51,12 +51,9 @@ export const createThrowawayOrg = async (alias: string = THROWAWAY_ORG_ALIAS): P
     )
   );
 
-  const { stdout: createStdout } = await execAsync(
+  const createStdout = await runScratchOrgCreate(
     `sf org create scratch -d -w 10 -a ${alias} --edition developer --json`,
-    {
-      cwd: projectDir,
-      env
-    }
+    projectDir
   );
 
   return extractAuthFields(createStdout, alias);
