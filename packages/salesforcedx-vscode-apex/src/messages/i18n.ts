@@ -58,6 +58,10 @@ export const messages = {
   wrong_java_version_short: 'Unsupported Java version',
   wrong_java_version_text:
     'We detected an unsupported Java version. Java versions 11 or higher are supported. We recommend [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](%s).',
+  always_auto_terminate: 'Always Auto-Terminate',
+  auto_terminate_confirm_modal:
+    'This enables the auto-terminate setting, kills orphaned processes now, and will silently terminate orphans on future activations. You can disable this later via Settings.',
+  confirm: 'Confirm',
   yes: 'Yes'
 } as const;
 
