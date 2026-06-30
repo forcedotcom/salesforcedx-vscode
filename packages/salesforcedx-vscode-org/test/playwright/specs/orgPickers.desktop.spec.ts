@@ -70,6 +70,10 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     // orgDisplay renders a table containing the org's Username row to the output channel.
     await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
     await waitForOutputChannelText(page, { expectedText: 'Username' });
+    // and the sensitive-info warning (ACCESS_WARNING) precedes the table — warning-path coverage.
+    await waitForOutputChannelText(page, {
+      expectedText: 'Warning: This command will expose sensitive information'
+    });
   });
 
   await test.step('DISPLAY cancel: Esc on the picker maps to CANCEL (no error toast)', async () => {
