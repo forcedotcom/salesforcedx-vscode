@@ -14,6 +14,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
+import { CliRawObject, sanitizeCliJson } from '../util/cliJson';
 
 /**
  * Raised when `sf org open --url-only --json` stdout cannot be decoded into either result shape.
@@ -46,19 +47,12 @@ type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
 
 /**
  * Decodes the sf CLI JSON from stdout. The CLI emits `{ result }` (success) or `{ status, message }`
- * (failure) — neither carries a `_tag`. `RawObject` parses stdout to a plain object so the `'result' in raw`
+ * (failure) — neither carries a `_tag`. `CliRawObject` parses stdout to a plain object so the `'result' in raw`
  * test can inject the discriminant before the tagged-union decode; all downstream dispatch is on `_tag` via
  * Match. Malformed/unexpected shape maps to a tagged error rather than escaping as a defect.
  */
-const RawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }));
-/**
- * The sf CLI can prepend non-JSON lines to stdout even with `--json` (e.g. the scratch-org expiration warning,
- * seen on macOS CI). Slice from the first `{` to the last `}` to isolate the JSON payload before decoding
- * (parity with the old OrgOpenContainerResultParser). No braces → slice yields '' → OrgOpenParseError, not a defect.
- */
-const sanitizeJson = (stdout: string) => stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
 const decodeOrgOpenResponse = (stdout: string) =>
-  Schema.decodeUnknown(RawObject)(sanitizeJson(stdout)).pipe(
+  Schema.decodeUnknown(CliRawObject)(sanitizeCliJson(stdout)).pipe(
     Effect.map(raw => ({ ...raw, _tag: 'result' in raw ? 'OrgOpenSuccess' : 'OrgOpenFailure' })),
     Effect.flatMap(tagged => Schema.decodeUnknown(OrgOpenResponse)(tagged)),
     Effect.mapError(error => new OrgOpenParseError({ message: `Failed to parse org open response: ${error.message}` }))

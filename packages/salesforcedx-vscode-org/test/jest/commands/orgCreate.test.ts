@@ -124,7 +124,7 @@ describe('orgCreateCommand', () => {
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
         command:
-          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias myAlias --duration-days 14 --set-default --json'
+          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias "myAlias" --duration-days 14 --set-default --json'
       })
     );
     expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
@@ -158,7 +158,7 @@ describe('orgCreateCommand', () => {
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
         command:
-          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias myproject --duration-days 7 --set-default --json'
+          'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias "myproject" --duration-days 7 --set-default --json'
       })
     );
   });
