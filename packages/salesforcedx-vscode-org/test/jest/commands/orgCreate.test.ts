@@ -54,6 +54,10 @@ const buildServices = (opts: Services) => ({
       opts.isProject === false ? Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const }) : Effect.succeed({})
   },
   ConfigService: { getTargetDevHub: () => Effect.succeed(opts.devHub) },
+  // forward to the vscode.workspace.findFiles jest mock so the existing `findFiles.mock*` setup drives it
+  FsService: {
+    findFiles: (include: string) => Effect.promise(() => vscode.workspace.findFiles(include))
+  },
   // alias default derives from Utils.basename(uri) → 'my-project' → sanitized 'myproject'
   WorkspaceService: {
     getWorkspaceInfo: () => Effect.succeed({ uri: { path: '/repo/my-project' } })
@@ -94,15 +98,27 @@ describe('orgCreateCommand', () => {
   let showQuickPick: jest.Mock;
   let showInputBox: jest.Mock;
   let showErrorMessage: jest.Mock;
+  let showInformationMessage: jest.Mock;
   let findFiles: jest.Mock;
+  // shared per-test service doubles; the default simpleExec returns the success stdout. Tests that need a
+  // different impl (failure, parse error) reassign `simpleExec` before calling `run`.
+  let simpleExec: jest.Mock;
+  let appendToChannel: jest.Mock;
+  let show: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     updateConfigAndStateAggregators.mockResolvedValue(undefined);
     getTargetDevHubOrAlias.mockResolvedValue(undefined);
+    simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
+    appendToChannel = jest.fn();
+    show = jest.fn();
     showQuickPick = vscode.window.showQuickPick as unknown as jest.Mock;
     showInputBox = vscode.window.showInputBox as unknown as jest.Mock;
     showErrorMessage = vscode.window.showErrorMessage as unknown as jest.Mock;
+    // handleSuccess wraps showInformationMessage in Effect.promise, so the mock must return a thenable
+    showInformationMessage = vscode.window.showInformationMessage as unknown as jest.Mock;
+    showInformationMessage.mockResolvedValue(undefined);
     findFiles = vscode.workspace.findFiles as unknown as jest.Mock;
     // Utils.basename(uri) reads uri.path (not fsPath); provide both so the quickpick item label resolves
     findFiles.mockResolvedValue([
@@ -113,9 +129,6 @@ describe('orgCreateCommand', () => {
   });
 
   it('runs `sf org create scratch ... --set-default --json`, refreshes aggregators, reports to channel', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
     showInputBox.mockResolvedValueOnce('myAlias').mockResolvedValueOnce('14');
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
@@ -133,9 +146,7 @@ describe('orgCreateCommand', () => {
   });
 
   it('appends the failure message and does NOT refresh aggregators on non-zero status (proves Match.tag dispatch)', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(JSON.stringify({ status: 1, message: 'create failed' })));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
+    simpleExec = jest.fn(() => Effect.succeed(JSON.stringify({ status: 1, message: 'create failed' })));
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
 
@@ -144,10 +155,7 @@ describe('orgCreateCommand', () => {
     expect(updateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 
-  it('accepting the prefilled alias/days defaults uses them in the command', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
+  it('prefills the alias/days input boxes with the defaults (folder name, 7) and uses them in the command', async () => {
     // production prefills the boxes (`value`) and validateInput rejects empty, so accepting (Enter)
     // returns the prefilled defaults: alias = sanitized folder name 'myproject', days = '7'
     showInputBox.mockResolvedValueOnce('myproject').mockResolvedValueOnce('7');
@@ -155,6 +163,9 @@ describe('orgCreateCommand', () => {
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
+    // the actual logic under test: the boxes are pre-filled with the computed defaults via `value`
+    expect(showInputBox).toHaveBeenNthCalledWith(1, expect.objectContaining({ value: 'myproject' }));
+    expect(showInputBox).toHaveBeenNthCalledWith(2, expect.objectContaining({ value: '7' }));
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
         command:
@@ -164,9 +175,6 @@ describe('orgCreateCommand', () => {
   });
 
   it('cancels (no exec) when the def-file picker is dismissed', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
     showQuickPick.mockResolvedValueOnce(undefined);
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
@@ -177,9 +185,6 @@ describe('orgCreateCommand', () => {
   });
 
   it('cancels (no exec) when the alias input box is dismissed (Esc)', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
     showInputBox.mockResolvedValueOnce(undefined);
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
@@ -189,9 +194,6 @@ describe('orgCreateCommand', () => {
   });
 
   it('shows the no-scratch-def error and cancels when no def files match', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
     findFiles.mockResolvedValueOnce([]);
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
@@ -202,10 +204,6 @@ describe('orgCreateCommand', () => {
   });
 
   it('shows the no-devhub warning and cancels before any picker when no devhub is configured', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
-
     const exit = await run({ devHub: undefined, simpleExec, appendToChannel, show });
 
     expect(Exit.isFailure(exit)).toBe(true);
@@ -215,10 +213,6 @@ describe('orgCreateCommand', () => {
   });
 
   it('fails (getSfProject) without exec when not in a project', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed(SUCCESS_STDOUT));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
-
     const exit = await run({ devHub: 'devhub@org', isProject: false, simpleExec, appendToChannel, show });
 
     expect(Exit.isFailure(exit)).toBe(true);
@@ -227,9 +221,7 @@ describe('orgCreateCommand', () => {
   });
 
   it('fails with OrgCreateParseError on malformed stdout and does not refresh aggregators', async () => {
-    const simpleExec = jest.fn(() => Effect.succeed('not json at all'));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
+    simpleExec = jest.fn(() => Effect.succeed('not json at all'));
 
     const exit = await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
 

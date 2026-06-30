@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { getTargetDevHubOrAlias, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { getTargetDevHubOrAlias } from '@salesforce/salesforcedx-utils-vscode';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -15,7 +15,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { CliRawObject } from '../util/cliJson';
+import { decodeTaggedCliResponse } from '../util/cliJson';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 const isAlphaNumSpaceString = (value: string | undefined): boolean =>
@@ -68,26 +68,27 @@ type OrgCreateFailure = Schema.Schema.Type<typeof OrgCreateFailure>;
  * carries a `_tag`. Inject the discriminant from `status === 0` before the tagged-union decode; all
  * downstream dispatch is on `_tag` via Match. Malformed shape → tagged error. See `cliJson.ts`.
  */
-const decodeOrgCreateResponse = Effect.fn('decodeOrgCreateResponse')(function* (stdout: string) {
-  return yield* Schema.decodeUnknown(CliRawObject)(stdout).pipe(
-    Effect.map(raw => ({ ...raw, _tag: raw.status === 0 ? 'OrgCreateSuccess' : 'OrgCreateFailure' })),
-    Effect.flatMap(tagged => Schema.decodeUnknown(OrgCreateResponse)(tagged)),
-    Effect.mapError(() => new OrgCreateParseError({ message: nls.localize('org_create_result_parsing_error') }))
-  );
-});
+const decodeOrgCreateResponse = decodeTaggedCliResponse(OrgCreateResponse, raw =>
+  raw.status === 0 ? 'OrgCreateSuccess' : 'OrgCreateFailure'
+)(() => new OrgCreateParseError({ message: nls.localize('org_create_result_parsing_error') }));
 
 /**
  * Prompts for the three scratch-org inputs (def file / alias / expiration) and returns them.
  * Extracted from `orgCreateCommand` so the command body stays a flat gate→gather→run→dispatch read.
  * Cancellation (Esc) and the empty-scratch-def case short-circuit here via `UserCancellationError`.
  */
-const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(function* (api: SalesforceVSCodeServicesApi) {
+const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 
   // def-file pick: empty match → show the no-scratch-def error and cancel (parity with FileSelector).
-  const files = yield* Effect.promise(() => vscode.workspace.findFiles('config/**/*-scratch-def.json'));
+  // FsService.findFiles routes through the web/virtual FS provider when ESBUILD_PLATFORM === 'web'
+  // (vscode.workspace.findFiles is desktop-only).
+  const files = yield* api.services.FsService.findFiles('config/**/*-scratch-def.json');
   if (files.length === 0) {
-    yield* Effect.sync(() => void vscode.window.showErrorMessage(nls.localize('error_no_scratch_def')));
+    yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('error_no_scratch_def'))).pipe(
+      Effect.ignore
+    );
     return yield* new api.services.UserCancellationError({});
   }
   const fileItems = files.map(file => ({ label: Utils.basename(file), description: file.fsPath }));
@@ -152,7 +153,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
     return yield* new api.services.UserCancellationError({});
   }
 
-  const { defFilePath, alias, days } = yield* gatherOrgCreateInputs(api);
+  const { defFilePath, alias, days } = yield* gatherOrgCreateInputs();
 
   const promptService = yield* api.services.PromptService;
   const terminalService = yield* api.services.TerminalService;
@@ -166,20 +167,19 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
 
   const response = yield* decodeOrgCreateResponse(stdout);
 
-  const channel = yield* api.services.ChannelService;
-
   // success: refresh the config/state aggregators (default org flipped by --set-default), report to the
   // channel, then show the `... successfully ran` toast (parity with the old SfCommandletExecutor).
   const handleSuccess = Effect.fn('orgCreateCommand.handleSuccess')(function* ({
     result: { orgId, username }
   }: OrgCreateSuccess) {
+    const channel = yield* api.services.ChannelService;
     yield* Effect.promise(() => updateConfigAndStateAggregators());
     yield* channel.appendToChannel(nls.localize('org_create_success', alias, username, orgId));
     yield* channel.showChannel;
-    // in-layer channel already revealed above; pass undefined for the legacy channel handle (its only use
-    // is the toast's "Show" button → showChannelOutput, now redundant). Avoids the ../channels singleton.
-    yield* Effect.promise(() =>
-      notificationService.showSuccessfulExecution(nls.localize('org_create_default_scratch_org_text'), undefined)
+    // in-layer channel already revealed above, so the toast's "Show" button is redundant — emit a plain
+    // information toast directly via vscode.window (no legacy NotificationService / ../channels singleton).
+    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('org_create_successfully_ran'))).pipe(
+      Effect.ignore
     );
   });
 
@@ -189,6 +189,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   // (orgOpen, orgDeleteDefaultCommand) emit no failure-exception telemetry; OrgCreateParseError flows to
   // ErrorHandlerService for user-facing rendering instead.
   const handleFailure = Effect.fn('orgCreateCommand.handleFailure')(function* ({ message }: OrgCreateFailure) {
+    const channel = yield* api.services.ChannelService;
     yield* channel.appendToChannel(message);
     yield* channel.showChannel;
   });
