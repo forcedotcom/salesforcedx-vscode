@@ -14,7 +14,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { CliRawObject, sanitizeCliJson } from '../util/cliJson';
+import { CliRawObject } from '../util/cliJson';
 
 /**
  * Raised when `sf org open --url-only --json` stdout cannot be decoded into either result shape.
@@ -52,7 +52,7 @@ type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
  * Match. Malformed/unexpected shape maps to a tagged error rather than escaping as a defect.
  */
 const decodeOrgOpenResponse = (stdout: string) =>
-  Schema.decodeUnknown(CliRawObject)(sanitizeCliJson(stdout)).pipe(
+  Schema.decodeUnknown(CliRawObject)(stdout).pipe(
     Effect.map(raw => ({ ...raw, _tag: 'result' in raw ? 'OrgOpenSuccess' : 'OrgOpenFailure' })),
     Effect.flatMap(tagged => Schema.decodeUnknown(OrgOpenResponse)(tagged)),
     Effect.mapError(error => new OrgOpenParseError({ message: `Failed to parse org open response: ${error.message}` }))

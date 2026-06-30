@@ -15,7 +15,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { CliRawObject, sanitizeCliJson } from '../util/cliJson';
+import { CliRawObject } from '../util/cliJson';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 const isAlphaNumSpaceString = (value: string | undefined): boolean =>
@@ -69,7 +69,7 @@ type OrgCreateFailure = Schema.Schema.Type<typeof OrgCreateFailure>;
  * downstream dispatch is on `_tag` via Match. Malformed shape → tagged error. See `cliJson.ts`.
  */
 const decodeOrgCreateResponse = Effect.fn('decodeOrgCreateResponse')(function* (stdout: string) {
-  return yield* Schema.decodeUnknown(CliRawObject)(sanitizeCliJson(stdout)).pipe(
+  return yield* Schema.decodeUnknown(CliRawObject)(stdout).pipe(
     Effect.map(raw => ({ ...raw, _tag: raw.status === 0 ? 'OrgCreateSuccess' : 'OrgCreateFailure' })),
     Effect.flatMap(tagged => Schema.decodeUnknown(OrgCreateResponse)(tagged)),
     Effect.mapError(() => new OrgCreateParseError({ message: nls.localize('org_create_result_parsing_error') }))
