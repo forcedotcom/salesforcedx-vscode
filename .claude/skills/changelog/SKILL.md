@@ -22,7 +22,7 @@ Scope: the all-extensions release changelog at `packages/salesforcedx-vscode/CHA
 
 1. **Read** the current changelog file
 2. **Identify** the automated commit: `git log --oneline -- packages/salesforcedx-vscode/CHANGELOG.md | grep "generated CHANGELOG"`
-3. **For each entry**, fetch PR context: `gh pr view <number> --json title,body,commits,labels`
+3. **For each entry**, fetch PR context: `gh pr view <number> --json title,body,commits,labels`. In the body, look for a **"What issues does this PR fix or reference?"** section and extract any issue or discussion numbers linked there.
 4. **Apply** the rules below to produce a polished draft
 5. **Present** the revised changelog to the user for approval before writing
 
@@ -73,7 +73,11 @@ The automation lists the same PR under every package it touched. Consolidate to 
 - For setting/option additions: name the setting in **bold**, describe default behavior
 - For extension-pack additions: include extension id in parens, e.g. `**Salesforce Live Preview** (salesforce.salesforcedx-vscode-ui-preview)`
 - Prefer `VS Code` over `VSCode`; `on Windows` not `in Windows`
-- Link related GitHub issues when the PR body references them: `[ISSUE #NNNN](...)`
+- After the PR link(s), append issue and discussion links found in the **"What issues does this PR fix or reference?"** section of the PR body:
+  - Issues: `[ISSUE #NNNN](https://github.com/forcedotcom/salesforcedx-vscode/issues/NNNN)`
+  - Discussions: `[DISCUSSION #NNNN](https://github.com/forcedotcom/salesforcedx-vscode/discussions/NNNN)`
+  - Format: `([PR #7517](...), [ISSUE #4065](...))`
+  - Only include issues/discussions explicitly listed in that section; do not infer from commit messages or other body text
 
 ### 5. Verify categories
 
@@ -169,8 +173,8 @@ These rules describe the auto-generator behavior in `scripts/create-release-note
 - Type sections: only `## Added` (from `feat`) and `## Fixed` (from `fix`). Ignored commit types: `chore`, `style`, `refactor`, `test`, `build`, `ci`, `revert`
 - Package sections: `#### <package-name>`, alphabetical within a type
 - Bullet entries: `- <message> ([PR #N](url))`; PR url format `https://github.com/forcedotcom/salesforcedx-vscode/pull/<num>`
-- Multiple PRs for one entry: comma-separate `([PR #A](...), [PR #B](...), [ISSUE #C](...))`
-- Include `[ISSUE #N](https://github.com/forcedotcom/salesforcedx-vscode/issues/N)` when the PR closes a GitHub issue
+- Multiple PRs for one entry: comma-separate `([PR #A](...), [PR #B](...), [ISSUE #C](...), [DISCUSSION #D](...))`
+- Include `[ISSUE #N](https://github.com/forcedotcom/salesforcedx-vscode/issues/N)` or `[DISCUSSION #N](https://github.com/forcedotcom/salesforcedx-vscode/discussions/N)` when listed in the PR's "What issues does this PR fix or reference?" section
 
 ### Package filtering (auto)
 
