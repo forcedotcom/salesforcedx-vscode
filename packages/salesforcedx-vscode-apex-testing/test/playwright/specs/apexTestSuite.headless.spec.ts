@@ -26,11 +26,7 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
-import {
-  CMD_TOGGLE_MAXIMIZED_PANEL,
-  findTestExplorerItem,
-  openTestExplorerAndDiscover
-} from '../helpers/testExplorerHelpers';
+import { CMD_TOGGLE_MAXIMIZED_PANEL, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
 
 /** Run Create Apex Test Suite via command palette: type suite name, select one class, confirm. */
 const createApexTestSuiteViaPalette = async (
@@ -211,8 +207,8 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   await test.step('verify removed class absent from test explorer tree', async () => {
     const panel = await openTestExplorerAndDiscover(page);
     await saveScreenshot(page, 'step.verify-remove-tree.after-discover.png');
-    // The removed class should no longer appear in the tree
-    const removedItem = findTestExplorerItem(page, testClassName2);
+    // The removed class should no longer appear in the tree (scoped to panel)
+    const removedItem = panel.getByRole('treeitem', { name: testClassName2 });
     await expect(removedItem).toHaveCount(0, { timeout: 30_000 });
     // The first class should still be visible
     const remainingItem = panel.getByText(testClassName1);
@@ -233,10 +229,9 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await waitForOutputChannelText(page, { expectedText: testClassName1, timeout: 60_000 });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 60_000 });
 
-    // Verify removed class does NOT appear in test results
+    // Verify removed class does NOT appear in test results (use retry-capable assertion)
     const outputPanel = page.locator('.output-view .view-lines');
-    const outputText = await outputPanel.textContent();
-    expect(outputText).not.toContain(testClassName2);
+    await expect(outputPanel).not.toContainText(testClassName2, { timeout: 30_000 });
     await saveScreenshot(page, 'step.rerun-suite.done.png');
   });
 
