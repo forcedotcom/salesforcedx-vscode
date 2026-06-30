@@ -104,10 +104,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       return targetDevHubOrAlias === username || aliases.includes(targetDevHubOrAlias);
     });
 
-    /**
-     * Sets target-org in the local project config. Does NOT touch defaultOrgRef —
-     * the caller (picker) refreshes the reactive org state via ConnectionService.getConnection().
-     */
+    /** Sets target-org in local project config; caller must refresh defaultOrgRef via ConnectionService.getConnection(). */
     const setTargetOrg = Effect.fn('ConfigService.setTargetOrg')(function* (usernameOrAlias: string) {
       const config = yield* Effect.promise(() => Config.create(Config.getDefaultOptions()));
       config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
