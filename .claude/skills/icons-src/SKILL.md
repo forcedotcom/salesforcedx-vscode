@@ -38,7 +38,7 @@ External sources (Wikipedia, Illustrator, etc.) may be too complex for font gene
 
 1. **Add SVG** — `media/icons-src/<name>.svg` (name = lowercase, no spaces). Done: file matches [SVG Requirements](#svg-requirements)
 2. **Add manifest entry** — append to `media/icons-src/icons.json` per [icons.json Format](#iconsjson-format). Done: key + `id` + `description` present
-3. **Run build** — `npm run build:icons -w salesforcedx-vscode-services`. Done: `contributes.icons` in package.json + `resources/icons-font/*` updated — verify `git diff`
+3. **Run build** — `npm run build:icons -w salesforcedx-vscode-services`. Done: auto-generated artifacts updated — verify `git diff` (see [Artifacts](#artifacts-that-change-addremove))
 4. **Add ICONS constant** — `src/vscode/mediaService.ts`: `ICONS` + `ICON_DESCRIPTION_KEYS`; add i18n key in messages if needed. Done: new icon in both maps, compiles
 5. **Regenerate types** — if services-types consumes ICONS, run its generate script. Done: `icons.ts` includes new icon
 
