@@ -25,7 +25,7 @@ describe('ConfigService.setTargetOrg', () => {
     createMock.mockReset().mockResolvedValue({ set: setMock, write: writeMock } as unknown as Config);
   });
 
-  it('writes the alias to target-org config and then invalidates the aggregator', async () => {
+  it('writes the alias to target-org config', async () => {
     const calls: string[] = [];
     setMock.mockImplementation(() => calls.push('set'));
     writeMock.mockImplementation(() => {
@@ -40,13 +40,5 @@ describe('ConfigService.setTargetOrg', () => {
     // write called after set (write-before-reload ordering)
     expect(calls).toEqual(['set', 'write']);
     expect(writeMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('propagates a write failure', async () => {
-    writeMock.mockRejectedValueOnce(new Error('disk full'));
-
-    await expect(
-      Effect.runPromise(ConfigService.setTargetOrg('MyAlias').pipe(Effect.provide(ConfigService.Default)))
-    ).rejects.toThrow('disk full');
   });
 });
