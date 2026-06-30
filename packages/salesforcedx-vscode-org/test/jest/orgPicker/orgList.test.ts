@@ -100,19 +100,31 @@ describe('OrgList tests', () => {
       let showQuickPickMock: jest.SpyInstance;
       let executeCommandMock: jest.SpyInstance;
       let listAllAuthorizationsMock: jest.Mock;
+      let setTargetOrgMock: jest.Mock;
+      let invalidateCachedConnectionsMock: jest.Mock;
+      let getConnectionMock: jest.Mock;
 
       const buildLayer = () => {
         const mockServicesApi = {
           services: {
-            // setDefaultOrg loads orgs through ConnectionService (not AuthInfo direct) post-migration
+            // setDefaultOrg loads orgs through ConnectionService (not AuthInfo direct) post-migration,
+            // then writes config via ConfigService.setTargetOrg and refreshes defaultOrgRef via getConnection.
             ConnectionService: {
-              listAllAuthorizations: listAllAuthorizationsMock
+              listAllAuthorizations: listAllAuthorizationsMock,
+              invalidateCachedConnections: invalidateCachedConnectionsMock,
+              getConnection: getConnectionMock
             },
             // getFreshAuthorizations yields ConfigService (default-org config) + AliasService (disk aliases)
             // through getOrgRuntime; stub both so the data-loading path runs against fakes (no real I/O).
-            ConfigService: Effect.succeed({
-              getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => undefined })
-            }),
+            // ConfigService is consumed two ways: `yield* api.services.ConfigService` (configAggregatorEffect)
+            // AND the static accessor `api.services.ConfigService.setTargetOrg(...)` (picker). Mock it as an
+            // Effect (for the yield) with setTargetOrg attached as a property (for the static accessor call).
+            ConfigService: Object.assign(
+              Effect.succeed({
+                getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => undefined })
+              }),
+              { setTargetOrg: setTargetOrgMock }
+            ),
             AliasService: Effect.succeed({
               getAllAliases: () => Effect.succeed({}),
               getUsernameFromAlias: () => Effect.succeed(Option.none())
@@ -131,6 +143,10 @@ describe('OrgList tests', () => {
         executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
         // ConnectionService.listAllAuthorizations returns an Effect; default to the seeded (empty) list
         listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
+        // post-migration setDefaultOrg writes config then refreshes the org ref; all return Effects
+        setTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
+        invalidateCachedConnectionsMock = jest.fn().mockReturnValue(Effect.void);
+        getConnectionMock = jest.fn().mockReturnValue(Effect.succeed({}));
 
         resetOrgRuntimeForTesting();
         setAllServicesLayer(
@@ -232,7 +248,7 @@ describe('OrgList tests', () => {
           expect(listAllAuthorizationsMock).toHaveBeenCalledTimes(1);
         });
 
-        it('sets the picked org as default via sf.config.set', async () => {
+        it('sets the picked org as default via ConfigService.setTargetOrg then refreshes the connection', async () => {
           showQuickPickMock.mockResolvedValueOnce({
             label: '$(cloud) SeededOrg',
             orgUsername: 'seeded@example.com',
@@ -243,7 +259,10 @@ describe('OrgList tests', () => {
           const result = await orgListModule.setDefaultOrg();
 
           expect(result).toEqual({ type: 'CONTINUE', data: {} });
-          expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'SeededOrg');
+          expect(setTargetOrgMock).toHaveBeenCalledWith('SeededOrg');
+          expect(invalidateCachedConnectionsMock).toHaveBeenCalledTimes(1);
+          expect(getConnectionMock).toHaveBeenCalledTimes(1);
+          expect(executeCommandMock).not.toHaveBeenCalled();
         });
       });
     });
@@ -312,7 +331,7 @@ describe('OrgList tests', () => {
     });
 
     describe('snapshot tests', () => {
-      it('no alias: label, orgAlias undefined, sf.config.set receives orgUsername', () => {
+      it('no alias: label, orgAlias undefined, setTargetOrg receives orgUsername', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'user@example.com', aliases: [] })],
           defaultConfig
@@ -330,7 +349,7 @@ describe('OrgList tests', () => {
 `);
       });
 
-      it('simple alias: label, sf.config.set receives orgAlias', () => {
+      it('simple alias: label, setTargetOrg receives orgAlias', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'user@example.com', aliases: ['MyOrg'] })],
           defaultConfig
@@ -348,7 +367,7 @@ describe('OrgList tests', () => {
 `);
       });
 
-      it('alias with dashes: label, sf.config.set receives orgAlias', () => {
+      it('alias with dashes: label, setTargetOrg receives orgAlias', () => {
         const items = authorizationsToQuickPickItems(
           [
             createOrgAuthorization({
@@ -372,7 +391,7 @@ describe('OrgList tests', () => {
 `);
       });
 
-      it('alias with multiple dashes (DevHub): label, sf.config.set receives orgAlias', () => {
+      it('alias with multiple dashes (DevHub): label, setTargetOrg receives orgAlias', () => {
         const items = authorizationsToQuickPickItems(
           [
             createOrgAuthorization({
@@ -439,7 +458,7 @@ describe('OrgList tests', () => {
         );
       });
 
-      it('comma-separated aliases: label, orgAlias first, sf.config.set receives orgAlias', () => {
+      it('comma-separated aliases: label, orgAlias first, setTargetOrg receives orgAlias', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'user@example.com', aliases: ['alias1', 'alias2', 'alias3'] })],
           defaultConfig
