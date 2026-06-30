@@ -22,7 +22,7 @@ describe('ConfigService.setTargetOrg', () => {
   beforeEach(() => {
     setMock.mockReset();
     writeMock.mockReset().mockResolvedValue(undefined);
-    createMock.mockReset().mockResolvedValue({ set: setMock, write: writeMock });
+    createMock.mockReset().mockResolvedValue({ set: setMock, write: writeMock } as unknown as Config);
   });
 
   it('writes the alias to target-org config and then invalidates the aggregator', async () => {
