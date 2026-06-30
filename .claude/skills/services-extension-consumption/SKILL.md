@@ -232,7 +232,7 @@ yield *
   );
 ```
 
-`TargetOrgRef` is a `SubscriptionRef`: `ref.changes` already emits the current value first, so never prepend an explicit get; use `Stream.drop(1)` to suppress the initial snapshot. See the SubscriptionRef section of `effect-best-practices/SKILL.md` for why.
+`TargetOrgRef` is a `SubscriptionRef`: `ref.changes` already emits the current value first, so never prepend an explicit get. See the SubscriptionRef section of `../effect-best-practices/SKILL.md` for the mechanic (incl. `Stream.drop(1)` to skip the initial snapshot).
 
 Ref behavior (concise):
 
