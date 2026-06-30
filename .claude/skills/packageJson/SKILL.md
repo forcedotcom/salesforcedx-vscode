@@ -24,7 +24,7 @@ description: package.json conventions for this repo. Use when editing/reviewing 
 
 ## scripts
 
-See [wireit skill](.claude/skills/wireit/SKILL.md)
+See [wireit skill](../wireit/SKILL.md)
 
 ## dependencies
 
