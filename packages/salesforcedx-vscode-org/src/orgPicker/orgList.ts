@@ -206,11 +206,23 @@ const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
   }
 
   const usernameOrAlias = selection.orgAlias ?? selection.orgUsername ?? '';
+  // expired orgs are excluded from the picker (orgList.ts:162), so the deleted Org.create
+  // existence/expiry guard is unnecessary; write the selection unconditionally
   yield* api.services.ConfigService.setTargetOrg(usernameOrAlias);
-  // refresh defaultOrgRef (status bar) deterministically; tolerate a bad selection
+  // triggers a background defaultOrgRef refresh (status bar updates reactively via the ref's
+  // changes stream; the ref set runs on a forked fiber in getConnection, not synchronously)
   yield* api.services.ConnectionService.invalidateCachedConnections();
+  // tolerate a bad selection: any connection failure after the write is equally acceptable
+  const logRefreshFailure = (e: unknown) => Effect.logWarning('setDefaultOrg: connection refresh failed', e);
   yield* api.services.ConnectionService.getConnection().pipe(
-    Effect.catchAll(e => Effect.logWarning('setDefaultOrg: connection refresh failed', e))
+    Effect.catchTags({
+      NoTargetOrgConfiguredError: logRefreshFailure,
+      FailedToCreateAuthInfoError: logRefreshFailure,
+      FailedToCreateConnectionError: logRefreshFailure,
+      FailedToCreateConfigAggregatorError: logRefreshFailure,
+      NoWorkspaceOpenError: logRefreshFailure,
+      MissingSettingsError: logRefreshFailure
+    })
   );
 });
 

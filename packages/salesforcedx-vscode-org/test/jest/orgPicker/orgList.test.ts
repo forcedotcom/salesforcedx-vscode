@@ -259,9 +259,18 @@ describe('OrgList tests', () => {
           const result = await orgListModule.setDefaultOrg();
 
           expect(result).toEqual({ type: 'CONTINUE', data: {} });
+          // alias preferred over username
           expect(setTargetOrgMock).toHaveBeenCalledWith('SeededOrg');
           expect(invalidateCachedConnectionsMock).toHaveBeenCalledTimes(1);
           expect(getConnectionMock).toHaveBeenCalledTimes(1);
+          // sequencing: write config → invalidate cache → reconnect
+          expect(setTargetOrgMock.mock.invocationCallOrder[0]).toBeLessThan(
+            invalidateCachedConnectionsMock.mock.invocationCallOrder[0]
+          );
+          expect(invalidateCachedConnectionsMock.mock.invocationCallOrder[0]).toBeLessThan(
+            getConnectionMock.mock.invocationCallOrder[0]
+          );
+          // guards against regression to the old sf.config.set vscode command
           expect(executeCommandMock).not.toHaveBeenCalled();
         });
       });
