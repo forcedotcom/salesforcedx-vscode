@@ -213,16 +213,8 @@ const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
   // changes stream; the ref set runs on a forked fiber in getConnection, not synchronously)
   yield* api.services.ConnectionService.invalidateCachedConnections();
   // tolerate a bad selection: any connection failure after the write is equally acceptable
-  const logRefreshFailure = (e: unknown) => Effect.logWarning('setDefaultOrg: connection refresh failed', e);
   yield* api.services.ConnectionService.getConnection().pipe(
-    Effect.catchTags({
-      NoTargetOrgConfiguredError: logRefreshFailure,
-      FailedToCreateAuthInfoError: logRefreshFailure,
-      FailedToCreateConnectionError: logRefreshFailure,
-      FailedToCreateConfigAggregatorError: logRefreshFailure,
-      NoWorkspaceOpenError: logRefreshFailure,
-      MissingSettingsError: logRefreshFailure
-    })
+    Effect.catchAll(e => Effect.logWarning('setDefaultOrg: connection refresh failed', e))
   );
 });
 
