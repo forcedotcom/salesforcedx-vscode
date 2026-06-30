@@ -20,10 +20,8 @@ import {
   getTargetDevHub,
   QUICK_INPUT_LIST_ROW,
   selectOrgInPicker,
-  selectOutputChannel,
   selectQuickInputOptionByTyping,
   waitForNotification,
-  waitForOutputChannelText,
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -32,13 +30,12 @@ import { orgDesktopTest as test } from '../fixtures/desktopFixtures';
 
 // Tests the org-picker status bar item: no-org state, picker action items, set default org (dev hub),
 // create a default scratch org, and switching the default org between dev hub and scratch.
+// Setting a default org is no longer a commandlet (W-23250969): the picker writes config via
+// ConfigService.setTargetOrg then refreshes the org ref via ConnectionService.getConnection, so there
+// is no success toast and no output-channel table — the status bar is the user-facing signal.
 
 // `missing_default_org` from `salesforcedx-vscode-org/src/messages/i18n.ts` (not in package.nls.json).
 const NO_DEFAULT_ORG = 'No Default Org Set';
-// `channel_name` from `salesforcedx-vscode-org/src/messages/i18n.ts`.
-const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
-// `%s successfully ran` (`salesforcedx-utils-vscode/src/messages/i18n.ts`), %s = command description.
-const SET_DEFAULT_ORG_RAN = /SFDX: Set a Default Org successfully ran/;
 const CREATE_SCRATCH_ORG_RAN = /SFDX: Create a Default Scratch Org\.\.\. successfully ran/;
 
 // The 5 ACTION_ITEMS rendered in the picker (orgList.ts ACTION_ITEMS); labels carry an icon prefix.
@@ -65,26 +62,13 @@ test('org picker: set default org, create scratch org, switch default org', asyn
     await expectOrgPickerStatusBar(page, NO_DEFAULT_ORG);
   });
 
-  // Open the picker via the status bar, verify the 5 action items, select the dev hub. Wait for the
-  // `SFDX: Set a Default Org successfully ran` toast (with a generous timeout since it auto-collapses)
-  // and then the persistent deterministic signals (output-channel config table + status bar) below.
+  // Open the picker via the status bar, verify the 5 action items, select the dev hub. The picker
+  // writes config and refreshes the org ref within its own effect (no toast); the status bar is the
+  // user-facing signal that the default org changed.
   await test.step('set dev hub as default org via picker', async () => {
     await clickOrgPickerStatusBar(page, NO_DEFAULT_ORG);
     await expectOrgPickerActionItems(page, PICKER_ACTION_ITEMS);
     await selectOrgInPicker(page, devHubAlias);
-    await waitForNotification(page, SET_DEFAULT_ORG_RAN);
-  });
-
-  // Output assertion: sf config was actually written, not just the status bar updated.
-  // configSet.ts renders a `createTable` whose cells are padded to each column's max width and joined
-  // with two spaces, e.g. `target-org  hub    true`. Build the expected row with that same padding so
-  // the substring match is exact regardless of the alias length (output search is substring, not regex).
-  await test.step('output channel reports target-org set to dev hub', async () => {
-    const nameCell = 'target-org'.padEnd(Math.max('Name'.length, 'target-org'.length));
-    const valueCell = devHubAlias.padEnd(Math.max('Value'.length, devHubAlias.length));
-    const expectedRow = `${nameCell}  ${valueCell}  true`;
-    await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
-    await waitForOutputChannelText(page, { expectedText: expectedRow });
   });
 
   await test.step('status bar shows dev hub alias', async () => {
@@ -138,14 +122,12 @@ test('org picker: set default org, create scratch org, switch default org', asyn
     // Staleness guard: confirm the freshly created scratch org appears without a reload.
     await expectOrgPickerListsOrg(page, scratchAlias);
     await selectOrgInPicker(page, devHubAlias);
-    await waitForNotification(page, SET_DEFAULT_ORG_RAN);
     await expectOrgPickerStatusBar(page, devHubAlias);
   });
 
   await test.step('switch default org back to scratch org', async () => {
     await clickOrgPickerStatusBar(page, devHubAlias);
     await selectOrgInPicker(page, scratchAlias);
-    await waitForNotification(page, SET_DEFAULT_ORG_RAN);
     await expectOrgPickerStatusBar(page, scratchAlias);
   });
 
