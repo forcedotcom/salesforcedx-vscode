@@ -10,6 +10,7 @@ import type { MessageKey } from './i18n';
 export const messages: Partial<Record<MessageKey, string>> = {
   retrieving_tests_message: 'テストを取得しています…',
   apex_test_suites_parent_text: 'Apex テストスイート',
+  apex_test_suite_remove_text: 'SFDX: Apex テストスイートからテストを削除',
   apex_testing_vfs_org_badge_text: 'ORG',
   apex_testing_vfs_org_file_tooltip_text: '組織の仮想ファイル (読み取り専用)',
   apex_testing_vfs_readonly_prefix_text: 'apex-testing は読み取り専用です',

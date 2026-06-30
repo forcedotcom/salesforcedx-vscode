@@ -29,6 +29,7 @@ export const messages = {
   apex_test_run_text: 'SFDX: Run Apex Tests',
   apex_test_suite_add_text: 'SFDX: Add Tests to Apex Test Suite',
   apex_test_suite_create_text: 'SFDX: Create Apex Test Suite',
+  apex_test_suite_remove_text: 'SFDX: Remove Apex Tests from Apex Test Suite',
   retrieving_tests_message: 'Retrieving tests…',
   apex_test_suite_run_text: 'SFDX: Run Apex Test Suite',
   apex_test_class_run_text: 'SFDX: Run Apex Test Class',
