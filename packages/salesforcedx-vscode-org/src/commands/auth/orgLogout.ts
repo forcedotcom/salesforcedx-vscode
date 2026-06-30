@@ -91,6 +91,13 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
+      const api = await getOrgRuntime().runPromise(
+        Effect.gen(function* () {
+          return yield* (yield* ExtensionProviderService).getServicesApi;
+        })
+      );
+      const { ConfigService } = api.services;
+
       // Clear the cached StateAggregator singleton so AuthRemover.init() rebuilds aliases
       // from disk; removeAuth reads aliases via the in-memory singleton, so a stale cache
       // would silently miss aliases added after the extension booted.
@@ -99,6 +106,10 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
       // removeAuth clears all global+local config keys pointing at the username/aliases
       // (target-org and target-dev-hub) and removes all aliases on disk.
       await authRemover.removeAuth(response.data);
+      // removeAuth unsets target-org on disk but does NOT clear the reactive TargetOrgRef.
+      // unsetTargetOrg clears that in-memory ref (clearDefaultOrgRef) so the org-picker status
+      // bar reverts to "No Default Org Set"; without it the bar keeps showing the logged-out alias.
+      await getOrgRuntime().runPromise(ConfigService.unsetTargetOrg());
       // refresh the extension's cached aggregators/connection after the on-disk change.
       await updateConfigAndStateAggregators();
     } catch (e) {
