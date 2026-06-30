@@ -7,7 +7,7 @@
 
 import { Config, OrgConfigProperties } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import { ConfigService } from '../../../src/core/configService';
+import { ConfigService, ConfigWriteError } from '../../../src/core/configService';
 
 jest.mock('@salesforce/core', () => ({
   ...jest.requireActual('@salesforce/core'),
@@ -40,5 +40,16 @@ describe('ConfigService.setTargetOrg', () => {
     // write called after set (write-before-reload ordering)
     expect(calls).toEqual(['set', 'write']);
     expect(writeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('wraps a write failure in ConfigWriteError', async () => {
+    writeMock.mockRejectedValueOnce(new Error('disk full'));
+
+    const error = await Effect.runPromise(
+      ConfigService.setTargetOrg('MyAlias').pipe(Effect.provide(ConfigService.Default), Effect.flip)
+    );
+
+    expect(error).toBeInstanceOf(ConfigWriteError);
+    expect(error.message).toContain('disk full');
   });
 });
