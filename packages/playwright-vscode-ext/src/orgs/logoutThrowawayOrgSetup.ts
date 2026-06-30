@@ -35,8 +35,9 @@ export const createThrowawayOrg = async (alias: string = THROWAWAY_ORG_ALIAS): P
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'logout-throwaway-org-'));
   const projectDir = path.join(tmpRoot, 'minimal-project');
 
-  // Create minimal sfdx project structure
-  await fs.mkdir(projectDir);
+  // Create minimal sfdx project structure. force-app must exist on disk or `sf org create scratch`
+  // throws MissingPackageDirectoryError (the path declared in packageDirectories is validated).
+  await fs.mkdir(path.join(projectDir, 'force-app'), { recursive: true });
   await fs.writeFile(
     path.join(projectDir, 'sfdx-project.json'),
     JSON.stringify(
