@@ -1,6 +1,6 @@
 ---
 name: services-extension-consumption
-description: Guidelines for consuming salesforcedx-vscode-services extension API. Use when working with extensions that have extensionDependency on salesforcedx-vscode-services, registering commands, using Workspace/Connection/Project/Settings/FS/Channel/Media services, quickpick/quickInput, implementing file/config watchers, editing extensionProvider.ts, buildAllServicesLayer, AllServicesLayer, setAllServicesLayer, prebuiltServicesDependencies, or Layer composition for VS Code extensions.
+description: Consume the salesforcedx-vscode-services extension API. Use when an extension depends on salesforcedx-vscode-services and you are registering commands, calling its services (Workspace, Connection, Project, Settings, FS, Channel, Media, prompts), watching files/config/target-org, or wiring the AllServicesLayer/runtime in extensionProvider.ts.
 ---
 
 # Consuming salesforcedx-vscode-services
@@ -232,18 +232,7 @@ yield *
   );
 ```
 
-**`ref.changes` always emits the current value as element 0**, then future changes. Never prepend an explicit get:
-
-```typescript
-// WRONG — the fromEffect/get is redundant; .changes already emits current value first
-Stream.concat(Stream.fromEffect(SubscriptionRef.get(ref)), ref.changes)
-Stream.concat(Stream.make(yield* SubscriptionRef.get(ref)), ref.changes)
-
-// CORRECT
-ref.changes
-```
-
-To suppress the initial snapshot (e.g. avoid triggering a refresh before a tree provider is ready), use `Stream.drop(1)`.
+`TargetOrgRef` is a `SubscriptionRef`: `ref.changes` already emits the current value first, so never prepend an explicit get. See the SubscriptionRef section of `../effect-best-practices/SKILL.md` for the mechanic (incl. `Stream.drop(1)` to skip the initial snapshot).
 
 Ref behavior (concise):
 

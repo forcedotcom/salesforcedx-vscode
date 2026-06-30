@@ -462,3 +462,37 @@ const processWithLogging = Effect.fn("OrderService.process")(function* (orderId:
     )
 })
 ```
+
+## Accumulating Errors Across a Collection
+
+To **continue past failures** instead of short-circuiting on the first, do NOT hand-roll `Either` + `catchTag` + a second loop. Use the built-in accumulation combinators:
+
+| Combinator | Returns | Use when |
+|-----------|---------|----------|
+| `Effect.partition(items, f)` | `Effect<[failures[], successes[]], never, R>` | Process all, handle both buckets (log failures, keep going) |
+| `Effect.validateAll(items, f)` | `Effect<successes[], failures[], R>` | All-or-nothing: succeed only if every item succeeds |
+| `Effect.validateFirst(items, f)` | first success | Stop at first success |
+
+```typescript
+// WRONG - hand-rolled accumulation: Either wrapping + catchTag + a re-loop to split
+const each = Effect.fn('each')(function* (item: Item) {
+  const either = yield* doThing(item).pipe(
+    Effect.map(Either.right),
+    Effect.catchTag('ThingError', e => Effect.succeed(Either.left(e)))
+  );
+  return { item, either };
+});
+const results = yield* Effect.forEach(items, each);
+const failed = results.filter(r => Either.isLeft(r.either)); // manual split
+
+// CORRECT - partition does the split, never short-circuits
+const [failures, successes] = yield* Effect.partition(items, doThing, { concurrency: 1 });
+```
+
+**Critical: `partition`/`validateAll` recover the typed error channel per item via `Effect.either` — they do NOT capture interruption.**
+
+- fiber interrupt (e.g. `withCancellableProgress` Cancel) still aborts the whole loop
+- exploit it: wrap the *entire* `partition` in one cancellable progress — Cancel stops, per-item typed failures accumulate
+- do NOT wrap each item — per-item wrap converts Cancel into a typed `UserCancellationError`, which `partition` buckets as a failure and keeps going
+
+`partition` keeps only the **error channel** on the failures side, not the input. To name the failing item, tag it on via an `Effect.fn` trailing pipeable: `Effect.fn('f')(function*(item){...}, (effect, item) => effect.pipe(Effect.mapError(() => item)))` — the pipeable receives `(self, ...args)`.

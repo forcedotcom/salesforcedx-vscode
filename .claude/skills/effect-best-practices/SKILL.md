@@ -1,12 +1,8 @@
 ---
 name: effect-best-practices
 description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
-version: 1.2.0
+version: 1.3.0
 ---
-
-# Effect-TS Best Practices
-
-This skill enforces opinionated, consistent patterns for Effect-TS codebases.
 
 For diff/plan review against these patterns, invoke the `effect-advocate` subagent (`.claude/agents/effect-advocate.md`).
 
@@ -183,83 +179,13 @@ Catch sparingly. No `catchAll` or "swallow to be safe." Use `catchTag`/`catchTag
 
 ### Prefer Explicit Over Generic Errors
 
-**Every distinct failure reason deserves its own error type.** Don't collapse multiple failure modes into generic HTTP errors.
-
-```typescript
-// WRONG - Generic errors lose information
-export class NotFoundError extends Schema.TaggedError<NotFoundError>()(
-  'NotFoundError',
-  { message: Schema.String },
-  HttpApiSchema.annotations({ status: 404 })
-) {}
-
-// Then mapping everything to it:
-Effect.catchTags({
-  UserNotFoundError: err => Effect.fail(new NotFoundError({ message: 'Not found' })),
-  ChannelNotFoundError: err => Effect.fail(new NotFoundError({ message: 'Not found' })),
-  MessageNotFoundError: err => Effect.fail(new NotFoundError({ message: 'Not found' }))
-});
-// Frontend gets useless: { _tag: "NotFoundError", message: "Not found" }
-// Which resource? User? Channel? Message? Can't tell!
-```
-
-```typescript
-// CORRECT - Explicit domain errors with rich context
-export class UserNotFoundError extends Schema.TaggedError<UserNotFoundError>()(
-  'UserNotFoundError',
-  { userId: UserId, message: Schema.String },
-  HttpApiSchema.annotations({ status: 404 })
-) {}
-
-export class ChannelNotFoundError extends Schema.TaggedError<ChannelNotFoundError>()(
-  'ChannelNotFoundError',
-  { channelId: ChannelId, message: Schema.String },
-  HttpApiSchema.annotations({ status: 404 })
-) {}
-
-export class SessionExpiredError extends Schema.TaggedError<SessionExpiredError>()(
-  'SessionExpiredError',
-  { sessionId: SessionId, expiredAt: Schema.DateTimeUtc, message: Schema.String },
-  HttpApiSchema.annotations({ status: 401 })
-) {}
-
-// Frontend can now show specific UI:
-// - UserNotFoundError → "User doesn't exist"
-// - ChannelNotFoundError → "Channel was deleted"
-// - SessionExpiredError → "Your session expired. Please log in again."
-```
+**Every distinct failure reason deserves its own error type** with rich context (`userId`, `channelId`, `expiredAt`), not one generic `NotFoundError` everything maps to. A generic `{ _tag: 'NotFoundError', message: 'Not found' }` can't tell the frontend which resource failed or how to recover; explicit tags drive specific UI. See `references/error-patterns.md` for the WRONG/CORRECT contrast and naming conventions.
 
 ### Accumulating Errors Across a Collection
 
-When running an effect per item and you want to **continue past failures** instead of short-circuiting on the first one, do NOT hand-roll `Either` + `catchTag` + a second loop. Use the built-in error-accumulation combinators:
+To **continue past failures** instead of short-circuiting on the first, don't hand-roll `Either` + `catchTag` + a re-loop. Use `Effect.partition` (both buckets), `Effect.validateAll` (all-or-nothing), or `Effect.validateFirst`. These recover the typed error channel per item but do NOT capture interruption — so a Cancel still aborts the whole loop.
 
-| Combinator | Returns | Use when |
-|-----------|---------|----------|
-| `Effect.partition(items, f)` | `Effect<[failures[], successes[]], never, R>` | Process all, handle both buckets (log failures, keep going) |
-| `Effect.validateAll(items, f)` | `Effect<successes[], failures[], R>` | All-or-nothing: succeed only if every item succeeds |
-| `Effect.validateFirst(items, f)` | first success | Stop at first success |
-
-```typescript
-// WRONG - hand-rolled accumulation: Either wrapping + catchTag + a re-loop to split
-const each = Effect.fn('each')(function* (item: Item) {
-  const either = yield* doThing(item).pipe(
-    Effect.map(Either.right),
-    Effect.catchTag('ThingError', e => Effect.succeed(Either.left(e)))
-  );
-  return { item, either };
-});
-const results = yield* Effect.forEach(items, each);
-const failed = results.filter(r => Either.isLeft(r.either)); // manual split
-
-// CORRECT - partition does the split, never short-circuits
-const [failures, successes] = yield* Effect.partition(items, doThing, { concurrency: 1 });
-```
-
-**Critical: `partition`/`validateAll` recover the typed error channel per item via `Effect.either` — they do NOT capture interruption.** So a fiber interrupt (e.g. a `withCancellableProgress` Cancel) still aborts the whole loop. Exploit this: wrap the *entire* `partition` in one cancellable progress so Cancel interrupts and stops, while per-item typed failures accumulate. Do NOT wrap each item — that converts a Cancel into a typed `UserCancellationError` per item, which `partition` would then bucket as a failure and keep going.
-
-`partition` keeps only the **error channel** on the failures side, not the input. To name the failing item, tag it on via an `Effect.fn` trailing pipeable: `Effect.fn('f')(function*(item){...}, (effect, item) => effect.pipe(Effect.mapError(() => item)))` — the pipeable receives `(self, ...args)`.
-
-See `references/error-patterns.md` for error remapping and retry patterns.
+See `references/error-patterns.md` for the accumulation/interruption nuance, error remapping, and retry patterns.
 
 ## Schema & Branded Types Pattern
 
@@ -335,6 +261,8 @@ const findByIdBad = (id: UserId) =>
 // CORRECT: logGetCommand, executeAnonymousCommand, executeAnonymous (helper), activation (lifecycle)
 ```
 
+See `references/composition-style.md` for how to compose these: flat build-then-run pipes, terminal runner, point-free safety, Match dispatch, guard clauses.
+
 ## Layer Composition
 
 **Declare dependencies in the service**, not at usage sites:
@@ -384,82 +312,32 @@ const upperName = Option.map(maybeName, n => n.toUpperCase());
 
 ## Effect Atom (Frontend State)
 
-Effect Atom provides reactive state management for React with Effect integration.
-
-### Basic Atoms
+Reactive React state via `@effect-atom/atom-react`. Define atoms OUTSIDE components; `keepAlive` for state that must persist; `useAtomSet` to write; `Result.builder` to render effectful results; `get.addFinalizer` to clean up listeners.
 
 ```typescript
-import { Atom } from '@effect-atom/atom-react';
+import { Atom, Result, useAtomValue, useAtomSet } from '@effect-atom/atom-react';
 
-// Define atoms OUTSIDE components
-const countAtom = Atom.make(0);
-
-// Use keepAlive for global state that should persist
-const userPrefsAtom = Atom.make({ theme: 'dark' }).pipe(Atom.keepAlive);
-
-// Atom families for per-entity state
-const modalAtomFamily = Atom.family((type: string) => Atom.make({ isOpen: false }).pipe(Atom.keepAlive));
-```
-
-### React Integration
-
-```typescript
-import { useAtomValue, useAtomSet, useAtom, useAtomMount } from "@effect-atom/atom-react"
+const countAtom = Atom.make(0); // outside the component
+const prefsAtom = Atom.make({ theme: 'dark' }).pipe(Atom.keepAlive); // persistent
 
 function Counter() {
-    const count = useAtomValue(countAtom)           // Read only
-    const setCount = useAtomSet(countAtom)          // Write only
-    const [value, setValue] = useAtom(countAtom)    // Read + write
-
-    return <button onClick={() => setCount((c) => c + 1)}>{count}</button>
+  const count = useAtomValue(countAtom);
+  const setCount = useAtomSet(countAtom);
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
 }
 
-// Mount side-effect atoms without reading value
-function App() {
-    useAtomMount(keyboardShortcutsAtom)
-    return <>{children}</>
-}
-```
-
-### Handling Results with Result.builder
-
-**Use `Result.builder`** for rendering effectful atom results. It provides chainable error handling with `onErrorTag`:
-
-```typescript
-import { Result } from "@effect-atom/atom-react"
-
+// Effectful atom → Result; handle loading/error/success
 function UserProfile() {
-    const userResult = useAtomValue(userAtom) // Result<User, Error>
-
-    return Result.builder(userResult)
-        .onInitial(() => <div>Loading...</div>)
-        .onErrorTag("NotFoundError", () => <div>User not found</div>)
-        .onError((error) => <div>Error: {error.message}</div>)
-        .onSuccess((user) => <div>Hello, {user.name}</div>)
-        .render()
+  return Result.builder(useAtomValue(userAtom))
+    .onInitial(() => <div>Loading...</div>)
+    .onErrorTag('NotFoundError', () => <div>User not found</div>)
+    .onError(error => <div>Error: {error.message}</div>)
+    .onSuccess(user => <div>Hello, {user.name}</div>)
+    .render();
 }
 ```
 
-### Atoms with Side Effects
-
-```typescript
-const scrollYAtom = Atom.make(get => {
-  const onScroll = () => get.setSelf(window.scrollY);
-
-  window.addEventListener('scroll', onScroll);
-  get.addFinalizer(() => window.removeEventListener('scroll', onScroll)); // REQUIRED
-
-  return window.scrollY;
-}).pipe(Atom.keepAlive);
-```
-
-See `references/effect-atom-patterns.md` for complete patterns including families, localStorage, and anti-patterns.
-
-## RPC & Cluster Patterns
-
-For RPC contracts and cluster workflows, see:
-
-- `references/rpc-cluster-patterns.md` - RpcGroup, Workflow.make, Activity patterns
+See `references/effect-atom-patterns.md` for families, React hooks, side-effect atoms with finalizers, localStorage, and anti-patterns.
 
 ## SubscriptionRef
 
