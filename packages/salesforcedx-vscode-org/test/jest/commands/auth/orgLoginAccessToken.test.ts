@@ -24,6 +24,7 @@ jest.mock('../../../../src/util/orgUtil', () => ({
 }));
 
 const buildServices = (simpleExec: jest.Mock) => ({
+  ProjectService: { getSfProject: () => Effect.succeed({}) },
   TerminalService: Effect.succeed({ simpleExec }),
   ChannelService: Effect.succeed({ appendToChannel: () => Effect.void, showChannel: Effect.void })
 });
@@ -43,7 +44,7 @@ describe('orgLoginAccessTokenCommand', () => {
     mockUpdateConfigAndStateAggregators.mockResolvedValue(undefined);
   });
 
-  it('execs the CLI with instance-url, quoted alias, no-prompt; token rides env not argv', async () => {
+  it('execs the CLI with instance-url, quoted alias, set-default, no-prompt; token rides env not argv', async () => {
     mockGather.mockReturnValue(
       Effect.succeed({ instanceUrl: 'https://my.salesforce.com', alias: 'MyOrg', accessToken: 'sid-secret-123' })
     );
@@ -53,7 +54,8 @@ describe('orgLoginAccessTokenCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org login access-token --instance-url "https://my.salesforce.com" --alias "MyOrg" --no-prompt',
+      command:
+        'sf org login access-token --instance-url "https://my.salesforce.com" --alias "MyOrg" --set-default --no-prompt',
       parse: expect.any(Function),
       env: { SF_ACCESS_TOKEN: 'sid-secret-123' }
     });
