@@ -18,10 +18,8 @@ import {
   executeCommandWithCommandPalette,
   expectOrgPickerStatusBar,
   QUICK_INPUT_LIST_ROW,
-  selectOutputChannel,
   selectQuickInputOptionByTyping,
   waitForNotification,
-  waitForOutputChannelText,
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -30,14 +28,14 @@ import { orgDesktopLogoutTest as test } from '../fixtures/desktopFixtures';
 
 // `missing_default_org` from salesforcedx-vscode-org/src/messages/i18n.ts (not in package.nls.json).
 const NO_DEFAULT_ORG = 'No Default Org Set';
-// `channel_name` from salesforcedx-vscode-org/src/messages/i18n.ts.
-const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 // `org_logout_scratch_logout` from salesforcedx-vscode-org/src/messages/i18n.ts — the scratch confirm button.
 const LOGOUT_CONFIRM_LABEL = 'Logout';
 // `%s successfully ran` (salesforcedx-utils-vscode/src/messages/i18n.ts), %s = command description.
 const CREATE_SCRATCH_ORG_RAN = /SFDX: Create a Default Scratch Org\.\.\. successfully ran/;
-// `org_logout_default_text` + `%s successfully ran`; output-channel match is a literal substring.
-const LOGOUT_DEFAULT_RAN = `${packageNls.org_logout_default_text} successfully ran`;
+// `org_logout_default_text` + `%s successfully ran`. OrgLogoutDefault is a LibraryCommandletExecutor:
+// success surfaces as a notification toast (notificationService.showSuccessfulExecution), never written
+// to the output channel — so this must be asserted via waitForNotification, not the output channel.
+const LOGOUT_DEFAULT_RAN = new RegExp(`${packageNls.org_logout_default_text} successfully ran`);
 
 // End-to-end coverage of sf.org.logout.default: create a default scratch org through the extension,
 // then log out from it. Exercises the real AuthRemover.removeAuth disk removal + scratch-confirm modal,
@@ -95,11 +93,10 @@ test('org logout: SFDX Log Out from Default Org removes auth from the default sc
     await clickModalDialogButton(page, LOGOUT_CONFIRM_LABEL, 15_000);
   });
 
-  // Durable success signal: removeAuth ran end-to-end and the command reported success. The status bar
-  // also reverts to "No Default Org Set" once the default org's auth is gone.
-  await test.step('output channel reports the logout command succeeded', async () => {
-    await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
-    await waitForOutputChannelText(page, { expectedText: LOGOUT_DEFAULT_RAN });
+  // Success signals: the command's success notification fires once removeAuth ran end-to-end, and the
+  // status bar reverts to "No Default Org Set" once the default org's auth is gone (the durable signal).
+  await test.step('logout command reports success and clears the default org', async () => {
+    await waitForNotification(page, LOGOUT_DEFAULT_RAN);
     await expectOrgPickerStatusBar(page, NO_DEFAULT_ORG, { timeout: 30_000 });
   });
 
