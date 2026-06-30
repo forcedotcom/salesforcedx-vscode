@@ -1,10 +1,10 @@
 # Effect Atom Patterns
 
-Reactive state for React via `@effect-atom/atom-react`. Atom integrates Effect with React rendering.
+Reactive state for React via `@effect-atom/atom-react`.
 
 ## Basic Atoms
 
-Define atoms OUTSIDE components (creating inside render makes a new atom each render).
+Define atoms OUTSIDE components; inside render = new atom every render.
 
 ```typescript
 import { Atom } from '@effect-atom/atom-react';
@@ -24,12 +24,14 @@ const modalAtomFamily = Atom.family((type: string) =>
   Atom.make({ isOpen: false }).pipe(Atom.keepAlive)
 );
 
-// Per-user query atom
+// Per-user query atom — Effect.fn gives the atom body a named span
 const userAtomFamily = Atom.family((userId: UserId) =>
-  Atom.make(Effect.gen(function* () {
-    const users = yield* UserService;
-    return yield* users.findById(userId);
-  }))
+  Atom.make(
+    Effect.fn('userAtomFamily.fetch')(function* () {
+      const users = yield* UserService;
+      return yield* users.findById(userId);
+    })()
+  )
 );
 ```
 
@@ -74,7 +76,7 @@ function UserProfile() {
 }
 ```
 
-Always handle loading + error states; don't render only the success case.
+Always handle loading + error; never only success case.
 
 ## Atoms with Side Effects
 
@@ -93,7 +95,7 @@ const scrollYAtom = Atom.make(get => {
 
 ## localStorage Persistence
 
-Hydrate from storage in the reader, persist on set via a finalizer or a write atom.
+Hydrate from storage in reader; persist on set via the setter from `useAtomSet`.
 
 ```typescript
 const themeAtom = Atom.make(get => {
@@ -101,14 +103,15 @@ const themeAtom = Atom.make(get => {
   return stored ?? 'dark';
 }).pipe(Atom.keepAlive);
 
-// Write-through: persist whenever set
-const setThemeAtom = Atom.writable(
-  get => get(themeAtom),
-  (ctx, value: string) => {
+// Write-through: persist in the component setter
+function ThemeToggle() {
+  const setTheme = useAtomSet(themeAtom);
+  const persist = (value: string) => {
     localStorage.setItem('theme', value);
-    ctx.set(themeAtom, value);
-  }
-);
+    setTheme(value);
+  };
+  return <button onClick={() => persist('light')}>Light</button>;
+}
 ```
 
 ## Anti-Patterns

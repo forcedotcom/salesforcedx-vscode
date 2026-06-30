@@ -4,8 +4,6 @@ description: Enforces Effect-TS patterns for services, errors, layers, and atoms
 version: 1.3.0
 ---
 
-# Effect-TS Best Practices
-
 For diff/plan review against these patterns, invoke the `effect-advocate` subagent (`.claude/agents/effect-advocate.md`).
 
 ## Effect LS diagnostics (agent usage)
@@ -340,12 +338,6 @@ function UserProfile() {
 ```
 
 See `references/effect-atom-patterns.md` for families, React hooks, side-effect atoms with finalizers, localStorage, and anti-patterns.
-
-## RPC & Cluster Patterns
-
-For RPC contracts and cluster workflows, see:
-
-- `references/rpc-cluster-patterns.md` - RpcGroup, Workflow.make, Activity patterns
 
 ## SubscriptionRef
 
