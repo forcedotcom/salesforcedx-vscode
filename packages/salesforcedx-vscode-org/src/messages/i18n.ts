@@ -24,8 +24,6 @@ export const messages = {
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
-  error_no_target_org:
-    'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   missing_default_org: 'No Default Org Set',
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
@@ -71,6 +69,7 @@ export const messages = {
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   org_logout_no_default_org: 'No default org to logout from',
   org_delete_failed_for_org: 'Failed to delete %s (%s). Check the output above for details.',
+  org_delete_failed_summary: 'Failed to delete: %s. Check the output above for details.',
   org_delete_select_orgs_placeholder: 'Select scratch orgs and sandboxes to delete',
   org_delete_confirm_prompt: 'Permanently delete %d org(s)? This cannot be undone.',
   org_delete_confirm_label: 'Delete',
