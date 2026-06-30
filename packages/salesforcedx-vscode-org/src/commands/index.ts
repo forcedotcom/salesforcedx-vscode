@@ -7,7 +7,6 @@
 
 export { configSet } from './configSet';
 export { orgCreate } from './orgCreate';
-export { orgDisplay } from './orgDisplay';
 export { orgListCleanCommand } from './orgList';
 export { orgLoginWeb } from './auth/orgLoginWeb';
 export { orgLoginWebDevHub } from './auth/orgLoginWebDevHub';

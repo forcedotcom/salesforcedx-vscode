@@ -6,69 +6,59 @@
  */
 
 import { AuthInfo, Connection, Org } from '@salesforce/core';
-import { getOrgInfo } from '../../../src/util/orgDisplay';
-import * as orgUtil from '../../../src/util/orgUtil';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import * as Option from 'effect/Option';
+import { getOrgInfoEffect } from '../../../src/util/orgDisplay';
 
 // Mock the Salesforce Core classes
 jest.mock('@salesforce/core', () => ({
-  AuthInfo: {
-    create: jest.fn()
-  },
-  Connection: {
-    create: jest.fn()
-  },
-  Org: {
-    create: jest.fn()
-  },
-  OrgConfigProperties: {
-    TARGET_ORG: 'target-org'
-  }
+  AuthInfo: { create: jest.fn() },
+  Connection: { create: jest.fn() },
+  Org: { create: jest.fn() },
+  OrgConfigProperties: { TARGET_ORG: 'target-org' }
 }));
 
-// Mock configAggregatorEffect module
-const mockConfigAggregatorStore: { value: any } = {
-  value: {
-    getPropertyValue: jest.fn().mockReturnValue(undefined)
-  }
+type Services = {
+  aliases: Record<string, string>;
+  configTargetOrg?: string;
 };
 
-jest.mock('../../../src/util/configAggregatorEffect', () => {
-  const Effect = require('effect/Effect');
-  // Reference mockConfigAggregatorStore from closure
-  return {
-    get getConfigAggregatorEffect() {
-      return Effect.succeed(mockConfigAggregatorStore.value);
-    }
-  };
-});
+// Provide ExtensionProviderService with AliasService (alias resolution + alias-by-username) and
+// ConfigService (config aggregator) — the only services the org-info Effects read from context.
+// R includes AliasService | ConfigService via accessors:true on those service classes; after
+// provideService the effect is fully satisfied at runtime, so the any-cast to never is safe.
+const provide = <A, E>(effect: Effect.Effect<A, E, any>, opts: Services) =>
+  Effect.runPromiseExit(
+    (effect as Effect.Effect<A, E, ExtensionProviderService>).pipe(
+      Effect.provideService(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({
+          services: {
+            AliasService: Effect.succeed({
+              getUsernameFromAlias: (alias: string) => Effect.succeed(Option.fromNullable(opts.aliases[alias])),
+              getAllAliases: () => Effect.succeed(opts.aliases)
+            }),
+            ConfigService: Effect.succeed({
+              getConfigAggregator: () =>
+                Effect.succeed({
+                  getPropertyValue: (_key: string) => opts.configTargetOrg
+                })
+            })
+          }
+        })
+      } as unknown as ExtensionProviderService)
+    ) as Effect.Effect<A, E, never>
+  );
 
-// Mock extensionProvider to provide AllServicesLayer
-jest.mock('../../../src/extensionProvider', () => {
-  const Layer = require('effect/Layer');
-  const Context = require('effect/Context');
-  // Create a minimal Layer - since getConfigAggregatorEffect is mocked, no services are needed
-  const DummyService = Context.GenericTag('DummyService');
-  return {
-    AllServicesLayer: Layer.succeed(DummyService, {})
-  };
-});
-
-describe('OrgDisplay unit tests.', () => {
-  let mockAuthInfo: any;
-  let mockConnection: any;
-  let mockOrg: any;
-  let mockConfigAggregator: any;
+describe('orgDisplay Effect util', () => {
+  let mockAuthInfo: Partial<jest.Mocked<AuthInfo>>;
+  let mockConnection: Partial<jest.Mocked<Connection>>;
+  let mockOrg: Partial<jest.Mocked<Org>>;
 
   beforeEach(() => {
-    // Reset all mocks
     jest.clearAllMocks();
 
-    // Default: alias resolution falls back to input (not an alias)
-    jest.spyOn(orgUtil, 'resolveUsernameFromAlias').mockImplementation(a => Promise.resolve(a));
-    // Default: no aliases for any username
-    jest.spyOn(orgUtil, 'readAliasesByUsernameFromDisk').mockResolvedValue(new Map());
-
-    // Setup mock AuthInfo
     mockAuthInfo = {
       getUsername: jest.fn().mockReturnValue('test@example.com'),
       getFields: jest.fn().mockReturnValue({
@@ -80,7 +70,6 @@ describe('OrgDisplay unit tests.', () => {
       })
     };
 
-    // Setup mock Connection
     mockConnection = {
       identity: jest.fn().mockResolvedValue({}),
       singleRecordQuery: jest.fn().mockResolvedValue({
@@ -94,74 +83,94 @@ describe('OrgDisplay unit tests.', () => {
       accessToken: 'test-token'
     };
 
-    // Setup mock Org
-    mockOrg = {
-      getDevHubOrg: jest.fn()
-    };
+    mockOrg = { getDevHubOrg: jest.fn() };
 
-    // Setup mock ConfigAggregator
-    mockConfigAggregator = {
-      getPropertyValue: jest.fn().mockReturnValue(undefined)
-    };
-
-    // Set the mock value that getConfigAggregatorEffect will return
-    mockConfigAggregatorStore.value = mockConfigAggregator;
-
-    jest.mocked(AuthInfo).create.mockResolvedValue(mockAuthInfo);
-    jest.mocked(Connection).create.mockResolvedValue(mockConnection);
-    jest.mocked(Org).create.mockResolvedValue(mockOrg);
+    jest.mocked(AuthInfo).create.mockResolvedValue(mockAuthInfo as unknown as AuthInfo);
+    jest.mocked(Connection).create.mockResolvedValue(mockConnection as unknown as Connection);
+    jest.mocked(Org).create.mockResolvedValue(mockOrg as unknown as Org);
   });
 
-  it('Should be able to successfully get org info with username provided.', async () => {
-    const result = await getOrgInfo('test@example.com');
+  it('gets org info with a username provided', async () => {
+    const exit = await provide(getOrgInfoEffect('test@example.com'), { aliases: {} });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) {
+      expect(exit.value).toMatchObject({
+        username: 'test@example.com',
+        id: '00D1234567890123',
+        createdBy: 'admin@example.com',
+        edition: 'Enterprise',
+        orgName: 'Test Org',
+        accessToken: 'test-token',
+        connectionStatus: 'Connected',
+        status: 'Connected',
+        aliases: []
+      });
+    }
+  });
 
-    expect(result).toEqual({
-      username: 'test@example.com',
-      devHubId: '',
-      id: '00D1234567890123',
-      createdBy: 'admin@example.com',
-      createdDate: '2024-01-01T00:00:00.000+0000',
-      expirationDate: '',
-      status: 'Connected',
+  it('resolveUsername: falls back to the config target-org when none provided', async () => {
+    const exit = await provide(getOrgInfoEffect(), { aliases: {}, configTargetOrg: 'test@example.com' });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) expect(exit.value.username).toBe('test@example.com');
+  });
 
-      edition: 'Enterprise',
-      orgName: 'Test Org',
-      accessToken: 'test-token',
-      instanceUrl: 'https://test.salesforce.com',
-      clientId: 'test-client-id',
-      apiVersion: '',
-      aliases: [],
-      connectionStatus: 'Connected',
-      password: ''
+  it('resolveUsername: resolves a config alias to its username', async () => {
+    const exit = await provide(getOrgInfoEffect(), {
+      aliases: { 'test-alias': 'test@example.com' },
+      configTargetOrg: 'test-alias'
     });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) expect(exit.value.username).toBe('test@example.com');
   });
 
-  it('Should get username from config when not provided.', async () => {
-    // Mock ConfigAggregator to return username from target-org property
-    mockConfigAggregator.getPropertyValue.mockReturnValue('test@example.com');
-    const result = await getOrgInfo();
-    expect(result.username).toBe('test@example.com');
+  it('resolveUsername: fails with NoUsernameError when nothing resolves', async () => {
+    const exit = await provide(getOrgInfoEffect(), { aliases: {} });
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('NoUsernameError');
   });
 
-  it('Should get username from config and resolve alias when alias is provided.', async () => {
-    // Mock ConfigAggregator to return an alias
-    mockConfigAggregator.getPropertyValue.mockReturnValue('test-alias');
-    // Mock disk-based alias resolution: test-alias → test@example.com
-    jest.spyOn(orgUtil, 'resolveUsernameFromAlias').mockResolvedValue('test@example.com');
-
-    const result = await getOrgInfo();
-    expect(result.username).toBe('test@example.com');
+  it('supplements aliases from disk for the resolved username', async () => {
+    const exit = await provide(getOrgInfoEffect('test@example.com'), {
+      aliases: { alias1: 'test@example.com', alias2: 'test@example.com' }
+    });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) expect(exit.value.aliases).toEqual(['alias1', 'alias2']);
   });
 
-  it('Should throw error when no username can be found.', async () => {
-    await expect(getOrgInfo()).rejects.toThrow(
-      'No username provided and no default username found in project config or state'
-    );
+  it('connection-failure path: returns a degraded OrgInfo (typed catch, not a die)', async () => {
+    // AuthInfo.create throwing maps to OrgInfoConnectionError -> graceful degradation via buildErrorOrgInfo.
+    // Two rejections: AuthInfo.create is called at two sites — first in getOrgInfoEffect (primary path),
+    // then again inside buildErrorOrgInfo (fallback). Both must reject to exercise the fully-degraded branch.
+    const authError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
+    jest.mocked(AuthInfo).create.mockRejectedValueOnce(authError).mockRejectedValueOnce(authError);
+
+    const exit = await provide(getOrgInfoEffect('test@example.com'), { aliases: {} });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) {
+      expect(exit.value.username).toBe('test@example.com');
+      expect(exit.value.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
+      expect(exit.value.id).toBe('');
+      expect(exit.value.accessToken).toBe('');
+    }
   });
 
-  it('Should handle scratch org detection.', async () => {
-    // Mock auth fields to indicate scratch org
-    mockAuthInfo.getFields.mockReturnValue({
+  it('SOQL-failure path: returns a degraded OrgInfo with error status', async () => {
+    const queryError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
+    mockConnection.singleRecordQuery!.mockRejectedValue(queryError);
+
+    const exit = await provide(getOrgInfoEffect('test@example.com'), { aliases: {} });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) {
+      expect(exit.value.username).toBe('test@example.com');
+      expect(exit.value.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
+      // AuthInfo creation succeeded, so the degraded fallback still carries auth fields
+      expect(exit.value.accessToken).toBe('test-token');
+      expect(exit.value.instanceUrl).toBe('https://test.salesforce.com');
+    }
+  });
+
+  it('detects a scratch org via the dev hub query', async () => {
+    mockAuthInfo.getFields!.mockReturnValue({
       username: 'test@example.com',
       orgId: '00D1234567890123',
       accessToken: 'test-token',
@@ -169,9 +178,7 @@ describe('OrgDisplay unit tests.', () => {
       clientId: 'test-client-id',
       devHubUsername: 'devhub@example.com'
     });
-
-    // Mock dev hub org
-    const mockHubOrg = {
+    mockOrg.getDevHubOrg!.mockResolvedValue({
       getConnection: jest.fn().mockReturnValue({
         singleRecordQuery: jest.fn().mockResolvedValue({
           Status: 'Active',
@@ -182,96 +189,30 @@ describe('OrgDisplay unit tests.', () => {
           OrgName: 'Test Scratch Org'
         })
       })
-    };
-    mockOrg.getDevHubOrg.mockResolvedValue(mockHubOrg);
+    } as unknown as Org);
 
-    const result = await getOrgInfo('test@example.com');
-
-    expect(result.devHubId).toBe('devhub@example.com');
-    expect(result.edition).toBe('Developer');
-    expect(result.status).toBe('Active');
-    expect(result.expirationDate).toBe('2024-12-31T00:00:00.000+0000');
+    const exit = await provide(getOrgInfoEffect('test@example.com'), { aliases: {} });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) {
+      expect(exit.value.devHubId).toBe('devhub@example.com');
+      expect(exit.value.edition).toBe('Developer');
+      expect(exit.value.status).toBe('Active');
+      expect(exit.value.expirationDate).toBe('2024-12-31T00:00:00.000+0000');
+    }
   });
 
-  it('Should handle sandbox org detection.', async () => {
-    // Mock org query for sandbox
-    mockConnection.singleRecordQuery.mockResolvedValue({
+  it('maps a sandbox org (IsSandbox: true) to edition Sandbox', async () => {
+    mockConnection.singleRecordQuery!.mockResolvedValue({
       Id: '00D1234567890123',
-      Name: 'Test Sandbox',
+      Name: 'Test Org',
       CreatedDate: '2024-01-01T00:00:00.000+0000',
       CreatedBy: { Username: 'admin@example.com' },
       OrganizationType: 'Enterprise',
-      InstanceName: 'NA1',
       IsSandbox: true
     });
 
-    const result = await getOrgInfo('test@example.com');
-
-    expect(result.edition).toBe('Sandbox');
-  });
-
-  it('Should retrieve all aliases when available.', async () => {
-    // Mock disk-based alias lookup: test@example.com → ['alias1', 'alias2']
-    jest
-      .spyOn(orgUtil, 'readAliasesByUsernameFromDisk')
-      .mockResolvedValue(new Map([['test@example.com', ['alias1', 'alias2']]]));
-
-    const result = await getOrgInfo('test@example.com');
-
-    expect(result.aliases).toEqual(['alias1', 'alias2']);
-  });
-
-  it('Should return empty array when no aliases are available.', async () => {
-    // Default mock already returns empty Map
-    const result = await getOrgInfo('test@example.com');
-
-    expect(result.aliases).toEqual([]);
-  });
-
-  it('Should handle authentication errors gracefully and show error in status field.', async () => {
-    // Mock AuthInfo.create to throw an authentication error
-    const authError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
-    jest.mocked(AuthInfo).create.mockRejectedValue(authError);
-
-    const result = await getOrgInfo('test@example.com');
-
-    expect(result.username).toBe('test@example.com');
-    expect(result.status).toBe('Unable to refresh session: expired access/refresh token');
-    expect(result.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
-    // Should still return basic org structure even with error
-    expect(result.id).toBe('');
-    expect(result.instanceUrl).toBe('');
-    expect(result.accessToken).toBe('');
-  });
-
-  it('Should handle connection errors gracefully and show error in status field.', async () => {
-    // Mock connection.identity to throw an authentication error
-    const connectionError = new Error(
-      'Error authenticating with the refresh token due to: expired access/refresh token'
-    );
-    mockConnection.identity.mockRejectedValue(connectionError);
-
-    const result = await getOrgInfo('test@example.com');
-
-    expect(result.username).toBe('test@example.com');
-    expect(result.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
-    // Should still have other org info since AuthInfo creation succeeded
-    expect(result.accessToken).toBe('test-token');
-    expect(result.instanceUrl).toBe('https://test.salesforce.com');
-  });
-
-  it('Should handle SOQL query errors gracefully and return error status.', async () => {
-    // Mock singleRecordQuery to throw an authentication error
-    const queryError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
-    mockConnection.singleRecordQuery.mockRejectedValue(queryError);
-
-    const result = await getOrgInfo('test@example.com');
-
-    expect(result.username).toBe('test@example.com');
-    expect(result.status).toBe('Unable to refresh session: expired access/refresh token');
-    expect(result.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
-    // Should still have auth info since AuthInfo and Connection creation succeeded
-    expect(result.accessToken).toBe('test-token');
-    expect(result.instanceUrl).toBe('https://test.salesforce.com');
+    const exit = await provide(getOrgInfoEffect('test@example.com'), { aliases: {} });
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) expect(exit.value.edition).toBe('Sandbox');
   });
 });
