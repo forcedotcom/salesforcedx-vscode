@@ -43,7 +43,7 @@ const makeSimpleExec =
       : Effect.fail({ _tag: 'TerminalServiceError', message: hit.result.fail, command });
   };
 
-type Choices = { warning?: string[]; confirm?: string[] };
+type Choices = { warning?: string[]; confirm?: string[]; autoTerminateConfirm?: string[] };
 
 /** PromptService stub mirroring considerUndefinedAsCancellation (undefined/'' → UserCancellationError by tag). */
 const makePromptService = () => ({
@@ -53,10 +53,39 @@ const makePromptService = () => ({
       : Effect.succeed(value)
 });
 
-const makeApi = (responses: { match: string; result: ExecResult }[]) => ({
+type SettingsStub = {
+  getValueCalls: { section: string; key: string; defaultValue: unknown }[];
+  setValueCalls: { section: string; key: string; value: unknown }[];
+  getValueResult: unknown;
+  setValueFail: boolean;
+};
+
+const makeSettingsStub = (opts: { getValueResult?: unknown; setValueFail?: boolean } = {}): SettingsStub => ({
+  getValueCalls: [],
+  setValueCalls: [],
+  getValueResult: opts.getValueResult ?? false,
+  setValueFail: opts.setValueFail ?? false
+});
+
+const makeSettingsService = (stub: SettingsStub) => ({
+  getValue: (section: string, key: string, defaultValue?: unknown) => {
+    stub.getValueCalls.push({ section, key, defaultValue });
+    return Effect.succeed(stub.getValueResult);
+  },
+  setValue: (section: string, key: string, value: unknown) => {
+    stub.setValueCalls.push({ section, key, value });
+    if (stub.setValueFail) {
+      return Effect.fail({ _tag: 'MissingSettingsError', message: 'write failed', key, section, cause: undefined });
+    }
+    return Effect.succeed(undefined);
+  }
+});
+
+const makeApi = (responses: { match: string; result: ExecResult }[], settingsStub?: SettingsStub) => ({
   services: {
     TerminalService: Effect.succeed({ simpleExec: makeSimpleExec(responses) }),
-    PromptService: Effect.succeed(makePromptService())
+    PromptService: Effect.succeed(makePromptService()),
+    SettingsService: Effect.succeed(makeSettingsService(settingsStub ?? makeSettingsStub()))
   }
 });
 
@@ -93,11 +122,15 @@ const loadHandler = (platform: NodeJS.Platform, telemetry: MockTelemetryService)
 };
 
 const provide =
-  (Provider: typeof ExtensionProviderService, responses: { match: string; result: ExecResult }[]) =>
+  (
+    Provider: typeof ExtensionProviderService,
+    responses: { match: string; result: ExecResult }[],
+    settingsStub?: SettingsStub
+  ) =>
   (effect: Effect.Effect<unknown, unknown, unknown>) =>
     effect.pipe(
       Effect.provideService(Provider, {
-        getServicesApi: Effect.succeed(makeApi(responses))
+        getServicesApi: Effect.succeed(makeApi(responses, settingsStub))
       } as unknown as ExtensionProviderService)
     );
 
@@ -111,13 +144,14 @@ const captureRoot = (holder: { root?: Tracer.Span }) => (effect: Effect.Effect<v
 const run = (
   telemetry: MockTelemetryService,
   responses: { match: string; result: ExecResult }[],
-  holder: { root?: Tracer.Span } = {}
+  holder: { root?: Tracer.Span } = {},
+  settingsStub?: SettingsStub
 ) => {
   const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin', telemetry);
   return Effect.runPromise(
-    (checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)) as Effect.Effect<void>).pipe(
-      captureRoot(holder)
-    )
+    (
+      checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses, settingsStub)) as Effect.Effect<void>
+    ).pipe(captureRoot(holder))
   );
 };
 
@@ -136,25 +170,39 @@ const KILL_RETRY_TOTAL_SECONDS = Array.from(
 const runWithClock = (
   telemetry: MockTelemetryService,
   responses: { match: string; result: ExecResult }[],
-  holder: { root?: Tracer.Span } = {}
+  holder: { root?: Tracer.Span } = {},
+  settingsStub?: SettingsStub
 ) => {
   const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin', telemetry);
   return Effect.runPromise(
     Effect.gen(function* () {
       holder.root = yield* Effect.currentSpan;
-      const fiber = yield* Effect.fork(checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)));
+      const fiber = yield* Effect.fork(
+        checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses, settingsStub))
+      );
       yield* TestClock.adjust(Duration.seconds(KILL_RETRY_TOTAL_SECONDS + 1));
       return yield* Fiber.join(fiber);
     }).pipe(Effect.withSpan('test-root'), Effect.provide(TestContext.TestContext)) as Effect.Effect<void>
   );
 };
 
-const setWarningChoices = ({ warning = [], confirm = [] }: Choices) => {
+const setWarningChoices = ({ warning = [], confirm = [], autoTerminateConfirm = [] }: Choices) => {
   const queue = [...warning];
   const confirmQueue = [...confirm];
-  (vscode.window.showWarningMessage as jest.Mock).mockImplementation((message: string) =>
-    Promise.resolve(message.includes('Terminate them?') ? confirmQueue.shift() : queue.shift())
-  );
+  const autoTerminateConfirmQueue = [...autoTerminateConfirm];
+  (vscode.window.showWarningMessage as jest.Mock).mockImplementation((message: string, ...args: unknown[]) => {
+    // Route based on message content and modal option presence
+    const hasModal = args.some(
+      a => typeof a === 'object' && a !== null && 'modal' in a && (a as { modal: boolean }).modal
+    );
+    if (message.includes('Terminate them?')) {
+      return Promise.resolve(confirmQueue.shift());
+    }
+    if (hasModal && message.includes(nls.localize('always_auto_terminate'))) {
+      return Promise.resolve(autoTerminateConfirmQueue.shift());
+    }
+    return Promise.resolve(queue.shift());
+  });
 };
 
 describe('languageServerOrphanHandler', () => {
@@ -234,6 +282,65 @@ describe('languageServerOrphanHandler', () => {
     await run(telemetry, [{ match: 'ps -e', result: { fail: 'Not available on web' } }]);
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(killSpy).not.toHaveBeenCalled();
+  });
+
+  describe('autoTerminateOrphanedProcesses setting', () => {
+    it('setting true + orphans found → kills without prompt', async () => {
+      const stub = makeSettingsStub({ getValueResult: true });
+      await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
+      expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+      expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+      expect(stub.getValueCalls).toEqual([
+        { section: 'salesforcedx-vscode-apex', key: 'autoTerminateOrphanedProcesses', defaultValue: false }
+      ]);
+    });
+
+    it('setting false + user clicks "Always Auto-Terminate" + confirms modal → setValue called + kills', async () => {
+      const stub = makeSettingsStub({ getValueResult: false });
+      setWarningChoices({
+        warning: [nls.localize('always_auto_terminate')],
+        autoTerminateConfirm: [nls.localize('confirm')]
+      });
+      await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
+      expect(stub.setValueCalls).toEqual([
+        { section: 'salesforcedx-vscode-apex', key: 'autoTerminateOrphanedProcesses', value: true }
+      ]);
+      expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+    });
+
+    it('setting false + user clicks "Always Auto-Terminate" + cancels modal → no kill, setValue not called', async () => {
+      const stub = makeSettingsStub({ getValueResult: false });
+      setWarningChoices({
+        warning: [nls.localize('always_auto_terminate')],
+        autoTerminateConfirm: [undefined as unknown as string]
+      });
+      await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
+      expect(stub.setValueCalls).toEqual([]);
+      expect(killSpy).not.toHaveBeenCalled();
+    });
+
+    it('setting false + existing flows unchanged (terminate, show, dismiss)', async () => {
+      const stub = makeSettingsStub({ getValueResult: false });
+      setWarningChoices({
+        warning: [nls.localize('terminate_processes')],
+        confirm: [nls.localize('yes')]
+      });
+      await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
+      expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+      expect(stub.setValueCalls).toEqual([]);
+    });
+
+    it('SettingsService.setValue failure → span annotation recorded, kill still proceeds', async () => {
+      const stub = makeSettingsStub({ getValueResult: false, setValueFail: true });
+      const holder: { root?: Tracer.Span } = {};
+      setWarningChoices({
+        warning: [nls.localize('always_auto_terminate')],
+        autoTerminateConfirm: [nls.localize('confirm')]
+      });
+      await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], holder, stub);
+      expect(holder.root?.attributes.get('settingsWriteError')).toBe('write failed');
+      expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+    });
   });
 });
 
