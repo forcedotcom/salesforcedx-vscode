@@ -16,7 +16,6 @@ export const messages = {
   auth_custom_detail: 'Custom org',
   auth_custom_label: 'Custom',
   channel_name: 'Salesforce Org Management',
-  config_set_name: 'Target Org',
   config_set_org_text: 'SFDX: Set a Default Org',
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
@@ -100,8 +99,5 @@ export const messages = {
   pending_org_expiration_output_channel_message:
     'Warning: The following orgs expire in the next %d days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
   status_bar_open_org_tooltip: 'Open Default Org in Browser',
-  status_bar_org_picker_tooltip: 'Change Default Org',
-  table_header_name: 'Name',
-  table_header_success: 'Success',
-  table_header_value: 'Value'
+  status_bar_org_picker_tooltip: 'Change Default Org'
 } as const;

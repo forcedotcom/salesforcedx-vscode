@@ -206,7 +206,12 @@ const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
   }
 
   const usernameOrAlias = selection.orgAlias ?? selection.orgUsername ?? '';
-  vscode.commands.executeCommand('sf.config.set', usernameOrAlias);
+  yield* api.services.ConfigService.setTargetOrg(usernameOrAlias);
+  // refresh defaultOrgRef (status bar) deterministically; tolerate a bad selection
+  yield* api.services.ConnectionService.invalidateCachedConnections();
+  yield* api.services.ConnectionService.getConnection().pipe(
+    Effect.catchAll(e => Effect.logWarning('setDefaultOrg: connection refresh failed', e))
+  );
 });
 
 export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> =>

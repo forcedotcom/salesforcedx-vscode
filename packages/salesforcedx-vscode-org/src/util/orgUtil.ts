@@ -9,14 +9,13 @@ import {
   AuthFields,
   AuthInfo,
   AuthRemover,
-  Config,
   Org,
   OrgAuthorization,
   OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { notificationService, workspaceUtils, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
@@ -124,31 +123,6 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   await StateAggregator.clearInstanceAsync();
 
   await getOrgRuntime().runPromise(refreshConnection());
-};
-
-const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
-  const config = await Config.create(Config.getDefaultOptions());
-  config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
-  await config.write();
-  await updateConfigAndStateAggregators();
-};
-
-/** Sets the target org or alias in the local config */
-export const setTargetOrgOrAlias = async (usernameOrAlias: string): Promise<void> => {
-  const originalDirectory = process.cwd();
-  // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
-  const workspacePath = workspaceUtils.getRootWorkspacePath();
-  try {
-    process.chdir(workspacePath);
-    // checks if the usernameOrAlias is non-empty and active.
-    if (usernameOrAlias) {
-      // throws an error if the org associated with the usernameOrAlias is expired.
-      await Org.create({ aliasOrUsername: usernameOrAlias });
-    }
-    await setUsernameOrAlias(usernameOrAlias);
-  } finally {
-    process.chdir(originalDirectory);
-  }
 };
 
 /** Get connection status from error */

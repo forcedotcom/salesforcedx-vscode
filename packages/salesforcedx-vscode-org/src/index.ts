@@ -17,7 +17,6 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from './channels';
 import {
-  configSet,
   orgCreate,
   orgListCleanCommand,
   orgLoginAccessToken,
@@ -38,7 +37,6 @@ import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 /** Register all org/auth commands */
 const registerCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
     vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken),
     vscode.commands.registerCommand('sf.org.create', orgCreate),
