@@ -26,6 +26,7 @@ const label = (typeof _a === 'object' && _a.label) || wt.split('/').pop() || 'di
 // =====================================================================
 
 const SMALL_DIFF_LINES = 20
+// these skills inject on every review regardless of description match; their description triggers are load-bearing only if removed from this list
 const ALWAYS_APPLICABLE_SKILLS = ['typescript', 'concise', 'paths']
 const SKILLS_DIR = '.claude/skills'
 // Skills not relevant to code review of a diff — operational workflows or environmental setup.
