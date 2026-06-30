@@ -14,7 +14,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { CliRawObject } from '../util/cliJson';
+import { decodeTaggedCliResponse } from '../util/cliJson';
 
 /**
  * Raised when `sf org open --url-only --json` stdout cannot be decoded into either result shape.
@@ -24,8 +24,7 @@ export class OrgOpenParseError extends Schema.TaggedError<OrgOpenParseError>()('
   message: Schema.String
 }) {}
 
-const OrgOpenSuccess = Schema.Struct({
-  _tag: Schema.Literal('OrgOpenSuccess'),
+const OrgOpenSuccess = Schema.TaggedStruct('OrgOpenSuccess', {
   result: Schema.Struct({
     orgId: Schema.String,
     url: Schema.String,
@@ -34,8 +33,7 @@ const OrgOpenSuccess = Schema.Struct({
 });
 
 /** sf prints `{ status: 1, message }` on failure; preserve the old channel-message behavior. */
-const OrgOpenFailure = Schema.Struct({
-  _tag: Schema.Literal('OrgOpenFailure'),
+const OrgOpenFailure = Schema.TaggedStruct('OrgOpenFailure', {
   status: Schema.Literal(1),
   message: Schema.String
 });
@@ -51,12 +49,9 @@ type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
  * test can inject the discriminant before the tagged-union decode; all downstream dispatch is on `_tag` via
  * Match. Malformed/unexpected shape maps to a tagged error rather than escaping as a defect.
  */
-const decodeOrgOpenResponse = (stdout: string) =>
-  Schema.decodeUnknown(CliRawObject)(stdout).pipe(
-    Effect.map(raw => ({ ...raw, _tag: 'result' in raw ? 'OrgOpenSuccess' : 'OrgOpenFailure' })),
-    Effect.flatMap(tagged => Schema.decodeUnknown(OrgOpenResponse)(tagged)),
-    Effect.mapError(error => new OrgOpenParseError({ message: `Failed to parse org open response: ${error.message}` }))
-  );
+const decodeOrgOpenResponse = decodeTaggedCliResponse(OrgOpenResponse, raw =>
+  'result' in raw ? 'OrgOpenSuccess' : 'OrgOpenFailure'
+)(() => new OrgOpenParseError({ message: 'Failed to parse org open response' }));
 
 /**
  * Effect command for `sf.org.open`: open the default org in the browser.
