@@ -36,16 +36,11 @@ External sources (Wikipedia, Illustrator, etc.) may be too complex for font gene
 
 ## Workflow
 
-1. **Add SVG** — `media/icons-src/<name>.svg` (name = lowercase, no spaces)
-2. **Add manifest entry** — `media/icons-src/icons.json`:
-
-   ```json
-   "<name>": { "id": "sf-org-<id>", "description": "..." }
-   ```
-
-3. **Run build** — `npm run build:icons -w salesforcedx-vscode-services` (updates `contributes.icons` in package.json)
-4. **Add ICONS constant** — `src/vscode/mediaService.ts` and `ICON_DESCRIPTION_KEYS`; add i18n key in messages if needed
-5. **Regenerate types** — if services-types consumes ICONS, run its generate script
+1. **Add SVG** — `media/icons-src/<name>.svg` (name = lowercase, no spaces). Done: file matches [SVG Requirements](#svg-requirements)
+2. **Add manifest entry** — append to `media/icons-src/icons.json` per [icons.json Format](#iconsjson-format). Done: key + `id` + `description` present
+3. **Run build** — `npm run build:icons -w salesforcedx-vscode-services`. Done: `contributes.icons` in package.json + `resources/icons-font/*` updated — verify `git diff`
+4. **Add ICONS constant** — `src/vscode/mediaService.ts`: `ICONS` + `ICON_DESCRIPTION_KEYS`; add i18n key in messages if needed. Done: new icon in both maps, compiles
+5. **Regenerate types** — if services-types consumes ICONS, run its generate script. Done: `icons.ts` includes new icon
 
 ## icons.json Format
 
