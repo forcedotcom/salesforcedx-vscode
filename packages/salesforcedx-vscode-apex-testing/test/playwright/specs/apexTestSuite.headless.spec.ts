@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   clearOutputChannel,
   createAndDeployApexTestClass,
@@ -26,7 +26,11 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
-import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
+import {
+  CMD_TOGGLE_MAXIMIZED_PANEL,
+  findTestExplorerItem,
+  openTestExplorerAndDiscover
+} from '../helpers/testExplorerHelpers';
 
 /** Run Create Apex Test Suite via command palette: type suite name, select one class, confirm. */
 const createApexTestSuiteViaPalette = async (
@@ -180,6 +184,60 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await waitForOutputChannelText(page, { expectedText: testClassName2, timeout: 60_000 });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 60_000 });
     await saveScreenshot(page, 'step.verify-run.done.png');
+  });
+
+  await test.step('remove second test class from suite', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+    await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_remove_text);
+    await saveScreenshot(page, 'step.remove-tests.after-command.png');
+    await selectSuiteInQuickPick(page, testSuiteName, { waitForListRowMs: 10_000 });
+    await saveScreenshot(page, 'step.remove-tests.suite-selected.png');
+    await selectTestClassInQuickPick(page, testClassName2);
+    await saveScreenshot(page, 'step.remove-tests.done.png');
+  });
+
+  await test.step('verify removal output sentinel', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await waitForOutputChannelText(page, {
+      expectedText: 'Ended SFDX: Remove Apex Tests from Apex Test Suite',
+      timeout: 60_000
+    });
+    await saveScreenshot(page, 'step.verify-remove.png');
+  });
+
+  await test.step('verify removed class absent from test explorer tree', async () => {
+    const panel = await openTestExplorerAndDiscover(page);
+    await saveScreenshot(page, 'step.verify-remove-tree.after-discover.png');
+    // The removed class should no longer appear in the tree
+    const removedItem = findTestExplorerItem(page, testClassName2);
+    await expect(removedItem).toHaveCount(0, { timeout: 30_000 });
+    // The first class should still be visible
+    const remainingItem = panel.getByText(testClassName1);
+    await expect(remainingItem.first()).toBeVisible({ timeout: 30_000 });
+    await saveScreenshot(page, 'step.verify-remove-tree.done.png');
+  });
+
+  await test.step('re-run suite and verify removed class does not execute', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+    await verifyCommandExists(page, packageNls.apex_test_suite_run_text, 30_000);
+    await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_run_text);
+    await selectSuiteInQuickPick(page, testSuiteName);
+    await saveScreenshot(page, 'step.rerun-suite.suite-selected.png');
+
+    await waitForOutputChannelText(page, { expectedText: '=== Test Results', timeout: TEST_RUN_TIMEOUT });
+    await waitForOutputChannelText(page, { expectedText: testClassName1, timeout: 60_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 60_000 });
+
+    // Verify removed class does NOT appear in test results
+    const outputPanel = page.locator('.output-view .view-lines');
+    const outputText = await outputPanel.textContent();
+    expect(outputText).not.toContain(testClassName2);
+    await saveScreenshot(page, 'step.rerun-suite.done.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
