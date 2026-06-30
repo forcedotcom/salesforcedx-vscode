@@ -8,4 +8,5 @@
 // Commands
 export const ORG_OPEN_COMMAND = 'sf.org.open';
 export const ORG_DISPLAY_DEFAULT_COMMAND = 'sf.org.display.default';
+export const ORG_DISPLAY_USERNAME_COMMAND = 'sf.org.display.username';
 export const ORG_LOGIN_WEB = 'org:login:web';
