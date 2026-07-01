@@ -48,16 +48,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          DISCUSSIONS=$(gh discussion list --label "pending release" --state open --json number,id --limit 500)
+          DISCUSSIONS=$(gh discussion list --label "pending release" --state open --json number,id,title --limit 500)
           echo "Found $(echo "$DISCUSSIONS" | jq '.discussions | length') discussion(s) to close."
           echo "$DISCUSSIONS" | jq -c '.discussions[]' | while read -r D; do
             NUMBER=$(echo "$D" | jq -r '.number')
             ID=$(echo "$D" | jq -r '.id')
+            TITLE=$(echo "$D" | jq -r '.title')
             gh discussion comment "$NUMBER" --body "Released in v${VERSION} of the Salesforce Extensions for VSCode." \
               || echo "::warning::Failed to comment on discussion #$NUMBER"
             gh api graphql -f query='
               mutation($id: ID!) {
                 closeDiscussion(input: {discussionId: $id}) { discussion { id } }
               }' -f id="$ID" > /dev/null \
+              && echo "✓ Closed discussion ${GITHUB_REPOSITORY}#${NUMBER} (${TITLE})" \
               || echo "::warning::Failed to close discussion #$NUMBER"
           done
