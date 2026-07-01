@@ -626,11 +626,38 @@ export class ApexTestController {
       }
 
       if (includesSuiteChange) {
-        this.clearAllSuiteChildren();
+        if (this.discoveryInProgress) {
+          await this.discoveryInProgress;
+        }
+        await this.refreshSuiteItems();
       }
     } catch {
       // Non-fatal: incremental update failure doesn't affect existing tree state
     }
+  }
+
+  /**
+   * Removes the suite parent item from the tree, clears suite state, then re-queries
+   * suites from the org. Used when a suite is created or deleted via metadata deploy so
+   * the Testing sidebar reflects the current org state without a manual refresh.
+   */
+  private async refreshSuiteItems(): Promise<void> {
+    if (this.discoveryInProgress) {
+      await this.discoveryInProgress;
+    }
+
+    // Remove the suite parent node from the tree
+    if (this.suiteParentItem) {
+      this.controller.items.delete(this.suiteParentItem.id);
+    }
+
+    // Clear suite-related state
+    this.suiteItems.clear();
+    this.suiteToClasses.clear();
+    this.suiteParentItem = undefined;
+
+    // Re-query suites from the org and rebuild the suite tree
+    await this.populateSuiteItems();
   }
 
   private removeClassFromTree(fullClassName: string): void {
