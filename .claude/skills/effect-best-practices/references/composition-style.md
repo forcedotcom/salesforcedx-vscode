@@ -80,9 +80,9 @@ at the end. The goal is one pipe that ends in execution: no imperative tail afte
 return yield* runApexTests({ /* ... */ }).pipe(
   Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
   promptService.withCancellableProgress(executionName),
+  Effect.tap(() => channelService.showChannel),
   Effect.tap(result =>
     Effect.sync(() => {
-      OUTPUT_CHANNEL.show();
       (result === undefined
         ? notificationService.showFailedExecution
         : notificationService.showSuccessfulExecution)(executionName);
@@ -93,7 +93,7 @@ return yield* runApexTests({ /* ... */ }).pipe(
 // AVOID — pull the result out, then branch imperatively below the pipe.
 // Splits one operation across two reading modes (pipe + statements).
 const result = yield* runApexTests({ /* ... */ }).pipe(/* ... */);
-OUTPUT_CHANNEL.show();
+yield* channelService.showChannel;
 (result === undefined ? /* ... */ : /* ... */)(executionName);
 return result;
 ```
