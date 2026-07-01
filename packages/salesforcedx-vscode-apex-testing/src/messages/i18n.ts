@@ -29,6 +29,7 @@ export const messages = {
   apex_test_run_text: 'SFDX: Run Apex Tests',
   apex_test_suite_add_text: 'SFDX: Add Tests to Apex Test Suite',
   apex_test_suite_create_text: 'SFDX: Create Apex Test Suite',
+  apex_test_suite_remove_text: 'SFDX: Remove Tests from Apex Test Suite',
   retrieving_tests_message: 'Retrieving tests…',
   apex_test_suite_run_text: 'SFDX: Run Apex Test Suite',
   apex_test_class_run_text: 'SFDX: Run Apex Test Class',
@@ -60,6 +61,8 @@ export const messages = {
     'The following test suite(s) are empty and cannot be run: %s. Add test classes to the suite before running.',
   apex_test_suite_empty_message:
     'This test suite is empty and cannot be run. Add test classes to the suite before running.',
+  apex_test_suite_empty_remove_message: 'This test suite is empty. There are no tests to remove.',
+  apex_test_suite_no_suites_message: 'No Apex test suites found.',
   apex_test_resolve_suite_children_failed_message: 'Failed to resolve suite children for suite: %s. Error: %s',
   apex_test_connection_failed_message: 'Failed to get connection',
   apex_test_service_not_initialized_message: 'TestService not initialized. Call ensureInitialized() first.',

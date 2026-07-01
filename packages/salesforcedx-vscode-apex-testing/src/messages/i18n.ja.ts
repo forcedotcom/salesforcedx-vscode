@@ -10,6 +10,7 @@ import type { MessageKey } from './i18n';
 export const messages: Partial<Record<MessageKey, string>> = {
   retrieving_tests_message: 'テストを取得しています…',
   apex_test_suites_parent_text: 'Apex テストスイート',
+  apex_test_suite_remove_text: 'SFDX: Apex テストスイートからテストを削除',
   apex_testing_vfs_org_badge_text: 'ORG',
   apex_testing_vfs_org_file_tooltip_text: '組織の仮想ファイル (読み取り専用)',
   apex_testing_vfs_readonly_prefix_text: 'apex-testing は読み取り専用です',
@@ -17,5 +18,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   colorizer_coverage_apply_failed_message: 'コードカバレッジを適用できませんでした。%s',
   apex_test_suite_name_input_prompt: '希望する Apex テストスイート名を入力してください:',
   apex_test_aggregate_failed_message: '%s 件のテストが失敗しました',
-  apex_test_failed_no_details_message: 'テストが失敗しました'
+  apex_test_failed_no_details_message: 'テストが失敗しました',
+  apex_test_suite_empty_remove_message: 'このテストスイートは空です。削除するテストがありません。',
+  apex_test_suite_no_suites_message: 'Apex テストスイートが見つかりません。'
 };

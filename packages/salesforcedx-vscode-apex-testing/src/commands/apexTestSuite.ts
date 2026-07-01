@@ -41,11 +41,20 @@ const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(functio
 const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const connection = yield* api.services.ConnectionService.getConnection();
-  const suites = yield* Effect.promise(() => new TestService(connection).retrieveAllSuites());
-  return suites.map(
+  // Query directly to get the correctly-cased Id field (retrieveAllSuites types it as lowercase `id`)
+  const result = yield* Effect.tryPromise(() =>
+    connection.tooling.query<{ Id: string; TestSuiteName: string }>('SELECT Id, TestSuiteName FROM ApexTestSuite')
+  );
+
+  if (result.records.length === 0) {
+    void vscode.window.showInformationMessage(nls.localize('apex_test_suite_no_suites_message'));
+    return yield* new api.services.UserCancellationError();
+  }
+
+  return result.records.map(
     (testSuite): ApexTestQuickPickItem => ({
       label: testSuite.TestSuiteName,
-      description: testSuite.id,
+      description: testSuite.Id,
       type: 'Suite'
     })
   );
@@ -122,6 +131,118 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
   const testController = getTestController();
   testController.clearAllSuiteChildren();
   yield* Effect.promise(() => testController.refresh());
+});
+
+/** QuickPickItem carrying the TestSuiteMembership record ID for removal. */
+type RemovableClassItem = ApexTestQuickPickItem & { membershipId: string };
+
+/** Prompt user to pick a suite and select which classes to remove. Returns membership IDs to delete. */
+const gatherRemoveOptions = Effect.fn('apexTestSuite.gatherRemoveOptions')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  // Pick the suite
+  const quickPickItems = yield* listApexTestSuiteItems();
+  const testSuite = yield* Effect.promise(() =>
+    vscode.window.showQuickPick<ApexTestQuickPickItem>(quickPickItems)
+  ).pipe(Effect.flatMap(value => promptService.considerUndefinedAsCancellation(value)));
+
+  const suiteId = testSuite.description ?? '';
+  const escapedSuiteId = suiteId.replaceAll("'", "''");
+
+  // Query TestSuiteMembership records for the selected suite
+  const connection = yield* api.services.ConnectionService.getConnection();
+  const memberships = yield* Effect.tryPromise(() =>
+    connection.tooling.query<{ Id: string; ApexClassId: string }>(
+      `SELECT Id, ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${escapedSuiteId}'`
+    )
+  );
+
+  if (memberships.records.length === 0) {
+    void vscode.window.showInformationMessage(nls.localize('apex_test_suite_empty_remove_message'));
+    return yield* new api.services.UserCancellationError();
+  }
+
+  // Resolve class names from ApexClassIds
+  const classIds = memberships.records.map(r => r.ApexClassId);
+  const inClause = classIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
+  const classResult = yield* Effect.tryPromise(() =>
+    connection.tooling.query<{ Id: string; Name: string; NamespacePrefix?: string | null }>(
+      `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Id IN (${inClause})`
+    )
+  );
+
+  // Build a map from ApexClassId -> class info
+  const classInfoById = new Map(classResult.records.map(r => [r.Id, r]));
+
+  // Build RemovableClassItem[] for multi-select quick pick
+  const removableItems: RemovableClassItem[] = memberships.records
+    .flatMap((membership): RemovableClassItem[] => {
+      const classInfo = classInfoById.get(membership.ApexClassId);
+      if (!classInfo) return [];
+      return [
+        {
+          label: classInfo.Name,
+          description: classInfo.NamespacePrefix ?? '',
+          type: 'Class' as const,
+          membershipId: membership.Id
+        }
+      ];
+    })
+    .toSorted((a, b) => a.label.localeCompare(b.label));
+
+  // Show multi-select quick pick
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showQuickPick<RemovableClassItem>(removableItems, { canPickMany: true })
+  );
+  if (!selection || selection.length === 0) {
+    return yield* new api.services.UserCancellationError();
+  }
+
+  return selection.map(item => item.membershipId);
+});
+
+/** Delete selected TestSuiteMembership records and refresh the test controller. */
+const removeSuiteMembers = Effect.fn('apexTestSuite.removeSuiteMembers')(function* (membershipIds: string[]) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const channelService = yield* api.services.ChannelService;
+  const executionName = nls.localize('apex_test_suite_remove_text');
+  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
+
+  yield* api.services.ConnectionService.getConnection().pipe(
+    Effect.flatMap(connection =>
+      // tooling.delete with an array routes through composite/sobjects which the Tooling API
+      // does not support — delete each record individually instead
+      Effect.tryPromise(() =>
+        Promise.all(membershipIds.map(id => connection.tooling.delete('TestSuiteMembership', id)))
+      )
+    ),
+    Effect.flatMap(results => {
+      const failures = results.filter(r => !r.success);
+      if (failures.length > 0) {
+        return Effect.fail(new Error(`Failed to delete ${failures.length} membership(s)`));
+      }
+      return Effect.succeed(results);
+    }),
+    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+    promptService.withCancellableProgress(executionName)
+  );
+
+  yield* channelService.showChannel;
+  void vscode.window.showInformationMessage(nls.localize('apex_test_successful_execution_message', executionName));
+
+  // Clear all suite children so they re-query from org instead of using stale local files, then refresh
+  const testController = getTestController();
+  testController.clearAllSuiteChildren();
+  yield* Effect.promise(() => testController.refresh());
+});
+
+export const apexTestSuiteRemove = Effect.fn('apexTestSuiteRemove')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ProjectService.getSfProject();
+  const membershipIds = yield* gatherRemoveOptions();
+  yield* removeSuiteMembers(membershipIds);
 });
 
 export const apexTestSuiteAdd = Effect.fn('apexTestSuiteAdd')(function* () {

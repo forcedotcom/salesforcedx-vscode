@@ -102,11 +102,20 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
   // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
+  const connection = yield* api.services.ConnectionService.getConnection();
+
+  if (selection.type === 'Suite') {
+    const testService = new TestService(connection);
+    const members = yield* Effect.tryPromise(() => testService.getTestsInSuite(selection.label));
+    if (members.length === 0) {
+      void window.showErrorMessage(nls.localize('apex_test_suite_empty_message_notification', selection.label));
+      return yield* new api.services.UserCancellationError();
+    }
+  }
+
   const { payload, outputDir } = yield* Effect.all(
     {
-      payload: api.services.ConnectionService.getConnection().pipe(
-        Effect.flatMap(connection => Effect.promise(() => buildTestPayload(new TestService(connection), selection)))
-      ),
+      payload: Effect.promise(() => buildTestPayload(new TestService(connection), selection)),
       outputDir: getTestResultsFolder()
     },
     { concurrency: 'unbounded' }
