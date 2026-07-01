@@ -1,6 +1,6 @@
 ---
 name: typescript
-description: TypeScript coding standards and conventions including file naming rules
+description: TypeScript coding standards — apply when writing, reviewing, or refactoring .ts/.tsx, or naming/renaming .ts files (camelCase casing).
 ---
 
 - no barrel files

@@ -6,9 +6,6 @@
  */
 
 export { configSet } from './configSet';
-export { orgCreate } from './orgCreate';
-export { orgDelete } from './orgDelete';
-export { orgDisplay } from './orgDisplay';
 export { orgListCleanCommand } from './orgList';
 export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export { orgLoginWeb } from './auth/orgLoginWeb';
