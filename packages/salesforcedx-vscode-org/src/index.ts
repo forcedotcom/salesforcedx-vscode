@@ -19,17 +19,22 @@ import { channelService, OUTPUT_CHANNEL } from './channels';
 import {
   configSet,
   orgListCleanCommand,
-  orgLoginAccessToken,
   orgLoginWeb,
   orgLoginWebDevHub,
   orgLogoutAll,
   orgLogoutDefault
 } from './commands';
+import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
 import { orgCreateCommand } from './commands/orgCreate';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from './commands/orgDelete';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from './commands/orgDisplay';
 import { orgOpenCommand } from './commands/orgOpen';
-import { ORG_DISPLAY_DEFAULT_COMMAND, ORG_DISPLAY_USERNAME_COMMAND, ORG_OPEN_COMMAND } from './constants';
+import {
+  ORG_DISPLAY_DEFAULT_COMMAND,
+  ORG_DISPLAY_USERNAME_COMMAND,
+  ORG_LOGIN_ACCESS_TOKEN_COMMAND,
+  ORG_OPEN_COMMAND
+} from './constants';
 import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { nls } from './messages';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
@@ -40,7 +45,6 @@ const registerCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
-    vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken),
     vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
     vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
     vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault)
@@ -90,6 +94,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   yield* registerCommand('sf.org.list.clean', orgListCleanCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
   yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
+  yield* registerCommand(ORG_LOGIN_ACCESS_TOKEN_COMMAND, orgLoginAccessTokenCommand);
   yield* registerCommand(ORG_DISPLAY_USERNAME_COMMAND, orgDisplayUsernameCommand);
 
   // Initialize org picker and status bar
