@@ -35,7 +35,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.31.0",
+    "@salesforce/core": "^8.31.5",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
