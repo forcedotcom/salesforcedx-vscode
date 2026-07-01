@@ -13,5 +13,6 @@
   "apex_verbose_level_trace_description": "Output everything, including details about notifications and responses received by the client, and requests sent by the server.",
   "configuration_title": "Salesforce Apex Configuration",
   "enable-apex-ls-error-to-telemetry": "Allow the Apex Language Server to collect telemetry of errors",
-  "java_home_description": "Specifies the folder path to the Java runtime used to launch the Apex Language Server. Note on Windows the backslashes must be escaped. Java versions 11 or higher are supported.\n\nMac Example: `/Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home`\n\nWindows Example: `C:\\\\Program Files\\\\Zulu\\\\zulu-17`\n\nLinux Example: `/usr/lib/jvm/java-21-openjdk-amd64`"
+  "java_home_description": "Specifies the folder path to the Java runtime used to launch the Apex Language Server. Note on Windows the backslashes must be escaped. Java versions 11 or higher are supported.\n\nMac Example: `/Library/Java/JavaVirtualMachines/openjdk-11.jdk/Contents/Home`\n\nWindows Example: `C:\\\\Program Files\\\\Zulu\\\\zulu-17`\n\nLinux Example: `/usr/lib/jvm/java-21-openjdk-amd64`",
+  "auto_terminate_orphaned_processes_description": "有効にすると、アクティベーション時に孤立した Apex 言語サーバプロセスをプロンプトなしで自動的に終了します。"
 }

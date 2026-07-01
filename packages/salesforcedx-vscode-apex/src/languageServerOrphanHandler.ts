@@ -16,7 +16,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
-import { UBER_JAR_NAME } from './constants';
+import { APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, UBER_JAR_NAME } from './constants';
 import { nls } from './messages';
 
 // these messages contain replaceable parameters, cannot localize yet
@@ -144,6 +144,29 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
     return;
   }
 
+  // When auto-terminate is enabled, silently kill orphans without prompting.
+  const autoTerminate = yield* Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    return yield* (yield* api.services.SettingsService).getValue<boolean>(
+      APEX_SETTINGS_SECTION,
+      AUTO_TERMINATE_KEY,
+      false
+    );
+  }).pipe(
+    Effect.map(v => v === true),
+    Effect.catchTags({
+      MissingSettingsError: () => Effect.succeed(false),
+      ServicesExtensionNotFoundError: () => Effect.succeed(false),
+      InvalidServicesApiError: () => Effect.succeed(false)
+    })
+  );
+
+  if (autoTerminate) {
+    yield* annotateRootSpan('didTerminate', 1);
+    yield* Effect.forEach(orphanedProcesses, killOne, { concurrency: 1 });
+    return;
+  }
+
   const shouldTerminate = yield* getResolutionForOrphanProcesses(orphanedProcesses).pipe(
     Effect.catchTag('UserCancellationError', () => Effect.succeed(false))
   );
@@ -169,7 +192,8 @@ const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProces
     vscode.window.showWarningMessage(
       nls.localize('terminate_orphaned_language_server_instances', orphanedCount),
       nls.localize('terminate_processes'),
-      nls.localize('terminate_show_processes')
+      nls.localize('terminate_show_processes'),
+      nls.localize('always_auto_terminate')
     )
   ).pipe(Effect.flatMap((yield* api.services.PromptService).considerUndefinedAsCancellation));
 
@@ -179,6 +203,9 @@ const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProces
   if (showProcesses(choice)) {
     showOrphansInChannel(orphanedProcesses);
     return 'continue';
+  }
+  if (requestsAlwaysAutoTerminate(choice)) {
+    return yield* alwaysAutoTerminateConfirmation();
   }
   return false;
 });
@@ -237,6 +264,29 @@ const terminationConfirmation = Effect.fn('apex.orphan.terminationConfirmation')
 const requestsTermination = (choice: string): boolean => choice === nls.localize('terminate_processes');
 
 const showProcesses = (choice: string): boolean => choice === nls.localize('terminate_show_processes');
+
+const requestsAlwaysAutoTerminate = (choice: string): boolean => choice === nls.localize('always_auto_terminate');
+
+/** Show modal confirming auto-terminate; on Confirm persist setting + return true (kill). */
+const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTerminateConfirmation')(function* () {
+  const choice = yield* Effect.promise(() =>
+    vscode.window.showWarningMessage(
+      nls.localize('always_auto_terminate_modal_title'),
+      { modal: true, detail: nls.localize('auto_terminate_confirm_modal') },
+      nls.localize('confirm')
+    )
+  );
+  if (choice !== nls.localize('confirm')) {
+    return false;
+  }
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  // Intentional: swallow MissingSettingsError after recording telemetry — graceful degradation
+  // ensures the kill still proceeds even if the setting write fails to persist.
+  yield* (yield* api.services.SettingsService)
+    .setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)
+    .pipe(Effect.catchTag('MissingSettingsError', e => annotateRootSpan('settingsWriteError', e.message)));
+  return true;
+});
 
 const showProcessTerminated = (processDetail: ProcessDetail): void => {
   channelService.appendLine(nls.localize('terminated_orphaned_process', processDetail.pid));

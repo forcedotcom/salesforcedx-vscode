@@ -295,6 +295,11 @@
             "%apex_language_server_restart_behavior_restart_description%",
             "%apex_language_server_restart_behavior_reset_description%"
           ]
+        },
+        "salesforcedx-vscode-apex.autoTerminateOrphanedProcesses": {
+          "type": "boolean",
+          "default": false,
+          "description": "%auto_terminate_orphaned_processes_description%"
         }
       }
     },
