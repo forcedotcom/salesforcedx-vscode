@@ -618,7 +618,7 @@ export class ApexTestController {
       }
 
       // If any created/changed entries remain, call discovery API and apply diff
-      const nonDeleteChanges = new Map([...changes].filter(([_, changeType]) => changeType !== 'deleted'));
+      const nonDeleteChanges = new Map([...changes].filter(([, changeType]) => changeType !== 'deleted'));
 
       if (nonDeleteChanges.size > 0) {
         const discoveryResult = await getApexTestingRuntime().runPromise(discoverTests());
@@ -627,11 +627,46 @@ export class ApexTestController {
       }
 
       if (includesSuiteChange) {
-        this.clearAllSuiteChildren();
+        await this.refreshSuiteItems();
       }
-    } catch {
+    } catch (error) {
       // Non-fatal: incremental update failure doesn't affect existing tree state
+      console.debug('Failed to apply incremental update:', error);
     }
+  }
+
+  /**
+   * Removes the suite parent item from the tree, clears suite state, then re-queries
+   * suites from the org. Used when a suite is created or deleted via metadata deploy so
+   * the Testing sidebar reflects the current org state without a manual refresh.
+   */
+  private async refreshSuiteItems(): Promise<void> {
+    if (this.discoveryInProgress) {
+      await this.discoveryInProgress;
+    }
+
+    // Pre-check: verify the org is reachable before clearing state.
+    // If retrieveAllSuites fails, keep existing tree intact.
+    try {
+      await this.ensureInitialized();
+      await this.getTestService().retrieveAllSuites();
+    } catch (error) {
+      console.error('Error retrieving suites during refresh:', error);
+      return; // Keep existing tree intact on failure
+    }
+
+    // Remove the suite parent node from the tree
+    if (this.suiteParentItem) {
+      this.controller.items.delete(this.suiteParentItem.id);
+    }
+
+    // Clear suite-related state
+    this.suiteItems.clear();
+    this.suiteToClasses.clear();
+    this.suiteParentItem = undefined;
+
+    // Rebuild the suite tree with fresh data (calls retrieveAllSuites again internally)
+    await this.populateSuiteItems();
   }
 
   private removeClassFromTree(fullClassName: string): void {

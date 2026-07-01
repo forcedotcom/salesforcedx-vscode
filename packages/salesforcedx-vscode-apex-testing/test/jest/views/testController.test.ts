@@ -1186,25 +1186,107 @@ describe('ApexTestController', () => {
       expect(discoverTestsSpyLocal).toHaveBeenCalled();
     });
 
-    it('should call clearAllSuiteChildren when includesSuiteChange is true', async () => {
+    it('should remove suite items and re-populate from org when includesSuiteChange is true', async () => {
       const changes = new Map([['SomeClass', 'deleted']]);
 
-      // Add a suite item to verify it gets cleared
+      // Set up a suite parent item and a suite item in the controller
+      const suiteParentItem = {
+        id: 'apex-test-suites-parent',
+        label: 'Apex Test Suites',
+        children: { add: jest.fn(), size: 1 } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+      (controller as any).suiteParentItem = suiteParentItem;
+
       const suiteItem = {
         id: 'suite:MySuite',
         label: 'MySuite',
         children: {
           replace: jest.fn(),
+          add: jest.fn(),
           size: 1
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
       const suiteItems = (controller as any).suiteItems as Map<string, vscode.TestItem>;
       suiteItems.set('MySuite', suiteItem);
+      (controller as any).suiteToClasses.set('MySuite', new Set(['TestClass1']));
+
+      // Mock controller.items.delete to track removal
+      const deleteFn = jest.fn();
+      Object.assign(mockTestController.items, { delete: deleteFn });
+
+      // Mock retrieveAllSuites to return empty (suite was deleted)
+      mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
 
       await controller.incrementalUpdate(changes, true);
 
+      // Verify suite parent was removed from controller tree
+      expect(deleteFn).toHaveBeenCalledWith('apex-test-suites-parent');
+
+      // Verify suite state was cleared
+      expect(suiteItems.size).toBe(0);
+      expect((controller as any).suiteToClasses.size).toBe(0);
+      expect((controller as any).suiteParentItem).toBeUndefined();
+    });
+
+    it('should drain discoveryInProgress before refreshing suite items', async () => {
+      const changes = new Map([['SomeClass', 'deleted']]);
+
+      // Simulate an in-flight discovery that resolves after a tick
+      const { promise: discoveryPromise, resolve: resolveDiscovery } = Promise.withResolvers<void>();
+      (controller as any).discoveryInProgress = discoveryPromise;
+
+      // Set up suiteParentItem so delete is reachable and can serve as an ordering signal
+      const suiteParent = { id: 'apex-test-suites-parent', label: 'Apex Test Suites' } as any;
+      (controller as any).suiteParentItem = suiteParent;
+
+      // Mock controller.items.delete
+      const deleteFn = jest.fn();
+      Object.assign(mockTestController.items, { delete: deleteFn });
+
+      // Mock retrieveAllSuites to return empty
+      mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
+
+      // Start the incremental update (it should wait for discoveryInProgress)
+      const updatePromise = controller.incrementalUpdate(changes, true);
+
+      // Verify refreshSuiteItems hasn't run yet (discovery still in progress)
+      expect(deleteFn).not.toHaveBeenCalled();
+
+      // Resolve discovery
+      resolveDiscovery();
+      await updatePromise;
+
+      // After discovery resolves, refreshSuiteItems should have completed
+      expect(deleteFn).toHaveBeenCalledWith('apex-test-suites-parent');
+      expect(mockTestServiceMethods.retrieveAllSuites).toHaveBeenCalled();
+    });
+
+    it('clearAllSuiteChildren should only clear children without removing suite items', async () => {
+      // This protects the create/add flow in apexTestSuite.ts where
+      // clearAllSuiteChildren() + refresh() is the correct pattern (suite still exists on org)
+      const suiteItem = {
+        id: 'suite:MySuite',
+        label: 'MySuite',
+        children: {
+          replace: jest.fn(),
+          size: 2
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const suiteItems = (controller as any).suiteItems as Map<string, vscode.TestItem>;
+      suiteItems.set('MySuite', suiteItem);
+      (controller as any).suiteToClasses.set('MySuite', new Set(['ClassA']));
+
+      controller.clearAllSuiteChildren();
+
+      // Children are cleared
       expect(suiteItem.children.replace).toHaveBeenCalledWith([]);
+
+      // Suite item itself remains in the map (not removed)
+      expect(suiteItems.has('MySuite')).toBe(true);
+      // suiteToClasses is NOT cleared (only refreshSuiteItems does that)
+      expect((controller as any).suiteToClasses.has('MySuite')).toBe(true);
     });
 
     it('should invalidate test results for changed classes', async () => {

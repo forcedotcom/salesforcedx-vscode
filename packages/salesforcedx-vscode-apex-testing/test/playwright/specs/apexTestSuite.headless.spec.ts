@@ -11,7 +11,6 @@ import {
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
   executeCommandWithCommandPalette,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
@@ -27,30 +26,7 @@ import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
-
-/** Run Create Apex Test Suite via command palette: type suite name, select one class, confirm. */
-const createApexTestSuiteViaPalette = async (
-  page: Page,
-  testSuiteName: string,
-  testClassName: string
-): Promise<void> => {
-  await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_create_text);
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-
-  // Type suite name and press Enter (no wait needed - input is ready)
-  await page.keyboard.type(testSuiteName);
-  await page.keyboard.press('Enter');
-
-  // Wait for next prompt (select test classes)
-  await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-
-  // Multi-select (canPickMany) picker: toggle the matching row checkbox, then confirm
-  await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000, multiSelect: true });
-
-  // Press Enter to confirm selection
-  await page.keyboard.press('Enter');
-};
+import { createApexTestSuiteViaPalette } from '../helpers/apexTestSuiteHelpers';
 
 /** Select a suite from a quick pick (Run Apex Test Suite or Add Tests to Apex Test Suite). */
 const selectSuiteInQuickPick = async (
