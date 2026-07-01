@@ -9,7 +9,6 @@ import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { window } from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
@@ -137,13 +136,13 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     promptService.withCancellableProgress(executionName),
     // Terminal notify on the success value (undefined = soft failure: timeout/no summary).
     // Cancellation stays on the failure channel, so this tap never fires a bogus toast.
+    Effect.tap(() => channelService.showChannel),
     Effect.tap(result =>
-      Effect.sync(() => {
-        OUTPUT_CHANNEL.show();
+      Effect.sync(() =>
         (result === undefined ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
           executionName
-        );
-      })
+        )
+      )
     )
   );
 });

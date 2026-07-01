@@ -10,17 +10,17 @@ import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Equal from 'effect/Equal';
 import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
-import { APEX_TESTING_SCHEME } from '../discoveryVfs/apexTestingDiscoveryFs';
+import { APEX_TESTING_SCHEME, isForeignOrgClassUri } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import * as settings from '../settings';
-import { telemetryService } from '../telemetry/telemetry';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
@@ -1150,9 +1150,9 @@ export class ApexTestController {
               viewColumn: vscode.ViewColumn.Active,
               preserveFocus: false
             });
+            yield* closeEditorTabByUri(uri);
           })()
         );
-        await closeEditorTabByUri(uri);
       }
 
       try {
@@ -1227,7 +1227,6 @@ export class ApexTestController {
     isDebug: boolean,
     runScope: ApexTestRunScope
   ): Promise<void> {
-    const startTime = Date.now();
     const run = this.controller.createTestRun(request);
     let testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
 
@@ -1374,15 +1373,13 @@ export class ApexTestController {
         await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, runAllTestsInOrg);
       }
 
-      const durationMs = Date.now() - startTime;
       const testCount = testsToRun.length;
-      telemetryService.sendEventData(
-        'apexTestRun',
-        { trigger: 'testController', isDebug: String(isDebug) },
-        {
-          durationMs,
+      getApexTestingRuntime().runFork(
+        Effect.annotateCurrentSpan({
+          trigger: 'testController',
+          isDebug: String(isDebug),
           testsRan: testCount
-        }
+        }).pipe(Effect.withSpan('apexTestRun'))
       );
     } catch (error) {
       const friendlyMessage = toUserFriendlyApexTestError(error);
@@ -1548,24 +1545,16 @@ export class ApexTestController {
       : TEST_RESULT_JSON_FILE;
     this.lastProcessedResultFile = Utils.joinPath(outputDir, writtenResultFilename);
 
-    // Generate and open test report
-    const reportStartTime = Date.now();
+    // Generate and open test report (forked; continue even if report generation fails)
     const outputFormat = settings.retrieveOutputFormat();
     const sortOrder = settings.retrieveTestSortOrder();
-    try {
-      await getApexTestingRuntime().runPromise(
-        writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder)
-      );
-      const reportDurationMs = Date.now() - reportStartTime;
-      telemetryService.sendEventData(
-        'apexTestReportGenerated',
-        { outputFormat, trigger: 'testExplorer' },
-        { reportDurationMs }
-      );
-    } catch (error) {
-      console.error('Failed to generate test report:', error);
-      // Continue even if report generation fails
-    }
+    getApexTestingRuntime().runFork(
+      writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
+        Effect.tap(() => Effect.annotateCurrentSpan({ trigger: 'testExplorer' })),
+        Effect.withSpan('apexTestReportGenerated'),
+        Effect.catchAllCause(cause => Effect.logError('Failed to generate test report', cause))
+      )
+    );
 
     // Clear stale indicators and apply active tags BEFORE updating results.
     // VS Code snapshots item.description when run.passed() is called.
@@ -1581,23 +1570,19 @@ export class ApexTestController {
       codeCoverage
     });
 
-    // Show success notification if the command ran successfully (tests executed)
-    // The test results panel will show which tests passed/failed
+    // Nothing ran (regardless of pass/fail) → no success notification, nothing to name.
     const totalCount = result.summary.testsRan ?? 0;
+    if (totalCount === 0) {
+      return;
+    }
 
     // Determine execution name based on what was run (hasSuite and hasClass set above)
-    let executionName: string;
-    if (hasSuite) {
-      executionName = nls.localize('apex_test_suite_run_text');
-    } else if (hasClass) {
-      executionName = nls.localize('apex_test_class_run_text');
-    } else {
-      executionName = nls.localize('apex_test_run_text');
-    }
-    // Show success notification if tests ran successfully (regardless of test results)
-    if (totalCount > 0) {
-      notificationService.showSuccessfulExecution(executionName);
-    }
+    const executionName = Match.value({ hasSuite, hasClass }).pipe(
+      Match.when({ hasSuite: true }, () => nls.localize('apex_test_suite_run_text')),
+      Match.when({ hasClass: true }, () => nls.localize('apex_test_class_run_text')),
+      Match.orElse(() => nls.localize('apex_test_run_text'))
+    );
+    notificationService.showSuccessfulExecution(executionName);
   }
 
   private async updateTestResults(testResultUri: URI): Promise<void> {
@@ -1734,23 +1719,34 @@ const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
   return filePath ? URI.file(filePath) : undefined;
 };
 
-const closeEditorTabByUri = async (uri: URI): Promise<void> => {
+// Batch-close text-input tabs matching predicate. No-op on web (tabGroups absent).
+const closeMatchingTabs = Effect.fn('ApexTesting.closeMatchingTabs')(function* (predicate: (uri: URI) => boolean) {
   const tabGroupsApi = vscode.window.tabGroups;
   if (!tabGroupsApi) {
     return;
   }
-  const tabsToClose: vscode.Tab[] = [];
-  for (const group of tabGroupsApi.all) {
-    for (const tab of group.tabs) {
-      if (tab.input instanceof vscode.TabInputText && tab.input.uri.toString() === uri.toString()) {
-        tabsToClose.push(tab);
-      }
-    }
-  }
+  const tabsToClose = tabGroupsApi.all.flatMap(group =>
+    group.tabs.filter(tab => tab.input instanceof vscode.TabInputText && predicate(tab.input.uri))
+  );
   if (tabsToClose.length > 0) {
-    await tabGroupsApi.close(tabsToClose, true);
+    yield* Effect.promise(() => tabGroupsApi.close(tabsToClose, true));
   }
-};
+});
+
+// Close every `apex-testing:` class tab whose org differs from `currentOrgKey`. On a default-org change
+// the consumer passes the new orgId, closing the previous org's now-stale tabs; on logout it passes
+// `undefined`, so all org tabs are foreign and close. Replaces the old close-all class method so the
+// org-change and logout paths share one consumer-driven entry point.
+export const closeForeignApexTestingTabs = (currentOrgKey: string | undefined) =>
+  closeMatchingTabs(uri => isForeignOrgClassUri(uri, currentOrgKey));
+
+const closeEditorTabByUri = Effect.fn('ApexTesting.closeEditorTabByUri')(function* (uri: URI) {
+  // Compare via FsService.HashableUri (structural Equal) rather than hand-rolled toString().
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const HashableUri = yield* api.services.FsService.HashableUri;
+  const target = HashableUri.fromUri(uri);
+  yield* closeMatchingTabs(tabUri => Equal.equals(HashableUri.fromUri(tabUri), target));
+});
 
 const getTempFolder = async (): Promise<URI> => {
   try {

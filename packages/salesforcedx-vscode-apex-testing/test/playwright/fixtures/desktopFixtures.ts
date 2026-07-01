@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createDesktopTest, NON_TRACKING_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
+import { createDesktopTest, LOGOUT_TEST_ORG_ALIAS, NON_TRACKING_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
 
 // Apex-testing specs never run Push/Pull or rely on source tracking, so they use a non-tracking
 // org. This avoids the "Override Conflicts and Deploy" modal that source-tracked orgs surface
@@ -26,6 +26,27 @@ export const desktopTest = createDesktopTest({
     'git.autofetch': false,
     // Render `showWarningMessage({ modal: true })` (e.g. the scratch-org logout confirm) as an
     // in-DOM dialog so Playwright can click its button; native OS dialogs are not reachable.
+    'window.dialogStyle': 'custom'
+  }
+});
+
+// Same as `desktopTest` but defaults the workspace to the DEDICATED logout-test org. The clear-on-logout
+// spec logs out of its default org; pointing it at LOGOUT_TEST_ORG_ALIAS (matched by setupLogoutTestOrgAndAuth)
+// keeps it from destroying the shared NON_TRACKING_ORG_ALIAS other specs reuse.
+export const logoutDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: LOGOUT_TEST_ORG_ALIAS,
+  additionalExtensionDirs: [
+    'salesforcedx-vscode-core',
+    'salesforcedx-vscode-org',
+    'salesforcedx-vscode-metadata',
+    'salesforcedx-vscode-apex-log',
+    'salesforcedx-vscode-apex'
+  ],
+  disableOtherExtensions: false,
+  userSettings: {
+    'git.terminalAuthentication': false,
+    'git.autofetch': false,
     'window.dialogStyle': 'custom'
   }
 });
