@@ -183,12 +183,6 @@ export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gath
   };
 });
 
-export class AccessTokenParamsGatherer implements ParametersGatherer<AccessTokenParams> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<AccessTokenParams>> {
-    return runGatherer(gatherAccessTokenParams());
-  }
-}
-
 const gatherScratchOrgLogout = Effect.fn('ScratchOrgLogoutParamsGatherer.gather')(function* (params: {
   readonly username: string;
   readonly alias: string | undefined;

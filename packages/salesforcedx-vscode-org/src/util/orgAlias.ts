@@ -11,6 +11,6 @@ import { nls } from '../messages';
 export const isAlphaNumSpaceString = (value: string | undefined): boolean =>
   value !== undefined && /^\w+( *\w*)*$/.test(value);
 
-/** showInputBox validateInput for an org alias: empty = use default; non-empty must pass isAlphaNumSpaceString (rejects shell metachars). */
+/** showInputBox validateInput for an org alias: empty = use default. */
 export const validateAliasInput = (value: string): string | undefined =>
   isAlphaNumSpaceString(value) || value === '' ? undefined : nls.localize('error_invalid_org_alias');
