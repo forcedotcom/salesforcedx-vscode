@@ -25,6 +25,16 @@ export class FailedToCreateConfigAggregatorError extends Schema.TaggedError<Fail
   }
 ) {}
 
+export class ConfigWriteError extends Schema.TaggedError<ConfigWriteError>()('ConfigWriteError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.instanceOf(Error))
+}) {}
+
+const configWriteCatch = (error: unknown) => {
+  const { cause } = unknownToErrorCause(error);
+  return new ConfigWriteError({ message: `Failed to write config: ${cause.message}`, cause });
+};
+
 const createConfigAggregator = (projectPath: string) =>
   Effect.tryPromise({
     try: () => ConfigAggregator.create({ projectPath }),
@@ -104,6 +114,17 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       return targetDevHubOrAlias === username || aliases.includes(targetDevHubOrAlias);
     });
 
+    /** Sets target-org in local project config; caller must refresh defaultOrgRef via ConnectionService.getConnection(). */
+    const setTargetOrg = Effect.fn('ConfigService.setTargetOrg')(function* (usernameOrAlias: string) {
+      const config = yield* Effect.tryPromise({
+        try: () => Config.create(Config.getDefaultOptions()),
+        catch: configWriteCatch
+      });
+      config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
+      yield* Effect.tryPromise({ try: () => config.write(), catch: configWriteCatch });
+      yield* invalidateConfigAggregator();
+    });
+
     /** Unsets target-org from the local project config and clears the reactive org state */
     const unsetTargetOrg = Effect.fn('ConfigService.unsetTargetOrg')(function* () {
       const config = yield* Effect.promise(() => Config.create(Config.getDefaultOptions()));
@@ -127,6 +148,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       getTargetDevHub,
       isCurrentTargetOrg,
       isCurrentTargetDevHub,
+      setTargetOrg,
       unsetTargetOrg,
       unsetTargetDevHub
     };
