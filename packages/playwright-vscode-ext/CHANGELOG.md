@@ -1,3 +1,12 @@
+## [1.3.5](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.4...playwright-vscode-ext-v1.3.5) (2026-07-01)
+
+
+### Bug Fixes
+
+* **apex-testing:** close stale virtual editors + purge VFS on logout - W-23203227 ([#7611](https://github.com/forcedotcom/salesforcedx-vscode/issues/7611)) ([5f77752](https://github.com/forcedotcom/salesforcedx-vscode/commit/5f77752527a6f8c6a1ed5f55d365aba4ad50f29a)), closes [#7603](https://github.com/forcedotcom/salesforcedx-vscode/issues/7603)
+
+
+
 ## [1.3.4](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.3...playwright-vscode-ext-v1.3.4) (2026-06-29)
 
 
