@@ -198,7 +198,7 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Remove Apex Tests from Apex Test Suite',
+      expectedText: 'Ended SFDX: Remove Tests from Apex Test Suite',
       timeout: 60_000
     });
     await saveScreenshot(page, 'step.verify-remove.png');
