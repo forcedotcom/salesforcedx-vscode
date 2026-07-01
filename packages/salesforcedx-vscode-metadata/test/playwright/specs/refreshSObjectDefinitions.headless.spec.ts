@@ -117,7 +117,13 @@ test('Refresh SObject Definitions: Custom, Standard, All via output channel', as
 
 // Desktop-only: a real filesystem is needed to force a write (EACCES) failure by chmod-ing the output dir.
 // Use the desktop fixture directly so `workspaceDir` is typed; skip when not on desktop.
-const failureTest = isDesktop() ? dreamhouseDesktopTest : dreamhouseDesktopTest.skip.bind(dreamhouseDesktopTest);
+// Skip on win32: FILE_ATTRIBUTE_READONLY is not honored on directories, so chmod 0o555 does not block
+// file/subdir creation inside toolsDir there (learn.microsoft.com/windows/win32/fileio/file-attribute-constants),
+// meaning the EACCES failure this test relies on cannot be forced.
+const canForceWriteFailure = isDesktop() && process.platform !== 'win32';
+const failureTest = canForceWriteFailure
+  ? dreamhouseDesktopTest
+  : dreamhouseDesktopTest.skip.bind(dreamhouseDesktopTest);
 failureTest(
   'Refresh SObject Definitions: write failure surfaces real error, not "An error has occurred"',
   async ({ page, workspaceDir }) => {
