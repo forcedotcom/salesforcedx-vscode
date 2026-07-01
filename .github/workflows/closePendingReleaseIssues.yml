@@ -49,8 +49,8 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           DISCUSSIONS=$(gh discussion list --label "pending release" --state open --json number,id --limit 500)
-          echo "Found $(echo "$DISCUSSIONS" | jq 'length') discussion(s) to close."
-          echo "$DISCUSSIONS" | jq -c '.[]' | while read -r D; do
+          echo "Found $(echo "$DISCUSSIONS" | jq '.discussions | length') discussion(s) to close."
+          echo "$DISCUSSIONS" | jq -c '.discussions[]' | while read -r D; do
             NUMBER=$(echo "$D" | jq -r '.number')
             ID=$(echo "$D" | jq -r '.id')
             gh discussion comment "$NUMBER" --body "Released in v${VERSION} of the Salesforce Extensions for VSCode." \
