@@ -16,14 +16,7 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from './channels';
-import {
-  configSet,
-  orgListCleanCommand,
-  orgLoginWebCommand,
-  orgLoginWebDevHub,
-  orgLogoutAll,
-  orgLogoutDefault
-} from './commands';
+import { orgListCleanCommand, orgLoginWebCommand, orgLoginWebDevHub, orgLogoutAll, orgLogoutDefault } from './commands';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
 import { orgCreateCommand } from './commands/orgCreate';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from './commands/orgDelete';
@@ -44,7 +37,6 @@ import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 /** Register all org/auth commands */
 const registerCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
     vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
     vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault)
@@ -54,12 +46,9 @@ const registerCommands = (): vscode.Disposable =>
 const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkIn(createOrgPicker(), yield* getExtensionScope());
 
-  // Register org picker commands
+  // Register org picker command with AllServicesLayer for tracing + global error/cancellation handling
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const contextService = yield* api.services.ExtensionContextService;
-  const context = yield* contextService.getContext;
-  const setDefaultOrgCmd = vscode.commands.registerCommand('sf.set.default.org', setDefaultOrg);
-  context.subscriptions.push(setDefaultOrgCmd);
+  yield* api.services.registerCommandWithLayer(AllServicesLayer)('sf.set.default.org', setDefaultOrg);
 
   // alert user about orgs that are expiring soon
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
