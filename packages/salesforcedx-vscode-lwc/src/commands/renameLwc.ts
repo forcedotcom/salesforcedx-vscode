@@ -34,7 +34,6 @@ export const renameLwcCommand = Effect.fn('renameLwcCommand')(function* (
   const fsService = yield* api.services.FsService;
   const editorService = yield* api.services.EditorService;
   const promptService = yield* api.services.PromptService;
-  const componentSetService = yield* api.services.ComponentSetService;
   const lightningComponentService = yield* api.services.LightningComponentService;
 
   const resolvedSource = yield* promptService.considerUndefinedAsCancellation(
@@ -64,14 +63,13 @@ export const renameLwcCommand = Effect.fn('renameLwcCommand')(function* (
   // Pre-build a project-wide ComponentSet filtered to LWC + Aura. Used by validateInput
   // for case-insensitive collision check across all packageDirectories.
   const existingNames = new Set(
-    Array.from(
-      (yield* componentSetService.getComponentSetFromProjectDirectories({
-        metadataMembers: [
-          { type: LWC_TYPE, fullName: '*' },
-          { type: AURA_TYPE, fullName: '*' }
-        ]
-      })).getSourceComponents()
-    ).map(c => c.fullName.toLowerCase())
+    (yield* api.services.ComponentSetService.describeProjectComponents({
+      kind: 'projectDirectories',
+      members: [
+        { type: LWC_TYPE, fullName: '*' },
+        { type: AURA_TYPE, fullName: '*' }
+      ]
+    })).components.map(c => c.fullName.toLowerCase())
   );
 
   // Materialize all bundle filenames (including __tests__) for the within-bundle collision check

@@ -18,7 +18,7 @@ const getConnection = () =>
     })
   );
 
-/** Get the user ID, preferring the cached TargetOrgRef before falling back to a connection */
+/** Get the user ID, preferring the cached TargetOrgRef before falling back to the org identity (owned data). */
 export const getUserId = async (): Promise<string | undefined> => {
   const refUserId = await getRuntime().runPromise(
     Effect.gen(function* () {
@@ -30,11 +30,25 @@ export const getUserId = async (): Promise<string | undefined> => {
   );
   if (refUserId) return refUserId;
 
-  const connection = await getConnection();
-  return connection.getAuthInfoFields().userId ?? (await connection.identity()).user_id;
+  // Fallback resolves the user id from the org identity via the owned loan facade (no live Connection).
+  // The PromisifiedContract mapping loses withDefaultOrg's generic, so the result is asserted to string.
+  return getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const userId = yield* Effect.promise(() =>
+        api.withDefaultOrg(org => org.identity().then(identity => identity.userId))
+      );
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      return userId as string;
+    })
+  );
 };
 
-/** Get auth fields from the workspace context */
+/**
+ * Get auth fields from the workspace context.
+ * @deprecated Returns @salesforce/core AuthFields (a 3pp shape) and is part of the published vscode-core 2PP API;
+ * retained intentionally for backward compatibility. Internal callers should prefer owned data (W-22419571).
+ */
 export const getAuthFields = async (): Promise<AuthFields> => {
   const connection = await getConnection();
   return connection.getAuthInfoFields();

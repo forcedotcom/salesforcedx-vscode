@@ -12,11 +12,13 @@ The package uses Node.js `exports` field to enforce that only the main `Salesfor
 
 The source code is **not committed** to git. Instead, it's generated on-demand from the parent package:
 
-1. `scripts/generateEntry.ts` creates `src/index.ts` that re-exports only `SalesforceVSCodeServicesApi`
-2. TypeScript compiles this along with all referenced types from the parent package
+1. `scripts/generateEntry.ts` creates `src/index.ts` that re-exports `SalesforceVSCodeServicesApi` and all published owned types
+2. TypeScript compiles this along with all referenced types from the parent package (hand-authored owned types with zero imports from `@salesforce/*`, `jsforce`, or `effect`)
 3. The output `out/` directory contains all necessary `.d.ts` files
 
 Scripts are written in TypeScript and executed via `ts-node` for type safety.
+
+**Import-Free Types:** The parent package publishes hand-authored owned data-only types (e.g., `MetadataTypeInfo`, `DeployOutcome`, `SourceSpec`, `ComponentFailureInfo`, `FileResponseInfo`, `RetrievedComponentInfo`, `ServicesOrg`) with zero dependencies. These enable consumers to use the services API without importing the Salesforce SDK (`@salesforce/core`, `jsforce`, `@salesforce/source-deploy-retrieve`, `effect`). The types are hand-authored in `packages/salesforcedx-vscode-services/src/owned/` following the `@types/vscode` pattern — no bundler-generated closures.
 
 ### Dependency Sync
 

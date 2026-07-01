@@ -109,7 +109,9 @@ const refreshConnection = Effect.fn('updateConfigAndStateAggregators', {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ConfigService.invalidateConfigAggregator();
   yield* api.services.ConnectionService.invalidateCachedConnections();
-  yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
+  // tryPromise (not promise) routes a rejected connection refresh to the error channel so catchAll swallows it;
+  // Effect.promise would surface the rejection as an uncatchable defect.
+  yield* Effect.tryPromise(() => api.withDefaultOrg(() => undefined)).pipe(Effect.catchAll(() => Effect.void));
 });
 
 export const updateConfigAndStateAggregators = async (): Promise<void> => {

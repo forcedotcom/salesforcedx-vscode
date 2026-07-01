@@ -23,7 +23,6 @@ import { makeLocalEnvelopeSender } from './localEnvelopeSender';
 export class AzureMonitorLogExporterWrapper implements LogRecordExporter {
   private exporter: AzureMonitorLogExporter;
 
-  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
   constructor(options: AzureMonitorExporterOptions, localIngestionEndpoint?: string) {
     this.exporter = new AzureMonitorLogExporter(options);
     if (localIngestionEndpoint) {

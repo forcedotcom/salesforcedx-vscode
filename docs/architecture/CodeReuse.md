@@ -32,15 +32,15 @@ If you're developing multiple extensions, a shared code package (similar to the 
 
 ### new
 
-We're moving towards the `vscode-services` as the shared library of choice (get a connection, do a deploy) instead of every extension needing to have all the libraries and utils imported.
+`vscode-services` is the shared library of choice (get connection, deploy) vs. duplicating all libraries/utils across extensions. API surface is import-free: owned data-only DTOs (`MetadataTypeInfo`, `TemplateCreateOutcome`, `DeployOutcome`, etc.) with zero SDK/jsforce/effect deps, enabling type-safe consumption without transitive deps.
 
-To get TS support outside this repo, `import type {SalesforceVSCodeServicesApi} from '@salesforce/vscode-services'`. See the [extensionProvider.ts](../../packages/salesforcedx-vscode-org-browser/src/services/extensionProvider.ts) in the new org-browser extension as a model.
+TypeScript support outside repo: `import type {SalesforceVSCodeServicesApi} from '@salesforce/vscode-services'`. See [org-browser extensionProvider.ts](../../packages/salesforcedx-vscode-org-browser/src/services/extensionProvider.ts) as example.
 
-See [services-extension-consumption skill](../../.claude/skills/services-extension-consumption/SKILL.md) for detailed guidelines on consuming the services extension API.
+[services-extension-consumption skill](../../.claude/skills/services-extension-consumption/SKILL.md) documents all owned types + service methods.
 
-Then, extensions merely need to ensure that the extension whose services they depend on is installed, running, and active, before using its API.
+Extensions must ensure the services extension is installed, running, and active before using its API.
 
-If your work is going to create something you think belongs in `vscode-services` please open a PR.
+Contribute new APIs via PR to `vscode-services`.
 
 ### versioning
 

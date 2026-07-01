@@ -256,6 +256,7 @@
         "./packages/salesforcedx-vscode-soql:test",
         "./packages/salesforcedx-vscode-visualforce:test",
         "./packages/salesforcedx-vscode-services:test",
+        "./packages/salesforcedx-vscode-services-types:test",
         "./packages/salesforcedx-vscode-org:test",
         "./packages/salesforcedx-vscode-org-browser:test",
         "./packages/salesforcedx-vscode-apex-log:test",

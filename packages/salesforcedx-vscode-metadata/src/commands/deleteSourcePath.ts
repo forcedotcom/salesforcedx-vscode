@@ -66,9 +66,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
       // add the error output to the chanel, let the regular error handler do the rest
       Effect.tapErrorTag('DeleteSourceFailedError', (error: DeleteSourceFailedError) =>
         Effect.all([
-          ...(error.result
-            ? [formatDeployOutput(error.result).pipe(Effect.flatMap(o => channelService.appendToChannel(o)))]
-            : []),
+          ...(error.outcome ? [channelService.appendToChannel(formatDeployOutput(error.outcome))] : []),
           channelService.getChannel.pipe(Effect.map(channel => channel.show()))
         ])
       )

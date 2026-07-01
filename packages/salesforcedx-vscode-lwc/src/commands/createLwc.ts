@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SfProject } from '@salesforce/core/project';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { AURA_TYPE, LWC_TYPE } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Effect from 'effect/Effect';
@@ -35,13 +34,13 @@ const promptForComponentType = Effect.fn('promptForComponentType')(function* () 
 /** Determine component template based on priority:
  * 1. sfdx-project.json defaultLwcLanguage
  * 2. Prompt user (TypeScript always visible) */
-const determineComponentTemplate = Effect.fn('determineComponentTemplate')(function* (project: SfProject) {
-  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return yield* Match.value(projectJson.get('defaultLwcLanguage')).pipe(
+const determineComponentTemplate = Effect.fn('determineComponentTemplate')(function* (
+  defaultLwcLanguage: string | undefined
+) {
+  return yield* Match.value(defaultLwcLanguage).pipe(
     Match.when('typescript', () => Effect.succeed('typeScript' as const)),
     Match.when('javascript', () => Effect.succeed('default' as const)),
-    Match.when(Match.undefined, () => promptForComponentType()),
-    Match.exhaustive
+    Match.orElse(() => promptForComponentType())
   );
 });
 
@@ -55,26 +54,24 @@ export const createLwcCommand = Effect.fn('createLwcCommand')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const project = yield* api.services.ProjectService.getSfProject();
-  const componentSetService = yield* api.services.ComponentSetService;
+  const projectInfo = yield* api.services.ProjectService.getProjectInfo();
 
-  const template = yield* determineComponentTemplate(project);
-  const componentName = yield* componentSetService
-    .getComponentSetFromProjectDirectories({
-      metadataMembers: [
-        { type: LWC_TYPE, fullName: '*' },
-        { type: AURA_TYPE, fullName: '*' }
-      ]
-    })
-    .pipe(
-      Effect.map(set => new Set(Array.from(set.getSourceComponents()).map(c => c.fullName.toLowerCase()))),
-      Effect.flatMap(existingNames => promptForLwcName({ existingNames }))
-    );
+  const template = yield* determineComponentTemplate(projectInfo.defaultLwcLanguage);
+  const componentName = yield* api.services.ComponentSetService.describeProjectComponents({
+    kind: 'projectDirectories',
+    members: [
+      { type: LWC_TYPE, fullName: '*' },
+      { type: AURA_TYPE, fullName: '*' }
+    ]
+  }).pipe(
+    Effect.map(info => new Set(info.components.map(c => c.fullName.toLowerCase()))),
+    Effect.flatMap(existingNames => promptForLwcName({ existingNames }))
+  );
 
   const outputDirUri =
     outputDirParam ??
     (yield* promptService.promptForOutputDir({
-      defaultUri: Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'lwc'),
+      defaultUri: Utils.joinPath(workspaceInfo.uri, projectInfo.defaultPackage.path, 'main', 'default', 'lwc'),
       folderName: 'lwc',
       pickerPlaceHolder: nls.localize('lwc_output_dir_prompt')
     }));

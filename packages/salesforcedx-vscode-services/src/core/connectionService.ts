@@ -16,12 +16,15 @@ import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
+import { type ConnectionData } from '../owned/metadata';
+import { type ServicesOrg } from '../owned/servicesOrg';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { AliasService } from './alias';
 import { ConfigService } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
+import { makeServicesOrg } from './servicesOrgAdapter';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 type WebConnectionKey = {
@@ -261,7 +264,35 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       });
     });
 
-    return { getConnection, invalidateCachedConnections, listAllAuthorizations };
+    /** Loan facade that lends a services-owned ServicesOrg to the consumer's callback. */
+    const withDefaultOrg = Effect.fn('ConnectionService.withDefaultOrg')(function* <R>(
+      use: (org: ServicesOrg) => R | Promise<R>
+    ) {
+      const conn = yield* getConnection();
+      const org = makeServicesOrg(conn);
+      return yield* Effect.tryPromise({
+        try: () => Promise.resolve(use(org)),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new Error(`Failed in withDefaultOrg callback: ${cause.message}`);
+        }
+      });
+    });
+
+    /** Get connection auth data (never exposes the live Connection). */
+    const getConnectionData = Effect.fn('ConnectionService.getConnectionData')(function* () {
+      const conn = yield* getConnection();
+      const fields = conn.getAuthInfoFields();
+      return {
+        accessToken: fields.accessToken ?? '',
+        instanceUrl: fields.instanceUrl ?? '',
+        apiVersion: conn.getApiVersion(),
+        username: conn.getUsername() ?? fields.username ?? '',
+        orgId: fields.orgId ?? ''
+      } satisfies ConnectionData;
+    });
+
+    return { getConnection, invalidateCachedConnections, listAllAuthorizations, withDefaultOrg, getConnectionData };
   })
 }) {}
 

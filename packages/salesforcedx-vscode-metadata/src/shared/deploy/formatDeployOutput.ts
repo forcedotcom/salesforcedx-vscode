@@ -4,21 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { DeployResult } from '@salesforce/source-deploy-retrieve';
-import * as Effect from 'effect/Effect';
+import type { DeployOutcome, FileResponseInfo } from 'salesforcedx-vscode-services';
 import { URI } from 'vscode-uri';
 import { getMergedDeployFailures } from './getMergedDeployFailures';
 
-/** True when the org applied at least part of the deploy (full or partial success). */
-const deployAppliedToOrg = (result: DeployResult): boolean => {
-  const status = result.response?.status;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison -- `RequestStatus` is a string enum; compare to known success values without importing the enum here
-  return status === 'Succeeded' || status === 'SucceededPartial';
-};
-
 /** Matches {@link ComponentSetService.getComponentState}; avoids importing from services in this package. */
 type ComponentChangeKind = 'created' | 'changed' | 'unchanged' | 'deleted';
+
+/** Map SDR file state to our change classification. Lowercase the state; default 'changed'. */
+const stateToChange = (state: string): ComponentChangeKind => {
+  const lower = state.toLowerCase();
+  if (lower === 'created' || lower === 'changed' || lower === 'unchanged' || lower === 'deleted') {
+    return lower;
+  }
+  return 'changed';
+};
 
 /** When the deploy did not apply, avoid API labels like "Created" that imply the org was updated. */
 const notDeployedOutcomeLabel = (change: ComponentChangeKind): string => {
@@ -34,28 +34,27 @@ const notDeployedOutcomeLabel = (change: ComponentChangeKind): string => {
   }
 };
 
-/** Format deploy results for output */
-export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (result: DeployResult) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { isSDRSuccess, getComponentState } = yield* api.services.ComponentSetService;
-  const failed = yield* getMergedDeployFailures(result);
-  const applied = deployAppliedToOrg(result);
+const formatDeployedLines = (responses: readonly FileResponseInfo[]) =>
+  responses.map(r => `${r.state} ${r.type} ${r.filePath ? URI.file(r.filePath).toString() : r.fullName}`).join('\n');
 
-  const { deploys = [], deleted = [] } = Object.groupBy(result.getFileResponses().filter(isSDRSuccess), fr =>
-    getComponentState(fr) === 'deleted' ? 'deleted' : 'deploys'
+const formatNotDeployedLines = (responses: readonly FileResponseInfo[]) =>
+  responses
+    .map(r => {
+      const path = r.filePath ? URI.file(r.filePath).toString() : r.fullName;
+      const label = notDeployedOutcomeLabel(stateToChange(r.state));
+      return `${label} — ${r.type} ${path}`;
+    })
+    .join('\n');
+
+/** Format deploy outcome for channel output (operates on owned types; pure function). */
+export const formatDeployOutput = (outcome: DeployOutcome): string => {
+  const failed = getMergedDeployFailures(outcome);
+  const applied = outcome.appliedToOrg;
+
+  const successResponses = outcome.fileResponses.filter(fr => fr.state !== 'Failed');
+  const { deploys = [], deleted = [] } = Object.groupBy(successResponses, fr =>
+    fr.state === 'Deleted' ? 'deleted' : 'deploys'
   );
-
-  const formatDeployedLines = (responses: typeof deploys) =>
-    responses.map(r => `${r.state} ${r.type} ${URI.file(r.filePath).toString()}`).join('\n');
-
-  const formatNotDeployedLines = (responses: typeof deploys) =>
-    responses
-      .map(r => {
-        const path = URI.file(r.filePath).toString();
-        const label = notDeployedOutcomeLabel(getComponentState(r));
-        return `${label} — ${r.type} ${path}`;
-      })
-      .join('\n');
 
   const successSection =
     deploys.length > 0
@@ -79,11 +78,11 @@ export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (res
     failed.length > 0
       ? `\n=== Deploy Errors (${failed.length}) ===\n${failed
           .map(r => {
-            const error = 'error' in r ? r.error : 'Unknown error';
+            const error = r.error ?? 'Unknown error';
             return `ERROR: ${r.filePath ?? r.fullName}: ${error}`;
           })
           .join('\n')}\n`
       : '';
 
   return successSection + deletedSection + failureSection;
-});
+};

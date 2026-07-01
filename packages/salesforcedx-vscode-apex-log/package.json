@@ -36,7 +36,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.31.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/vscode-services": "*"
   },
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",

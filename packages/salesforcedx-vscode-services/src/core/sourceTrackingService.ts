@@ -20,6 +20,7 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { toOrgChange } from '../owned/orgChangeMapper';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -53,6 +54,10 @@ const toSourceTrackingError = (error: unknown) => new SourceTrackingError({ caus
 const ResolvedChangeResultSchema = Schema.Struct({ name: Schema.String, type: Schema.String });
 type ResolvedChangeResult = ChangeResult & Schema.Schema.Type<typeof ResolvedChangeResultSchema>;
 const isResolvedChangeResult = (c: ChangeResult): c is ResolvedChangeResult => Schema.is(ResolvedChangeResultSchema)(c);
+
+/** Type guard: filters ChangeResult to records that have name AND type (for OrgChange mapping) */
+const hasNameAndType = (c: ChangeResult): c is ChangeResult & { name: string; type: string } =>
+  c.name != null && c.type != null;
 
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   accessors: true,
@@ -355,6 +360,54 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       );
     });
 
+    /** Get conflicts as owned OrgChange[] (both tracking files) */
+    const getConflictChanges = Effect.fn('SourceTrackingService.getConflictChanges')(function* () {
+      const conflicts = yield* getConflicts();
+      return conflicts.filter(hasNameAndType).map(toOrgChange);
+    });
+
+    /** Get local changes as owned OrgChange[] (local tracking files only) */
+    const getLocalChanges = Effect.fn('SourceTrackingService.getLocalChanges')(function* (opts?: {
+      applyIgnore?: boolean;
+    }) {
+      const tracking = yield* getOrCreateTracking();
+
+      return yield* localSemaphore.withPermits(1)(
+        Effect.gen(function* () {
+          yield* rereadLocal(tracking);
+          const changes = yield* Effect.tryPromise({
+            try: () => tracking.getChanges({ origin: 'local', state: 'nondelete', format: 'ChangeResult' }),
+            catch: toSourceTrackingError
+          }).pipe(Effect.withSpan('STL.GetLocalChanges'));
+
+          // Apply ignore filtering if requested by filtering out ignored changes
+          const filtered = opts?.applyIgnore ? changes.filter(c => c.ignored !== true) : changes;
+          return filtered.filter(hasNameAndType).map(toOrgChange);
+        })
+      );
+    });
+
+    /** Get remote changes as owned OrgChange[] (remote tracking files only) */
+    const getRemoteChanges = Effect.fn('SourceTrackingService.getRemoteChanges')(function* (opts?: {
+      applyIgnore?: boolean;
+    }) {
+      const tracking = yield* getOrCreateTracking();
+
+      return yield* remoteSemaphore.withPermits(1)(
+        Effect.gen(function* () {
+          yield* rereadRemote(tracking);
+          const changes = yield* Effect.tryPromise({
+            try: () => tracking.getChanges({ origin: 'remote', state: 'nondelete', format: 'ChangeResult' }),
+            catch: toSourceTrackingError
+          }).pipe(Effect.withSpan('STL.GetRemoteChanges'));
+
+          // Apply ignore filtering if requested by filtering out ignored changes
+          const filtered = opts?.applyIgnore ? changes.filter(c => c.ignored !== true) : changes;
+          return filtered.filter(hasNameAndType).map(toOrgChange);
+        })
+      );
+    });
+
     /** Check for conflicts and display them in the channel, failing if conflicts are found (both tracking files) */
     const checkConflicts = Effect.fn('SourceTrackingService.checkConflicts')(function* () {
       const conflicts = yield* getConflicts();
@@ -462,6 +515,15 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
 
       /** Get conflicts without UI side effects (auto-rereads both) */
       getConflicts,
+
+      /** Get conflicts as owned OrgChange[] (auto-rereads both) */
+      getConflictChanges,
+
+      /** Get local changes as owned OrgChange[] (auto-rereads local tracking) */
+      getLocalChanges,
+
+      /** Get remote changes as owned OrgChange[] (auto-rereads remote tracking) */
+      getRemoteChanges,
 
       /** Check for conflicts and display them in the channel, failing if found (auto-rereads both) */
       checkConflicts,

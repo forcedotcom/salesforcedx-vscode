@@ -63,12 +63,23 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
 This package exports:
 
-- **`SalesforceVSCodeServicesApi`** - The complete type definition for the extension's public API
-  - Includes type definitions for all service classes
-  - Provides access to service tags and implementations
-  - Fully typed method signatures and return types
+- **`SalesforceVSCodeServicesApi`** - Extension public API contract
+  - ~30 core methods: connection, workspace, project, config, file system, editor, metadata, terminal, components, source tracking
+  - Core source tracking: `getConflictChanges()`, `getLocalChanges()`, `getRemoteChanges(opts?)`
+  - Extended methods: org info, settings, metadata operations, template creation, trace flags
+  - Event handlers: `onDidChangeTargetOrg`, `onDidChangeActiveEditor`, `onDidChangeTraceFlags`
 
-**All internal implementation details are protected.** The package uses Node.js `exports` field to restrict imports to only the main entry point. You cannot directly import internal types or constants.
+- **`PlainServicesApi`** - Promise-based facade for Effect services
+  - Contract-driven design enforces alignment between Effect services & promise wrappers
+  - All methods wrapped with `PromisifiedContract<T>` generic helper
+  - Derived from `ServicesContract` + `ServicesContractExtensions` + event/sync types
+
+- **`WorkspaceInfo`**, **`DefaultOrgInfo`**, **`ProjectInfo`** - Domain types (data-only DTOs)
+  - `ProjectInfo` — immutable project metadata (path, name, API version, packages, tool paths)
+  - `WorkspaceInfo` — workspace folder info (uri, fsPath, isEmpty, isVirtualFs)
+  - `DefaultOrgInfo` — org identity & connection data
+
+**All internal implementation details protected.** Node.js `exports` field restricts imports to main entry point; internal types unavailable.
 
 ## Package Contents
 

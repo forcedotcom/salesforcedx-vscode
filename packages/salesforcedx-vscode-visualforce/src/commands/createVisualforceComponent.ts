@@ -14,14 +14,14 @@ import { promptForVfTypeName } from './vfTemplateProjectHelpers';
 export const createVisualforceComponentCommand = Effect.fn('createVisualforceComponentCommand')(function* (arg?: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
+  const projectInfo = yield* api.services.ProjectService.getProjectInfo();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   const componentName = yield* promptForVfTypeName(nls.localize('vf_component_name_prompt'));
 
   const defaultUri = Utils.joinPath(
     workspaceInfo.uri,
-    project.getDefaultPackage().path,
+    projectInfo.defaultPackage.path,
     'main',
     'default',
     'components'

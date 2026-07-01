@@ -108,7 +108,9 @@ export const createTraceFlagStatusBar = () =>
         Stream.runForEach(() => refresh(statusBarItem))
       )
     );
-    yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
+    // tryPromise (not promise) routes a rejected connection refresh to the error channel so catchAll swallows it;
+    // Effect.promise would surface the rejection as an uncatchable defect.
+    yield* Effect.tryPromise(() => api.withDefaultOrg(() => undefined)).pipe(Effect.catchAll(() => Effect.void));
     yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity);
   });

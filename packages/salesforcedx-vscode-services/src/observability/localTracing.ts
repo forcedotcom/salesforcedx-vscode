@@ -32,7 +32,8 @@ export const getLogLevel = (): LogLevel.LogLevel => {
 };
 
 const mapSfLogLevel = (level: string): LogLevel.LogLevel => {
-  switch (level.toLowerCase()) {
+  // Defensive: config/env sources can yield a non-string at runtime despite the typed contract.
+  switch (String(level).toLowerCase()) {
     case 'trace':
       return LogLevel.Trace;
     case 'debug':

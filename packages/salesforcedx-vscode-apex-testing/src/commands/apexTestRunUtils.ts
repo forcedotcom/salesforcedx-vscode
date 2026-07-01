@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
+import { getConnection } from '../coreExtensionUtils';
 import * as settings from '../settings';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
@@ -45,8 +46,10 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
 export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTestRunOptions) {
   yield* Effect.annotateCurrentSpan('trigger', options.telemetryTrigger);
 
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
+  const connection = yield* Effect.tryPromise({
+    try: () => getConnection(),
+    catch: (e): Error => (e instanceof Error ? e : new Error(String(e)))
+  });
   const testService = new TestService(connection);
 
   // Bridge the fiber's interruption (e.g. user clicks Cancel on the progress notification) to a

@@ -1,0 +1,17 @@
+# Services API is a data-only boundary
+
+The `salesforcedx-vscode-services` extension previously loaned live third-party-SDK instances across the extension boundary — `@salesforce/core` `Connection`/`SfProject`, `@salesforce/source-deploy-retrieve` `ComponentSet`/`DeployResult`/`RetrieveResult`, jsforce `DescribeMetadataObject`, `@salesforce/templates` `CreateOutput`. Any consumer reading those types had to install the same SDK at the same version, and a consumer that re-declared a foreign shape could never be nominally assignable to the original (private members are compared by declaring class), so type-sharing without the SDK was impossible. This is the type-sharing trilemma: share an owned type (works only for types we own), re-declare the foreign shape (breaks on private-member nominal identity), or import the real foreign type (version coupling) — there is no fourth option.
+
+## Decision
+
+The services API exposes **owned data only**: either "do this action and return owned data" or "give me the data so I build my own 3pp instance." No live 3pp instance crosses the boundary. Owned types (`packages/salesforcedx-vscode-services/src/owned/*.ts`) import nothing from `@salesforce/*`, jsforce, or effect (guarded by `test/jest/owned/ownedTypes.test.ts`; `*Mapper.ts` adapter files are the sole exception and import SDK **types only**). The `loan` pattern (`withDefaultOrg(org => …)`) lends a services-owned `ServicesOrg` facade, never a raw `Connection`. A consumer that genuinely needs a 3pp instance (e.g. apex-testing's `TestService(connection)`) reconstructs it locally from `getConnectionData()` plus its own SDK dependency. With this boundary, an import-free published type surface "falls out for free" because the surface no longer references foreign types.
+
+Owned-value helpers (mappers like `toDeployOutcome`, pure functions like `componentSetHas`) are consumed from the package's **bare entry** as value imports; deep `src/...` imports are forbidden (`local/no-direct-services-imports`), and new pure-fn value exports must be allowlisted in that rule. Consumers that value-import from services declare it in `dependencies` (not `devDependencies`).
+
+## Considered Options
+
+Generate the SDK type closure and re-export it (the earlier owned-closure / dts-bundle-generator approach). Rejected: it fixes the tooling but not the trilemma — a generated `Connection` is still nominally distinct from `@salesforce/core`'s, so consumers gain no assignable type without the real SDK, and the generated closure dragged transitive deps (zod, pino, memfs) and was non-deterministic.
+
+## Consequences
+
+Migration is incremental and gated: a deprecated getter is removed only when it has zero remaining consumers. Some getters are **deliberately retained** and not data-only: `core`'s `WorkspaceContext.getConnection()` and `getAuthFields()` are published 2PP backward-compat API returning 3pp types; conflict detection (metadata's timestamp strategy + `diffHelpers`) stays on the live `ComponentSet` path because it needs SDR path-resolution (`getComponentFilenamesByNameAndType`) that owned data cannot express; `deployOnSaveService` and the delete-marked-`ComponentSet` deploy keep using the `deploy(componentSet)` getter. These are tracked, not silent. Connection-refresh fallbacks that wrap `withDefaultOrg` must use `Effect.tryPromise` (not `Effect.promise`) so a rejection routes to the catchable error channel rather than becoming an uncatchable defect.

@@ -5,53 +5,64 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   ComponentStatus,
-  RequestStatus,
   type FileResponse,
-  type RetrieveResult
+  type RetrieveResult,
+  RequestStatus
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import { isSDRFailure, toRequestStatus } from 'salesforcedx-vscode-services/src/core/sdrGuards';
+import * as Layer from 'effect/Layer';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
+import { isSDRFailure, isSDRSuccess, toRequestStatus } from 'salesforcedx-vscode-services/src/core/sdrGuards';
 import { retrieveHasErrors } from '../../src/shared/retrieve/retrieveOutcome';
 
-const mockExtensionProvider: ExtensionProviderService = {
-  getServicesApi: Effect.succeed({
-    services: {
-      ComponentSetService: Effect.succeed({ isSDRFailure, toRequestStatus })
-    }
-  } as unknown as SalesforceVSCodeServicesApi)
-};
-
-const run = <A>(effect: Effect.Effect<A, unknown, unknown>) =>
-  Effect.runPromise(
-    effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)) as Effect.Effect<
-      A,
-      never,
-      never
-    >
-  );
-
-const makeResult = (partial: {
+const makeResult = (options: {
   fileResponses?: FileResponse[];
-  response?: Partial<RetrieveResult['response']>;
+  responseSuccess?: boolean;
+  responseStatus?: RequestStatus;
 }): RetrieveResult => {
-  const response = {
-    done: true,
-    fileProperties: [],
-    id: 'id',
-    status: RequestStatus.Succeeded,
-    success: true,
-    zipFile: '',
-    ...partial.response
-  } as RetrieveResult['response'];
+  const { fileResponses = [], responseSuccess = true, responseStatus = RequestStatus.Succeeded } = options;
   return {
-    response,
-    getFileResponses: () => partial.fileResponses ?? []
+    getFileResponses: () => fileResponses,
+    response: {
+      success: responseSuccess,
+      status: responseStatus
+    }
   } as RetrieveResult;
 };
+
+// Mock ComponentSetService layer for testing
+const mockComponentSetServiceLayer = Layer.succeed(
+  ComponentSetService,
+  new ComponentSetService({
+    isSDRFailure,
+    toRequestStatus,
+    isSDRSuccess,
+    getComponentState: () => 'changed',
+    makeFileResponseFailure: () => ({}) as any,
+    ensureNonEmptyComponentSet: () => Effect.succeed({} as any),
+    getComponentSetFromUris: () => Effect.succeed({} as any),
+    getComponentSetFromManifest: () => Effect.succeed({} as any),
+    getComponentSetFromProjectDirectories: () => Effect.succeed({} as any),
+    buildComponentSet: () => Effect.succeed({} as any),
+    describeProjectComponents: () => Effect.succeed({} as any)
+  })
+);
+
+const mockExtensionProvider = Layer.succeed(
+  ExtensionProviderService,
+  ExtensionProviderService.of({
+    getServicesApi: Effect.succeed({
+      services: {
+        ComponentSetService
+      }
+    }) as any
+  })
+);
+
+const testLayer = Layer.merge(mockComponentSetServiceLayer, mockExtensionProvider);
 
 describe('retrieveHasErrors', () => {
   it('returns true when any file response failed', async () => {
@@ -63,26 +74,29 @@ describe('retrieveHasErrors', () => {
           state: ComponentStatus.Failed,
           error: 'bad',
           problemType: 'Error'
-        }
+        } as FileResponse
       ]
     });
-    expect(await run(retrieveHasErrors(result))).toBe(true);
+    const hasErrors = await Effect.runPromise(retrieveHasErrors(result).pipe(Effect.provide(testLayer)));
+    expect(hasErrors).toBe(true);
   });
 
   it('returns true when response.success is false without file failures', async () => {
     const result = makeResult({
       fileResponses: [],
-      response: { success: false, status: RequestStatus.Succeeded }
+      responseSuccess: false
     });
-    expect(await run(retrieveHasErrors(result))).toBe(true);
+    const hasErrors = await Effect.runPromise(retrieveHasErrors(result).pipe(Effect.provide(testLayer)));
+    expect(hasErrors).toBe(true);
   });
 
   it('returns true when status is SucceededPartial', async () => {
     const result = makeResult({
       fileResponses: [],
-      response: { status: RequestStatus.SucceededPartial, success: true }
+      responseStatus: RequestStatus.SucceededPartial
     });
-    expect(await run(retrieveHasErrors(result))).toBe(true);
+    const hasErrors = await Effect.runPromise(retrieveHasErrors(result).pipe(Effect.provide(testLayer)));
+    expect(hasErrors).toBe(true);
   });
 
   it('returns false when succeeded with no failures', async () => {
@@ -93,10 +107,10 @@ describe('retrieveHasErrors', () => {
           type: 'ApexClass',
           state: ComponentStatus.Changed,
           filePath: '/x.cls'
-        }
-      ],
-      response: { status: RequestStatus.Succeeded, success: true }
+        } as FileResponse
+      ]
     });
-    expect(await run(retrieveHasErrors(result))).toBe(false);
+    const hasErrors = await Effect.runPromise(retrieveHasErrors(result).pipe(Effect.provide(testLayer)));
+    expect(hasErrors).toBe(false);
   });
 });

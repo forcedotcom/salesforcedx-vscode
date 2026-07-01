@@ -6,9 +6,9 @@
  */
 
 import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type * as Either from 'effect/Either';
+import { getConnection } from '../coreExtensionUtils';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -18,8 +18,10 @@ const minApiVersion = 65.0;
 
 export const discoverTests = (options: DiscoverTestsOptions = {}) =>
   Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const connection = yield* api.services.ConnectionService.getConnection();
+    const connection = yield* Effect.tryPromise({
+      try: () => getConnection(),
+      catch: (e): Error => (e instanceof Error ? e : new Error(String(e)))
+    });
 
     const connectionApiVersion = parseFloat(connection.getApiVersion());
     // Ensure we use an API version that supports the Test Discovery API (>= 65.0)

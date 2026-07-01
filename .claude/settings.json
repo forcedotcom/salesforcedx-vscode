@@ -48,10 +48,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/doc-maintenance-reminder.sh"
-          },
-          {
-            "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/mark-edit.sh"
           },
           {

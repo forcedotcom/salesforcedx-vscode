@@ -27,7 +27,6 @@ import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
 
 class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
-  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
   constructor(options: ConstructorParameters<typeof AzureMonitorTraceExporter>[0], localIngestionEndpoint?: string) {
     super(options);
     // Dev/test: divert envelopes to the local span file server over plain HTTP. The Azure SDK

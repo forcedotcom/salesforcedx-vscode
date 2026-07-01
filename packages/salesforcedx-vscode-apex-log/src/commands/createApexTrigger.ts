@@ -16,13 +16,13 @@ export const createApexTriggerCommand = Effect.fn('createApexTriggerCommand')(fu
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const project = yield* api.services.ProjectService.getSfProject();
+  const projectInfo = yield* api.services.ProjectService.getProjectInfo();
 
   const triggerName = yield* promptForApexTypeName({
     prompt: nls.localize('apex_trigger_name_prompt')
   });
 
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'triggers');
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, projectInfo.defaultPackage.path, 'main', 'default', 'triggers');
 
   const outputDirUri =
     outputDirParam ??

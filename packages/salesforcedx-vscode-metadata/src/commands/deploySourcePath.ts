@@ -11,31 +11,42 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
-import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployFromOutcome } from '../shared/deploy/deployFromOutcome';
 import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 // shared logic for both the editor command and the uri command
-const deployUris = Effect.fn('deploySourcePath.deployUris')(
-  function* (uris: Set<URI>) {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    yield* api.services.ProjectService.ensureInPackageDirectories(Array.from(uris));
-    const componentSetService = yield* api.services.ComponentSetService;
-    return yield* Effect.succeed(Array.from(uris)).pipe(
-      Effect.flatMap(componentSetService.getComponentSetFromUris),
-      Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
-      withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy')),
-      Effect.flatMap(cs => deployComponentSet({ componentSet: cs }))
-    );
-  },
-  Effect.catchTag('ConflictsDetectedError', err =>
-    handleConflictWithRetry({
-      pairs: err.pairs,
-      operationType: err.operationType,
-      retryOperation: deployComponentSet({ componentSet: err.componentSet })
-    })
-  )
-);
+const deployUris = Effect.fn('deploySourcePath.deployUris')(function* (uris: Set<URI>) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelService = yield* api.services.ChannelService;
+  yield* api.services.ProjectService.ensureInPackageDirectories(Array.from(uris));
+  const componentSetService = yield* api.services.ComponentSetService;
+  const urisArray = Array.from(uris);
+  const spec = { kind: 'paths' as const, uris: urisArray.map(u => u.toString()) };
+
+  // The data-only deploy. This is the RETRY target — it must NOT re-run conflict detection.
+  const performDeploy = Effect.gen(function* () {
+    yield* channelService.appendToChannel('Starting metadata deployment...');
+    const outcome = yield* api.services.MetadataDeployService.deployFromSource(spec, { ignoreConflicts: true });
+    return yield* deployFromOutcome(outcome);
+  });
+
+  // Conflict detection runs ONCE (on the existing ComponentSet path — deferred migration).
+  // If conflicts are acknowledged via the modal, retry performs the deploy WITHOUT re-detecting.
+  return yield* Effect.succeed(urisArray).pipe(
+    Effect.flatMap(componentSetService.getComponentSetFromUris),
+    Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
+    withPreparationProgress('deploy', cs => detectConflicts(cs, 'deploy')),
+    Effect.flatMap(() => performDeploy),
+    Effect.catchTag('ConflictsDetectedError', err =>
+      handleConflictWithRetry({
+        pairs: err.pairs,
+        operationType: err.operationType,
+        retryOperation: performDeploy
+      })
+    )
+  );
+});
 
 export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiveEditor')(
   function* () {

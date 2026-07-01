@@ -7,8 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
+import { toDeployOutcome, type NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { nls } from '../../messages';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
 import { DeleteSourceFailedError } from './deleteErrors';
@@ -19,10 +18,7 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 }) {
   const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.ComponentSetService],
-    { concurrency: 'unbounded' }
-  );
+  const channelService = yield* api.services.ChannelService;
 
   // Mark components for deletion
   const deleteSet = yield* api.services.MetadataDeleteService.markComponentsForDeletion(componentSet);
@@ -30,25 +26,16 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
   const result = yield* api.services.MetadataDeployService.deploy(deleteSet);
+  const outcome = toDeployOutcome(result);
 
-  const { isSDRFailure } = componentSetService;
-
-  if (result.getFileResponses().some(isSDRFailure)) {
+  if (outcome.fileResponses.some(fr => fr.state === 'Failed')) {
     return yield* new DeleteSourceFailedError({
-      cause: new Error(
-        nls.localize('delete_source_operation_failed', result.response?.errorMessage ?? 'Unknown error')
-      ),
-      result
+      cause: new Error(nls.localize('delete_source_operation_failed', outcome.errorMessage ?? 'Unknown error')),
+      outcome
     });
   }
 
   // Delete local files after successful deploy
   yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet);
-  yield* channelService.appendToChannel(yield* formatDeployOutput(result));
-
-  if (result.getFileResponses().some(isSDRFailure)) {
-    yield* Effect.sync(() => {
-      void vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message'));
-    });
-  }
+  yield* channelService.appendToChannel(formatDeployOutput(outcome));
 });

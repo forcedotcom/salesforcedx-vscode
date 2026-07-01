@@ -7,7 +7,6 @@
 // TODO: clean up the types for all of this
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
@@ -35,31 +34,13 @@ type ApexExecutionOverlayAction = {
   Line: number;
 };
 
-/** Gets the Connection from the services ConnectionService */
-const getConnection = async (): Promise<Connection | undefined> => {
-  try {
-    return await getRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.ConnectionService.getConnection();
-      })
-    );
-  } catch (error) {
-    const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
-      error instanceof Error ? error.message : String(error)
-    }`;
-    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-    return undefined;
-  }
-};
-
 /** Clears existing checkpoints from the org, making VS Code the source of truth */
 const clearExistingCheckpoints = async (): Promise<boolean> => {
   try {
     const userId = await getRuntime().runPromise(
       Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const ref = yield* api.services.TargetOrgRef();
+        const servicesApi = yield* (yield* ExtensionProviderService).getServicesApi;
+        const ref = yield* servicesApi.services.TargetOrgRef();
         return (yield* SubscriptionRef.get(ref)).userId;
       })
     );
@@ -70,34 +51,38 @@ const clearExistingCheckpoints = async (): Promise<boolean> => {
       return false;
     }
 
-    const connection = await getConnection();
-    if (!connection) {
-      return false;
-    }
-
-    // Query for existing overlay actions
-    const queryResult = await connection.tooling.query<{ Id: string }>(
-      `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`
+    const api = await getRuntime().runPromise(
+      Effect.gen(function* () {
+        return yield* (yield* ExtensionProviderService).getServicesApi;
+      })
     );
 
-    if (queryResult.records.length === 0) {
+    return (await api.withDefaultOrg(async org => {
+      // Query for existing overlay actions
+      const queryResult = await org.query<{ Id: string }>(
+        `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`,
+        { tooling: true }
+      );
+
+      if (queryResult.records.length === 0) {
+        return true;
+      }
+
+      // Delete all records individually using Promise.all
+      const deleteResults = await Promise.allSettled(
+        queryResult.records.map(record => org.delete('ApexExecutionOverlayAction', record.Id, { tooling: true }))
+      );
+
+      // Check if any deletes failed
+      const failures = deleteResults.filter(result => result.status === 'rejected');
+      if (failures.length > 0) {
+        const errorMessage = nls.localize('cannot_delete_existing_checkpoint');
+        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+        return false;
+      }
+
       return true;
-    }
-
-    // Delete all records individually using Promise.all
-    const deleteResults = await Promise.allSettled(
-      queryResult.records.map(record => connection.tooling.sobject('ApexExecutionOverlayAction').delete(record.Id))
-    );
-
-    // Check if any deletes failed
-    const failures = deleteResults.filter(result => result.status === 'rejected');
-    if (failures.length > 0) {
-      const errorMessage = nls.localize('cannot_delete_existing_checkpoint');
-      writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-      return false;
-    }
-
-    return true;
+    })) as boolean;
   } catch (error) {
     const errorMessage = `${nls.localize('unable_to_query_for_existing_checkpoints')} : ${String(error)}`;
     writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
@@ -107,26 +92,26 @@ const clearExistingCheckpoints = async (): Promise<boolean> => {
 
 /** Creates an Apex Execution Overlay Action for a checkpoint node */
 const executeCreateApexExecutionOverlayActionCommand = async (theNode: CheckpointNode): Promise<boolean> => {
-  const connection = await getConnection();
-  if (!connection) {
-    return false;
-  }
-
   try {
-    const overlayAction = JSON.parse(theNode.createJSonStringForOverlayAction());
-    const result = await connection.tooling.sobject('ApexExecutionOverlayAction').create(overlayAction);
+    const api = await getRuntime().runPromise(
+      Effect.gen(function* () {
+        return yield* (yield* ExtensionProviderService).getServicesApi;
+      })
+    );
 
-    // result is a SaveResult when creating a single record
-    const singleResult = Array.isArray(result) ? result[0] : result;
+    return (await api.withDefaultOrg(async org => {
+      const overlayAction = JSON.parse(theNode.createJSonStringForOverlayAction());
+      const result = await org.create('ApexExecutionOverlayAction', overlayAction, { tooling: true });
 
-    if (singleResult.success && singleResult.id) {
-      theNode.setActionCommandResultId(singleResult.id);
-      return true;
-    }
+      if (result.success && result.id) {
+        theNode.setActionCommandResultId(result.id);
+        return true;
+      }
 
-    const errorMessage = `Failed to create checkpoint. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
-    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-    return false;
+      const errorMessage = `Failed to create checkpoint. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+      writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+      return false;
+    })) as boolean;
   } catch (error) {
     let errorMessage: string;
     try {
@@ -567,11 +552,6 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
                 increment: 0,
                 message: localizedProgressMessage
               });
-              const connection = await getConnection();
-              if (!connection) {
-                updateError = true;
-                return false;
-              }
 
               writeToDebuggerOutputWindow(
                 `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_source_line_info')}`

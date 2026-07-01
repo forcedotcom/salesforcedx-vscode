@@ -7,7 +7,12 @@ This extension provides core services for Salesforce development in VS Code.
 - Service provider functionality (Workspace, Connection, Project, Config, FS, Channel, Media, Prompt, Template)
 - Core utilities for Salesforce development
 - Integration with Salesforce CLI
-- Template generation through `@salesforce/templates`
+- Metadata operations:
+  - Deploy/retrieve with owned outcome types (DeployOutcome, RetrieveOutcome)
+  - Metadata describe with owned `MetadataTypeInfo` DTO (mirrors jsforce DescribeMetadataObject)
+- Source tracking — query local, remote, conflict changes as owned OrgChange DTOs
+- Template generation through `@salesforce/templates`:
+  - Owned `TemplateCreateOutcome` return via `createFromTemplateOwned()` (data-only DTO)
 - Virtual FS provider (`src/virtualFsProvider`) — memfs, IndexedDB storage for web
 - Observability (`src/observability`) — OpenTelemetry spans, App Insights, O11y. See [observability README](src/observability/README.md)
 
@@ -19,6 +24,26 @@ This extension provides core services for Salesforce development in VS Code.
 ## Installation
 
 This extension is part of the Salesforce Extensions for VS Code package.
+
+## Owned Data Types (Import-Free DTOs)
+
+The services API publishes owned, hand-authored data-only types with zero dependencies on `@salesforce/*`, `jsforce`, or `effect`:
+
+- **`MetadataTypeInfo`** — Metadata type descriptor (mirrors jsforce DescribeMetadataObject, data-only)
+- **`TemplateCreateOutcome`** — Template generation result (mirrors @salesforce/templates CreateOutput, data-only)
+- **`ConnectionData`** — Auth/org connection info
+- **`DeployOutcome`** / **`RetrieveOutcome`** — Metadata operation results (success flag, status, file responses, component failures)
+- **`FileResponseInfo`** — Per-file deploy/retrieve status (name, type, state, error details)
+- **`ComponentFailureInfo`** — Server-reported component failure from org deployment response
+- **`DeployFromSourceOptions`** / **`RetrieveOptions`** — Metadata operation request options
+- **`SourceSpec`** — Request spec for deploy/retrieve (paths, manifest, or project directories)
+- **`OrgChange`** — Source tracking change entry (fullName, type, state, filePath)
+- **`ProjectInfo`** — Project and package directory metadata
+- **`ComponentSetInfo`** — Component introspection (describes components and package.xml)
+- **`DefaultOrgInfo`** — Target org information
+- **`ServicesOrg`** — Loan facade for org operations (query, crud, request, identity)
+
+These types enable consumers to build on the services API without importing the Salesforce SDK. See [services-extension-consumption](../.claude/skills/services-extension-consumption/SKILL.md) for consumption patterns.
 
 ## Usage
 

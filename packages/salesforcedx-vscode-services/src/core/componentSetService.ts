@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ComponentSetInfo } from '../owned/components';
+import type { SourceSpec } from '../owned/deploy';
 import { OrgConfigProperties } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import type { SfProject } from '@salesforce/core/project';
@@ -19,6 +21,7 @@ import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
+import { toComponentSetInfo } from '../owned/componentSetInfoMapper';
 import { HashableUri } from '../vscode/hashableUri';
 import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
@@ -200,6 +203,32 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
       }).pipe(Effect.withSpan('getComponentSetFromProjectDirectories'));
     });
 
+    /** Build ComponentSet from SourceSpec - internal dispatch to existing getters */
+    const buildComponentSet = Effect.fn('ComponentSetService.buildComponentSet')(function* (spec: SourceSpec) {
+      yield* Effect.annotateCurrentSpan({ specKind: spec.kind });
+      switch (spec.kind) {
+        case 'paths':
+          return yield* getComponentSetFromUris(spec.uris.map(u => URI.parse(u)));
+        case 'manifest':
+          return yield* getComponentSetFromManifest(URI.parse(spec.manifestUri));
+        case 'projectDirectories':
+          return yield* getComponentSetFromProjectDirectories(
+            spec.members
+              ? { metadataMembers: spec.members.map(m => ({ type: m.type, fullName: m.fullName })) }
+              : undefined
+          );
+      }
+    });
+
+    /** Describe project components as owned ComponentSetInfo - introspection path */
+    const describeProjectComponents = Effect.fn('ComponentSetService.describeProjectComponents')(function* (
+      spec: SourceSpec
+    ) {
+      const componentSet = yield* buildComponentSet(spec);
+      const componentSetInfo: ComponentSetInfo = yield* Effect.promise(() => toComponentSetInfo(componentSet));
+      return componentSetInfo;
+    });
+
     return {
       getComponentState,
       isSDRSuccess,
@@ -209,7 +238,9 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
       ensureNonEmptyComponentSet,
       getComponentSetFromUris,
       getComponentSetFromManifest,
-      getComponentSetFromProjectDirectories
+      getComponentSetFromProjectDirectories,
+      buildComponentSet,
+      describeProjectComponents
     };
   })
 }) {}

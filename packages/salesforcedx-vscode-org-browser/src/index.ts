@@ -40,8 +40,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
 
-  // get a connection to initiate the ref
-  yield* api.services.ConnectionService.getConnection();
+  // get a connection to initiate the ref (result discarded; refresh failures are swallowed)
+  yield* Effect.tryPromise(() => api.withDefaultOrg(() => undefined)).pipe(Effect.catchAll(() => Effect.void));
   // wait for the target org ref to have an orgId
   const targetOrgRef = yield* api.services.TargetOrgRef();
   yield* Effect.repeat(SubscriptionRef.get(targetOrgRef), {

@@ -5,15 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import {
+  componentFilenamesByNameAndType,
+  type ComponentSetInfo,
+  type MetadataTypeInfo
+} from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
-import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
+import { MetadataListResultItem } from './types';
 
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserTreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserTreeItem | undefined | void> = new vscode.EventEmitter();
@@ -69,12 +73,14 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined) =>
       return yield* Effect.succeed([]);
     }
     if (!element) {
-      const types = yield* metadataDescribeService.describe();
+      const types = yield* metadataDescribeService.describeMetadata();
       return types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
-      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+      const projectComponentSet = yield* api.services.ComponentSetService.describeProjectComponents({
+        kind: 'projectDirectories'
+      });
       const objectName = element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!;
       const result = yield* metadataDescribeService.describeCustomObject(objectName);
       return yield* Effect.all(
@@ -92,7 +98,9 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined) =>
         .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element))));
     }
     if (element.kind === 'type') {
-      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+      const projectComponentSet = yield* api.services.ComponentSetService.describeProjectComponents({
+        kind: 'projectDirectories'
+      });
       return yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
@@ -106,7 +114,9 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined) =>
     if (element.kind === 'folder') {
       const { xmlName, folderName } = element;
       if (!xmlName || !folderName) return yield* Effect.succeed([]);
-      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+      const projectComponentSet = yield* api.services.ComponentSetService.describeProjectComponents({
+        kind: 'projectDirectories'
+      });
       // Metadata API bug: listMetadata({type: 'ReportFolder', folder: X}) ignores
       // the folder param and returns ALL report folders in the org regardless of X.
       // To avoid infinite nesting we call listMetadata(xmlName, folderName) instead
@@ -128,10 +138,10 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined) =>
   }).pipe(Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName } }));
 
 const listMetadataToComponent =
-  (projectComponentSet: ComponentSet) =>
+  (projectComponentSet: ComponentSetInfo) =>
   (element: OrgBrowserTreeItem) =>
   (c: MetadataListResultItem): OrgBrowserTreeItem => {
-    const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
+    const filePaths = componentFilenamesByNameAndType(projectComponentSet, {
       fullName: c.fullName,
       type: c.type
     });
@@ -157,10 +167,10 @@ const listMetadataToFolder =
     });
 
 const listMetadataToFolderItem =
-  (projectComponentSet: ComponentSet) =>
+  (projectComponentSet: ComponentSetInfo) =>
   (element: OrgBrowserTreeItem) =>
   (c: MetadataListResultItem): OrgBrowserTreeItem => {
-    const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
+    const filePaths = componentFilenamesByNameAndType(projectComponentSet, {
       fullName: c.fullName,
       type: c.type
     });
@@ -175,7 +185,7 @@ const listMetadataToFolderItem =
     });
   };
 
-const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowserTreeItem =>
+const mdapiDescribeToOrgBrowserNode = (t: MetadataTypeInfo): OrgBrowserTreeItem =>
   new OrgBrowserTreeItem({
     kind: isFolderType(t.xmlName) ? 'folderType' : 'type',
     xmlName: t.xmlName,

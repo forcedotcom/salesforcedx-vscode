@@ -13,7 +13,7 @@ import * as Stream from 'effect/Stream';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { formatRetrieveOutput } from '../retrieve/formatRetrieveOutput';
+import { formatRetrieveOutputFromResult } from '../retrieve/formatRetrieveOutput';
 import { filesAreNotIdentical, matchUrisToComponents, retrieveToCacheDirectory } from './diffHelpers';
 
 /** Diff ComponentSet - retrieve to cache and show diffs. Returns pairs that were diffed (non-identical). */
@@ -35,7 +35,7 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
     return yield* new api.services.UserCancellationError();
   }
 
-  yield* channelService.appendToChannel(yield* formatRetrieveOutput(retrieveResult));
+  yield* channelService.appendToChannel(yield* formatRetrieveOutputFromResult(retrieveResult));
 
   if (retrieveResult.components.getSourceComponents().toArray().length === 0) {
     yield* channelService.appendToChannel('No components retrieved from org');

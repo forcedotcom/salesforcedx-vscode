@@ -11,6 +11,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
@@ -19,8 +20,10 @@ const SCHEME = 'sf-org-apex';
 /** Lookup function for fetching Apex class body from org */
 const lookupClassBody = (className: string) =>
   Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const connection = yield* api.services.ConnectionService.getConnection();
+    const connection = yield* Effect.tryPromise({
+      try: () => getConnection(),
+      catch: (e): Error => (e instanceof Error ? e : new Error(String(e)))
+    });
 
     // Query for the Apex class body using Tooling API
     const query = `SELECT Id, Name, Body, NamespacePrefix FROM ApexClass WHERE Name = '${className.replaceAll("'", "''")}' LIMIT 1`;

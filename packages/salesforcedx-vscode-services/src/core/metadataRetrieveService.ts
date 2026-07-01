@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { RetrieveOptions, SourceSpec } from '../owned/deploy';
 import type { Connection } from '@salesforce/core';
 import type { SfProject } from '@salesforce/core/project';
 import {
@@ -20,11 +21,17 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { toRetrieveOutcome } from '../owned/deployMapper';
 import { uriToPath } from '../vscode/paths';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
-import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
+import {
+  ComponentSetService,
+  FailedToBuildComponentSetError,
+  NonEmptyComponentSet,
+  setComponentSetProperties
+} from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
@@ -56,6 +63,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
   accessors: true,
   dependencies: [
     WorkspaceService.Default,
+    ComponentSetService.Default,
     ConnectionService.Default,
     SourceTrackingService.Default,
     MetadataRegistryService.Default,
@@ -64,6 +72,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
   ],
   effect: Effect.gen(function* () {
     const workspaceService = yield* WorkspaceService;
+    const componentSetService = yield* ComponentSetService;
     const connectionService = yield* ConnectionService;
     const sourceTrackingService = yield* SourceTrackingService;
     const projectService = yield* ProjectService;
@@ -271,12 +280,90 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       }
     );
 
+    /** Retrieve metadata from SourceSpec - returns owned RetrieveOutcome */
+    const retrieveToSource = Effect.fn('MetadataRetrieveService.retrieveToSource')(function* (
+      spec: SourceSpec,
+      opts?: RetrieveOptions
+    ) {
+      yield* Effect.annotateCurrentSpan({ specKind: spec.kind, opts });
+      const components = yield* componentSetService.buildComponentSet(spec);
+      const retrieveResult = yield* retrieveComponentSet(components, opts);
+      return toRetrieveOutcome(retrieveResult);
+    });
+
+    /** Retrieve remote changes (from source tracking) - returns owned RetrieveOutcome.
+     * Encapsulates: maybeApplyRemoteDeletesToLocal → retrieve non-deletes → merge delete responses into outcome.
+     * Deletes are folded into the outcome's fileResponses so formatRetrieveOutput surfaces them. */
+    const retrieveRemoteChanges = Effect.fn('MetadataRetrieveService.retrieveRemoteChanges')(function* (
+      opts?: RetrieveOptions
+    ) {
+      const { componentSetFromNonDeletes, fileResponsesFromDelete } =
+        yield* sourceTrackingService.maybeApplyRemoteDeletesToLocal();
+
+      if (componentSetFromNonDeletes.size > 0) {
+        // Retrieve the non-deletes via the existing internal retrieveComponentSet
+        const retrieveResult = yield* retrieveComponentSet(componentSetFromNonDeletes, opts);
+        const outcome = toRetrieveOutcome(retrieveResult);
+
+        // Map delete FileResponses to owned FileResponseInfo and merge into the outcome
+        const mappedDeletes = fileResponsesFromDelete.map(fr => ({
+          fullName: fr.fullName,
+          type: fr.type,
+          state: fr.state,
+          filePath: 'filePath' in fr ? fr.filePath : undefined,
+          error: 'error' in fr ? fr.error : undefined,
+          lineNumber: 'lineNumber' in fr ? fr.lineNumber : undefined,
+          columnNumber: 'columnNumber' in fr ? fr.columnNumber : undefined,
+          problemType: 'problemType' in fr ? fr.problemType : undefined
+        }));
+
+        return {
+          ...outcome,
+          fileResponses: [...outcome.fileResponses, ...mappedDeletes]
+        };
+      } else {
+        // Only deletes (no non-deletes to retrieve) — return an outcome with just the delete responses
+        const mappedDeletes = fileResponsesFromDelete.map(fr => ({
+          fullName: fr.fullName,
+          type: fr.type,
+          state: fr.state,
+          filePath: 'filePath' in fr ? fr.filePath : undefined,
+          error: 'error' in fr ? fr.error : undefined,
+          lineNumber: 'lineNumber' in fr ? fr.lineNumber : undefined,
+          columnNumber: 'columnNumber' in fr ? fr.columnNumber : undefined,
+          problemType: 'problemType' in fr ? fr.problemType : undefined
+        }));
+
+        return {
+          success: true,
+          status: 'Succeeded',
+          fileResponses: mappedDeletes,
+          components: []
+        };
+      }
+    }, withActiveMetadataOperationPipeline);
+
+    /** Retrieve owned members — maps owned OwnedMetadataMember[] to SDR's shape, calls the existing retrieve, returns owned RetrieveOutcome. */
+    const retrieveMembers = Effect.fn('MetadataRetrieveService.retrieveMembers')(function* (
+      members: readonly import('../owned/components').OwnedMetadataMember[],
+      opts?: import('../owned/deploy').RetrieveOptions
+    ) {
+      yield* Effect.annotateCurrentSpan({ membersCount: members.length, opts });
+      // OwnedMetadataMember {type, fullName} is structurally compatible with SDR MetadataMember
+      const sdrMembers: MetadataMember[] = members.map(m => ({ type: m.type, fullName: m.fullName }));
+      const retrieveResult = yield* retrieve(sdrMembers, opts);
+      return toRetrieveOutcome(retrieveResult);
+    }, withActiveMetadataOperationPipeline);
+
     return {
       retrieve,
       retrieveComponentSet,
       retrieveComponentSetToDirectory,
       buildComponentSet,
-      buildComponentSetFromSource
+      buildComponentSetFromSource,
+      retrieveToSource,
+      retrieveRemoteChanges,
+      retrieveMembers
     };
   })
 }) {}

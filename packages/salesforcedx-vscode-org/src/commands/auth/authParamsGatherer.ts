@@ -217,7 +217,6 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
 
 const getProjectLoginUrl = Effect.fn('AuthParamsGatherer.getProjectLoginUrl')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const project = yield* api.services.ProjectService.getSfProject();
-  const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return projectJson.get('sfdcLoginUrl');
+  const projectInfo = yield* api.services.ProjectService.getProjectInfo();
+  return projectInfo.sfdcLoginUrl;
 });

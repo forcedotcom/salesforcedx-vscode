@@ -58,14 +58,14 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
+  const projectInfo = yield* api.services.ProjectService.getProjectInfo();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   const params = Schema.is(CreateApexClassParams)(arg) ? arg : undefined;
   const template = params?.template ?? (yield* promptForTemplate());
   const className = params?.name ?? (yield* promptForApexTypeName({ prompt: nls.localize('apex_class_name_prompt') }));
 
-  const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'classes');
+  const defaultUri = Utils.joinPath(workspaceInfo.uri, projectInfo.defaultPackage.path, 'main', 'default', 'classes');
 
   const outputDirFromContext = URI.isUri(arg) ? arg : undefined;
   const outputDirUri =

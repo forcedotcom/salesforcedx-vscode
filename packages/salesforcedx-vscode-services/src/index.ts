@@ -41,6 +41,7 @@ import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
+import { createPlainServicesApi, type PlainServicesApi } from './plainApi';
 import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -69,7 +70,7 @@ import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherLayer } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
-export type SalesforceVSCodeServicesApi = {
+export type SalesforceVSCodeServicesApi = PlainServicesApi & {
   services: {
     /** contains most of the dependencies prebuilt in the services extension */
     prebuiltServicesDependencies: Context.Context<
@@ -205,6 +206,12 @@ export {
   ChildRelationshipSchema,
   PicklistValueSchema
 } from './core/transmogrifierService';
+export { toDeployOutcome, toRetrieveOutcome } from './owned/deployMapper';
+export type { MetadataTypeInfo, TemplateCreateOutcome, ConnectionData } from './owned/metadata';
+export type { ComponentSetInfo, ComponentInfo, OwnedMetadataMember } from './owned/components';
+export { componentSetHas, componentFilenamesByNameAndType } from './owned/componentSetInfoHelpers';
+export type { OrgChange } from './owned/changes';
+export type { ProjectInfo, PackageDirInfo } from './owned/projectInfo';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
@@ -371,8 +378,12 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   console.log('Salesforce Services extension is now active!');
 
+  // Create plain Promise-based API facade
+  const plainApi = createPlainServicesApi(builtContext, extensionScope);
+
   // Return API for other extensions to consume
   return {
+    ...plainApi,
     services: {
       prebuiltServicesDependencies: builtContext,
       ApexLogService,
@@ -438,6 +449,7 @@ const deactivateEffect = Effect.gen(function* () {
 );
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
+export type { DefaultOrgInfo, PlainServicesApi, WorkspaceInfo } from './plainApi';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
@@ -446,6 +458,16 @@ export { type ExtensionContextService, type ExtensionContextServiceLayer } from 
 export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';
 export { type FileChangePubSub, type FileChangeEvent } from './vscode/fileChangePubSub';
 export { type FsService } from './vscode/fsService';
+export type {
+  DeployOutcome,
+  RetrieveOutcome,
+  RetrievedComponentInfo,
+  FileResponseInfo,
+  ComponentFailureInfo,
+  SourceSpec,
+  DeployFromSourceOptions,
+  RetrieveOptions
+} from './owned/deploy';
 export {
   MetadataDeleteService,
   type MetadataDeleteService as MetadataDeleteServiceType

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -56,13 +56,11 @@ const toUserRecords = (searchRecords: { [field: string]: unknown }[]): UserRecor
     UserType: String(r.UserType ?? '')
   }));
 
-type ConnectionLike = { search: (sosl: string) => Promise<{ searchRecords: { [field: string]: unknown }[] }> };
-
 /** Run SOSL search and update picker items. Ignore failures so user can keep typing. */
 const searchUsersEffect = (
   term: string,
   picker: vscode.QuickPick<UserQuickPickItem>,
-  conn: ConnectionLike,
+  api: SalesforceVSCodeServicesApi,
   currentUserId: string
 ) =>
   Effect.gen(function* () {
@@ -71,10 +69,12 @@ const searchUsersEffect = (
     });
     const escaped = term.replaceAll(/['"\\]/g, '');
     const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username, UserType WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
-    const { searchRecords } = yield* Effect.tryPromise({
-      try: () => conn.search(sosl),
+    const result = yield* Effect.tryPromise({
+      try: () => api.withDefaultOrg(org => org.request(`/search/?q=${encodeURIComponent(sosl)}`)),
       catch: () => new Error('search failed')
     });
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const searchRecords = (result as { searchRecords: { [field: string]: unknown }[] }).searchRecords;
     yield* Effect.sync(() => {
       picker.items = toUserQuickPickItems(toUserRecords(searchRecords), currentUserId);
       picker.busy = false;
@@ -91,7 +91,6 @@ const searchUsersEffect = (
 /** Show a QuickPick that searches org users via SOSL as the user types (debounced). */
 export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUserId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const conn = yield* (yield* api.services.ConnectionService).getConnection();
   const runtime = yield* Effect.runtime();
   const run = Runtime.runFork(runtime);
 
@@ -133,7 +132,7 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
     Stream.fromQueue(queue).pipe(
       Stream.debounce(Duration.millis(SOSL_DEBOUNCE_MS)),
       Stream.filter(s => s.length >= SOSL_MIN_CHARS),
-      Stream.runForEach(term => searchUsersEffect(term, picker, conn, currentUserId))
+      Stream.runForEach(term => searchUsersEffect(term, picker, api, currentUserId))
     )
   );
   picker.show();

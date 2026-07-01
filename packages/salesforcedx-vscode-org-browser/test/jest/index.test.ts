@@ -13,6 +13,10 @@ jest.mock('vscode', () => ({
   commands: {
     registerCommand: jest.fn()
   },
+  // The services entry's observability layer calls extensions.getExtension at module load.
+  extensions: {
+    getExtension: jest.fn()
+  },
   workspace: {
     getConfiguration: jest.fn(() => ({
       get: jest.fn()
@@ -172,7 +176,10 @@ const MockConnectionServiceLayer = Layer.succeed(
   new ConnectionService({
     getConnection: () => Effect.sync(() => mockConnection),
     invalidateCachedConnections: () => Effect.void,
-    listAllAuthorizations: () => Effect.succeed([])
+    listAllAuthorizations: () => Effect.succeed([]),
+    withDefaultOrg: () => Effect.succeed(undefined as never),
+    getConnectionData: () =>
+      Effect.succeed({ accessToken: '', instanceUrl: '', apiVersion: '', username: '', orgId: '' })
   } as const)
 );
 
@@ -194,25 +201,24 @@ const MockErrorHandlerServiceLayer = Layer.succeed(
 );
 
 // 9. Mock ProjectService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const MockProjectServiceLayer = ProjectService.Default as any as Layer.Layer<ProjectService>;
 
 // 10. Mock MetadataRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const MockMetadataRetrieveServiceLayer = MetadataRetrieveService.Default as any as Layer.Layer<MetadataRetrieveService>;
 
 // 11. Mock MetadataRegistryService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const MockMetadataRegistryServiceLayer = MetadataRegistryService.Default as any as Layer.Layer<MetadataRegistryService>;
 
 // 12. Mock SourceTrackingService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const MockSourceTrackingServiceLayer = SourceTrackingService.Default as any as Layer.Layer<SourceTrackingService>;
 
 // 13. Mock OrgBrowserRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
 
 const MockOrgBrowserRetrieveServiceLayer =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   OrgBrowserRetrieveService.Default as any as Layer.Layer<OrgBrowserRetrieveService>;
 
 // 14. ExtensionProviderService mock

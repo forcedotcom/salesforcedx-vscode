@@ -4,16 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { componentFilenamesByNameAndType, type ComponentSetInfo } from 'salesforcedx-vscode-services';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField } from './types';
 
-export const createCustomFieldNode = (projectComponentSet: ComponentSet) => (element: OrgBrowserTreeItem) =>
+export const createCustomFieldNode = (projectComponentSet: ComponentSetInfo) => (element: OrgBrowserTreeItem) =>
   Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
     return yield* Effect.sync(() => {
       const fieldFullName = `${element.componentName}.${removeNamespacePrefix(element)(field).name}`;
-      const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
+      const filePaths = componentFilenamesByNameAndType(projectComponentSet, {
         fullName: fieldFullName,
         type: 'CustomField'
       });

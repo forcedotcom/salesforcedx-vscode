@@ -7,7 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import { toDeployOutcome, type NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
 import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
@@ -27,12 +27,13 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   yield* channelService.appendToChannel('Starting metadata deployment...');
 
   const result = yield* api.services.MetadataDeployService.deploy(componentSet);
+  const outcome = toDeployOutcome(result);
 
-  yield* channelService.appendToChannel(yield* formatDeployOutput(result));
+  yield* channelService.appendToChannel(formatDeployOutput(outcome));
 
-  yield* maybeStoreDeployResult(result);
+  yield* maybeStoreDeployResult(outcome);
 
-  const failedResponses = yield* getMergedDeployFailures(result);
+  const failedResponses = getMergedDeployFailures(outcome);
   const failedWithPaths = failedResponses.filter(
     (fr): fr is typeof fr & { filePath: string } => typeof fr.filePath === 'string' && fr.filePath.length > 0
   );
