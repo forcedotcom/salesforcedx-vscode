@@ -85,4 +85,4 @@ To permanently remove stored results, run **SFDX: Clear Apex Test Results** from
 
 ## Related commands
 
-From the Command Palette: **Run Apex Tests**, **Run Apex Test Class**, **Run Apex Test Method**, **Run Apex Test Suite**, **Clear Apex Test Results**, plus suite create/add. The explorer is the main place to browse, filter, and pick what to run.
+From the Command Palette: **Run Apex Tests**, **Run Apex Test Class**, **Run Apex Test Method**, **Run Apex Test Suite**, **Clear Apex Test Results**, plus suite create/add/remove. The explorer is the main place to browse, filter, and pick what to run.
