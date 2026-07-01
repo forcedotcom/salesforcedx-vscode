@@ -44,17 +44,37 @@ jest.mock('../../../src/services/extensionProvider', () => {
       }
     }
   };
-  const MockAllServicesLayer = Layer.mergeAll(
-    Layer.effect(
-      ExtensionProviderService,
-      EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
-    ),
-    ApexTestRunCacheService.Default
+  const ExtensionProviderLayer = Layer.effect(
+    ExtensionProviderService,
+    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
   );
+  // ApexTestTreeService owns the tree Refs; the shell reads them via this runtime, so the mock runtime
+  // must provide its Default layer. Built lazily (not at module-eval) to avoid the import cycle
+  // apexTestTreeService -> testUtils -> extensionProvider (this mock).
+  let mockRuntime: any;
+  let MockAllServicesLayer: any;
+  let treeService: any;
+  const ensureRuntime = () => {
+    if (!mockRuntime) {
+      treeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+      MockAllServicesLayer = Layer.mergeAll(
+        ExtensionProviderLayer,
+        treeService.Default,
+        ApexTestRunCacheService.Default
+      );
+      // One persistent runtime so the tree-state Refs survive across the shell's runSync/runPromise
+      // calls within a test (matching the production single-runtime behavior).
+      mockRuntime = ManagedRuntime.make(MockAllServicesLayer);
+    }
+    return mockRuntime;
+  };
 
   return {
-    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
-    AllServicesLayer: MockAllServicesLayer,
+    getApexTestingRuntime: () => ensureRuntime(),
+    get AllServicesLayer() {
+      ensureRuntime();
+      return MockAllServicesLayer;
+    },
     setAllServicesLayer: jest.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
@@ -63,7 +83,13 @@ jest.mock('../../../src/services/extensionProvider', () => {
       mockReadFileResult = s;
     },
     __mockFsServiceReadFile: mockReadFile,
-    __mockMetadataRetrieve: mockMetadataRetrieve
+    __mockMetadataRetrieve: mockMetadataRetrieve,
+    // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
+    __resetTree: () => {
+      ensureRuntime();
+      mockRuntime.runSync(treeService.reset());
+      mockRuntime.runSync(treeService.clearRestoredResults());
+    }
   };
 });
 
@@ -85,7 +111,10 @@ jest.mock('../../../src/utils/testUtils', () => {
 
 jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
-  retrieveTestRunConcise: jest.fn().mockReturnValue(false)
+  retrieveTestRunConcise: jest.fn().mockReturnValue(false),
+  // Default off: discovery's restore-previous-results step short-circuits in tests not exercising it.
+  retrieveRestorePreviousResults: jest.fn().mockReturnValue(false),
+  disableRestorePreviousResults: jest.fn()
 }));
 
 jest.mock('../../../src/testDiscovery/packageResolution', () => ({
@@ -149,9 +178,15 @@ import * as EffectModule from 'effect/Effect';
 import {
   ApexTestController,
   closeForeignApexTestingTabs,
-  getTestController,
-  sortUrisByMtimeAscending
+  getTestController
 } from '../../../src/views/testController';
+
+// The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
+// the production module accessors use) to seed test state.
+const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map<string, vscode.TestItem> => {
+  const ApexTestTreeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+  return extensionProvider.getApexTestingRuntime().runSync(ApexTestTreeService[key]());
+};
 
 // closeForeignApexTestingTabs returns an Effect (R = never: pure tab ops, no services), so run it
 // with the real Effect runtime rather than the mocked extension runtime.
@@ -204,6 +239,8 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Clear the singleton runtime's tree Refs so per-test map state does not leak.
+    (extensionProvider as unknown as { __resetTree: () => void }).__resetTree();
 
     // Mock vscode.tests.createTestController
     (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
@@ -1199,8 +1236,7 @@ describe('ApexTestController', () => {
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
-      const suiteItems = (controller as any).suiteItems as Map<string, vscode.TestItem>;
-      suiteItems.set('MySuite', suiteItem);
+      treeMap('getSuiteItems').set('MySuite', suiteItem);
 
       await controller.incrementalUpdate(changes, true);
 
@@ -1211,8 +1247,8 @@ describe('ApexTestController', () => {
       const Effect = jest.requireActual('effect/Effect');
 
       // Set up an existing class item in the controller
-      const classItems = (controller as any).classItems as Map<string, vscode.TestItem>;
-      const methodItems = (controller as any).methodItems as Map<string, vscode.TestItem>;
+      const classItems = treeMap('getClassItems');
+      const methodItems = treeMap('getMethodItems');
 
       const existingMethodItem = {
         id: 'method:MyTestClass.testMethod1',
@@ -1263,43 +1299,8 @@ describe('getTestController', () => {
   });
 });
 
-describe('sortUrisByMtimeAscending', () => {
-  const uriFor = (runId: string): URI => URI.file(`/results/test-result-${runId}.json`);
-
-  it('orders by mtime so the newest run is applied last (most recent result wins)', () => {
-    // Regression for W-XXXXXXXX: Salesforce test-run-id filenames are NOT chronologically
-    // sortable. Here the lexicographically-last file (CrPFqQ) is actually an OLDER run than
-    // CrOq5E/CrOtvg. Sorting by filename would apply the older failing run last and clobber the
-    // newer passing run. Sorting by mtime applies oldest-first so the newest run wins.
-    const items = [
-      { uri: uriFor('CrOtvg'), mtime: 4000 }, // newest run (all green)
-      { uri: uriFor('CrP6pE'), mtime: 1000 }, // oldest run (had the failure)
-      { uri: uriFor('CrPFqQ'), mtime: 2000 }, // lexicographically last, but older than CrO* runs
-      { uri: uriFor('CrOq5E'), mtime: 3000 }
-    ];
-
-    const ordered = sortUrisByMtimeAscending(items).map(uri => uri.path);
-
-    expect(ordered).toEqual([
-      uriFor('CrP6pE').path,
-      uriFor('CrPFqQ').path,
-      uriFor('CrOq5E').path,
-      uriFor('CrOtvg').path
-    ]);
-    // The newest-by-mtime run is applied last regardless of filename ordering.
-    expect(ordered.at(-1)).toBe(uriFor('CrOtvg').path);
-  });
-
-  it('does not mutate the input array', () => {
-    const items = [
-      { uri: uriFor('b'), mtime: 2000 },
-      { uri: uriFor('a'), mtime: 1000 }
-    ];
-    const snapshot = items.map(i => i.uri.path);
-    sortUrisByMtimeAscending(items);
-    expect(items.map(i => i.uri.path)).toEqual(snapshot);
-  });
-});
+// sortUrisByMtimeAscending moved into ApexTestTreeService; the mtime-ordering behavior is covered by
+// test/jest/utils/sortHelpers.test.ts (the canonical sortByMtimeAscending helper).
 
 describe('closeForeignApexTestingTabs', () => {
   // Real-ish tab fixtures: the production code does `tab.input instanceof vscode.TabInputText`, so the
