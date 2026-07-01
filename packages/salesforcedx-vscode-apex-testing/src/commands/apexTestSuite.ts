@@ -44,9 +44,10 @@ const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')
   const connection = yield* api.services.ConnectionService.getConnection();
   const suites = yield* Effect.promise(() => new TestService(connection).retrieveAllSuites());
   return suites.map(
+    // retrieveAllSuites is typed with lowercase `id` but the tooling API returns `Id` at runtime
     (testSuite): ApexTestQuickPickItem => ({
       label: testSuite.TestSuiteName,
-      description: testSuite.id,
+      description: Object.entries(testSuite).find(([k]) => k.toLowerCase() === 'id')?.[1] ?? '',
       type: 'Suite'
     })
   );
