@@ -168,7 +168,7 @@ test('org create: cancel at def-file picker is silent', async ({ page }) => {
   await test.step('set dev hub as default org via picker', async () => {
     await clickOrgPickerStatusBar(page, NO_DEFAULT_ORG);
     await selectOrgInPicker(page, devHubAlias);
-    await waitForNotification(page, SET_DEFAULT_ORG_RAN);
+    // Picker writes config directly (no success toast); the status bar is the signal.
     await expectOrgPickerStatusBar(page, devHubAlias);
   });
 
