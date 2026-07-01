@@ -48,12 +48,9 @@ const registerCommands = (): vscode.Disposable =>
 const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkIn(createOrgPicker(), yield* getExtensionScope());
 
-  // Register org picker commands
+  // Register org picker command with AllServicesLayer for tracing + global error/cancellation handling
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const contextService = yield* api.services.ExtensionContextService;
-  const context = yield* contextService.getContext;
-  const setDefaultOrgCmd = vscode.commands.registerCommand('sf.set.default.org', setDefaultOrg);
-  context.subscriptions.push(setDefaultOrgCmd);
+  yield* api.services.registerCommandWithLayer(AllServicesLayer)('sf.set.default.org', setDefaultOrg);
 
   // alert user about orgs that are expiring soon
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());

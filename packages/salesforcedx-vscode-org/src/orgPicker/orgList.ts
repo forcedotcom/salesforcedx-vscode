@@ -6,7 +6,6 @@
  */
 import { OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS, type DefaultOrgInfoSchema } from '@salesforce/vscode-services';
 import { Duration } from 'effect';
 import * as Effect from 'effect/Effect';
@@ -14,7 +13,6 @@ import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
-import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 import {
   determineOrgMarkers,
@@ -185,7 +183,7 @@ export const buildOrgQuickPickItems = (
   });
 };
 
-const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
+export const setDefaultOrg = Effect.fn('OrgList.setDefaultOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
@@ -215,14 +213,6 @@ const setDefaultOrgEffect = Effect.fn('OrgList.setDefaultOrg')(function* () {
     Effect.catchAll(e => Effect.logWarning('setDefaultOrg: connection refresh failed', e))
   );
 });
-
-export const setDefaultOrg = async (): Promise<CancelResponse | ContinueResponse<{}>> =>
-  getOrgRuntime().runPromise(
-    setDefaultOrgEffect().pipe(
-      Effect.map((): ContinueResponse<{}> => ({ type: 'CONTINUE', data: {} })),
-      Effect.catchTag('UserCancellationError', (): Effect.Effect<CancelResponse> => Effect.succeed({ type: 'CANCEL' }))
-    )
-  );
 
 /** Create and initialize OrgList with Effect-based TargetOrgRef watching */
 export const createOrgPicker = Effect.fn('OrgPicker.createOrgPicker')(function* () {
