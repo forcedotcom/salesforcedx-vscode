@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { runGatherer } from '../../parameterGatherers/runGatherer';
+import { validateAliasInput } from '../../util/orgAlias';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 const PRODUCTION_URL = 'https://login.salesforce.com';
@@ -20,12 +21,6 @@ const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 export type AuthParams = {
   alias: string;
   loginUrl: string;
-};
-
-export type AccessTokenParams = {
-  alias: string;
-  instanceUrl: string;
-  accessToken: string;
 };
 
 const inputInstanceUrl = async (): Promise<string | undefined> =>
@@ -40,7 +35,8 @@ const inputAlias = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
-    ignoreFocusOut: true
+    ignoreFocusOut: true,
+    validateInput: validateAliasInput
   });
 
 const inputAccessToken = async (): Promise<string | undefined> =>
@@ -54,13 +50,9 @@ const inputAccessToken = async (): Promise<string | undefined> =>
       text && text?.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
   });
 
-const validateUrl = (url: string): string | null => {
-  const expr = /https?:\/\/(.*)/;
-  if (expr.test(url)) {
-    return null;
-  }
-  return nls.localize('auth_invalid_url');
-};
+// http(s):// host/port/path only — rejects shell metachars (`;|&$()`, backticks, quotes, spaces) so the CLI --instance-url arg stays injection-safe
+const validateUrl = (url: string): string | undefined =>
+  /^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/.test(url) ? undefined : nls.localize('auth_invalid_url');
 
 const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> =>
   Object.fromEntries(
@@ -160,7 +152,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   }
 }
 
-const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
+export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 
@@ -168,7 +160,8 @@ const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(fu
     Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 
-  // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels
+  // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels.
+  // NB: cannot use considerUndefinedAsCancellation here — it also cancels on empty/whitespace strings.
   const alias = yield* Effect.promise(inputAlias).pipe(
     Effect.flatMap(value => (value === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(value)))
   );
@@ -183,12 +176,6 @@ const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(fu
     instanceUrl
   };
 });
-
-export class AccessTokenParamsGatherer implements ParametersGatherer<AccessTokenParams> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<AccessTokenParams>> {
-    return runGatherer(gatherAccessTokenParams());
-  }
-}
 
 const gatherScratchOrgLogout = Effect.fn('ScratchOrgLogoutParamsGatherer.gather')(function* (params: {
   readonly username: string;

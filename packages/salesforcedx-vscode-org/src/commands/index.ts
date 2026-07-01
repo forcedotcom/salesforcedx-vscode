@@ -7,6 +7,5 @@
 
 export { configSet } from './configSet';
 export { orgListCleanCommand } from './orgList';
-export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
 export { orgLoginWeb } from './auth/orgLoginWeb';
 export { orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';

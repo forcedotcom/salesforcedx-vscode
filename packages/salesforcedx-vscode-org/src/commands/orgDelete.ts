@@ -14,7 +14,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { gather, OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
-import { updateConfigAndStateAggregators } from '../util/orgUtil';
+import { ConfigRefreshError, updateConfigAndStateAggregators } from '../util/orgUtil';
 
 /** sf org delete can take longer than the default 30s simpleExec timeout. */
 const DELETE_TIMEOUT = Duration.seconds(120);
@@ -70,7 +70,10 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
     channelService.showChannelOutput();
   });
 
-  yield* Effect.promise(() => updateConfigAndStateAggregators());
+  yield* Effect.tryPromise({
+    try: () => updateConfigAndStateAggregators(),
+    catch: e => new ConfigRefreshError({ message: e instanceof Error ? e.message : String(e) })
+  });
 });
 
 /** Display label for an org's type, used in user-facing channel/notification text. */
