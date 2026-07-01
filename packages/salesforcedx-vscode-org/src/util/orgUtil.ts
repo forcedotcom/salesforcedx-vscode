@@ -21,6 +21,7 @@ import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import { channelService } from '../channels';
 import { getOrgRuntime } from '../extensionProvider';
@@ -111,6 +112,11 @@ const refreshConnection = Effect.fn('updateConfigAndStateAggregators', {
   yield* api.services.ConnectionService.invalidateCachedConnections();
   yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
 });
+
+/** @ExportTaggedError */
+export class ConfigRefreshError extends Schema.TaggedError<ConfigRefreshError>()('ConfigRefreshError', {
+  message: Schema.String
+}) {}
 
 export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // Force the ConfigAggregatorProvider to reload its stored

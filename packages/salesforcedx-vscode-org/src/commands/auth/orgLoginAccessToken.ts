@@ -8,14 +8,8 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
-import * as Schema from 'effect/Schema';
-import { updateConfigAndStateAggregators } from '../../util/orgUtil';
+import { ConfigRefreshError, updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { gatherAccessTokenParams } from './authParamsGatherer';
-
-/** @ExportTaggedError */
-export class ConfigRefreshError extends Schema.TaggedError<ConfigRefreshError>()('ConfigRefreshError', {
-  message: Schema.String
-}) {}
 
 /** authorize an org from a session ID. Token rides `SF_ACCESS_TOKEN` env (never argv/span/history). */
 export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand')(function* () {

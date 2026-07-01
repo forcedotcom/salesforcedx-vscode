@@ -14,7 +14,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { gather, OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
-import { updateConfigAndStateAggregators } from '../util/orgUtil';
+import { ConfigRefreshError, updateConfigAndStateAggregators } from '../util/orgUtil';
 
 /** sf org delete can take longer than the default 30s simpleExec timeout. */
 const DELETE_TIMEOUT = Duration.seconds(120);
@@ -25,11 +25,6 @@ class OrgNotDeletableError extends Schema.TaggedError<OrgNotDeletableError>()('O
 
 /** @ExportTaggedError */
 export class OrgDeleteFailedError extends Schema.TaggedError<OrgDeleteFailedError>()('OrgDeleteFailedError', {
-  message: Schema.String
-}) {}
-
-/** @ExportTaggedError */
-export class ConfigRefreshError extends Schema.TaggedError<ConfigRefreshError>()('ConfigRefreshError', {
   message: Schema.String
 }) {}
 
