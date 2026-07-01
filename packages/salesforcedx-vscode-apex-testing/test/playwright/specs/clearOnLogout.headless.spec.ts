@@ -20,14 +20,16 @@ import {
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  setupNonTrackingOrgAndAuth,
+  setupLogoutTestOrgAndAuth,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
 // Import the desktop fixture directly (not the web/desktop union from `../fixtures`) so the
 // web run still collects this file but `test.skip` (below) never runs the desktop-only body.
 // Auth + deploy + logout need a real org on disk, so this is desktop only.
-import { desktopTest as test } from '../fixtures/desktopFixtures';
+// logoutDesktopTest defaults the workspace to the dedicated logout-test org (not the shared one),
+// since this test logs out of — and thus destroys — its default org.
+import { logoutDesktopTest as test } from '../fixtures/desktopFixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   findTestExplorerItem,
@@ -64,8 +66,10 @@ public class ${className} {
       .filter({ hasText: new RegExp(className, 'i') })
       .first();
 
-    await test.step('setup non-tracking org and deploy an Apex test class', async () => {
-      await setupNonTrackingOrgAndAuth(page);
+    await test.step('setup dedicated logout-test org and deploy an Apex test class', async () => {
+      // Dedicated org: this test logs out of its default org, so it must NOT use the shared
+      // nonTrackingTestOrg other specs depend on. Uses LOGOUT_TEST_ORG_ALIAS (re-created next run).
+      await setupLogoutTestOrgAndAuth(page);
       await ensureSecondarySideBarHidden(page);
       await createAndDeployApexTestClass(page, className, classContent);
       await saveScreenshot(page, 'setup.class-deployed.png');
