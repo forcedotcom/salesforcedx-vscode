@@ -221,6 +221,10 @@
           "when": "sf:project_opened"
         },
         {
+          "command": "sf.org.login.access.token",
+          "when": "true"
+        },
+        {
           "command": "sf.org.logout.all",
           "when": "sf:project_opened"
         },
