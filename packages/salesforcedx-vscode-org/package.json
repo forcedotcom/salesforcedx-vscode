@@ -222,7 +222,7 @@
         },
         {
           "command": "sf.org.login.access.token",
-          "when": "true"
+          "when": "sf:project_opened"
         },
         {
           "command": "sf.org.logout.all",

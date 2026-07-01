@@ -113,7 +113,6 @@ const refreshConnection = Effect.fn('updateConfigAndStateAggregators', {
   yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
 });
 
-/** @ExportTaggedError */
 export class ConfigRefreshError extends Schema.TaggedError<ConfigRefreshError>()('ConfigRefreshError', {
   message: Schema.String
 }) {}

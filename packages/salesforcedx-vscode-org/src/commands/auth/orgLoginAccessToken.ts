@@ -17,6 +17,11 @@ export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand'
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
+  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  // a project is required so the authorized org can become its default (--set-default below).
+  yield* api.services.ProjectService.getSfProject();
+
   // args regex-validated at the prompt (reject shell metachars) AND double-quoted → exec injection-safe
   const output = yield* (yield* api.services.TerminalService).simpleExec({
     command: `sf org login access-token --instance-url "${instanceUrl}" --alias "${alias}" --set-default --no-prompt`,

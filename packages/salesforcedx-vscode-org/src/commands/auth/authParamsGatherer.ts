@@ -23,12 +23,6 @@ export type AuthParams = {
   loginUrl: string;
 };
 
-export type AccessTokenParams = {
-  alias: string;
-  instanceUrl: string;
-  accessToken: string;
-};
-
 const inputInstanceUrl = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),

@@ -25,7 +25,8 @@ jest.mock('../../../../src/util/orgUtil', () => ({
 
 const buildServices = (simpleExec: jest.Mock) => ({
   TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({ appendToChannel: () => Effect.void, showChannel: Effect.void })
+  ChannelService: Effect.succeed({ appendToChannel: () => Effect.void, showChannel: Effect.void }),
+  ProjectService: { getSfProject: () => Effect.void }
 });
 
 const run = (simpleExec: jest.Mock) =>

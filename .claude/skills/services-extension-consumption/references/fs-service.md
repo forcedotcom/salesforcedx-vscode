@@ -156,6 +156,30 @@ Convert URI to path:
 const path = yield * api.services.FsService.uriToPath(uri);
 ```
 
+### HashableUri
+
+`vscode-uri` `URI` lacks value equality → same-file URIs = distinct HashSet/HashMap keys. `FsService.HashableUri` wraps `URI` w/ Effect `Hash`/`Equal` (structural; `Equal.equals` compares normalized `.toString()`). Use for dedupe/compare instead of hand-rolled `uri.toString() === other.toString()`.
+
+Value namespace on the service, not an Effect-returning method. 2 ways to reach:
+
+```typescript
+// 1. resolved instance:
+const fsService = yield * api.services.FsService;
+const key = fsService.HashableUri.fromUri(uri); // sourceDiff.ts, diffHelpers.ts
+
+// 2. accessor pulls the namespace out:
+const HashableUri = yield * api.services.FsService.HashableUri; // conflictDetection.ts:29
+const filter = HashSet.fromIterable(uris.map(HashableUri.fromUri));
+```
+
+Compare via `Equal.equals` (`effect/Equal`):
+
+```typescript
+Equal.equals(fsService.HashableUri.fromUri(uri1), fsService.HashableUri.fromUri(uri2)); // true if same normalized string
+```
+
+Underlying `URI` via `.uri`. Never deep-import from `salesforcedx-vscode-services/src/...` — bare index import pulls observability SDK side effect, breaks jest.
+
 ## Errors
 
 - `FsServiceError` - File operation failed
@@ -183,3 +207,4 @@ yield * api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
 - `writeFile` auto-creates parent dirs
 - `safeDelete` never fails (returns `undefined` on error)
 - `readJSON` validates against schema
+- `HashableUri` gives URIs value-based `Hash`/`Equal` — use for `HashSet`/`HashMap` keys or URI comparison; never deep-import it from `salesforcedx-vscode-services/src/...`
