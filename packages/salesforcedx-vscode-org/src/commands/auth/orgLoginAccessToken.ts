@@ -5,58 +5,37 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, type AuthSideEffects } from '@salesforce/core';
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { ContinueResponse, LibraryCommandletExecutor, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../channels';
-import { nls } from '../../messages';
-import { updateConfigAndStateAggregators } from '../../util/orgUtil';
-import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
+import { ConfigRefreshError, updateConfigAndStateAggregators } from '../../util/orgUtil';
+import { gatherAccessTokenParams } from './authParamsGatherer';
 
-class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
-  constructor() {
-    super(nls.localize('org_login_access_token_text'), 'org_login_access_token', OUTPUT_CHANNEL);
-  }
+/** authorize an org from a session ID. Token rides `SF_ACCESS_TOKEN` env (never argv/span/history). */
+export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand')(function* () {
+  const { instanceUrl, alias, accessToken } = yield* gatherAccessTokenParams();
 
-  public async run(
-    response: ContinueResponse<AccessTokenParams>,
-    _progress?: vscode.Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
-    _token?: vscode.CancellationToken
-  ): Promise<boolean> {
-    const { instanceUrl, accessToken, alias } = response.data;
-    try {
-      const authInfo = await AuthInfo.create({
-        accessTokenOptions: { accessToken, instanceUrl }
-      });
-      const sideEffects: AuthSideEffects = {
-        alias,
-        setDefault: true,
-        setDefaultDevHub: false
-      };
-      await authInfo.handleAliasAndDefaultSettings(sideEffects);
-      // Refresh state aggregators after config is updated
-      await updateConfigAndStateAggregators();
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Bad_OAuth_Token')) {
-        // Provide a user-friendly message for invalid / expired session ID
-        channelService.appendLine(nls.localize('org_login_access_token_bad_oauth_token_message'));
-      }
-      throw error;
-    }
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-    return true;
-  }
-}
+  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  // a project is required so the authorized org can become its default (--set-default below).
+  yield* api.services.ProjectService.getSfProject();
 
-export const orgLoginAccessToken = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new AccessTokenParamsGatherer(),
-    new OrgLoginAccessTokenExecutor()
-  );
-  await commandlet.run();
-};
+  // args regex-validated at the prompt (reject shell metachars) AND double-quoted → exec injection-safe
+  const output = yield* (yield* api.services.TerminalService).simpleExec({
+    command: `sf org login access-token --instance-url "${instanceUrl}" --alias "${alias}" --set-default --no-prompt`,
+    parse: identity,
+    env: { SF_ACCESS_TOKEN: accessToken }
+  });
+
+  const channel = yield* api.services.ChannelService;
+  yield* channel.appendToChannel(output);
+  yield* channel.showChannel;
+
+  yield* Effect.annotateCurrentSpan('instanceUrl', instanceUrl);
+  yield* Effect.tryPromise({
+    try: () => updateConfigAndStateAggregators(),
+    catch: e => new ConfigRefreshError({ message: e instanceof Error ? e.message : String(e) })
+  });
+});
