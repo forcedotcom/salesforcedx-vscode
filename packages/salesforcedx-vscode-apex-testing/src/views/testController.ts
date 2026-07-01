@@ -617,7 +617,7 @@ export class ApexTestController {
       }
 
       // If any created/changed entries remain, call discovery API and apply diff
-      const nonDeleteChanges = new Map([...changes].filter(([_, changeType]) => changeType !== 'deleted'));
+      const nonDeleteChanges = new Map([...changes].filter(([, changeType]) => changeType !== 'deleted'));
 
       if (nonDeleteChanges.size > 0) {
         const discoveryResult = await getApexTestingRuntime().runPromise(discoverTests());
@@ -626,13 +626,11 @@ export class ApexTestController {
       }
 
       if (includesSuiteChange) {
-        if (this.discoveryInProgress) {
-          await this.discoveryInProgress;
-        }
         await this.refreshSuiteItems();
       }
-    } catch {
+    } catch (error) {
       // Non-fatal: incremental update failure doesn't affect existing tree state
+      console.debug('Failed to apply incremental update:', error);
     }
   }
 
@@ -646,6 +644,16 @@ export class ApexTestController {
       await this.discoveryInProgress;
     }
 
+    // Pre-check: verify the org is reachable before clearing state.
+    // If retrieveAllSuites fails, keep existing tree intact.
+    try {
+      await this.ensureInitialized();
+      await this.getTestService().retrieveAllSuites();
+    } catch (error) {
+      console.error('Error retrieving suites during refresh:', error);
+      return; // Keep existing tree intact on failure
+    }
+
     // Remove the suite parent node from the tree
     if (this.suiteParentItem) {
       this.controller.items.delete(this.suiteParentItem.id);
@@ -656,7 +664,7 @@ export class ApexTestController {
     this.suiteToClasses.clear();
     this.suiteParentItem = undefined;
 
-    // Re-query suites from the org and rebuild the suite tree
+    // Rebuild the suite tree with fresh data (calls retrieveAllSuites again internally)
     await this.populateSuiteItems();
   }
 

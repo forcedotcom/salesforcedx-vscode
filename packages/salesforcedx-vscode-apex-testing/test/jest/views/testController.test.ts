@@ -1222,6 +1222,10 @@ describe('ApexTestController', () => {
       const { promise: discoveryPromise, resolve: resolveDiscovery } = Promise.withResolvers<void>();
       (controller as any).discoveryInProgress = discoveryPromise;
 
+      // Set up suiteParentItem so delete is reachable and can serve as an ordering signal
+      const suiteParent = { id: 'apex-test-suites-parent', label: 'Apex Test Suites' } as any;
+      (controller as any).suiteParentItem = suiteParent;
+
       // Mock controller.items.delete
       const deleteFn = jest.fn();
       Object.assign(mockTestController.items, { delete: deleteFn });
@@ -1239,8 +1243,8 @@ describe('ApexTestController', () => {
       resolveDiscovery();
       await updatePromise;
 
-      // Now refreshSuiteItems should have completed (suite parent item was undefined,
-      // so delete won't be called, but retrieveAllSuites should have been called)
+      // After discovery resolves, refreshSuiteItems should have completed
+      expect(deleteFn).toHaveBeenCalledWith('apex-test-suites-parent');
       expect(mockTestServiceMethods.retrieveAllSuites).toHaveBeenCalled();
     });
 

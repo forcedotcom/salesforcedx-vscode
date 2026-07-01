@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import {
   clickModalDialogButton,
   clearOutputChannel,
@@ -13,10 +13,8 @@ import {
   ensureOutputPanelOpen,
   executeCommandWithCommandPalette,
   openFileByName,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   selectOutputChannel,
-  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   setupNonTrackingOrgAndAuth,
@@ -26,34 +24,10 @@ import {
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
-import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import { openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
-
-/** Run Create Apex Test Suite via command palette: type suite name, select one class, confirm. */
-const createApexTestSuiteViaPalette = async (
-  page: Page,
-  testSuiteName: string,
-  testClassName: string
-): Promise<void> => {
-  await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_create_text);
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-
-  // Type suite name and press Enter
-  await page.keyboard.type(testSuiteName);
-  await page.keyboard.press('Enter');
-
-  // Wait for next prompt (select test classes)
-  await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-
-  // Multi-select picker: toggle the matching row checkbox, then confirm
-  await selectQuickInputOptionByTyping(page, testClassName, { optionTimeout: 5000, multiSelect: true });
-
-  // Press Enter to confirm selection
-  await page.keyboard.press('Enter');
-};
+import { createApexTestSuiteViaPalette } from '../helpers/apexTestSuiteHelpers';
 
 test('Apex Test Suite: delete suite and verify it disappears from Testing sidebar without refresh', async ({
   page
@@ -107,6 +81,10 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     // The "Apex Test Suites" parent item should be visible
     const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
     await expect(suiteParent).toBeVisible({ timeout: 30_000 });
+
+    // The specific suite name should be visible as a baseline before deletion
+    const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
+    await expect(suiteItem).toBeVisible({ timeout: 15_000 });
     await saveScreenshot(page, 'step.suite-visible-in-sidebar.png');
   });
 
@@ -122,11 +100,17 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await executeCommandWithCommandPalette(page, 'SFDX: Delete from Project and Org');
     await saveScreenshot(page, 'step.delete-command-executed.png');
 
-    // Confirm the deletion dialog
-    await clickModalDialogButton(page, 'Delete Source', 10_000).catch(async () => {
-      // Some versions may use a different button label or skip the dialog
-      await clickModalDialogButton(page, 'Continue', 5000).catch(() => {});
-    });
+    // Confirm the deletion dialog — try primary label, fall back to alternate label
+    try {
+      await clickModalDialogButton(page, 'Delete Source', 10_000);
+    } catch {
+      // Some versions use a different button label; try the alternate
+      try {
+        await clickModalDialogButton(page, 'Continue', 5000);
+      } catch (fallbackError) {
+        console.warn('Neither "Delete Source" nor "Continue" dialog button found:', fallbackError);
+      }
+    }
     await saveScreenshot(page, 'step.delete-confirmed.png');
   });
 
@@ -134,7 +118,7 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await waitForOutputChannelText(page, {
-      expectedText: 'ended',
+      expectedText: 'Ended SFDX: Delete from Project and Org',
       timeout: 120_000
     });
     await saveScreenshot(page, 'step.delete-completed.png');
