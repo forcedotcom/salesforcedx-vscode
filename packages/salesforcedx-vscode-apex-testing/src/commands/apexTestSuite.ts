@@ -229,7 +229,7 @@ const removeSuiteMembers = Effect.fn('apexTestSuite.removeSuiteMembers')(functio
     promptService.withCancellableProgress(executionName)
   );
 
-  OUTPUT_CHANNEL.show();
+  yield* channelService.showChannel;
   void vscode.window.showInformationMessage(nls.localize('apex_test_successful_execution_message', executionName));
 
   // Clear all suite children so they re-query from org instead of using stale local files, then refresh
