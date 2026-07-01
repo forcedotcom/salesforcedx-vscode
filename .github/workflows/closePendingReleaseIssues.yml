@@ -1,0 +1,43 @@
+name: Close Pending Release Issues
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Publish in Microsoft Marketplace']
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  close-pending-release-issues:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Extract version from package.json
+        id: version
+        run: |
+          VERSION=$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "::error::Invalid version extracted: '$VERSION'"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Close issues labeled "pending release"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          ISSUES=$(gh issue list --label "pending release" --state open --json number --jq '.[].number' --limit 500)
+          echo "Found $(echo $ISSUES | wc -w | tr -d ' ') issue(s) to close."
+          for ISSUE in $ISSUES; do
+            gh issue comment "$ISSUE" --body "Released in v${VERSION} of the Salesforce Extensions for VSCode." || echo "::warning::Failed to comment on issue #$ISSUE"
+            gh issue close "$ISSUE" || echo "::warning::Failed to close issue #$ISSUE"
+          done
