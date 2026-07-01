@@ -43,6 +43,8 @@ Link: `https://gus.lightning.force.com/lightning/r/ADM_Epic__c/<epicId>/view`
 
 ## Bulk-create work items
 
+**ADR check first.** Before the bulk loop, decide if the epic needs a new/updated ADR ([ADR-FORMAT "When to offer"](../grill-me/ADR-FORMAT.md#when-to-offer)). If any, create the ADR-writing WI(s) as `1`/`1.x` and confirm with the user, *then* create dependents as `2`+ ([work-item-sequencing "ADRs sequence first"](../work-item-sequencing/SKILL.md#adrs-sequence-first)).
+
 Numbering + deps: [work-item-sequencing](../work-item-sequencing/SKILL.md). Fields: SKILL.md "Create". `[ai-auto]`: SKILL.md tag section (explicit request only).
 
 **`Details__c` must be ≥ 20 chars** — else GUS rejects (`Description must be at least 20 characters…`); in a loop the failure looks like a hang. Pass plain-text `Details__c` at create (HTML breaks `-v`); enrich via `--flags-dir` after.
