@@ -42,12 +42,20 @@ const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(functio
 const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const connection = yield* api.services.ConnectionService.getConnection();
-  const suites = yield* Effect.promise(() => new TestService(connection).retrieveAllSuites());
-  return suites.map(
-    // retrieveAllSuites is typed with lowercase `id` but the tooling API returns `Id` at runtime
+  // Query directly to get the correctly-cased Id field (retrieveAllSuites types it as lowercase `id`)
+  const result = yield* Effect.tryPromise(() =>
+    connection.tooling.query<{ Id: string; TestSuiteName: string }>('SELECT Id, TestSuiteName FROM ApexTestSuite')
+  );
+
+  if (result.records.length === 0) {
+    void vscode.window.showInformationMessage(nls.localize('apex_test_suite_no_suites_message'));
+    return yield* new api.services.UserCancellationError();
+  }
+
+  return result.records.map(
     (testSuite): ApexTestQuickPickItem => ({
       label: testSuite.TestSuiteName,
-      description: Object.entries(testSuite).find(([k]) => k.toLowerCase() === 'id')?.[1] ?? '',
+      description: testSuite.Id,
       type: 'Suite'
     })
   );

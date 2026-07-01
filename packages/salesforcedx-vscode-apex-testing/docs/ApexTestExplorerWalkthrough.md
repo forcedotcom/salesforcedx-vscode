@@ -88,7 +88,7 @@ To permanently remove stored results, run **SFDX: Clear Apex Test Results** from
 - **Add tests:** Command Palette → **SFDX: Add Tests to Apex Test Suite**, pick suite, multi-select classes to add
 - **Remove tests:** Command Palette → **SFDX: Remove Tests from Apex Test Suite**, pick suite, multi-select classes to remove (suite must have existing members)
 
-Suite operations use the org (Tooling API); changes persist after refresh. Attempting to run an empty suite shows error message; add members first.
+Suite operations use the org (Tooling API); changes persist on refresh. Both **Run** and **Remove** require the suite to have members; empty suite shows error. Use **Add tests** to populate first.
 
 ## Related commands
 
