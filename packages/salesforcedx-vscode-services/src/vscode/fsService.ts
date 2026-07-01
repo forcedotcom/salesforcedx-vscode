@@ -210,7 +210,8 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
       stat: (filePath: string | URI) =>
         Effect.tryPromise({
           try: async () => await vscode.workspace.fs.stat(toUri(filePath)),
-          catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'stat', filePath: UriOrStringToString(filePath) })
+          catch: e =>
+            new FsServiceError({ ...unknownToErrorCause(e), function: 'stat', filePath: UriOrStringToString(filePath) })
         }),
       safeDelete: (filePath: string | URI, options = {}) =>
         Effect.tryPromise({
