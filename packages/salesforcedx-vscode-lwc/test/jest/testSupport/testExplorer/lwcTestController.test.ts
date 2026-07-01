@@ -8,6 +8,37 @@
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
+// runtime.ts reads AllServicesLayer from ./extensionProvider; without a real layer getRuntime() dies with
+// `Cannot read properties of undefined (reading '_op_layer')`. Mock the provider module so getRuntime()
+// resolves and FsService.readFile returns the fixture json the results-reading path parses.
+let mockReadFileResult = '';
+const mockFsReadFile = jest.fn();
+jest.mock('../../../../src/services/extensionProvider', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  const Layer = jest.requireActual('effect/Layer');
+  const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
+  const mockServicesApi = {
+    services: {
+      FsService: { readFile: mockFsReadFile }
+    }
+  };
+  const MockAllServicesLayer = Layer.effect(
+    ExtensionProviderService,
+    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+  );
+  return {
+    AllServicesLayer: MockAllServicesLayer,
+    setAllServicesLayer: jest.fn()
+  };
+});
+
+// jest.base.config sets resetMocks:true, which clears mockFsReadFile's implementation before every test.
+// Re-establish it here (Effect.succeed of the current fixture) so getRuntime().runPromise resolves.
+beforeEach(() => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  mockFsReadFile.mockImplementation(() => EffectLib.succeed(mockReadFileResult));
+});
+
 // Indexer is a singleton imported by the controller; mock it so discovery returns a known file + case.
 jest.mock('../../../../src/testSupport/testIndexer', () => ({
   lwcTestIndexer: {
@@ -623,9 +654,9 @@ describe('LwcTestController public run API', () => {
       };
     });
 
-    // readJestResults -> readFile -> vscode.workspace.fs.readFile. Return a passing suite whose `name` is the
-    // LONG (jest) path, so applyResults must reconcile it back to the short discovery URI.
-    const resultJson = JSON.stringify({
+    // readJestResults -> FsService.readFile (mocked). Return a passing suite whose `name` is the LONG (jest)
+    // path, so applyResults must reconcile it back to the short discovery URI.
+    mockReadFileResult = JSON.stringify({
       testResults: [
         {
           name: jestPath,
@@ -634,7 +665,6 @@ describe('LwcTestController public run API', () => {
         }
       ]
     });
-    (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(Buffer.from(resultJson, 'utf8'));
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');

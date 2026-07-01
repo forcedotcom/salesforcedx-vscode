@@ -4,10 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
+import { getRuntime } from '../../services/runtime';
 import { telemetryService } from '../../telemetry';
 import { lwcTestIndexer } from '../testIndexer';
 import { taskService, SfTask } from '../testRunner/taskService';
@@ -665,9 +667,14 @@ const waitForResultFile = async (filePath: string, token: vscode.CancellationTok
 
 const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
+const readJestResultsFile = Effect.fn('readJestResults')(function* (filePath: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.FsService.readFile(filePath);
+});
+
 const readJestResults = async (filePath: string): Promise<LwcJestTestResults | undefined> => {
   try {
-    const text = await readFile(filePath);
+    const text = await getRuntime().runPromise(readJestResultsFile(filePath));
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return JSON.parse(text) as LwcJestTestResults;
   } catch (error) {
