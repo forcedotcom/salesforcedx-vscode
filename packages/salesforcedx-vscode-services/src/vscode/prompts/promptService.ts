@@ -257,7 +257,16 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
         Effect.gen(function* () {
           const runtime = yield* Effect.runtime<R>();
           const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
-          return yield* Effect.async<A, E | UserCancellationError>(resume => {
+          return yield* Effect.async<A, E | UserCancellationError>((resume, signal) => {
+            // Route real fiber interruption (not just the Cancel button) through the same cancel path so the
+            // in-flight `build` effect is interrupted and the progress notification settles.
+            signal.addEventListener(
+              'abort',
+              () =>
+                void Runtime.runPromise(runtime)(
+                  Deferred.fail(cancelDeferred, new UserCancellationError({ message: 'User cancelled progress' }))
+                )
+            );
             void vscode.window.withProgress({ location, title, cancellable: true }, async (progress, token) => {
               token.onCancellationRequested(
                 () =>
