@@ -26,7 +26,10 @@ export const messages = {
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   missing_default_org: 'No Default Org Set',
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
+  org_create_successfully_ran: 'SFDX: Create a Default Scratch Org... successfully ran',
+  org_create_progress: 'Creating default scratch org',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
+  org_create_success: 'Successfully created scratch org %s (user %s, org id %s) and set it as the default org.',
   org_delete_default_text: 'SFDX: Delete Default Org',
   org_delete_default_not_deletable:
     'The default org is not a scratch org or sandbox and cannot be deleted with this command.',
