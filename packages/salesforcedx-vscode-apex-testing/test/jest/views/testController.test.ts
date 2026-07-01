@@ -106,12 +106,6 @@ jest.mock('../../../src/utils/testUtils', () => {
   };
 });
 
-jest.mock('../../../src/telemetry/telemetry', () => ({
-  telemetryService: {
-    sendEventData: jest.fn()
-  }
-}));
-
 jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
   retrieveTestRunConcise: jest.fn().mockReturnValue(false),
