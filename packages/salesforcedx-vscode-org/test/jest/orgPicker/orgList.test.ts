@@ -11,10 +11,9 @@ import {
 } from '@salesforce/effect-ext-utils';
 import { ICONS, type SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
+import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
-import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import * as orgListModule from '../../../src/orgPicker/orgList';
 import { authorizationsToQuickPickItems } from '../../../src/orgPicker/orgList';
@@ -100,19 +99,34 @@ describe('OrgList tests', () => {
       let showQuickPickMock: jest.SpyInstance;
       let executeCommandMock: jest.SpyInstance;
       let listAllAuthorizationsMock: jest.Mock;
+      let setTargetOrgMock: jest.Mock;
+      let invalidateCachedConnectionsMock: jest.Mock;
+      let getConnectionMock: jest.Mock;
 
-      const buildLayer = () => {
+      // Run setDefaultOrg (now an Effect.fn, registered via registerCommandWithLayer in production) against
+      // stub services and return the Exit. UserCancellationError surfaces as a failure Exit — production's
+      // registerCommandWithLayer swallows it, so a failed Exit here == cancellation path.
+      const run = () => {
         const mockServicesApi = {
           services: {
-            // setDefaultOrg loads orgs through ConnectionService (not AuthInfo direct) post-migration
+            // setDefaultOrg loads orgs through ConnectionService (not AuthInfo direct) post-migration,
+            // then writes config via ConfigService.setTargetOrg and refreshes defaultOrgRef via getConnection.
             ConnectionService: {
-              listAllAuthorizations: listAllAuthorizationsMock
+              listAllAuthorizations: listAllAuthorizationsMock,
+              invalidateCachedConnections: invalidateCachedConnectionsMock,
+              getConnection: getConnectionMock
             },
-            // getFreshAuthorizations yields ConfigService (default-org config) + AliasService (disk aliases)
-            // through getOrgRuntime; stub both so the data-loading path runs against fakes (no real I/O).
-            ConfigService: Effect.succeed({
-              getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => undefined })
-            }),
+            // getFreshAuthorizations yields ConfigService (default-org config) + AliasService (disk aliases);
+            // stub both so the data-loading path runs against fakes (no real I/O).
+            // ConfigService is consumed two ways: `yield* api.services.ConfigService` (configAggregatorEffect)
+            // AND the static accessor `api.services.ConfigService.setTargetOrg(...)` (picker). Mock it as an
+            // Effect (for the yield) with setTargetOrg attached as a property (for the static accessor call).
+            ConfigService: Object.assign(
+              Effect.succeed({
+                getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => undefined })
+              }),
+              { setTargetOrg: setTargetOrgMock }
+            ),
             AliasService: Effect.succeed({
               getAllAliases: () => Effect.succeed({}),
               getUsernameFromAlias: () => Effect.succeed(Option.none())
@@ -121,9 +135,13 @@ describe('OrgList tests', () => {
             PromptService: Effect.succeed({ considerUndefinedAsCancellation })
           }
         } as unknown as SalesforceVSCodeServicesApi;
-        return Layer.succeed(ExtensionProviderService, {
-          getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-        });
+        return Effect.runPromiseExit(
+          orgListModule.setDefaultOrg().pipe(
+            Effect.provideService(ExtensionProviderService, {
+              getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
+            })
+          ) as Effect.Effect<void, unknown, never>
+        );
       };
 
       beforeEach(() => {
@@ -131,11 +149,10 @@ describe('OrgList tests', () => {
         executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
         // ConnectionService.listAllAuthorizations returns an Effect; default to the seeded (empty) list
         listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
-
-        resetOrgRuntimeForTesting();
-        setAllServicesLayer(
-          buildLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
-        );
+        // post-migration setDefaultOrg writes config then refreshes the org ref; all return Effects
+        setTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
+        invalidateCachedConnectionsMock = jest.fn().mockReturnValue(Effect.void);
+        getConnectionMock = jest.fn().mockReturnValue(Effect.succeed({}));
       });
 
       afterEach(() => {
@@ -149,9 +166,9 @@ describe('OrgList tests', () => {
             commandId: 'sf.org.login.web'
           });
 
-          const result = await orgListModule.setDefaultOrg();
+          const exit = await run();
 
-          expect(result).toEqual({ type: 'CONTINUE', data: {} });
+          expect(Exit.isSuccess(exit)).toBe(true);
           expect(executeCommandMock).toHaveBeenCalledWith('sf.org.login.web');
         });
 
@@ -161,9 +178,9 @@ describe('OrgList tests', () => {
             commandId: 'sf.org.login.web.dev.hub'
           });
 
-          const result = await orgListModule.setDefaultOrg();
+          const exit = await run();
 
-          expect(result).toEqual({ type: 'CONTINUE', data: {} });
+          expect(Exit.isSuccess(exit)).toBe(true);
           expect(executeCommandMock).toHaveBeenCalledWith('sf.org.login.web.dev.hub');
         });
 
@@ -173,9 +190,9 @@ describe('OrgList tests', () => {
             commandId: 'sf.org.create'
           });
 
-          const result = await orgListModule.setDefaultOrg();
+          const exit = await run();
 
-          expect(result).toEqual({ type: 'CONTINUE', data: {} });
+          expect(Exit.isSuccess(exit)).toBe(true);
           expect(executeCommandMock).toHaveBeenCalledWith('sf.org.create');
         });
 
@@ -185,9 +202,9 @@ describe('OrgList tests', () => {
             commandId: 'sf.org.login.access.token'
           });
 
-          const result = await orgListModule.setDefaultOrg();
+          const exit = await run();
 
-          expect(result).toEqual({ type: 'CONTINUE', data: {} });
+          expect(Exit.isSuccess(exit)).toBe(true);
           expect(executeCommandMock).toHaveBeenCalledWith('sf.org.login.access.token');
         });
 
@@ -197,18 +214,20 @@ describe('OrgList tests', () => {
             commandId: 'sf.org.list.clean'
           });
 
-          const result = await orgListModule.setDefaultOrg();
+          const exit = await run();
 
-          expect(result).toEqual({ type: 'CONTINUE', data: {} });
+          expect(Exit.isSuccess(exit)).toBe(true);
           expect(executeCommandMock).toHaveBeenCalledWith('sf.org.list.clean');
         });
 
-        it('should handle cancellation when no selection is made', async () => {
+        it('fails with UserCancellationError when no selection is made', async () => {
           showQuickPickMock.mockResolvedValueOnce(undefined);
 
-          const result = await orgListModule.setDefaultOrg();
+          const exit = await run();
 
-          expect(result).toEqual({ type: 'CANCEL' });
+          // registerCommandWithLayer swallows this tag in production; a failure Exit == cancellation path
+          expect(Exit.isFailure(exit)).toBe(true);
+          expect(JSON.stringify(exit)).toContain('UserCancellationError');
           expect(executeCommandMock).not.toHaveBeenCalled();
         });
       });
@@ -223,7 +242,7 @@ describe('OrgList tests', () => {
         it('lists the seeded org from ConnectionService in the picker', async () => {
           showQuickPickMock.mockResolvedValueOnce(undefined);
 
-          await orgListModule.setDefaultOrg();
+          await run();
 
           // The list passed to showQuickPick must contain the org loaded via ConnectionService.
           // (Fails if the mock returns nothing — guards against a vacuous pass.)
@@ -232,7 +251,7 @@ describe('OrgList tests', () => {
           expect(listAllAuthorizationsMock).toHaveBeenCalledTimes(1);
         });
 
-        it('sets the picked org as default via sf.config.set', async () => {
+        it('sets the picked org as default via ConfigService.setTargetOrg then refreshes the connection', async () => {
           showQuickPickMock.mockResolvedValueOnce({
             label: '$(cloud) SeededOrg',
             orgUsername: 'seeded@example.com',
@@ -240,10 +259,22 @@ describe('OrgList tests', () => {
             orgType: 'Org'
           });
 
-          const result = await orgListModule.setDefaultOrg();
+          const exit = await run();
 
-          expect(result).toEqual({ type: 'CONTINUE', data: {} });
-          expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'SeededOrg');
+          expect(Exit.isSuccess(exit)).toBe(true);
+          // alias preferred over username
+          expect(setTargetOrgMock).toHaveBeenCalledWith('SeededOrg');
+          expect(invalidateCachedConnectionsMock).toHaveBeenCalledTimes(1);
+          expect(getConnectionMock).toHaveBeenCalledTimes(1);
+          // sequencing: write config → invalidate cache → reconnect
+          expect(setTargetOrgMock.mock.invocationCallOrder[0]).toBeLessThan(
+            invalidateCachedConnectionsMock.mock.invocationCallOrder[0]
+          );
+          expect(invalidateCachedConnectionsMock.mock.invocationCallOrder[0]).toBeLessThan(
+            getConnectionMock.mock.invocationCallOrder[0]
+          );
+          // guards against regression to the old sf.config.set vscode command
+          expect(executeCommandMock).not.toHaveBeenCalled();
         });
       });
     });
@@ -312,7 +343,7 @@ describe('OrgList tests', () => {
     });
 
     describe('snapshot tests', () => {
-      it('no alias: label, orgAlias undefined, sf.config.set receives orgUsername', () => {
+      it('no alias: label, orgAlias undefined, setTargetOrg receives orgUsername', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'user@example.com', aliases: [] })],
           defaultConfig
@@ -330,7 +361,7 @@ describe('OrgList tests', () => {
 `);
       });
 
-      it('simple alias: label, sf.config.set receives orgAlias', () => {
+      it('simple alias: label, setTargetOrg receives orgAlias', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'user@example.com', aliases: ['MyOrg'] })],
           defaultConfig
@@ -348,7 +379,7 @@ describe('OrgList tests', () => {
 `);
       });
 
-      it('alias with dashes: label, sf.config.set receives orgAlias', () => {
+      it('alias with dashes: label, setTargetOrg receives orgAlias', () => {
         const items = authorizationsToQuickPickItems(
           [
             createOrgAuthorization({
@@ -372,7 +403,7 @@ describe('OrgList tests', () => {
 `);
       });
 
-      it('alias with multiple dashes (DevHub): label, sf.config.set receives orgAlias', () => {
+      it('alias with multiple dashes (DevHub): label, setTargetOrg receives orgAlias', () => {
         const items = authorizationsToQuickPickItems(
           [
             createOrgAuthorization({
@@ -439,7 +470,7 @@ describe('OrgList tests', () => {
         );
       });
 
-      it('comma-separated aliases: label, orgAlias first, sf.config.set receives orgAlias', () => {
+      it('comma-separated aliases: label, orgAlias first, setTargetOrg receives orgAlias', () => {
         const items = authorizationsToQuickPickItems(
           [createOrgAuthorization({ username: 'user@example.com', aliases: ['alias1', 'alias2', 'alias3'] })],
           defaultConfig

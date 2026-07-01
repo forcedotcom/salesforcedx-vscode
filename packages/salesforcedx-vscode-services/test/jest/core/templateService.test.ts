@@ -42,7 +42,8 @@ const createMockConfigService = (templateDir?: string): Layer.Layer<ConfigServic
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),
       unsetTargetOrg: () => Effect.void,
-      unsetTargetDevHub: () => Effect.void
+      unsetTargetDevHub: () => Effect.void,
+      setTargetOrg: () => Effect.void
     })
   );
 
@@ -61,7 +62,8 @@ const createFailingConfigService = (): Layer.Layer<ConfigService> =>
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),
       unsetTargetOrg: () => Effect.void,
-      unsetTargetDevHub: () => Effect.void
+      unsetTargetDevHub: () => Effect.void,
+      setTargetOrg: () => Effect.void
     })
   );
 
