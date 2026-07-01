@@ -199,6 +199,7 @@ export default [
       'unicorn/no-useless-fallback-in-spread': 'error',
       'unicorn/no-useless-iterator-to-array': 'error',
       'unicorn/no-useless-length-check': 'error',
+      'unicorn/no-useless-logical-operand': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
       'unicorn/no-useless-spread': 'error',
       'unicorn/no-useless-switch-case': 'error',
