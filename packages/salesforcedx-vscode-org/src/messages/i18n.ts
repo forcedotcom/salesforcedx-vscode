@@ -6,7 +6,7 @@
  */
 
 export const messages = {
-  auth_invalid_url: 'URL must begin with http:// or https://',
+  auth_invalid_url: 'URL must begin with http:// or https://.',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_project_label: 'Project Default',
   auth_prod_detail: 'Production or Developer org',
@@ -20,13 +20,16 @@ export const messages = {
   config_set_org_text: 'SFDX: Set a Default Org',
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
-  error_invalid_org_alias: 'Alias can only contain underscores, spaces and alphanumeric characters',
+  error_invalid_org_alias: 'Alias can only contain underscores, spaces and alphanumeric characters.',
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   missing_default_org: 'No Default Org Set',
   org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
+  org_create_successfully_ran: 'SFDX: Create a Default Scratch Org... successfully ran',
+  org_create_progress: 'Creating default scratch org',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
+  org_create_success: 'Successfully created scratch org %s (user %s, org id %s) and set it as the default org.',
   org_delete_default_text: 'SFDX: Delete Default Org',
   org_delete_default_not_deletable:
     'The default org is not a scratch org or sandbox and cannot be deleted with this command.',
@@ -47,8 +50,6 @@ export const messages = {
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   org_list_no_orgs_found: 'No orgs found.',
   org_list_display_error: 'Error displaying org list: %s',
-  org_login_access_token_bad_oauth_token_message:
-    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
   org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',

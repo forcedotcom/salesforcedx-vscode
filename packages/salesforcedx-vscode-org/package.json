@@ -28,7 +28,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.31.0",
+    "@salesforce/core": "^8.31.5",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -217,11 +217,11 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.org.login.access.token",
+          "command": "sf.org.login.web",
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.org.login.web",
+          "command": "sf.org.login.access.token",
           "when": "sf:project_opened"
         },
         {
