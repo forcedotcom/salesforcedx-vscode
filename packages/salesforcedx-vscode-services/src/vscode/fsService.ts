@@ -18,9 +18,17 @@ import { toUri } from './uriUtils';
 
 export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly cause: Error;
+  readonly message: string;
   readonly function: string;
   readonly filePath: string;
 }> {}
+
+/** Normalize an unknown catch value to the `cause` + `message` fields every FsServiceError carries,
+ * so pretty-printed errors surface the real underlying text instead of an empty message. */
+const causeAndMessage = (e: unknown): { cause: Error; message: string } => {
+  const { cause } = unknownToErrorCause(e);
+  return { cause, message: cause.message };
+};
 /**
  * Convert path string or URI to URI, handling both file:// and other schemes like memfs://
  * @param filePath - Either a URI object, URI string (e.g., "memfs:/dx-project/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
@@ -34,7 +42,7 @@ const readFile = Effect.fn('fsService.readFile')(function* (filePath: string | U
     try: async () => Buffer.from(await vscode.workspace.fs.readFile(toUri(filePath))).toString('utf8'),
     catch: e =>
       new FsServiceError({
-        ...unknownToErrorCause(e),
+        ...causeAndMessage(e),
         function: 'readFile',
         filePath: UriOrStringToString(filePath)
       })
@@ -55,7 +63,7 @@ const safeWriteFile = Effect.fn('fsService.safeWriteFile')(function* (filePath: 
     },
     catch: e =>
       new FsServiceError({
-        ...unknownToErrorCause(e),
+        ...causeAndMessage(e),
         function: 'safeWriteFile',
         filePath: typeof filePath === 'string' ? filePath : filePath.toString()
       })
@@ -75,7 +83,7 @@ const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string |
     },
     catch: e =>
       new FsServiceError({
-        ...unknownToErrorCause(e),
+        ...causeAndMessage(e),
         function: 'writeFile',
         filePath: typeof filePath === 'string' ? filePath : filePath.toString()
       })
@@ -92,7 +100,7 @@ const fileOrFolderExists = Effect.fn('fsService.fileOrFolderExists')(function* (
     },
     catch: e =>
       new FsServiceError({
-        ...unknownToErrorCause(e),
+        ...causeAndMessage(e),
         function: 'fileOrFolderExists',
         filePath: typeof filePath === 'string' ? filePath : filePath.toString()
       })
@@ -108,7 +116,7 @@ const showTextDocument = Effect.fn('fsService.showTextDocument')(function* (
     try: () => vscode.window.showTextDocument(uri, options),
     catch: e =>
       new FsServiceError({
-        ...unknownToErrorCause(e),
+        ...causeAndMessage(e),
         function: 'showTextDocument',
         filePath: typeof filePath === 'string' ? filePath : filePath.toString()
       })
@@ -138,7 +146,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
               : vscode.workspace.findFiles(include, exclude ?? undefined, maxResults, token),
           catch: e =>
             new FsServiceError({
-              ...unknownToErrorCause(e),
+              ...causeAndMessage(e),
               function: 'findFiles',
               filePath: typeof include === 'string' ? include : include.pattern
             })
@@ -167,7 +175,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           },
           catch: e =>
             new FsServiceError({
-              ...unknownToErrorCause(e),
+              ...causeAndMessage(e),
               function: 'createDirectory',
               filePath: path
             })
@@ -178,7 +186,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           try: async () => {
             await vscode.workspace.fs.delete(toUri(filePath), options);
           },
-          catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'deleteFile', filePath })
+          catch: e => new FsServiceError({ ...causeAndMessage(e), function: 'deleteFile', filePath })
         }),
       readDirectory: Effect.fn('fsService.readDirectory')(function* (dirPath: string | URI) {
         const uri = toUri(dirPath);
@@ -186,7 +194,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           try: async () => await vscode.workspace.fs.readDirectory(uri),
           catch: e =>
             new FsServiceError({
-              ...unknownToErrorCause(e),
+              ...causeAndMessage(e),
               function: 'readDirectory',
               filePath: typeof dirPath === 'string' ? dirPath : uriToPath(dirPath)
             })
@@ -200,7 +208,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           try: async () => await vscode.workspace.fs.readDirectory(uri),
           catch: e =>
             new FsServiceError({
-              ...unknownToErrorCause(e),
+              ...causeAndMessage(e),
               function: 'readDirectoryWithTypes',
               filePath: typeof dirPath === 'string' ? dirPath : uriToPath(dirPath)
             })
@@ -211,7 +219,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
         Effect.tryPromise({
           try: async () => await vscode.workspace.fs.stat(toUri(filePath)),
           catch: e =>
-            new FsServiceError({ ...unknownToErrorCause(e), function: 'stat', filePath: UriOrStringToString(filePath) })
+            new FsServiceError({ ...causeAndMessage(e), function: 'stat', filePath: UriOrStringToString(filePath) })
         }),
       safeDelete: (filePath: string | URI, options = {}) =>
         Effect.tryPromise({
@@ -220,7 +228,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           },
           catch: e =>
             new FsServiceError({
-              ...unknownToErrorCause(e),
+              ...causeAndMessage(e),
               function: 'safeDelete',
               filePath: typeof filePath === 'string' ? filePath : filePath.toString()
             })
@@ -230,20 +238,20 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           try: async () => {
             await vscode.workspace.fs.rename(toUri(oldPath), toUri(newPath));
           },
-          catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'rename', filePath: oldPath })
+          catch: e => new FsServiceError({ ...causeAndMessage(e), function: 'rename', filePath: oldPath })
         }),
       readJSON: <A>(filePath: string, schema: S.Schema<A>) =>
         readFile(filePath).pipe(
           Effect.flatMap(text =>
             Effect.try({
               try: () => JSON.parse(text),
-              catch: (e: unknown) => new FsServiceError({ ...unknownToErrorCause(e), function: 'readJSON', filePath })
+              catch: (e: unknown) => new FsServiceError({ ...causeAndMessage(e), function: 'readJSON', filePath })
             })
           ),
           Effect.flatMap((obj: unknown) =>
             S.decodeUnknown(schema)(obj).pipe(
               Effect.mapError(
-                (e: unknown) => new FsServiceError({ ...unknownToErrorCause(e), function: 'readJSON', filePath })
+                (e: unknown) => new FsServiceError({ ...causeAndMessage(e), function: 'readJSON', filePath })
               )
             )
           )
