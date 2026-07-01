@@ -44,6 +44,9 @@ const buildServices = (opts: { isProject: boolean; confirm: boolean }) => ({
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
       opts.confirm ? Effect.void : Effect.fail(new UserCancellationError())
   }),
+  WorkspaceService: {
+    getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' })
+  },
   UserCancellationError
 });
 
@@ -86,6 +89,7 @@ describe('orgLogoutAllCommand', () => {
     const exit = await run({ isProject: true, confirm: true });
 
     expect(Exit.isSuccess(exit)).toBe(true);
+    expect(AuthRemover.create).toHaveBeenCalledWith({ projectPath: '/workspace', skipCache: true });
     expect(removeAuthMock).toHaveBeenCalledTimes(2);
     expect(removeAuthMock).toHaveBeenCalledWith('user1@example.com');
     expect(removeAuthMock).toHaveBeenCalledWith('user2@example.com');

@@ -12,7 +12,8 @@ import {
   LibraryCommandletExecutor,
   ParametersGatherer,
   SfCommandlet,
-  notificationService
+  notificationService,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
@@ -53,6 +54,8 @@ export class OrgLogoutError extends Schema.TaggedError<OrgLogoutError>()('OrgLog
  * which unsets every global+local config key matching the username/aliases — covering target-org AND
  * target-dev-hub. No separate alias/config-unset calls are needed here. The `AuthRemover` is created
  * once in `orgLogoutAllCommand` and reused (each `.create()` does a full disk read of all org files).
+ * The remover is built with an explicit `projectPath` so the local config is resolved from the
+ * workspace rather than `process.cwd()` (which the extension host must not be relied on to set).
  */
 const removeAuth = Effect.fn('orgLogoutAllCommand.removeAuth')(function* (authRemover: AuthRemover, username: string) {
   yield* Effect.annotateCurrentSpan('username', username);
@@ -116,10 +119,14 @@ export const orgLogoutAllCommand = Effect.fn('orgLogoutAllCommand')(
     yield* api.services.ProjectService.getSfProject();
 
     const usernames = yield* selectOrgsForLogout();
+    // resolve the workspace path so AuthRemover unsets local config dir-explicitly (no process.cwd reliance)
+    const { fsPath: projectPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
     // One shared AuthRemover for all orgs: each .create() reloads ConfigAggregator + reads all org
     // files from disk (authRemover.js L92-97), so creating per-org would repeat that I/O N times.
     const authRemover = yield* Effect.tryPromise({
-      try: () => AuthRemover.create(),
+      // skipCache: the extension holds a long-lived cached ConfigAggregator; force a disk re-read
+      // so removeAuth unsets the current target-org rather than a stale cached value.
+      try: () => AuthRemover.create({ projectPath, skipCache: true }),
       catch: cause =>
         new OrgLogoutError({
           username: usernames[0],
@@ -143,7 +150,12 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     try {
-      const authRemover = await AuthRemover.create();
+      // explicit projectPath so local config is resolved from the workspace, not process.cwd()
+      // skipCache: force a disk re-read so removeAuth unsets the current target-org, not a stale cached value.
+      const authRemover = await AuthRemover.create({
+        projectPath: workspaceUtils.getRootWorkspacePath(),
+        skipCache: true
+      });
       // removeAuth already runs unsetConfigValues + unsetAliases
       // (node_modules/@salesforce/core/lib/org/authRemover.js L50-54), unsetting every global+local
       // config key matching the username/aliases (incl. target-org). No separate alias/config-unset needed.
