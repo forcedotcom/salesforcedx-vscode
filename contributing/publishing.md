@@ -36,7 +36,13 @@ If no changes were made the previous week, then the release can be skipped (no a
 
 ## Updating the Changelog
 
-The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The workflow will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
+The changelog is auto-generated on the release branch as part of the Create Release Branch workflow. The workflow:
+- Parses conventional commits (`feat`, `fix`, etc.) since the last release
+- Writes to `packages/salesforcedx-vscode/CHANGELOG.md`
+- Creates a GitHub release with the changelog as the body
+- Skips if no releasable commits (only `chore`, `ci`, etc.)
+
+Commit: `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ = release version.
 
 The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 

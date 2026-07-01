@@ -190,15 +190,26 @@ function getPackageHeaders(filesChanged) {
 }
 
 /**
- * Write changelog to file
+ * Write changelog to file by prepending new content to existing changelog.
+ * This preserves the full history instead of replacing it each week.
  * @param {string} textToInsert
  */
 function writeChangeLog(textToInsert) {
-  logger(`\nStep 5: Adding changelog to: ${constants.CHANGE_LOG_PATH}`);
-  let fd = fs.openSync(constants.CHANGE_LOG_PATH, 'w+');
-  let buffer = Buffer.from(textToInsert.toString());
-  fs.writeSync(fd, buffer, 0, buffer.length, 0);
-  fs.closeSync(fd);
+  logger(`\nStep 5: Prepending changelog to: ${constants.CHANGE_LOG_PATH}`);
+
+  // Read existing changelog content (if file exists)
+  let existingContent = '';
+  if (fs.existsSync(constants.CHANGE_LOG_PATH)) {
+    existingContent = fs.readFileSync(constants.CHANGE_LOG_PATH, 'utf8');
+  }
+
+  // Prepend new content to existing content
+  const newContent = textToInsert.toString() + existingContent;
+
+  // Write combined content back to file
+  fs.writeFileSync(constants.CHANGE_LOG_PATH, newContent, 'utf8');
+
+  logger(`Changelog updated with new release notes prepended to existing history`);
 }
 
 function getPackageName(filePath) {

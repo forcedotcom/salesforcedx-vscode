@@ -26,7 +26,11 @@ jobs:
       - run: npm --version
       - run: node --version
       - run: npm run compile
+      - name: Prepare CHANGELOG for marketplace
+        run: node scripts/prepare-changelog-for-marketplace.js
       - run: npm run vscode:package
+      - name: Restore full CHANGELOG
+        run: node scripts/restore-full-changelog.js
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./packages
       - name: Stage Artifacts
