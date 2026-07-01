@@ -40,9 +40,7 @@ export const watchActiveEditorForCoverage = Effect.fn('colorizer.watchActiveEdit
     Stream.fromEffect(Effect.sync(() => window.activeTextEditor)),
     Stream.fromPubSub(editorService.pubsub)
   ).pipe(
-    Stream.runForEach(editor =>
-      editor && statusBar.isHighlightingEnabled ? applyForEditor(editor) : Effect.void
-    )
+    Stream.runForEach(editor => (editor && statusBar.isHighlightingEnabled ? applyForEditor(editor) : Effect.void))
   );
 });
 
