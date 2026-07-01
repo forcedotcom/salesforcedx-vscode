@@ -340,15 +340,12 @@ describe('testing setTargetOrgOrAlias', () => {
   let chdirStub: jest.SpyInstance;
   let setMock: jest.SpyInstance;
   let writeMock: jest.SpyInstance;
-  let mockConfigAggregatorProvider: jest.SpyInstance;
-  const mockConfigAggregatorProviderInstance = {
-    reloadConfigAggregators: jest.fn()
-  };
-  let stateAggregatorClearInstanceMock: jest.SpyInstance;
+  let runPromiseMock: jest.Mock;
 
   beforeEach(() => {
+    runPromiseMock = jest.fn().mockResolvedValue(undefined);
     jest.spyOn(extensionProvider, 'getOrgRuntime').mockReturnValue({
-      runPromise: jest.fn().mockResolvedValue(undefined)
+      runPromise: runPromiseMock
     } as unknown as ReturnType<typeof extensionProvider.getOrgRuntime>);
     workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
     jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
@@ -358,10 +355,8 @@ describe('testing setTargetOrgOrAlias', () => {
     configStub.mockResolvedValue({ set: setMock, write: writeMock });
     orgStub = jest.spyOn(Org, 'create').mockResolvedValue(undefined as any);
     chdirStub = jest.spyOn(process, 'chdir').mockReturnValue();
-    mockConfigAggregatorProvider = jest
-      .spyOn(ConfigAggregatorProvider, 'getInstance')
-      .mockReturnValue(mockConfigAggregatorProviderInstance as any);
-    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
+    jest.spyOn(ConfigAggregatorProvider, 'getInstance');
+    jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
   });
 
   it('should set provided username or alias as default configs', async () => {
@@ -387,16 +382,11 @@ describe('testing setTargetOrgOrAlias', () => {
     expect(orgStub).not.toHaveBeenCalled();
     expect(setMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG, username);
     expect(writeMock).toHaveBeenCalled();
-    expect(mockConfigAggregatorProvider).toHaveBeenCalled();
-    expect(mockConfigAggregatorProviderInstance.reloadConfigAggregators).toHaveBeenCalled();
-    expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
-
+    // config/state reload is now inside updateConfigAndStateAggregatorsEffect, dispatched via runPromise
+    expect(runPromiseMock).toHaveBeenCalled();
     const writeCallOrder = writeMock.mock.invocationCallOrder[0];
-    const reloadCallOrder = mockConfigAggregatorProviderInstance.reloadConfigAggregators.mock.invocationCallOrder[0];
-    const clearInstanceCallOrder = stateAggregatorClearInstanceMock.mock.invocationCallOrder[0];
-
-    expect(writeCallOrder).toBeLessThan(reloadCallOrder);
-    expect(reloadCallOrder).toBeLessThan(clearInstanceCallOrder);
+    const runPromiseCallOrder = runPromiseMock.mock.invocationCallOrder[0];
+    expect(writeCallOrder).toBeLessThan(runPromiseCallOrder);
   });
 });
 

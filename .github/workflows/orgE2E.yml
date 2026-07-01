@@ -48,6 +48,9 @@ jobs:
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
       MINIMAL_ORG_ALIAS: minimalTestOrg
+      # Dedicated throwaway org for the real-logout step; pre-seeded so tryUseExistingOrg hits and
+      # createThrowawayOrg never reaches requireOrgInCI. The test logs it out; CI re-seeds each run.
+      THROWAWAY_ORG_ALIAS: logoutThrowawayOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
       SF_TEMP_SHOW_SECRETS: true
@@ -120,6 +123,15 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
         working-directory: minimal-project
 
+      - name: create throwaway logout scratch org
+        if: steps.try-run.outcome == 'failure'
+        # pre-seeds THROWAWAY_ORG_ALIAS so the real-logout step's createThrowawayOrg fast-paths
+        # (tryUseExistingOrg hit) instead of tripping requireOrgInCI. This org is logged out by the test.
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -f config/project-scratch-def.json -a "$THROWAWAY_ORG_ALIAS" --json
+        working-directory: minimal-project
+
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
         uses: salesforcecli/github-workflows/.github/actions/retry@main
@@ -177,3 +189,5 @@ jobs:
         shell: bash
         run: |
           sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+          # best-effort: the real-logout test logs this org out (not delete); reap the scratch org here.
+          sf org delete scratch -o "$THROWAWAY_ORG_ALIAS" --no-prompt || true
