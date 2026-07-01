@@ -25,6 +25,7 @@ export class OrgOpenParseError extends Schema.TaggedError<OrgOpenParseError>()('
 }) {}
 
 const OrgOpenSuccess = Schema.TaggedStruct('OrgOpenSuccess', {
+  status: Schema.Literal(0),
   result: Schema.Struct({
     orgId: Schema.String,
     url: Schema.String,
@@ -32,9 +33,9 @@ const OrgOpenSuccess = Schema.TaggedStruct('OrgOpenSuccess', {
   })
 });
 
-/** sf prints `{ status: 1, message }` on failure; preserve the old channel-message behavior. */
+/** sf failure shape: `{ status: <non-zero>, message }`; surface the message to the channel. */
 const OrgOpenFailure = Schema.TaggedStruct('OrgOpenFailure', {
-  status: Schema.Literal(1),
+  status: Schema.Number,
   message: Schema.String
 });
 
@@ -44,13 +45,13 @@ type OrgOpenSuccess = Schema.Schema.Type<typeof OrgOpenSuccess>;
 type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
 
 /**
- * Decodes the sf CLI JSON from stdout. The CLI emits `{ result }` (success) or `{ status, message }`
- * (failure) — neither carries a `_tag`. `CliRawObject` parses stdout to a plain object so the `'result' in raw`
- * test can inject the discriminant before the tagged-union decode; all downstream dispatch is on `_tag` via
- * Match. Malformed/unexpected shape maps to a tagged error rather than escaping as a defect.
+ * Decodes the sf CLI JSON from stdout. The CLI emits `{ status: 0, result }` (success) or
+ * `{ status: <non-zero>, message }` (failure) — neither carries a `_tag`. The shared helper injects the
+ * discriminant from `status` (0 = success) before the tagged-union decode; downstream dispatch is on `_tag`
+ * via Match. Malformed/unexpected shape maps to a tagged error rather than escaping as a defect.
  */
 const decodeOrgOpenResponse = decodeTaggedCliResponse(OrgOpenResponse, raw =>
-  'result' in raw ? 'OrgOpenSuccess' : 'OrgOpenFailure'
+  raw.status === 0 ? 'OrgOpenSuccess' : 'OrgOpenFailure'
 )(() => new OrgOpenParseError({ message: 'Failed to parse org open response' }));
 
 /**
@@ -96,7 +97,7 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
     yield* channel.showChannel;
   });
 
-  // failure branch: sf prints `{ status: 1, message }` — surface the message to the channel
+  // failure branch: sf prints `{ status: <non-zero>, message }` — surface the message to the channel
   const handleOrgOpenFailure = Effect.fn('orgOpenCommand.handleFailure')(function* ({ message }: OrgOpenFailure) {
     yield* channel.appendToChannel(message);
     yield* channel.showChannel;

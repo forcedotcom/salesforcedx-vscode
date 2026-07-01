@@ -327,6 +327,12 @@ const getMockVSCode = () => {
         this.command = command;
       }
     },
+    TabInputText: class {
+      public uri: unknown;
+      constructor(uri: unknown) {
+        this.uri = uri;
+      }
+    },
     DocumentLink: class {
       constructor(range: Range, target?: Uri) {}
     },

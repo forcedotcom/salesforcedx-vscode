@@ -68,6 +68,11 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
       yield* deleteDir(getOrgClassesDirUri(orgKey), orgKey);
     });
 
+    // On logout there is no current org to scope to, so drop the entire orgs root. Absent-safe.
+    const clearAll = Effect.fn('ApexTestDiscoveryService.clearAll')(function* () {
+      yield* deleteDir(getOrgsRootUri(), 'all');
+    });
+
     // On a default-org change, drop every OTHER org's discovered classes so the in-memory VFS holds only
     // the current org's tree. Only touches `classes/` subtrees — never the org dirs themselves.
     const pruneForeignOrgClasses = Effect.fn('ApexTestDiscoveryService.pruneForeignOrgClasses')(function* (
@@ -107,6 +112,6 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
       yield* Effect.log('persisted discovered classes', { orgKey, count: classes.length });
     });
 
-    return { saveDiscoveredClasses, clearOrg, pruneForeignOrgClasses };
+    return { saveDiscoveredClasses, clearOrg, clearAll, pruneForeignOrgClasses };
   })
 }) {}

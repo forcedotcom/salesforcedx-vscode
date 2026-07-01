@@ -43,3 +43,19 @@ export const getForeignOrgClassesDirUris = (currentOrgKey: string, orgDirNames: 
     .filter(name => name !== currentDirName)
     .map(name => Utils.joinPath(getOrgsRootUri(), name, CLASSES_ROOT));
 };
+
+/**
+ * True when `uri` is an `apex-testing:` class URI that belongs to an org OTHER than `currentOrgKey`.
+ * On a default-org change, the consumer passes the new orgId so the previous org's stale tabs match.
+ * On logout there is no current org (`undefined`), so every `apex-testing:` org tab is foreign.
+ */
+export const isForeignOrgClassUri = (uri: URI, currentOrgKey: string | undefined): boolean => {
+  if (uri.scheme !== APEX_TESTING_SCHEME) {
+    return false;
+  }
+  const [root, orgDirName] = uri.path.split('/').filter(Boolean);
+  if (root !== ORGS_ROOT || orgDirName === undefined) {
+    return false;
+  }
+  return currentOrgKey === undefined || orgDirName !== sanitizeOrgKey(currentOrgKey);
+};

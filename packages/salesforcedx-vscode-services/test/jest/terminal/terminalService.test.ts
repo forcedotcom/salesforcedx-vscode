@@ -85,7 +85,7 @@ describe('TerminalService.simpleExec', () => {
     return Promise.resolve({ stdout: '', stderr: '' });
   };
 
-  it('forwards a caller env to the injected ChildProcess.exec (non-sf command)', async () => {
+  it('forwards a caller env unchanged and injects no sf env for a non-sf command', async () => {
     const capture: { options?: ExecOptions } = {};
     await run(
       TerminalService.pipe(
@@ -96,8 +96,8 @@ describe('TerminalService.simpleExec', () => {
       withExec(capturingExec(capture))
     );
 
-    // pre-merge value: asserts simpleExec forwards `env` to childProcess.exec, NOT the
-    // `{ ...process.env, ...env }` merge (that merge lives in resolveExecOptions, covered in childProcess.test.ts).
+    // non-sf command: caller env passes through with no SF_JSON_TO_STDOUT/FORCE_COLOR injected. (The
+    // `{ ...process.env, ...env }` merge lives in resolveExecOptions, covered in childProcess.test.ts.)
     expect(capture.options?.env).toEqual({ FOO: 'bar' });
   });
 
