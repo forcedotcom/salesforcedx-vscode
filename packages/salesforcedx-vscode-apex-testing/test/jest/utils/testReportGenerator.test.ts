@@ -7,25 +7,11 @@
 
 // Mock vscode.workspace.fs.writeFile - this is used by FsService internally
 const mockWriteFile = jest.fn().mockResolvedValue(undefined);
-const mockChannelAppendLine = jest.fn().mockResolvedValue(undefined);
-const mockChannelShow = jest.fn().mockResolvedValue(undefined);
 const mockAppendToChannel = jest.fn();
 
 // Make mockWriteFile available globally for the extensionProvider mock to use
 
 (global as any).__mockWriteFile = mockWriteFile;
-
-// Mock the channels module
-jest.mock('../../../src/channels', () => ({
-  OUTPUT_CHANNEL: {
-    appendLine: jest.fn(),
-    show: jest.fn()
-  },
-  channelService: {
-    appendLine: (message: string) => mockChannelAppendLine(message),
-    show: () => mockChannelShow()
-  }
-}));
 
 // Mock the extensionProvider module before importing anything that uses it
 jest.mock('../../../src/services/extensionProvider', () => {
