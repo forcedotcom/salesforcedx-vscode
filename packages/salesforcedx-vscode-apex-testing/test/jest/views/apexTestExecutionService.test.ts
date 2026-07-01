@@ -19,8 +19,6 @@ jest.mock('../../../src/settings', () => ({
   retrieveTestSortOrder: jest.fn().mockReturnValue('runtime')
 }));
 
-jest.mock('../../../src/telemetry/telemetry', () => ({ telemetryService: { sendEventData: jest.fn() } }));
-
 // Keep result processing + report generation out of scope; assert orchestration only.
 const mockUpdateTestRunResults = jest.fn();
 jest.mock('../../../src/utils/testResultProcessor', () => ({

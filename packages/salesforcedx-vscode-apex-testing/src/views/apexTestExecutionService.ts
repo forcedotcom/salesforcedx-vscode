@@ -15,7 +15,6 @@ import { URI, Utils } from 'vscode-uri';
 import { TEST_ID_PREFIXES } from '../constants';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { telemetryService } from '../telemetry/telemetry';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -319,19 +318,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       yield* Ref.set(lastProcessedResultFile, Option.some(Utils.joinPath(outputDir, writtenResultFilename)));
 
       // Generate and open the report (non-fatal: log + continue on failure).
-      const reportStartTime = Date.now();
       const outputFormat = settings.retrieveOutputFormat();
       const sortOrder = settings.retrieveTestSortOrder();
       yield* writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
-        Effect.tap(() =>
-          Effect.sync(() =>
-            telemetryService.sendEventData(
-              'apexTestReportGenerated',
-              { outputFormat, trigger: 'testExplorer' },
-              { reportDurationMs: Date.now() - reportStartTime }
-            )
-          )
-        ),
+        Effect.tap(() => Effect.annotateCurrentSpan({ outputFormat, trigger: 'testExplorer' })),
+        Effect.withSpan('apexTestReportGenerated'),
         // Report generation is best-effort; recover failures AND defects (e.g. a transformer throwing
         // synchronously) so a broken report never fails the test run, matching the legacy try/catch.
         Effect.catchAllCause(cause => Effect.logError('Failed to generate test report', { cause }))
@@ -502,8 +493,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       runScope: ApexTestRunScope,
       isImplicitFullRun: boolean,
       finalTests: vscode.TestItem[],
-      run: vscode.TestRun,
-      startTime: number
+      run: vscode.TestRun
     ) {
       if (isDebug) {
         yield* debugTests(ctx, finalTests, run);
@@ -515,13 +505,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
         yield* executeTests(ctx, testNames, tmpFolder, codeCoverage, token, run, finalTests, runAllTestsInOrg);
       }
-      yield* Effect.sync(() =>
-        telemetryService.sendEventData(
-          'apexTestRun',
-          { trigger: 'testController', isDebug: String(isDebug) },
-          { durationMs: Date.now() - startTime, testsRan: finalTests.length }
-        )
-      );
+      yield* Effect.annotateCurrentSpan({
+        trigger: 'testController',
+        isDebug: String(isDebug),
+        testsRan: finalTests.length
+      }).pipe(Effect.withSpan('apexTestRun'));
     });
 
     /**
@@ -536,7 +524,6 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       isDebug: boolean,
       runScope: ApexTestRunScope
     ) {
-      const startTime = Date.now();
       const suiteItems = yield* ApexTestTreeService.getSuiteItems();
       const methodItems = yield* ApexTestTreeService.getMethodItems();
       const suiteToClasses = ctx.getSuiteToClasses();
@@ -678,8 +665,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         runScope,
         isImplicitFullRun,
         finalTests,
-        run,
-        startTime
+        run
       ).pipe(
         Effect.catchTags({
           PayloadBuildError: e => erroredAll(run, finalTests, e.message),
