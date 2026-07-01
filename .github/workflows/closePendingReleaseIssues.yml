@@ -1,6 +1,7 @@
 name: Close Pending Release Issues
 
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: ['Publish in Microsoft Marketplace']
     types: [completed]
