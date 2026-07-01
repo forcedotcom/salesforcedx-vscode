@@ -11,7 +11,7 @@ import { identity } from 'effect/Function';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getPortKillInstructions, isAuthPortConflictError } from '../../util/authErrorParser';
-import { updateConfigAndStateAggregators } from '../../util/orgUtil';
+import { ConfigRefreshError, updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { showVerificationCodeIfNeeded } from '../../util/verificationCode';
 import { gatherAuthParams } from './authParamsGatherer';
 
@@ -73,7 +73,10 @@ export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
     yield* channel.appendToChannel(output);
     yield* channel.appendToChannel(nls.localize('org_login_web_success'));
     yield* channel.showChannel;
-    yield* Effect.promise(() => updateConfigAndStateAggregators());
+    yield* Effect.tryPromise({
+      try: () => updateConfigAndStateAggregators(),
+      catch: e => new ConfigRefreshError({ message: e instanceof Error ? e.message : String(e) })
+    });
   });
 
   yield* (yield* api.services.TerminalService).simpleExec({ command, parse: identity, timeout: LOGIN_TIMEOUT }).pipe(
