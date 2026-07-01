@@ -61,6 +61,7 @@ export const messages = {
     'The following test suite(s) are empty and cannot be run: %s. Add test classes to the suite before running.',
   apex_test_suite_empty_message:
     'This test suite is empty and cannot be run. Add test classes to the suite before running.',
+  apex_test_suite_empty_remove_message: 'This test suite is empty. There are no tests to remove.',
   apex_test_resolve_suite_children_failed_message: 'Failed to resolve suite children for suite: %s. Error: %s',
   apex_test_connection_failed_message: 'Failed to get connection',
   apex_test_service_not_initialized_message: 'TestService not initialized. Call ensureInitialized() first.',

@@ -152,7 +152,7 @@ const gatherRemoveOptions = Effect.fn('apexTestSuite.gatherRemoveOptions')(funct
   );
 
   if (memberships.records.length === 0) {
-    void vscode.window.showInformationMessage(nls.localize('apex_test_suite_empty_message'));
+    void vscode.window.showInformationMessage(nls.localize('apex_test_suite_empty_remove_message'));
     return yield* new api.services.UserCancellationError();
   }
 

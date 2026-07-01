@@ -18,5 +18,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   colorizer_coverage_apply_failed_message: 'コードカバレッジを適用できませんでした。%s',
   apex_test_suite_name_input_prompt: '希望する Apex テストスイート名を入力してください:',
   apex_test_aggregate_failed_message: '%s 件のテストが失敗しました',
-  apex_test_failed_no_details_message: 'テストが失敗しました'
+  apex_test_failed_no_details_message: 'テストが失敗しました',
+  apex_test_suite_empty_remove_message: 'このテストスイートは空です。削除するテストがありません。'
 };
