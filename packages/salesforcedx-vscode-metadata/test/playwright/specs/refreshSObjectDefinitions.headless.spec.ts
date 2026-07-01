@@ -127,8 +127,9 @@ const failureTest = canForceWriteFailure
 failureTest(
   'Refresh SObject Definitions: write failure surfaces real error, not "An error has occurred"',
   async ({ page, workspaceDir }) => {
-    const consoleErrors = setupConsoleMonitoring(page);
-    const networkErrors = setupNetworkMonitoring(page);
+    // No validateNoCriticalErrors here: this test intentionally triggers an EACCES write failure,
+    // which VS Code also logs to the Electron console. The step assertions below validate the real
+    // error is surfaced (EACCES) and the generic string is not — that IS the correctness check.
 
     // .sfdx/tools is the parent of the sobjects output dir; making it read-only makes createDirectory/writeFile fail.
     const toolsDir = path.join(workspaceDir, '.sfdx', 'tools');
@@ -176,7 +177,5 @@ failureTest(
     } finally {
       fs.chmodSync(toolsDir, 0o755);
     }
-
-    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
   }
 );
