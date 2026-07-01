@@ -667,9 +667,11 @@ const waitForResultFile = async (filePath: string, token: vscode.CancellationTok
 
 const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
-const readJestResultsFile = Effect.fn('readJestResults')(function* (filePath: string) {
+const readJestResultsFile = Effect.fn('readJestResultsFile')(function* (filePath: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.FsService.readFile(filePath);
+  return yield* api.services.FsService.readFile(filePath).pipe(
+    Effect.tapError(error => Effect.logDebug('Failed to read LWC test results JSON:', error))
+  );
 });
 
 const readJestResults = async (filePath: string): Promise<LwcJestTestResults | undefined> => {

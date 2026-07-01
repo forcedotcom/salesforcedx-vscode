@@ -11,7 +11,6 @@ import { URI } from 'vscode-uri';
 // runtime.ts reads AllServicesLayer from ./extensionProvider; without a real layer getRuntime() dies with
 // `Cannot read properties of undefined (reading '_op_layer')`. Mock the provider module so getRuntime()
 // resolves and FsService.readFile returns the fixture json the results-reading path parses.
-let mockReadFileResult = '';
 const mockFsReadFile = jest.fn();
 jest.mock('../../../../src/services/extensionProvider', () => {
   const EffectLib = jest.requireActual('effect/Effect');
@@ -30,13 +29,6 @@ jest.mock('../../../../src/services/extensionProvider', () => {
     AllServicesLayer: MockAllServicesLayer,
     setAllServicesLayer: jest.fn()
   };
-});
-
-// jest.base.config sets resetMocks:true, which clears mockFsReadFile's implementation before every test.
-// Re-establish it here (Effect.succeed of the current fixture) so getRuntime().runPromise resolves.
-beforeEach(() => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  mockFsReadFile.mockImplementation(() => EffectLib.succeed(mockReadFileResult));
 });
 
 // Indexer is a singleton imported by the controller; mock it so discovery returns a known file + case.
@@ -655,8 +647,10 @@ describe('LwcTestController public run API', () => {
     });
 
     // readJestResults -> FsService.readFile (mocked). Return a passing suite whose `name` is the LONG (jest)
-    // path, so applyResults must reconcile it back to the short discovery URI.
-    mockReadFileResult = JSON.stringify({
+    // path, so applyResults must reconcile it back to the short discovery URI. jest.base.config sets
+    // resetMocks:true, so arm the implementation here (Effect.succeed of the fixture) for this test only.
+    const EffectLib = jest.requireActual('effect/Effect');
+    const mockReadFileResult = JSON.stringify({
       testResults: [
         {
           name: jestPath,
@@ -665,6 +659,7 @@ describe('LwcTestController public run API', () => {
         }
       ]
     });
+    mockFsReadFile.mockImplementation(() => EffectLib.succeed(mockReadFileResult));
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { getLwcTestController } = require('../../../../src/testSupport/testExplorer/lwcTestController');
