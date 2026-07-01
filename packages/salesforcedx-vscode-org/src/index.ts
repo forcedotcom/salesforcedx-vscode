@@ -16,7 +16,7 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from './channels';
-import { configSet, orgListCleanCommand, orgLoginWeb, orgLogoutAll, orgLogoutDefault } from './commands';
+import { orgListCleanCommand, orgLoginWeb, orgLogoutAll, orgLogoutDefault } from './commands';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
 import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
 import { orgCreateCommand } from './commands/orgCreate';
@@ -38,7 +38,6 @@ import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 /** Register all org/auth commands */
 const registerCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
     vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
     vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault)
@@ -48,12 +47,9 @@ const registerCommands = (): vscode.Disposable =>
 const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkIn(createOrgPicker(), yield* getExtensionScope());
 
-  // Register org picker commands
+  // Register org picker command with AllServicesLayer for tracing + global error/cancellation handling
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const contextService = yield* api.services.ExtensionContextService;
-  const context = yield* contextService.getContext;
-  const setDefaultOrgCmd = vscode.commands.registerCommand('sf.set.default.org', setDefaultOrg);
-  context.subscriptions.push(setDefaultOrgCmd);
+  yield* api.services.registerCommandWithLayer(AllServicesLayer)('sf.set.default.org', setDefaultOrg);
 
   // alert user about orgs that are expiring soon
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
