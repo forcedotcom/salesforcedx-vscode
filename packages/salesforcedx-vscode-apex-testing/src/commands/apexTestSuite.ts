@@ -205,10 +205,14 @@ const removeSuiteMembers = Effect.fn('apexTestSuite.removeSuiteMembers')(functio
 
   yield* api.services.ConnectionService.getConnection().pipe(
     Effect.flatMap(connection =>
-      Effect.tryPromise(() => connection.tooling.delete('TestSuiteMembership', membershipIds))
+      // tooling.delete with an array routes through composite/sobjects which the Tooling API
+      // does not support — delete each record individually instead
+      Effect.tryPromise(() =>
+        Promise.all(membershipIds.map(id => connection.tooling.delete('TestSuiteMembership', id)))
+      )
     ),
     Effect.flatMap(results => {
-      const failures = (Array.isArray(results) ? results : [results]).filter(r => !r.success);
+      const failures = results.filter(r => !r.success);
       if (failures.length > 0) {
         return Effect.fail(new Error(`Failed to delete ${failures.length} membership(s)`));
       }
