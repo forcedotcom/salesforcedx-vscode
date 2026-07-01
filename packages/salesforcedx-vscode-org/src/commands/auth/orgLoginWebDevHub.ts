@@ -12,18 +12,14 @@ import { identity } from 'effect/Function';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { updateConfigAndStateAggregators } from '../../util/orgUtil';
+import { validateAliasInput } from '../../util/orgAlias';
+import { ConfigRefreshError, updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { showVerificationCodeIfNeeded } from '../../util/verificationCode';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 
 /** Interactive browser auth blocks on a human completing login, which routinely exceeds the 30s
  * simpleExec default; give it a generous bound (parity with orgDelete's raised timeout). */
 const LOGIN_TIMEOUT = Duration.minutes(10);
-
-/** Alias is validated to alphanumeric/underscore/space at input, so single-quoting (no embedded quotes to
- * escape) safely passes it as one shell argument — closing the shell-injection vector of an unquoted interpolation. */
-const isAlphaNumSpaceString = (value: string | undefined): boolean =>
-  value !== undefined && /^\w+( *\w*)*$/.test(value);
 
 /**
  * Raised when the verification-code modal throws (e.g. a vscode API change); keeps the failure typed and
@@ -62,8 +58,7 @@ export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(fu
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: DEFAULT_ALIAS,
       ignoreFocusOut: true,
-      validateInput: value =>
-        isAlphaNumSpaceString(value) || value === '' ? undefined : nls.localize('error_invalid_org_alias')
+      validateInput: validateAliasInput
     })
   ).pipe(
     Effect.flatMap(value =>
@@ -94,5 +89,8 @@ export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(fu
     })
     .pipe(promptService.withCancellableProgress(nls.localize('org_login_web_authorize_dev_hub_text')));
 
-  yield* Effect.promise(() => updateConfigAndStateAggregators());
+  yield* Effect.tryPromise({
+    try: () => updateConfigAndStateAggregators(),
+    catch: e => new ConfigRefreshError({ message: e instanceof Error ? e.message : String(e) })
+  });
 });
