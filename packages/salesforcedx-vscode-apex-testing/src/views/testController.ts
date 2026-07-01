@@ -10,11 +10,12 @@ import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Equal from 'effect/Equal';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
-import { APEX_TESTING_SCHEME } from '../discoveryVfs/apexTestingDiscoveryFs';
+import { APEX_TESTING_SCHEME, isForeignOrgClassUri } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
@@ -749,9 +750,9 @@ export class ApexTestController {
               viewColumn: vscode.ViewColumn.Active,
               preserveFocus: false
             });
+            yield* closeEditorTabByUri(uri);
           })()
         );
-        await closeEditorTabByUri(uri);
       }
 
       try {
@@ -926,23 +927,34 @@ const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
   return filePath ? URI.file(filePath) : undefined;
 };
 
-const closeEditorTabByUri = async (uri: URI): Promise<void> => {
+// Batch-close text-input tabs matching predicate. No-op on web (tabGroups absent).
+const closeMatchingTabs = Effect.fn('ApexTesting.closeMatchingTabs')(function* (predicate: (uri: URI) => boolean) {
   const tabGroupsApi = vscode.window.tabGroups;
   if (!tabGroupsApi) {
     return;
   }
-  const tabsToClose: vscode.Tab[] = [];
-  for (const group of tabGroupsApi.all) {
-    for (const tab of group.tabs) {
-      if (tab.input instanceof vscode.TabInputText && tab.input.uri.toString() === uri.toString()) {
-        tabsToClose.push(tab);
-      }
-    }
-  }
+  const tabsToClose = tabGroupsApi.all.flatMap(group =>
+    group.tabs.filter(tab => tab.input instanceof vscode.TabInputText && predicate(tab.input.uri))
+  );
   if (tabsToClose.length > 0) {
-    await tabGroupsApi.close(tabsToClose, true);
+    yield* Effect.promise(() => tabGroupsApi.close(tabsToClose, true));
   }
-};
+});
+
+// Close every `apex-testing:` class tab whose org differs from `currentOrgKey`. On a default-org change
+// the consumer passes the new orgId, closing the previous org's now-stale tabs; on logout it passes
+// `undefined`, so all org tabs are foreign and close. Replaces the old close-all class method so the
+// org-change and logout paths share one consumer-driven entry point.
+export const closeForeignApexTestingTabs = (currentOrgKey: string | undefined) =>
+  closeMatchingTabs(uri => isForeignOrgClassUri(uri, currentOrgKey));
+
+const closeEditorTabByUri = Effect.fn('ApexTesting.closeEditorTabByUri')(function* (uri: URI) {
+  // Compare via FsService.HashableUri (structural Equal) rather than hand-rolled toString().
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const HashableUri = yield* api.services.FsService.HashableUri;
+  const target = HashableUri.fromUri(uri);
+  yield* closeMatchingTabs(tabUri => Equal.equals(HashableUri.fromUri(tabUri), target));
+});
 
 let testControllerInst: ApexTestController | undefined;
 
