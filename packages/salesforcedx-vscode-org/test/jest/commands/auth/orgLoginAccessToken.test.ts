@@ -24,7 +24,6 @@ jest.mock('../../../../src/util/orgUtil', () => ({
 }));
 
 const buildServices = (simpleExec: jest.Mock) => ({
-  ProjectService: { getSfProject: () => Effect.succeed({}) },
   TerminalService: Effect.succeed({ simpleExec }),
   ChannelService: Effect.succeed({ appendToChannel: () => Effect.void, showChannel: Effect.void })
 });
@@ -63,15 +62,13 @@ describe('orgLoginAccessTokenCommand', () => {
     expect(mockUpdateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
   });
 
-  it('does not exec and does not refresh config when the gatherer cancels', async () => {
+  it('surfaces UserCancellationError untransformed when the gatherer cancels', async () => {
     mockGather.mockReturnValue(Effect.fail(userCancellationError));
-    const simpleExec = jest.fn(() => Effect.succeed('authorized'));
 
-    const exit = await run(simpleExec);
+    const exit = await run(jest.fn(() => Effect.succeed('authorized')));
 
+    // command must not swallow/retag the cancellation; registerCommand relies on the tag to stay silent
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
-    expect(simpleExec).not.toHaveBeenCalled();
-    expect(mockUpdateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 });

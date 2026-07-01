@@ -28,6 +28,11 @@ export class OrgDeleteFailedError extends Schema.TaggedError<OrgDeleteFailedErro
   message: Schema.String
 }) {}
 
+/** @ExportTaggedError */
+export class ConfigRefreshError extends Schema.TaggedError<ConfigRefreshError>()('ConfigRefreshError', {
+  message: Schema.String
+}) {}
+
 /**
  * Effect command for `sf.org.delete.default`: confirm, then delete the default org.
  * Picks `org:delete:sandbox` for sandbox defaults and `org:delete:scratch` otherwise
@@ -70,7 +75,10 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
     channelService.showChannelOutput();
   });
 
-  yield* Effect.tryPromise(() => updateConfigAndStateAggregators());
+  yield* Effect.tryPromise({
+    try: () => updateConfigAndStateAggregators(),
+    catch: e => new ConfigRefreshError({ message: e instanceof Error ? e.message : String(e) })
+  });
 });
 
 /** Display label for an org's type, used in user-facing channel/notification text. */
