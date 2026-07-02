@@ -40,6 +40,12 @@ export const createTestWorkspace = async (orgAlias?: string): Promise<string> =>
     ),
     fs.mkdir(path.join(workspaceDir, 'force-app', 'main', 'default'), { recursive: true }),
     fs.mkdir(path.join(workspaceDir, SF_STATE_FOLDER), { recursive: true }),
+    // Match `sf project generate`'s default .forceignore so LWC create's scaffolded jest/config files
+    // (which reference `@lwc/engine-dom`) are not deployed — deploying them fails metadata deploys.
+    fs.writeFile(
+      path.join(workspaceDir, '.forceignore'),
+      ['**/jsconfig.json', '**/.eslintrc.json', '**/__tests__/**', ''].join('\n')
+    ),
     // Minimal scratch-def so `sf.org.create`'s FileSelector (glob `config/**/*-scratch-def.json`) finds a match.
     fs
       .mkdir(path.join(workspaceDir, 'config'), { recursive: true })

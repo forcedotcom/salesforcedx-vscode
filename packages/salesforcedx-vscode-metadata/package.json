@@ -218,6 +218,7 @@
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-lwc:vscode:package:legacy",
         "../playwright-vscode-ext:compile"
       ],
       "files": [

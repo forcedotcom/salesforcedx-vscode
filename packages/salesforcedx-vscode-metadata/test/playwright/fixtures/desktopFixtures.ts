@@ -38,7 +38,8 @@ export const dreamhouseDesktopTest = createDesktopTest({
 export const nonTrackingDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: NON_TRACKING_ORG_ALIAS,
-  additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
+  // salesforcedx-vscode-lwc contributes "SFDX: Create Lightning Web Component" (used by deleteBundleSource spec).
+  additionalExtensionDirs: ['salesforcedx-vscode-apex-log', 'salesforcedx-vscode-lwc'],
   userSettings: {
     'salesforcedx-vscode-core.useMetadataExtensionCommands': true
   }
