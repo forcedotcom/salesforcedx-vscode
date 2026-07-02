@@ -11,15 +11,6 @@ import { nls } from '../messages';
 export const generateVerificationCode = (token: string): string =>
   crypto.createHash('sha256').update(token).digest('hex').slice(0, 4);
 
-export const getVerificationCodeDescription = (baseDescription: string): string => {
-  const codeBuilderState = process.env.CODE_BUILDER_STATE;
-  if (codeBuilderState) {
-    const code = generateVerificationCode(codeBuilderState);
-    return `${baseDescription} ${nls.localize('org_login_web_verification_code_suffix', code)}`;
-  }
-  return baseDescription;
-};
-
 export const showVerificationCodeIfNeeded = async (): Promise<void> => {
   const codeBuilderState = process.env.CODE_BUILDER_STATE;
   if (codeBuilderState) {

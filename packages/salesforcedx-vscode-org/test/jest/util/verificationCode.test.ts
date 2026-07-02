@@ -6,11 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import {
-  generateVerificationCode,
-  getVerificationCodeDescription,
-  showVerificationCodeIfNeeded
-} from '../../../src/util/verificationCode';
+import { generateVerificationCode, showVerificationCodeIfNeeded } from '../../../src/util/verificationCode';
 
 describe('generateVerificationCode', () => {
   it('should return cc0a for test_token (matches server-side test vector)', () => {
@@ -26,34 +22,6 @@ describe('generateVerificationCode', () => {
     const first = generateVerificationCode('same_input');
     const second = generateVerificationCode('same_input');
     expect(first).toBe(second);
-  });
-});
-
-describe('getVerificationCodeDescription', () => {
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
-  it('should append verification code suffix when CODE_BUILDER_STATE is set', () => {
-    process.env.CODE_BUILDER_STATE = 'test_token';
-
-    const result = getVerificationCodeDescription('SFDX: Authorize an Org');
-
-    expect(result).toBe('SFDX: Authorize an Org (Verification Code: cc0a)');
-  });
-
-  it('should return base description unchanged when CODE_BUILDER_STATE is not set', () => {
-    delete process.env.CODE_BUILDER_STATE;
-
-    const result = getVerificationCodeDescription('SFDX: Authorize an Org');
-
-    expect(result).toBe('SFDX: Authorize an Org');
   });
 });
 
