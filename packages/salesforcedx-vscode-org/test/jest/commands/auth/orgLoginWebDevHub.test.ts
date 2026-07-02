@@ -8,14 +8,31 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import { identity } from 'effect/Function';
 import * as vscode from 'vscode';
 import { DEFAULT_ALIAS } from '../../../../src/commands/auth/authParamsGatherer';
 import { orgLoginWebDevHubCommand } from '../../../../src/commands/auth/orgLoginWebDevHub';
-import * as orgUtil from '../../../../src/util/orgUtil';
-import * as verificationCode from '../../../../src/util/verificationCode';
-import { UserCancellationError } from '../../testHelpers/promptServiceStub';
+import { updateConfigAndStateAggregators } from '../../../../src/util/orgUtil';
 
-const buildServices = (opts: { isProject: boolean; simpleExec: jest.Mock }) => ({
+jest.mock('../../../../src/util/orgUtil', () => ({
+  updateConfigAndStateAggregators: jest.fn()
+}));
+
+// withCancellableProgress forks the effect and reports via vscode.window.withProgress; the jest
+// vscode mock needs a withProgress that runs the task and returns its result so the fiber resolves.
+const stubWithProgress = () => {
+  (vscode.window as unknown as { withProgress: jest.Mock }).withProgress = jest.fn(
+    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: jest.Mock }) => unknown) =>
+      task({ report: jest.fn() }, { onCancellationRequested: jest.fn() })
+  );
+};
+
+const buildServices = (opts: {
+  isProject: boolean;
+  simpleExec: jest.Mock;
+  appendToChannel: jest.Mock;
+  showChannel: jest.Mock;
+}) => ({
   // getSfProject sets the project context and fails when there's no project; the command ignores the
   // returned SfProject, so the success path yields a sentinel.
   ProjectService: {
@@ -25,15 +42,23 @@ const buildServices = (opts: { isProject: boolean; simpleExec: jest.Mock }) => (
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   // withCancellableProgress is a pipeable operator; the stub is identity so the exec effect runs unchanged.
   PromptService: Effect.succeed({
-    withCancellableProgress:
-      () =>
-      <A, E, R>(self: Effect.Effect<A, E, R>) =>
-        self
+    withCancellableProgress: () => identity
   }),
-  UserCancellationError
+  ChannelService: Effect.succeed({
+    appendToChannel: (msg: string) =>
+      Effect.sync(() => {
+        opts.appendToChannel(msg);
+      }),
+    showChannel: Effect.sync(() => {
+      opts.showChannel();
+    })
+  }),
+  UserCancellationError: class {
+    public readonly _tag = 'UserCancellationError';
+  }
 });
 
-const run = (opts: { isProject: boolean; simpleExec: jest.Mock }) =>
+const run = (opts: { isProject: boolean; simpleExec: jest.Mock; appendToChannel: jest.Mock; showChannel: jest.Mock }) =>
   Effect.runPromiseExit(
     orgLoginWebDevHubCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
@@ -43,13 +68,18 @@ const run = (opts: { isProject: boolean; simpleExec: jest.Mock }) =>
   );
 
 describe('orgLoginWebDevHubCommand', () => {
-  let updateAggregators: jest.SpyInstance;
-  let showVerification: jest.SpyInstance;
+  let appendToChannel: jest.Mock;
+  let showChannel: jest.Mock;
+  let showErrorMessage: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    updateAggregators = jest.spyOn(orgUtil, 'updateConfigAndStateAggregators').mockResolvedValue(undefined);
-    showVerification = jest.spyOn(verificationCode, 'showVerificationCodeIfNeeded').mockResolvedValue(undefined);
+    (updateConfigAndStateAggregators as jest.Mock).mockResolvedValue(undefined);
+    appendToChannel = jest.fn();
+    showChannel = jest.fn();
+    showErrorMessage = jest.fn();
+    stubWithProgress();
+    (vscode.window as unknown as { showErrorMessage: jest.Mock }).showErrorMessage = showErrorMessage;
   });
 
   afterEach(() => {
@@ -60,12 +90,12 @@ describe('orgLoginWebDevHubCommand', () => {
     jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
     const simpleExec = jest.fn(() => Effect.succeed(''));
 
-    const exit = await run({ isProject: true, simpleExec });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledTimes(1);
     const arg = (simpleExec.mock.calls as unknown as [{ command: string; parse: unknown }][])[0][0];
-    expect(arg.command).toBe("sf org login web --alias 'myHub' --set-default-dev-hub");
+    expect(arg.command).toBe('sf org login web --alias "myHub" --set-default-dev-hub');
     expect(arg.parse).toEqual(expect.any(Function));
   });
 
@@ -73,11 +103,11 @@ describe('orgLoginWebDevHubCommand', () => {
     jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('');
     const simpleExec = jest.fn(() => Effect.succeed(''));
 
-    const exit = await run({ isProject: true, simpleExec });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
-      expect.objectContaining({ command: `sf org login web --alias '${DEFAULT_ALIAS}' --set-default-dev-hub` })
+      expect.objectContaining({ command: `sf org login web --alias "${DEFAULT_ALIAS}" --set-default-dev-hub` })
     );
   });
 
@@ -85,54 +115,66 @@ describe('orgLoginWebDevHubCommand', () => {
     jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
     const simpleExec = jest.fn(() => Effect.succeed(''));
 
-    const exit = await run({ isProject: true, simpleExec });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     expect(simpleExec).not.toHaveBeenCalled();
-    expect(updateAggregators).not.toHaveBeenCalled();
+    expect(updateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 
   it('fails (getSfProject) and does not exec when not in a project', async () => {
     jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
     const simpleExec = jest.fn(() => Effect.succeed(''));
 
-    const exit = await run({ isProject: false, simpleExec });
+    const exit = await run({ isProject: false, simpleExec, appendToChannel, showChannel });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
     expect(simpleExec).not.toHaveBeenCalled();
   });
 
+  it('appends output + refreshes aggregators on success', async () => {
+    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
+    const simpleExec = jest.fn(() => Effect.succeed('ok'));
+
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('ok');
+    expect(showChannel).toHaveBeenCalled();
+    expect(updateConfigAndStateAggregators).toHaveBeenCalledTimes(1);
+    expect(showErrorMessage).not.toHaveBeenCalled();
+  });
+
   it('does not update the config/state aggregators when the exec fails', async () => {
     jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
-    const simpleExec = jest.fn(() => Effect.fail({ _tag: 'TerminalServiceError' as const }));
+    const simpleExec = jest.fn(() =>
+      Effect.fail({ _tag: 'TerminalServiceError' as const, message: 'some other CLI failure' })
+    );
 
-    const exit = await run({ isProject: true, simpleExec });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
     expect(Exit.isFailure(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledTimes(1);
     // aggregators run only after a successful exec; the failed fiber short-circuits before reaching them
-    expect(updateAggregators).not.toHaveBeenCalled();
+    expect(updateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 
-  it('shows the verification-code modal before exec (no-op branch returns void)', async () => {
-    const order: string[] = [];
+  it('maps a port-conflict TerminalServiceError to showErrorMessage + Show Output (shared executor)', async () => {
+    const showOutputText = 'Show Output';
+    showErrorMessage.mockResolvedValue(showOutputText);
     jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce('myHub');
-    showVerification.mockImplementation(() => {
-      order.push('verify');
-      return Promise.resolve();
-    });
-    const simpleExec = jest.fn(() => {
-      order.push('exec');
-      return Effect.succeed('');
-    });
+    const simpleExec = jest.fn(() =>
+      Effect.fail({ _tag: 'TerminalServiceError' as const, message: 'EADDRINUSE: port 1717 already in use' })
+    );
 
-    const exit = await run({ isProject: true, simpleExec });
+    const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel });
 
+    // the shared executor swallows the conflict (success exit) and renders the notification itself
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(showVerification).toHaveBeenCalledTimes(1);
-    // modal must show before the browser-auth exec so the code is visible during the flow
-    expect(order).toEqual(['verify', 'exec']);
+    expect(showErrorMessage).toHaveBeenCalledTimes(1);
+    expect(showErrorMessage.mock.calls[0][0]).toContain('port 1717');
+    expect(updateConfigAndStateAggregators).not.toHaveBeenCalled();
   });
 });
