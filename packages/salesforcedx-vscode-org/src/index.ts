@@ -16,7 +16,7 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from './channels';
-import { orgListCleanCommand, orgLoginWeb, orgLogoutAll, orgLogoutDefault } from './commands';
+import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAll, orgLogoutDefault } from './commands';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
 import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
 import { orgCreateCommand } from './commands/orgCreate';
@@ -27,6 +27,7 @@ import {
   ORG_DISPLAY_DEFAULT_COMMAND,
   ORG_DISPLAY_USERNAME_COMMAND,
   ORG_LOGIN_ACCESS_TOKEN_COMMAND,
+  ORG_LOGIN_WEB_COMMAND,
   ORG_LOGIN_WEB_DEV_HUB,
   ORG_OPEN_COMMAND
 } from './constants';
@@ -38,7 +39,6 @@ import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 /** Register all org/auth commands */
 const registerCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
     vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
     vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault)
   );
@@ -83,6 +83,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   yield* registerCommand('sf.org.delete.username', orgDeleteUsernameCommand);
   yield* registerCommand('sf.org.list.clean', orgListCleanCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
+  yield* registerCommand(ORG_LOGIN_WEB_COMMAND, orgLoginWebCommand);
   yield* registerCommand(ORG_LOGIN_WEB_DEV_HUB, orgLoginWebDevHubCommand);
   yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
   yield* registerCommand(ORG_LOGIN_ACCESS_TOKEN_COMMAND, orgLoginAccessTokenCommand);

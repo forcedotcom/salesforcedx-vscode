@@ -203,6 +203,7 @@ export default [
       'unicorn/no-useless-promise-resolve-reject': 'error',
       'unicorn/no-useless-spread': 'error',
       'unicorn/no-useless-switch-case': 'error',
+      'unicorn/no-xor-as-exponentiation': 'error',
       'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-array-find': 'error',
       'unicorn/prefer-array-flat': 'error',
