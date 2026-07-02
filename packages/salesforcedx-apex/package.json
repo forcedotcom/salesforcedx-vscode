@@ -17,7 +17,7 @@
     }
   },
   "dependencies": {
-    "@salesforce/core": "^8.31.0",
+    "@salesforce/core": "^8.31.5",
     "@salesforce/kit": "^3.2.6",
     "@salesforce/ts-types": "^2.0.10",
     "fast-glob": "^3.3.2",
@@ -28,7 +28,7 @@
     "json-stream-stringify": "^3.1.6"
   },
   "devDependencies": {
-    "@jsforce/jsforce-node": "^3.10.16",
+    "@jsforce/jsforce-node": "^3.10.18",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
