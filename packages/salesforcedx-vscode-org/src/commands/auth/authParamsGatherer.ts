@@ -18,11 +18,6 @@ const PRODUCTION_URL = 'https://login.salesforce.com';
 const SANDBOX_URL = 'https://test.salesforce.com';
 const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 
-export type AuthParams = {
-  alias: string;
-  loginUrl: string;
-};
-
 const inputInstanceUrl = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),
@@ -142,20 +137,6 @@ export const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function*
     loginUrl: instanceUrl ?? PRODUCTION_URL
   };
 });
-
-export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
-  constructor(
-    public instanceUrl: string | undefined,
-    /** When web login is invoked programmatically (e.g. access-token re-auth), reuse this alias or username so the new auth replaces the same target-org label. */
-    public readonly reauthAliasOrUsername?: string
-  ) {}
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<AuthParams>> {
-    return runGatherer(
-      gatherAuthParams({ instanceUrl: this.instanceUrl, reauthAliasOrUsername: this.reauthAliasOrUsername })
-    );
-  }
-}
 
 export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
