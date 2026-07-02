@@ -190,9 +190,7 @@ function getPackageHeaders(filesChanged) {
 }
 
 /**
- * Write changelog to file (replaces existing content).
- * The release branch will contain only the new release notes.
- * Full history is maintained on develop and prepended during merge.
+ * Write changelog to file
  * @param {string} textToInsert
  */
 function writeChangeLog(textToInsert) {
