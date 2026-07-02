@@ -119,6 +119,7 @@ Enforce:
 - Each phase has a clear commit message
 - Verification section exists and notes which items are e2e-covered
 - Skills list is non-empty and includes typescript
+- **No escape hatches.** Reject any step that pre-authorizes a worse fallback — "if the clean approach proves infeasible / hard / awkward, fall back to <the duplicative or hacky option>". A plan commits to ONE approach. Genuine infeasibility is discovered at build time and escalated then, not licensed in advance — a written fallback becomes the path of least resistance and ships the debt (this is the W-23257488 failure: the plan permitted "fall back to a parallel copy" and the build took it). Require the fallback removed, or split into its own phase with its own justification. Flag as a revision.
 
 Return {approved: true} or {approved: false, revisions: [...]}.`
 
@@ -145,6 +146,10 @@ const adversaryPlanReviewPrompt = `Adversarially review the plan at ${planPath} 
 WI Subject: ${subject}
 WI Details:
 ${details || '(empty)'}
+
+ADR consistency check. Read the ADRs under ${wt}/docs/adr/ (repo-wide) plus any ${wt}/packages/*/docs/adr/ for packages the plan touches. A recorded ADR is binding by default (Status frontmatter is optional; an ADR without an explicit Proposed/Rejected/Deprecated/Superseded marker is Accepted). Then:
+- Flag (finding) any plan step that contradicts an ADR's decision, or re-proposes an alternative an ADR explicitly rejected/superseded. Cite the ADR file in 'evidence'.
+- Flag (finding) any decision the plan implies that WOULD warrant a new ADR — per ${wt}/.claude/skills/grill-me/ADR-FORMAT.md "When to offer" (all three gates: hard to reverse, surprising without context, real trade-off) — when the plan does not already sequence an ADR-writing step. Suggest sequencing the ADR first (see work-item-sequencing "ADRs sequence first").
 
 Return ONLY the structured result.`
 
