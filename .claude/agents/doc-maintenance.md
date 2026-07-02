@@ -25,7 +25,7 @@ ALWAYS operate inside the parent's current working directory. NEVER edit absolut
    - Command IDs, API changes, new features, removed exports
    - package.json scripts/commands, esbuild config, scripts/
    - .vscodeignore, .vscode (launch/tasks/extensions), tsconfig, .esbuild-web-extra-settings.json, .github workflows
-   - **Comments**: check lines immediately above code changes; ensure they match new logic. Don't add new comments, just correct existing. Comments explain what code does, not what it used to do or what changed — delete "replaces the former X", "previously Y", "no longer Z" framing. Keep terse; cut comments that restate obvious code (Effect/types self-evident).
+   - **Comments**: check lines immediately above code changes; ensure they match new logic. Don't add new comments, just correct existing. Comments explain what code does, not what it used to do or what changed — delete "replaces the former X", "previously Y", "no longer Z" framing. Keep terse; cut comments that restate obvious code (Effect/types self-evident). Cut per-item narration on list/merge/composition (e.g. one comment per arg of `Layer.mergeAll`/`Effect.all`) restating what each symbol does — JSDoc on the symbol's definition surfaces on hover; not a line comment at every use site.
 2. **Broken links** in docs
 3. **Duplication** — replace with cross-links
 

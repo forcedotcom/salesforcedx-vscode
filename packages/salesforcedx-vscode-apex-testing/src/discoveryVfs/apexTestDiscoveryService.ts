@@ -41,6 +41,11 @@ const isAbsent = (error: unknown): boolean =>
 /** Internal sentinel: the target entry is absent, so a delete is a no-op (recovered to Effect.void). */
 class AbsentEntry extends Schema.TaggedError<AbsentEntry>()('AbsentEntry', {}) {}
 
+/**
+ * Persists discovered apex test classes to the per-org discovery virtual filesystem and prunes it:
+ * saveDiscoveredClasses writes class files under the org dir, clearOrg removes one org's dir, and
+ * pruneForeignOrgClasses drops every org dir except the current one.
+ */
 export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoveryService>()('ApexTestDiscoveryService', {
   accessors: true,
   dependencies: [ApexTestingDiscoveryFsProviderLive],
