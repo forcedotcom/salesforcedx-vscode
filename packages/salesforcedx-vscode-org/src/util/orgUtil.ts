@@ -9,19 +9,19 @@ import {
   AuthFields,
   AuthInfo,
   AuthRemover,
-  Config,
   Org,
   OrgAuthorization,
   OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { notificationService, workspaceUtils, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { channelService } from '../channels';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
@@ -112,6 +112,10 @@ const refreshConnection = Effect.fn('updateConfigAndStateAggregators', {
   yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
 });
 
+export class ConfigRefreshError extends Schema.TaggedError<ConfigRefreshError>()('ConfigRefreshError', {
+  message: Schema.String
+}) {}
+
 export const updateConfigAndStateAggregators = async (): Promise<void> => {
   // Force the ConfigAggregatorProvider to reload its stored
   // ConfigAggregators so that this config file change is accounted
@@ -124,31 +128,6 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
   await StateAggregator.clearInstanceAsync();
 
   await getOrgRuntime().runPromise(refreshConnection());
-};
-
-const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
-  const config = await Config.create(Config.getDefaultOptions());
-  config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
-  await config.write();
-  await updateConfigAndStateAggregators();
-};
-
-/** Sets the target org or alias in the local config */
-export const setTargetOrgOrAlias = async (usernameOrAlias: string): Promise<void> => {
-  const originalDirectory = process.cwd();
-  // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
-  const workspacePath = workspaceUtils.getRootWorkspacePath();
-  try {
-    process.chdir(workspacePath);
-    // checks if the usernameOrAlias is non-empty and active.
-    if (usernameOrAlias) {
-      // throws an error if the org associated with the usernameOrAlias is expired.
-      await Org.create({ aliasOrUsername: usernameOrAlias });
-    }
-    await setUsernameOrAlias(usernameOrAlias);
-  } finally {
-    process.chdir(originalDirectory);
-  }
 };
 
 /** Get connection status from error */
@@ -196,91 +175,86 @@ export const determineConnectedStatusForNonScratchOrg = async (username: string)
   }
 };
 
-/** Process a single org for potential removal */
-const processOrgForRemoval = async (
-  orgAuth: OrgAuthorization,
-  authRemover: AuthRemover
-): Promise<string | undefined> => {
+/** A removable org plus the channel line describing why it's removable. */
+type RemovableOrg = { username: string; logLine: string };
+
+/** Classify a single org for removal WITHOUT mutating auth state, so the caller can confirm first. */
+const classifyOrgForRemoval = async (orgAuth: OrgAuthorization): Promise<RemovableOrg | undefined> => {
+  // Skip dev hubs
+  if (orgAuth.isDevHub) {
+    return undefined;
+  }
+
+  // Skip orgs with errors - they are likely already invalid
+  if (orgAuth.error) {
+    channelService.appendLine(nls.localize('org_list_clean_skipping_org_with_error', orgAuth.username, orgAuth.error));
+    return undefined;
+  }
+
   try {
-    // Skip dev hubs
-    if (orgAuth.isDevHub) {
-      return undefined;
-    }
-
-    // Skip orgs with errors - they are likely already invalid
-    if (orgAuth.error) {
-      channelService.appendLine(
-        nls.localize('org_list_clean_skipping_org_with_error', orgAuth.username, orgAuth.error)
-      );
-      return undefined;
-    }
-
     const authFields: AuthFields = await getAuthFieldsFor(orgAuth.username);
 
-    // Check if this is a scratch org with an expiration date
-    if (authFields.expirationDate) {
-      const expirationDate = new Date(authFields.expirationDate);
-
-      // Check if org has expired
-      if (expirationDate < new Date()) {
-        channelService.appendLine(
-          nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
-        );
-        await authRemover.removeAuth(orgAuth.username);
-        return orgAuth.username;
-      }
-    }
-    return undefined;
+    // Scratch org whose expiration date has passed
+    return authFields.expirationDate && new Date(authFields.expirationDate) < new Date()
+      ? {
+          username: orgAuth.username,
+          logLine: nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
+        }
+      : undefined;
   } catch (error) {
-    // If we can't get auth fields, the org might be deleted/invalid - try to remove it
+    // If we can't get auth fields, the org might be deleted/invalid - mark it for removal
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (shouldRemoveOrg(error)) {
-      try {
-        channelService.appendLine(nls.localize('org_list_clean_removing_invalid_org', orgAuth.username, errorMessage));
-        await authRemover.removeAuth(orgAuth.username);
-        return orgAuth.username;
-      } catch (removeError) {
-        channelService.appendLine(
-          nls.localize(
-            'org_list_clean_failed_to_remove_org',
-            orgAuth.username,
-            removeError instanceof Error ? removeError.message : String(removeError)
-          )
-        );
-        return undefined;
-      }
-    } else {
-      channelService.appendLine(nls.localize('org_list_clean_error_checking_org', orgAuth.username, errorMessage));
-      return undefined;
+      return {
+        username: orgAuth.username,
+        logLine: nls.localize('org_list_clean_removing_invalid_org', orgAuth.username, errorMessage)
+      };
     }
+    channelService.appendLine(nls.localize('org_list_clean_error_checking_org', orgAuth.username, errorMessage));
+    return undefined;
   }
 };
 
-/** Remove expired and deleted orgs from local configuration */
-export const removeExpiredAndDeletedOrgs = async (): Promise<string[]> => {
-  const removedOrgs: string[] = [];
+/** Lists all org authorizations via `ConnectionService.listAllAuthorizations` (wraps `AuthInfo.listAllAuthorizations`). */
+const listAllAuthorizationsEffect = Effect.fn('OrgUtil.listAllAuthorizations')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ConnectionService.listAllAuthorizations();
+});
 
-  try {
-    const orgAuthorizations = await AuthInfo.listAllAuthorizations();
-    if (!orgAuthorizations?.length) {
-      return removedOrgs;
+/**
+ * Find expired/deleted orgs WITHOUT removing them, so the caller can show a confirm prompt
+ * (or skip it entirely when there's nothing to remove).
+ */
+export const findRemovableOrgs = async (): Promise<RemovableOrg[]> => {
+  const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
+  return (await Promise.all(orgAuthorizations.map(classifyOrgForRemoval))).filter(isNotUndefined);
+};
+
+/**
+ * Remove the given orgs from local configuration.
+ * Rejects on failure; the Effect caller (orgListCleanCommand) maps the rejection to OrgListCleanError.
+ */
+export const removeExpiredAndDeletedOrgs = async (removable: readonly RemovableOrg[]): Promise<string[]> => {
+  const authRemover = await AuthRemover.create();
+
+  // Remove sequentially (AuthRemover mutates shared auth state)
+  const removed: string[] = [];
+  for (const { username, logLine } of removable) {
+    try {
+      channelService.appendLine(logLine);
+      await authRemover.removeAuth(username);
+      removed.push(username);
+    } catch (removeError) {
+      channelService.appendLine(
+        nls.localize(
+          'org_list_clean_failed_to_remove_org',
+          username,
+          removeError instanceof Error ? removeError.message : String(removeError)
+        )
+      );
     }
-
-    const authRemover = await AuthRemover.create();
-
-    // Process each org for potential removal
-    for (const orgAuth of orgAuthorizations) {
-      const removedUsername = await processOrgForRemoval(orgAuth, authRemover);
-      if (removedUsername) {
-        removedOrgs.push(removedUsername);
-      }
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(nls.localize('org_list_clean_general_error', errorMessage));
   }
-
-  return removedOrgs;
+  return removed;
 };
 
 /** Default org configuration type */
@@ -295,7 +269,7 @@ type DefaultOrgConfig = {
  * Returns the resolved username for a given alias, or the input if it is already a username.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
-const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
+export const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
   aliasOrUsername: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -304,15 +278,11 @@ const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAli
   return Option.getOrElse(opt, () => aliasOrUsername);
 });
 
-/** Promise wrapper for {@link resolveUsernameFromAliasEffect}. */
-export const resolveUsernameFromAlias = async (aliasOrUsername: string): Promise<string> =>
-  getOrgRuntime().runPromise(resolveUsernameFromAliasEffect(aliasOrUsername));
-
 /**
  * Returns a map of username → aliases[]. Used to supplement stale StateAggregator data in the org picker.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
-const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
+export const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const aliasService = yield* api.services.AliasService;
   const orgs = yield* aliasService.getAllAliases();
@@ -321,10 +291,6 @@ const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUser
     return result;
   }, new Map<string, string[]>());
 });
-
-/** Promise wrapper for {@link readAliasesByUsernameFromDiskEffect}. */
-export const readAliasesByUsernameFromDisk = async (): Promise<Map<string, string[]>> =>
-  getOrgRuntime().runPromise(readAliasesByUsernameFromDiskEffect());
 
 /**
  * Loads default-org config + fresh org authorizations (alias-supplemented from disk) in one Effect.
@@ -467,7 +433,7 @@ const createAndDisplayOrgTable = (orgData: Row[]): void => {
 /** Display remaining orgs in a table format */
 export const displayRemainingOrgs = async (): Promise<void> => {
   try {
-    const orgAuthorizations = await AuthInfo.listAllAuthorizations();
+    const orgAuthorizations = await getOrgRuntime().runPromise(listAllAuthorizationsEffect());
     if (orgAuthorizations?.length === 0) {
       channelService.appendLine(`\n${nls.localize('org_list_no_orgs_found')}`);
       return;

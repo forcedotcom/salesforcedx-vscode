@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.2.0",
+  "version": "67.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -33,7 +33,7 @@
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "@salesforce/vscode-service-provider": "^1.5.0",
-    "@stoplight/spectral-core": "1.23.0",
+    "@stoplight/spectral-core": "1.23.1",
     "@stoplight/spectral-functions": "1.10.2",
     "@stoplight/spectral-rulesets": "1.22.4",
     "ejs": "3.1.10",

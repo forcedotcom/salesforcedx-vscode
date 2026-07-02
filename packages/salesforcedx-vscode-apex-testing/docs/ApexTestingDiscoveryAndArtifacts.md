@@ -22,7 +22,7 @@ This note documents how Apex Testing currently handles test discovery data and t
 ## Test Run Artifact Persistence
 
 - Test execution writes files to `.sfdx/tools/testresults/apex` via:
-  - `src/utils/pathHelpers.ts`
+  - `src/utils/pathHelpers.ts` — `getTestResultsFolder` is `Effect.fn`; yields folder URI or `NoDefaultOrgError`/`NoWorkspaceOpenError`
   - `src/utils/testUtils.ts`
   - `src/utils/testReportGenerator.ts`
 - Expected files include:
@@ -32,9 +32,25 @@ This note documents how Apex Testing currently handles test discovery data and t
   - report output (`.md` / `.txt`)
 - `src/index.ts` listens for file changes and routes matching result JSON events to
   `testController.onResultFileCreate(...)` for Test Explorer result updates.
+- callers (`apexTestRun.ts`, `apexTestRunCodeAction.ts`, `testController.ts`): yield it in Effect, or `getApexTestingRuntime().runPromise(getTestResultsFolder())`
 
-## Scope For VFS Work
+## Code Coverage Flow
 
-- Keep test run artifact persistence in `.sfdx/tools/testresults/apex` unchanged.
-- Introduce VFS management only for discovered Apex test class metadata using `apex-testing:`.
-- Metadata XML files (e.g. Apex `-meta.xml` companions in a source-formatted project) are **not** necessarily part of the `apex-testing:` VFS. The virtual tree focuses on discovered class **`.cls`** paths under each org; do not assume XML sidecars are mirrored or addressable on that scheme.
+- `CodeCoverageService` — Effect.Service; `Ref<Range[]>` decoration state
+- reads result files via `FsService` (not `workspace.fs`); `CoverageItem` = `Schema.Struct`
+- pipeline: stat files → filter recent → read+parse (sequential, last-write-wins) → match file → compute line ranges
+- errors caught + user notified (channel if warnings disabled)
+- `colorizer.ts` — not a Disposable; repaint via `watchActiveEditorForCoverage` fork in `index.ts`
+  - subscribes `EditorService.pubsub`, not raw `window.onDidChangeActiveTextEditor`
+  - seeds current editor so active editor repaints on subscribe
+  - torn down on deactivation via scope
+
+## VFS For Discovered Classes
+
+- Test run artifact persistence (`.sfdx/tools/testresults/apex`) unchanged.
+- `apex-testing:` VFS serves per-org discovered Apex class `.cls` bodies (virtual files, write-only):
+  - On discovery refresh, `ApexTestDiscoveryService.saveDiscoveredClasses(orgKey, classes, bodies)` writes per-class `.cls` files to `apex-testing:/orgs/<orgKey>/classes/<namespace>/<className>.cls`.
+  - Enables org-only TestItems to open class source for inspection (read-only in editor).
+  - `clearOrg(orgKey)` removes the org directory on org removal.
+  - Index persistence removed (dead code; test tree always rebuilt from live Tooling API queries).
+- Metadata XML files (e.g. `-meta.xml` in source-formatted projects) are **not** part of the `apex-testing:` VFS.

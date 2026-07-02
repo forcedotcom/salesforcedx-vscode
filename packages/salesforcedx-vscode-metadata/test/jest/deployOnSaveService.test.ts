@@ -33,6 +33,7 @@ const createMockChannelService = (): ChannelService =>
           clear: jest.fn()
         }) as unknown as vscode.OutputChannel
     ),
+    showChannel: Effect.void,
     clearChannel: Effect.succeed(undefined),
     appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message))
   });

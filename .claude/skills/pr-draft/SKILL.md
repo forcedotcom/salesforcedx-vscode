@@ -19,19 +19,7 @@ Draft PR titles and bodies per salesforcedx-vscode conventions. Requires a Gus w
 4. If no → offer to create via Gus. Follow [gus-cli/SKILL.md](../gus-cli/SKILL.md). **Before creating:** show user Subject, Epic, Details, assignee. Ask: "Create this work item?" Do not run `sf data create record` until user says yes. If user declines creation and still wants to proceed with the PR, include `[skip-validate-pr]` in the PR body.
 5. Before creating PR: push current branch to remote if it doesn't already exist (`git push -u origin $(git branch --show-current)` or equivalent). Never push to `develop`/`main`
 6. After PR created: update work item `Details__c` with PR link. Query current `Details__c`, append `"\nPR: <url>"` (or prepend if empty). **Before updating:** show user the new Details__c. Ask: "Update work item with PR link?" Do not run `sf data update record` until user says yes.
-7. After PR created: offer Ready for Review. Ask: "Put WI in Ready for Review? Who should review?" Choices:
-   - **Named:** user picks one (e.g. "Shane", "Daphne") → match first or full name to [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c), use Id
-   - **Random (Gus Spinner):** pick one at random from team members, excluding current `Assignee__c`
-     Set `Status__c='Ready for Review'`, `QA_Engineer__c='<selected userId>'`. **Before updating:** show user Status__c, QA_Engineer__c. Ask user to confirm. Do not run `sf data update record` until user says yes.
-   - **Reviewer Reassignment:** Immediately after the GUS WI update, replace auto-assigned GitHub reviewers with the selected QA person:
-     1. Get current review requests: `gh pr view <url> --json reviewRequests --jq '.reviewRequests[].login'`
-     2. Remove each existing reviewer: `gh pr edit <url> --remove-reviewer <login>`
-     3. Add selected QA person: `gh pr edit <url> --add-reviewer <github_login>` (from [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c))
-   - **Slack ping:** After reviewer reassignment, send a message to `#ide-exp-code-review` (channel ID `C054SJJAB24`) tagging the QA person (use Slack ID from [gus-cli Team members](../gus-cli/SKILL.md#team-members-assignee__c-qa_engineer__c)):
-     ```
-     <@SLACK_ID> PR ready for review: <pr_url|PR #NNNN> (<gus_wi_url|W-XXXXX>)
-     ```
-     If Slack MCP is unavailable, tell the user: "Slack MCP is not configured — please manually ping `<@SLACK_ID>` in `#ide-exp-code-review` with the PR and WI links. To enable this automatically, set up the Slack MCP."
+7. After PR created: offer Ready for Review. If the user opts in, run the reviewer-pick → WI update → GitHub reassignment → Slack ping handoff in **[review-handoff.md](./review-handoff.md)**.
 
 ## Target branch
 
@@ -58,10 +46,7 @@ Before finalizing body, fetch and analyze:
 3. **LLM relevance pass:** read PR diff/commits + all issue/discussion titles+bodies; identify candidates
 4. **Auto-include** any issue where a comment contains the PR's W-XXXXX (e.g. `W-12345`) — no prompt needed; Git2Gus already established the link
 5. **Show remaining candidates** (issues and discussions the LLM flagged as related); ask user which to include
-6. **Stripped-href anchors in WI `Details__c`:** SF empties external hrefs on save, leaving `<a href="">discussions/NNN</a>` (text survives, href empty). Scan `Details__c` for empty/missing-href anchors with `discussions/NNN`|`issues/NNN` text:
-   - Stored forms: `href=""`, `href=&quot;&quot;`, whitespace-only, absent
-   - EXCLUDE anchors with a populated real href (already-live link)
-   - Auto-include reconstructed `https://github.com/forcedotcom/salesforcedx-vscode/<path>` URL — no prompt
+6. **Stripped-href anchors in WI `Details__c`:** SF empties external hrefs on save (the why + stored forms live in [gus-cli](../gus-cli/SKILL.md)), leaving `<a href="">discussions/NNN</a>` — text survives, href empty. Scan `Details__c` for such anchors with `discussions/NNN`|`issues/NNN` text, EXCLUDE anchors with a populated real href, and auto-include the reconstructed `https://github.com/forcedotcom/salesforcedx-vscode/<path>` URL — no prompt.
 7. **Format:** issues as `#<number>`, discussions as full URL — both in the "What issues does this PR fix or reference?" section
 
 ## Body format

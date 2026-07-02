@@ -357,7 +357,7 @@ export abstract class BaseWorkspaceContext {
       const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
       try {
         const fileStat = await this.fileSystemAccessor.getFileStat(tsconfigPath);
-        if (fileStat?.type === 'file' && fileStat?.exists === true) {
+        if (fileStat?.type === 'file' && fileStat?.exists) {
           continue;
         }
       } catch {
@@ -371,7 +371,7 @@ export abstract class BaseWorkspaceContext {
         let jsconfigExists = false;
         try {
           const fileStat = await this.fileSystemAccessor.getFileStat(jsconfigPath);
-          if (fileStat?.type === 'file' && fileStat?.exists === true) {
+          if (fileStat?.type === 'file' && fileStat?.exists) {
             jsconfigExists = true;
           }
         } catch {
@@ -478,7 +478,7 @@ export abstract class BaseWorkspaceContext {
       // Skip if tsconfig.json already exists
       const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
       const fileStat = await this.fileSystemAccessor.getFileStat(tsconfigPath);
-      if (fileStat?.type === 'file' && fileStat?.exists === true) {
+      if (fileStat?.type === 'file' && fileStat?.exists) {
         // Skip writing jsconfig when tsconfig.json already exists (as per test expectation)
       } else {
         try {

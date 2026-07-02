@@ -9,14 +9,14 @@ import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { window } from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
+import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { getFullClassName, isFlowTest } from '../utils/testUtils';
+import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { runApexTests } from './apexTestRunUtils';
 
 /** Prompt the user to pick a test target (suite, class, or all). Fails with UserCancellationError on dismiss. */
@@ -107,12 +107,16 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
       payload: api.services.ConnectionService.getConnection().pipe(
         Effect.flatMap(connection => Effect.promise(() => buildTestPayload(new TestService(connection), selection)))
       ),
-      outputDir: Effect.promise(() => getTestResultsFolder())
+      outputDir: getTestResultsFolder()
     },
     { concurrency: 'unbounded' }
   );
 
-  const result = yield* runApexTests({
+  if (selection.type === 'Class' && selection.fullClassName) {
+    yield* ApexTestRunCacheService.setCachedClassTestParam(selection.fullClassName);
+  }
+
+  return yield* runApexTests({
     payload,
     outputDir,
     codeCoverage: settings.retrieveTestCodeCoverage(),
@@ -120,16 +124,18 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     telemetryTrigger: 'quickPick'
   }).pipe(
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName)
+    promptService.withCancellableProgress(executionName),
+    // Terminal notify on the success value (undefined = soft failure: timeout/no summary).
+    // Cancellation stays on the failure channel, so this tap never fires a bogus toast.
+    Effect.tap(() => channelService.showChannel),
+    Effect.tap(result =>
+      Effect.sync(() =>
+        (result === undefined ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
+          executionName
+        )
+      )
+    )
   );
-
-  OUTPUT_CHANNEL.show();
-  if (result === undefined) {
-    notificationService.showFailedExecution(executionName);
-  } else {
-    notificationService.showSuccessfulExecution(executionName);
-  }
-  return result;
 });
 
 const buildTestPayload = async (

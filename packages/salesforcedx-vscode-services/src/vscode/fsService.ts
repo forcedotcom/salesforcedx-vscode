@@ -207,10 +207,11 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
         });
         return entries.map(([name, type]) => ({ uri: Utils.joinPath(uri, name), type }));
       }),
-      stat: (filePath: string) =>
+      stat: (filePath: string | URI) =>
         Effect.tryPromise({
           try: async () => await vscode.workspace.fs.stat(toUri(filePath)),
-          catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'stat', filePath })
+          catch: e =>
+            new FsServiceError({ ...unknownToErrorCause(e), function: 'stat', filePath: UriOrStringToString(filePath) })
         }),
       safeDelete: (filePath: string | URI, options = {}) =>
         Effect.tryPromise({

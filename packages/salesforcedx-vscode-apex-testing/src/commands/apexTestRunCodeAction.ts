@@ -11,10 +11,8 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
@@ -27,6 +25,8 @@ import { getZeroBasedRange } from './range';
 class WorkspaceFolderError extends Schema.TaggedError<WorkspaceFolderError>()('WorkspaceFolderError', {
   message: Schema.String
 }) {}
+
+const toWorkspaceFolderError = () => new WorkspaceFolderError({ message: nls.localize('cannot_determine_workspace') });
 
 // raised when a `last.*` re-run is invoked but nothing has been cached yet
 class NoCachedTestError extends Schema.TaggedError<NoCachedTestError>()('NoCachedTestError', {
@@ -77,7 +77,7 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
     promptService.withCancellableProgress(executionName)
   );
 
-  OUTPUT_CHANNEL.show();
+  yield* channelService.showChannel;
   if (result === undefined) {
     notificationService.showFailedExecution(executionName);
     return;
@@ -145,7 +145,7 @@ const mapApexArtifactToFilesystem = async (
       (
         await Promise.all(
           packageDirectories
-            .map(pkgDir => `${path.relative(workspaceFolder.uri.fsPath, pkgDir.fullPath)}/**/*.cls`)
+            .map(pkgDir => new vscode.RelativePattern(URI.file(pkgDir.fullPath), '**/*.cls'))
             .flatMap(pattern => vscode.workspace.findFiles(pattern, '**/node_modules/**'))
         )
       )
@@ -166,10 +166,12 @@ const mapApexArtifactToFilesystem = async (
 };
 
 const getTempFolder = Effect.fn('apexTestRunCodeAction.getTempFolder')(function* () {
-  return yield* Effect.tryPromise({
-    try: () => getTestResultsFolder(),
-    catch: () => new WorkspaceFolderError({ message: nls.localize('cannot_determine_workspace') })
-  });
+  return yield* getTestResultsFolder().pipe(
+    Effect.catchTags({
+      NoDefaultOrgError: toWorkspaceFolderError,
+      NoWorkspaceOpenError: toWorkspaceFolderError
+    })
+  );
 });
 
 //   T E S T   C L A S S

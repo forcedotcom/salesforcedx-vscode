@@ -14,17 +14,7 @@ import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestMethod } from '../views/lspConverter';
-
-/**
- * Builds a full class name from a ToolingTestClass, including namespace prefix if present
- */
-export const getFullClassName = (cls: ToolingTestClass): string =>
-  cls.namespacePrefix ? `${cls.namespacePrefix}.${cls.name}` : cls.name;
-
-/**
- * Checks if a ToolingTestClass is a Flow test (Flow tests have namespacePrefix starting with 'FlowTesting')
- */
-export const isFlowTest = (cls: ToolingTestClass): boolean => cls.namespacePrefix?.startsWith('FlowTesting') ?? false;
+import { getFullClassName } from './toolingTestClassHelpers';
 
 /**
  * Checks if a ToolingTestClass has a non-empty namespace prefix

@@ -63,6 +63,7 @@ export const messages = {
   trace_flag_deleted: 'Trace flag removed',
   debug_level_deleted: 'Debug level removed',
   trace_flag_codelens_change_debug_level: 'Change',
+  trace_flag_codelens_orphaned_debug_level: '⚠ Debug level %s not found — click to reassign',
   log_auto_collect_fetched: 'Auto-collected log %s (%s - %s)',
   log_auto_collect_tooltip: 'Auto-collected: %s logs',
   log_auto_collect_open_folder: 'Open logs folder',
