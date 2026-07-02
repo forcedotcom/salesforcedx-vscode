@@ -7,6 +7,7 @@
 
 import { expect } from '@playwright/test';
 import {
+  activeQuickInputWidget,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -69,7 +70,14 @@ test('services seeds cliId + webUserId on activation; spans carry both dimension
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
 
+  // `config_set_org_text` ("SFDX: Set a Default Org") maps to `sf.set.default.org`, which opens the org
+  // picker (a modal showQuickPick). Running it activates the org extension and the services extension
+  // (the picker effect yields the services API before rendering), which seeds the telemetry identities.
+  // We only need activation, not a default-org change, so dismiss the picker with Escape so the modal
+  // doesn't hang the spec.
   await executeCommandWithCommandPalette(page, packageNls.config_set_org_text);
+  await activeQuickInputWidget(page).waitFor({ state: 'visible', timeout: 30_000 });
+  await page.keyboard.press('Escape');
 
   const matching = await waitForSeededSpan(Duration.seconds(60));
   expect(matching).toBeDefined();

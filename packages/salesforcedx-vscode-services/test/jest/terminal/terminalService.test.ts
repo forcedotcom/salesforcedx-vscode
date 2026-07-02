@@ -138,6 +138,45 @@ describe('TerminalService.simpleExec', () => {
     expect(capture.options?.env).toBeUndefined();
   });
 
+  it('folds exec-rejection stdout into the error message (sf --json errors land on stdout)', async () => {
+    // node's exec rejection appends stderr to .message but never stdout; `sf --json` writes its
+    // PortInUseError payload to stdout, so the message must carry it for callers to detect.
+    const rejection = Object.assign(new Error('Command failed: sf org login web --json\n'), {
+      stdout: '{"name":"PortInUseError","message":"local port 1717 is already in use"}',
+      stderr: ''
+    });
+    const exec = (): Promise<ExecResult> => Promise.reject(rejection);
+
+    const error = await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org login web --json', parse: s => s })),
+        Effect.flip
+      ),
+      withExec(exec)
+    );
+
+    expect(error).toBeInstanceOf(TerminalServiceError);
+    expect(error.message).toContain('local port 1717 is already in use');
+  });
+
+  it('does not duplicate stdout already present in the error message', async () => {
+    const rejection = Object.assign(new Error('Command failed: sf foo\nboom on stdout'), {
+      stdout: 'boom on stdout',
+      stderr: ''
+    });
+    const exec = (): Promise<ExecResult> => Promise.reject(rejection);
+
+    const error = await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse: s => s })),
+        Effect.flip
+      ),
+      withExec(exec)
+    );
+
+    expect(error.message.match(/boom on stdout/g) ?? []).toHaveLength(1);
+  });
+
   it('fails with TerminalServiceError on web', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
     const exec = (): Promise<ExecResult> => Promise.reject(new Error('should not be called on web'));

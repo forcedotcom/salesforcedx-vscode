@@ -14,9 +14,6 @@ import { ApexTestExecutionService } from '../views/apexTestExecutionService';
 import { ApexTestTreeService } from '../views/apexTestTreeService';
 
 /** Layer of apex-testing-specific services merged on top of the shared all-services layer. */
-// ApexTestDiscoveryService.Default carries ApexTestingDiscoveryFsProviderLive via its dependencies.
-// ApexTestRunCacheService.Default tracks last executed test class/method for rerun commands.
-// CodeCoverageService.Default owns coverage Ref state + the coverage-data pipeline (colorizer).
 const ApexTestingServicesLayer = Layer.mergeAll(
   ApexTestDiscoveryService.Default,
   ApexTestRunCacheService.Default,

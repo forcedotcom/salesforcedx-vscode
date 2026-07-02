@@ -13,7 +13,6 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import { log } from 'node:console';
@@ -104,9 +103,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
     );
     return;
   }
-
-  // Initialize telemetry service
-  yield* Effect.promise(() => TelemetryService.getInstance().initializeService(extensionContext));
 
   // Start the Aura Language Server
   // TODO: derive the path from extensionUri instead of pjson
@@ -208,6 +204,5 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
 
 export const deactivate = async (): Promise<void> => {
   console.log('Aura Components Extension Deactivated');
-  TelemetryService.getInstance().sendExtensionDeactivationEvent();
   await getRuntime().runPromise(closeExtensionScope());
 };
