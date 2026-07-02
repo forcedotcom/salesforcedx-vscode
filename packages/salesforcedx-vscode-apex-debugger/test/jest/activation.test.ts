@@ -28,7 +28,7 @@ const extensionProviderLayer = (isCliInstalled: boolean) =>
     getServicesApi: Effect.succeed({
       services: { TerminalService: Effect.succeed({ isCliInstalled: Effect.succeed(isCliInstalled) }) }
     })
-  } as any);
+  } as unknown as ExtensionProviderService);
 
 const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
 
@@ -50,12 +50,12 @@ describe('activateEffect ISV setup gate', () => {
     warnSpy = (vscode.window.showWarningMessage as jest.Mock).mockClear();
     // registerCommands/registerDebugHandlers touch vscode.debug (absent from the shared mock) and
     // Disposable.from; stub just enough for the Effect.sync registration block to run.
-    (vscode as any).debug = {
+    (vscode as unknown as { debug: Record<string, jest.Mock> }).debug = {
       onDidReceiveDebugSessionCustomEvent: jest.fn(),
       onDidStartDebugSession: jest.fn(),
       registerDebugConfigurationProvider: jest.fn()
     };
-    (vscode.Disposable as any).from = jest.fn();
+    (vscode.Disposable as unknown as { from: jest.Mock }).from = jest.fn();
     (vscode.workspace.createFileSystemWatcher as jest.Mock).mockReturnValue({
       onDidChange: jest.fn(),
       onDidCreate: jest.fn(),
