@@ -64,7 +64,6 @@ export const messages = {
   apex_test_connection_failed_message: 'Failed to get connection',
   apex_test_service_not_initialized_message: 'TestService not initialized. Call ensureInitialized() first.',
   apex_test_connection_not_initialized_message: 'Connection not initialized. Call ensureInitialized() first.',
-  apex_test_populate_suite_items_failed_message: 'Failed to populate suite items: %s',
   apex_test_debug_failed_message: 'Debug failed: %s',
   apex_test_discovery_partial_warning:
     'Test discovery encountered URL length limits. Some tests may not be visible. Try refreshing or filtering by namespace.',
