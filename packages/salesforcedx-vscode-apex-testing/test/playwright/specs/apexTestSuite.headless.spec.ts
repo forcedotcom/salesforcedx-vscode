@@ -26,7 +26,12 @@ import {
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
-import { CMD_TOGGLE_MAXIMIZED_PANEL, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
+import {
+  CMD_TOGGLE_MAXIMIZED_PANEL,
+  expandApexTestSuite,
+  getSuiteChildrenText,
+  openTestExplorerAndDiscover
+} from '../helpers/testExplorerHelpers';
 
 /** Run Create Apex Test Suite via command palette: type suite name, select one class, confirm. */
 const createApexTestSuiteViaPalette = async (
@@ -207,12 +212,13 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
   await test.step('verify removed class absent from test explorer tree', async () => {
     const panel = await openTestExplorerAndDiscover(page);
     await saveScreenshot(page, 'step.verify-remove-tree.after-discover.png');
-    // The removed class should no longer appear in the tree (scoped to panel)
-    const removedItem = panel.getByRole('treeitem', { name: testClassName2 });
-    await expect(removedItem).toHaveCount(0, { timeout: 30_000 });
-    // The first class should still be visible
-    const remainingItem = panel.getByText(testClassName1);
-    await expect(remainingItem.first()).toBeVisible({ timeout: 30_000 });
+    await expandApexTestSuite(panel, testSuiteName);
+    // Suite children are lazy-loaded from the org after expand — poll until testClassName1 appears
+    await expect
+      .poll(() => getSuiteChildrenText(panel, testSuiteName), { timeout: 30_000 })
+      .toEqual(expect.arrayContaining([expect.stringContaining(testClassName1)]));
+    const suiteChildren = await getSuiteChildrenText(panel, testSuiteName);
+    expect(suiteChildren.some(t => t.includes(testClassName2))).toBe(false);
     await saveScreenshot(page, 'step.verify-remove-tree.done.png');
   });
 
