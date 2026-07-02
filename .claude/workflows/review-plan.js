@@ -119,6 +119,7 @@ Enforce:
 - Each phase has a clear commit message
 - Verification section exists and notes which items are e2e-covered
 - Skills list is non-empty and includes typescript
+- **No escape hatches.** Reject any step that pre-authorizes a worse fallback — "if the clean approach proves infeasible / hard / awkward, fall back to <the duplicative or hacky option>". A plan commits to ONE approach. Genuine infeasibility is discovered at build time and escalated then, not licensed in advance — a written fallback becomes the path of least resistance and ships the debt (this is the W-23257488 failure: the plan permitted "fall back to a parallel copy" and the build took it). Require the fallback removed, or split into its own phase with its own justification. Flag as a revision.
 
 Return {approved: true} or {approved: false, revisions: [...]}.`
 

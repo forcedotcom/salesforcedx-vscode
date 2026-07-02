@@ -157,10 +157,14 @@ const FIXER_SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
-        required: ['severity', 'note'],
+        required: ['severity', 'note', 'blockedReason'],
         properties: {
           severity: { enum: ['critical', 'high', 'medium', 'low'] },
           note: { type: 'string' },
+          // why this finding (or its residual tail) was NOT applied — the only licensed reasons to defer.
+          blockedReason: {
+            enum: ['design-decision', 'spans-many-files', 'changes-public-behavior', 'uncertain', 'pr-body-note'],
+          },
         },
       },
     },
@@ -274,10 +278,11 @@ Verified findings (JSON):
 ${JSON.stringify(verifiedFindings, null, 2)}
 
 Rules:
-- Auto-apply ALL critical and high severity findings.
+- **Smallest sufficient edit.** For each finding, apply the SMALLEST edit that resolves the stated claim — not the maximal refactor the claim could inspire. A duplication finding ("X re-implements Y") is resolved by making X delegate to Y (or vice-versa) in place; that is a mechanical edit, APPLY it. Do NOT inflate it into "unify all N variants across packages" and then defer the whole thing — that maximal reading is a different, optional task.
+- **Split before you defer.** When a finding has a mechanical core AND a genuine design tail, do BOTH: apply the core now, and surface ONLY the residual tail to 'remaining' with the specific decision left open. "The finding as a whole needs a design decision" is almost never true — the resolvable part usually is not. Never let the design tail block the mechanical core.
+- Auto-apply ALL critical and high severity findings. A confirmed critical/high finding surfaced to 'remaining' instead of applied is a defect: it is only permitted when EVERY concrete edit that would reduce the claim is itself a design decision / spans many files / changes public behavior — and you must say which in blockedReason, having already applied any mechanical core per the split rule.
 - Auto-apply ALL medium / low findings too — these survived adversarial verification, so the premise is already confirmed. Default to APPLYING, not surfacing. This explicitly includes trivial mechanical edits: deleting a no-op/dead config line, fixing or removing a misleading/stale comment, renaming for clarity. "Low value" is NOT a reason to skip — if the edit is unambiguous and self-contained, just make it.
-- Surface to 'remaining' ONLY when applying would be genuinely risky or ambiguous: the fix requires a design decision, spans many files, changes public behavior, or you cannot determine the correct change with confidence. State which of these applies in the note.
-- A finding may carry a 'prBodyNote' (e.g. "removed unused export, no consumers") instead of a code change — pass those straight into 'remaining' so they land in the PR body, no edit needed.
+- Surface to 'remaining' ONLY when applying would be genuinely risky or ambiguous. Set 'blockedReason' to the one that applies: 'design-decision' (requires a choice between valid alternatives), 'spans-many-files', 'changes-public-behavior', 'uncertain' (cannot determine the correct change with confidence), or 'pr-body-note'. A finding may carry a note like "removed unused export, no consumers" instead of a code change — surface those with blockedReason: 'pr-body-note' so they land in the PR body, no edit needed.
 
 Group commits logically: e.g. one commit "fix: critical/high review findings", one "refactor: medium/low review findings". If nothing to fix, return {fixedCount: 0, remaining: [...]}.
 
@@ -392,6 +397,25 @@ const fixerResult = await agent(fixerPrompt(verifiedFindings), {
   model: 'opus',
 })
 
+// Guard: a confirmed critical/high must be APPLIED, not footnoted (see fixerPrompt "Auto-apply ALL
+// critical and high"). ANY critical/high left in 'remaining' — whatever the blockedReason — is the
+// W-23257488 failure mode, where a confirmed-high consolidation shipped as a PR caveat ("requires a
+// design decision") instead of the small delegating edit that resolved it. Loudly flag each so the
+// caller escalates or re-runs the fixer's split step instead of silently drafting the PR with the debt.
+const remaining = (fixerResult && fixerResult.remaining) || []
+const leakedHigh = remaining.filter(r => r.severity === 'critical' || r.severity === 'high')
+if (leakedHigh.length) {
+  log(
+    `⚠️ ${leakedHigh.length} confirmed critical/high finding(s) deferred, not applied — each should have been fixed or split to its mechanical core:`
+  )
+  leakedHigh.forEach(r => log(`  - [${r.severity}] (${r.blockedReason}) ${r.note}`))
+}
+
 // A null fixer (subagent died) shouldn't sink the caller — the build is already
 // committed. Degrade to no remaining notes so the PR still drafts.
-return { verifiedFindings, droppedCount, fixerResult: fixerResult || { remaining: [] } }
+return {
+  verifiedFindings,
+  droppedCount,
+  leakedHigh,
+  fixerResult: fixerResult || { remaining: [] },
+}
