@@ -232,6 +232,7 @@ export default [
       'unicorn/prefer-simple-condition-first': 'error',
       'unicorn/prefer-structured-clone': 'error',
       'unicorn/prefer-ternary': ['error'],
+      'unicorn/prefer-url-can-parse': 'error',
       'unicorn/prefer-while-loop-condition': 'error',
       'unicorn/filename-case': [
         'error',
