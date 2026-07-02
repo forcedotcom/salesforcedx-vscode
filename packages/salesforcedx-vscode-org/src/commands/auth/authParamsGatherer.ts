@@ -127,7 +127,9 @@ export const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function*
     : yield* Effect.promise(() =>
         vscode.window.showInputBox({
           prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-          placeHolder: DEFAULT_ALIAS
+          placeHolder: DEFAULT_ALIAS,
+          ignoreFocusOut: true,
+          validateInput: validateAliasInput
         })
       ).pipe(
         // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels

@@ -61,11 +61,10 @@ export const orgLoginWebCommand = Effect.fn('orgLoginWebCommand')(function* (
   // mirroring ErrorHandlerService's pattern — no legacy notificationService/channelService singleton.
   // The conflict branch performs its own UI and short-circuits, so the happy path stays straight-line.
   const showPortConflict = Effect.fn('orgLoginWebCommand.showPortConflict')(function* () {
-    const conflictChannel = yield* api.services.ChannelService;
     const message = `${nls.localize('org_login_web_port_conflict_notification_message')}\n\n${getPortKillInstructions()}`;
     const showOutputText = nls.localize('org_login_web_show_output_button_text');
     const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(message, showOutputText));
-    if (selection === showOutputText) yield* conflictChannel.showChannel;
+    if (selection === showOutputText) yield* channel.showChannel;
   });
 
   // success: append output + success message, reveal channel, refresh aggregators
