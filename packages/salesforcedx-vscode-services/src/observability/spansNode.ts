@@ -26,10 +26,12 @@ import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
 
-class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
+export class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
   // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
   constructor(options: ConstructorParameters<typeof AzureMonitorTraceExporter>[0], localIngestionEndpoint?: string) {
     super(options);
+    // @ts-expect-error -- `shouldCreateResourceMetric` is a private SDK field; suppresses the never-sampled _OTELRESOURCE_/_APPRESOURCEPREVIEW_ metric (~22% AI ingestion).
+    this.shouldCreateResourceMetric = false;
     // Dev/test: divert envelopes to the local span file server over plain HTTP. The Azure SDK
     // force-upgrades http→https (connectionStringParser.sanitizeUrl), so the endpoint can't be
     // carried in the connection string — we swap the private sender instead. See localEnvelopeSender.
