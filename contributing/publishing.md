@@ -38,13 +38,16 @@ If no changes were made the previous week, then the release can be skipped (no a
 
 The changelog is auto-generated on the release branch as part of the Create Release Branch workflow. The workflow:
 - Parses conventional commits (`feat`, `fix`, etc.) since the last release
-- **Prepends** new release notes to existing CHANGELOG.md (full history preserved)
+- **Writes only the new release notes** to CHANGELOG.md on the release branch
 - Creates a GitHub release with the changelog as the body
 - Skips if no releasable commits (only `chore`, `ci`, etc.)
 
 Commit: `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ = release version.
 
-**Changelog Strategy:** The repository maintains full changelog history in git. During VSIX packaging ([buildAll.yml](../.github/workflows/buildAll.yml)), the full changelog is temporarily replaced with just the latest release notes to meet marketplace size limits, then restored. See [scripts/prepare-changelog-for-marketplace.js](../scripts/prepare-changelog-for-marketplace.js) and [scripts/restore-full-changelog.js](../scripts/restore-full-changelog.js).
+**Changelog Strategy:** 
+- **Release branch**: Contains only the new release notes (small, marketplace-ready)
+- **Develop branch**: Maintains full historical changelog
+- **On merge**: The PreRelease workflow automatically prepends the new release notes to develop's full history after merging to main (see [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js))
 
 The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 

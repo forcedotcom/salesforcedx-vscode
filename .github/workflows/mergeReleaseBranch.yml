@@ -70,3 +70,20 @@ jobs:
           git pull origin main
           git rebase -Xtheirs origin/release/v${{env.RELEASE_VERSION}}
           git push origin main
+
+      - name: 'Merge main to develop and prepend changelog'
+        run: |
+          echo "Merging main to develop and prepending changelog"
+          git checkout develop
+          git pull origin develop
+          git merge main --no-edit
+
+          # Prepend release changelog to develop's full history
+          node scripts/prepend-release-changelog.js origin/release/v${{env.RELEASE_VERSION}}
+
+          # Commit the changelog update
+          git add packages/salesforcedx-vscode/CHANGELOG.md
+          git commit -m "chore: prepend v${{env.RELEASE_VERSION}} changelog to develop" \
+            -m "Co-Authored-By: GitHub Actions <noreply@github.com>"
+
+          git push origin develop
