@@ -53,6 +53,7 @@ export const messages = {
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
   org_login_web_progress: 'Authorizing org',
+  org_login_web_dev_hub_progress: 'Authorizing dev hub',
   org_login_web_success: 'Successfully authorized org.',
   org_login_web_port_conflict_notification_message:
     'Could not authorize your org because local port 1717 is already in use. Close the process using that port, then try again.',
@@ -64,7 +65,6 @@ export const messages = {
   org_login_web_show_output_button_text: 'Show Output',
   org_login_web_verification_code_message:
     'Verification Code: %s — If prompted, enter this code in your browser window.',
-  org_login_web_verification_code_suffix: '(Verification Code: %s)',
   org_logout_all_text: 'SFDX: Log Out from Authorized Orgs',
   org_logout_default_text: 'SFDX: Log Out from Default Org',
   org_logout_no_default_org: 'No default org to logout from',
