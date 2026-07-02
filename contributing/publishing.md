@@ -38,11 +38,13 @@ If no changes were made the previous week, then the release can be skipped (no a
 
 The changelog is auto-generated on the release branch as part of the Create Release Branch workflow. The workflow:
 - Parses conventional commits (`feat`, `fix`, etc.) since the last release
-- Writes to `packages/salesforcedx-vscode/CHANGELOG.md`
+- **Prepends** new release notes to existing CHANGELOG.md (full history preserved)
 - Creates a GitHub release with the changelog as the body
 - Skips if no releasable commits (only `chore`, `ci`, etc.)
 
 Commit: `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ = release version.
+
+**Changelog Strategy:** The repository maintains full changelog history in git. During VSIX packaging ([buildAll.yml](../.github/workflows/buildAll.yml)), the full changelog is temporarily replaced with just the latest release notes to meet marketplace size limits, then restored. See [scripts/prepare-changelog-for-marketplace.js](../scripts/prepare-changelog-for-marketplace.js) and [scripts/restore-full-changelog.js](../scripts/restore-full-changelog.js).
 
 The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
