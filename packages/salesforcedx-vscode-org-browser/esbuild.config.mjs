@@ -9,8 +9,11 @@ import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 import { writeFile } from 'fs/promises';
 
+// local override: force esbuild to resolve effect's ESM build so unused
+// submodules (e.g. fast-check via Schema) tree-shake out. output stays CJS.
 const nodeBuild = await build({
   ...nodeConfig,
+  conditions: ['import'],
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [...(nodeConfig.plugins ?? [])],
@@ -20,6 +23,7 @@ const nodeBuild = await build({
 // Browser build (browser environment)
 const browserBuild = await build({
   ...commonConfigBrowser,
+  conditions: ['import'],
   external: ['vscode'],
   entryPoints: ['./out/src/index.js'],
   outdir: './dist/web',
