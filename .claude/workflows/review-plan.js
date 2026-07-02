@@ -146,8 +146,8 @@ WI Subject: ${subject}
 WI Details:
 ${details || '(empty)'}
 
-ADR consistency check. Read the accepted ADRs under ${wt}/docs/adr/ (repo-wide) plus any ${wt}/packages/*/docs/adr/ for packages the plan touches. Then:
-- Flag (finding) any plan step that contradicts an accepted ADR's decision, or re-proposes an alternative an accepted ADR explicitly rejected/superseded. Cite the ADR file in 'evidence'.
+ADR consistency check. Read the ADRs under ${wt}/docs/adr/ (repo-wide) plus any ${wt}/packages/*/docs/adr/ for packages the plan touches. A recorded ADR is binding by default (Status frontmatter is optional; an ADR without an explicit Proposed/Rejected/Deprecated/Superseded marker is Accepted). Then:
+- Flag (finding) any plan step that contradicts an ADR's decision, or re-proposes an alternative an ADR explicitly rejected/superseded. Cite the ADR file in 'evidence'.
 - Flag (finding) any decision the plan implies that WOULD warrant a new ADR — per ${wt}/.claude/skills/grill-me/ADR-FORMAT.md "When to offer" (all three gates: hard to reverse, surprising without context, real trade-off) — when the plan does not already sequence an ADR-writing step. Suggest sequencing the ADR first (see work-item-sequencing "ADRs sequence first").
 
 Return ONLY the structured result.`
