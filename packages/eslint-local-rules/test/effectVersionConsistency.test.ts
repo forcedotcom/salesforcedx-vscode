@@ -8,7 +8,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { globSync } from 'glob';
 import * as semver from 'semver';
 
 // Two loaded `effect` copies in one process warn on every exec (fiberRuntime version check),
@@ -29,7 +28,7 @@ const readJson = (relative: string): PackageJson =>
 
 describe('effect version consistency', () => {
   it('declares one effect spec across all workspace packages', () => {
-    const offenders = globSync('packages/*/package.json', { cwd: REPO_ROOT }).flatMap(file => {
+    const offenders = fs.globSync('packages/*/package.json', { cwd: REPO_ROOT }).flatMap(file => {
       const pkg = readJson(file);
       // collect both blocks so a deps/devDeps skew within one package is not masked
       return [pkg.dependencies?.effect, pkg.devDependencies?.effect]
@@ -45,27 +44,30 @@ describe('effect version consistency', () => {
 
   it('resolves exactly one effect version in node_modules', () => {
     const versions = new Set(
-      globSync('**/node_modules/effect/package.json', {
-        cwd: REPO_ROOT,
-        ignore: '**/node_modules/**/node_modules/**/node_modules/**'
-      }).map(file => readJson(file).version)
+      fs
+        .globSync('**/node_modules/effect/package.json', {
+          cwd: REPO_ROOT,
+          exclude: ['**/node_modules/**/node_modules/**/node_modules/**']
+        })
+        .map(file => readJson(file).version)
     );
     expect([...versions]).toHaveLength(1);
   });
 
   it('satisfies @effect companion peer ranges', () => {
     const resolvedEffect = readJson(
-      globSync('**/node_modules/effect/package.json', {
+      fs.globSync('**/node_modules/effect/package.json', {
         cwd: REPO_ROOT,
-        ignore: '**/node_modules/**/node_modules/**/node_modules/**'
+        exclude: ['**/node_modules/**/node_modules/**/node_modules/**']
       })[0]
     ).version;
     if (resolvedEffect === undefined) throw new Error('no resolved effect copy');
 
-    const violations = globSync('**/node_modules/@effect/*/package.json', {
-      cwd: REPO_ROOT,
-      ignore: '**/node_modules/**/node_modules/**'
-    })
+    const violations = fs
+      .globSync('**/node_modules/@effect/*/package.json', {
+        cwd: REPO_ROOT,
+        exclude: ['**/node_modules/**/node_modules/**']
+      })
       .map(readJson)
       .map(pkg => ({ pkg, peer: pkg.peerDependencies?.effect }))
       .filter((entry): entry is { pkg: PackageJson; peer: string } => entry.peer !== undefined)
