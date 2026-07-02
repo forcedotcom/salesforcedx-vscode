@@ -8,6 +8,10 @@
 import type { MessageKey } from './i18n';
 
 export const messages: Partial<Record<MessageKey, string>> = {
+  apex_test_hide_local_text: 'ローカルテストを非表示',
+  apex_test_show_local_text: 'ローカルテストを表示',
+  apex_test_hide_org_text: '組織のみのテストを非表示',
+  apex_test_show_org_text: '組織のみのテストを表示',
   retrieving_tests_message: 'テストを取得しています…',
   apex_test_suites_parent_text: 'Apex テストスイート',
   apex_testing_vfs_org_badge_text: 'ORG',

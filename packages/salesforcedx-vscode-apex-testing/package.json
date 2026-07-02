@@ -276,11 +276,40 @@
       "test": []
     },
     "menus": {
-      "view/title": [],
+      "view/title": [
+        {
+          "command": "sf.apex.test.toggleLocalVisibility",
+          "when": "view == workbench.view.testing && sf:apex.showLocalTests",
+          "group": "navigation"
+        },
+        {
+          "command": "sf.apex.test.toggleLocalVisibility",
+          "when": "view == workbench.view.testing && !sf:apex.showLocalTests",
+          "group": "navigation"
+        },
+        {
+          "command": "sf.apex.test.toggleOrgVisibility",
+          "when": "view == workbench.view.testing && sf:apex.showOrgTests",
+          "group": "navigation"
+        },
+        {
+          "command": "sf.apex.test.toggleOrgVisibility",
+          "when": "view == workbench.view.testing && !sf:apex.showOrgTests",
+          "group": "navigation"
+        }
+      ],
       "view/item/context": [],
       "testing/test/context": [],
       "explorer/context": [],
       "commandPalette": [
+        {
+          "command": "sf.apex.test.toggleLocalVisibility",
+          "when": "false"
+        },
+        {
+          "command": "sf.apex.test.toggleOrgVisibility",
+          "when": "false"
+        },
         {
           "command": "sf.apex.test.last.class.run",
           "when": "sf:project_opened && sf:has_cached_test_class && sf:has_target_org"
@@ -336,6 +365,16 @@
       ]
     },
     "commands": [
+      {
+        "command": "sf.apex.test.toggleLocalVisibility",
+        "title": "%apex_test_hide_local_text%",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "sf.apex.test.toggleOrgVisibility",
+        "title": "%apex_test_hide_org_text%",
+        "icon": "$(eye)"
+      },
       {
         "command": "sf.apex.test.run",
         "title": "%apex_test_run_text%"

@@ -17,6 +17,10 @@
  */
 
 export const messages = {
+  apex_test_hide_local_text: 'Hide Local Tests',
+  apex_test_show_local_text: 'Show Local Tests',
+  apex_test_hide_org_text: 'Hide Org-Only Tests',
+  apex_test_show_org_text: 'Show Org-Only Tests',
   apex_test_run_all_local_test_label: 'All Local Tests',
   apex_test_run_all_local_tests_description_text:
     'Runs all tests in the current org except the ones that originate from installed managed packages',

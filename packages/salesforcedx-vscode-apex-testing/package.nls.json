@@ -1,4 +1,8 @@
 {
+  "apex_test_hide_local_text": "Hide Local Tests",
+  "apex_test_show_local_text": "Show Local Tests",
+  "apex_test_hide_org_text": "Hide Org-Only Tests",
+  "apex_test_show_org_text": "Show Org-Only Tests",
   "apex_test_run_text": "SFDX: Run Apex Tests",
   "apex_test_suite_add_text": "SFDX: Add Tests to Apex Test Suite",
   "apex_test_suite_create_text": "SFDX: Create Apex Test Suite",
