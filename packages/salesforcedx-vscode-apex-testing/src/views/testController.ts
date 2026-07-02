@@ -115,15 +115,31 @@ export class ApexTestController {
   }
 
   public async toggleLocalVisibility(): Promise<void> {
-    this.showLocalTests = !this.showLocalTests;
-    await vscode.commands.executeCommand('setContext', 'sf:apex.showLocalTests', this.showLocalTests);
-    await this.refresh();
+    await this.toggleVisibility('showLocalTests', 'sf:apex.showLocalTests');
   }
 
   public async toggleOrgVisibility(): Promise<void> {
-    this.showOrgTests = !this.showOrgTests;
-    await vscode.commands.executeCommand('setContext', 'sf:apex.showOrgTests', this.showOrgTests);
+    await this.toggleVisibility('showOrgTests', 'sf:apex.showOrgTests');
+  }
+
+  private async toggleVisibility(field: 'showLocalTests' | 'showOrgTests', contextKey: string): Promise<void> {
+    this[field] = !this[field];
+    await vscode.commands.executeCommand('setContext', contextKey, this[field]);
     await this.refresh();
+  }
+
+  /**
+   * Returns whether a class should be visible given the current filter state.
+   */
+  private isClassVisible(className: string, classNameToUri: Map<string, URI>): boolean {
+    const isOrgOnly = !classNameToUri.has(className);
+    if (isOrgOnly && !this.showOrgTests) {
+      return false;
+    }
+    if (!isOrgOnly && !this.showLocalTests) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -734,11 +750,7 @@ export class ApexTestController {
   }
 
   private async addClassToTree(cls: ToolingTestClass, classNameToUri: Map<string, URI>, orgKey: string): Promise<void> {
-    const isOrgOnly = !classNameToUri.has(cls.name);
-    if (isOrgOnly && !this.showOrgTests) {
-      return;
-    }
-    if (!isOrgOnly && !this.showLocalTests) {
+    if (!this.isClassVisible(cls.name, classNameToUri)) {
       return;
     }
 
@@ -994,11 +1006,7 @@ export class ApexTestController {
         for (const { fullClassName, entries } of classEntriesList) {
           try {
             const baseClassName = entries[0].name;
-            const isOrgOnly = !classNameToUri.has(baseClassName);
-            if (isOrgOnly && !this.showOrgTests) {
-              continue;
-            }
-            if (!isOrgOnly && !this.showLocalTests) {
+            if (!this.isClassVisible(baseClassName, classNameToUri)) {
               continue;
             }
             packageItem.children.add(createClassAndMethods(fullClassName, entries));
@@ -1017,9 +1025,13 @@ export class ApexTestController {
             console.error(`Error processing class ${fullClassName}:`, error);
           }
         }
-        namespaceItem.children.add(packageItem);
+        if (packageItem.children.size > 0) {
+          namespaceItem.children.add(packageItem);
+        }
       }
-      this.controller.items.add(namespaceItem);
+      if (namespaceItem.children.size > 0) {
+        this.controller.items.add(namespaceItem);
+      }
     }
   }
 

@@ -14,7 +14,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const { URI: UriClass } = jest.requireActual('vscode-uri');
   const { HashableUri } = jest.requireActual('salesforcedx-vscode-services/src/vscode/hashableUri');
 
-  let mockConnectionRef: any;
+  let mockConnectionRef: unknown;
   const mockFsService = {
     readFile: jest.fn(() => EffectLib.succeed('')),
     createDirectory: () => EffectLib.void,
@@ -49,7 +49,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
     getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
     AllServicesLayer: MockAllServicesLayer,
     setAllServicesLayer: jest.fn(),
-    __setMockConnection: (conn: any) => {
+    __setMockConnection: (conn: unknown) => {
       mockConnectionRef = conn;
     }
   };
@@ -166,7 +166,7 @@ const createMockTestItem = (id: string, label: string, uri?: vscode.Uri): vscode
 
 describe('Toggle Visibility', () => {
   let controller: ApexTestController;
-  let mockConnection: any;
+  let mockConnection: { getApiVersion: jest.Mock; request: jest.Mock; tooling: { query: jest.Mock } };
   let executeCommandSpy: jest.Mock;
 
   beforeEach(() => {
@@ -398,5 +398,74 @@ describe('Toggle Visibility', () => {
       });
     });
     expect(classCount).toBe(0);
+  });
+
+  it('addClassToTree respects visibility — adding an org-only class while org filter is off does not add it to tree', async () => {
+    // No local URI means it is org-only
+    (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
+
+    const Effect = jest.requireActual('effect/Effect');
+    mockDiscoverTests.mockReturnValue(
+      Effect.succeed({
+        classes: [
+          {
+            id: 'class1',
+            name: 'OrgOnlyNew',
+            namespacePrefix: null,
+            testMethods: [{ name: 'testMethod1', line: 1, column: 1 }]
+          }
+        ]
+      })
+    );
+
+    // Toggle org visibility off first
+    await controller.toggleOrgVisibility();
+
+    // Now simulate an incremental update (class created while filter is off)
+    const changes = new Map([['OrgOnlyNew', 'created']]);
+    await controller.incrementalUpdate(changes, false);
+
+    // The org-only class should NOT appear in the tree
+    const ctrl = controller.getController();
+    let classCount = 0;
+    ctrl.items.forEach((nsItem: vscode.TestItem) => {
+      nsItem.children.forEach((pkgItem: vscode.TestItem) => {
+        classCount += pkgItem.children.size;
+      });
+    });
+    expect(classCount).toBe(0);
+  });
+
+  it('addClassToTree adds correctly when filter is on', async () => {
+    // No local URI means it is org-only
+    (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
+
+    const Effect = jest.requireActual('effect/Effect');
+    mockDiscoverTests.mockReturnValue(
+      Effect.succeed({
+        classes: [
+          {
+            id: 'class1',
+            name: 'OrgOnlyNew',
+            namespacePrefix: null,
+            testMethods: [{ name: 'testMethod1', line: 1, column: 1 }]
+          }
+        ]
+      })
+    );
+
+    // Org visibility is on by default — simulate an incremental update (class created)
+    const changes = new Map([['OrgOnlyNew', 'created']]);
+    await controller.incrementalUpdate(changes, false);
+
+    // The org-only class SHOULD appear in the tree
+    const ctrl = controller.getController();
+    let classCount = 0;
+    ctrl.items.forEach((nsItem: vscode.TestItem) => {
+      nsItem.children.forEach((pkgItem: vscode.TestItem) => {
+        classCount += pkgItem.children.size;
+      });
+    });
+    expect(classCount).toBeGreaterThan(0);
   });
 });

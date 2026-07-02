@@ -518,17 +518,20 @@ describe('ApexTestController', () => {
         ])
       );
       (mockTestController.createTestItem as jest.Mock).mockImplementation(
-        (id: string, label: string, uri?: URI): Partial<vscode.TestItem> => ({
-          id,
-          label,
-          uri,
-          canResolveChildren: false,
-          children: {
-            add: jest.fn(),
-            values: jest.fn().mockReturnValue([]),
-            size: 0
-          } as unknown as vscode.TestItemCollection
-        })
+        (id: string, label: string, uri?: URI): Partial<vscode.TestItem> => {
+          let childCount = 0;
+          return {
+            id,
+            label,
+            uri,
+            canResolveChildren: false,
+            children: {
+              add: jest.fn(() => { childCount++; }),
+              values: jest.fn().mockReturnValue([]),
+              get size() { return childCount; }
+            } as unknown as vscode.TestItemCollection
+          };
+        }
       );
 
       await controller.discoverTests();
