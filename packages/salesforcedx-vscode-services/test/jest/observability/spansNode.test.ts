@@ -37,6 +37,11 @@ const makeFakeSender = (): LocalEnvelopeSender & { exportEnvelopes: jest.Mock } 
   shutdown: () => Promise.resolve()
 });
 
+// override the private SDK `sender` field so export() routes envelopes to the fake
+const injectSender = (exporter: object, sender: LocalEnvelopeSender): void => {
+  (exporter as unknown as { sender: LocalEnvelopeSender }).sender = sender;
+};
+
 const isResourceMetricEnvelope = (e: unknown): boolean =>
   (e as { data?: { baseData?: { metrics?: { name?: string }[] } } }).data?.baseData?.metrics?.[0]?.name ===
   '_OTELRESOURCE_';
@@ -45,7 +50,7 @@ describe('FilteredAzureMonitorTraceExporter', () => {
   it('suppresses the _OTELRESOURCE_ resource metric while still exporting span envelopes', async () => {
     const exporter = new FilteredAzureMonitorTraceExporter({ connectionString: DEFAULT_AI_CONNECTION_STRING });
     const sender = makeFakeSender();
-    (exporter as unknown as { sender: LocalEnvelopeSender }).sender = sender;
+    injectSender(exporter, sender);
 
     const callback = jest.fn();
     await exporter.export([makeSpan()], callback);
@@ -62,7 +67,7 @@ describe('FilteredAzureMonitorTraceExporter', () => {
   it('control: unmodified AzureMonitorTraceExporter emits the _OTELRESOURCE_ metric', async () => {
     const exporter = new AzureMonitorTraceExporter({ connectionString: DEFAULT_AI_CONNECTION_STRING });
     const sender = makeFakeSender();
-    (exporter as unknown as { sender: LocalEnvelopeSender }).sender = sender;
+    injectSender(exporter, sender);
 
     const callback = jest.fn();
     await exporter.export([makeSpan()], callback);
@@ -74,7 +79,7 @@ describe('FilteredAzureMonitorTraceExporter', () => {
 
   it('shutdown resolves', async () => {
     const exporter = new FilteredAzureMonitorTraceExporter({ connectionString: DEFAULT_AI_CONNECTION_STRING });
-    (exporter as unknown as { sender: LocalEnvelopeSender }).sender = makeFakeSender();
+    injectSender(exporter, makeFakeSender());
     await expect(exporter.shutdown()).resolves.toBeUndefined();
   });
 });
