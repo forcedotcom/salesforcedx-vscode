@@ -20,7 +20,9 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
-  waitForOutputChannelText
+  waitForNotification,
+  waitForOutputChannelText,
+  waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -176,6 +178,15 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await saveScreenshot(page, 'step.run.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName);
     await saveScreenshot(page, 'step.run.suite-selected.png');
+
+    // The async org run appends nothing to the Apex Testing channel until it completes, so a
+    // channel-content poll would burn the whole test budget on an empty channel while the run is
+    // still healthy (times out on slower ubuntu/windows runners). Gate on the run's progress toast
+    // instead: wait for it to appear (so the gone-check below can't false-pass before the run
+    // started), then wait for it to clear. Mirrors the passing testExplorer tree-item run path.
+    await waitForNotification(page, /SFDX: Run Apex Tests/, { timeout: 60_000 });
+    await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+    await saveScreenshot(page, 'step.run.progress-gone.png');
   });
 
   await test.step('verify test suite execution output', async () => {
@@ -183,6 +194,8 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     await saveScreenshot(page, 'step.verify-run.output-open.png');
+    // Backstop timeout in case the progress toast raced ahead of the gate above; normally the run has
+    // already completed so this resolves immediately against the populated channel.
     await waitForOutputChannelText(page, { expectedText: '=== Test Results', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.verify-run.results-visible.png');
     await waitForOutputChannelText(page, { expectedText: testClassName1, timeout: 60_000 });
