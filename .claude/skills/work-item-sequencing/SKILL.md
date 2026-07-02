@@ -46,6 +46,14 @@ Optional.
 
 **Unnumbered = no deps, nothing depends on it.** Always ready; never gates, never gated. Don't infer order from date/position — no number means independent.
 
+## ADRs sequence first
+
+Epic needing a **new or updated ADR** (per [ADR-FORMAT "When to offer"](../grill-me/ADR-FORMAT.md#when-to-offer): hard-to-reverse + surprising + real trade-off) → the ADR-writing WI(s) get the **lowest number**: `1` (single ADR) or `1.1`/`1.2` (parallel siblings). Dependent WIs start at `2`. Rationale: dependents encode a decision; the ADR must exist first so downstream work builds on a recorded decision, not an unstated one.
+
+**Before creating the rest of the epic**, confirm the required ADRs with the user — which decisions need recording, repo-wide (`docs/adr/`) vs package-local (`packages/*/docs/adr/`). Then sequence the ADR WI(s) as `1`/`1.x` and everything else `2`+.
+
+No ADR needed → number normally.
+
 ## Assigning (planning)
 
 1. Lay out work items.
