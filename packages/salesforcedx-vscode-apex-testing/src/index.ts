@@ -192,6 +192,18 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
       await getTestController().openOrgOnlyTest(test);
     }
   );
+  const toggleLocalVisibilityCmd = vscode.commands.registerCommand(
+    'sf.apex.test.toggleLocalVisibility',
+    async () => {
+      await getTestController().toggleLocalVisibility();
+    }
+  );
+  const toggleOrgVisibilityCmd = vscode.commands.registerCommand(
+    'sf.apex.test.toggleOrgVisibility',
+    async () => {
+      await getTestController().toggleOrgVisibility();
+    }
+  );
   const apexTestRefreshCmd = vscode.commands.registerCommand('sf.apex.test.refresh', async () => {
     await getTestController().refresh();
   });
@@ -215,6 +227,8 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
     apexDebugMethodRunDelegateCmd,
     retrieveOrgOnlyClassCmd,
     openOrgOnlyTestCmd,
+    toggleLocalVisibilityCmd,
+    toggleOrgVisibilityCmd,
     apexTestRefreshCmd,
     apexTestClearResultsCmd,
     apexTestingWalkthroughOpenCmd
