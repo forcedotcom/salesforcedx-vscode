@@ -33,7 +33,13 @@ const extensionProviderLayer = (isCliInstalled: boolean) =>
 const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
 
 const runActivate = (isCliInstalled: boolean) =>
-  Effect.runPromise(activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer(isCliInstalled))));
+  Effect.runPromise(
+    activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer(isCliInstalled))) as Effect.Effect<
+      void,
+      unknown,
+      never
+    >
+  );
 
 describe('activateEffect ISV setup gate', () => {
   let registerSpy: jest.SpyInstance;
