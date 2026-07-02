@@ -57,7 +57,7 @@ const createApexTestSuiteViaPalette = async (
   await page.keyboard.press('Enter');
 };
 
-/** Select a suite from a quick pick (Run Apex Test Suite or Add Tests to Apex Test Suite). */
+/** Select a suite from a quick pick (Run Apex Test Suite or Edit Apex Test Suite). */
 const selectSuiteInQuickPick = async (
   page: Page,
   testSuiteName: string,
@@ -78,7 +78,7 @@ const selectTestClassInQuickPick = async (page: Page, testClassName: string): Pr
   await page.keyboard.press('Enter');
 };
 
-test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ page }) => {
+test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({ page }) => {
   test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -140,26 +140,27 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await saveScreenshot(page, 'step.verify-creation.png');
   });
 
-  await test.step('add second test class to suite', async () => {
+  await test.step('edit suite to add second test class', async () => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_add_text);
-    await saveScreenshot(page, 'step.add-tests.after-command.png');
+    await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_edit_text);
+    await saveScreenshot(page, 'step.edit-add-tests.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName, { waitForListRowMs: 10_000 });
-    await saveScreenshot(page, 'step.add-tests.suite-selected.png');
+    await saveScreenshot(page, 'step.edit-add-tests.suite-selected.png');
+    // Multi-select: first class is pre-checked, toggle second class checkbox
     await selectTestClassInQuickPick(page, testClassName2);
-    await saveScreenshot(page, 'step.add-tests.done.png');
+    await saveScreenshot(page, 'step.edit-add-tests.done.png');
   });
 
-  await test.step('verify tests were added to suite', async () => {
+  await test.step('verify edit completed', async () => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Add Tests to Apex Test Suite',
+      expectedText: 'Ended SFDX: Edit Apex Test Suite',
       timeout: 60_000
     });
-    await saveScreenshot(page, 'step.verify-add.png');
+    await saveScreenshot(page, 'step.verify-edit-add.png');
   });
 
   await test.step('run Apex Test Suite', async () => {
@@ -187,26 +188,27 @@ test('Apex Test Suite: create, verify creation, add tests, run suite', async ({ 
     await saveScreenshot(page, 'step.verify-run.done.png');
   });
 
-  await test.step('remove second test class from suite', async () => {
+  await test.step('edit suite to remove second test class', async () => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_remove_text);
-    await saveScreenshot(page, 'step.remove-tests.after-command.png');
+    await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_edit_text);
+    await saveScreenshot(page, 'step.edit-remove-tests.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName, { waitForListRowMs: 10_000 });
-    await saveScreenshot(page, 'step.remove-tests.suite-selected.png');
+    await saveScreenshot(page, 'step.edit-remove-tests.suite-selected.png');
+    // Multi-select: both classes are pre-checked, uncheck second class
     await selectTestClassInQuickPick(page, testClassName2);
-    await saveScreenshot(page, 'step.remove-tests.done.png');
+    await saveScreenshot(page, 'step.edit-remove-tests.done.png');
   });
 
-  await test.step('verify removal output sentinel', async () => {
+  await test.step('verify edit completed', async () => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Remove Tests from Apex Test Suite',
+      expectedText: 'Ended SFDX: Edit Apex Test Suite',
       timeout: 60_000
     });
-    await saveScreenshot(page, 'step.verify-remove.png');
+    await saveScreenshot(page, 'step.verify-edit-remove.png');
   });
 
   await test.step('verify removed class absent from test explorer tree', async () => {

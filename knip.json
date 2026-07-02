@@ -9,7 +9,8 @@
     "scripts/validation-utils.js",
     "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/model.ts",
     "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts",
-    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/error/errorModel.ts"
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/error/errorModel.ts",
+    "packages/salesforcedx-apex/src/utils/fileSystemHandler.ts"
   ],
   "tags": ["-ExportTaggedError"],
   "workspaces": {
