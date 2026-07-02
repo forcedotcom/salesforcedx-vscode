@@ -8,17 +8,23 @@
 import { expect } from '@playwright/test';
 
 import {
+  clearOutputChannel,
   createAndDeployApexTestClass,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  verifyCommandExists,
+  waitForOutputChannelText,
   waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
+import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
@@ -129,6 +135,23 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
       timeout: TEST_RUN_TIMEOUT
     });
     await saveScreenshot(page, 'step.method-run-done.png');
+  });
+
+  await test.step('re-run last method populated by the sidebar single-method run', async () => {
+    // The sidebar single-method run set sf:has_cached_test_method; the Re-Run Last Method command's
+    // when-clause is gated on it. Confirm it surfaces, then replay it and assert the same method ran.
+    await verifyCommandExists(page, packageNls.apex_test_last_method_run_text);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+    await executeCommandWithCommandPalette(page, packageNls.apex_test_last_method_run_text);
+    await saveScreenshot(page, 'step.rerun-last-method.after-command.png');
+    await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+    await selectOutputChannel(page, 'Apex Testing');
+    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
+    await waitForOutputChannelText(page, { expectedText: `${testClassName}.shouldDiscoverThisTest` });
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await saveScreenshot(page, 'step.rerun-last-method.done.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

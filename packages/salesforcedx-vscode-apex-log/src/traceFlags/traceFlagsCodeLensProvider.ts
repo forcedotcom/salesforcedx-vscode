@@ -9,13 +9,21 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 import { CancellationToken, CodeLens, ExtensionContext, languages, Range, TextDocument } from 'vscode';
 import { nls } from '../messages';
-import { buildExtendedTraceFlagItemStruct, buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
+import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
 import { getRuntime } from '../services/runtime';
 import { isTraceFlagActive } from './traceFlagActive';
+import { isOrphanedTraceFlag } from './traceFlagsContentProvider';
 
 const TRACE_FLAGS_DOCUMENT_SELECTOR = { language: 'json', scheme: 'sf-traceflags' };
+
+/** Active trace flags whose debug level could not be resolved — each gets a warning "reassign" CodeLens (#7528). */
+export const orphanLensTargets = (items: TraceFlagItem[]): { traceFlagId: string; debugLevelId: string }[] =>
+  items
+    .filter(item => item.isActive && isOrphanedTraceFlag(item))
+    .map(item => ({ traceFlagId: item.id, debugLevelId: item.debugLevelId! }));
 
 const hasActiveTraceFlagEffect = Effect.fn('ApexLog.hasActiveTraceFlag')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -31,8 +39,7 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
   _token: CancellationToken
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ExtendedItemStruct = buildExtendedTraceFlagItemStruct(api.services.TraceFlagItemStruct);
-  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas(ExtendedItemStruct);
+  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
   const parsed = decodeTraceFlagsConfigFromJson(document.getText());
   const text = document.getText();
   const allActiveItems = Object.values(parsed?.traceFlags ?? {})
@@ -66,6 +73,21 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
         title: nls.localize('trace_flag_codelens_change_debug_level') ?? 'Change',
         tooltip: nls.localize('trace_flag_codelens_change_debug_level') ?? 'Change',
         arguments: [item.id]
+      })
+    ];
+  });
+
+  const orphanedLenses = orphanLensTargets(allActiveItems).flatMap(({ traceFlagId, debugLevelId }) => {
+    const idx = text.indexOf(`"id": "${traceFlagId}"`);
+    if (idx < 0) return [];
+    const pos = document.positionAt(idx);
+    const label = nls.localize('trace_flag_codelens_orphaned_debug_level', debugLevelId);
+    return [
+      new CodeLens(new Range(pos.line, 0, pos.line, 0), {
+        command: 'sf.apex.traceFlags.changeDebugLevel',
+        title: label,
+        tooltip: label,
+        arguments: [traceFlagId]
       })
     ];
   });
@@ -132,6 +154,7 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
   return [
     ...deleteLenses,
     ...changeDebugLevelLenses,
+    ...orphanedLenses,
     ...createLenses,
     ...userDebugLenses,
     ...deleteDebugLevelLenses,

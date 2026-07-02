@@ -9,13 +9,12 @@ import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
-import { getFullClassName, isFlowTest } from '../utils/testUtils';
+import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { getTestController } from '../views/testController';
 import { runSelectedTests } from './apexTestRun';
 
@@ -116,7 +115,7 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
     promptService.withCancellableProgress(executionName)
   );
 
-  OUTPUT_CHANNEL.show();
+  yield* channelService.showChannel;
   notificationService.showSuccessfulExecution(executionName);
 
   // Clear all suite children so they re-query from org instead of using stale local files, then refresh

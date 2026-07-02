@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.2.0",
+  "version": "67.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,7 +35,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.31.0",
+    "@salesforce/core": "^8.31.5",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.21.2",
     "@salesforce/soql-common": "*",

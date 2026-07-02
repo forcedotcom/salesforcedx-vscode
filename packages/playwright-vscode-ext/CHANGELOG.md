@@ -1,3 +1,30 @@
+## [1.3.5](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.4...playwright-vscode-ext-v1.3.5) (2026-07-01)
+
+
+### Bug Fixes
+
+* **apex-testing:** close stale virtual editors + purge VFS on logout - W-23203227 ([#7611](https://github.com/forcedotcom/salesforcedx-vscode/issues/7611)) ([5f77752](https://github.com/forcedotcom/salesforcedx-vscode/commit/5f77752527a6f8c6a1ed5f55d365aba4ad50f29a)), closes [#7603](https://github.com/forcedotcom/salesforcedx-vscode/issues/7603)
+
+
+
+## [1.3.4](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.3...playwright-vscode-ext-v1.3.4) (2026-06-29)
+
+
+### Bug Fixes
+
+* **apex-testing:** clear test tree on logout/delete default org - W-23202998 ([#7605](https://github.com/forcedotcom/salesforcedx-vscode/issues/7605)) ([bfbe6c9](https://github.com/forcedotcom/salesforcedx-vscode/commit/bfbe6c90dee848a8a439fcb556c412e52b7f2f83))
+
+
+
+## [1.3.3](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.2...playwright-vscode-ext-v1.3.3) (2026-06-27)
+
+
+### Bug Fixes
+
+* **playwright:** stabilize windows-latest desktop E2E page fixture - W-23196265 ([#7606](https://github.com/forcedotcom/salesforcedx-vscode/issues/7606)) ([ecae789](https://github.com/forcedotcom/salesforcedx-vscode/commit/ecae789007fa1dad795ced652b5e7a859c9d1a14))
+
+
+
 ## [1.3.2](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.1...playwright-vscode-ext-v1.3.2) (2026-06-24)
 
 

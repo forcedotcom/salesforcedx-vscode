@@ -20,13 +20,13 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  clickModalDialogButton
 } from '@salesforce/playwright-vscode-ext';
 import { caseManagerClassText } from '../testData/sampleClassData';
 import { getIdealCaseManagerOASDoc } from '../testData/oasDocs';
 import {
   assertGenerationOrSkipOnRateLimit,
-  clickModalDialogButton,
   confirmEsrFolderPrompt,
   pushSource,
   setupWorkbenchAndAuth,

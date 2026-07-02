@@ -12,7 +12,7 @@ jobs:
       OVSX_PAT: ${{ secrets.IDEE_OVSX_PAT }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm

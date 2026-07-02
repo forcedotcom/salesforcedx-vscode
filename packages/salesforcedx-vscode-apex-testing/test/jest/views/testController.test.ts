@@ -10,7 +10,9 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const Layer = jest.requireActual('effect/Layer');
   const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
   const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
+  const { ApexTestRunCacheService } = jest.requireActual('../../../src/testRunCache/apexTestRunCacheService');
   const { URI: UriClass } = jest.requireActual('vscode-uri');
+  const { HashableUri } = jest.requireActual('salesforcedx-vscode-services/src/vscode/hashableUri');
 
   let mockConnectionRef: any;
   let mockReadFileResult = '';
@@ -20,6 +22,9 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const mockFsService = {
     readFile: mockReadFile,
     createDirectory: () => EffectLib.void,
+    safeDelete: () => EffectLib.void,
+    // accessor form: `yield* api.services.FsService.HashableUri` resolves the value namespace.
+    HashableUri: EffectLib.succeed(HashableUri),
     showTextDocument: (uri: unknown, options?: unknown) =>
       EffectLib.tryPromise({
         try: () => require('vscode').window.showTextDocument(uri, options),
@@ -39,16 +44,18 @@ jest.mock('../../../src/services/extensionProvider', () => {
       }
     }
   };
-  const MockAllServicesLayer = Layer.effect(
-    ExtensionProviderService,
-    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+  const MockAllServicesLayer = Layer.mergeAll(
+    Layer.effect(
+      ExtensionProviderService,
+      EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
+    ),
+    ApexTestRunCacheService.Default
   );
 
   return {
     getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
     AllServicesLayer: MockAllServicesLayer,
     setAllServicesLayer: jest.fn(),
-    buildAllServicesLayer: jest.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
     },
@@ -76,12 +83,6 @@ jest.mock('../../../src/utils/testUtils', () => {
   };
 });
 
-jest.mock('../../../src/telemetry/telemetry', () => ({
-  telemetryService: {
-    sendEventData: jest.fn()
-  }
-}));
-
 jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
   retrieveTestRunConcise: jest.fn().mockReturnValue(false)
@@ -91,14 +92,21 @@ jest.mock('../../../src/testDiscovery/packageResolution', () => ({
   resolvePackage2Members: jest.fn().mockResolvedValue(new Map())
 }));
 
-const mockSaveDiscoveredClasses = jest.fn().mockResolvedValue(undefined);
+const mockSaveDiscoveredClasses = jest.fn();
 
-jest.mock('../../../src/discoveryVfs/apexTestDiscoveryStore', () => ({
-  getApexTestDiscoveryStore: () => ({
-    saveDiscoveredClasses: mockSaveDiscoveredClasses
-  }),
-  resolveDiscoveryOrgKey: jest.fn().mockReturnValue('org123')
-}));
+jest.mock('../../../src/discoveryVfs/apexTestDiscoveryService', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  return {
+    // saveDiscoveredClasses is consumed via `yield* ApexTestDiscoveryService.saveDiscoveredClasses(...)`,
+    // so the mock records the call and returns an Effect the persist program can run on any runtime.
+    ApexTestDiscoveryService: {
+      saveDiscoveredClasses: (...args: unknown[]) => {
+        mockSaveDiscoveredClasses(...args);
+        return EffectLib.void;
+      }
+    }
+  };
+});
 
 // Mock TestService before imports
 const mockTestServiceMethods = {
@@ -137,7 +145,18 @@ import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
-import { ApexTestController, getTestController, sortUrisByMtimeAscending } from '../../../src/views/testController';
+import * as EffectModule from 'effect/Effect';
+import {
+  ApexTestController,
+  closeForeignApexTestingTabs,
+  getTestController,
+  sortUrisByMtimeAscending
+} from '../../../src/views/testController';
+
+// closeForeignApexTestingTabs returns an Effect (R = never: pure tab ops, no services), so run it
+// with the real Effect runtime rather than the mocked extension runtime.
+const runClose = (orgKey: string | undefined): Promise<void> =>
+  EffectModule.runPromise(closeForeignApexTestingTabs(orgKey));
 
 // Mock vscode.tests API
 const mockTestController = {
@@ -185,7 +204,6 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSaveDiscoveredClasses.mockResolvedValue(undefined);
 
     // Mock vscode.tests.createTestController
     (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
@@ -315,9 +333,10 @@ describe('ApexTestController', () => {
     let getTestResultsFolderSpy: jest.SpiedFunction<typeof pathHelpers.getTestResultsFolder>;
 
     beforeEach(() => {
+      const Effect = jest.requireActual('effect/Effect');
       getTestResultsFolderSpy = jest
         .spyOn(pathHelpers, 'getTestResultsFolder')
-        .mockResolvedValue(URI.file(path.join('/tmp', 'apex-test-results')));
+        .mockReturnValue(Effect.succeed(URI.file(path.join('/tmp', 'apex-test-results'))));
       mockTestServiceMethods.buildAsyncPayload.mockResolvedValue({
         testLevel: 'RunSpecifiedTests',
         skipCodeCoverage: true
@@ -1279,5 +1298,54 @@ describe('sortUrisByMtimeAscending', () => {
     const snapshot = items.map(i => i.uri.path);
     sortUrisByMtimeAscending(items);
     expect(items.map(i => i.uri.path)).toEqual(snapshot);
+  });
+});
+
+describe('closeForeignApexTestingTabs', () => {
+  // Real-ish tab fixtures: the production code does `tab.input instanceof vscode.TabInputText`, so the
+  // fixtures must be actual instances of the mock's TabInputText, carrying a real URI of a given scheme.
+  const tabFor = (uri: URI): vscode.Tab =>
+    ({ input: new (vscode as unknown as { TabInputText: new (u: URI) => unknown }).TabInputText(uri) }) as vscode.Tab;
+
+  const setTabGroups = (tabs: vscode.Tab[]): jest.Mock => {
+    const close = jest.fn().mockResolvedValue(undefined);
+    (vscode.window as unknown as { tabGroups: unknown }).tabGroups = { all: [{ tabs }], close };
+    return close;
+  };
+
+  // org keys are sanitized to lower-case in the VFS path, so org123 -> /orgs/org123/...
+  const orgATab = tabFor(URI.parse('apex-testing:/orgs/org123/classes/MyTest.cls'));
+  const orgBTab = tabFor(URI.parse('apex-testing:/orgs/org456/classes/OtherTest.cls'));
+  const fileTab = tabFor(URI.file('/workspace/MyTest.cls'));
+
+  afterEach(() => {
+    delete (vscode.window as unknown as { tabGroups?: unknown }).tabGroups;
+  });
+
+  it('on org change, closes only OTHER orgs apex-testing: tabs and leaves the current org + other schemes', async () => {
+    const close = setTabGroups([orgATab, orgBTab, fileTab]);
+
+    // current org is org123 => org456's tab is foreign and closes; org123's tab + the file tab stay.
+    await runClose('org123');
+
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledWith([orgBTab], true);
+  });
+
+  it('on logout (undefined org), closes every apex-testing: org tab and leaves other schemes', async () => {
+    const close = setTabGroups([orgATab, orgBTab, fileTab]);
+
+    await runClose(undefined);
+
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledWith([orgATab, orgBTab], true);
+  });
+
+  it('is a no-op when only the current orgs tab is open', async () => {
+    const close = setTabGroups([orgATab, fileTab]);
+
+    await runClose('org123');
+
+    expect(close).not.toHaveBeenCalled();
   });
 });

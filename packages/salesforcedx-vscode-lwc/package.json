@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.2.0",
+  "version": "67.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -31,7 +31,6 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-lwc-language-server": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "jest-editor-support": "31.1.2",
@@ -76,7 +75,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-lwc-language-server:compile",
         "../salesforcedx-lightning-lsp-common:compile",

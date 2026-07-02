@@ -42,7 +42,7 @@ export const retrieveHasErrors = Effect.fn('retrieveHasErrors')(function* (resul
   if (resp === undefined) {
     return false;
   }
-  if (resp.success === false) {
+  if (!resp.success) {
     return true;
   }
   return RETRIEVE_FAILURE_STATUSES.has(toRequestStatus(resp.status));

@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer,
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { initializeOutputChannel } from './channels';
-import { CodeCoverageHandler } from './codecoverage/colorizer';
+import { CodeCoverageHandler, watchActiveEditorForCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
   apexDebugClassRunCodeActionDelegate,
@@ -30,9 +34,9 @@ import {
 import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
 import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
+import { nls } from './messages';
 import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
-import { buildAllServicesLayer, getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
-import { telemetryService } from './telemetry/telemetry';
+import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
@@ -43,9 +47,6 @@ import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
 /** Effect-based activation that provides automatic timing via span */
 const activateEffect = Effect.fn('apex-testing.activation')(function* (context: vscode.ExtensionContext) {
   yield* Effect.log('Salesforce Apex Testing extension is activating...');
-
-  // Initialize the shared output channel from services API
-  yield* initializeOutputChannel;
 
   // Check if we're in a Salesforce project (also sets VS Code context as side effect)
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -103,9 +104,12 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   ]);
 
   // Always register the remaining (non-Effect) commands (they'll be no-ops if not in a project)
-  const commands = registerCommands();
+  const { commands, statusBarToggle } = registerCommands();
   // apexTestingDiagnostics: single shared diagnostic collection for apex test failures
   context.subscriptions.push(commands, apexTestingDiagnostics);
+
+  // Repaint code-coverage decorations on active-editor changes (forked so it tears down on deactivation).
+  yield* Effect.forkIn(watchActiveEditorForCoverage(statusBarToggle), yield* getExtensionScope());
 
   yield* Effect.log('Salesforce Apex Testing extension is now active!');
 
@@ -124,7 +128,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 });
 
 export const activate = (context: vscode.ExtensionContext) => {
-  setAllServicesLayer(buildAllServicesLayer(context));
+  setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   const extensionScope = getApexTestingRuntime().runSync(getExtensionScope());
 
   return getApexTestingRuntime().runPromise(
@@ -140,7 +144,7 @@ export const activate = (context: vscode.ExtensionContext) => {
   );
 };
 
-const registerCommands = (): vscode.Disposable => {
+const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: StatusBarToggle } => {
   // Code coverage highlighting (owned by Apex Testing; works in Desktop and Web)
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverageHandler(statusBarToggle);
@@ -202,7 +206,7 @@ const registerCommands = (): vscode.Disposable => {
     )
   );
 
-  return vscode.Disposable.from(
+  const commands = vscode.Disposable.from(
     apexToggleColorizerCmd,
     statusBarToggle,
     apexTestClassRunDelegateCmd,
@@ -215,12 +219,12 @@ const registerCommands = (): vscode.Disposable => {
     apexTestClearResultsCmd,
     apexTestingWalkthroughOpenCmd
   );
+  return { commands, statusBarToggle };
 };
 
 export const deactivate = () => {
   void getApexTestingRuntime().runPromise(closeExtensionScope());
   disposeTestController();
-  telemetryService.sendExtensionDeactivationEvent();
 };
 
 export type ApexTestingVSCodeApi = {

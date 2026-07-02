@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.2.0",
+  "version": "67.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -34,7 +34,6 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
@@ -107,7 +106,6 @@
       "command": "tsc --pretty",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile",
         "../salesforcedx-aura-language-server:compile",

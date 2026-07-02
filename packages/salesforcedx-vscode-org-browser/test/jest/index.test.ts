@@ -85,6 +85,7 @@ const MockChannelServiceLayer = (_: string): Layer.Layer<ChannelService> =>
     ChannelService,
     new ChannelService({
       getChannel: Effect.sync(() => mockOutputChannel),
+      showChannel: Effect.void,
       clearChannel: Effect.succeed(undefined),
       appendToChannel: (message: string) => Effect.sync(() => mockAppendLine(message))
     })
@@ -121,7 +122,8 @@ const MockConfigServiceLayer = Layer.succeed(
     isCurrentTargetOrg: () => Effect.succeed(false),
     isCurrentTargetDevHub: () => Effect.succeed(false),
     unsetTargetOrg: () => Effect.void,
-    unsetTargetDevHub: () => Effect.void
+    unsetTargetDevHub: () => Effect.void,
+    setTargetOrg: () => Effect.void
   } as const)
 );
 
