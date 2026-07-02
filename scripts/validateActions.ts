@@ -12,6 +12,10 @@ import { globSync, readFileSync } from 'node:fs';
 // The bundled @action-validator/core schema predates schemastore's parallel-steps keys
 // (background/wait/wait-all, schemastore PR #5845). Those keys are valid GitHub Actions YAML,
 // so filter the stale-schema noise while keeping every genuine error. See W-23195710.
+// TODO(W-23195710): remove this whole suppression block (regexes + collect/filter helpers) once
+// @action-validator/core (package.json) bumps to a schema that includes background/wait/wait-all.
+// The filter keys off undocumented internal error shape (code/detail/path/states) and will break
+// silently on any validator error-tree reshape.
 const NEW_STEP_KEYS = ['background', 'wait', 'wait-all'] as const;
 const additionalPropertyRe = new RegExp(`Additional property '(${NEW_STEP_KEYS.join('|')})' is not allowed`);
 const waitPropertyRe = /Additional property '(wait|wait-all)' is not allowed/;
@@ -59,34 +63,6 @@ const filterErrors = (errors: ValidationError[], waitStepPaths: readonly string[
 const filterState = (result: ValidationState): ValidationError[] =>
   filterErrors(result.errors, collectWaitStepPaths(result.errors));
 
-const program = Stream.concat(
-  Stream.fromIterable(globSync('.github/workflows/*.{yml,yaml}')).pipe(
-    Stream.map(file => ({ file, result: validateWorkflow(readFileSync(file, 'utf8')) }))
-  ),
-  Stream.fromIterable(globSync('.github/actions/*/action.{yml,yaml}')).pipe(
-    Stream.map(file => ({ file, result: validateAction(readFileSync(file, 'utf8')) }))
-  )
-).pipe(
-  Stream.map(({ file, result }) => ({
-    file,
-    errors: filterState(result),
-    rawLeafCount: collectLeafErrors(result.errors).length
-  })),
-  Stream.tap(({ file, errors, rawLeafCount }) =>
-    collectLeafErrors(errors).length < rawLeafCount
-      ? Console.warn(
-          `\n${file}: tolerated GHA parallel-steps keys (${NEW_STEP_KEYS.join('/')}) missing from local validator schema`
-        )
-      : Effect.void
-  ),
-  Stream.filter(({ errors }) => errors.length > 0),
-  Stream.tap(({ file, errors }) => Console.error(`\n${file}:\n${collectLeafErrors(errors).join('\n')}`)),
-  Stream.runCount,
-  Effect.tap(failureCount => Console.log(`${failureCount} failed.`))
-);
-
-void Effect.runPromise(program).then(failureCount => process.exit(failureCount > 0 ? 1 : 0));
-
 const collectLeafErrors = (errors: ValidationError[]): string[] =>
   errors.flatMap(error => {
     if ('states' in error && error.states?.length) {
@@ -97,3 +73,37 @@ const collectLeafErrors = (errors: ValidationError[]): string[] =>
 
     return ['path' in error ? `  ${error.path}: ${message}` : `  ${message}`];
   });
+
+const program = Stream.concat(
+  Stream.fromIterable(globSync('.github/workflows/*.{yml,yaml}')).pipe(
+    Stream.map(file => ({ file, result: validateWorkflow(readFileSync(file, 'utf8')) }))
+  ),
+  Stream.fromIterable(globSync('.github/actions/*/action.{yml,yaml}')).pipe(
+    Stream.map(file => ({ file, result: validateAction(readFileSync(file, 'utf8')) }))
+  )
+).pipe(
+  // compute filtered leaves + counts once; downstream stages read straight fields (no re-walks).
+  Stream.map(({ file, result }) => {
+    const errors = filterState(result);
+    const messages = collectLeafErrors(errors);
+    return {
+      file,
+      errors,
+      messages,
+      suppressed: collectLeafErrors(result.errors).length - messages.length
+    };
+  }),
+  Stream.tap(({ file, suppressed }) =>
+    suppressed > 0
+      ? Console.warn(
+          `\n${file}: tolerated ${suppressed} GHA parallel-steps leaf(s) (${NEW_STEP_KEYS.join('/')}) missing from local validator schema`
+        )
+      : Effect.void
+  ),
+  Stream.filter(({ errors }) => errors.length > 0),
+  Stream.tap(({ file, messages }) => Console.error(`\n${file}:\n${messages.join('\n')}`)),
+  Stream.runCount,
+  Effect.tap(failureCount => Console.log(`${failureCount} failed.`))
+);
+
+void Effect.runPromise(program).then(failureCount => process.exit(failureCount > 0 ? 1 : 0));
