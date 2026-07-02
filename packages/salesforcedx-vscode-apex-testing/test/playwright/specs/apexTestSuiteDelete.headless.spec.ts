@@ -26,7 +26,7 @@ import {
 
 import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
-import { openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
+import { expandTreeRow, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
 import { createApexTestSuiteViaPalette } from '../helpers/apexTestSuiteHelpers';
 
 test('Apex Test Suite: delete suite and verify it disappears from Testing sidebar without refresh', async ({
@@ -81,6 +81,9 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     // The "Apex Test Suites" parent item should be visible
     const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
     await expect(suiteParent).toBeVisible({ timeout: 30_000 });
+
+    // Expand the "Apex Test Suites" parent so child suite items become visible in the tree
+    await expandTreeRow(panel, 'Apex Test Suites');
 
     // The specific suite name should be visible as a baseline before deletion
     const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
