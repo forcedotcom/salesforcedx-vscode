@@ -17,6 +17,7 @@ import { nls } from '../messages';
 import * as settings from '../settings';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
+import { TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
@@ -33,7 +34,6 @@ import {
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
 import { readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
-import { TestExecutionError, TestTempFolderError } from './apexTestExecutionErrors';
 import { ApexTestTreeService } from './apexTestTreeService';
 
 const TEST_RESULT_JSON_FILE = 'test-result.json';
@@ -41,13 +41,7 @@ const TEST_RESULT_JSON_FILE = 'test-result.json';
 /** How the run profile constrains an implicit "run all" (no explicit test selection). */
 export type ApexTestRunScope = 'workspace-first' | 'all-org' | 'stale-workspace' | 'stale-org';
 
-/**
- * Per-invocation runtime data the execution methods need: vscode lifecycle objects (controller, tags),
- * the lazily-initialized org connection/testService, and shell-resident lookups that stay out of scope
- * (suite-child resolution, suite→classes map). These are params (runtime data), NOT service dependencies.
- * Tree maps are read via ApexTestTreeService accessors (not passed here). lastProcessedResultFile is a
- * service-owned Ref (not a param). ChannelService/FsService are yielded from context (deps), not params.
- */
+/** Per-invocation runtime data (params, not service deps). Tree maps come from ApexTestTreeService accessors. */
 export type ExecutionContext = {
   controller: vscode.TestController;
   orgOnlyTag: vscode.TestTag | undefined;
@@ -59,21 +53,11 @@ export type ExecutionContext = {
 };
 
 /**
- * ApexTestExecutionService — owns the run/debug/result-processing region extracted from the shell
- * ApexTestController. The shell keeps vscode lifecycle objects (controller, tags) and the suiteToClasses
- * writer, passing them via ExecutionContext (runtime data); the service owns the lastProcessedResultFile
- * Ref (an Option<URI>, replacing the shell's URI|null sentinel) plus the run/debug/result Effects.
- *
- * ChannelService / FsService are obtained via api.services (the services-extension bridge), not declared
- * as Default dependencies: the apex-testing runtime provides ChannelService via ChannelServiceLayer('Apex
- * Testing') (a Layer.succeed instance), NOT ChannelService.Default — declaring `.Default` here would build
- * a second, generic-named ChannelService and send the `Ended …` sentinel to the wrong channel. The service
- * class values are also exported only as types from salesforcedx-vscode-services, so api.services is the
- * only cross-package handle. This stays substitutable in tests (provide a stub ExtensionProviderService
- * whose api.services.ChannelService/FsService are stubs — same seam the tree-service tests use for
- * FsService). Settings are plain sync vscode config reads via the `settings` module, matching all other
- * apex-testing Effect code (apexTestRun.ts, apexTestTreeService.ts). ApexTestTreeService is reached via its
- * accessors (already in the merged runtime layer), not re-provided here.
+ * Owns the run/debug/result-processing region extracted from ApexTestController. Owns the
+ * lastProcessedResultFile Ref (Option<URI>). ChannelService/FsService come via api.services rather than
+ * declared `.Default` deps: the runtime provides ChannelService via ChannelServiceLayer('Apex Testing')
+ * (a named Layer.succeed), so declaring `.Default` would build a second, wrong-named channel. Still
+ * substitutable in tests by stubbing ExtensionProviderService's api.services.
  */
 export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionService>()('ApexTestExecutionService', {
   accessors: true,
@@ -101,7 +85,10 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
     /** Test results folder for the run, failing with TestTempFolderError when no workspace can be resolved. */
     const getTempFolder = Effect.fn('ApexTestExecutionService.getTempFolder')(function* () {
       return yield* getTestResultsFolder().pipe(
-        Effect.catchAll(() => new TestTempFolderError({ message: nls.localize('cannot_determine_workspace') }))
+        Effect.catchTags({
+          NoDefaultOrgError: toTempFolderError,
+          NoWorkspaceOpenError: toTempFolderError
+        })
       );
     });
 
@@ -495,20 +482,22 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       finalTests: vscode.TestItem[],
       run: vscode.TestRun
     ) {
-      if (isDebug) {
-        yield* debugTests(ctx, finalTests, run);
-      } else {
-        const testNames = finalTests.map(test => getTestName(test));
-        const tmpFolder = yield* getTempFolder();
-        const codeCoverage = settings.retrieveTestCodeCoverage();
-        const runAllTestsInOrg =
-          runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
-        yield* executeTests(ctx, testNames, tmpFolder, codeCoverage, token, run, finalTests, runAllTestsInOrg);
-      }
-      yield* Effect.annotateCurrentSpan({
-        trigger: 'testController',
-        isDebug: String(isDebug),
-        testsRan: finalTests.length
+      yield* Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan({
+          trigger: 'testController',
+          isDebug: String(isDebug),
+          testsRan: finalTests.length
+        });
+        if (isDebug) {
+          yield* debugTests(ctx, finalTests, run);
+        } else {
+          const testNames = finalTests.map(test => getTestName(test));
+          const tmpFolder = yield* getTempFolder();
+          const codeCoverage = settings.retrieveTestCodeCoverage();
+          const runAllTestsInOrg =
+            runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
+          yield* executeTests(ctx, testNames, tmpFolder, codeCoverage, token, run, finalTests, runAllTestsInOrg);
+        }
       }).pipe(Effect.withSpan('apexTestRun'));
     });
 
@@ -657,16 +646,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         }
       });
 
-      yield* runTestPipeline(
-        ctx,
-        request,
-        token,
-        isDebug,
-        runScope,
-        isImplicitFullRun,
-        finalTests,
-        run
-      ).pipe(
+      yield* runTestPipeline(ctx, request, token, isDebug, runScope, isImplicitFullRun, finalTests, run).pipe(
         Effect.catchTags({
           PayloadBuildError: e => erroredAll(run, finalTests, e.message),
           SuiteNameUnresolvedError: e => erroredAll(run, finalTests, e.message),
@@ -694,6 +674,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
  * Messages arrive already user-friendly: TestExecutionError carries toUserFriendlyApexTestError output,
  * the others carry localized nls strings.
  */
+/** Map either workspace-resolution failure to the single user-facing "can't determine workspace" error. */
+const toTempFolderError = () => new TestTempFolderError({ message: nls.localize('cannot_determine_workspace') });
+
 const erroredAll = (run: vscode.TestRun, tests: vscode.TestItem[], message: string) =>
   Effect.sync(() => {
     for (const test of tests) {

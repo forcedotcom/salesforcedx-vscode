@@ -157,17 +157,18 @@ export class ApexTestController {
 
     // Non-fatal: result folder may not exist yet, or deletion may fail. Log + continue.
     await getApexTestingRuntime().runPromise(
-      Effect.fn('ApexTestController.clearResults')(function* () {
+      Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const resultDir = yield* getTestResultsFolder();
         yield* api.services.FsService.safeDelete(resultDir, { recursive: true });
-      })().pipe(
+      }).pipe(
         Effect.catchTags({
           NoDefaultOrgError: error => Effect.logWarning('Failed to delete test results folder', { error }),
           NoWorkspaceOpenError: error => Effect.logWarning('Failed to delete test results folder', { error }),
           ServicesExtensionNotFoundError: error => Effect.logWarning('Failed to delete test results folder', { error }),
           InvalidServicesApiError: error => Effect.logWarning('Failed to delete test results folder', { error })
-        })
+        }),
+        Effect.withSpan('ApexTestController.clearResults')
       )
     );
   }
@@ -374,9 +375,12 @@ export class ApexTestController {
       if (includesSuiteChange) {
         clearAllSuiteChildren();
       }
-    } catch (e) {
+    } catch (error) {
       // Non-fatal: incremental update failure doesn't affect existing tree state
-      console.warn('Incremental test-tree update failed (non-fatal):', e);
+      const message = toUserFriendlyApexTestError(error);
+      getApexTestingRuntime().runSync(
+        Effect.logWarning('Incremental test-tree update failed (non-fatal)', { message })
+      );
     }
   }
 
