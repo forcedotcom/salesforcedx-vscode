@@ -734,6 +734,14 @@ export class ApexTestController {
   }
 
   private async addClassToTree(cls: ToolingTestClass, classNameToUri: Map<string, URI>, orgKey: string): Promise<void> {
+    const isOrgOnly = !classNameToUri.has(cls.name);
+    if (isOrgOnly && !this.showOrgTests) {
+      return;
+    }
+    if (!isOrgOnly && !this.showLocalTests) {
+      return;
+    }
+
     const [connection, orgInfo] = await Promise.all([this.getConnection(), getDefaultOrgInfo()]);
     const classIds = cls.id ? [cls.id] : [];
     const classIdToPackage = await resolvePackage2Members(

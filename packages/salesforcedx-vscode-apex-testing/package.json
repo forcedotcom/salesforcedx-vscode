@@ -278,22 +278,22 @@
     "menus": {
       "view/title": [
         {
-          "command": "sf.apex.test.toggleLocalVisibility",
+          "command": "sf.apex.test.hideLocalTests",
           "when": "view == workbench.view.testing && sf:apex.showLocalTests",
           "group": "navigation"
         },
         {
-          "command": "sf.apex.test.toggleLocalVisibility",
+          "command": "sf.apex.test.showLocalTests",
           "when": "view == workbench.view.testing && !sf:apex.showLocalTests",
           "group": "navigation"
         },
         {
-          "command": "sf.apex.test.toggleOrgVisibility",
+          "command": "sf.apex.test.hideOrgTests",
           "when": "view == workbench.view.testing && sf:apex.showOrgTests",
           "group": "navigation"
         },
         {
-          "command": "sf.apex.test.toggleOrgVisibility",
+          "command": "sf.apex.test.showOrgTests",
           "when": "view == workbench.view.testing && !sf:apex.showOrgTests",
           "group": "navigation"
         }
@@ -303,12 +303,20 @@
       "explorer/context": [],
       "commandPalette": [
         {
-          "command": "sf.apex.test.toggleLocalVisibility",
-          "when": "false"
+          "command": "sf.apex.test.hideLocalTests",
+          "when": "sf:apex.showLocalTests"
         },
         {
-          "command": "sf.apex.test.toggleOrgVisibility",
-          "when": "false"
+          "command": "sf.apex.test.showLocalTests",
+          "when": "!sf:apex.showLocalTests"
+        },
+        {
+          "command": "sf.apex.test.hideOrgTests",
+          "when": "sf:apex.showOrgTests"
+        },
+        {
+          "command": "sf.apex.test.showOrgTests",
+          "when": "!sf:apex.showOrgTests"
         },
         {
           "command": "sf.apex.test.last.class.run",
@@ -366,14 +374,24 @@
     },
     "commands": [
       {
-        "command": "sf.apex.test.toggleLocalVisibility",
+        "command": "sf.apex.test.hideLocalTests",
         "title": "%apex_test_hide_local_text%",
         "icon": "$(eye)"
       },
       {
-        "command": "sf.apex.test.toggleOrgVisibility",
+        "command": "sf.apex.test.showLocalTests",
+        "title": "%apex_test_show_local_text%",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "sf.apex.test.hideOrgTests",
         "title": "%apex_test_hide_org_text%",
         "icon": "$(eye)"
+      },
+      {
+        "command": "sf.apex.test.showOrgTests",
+        "title": "%apex_test_show_org_text%",
+        "icon": "$(eye-closed)"
       },
       {
         "command": "sf.apex.test.run",
