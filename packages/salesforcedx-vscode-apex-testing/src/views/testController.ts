@@ -90,6 +90,8 @@ export class ApexTestController {
   private suiteTag: vscode.TestTag | undefined;
   private staleTag: vscode.TestTag | undefined;
   private readonly sessionStartTime = Date.now();
+  private showLocalTests = true;
+  private showOrgTests = true;
 
   constructor() {
     this.controller = vscode.tests.createTestController(TEST_CONTROLLER_ID, nls.localize('test_view_name'));
@@ -104,10 +106,24 @@ export class ApexTestController {
     this.setupRunProfiles();
     this.setupRefreshHandler();
     this.setupResolveHandler();
+    void vscode.commands.executeCommand('setContext', 'sf:apex.showLocalTests', true);
+    void vscode.commands.executeCommand('setContext', 'sf:apex.showOrgTests', true);
   }
 
   public getController(): vscode.TestController {
     return this.controller;
+  }
+
+  public async toggleLocalVisibility(): Promise<void> {
+    this.showLocalTests = !this.showLocalTests;
+    await vscode.commands.executeCommand('setContext', 'sf:apex.showLocalTests', this.showLocalTests);
+    await this.refresh();
+  }
+
+  public async toggleOrgVisibility(): Promise<void> {
+    this.showOrgTests = !this.showOrgTests;
+    await vscode.commands.executeCommand('setContext', 'sf:apex.showOrgTests', this.showOrgTests);
+    await this.refresh();
   }
 
   /**
@@ -969,6 +985,14 @@ export class ApexTestController {
 
         for (const { fullClassName, entries } of classEntriesList) {
           try {
+            const baseClassName = entries[0].name;
+            const isOrgOnly = !classNameToUri.has(baseClassName);
+            if (isOrgOnly && !this.showOrgTests) {
+              continue;
+            }
+            if (!isOrgOnly && !this.showLocalTests) {
+              continue;
+            }
             packageItem.children.add(createClassAndMethods(fullClassName, entries));
             this.classToParentItem.set(fullClassName, packageItem);
             processed++;
