@@ -96,7 +96,7 @@ describe('orgLoginWebDevHubCommand', () => {
     expect(simpleExec).toHaveBeenCalledTimes(1);
     const arg = (simpleExec.mock.calls as unknown as [{ command: string; parse: unknown }][])[0][0];
     expect(arg.command).toBe('sf org login web --alias "myHub" --set-default-dev-hub');
-    expect(arg.parse).toEqual(expect.any(Function));
+    expect(arg.parse).toBe(identity);
   });
 
   it('defaults the alias to DEFAULT_ALIAS on empty-string input', async () => {

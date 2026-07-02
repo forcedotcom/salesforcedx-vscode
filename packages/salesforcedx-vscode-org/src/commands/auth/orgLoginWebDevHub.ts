@@ -36,5 +36,5 @@ export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(fu
   // FORCE_COLOR=0 for the `sf ` prefix.
   const command = `sf org login web --alias "${alias}" --set-default-dev-hub`;
 
-  yield* executeOrgLoginWeb({ command, progressMessage: nls.localize('org_login_web_authorize_dev_hub_text') });
+  yield* executeOrgLoginWeb({ command, progressMessage: nls.localize('org_login_web_dev_hub_progress') });
 });
