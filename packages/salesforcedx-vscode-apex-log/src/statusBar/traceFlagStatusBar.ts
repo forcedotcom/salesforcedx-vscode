@@ -113,26 +113,26 @@ export const createTraceFlagStatusBar = () =>
     yield* Effect.sleep(Duration.infinity);
   });
 
-const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true })(function* (
-  statusBarItem: vscode.StatusBarItem
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ref = yield* api.services.TargetOrgRef();
-  const { orgId, userId } = yield* SubscriptionRef.get(ref);
-  if (!orgId || !userId) {
-    return statusBarItem.hide();
-  }
-  const traceFlagsRef = yield* CurrentTraceFlags;
-  const activeRecords = (yield* SubscriptionRef.get(traceFlagsRef))
-    .filter(isTraceFlagActive)
-    .toSorted(byExpirationDesc);
+const refresh = Effect.fn('ApexLog.traceFlagStatusBar.refresh', { root: true, attributes: { telemetryIgnore: true } })(
+  function* (statusBarItem: vscode.StatusBarItem) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const ref = yield* api.services.TargetOrgRef();
+    const { orgId, userId } = yield* SubscriptionRef.get(ref);
+    if (!orgId || !userId) {
+      return statusBarItem.hide();
+    }
+    const traceFlagsRef = yield* CurrentTraceFlags;
+    const activeRecords = (yield* SubscriptionRef.get(traceFlagsRef))
+      .filter(isTraceFlagActive)
+      .toSorted(byExpirationDesc);
 
-  const collectorRef = yield* LogCollectorStateRef;
-  const collectorState = yield* SubscriptionRef.get(collectorRef);
-  statusBarItem.tooltip = buildTooltip(activeRecords, collectorState, userId);
-  statusBarItem.text = getStatusBarText(collectorState, selectCurrentUserFlag(activeRecords, userId));
-  statusBarItem.show();
-});
+    const collectorRef = yield* LogCollectorStateRef;
+    const collectorState = yield* SubscriptionRef.get(collectorRef);
+    statusBarItem.tooltip = buildTooltip(activeRecords, collectorState, userId);
+    statusBarItem.text = getStatusBarText(collectorState, selectCurrentUserFlag(activeRecords, userId));
+    statusBarItem.show();
+  }
+);
 
 const hasCurrentUserTraceFlag = (records: TraceFlagItem[], userId: string) =>
   records.some(r => r.logType === 'DEVELOPER_LOG' && r.tracedEntityId === userId);
