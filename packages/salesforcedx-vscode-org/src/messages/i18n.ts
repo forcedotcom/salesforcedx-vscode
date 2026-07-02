@@ -52,6 +52,8 @@ export const messages = {
   org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
   org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
+  org_login_web_progress: 'Authorizing org',
+  org_login_web_success: 'Successfully authorized org.',
   org_login_web_port_conflict_notification_message:
     'Could not authorize your org because local port 1717 is already in use. Close the process using that port, then try again.',
   org_login_web_port_conflict_steps_label: 'Try this:',

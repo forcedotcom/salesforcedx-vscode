@@ -14,9 +14,9 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import {
-  AuthParamsGatherer,
   DEFAULT_ALIAS,
   gatherAccessTokenParams,
+  gatherAuthParams,
   ScratchOrgLogoutParamsGatherer
 } from '../../../../src/commands/auth/authParamsGatherer';
 import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
@@ -61,8 +61,7 @@ describe('AuthParamsGatherer', () => {
     const instanceUrl = 'https://demo.my.salesforce.com';
 
     it('uses reauthAliasOrUsername for --alias when provided', async () => {
-      const gatherer = new AuthParamsGatherer(instanceUrl, 'demoOrg');
-      const result = await gatherer.gather();
+      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: 'demoOrg' }));
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { alias: 'demoOrg', loginUrl: instanceUrl }
@@ -70,8 +69,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('trims reauthAliasOrUsername', async () => {
-      const gatherer = new AuthParamsGatherer(instanceUrl, '  demoOrg  ');
-      const result = await gatherer.gather();
+      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '  demoOrg  ' }));
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { alias: 'demoOrg', loginUrl: instanceUrl }
@@ -79,8 +77,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is omitted', async () => {
-      const gatherer = new AuthParamsGatherer(instanceUrl);
-      const result = await gatherer.gather();
+      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: undefined }));
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }
@@ -88,8 +85,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is blank', async () => {
-      const gatherer = new AuthParamsGatherer(instanceUrl, '   ');
-      const result = await gatherer.gather();
+      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '   ' }));
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }
