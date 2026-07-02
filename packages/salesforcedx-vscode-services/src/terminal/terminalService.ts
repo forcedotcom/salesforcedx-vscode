@@ -31,43 +31,50 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
   dependencies: [ChildProcess.Default],
   effect: Effect.gen(function* () {
     const childProcess = yield* ChildProcess;
+    /** Execute a shell command and parse its stdout. Desktop-only; fails with TerminalServiceError on web. stdout is trimmed before parsing.
+     * `timeout` (default 30s) bounds the child process; pass a larger Duration for long-running commands (e.g. org delete).
+     * `env` overrides/augments the child's environment (merged over `process.env` in childProcess).
+     * `sf ` commands get `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` injected automatically (a caller `env` of the
+     * same key still wins) so every sf consumer gets clean, color-free JSON stdout without repeating the flags. */
+    const simpleExec = Effect.fn('TerminalService.simpleExec')(function* <A>({
+      command,
+      parse,
+      timeout = Duration.millis(30_000),
+      env
+    }: {
+      command: string;
+      parse: (stdout: string) => A;
+      timeout?: Duration.DurationInput;
+      env?: Record<string, string>;
+    }) {
+      // FORCE_COLOR=0 strips the ANSI escapes sf wraps JSON in (else JSON.parse breaks); SF_JSON_TO_STDOUT keeps
+      // the payload on stdout. Caller env merges on top so an explicit override still wins.
+      const sfEnv = command.startsWith('sf ') ? { SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' } : undefined;
+      const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
+      yield* Effect.annotateCurrentSpan('command', command);
+      // annotate which env keys were set (keys only — never values, to avoid leaking secrets)
+      if (mergedEnv) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        return yield* Effect.fail(new TerminalServiceError({ message: 'Not available on web', command }));
+      }
+      const result = yield* Effect.tryPromise({
+        // signal is the runtime AbortSignal; threading it into exec lets a fiber interrupt kill the child
+        try: signal => childProcess.exec(command, { timeout: Duration.toMillis(timeout), signal, env: mergedEnv }),
+        // node's exec rejection appends stderr to `.message` but NOT stdout. `sf --json` writes its
+        // structured error payload to stdout (SF_JSON_TO_STDOUT), so fold stdout in too — else callers
+        // inspecting the failure (e.g. port-conflict detection) never see the JSON error text.
+        catch: e => new TerminalServiceError({ message: execErrorMessage(e), command })
+      });
+      return parse(result.stdout.trim());
+    });
     return {
-      /** Execute a shell command and parse its stdout. Desktop-only; fails with TerminalServiceError on web. stdout is trimmed before parsing.
-       * `timeout` (default 30s) bounds the child process; pass a larger Duration for long-running commands (e.g. org delete).
-       * `env` overrides/augments the child's environment (merged over `process.env` in childProcess).
-       * `sf ` commands get `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` injected automatically (a caller `env` of the
-       * same key still wins) so every sf consumer gets clean, color-free JSON stdout without repeating the flags. */
-      simpleExec: Effect.fn('TerminalService.simpleExec')(function* <A>({
-        command,
-        parse,
-        timeout = Duration.millis(30_000),
-        env
-      }: {
-        command: string;
-        parse: (stdout: string) => A;
-        timeout?: Duration.DurationInput;
-        env?: Record<string, string>;
-      }) {
-        // FORCE_COLOR=0 strips the ANSI escapes sf wraps JSON in (else JSON.parse breaks); SF_JSON_TO_STDOUT keeps
-        // the payload on stdout. Caller env merges on top so an explicit override still wins.
-        const sfEnv = command.startsWith('sf ') ? { SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' } : undefined;
-        const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
-        yield* Effect.annotateCurrentSpan('command', command);
-        // annotate which env keys were set (keys only — never values, to avoid leaking secrets)
-        if (mergedEnv) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
-        if (process.env.ESBUILD_PLATFORM === 'web') {
-          return yield* Effect.fail(new TerminalServiceError({ message: 'Not available on web', command }));
-        }
-        const result = yield* Effect.tryPromise({
-          // signal is the runtime AbortSignal; threading it into exec lets a fiber interrupt kill the child
-          try: signal => childProcess.exec(command, { timeout: Duration.toMillis(timeout), signal, env: mergedEnv }),
-          // node's exec rejection appends stderr to `.message` but NOT stdout. `sf --json` writes its
-          // structured error payload to stdout (SF_JSON_TO_STDOUT), so fold stdout in too — else callers
-          // inspecting the failure (e.g. port-conflict detection) never see the JSON error text.
-          catch: e => new TerminalServiceError({ message: execErrorMessage(e), command })
-        });
-        return parse(result.stdout.trim());
-      })
+      simpleExec,
+      /** True when the `sf` CLI is on PATH (`sf --version` exits 0), false otherwise. CLI-absence is a
+       * normal outcome here, so the TerminalServiceError is intentionally caught into `false` — the one
+       * catch this service does, not a swallowed failure. */
+      isCliInstalled: simpleExec({ command: 'sf --version', parse: () => true }).pipe(
+        Effect.catchTag('TerminalServiceError', () => Effect.succeed(false))
+      )
     };
   })
 }) {}
