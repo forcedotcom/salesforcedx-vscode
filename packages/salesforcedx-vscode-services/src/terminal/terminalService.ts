@@ -15,6 +15,17 @@ export class TerminalServiceError extends Schema.TaggedError<TerminalServiceErro
   command: Schema.String
 }) {}
 
+/** node's `exec` rejection (ExecException) carries `.stdout`/`.stderr`. Its `.message` already appends
+ * stderr, but never stdout — `sf --json` puts its error payload on stdout, so fold any stdout not already
+ * present into the message so failure-inspecting callers see the full output. */
+const hasStringStdout = (e: Error): e is Error & { stdout: string } => 'stdout' in e && typeof e.stdout === 'string';
+
+const execErrorMessage = (e: unknown): string => {
+  if (!(e instanceof Error)) return 'exec failed';
+  const trimmedStdout = hasStringStdout(e) ? e.stdout.trim() : '';
+  return trimmedStdout && !e.message.includes(trimmedStdout) ? `${e.message}\n${trimmedStdout}` : e.message;
+};
+
 export class TerminalService extends Effect.Service<TerminalService>()('TerminalService', {
   accessors: false,
   dependencies: [ChildProcess.Default],
@@ -50,7 +61,10 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
         const result = yield* Effect.tryPromise({
           // signal is the runtime AbortSignal; threading it into exec lets a fiber interrupt kill the child
           try: signal => childProcess.exec(command, { timeout: Duration.toMillis(timeout), signal, env: mergedEnv }),
-          catch: e => new TerminalServiceError({ message: e instanceof Error ? e.message : 'exec failed', command })
+          // node's exec rejection appends stderr to `.message` but NOT stdout. `sf --json` writes its
+          // structured error payload to stdout (SF_JSON_TO_STDOUT), so fold stdout in too — else callers
+          // inspecting the failure (e.g. port-conflict detection) never see the JSON error text.
+          catch: e => new TerminalServiceError({ message: execErrorMessage(e), command })
         });
         return parse(result.stdout.trim());
       })
