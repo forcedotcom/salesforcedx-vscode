@@ -192,18 +192,16 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
       await getTestController().openOrgOnlyTest(test);
     }
   );
-  const hideLocalTestsCmd = vscode.commands.registerCommand('sf.apex.test.hideLocalTests', async () => {
-    await getTestController().toggleLocalVisibility();
-  });
-  const showLocalTestsCmd = vscode.commands.registerCommand('sf.apex.test.showLocalTests', async () => {
-    await getTestController().toggleLocalVisibility();
-  });
-  const hideOrgTestsCmd = vscode.commands.registerCommand('sf.apex.test.hideOrgTests', async () => {
-    await getTestController().toggleOrgVisibility();
-  });
-  const showOrgTestsCmd = vscode.commands.registerCommand('sf.apex.test.showOrgTests', async () => {
-    await getTestController().toggleOrgVisibility();
-  });
+  const toggleLocalVisibilityCommands = vscode.Disposable.from(
+    ...['sf.apex.test.hideLocalTests', 'sf.apex.test.showLocalTests'].map(id =>
+      vscode.commands.registerCommand(id, () => getTestController().toggleLocalVisibility())
+    )
+  );
+  const toggleOrgVisibilityCommands = vscode.Disposable.from(
+    ...['sf.apex.test.hideOrgTests', 'sf.apex.test.showOrgTests'].map(id =>
+      vscode.commands.registerCommand(id, () => getTestController().toggleOrgVisibility())
+    )
+  );
   const apexTestRefreshCmd = vscode.commands.registerCommand('sf.apex.test.refresh', async () => {
     await getTestController().refresh();
   });
@@ -227,10 +225,8 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
     apexDebugMethodRunDelegateCmd,
     retrieveOrgOnlyClassCmd,
     openOrgOnlyTestCmd,
-    hideLocalTestsCmd,
-    showLocalTestsCmd,
-    hideOrgTestsCmd,
-    showOrgTestsCmd,
+    toggleLocalVisibilityCommands,
+    toggleOrgVisibilityCommands,
     apexTestRefreshCmd,
     apexTestClearResultsCmd,
     apexTestingWalkthroughOpenCmd

@@ -10,6 +10,7 @@ import * as path from 'node:path';
 
 import { expect, type Locator } from '@playwright/test';
 import {
+  closeAllEditors,
   createAndDeployApexTestClass,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -67,15 +68,12 @@ const treeRow = (panel: Locator, name: string): Locator =>
     await test.step('delete one class from local source so it becomes org-only', async () => {
       await fs.rm(orgOnlyClsPath, { force: true });
       await fs.rm(`${orgOnlyClsPath}-meta.xml`, { force: true });
-      await expect(async () => {
-        await expect(fs.access(orgOnlyClsPath)).rejects.toThrow();
-      }).toPass({ timeout: 10_000 });
       await saveScreenshot(page, 'toggle-visibility.org-only-source-removed.png');
     });
 
     let panel: Locator;
     await test.step('discover both classes in the Test Explorer', async () => {
-      await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+      await closeAllEditors(page);
       panel = await openTestExplorerAndDiscover(page);
       await expect(treeRow(panel, localClassName).first()).toBeVisible({ timeout: 60_000 });
       await expect(treeRow(panel, orgOnlyClassName).first()).toBeVisible({ timeout: 60_000 });
