@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as vscode from 'vscode';
+import * as isvContext from '../../src/context/isvContext';
+import { activateEffect } from '../../src/index';
+import * as coreExtensionUtils from '../../src/utils/coreExtensionUtils';
+
+jest.mock('../../src/utils/coreExtensionUtils', () => ({
+  ...jest.requireActual('../../src/utils/coreExtensionUtils'),
+  // getSfCommandletExecutorClass() runs at debuggerStop.ts import time and needs the core extension;
+  // return a dummy base class so index.ts loads without a live core extension.
+  getSfCommandletExecutorClass: jest.fn(() => class {}),
+  getTelemetryService: jest.fn()
+}));
+
+// stub api.services.TerminalService: yielding it gives an object whose `isCliInstalled` yields the boolean —
+// matches the accessors:false resolve-then-call pattern the activation uses.
+const extensionProviderLayer = (isCliInstalled: boolean) =>
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({
+      services: { TerminalService: Effect.succeed({ isCliInstalled: Effect.succeed(isCliInstalled) }) }
+    })
+  } as any);
+
+const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
+
+const runActivate = (isCliInstalled: boolean) =>
+  Effect.runPromise(activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer(isCliInstalled))));
+
+describe('activateEffect ISV setup gate', () => {
+  let registerSpy: jest.SpyInstance;
+  let setupSpy: jest.SpyInstance;
+  let warnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    registerSpy = jest.spyOn(isvContext, 'registerIsvAuthWatcher').mockImplementation(() => undefined);
+    setupSpy = jest.spyOn(isvContext, 'setupGlobalDefaultUserIsvAuth').mockResolvedValue(undefined);
+    // resetMocks:true wipes the jest.mock factory impl each test — re-arm the telemetry stub
+    (coreExtensionUtils.getTelemetryService as jest.Mock).mockResolvedValue({
+      initializeService: jest.fn(() => Promise.resolve())
+    });
+    warnSpy = (vscode.window.showWarningMessage as jest.Mock).mockClear();
+    // registerCommands/registerDebugHandlers touch vscode.debug (absent from the shared mock) and
+    // Disposable.from; stub just enough for the Effect.sync registration block to run.
+    (vscode as any).debug = {
+      onDidReceiveDebugSessionCustomEvent: jest.fn(),
+      onDidStartDebugSession: jest.fn(),
+      registerDebugConfigurationProvider: jest.fn()
+    };
+    (vscode.Disposable as any).from = jest.fn();
+    (vscode.workspace.createFileSystemWatcher as jest.Mock).mockReturnValue({
+      onDidChange: jest.fn(),
+      onDidCreate: jest.fn(),
+      onDidDelete: jest.fn()
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('runs ISV setup when the CLI is installed', async () => {
+    await runActivate(true);
+    expect(registerSpy).toHaveBeenCalledWith(extensionContext);
+    expect(setupSpy).toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('skips ISV setup when the CLI is not installed', async () => {
+    await runActivate(false);
+    expect(registerSpy).not.toHaveBeenCalled();
+    expect(setupSpy).not.toHaveBeenCalled();
+  });
+
+  it('catches a rejecting setup (warning shown, fiber succeeds)', async () => {
+    setupSpy.mockRejectedValue(new Error('boom'));
+    await expect(runActivate(true)).resolves.not.toThrow();
+    expect(warnSpy).toHaveBeenCalled();
+  });
+});
