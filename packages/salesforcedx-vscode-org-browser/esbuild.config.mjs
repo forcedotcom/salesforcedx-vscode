@@ -10,10 +10,13 @@ import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 import { writeFile } from 'fs/promises';
 
 // local override: force esbuild to resolve effect's ESM build so unused
-// submodules (e.g. fast-check via Schema) tree-shake out. output stays CJS.
+// submodules (e.g. fast-check via Schema) tree-shake out.
+// output format (cjs) comes from nodeConfig/commonConfigBrowser, not here.
+const effectEsmOverride = { conditions: ['import', 'module', 'default'] };
+
 const nodeBuild = await build({
   ...nodeConfig,
-  conditions: ['import'],
+  ...effectEsmOverride,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [...(nodeConfig.plugins ?? [])],
@@ -23,7 +26,7 @@ const nodeBuild = await build({
 // Browser build (browser environment)
 const browserBuild = await build({
   ...commonConfigBrowser,
-  conditions: ['import'],
+  ...effectEsmOverride,
   external: ['vscode'],
   entryPoints: ['./out/src/index.js'],
   outdir: './dist/web',
