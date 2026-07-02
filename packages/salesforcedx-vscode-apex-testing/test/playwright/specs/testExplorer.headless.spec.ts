@@ -129,6 +129,11 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.class-run-done.png');
+
+    // Selecting the Apex Testing output channel above swaps the bottom panel away from Test Results;
+    // restore it so the following single-method step's Pass Rate assertion resolves (it lives in the
+    // Test Results panel) instead of hanging to TEST_RUN_TIMEOUT.
+    await page.locator(TEST_RESULTS_TAB).click();
   });
 
   await test.step('run a single test method via Test Explorer tree-item action', async () => {
