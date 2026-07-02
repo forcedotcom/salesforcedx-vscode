@@ -62,6 +62,15 @@ const selectSuiteInQuickPick = async (
     quickInputTimeout: 15_000,
     optionTimeout: options?.waitForListRowMs
   });
+  // Confirm the pick: the synthetic DOM click that selectQuickInputOptionByTyping fires only
+  // highlights the row on slower runners (ubuntu/windows) without accepting it, leaving the picker
+  // open so the command never runs and the output channel stays empty until TEST_RUN_TIMEOUT.
+  // Only press Enter if the picker is still on the suite prompt (input still holds the typed name);
+  // if the click already accepted and advanced to a follow-up prompt, do not fire a stray Enter.
+  const suiteInput = page.locator(`${QUICK_INPUT_WIDGET} input.input`);
+  if ((await suiteInput.inputValue().catch(() => '')) === testSuiteName) {
+    await page.keyboard.press('Enter');
+  }
 };
 
 /** Select a test class in a quick pick (type to filter, click row to select, then Enter). */
