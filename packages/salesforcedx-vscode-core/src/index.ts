@@ -27,7 +27,6 @@ import { WorkspaceContext, workspaceContextUtils } from './context';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { SalesforceProjectConfig } from './salesforceProject/salesforceProjectConfig';
 import { setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
@@ -65,7 +64,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     services: {
       RegistryAccess,
       ChannelService,
-      SalesforceProjectConfig,
       TelemetryService,
       WorkspaceContext,
       CommandEventDispatcher
@@ -218,7 +216,6 @@ export type SalesforceVSCodeCoreApi = {
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
-    SalesforceProjectConfig: typeof SalesforceProjectConfig;
     TelemetryService: typeof TelemetryService;
     WorkspaceContext: typeof WorkspaceContext;
     CommandEventDispatcher: typeof CommandEventDispatcher;
