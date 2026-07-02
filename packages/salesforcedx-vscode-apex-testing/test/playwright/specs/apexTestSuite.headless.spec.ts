@@ -216,9 +216,20 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
     await saveScreenshot(page, 'step.verify-remove-tree.after-discover.png');
     await expandApexTestSuite(panel, testSuiteName);
     // Suite children are lazy-loaded from the org after expand — poll until testClassName1 appears
+    // AND testClassName2 is gone (both must be true; checking only presence lets the poll pass
+    // while testClassName2 is still present due to eventual-consistency lag in the org).
     await expect
-      .poll(() => getSuiteChildrenText(panel, testSuiteName), { timeout: 30_000 })
-      .toEqual(expect.arrayContaining([expect.stringContaining(testClassName1)]));
+      .poll(
+        async () => {
+          const children = await getSuiteChildrenText(panel, testSuiteName);
+          return {
+            hasClass1: children.some(t => t.includes(testClassName1)),
+            hasClass2: children.some(t => t.includes(testClassName2))
+          };
+        },
+        { timeout: 30_000 }
+      )
+      .toEqual({ hasClass1: true, hasClass2: false });
     const suiteChildren = await getSuiteChildrenText(panel, testSuiteName);
     expect(suiteChildren.some(t => t.includes(testClassName2))).toBe(false);
     await saveScreenshot(page, 'step.verify-remove-tree.done.png');

@@ -165,11 +165,13 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
     return { suitename, toAdd: [], toRemove: allMembershipIds };
   }
 
-  // Diff: newly checked → add, unchecked → remove
-  const selectedClassIds = new Set(selection.map(item => item.description));
+  // Diff: newly checked → add, unchecked → remove.
+  // Key on fullClassName/label (unique per class), NOT description (namespace prefix — empty for all local classes,
+  // which would make every class appear "selected" and prevent any removals).
+  const selectedClassNames = new Set(selection.map(item => item.fullClassName ?? item.label));
   const toAdd = selection.filter(item => !item.membershipId).map(item => item.fullClassName ?? item.label);
   const toRemove = editableItems
-    .filter(item => item.membershipId && !selectedClassIds.has(item.description))
+    .filter(item => item.membershipId && !selectedClassNames.has(item.fullClassName ?? item.label))
     .map(item => item.membershipId!);
 
   return { suitename, toAdd, toRemove };
