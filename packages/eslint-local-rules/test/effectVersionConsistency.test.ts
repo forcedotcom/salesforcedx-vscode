@@ -29,9 +29,13 @@ const readJson = (relative: string): PackageJson =>
 
 describe('effect version consistency', () => {
   it('declares one effect spec across all workspace packages', () => {
-    const offenders = globSync('packages/*/package.json', { cwd: REPO_ROOT })
-      .map(file => ({ file, spec: (pkg => pkg.dependencies?.effect ?? pkg.devDependencies?.effect)(readJson(file)) }))
-      .filter((entry): entry is { file: string; spec: string } => entry.spec !== undefined);
+    const offenders = globSync('packages/*/package.json', { cwd: REPO_ROOT }).flatMap(file => {
+      const pkg = readJson(file);
+      // collect both blocks so a deps/devDeps skew within one package is not masked
+      return [pkg.dependencies?.effect, pkg.devDependencies?.effect]
+        .filter((spec): spec is string => spec !== undefined)
+        .map(spec => ({ file, spec }));
+    });
 
     // on failure jest prints every offending file:spec so the skew is obvious
     const byFile = offenders.map(entry => `${entry.file}: ${entry.spec}`);
