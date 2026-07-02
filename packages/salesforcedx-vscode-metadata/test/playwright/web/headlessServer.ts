@@ -11,7 +11,7 @@ if (require.main === module) {
   void createHeadlessServer({
     extensionName: 'Metadata',
     callerDirname: __dirname,
-    additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
+    additionalExtensionDirs: ['salesforcedx-vscode-apex-log', 'salesforcedx-vscode-lwc']
   });
   setupSignalHandlers();
 }

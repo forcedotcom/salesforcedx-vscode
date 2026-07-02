@@ -194,6 +194,7 @@
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
+        "../salesforcedx-vscode-lwc:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -218,6 +219,7 @@
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-lwc:vscode:package:legacy",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -262,6 +264,7 @@
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex-log:vscode:package",
+        "../salesforcedx-vscode-lwc:vscode:package:legacy",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
