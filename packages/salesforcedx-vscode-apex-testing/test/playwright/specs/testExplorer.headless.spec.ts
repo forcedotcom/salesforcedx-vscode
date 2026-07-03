@@ -129,11 +129,6 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.class-run-done.png');
-
-    // Selecting the Apex Testing output channel above swaps the bottom panel away from Test Results;
-    // restore it so the following single-method step's Pass Rate assertion resolves (it lives in the
-    // Test Results panel) instead of hanging to TEST_RUN_TIMEOUT.
-    await page.locator(TEST_RESULTS_TAB).click();
   });
 
   await test.step('run a single test method via Test Explorer tree-item action', async () => {
@@ -142,14 +137,26 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await classRow.locator('.monaco-tl-twistie').click({ force: true });
     const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
+
+    // Gate on the Apex Testing output channel: the Test Results panel renders the single-method run as a
+    // tree item ("shouldDiscoverThisTest" + a "‹" breadcrumb suffix), so the dotted "Class.method" string
+    // only appears in the transient markdown report region, which doesn't reliably render on ubuntu/windows.
+    // The output channel carries the durable "Class.method" + completion sentinel. Clear it first so the
+    // assertions can't match the prior class run's output.
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+
     await clickTreeItemAction(methodRow, 'Run Test');
     await saveScreenshot(page, 'step.method-run-action-clicked.png');
 
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
-    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
-    await expect(page.getByText(`${testClassName}.shouldDiscoverThisTest`).first()).toBeVisible({
+    await selectOutputChannel(page, 'Apex Testing');
+    await waitForOutputChannelText(page, {
+      expectedText: `${testClassName}.shouldDiscoverThisTest`,
       timeout: TEST_RUN_TIMEOUT
     });
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
     await saveScreenshot(page, 'step.method-run-done.png');
   });
 
