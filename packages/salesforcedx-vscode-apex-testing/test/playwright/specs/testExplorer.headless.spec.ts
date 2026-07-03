@@ -138,11 +138,12 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
 
-    // Gate on the Apex Testing output channel: the Test Results panel renders the single-method run as a
-    // tree item ("shouldDiscoverThisTest" + a "‹" breadcrumb suffix), so the dotted "Class.method" string
-    // only appears in the transient markdown report region, which doesn't reliably render on ubuntu/windows.
-    // The output channel carries the durable "Class.method" + completion sentinel. Clear it first so the
-    // assertions can't match the prior class run's output.
+    // Gate on the completion sentinel only. The Explorer run path (ApexTestExecutionService) writes the
+    // HumanReporter detail — including the dotted "Class.method" line — to the TestRun output
+    // (run.appendOutput, Test Results panel), NOT to the Apex Testing channel; only "Ended SFDX: Run Apex
+    // Tests" reaches the channel. So the dotted string never appears in the channel on this path (unlike the
+    // command path used by Re-Run Last Method below). Clear the channel first so the sentinel can't match the
+    // prior class run, then verify the specific method ran via its durable "Passed" tree-item decoration.
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await clearOutputChannel(page);
@@ -152,11 +153,10 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
 
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForOutputChannelText(page, {
-      expectedText: `${testClassName}.shouldDiscoverThisTest`,
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
+    await expect(findTestExplorerItem(page, 'shouldDiscoverThisTest')).toHaveAttribute('aria-label', /Passed/i, {
       timeout: TEST_RUN_TIMEOUT
     });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
     await saveScreenshot(page, 'step.method-run-done.png');
   });
 
