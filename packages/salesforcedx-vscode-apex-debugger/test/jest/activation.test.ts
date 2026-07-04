@@ -21,12 +21,22 @@ jest.mock('../../src/utils/coreExtensionUtils', () => ({
   getTelemetryService: jest.fn()
 }));
 
-// stub api.services.TerminalService: yielding it gives an object whose `isCliInstalled` yields the boolean —
-// matches the accessors:false resolve-then-call pattern the activation uses.
+// stub api.services.TerminalService: yielding it gives an object whose `simpleExec` (for `sf --version`)
+// succeeds when the CLI is installed and fails with TerminalServiceError when absent — the activation's
+// own catchTag folds that failure into the false branch. Matches the accessors:false resolve-then-call pattern.
 const extensionProviderLayer = (isCliInstalled: boolean) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
-      services: { TerminalService: Effect.succeed({ isCliInstalled: Effect.succeed(isCliInstalled) }) }
+      services: {
+        TerminalService: Effect.succeed({
+          // catchTag in the activation matches on `_tag`, so a tagged failure object is enough (the real
+          // TerminalServiceError is a type-only export of the services barrel).
+          simpleExec: () =>
+            isCliInstalled
+              ? Effect.succeed(true)
+              : Effect.fail({ _tag: 'TerminalServiceError', message: 'command not found: sf', command: 'sf --version' })
+        })
+      }
     })
   } as unknown as ExtensionProviderService);
 

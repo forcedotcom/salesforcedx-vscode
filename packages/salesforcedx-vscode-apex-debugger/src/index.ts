@@ -265,7 +265,12 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const terminalService = yield* api.services.TerminalService;
-  if (yield* terminalService.isCliInstalled) {
+  // `sf` CLI present? (`sf --version` exits 0). CLI-absence is a normal outcome here, so the
+  // TerminalServiceError is intentionally caught into `false` — skip ISV setup, don't fail activation.
+  const isCliInstalled = yield* terminalService
+    .simpleExec({ command: 'sf --version', parse: () => true })
+    .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed(false)));
+  if (isCliInstalled) {
     yield* Effect.log('Setting up ISV Debugger environment variables');
     // register watcher for ISV authentication and setup default user for CLI
     // this is done in core because it shares access to GlobalCliEnvironment with the commands

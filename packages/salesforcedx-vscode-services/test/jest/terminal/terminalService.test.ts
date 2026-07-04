@@ -193,25 +193,3 @@ describe('TerminalService.simpleExec', () => {
     expect(error.command).toBe('sf foo');
   });
 });
-
-describe('TerminalService.isCliInstalled', () => {
-  beforeEach(() => {
-    delete process.env.ESBUILD_PLATFORM;
-  });
-
-  it('is true when `sf --version` exits 0', async () => {
-    const exec = (): Promise<ExecResult> => Promise.resolve({ stdout: '@salesforce/cli/2.0.0', stderr: '' });
-
-    const result = await run(TerminalService.pipe(Effect.flatMap(terminal => terminal.isCliInstalled)), withExec(exec));
-
-    expect(result).toBe(true);
-  });
-
-  it('is false when exec rejects (CLI absent → TerminalServiceError caught)', async () => {
-    const exec = (): Promise<ExecResult> => Promise.reject(new Error('command not found: sf'));
-
-    const result = await run(TerminalService.pipe(Effect.flatMap(terminal => terminal.isCliInstalled)), withExec(exec));
-
-    expect(result).toBe(false);
-  });
-});

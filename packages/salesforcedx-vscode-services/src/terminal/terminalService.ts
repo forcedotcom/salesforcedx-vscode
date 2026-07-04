@@ -67,14 +67,6 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       });
       return parse(result.stdout.trim());
     });
-    return {
-      simpleExec,
-      /** True when the `sf` CLI is on PATH (`sf --version` exits 0), false otherwise. CLI-absence is a
-       * normal outcome here, so the TerminalServiceError is intentionally caught into `false` — the one
-       * catch this service does, not a swallowed failure. */
-      isCliInstalled: simpleExec({ command: 'sf --version', parse: () => true }).pipe(
-        Effect.catchTag('TerminalServiceError', () => Effect.succeed(false))
-      )
-    };
+    return { simpleExec };
   })
 }) {}
