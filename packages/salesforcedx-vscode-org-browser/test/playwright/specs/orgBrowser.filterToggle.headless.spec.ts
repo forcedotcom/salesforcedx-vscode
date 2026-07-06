@@ -139,10 +139,10 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     const showLocalButton = page.locator('[aria-label="Show Local Types"]');
     await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
 
-    // showLocal OFF hides types with local files, showing only org-only types
+    // showLocal OFF + showOrg ON (default) = orgOnly mode: root shows all types, child-level filters org-only components
     const filteredItems = page.locator('[role="treeitem"][aria-level="1"]');
     const filteredCount = await filteredItems.count();
-    expect(filteredCount).toBeLessThanOrEqual(allItemsCount);
+    expect(filteredCount).toBe(allItemsCount);
   });
 
   await test.step('toggle showOrg OFF independently', async () => {
@@ -151,6 +151,11 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     await hideOrgButton.click();
     const showOrgButton = page.locator('[aria-label="Show Org Types"]');
     await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
+
+    // With both OFF, tree shows everything again (same as both ON)
+    const bothOffItems = page.locator('[role="treeitem"][aria-level="1"]');
+    const bothOffCount = await bothOffItems.count();
+    expect(bothOffCount).toBe(allItemsCount);
   });
 
   await test.step('toggle showLocal back ON without affecting showOrg', async () => {
@@ -165,7 +170,7 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
   });
 });
 
-test('Org Browser - filter toggles: showLocal OFF hides types with local files', async ({ page }) => {
+test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -177,7 +182,7 @@ test('Org Browser - filter toggles: showLocal OFF hides types with local files',
     return await items.count();
   });
 
-  await test.step('toggle showLocal OFF', async () => {
+  await test.step('toggle showLocal OFF to enter orgOnly mode', async () => {
     const hideLocalButton = page.locator('[aria-label="Hide Local Types"]');
     await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
     await hideLocalButton.click();
@@ -185,17 +190,17 @@ test('Org Browser - filter toggles: showLocal OFF hides types with local files',
     await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
   });
 
-  await test.step('verify filtered count is smaller', async () => {
-    // Wait for tree to stabilize after filter change
+  await test.step('verify all types still visible at root level', async () => {
+    // orgOnly mode: root shows all types (they all exist in org), child-level filters to org-only components
     const items = page.locator('[role="treeitem"][aria-level="1"]');
-    await expect(items).not.toHaveCount(beforeCount, { timeout: 10_000 });
     const afterCount = await items.count();
-    // Dreamhouse has local files for some types; showLocal OFF hides those, so count decreases
-    expect(afterCount).toBeLessThan(beforeCount);
+    expect(afterCount).toBe(beforeCount);
   });
 });
 
-test('Org Browser - filter toggles: showOrg OFF hides types not in local project', async ({ page }) => {
+test('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only types in local project', async ({
+  page
+}) => {
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -211,7 +216,7 @@ test('Org Browser - filter toggles: showOrg OFF hides types not in local project
     await orgBrowserPage.expandFolder('ApexClass');
   });
 
-  await test.step('toggle showOrg OFF', async () => {
+  await test.step('toggle showOrg OFF to enter localOnly mode', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]');
     await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
     await hideOrgButton.click();
@@ -224,7 +229,7 @@ test('Org Browser - filter toggles: showOrg OFF hides types not in local project
     const items = page.locator('[role="treeitem"][aria-level="1"]');
     await expect(items).not.toHaveCount(beforeCount, { timeout: 10_000 });
     const afterCount = await items.count();
-    // showOrg OFF hides org-only types, should be fewer
+    // localOnly mode (showLocal ON + showOrg OFF): shows only types with local files
     expect(afterCount).toBeLessThan(beforeCount);
   });
 });

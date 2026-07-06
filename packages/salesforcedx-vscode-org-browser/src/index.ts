@@ -16,6 +16,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
+import { nls } from './messages';
 import {
   AllServicesLayer,
   buildAllServicesLayer,
@@ -59,11 +60,14 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   if (legacyViewMode !== undefined) {
     const migratedShowLocal = legacyViewMode !== 'orgOnly';
     const migratedShowOrg = legacyViewMode !== 'localOnly';
-    yield* Effect.all([
-      Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', migratedShowLocal)),
-      Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', migratedShowOrg)),
-      Effect.promise(() => context.workspaceState.update('orgBrowser.viewMode', undefined))
-    ], { concurrency: 'unbounded' });
+    yield* Effect.all(
+      [
+        Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', migratedShowLocal)),
+        Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', migratedShowOrg)),
+        Effect.promise(() => context.workspaceState.update('orgBrowser.viewMode', undefined))
+      ],
+      { concurrency: 'unbounded' }
+    );
   }
 
   // Read persisted filter state
@@ -73,11 +77,14 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   treeProvider.setShowOrg(showOrg);
 
   // Set initial context keys
-  yield* Effect.all([
-    Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', showLocal)),
-    Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', showOrg)),
-    Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', false))
-  ], { concurrency: 'unbounded' });
+  yield* Effect.all(
+    [
+      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', showLocal)),
+      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', showOrg)),
+      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', false))
+    ],
+    { concurrency: 'unbounded' }
+  );
 
   const registerCommand = api.services.registerCommandWithRuntime(getOrgBrowserRuntime());
 
@@ -104,39 +111,54 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       ),
       registerCommand(`${TREE_VIEW_ID}.showLocal.on`, () =>
         Effect.gen(function* () {
-          yield* Effect.all([
-            Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', true)),
-            Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', true))
-          ], { concurrency: 'unbounded' });
+          yield* Effect.all(
+            [
+              Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', true)),
+              Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', true))
+            ],
+            { concurrency: 'unbounded' }
+          );
           treeProvider.setShowLocal(true);
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.showLocal.off`, () =>
         Effect.gen(function* () {
-          yield* Effect.all([
-            Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', false)),
-            Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', false))
-          ], { concurrency: 'unbounded' });
+          yield* Effect.all(
+            [
+              Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', false)),
+              Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', false))
+            ],
+            { concurrency: 'unbounded' }
+          );
           treeProvider.setShowLocal(false);
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.showOrg.on`, () =>
         Effect.gen(function* () {
-          yield* Effect.all([
-            Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', true)),
-            Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', true))
-          ], { concurrency: 'unbounded' });
+          yield* Effect.all(
+            [
+              Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', true)),
+              Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', true))
+            ],
+            { concurrency: 'unbounded' }
+          );
           treeProvider.setShowOrg(true);
         })
       ),
       registerCommand(`${TREE_VIEW_ID}.showOrg.off`, () =>
         Effect.gen(function* () {
-          yield* Effect.all([
-            Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', false)),
-            Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', false))
-          ], { concurrency: 'unbounded' });
+          yield* Effect.all(
+            [
+              Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', false)),
+              Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', false))
+            ],
+            { concurrency: 'unbounded' }
+          );
           treeProvider.setShowOrg(false);
         })
+      ),
+      registerCommand(`${TREE_VIEW_ID}.toggleOrgFilterNoData`, () =>
+        Effect.promise(() => vscode.window.showInformationMessage(nls.localize('org_filter_no_data')))
       )
     ],
     { concurrency: 'unbounded' }

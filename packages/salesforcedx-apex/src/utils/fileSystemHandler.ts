@@ -14,6 +14,7 @@ import * as path from 'node:path';
  *
  * @param filePath path where to
  * @param fileContent file contents
+ * @internal
  */
 export function createFile(filePath: string, fileContent: AnyJson): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });

@@ -10,6 +10,7 @@
   "orgBrowser.command.showLocal.off": "Hide Local Types",
   "orgBrowser.command.showOrg.on": "Show Org Types",
   "orgBrowser.command.showOrg.off": "Hide Org Types",
+  "orgBrowser.command.toggleOrgFilterNoData": "Show Org Types (expand a type first)",
   "org_browser_walkthrough_open_command": "Open Org Browser Walkthrough",
   "org_browser_walkthrough_title": "Org Browser",
   "org_browser_walkthrough_description": "Browse and retrieve your org's metadata types and components using the Org Browser.",

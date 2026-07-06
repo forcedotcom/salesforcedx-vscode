@@ -90,6 +90,18 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
   }
 });
 
+const applyViewModeChildFilter = (
+  nodes: OrgBrowserTreeItem[],
+  provider: MetadataTypeTreeProvider
+): OrgBrowserTreeItem[] => {
+  if (provider.showLocal === provider.showOrg) return nodes; // both-on or both-off: no filter
+  if (provider.showLocal && !provider.showOrg) {
+    return nodes.filter(n => n.filePresent === true);
+  }
+  // orgOnly: keep only components without local files
+  return nodes.filter(n => n.filePresent !== true);
+};
+
 const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider: MetadataTypeTreeProvider) =>
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
@@ -103,24 +115,23 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       const types = yield* metadataDescribeService.describe();
       const allNodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
 
-      const needsComponentSet = !provider.showLocal || !provider.showOrg;
-      if (!needsComponentSet) {
+      // Both ON or both OFF = show everything (both-off is a no-op by design)
+      if (provider.showLocal === provider.showOrg) {
         return allNodes;
       }
 
-      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      const localTypeNames = new Set<string>(
-        Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
-      );
-      return allNodes.filter(node => {
-        const hasLocal = localTypeNames.has(node.xmlName);
-        // showLocal controls visibility of types WITH local files
-        // showOrg controls visibility of types WITHOUT local files (org-only)
-        if (hasLocal) {
-          return provider.showLocal;
-        }
-        return provider.showOrg;
-      });
+      // localOnly mode: show only types that have local source files
+      if (provider.showLocal && !provider.showOrg) {
+        const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+        const localTypeNames = new Set<string>(
+          Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
+        );
+        return allNodes.filter(node => localTypeNames.has(node.xmlName));
+      }
+
+      // orgOnly mode: show all types (all types exist in the org by definition)
+      // Child-level filtering will hide components with local files
+      return allNodes;
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
@@ -154,7 +165,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),
             Stream.runCollect,
-            Effect.map(chunk => Array.from(chunk))
+            Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
           )
         )
       );
@@ -173,7 +184,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToFolderItem(projectComponentSet)(element)(c)),
             Stream.runCollect,
-            Effect.map(chunk => Array.from(chunk))
+            Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
           )
         )
       );
