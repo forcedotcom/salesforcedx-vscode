@@ -20,6 +20,36 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserTreeItem | undefined | void> =
     this._onDidChangeTreeData.event;
 
+  private _showLocal = true;
+  private _showOrg = true;
+  private _hasOrgData = false;
+
+  public get showLocal(): boolean {
+    return this._showLocal;
+  }
+
+  public setShowLocal(value: boolean): void {
+    this._showLocal = value;
+    this._onDidChangeTreeData.fire(undefined);
+  }
+
+  public get showOrg(): boolean {
+    return this._showOrg;
+  }
+
+  public setShowOrg(value: boolean): void {
+    this._showOrg = value;
+    this._onDidChangeTreeData.fire(undefined);
+  }
+
+  public get hasOrgData(): boolean {
+    return this._hasOrgData;
+  }
+
+  public setHasOrgData(value: boolean): void {
+    this._hasOrgData = value;
+  }
+
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
   public fireChangeEvent(node?: OrgBrowserTreeItem): void {
     this._onDidChangeTreeData.fire(node);
@@ -38,9 +68,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return element;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   public async getChildren(element?: OrgBrowserTreeItem): Promise<OrgBrowserTreeItem[]> {
-    return await getOrgBrowserRuntime().runPromise(getChildrenOfTreeItem(element));
+    return await getOrgBrowserRuntime().runPromise(getChildrenOfTreeItem(element, this));
   }
 }
 
@@ -59,7 +88,7 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
   }
 });
 
-const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined) =>
+const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider: MetadataTypeTreeProvider) =>
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
@@ -70,7 +99,31 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined) =>
     }
     if (!element) {
       const types = yield* metadataDescribeService.describe();
-      return types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
+      let nodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
+
+      const needsComponentSet = !provider.showLocal || !provider.showOrg;
+      if (needsComponentSet) {
+        const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+        const localTypeNames = new Set<string>();
+        for (const comp of projectComponentSet.getSourceComponents()) {
+          localTypeNames.add(comp.type.name);
+        }
+        nodes = nodes.filter(node => {
+          const isLocal = localTypeNames.has(node.xmlName!);
+          if (!provider.showLocal && !provider.showOrg) {
+            // Both off: intersection — keep only types in both describe AND local
+            return isLocal;
+          }
+          if (!provider.showLocal) {
+            // showLocal OFF: hide types with zero local components (keep only local types)
+            return isLocal;
+          }
+          // showOrg OFF: hide org-only types (keep only types that are local)
+          return isLocal;
+        });
+      }
+
+      return nodes;
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
@@ -94,6 +147,13 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined) =>
     if (element.kind === 'type') {
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
+        Effect.tap(() => {
+          if (!provider.hasOrgData) {
+            provider.setHasOrgData(true);
+            return Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', true));
+          }
+          return Effect.void;
+        }),
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),
