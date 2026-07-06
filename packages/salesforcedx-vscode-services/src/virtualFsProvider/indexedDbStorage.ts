@@ -93,8 +93,8 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
             resume(
               Effect.fail(
                 new VirtualFsProviderError({
-                  message: `Transaction failed with mode "${mode}"`,
-                  ...unknownToErrorCause(request.error)
+                  ...unknownToErrorCause(request.error),
+                  message: `Transaction failed with mode "${mode}"`
                 })
               )
             );
@@ -103,8 +103,8 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
           resume(
             Effect.fail(
               new VirtualFsProviderError({
-                message: `Transaction failed with mode "${mode}"`,
-                ...unknownToErrorCause(error)
+                ...unknownToErrorCause(error),
+                message: `Transaction failed with mode "${mode}"`
               })
             )
           );

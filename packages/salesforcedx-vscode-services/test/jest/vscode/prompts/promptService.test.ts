@@ -44,3 +44,50 @@ describe('PromptService.confirmOrThrow', () => {
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
   });
 });
+
+describe('PromptService.withCancellableProgressReporting', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('surfaces progress + token to the wrapped effect and returns its value', async () => {
+    const tokenSource = new vscode.CancellationTokenSource();
+    // invoke the withProgress callback synchronously with a real progress + the (uncancelled) token
+    jest
+      .spyOn(vscode.window, 'withProgress')
+      .mockImplementation((_opts: any, cb: any) => cb({ report: jest.fn() }, tokenSource.token));
+
+    const exit = await Effect.runPromiseExit(
+      Effect.flatMap(PromptService, svc =>
+        svc.withCancellableProgressReporting('Working')((progress, token) =>
+          Effect.sync(() => {
+            progress.report({ increment: 50 });
+            return token.isCancellationRequested ? 'cancelled' : 'done';
+          })
+        )
+      ).pipe(Effect.provide(PromptService.Default))
+    );
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) expect(exit.value).toBe('done');
+  });
+
+  it('interrupts the wrapped effect and fails with UserCancellationError when the token is cancelled', async () => {
+    const tokenSource = new vscode.CancellationTokenSource();
+    // fire cancel after registering the handler, then resolve the progress promise
+    jest.spyOn(vscode.window, 'withProgress').mockImplementation((_opts: any, cb: any) => {
+      const promise = cb({ report: jest.fn() }, tokenSource.token);
+      tokenSource.cancel();
+      return promise;
+    });
+
+    const exit = await Effect.runPromiseExit(
+      Effect.flatMap(PromptService, svc => svc.withCancellableProgressReporting('Working')(() => Effect.never)).pipe(
+        Effect.provide(PromptService.Default)
+      )
+    );
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+  });
+});

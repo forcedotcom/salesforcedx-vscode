@@ -6,10 +6,12 @@
  */
 
 import * as Chunk from 'effect/Chunk';
+import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
-import * as Fiber from 'effect/Fiber';
+import * as Exit from 'effect/Exit';
 import { isString } from 'effect/Predicate';
+import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
@@ -203,41 +205,53 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           return self.pipe(Effect.ensuring(Effect.sync(resolve)));
         });
 
-    /** Pipeable operator: ties a cancellable vscode progress notification to an Effect.
-     * The progress shows a Cancel button; clicking it interrupts the inner effect and surfaces a
-     * {@link UserCancellationError}. */
+    /** Ties a cancellable vscode progress notification to an Effect built from `(progress, token)`,
+     * surfacing both to the wrapped effect. The progress shows a Cancel button; clicking it (or a real
+     * fiber interrupt) interrupts the effect and surfaces a {@link UserCancellationError}; the notification
+     * closes when the effect settles. `location` defaults to Notification. */
+    const withCancellableProgressReporting =
+      (title: string, location: vscode.ProgressLocation = vscode.ProgressLocation.Notification) =>
+      <A, E, R>(
+        build: (
+          progress: vscode.Progress<{ increment?: number; message?: string }>,
+          token: vscode.CancellationToken
+        ) => Effect.Effect<A, E, R>
+      ) =>
+        Effect.gen(function* () {
+          const runtime = yield* Effect.runtime<R>();
+          const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
+          return yield* Effect.async<A, E | UserCancellationError>((resume, signal) => {
+            // Route real fiber interruption (not just the Cancel button) through the same cancel path so the
+            // in-flight `build` effect is interrupted and the progress notification settles.
+            signal.addEventListener(
+              'abort',
+              () =>
+                void Runtime.runPromise(runtime)(
+                  Deferred.fail(cancelDeferred, new UserCancellationError({ message: 'User cancelled progress' }))
+                )
+            );
+            void vscode.window.withProgress({ location, title, cancellable: true }, async (progress, token) => {
+              token.onCancellationRequested(
+                () =>
+                  void Runtime.runPromise(runtime)(
+                    Deferred.fail(cancelDeferred, new UserCancellationError({ message: 'User cancelled progress' }))
+                  )
+              );
+              const exit = await Runtime.runPromise(runtime)(
+                Effect.exit(Effect.raceFirst(build(progress, token), Deferred.await(cancelDeferred)))
+              );
+              resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+            });
+          });
+        });
+
+    /** Pipeable operator: ties a cancellable vscode progress notification to an Effect that needs no
+     * progress/token. Thin wrapper over {@link withCancellableProgressReporting}. Clicking Cancel
+     * interrupts the inner effect and surfaces a {@link UserCancellationError}. */
     const withCancellableProgress =
       (title: string) =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
-        Effect.suspend(() => {
-          const { promise, resolve } = Promise.withResolvers<void>();
-          const userCancelled = { value: false };
-          return Effect.forkDaemon(self).pipe(
-            Effect.tap(fiber =>
-              Effect.sync(() => {
-                void vscode.window.withProgress(
-                  { location: vscode.ProgressLocation.Notification, title, cancellable: true },
-                  (_progress, token) => {
-                    token.onCancellationRequested(() => {
-                      userCancelled.value = true;
-                      Effect.runFork(Fiber.interrupt(fiber));
-                    });
-                    return promise;
-                  }
-                );
-              })
-            ),
-            Effect.flatMap(fiber => Fiber.join(fiber)),
-            Effect.ensuring(Effect.sync(resolve)),
-            Effect.catchAllCause(cause =>
-              userCancelled.value
-                ? Effect.fail<UserCancellationError | E>(
-                    new UserCancellationError({ message: 'User cancelled progress' })
-                  )
-                : Effect.failCause<UserCancellationError | E>(cause)
-            )
-          );
-        });
+        withCancellableProgressReporting(title)(() => self);
 
     return {
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
@@ -257,7 +271,10 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       withProgress,
       /** Pipeable operator: ties a cancellable vscode progress notification lifetime to an Effect.
        * Clicking Cancel interrupts the inner effect and surfaces a {@link UserCancellationError}. */
-      withCancellableProgress
+      withCancellableProgress,
+      /** Ties a cancellable vscode progress notification to an Effect built from `(progress, token)`,
+       * surfacing both to the wrapped effect. Cancel interrupts and surfaces {@link UserCancellationError}. */
+      withCancellableProgressReporting
     };
   })
 }) {}

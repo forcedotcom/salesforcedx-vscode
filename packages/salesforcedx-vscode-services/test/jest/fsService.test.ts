@@ -5,9 +5,51 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Cause from 'effect/Cause';
+import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import * as Option from 'effect/Option';
+import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { sampleProjectName } from '../../src/constants';
+import { FsService, FsServiceError } from '../../src/vscode/fsService';
 import { toUri } from '../../src/vscode/uriUtils';
+
+const writeAndGetError = async (): Promise<FsServiceError | undefined> => {
+  const exit = await Effect.runPromiseExit(
+    Effect.flatMap(FsService, fs => fs.writeFile('/out/foo.json', 'x')).pipe(Effect.provide(FsService.Default))
+  );
+  if (!Exit.isFailure(exit)) return undefined;
+  return Option.getOrUndefined(Cause.failureOption(exit.cause)) as FsServiceError | undefined;
+};
+
+describe('FsServiceError.message', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('carries the underlying cause message so pretty errors show real text', async () => {
+    jest
+      .spyOn(vscode.workspace.fs, 'writeFile')
+      .mockRejectedValue(new Error('EACCES: permission denied, open /out/foo.json'));
+
+    const err = await writeAndGetError();
+
+    expect(err).toBeInstanceOf(FsServiceError);
+    expect(err?.message).toBe('EACCES: permission denied, open /out/foo.json');
+    expect(err?.message).toBe(err?.cause.message);
+  });
+
+  it('sets message from the cause for a non-Error thrown value', async () => {
+    jest.spyOn(vscode.workspace.fs, 'writeFile').mockRejectedValue('bare string failure');
+
+    const err = await writeAndGetError();
+
+    expect(err).toBeInstanceOf(FsServiceError);
+    expect(err?.message).toBe('bare string failure');
+    expect(err?.cause.message).toBe('bare string failure');
+  });
+});
 
 describe('toUri', () => {
   describe('virtual filesystem URIs (memfs)', () => {
