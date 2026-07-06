@@ -124,7 +124,7 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
   });
 
   const allItemsCount = await test.step('count all tree items', async () => {
-    const items = page.locator('[role="treeitem"][aria-level="1"]');
+    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
     return await items.count();
   });
 
@@ -140,9 +140,8 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
 
     // showLocal OFF + showOrg ON (default) = orgOnly mode: root shows all types, child-level filters org-only components
-    const filteredItems = page.locator('[role="treeitem"][aria-level="1"]');
-    const filteredCount = await filteredItems.count();
-    expect(filteredCount).toBe(allItemsCount);
+    const filteredItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
+    await expect(filteredItems).toHaveCount(allItemsCount, { timeout: 10_000 });
   });
 
   await test.step('toggle showOrg OFF independently', async () => {
@@ -153,9 +152,8 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
 
     // With both OFF, tree shows everything again (same as both ON)
-    const bothOffItems = page.locator('[role="treeitem"][aria-level="1"]');
-    const bothOffCount = await bothOffItems.count();
-    expect(bothOffCount).toBe(allItemsCount);
+    const bothOffItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
+    await expect(bothOffItems).toHaveCount(allItemsCount, { timeout: 10_000 });
   });
 
   await test.step('toggle showLocal back ON without affecting showOrg', async () => {
@@ -178,7 +176,7 @@ test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types
   });
 
   const beforeCount = await test.step('count tree items before filter', async () => {
-    const items = page.locator('[role="treeitem"][aria-level="1"]');
+    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
     return await items.count();
   });
 
@@ -192,9 +190,8 @@ test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types
 
   await test.step('verify all types still visible at root level', async () => {
     // orgOnly mode: root shows all types (they all exist in org), child-level filters to org-only components
-    const items = page.locator('[role="treeitem"][aria-level="1"]');
-    const afterCount = await items.count();
-    expect(afterCount).toBe(beforeCount);
+    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
+    await expect(items).toHaveCount(beforeCount, { timeout: 10_000 });
   });
 });
 
@@ -208,7 +205,7 @@ test('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only type
   });
 
   const beforeCount = await test.step('count tree items before filter', async () => {
-    const items = page.locator('[role="treeitem"][aria-level="1"]');
+    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
     return await items.count();
   });
 
@@ -226,7 +223,7 @@ test('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only type
 
   await test.step('verify only local types remain visible', async () => {
     // Wait for tree to stabilize after filter change
-    const items = page.locator('[role="treeitem"][aria-level="1"]');
+    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
     await expect(items).not.toHaveCount(beforeCount, { timeout: 10_000 });
     const afterCount = await items.count();
     // localOnly mode (showLocal ON + showOrg OFF): shows only types with local files
@@ -249,7 +246,7 @@ test('Org Browser - filter toggles: legacy viewMode migration', async ({ page })
   });
 
   await test.step('verify tree renders metadata types', async () => {
-    const items = page.locator('[role="treeitem"][aria-level="1"]');
+    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
     const count = await items.count();
     expect(count).toBeGreaterThan(0);
   });
