@@ -47,9 +47,12 @@ text so the user can edit or delete it.
   type name (case-insensitive match against the cached type list, or used
   literally if unresolved); items become that type's component names (fetched via
   `treeProvider.getChildren`), narrowed by the substring typed after the colon.
-- If the part before the colon doesn't resolve to any known type, set
-  `quickPick.validationMessage` to indicate the type isn't recognized. The live
-  tree preview still updates (to an empty result, since nothing matches).
+- If the part before the colon doesn't resolve to any known type, the item list is
+  simply empty (no components to suggest) and the live tree preview updates to an
+  empty result. No separate validation message is shown — the empty tree/list is
+  the feedback. (`QuickPick.validationMessage` doesn't exist on this repo's pinned
+  `@types/vscode@1.90.0`, which only has it on `InputBox`; not worth bumping a
+  shared dependency for this.)
 
 **Live tree preview:** debounced 150ms. Below 3 characters (and no colon), the
 type-level filter is not applied — the tree shows all types (matches existing
@@ -174,7 +177,7 @@ modeled on `orgBrowser.filterToggle.headless.spec.ts` (same fixture setup:
   narrowed after the picker closes.
 - Typing `Type:partial` narrows both the picker's suggestion list and the
   expanded type's children to matching component names.
-- An unresolved type name shows a validation message and empties the tree.
+- An unresolved type name (with a colon typed) empties the tree.
 - Escape after typing reverts the tree to its pre-open filter state.
 - Deleting the text and pressing Enter clears the filter (icon reverts to
   unfilled, tree shows everything the showLocal/showOrg toggles alone would show).
