@@ -108,6 +108,7 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
   codeCoverage: boolean = false,
   sortOrder: TestSortOrder = 'runtime'
 ) {
+  yield* Effect.annotateCurrentSpan({ outputFormat: format });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelSvc = yield* api.services.ChannelService;
 

@@ -14,12 +14,14 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import {
-  AccessTokenParamsGatherer,
-  AuthParamsGatherer,
   DEFAULT_ALIAS,
+  gatherAccessTokenParams,
+  gatherAuthParams,
   ScratchOrgLogoutParamsGatherer
 } from '../../../../src/commands/auth/authParamsGatherer';
 import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
+import { nls } from '../../../../src/messages';
+import { runGatherer } from '../../../../src/parameterGatherers/runGatherer';
 import {
   considerUndefinedAsCancellation,
   makeConfirmOrThrow,
@@ -59,8 +61,7 @@ describe('AuthParamsGatherer', () => {
     const instanceUrl = 'https://demo.my.salesforce.com';
 
     it('uses reauthAliasOrUsername for --alias when provided', async () => {
-      const gatherer = new AuthParamsGatherer(instanceUrl, 'demoOrg');
-      const result = await gatherer.gather();
+      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: 'demoOrg' }));
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { alias: 'demoOrg', loginUrl: instanceUrl }
@@ -68,8 +69,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('trims reauthAliasOrUsername', async () => {
-      const gatherer = new AuthParamsGatherer(instanceUrl, '  demoOrg  ');
-      const result = await gatherer.gather();
+      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '  demoOrg  ' }));
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { alias: 'demoOrg', loginUrl: instanceUrl }
@@ -77,8 +77,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is omitted', async () => {
-      const gatherer = new AuthParamsGatherer(instanceUrl);
-      const result = await gatherer.gather();
+      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: undefined }));
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }
@@ -86,8 +85,7 @@ describe('AuthParamsGatherer', () => {
     });
 
     it('falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is blank', async () => {
-      const gatherer = new AuthParamsGatherer(instanceUrl, '   ');
-      const result = await gatherer.gather();
+      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '   ' }));
       expect(result).toEqual({
         type: 'CONTINUE',
         data: { alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }
@@ -106,7 +104,7 @@ describe('AuthParamsGatherer', () => {
         .mockResolvedValueOnce('myAlias')
         .mockResolvedValueOnce(accessToken);
 
-      const result = await new AccessTokenParamsGatherer().gather();
+      const result = await runGatherer(gatherAccessTokenParams());
 
       expect(result).toEqual({ type: 'CONTINUE', data: { alias: 'myAlias', instanceUrl, accessToken } });
     });
@@ -118,7 +116,7 @@ describe('AuthParamsGatherer', () => {
         .mockResolvedValueOnce('')
         .mockResolvedValueOnce(accessToken);
 
-      const result = await new AccessTokenParamsGatherer().gather();
+      const result = await runGatherer(gatherAccessTokenParams());
 
       expect(result).toEqual({ type: 'CONTINUE', data: { alias: DEFAULT_ALIAS, instanceUrl, accessToken } });
     });
@@ -126,7 +124,7 @@ describe('AuthParamsGatherer', () => {
     it('CANCEL when instance URL prompt is dismissed (undefined)', async () => {
       jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
 
-      const result = await new AccessTokenParamsGatherer().gather();
+      const result = await runGatherer(gatherAccessTokenParams());
 
       expect(result).toEqual({ type: 'CANCEL' });
     });
@@ -134,9 +132,30 @@ describe('AuthParamsGatherer', () => {
     it('CANCEL when alias prompt is dismissed (undefined)', async () => {
       jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(instanceUrl).mockResolvedValueOnce(undefined);
 
-      const result = await new AccessTokenParamsGatherer().gather();
+      const result = await runGatherer(gatherAccessTokenParams());
 
       expect(result).toEqual({ type: 'CANCEL' });
+    });
+
+    it('wires validateInput on the instance-url and alias prompts', async () => {
+      const spy = jest
+        .spyOn(vscode.window, 'showInputBox')
+        .mockResolvedValueOnce(instanceUrl)
+        .mockResolvedValueOnce('myAlias')
+        .mockResolvedValueOnce(accessToken);
+
+      await runGatherer(gatherAccessTokenParams());
+
+      // first prompt = instance URL: rejects shell metachars, accepts a valid https url
+      const validateUrl = spy.mock.calls[0][0]?.validateInput?.bind(undefined);
+      expect(validateUrl?.('https://x.com; touch /tmp/pwned')).toBe(nls.localize('auth_invalid_url'));
+      expect(validateUrl?.('https://my.salesforce.com')).toBeUndefined();
+
+      // second prompt = alias: rejects shell metachars, accepts alphanumeric and empty (use default)
+      const validateAlias = spy.mock.calls[1][0]?.validateInput?.bind(undefined);
+      expect(validateAlias?.('bad;alias')).toBe(nls.localize('error_invalid_org_alias'));
+      expect(validateAlias?.('GoodAlias')).toBeUndefined();
+      expect(validateAlias?.('')).toBeUndefined();
     });
   });
 

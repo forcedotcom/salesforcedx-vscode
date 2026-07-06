@@ -5,10 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { configSet } from './configSet';
-export { orgCreate } from './orgCreate';
 export { orgListCleanCommand } from './orgList';
-export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
-export { orgLoginWeb } from './auth/orgLoginWeb';
-export { orgLoginWebDevHub } from './auth/orgLoginWebDevHub';
-export { orgLogoutDefault } from './auth/orgLogout';
+export { orgLoginWebCommand } from './auth/orgLoginWeb';
+export { orgLogoutAllCommand, orgLogoutDefault } from './auth/orgLogout';

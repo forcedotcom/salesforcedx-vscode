@@ -16,22 +16,19 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from './channels';
-import {
-  configSet,
-  orgCreate,
-  orgListCleanCommand,
-  orgLoginAccessToken,
-  orgLoginWeb,
-  orgLoginWebDevHub,
-  orgLogoutDefault
-} from './commands';
-import { orgLogoutAllCommand } from './commands/auth/orgLogout';
+import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefault } from './commands';
+import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
+import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
+import { orgCreateCommand } from './commands/orgCreate';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from './commands/orgDelete';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from './commands/orgDisplay';
 import { orgOpenCommand } from './commands/orgOpen';
 import {
   ORG_DISPLAY_DEFAULT_COMMAND,
   ORG_DISPLAY_USERNAME_COMMAND,
+  ORG_LOGIN_ACCESS_TOKEN_COMMAND,
+  ORG_LOGIN_WEB_COMMAND,
+  ORG_LOGIN_WEB_DEV_HUB,
   ORG_LOGOUT_ALL_COMMAND,
   ORG_OPEN_COMMAND
 } from './constants';
@@ -42,25 +39,15 @@ import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 
 /** Register all org/auth commands */
 const registerCommands = (): vscode.Disposable =>
-  vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.config.set', configSet),
-    vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
-    vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken),
-    vscode.commands.registerCommand('sf.org.create', orgCreate),
-    vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
-    vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault)
-  );
+  vscode.Disposable.from(vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault));
 
 /** Initialize org picker and org status bar */
 const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkIn(createOrgPicker(), yield* getExtensionScope());
 
-  // Register org picker commands
+  // Register org picker command with AllServicesLayer for tracing + global error/cancellation handling
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const contextService = yield* api.services.ExtensionContextService;
-  const context = yield* contextService.getContext;
-  const setDefaultOrgCmd = vscode.commands.registerCommand('sf.set.default.org', setDefaultOrg);
-  context.subscriptions.push(setDefaultOrgCmd);
+  yield* api.services.registerCommandWithLayer(AllServicesLayer)('sf.set.default.org', setDefaultOrg);
 
   // alert user about orgs that are expiring soon
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
@@ -89,12 +76,16 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   // Register Effect-based commands with AllServicesLayer for proper tracing
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
   yield* registerCommand('sf.org.delete.username', orgDeleteUsernameCommand);
   yield* registerCommand('sf.org.list.clean', orgListCleanCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
+  yield* registerCommand(ORG_LOGIN_WEB_COMMAND, orgLoginWebCommand);
+  yield* registerCommand(ORG_LOGIN_WEB_DEV_HUB, orgLoginWebDevHubCommand);
   yield* registerCommand(ORG_LOGOUT_ALL_COMMAND, orgLogoutAllCommand);
   yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
+  yield* registerCommand(ORG_LOGIN_ACCESS_TOKEN_COMMAND, orgLoginAccessTokenCommand);
   yield* registerCommand(ORG_DISPLAY_USERNAME_COMMAND, orgDisplayUsernameCommand);
 
   // Initialize org picker and status bar

@@ -15,7 +15,6 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { initializeOutputChannel } from './channels';
 import { CodeCoverageHandler, watchActiveEditorForCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
@@ -38,10 +37,9 @@ import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDis
 import { nls } from './messages';
 import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
 import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
-import { telemetryService } from './telemetry/telemetry';
 import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
-import { disposeTestController, getTestController } from './views/testController';
+import { disposeTestController, getTestClassName, getTestController } from './views/testController';
 import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';
 import { initializeTestDiscovery } from './watchers/testDiscovery';
 import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
@@ -49,9 +47,6 @@ import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
 /** Effect-based activation that provides automatic timing via span */
 const activateEffect = Effect.fn('apex-testing.activation')(function* (context: vscode.ExtensionContext) {
   yield* Effect.log('Salesforce Apex Testing extension is activating...');
-
-  // Initialize the shared output channel from services API
-  yield* initializeOutputChannel;
 
   // Check if we're in a Salesforce project (also sets VS Code context as side effect)
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -122,8 +117,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   return {
     getTestClassName: (uri: URI): Promise<string | undefined> => {
       try {
-        const controller = getTestController();
-        return Promise.resolve(controller.getTestClassName(uri));
+        return Promise.resolve(getTestClassName(uri));
       } catch (error) {
         console.debug('Failed to get test class name:', error);
         return Promise.resolve(undefined);
@@ -230,7 +224,6 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
 export const deactivate = () => {
   void getApexTestingRuntime().runPromise(closeExtensionScope());
   disposeTestController();
-  telemetryService.sendExtensionDeactivationEvent();
 };
 
 export type ApexTestingVSCodeApi = {

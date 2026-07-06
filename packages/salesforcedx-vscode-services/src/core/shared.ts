@@ -20,9 +20,9 @@ export const getOrgFromConnection = (connection: Connection, aggregator?: Config
     catch: error => new GetOrgFromConnectionError({ cause: error })
   }).pipe(Effect.withSpan('Org.create'));
 
-export const unknownToErrorCause = (error: unknown): { cause: Error } => {
-  if (error instanceof Error) {
-    return { cause: error };
-  }
-  return { cause: new Error(String(error)) };
+/** Normalize an unknown catch value to a real `Error` cause plus its `message`, so tagged errors that
+ * spread this surface the underlying text instead of an empty message in pretty-printed output. */
+export const unknownToErrorCause = (error: unknown): { cause: Error; message: string } => {
+  const cause = error instanceof Error ? error : new Error(String(error));
+  return { cause, message: cause.message };
 };

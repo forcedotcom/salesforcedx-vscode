@@ -12,6 +12,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
   const { ApexTestRunCacheService } = jest.requireActual('../../../src/testRunCache/apexTestRunCacheService');
   const { URI: UriClass } = jest.requireActual('vscode-uri');
+  const { HashableUri } = jest.requireActual('salesforcedx-vscode-services/src/vscode/hashableUri');
 
   let mockConnectionRef: any;
   let mockReadFileResult = '';
@@ -22,6 +23,8 @@ jest.mock('../../../src/services/extensionProvider', () => {
     readFile: mockReadFile,
     createDirectory: () => EffectLib.void,
     safeDelete: () => EffectLib.void,
+    // accessor form: `yield* api.services.FsService.HashableUri` resolves the value namespace.
+    HashableUri: EffectLib.succeed(HashableUri),
     showTextDocument: (uri: unknown, options?: unknown) =>
       EffectLib.tryPromise({
         try: () => require('vscode').window.showTextDocument(uri, options),
@@ -41,17 +44,37 @@ jest.mock('../../../src/services/extensionProvider', () => {
       }
     }
   };
-  const MockAllServicesLayer = Layer.mergeAll(
-    Layer.effect(
-      ExtensionProviderService,
-      EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
-    ),
-    ApexTestRunCacheService.Default
+  const ExtensionProviderLayer = Layer.effect(
+    ExtensionProviderService,
+    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
   );
+  // ApexTestTreeService owns the tree Refs; the shell reads them via this runtime, so the mock runtime
+  // must provide its Default layer. Built lazily (not at module-eval) to avoid the import cycle
+  // apexTestTreeService -> testUtils -> extensionProvider (this mock).
+  let mockRuntime: any;
+  let MockAllServicesLayer: any;
+  let treeService: any;
+  const ensureRuntime = () => {
+    if (!mockRuntime) {
+      treeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+      MockAllServicesLayer = Layer.mergeAll(
+        ExtensionProviderLayer,
+        treeService.Default,
+        ApexTestRunCacheService.Default
+      );
+      // One persistent runtime so the tree-state Refs survive across the shell's runSync/runPromise
+      // calls within a test (matching the production single-runtime behavior).
+      mockRuntime = ManagedRuntime.make(MockAllServicesLayer);
+    }
+    return mockRuntime;
+  };
 
   return {
-    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
-    AllServicesLayer: MockAllServicesLayer,
+    getApexTestingRuntime: () => ensureRuntime(),
+    get AllServicesLayer() {
+      ensureRuntime();
+      return MockAllServicesLayer;
+    },
     setAllServicesLayer: jest.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
@@ -60,7 +83,13 @@ jest.mock('../../../src/services/extensionProvider', () => {
       mockReadFileResult = s;
     },
     __mockFsServiceReadFile: mockReadFile,
-    __mockMetadataRetrieve: mockMetadataRetrieve
+    __mockMetadataRetrieve: mockMetadataRetrieve,
+    // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
+    __resetTree: () => {
+      ensureRuntime();
+      mockRuntime.runSync(treeService.reset());
+      mockRuntime.runSync(treeService.clearRestoredResults());
+    }
   };
 });
 
@@ -80,15 +109,12 @@ jest.mock('../../../src/utils/testUtils', () => {
   };
 });
 
-jest.mock('../../../src/telemetry/telemetry', () => ({
-  telemetryService: {
-    sendEventData: jest.fn()
-  }
-}));
-
 jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
-  retrieveTestRunConcise: jest.fn().mockReturnValue(false)
+  retrieveTestRunConcise: jest.fn().mockReturnValue(false),
+  // Default off: discovery's restore-previous-results step short-circuits in tests not exercising it.
+  retrieveRestorePreviousResults: jest.fn().mockReturnValue(false),
+  disableRestorePreviousResults: jest.fn()
 }));
 
 jest.mock('../../../src/testDiscovery/packageResolution', () => ({
@@ -148,7 +174,20 @@ import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
-import { ApexTestController, getTestController, sortUrisByMtimeAscending } from '../../../src/views/testController';
+import * as EffectModule from 'effect/Effect';
+import { ApexTestController, closeForeignApexTestingTabs, getTestController } from '../../../src/views/testController';
+
+// The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
+// the production module accessors use) to seed test state.
+const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map<string, vscode.TestItem> => {
+  const ApexTestTreeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+  return extensionProvider.getApexTestingRuntime().runSync(ApexTestTreeService[key]());
+};
+
+// closeForeignApexTestingTabs returns an Effect (R = never: pure tab ops, no services), so run it
+// with the real Effect runtime rather than the mocked extension runtime.
+const runClose = (orgKey: string | undefined): Promise<void> =>
+  EffectModule.runPromise(closeForeignApexTestingTabs(orgKey));
 
 // Mock vscode.tests API
 const mockTestController = {
@@ -196,6 +235,8 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Clear the singleton runtime's tree Refs so per-test map state does not leak.
+    (extensionProvider as unknown as { __resetTree: () => void }).__resetTree();
 
     // Mock vscode.tests.createTestController
     (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
@@ -1191,8 +1232,7 @@ describe('ApexTestController', () => {
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
-      const suiteItems = (controller as any).suiteItems as Map<string, vscode.TestItem>;
-      suiteItems.set('MySuite', suiteItem);
+      treeMap('getSuiteItems').set('MySuite', suiteItem);
 
       await controller.incrementalUpdate(changes, true);
 
@@ -1203,8 +1243,8 @@ describe('ApexTestController', () => {
       const Effect = jest.requireActual('effect/Effect');
 
       // Set up an existing class item in the controller
-      const classItems = (controller as any).classItems as Map<string, vscode.TestItem>;
-      const methodItems = (controller as any).methodItems as Map<string, vscode.TestItem>;
+      const classItems = treeMap('getClassItems');
+      const methodItems = treeMap('getMethodItems');
 
       const existingMethodItem = {
         id: 'method:MyTestClass.testMethod1',
@@ -1255,40 +1295,54 @@ describe('getTestController', () => {
   });
 });
 
-describe('sortUrisByMtimeAscending', () => {
-  const uriFor = (runId: string): URI => URI.file(`/results/test-result-${runId}.json`);
+// sortUrisByMtimeAscending moved into ApexTestTreeService; the mtime-ordering behavior is covered by
+// test/jest/utils/sortHelpers.test.ts (the canonical sortByMtimeAscending helper).
 
-  it('orders by mtime so the newest run is applied last (most recent result wins)', () => {
-    // Regression for W-XXXXXXXX: Salesforce test-run-id filenames are NOT chronologically
-    // sortable. Here the lexicographically-last file (CrPFqQ) is actually an OLDER run than
-    // CrOq5E/CrOtvg. Sorting by filename would apply the older failing run last and clobber the
-    // newer passing run. Sorting by mtime applies oldest-first so the newest run wins.
-    const items = [
-      { uri: uriFor('CrOtvg'), mtime: 4000 }, // newest run (all green)
-      { uri: uriFor('CrP6pE'), mtime: 1000 }, // oldest run (had the failure)
-      { uri: uriFor('CrPFqQ'), mtime: 2000 }, // lexicographically last, but older than CrO* runs
-      { uri: uriFor('CrOq5E'), mtime: 3000 }
-    ];
+describe('closeForeignApexTestingTabs', () => {
+  // Real-ish tab fixtures: the production code does `tab.input instanceof vscode.TabInputText`, so the
+  // fixtures must be actual instances of the mock's TabInputText, carrying a real URI of a given scheme.
+  const tabFor = (uri: URI): vscode.Tab =>
+    ({ input: new (vscode as unknown as { TabInputText: new (u: URI) => unknown }).TabInputText(uri) }) as vscode.Tab;
 
-    const ordered = sortUrisByMtimeAscending(items).map(uri => uri.path);
+  const setTabGroups = (tabs: vscode.Tab[]): jest.Mock => {
+    const close = jest.fn().mockResolvedValue(undefined);
+    (vscode.window as unknown as { tabGroups: unknown }).tabGroups = { all: [{ tabs }], close };
+    return close;
+  };
 
-    expect(ordered).toEqual([
-      uriFor('CrP6pE').path,
-      uriFor('CrPFqQ').path,
-      uriFor('CrOq5E').path,
-      uriFor('CrOtvg').path
-    ]);
-    // The newest-by-mtime run is applied last regardless of filename ordering.
-    expect(ordered.at(-1)).toBe(uriFor('CrOtvg').path);
+  // org keys are sanitized to lower-case in the VFS path, so org123 -> /orgs/org123/...
+  const orgATab = tabFor(URI.parse('apex-testing:/orgs/org123/classes/MyTest.cls'));
+  const orgBTab = tabFor(URI.parse('apex-testing:/orgs/org456/classes/OtherTest.cls'));
+  const fileTab = tabFor(URI.file('/workspace/MyTest.cls'));
+
+  afterEach(() => {
+    delete (vscode.window as unknown as { tabGroups?: unknown }).tabGroups;
   });
 
-  it('does not mutate the input array', () => {
-    const items = [
-      { uri: uriFor('b'), mtime: 2000 },
-      { uri: uriFor('a'), mtime: 1000 }
-    ];
-    const snapshot = items.map(i => i.uri.path);
-    sortUrisByMtimeAscending(items);
-    expect(items.map(i => i.uri.path)).toEqual(snapshot);
+  it('on org change, closes only OTHER orgs apex-testing: tabs and leaves the current org + other schemes', async () => {
+    const close = setTabGroups([orgATab, orgBTab, fileTab]);
+
+    // current org is org123 => org456's tab is foreign and closes; org123's tab + the file tab stay.
+    await runClose('org123');
+
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledWith([orgBTab], true);
+  });
+
+  it('on logout (undefined org), closes every apex-testing: org tab and leaves other schemes', async () => {
+    const close = setTabGroups([orgATab, orgBTab, fileTab]);
+
+    await runClose(undefined);
+
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledWith([orgATab, orgBTab], true);
+  });
+
+  it('is a no-op when only the current orgs tab is open', async () => {
+    const close = setTabGroups([orgATab, fileTab]);
+
+    await runClose('org123');
+
+    expect(close).not.toHaveBeenCalled();
   });
 });

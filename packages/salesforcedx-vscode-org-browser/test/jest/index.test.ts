@@ -122,7 +122,8 @@ const MockConfigServiceLayer = Layer.succeed(
     isCurrentTargetOrg: () => Effect.succeed(false),
     isCurrentTargetDevHub: () => Effect.succeed(false),
     unsetTargetOrg: () => Effect.void,
-    unsetTargetDevHub: () => Effect.void
+    unsetTargetDevHub: () => Effect.void,
+    setTargetOrg: () => Effect.void
   } as const)
 );
 
