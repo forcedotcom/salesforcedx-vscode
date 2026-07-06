@@ -57,13 +57,17 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      # background: overlaps the slow release download; waited on before publish (needs node_modules)
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+        id: npm-install
+        background: true
       - name: downloadExtensionsFromRelease
         run: |
           mkdir ./extensions
           gh release download v${{ env.PUBLISH_VERSION }} -D ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - wait: npm-install
       - uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           command: |
