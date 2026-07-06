@@ -12,7 +12,6 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { TEST_ID_PREFIXES } from '../constants';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
@@ -54,10 +53,11 @@ export type ExecutionContext = {
 
 /**
  * Owns the run/debug/result-processing region extracted from ApexTestController. Owns the
- * lastProcessedResultFile Ref (Option<URI>). ChannelService/FsService come via api.services rather than
- * declared `.Default` deps: the runtime provides ChannelService via ChannelServiceLayer('Apex Testing')
- * (a named Layer.succeed), so declaring `.Default` would build a second, wrong-named channel. Still
- * substitutable in tests by stubbing ExtensionProviderService's api.services.
+ * lastProcessedResultFile Ref (Option<URI>). Cross-extension services (ChannelService/FsService) are
+ * reached through the api.services bridge — the apex-testing convention every service/command/watcher in
+ * this package follows (see codeCoverageService, apexTestTreeService, testReportGenerator). Declaring them
+ * as `.Default` deps would build a second, wrong-named channel (the runtime provides ChannelService via a
+ * named ChannelServiceLayer('Apex Testing')). Still substitutable in tests by stubbing api.services.
  */
 export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionService>()('ApexTestExecutionService', {
   accessors: true,
@@ -155,89 +155,6 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
     });
 
     /**
-     * Clears stale tags from the test items that were just run, then propagates the clear up to parent class
-     * and suite items once none of their members remain stale.
-     */
-    const clearStaleTagsForTests = Effect.fn('ApexTestExecutionService.clearStaleTagsForTests')(function* (
-      ctx: ExecutionContext,
-      testsToRun: vscode.TestItem[]
-    ) {
-      const [methodItems, classItems, suiteItems] = yield* Effect.all([
-        ApexTestTreeService.getMethodItems(),
-        ApexTestTreeService.getClassItems(),
-        ApexTestTreeService.getSuiteItems()
-      ]);
-      const suiteToClasses = ctx.getSuiteToClasses();
-      yield* Effect.sync(() => {
-        // Build a set of method map keys that were just run (keys don't have the method: prefix)
-        const runMethodIds = new Set<string>();
-        for (const test of testsToRun) {
-          if (isMethod(test.id)) {
-            runMethodIds.add(test.id.replace(TEST_ID_PREFIXES.METHOD, ''));
-          } else if (isClass(test.id)) {
-            const className = extractClassName(test.id);
-            if (className) {
-              const classPrefix = `${className}.`;
-              for (const methodId of methodItems.keys()) {
-                if (methodId.startsWith(classPrefix)) {
-                  runMethodIds.add(methodId);
-                }
-              }
-            }
-          } else if (isSuite(test.id)) {
-            const suiteName = extractSuiteName(test.id);
-            const classNames = suiteName ? suiteToClasses.get(suiteName) : undefined;
-            if (classNames) {
-              for (const className of classNames) {
-                const classPrefix = `${className}.`;
-                for (const methodId of methodItems.keys()) {
-                  if (methodId.startsWith(classPrefix)) {
-                    runMethodIds.add(methodId);
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        // Clear stale tags from methods that were run
-        const affectedClasses = new Set<string>();
-        for (const methodId of runMethodIds) {
-          const methodItem = methodItems.get(methodId);
-          if (methodItem) {
-            methodItem.tags = (methodItem.tags ?? []).filter(t => t.id !== 'stale');
-            affectedClasses.add(methodId.split('.')[0]);
-          }
-        }
-
-        // Remove stale tag from parent class items if no methods remain stale
-        for (const className of affectedClasses) {
-          const classItem = classItems.get(className);
-          if (classItem) {
-            const classPrefix = `${className}.`;
-            const hasStaleMethod = [...methodItems.entries()].some(
-              ([id, item]) => id.startsWith(classPrefix) && item.tags?.some(t => t.id === 'stale')
-            );
-            if (!hasStaleMethod) {
-              classItem.tags = (classItem.tags ?? []).filter(t => t.id !== 'stale');
-            }
-          }
-        }
-
-        // Remove stale tag from suite items if no member classes remain stale
-        for (const [suiteName, suiteItem] of suiteItems) {
-          const classNames = suiteToClasses.get(suiteName);
-          if (classNames) {
-            const hasStaleClass = [...classNames].some(cn => classItems.get(cn)?.tags?.some(t => t.id === 'stale'));
-            if (!hasStaleClass) {
-              suiteItem.tags = (suiteItem.tags ?? []).filter(t => t.id !== 'stale');
-            }
-          }
-        }
-      });
-    });
-
-    /**
      * Run the selected tests asynchronously, write + claim the result file (so the watcher skips it), open
      * the report, clear stale tags, and push results into the live TestRun. Emits the `Ended …` channel
      * sentinel on success so e2e can gate run completion (run path only; debug emits no sentinel).
@@ -317,7 +234,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
 
       // Clear stale indicators and apply active tags BEFORE updating results: VS Code snapshots
       // item.description when run.passed() is called.
-      yield* clearStaleTagsForTests(ctx, testsToRun);
+      yield* ApexTestTreeService.clearStaleTags(testsToRun, ctx.getSuiteToClasses());
 
       const [methodItems, classItems] = yield* Effect.all([
         ApexTestTreeService.getMethodItems(),
@@ -532,86 +449,16 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       // Stale profiles: expand all items to methods, keep only those with stale + matching location tag.
       if (runScope === 'stale-workspace' || runScope === 'stale-org') {
         const requiredLocationTag = runScope === 'stale-workspace' ? 'in-workspace' : 'org-only';
-        const isStaleAndMatchesLocation = (item: vscode.TestItem): boolean =>
-          !!(item.tags?.some(t => t.id === 'stale') && item.tags?.some(t => t.id === requiredLocationTag));
-        const staleMethods: vscode.TestItem[] = [];
-        for (const test of testsToRun) {
-          if (isMethod(test.id)) {
-            if (isStaleAndMatchesLocation(test)) {
-              staleMethods.push(test);
-            }
-          } else {
-            const classNames: string[] = [];
-            if (isClass(test.id)) {
-              const cn = extractClassName(test.id);
-              if (cn) {
-                classNames.push(cn);
-              }
-            } else if (isSuite(test.id)) {
-              const suiteName = extractSuiteName(test.id);
-              const suiteClasses = suiteName ? suiteToClasses.get(suiteName) : undefined;
-              if (suiteClasses) {
-                classNames.push(...suiteClasses);
-              }
-            }
-            for (const className of classNames) {
-              const classPrefix = `${className}.`;
-              for (const [methodId, methodItem] of methodItems) {
-                if (methodId.startsWith(classPrefix) && isStaleAndMatchesLocation(methodItem)) {
-                  staleMethods.push(methodItem);
-                }
-              }
-            }
-          }
-        }
-        testsToRun = staleMethods;
+        testsToRun = narrowToStaleMethods(testsToRun, methodItems, suiteToClasses, requiredLocationTag);
       }
 
       // Resolve any suite in testsToRun so we have class data (for empty-suite check and expansion).
-      yield* Effect.promise(async () => {
-        for (const test of testsToRun) {
-          if (isSuite(test.id)) {
-            const suiteName = extractSuiteName(test.id);
-            if (suiteName && test.children.size === 0) {
-              await ctx.resolveSuiteChildren(test);
-            }
-          }
-        }
-      });
+      yield* resolveUnloadedSuites(testsToRun, ctx);
 
       // Expand suites to their methods when running all tests (so multiple suites can run via method names).
       if (!request.include || request.include.length === 0) {
         const classItems = yield* ApexTestTreeService.getClassItems();
-        const expandedTests = yield* Effect.promise(async () => {
-          const expanded: vscode.TestItem[] = [];
-          for (const test of testsToRun) {
-            if (isSuite(test.id)) {
-              const suiteName = extractSuiteName(test.id);
-              if (suiteName) {
-                if (test.children.size === 0) {
-                  await ctx.resolveSuiteChildren(test);
-                }
-                const classNames = suiteToClasses.get(suiteName);
-                if (classNames && classNames.size > 0) {
-                  for (const className of classNames) {
-                    const classItem = classItems.get(className);
-                    if (classItem) {
-                      expanded.push(...Array.from(classItem.children, ([, item]) => item));
-                    }
-                  }
-                } else {
-                  expanded.push(test);
-                }
-              } else {
-                expanded.push(test);
-              }
-            } else {
-              expanded.push(test);
-            }
-          }
-          return expanded;
-        });
-        testsToRun = expandedTests;
+        testsToRun = yield* expandSuitesToMethods(testsToRun, ctx, suiteToClasses, classItems);
       }
 
       // Suite expansion pulls methods from live class items and can reintroduce filter-hidden tests.
@@ -661,7 +508,6 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       lastProcessedResultFile,
       updateTestResults,
       onResultFileCreate,
-      clearStaleTagsForTests,
       executeTests,
       debugTests,
       runTests
@@ -682,4 +528,96 @@ const erroredAll = (run: vscode.TestRun, tests: vscode.TestItem[], message: stri
     for (const test of tests) {
       run.errored(test, new vscode.TestMessage(message));
     }
+  });
+
+/** Class names a selected item covers: itself for a class, its member classes for a suite, none for a method. */
+const coveredClassNames = (test: vscode.TestItem, suiteToClasses: Map<string, Set<string>>): string[] => {
+  if (isClass(test.id)) {
+    const cn = extractClassName(test.id);
+    return cn ? [cn] : [];
+  }
+  if (isSuite(test.id)) {
+    const suiteName = extractSuiteName(test.id);
+    const suiteClasses = suiteName ? suiteToClasses.get(suiteName) : undefined;
+    return suiteClasses ? [...suiteClasses] : [];
+  }
+  return [];
+};
+
+/**
+ * Stale-profile narrowing (pure): expand each selection to its methods and keep only those that are both
+ * stale and match the profile's location tag ('in-workspace' for stale-workspace, 'org-only' for stale-org).
+ */
+const narrowToStaleMethods = (
+  testsToRun: vscode.TestItem[],
+  methodItems: Map<string, vscode.TestItem>,
+  suiteToClasses: Map<string, Set<string>>,
+  requiredLocationTag: 'in-workspace' | 'org-only'
+): vscode.TestItem[] => {
+  const isStaleAndMatchesLocation = (item: vscode.TestItem): boolean =>
+    !!(item.tags?.some(t => t.id === 'stale') && item.tags?.some(t => t.id === requiredLocationTag));
+  const staleMethods: vscode.TestItem[] = [];
+  for (const test of testsToRun) {
+    if (isMethod(test.id)) {
+      if (isStaleAndMatchesLocation(test)) {
+        staleMethods.push(test);
+      }
+    } else {
+      for (const className of coveredClassNames(test, suiteToClasses)) {
+        const classPrefix = `${className}.`;
+        for (const [methodId, methodItem] of methodItems) {
+          if (methodId.startsWith(classPrefix) && isStaleAndMatchesLocation(methodItem)) {
+            staleMethods.push(methodItem);
+          }
+        }
+      }
+    }
+  }
+  return staleMethods;
+};
+
+/** Resolve any suite in the list whose children haven't been loaded yet (needed for empty-suite + expansion). */
+const resolveUnloadedSuites = (testsToRun: vscode.TestItem[], ctx: ExecutionContext) =>
+  Effect.promise(async () => {
+    for (const test of testsToRun) {
+      if (isSuite(test.id) && extractSuiteName(test.id) && test.children.size === 0) {
+        await ctx.resolveSuiteChildren(test);
+      }
+    }
+  });
+
+/**
+ * Expand suites to their member methods (implicit full run only) so multiple suites can run via method
+ * names. Non-suite items and unresolvable suites pass through unchanged.
+ */
+const expandSuitesToMethods = (
+  testsToRun: vscode.TestItem[],
+  ctx: ExecutionContext,
+  suiteToClasses: Map<string, Set<string>>,
+  classItems: Map<string, vscode.TestItem>
+) =>
+  Effect.promise(async () => {
+    const expanded: vscode.TestItem[] = [];
+    for (const test of testsToRun) {
+      const suiteName = isSuite(test.id) ? extractSuiteName(test.id) : undefined;
+      if (!suiteName) {
+        expanded.push(test);
+        continue;
+      }
+      if (test.children.size === 0) {
+        await ctx.resolveSuiteChildren(test);
+      }
+      const classNames = suiteToClasses.get(suiteName);
+      if (classNames && classNames.size > 0) {
+        for (const className of classNames) {
+          const classItem = classItems.get(className);
+          if (classItem) {
+            expanded.push(...Array.from(classItem.children, ([, item]) => item));
+          }
+        }
+      } else {
+        expanded.push(test);
+      }
+    }
+    return expanded;
   });

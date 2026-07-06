@@ -15,7 +15,7 @@ import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { RESULT_MAX_AGE_MS } from '../constants';
+import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { getDefaultOrgInfo } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -24,7 +24,15 @@ import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { sortByMtimeAscending } from '../utils/sortHelpers';
-import { createNamespaceId, createSuiteId } from '../utils/testItemUtils';
+import {
+  createNamespaceId,
+  createSuiteId,
+  extractClassName,
+  extractSuiteName,
+  isClass,
+  isMethod,
+  isSuite
+} from '../utils/testItemUtils';
 import { buildClassToUriIndex } from '../utils/testUtils';
 import { isFlowTest } from '../utils/toolingTestClassHelpers';
 import {
@@ -82,11 +90,34 @@ export type DiscoveryContext = {
   getTestService: () => { retrieveAllSuites: () => Promise<{ id: string; TestSuiteName: string }[]> };
   persistDiscoveredClasses: (classes: ToolingTestClass[]) => Promise<void>;
   updateTestResults: (uri: URI) => Promise<void>;
-  applyStaleTags: (staleMethodIds?: Set<string>) => void;
+  staleTag: vscode.TestTag | undefined;
+  getSuiteToClasses: () => Map<string, Set<string>>;
   getMethodIdsFromResultFile: (uri: URI) => Promise<Set<string>>;
 };
 
 const BATCH_SIZE = 50;
+
+const STALE = 'stale';
+const isStale = (item: vscode.TestItem): boolean => !!item.tags?.some(t => t.id === STALE);
+/** Add the stale tag to an item if absent (idempotent). */
+const addStaleTag = (item: vscode.TestItem, staleTag: vscode.TestTag): void => {
+  const existingTags = item.tags ?? [];
+  if (!existingTags.some(t => t.id === STALE)) {
+    item.tags = [...existingTags, staleTag];
+  }
+};
+const removeStaleTag = (item: vscode.TestItem): void => {
+  item.tags = (item.tags ?? []).filter(t => t.id !== STALE);
+};
+/** A class owns a stale method when any method whose id is prefixed by `class.` is stale. */
+const classHasStaleMethod = (methodItems: Map<string, vscode.TestItem>, className: string): boolean =>
+  [...methodItems.entries()].some(([id, item]) => id.startsWith(`${className}.`) && isStale(item));
+/** A suite owns a stale class when any of its member classes is stale. */
+const suiteHasStaleClass = (classItems: Map<string, vscode.TestItem>, classNames: Set<string>): boolean =>
+  [...classNames].some(cn => {
+    const classItem = classItems.get(cn);
+    return classItem ? isStale(classItem) : false;
+  });
 
 /**
  * Surface a discovery-path failure to the user: warning when the friendly message is the
@@ -167,6 +198,115 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Ref.get(classToParentItem)
       ]);
       yield* Effect.sync(() => maps.forEach(map => map.clear()));
+    });
+
+    /**
+     * Mark methods stale (all, or a given subset), then propagate the stale tag up to class and suite
+     * items that own a stale descendant. Restore path (pre-session results) and the shell delegate here.
+     */
+    const markStaleTags = Effect.fn('ApexTestTreeService.markStaleTags')(function* (
+      staleTag: vscode.TestTag | undefined,
+      suiteToClasses: Map<string, Set<string>>,
+      staleMethodIds?: Set<string>
+    ) {
+      if (!staleTag) {
+        return;
+      }
+      const [currentMethods, currentClasses, currentSuites] = yield* Effect.all([
+        Ref.get(methodItems),
+        Ref.get(classItems),
+        Ref.get(suiteItems)
+      ]);
+      yield* Effect.sync(() => {
+        for (const [methodId, methodItem] of currentMethods) {
+          if (!staleMethodIds || staleMethodIds.has(methodId)) {
+            addStaleTag(methodItem, staleTag);
+          }
+        }
+        for (const [className, classItem] of currentClasses) {
+          if (classHasStaleMethod(currentMethods, className)) {
+            addStaleTag(classItem, staleTag);
+          }
+        }
+        for (const [suiteName, suiteItem] of currentSuites) {
+          const classNames = suiteToClasses.get(suiteName);
+          if (classNames && suiteHasStaleClass(currentClasses, classNames)) {
+            addStaleTag(suiteItem, staleTag);
+          }
+        }
+      });
+    });
+
+    /**
+     * Inverse of markStaleTags: clear the stale tag from the methods that just ran (expanded from the
+     * selected class/suite items), then clear it from parent class and suite items once none of their
+     * members remain stale. Called after a run from the execution service.
+     */
+    const clearStaleTags = Effect.fn('ApexTestTreeService.clearStaleTags')(function* (
+      testsToRun: vscode.TestItem[],
+      suiteToClasses: Map<string, Set<string>>
+    ) {
+      const [currentMethods, currentClasses, currentSuites] = yield* Effect.all([
+        Ref.get(methodItems),
+        Ref.get(classItems),
+        Ref.get(suiteItems)
+      ]);
+      yield* Effect.sync(() => {
+        // Method map keys omit the method: prefix; expand class/suite selections to their member methods.
+        const addClassMethods = (className: string, into: Set<string>) => {
+          const classPrefix = `${className}.`;
+          for (const methodId of currentMethods.keys()) {
+            if (methodId.startsWith(classPrefix)) {
+              into.add(methodId);
+            }
+          }
+        };
+        const runMethodIds = new Set<string>();
+        for (const test of testsToRun) {
+          if (isMethod(test.id)) {
+            runMethodIds.add(test.id.replace(TEST_ID_PREFIXES.METHOD, ''));
+          } else if (isClass(test.id)) {
+            const className = extractClassName(test.id);
+            if (className) {
+              addClassMethods(className, runMethodIds);
+            }
+          } else if (isSuite(test.id)) {
+            const suiteName = extractSuiteName(test.id);
+            const classNames = suiteName ? suiteToClasses.get(suiteName) : undefined;
+            if (classNames) {
+              for (const className of classNames) {
+                addClassMethods(className, runMethodIds);
+              }
+            }
+          }
+        }
+
+        // Clear stale tags from methods that ran.
+        const affectedClasses = new Set<string>();
+        for (const methodId of runMethodIds) {
+          const methodItem = currentMethods.get(methodId);
+          if (methodItem) {
+            removeStaleTag(methodItem);
+            affectedClasses.add(methodId.split('.')[0]);
+          }
+        }
+
+        // Clear the stale tag from parent classes once no member method remains stale.
+        for (const className of affectedClasses) {
+          const classItem = currentClasses.get(className);
+          if (classItem && !classHasStaleMethod(currentMethods, className)) {
+            removeStaleTag(classItem);
+          }
+        }
+
+        // Clear the stale tag from suites once no member class remains stale.
+        for (const [suiteName, suiteItem] of currentSuites) {
+          const classNames = suiteToClasses.get(suiteName);
+          if (classNames && !suiteHasStaleClass(currentClasses, classNames)) {
+            removeStaleTag(suiteItem);
+          }
+        }
+      });
     });
 
     /**
@@ -384,7 +524,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       );
 
       // Only mark pre-session methods as stale
-      yield* Effect.sync(() => ctx.applyStaleTags(staleMethodIds));
+      yield* markStaleTags(ctx.staleTag, ctx.getSuiteToClasses(), staleMethodIds);
 
       // Invalidate stale methods and classes where ALL methods are stale
       const currentMethodItems = yield* Ref.get(methodItems);
@@ -541,6 +681,8 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       getClassItems,
       getSuiteItems,
       getClassToParentItem,
+      markStaleTags,
+      clearStaleTags,
       reset,
       clearRestoredResults,
       restorePreviousResults,

@@ -49,7 +49,7 @@ const TEST_CONTROLLER_ID = 'sf.apex.testController';
 // The suite/class/method/classToParent maps live in ApexTestTreeService Refs (single source of truth).
 // These read the live Map object via a synchronous Ref read; reset clears them in place, so callers that
 // mutate the returned map (removeClassFromTree.delete, diffClassMethods.set) keep writing through to the
-// service. The shell applyStaleTags reads through the same accessors.
+// service.
 const suiteItems = (): Map<string, vscode.TestItem> =>
   getApexTestingRuntime().runSync(ApexTestTreeService.getSuiteItems());
 const classItems = (): Map<string, vscode.TestItem> =>
@@ -146,7 +146,8 @@ export class ApexTestController {
         getApexTestingRuntime().runPromise(
           ApexTestExecutionService.updateTestResults(this.buildExecutionContext(), uri)
         ),
-      applyStaleTags: staleMethodIds => this.applyStaleTags(staleMethodIds),
+      staleTag: this.staleTag,
+      getSuiteToClasses: () => this.suiteToClasses,
       getMethodIdsFromResultFile: uri => ApexTestController.getMethodIdsFromResultFile(uri)
     };
   }
@@ -298,54 +299,6 @@ export class ApexTestController {
       // If we can't read the file, return empty set
     }
     return methodIds;
-  }
-
-  /**
-   * Applies stale tags to methods whose results came from pre-session files.
-   * Also propagates to parent class items and suite items that contain stale methods.
-   * @param staleMethodIds Set of method IDs to mark as stale. If undefined, marks all methods.
-   */
-  private applyStaleTags(staleMethodIds?: Set<string>): void {
-    for (const [methodId, methodItem] of methodItems()) {
-      if (staleMethodIds && !staleMethodIds.has(methodId)) {
-        continue;
-      }
-      const existingTags = methodItem.tags ?? [];
-      if (!existingTags.some(t => t.id === 'stale')) {
-        methodItem.tags = [...existingTags, this.staleTag!];
-      }
-    }
-
-    // Propagate stale tag to class items that have any stale methods
-    for (const [className, classItem] of classItems()) {
-      const classPrefix = `${className}.`;
-      const hasStaleMethod = [...methodItems().entries()].some(
-        ([id, item]) => id.startsWith(classPrefix) && item.tags?.some(t => t.id === 'stale')
-      );
-      if (hasStaleMethod) {
-        const existingTags = classItem.tags ?? [];
-        if (!existingTags.some(t => t.id === 'stale')) {
-          classItem.tags = [...existingTags, this.staleTag!];
-        }
-      }
-    }
-
-    // Propagate stale tag to suite items that contain any stale classes
-    for (const [suiteName, suiteItem] of suiteItems()) {
-      const classNames = this.suiteToClasses.get(suiteName);
-      if (classNames) {
-        const hasStaleClass = [...classNames].some(cn => {
-          const classItem = classItems().get(cn);
-          return classItem?.tags?.some(t => t.id === 'stale');
-        });
-        if (hasStaleClass) {
-          const existingTags = suiteItem.tags ?? [];
-          if (!existingTags.some(t => t.id === 'stale')) {
-            suiteItem.tags = [...existingTags, this.staleTag!];
-          }
-        }
-      }
-    }
   }
 
   /**
