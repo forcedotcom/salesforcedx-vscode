@@ -234,7 +234,7 @@
         },
         {
           "command": "sf.anon.apex.debug.delegate",
-          "when": "sf:project_opened && editorLangId == 'apex'"
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && sf:has_target_org"
         },
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
