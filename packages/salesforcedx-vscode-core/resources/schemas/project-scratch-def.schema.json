@@ -1792,9 +1792,6 @@
       ]
     }
   },
-  "required": [
-    "edition"
-  ],
   "additionalProperties": {},
   "$id": "https://schemas.salesforce.com/project-scratch-def.json",
   "title": "Scratch Org Definition Configuration",

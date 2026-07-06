@@ -11,22 +11,12 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { runGatherer } from '../../parameterGatherers/runGatherer';
+import { validateAliasInput } from '../../util/orgAlias';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 const PRODUCTION_URL = 'https://login.salesforce.com';
 const SANDBOX_URL = 'https://test.salesforce.com';
 const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
-
-export type AuthParams = {
-  alias: string;
-  loginUrl: string;
-};
-
-export type AccessTokenParams = {
-  alias: string;
-  instanceUrl: string;
-  accessToken: string;
-};
 
 const inputInstanceUrl = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
@@ -40,8 +30,23 @@ const inputAlias = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
-    ignoreFocusOut: true
+    ignoreFocusOut: true,
+    validateInput: validateAliasInput
   });
+
+/**
+ * Shared alias InputBox for the web/dev-hub/access-token login commands. Empty string is a valid
+ * "use default alias" answer, so only undefined (Esc) cancels — cannot use
+ * considerUndefinedAsCancellation, which also cancels on empty. validateAliasInput blocks shell
+ * metacharacters so the returned value is safe to interpolate into the CLI command.
+ */
+export const promptForAlias = Effect.fn('AuthParamsGatherer.promptForAlias')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const value = yield* Effect.promise(inputAlias).pipe(
+    Effect.flatMap(v => (v === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(v)))
+  );
+  return value || DEFAULT_ALIAS;
+});
 
 const inputAccessToken = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
@@ -54,13 +59,9 @@ const inputAccessToken = async (): Promise<string | undefined> =>
       text && text?.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
   });
 
-const validateUrl = (url: string): string | null => {
-  const expr = /https?:\/\/(.*)/;
-  if (expr.test(url)) {
-    return null;
-  }
-  return nls.localize('auth_invalid_url');
-};
+// http(s):// host/port/path only — rejects shell metachars (`;|&$()`, backticks, quotes, spaces) so the CLI --instance-url arg stays injection-safe
+const validateUrl = (url: string): string | undefined =>
+  /^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/.test(url) ? undefined : nls.localize('auth_invalid_url');
 
 const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> =>
   Object.fromEntries(
@@ -88,40 +89,42 @@ const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.Qu
       )
   );
 
-const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function* (params: {
+// QuickPick (org-type) → optional custom-URL InputBox. Reachable only when no instanceUrl is
+// pre-supplied; extracted so it carries its own trace span instead of an anonymous generator.
+const pickInstanceUrl = Effect.fn('AuthParamsGatherer.pickInstanceUrl')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const projectUrl = yield* getProjectLoginUrl();
+  const orgTypes = buildOrgTypes(projectUrl);
+  const selection = yield* Effect.promise(() => vscode.window.showQuickPick(Object.values(orgTypes))).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation)
+  );
+
+  const orgType = selection.label;
+  if (orgType === orgTypes.custom?.label) {
+    return yield* Effect.promise(() =>
+      vscode.window.showInputBox({
+        prompt: nls.localize('parameter_gatherer_enter_custom_url'),
+        placeHolder: PRODUCTION_URL,
+        validateInput: validateUrl
+      })
+    ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  }
+  if (orgType === orgTypes.project?.label) {
+    return projectUrl;
+  }
+  // Dispatch on the localized label, not a hardcoded English literal.
+  return orgType === orgTypes.sandbox?.label ? SANDBOX_URL : PRODUCTION_URL;
+});
+
+export const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function* (params: {
   readonly instanceUrl: string | undefined;
   readonly reauthAliasOrUsername: string | undefined;
 }) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
   const skipAlias = params.instanceUrl !== undefined;
 
   // allow passing in the instance url programmatically instead of via quick pick
-  const instanceUrl =
-    params.instanceUrl ??
-    (yield* Effect.gen(function* () {
-      const projectUrl = yield* getProjectLoginUrl();
-      const orgTypes = buildOrgTypes(projectUrl);
-      const selection = yield* Effect.promise(() => vscode.window.showQuickPick(Object.values(orgTypes))).pipe(
-        Effect.flatMap(promptService.considerUndefinedAsCancellation)
-      );
-
-      const orgType = selection.label;
-      if (orgType === orgTypes.custom?.label) {
-        return yield* Effect.promise(() =>
-          vscode.window.showInputBox({
-            prompt: nls.localize('parameter_gatherer_enter_custom_url'),
-            placeHolder: PRODUCTION_URL,
-            validateInput: validateUrl
-          })
-        ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
-      }
-      if (orgType === orgTypes.project?.label) {
-        return projectUrl;
-      }
-      // Dispatch on the localized label, not a hardcoded English literal.
-      return orgType === orgTypes.sandbox?.label ? SANDBOX_URL : PRODUCTION_URL;
-    }));
+  const instanceUrl = params.instanceUrl ?? (yield* pickInstanceUrl());
 
   const reauthLabel = params.reauthAliasOrUsername?.trim();
   // Closing the dialog (ESC/cancel) will cancel the operation; hitting enter with no alias defaults to 'vscodeOrg'
@@ -129,38 +132,14 @@ const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function* (param
     ? reauthLabel && reauthLabel.length > 0
       ? reauthLabel
       : `reauth-${DEFAULT_ALIAS}`
-    : yield* Effect.promise(() =>
-        vscode.window.showInputBox({
-          prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-          placeHolder: DEFAULT_ALIAS
-        })
-      ).pipe(
-        // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels
-        Effect.flatMap(value =>
-          value === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(value)
-        )
-      );
+    : yield* promptForAlias();
   return {
-    alias: alias || DEFAULT_ALIAS,
+    alias,
     loginUrl: instanceUrl ?? PRODUCTION_URL
   };
 });
 
-export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
-  constructor(
-    public instanceUrl: string | undefined,
-    /** When web login is invoked programmatically (e.g. access-token re-auth), reuse this alias or username so the new auth replaces the same target-org label. */
-    public readonly reauthAliasOrUsername?: string
-  ) {}
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<AuthParams>> {
-    return runGatherer(
-      gatherAuthParams({ instanceUrl: this.instanceUrl, reauthAliasOrUsername: this.reauthAliasOrUsername })
-    );
-  }
-}
-
-const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
+export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 
@@ -168,10 +147,7 @@ const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(fu
     Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 
-  // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels
-  const alias = yield* Effect.promise(inputAlias).pipe(
-    Effect.flatMap(value => (value === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(value)))
-  );
+  const alias = yield* promptForAlias();
 
   const accessToken = yield* Effect.promise(inputAccessToken).pipe(
     Effect.flatMap(promptService.considerUndefinedAsCancellation)
@@ -179,16 +155,10 @@ const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(fu
 
   return {
     accessToken,
-    alias: alias || DEFAULT_ALIAS,
+    alias,
     instanceUrl
   };
 });
-
-export class AccessTokenParamsGatherer implements ParametersGatherer<AccessTokenParams> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<AccessTokenParams>> {
-    return runGatherer(gatherAccessTokenParams());
-  }
-}
 
 const gatherScratchOrgLogout = Effect.fn('ScratchOrgLogoutParamsGatherer.gather')(function* (params: {
   readonly username: string;
