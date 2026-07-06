@@ -57,10 +57,10 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   // Legacy migration: convert old viewMode to boolean flags
   const legacyViewMode = context.workspaceState.get<string>('orgBrowser.viewMode');
   if (legacyViewMode !== undefined) {
-    const showLocal = legacyViewMode !== 'orgOnly';
-    const showOrg = legacyViewMode !== 'localOnly';
-    yield* Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', showLocal));
-    yield* Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', showOrg));
+    const migratedShowLocal = legacyViewMode !== 'orgOnly';
+    const migratedShowOrg = legacyViewMode !== 'localOnly';
+    yield* Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', migratedShowLocal));
+    yield* Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', migratedShowOrg));
     yield* Effect.promise(() => context.workspaceState.update('orgBrowser.viewMode', undefined));
   }
 

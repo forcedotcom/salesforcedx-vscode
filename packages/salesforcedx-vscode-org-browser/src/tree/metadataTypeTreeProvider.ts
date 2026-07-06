@@ -99,31 +99,18 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     }
     if (!element) {
       const types = yield* metadataDescribeService.describe();
-      let nodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
+      const allNodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
 
       const needsComponentSet = !provider.showLocal || !provider.showOrg;
-      if (needsComponentSet) {
-        const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-        const localTypeNames = new Set<string>();
-        for (const comp of projectComponentSet.getSourceComponents()) {
-          localTypeNames.add(comp.type.name);
-        }
-        nodes = nodes.filter(node => {
-          const isLocal = localTypeNames.has(node.xmlName!);
-          if (!provider.showLocal && !provider.showOrg) {
-            // Both off: intersection — keep only types in both describe AND local
-            return isLocal;
-          }
-          if (!provider.showLocal) {
-            // showLocal OFF: hide types with zero local components (keep only local types)
-            return isLocal;
-          }
-          // showOrg OFF: hide org-only types (keep only types that are local)
-          return isLocal;
-        });
+      if (!needsComponentSet) {
+        return allNodes;
       }
 
-      return nodes;
+      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+      const localTypeNames = new Set<string>(
+        Array.from(projectComponentSet.getSourceComponents()).map(comp => comp.type.name)
+      );
+      return allNodes.filter(node => localTypeNames.has(node.xmlName!));
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
