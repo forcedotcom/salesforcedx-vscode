@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
@@ -24,6 +26,7 @@ import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import * as requirements from './requirements';
+import { getRuntime } from './services/runtime';
 import {
   retrieveEnableApexLSErrorToTelemetry,
   retrieveEnableSyncInitJobs,
@@ -222,6 +225,12 @@ const buildClientOptions = async (outputChannel?: vscode.OutputChannel): Promise
   return options;
 };
 
+const getNamespaceFromProject = Effect.fn('apex.provideCodeLenses.getNamespaceFromProject')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const project = yield* api.services.ProjectService.getSfProject();
+  return project.getSfProjectJson().getContents().namespace;
+});
+
 const provideCodeLenses = async (
   document: vscode.TextDocument,
   token: vscode.CancellationToken,
@@ -231,7 +240,7 @@ const provideCodeLenses = async (
   const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
     // convert null to undefined
     vscodeCoreExtension.exports.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
-    vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(cfg => cfg.getContents().namespace),
+    getRuntime().runPromise(getNamespaceFromProject()),
     next(document, token)
   ]);
   return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));

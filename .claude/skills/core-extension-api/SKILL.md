@@ -44,7 +44,7 @@ telemetryService, workspaceContextUtils, sharedAuthState
 
 ```
 RegistryAccess, ChannelService (.getInstance(name)),
-SalesforceProjectConfig, TelemetryService (.getInstance(name)),
+TelemetryService (.getInstance(name)),
 WorkspaceContext (.getInstance()), CommandEventDispatcher (.getInstance())
 ```
 
