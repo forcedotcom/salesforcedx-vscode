@@ -27,11 +27,13 @@ jest.mock('../../../../src/channels', () => ({
 describe('OrgLogoutDefault', () => {
   let removeAuthMock: jest.Mock;
   let unsetTargetOrgMock: jest.Mock;
+  let isCurrentTargetOrgMock: jest.Mock;
 
   const buildLayer = () => {
     const mockServicesApi = {
       services: {
         ConfigService: {
+          isCurrentTargetOrg: isCurrentTargetOrgMock,
           unsetTargetOrg: unsetTargetOrgMock
         }
       }
@@ -48,6 +50,7 @@ describe('OrgLogoutDefault', () => {
     } as unknown as AuthRemover);
 
     unsetTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
+    isCurrentTargetOrgMock = jest.fn().mockReturnValue(Effect.succeed(true));
 
     resetOrgRuntimeForTesting();
     setAllServicesLayer(
@@ -59,10 +62,9 @@ describe('OrgLogoutDefault', () => {
     jest.restoreAllMocks();
   });
 
-  it('calls removeAuth then clears the target-org ref in-process, returning true', async () => {
+  it('clears the target-org ref in-process when the logged-out org was the target', async () => {
     const username = 'user@example.com';
-    const executor = new OrgLogoutDefault();
-    const result = await executor.run({ type: 'CONTINUE', data: username });
+    const result = await new OrgLogoutDefault().run({ type: 'CONTINUE', data: username });
 
     expect(result).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
@@ -70,16 +72,25 @@ describe('OrgLogoutDefault', () => {
     expect(unsetTargetOrgMock).toHaveBeenCalledTimes(1);
   });
 
+  it('does not clear the ref when the logged-out org was not the target', async () => {
+    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(false));
+    const username = 'other@example.com';
+    const result = await new OrgLogoutDefault().run({ type: 'CONTINUE', data: username });
+
+    expect(result).toBe(true);
+    expect(removeAuthMock).toHaveBeenCalledWith(username);
+    // logging out a non-target org must leave the current target-org (and its ref) intact
+    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+  });
+
   it('returns false and does not throw when removeAuth rejects', async () => {
     const username = 'user@example.com';
     removeAuthMock.mockRejectedValue(new Error('removal failed'));
 
-    const executor = new OrgLogoutDefault();
-    const result = await executor.run({ type: 'CONTINUE', data: username });
+    const result = await new OrgLogoutDefault().run({ type: 'CONTINUE', data: username });
 
     expect(result).toBe(false);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
-    // removeAuth failed before the ref clear, so it must not run
     expect(unsetTargetOrgMock).not.toHaveBeenCalled();
   });
 });
