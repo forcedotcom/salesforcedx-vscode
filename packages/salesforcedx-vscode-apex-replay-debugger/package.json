@@ -200,7 +200,7 @@
     "onCommand:extension.replay-debugger.getLogFileName",
     "onCommand:sf.launch.replay.debugger.logfile",
     "onCommand:sf.launch.replay.debugger.logfile.path",
-    "onCommand:sf.apex.debug.document",
+    "onCommand:sf.anon.apex.debug.delegate",
     "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
   "main": "./dist/index.js",
@@ -233,7 +233,7 @@
           "when": "false"
         },
         {
-          "command": "sf.apex.debug.document",
+          "command": "sf.anon.apex.debug.delegate",
           "when": "sf:project_opened && editorLangId == 'apex'"
         },
         {
@@ -308,7 +308,7 @@
         }
       },
       {
-        "command": "sf.apex.debug.document",
+        "command": "sf.anon.apex.debug.delegate",
         "title": "%apex_debug_document_text%"
       },
       {
