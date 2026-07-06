@@ -79,7 +79,7 @@ Always grep for `\.exports\.\w+` across the full monorepo, not just `coreExtensi
 | Package | Files | Members accessed |
 |---------|-------|------------------|
 | apex | `coreExtensionUtils.ts`, `index.ts`, `languageServer.ts` | `.WorkspaceContext`, `.services.TelemetryService`, `.getAuthFields` |
-| apex-debugger | `coreExtensionUtils.ts`, `index.ts`, `debugConfigurationProvider.ts` | `.channelService`, `.SfCommandlet`, `.telemetryService`, `.SfCommandletExecutor`, `.isCLIInstalled` |
+| apex-debugger | `coreExtensionUtils.ts`, `index.ts`, `debugConfigurationProvider.ts` | `.channelService`, `.SfCommandlet`, `.telemetryService`, `.SfCommandletExecutor` |
 | apex-replay-debugger | `index.ts`, `checkpointService.ts`, `quickLaunch.ts`, `debugConfigurationProvider.ts` | `.services.WorkspaceContext`, `.getUserId` |
 | utils-vscode | `authUtils.ts`, `workspaceContextUtil.ts`, `telemetryUtils.ts` | `.sharedAuthState`, `.channelService`, `.getSharedTelemetryUserId` (phantom — not on API type) |
 
