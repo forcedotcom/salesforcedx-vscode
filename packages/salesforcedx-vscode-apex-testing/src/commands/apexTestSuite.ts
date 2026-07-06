@@ -249,9 +249,8 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
   notificationService.showSuccessfulExecution(executionName);
 
   // Clear all suite children so they re-query from org instead of using stale local files, then refresh
-  const testController = getTestController();
-  testController.clearAllSuiteChildren();
-  yield* Effect.promise(() => testController.refresh());
+  clearAllSuiteChildren();
+  yield* Effect.promise(() => getTestController().refresh());
 });
 
 export const apexTestSuiteEdit = Effect.fn('apexTestSuiteEdit')(function* () {
