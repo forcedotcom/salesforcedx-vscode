@@ -160,6 +160,11 @@ export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
       // (node_modules/@salesforce/core/lib/org/authRemover.js L50-54), unsetting every global+local
       // config key matching the username/aliases (incl. target-org). No separate alias/config-unset needed.
       await authRemover.removeAuth(response.data);
+      // removeAuth only writes config.json on disk; it never touches the in-process defaultOrgRef.
+      // The config-file watcher's clearDefaultOrgRef is a best-effort backstop that does not reliably
+      // fire within the command window (fs-event latency), so clear the ref in-process here. Without
+      // this, TargetOrgRef keeps the logged-out org and the apex-testing tree never clears (W-23069610).
+      await getOrgRuntime().runPromise(clearTargetOrgRef());
     } catch (e) {
       const err = e instanceof Error ? e : new Error(String(e));
       telemetryService.sendException('org_logout_default', `Error: name = ${err.name} message = ${err.message}`);
@@ -184,6 +189,17 @@ export const orgLogoutDefault = async () => {
     void notificationService.showInformationMessage(nls.localize('org_logout_no_default_org'));
   }
 };
+
+/**
+ * Clears the in-process defaultOrgRef after logout. `ConfigService.unsetTargetOrg` unsets local
+ * target-org, invalidates the config aggregator, and calls `clearDefaultOrgRef` (configService.ts) —
+ * the deterministic ref clear the apex-testing no-org reactor keys on. Does not rely on the async
+ * config-file watcher.
+ */
+const clearTargetOrgRef = Effect.fn('OrgLogout.clearTargetOrgRef')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.ConfigService.unsetTargetOrg();
+});
 
 const resolveTargetOrg = Effect.fn('OrgLogout.resolveTargetOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
