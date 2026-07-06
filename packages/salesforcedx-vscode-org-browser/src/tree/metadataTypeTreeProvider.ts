@@ -29,6 +29,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   }
 
   public setShowLocal(value: boolean): void {
+    if (this._showLocal === value) return;
     this._showLocal = value;
     this._onDidChangeTreeData.fire(undefined);
   }
@@ -38,6 +39,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   }
 
   public setShowOrg(value: boolean): void {
+    if (this._showOrg === value) return;
     this._showOrg = value;
     this._onDidChangeTreeData.fire(undefined);
   }
@@ -108,9 +110,17 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
 
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       const localTypeNames = new Set<string>(
-        Array.from(projectComponentSet.getSourceComponents()).map(comp => comp.type.name)
+        Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
       );
-      return allNodes.filter(node => localTypeNames.has(node.xmlName!));
+      return allNodes.filter(node => {
+        const hasLocal = localTypeNames.has(node.xmlName);
+        // showLocal controls visibility of types WITH local files
+        // showOrg controls visibility of types WITHOUT local files (org-only)
+        if (hasLocal) {
+          return provider.showLocal;
+        }
+        return provider.showOrg;
+      });
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
@@ -139,7 +149,6 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
             provider.setHasOrgData(true);
             return Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', true));
           }
-          return Effect.void;
         }),
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(

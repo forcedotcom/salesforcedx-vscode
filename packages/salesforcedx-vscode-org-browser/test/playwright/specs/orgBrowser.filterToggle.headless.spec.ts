@@ -11,6 +11,7 @@ import {
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
+  reloadWindow,
   upsertScratchOrgAuthFieldsToSettings,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -33,17 +34,17 @@ test('Org Browser - filter toggles: toolbar buttons visible with correct icons',
     await orgBrowserPage.openOrgBrowser();
   });
 
-  await test.step('showLocal toggle button is visible', async () => {
-    const showLocalButton = page.locator('[aria-label="Show Local Types (Active)"]');
-    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
+  await test.step('showLocal toggle button is visible (off command shown when active)', async () => {
+    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]');
+    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
   });
 
   await test.step('showOrg toggle is not visible before type expansion', async () => {
     // hasOrgData is false initially, so org toggle should not be rendered
-    const showOrgOnButton = page.locator('[aria-label="Show Org Types (Active)"]');
-    const showOrgOffButton = page.locator('[aria-label="Show Org Types (Inactive)"]');
-    await expect(showOrgOnButton).not.toBeVisible();
-    await expect(showOrgOffButton).not.toBeVisible();
+    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]');
+    const showOrgButton = page.locator('[aria-label="Show Org Types"]');
+    await expect(hideOrgButton).not.toBeVisible();
+    await expect(showOrgButton).not.toBeVisible();
   });
 });
 
@@ -55,13 +56,13 @@ test('Org Browser - filter toggles: icon swap on toggle', async ({ page }) => {
   });
 
   await test.step('click showLocal toggle and verify icon changes', async () => {
-    const showLocalOn = page.locator('[aria-label="Show Local Types (Active)"]');
-    await expect(showLocalOn).toBeVisible({ timeout: 10_000 });
-    await showLocalOn.click();
+    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]');
+    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
+    await hideLocalButton.click();
 
-    // After clicking, the button label should change to the "off" variant
-    const showLocalOff = page.locator('[aria-label="Show Local Types (Inactive)"]');
-    await expect(showLocalOff).toBeVisible({ timeout: 10_000 });
+    // After clicking off, the "on" button should appear (state is now inactive)
+    const showLocalButton = page.locator('[aria-label="Show Local Types"]');
+    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
   });
 });
 
@@ -73,8 +74,8 @@ test('Org Browser - filter toggles: org toggle disabled until type expansion', a
   });
 
   await test.step('verify showOrg button not visible before expansion', async () => {
-    const showOrgOnButton = page.locator('[aria-label="Show Org Types (Active)"]');
-    await expect(showOrgOnButton).not.toBeVisible();
+    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]');
+    await expect(hideOrgButton).not.toBeVisible();
   });
 
   await test.step('expand a type node to trigger hasOrgData', async () => {
@@ -82,8 +83,8 @@ test('Org Browser - filter toggles: org toggle disabled until type expansion', a
   });
 
   await test.step('verify showOrg button appears after expansion', async () => {
-    const showOrgOnButton = page.locator('[aria-label="Show Org Types (Active)"]');
-    await expect(showOrgOnButton).toBeVisible({ timeout: 10_000 });
+    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]');
+    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
   });
 });
 
@@ -95,25 +96,23 @@ test('Org Browser - filter toggles: filter state persists across reload', async 
   });
 
   await test.step('toggle showLocal OFF', async () => {
-    const showLocalOn = page.locator('[aria-label="Show Local Types (Active)"]');
-    await expect(showLocalOn).toBeVisible({ timeout: 10_000 });
-    await showLocalOn.click();
-    const showLocalOff = page.locator('[aria-label="Show Local Types (Inactive)"]');
-    await expect(showLocalOff).toBeVisible({ timeout: 10_000 });
+    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]');
+    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
+    await hideLocalButton.click();
+    const showLocalButton = page.locator('[aria-label="Show Local Types"]');
+    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
   });
 
   await test.step('reload window', async () => {
-    await page.keyboard.press('Control+Shift+P');
-    await page.keyboard.type('Reload Window', { delay: 50 });
-    await page.keyboard.press('Enter');
+    await reloadWindow(page);
     await waitForVSCodeWorkbench(page);
   });
 
   await test.step('verify showLocal remains OFF after reload', async () => {
     const orgBrowserPageAfter = new OrgBrowserPage(page);
     await orgBrowserPageAfter.openOrgBrowser();
-    const showLocalOff = page.locator('[aria-label="Show Local Types (Inactive)"]');
-    await expect(showLocalOff).toBeVisible({ timeout: 15_000 });
+    const showLocalButton = page.locator('[aria-label="Show Local Types"]');
+    await expect(showLocalButton).toBeVisible({ timeout: 15_000 });
   });
 });
 
@@ -134,39 +133,39 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
   });
 
   await test.step('toggle showLocal OFF and verify tree filters', async () => {
-    const showLocalOn = page.locator('[aria-label="Show Local Types (Active)"]');
-    await expect(showLocalOn).toBeVisible({ timeout: 10_000 });
-    await showLocalOn.click();
-    const showLocalOff = page.locator('[aria-label="Show Local Types (Inactive)"]');
-    await expect(showLocalOff).toBeVisible({ timeout: 10_000 });
+    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]');
+    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
+    await hideLocalButton.click();
+    const showLocalButton = page.locator('[aria-label="Show Local Types"]');
+    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
 
-    // Count should be less or equal since non-local types are filtered out
+    // showLocal OFF hides types with local files, showing only org-only types
     const filteredItems = page.locator('[role="treeitem"][aria-level="1"]');
     const filteredCount = await filteredItems.count();
     expect(filteredCount).toBeLessThanOrEqual(allItemsCount);
   });
 
   await test.step('toggle showOrg OFF independently', async () => {
-    const showOrgOn = page.locator('[aria-label="Show Org Types (Active)"]');
-    await expect(showOrgOn).toBeVisible({ timeout: 10_000 });
-    await showOrgOn.click();
-    const showOrgOff = page.locator('[aria-label="Show Org Types (Inactive)"]');
-    await expect(showOrgOff).toBeVisible({ timeout: 10_000 });
+    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]');
+    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
+    await hideOrgButton.click();
+    const showOrgButton = page.locator('[aria-label="Show Org Types"]');
+    await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
   });
 
   await test.step('toggle showLocal back ON without affecting showOrg', async () => {
-    const showLocalOff = page.locator('[aria-label="Show Local Types (Inactive)"]');
-    await showLocalOff.click();
-    const showLocalOn = page.locator('[aria-label="Show Local Types (Active)"]');
-    await expect(showLocalOn).toBeVisible({ timeout: 10_000 });
+    const showLocalButton = page.locator('[aria-label="Show Local Types"]');
+    await showLocalButton.click();
+    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]');
+    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
 
     // showOrg should still be OFF
-    const showOrgOff = page.locator('[aria-label="Show Org Types (Inactive)"]');
-    await expect(showOrgOff).toBeVisible();
+    const showOrgButton = page.locator('[aria-label="Show Org Types"]');
+    await expect(showOrgButton).toBeVisible();
   });
 });
 
-test('Org Browser - filter toggles: showLocal OFF hides types with no local files', async ({ page }) => {
+test('Org Browser - filter toggles: showLocal OFF hides types with local files', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -179,19 +178,19 @@ test('Org Browser - filter toggles: showLocal OFF hides types with no local file
   });
 
   await test.step('toggle showLocal OFF', async () => {
-    const showLocalOn = page.locator('[aria-label="Show Local Types (Active)"]');
-    await expect(showLocalOn).toBeVisible({ timeout: 10_000 });
-    await showLocalOn.click();
-    const showLocalOff = page.locator('[aria-label="Show Local Types (Inactive)"]');
-    await expect(showLocalOff).toBeVisible({ timeout: 10_000 });
+    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]');
+    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
+    await hideLocalButton.click();
+    const showLocalButton = page.locator('[aria-label="Show Local Types"]');
+    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
   });
 
   await test.step('verify filtered count is smaller', async () => {
-    // Wait for tree to refresh
-    await page.waitForTimeout(2000);
+    // Wait for tree to stabilize after filter change
     const items = page.locator('[role="treeitem"][aria-level="1"]');
+    await expect(items).not.toHaveCount(beforeCount, { timeout: 10_000 });
     const afterCount = await items.count();
-    // Dreamhouse has local files for only some types, so the filtered count should be less
+    // Dreamhouse has local files for some types; showLocal OFF hides those, so count decreases
     expect(afterCount).toBeLessThan(beforeCount);
   });
 });
@@ -213,19 +212,19 @@ test('Org Browser - filter toggles: showOrg OFF hides types not in local project
   });
 
   await test.step('toggle showOrg OFF', async () => {
-    const showOrgOn = page.locator('[aria-label="Show Org Types (Active)"]');
-    await expect(showOrgOn).toBeVisible({ timeout: 10_000 });
-    await showOrgOn.click();
-    const showOrgOff = page.locator('[aria-label="Show Org Types (Inactive)"]');
-    await expect(showOrgOff).toBeVisible({ timeout: 10_000 });
+    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]');
+    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
+    await hideOrgButton.click();
+    const showOrgButton = page.locator('[aria-label="Show Org Types"]');
+    await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
   });
 
   await test.step('verify only local types remain visible', async () => {
-    // Wait for tree to refresh
-    await page.waitForTimeout(2000);
+    // Wait for tree to stabilize after filter change
     const items = page.locator('[role="treeitem"][aria-level="1"]');
+    await expect(items).not.toHaveCount(beforeCount, { timeout: 10_000 });
     const afterCount = await items.count();
-    // Should be fewer since org-only types are hidden
+    // showOrg OFF hides org-only types, should be fewer
     expect(afterCount).toBeLessThan(beforeCount);
   });
 });
@@ -240,8 +239,8 @@ test('Org Browser - filter toggles: legacy viewMode migration', async ({ page })
   });
 
   await test.step('verify both toggles are in default ON state', async () => {
-    const showLocalOn = page.locator('[aria-label="Show Local Types (Active)"]');
-    await expect(showLocalOn).toBeVisible({ timeout: 10_000 });
+    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]');
+    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
   });
 
   await test.step('verify tree renders metadata types', async () => {
