@@ -76,8 +76,8 @@ New fields on `MetadataTypeTreeProvider` (`packages/salesforcedx-vscode-org-brow
 mirroring the existing `_showLocal`/`_showOrg` pattern:
 
 ```ts
-private _typeFilter: string | undefined;      // resolved xmlName, e.g. "ApexClass"
-private _componentFilter: string | undefined; // substring typed after ':', e.g. "foo"
+private _typeFilter: string | undefined;      // text typed before ':' — see match rule below
+private _componentFilter: string | undefined; // substring typed after ':'; undefined until a colon exists in the input
 ```
 
 ```ts
@@ -94,6 +94,20 @@ public clearTextFilter(): void {
 
 In-memory only — no `workspaceState` read/write for this story.
 
+**Match rule for `_typeFilter`** (resolved via the presence of `_componentFilter`,
+not a separate boolean — a colon in the input is exactly what puts `_componentFilter`
+in the defined state, even as `''` when nothing follows the colon yet):
+- No colon typed yet (`_componentFilter === undefined`): `_typeFilter` is matched as
+  a case-insensitive **substring** against each type's `xmlName` — narrows to every
+  type whose name contains what's been typed so far (e.g. `"Apex"` keeps
+  `ApexClass`, `ApexTrigger`, `ApexPage`, ...). This matches the suggestion list
+  and mirrors the POC's `Set<string>` multi-type model.
+- Colon typed (`_componentFilter` is a string, possibly `''`): `_typeFilter` holds
+  the single type name — resolved case-insensitively against the cached type list
+  by the `index.ts` QuickPick handler before calling `setTextFilter`, or used
+  literally if unresolved — and is matched as a case-insensitive **exact** match
+  against `xmlName`. This narrows the root to at most one type.
+
 ## Filtering logic
 
 The text filter is a second, independent filter that composes with showLocal/showOrg
@@ -103,13 +117,23 @@ text filter to be visible. This matches how the POC's `applyChildFilters` compos
 
 **Root level** (`getChildrenOfTreeItem`, no `element`): after the existing
 showLocal/showOrg filtering produces `allNodes` (or the subset from local/org
-logic), if `_typeFilter` is set, further filter to
-`node.xmlName.toLowerCase() === _typeFilter.toLowerCase()`.
+logic), if `_typeFilter` is set, further filter using the match rule above:
+
+```ts
+const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
+  if (provider.typeFilter === undefined) return true;
+  const lower = provider.typeFilter.toLowerCase();
+  return provider.componentFilter !== undefined
+    ? node.xmlName.toLowerCase() === lower // colon present: exact match, single type
+    : node.xmlName.toLowerCase().includes(lower); // no colon yet: substring match, multiple types
+};
+```
 
 **Component level** (`applyViewModeChildFilter`, used for both type-expansion and
 folder-item children): extend the existing function (or add a sibling filter
-applied after it) so that if `_componentFilter` is set, nodes are further filtered
-to `n.componentName?.toLowerCase().includes(_componentFilter.toLowerCase())`.
+applied after it) so that if `_componentFilter` is set (including `''`, which is a
+no-op since every string `.includes('')`), nodes are further filtered to
+`n.componentName?.toLowerCase().includes(_componentFilter.toLowerCase())`.
 
 ## Commands / package.json contributions
 
