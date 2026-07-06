@@ -32,6 +32,7 @@ import {
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
+import { anonApexDebug } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
@@ -110,6 +111,8 @@ const registerCommands = async (extensionContext: vscode.ExtensionContext): Prom
   const sfCreateCheckpointsCmd = vscode.commands.registerCommand('sf.create.checkpoints', sfCreateCheckpoints);
   const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
 
+  const anonApexDebugDocumentCmd = vscode.commands.registerCommand('sf.apex.debug.document', anonApexDebug);
+
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
@@ -122,6 +125,7 @@ const registerCommands = async (extensionContext: vscode.ExtensionContext): Prom
     launchFromLastLogFileCmd,
     sfCreateCheckpointsCmd,
     sfToggleCheckpointCmd,
+    anonApexDebugDocumentCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
 };

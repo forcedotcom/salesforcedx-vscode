@@ -200,6 +200,7 @@
     "onCommand:extension.replay-debugger.getLogFileName",
     "onCommand:sf.launch.replay.debugger.logfile",
     "onCommand:sf.launch.replay.debugger.logfile.path",
+    "onCommand:sf.apex.debug.document",
     "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
   "main": "./dist/index.js",
@@ -230,6 +231,10 @@
         {
           "command": "sf.test.view.debugSingleTest",
           "when": "false"
+        },
+        {
+          "command": "sf.apex.debug.document",
+          "when": "sf:project_opened && editorLangId == 'apex'"
         },
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
@@ -301,6 +306,10 @@
           "light": "resources/light/debug.svg",
           "dark": "resources/dark/debug.svg"
         }
+      },
+      {
+        "command": "sf.apex.debug.document",
+        "title": "%apex_debug_document_text%"
       },
       {
         "command": "sf.launch.apex.replay.debugger.with.current.file",
