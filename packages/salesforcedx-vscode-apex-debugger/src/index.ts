@@ -8,7 +8,7 @@
 // not going to change anything since this is going away
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
@@ -33,10 +33,11 @@ import { debuggerStop } from './commands/debuggerStop';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
+import { IsvAuthSetupError } from './errors';
 import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
-import { getActiveSalesforceCoreExtension, getTelemetryService } from './utils/coreExtensionUtils';
+import { getTelemetryService } from './utils/coreExtensionUtils';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
 
@@ -262,21 +263,34 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
     );
   });
 
-  const salesforceCoreExtension = yield* Effect.promise(() => getActiveSalesforceCoreExtension());
-  if (salesforceCoreExtension.exports.isCLIInstalled()) {
-    console.log('Setting up ISV Debugger environment variables');
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const terminalService = yield* api.services.TerminalService;
+  // `sf` CLI present? (`sf --version` exits 0). CLI-absence is a normal outcome here, so the
+  // TerminalServiceError is intentionally caught into `false` — skip ISV setup, don't fail activation.
+  const isCliInstalled = yield* terminalService
+    .simpleExec({ command: 'sf --version', parse: () => true })
+    .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed(false)));
+  if (isCliInstalled) {
+    yield* Effect.log('Setting up ISV Debugger environment variables');
     // register watcher for ISV authentication and setup default user for CLI
     // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
-    yield* Effect.promise(async () => {
-      try {
+    yield* Effect.tryPromise({
+      try: async () => {
         registerIsvAuthWatcher(extensionContext);
         await setupGlobalDefaultUserIsvAuth();
-      } catch (e) {
-        console.error(e);
-        vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error'));
-      }
-    });
+      },
+      catch: e => new IsvAuthSetupError({ message: e instanceof Error ? e.message : String(e) })
+    }).pipe(
+      // ISV setup failure is non-fatal to activation: surface a warning + log, don't fail the fiber
+      Effect.catchTag('IsvAuthSetupError', e =>
+        Effect.log(e.message).pipe(
+          Effect.zipRight(
+            Effect.sync(() => vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error')))
+          )
+        )
+      )
+    );
   }
 
   // Telemetry

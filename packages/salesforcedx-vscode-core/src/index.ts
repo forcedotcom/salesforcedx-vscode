@@ -33,7 +33,7 @@ import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
+import { setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
@@ -55,7 +55,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     channelService,
     getUserId,
     getAuthFields,
-    isCLIInstalled,
     SfCommandlet,
     SfCommandletExecutor,
     WorkspaceContext,
@@ -208,7 +207,6 @@ export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getUserId: typeof getUserId;
   getAuthFields: typeof getAuthFields;
-  isCLIInstalled: typeof isCLIInstalled;
   SfCommandlet: typeof SfCommandlet;
   SfCommandletExecutor: typeof SfCommandletExecutor;
   WorkspaceContext: typeof WorkspaceContext;
