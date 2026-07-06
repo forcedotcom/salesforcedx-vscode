@@ -112,7 +112,7 @@ const registerCommands = async (extensionContext: vscode.ExtensionContext): Prom
   const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
 
   const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
-  const anonApexDebugDocumentCmd = vscode.commands.registerCommand('sf.apex.debug.document', anonApexDebug);
+
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
@@ -126,7 +126,6 @@ const registerCommands = async (extensionContext: vscode.ExtensionContext): Prom
     sfCreateCheckpointsCmd,
     sfToggleCheckpointCmd,
     anonApexDebugDelegateCmd,
-    anonApexDebugDocumentCmd,
     launchApexReplayDebuggerWithCurrentFileCmd
   );
 };
