@@ -18,9 +18,11 @@ import { toUri } from './uriUtils';
 
 export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly cause: Error;
+  readonly message: string;
   readonly function: string;
   readonly filePath: string;
 }> {}
+
 /**
  * Convert path string or URI to URI, handling both file:// and other schemes like memfs://
  * @param filePath - Either a URI object, URI string (e.g., "memfs:/dx-project/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")

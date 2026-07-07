@@ -5,95 +5,36 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
-  SfCommandlet,
-  SfCommandletExecutor,
-  CliCommandExecutor,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
-import { ORG_LOGIN_WEB } from '../../constants';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import { nls } from '../../messages';
-import { updateConfigAndStateAggregators } from '../../util/orgUtil';
-import { getVerificationCodeDescription, showVerificationCodeIfNeeded } from '../../util/verificationCode';
-import { DEFAULT_ALIAS } from './authParamsGatherer';
+import { promptForAlias } from './authParamsGatherer';
+import { executeOrgLoginWeb } from './orgLoginWebExec';
 
-class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
-  protected showChannelOutput = false;
+/**
+ * Effect command for `sf.org.login.web.dev.hub`: prompt for an alias, then run
+ * `sf org login web --alias <alias> --set-default-dev-hub` (interactive browser auth).
+ *
+ * Shares the executeOrgLoginWeb executor with `sf.org.login.web` (same CLI, only the flags differ):
+ * verification-code fork, cancellable progress, port-1717 conflict handling, and config refresh.
+ *
+ * Telemetry: the root span name `sf.org.login.web.dev.hub` IS the telemetry event name (set by
+ * registerCommandWithLayer); this intentionally renames the old `org_login_web_dev_hub` key — same
+ * migration orgOpen made. No manual logMetric.
+ */
+export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  public build(data: AuthDevHubParams): Command {
-    const command = new SfCommandBuilder().withDescription(
-      getVerificationCodeDescription(nls.localize('org_login_web_authorize_dev_hub_text'))
-    );
+  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  yield* api.services.ProjectService.getSfProject();
 
-    command
-      .withArg(ORG_LOGIN_WEB)
-      .withLogName('org_login_web_dev_hub')
-      .withFlag('--alias', data.alias)
-      .withArg('--set-default-dev-hub');
-    return command.build();
-  }
+  const alias = yield* promptForAlias();
 
-  public execute(response: ContinueResponse<AuthDevHubParams>): void {
-    const startTime = globalThis.performance.now();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspaceUtils.getRootWorkspacePath(),
-      env: { SF_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
+  // quote alias so spaces/special chars don't split the shell command; validateAliasInput (in
+  // promptForAlias) already blocked shell metacharacters. simpleExec injects SF_JSON_TO_STDOUT +
+  // FORCE_COLOR=0 for the `sf ` prefix.
+  const command = `sf org login web --alias "${alias}" --set-default-dev-hub`;
 
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    void showVerificationCodeIfNeeded();
-
-    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
-      // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const exitCode = Array.isArray(data) ? data[0] : data;
-      if (exitCode === 0) {
-        await updateConfigAndStateAggregators();
-      }
-    });
-  }
-}
-
-class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<AuthDevHubParams>> {
-    const aliasInputOptions: vscode.InputBoxOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-      placeHolder: DEFAULT_ALIAS
-    };
-    const alias = await vscode.window.showInputBox(aliasInputOptions);
-    // Hitting enter with no alias will default the alias to 'vscodeOrg'
-    if (alias === undefined) {
-      return { type: 'CANCEL' };
-    }
-    return {
-      type: 'CONTINUE',
-      data: {
-        alias: alias || DEFAULT_ALIAS
-      }
-    };
-  }
-}
-
-type AuthDevHubParams = {
-  alias: string;
-};
-
-export const orgLoginWebDevHub = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new AuthDevHubParamsGatherer(),
-    new OrgLoginWebDevHubExecutor()
-  );
-  await commandlet.run();
-};
+  yield* executeOrgLoginWeb({ command, progressMessage: nls.localize('org_login_web_dev_hub_progress') });
+});

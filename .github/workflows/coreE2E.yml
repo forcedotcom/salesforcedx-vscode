@@ -111,7 +111,9 @@ jobs:
           retry_wait_seconds: 30
 
       - name: Install Playwright browsers and OS deps
+        id: playwright
         if: steps.try-run.outcome == 'failure'
+        background: true
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
@@ -130,6 +132,10 @@ jobs:
         run: |
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
+
+      - name: Wait for Playwright install
+        if: steps.try-run.outcome == 'failure'
+        wait: playwright
 
       - name: Run Core E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
