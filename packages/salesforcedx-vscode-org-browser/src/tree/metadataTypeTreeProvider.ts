@@ -22,7 +22,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   private _showLocal = true;
   private _showOrg = true;
-  private _hasOrgData = false;
 
   public get showLocal(): boolean {
     return this._showLocal;
@@ -42,14 +41,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     if (this._showOrg === value) return;
     this._showOrg = value;
     this._onDidChangeTreeData.fire(undefined);
-  }
-
-  public get hasOrgData(): boolean {
-    return this._hasOrgData;
-  }
-
-  public setHasOrgData(value: boolean): void {
-    this._hasOrgData = value;
   }
 
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
@@ -155,12 +146,6 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     if (element.kind === 'type') {
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
-        Effect.tap(() => {
-          if (!provider.hasOrgData) {
-            provider.setHasOrgData(true);
-            return Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', true));
-          }
-        }),
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),

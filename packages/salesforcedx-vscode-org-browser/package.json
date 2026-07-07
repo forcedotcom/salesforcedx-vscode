@@ -379,12 +379,6 @@
           "dark": "resources/dark/cloud-on.svg",
           "light": "resources/light/cloud-on.svg"
         }
-      },
-      {
-        "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
-        "title": "%orgBrowser.command.toggleOrgFilterNoData%",
-        "category": "Org Browser",
-        "icon": "$(cloud)"
       }
     ],
     "menus": {
@@ -401,17 +395,12 @@
         },
         {
           "command": "sfdxOrgBrowser.showOrg.on",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == false && sf:orgBrowser.hasOrgData",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == false",
           "group": "navigation@1"
         },
         {
           "command": "sfdxOrgBrowser.showOrg.off",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == true && sf:orgBrowser.hasOrgData",
-          "group": "navigation@1"
-        },
-        {
-          "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
-          "when": "view == sfdxOrgBrowser && !sf:orgBrowser.hasOrgData",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == true",
           "group": "navigation@1"
         },
         {
@@ -444,10 +433,6 @@
         },
         {
           "command": "sfdxOrgBrowser.showOrg.off",
-          "when": "false"
-        },
-        {
-          "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
           "when": "false"
         }
       ],

@@ -39,12 +39,9 @@ test('Org Browser - filter toggles: toolbar buttons visible with correct icons',
     await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
   });
 
-  await test.step('showOrg toggle is not visible before type expansion', async () => {
-    // hasOrgData is false initially, so org toggle should not be rendered
+  await test.step('showOrg toggle button is visible without requiring type expansion', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
-    const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
-    await expect(hideOrgButton).not.toBeVisible();
-    await expect(showOrgButton).not.toBeVisible();
+    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
   });
 });
 
@@ -66,25 +63,19 @@ test('Org Browser - filter toggles: icon swap on toggle', async ({ page }) => {
   });
 });
 
-test('Org Browser - filter toggles: org toggle disabled until type expansion', async ({ page }) => {
+test('Org Browser - filter toggles: org toggle works before any type is expanded', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
     await orgBrowserPage.openOrgBrowser();
   });
 
-  await test.step('verify showOrg button not visible before expansion', async () => {
-    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
-    await expect(hideOrgButton).not.toBeVisible();
-  });
-
-  await test.step('expand a type node to trigger hasOrgData', async () => {
-    await orgBrowserPage.expandFolder('ApexClass');
-  });
-
-  await test.step('verify showOrg button appears after expansion', async () => {
+  await test.step('toggle showOrg OFF without expanding any type first', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
     await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
+    await hideOrgButton.click();
+    const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
+    await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
   });
 });
 
@@ -124,10 +115,6 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
   });
 
   const allItemsCount = await test.step('count all tree items', async () => orgBrowserPage.getStableRootTypeCount());
-
-  await test.step('expand a type to enable org toggle', async () => {
-    await orgBrowserPage.expandFolder('ApexClass');
-  });
 
   await test.step('toggle showLocal OFF and verify tree filters', async () => {
     const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
@@ -203,10 +190,6 @@ test.skip('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only
 
   const beforeCount = await test.step('count tree items before filter', async () =>
     orgBrowserPage.getStableRootTypeCount());
-
-  await test.step('expand a type to enable org toggle', async () => {
-    await orgBrowserPage.expandFolder('ApexClass');
-  });
 
   await test.step('toggle showOrg OFF to enter localOnly mode', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
