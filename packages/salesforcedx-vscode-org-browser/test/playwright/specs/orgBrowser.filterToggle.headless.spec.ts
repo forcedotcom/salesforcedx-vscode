@@ -39,12 +39,9 @@ test('Org Browser - filter toggles: toolbar buttons visible with correct icons',
     await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
   });
 
-  await test.step('showOrg toggle is not visible before type expansion', async () => {
-    // hasOrgData is false initially, so org toggle should not be rendered
+  await test.step('showOrg toggle button is visible without requiring type expansion', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
-    const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
-    await expect(hideOrgButton).not.toBeVisible();
-    await expect(showOrgButton).not.toBeVisible();
+    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
   });
 });
 
@@ -66,25 +63,19 @@ test('Org Browser - filter toggles: icon swap on toggle', async ({ page }) => {
   });
 });
 
-test('Org Browser - filter toggles: org toggle disabled until type expansion', async ({ page }) => {
+test('Org Browser - filter toggles: org toggle works before any type is expanded', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
     await orgBrowserPage.openOrgBrowser();
   });
 
-  await test.step('verify showOrg button not visible before expansion', async () => {
-    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
-    await expect(hideOrgButton).not.toBeVisible();
-  });
-
-  await test.step('expand a type node to trigger hasOrgData', async () => {
-    await orgBrowserPage.expandFolder('ApexClass');
-  });
-
-  await test.step('verify showOrg button appears after expansion', async () => {
+  await test.step('toggle showOrg OFF without expanding any type first', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
     await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
+    await hideOrgButton.click();
+    const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
+    await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
   });
 });
 
@@ -123,14 +114,7 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     await orgBrowserPage.openOrgBrowser();
   });
 
-  const allItemsCount = await test.step('count all tree items', async () => {
-    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    return await items.count();
-  });
-
-  await test.step('expand a type to enable org toggle', async () => {
-    await orgBrowserPage.expandFolder('ApexClass');
-  });
+  const allItemsCount = await test.step('count all tree items', async () => orgBrowserPage.getStableRootTypeCount());
 
   await test.step('toggle showLocal OFF and verify tree filters', async () => {
     const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
@@ -140,20 +124,18 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
 
     // showLocal OFF + showOrg ON (default) = orgOnly mode: root shows all types, child-level filters org-only components
-    const filteredItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    await expect(filteredItems).toHaveCount(allItemsCount, { timeout: 10_000 });
+    await orgBrowserPage.waitForRootTypeCount(allItemsCount);
   });
 
-  await test.step('toggle showOrg OFF independently', async () => {
+  await test.step('toggle showOrg OFF independently — both filters OFF yields empty tree', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
     await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
     await hideOrgButton.click();
     const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
     await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
 
-    // With both OFF, tree shows everything again (same as both ON)
-    const bothOffItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    await expect(bothOffItems).toHaveCount(allItemsCount, { timeout: 10_000 });
+    // With both OFF, tree is empty
+    await orgBrowserPage.waitForRootTypeCount(0);
   });
 
   await test.step('toggle showLocal back ON without affecting showOrg', async () => {
@@ -175,10 +157,8 @@ test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types
     await orgBrowserPage.openOrgBrowser();
   });
 
-  const beforeCount = await test.step('count tree items before filter', async () => {
-    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    return await items.count();
-  });
+  const beforeCount = await test.step('count tree items before filter', async () =>
+    orgBrowserPage.getStableRootTypeCount());
 
   await test.step('toggle showLocal OFF to enter orgOnly mode', async () => {
     const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
@@ -190,12 +170,16 @@ test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types
 
   await test.step('verify all types still visible at root level', async () => {
     // orgOnly mode: root shows all types (they all exist in org), child-level filters to org-only components
-    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    await expect(items).toHaveCount(beforeCount, { timeout: 10_000 });
+    await orgBrowserPage.waitForRootTypeCount(beforeCount);
   });
 });
 
-test('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only types in local project', async ({
+// Skipped: the e2e workspace's force-app is created empty by createTestWorkspace() (see
+// packages/playwright-vscode-ext/src/fixtures/desktopWorkspace.ts) — the org has Dreamhouse
+// metadata deployed to it, but nothing ever copies local source files into the opened
+// workspace, so localOnly mode has no non-empty case to verify here. Re-enable once the
+// workspace is seeded with local files that overlap the org's metadata.
+test.skip('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only types in local project', async ({
   page
 }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
@@ -204,14 +188,8 @@ test('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only type
     await orgBrowserPage.openOrgBrowser();
   });
 
-  const beforeCount = await test.step('count tree items before filter', async () => {
-    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    return await items.count();
-  });
-
-  await test.step('expand a type to enable org toggle', async () => {
-    await orgBrowserPage.expandFolder('ApexClass');
-  });
+  const beforeCount = await test.step('count tree items before filter', async () =>
+    orgBrowserPage.getStableRootTypeCount());
 
   await test.step('toggle showOrg OFF to enter localOnly mode', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
@@ -222,12 +200,10 @@ test('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only type
   });
 
   await test.step('verify only local types remain visible', async () => {
-    // Wait for tree to stabilize after filter change
-    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    await expect(items).not.toHaveCount(beforeCount, { timeout: 10_000 });
-    const afterCount = await items.count();
-    // localOnly mode (showLocal ON + showOrg OFF): shows only types with local files
-    expect(afterCount).toBeLessThan(beforeCount);
+    // localOnly mode (showLocal ON + showOrg OFF): root shows only types with local source files.
+    // The e2e workspace's force-app is created empty by the test fixture (no local metadata is
+    // ever written into it), so localOnly legitimately collapses to 0 root types here.
+    await expect.poll(() => orgBrowserPage.getRootTypeCount(), { timeout: 10_000 }).toBeLessThan(beforeCount);
   });
 });
 
@@ -246,8 +222,7 @@ test('Org Browser - filter toggles: legacy viewMode migration', async ({ page })
   });
 
   await test.step('verify tree renders metadata types', async () => {
-    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    const count = await items.count();
+    const count = await orgBrowserPage.getStableRootTypeCount();
     expect(count).toBeGreaterThan(0);
   });
 });

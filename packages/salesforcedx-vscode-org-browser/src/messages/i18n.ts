@@ -9,6 +9,5 @@ export const messages = {
   confirm_overwrite: 'Overwrite local files for %s %s?',
   yes_button: 'Yes',
   no_button: 'No',
-  org_filter_no_data: 'Expand a metadata type first to enable org filtering',
   filter_text_placeholder: 'Type: e.g. ApexClass, or ApexClass:MyClass (empty to clear)'
 } as const;

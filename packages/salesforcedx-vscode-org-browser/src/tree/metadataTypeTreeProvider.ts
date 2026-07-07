@@ -22,7 +22,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   private _showLocal = true;
   private _showOrg = true;
-  private _hasOrgData = false;
   private _typeFilter: string | undefined;
   private _componentFilter: string | undefined;
 
@@ -44,14 +43,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     if (this._showOrg === value) return;
     this._showOrg = value;
     this._onDidChangeTreeData.fire(undefined);
-  }
-
-  public get hasOrgData(): boolean {
-    return this._hasOrgData;
-  }
-
-  public setHasOrgData(value: boolean): void {
-    this._hasOrgData = value;
   }
 
   public get typeFilter(): string | undefined {
@@ -123,7 +114,10 @@ export const applyViewModeChildFilter = (
   provider: MetadataTypeTreeProvider
 ): OrgBrowserTreeItem[] => {
   const viewModeFiltered = ((): OrgBrowserTreeItem[] => {
-    if (provider.showLocal === provider.showOrg) return nodes; // both-on or both-off: no filter
+    // both-on: show all children
+    if (provider.showLocal && provider.showOrg) return nodes;
+    // both-off: unreachable at child level (root returns empty)
+    if (!provider.showLocal && !provider.showOrg) return [];
     if (provider.showLocal && !provider.showOrg) {
       return nodes.filter(n => n.filePresent === true);
     }
@@ -146,11 +140,16 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       return yield* Effect.succeed([]);
     }
     if (!element) {
+      // Both OFF = empty tree (explicit "show nothing" state)
+      if (!provider.showLocal && !provider.showOrg) {
+        return [];
+      }
+
       const types = yield* metadataDescribeService.describe();
       const allNodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
 
-      // Both ON or both OFF = show everything (both-off is a no-op by design)
-      if (provider.showLocal === provider.showOrg) {
+      // Both ON = show everything
+      if (provider.showLocal && provider.showOrg) {
         return allNodes.filter(node => passesTypeFilter(node, provider));
       }
 
@@ -189,12 +188,6 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     if (element.kind === 'type') {
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
       return yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
-        Effect.tap(() => {
-          if (!provider.hasOrgData) {
-            provider.setHasOrgData(true);
-            return Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', true));
-          }
-        }),
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),

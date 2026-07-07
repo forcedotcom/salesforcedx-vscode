@@ -303,7 +303,13 @@
     "viewsWelcome": [
       {
         "view": "sfdxOrgBrowser",
-        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
+        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type.",
+        "when": "sf:orgBrowser.showLocal == true || sf:orgBrowser.showOrg == true"
+      },
+      {
+        "view": "sfdxOrgBrowser",
+        "contents": "%org_browser_filters_all_off%",
+        "when": "sf:orgBrowser.showLocal == false && sf:orgBrowser.showOrg == false"
       }
     ],
     "viewsContainers": {
@@ -381,12 +387,6 @@
         }
       },
       {
-        "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
-        "title": "%orgBrowser.command.toggleOrgFilterNoData%",
-        "category": "Org Browser",
-        "icon": "$(cloud)"
-      },
-      {
         "command": "sfdxOrgBrowser.filterText",
         "title": "%orgBrowser.command.filterText%",
         "category": "Org Browser",
@@ -413,17 +413,12 @@
         },
         {
           "command": "sfdxOrgBrowser.showOrg.on",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == false && sf:orgBrowser.hasOrgData",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == false",
           "group": "navigation@1"
         },
         {
           "command": "sfdxOrgBrowser.showOrg.off",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == true && sf:orgBrowser.hasOrgData",
-          "group": "navigation@1"
-        },
-        {
-          "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
-          "when": "view == sfdxOrgBrowser && !sf:orgBrowser.hasOrgData",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == true",
           "group": "navigation@1"
         },
         {
@@ -466,10 +461,6 @@
         },
         {
           "command": "sfdxOrgBrowser.showOrg.off",
-          "when": "false"
-        },
-        {
-          "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
           "when": "false"
         },
         {

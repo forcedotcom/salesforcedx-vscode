@@ -207,8 +207,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.all(
     [
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', showLocal)),
-      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', showOrg)),
-      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.hasOrgData', false))
+      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', showOrg))
     ],
     { concurrency: 'unbounded' }
   );
@@ -283,9 +282,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           );
           treeProvider.setShowOrg(false);
         })
-      ),
-      registerCommand(`${TREE_VIEW_ID}.toggleOrgFilterNoData`, () =>
-        Effect.promise(() => vscode.window.showInformationMessage(nls.localize('org_filter_no_data')))
       ),
       registerCommand(`${TREE_VIEW_ID}.filterText`, () => openFilterTextPicker(treeProvider)),
       registerCommand(`${TREE_VIEW_ID}.filterText.active`, () => openFilterTextPicker(treeProvider))

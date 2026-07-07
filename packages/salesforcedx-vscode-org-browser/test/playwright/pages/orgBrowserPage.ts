@@ -64,6 +64,37 @@ export class OrgBrowserPage {
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
   }
 
+  /**
+   * True root-level type count via `aria-setsize` — VS Code sets this from the tree
+   * model's full child count for the level, so it reflects the type list after the
+   * provider's own filtering regardless of which rows are currently scrolled into view.
+   * A DOM node count under-counts once the list exceeds the viewport, since virtualized
+   * rows outside it are absent from the DOM entirely (not merely hidden).
+   */
+  public async getRootTypeCount(): Promise<number> {
+    const firstRootItem = this.sidebar.getByRole('treeitem', { level: 1 }).first();
+    if ((await firstRootItem.count()) === 0) return 0;
+    const setSize = await firstRootItem.getAttribute('aria-setsize');
+    return setSize === null ? 0 : Number(setSize);
+  }
+
+  /** Poll {@link getRootTypeCount} until it reaches `expected` (the tree re-fetches asynchronously after a filter toggle). */
+  public async waitForRootTypeCount(expected: number, timeout = 10_000): Promise<void> {
+    await expect.poll(() => this.getRootTypeCount(), { timeout }).toBe(expected);
+  }
+
+  /**
+   * Snapshot the current root type count, tolerating the moment right after
+   * `openOrgBrowser`/`expandFolder` where the previously-visible row can be
+   * unmounted (virtualized list scroll) before the next row settles — a
+   * `getRootTypeCount()` sampled exactly then would read 0 even though the
+   * type list itself is non-empty.
+   */
+  public async getStableRootTypeCount(timeout = 10_000): Promise<number> {
+    await expect.poll(() => this.getRootTypeCount(), { timeout }).toBeGreaterThan(0);
+    return this.getRootTypeCount();
+  }
+
   public async expandFolder(folderName: string, level?: number): Promise<void> {
     const folderItem = level
       ? this.page.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
