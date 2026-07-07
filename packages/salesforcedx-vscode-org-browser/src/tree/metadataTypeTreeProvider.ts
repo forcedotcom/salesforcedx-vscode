@@ -85,7 +85,10 @@ const applyViewModeChildFilter = (
   nodes: OrgBrowserTreeItem[],
   provider: MetadataTypeTreeProvider
 ): OrgBrowserTreeItem[] => {
-  if (provider.showLocal === provider.showOrg) return nodes; // both-on or both-off: no filter
+  // both-on: show all children
+  if (provider.showLocal && provider.showOrg) return nodes;
+  // both-off: unreachable at child level (root returns empty)
+  if (!provider.showLocal && !provider.showOrg) return [];
   if (provider.showLocal && !provider.showOrg) {
     return nodes.filter(n => n.filePresent === true);
   }
@@ -103,11 +106,16 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       return yield* Effect.succeed([]);
     }
     if (!element) {
+      // Both OFF = empty tree (explicit "show nothing" state)
+      if (!provider.showLocal && !provider.showOrg) {
+        return [];
+      }
+
       const types = yield* metadataDescribeService.describe();
       const allNodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
 
-      // Both ON or both OFF = show everything (both-off is a no-op by design)
-      if (provider.showLocal === provider.showOrg) {
+      // Both ON = show everything
+      if (provider.showLocal && provider.showOrg) {
         return allNodes;
       }
 

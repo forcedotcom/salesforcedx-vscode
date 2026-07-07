@@ -127,15 +127,15 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     await orgBrowserPage.waitForRootTypeCount(allItemsCount);
   });
 
-  await test.step('toggle showOrg OFF independently', async () => {
+  await test.step('toggle showOrg OFF independently — both filters OFF yields empty tree', async () => {
     const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
     await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
     await hideOrgButton.click();
     const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
     await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
 
-    // With both OFF, tree shows everything again (same as both ON)
-    await orgBrowserPage.waitForRootTypeCount(allItemsCount);
+    // With both OFF, tree is empty
+    await orgBrowserPage.waitForRootTypeCount(0);
   });
 
   await test.step('toggle showLocal back ON without affecting showOrg', async () => {
