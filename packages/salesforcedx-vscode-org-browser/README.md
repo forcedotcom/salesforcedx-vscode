@@ -77,8 +77,10 @@ test/playwright/
 ├── specs/                     # Test specs (shared between web & desktop)
 │   ├── orgBrowser.customObject.headless.spec.ts
 │   ├── orgBrowser.customTab.headless.spec.ts
+│   ├── orgBrowser.describe.scratch.spec.ts
+│   ├── orgBrowser.filterToggle.headless.spec.ts
 │   ├── orgBrowser.folderedReport.headless.spec.ts
-│   └── orgBrowser.load.smoke.spec.ts
+│   └── orgBrowser.textFilter.headless.spec.ts
 ├── fixtures/                  # Platform-specific test fixtures
 │   ├── webFixtures.ts        # Web test setup
 │   ├── desktopFixtures.ts    # Desktop/Electron test setup
