@@ -11,6 +11,8 @@
   "orgBrowser.command.showOrg.on": "Show Org Types",
   "orgBrowser.command.showOrg.off": "Hide Org Types",
   "orgBrowser.command.toggleOrgFilterNoData": "Show Org Types (expand a type first)",
+  "orgBrowser.command.filterText": "Filter by Type/Component",
+  "orgBrowser.command.filterText.active": "Edit Filter (active)",
   "org_browser_walkthrough_open_command": "Open Org Browser Walkthrough",
   "org_browser_walkthrough_title": "Org Browser",
   "org_browser_walkthrough_description": "Browse and retrieve your org's metadata types and components using the Org Browser.",

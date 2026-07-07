@@ -385,6 +385,18 @@
         "title": "%orgBrowser.command.toggleOrgFilterNoData%",
         "category": "Org Browser",
         "icon": "$(cloud)"
+      },
+      {
+        "command": "sfdxOrgBrowser.filterText",
+        "title": "%orgBrowser.command.filterText%",
+        "category": "Org Browser",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "sfdxOrgBrowser.filterText.active",
+        "title": "%orgBrowser.command.filterText.active%",
+        "category": "Org Browser",
+        "icon": "$(filter-filled)"
       }
     ],
     "menus": {
@@ -423,6 +435,16 @@
           "command": "sfdxOrgBrowser.collapseAll",
           "when": "view == sfdxOrgBrowser",
           "group": "navigation@3"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == false",
+          "group": "navigation@4"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText.active",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == true",
+          "group": "navigation@4"
         }
       ],
       "commandPalette": [
@@ -448,6 +470,14 @@
         },
         {
           "command": "sfdxOrgBrowser.toggleOrgFilterNoData",
+          "when": "false"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText",
+          "when": "false"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText.active",
           "when": "false"
         }
       ],
