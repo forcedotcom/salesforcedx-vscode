@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
-import { ChannelService, ChannelServiceLayer } from '../vscode/channelService';
+import { ChannelService } from '../vscode/channelService';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { AliasService } from './alias';
@@ -215,9 +215,11 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
 
-    // On identity() failure: log to the Org Management channel, show the modal, and (if accepted) dispatch
-    // sf.org.login.web. ChannelServiceLayer('Salesforce Org Management') keeps today's channel destination
-    // (the default ChannelService channel is 'Salesforce Services').
+    // On identity() failure: log to the services-owned 'Salesforce Services' channel (default ChannelService),
+    // show the modal, and (if accepted) dispatch sf.org.login.web. We must NOT create a
+    // ChannelServiceLayer('Salesforce Org Management') here: services is a *dependency* of the org extension,
+    // so that would createOutputChannel('Salesforce Org Management') from a second bundle → a DUPLICATE channel
+    // with the same display name the org ext already owns.
     const promptReauth = Effect.fn('ConnectionService.promptReauth')(
       function* (conn: Connection, username: string, error: unknown) {
         const channelService = yield* ChannelService;
@@ -241,7 +243,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
           message: 'Unable to refresh your access token.  Please login again.'
         });
       },
-      effect => effect.pipe(Effect.provide(ChannelServiceLayer('Salesforce Org Management')))
+      effect => effect.pipe(Effect.provide(ChannelService.Default))
     );
 
     const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (conn: Connection) {

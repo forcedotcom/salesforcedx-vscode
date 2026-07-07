@@ -143,8 +143,8 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
       LOGIN_BUTTON
     );
     expect(executeCommandSpy).toHaveBeenCalledWith('sf.org.login.web', INSTANCE_URL, ALIAS);
-    // logs to the Salesforce Org Management channel (destination preserved via ChannelServiceLayer) and reveals it
-    expect(createOutputChannelSpy).toHaveBeenCalledWith('Salesforce Org Management');
+    // logs to the services-owned 'Salesforce Services' channel (default ChannelService) and reveals it
+    expect(createOutputChannelSpy).toHaveBeenCalledWith('Salesforce Services');
     expect(channelAppendLine).toHaveBeenCalledWith(expect.stringContaining('Error refreshing access token'));
     expect(channelShow).toHaveBeenCalled();
   });
