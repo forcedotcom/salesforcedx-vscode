@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, OrgConfigProperties } from '@salesforce/core';
+import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
@@ -247,8 +247,16 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       yield* connectionCache.invalidateAll;
     });
 
-    /** List all org authorizations known to the CLI (wraps `AuthInfo.listAllAuthorizations`). */
+    /**
+     * List all org authorizations known to the CLI (wraps `AuthInfo.listAllAuthorizations`).
+     * Clears the StateAggregator first: `AuthInfo.listAllAuthorizations` reads via a cached
+     * StateAggregator whose `orgs.readAll` only *adds* to its `configs` map and never evicts
+     * entries for files deleted out of process (orgAccessor.js `readAll` L81-103). A logged-out
+     * org (its auth file removed by `AuthRemover.removeAuth`) therefore lingers in the cache, so
+     * the org pickers keep listing it. Resetting the instance forces a fresh disk read.
+     */
     const listAllAuthorizations = Effect.fn('ConnectionService.listAllAuthorizations')(function* () {
+      yield* Effect.promise(() => StateAggregator.clearInstanceAsync());
       return yield* Effect.tryPromise({
         try: () => AuthInfo.listAllAuthorizations(),
         catch: error => {

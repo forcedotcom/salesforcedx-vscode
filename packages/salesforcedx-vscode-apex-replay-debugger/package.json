@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@playwright/test": "*",
-    "@salesforce/core": "^8.31.5",
+    "@salesforce/core": "^8.32.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*",

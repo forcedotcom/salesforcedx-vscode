@@ -24,3 +24,10 @@
 
 - `sf.org.delete.default` → Effect `orgDeleteDefaultCommand` (no picker; confirm modal; `org delete sandbox` for sandbox else `org delete scratch`)
 - `sf.org.delete.username` → Effect `orgDeleteUsernameCommand` (multi-select `gather` picker + confirm; per-org `sf org delete scratch|sandbox --target-org <u>` via `TerminalService.simpleExec`; continues past a failed org via `Effect.either`, then fails `OrgDeleteFailedError` if any failed). CLI removes auth + aliases + unsets config, so no separate cleanup.
+
+### sf.org.logout flow
+
+- `OrgLogoutDefault.run`: calls `AuthRemover.removeAuth(username)` (unsets all disk config keys matching the username/aliases — target-org + target-dev-hub), then synchronously clears the in-process `TargetOrgRef` via `ConfigService.unsetTargetOrg()`.
+  - `AuthRemover.removeAuth` writes config.json on disk but never touches in-process `defaultOrgRef`.
+  - Async config-file watcher is best-effort; fs-event latency means it does not reliably fire within command window.
+  - **Must** clear in-process ref deterministically to fix apex-testing tree no-org reactor keys that depend on reliable `defaultOrgRef` clear on logout.

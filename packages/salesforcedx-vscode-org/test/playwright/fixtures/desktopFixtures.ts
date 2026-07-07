@@ -14,11 +14,14 @@ export const orgDesktopTest = createDesktopTest({
 });
 
 /** Same workspace with the minimal scratch org set as default (`.sfdx/config.json` target-org),
- * so default-org context keys (e.g. `sf:default_org_deletable`) are populated. */
+ * so default-org context keys (e.g. `sf:default_org_deletable`) are populated.
+ * `window.dialogStyle: custom` routes the logout confirm modal through VS Code's DOM renderer so
+ * the real-logout step can click its confirm button (the cancel steps only press Escape). */
 export const orgDesktopMinimalDefaultTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs: ['salesforcedx-vscode-core'],
-  orgAlias: MINIMAL_ORG_ALIAS
+  orgAlias: MINIMAL_ORG_ALIAS,
+  userSettings: { 'window.dialogStyle': 'custom' }
 });
 
 /** Minimal-scratch-default fixture that also routes `showWarningMessage({ modal: true })` through VS Code's

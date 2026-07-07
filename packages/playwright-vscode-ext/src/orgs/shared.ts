@@ -8,10 +8,35 @@
 import type { OrgAuthResult, OrgDisplayResult } from './types';
 import type { AuthFields } from '@salesforce/core';
 import { exec } from 'node:child_process';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { promisify } from 'node:util';
 
 export const execAsync = promisify(exec);
 export const env = { ...process.env, NO_COLOR: '1' };
+
+/**
+ * Run `sf org create scratch` and return its stdout. On failure, persist the raw CLI stdout/stderr
+ * (the `--json` error body) to `~/.sf/vscode-spans/org-create-failure-<timestamp>.txt` — CI copies
+ * that dir into test-results (orgE2E.yml) — and rethrow an error that includes the body. Without
+ * this, `execAsync` throws a bare `Command failed: …` and the actual scratch-org error (limit hit,
+ * dev-hub auth, timeout) is lost, making every CI org-create failure a black box.
+ */
+export const runScratchOrgCreate = async (command: string, cwd: string): Promise<string> => {
+  try {
+    const { stdout } = await execAsync(command, { cwd, env });
+    return stdout;
+  } catch (err) {
+    const { stdout = '', stderr = '' } = err as { stdout?: string; stderr?: string };
+    const body = `command: ${command}\n\n--- stdout ---\n${stdout}\n\n--- stderr ---\n${stderr}`;
+    const dir = path.join(os.homedir(), '.sf', 'vscode-spans');
+    const file = path.join(dir, `org-create-failure-${Date.now()}.txt`);
+    await fs.mkdir(dir, { recursive: true }).catch(() => undefined);
+    await fs.writeFile(file, body).catch(() => undefined);
+    throw new Error(`Scratch org creation failed (${command}). CLI output:\n${body}`);
+  }
+};
 
 /** Try to use existing org, return auth fields if found */
 export const tryUseExistingOrg = async (orgAlias: string): Promise<OrgAuthResult | undefined> => {
