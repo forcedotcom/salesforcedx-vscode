@@ -165,7 +165,7 @@ const METRICS_SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
-        required: ['testName', 'totalRuns', 'failCount', 'retryCount', 'retryRate', 'workflowName'],
+        required: ['testName', 'totalRuns', 'failCount', 'retryCount', 'retryRate', 'workflowName', 'runIds'],
         properties: {
           testName: { type: 'string' },
           totalRuns: { type: 'number' },
@@ -173,6 +173,7 @@ const METRICS_SCHEMA = {
           retryCount: { type: 'number' },
           retryRate: { type: 'number' },
           workflowName: { type: 'string' },
+          runIds: { type: 'array', items: { type: 'string' } },
         },
       },
     },
@@ -366,11 +367,12 @@ Group failures by: test name + error message pattern (first 120 chars of the err
 ## Per-test retry metrics
 ${JSON.stringify(metricsData.testMetrics, null, 2)}
 
-For EVERY cluster you emit:
-- Set \`retryRate\` by looking up the cluster's \`testName\` in the testMetrics array above (match on \`testName\`); if absent, \`retryRate: 0\`.
+For EVERY cluster you emit, look up the cluster's \`testName\` in the testMetrics array above (match on \`testName\`):
+- Set \`retryRate\` from the matched entry; if absent, \`retryRate: 0\`.
+- Set \`runIds\` from the matched entry's \`runIds\` (the run ids where that test retried or failed). Merge in any run ids you observed for this test's failures. If no match and none observed, \`runIds: []\`.
 - Set \`source\`: \`'failure'\` for run-level-failure clusters, \`'retryRate'\` for retry-threshold clusters (below).
 
-Also emit a cluster for ANY testMetrics entry with \`retryRate >= ${RETRY_RATE_THRESHOLD}\` AND \`totalRuns >= ${RETRY_MIN_RUNS}\`, even with 0 hard failures — retries mask a green run-level result. For such clusters: \`source: 'retryRate'\`, \`retryMasked: true\`, \`count\` = that entry's \`retryCount\`, \`runIds\` = best-available run ids for the test (empty array if none), \`errorPattern\` = brief note that this is retry-masked flake.
+Also emit a cluster for ANY testMetrics entry with \`retryRate >= ${RETRY_RATE_THRESHOLD}\` AND \`totalRuns >= ${RETRY_MIN_RUNS}\`, even with 0 hard failures — retries mask a green run-level result. For such clusters: \`source: 'retryRate'\`, \`retryMasked: true\`, \`count\` = that entry's \`retryCount\`, \`runIds\` = that entry's \`runIds\`, \`errorPattern\` = brief note that this is retry-masked flake.
 
 Sort clusters by count descending. Return top clusters.`,
   { label: 'cluster:failures', phase: 'Cluster failures', schema: CLUSTERS_SCHEMA }
