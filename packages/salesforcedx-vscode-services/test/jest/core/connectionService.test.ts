@@ -75,12 +75,17 @@ const makeConn = ({ isAccessTokenFlow = true, identity, username = USERNAME }: C
 describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   let showErrorMessageSpy: jest.SpyInstance;
   let executeCommandSpy: jest.SpyInstance;
+  let createOutputChannelSpy: jest.SpyInstance;
+  let channelAppendLine: jest.Mock;
+  let channelShow: jest.Mock;
 
   beforeEach(() => {
+    channelAppendLine = jest.fn();
+    channelShow = jest.fn();
     // resetMocks wipes the createOutputChannel impl the module-level channel cache relies on
-    jest
+    createOutputChannelSpy = jest
       .spyOn(vscode.window, 'createOutputChannel')
-      .mockReturnValue({ appendLine: jest.fn(), show: jest.fn(), clear: jest.fn() } as never);
+      .mockReturnValue({ appendLine: channelAppendLine, show: channelShow, clear: jest.fn() } as never);
     showErrorMessageSpy = jest.spyOn(vscode.window, 'showErrorMessage').mockResolvedValue(undefined);
     executeCommandSpy = jest.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined);
   });
@@ -131,7 +136,17 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
     expect(Exit.isFailure(exit)).toBe(true);
     expect(identity).toHaveBeenCalledTimes(1);
     expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
+    // modal copy (relocated from utils): error + detail + Login button
+    expect(showErrorMessageSpy).toHaveBeenCalledWith(
+      'Access token expired or invalid.',
+      { modal: true, detail: expect.stringContaining('reauthenticate') },
+      LOGIN_BUTTON
+    );
     expect(executeCommandSpy).toHaveBeenCalledWith('sf.org.login.web', INSTANCE_URL, ALIAS);
+    // logs to the Salesforce Org Management channel (destination preserved via ChannelServiceLayer) and reveals it
+    expect(createOutputChannelSpy).toHaveBeenCalledWith('Salesforce Org Management');
+    expect(channelAppendLine).toHaveBeenCalledWith(expect.stringContaining('Error refreshing access token'));
+    expect(channelShow).toHaveBeenCalled();
   });
 
   it('falls back to username when no alias exists', async () => {
