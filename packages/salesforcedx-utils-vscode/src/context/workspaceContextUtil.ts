@@ -29,12 +29,14 @@ export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
  * access-token reauth check (which prompts + dispatches sf.org.login.web on an expired session-ID flow).
  * The reauth coordination (one-modal-per-username dedup, revalidation throttle) lives in ConnectionService.
  */
-const getConnectionEffect = Effect.fn('WorkspaceContextUtil.getConnection')(function* () {
+const getValidatedConnection = Effect.fn('WorkspaceContextUtil.getConnection')(function* () {
   const api = yield* getServicesApi;
   const prebuilt = Layer.succeedContext(api.services.prebuiltServicesDependencies);
-  const conn = yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(prebuilt));
-  yield* api.services.ConnectionService.validateAccessTokenOrPromptReauth(conn).pipe(Effect.provide(prebuilt));
-  return conn;
+  return yield* Effect.gen(function* () {
+    const conn = yield* api.services.ConnectionService.getConnection();
+    yield* api.services.ConnectionService.validateAccessTokenOrPromptReauth(conn);
+    return conn;
+  }).pipe(Effect.provide(prebuilt));
 });
 
 /**
@@ -85,7 +87,7 @@ export class WorkspaceContextUtil {
     if (!this._username) {
       throw new Error(nls.localize('error_no_target_org'));
     }
-    return Effect.runPromise(getConnectionEffect());
+    return Effect.runPromise(getValidatedConnection());
   }
 
   protected async handleCliConfigChange() {
