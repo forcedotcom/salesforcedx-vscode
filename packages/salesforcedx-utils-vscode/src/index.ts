@@ -33,7 +33,6 @@ export {
 export { fileExtensionsMatch, projectPaths } from './helpers/paths';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
-export type { SharedAuthState } from './helpers/authUtils';
 export { getTargetOrgOrAlias, getTargetDevHubOrAlias, getOrgApiVersion } from './util/authInfo';
 export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
