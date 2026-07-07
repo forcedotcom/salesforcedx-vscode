@@ -239,8 +239,7 @@ test('Org Browser - filter toggles: legacy viewMode migration', async ({ page })
   });
 
   await test.step('verify tree renders metadata types', async () => {
-    const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-    const count = await items.count();
+    const count = await orgBrowserPage.getStableRootTypeCount();
     expect(count).toBeGreaterThan(0);
   });
 });
