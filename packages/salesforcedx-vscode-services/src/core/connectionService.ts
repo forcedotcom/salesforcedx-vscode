@@ -73,7 +73,7 @@ export class NoTargetOrgConfiguredError extends Schema.TaggedError<NoTargetOrgCo
   }
 ) {}
 
-class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpiredError>()('AccessTokenExpiredError', {
+export class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpiredError>()('AccessTokenExpiredError', {
   message: Schema.String
 }) {}
 
@@ -184,10 +184,6 @@ type IdentityResult = { username: string; userId: string };
 
 const identityCache = new Map<string, IdentityResult>();
 
-// The reauth Cache is keyed by username (for concurrent-caller dedup + TTL), but the lookup needs the
-// live per-call Connection. This module-scoped map threads that conn to the username-keyed lookup.
-const connByUsername = new Map<string, Connection>();
-
 const getUserFromUserSobject = (orgId: string, conn: Connection) => {
   const cached = identityCache.get(orgId);
   if (cached) return Effect.succeed(cached);
@@ -222,8 +218,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     // On identity() failure: log to the Org Management channel, show the modal, and (if accepted) dispatch
     // sf.org.login.web. ChannelServiceLayer('Salesforce Org Management') keeps today's channel destination
     // (the default ChannelService channel is 'Salesforce Services').
-    const promptReauth = (conn: Connection, username: string, error: unknown) =>
-      Effect.gen(function* () {
+    const promptReauth = Effect.fn('ConnectionService.promptReauth')(
+      function* (conn: Connection, username: string, error: unknown) {
         const channelService = yield* ChannelService;
         yield* channelService.appendToChannel(`Error refreshing access token: ${String(error)}`);
         yield* channelService.showChannel;
@@ -244,20 +240,21 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         return yield* new AccessTokenExpiredError({
           message: 'Unable to refresh your access token.  Please login again.'
         });
-      }).pipe(Effect.provide(ChannelServiceLayer('Salesforce Org Management')));
+      },
+      effect => effect.pipe(Effect.provide(ChannelServiceLayer('Salesforce Org Management')))
+    );
 
-    const runReauthLookup = (username: string) =>
-      Effect.gen(function* () {
-        // conn is per-call runtime data; the Cache key is username, so the live conn is threaded via connByUsername.
-        const conn = connByUsername.get(username);
-        if (!conn) return;
-        yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(e => promptReauth(conn, username, e)));
-      });
+    const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (conn: Connection) {
+      const username = conn.getUsername() ?? conn.getAuthInfoFields().username;
+      if (!username) return;
+      yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(e => promptReauth(conn, username, e)));
+    });
 
-    // Coordinates access-token reauth. Keyed by username so N concurrent callers for one org collapse
-    // to a SINGLE in-flight lookup (Cache dedup) → one modal. Success TTL 30min replaces the old 5-min
-    // revalidation throttle; failure TTL zero replaces the manual "known bad connection" set (the entry is
-    // not retained, so the next getConnection retries cleanly).
+    // Coordinates access-token reauth. Keyed by the live Connection (reference identity) so N concurrent
+    // callers sharing one cached Connection collapse to a SINGLE in-flight lookup (Cache dedup) → one modal,
+    // while a recreated Connection (post-invalidation) is a fresh key that revalidates. Success TTL 30min
+    // replaces the old 5-min revalidation throttle; failure TTL zero replaces the manual "known bad
+    // connection" set (the entry is not retained, so the next getConnection retries cleanly).
     const reauthCache = yield* Cache.makeWith({
       capacity: 100,
       timeToLive: Exit.match({
@@ -275,11 +272,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const validateAccessTokenOrPromptReauth = Effect.fn('ConnectionService.validateAccessTokenOrPromptReauth')(
       function* (conn: Connection) {
         if (!conn.getAuthInfo().isAccessTokenFlow()) return;
-        const username = conn.getUsername() ?? conn.getAuthInfoFields().username;
-        if (!username) return;
-        // stash the live conn so the username-keyed lookup can reach it
-        connByUsername.set(username, conn);
-        yield* reauthCache.get(username);
+        yield* reauthCache.get(conn);
       }
     );
 
