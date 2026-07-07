@@ -6,9 +6,13 @@
  */
 
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Queue from 'effect/Queue';
+import * as Ref from 'effect/Ref';
+import * as Runtime from 'effect/Runtime';
 import * as Schedule from 'effect/Schedule';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
@@ -25,6 +29,129 @@ import {
 } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
+
+type FilterQuickPickItem = vscode.QuickPickItem;
+
+const parseFilterValue = (
+  value: string,
+  cachedTypeNames: string[]
+): { typeFilter: string | undefined; componentFilter: string | undefined } => {
+  if (value.length === 0) return { typeFilter: undefined, componentFilter: undefined };
+  const colonIdx = value.indexOf(':');
+  if (colonIdx === -1) {
+    return value.length >= 3
+      ? { typeFilter: value, componentFilter: undefined }
+      : { typeFilter: undefined, componentFilter: undefined };
+  }
+  const typePart = value.substring(0, colonIdx).trim();
+  const resolvedType = cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
+  const componentPart = value.substring(colonIdx + 1).trim();
+  return { typeFilter: resolvedType, componentFilter: componentPart };
+};
+
+const computeSuggestions = (
+  value: string,
+  cachedTypeNames: string[],
+  treeProvider: MetadataTypeTreeProvider
+): Promise<FilterQuickPickItem[]> => {
+  const colonIdx = value.indexOf(':');
+  if (colonIdx === -1) {
+    const lower = value.toLowerCase();
+    const names = value.length >= 3 ? cachedTypeNames.filter(t => t.toLowerCase().includes(lower)) : cachedTypeNames;
+    return Promise.resolve(names.map(label => ({ label })));
+  }
+  const typePart = value.substring(0, colonIdx).trim();
+  const componentPart = value
+    .substring(colonIdx + 1)
+    .trim()
+    .toLowerCase();
+  const resolvedType = cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
+  const typeNode = new OrgBrowserTreeItem({ kind: 'type', xmlName: resolvedType, label: resolvedType });
+  return treeProvider
+    .getChildren(typeNode)
+    .then(children =>
+      children
+        .filter(c => c.componentName?.toLowerCase().includes(componentPart))
+        .map(c => ({ label: `${typePart}:${c.componentName ?? ''}` }))
+    );
+};
+
+const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(function* (
+  treeProvider: MetadataTypeTreeProvider
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const previousTypeFilter = treeProvider.typeFilter;
+  const previousComponentFilter = treeProvider.componentFilter;
+
+  const cachedTypeNames = yield* api.services.MetadataDescribeService.describe().pipe(
+    Effect.map(types => types.map(t => t.xmlName).toSorted()),
+    Effect.catchAll(() => Effect.succeed<string[]>([]))
+  );
+
+  const runtime = yield* Effect.runtime();
+  const run = Runtime.runFork(runtime);
+
+  const queue = yield* Queue.unbounded<string>();
+  const deferred = yield* Deferred.make<void>();
+  const acceptedRef = yield* Ref.make(false);
+
+  const picker = vscode.window.createQuickPick<FilterQuickPickItem>();
+  picker.placeholder = nls.localize('filter_text_placeholder');
+  picker.matchOnDescription = false;
+  picker.value = previousTypeFilter
+    ? previousComponentFilter !== undefined
+      ? `${previousTypeFilter}:${previousComponentFilter}`
+      : previousTypeFilter
+    : '';
+  picker.items = cachedTypeNames.map(label => ({ label }));
+
+  const commit = (value: string) =>
+    Effect.gen(function* () {
+      yield* Ref.set(acceptedRef, true);
+      const { typeFilter, componentFilter } = parseFilterValue(value, cachedTypeNames);
+      treeProvider.setTextFilter(typeFilter, componentFilter);
+      yield* Effect.promise(() =>
+        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined)
+      );
+      picker.dispose();
+      yield* Deferred.succeed(deferred, undefined);
+    });
+
+  picker.onDidChangeValue(value => run(Queue.offer(queue, value)));
+  picker.onDidAccept(() => run(commit(picker.value)));
+  picker.onDidHide(() =>
+    run(
+      Effect.gen(function* () {
+        const accepted = yield* Ref.get(acceptedRef);
+        if (!accepted) {
+          treeProvider.setTextFilter(previousTypeFilter, previousComponentFilter);
+        }
+        picker.dispose();
+        yield* Deferred.succeed(deferred, undefined);
+      })
+    )
+  );
+
+  yield* Effect.fork(
+    Stream.fromQueue(queue).pipe(
+      Stream.debounce(Duration.millis(150)),
+      Stream.runForEach(value =>
+        Effect.gen(function* () {
+          const { typeFilter, componentFilter } = parseFilterValue(value, cachedTypeNames);
+          treeProvider.setTextFilter(typeFilter, componentFilter);
+          const suggestions = yield* Effect.tryPromise({
+            try: () => computeSuggestions(value, cachedTypeNames, treeProvider),
+            catch: () => new Error('computeSuggestions failed')
+          }).pipe(Effect.catchAll(() => Effect.succeed<FilterQuickPickItem[]>([])));
+          picker.items = suggestions;
+        })
+      )
+    )
+  );
+
+  picker.show();
+  yield* Deferred.await(deferred);
+});
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -159,7 +286,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       ),
       registerCommand(`${TREE_VIEW_ID}.toggleOrgFilterNoData`, () =>
         Effect.promise(() => vscode.window.showInformationMessage(nls.localize('org_filter_no_data')))
-      )
+      ),
+      registerCommand(`${TREE_VIEW_ID}.filterText`, () => openFilterTextPicker(treeProvider)),
+      registerCommand(`${TREE_VIEW_ID}.filterText.active`, () => openFilterTextPicker(treeProvider))
     ],
     { concurrency: 'unbounded' }
   );
