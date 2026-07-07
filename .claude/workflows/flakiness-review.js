@@ -262,6 +262,23 @@ log(
 //   files[].tests[]{outcome, results[]}. GitHub Actions has no per-test API —
 //   the decoded report.json is the source of truth.
 
+// Single shared artifact-decode recipe, interpolated into every phase that reads a
+// Playwright report (Collect metrics / Cluster failures / Download artifacts) so the
+// three phases cannot drift. Playwright artifacts have NO results.json and no
+// top-level "status":"failed" — report.json (inside the base64 zip in index.html) is
+// the source of truth.
+const DECODE_REPORT_JSON = `# decode_report <index.html>: prints the embedded report.json (base64 zip) to stdout.
+# report.json: files[].tests[]{title, path, outcome, results[]};
+# outcome ∈ expected|flaky|unexpected|skipped (flaky = retry-masked pass).
+decode_report() {
+  local idx="$1" tmp; tmp=$(mktemp -d)
+  grep -o 'data:application/zip;base64,[A-Za-z0-9+/=]*' "$idx" \\
+    | sed 's/^data:application\\/zip;base64,//' | base64 -d > "$tmp/r.zip" 2>/dev/null
+  unzip -o -q "$tmp/r.zip" -d "$tmp" 2>/dev/null
+  [ -f "$tmp/report.json" ] && cat "$tmp/report.json"
+  rm -rf "$tmp"
+}`
+
 phase('Collect metrics')
 
 const metricsResult = await agent(
@@ -291,7 +308,7 @@ gh run download <run-id> --repo ${REPO} -D ${ARTIFACTS_ROOT}/develop/<run-id> --
 Each \`playwright-report*/index.html\` embeds a base64-encoded zip whose \`report.json\` holds per-test results: \`files[].tests[]{title, path, outcome, results[]}\`. \`outcome\` is one of expected|flaky|unexpected|skipped (\`flaky\` = passed only after retries = retry-masked). Decode + aggregate with bash + jq (no python):
 
 \`\`\`bash
-TMP=$(mktemp -d)
+${DECODE_REPORT_JSON}
 for RUNDIR in ${ARTIFACTS_ROOT}/develop/*/; do
   # Strip non-numeric suffix (-extra, -End-to-End-Tests) to the numeric GH run id.
   RUNID=$(basename "$RUNDIR" | grep -oE '^[0-9]+')
@@ -299,33 +316,33 @@ for RUNDIR in ${ARTIFACTS_ROOT}/develop/*/; do
   for RD in "$RUNDIR"playwright-report*/; do
     IDX="$RD/index.html"; [ -f "$IDX" ] || continue
     SUITE=$(basename "$RD" | sed 's/^playwright-report-//; s/^playwright-report$/default/')
-    grep -o 'data:application/zip;base64,[A-Za-z0-9+/=]*' "$IDX" \\
-      | sed 's/^data:application\\/zip;base64,//' | base64 -d > "$TMP/r.zip" 2>/dev/null
-    unzip -o -q "$TMP/r.zip" -d "$TMP" 2>/dev/null
-    [ -f "$TMP/report.json" ] || continue
-    jq -c --arg run "$RUNID" --arg suite "$SUITE" '
+    decode_report "$IDX" | jq -c --arg run "$RUNID" --arg suite "$SUITE" '
       .files[] as $f | $f.tests[] |
       { testName: ($f.fileName + " > " + (((.path // []) + [.title]) | join(" > "))),
         workflowName: $suite,
         runId: $run,
-        retried: ((.results | length) > 1 or .outcome == "flaky"),
-        failed: (.outcome == "unexpected") }' "$TMP/report.json"
-    rm -f "$TMP/report.json"
+        # retried = retry-masked pass only; a hard failure (unexpected) counts as
+        # failed, never retried, so the two are mutually exclusive per run.
+        retried: (((.results | length) > 1 or .outcome == "flaky") and .outcome != "unexpected"),
+        failed: (.outcome == "unexpected") }'
   done
 done | jq -s '
-  group_by(.testName) | map({
+  # Group by (testName, workflowName) so each OS/suite matrix leg is its own row
+  # (never collapse macos+ubuntu of the same test into one bucket). Count DISTINCT
+  # runIds, not records, so totalRuns/retryRate are per-run not per-report — and a
+  # duplicate artifact dir (e.g. <run-id>-extra) cannot double-count a run.
+  group_by([.testName, .workflowName]) | map({
     testName: .[0].testName,
     workflowName: .[0].workflowName,
-    totalRuns: length,
-    retryCount: (map(select(.retried)) | length),
-    failCount: (map(select(.failed)) | length),
-    retryRate: ((map(select(.retried)) | length) / length * 100 | round / 100),
+    totalRuns: (map(.runId) | unique | length),
+    retryCount: (map(select(.retried) | .runId) | unique | length),
+    failCount: (map(select(.failed) | .runId) | unique | length),
+    retryRate: ((map(select(.retried) | .runId) | unique | length) / (map(.runId) | unique | length) * 100 | round / 100),
     runIds: (map(select(.retried or .failed) | .runId) | unique)
   }) | map(select(.retryCount > 0 or .failCount > 0)) | sort_by(-.retryRate)'
-rm -rf "$TMP"
 \`\`\`
 
-Each per-report record is one test run: \`retried\` if it retried (results>1 or outcome=="flaky"), \`failed\` if outcome=="unexpected". Aggregate by testName across all reports. retryRate = retriedRuns / totalRuns (0-1 float, 2dp; never exceeds 1). \`runIds\` = numeric run ids where the test retried or failed. Keep only tests with retryCount > 0 or failCount > 0.
+Each per-report record is one test run on one matrix leg: \`retried\` if it retried and was masked (results>1 or outcome=="flaky") and did NOT end unexpected, \`failed\` if outcome=="unexpected" — the two are mutually exclusive. Aggregate by (testName, workflowName) across reports, counting distinct run ids. retryRate = retriedRuns / totalRuns (0-1 float, 2dp; never exceeds 1). \`runIds\` = numeric run ids where the test retried or failed. Keep only tests with retryCount > 0 or failCount > 0.
 
 Return both workflowMetrics and testMetrics sorted by rerunRate/retryRate descending.`,
   { label: 'collect:metrics', phase: 'Collect metrics', schema: METRICS_SCHEMA }
@@ -358,8 +375,15 @@ Also check for Playwright retry patterns by looking at job names that include at
 Then for failed or retried runs, download the playwright-report artifact summary if available:
 \`\`\`bash
 gh run download <run-id> --repo ${REPO} -D ${ARTIFACTS_ROOT}/develop/<run-id> --pattern "playwright-report*" 2>/dev/null || true
-# Then look for failed tests:
-find ${ARTIFACTS_ROOT}/develop/<run-id> -name "*.json" | xargs grep -l '"status":"failed"' 2>/dev/null | head -5
+# Then look for failed tests. Playwright has NO results.json / "status":"failed" on
+# disk — report.json lives inside the base64 zip in index.html. Decode it:
+${DECODE_REPORT_JSON}
+for IDX in ${ARTIFACTS_ROOT}/develop/<run-id>/playwright-report*/index.html; do
+  [ -f "$IDX" ] || continue
+  decode_report "$IDX" | jq -c '.files[] as $f | $f.tests[]
+    | select(.outcome == "unexpected" or .outcome == "flaky")
+    | {test: ($f.fileName + " > " + (((.path // []) + [.title]) | join(" > "))), outcome}'
+done | head -5
 \`\`\`
 
 Group failures by: test name + error message pattern (first 120 chars of the error). A test that appears with the same error pattern across ${MIN_FAILURE_COUNT}+ runs is a cluster. Also flag any test that only passes after retries (retryMasked=true).
@@ -493,28 +517,28 @@ find ${ARTIFACTS_ROOT}/develop/${runId} -name "*.png" | head -10
 find ${ARTIFACTS_ROOT}/develop/${runId} -name "*.webm" | head -5
 # Span files
 find ${ARTIFACTS_ROOT}/develop/${runId} -name "*.jsonl" | head -5
-# Test result JSON
-find ${ARTIFACTS_ROOT}/develop/${runId} -name "results.json" -o -name "test-results.json" | head -3
+# Per-test failure detail: Playwright has NO results.json on disk — report.json is
+# inside the base64 zip in playwright-report*/index.html. Decode + extract:
+${DECODE_REPORT_JSON}
+for IDX in ${ARTIFACTS_ROOT}/develop/${runId}/playwright-report*/index.html; do
+  [ -f "$IDX" ] || continue
+  decode_report "$IDX" | jq -c '.files[] as $f | $f.tests[]
+    | select(.outcome == "unexpected" or .outcome == "flaky")
+    | {test: ($f.fileName + " > " + (((.path // []) + [.title]) | join(" > "))),
+       outcome, errors: [.results[].errors[]?.message]}'
+done
 \`\`\`
 
-3. Read failure detail from test results JSON if found. Look for: error message, stack trace, timeout value, what assertion failed.
+3. Read failure detail from the decoded report.json above. Look for: error message, stack trace, timeout value, what assertion failed. Per-test \`error-context.md\` under \`playwright-test-results-*/<test-dir>[-retryN]/\` also holds the failure text.
 
-4. If span files exist, find ERROR-status spans related to this test:
+4. If span files exist, find ERROR-status spans (status.code == 2) related to this test with jq (no python):
 \`\`\`bash
-python3 - <<'PY'
-import glob, json
-for path in glob.glob('${ARTIFACTS_ROOT}/develop/${runId}/**/*.jsonl', recursive=True):
-    with open(path) as f:
-        for line in f:
-            try:
-                s = json.loads(line)
-                if s.get('status', {}).get('code') == 2:
-                    print(json.dumps({'name': s.get('name'), 'durationMs': s.get('durationMs'), 'msg': s.get('status', {}).get('message', '')[:200]}))
-            except: pass
-PY
+find ${ARTIFACTS_ROOT}/develop/${runId} -name "*.jsonl" -print0 | while IFS= read -r -d '' f; do
+  jq -c 'select(.status.code == 2) | {name, durationMs, msg: (.status.message // "" | .[0:200])}' "$f" 2>/dev/null
+done
 \`\`\`
 
-5. If a video exists and the test has a known failure timestamp from the results JSON, extract frames:
+5. If a video exists and the test has a known failure timestamp from the report.json above, extract frames:
 \`\`\`bash
 mkdir -p ${ARTIFACTS_ROOT}/frames/${runId}
 ffmpeg -i <video.webm> -ss <start_sec> -to <end_sec> -vf "fps=4" -q:v 2 ${ARTIFACTS_ROOT}/frames/${runId}/frame_%04d.png 2>/dev/null
