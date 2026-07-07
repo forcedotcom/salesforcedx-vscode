@@ -16,7 +16,7 @@ const getSalesforceCoreExtension = (): vscode.Extension<SalesforceVSCodeCoreApi>
 };
 
 /** Get the active Salesforce Core extension */
-export const getActiveSalesforceCoreExtension = async (): Promise<vscode.Extension<SalesforceVSCodeCoreApi>> => {
+const getActiveSalesforceCoreExtension = async (): Promise<vscode.Extension<SalesforceVSCodeCoreApi>> => {
   const salesforceCoreExtension = getSalesforceCoreExtension();
   if (!salesforceCoreExtension.isActive) {
     await salesforceCoreExtension.activate();
