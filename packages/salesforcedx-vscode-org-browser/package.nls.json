@@ -11,6 +11,7 @@
   "orgBrowser.command.showOrg.on": "Show Org Types",
   "orgBrowser.command.showOrg.off": "Hide Org Types",
   "org_browser_filters_all_off": "Both filters are off.\n\nEnable **Show Local Types** or **Show Org Types** in the toolbar above to view metadata.",
+  "org_browser_local_only_empty": "No metadata types with local source files found.\n\nEnable **Show Org Types** in the toolbar above to view all org metadata, or retrieve metadata from your org to populate local files.",
   "org_browser_walkthrough_open_command": "Open Org Browser Walkthrough",
   "org_browser_walkthrough_title": "Org Browser",
   "org_browser_walkthrough_description": "Browse and retrieve your org's metadata types and components using the Org Browser.",

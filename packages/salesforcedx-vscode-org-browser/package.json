@@ -303,13 +303,17 @@
     "viewsWelcome": [
       {
         "view": "sfdxOrgBrowser",
-        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type.",
-        "when": "sf:orgBrowser.showLocal == true || sf:orgBrowser.showOrg == true"
+        "contents": "%org_browser_filters_all_off%",
+        "when": "sf:orgBrowser.showLocal == false && sf:orgBrowser.showOrg == false"
       },
       {
         "view": "sfdxOrgBrowser",
-        "contents": "%org_browser_filters_all_off%",
-        "when": "sf:orgBrowser.showLocal == false && sf:orgBrowser.showOrg == false"
+        "contents": "%org_browser_local_only_empty%",
+        "when": "sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false"
+      },
+      {
+        "view": "sfdxOrgBrowser",
+        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
       }
     ],
     "viewsContainers": {
