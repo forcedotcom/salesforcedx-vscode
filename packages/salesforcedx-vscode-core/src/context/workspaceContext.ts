@@ -74,7 +74,8 @@ export class WorkspaceContext {
         WorkspaceContextUtil.getInstance().orgShape = orgShape;
         WorkspaceContextUtil.getInstance().devHubId = undefined;
         try {
-          const connection = await WorkspaceContextUtil.getInstance().getConnection();
+          // in-repo: go straight to ConnectionService instead of round-tripping through the utils facade
+          const connection = await getRuntime().runPromise(getConnectionEffect());
           WorkspaceContextUtil.getInstance().orgEdition = connection.getAuthInfoFields().orgEdition;
         } catch {
           /* best effort — orgEdition may not yet be populated */
