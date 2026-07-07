@@ -23,6 +23,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private _showLocal = true;
   private _showOrg = true;
   private _hasOrgData = false;
+  private _typeFilter: string | undefined;
+  private _componentFilter: string | undefined;
 
   public get showLocal(): boolean {
     return this._showLocal;
@@ -50,6 +52,24 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   public setHasOrgData(value: boolean): void {
     this._hasOrgData = value;
+  }
+
+  public get typeFilter(): string | undefined {
+    return this._typeFilter;
+  }
+
+  public get componentFilter(): string | undefined {
+    return this._componentFilter;
+  }
+
+  public setTextFilter(typeFilter: string | undefined, componentFilter: string | undefined): void {
+    this._typeFilter = typeFilter;
+    this._componentFilter = componentFilter;
+    this._onDidChangeTreeData.fire(undefined);
+  }
+
+  public clearTextFilter(): void {
+    this.setTextFilter(undefined, undefined);
   }
 
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
@@ -90,16 +110,30 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
   }
 });
 
-const applyViewModeChildFilter = (
+export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
+  if (provider.typeFilter === undefined) return true;
+  const lower = provider.typeFilter.toLowerCase();
+  return provider.componentFilter !== undefined
+    ? node.xmlName.toLowerCase() === lower
+    : node.xmlName.toLowerCase().includes(lower);
+};
+
+export const applyViewModeChildFilter = (
   nodes: OrgBrowserTreeItem[],
   provider: MetadataTypeTreeProvider
 ): OrgBrowserTreeItem[] => {
-  if (provider.showLocal === provider.showOrg) return nodes; // both-on or both-off: no filter
-  if (provider.showLocal && !provider.showOrg) {
-    return nodes.filter(n => n.filePresent === true);
-  }
-  // orgOnly: keep only components without local files
-  return nodes.filter(n => n.filePresent !== true);
+  const viewModeFiltered = ((): OrgBrowserTreeItem[] => {
+    if (provider.showLocal === provider.showOrg) return nodes; // both-on or both-off: no filter
+    if (provider.showLocal && !provider.showOrg) {
+      return nodes.filter(n => n.filePresent === true);
+    }
+    // orgOnly: keep only components without local files
+    return nodes.filter(n => n.filePresent !== true);
+  })();
+
+  if (!provider.componentFilter) return viewModeFiltered;
+  const lower = provider.componentFilter.toLowerCase();
+  return viewModeFiltered.filter(n => n.componentName?.toLowerCase().includes(lower));
 };
 
 const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider: MetadataTypeTreeProvider) =>
@@ -117,7 +151,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
 
       // Both ON or both OFF = show everything (both-off is a no-op by design)
       if (provider.showLocal === provider.showOrg) {
-        return allNodes;
+        return allNodes.filter(node => passesTypeFilter(node, provider));
       }
 
       // localOnly mode: show only types that have local source files
@@ -126,12 +160,12 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
         const localTypeNames = new Set<string>(
           Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
         );
-        return allNodes.filter(node => localTypeNames.has(node.xmlName));
+        return allNodes.filter(node => localTypeNames.has(node.xmlName) && passesTypeFilter(node, provider));
       }
 
       // orgOnly mode: show all types (all types exist in the org by definition)
       // Child-level filtering will hide components with local files
-      return allNodes;
+      return allNodes.filter(node => passesTypeFilter(node, provider));
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
