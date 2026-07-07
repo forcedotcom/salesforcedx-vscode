@@ -14,8 +14,11 @@ import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
+import { ChannelService, ChannelServiceLayer } from '../vscode/channelService';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { AliasService } from './alias';
@@ -69,6 +72,10 @@ export class NoTargetOrgConfiguredError extends Schema.TaggedError<NoTargetOrgCo
     message: Schema.String
   }
 ) {}
+
+class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpiredError>()('AccessTokenExpiredError', {
+  message: Schema.String
+}) {}
 
 class FailedToGetTracksSourceError extends Schema.TaggedError<FailedToGetTracksSourceError>()(
   'FailedToGetTracksSourceError',
@@ -177,6 +184,10 @@ type IdentityResult = { username: string; userId: string };
 
 const identityCache = new Map<string, IdentityResult>();
 
+// The reauth Cache is keyed by username (for concurrent-caller dedup + TTL), but the lookup needs the
+// live per-call Connection. This module-scoped map threads that conn to the username-keyed lookup.
+const connByUsername = new Map<string, Connection>();
+
 const getUserFromUserSobject = (orgId: string, conn: Connection) => {
   const cached = identityCache.get(orgId);
   if (cached) return Effect.succeed(cached);
@@ -207,6 +218,71 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
+
+    // On identity() failure: log to the Org Management channel, show the modal, and (if accepted) dispatch
+    // sf.org.login.web. ChannelServiceLayer('Salesforce Org Management') keeps today's channel destination
+    // (the default ChannelService channel is 'Salesforce Services').
+    const promptReauth = (conn: Connection, username: string, error: unknown) =>
+      Effect.gen(function* () {
+        const channelService = yield* ChannelService;
+        yield* channelService.appendToChannel(`Error refreshing access token: ${String(error)}`);
+        yield* channelService.showChannel;
+        const alias = yield* aliasService.getAliasesFromUsername(username).pipe(Effect.map(aliases => aliases[0]));
+        const loginButton = nls.localize('error_access_token_expired_login_button');
+        const selection = yield* Effect.promise(() =>
+          vscode.window.showErrorMessage(
+            nls.localize('error_access_token_expired'),
+            { modal: true, detail: nls.localize('error_access_token_expired_detail') },
+            loginButton
+          )
+        );
+        if (selection === loginButton) {
+          yield* Effect.promise(() =>
+            vscode.commands.executeCommand('sf.org.login.web', conn.instanceUrl, alias ?? username)
+          );
+        }
+        return yield* new AccessTokenExpiredError({
+          message: 'Unable to refresh your access token.  Please login again.'
+        });
+      }).pipe(Effect.provide(ChannelServiceLayer('Salesforce Org Management')));
+
+    const runReauthLookup = (username: string) =>
+      Effect.gen(function* () {
+        // conn is per-call runtime data; the Cache key is username, so the live conn is threaded via connByUsername.
+        const conn = connByUsername.get(username);
+        if (!conn) return;
+        yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(e => promptReauth(conn, username, e)));
+      });
+
+    // Coordinates access-token reauth. Keyed by username so N concurrent callers for one org collapse
+    // to a SINGLE in-flight lookup (Cache dedup) → one modal. Success TTL 30min replaces the old 5-min
+    // revalidation throttle; failure TTL zero replaces the manual "known bad connection" set (the entry is
+    // not retained, so the next getConnection retries cleanly).
+    const reauthCache = yield* Cache.makeWith({
+      capacity: 100,
+      timeToLive: Exit.match({
+        onSuccess: () => Duration.minutes(30),
+        onFailure: () => Duration.zero
+      }),
+      lookup: runReauthLookup
+    });
+
+    /**
+     * If the connection uses the access-token (session-ID) flow — which cannot silently refresh — validate
+     * that the token still works via `identity()`. On failure, log to the Org Management channel, show a modal,
+     * and (if accepted) dispatch `sf.org.login.web`. No-op for refreshable (web/JWT) flows.
+     */
+    const validateAccessTokenOrPromptReauth = Effect.fn('ConnectionService.validateAccessTokenOrPromptReauth')(
+      function* (conn: Connection) {
+        if (!conn.getAuthInfo().isAccessTokenFlow()) return;
+        const username = conn.getUsername() ?? conn.getAuthInfoFields().username;
+        if (!username) return;
+        // stash the live conn so the username-keyed lookup can reach it
+        connByUsername.set(username, conn);
+        yield* reauthCache.get(username);
+      }
+    );
+
     /** Get a Connection to the target org */
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
@@ -269,7 +345,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       });
     });
 
-    return { getConnection, invalidateCachedConnections, listAllAuthorizations };
+    return {
+      getConnection,
+      validateAccessTokenOrPromptReauth,
+      invalidateCachedConnections,
+      listAllAuthorizations
+    };
   })
 }) {}
 
