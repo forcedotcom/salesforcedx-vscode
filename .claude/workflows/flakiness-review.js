@@ -61,6 +61,7 @@ const RUNS_SCHEMA = {
         properties: {
           runId: { type: 'string' },
           workflowName: { type: 'string' },
+          headBranch: { type: 'string' },
           conclusion: { type: 'string' },
           createdAt: { type: 'string' },
           hadRetries: { type: 'boolean' },
@@ -219,30 +220,55 @@ const WORKFLOW_NAME_REGEX = 'End to End|Playwright|E2E'
 phase('Scan CI runs')
 
 const runsResult = await agent(
-  `Scan GitHub Actions for Playwright E2E CI runs on the \`develop\` branch of ${REPO} in the last ${DAYS} days.
+  `Scan GitHub Actions for Playwright E2E CI runs across ALL branches of ${REPO} in the last ${DAYS} days.
 
-Run this command and parse the output:
+Run EXACTLY this one pipeline. It does all filtering deterministically in jq — do NOT reason over individual runs, do NOT call \`gh api .../jobs\` per run, do NOT loop over runs yourself. Just run it and return the resulting JSON verbatim.
+
 \`\`\`bash
-# Filter to E2E workflows by name. The aggregator workflow is literally named
-# "End to End Tests" (no "e2e"/"E2E" substring) and runs the daily-failing
-# playwright-soql / e2e-desktop (windows-latest) suite, so a naive "e2e"
-# substring match silently drops it. Job names (e2e-desktop / e2e-web) are the
-# source-of-truth E2E signal, but gh run list filters on workflowName only.
-# Regex matches: "End to End Tests" + every "*Playwright*"/"*E2E*" workflow.
-gh run list --repo ${REPO} --branch develop --limit 200 \\
-  --json databaseId,workflowName,conclusion,createdAt,attempt \\
-  --jq '[.[] | select(.workflowName | test("${WORKFLOW_NAME_REGEX}"; "i"))]'
+# WHY all-branch: the primary suite "Core E2E (Playwright)" (coreE2E.yml) and
+# the per-domain "* E2E (Playwright)" suites all have
+# \`push: branches-ignore: [main, develop]\`, so they NEVER run on develop —
+# only on PR/feature branches. --branch develop excludes the entire signal.
+#
+# WHY per-workflow enumerate: this repo produces ~1300 runs / 5d (bot workflows
+# dominate), so a single \`gh run list --limit N | filter\` truncates E2E runs
+# before the name filter sees them. Enumerate E2E workflows by name, query each
+# separately (max ~120/workflow, well under the 200 cap → no truncation).
+CUTOFF="$(date -u -v-${DAYS}d +%Y-%m-%d 2>/dev/null || date -u -d "${DAYS} days ago" +%Y-%m-%d)"
+gh workflow list --repo ${REPO} --all --json id,name \\
+  --jq '.[] | select(.name | test("${WORKFLOW_NAME_REGEX}"; "i")) | .id' \\
+| while read -r WF; do
+    gh run list --repo ${REPO} --workflow "$WF" --created ">=$CUTOFF" --limit 200 \\
+      --json databaseId,workflowName,headBranch,conclusion,createdAt,attempt
+  done | jq -s 'add' \\
+| jq '
+    # 1. Drop develop/main runs: E2E is branches-ignore:[main,develop], so any
+    #    failure there is a startup_failure (0 jobs) from workflow_call/dispatch
+    #    — config noise, NOT test flakiness.
+    [ .[] | select(.headBranch != "develop" and .headBranch != "main") ] as $pr
+    # 2. hadRetries = re-attempted OR a later same-(workflow,branch) run passed.
+    | ($pr | map(select(.conclusion=="success") | {k:(.workflowName+"|"+.headBranch), t:.createdAt})) as $succ
+    | $pr
+    | map(
+        . as $r
+        | (($r.attempt // 1) > 1) as $reattempt
+        | ($r.conclusion=="failure"
+            and (($succ | map(select(.k==($r.workflowName+"|"+$r.headBranch) and .t > $r.createdAt)) | length) > 0)) as $laterPass
+        | $r + {hadRetries: ($reattempt or $laterPass)}
+      )
+    # 3. Keep only actionable runs: hard failures + retry-masked passes.
+    | map(select(.conclusion=="failure" or .hadRetries==true))
+    | map({runId:(.databaseId|tostring), workflowName, headBranch, conclusion, createdAt, hadRetries})
+  '
 \`\`\`
 
-For each run, also check if it was re-attempted (attempt > 1) — that's a strong signal of flakiness even if the final conclusion is "success".
-
-Return all runs from the last ${DAYS} days (filter by createdAt). Include runs with conclusion: success/failure/cancelled. Mark hadRetries=true if attempt > 1 OR if conclusion=="failure" and a later run of the same workflow on the same day succeeded.`,
+Return the pipeline output as {runs:[...]} verbatim — every object already has runId, workflowName, headBranch, conclusion, createdAt, hadRetries. Do not add, drop, or re-derive fields.`,
   { label: 'scan:runs', phase: 'Scan CI runs', schema: RUNS_SCHEMA }
 )
 
 if (!runsResult || !runsResult.runs.length) {
   log(
-    `WARNING: filter matched 0 E2E workflows in the last ${DAYS} days. develop almost always has E2E runs, so this likely means the workflowName regex is stale — NOT that CI is stable. Regex used: test("${WORKFLOW_NAME_REGEX}"; "i"). Compare against \`gh workflow list --all --json name\` and update the filter.`
+    `WARNING: filter matched 0 E2E workflows in the last ${DAYS} days across all branches. coreE2E runs on every PR push, so this likely means the workflowName regex is stale — NOT that CI is stable. Regex used: test("${WORKFLOW_NAME_REGEX}"; "i"). Compare against \`gh workflow list --all --json name\` and update the filter.`
   )
   return { hypotheses: [], wis: [] }
 }
@@ -270,9 +296,13 @@ ${JSON.stringify(runsResult.runs, null, 2)}
 
 ## Part 1 — Workflow-level metrics (from runs data above, no new gh calls needed)
 
+NOTE: the runs above are already filtered to ACTIONABLE runs (hard failures +
+retry-masked passes on PR branches); clean successes are excluded upstream. So
+these counts describe the failing/flaky surface, not total CI volume.
+
 Group runs by workflowName. For each workflow compute:
-- totalRuns: count of runs in the window
-- rerunCount: runs where attempt > 1 (were manually or automatically re-triggered)
+- totalRuns: count of actionable runs in the window
+- rerunCount: runs where hadRetries == true
 - rerunRate: rerunCount / totalRuns (as 0–1 float, round to 2dp)
 - failureCount: runs with conclusion == "failure"
 
