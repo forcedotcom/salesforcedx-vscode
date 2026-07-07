@@ -7,4 +7,4 @@
 
 export { orgListCleanCommand } from './orgList';
 export { orgLoginWebCommand } from './auth/orgLoginWeb';
-export { orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
+export { orgLogoutAllCommand, orgLogoutDefault } from './auth/orgLogout';

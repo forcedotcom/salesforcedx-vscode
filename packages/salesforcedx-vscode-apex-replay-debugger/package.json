@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@playwright/test": "*",
-    "@salesforce/core": "^8.31.5",
+    "@salesforce/core": "^8.32.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*",
@@ -201,7 +201,6 @@
     "onCommand:sf.launch.replay.debugger.logfile",
     "onCommand:sf.launch.replay.debugger.logfile.path",
     "onCommand:sf.anon.apex.debug.delegate",
-    "onCommand:sf.apex.debug.document",
     "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
   "main": "./dist/index.js",
@@ -235,11 +234,7 @@
         },
         {
           "command": "sf.anon.apex.debug.delegate",
-          "when": "sf:project_opened && editorLangId == 'apex'"
-        },
-        {
-          "command": "sf.apex.debug.document",
-          "when": "sf:project_opened && editorLangId == 'apex'"
+          "when": "sf:project_opened && (editorLangId == 'apex' || editorLangId == 'apex-anon') && sf:has_target_org"
         },
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
@@ -314,10 +309,6 @@
       },
       {
         "command": "sf.anon.apex.debug.delegate",
-        "title": "%anon_apex_execute_selection_text%"
-      },
-      {
-        "command": "sf.apex.debug.document",
         "title": "%apex_debug_document_text%"
       },
       {
