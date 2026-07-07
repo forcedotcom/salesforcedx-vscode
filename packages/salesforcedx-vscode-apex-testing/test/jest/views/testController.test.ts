@@ -23,6 +23,8 @@ jest.mock('../../../src/services/extensionProvider', () => {
     readFile: mockReadFile,
     createDirectory: () => EffectLib.void,
     safeDelete: () => EffectLib.void,
+    safeWriteFile: () => EffectLib.void,
+    writeFile: () => EffectLib.void,
     // accessor form: `yield* api.services.FsService.HashableUri` resolves the value namespace.
     HashableUri: EffectLib.succeed(HashableUri),
     showTextDocument: (uri: unknown, options?: unknown) =>

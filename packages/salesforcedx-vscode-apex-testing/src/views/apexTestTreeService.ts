@@ -10,6 +10,7 @@ import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
@@ -251,61 +252,50 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Ref.get(classItems),
         Ref.get(suiteItems)
       ]);
-      yield* Effect.sync(() => {
-        // Method map keys omit the method: prefix; expand class/suite selections to their member methods.
-        const addClassMethods = (className: string, into: Set<string>) => {
-          const classPrefix = `${className}.`;
-          for (const methodId of currentMethods.keys()) {
-            if (methodId.startsWith(classPrefix)) {
-              into.add(methodId);
-            }
-          }
-        };
-        const runMethodIds = new Set<string>();
-        for (const test of testsToRun) {
-          if (isMethod(test.id)) {
-            runMethodIds.add(test.id.replace(TEST_ID_PREFIXES.METHOD, ''));
-          } else if (isClass(test.id)) {
-            const className = extractClassName(test.id);
-            if (className) {
-              addClassMethods(className, runMethodIds);
-            }
-          } else if (isSuite(test.id)) {
-            const suiteName = extractSuiteName(test.id);
-            const classNames = suiteName ? suiteToClasses.get(suiteName) : undefined;
-            if (classNames) {
-              for (const className of classNames) {
-                addClassMethods(className, runMethodIds);
-              }
-            }
-          }
-        }
+      // Method map keys omit the method: prefix; expand each selection to its member method ids.
+      const methodIdsForClass = (className: string): string[] =>
+        [...currentMethods.keys()].filter(id => id.startsWith(`${className}.`));
+      const classNamesForTest = (test: vscode.TestItem): string[] =>
+        isClass(test.id)
+          ? [extractClassName(test.id)].filter((cn): cn is string => !!cn)
+          : isSuite(test.id)
+            ? [...(suiteToClasses.get(extractSuiteName(test.id) ?? '') ?? [])]
+            : [];
+      const methodIdsForTest = (test: vscode.TestItem): string[] =>
+        isMethod(test.id)
+          ? [test.id.replace(TEST_ID_PREFIXES.METHOD, '')]
+          : classNamesForTest(test).flatMap(methodIdsForClass);
 
+      const runMethodIds = HashSet.fromIterable(testsToRun.flatMap(methodIdsForTest));
+      // Classes touched by a run method that actually exists in the tree (its parent's stale tag may clear).
+      const affectedClasses = HashSet.fromIterable(
+        HashSet.toValues(runMethodIds)
+          .filter(id => currentMethods.has(id))
+          .map(id => id.split('.')[0])
+      );
+
+      yield* Effect.sync(() => {
         // Clear stale tags from methods that ran.
-        const affectedClasses = new Set<string>();
-        for (const methodId of runMethodIds) {
+        HashSet.forEach(runMethodIds, methodId => {
           const methodItem = currentMethods.get(methodId);
           if (methodItem) {
             removeStaleTag(methodItem);
-            affectedClasses.add(methodId.split('.')[0]);
           }
-        }
-
+        });
         // Clear the stale tag from parent classes once no member method remains stale.
-        for (const className of affectedClasses) {
+        HashSet.forEach(affectedClasses, className => {
           const classItem = currentClasses.get(className);
           if (classItem && !classHasStaleMethod(currentMethods, className)) {
             removeStaleTag(classItem);
           }
-        }
-
+        });
         // Clear the stale tag from suites once no member class remains stale.
-        for (const [suiteName, suiteItem] of currentSuites) {
+        currentSuites.forEach((suiteItem, suiteName) => {
           const classNames = suiteToClasses.get(suiteName);
           if (classNames && !suiteHasStaleClass(currentClasses, classNames)) {
             removeStaleTag(suiteItem);
           }
-        }
+        });
       });
     });
 
@@ -529,16 +519,18 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       // Invalidate stale methods and classes where ALL methods are stale
       const currentMethodItems = yield* Ref.get(methodItems);
       const currentClassItems = yield* Ref.get(classItems);
+      // Classes owning an invalidated stale method (dedup); invalidate those whose every method is stale.
+      const affectedClasses = HashSet.fromIterable(
+        [...staleMethodIds].filter(id => currentMethodItems.has(id)).map(id => id.split('.')[0])
+      );
       yield* Effect.sync(() => {
-        const affectedClasses = new Set<string>();
         staleMethodIds.forEach(methodId => {
           const methodItem = currentMethodItems.get(methodId);
           if (methodItem) {
             ctx.controller.invalidateTestResults(methodItem);
-            affectedClasses.add(methodId.split('.')[0]);
           }
         });
-        affectedClasses.forEach(className => {
+        HashSet.forEach(affectedClasses, className => {
           const classPrefix = `${className}.`;
           const allMethodsStale = [...currentMethodItems.entries()]
             .filter(([id]) => id.startsWith(classPrefix))

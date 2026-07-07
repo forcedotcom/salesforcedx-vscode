@@ -51,6 +51,30 @@ export type ExecutionContext = {
   getSuiteToClasses: () => Map<string, Set<string>>;
 };
 
+/** Params for executeTests (run the resolved tests, write + claim the result, push into the live run). */
+type ExecuteTestsParams = {
+  ctx: ExecutionContext;
+  testNames: string[];
+  outputDir: URI;
+  codeCoverage: boolean;
+  token: vscode.CancellationToken;
+  run: vscode.TestRun;
+  testsToRun: vscode.TestItem[];
+  runAllTestsInOrg: boolean;
+};
+
+/** Params for runTestPipeline (debug-or-execute branch for the resolved tests). */
+type RunTestPipelineParams = {
+  ctx: ExecutionContext;
+  request: vscode.TestRunRequest;
+  token: vscode.CancellationToken;
+  isDebug: boolean;
+  runScope: ApexTestRunScope;
+  isImplicitFullRun: boolean;
+  finalTests: vscode.TestItem[];
+  run: vscode.TestRun;
+};
+
 /**
  * Owns the run/debug/result-processing region extracted from ApexTestController. Owns the
  * lastProcessedResultFile Ref (Option<URI>). Cross-extension services (ChannelService/FsService) are
@@ -159,16 +183,16 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
      * the report, clear stale tags, and push results into the live TestRun. Emits the `Ended …` channel
      * sentinel on success so e2e can gate run completion (run path only; debug emits no sentinel).
      */
-    const executeTests = Effect.fn('ApexTestExecutionService.executeTests')(function* (
-      ctx: ExecutionContext,
-      testNames: string[],
-      outputDir: URI,
-      codeCoverage: boolean,
-      token: vscode.CancellationToken,
-      run: vscode.TestRun,
-      testsToRun: vscode.TestItem[],
-      runAllTestsInOrg: boolean
-    ) {
+    const executeTests = Effect.fn('ApexTestExecutionService.executeTests')(function* ({
+      ctx,
+      testNames,
+      outputDir,
+      codeCoverage,
+      token,
+      run,
+      testsToRun,
+      runAllTestsInOrg
+    }: ExecuteTestsParams) {
       yield* Effect.tryPromise({
         try: () => ctx.ensureInitialized(),
         catch: e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) })
@@ -211,11 +235,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
 
       // Write JSON result file and claim it as processed so the watcher's onResultFileCreate skips it and
       // does not build a second, detached TestRun for these same results (which would evict the shared
-      // Run-All group to "older results"; see W-… history in the shell).
-      yield* Effect.tryPromise({
-        try: () => writeTestResultJsonFile(result, outputDir, codeCoverage),
-        catch: e => new TestExecutionError({ message: getMessageFromError(e) })
-      });
+      // Run-All group to "older results"; see W-… history in the shell). Non-fatal: a write failure logs
+      // and the run continues (report + result push still happen), matching the legacy console.error path.
+      yield* writeTestResultJsonFile(result, outputDir, codeCoverage).pipe(
+        Effect.catchAll(error => Effect.logError('Failed to write JSON test result file', { error }))
+      );
       const writtenResultFilename = result.summary?.testRunId
         ? `test-result-${result.summary.testRunId}.json`
         : TEST_RESULT_JSON_FILE;
@@ -389,16 +413,16 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
      * Debug-or-execute branch for the resolved tests, with per-error run.errored mapping and run.end in
      * ensuring. Named so it carries its own span (vs an inline Effect.gen) for the debug/execute work.
      */
-    const runTestPipeline = Effect.fn('ApexTestExecutionService.runTestPipeline')(function* (
-      ctx: ExecutionContext,
-      request: vscode.TestRunRequest,
-      token: vscode.CancellationToken,
-      isDebug: boolean,
-      runScope: ApexTestRunScope,
-      isImplicitFullRun: boolean,
-      finalTests: vscode.TestItem[],
-      run: vscode.TestRun
-    ) {
+    const runTestPipeline = Effect.fn('ApexTestExecutionService.runTestPipeline')(function* ({
+      ctx,
+      request,
+      token,
+      isDebug,
+      runScope,
+      isImplicitFullRun,
+      finalTests,
+      run
+    }: RunTestPipelineParams) {
       yield* Effect.gen(function* () {
         yield* Effect.annotateCurrentSpan({
           trigger: 'testController',
@@ -413,7 +437,16 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           const codeCoverage = settings.retrieveTestCodeCoverage();
           const runAllTestsInOrg =
             runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
-          yield* executeTests(ctx, testNames, tmpFolder, codeCoverage, token, run, finalTests, runAllTestsInOrg);
+          yield* executeTests({
+            ctx,
+            testNames,
+            outputDir: tmpFolder,
+            codeCoverage,
+            token,
+            run,
+            testsToRun: finalTests,
+            runAllTestsInOrg
+          });
         }
       }).pipe(Effect.withSpan('apexTestRun'));
     });
@@ -493,7 +526,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         }
       });
 
-      yield* runTestPipeline(ctx, request, token, isDebug, runScope, isImplicitFullRun, finalTests, run).pipe(
+      yield* runTestPipeline({ ctx, request, token, isDebug, runScope, isImplicitFullRun, finalTests, run }).pipe(
         Effect.catchTags({
           PayloadBuildError: e => erroredAll(run, finalTests, e.message),
           SuiteNameUnresolvedError: e => erroredAll(run, finalTests, e.message),

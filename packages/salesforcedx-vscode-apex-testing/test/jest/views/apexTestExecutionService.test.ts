@@ -38,7 +38,8 @@ jest.mock('../../../src/utils/pathHelpers', () => {
   };
 });
 
-const mockWriteTestResultJsonFile = jest.fn().mockResolvedValue(undefined);
+// writeTestResultJsonFile now returns an Effect (default Effect.void); readTestRunIdFile stays a Promise.
+const mockWriteTestResultJsonFile = jest.fn((..._a: unknown[]) => Effect.void);
 const mockReadTestRunIdFile = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
@@ -177,16 +178,16 @@ describe('ApexTestExecutionService', () => {
       const { run } = fakeRun();
       const testService = makeTestService();
       await runEff(
-        ApexTestExecutionService.executeTests(
-          makeCtx({ getTestService: () => testService }),
-          ['MyClass.testA'],
-          URI.file('/tmp'),
-          false,
-          cancellationToken,
+        ApexTestExecutionService.executeTests({
+          ctx: makeCtx({ getTestService: () => testService }),
+          testNames: ['MyClass.testA'],
+          outputDir: URI.file('/tmp'),
+          codeCoverage: false,
+          token: cancellationToken,
           run,
-          [method],
-          false
-        )
+          testsToRun: [method],
+          runAllTestsInOrg: false
+        })
       );
       expect(appendToChannel).toHaveBeenCalledTimes(1);
       expect(appendToChannel).toHaveBeenCalledWith('Ended SFDX: Run Apex Tests');
@@ -198,16 +199,16 @@ describe('ApexTestExecutionService', () => {
       const testService = makeTestService({ buildAsyncPayload, runTestAsynchronous });
       const { run } = fakeRun();
       await runEff(
-        ApexTestExecutionService.executeTests(
-          makeCtx({ getTestService: () => testService }),
-          [],
-          URI.file('/tmp'),
-          false,
-          cancellationToken,
+        ApexTestExecutionService.executeTests({
+          ctx: makeCtx({ getTestService: () => testService }),
+          testNames: [],
+          outputDir: URI.file('/tmp'),
+          codeCoverage: false,
+          token: cancellationToken,
           run,
-          [],
-          true
-        )
+          testsToRun: [],
+          runAllTestsInOrg: true
+        })
       );
       expect(buildAsyncPayload).not.toHaveBeenCalled();
       const payload = runTestAsynchronous.mock.calls[0][0] as { testLevel: string };
@@ -225,16 +226,16 @@ describe('ApexTestExecutionService', () => {
       mockReadTestRunIdFile.mockResolvedValue('RID');
       await runEff(
         Effect.gen(function* () {
-          yield* ApexTestExecutionService.executeTests(
+          yield* ApexTestExecutionService.executeTests({
             ctx,
-            ['MyClass.testA'],
-            URI.file('/tmp'),
-            false,
-            cancellationToken,
+            testNames: ['MyClass.testA'],
+            outputDir: URI.file('/tmp'),
+            codeCoverage: false,
+            token: cancellationToken,
             run,
-            [method],
-            false
-          );
+            testsToRun: [method],
+            runAllTestsInOrg: false
+          });
           mockUpdateTestRunResults.mockClear();
           yield* ApexTestExecutionService.onResultFileCreate(
             ctx,
@@ -254,16 +255,16 @@ describe('ApexTestExecutionService', () => {
         Effect.gen(function* () {
           const methods = yield* ApexTestTreeService.getMethodItems();
           methods.set('MyClass.testA', method);
-          yield* ApexTestExecutionService.executeTests(
-            makeCtx(),
-            ['MyClass.testA'],
-            URI.file('/tmp'),
-            false,
-            cancellationToken,
+          yield* ApexTestExecutionService.executeTests({
+            ctx: makeCtx(),
+            testNames: ['MyClass.testA'],
+            outputDir: URI.file('/tmp'),
+            codeCoverage: false,
+            token: cancellationToken,
             run,
-            [method],
-            false
-          );
+            testsToRun: [method],
+            runAllTestsInOrg: false
+          });
         })
       );
       expect(method.tags?.some(t => t.id === 'stale')).toBe(false);
@@ -276,16 +277,16 @@ describe('ApexTestExecutionService', () => {
       const testService = makeTestService({ buildAsyncPayload: jest.fn().mockResolvedValue(undefined) });
       // Mixed suite+class with no methods -> buildTestPayload reaches the no-payload branch.
       const exit = await runExit(
-        ApexTestExecutionService.executeTests(
-          makeCtx({ getTestService: () => testService }),
-          ['A'],
-          URI.file('/tmp'),
-          false,
-          cancellationToken,
+        ApexTestExecutionService.executeTests({
+          ctx: makeCtx({ getTestService: () => testService }),
+          testNames: ['A'],
+          outputDir: URI.file('/tmp'),
+          codeCoverage: false,
+          token: cancellationToken,
           run,
-          [suite1, class1],
-          false
-        )
+          testsToRun: [suite1, class1],
+          runAllTestsInOrg: false
+        })
       );
       expect(Exit.isFailure(exit)).toBe(true);
       if (Exit.isFailure(exit)) {
