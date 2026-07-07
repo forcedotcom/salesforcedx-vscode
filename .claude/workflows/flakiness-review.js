@@ -256,9 +256,10 @@ log(
 // PHASE 2: COLLECT METRICS
 // =====================================================================
 // Workflow-level: rerun rate from gh run list (attempt > 1).
-// Test-level: retry counts from Playwright JSON artifacts (results.json has
-//   per-test retry arrays). GitHub Actions has no native per-test API —
-//   the source of truth is the artifact reports we download.
+// Test-level: per-test outcome/retry from the Playwright HTML report. Each
+//   playwright-report*/index.html embeds a base64 zip whose report.json holds
+//   files[].tests[]{outcome, results[]}. GitHub Actions has no per-test API —
+//   the decoded report.json is the source of truth.
 
 phase('Collect metrics')
 
@@ -281,48 +282,49 @@ Group runs by workflowName. For each workflow compute:
 For each run with conclusion=="failure" OR hadRetries==true, download the playwright-report artifacts and extract per-test retry data:
 
 \`\`\`bash
-# Download report for a run (skip if already present)
+# Download reports for a run (skip if already present). Directory segment may
+# carry a non-numeric suffix (e.g. <run-id>-extra) — keep the numeric run id.
 gh run download <run-id> --repo ${REPO} -D ${ARTIFACTS_ROOT}/develop/<run-id> --pattern "playwright-report*" 2>/dev/null || true
-
-# Find Playwright JSON results (contains per-test retry arrays)
-find ${ARTIFACTS_ROOT}/develop/<run-id> -name "*.json" -path "*/test-results/*" | head -5
-find ${ARTIFACTS_ROOT}/develop/<run-id> -name "results.json" | head -5
 \`\`\`
 
-Parse each results JSON. Playwright result format has tests with a \`results\` array — each element is one attempt. Length > 1 means retries occurred. A test that eventually passed (last result status=="passed") but had retries is retry-masked flakiness.
+Each \`playwright-report*/index.html\` embeds a base64-encoded zip whose \`report.json\` holds per-test results: \`files[].tests[]{title, path, outcome, results[]}\`. \`outcome\` is one of expected|flaky|unexpected|skipped (\`flaky\` = passed only after retries = retry-masked). Decode + aggregate with bash + jq (no python):
 
 \`\`\`bash
-python3 - <<'PY'
-import glob, json, collections
-retry_counts = collections.Counter()
-fail_counts = collections.Counter()
-run_counts = collections.Counter()
-for path in glob.glob('${ARTIFACTS_ROOT}/develop/**/results.json', recursive=True):
-    try:
-        data = json.load(open(path))
-        # Playwright JSON: data.suites -> nested -> specs -> tests -> results[]
-        def walk(node):
-            for suite in node.get('suites', []):
-                walk(suite)
-            for spec in node.get('specs', []):
-                for test in spec.get('tests', []):
-                    title = spec.get('title', 'unknown')
-                    results = test.get('results', [])
-                    run_counts[title] += 1
-                    if len(results) > 1:
-                        retry_counts[title] += len(results) - 1
-                    if results and results[-1].get('status') not in ('passed', 'skipped'):
-                        fail_counts[title] += 1
-        walk(data)
-    except Exception as e:
-        pass
-all_tests = set(list(retry_counts.keys()) + list(fail_counts.keys()))
-for t in sorted(all_tests, key=lambda x: -(retry_counts[x] + fail_counts[x]))[:30]:
-    print(json.dumps({'test': t, 'retries': retry_counts[t], 'fails': fail_counts[t], 'runs': run_counts[t]}))
-PY
+TMP=$(mktemp -d)
+for RUNDIR in ${ARTIFACTS_ROOT}/develop/*/; do
+  # Strip non-numeric suffix (-extra, -End-to-End-Tests) to the numeric GH run id.
+  RUNID=$(basename "$RUNDIR" | grep -oE '^[0-9]+')
+  [ -n "$RUNID" ] || continue
+  for RD in "$RUNDIR"playwright-report*/; do
+    IDX="$RD/index.html"; [ -f "$IDX" ] || continue
+    SUITE=$(basename "$RD" | sed 's/^playwright-report-//; s/^playwright-report$/default/')
+    grep -o 'data:application/zip;base64,[A-Za-z0-9+/=]*' "$IDX" \\
+      | sed 's/^data:application\\/zip;base64,//' | base64 -d > "$TMP/r.zip" 2>/dev/null
+    unzip -o -q "$TMP/r.zip" -d "$TMP" 2>/dev/null
+    [ -f "$TMP/report.json" ] || continue
+    jq -c --arg run "$RUNID" --arg suite "$SUITE" '
+      .files[] as $f | $f.tests[] |
+      { testName: ($f.fileName + " > " + (((.path // []) + [.title]) | join(" > "))),
+        workflowName: $suite,
+        runId: $run,
+        retried: ((.results | length) > 1 or .outcome == "flaky"),
+        failed: (.outcome == "unexpected") }' "$TMP/report.json"
+    rm -f "$TMP/report.json"
+  done
+done | jq -s '
+  group_by(.testName) | map({
+    testName: .[0].testName,
+    workflowName: .[0].workflowName,
+    totalRuns: length,
+    retryCount: (map(select(.retried)) | length),
+    failCount: (map(select(.failed)) | length),
+    retryRate: ((map(select(.retried)) | length) / length * 100 | round / 100),
+    runIds: (map(select(.retried or .failed) | .runId) | unique)
+  }) | map(select(.retryCount > 0 or .failCount > 0)) | sort_by(-.retryRate)'
+rm -rf "$TMP"
 \`\`\`
 
-Collect test metrics for any test with retryCount > 0 or failCount > 0. Compute retryRate = retryCount / totalRuns (0–1 float).
+Each per-report record is one test run: \`retried\` if it retried (results>1 or outcome=="flaky"), \`failed\` if outcome=="unexpected". Aggregate by testName across all reports. retryRate = retriedRuns / totalRuns (0-1 float, 2dp; never exceeds 1). \`runIds\` = numeric run ids where the test retried or failed. Keep only tests with retryCount > 0 or failCount > 0.
 
 Return both workflowMetrics and testMetrics sorted by rerunRate/retryRate descending.`,
   { label: 'collect:metrics', phase: 'Collect metrics', schema: METRICS_SCHEMA }
