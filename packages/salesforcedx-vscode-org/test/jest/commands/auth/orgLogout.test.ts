@@ -7,10 +7,10 @@
 
 import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
 import { orgLogoutDefaultCommand } from '../../../../src/commands/auth/orgLogout';
 import { makeConfirmOrThrow, UserCancellationError } from '../../testHelpers/promptServiceStub';
 
@@ -62,7 +62,7 @@ const run = (opts: {
 describe('orgLogoutDefaultCommand', () => {
   let removeAuthMock: jest.Mock;
   let unsetTargetOrgMock: jest.Mock;
-  let showInformationMessageMock: jest.SpyInstance;
+  let showInformationMessageMock: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -72,7 +72,8 @@ describe('orgLogoutDefaultCommand', () => {
     } as unknown as AuthRemover);
     unsetTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
     mockUpdateConfigAndStateAggregatorsEffect.mockReturnValue(Effect.void);
-    showInformationMessageMock = jest.spyOn(notificationService, 'showInformationMessage').mockResolvedValue(undefined);
+    showInformationMessageMock = vscode.window.showInformationMessage as unknown as jest.Mock;
+    showInformationMessageMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
