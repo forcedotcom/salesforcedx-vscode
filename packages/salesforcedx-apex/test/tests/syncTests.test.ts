@@ -9,15 +9,15 @@ import type { SinonStub, SinonSpy } from 'sinon';
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { join } from 'node:path';
-import { SyncTestConfiguration, TestService } from '../../src';
+import { type SyncTestConfiguration, TestService } from '../../src';
 import {
   TestLevel,
-  ApexOrgWideCoverage,
-  ApexCodeCoverageAggregate,
-  ApexCodeCoverage,
+  type ApexOrgWideCoverage,
+  type ApexCodeCoverageAggregate,
+  type ApexCodeCoverage,
   ResultFormat,
-  OutputDirConfig,
-  TestResult,
+  type OutputDirConfig,
+  type TestResult,
   TestCategory
 } from '../../src/tests/types';
 import { nls } from '../../src/i18n';

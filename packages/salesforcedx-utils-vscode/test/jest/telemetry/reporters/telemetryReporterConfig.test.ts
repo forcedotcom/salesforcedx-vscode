@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
+import { type TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
 
 describe('TelemetryReporterConfig', () => {
   let config: TelemetryReporterConfig;

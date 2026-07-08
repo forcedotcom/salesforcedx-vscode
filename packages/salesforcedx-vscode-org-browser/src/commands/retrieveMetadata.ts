@@ -12,7 +12,7 @@ import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
-import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
+import { type OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
 export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(function* (
   node: OrgBrowserTreeItem,

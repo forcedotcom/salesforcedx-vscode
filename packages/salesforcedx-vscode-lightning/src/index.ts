@@ -17,15 +17,15 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import { log } from 'node:console';
 import * as path from 'node:path';
-import { ExtensionContext, workspace } from 'vscode';
+import { type ExtensionContext, workspace } from 'vscode';
 import {
   LanguageClient,
-  LanguageClientOptions,
+  type LanguageClientOptions,
   RevealOutputChannelOn,
-  ServerOptions,
+  type ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import AuraLspStatusBarItem from './auraLspStatusBarItem';
 import { createAuraAppCommand } from './commands/createAuraApp';
 import { createAuraComponentCommand } from './commands/createAuraComponent';

@@ -8,9 +8,9 @@
 import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
-  ContinueResponse,
+  type ContinueResponse,
   LibraryCommandletExecutor,
-  ParametersGatherer,
+  type ParametersGatherer,
   SfCommandlet,
   notificationService,
   workspaceUtils

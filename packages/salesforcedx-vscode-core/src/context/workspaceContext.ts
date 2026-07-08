@@ -5,11 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
+import { type Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { OrgUserInfo, WorkspaceContextUtil, refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  type OrgUserInfo,
+  WorkspaceContextUtil,
+  refreshAllExtensionReporters
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
 import { getOrgShape } from './workspaceOrgShape';

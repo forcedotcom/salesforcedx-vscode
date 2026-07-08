@@ -6,7 +6,7 @@
  */
 
 import * as util from 'node:util';
-import { ApexTestResultOutcome, TestResult } from '../../src/tests/types';
+import { ApexTestResultOutcome, type TestResult } from '../../src/tests/types';
 
 const testStartTime = '2020-11-09T18:02:50.000+0000';
 const date = new Date(testStartTime);

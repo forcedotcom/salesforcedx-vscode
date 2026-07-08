@@ -12,8 +12,8 @@
  * Additionally, we want to send any failed spans as Exceptions (the parent span may not finish if a child span fails)
  */
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
-import { ExportResult, ExportResultCode } from '@opentelemetry/core';
-import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
+import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { TelemetryReporter } from '@vscode/extension-telemetry';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';

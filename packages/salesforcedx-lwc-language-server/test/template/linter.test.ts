@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CompilerDiagnostic } from '@lwc/errors';
+import { type CompilerDiagnostic } from '@lwc/errors';
 import { TextDocument } from 'vscode-languageserver';
 import templateLinter from '../../src/template/linter';
 

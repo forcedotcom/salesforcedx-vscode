@@ -6,8 +6,8 @@
  */
 
 import { nls } from '../i18n';
-import { ApexDiagnostic } from '../utils';
-import { ApexTestResultRecord, SyncTestFailure } from './types';
+import { type ApexDiagnostic } from '../utils';
+import { type ApexTestResultRecord, type SyncTestFailure } from './types';
 
 export function formatTestErrors(error: Error): Error {
   const matches = error.message?.match(/\bsObject type ["'](.*?)["'] is not supported\b/);

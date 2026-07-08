@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { workspace } from 'vscode';
-import { TestRunType } from '../testRunner/testRunner';
+import { type TestRunType } from '../testRunner/testRunner';
 
 /**
  * Returns workspace specific jest args from CLI arguments and test run type

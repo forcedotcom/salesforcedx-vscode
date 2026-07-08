@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { collectBundleMetadata, BundleConfig, type ScriptFile } from '@lwc/metadata';
+import { collectBundleMetadata, type BundleConfig, type ScriptFile } from '@lwc/metadata';
 import { transform } from '@lwc/old-compiler';
 
-import { CompilerOptions as OldCompilerOptions } from '@lwc/old-compiler/dist/types/compiler/options';
+import { type CompilerOptions as OldCompilerOptions } from '@lwc/old-compiler/dist/types/compiler/options';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';

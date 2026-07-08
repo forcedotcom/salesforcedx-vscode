@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { normalizePath, NormalizedPath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath, type NormalizedPath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   buildSfdxContentMap,
   createMockWorkspaceFindFilesConnection,
@@ -21,7 +21,7 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { minimatch } from 'minimatch';
 import { join, resolve } from 'node:path';
-import { Connection } from 'vscode-languageserver';
+import { type Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { LWCWorkspaceContext } from '../src/context/lwcContext';
 

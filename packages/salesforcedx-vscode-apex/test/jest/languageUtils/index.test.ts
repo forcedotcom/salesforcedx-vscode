@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { fetchFromLs, getApexTests } from '../../../src/languageUtils';
 import { languageClientManager } from '../../../src/languageUtils/languageClientManager';
 import { setTelemetryService } from '../../../src/telemetry/telemetry';
-import { ApexTestMethod } from '../../../src/views/lspConverter';
+import { type ApexTestMethod } from '../../../src/views/lspConverter';
 import { MockTelemetryService } from '../telemetry/mockTelemetryService';
 
 // Mock dependencies

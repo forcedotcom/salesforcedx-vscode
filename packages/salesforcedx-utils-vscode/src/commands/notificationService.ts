@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { CommandExecution } from '@salesforce/salesforcedx-utils';
-import { Observable } from 'rxjs';
+import { type Observable } from 'rxjs';
 import * as vscode from 'vscode';
 import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages/messages';
-import { ChannelService } from './channelService';
+import { type ChannelService } from './channelService';
 
 const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 

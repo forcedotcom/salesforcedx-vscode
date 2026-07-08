@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { type CancelResponse, type ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import type { UserCancellationError } from 'salesforcedx-vscode-services';
-import { getOrgRuntime, OrgRuntimeContext } from '../extensionProvider';
+import { getOrgRuntime, type OrgRuntimeContext } from '../extensionProvider';
 
 /**
  * Run a gatherer Effect through the org runtime, mapping success to `ContinueResponse<T>` and any

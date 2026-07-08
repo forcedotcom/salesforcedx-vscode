@@ -15,9 +15,9 @@ jest.mock('@vscode/debugadapter', () => ({
 }));
 
 import { Source } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 
 describe('Debug console', () => {

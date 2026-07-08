@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { QueryResult } from '../types';
-import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
+import { type Column, createTable, ExtensionProviderService, type Row } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';

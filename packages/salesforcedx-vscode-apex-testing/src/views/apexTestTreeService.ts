@@ -14,7 +14,7 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { RESULT_MAX_AGE_MS } from '../constants';
 import { getDefaultOrgInfo } from '../coreExtensionUtils';
 import { nls } from '../messages';

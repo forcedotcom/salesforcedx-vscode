@@ -12,7 +12,7 @@ import * as fs from 'node:fs';
 import { LogService } from '../../src/logs/logService';
 import * as path from 'node:path';
 import * as stream from 'node:stream';
-import { LogRecord, LogResult } from '../../src/logs/types';
+import { type LogRecord, type LogResult } from '../../src/logs/types';
 
 type LogQueryResult = {
   records: LogRecord[];

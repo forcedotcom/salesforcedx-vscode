@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { IParseResults, ItBlock, ParsedNode, ParsedNodeTypes } from 'jest-editor-support';
+import { type IParseResults, type ItBlock, type ParsedNode, ParsedNodeTypes } from 'jest-editor-support';
 import { escapeStrForRegex } from 'jest-regex-util';
 import { stripVTControlCharacters } from 'node:util';
 import * as vscode from 'vscode';

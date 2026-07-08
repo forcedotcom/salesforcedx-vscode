@@ -14,7 +14,7 @@ import type {
   TelemetryReporter,
   TelemetryServiceInterface
 } from '@salesforce/vscode-service-provider';
-import { ExtensionContext } from 'vscode';
+import { type ExtensionContext } from 'vscode';
 
 export class MockTelemetryService extends TelemetryService implements TelemetryServiceInterface {
   public sentEvents: {

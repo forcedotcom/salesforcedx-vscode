@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AST_TOKEN_TYPES, TSESTree } from '@typescript-eslint/utils';
+import { AST_TOKEN_TYPES, type TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
 const hasExportTaggedErrorTag = (comments: TSESTree.Comment[]): boolean =>

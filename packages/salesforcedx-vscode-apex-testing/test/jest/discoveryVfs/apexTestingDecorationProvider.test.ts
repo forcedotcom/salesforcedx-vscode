@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { messages } from '../../../src/messages/i18n';
 import { ApexTestingDecorationProvider } from '../../../src/discoveryVfs/apexTestingDecorationProvider';

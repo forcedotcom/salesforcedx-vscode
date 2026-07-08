@@ -267,6 +267,10 @@ export default [
       '@typescript-eslint/adjacent-overload-signatures': 'error',
       '@typescript-eslint/class-literal-property-style': 'error',
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ],
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-restricted-types': [
         'warn',

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { HttpRequest } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core';
+import { type Connection } from '@salesforce/core';
 import type { JsonCollection } from '@salesforce/ts-types';
 import { xmlCharMap } from './types';
 

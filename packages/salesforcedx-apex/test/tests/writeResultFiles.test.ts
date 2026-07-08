@@ -9,17 +9,17 @@ import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { createWriteStream, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { Readable } from 'node:stream';
+import { type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import {
   writeResultFiles,
   ApexTestResultOutcome,
   ResultFormat,
-  TestResult,
-  TestRunIdResult,
-  OutputDirConfig,
-  CodeCoverageResult,
-  PerClassCoverage
+  type TestResult,
+  type TestRunIdResult,
+  type OutputDirConfig,
+  type CodeCoverageResult,
+  type PerClassCoverage
 } from '../../src';
 
 describe('writeResultFiles', () => {

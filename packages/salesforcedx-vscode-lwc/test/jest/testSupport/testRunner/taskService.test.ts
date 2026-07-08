@@ -14,7 +14,7 @@ describe('TaskService', () => {
       const task = taskService.createTask('test-task-id', 'Test Task', vscode.TaskScope.Workspace, 'npm', ['test']);
 
       // Access the internal task to check presentation options
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions
+
       const internalTask = (task as any).task as vscode.Task;
       expect(internalTask.presentationOptions).toEqual({
         reveal: vscode.TaskRevealKind.Never,

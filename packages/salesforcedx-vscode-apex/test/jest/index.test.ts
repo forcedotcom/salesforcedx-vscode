@@ -41,7 +41,7 @@ jest.mock('../../src/services/runtime', () => ({
 }));
 
 import { URI } from 'vscode-uri';
-import { ApexLanguageClient } from '../../src/apexLanguageClient';
+import { type ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientManager, indexerDoneHandler } from '../../src/languageUtils';

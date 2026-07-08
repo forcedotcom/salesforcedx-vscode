@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TSESLint } from '@typescript-eslint/utils';
+import { type TSESLint } from '@typescript-eslint/utils';
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';

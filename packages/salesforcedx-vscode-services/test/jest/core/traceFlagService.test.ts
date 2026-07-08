@@ -8,7 +8,7 @@
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as Scope from 'effect/Scope';
+import type * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef, clearDefaultOrgRef } from '../../../src/core/defaultOrgRef';

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Column, createTable, getServicesApi, Row } from '@salesforce/effect-ext-utils';
+import { type Column, createTable, getServicesApi, type Row } from '@salesforce/effect-ext-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';

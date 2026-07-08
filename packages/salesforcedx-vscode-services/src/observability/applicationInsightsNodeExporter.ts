@@ -19,9 +19,9 @@
  * by holding a direct reference to an AzureMonitorLogExporter and a local LoggerProvider.
  */
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
-import { ExportResult, ExportResultCode } from '@opentelemetry/core';
+import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
-import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';

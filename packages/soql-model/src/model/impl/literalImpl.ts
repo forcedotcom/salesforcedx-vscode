@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Literal, LiteralType, SyntaxOptions } from '../model';
+import { type Literal, type LiteralType, type SyntaxOptions } from '../model';
 
 export class LiteralImpl implements Literal {
   public readonly kind = 'literal' as const;

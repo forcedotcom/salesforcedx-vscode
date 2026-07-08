@@ -9,8 +9,8 @@ import * as Effect from 'effect/Effect';
 import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { nls } from '../messages/nls';
-import { GenerationStrategyType, initializeAndBid } from './generationStrategy/generationStrategyFactory';
-import { PromptGenerationStrategyBid } from './schemas';
+import { type GenerationStrategyType, initializeAndBid } from './generationStrategy/generationStrategyFactory';
+import { type PromptGenerationStrategyBid } from './schemas';
 
 /** @ExportTaggedError */
 export class StrategyNotQualified extends Data.TaggedError('StrategyNotQualified')<{

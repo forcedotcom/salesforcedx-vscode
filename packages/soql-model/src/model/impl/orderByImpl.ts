@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrderBy, OrderByExpression, SyntaxOptions } from '../model';
+import { type OrderBy, type OrderByExpression, type SyntaxOptions } from '../model';
 
 export class OrderByImpl implements OrderBy {
   public orderByExpressions: OrderByExpression[];

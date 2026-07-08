@@ -187,7 +187,7 @@ describe('LwcTestController public run API', () => {
     };
 
     // Mock TestRunRequest and CancellationTokenSource
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.include = include;
@@ -196,7 +196,7 @@ describe('LwcTestController public run API', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.profile = profile;
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.CancellationTokenSource as any) = jest.fn(() => ({
       token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
       cancel: jest.fn(),
@@ -310,7 +310,7 @@ describe('LwcTestController public run API', () => {
     };
 
     // Mock TestRunRequest and CancellationTokenSource
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.include = include;
@@ -319,7 +319,7 @@ describe('LwcTestController public run API', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.profile = profile;
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.CancellationTokenSource as any) = jest.fn(() => ({
       token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
       cancel: jest.fn(),
@@ -385,7 +385,7 @@ describe('LwcTestController public run API', () => {
     };
 
     // Mock TestRunRequest and CancellationTokenSource
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.include = include;
@@ -394,7 +394,7 @@ describe('LwcTestController public run API', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.profile = profile;
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.CancellationTokenSource as any) = jest.fn(() => ({
       token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
       cancel: jest.fn(),
@@ -492,7 +492,7 @@ describe('LwcTestController public run API', () => {
         };
 
         // Mock TestRunRequest and CancellationTokenSource
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           this.include = include;
@@ -501,7 +501,7 @@ describe('LwcTestController public run API', () => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           this.profile = profile;
         });
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         (vscode.CancellationTokenSource as any) = jest.fn(() => ({
           token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
           cancel: jest.fn(),
@@ -719,7 +719,7 @@ describe('LwcTestController public run API', () => {
     };
 
     // Mock TestRunRequest and CancellationTokenSource
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.include = include;
@@ -728,7 +728,7 @@ describe('LwcTestController public run API', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.profile = profile;
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.CancellationTokenSource as any) = jest.fn(() => ({
       token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
       cancel: jest.fn(),
@@ -795,7 +795,7 @@ describe('LwcTestController public run API', () => {
     };
 
     // Mock TestRunRequest and CancellationTokenSource
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.TestRunRequest as any) = jest.fn(function (this: any, include: any, exclude: any, profile: any) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.include = include;
@@ -804,7 +804,7 @@ describe('LwcTestController public run API', () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       this.profile = profile;
     });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     (vscode.CancellationTokenSource as any) = jest.fn(() => ({
       token: { isCancellationRequested: false, onCancellationRequested: jest.fn() },
       cancel: jest.fn(),

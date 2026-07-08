@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CompletionItemKind, CompletionList, TextDocument } from 'vscode-languageserver-types';
+import { type CompletionItemKind, type CompletionList, TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src';
-import { CompletionConfiguration } from '../../src/services/htmlCompletion';
+import { type CompletionConfiguration } from '../../src/services/htmlCompletion';
 import { applyEdits } from './textEditSupport';
 
 type ItemDescription = {

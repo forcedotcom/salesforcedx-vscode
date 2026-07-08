@@ -7,6 +7,7 @@
 
 import {
   ExtensionProviderService,
+  type buildAllServicesLayer,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
@@ -44,9 +45,7 @@ describe('AuthParamsGatherer', () => {
 
   const useLayer = (confirm = true): void => {
     resetOrgRuntimeForTesting();
-    setAllServicesLayer(
-      buildLayer(confirm) as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
-    );
+    setAllServicesLayer(buildLayer(confirm) as ReturnType<typeof buildAllServicesLayer>);
   };
 
   beforeEach(() => {

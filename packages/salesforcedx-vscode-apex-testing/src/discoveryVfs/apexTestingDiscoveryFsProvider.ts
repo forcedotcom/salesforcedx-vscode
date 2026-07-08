@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { nls } from '../messages';
 
 type Entry = FileEntry | DirectoryEntry;

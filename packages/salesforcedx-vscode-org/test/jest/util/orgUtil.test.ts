@@ -7,7 +7,7 @@
 
 import { AuthInfo, StateAggregator } from '@salesforce/core';
 import {
-  buildAllServicesLayer,
+  type buildAllServicesLayer,
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';

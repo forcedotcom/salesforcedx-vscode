@@ -6,14 +6,14 @@
  */
 
 import {
-  ApexCodeCoverageAggregateRecord,
-  ApexCodeCoverageRecord,
+  type ApexCodeCoverageAggregateRecord,
+  type ApexCodeCoverageRecord,
   ApexTestResultOutcome,
-  ApexTestResultRecord,
+  type ApexTestResultRecord,
   ApexTestRunResultStatus,
-  SyncTestResult,
+  type SyncTestResult,
   TestCategory,
-  TestResult
+  type TestResult
 } from '../src/tests/types';
 
 export const syncTestResultSimple: SyncTestResult = {

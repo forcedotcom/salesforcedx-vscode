@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CancellationToken, CommandExecution, Command } from '@salesforce/salesforcedx-utils';
-import { ChildProcess } from 'node:child_process';
-import { fromEvent, interval, Observable, Subscription } from 'rxjs';
+import { type CancellationToken, type CommandExecution, type Command } from '@salesforce/salesforcedx-utils';
+import { type ChildProcess } from 'node:child_process';
+import { fromEvent, interval, type Observable, type Subscription } from 'rxjs';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const treeKill = require('tree-kill');

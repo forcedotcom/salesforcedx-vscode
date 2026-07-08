@@ -7,7 +7,7 @@
 import type { CommandletExecutor } from './commandletExecutors';
 import type { ParametersGatherer } from './parameterGatherers';
 import type { PreconditionChecker } from './preconditionCheckers';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { notificationService } from './notificationService';
 import { type PostconditionChecker, EmptyPostChecker } from './postconditionCheckers';
 

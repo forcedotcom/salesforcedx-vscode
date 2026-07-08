@@ -6,16 +6,16 @@
  */
 
 import * as path from 'node:path';
-import { Connection } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { type Connection } from 'vscode-languageserver';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
 import { nls } from './messages';
-import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
+import { type LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 import { jsconfigCore } from './resources/core/jsconfig-core';
 import { settingsCore } from './resources/core/settings-core';
 import { jsconfigSfdx } from './resources/sfdx/jsconfig-sfdx';
-import { WorkspaceType, getSfdxProjectFile } from './shared';
+import { type WorkspaceType, getSfdxProjectFile } from './shared';
 import * as utils from './utils';
-import { NormalizedPath } from './utils';
+import { type NormalizedPath } from './utils';
 
 export const AURA_EXTENSIONS: string[] = ['.cmp', '.app', '.design', '.evt', '.intf', '.auradoc', '.tokens'];
 

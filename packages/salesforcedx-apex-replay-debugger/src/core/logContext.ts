@@ -6,13 +6,13 @@
  */
 
 import { ConfigAggregator, Org } from '@salesforce/core';
-import { StackFrame } from '@vscode/debugadapter';
-import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
-import { ApexReplayDebug } from '../adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../adapter/types';
+import { type StackFrame } from '@vscode/debugadapter';
+import { type ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
+import { type ApexReplayDebug } from '../adapter/apexReplayDebug';
+import { type LaunchRequestArguments } from '../adapter/types';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { breakpointUtil } from '../breakpoints';
-import { ApexExecutionOverlayResultCommandSuccess, OrgInfoError } from '../commands';
+import { type ApexExecutionOverlayResultCommandSuccess, type OrgInfoError } from '../commands';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -33,7 +33,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 import {
-  DebugLogState,
+  type DebugLogState,
   FrameEntryState,
   FrameExitState,
   FrameStateUtil,

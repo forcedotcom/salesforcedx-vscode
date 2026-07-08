@@ -7,7 +7,7 @@
 
 import { LoggerLevel } from '@salesforce/core';
 import { elapsedTime } from './elapsedTime';
-import { Column, Row } from './types';
+import { type Column, type Row } from './types';
 
 const COLUMN_SEPARATOR = '  ';
 const COLUMN_FILLER = ' ';

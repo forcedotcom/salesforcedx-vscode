@@ -7,13 +7,13 @@
 import * as Option from 'effect/Option';
 import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
 import { telemetryService } from '../../telemetry';
-import { isTestCaseInfo, TestExecutionInfo } from '../types';
+import { isTestCaseInfo, type TestExecutionInfo } from '../types';
 import { workspace, workspaceService } from '../workspace';
-import { SfTask, taskService } from './taskService';
+import { type SfTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
 export type TestRunType = 'run' | 'debug' | 'watch';

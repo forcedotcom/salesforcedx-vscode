@@ -7,7 +7,7 @@
 
 import { stripAnsi } from '@salesforce/effect-ext-utils';
 import type { CommandExecution } from '@salesforce/salesforcedx-utils';
-import { OutputChannel, window } from 'vscode';
+import { type OutputChannel, window } from 'vscode';
 import { nls } from '../messages/messages';
 import { SettingsService } from '../settings/settingsService';
 

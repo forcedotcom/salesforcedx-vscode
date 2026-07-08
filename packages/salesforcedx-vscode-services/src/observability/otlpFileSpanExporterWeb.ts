@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExportResult, ExportResultCode } from '@opentelemetry/core';
-import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
+import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { serializeSpanOtlp } from './spanUtils';
 
 const OTLP_SPAN_FILE_SERVER_URL = 'http://localhost:3003/otlp-spans';

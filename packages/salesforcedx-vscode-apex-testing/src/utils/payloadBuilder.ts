@@ -4,8 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncTestConfiguration, AsyncTestArrayConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
-import * as vscode from 'vscode';
+import {
+  type AsyncTestConfiguration,
+  type AsyncTestArrayConfiguration,
+  TestLevel,
+  type TestService
+} from '@salesforce/apex-node';
+import type * as vscode from 'vscode';
 import { nls } from '../messages';
 import { extractSuiteName, getTestName, isMethod, isSuite } from './testItemUtils';
 

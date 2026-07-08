@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
+import { type Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from '../../../src/commands/orgDisplay';
-import { OrgInfo } from '../../../src/types/orgInfo';
+import { type OrgInfo } from '../../../src/types/orgInfo';
 import * as orgDisplayUtil from '../../../src/util/orgDisplay';
 
 // Both commands compose the org-info Effects from util/orgDisplay; mock the module so the tests

@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LspFileSystemAccessor, NormalizedPath, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  LspFileSystemAccessor,
+  type NormalizedPath,
+  normalizePath
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   createMockWorkspaceFindFilesConnection,
   getSfdxWorkspaceRelativePaths,

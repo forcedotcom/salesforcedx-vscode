@@ -11,7 +11,7 @@ import { LogStream } from './logStream';
 import { LogStreamConfig } from './logStreamConfig';
 import { O11yReporter } from './o11yReporter';
 import { TelemetryFile } from './telemetryFile';
-import { TelemetryReporterConfig } from './telemetryReporterConfig';
+import { type TelemetryReporterConfig } from './telemetryReporterConfig';
 
 const o11yReporterInstances: Map<string, O11yReporter> = new Map();
 const o11yInitializationPromises: Map<string, Promise<void>> = new Map();

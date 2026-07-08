@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   activeQuickInputWidget,
   closeWelcomeTabs,
@@ -154,7 +154,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
 });
 
 /** Click a button (e.g. the confirm action) in a VS Code custom-style modal dialog. */
-const clickModalButton = async (page: import('@playwright/test').Page, label: string): Promise<void> => {
+const clickModalButton = async (page: Page, label: string): Promise<void> => {
   const button = page.locator('.monaco-dialog-box').getByRole('button', { name: label }).first();
   await button.waitFor({ state: 'visible', timeout: 10_000 });
   await button.click();
@@ -181,7 +181,7 @@ const expectOrgLoggedOut = async (alias: string, timeoutMs = 30_000): Promise<vo
 };
 
 /** Toggle a `canPickMany` quick-pick row's checkbox by typing the alias and clicking the matching org row. */
-const toggleMultiPickRow = async (page: import('@playwright/test').Page, alias: string): Promise<void> => {
+const toggleMultiPickRow = async (page: Page, alias: string): Promise<void> => {
   await page.keyboard.type(alias);
   const row = activeQuickInputWidget(page)
     .locator(QUICK_INPUT_LIST_ROW)
@@ -193,7 +193,7 @@ const toggleMultiPickRow = async (page: import('@playwright/test').Page, alias: 
 };
 
 /** Assert no error toast surfaced (UserCancellationError must map to CANCEL, never an error notification). */
-const expectNoErrorNotification = async (page: import('@playwright/test').Page): Promise<void> => {
+const expectNoErrorNotification = async (page: Page): Promise<void> => {
   await expect(
     page.locator(NOTIFICATION_LIST_ITEM).filter({ has: page.locator('.codicon-error') }),
     'a CANCEL flow must not surface an error notification'

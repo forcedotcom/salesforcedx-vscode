@@ -6,20 +6,20 @@
  */
 
 import type { HttpRequest } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core';
-import { CancellationToken } from '../common';
+import { type Connection } from '@salesforce/core';
+import { type CancellationToken } from '../common';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {
-  ApexTestResultDataRaw,
+  type ApexTestResultDataRaw,
   ApexTestResultOutcome,
   ApexTestRunResultStatus,
-  SyncTestConfiguration,
-  SyncTestFailure,
-  SyncTestResult,
-  TestResult,
-  TestResultRaw
+  type SyncTestConfiguration,
+  type SyncTestFailure,
+  type SyncTestResult,
+  type TestResult,
+  type TestResultRaw
 } from './types';
 import { calculateCodeCoverage, calculatePercentage, computeTestCategory, transformTestResult } from './utils';
 

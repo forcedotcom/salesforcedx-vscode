@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { HumanReporter, TestResult } from '@salesforce/apex-node';
+import { HumanReporter, type TestResult } from '@salesforce/apex-node';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { nls } from '../messages';

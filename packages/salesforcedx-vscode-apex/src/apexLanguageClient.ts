@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
-import { URI } from 'vscode-uri';
-import { ApexErrorHandler } from './apexErrorHandler';
+import { LanguageClient, type LanguageClientOptions, type ServerOptions } from 'vscode-languageclient/node';
+import { type URI } from 'vscode-uri';
+import { type ApexErrorHandler } from './apexErrorHandler';
 import {
-  ApexClassOASEligibleRequest,
-  ApexClassOASEligibleResponse,
-  ApexClassOASEligibleResponses,
-  ApexClassOASGatherContextResponse,
-  ApexOASEligiblePayload
+  type ApexClassOASEligibleRequest,
+  type ApexClassOASEligibleResponse,
+  type ApexClassOASEligibleResponses,
+  type ApexClassOASGatherContextResponse,
+  type ApexOASEligiblePayload
 } from './oasSchemas';
 
 export type ApexClassOASEligibleRequestForLSPProtocol = Omit<ApexClassOASEligibleRequest, 'resourceUri'> & {

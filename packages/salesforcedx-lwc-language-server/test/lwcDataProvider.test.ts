@@ -4,10 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type * as nodeFs from 'node:fs';
+
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 jest.mock('../src/resources/transformed-lwc-standard.json', () => {
-  const fs = require('node:fs') as typeof import('node:fs');
-  const pathModule = require('node:path') as typeof import('node:path');
+  const fs = require('node:fs') as typeof nodeFs;
+  const pathModule = require('node:path') as typeof path;
   // Find package root (lwc-language-server)
   let current = __dirname;
   while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
@@ -33,8 +35,8 @@ import * as path from 'node:path';
 import type { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import ComponentIndexer from '../src/componentIndexer';
-import { DataProviderAttributes, LWCDataProvider } from '../src/lwcDataProvider';
-import { TagAttrs, createTag, getTagName } from '../src/tag';
+import { type DataProviderAttributes, LWCDataProvider } from '../src/lwcDataProvider';
+import { type TagAttrs, createTag, getTagName } from '../src/tag';
 
 // Discovery via workspace/findFiles (no server-side cache)
 sfdxFileSystemAccessor.setWorkspaceFolderUris([URI.file(SFDX_WORKSPACE_ROOT).toString()]);

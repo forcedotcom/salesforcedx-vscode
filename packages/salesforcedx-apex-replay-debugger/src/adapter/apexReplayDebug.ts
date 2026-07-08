@@ -14,19 +14,19 @@ import {
   LoggingDebugSession,
   OutputEvent,
   Scope,
-  Source,
+  type Source,
   StoppedEvent,
   TerminatedEvent,
   Thread
 } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import { EOL } from 'node:os';
 import { breakpointUtil } from '../breakpoints';
 import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
-import { TraceCategory, Step, LaunchRequestArguments } from './types';
+import { type TraceCategory, type Step, type LaunchRequestArguments } from './types';
 import { ScopeContainer } from './variableContainer';
 
 const TRACE_ALL = 'all';

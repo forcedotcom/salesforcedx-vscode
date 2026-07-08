@@ -4,16 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { JsonMap } from '@salesforce/ts-types';
 import { convertToCSV } from '../../../src/commands/dataQuery';
 import { CsvDataProvider } from '../../../src/queryDataView/dataProviders/csvDataProvider';
 
 describe('CsvDataProvider', () => {
   it('delegates CSV export to convertToCSV', () => {
     const provider = new CsvDataProvider('q');
-    const csv = provider.getFileContent('SELECT Name FROM X', [
-      { Name: 'A' },
-      { Name: 'B' }
-    ] as unknown as import('@salesforce/ts-types').JsonMap[]);
+    const csv = provider.getFileContent('SELECT Name FROM X', [{ Name: 'A' }, { Name: 'B' }] as unknown as JsonMap[]);
     expect(csv).toBe('Name\nA\nB');
   });
 });

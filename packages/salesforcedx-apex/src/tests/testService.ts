@@ -4,37 +4,37 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
-import { Duration } from '@salesforce/kit';
+import { type Connection } from '@salesforce/core';
+import { type Duration } from '@salesforce/kit';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Readable, Writable, Transform } from 'node:stream';
+import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { CancellationToken, Progress } from '../common';
+import { type CancellationToken, type Progress } from '../common';
 import { nls } from '../i18n';
 import { isTestResult, isValidApexClassID } from '../narrowing';
 import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
 import { TestResultStringifyStream } from '../streaming';
 import { elapsedTime, HeapMonitor } from '../utils';
-import { QueryResult } from '../utils/types';
+import { type QueryResult } from '../utils/types';
 import { AsyncTests } from './asyncTests';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
 import {
-  ApexTestProgressValue,
-  AsyncTestArrayConfiguration,
-  AsyncTestConfiguration,
-  NamespaceInfo,
-  OutputDirConfig,
+  type ApexTestProgressValue,
+  type AsyncTestArrayConfiguration,
+  type AsyncTestConfiguration,
+  type NamespaceInfo,
+  type OutputDirConfig,
   ResultFormat,
-  SyncTestConfiguration,
-  TestItem,
+  type SyncTestConfiguration,
+  type TestItem,
   TestLevel,
-  TestResult,
-  TestRunIdResult,
-  TestSuiteMembershipRecord
+  type TestResult,
+  type TestRunIdResult,
+  type TestSuiteMembershipRecord
 } from './types';
 import { getBufferSize, getJsonIndent, isFlowTest, queryNamespaces } from './utils';
 

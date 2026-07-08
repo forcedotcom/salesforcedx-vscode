@@ -23,7 +23,7 @@ import {
   setAllServicesLayer
 } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
-import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
+import { type OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());

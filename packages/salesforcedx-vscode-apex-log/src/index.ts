@@ -17,7 +17,7 @@ import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { apexGenerateUnitTestClassCommand } from './commands/apexGenerateUnitTestClass';
 import { createAnonymousApexScriptCommand } from './commands/createAnonymousApexScript';
 import { createApexClassCommand } from './commands/createApexClass';

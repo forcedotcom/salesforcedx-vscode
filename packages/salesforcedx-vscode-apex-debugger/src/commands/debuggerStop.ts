@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { CommandOutput, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { CommandOutput, type Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
   workspaceUtils,
-  ContinueResponse,
+  type ContinueResponse,
   EmptyParametersGatherer,
   notificationService,
-  ParametersGatherer,
+  type ParametersGatherer,
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';

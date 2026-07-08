@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ColumnData, SelectAnalyzer, Selection } from '../../../src/analyzers/selectAnalyzer';
+import { type ColumnData, SelectAnalyzer, type Selection } from '../../../src/analyzers/selectAnalyzer';
 
 describe('SelectAnalyzer should', () => {
   const simpleA: Selection = {

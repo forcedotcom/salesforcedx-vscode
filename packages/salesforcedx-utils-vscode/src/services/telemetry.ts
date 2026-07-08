@@ -6,16 +6,16 @@
  */
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import {
-  Properties,
-  Measurements,
-  TelemetryData,
-  TelemetryReporter,
-  TelemetryServiceInterface,
-  ActivationInfo
+  type Properties,
+  type Measurements,
+  type TelemetryData,
+  type TelemetryReporter,
+  type TelemetryServiceInterface,
+  type ActivationInfo
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { type ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
 import {
   DEFAULT_AIKEY,
@@ -29,7 +29,7 @@ import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConf
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { O11yReporter } from '../telemetry/reporters/o11yReporter';
-import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
+import { type TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 

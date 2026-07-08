@@ -6,9 +6,9 @@
  */
 
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
-import { ApexBreakpointLocation, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
-import { RequestService } from '../requestService/requestService';
+import { type ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
+import { type ApexBreakpointLocation, type LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
+import { type RequestService } from '../requestService/requestService';
 import { CliCommandExecutor } from './cliCommandExecutor';
 
 export const DEBUGGER_BREAKPOINT_ID_PREFIX = '07b';

@@ -4,14 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder } from '@salesforce/apex-node';
+import {
+  type TestResult,
+  MarkdownTextFormatTransformer,
+  type OutputFormat,
+  type TestSortOrder
+} from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../settings';
-import { NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
+import { type NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
 
 /** Collects stream output into a UTF-8 encoded Uint8Array with LF line endings */
 const streamToNormalizedUtf8Bytes = async (stream: NodeJS.ReadableStream): Promise<Uint8Array> => {

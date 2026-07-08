@@ -7,7 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 
 export const soqlBuilderToggle = Effect.fn('soql_builder_toggle')(function* (doc: URI) {

@@ -18,7 +18,7 @@ import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { HashableUri } from '../vscode/hashableUri';
 import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { QueryResult } from '../../../src/types';
-import { JsonMap } from '@salesforce/ts-types';
+import { type JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { FileFormat, QueryDataFileService } from '../../../src/queryDataView/queryDataFileService';

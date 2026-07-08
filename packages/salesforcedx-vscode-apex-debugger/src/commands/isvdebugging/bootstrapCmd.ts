@@ -4,17 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command, CommandOutput, SfCommandBuilder, CommandExecution } from '@salesforce/salesforcedx-utils';
+import { type Command, CommandOutput, SfCommandBuilder, type CommandExecution } from '@salesforce/salesforcedx-utils';
 import {
-  CancelResponse,
+  type CancelResponse,
   CliCommandExecutor,
   CompositeParametersGatherer,
-  ContinueResponse,
+  type ContinueResponse,
   createDirectory,
   notificationService,
-  ParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker,
+  type ParametersGatherer,
+  type PostconditionChecker,
+  type PreconditionChecker,
   ProgressNotification,
   projectPaths,
   readFile,
@@ -22,7 +22,7 @@ import {
   writeFile,
   fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SpawnOptions } from 'node:child_process';
+import { type SpawnOptions } from 'node:child_process';
 import * as path from 'node:path';
 import { URL } from 'node:url';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions

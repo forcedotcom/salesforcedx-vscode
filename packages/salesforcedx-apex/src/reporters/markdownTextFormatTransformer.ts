@@ -6,10 +6,16 @@
  */
 
 import { Logger } from '@salesforce/core';
-import { Readable, ReadableOptions } from 'node:stream';
-import { TestResult, ApexTestResultData } from '../tests/types';
+import { Readable, type ReadableOptions } from 'node:stream';
+import { type TestResult, type ApexTestResultData } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
-import { ReportData, FailureTest, WarningTest, TestTableRow, CoverageTableRow } from './markdownReportTemplate';
+import {
+  type ReportData,
+  type FailureTest,
+  type WarningTest,
+  type TestTableRow,
+  type CoverageTableRow
+} from './markdownReportTemplate';
 import {
   escapeMarkdown,
   escapeHtml,

@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { writeAsyncResultsToFile, ApexTestResultOutcome, TestResult } from '../../src';
+import { writeAsyncResultsToFile, ApexTestResultOutcome, type TestResult } from '../../src';
 
 describe('writeAsyncResultsToFile', () => {
   let tempDir: string;

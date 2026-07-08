@@ -7,19 +7,19 @@
 
 import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
-import { Connection, Logger } from '@salesforce/core';
-import { Progress } from '../common';
+import { type Connection, Logger } from '@salesforce/core';
+import { type Progress } from '../common';
 import { nls } from '../i18n';
 import {
-  ApexTestProgressValue,
-  ApexTestResultData,
-  ApexTestResultDataRaw,
-  ApexTestSetupData,
-  NamespaceInfo,
+  type ApexTestProgressValue,
+  type ApexTestResultData,
+  type ApexTestResultDataRaw,
+  type ApexTestSetupData,
+  type NamespaceInfo,
   TestCategory,
   TestCategoryPrefix,
-  TestResult,
-  TestResultRaw
+  type TestResult,
+  type TestResultRaw
 } from './types';
 
 const DEFAULT_BUFFER_SIZE = 256;

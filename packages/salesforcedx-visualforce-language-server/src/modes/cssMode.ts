@@ -7,9 +7,9 @@
 import { getCSSLanguageService, type Stylesheet } from 'vscode-css-languageservice';
 import type { TextDocument } from 'vscode-languageserver-textdocument';
 import type { Position } from 'vscode-languageserver-types';
-import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
-import { CSS_STYLE_RULE, HTMLDocumentRegions } from './embeddedSupport';
-import { ColorInformation, LanguageMode, Settings } from './languageModes';
+import { getLanguageModelCache, type LanguageModelCache } from '../languageModelCache';
+import { CSS_STYLE_RULE, type HTMLDocumentRegions } from './embeddedSupport';
+import { type ColorInformation, type LanguageMode, type Settings } from './languageModes';
 
 export const getCSSMode = (documentRegions: LanguageModelCache<HTMLDocumentRegions>): LanguageMode => {
   const cssLanguageService = getCSSLanguageService();

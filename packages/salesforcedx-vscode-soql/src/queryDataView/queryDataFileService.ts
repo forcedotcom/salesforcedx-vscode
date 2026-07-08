@@ -10,11 +10,11 @@ import { getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
+import { CsvDataProvider, type DataProvider, JsonDataProvider } from './dataProviders';
 
 export enum FileFormat {
   JSON = 'json',

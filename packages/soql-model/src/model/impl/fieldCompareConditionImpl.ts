@@ -5,7 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConditionOperator, CompareValue, Field, FieldCompareCondition, SyntaxOptions } from '../model';
+import {
+  type ConditionOperator,
+  type CompareValue,
+  type Field,
+  type FieldCompareCondition,
+  type SyntaxOptions
+} from '../model';
 
 export class FieldCompareConditionImpl implements FieldCompareCondition {
   public readonly kind = 'fieldCompare' as const;

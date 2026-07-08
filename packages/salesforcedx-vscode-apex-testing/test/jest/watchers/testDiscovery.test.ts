@@ -8,14 +8,14 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as Scope from 'effect/Scope';
+import type * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ApexTestDiscoveryService } from '../../../src/discoveryVfs/apexTestDiscoveryService';
 import { initializeTestDiscovery } from '../../../src/watchers/testDiscovery';
-import { closeForeignApexTestingTabs, getTestController } from '../../../src/views/testController';
+import { closeForeignApexTestingTabs, type getTestController } from '../../../src/views/testController';
 
 // `closeForeignApexTestingTabs` is a module-level free function the watcher calls directly (org change
 // passes the new orgId; logout passes undefined). It returns an Effect the reactor yields, so the mock

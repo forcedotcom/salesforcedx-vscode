@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ApexTestResultData, ApexTestResultOutcome, TestResult } from '../tests/types';
+import { type ApexTestResultData, ApexTestResultOutcome, type TestResult } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 

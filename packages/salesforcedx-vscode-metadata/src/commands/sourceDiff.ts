@@ -11,7 +11,7 @@ import * as HashSet from 'effect/HashSet';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { getConflictStateRef } from '../conflict/conflictTreeProvider';
 import { CONFLICTS_VIEW_ID, conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
 import { nls } from '../messages';

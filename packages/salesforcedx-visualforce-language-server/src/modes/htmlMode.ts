@@ -5,15 +5,15 @@
 'use strict';
 
 import {
-  DocumentContext,
-  HTMLDocument,
-  HTMLFormatConfiguration,
-  LanguageService as HTMLLanguageService
+  type DocumentContext,
+  type HTMLDocument,
+  type HTMLFormatConfiguration,
+  type LanguageService as HTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Position, Range, FormattingOptions } from 'vscode-languageserver-types';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
+import { type Position, type Range, type FormattingOptions } from 'vscode-languageserver-types';
 import { getLanguageModelCache } from '../languageModelCache';
-import { LanguageMode, Settings } from './languageModes';
+import { type LanguageMode, type Settings } from './languageModes';
 
 export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageMode => {
   let globalSettings: Settings = {};

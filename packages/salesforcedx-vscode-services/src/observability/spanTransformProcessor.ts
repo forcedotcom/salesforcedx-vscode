@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Context } from '@opentelemetry/api';
-import { Span, BatchSpanProcessor, SpanExporter, BufferConfig } from '@opentelemetry/sdk-trace-base';
+import { type Context } from '@opentelemetry/api';
+import { type Span, BatchSpanProcessor, type SpanExporter, type BufferConfig } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';

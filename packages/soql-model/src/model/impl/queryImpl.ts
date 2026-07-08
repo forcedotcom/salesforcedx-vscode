@@ -6,20 +6,20 @@
  */
 
 import {
-  Bind,
-  From,
-  GroupBy,
-  HeaderComments,
-  Limit,
-  Offset,
-  OrderBy,
-  Query,
-  RecordTrackingType,
-  Select,
+  type Bind,
+  type From,
+  type GroupBy,
+  type HeaderComments,
+  type Limit,
+  type Offset,
+  type OrderBy,
+  type Query,
+  type RecordTrackingType,
+  type Select,
   SyntaxOptions,
-  Update,
-  Where,
-  With
+  type Update,
+  type Where,
+  type With
 } from '../model';
 
 export class QueryImpl implements Query {

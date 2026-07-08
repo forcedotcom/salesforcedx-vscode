@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
+import { type Column, createTable, ExtensionProviderService, type Row } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { gatherOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
-import { OrgInfo } from '../types/orgInfo';
+import { type OrgInfo } from '../types/orgInfo';
 import { getOrgInfoEffect, orgInfoFromConnection } from '../util/orgDisplay';
 
 /** Shared sensitive-info warning shown before the org-details table (both display paths). */

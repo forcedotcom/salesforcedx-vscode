@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
-import { closeForeignApexTestingTabs, getTestController } from '../views/testController';
+import { closeForeignApexTestingTabs, type getTestController } from '../views/testController';
 
 /** Initialize test discovery when an org is available, and clear/re-discover on org changes */
 export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDiscovery')(function* (

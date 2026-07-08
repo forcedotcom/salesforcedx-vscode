@@ -11,9 +11,9 @@ import {
   createConnection,
   BrowserMessageReader,
   BrowserMessageWriter,
-  Connection
+  type Connection
 } from 'vscode-languageserver/browser';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
 import { AuraDataProvider } from './auraDataProvider';
 import { BaseServer } from './baseServer';
 import ComponentIndexer from './componentIndexer';

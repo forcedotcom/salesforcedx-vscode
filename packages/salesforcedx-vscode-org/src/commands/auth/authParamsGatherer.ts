@@ -6,7 +6,11 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  type CancelResponse,
+  type ContinueResponse,
+  type ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';

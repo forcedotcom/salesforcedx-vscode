@@ -14,9 +14,14 @@ import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforce
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { URI } from 'vscode-uri';
-import { ActionScriptType, CHECKPOINT, FIELD_INTEGRITY_EXCEPTION, MAX_ALLOWED_CHECKPOINTS } from '../debuggerConstants';
+import { type Event, EventEmitter, type TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { type URI } from 'vscode-uri';
+import {
+  type ActionScriptType,
+  CHECKPOINT,
+  FIELD_INTEGRITY_EXCEPTION,
+  MAX_ALLOWED_CHECKPOINTS
+} from '../debuggerConstants';
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';

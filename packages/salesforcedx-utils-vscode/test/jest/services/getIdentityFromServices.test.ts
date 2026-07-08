@@ -31,7 +31,7 @@ jest.mock('@salesforce/effect-ext-utils', () => {
   const InvalidServicesApiErrorClass = class extends Error {
     public readonly _tag = 'InvalidServicesApiError';
   };
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+
   const E = require('effect/Effect');
   return {
     ServicesExtensionNotFoundError: ServicesExtensionNotFoundErrorClass,

@@ -9,8 +9,8 @@ import { Source, StackFrame } from '@vscode/debugadapter';
 import { basename } from 'node:path';
 import { URI } from 'vscode-uri';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
-import { LogContext } from '../core/logContext';
-import { DebugLogState } from './debugLogState';
+import { type LogContext } from '../core/logContext';
+import { type DebugLogState } from './debugLogState';
 import { FrameState } from './frameState';
 
 export class FrameEntryState extends FrameState implements DebugLogState {

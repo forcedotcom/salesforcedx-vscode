@@ -7,7 +7,7 @@
 
 import * as os from 'node:os';
 import { env, UIKind, version } from 'vscode';
-import { CommonProperties, InternalProperties } from './loggingProperties';
+import { type CommonProperties, type InternalProperties } from './loggingProperties';
 
 export const getCommonProperties = (extensionId: string, extensionVersion: string): CommonProperties => {
   const commonProperties: CommonProperties = {

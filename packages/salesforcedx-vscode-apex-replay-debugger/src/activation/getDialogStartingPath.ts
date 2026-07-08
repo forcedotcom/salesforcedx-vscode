@@ -6,7 +6,7 @@
  */
 
 import { projectPaths, workspaceUtils, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { LAST_OPENED_LOG_FOLDER_KEY } from '../debuggerConstants';
 

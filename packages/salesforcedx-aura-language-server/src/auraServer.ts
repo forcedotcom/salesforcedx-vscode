@@ -7,35 +7,35 @@
 import {
   toResolvedPath,
   Logger,
-  TagInfo,
+  type TagInfo,
   normalizePath,
-  NormalizedPath,
-  WorkspaceType,
+  type NormalizedPath,
+  type WorkspaceType,
   AURA_SERVER_READY_NOTIFICATION,
   LspFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
-import { getLanguageService, LanguageService, CompletionList } from 'vscode-html-languageservice';
+import { getLanguageService, type LanguageService, type CompletionList } from 'vscode-html-languageservice';
 import {
   createConnection,
-  Connection,
+  type Connection,
   TextDocuments,
-  InitializeParams,
-  InitializeResult,
-  TextDocumentPositionParams,
-  CompletionItem,
-  DidChangeWatchedFilesParams,
-  Hover,
-  Location,
+  type InitializeParams,
+  type InitializeResult,
+  type TextDocumentPositionParams,
+  type CompletionItem,
+  type DidChangeWatchedFilesParams,
+  type Hover,
+  type Location,
   ShowMessageNotification,
   MessageType,
-  CompletionParams,
+  type CompletionParams,
   FileChangeType,
   NotificationType,
-  Definition,
-  TextDocumentSyncKind,
-  ReferenceParams
+  type Definition,
+  type TextDocumentSyncKind,
+  type ReferenceParams
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';

@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { type ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type * as languageServerOrphanHandler from '../../src/languageServerOrphanHandler';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -74,18 +75,19 @@ const loadHandler = (platform: NodeJS.Platform, telemetry: MockTelemetryService)
   Object.defineProperty(process, 'platform', { value: platform, configurable: true });
   let result:
     | {
-        checkAndResolveOrphanedLanguageServers: typeof import('../../src/languageServerOrphanHandler').checkAndResolveOrphanedLanguageServers;
+        checkAndResolveOrphanedLanguageServers: typeof languageServerOrphanHandler.checkAndResolveOrphanedLanguageServers;
         Provider: typeof ExtensionProviderService;
       }
     | undefined;
   jest.isolateModules(() => {
-    (require('../../src/telemetry/telemetry') as typeof import('../../src/telemetry/telemetry')).setTelemetryService(
-      telemetry
-    );
-    const { ExtensionProviderService: Provider } =
-      require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
+    (
+      require('../../src/telemetry/telemetry') as { setTelemetryService: typeof setTelemetryService }
+    ).setTelemetryService(telemetry);
+    const { ExtensionProviderService: Provider } = require('@salesforce/effect-ext-utils') as {
+      ExtensionProviderService: typeof ExtensionProviderService;
+    };
     const { checkAndResolveOrphanedLanguageServers } =
-      require('../../src/languageServerOrphanHandler') as typeof import('../../src/languageServerOrphanHandler');
+      require('../../src/languageServerOrphanHandler') as typeof languageServerOrphanHandler;
     result = { checkAndResolveOrphanedLanguageServers, Provider };
   });
   Object.defineProperty(process, 'platform', { value: original, configurable: true });
@@ -259,13 +261,15 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
     const holder: { root?: Tracer.Span } = {};
     let program: Effect.Effect<void> | undefined;
     jest.isolateModules(() => {
-      const telemetryModule =
-        require('../../src/telemetry/telemetry') as typeof import('../../src/telemetry/telemetry');
+      const telemetryModule = require('../../src/telemetry/telemetry') as {
+        setTelemetryService: typeof setTelemetryService;
+      };
       telemetryModule.setTelemetryService(telemetry);
-      const { ExtensionProviderService: IsolatedProvider } =
-        require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
+      const { ExtensionProviderService: IsolatedProvider } = require('@salesforce/effect-ext-utils') as {
+        ExtensionProviderService: typeof ExtensionProviderService;
+      };
       const { checkAndResolveOrphanedLanguageServers: checkOnWindows } =
-        require('../../src/languageServerOrphanHandler') as typeof import('../../src/languageServerOrphanHandler');
+        require('../../src/languageServerOrphanHandler') as typeof languageServerOrphanHandler;
       program = Effect.gen(function* () {
         holder.root = yield* Effect.currentSpan;
         return yield* checkOnWindows().pipe(

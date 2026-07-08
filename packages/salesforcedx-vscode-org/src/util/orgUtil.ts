@@ -6,15 +6,15 @@
  */
 
 import {
-  AuthFields,
+  type AuthFields,
   AuthInfo,
   AuthRemover,
   Org,
-  OrgAuthorization,
+  type OrgAuthorization,
   OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
-import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { type Column, createTable, type Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';

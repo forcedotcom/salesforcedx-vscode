@@ -12,7 +12,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SoqlItemContext } from '@salesforce/soql-language-server';
 import * as Effect from 'effect/Effect';
 import type { SObject, SObjectField } from 'salesforcedx-vscode-services';
-import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
+import { type CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import type { Middleware } from 'vscode-languageclient/node';
 

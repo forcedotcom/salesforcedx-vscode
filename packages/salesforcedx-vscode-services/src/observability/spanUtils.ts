@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Attributes, type HrTime } from '@opentelemetry/api';
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { type ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 /** Check if a span is a top-level span (has no parent) */
 const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;

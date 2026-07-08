@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { CommandBuilder, Command } from '@salesforce/salesforcedx-utils';
+import { CommandBuilder, type Command } from '@salesforce/salesforcedx-utils';
 import {
   EmptyParametersGatherer,
   fileExtensionsMatch,
@@ -15,7 +15,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { basename } from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { anonApexDebug } from './anonApexDebug';
 

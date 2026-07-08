@@ -8,7 +8,7 @@ import * as os from 'node:os';
 import { workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../../../src';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
-import { CommonProperties, InternalProperties } from '../../../../src/telemetry/reporters/loggingProperties';
+import { type CommonProperties, type InternalProperties } from '../../../../src/telemetry/reporters/loggingProperties';
 import { getCommonProperties, getInternalProperties } from '../../../../src/telemetry/reporters/telemetryUtils';
 
 describe('AppInsights', () => {

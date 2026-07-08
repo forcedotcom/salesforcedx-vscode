@@ -10,14 +10,14 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
 import * as factory from '../../../src/oas/generationStrategy/generationStrategyFactory';
-import { GenerationStrategyType } from '../../../src/oas/generationStrategy/generationStrategyFactory';
+import { type GenerationStrategyType } from '../../../src/oas/generationStrategy/generationStrategyFactory';
 import {
   applyRule,
   getLeastCallsStrategy,
   getMostCallsStrategy,
   selectStrategyByBidRule
 } from '../../../src/oas/promptGenerationOrchestrator';
-import { PromptGenerationStrategyBid } from '../../../src/oas/schemas';
+import { type PromptGenerationStrategyBid } from '../../../src/oas/schemas';
 
 const buildBids = (entries: Array<[GenerationStrategyType, number]>) =>
   new Map<GenerationStrategyType, PromptGenerationStrategyBid>(

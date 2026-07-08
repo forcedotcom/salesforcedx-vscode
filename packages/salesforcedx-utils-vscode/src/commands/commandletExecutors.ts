@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ContinueResponse } from './parameterGatherers';
-import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
-import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
+import { type Command, type CommandExecution } from '@salesforce/salesforcedx-utils';
+import { type Properties, type Measurements, type TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import type { Event } from 'vscode';
 import { CliCommandExecutor } from '../cli/commandExecutor';

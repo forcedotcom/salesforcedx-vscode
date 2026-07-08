@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { Node, parse } from '../../src/parser/htmlParser';
+import { type Node, parse } from '../../src/parser/htmlParser';
 
 describe('HTML Parser', () => {
   const toJSON = (node: Node) => ({

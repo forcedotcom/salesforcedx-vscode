@@ -6,17 +6,17 @@
  */
 
 import {
-  ApexTestResultData,
+  type ApexTestResultData,
   LogService,
   ResultFormat,
   TestLevel,
-  TestResult,
+  type TestResult,
   TestService
 } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
-  ContinueResponse,
+  type ContinueResponse,
   LibraryCommandletExecutor,
   notificationService,
   projectPaths,

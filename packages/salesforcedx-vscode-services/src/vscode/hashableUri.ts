@@ -7,7 +7,7 @@
 import * as Equal from 'effect/Equal';
 import { dual } from 'effect/Function';
 import * as Hash from 'effect/Hash';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 
 /**
  * Wraps a `vscode-uri` `URI` with Effect's `Hash`/`Equal` interfaces so values can be

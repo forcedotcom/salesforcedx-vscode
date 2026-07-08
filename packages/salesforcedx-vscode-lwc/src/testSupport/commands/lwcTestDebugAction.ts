@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
 import { getLwcTestController } from '../testExplorer/lwcTestController';
-import { TestCaseInfo, TestExecutionInfo } from '../types';
+import { type TestCaseInfo, type TestExecutionInfo } from '../types';
 import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { workspaceService } from '../workspace/workspaceService';
 

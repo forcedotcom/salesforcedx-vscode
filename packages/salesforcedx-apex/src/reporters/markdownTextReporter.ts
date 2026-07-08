@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestResult, ApexTestResultData } from '../tests/types';
+import { type TestResult, type ApexTestResultData } from '../tests/types';
 
 export type OutputFormat = 'markdown' | 'text';
 export type TestSortOrder = 'runtime' | 'coverage' | 'severity';

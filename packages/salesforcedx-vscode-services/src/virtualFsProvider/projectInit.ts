@@ -11,7 +11,7 @@ import { URI } from 'vscode-uri';
 import { sampleProjectName } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 import { fsPrefix } from './constants';
-import { FsProvider } from './fsTypes';
+import { type FsProvider } from './fsTypes';
 import { TEMPLATES, metadataDirs } from './templates/templates';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 

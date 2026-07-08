@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { From, SyntaxOptions, UnmodeledSyntax } from '../model';
+import { type From, type SyntaxOptions, type UnmodeledSyntax } from '../model';
 
 export class FromImpl implements From {
   public sobjectName: string;

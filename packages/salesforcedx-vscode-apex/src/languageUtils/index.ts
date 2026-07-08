@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
-import { ApexLanguageClient } from '../apexLanguageClient';
-import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
+import type ApexLSPStatusBarItem from '../apexLspStatusBarItem';
+import type * as vscode from 'vscode';
+import { type ApexLanguageClient } from '../apexLanguageClient';
 import { getTelemetryService } from '../telemetry/telemetry';
-import { ApexTestMethod } from '../views/lspConverter';
+import { type ApexTestMethod } from '../views/lspConverter';
 import { languageClientManager } from './languageClientManager';
 
 export const getLineBreakpointInfo = async () => languageClientManager.getLineBreakpointInfo();

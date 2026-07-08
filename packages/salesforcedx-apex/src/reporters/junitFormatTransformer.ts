@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Logger } from '@salesforce/core';
-import { Readable, ReadableOptions } from 'node:stream';
+import { Readable, type ReadableOptions } from 'node:stream';
 import { isEmpty } from '../narrowing';
 import { type TestResult, ApexTestResultOutcome } from '../tests/types';
 import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';

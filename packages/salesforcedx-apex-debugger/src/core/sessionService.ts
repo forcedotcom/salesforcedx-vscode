@@ -6,7 +6,7 @@
  */
 
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { RequestService } from '../requestService/requestService';
+import { type RequestService } from '../requestService/requestService';
 import { CliCommandExecutor } from './cliCommandExecutor';
 
 export class SessionService {

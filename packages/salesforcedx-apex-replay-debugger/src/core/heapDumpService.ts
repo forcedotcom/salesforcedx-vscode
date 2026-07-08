@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { StackFrame } from '@vscode/debugadapter';
+import { type StackFrame } from '@vscode/debugadapter';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import {
-  ApexExecutionOverlayResultCommandSuccess,
-  HeapDumpExtents,
-  HeapDumpExtentValue
+  type ApexExecutionOverlayResultCommandSuccess,
+  type HeapDumpExtents,
+  type HeapDumpExtentValue
 } from '../commands/apexExecutionOverlayResultCommand';
 import {
   ADDRESS_PREFIX,
@@ -31,7 +31,7 @@ import {
   LC_APEX_PRIMITIVE_STRING,
   LC_APEX_PRIMITIVE_TIME
 } from '../constants';
-import { LogContext } from './logContext';
+import { type LogContext } from './logContext';
 import { createStringFromVarContainer, isCollectionType } from './variableContainerStrings';
 
 const isAddress = (value: any): boolean => typeof value === 'string' && value.startsWith(ADDRESS_PREFIX);

@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
-import { ChildProcess, ExecOptions, ExecResult } from '../../../src/terminal/childProcess';
+import { ChildProcess, type ExecOptions, type ExecResult } from '../../../src/terminal/childProcess';
 import { TerminalService, TerminalServiceError } from '../../../src/terminal/terminalService';
 
 // Swap the ChildProcess seam via the Effect layer instead of mocking node:child_process. This keeps

@@ -4,31 +4,31 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection, Logger } from '@salesforce/core';
+import { type Connection, Logger } from '@salesforce/core';
 import { elapsedTime } from '../../src/utils';
 import * as dateUtil from '../../src/utils/dateUtil';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
 import {
   TestService,
-  OutputDirConfig,
-  ApexTestProgressValue,
-  Progress,
+  type OutputDirConfig,
+  type ApexTestProgressValue,
+  type Progress,
   JUnitFormatTransformer,
   TapFormatTransformer,
   CancellationTokenSource
 } from '../../src';
 import {
-  AsyncTestConfiguration,
+  type AsyncTestConfiguration,
   TestLevel,
   ApexTestQueueItemStatus,
   ApexTestResultOutcome,
-  ApexTestQueueItem,
+  type ApexTestQueueItem,
   ApexTestRunResultStatus,
-  ApexTestResult,
-  ApexTestQueueItemRecord,
+  type ApexTestResult,
+  type ApexTestQueueItemRecord,
   ResultFormat,
-  TestRunIdResult,
+  type TestRunIdResult,
   TestCategory
 } from '../../src/tests/types';
 import { StreamingClient } from '../../src/streaming';

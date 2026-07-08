@@ -14,16 +14,16 @@
 
 import {
   commands,
-  CompletionContext,
-  CompletionItem,
-  CompletionList,
+  type CompletionContext,
+  type CompletionItem,
+  type CompletionList,
   EndOfLine,
-  Position,
-  TextDocument,
+  type Position,
+  type TextDocument,
   workspace
 } from 'vscode';
-import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
-import { Middleware } from 'vscode-languageclient/node';
+import type ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
+import { type Middleware } from 'vscode-languageclient/node';
 import { URI } from 'vscode-uri';
 
 const SOQL_SPECIAL_COMPLETION_ITEM_LABEL = '_SOQL_';

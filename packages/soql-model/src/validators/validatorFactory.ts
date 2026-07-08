@@ -12,7 +12,13 @@ import { FloatValidator } from './floatValidator';
 import { IntegerValidator } from './integerValidator';
 import { PicklistValidator } from './picklistValidator';
 import { StringValidator } from './stringValidator';
-import { DefaultValidator, MultipleInputValidator, OperatorValidator, ValidateOptions, Validator } from './validator';
+import {
+  DefaultValidator,
+  MultipleInputValidator,
+  OperatorValidator,
+  type ValidateOptions,
+  type Validator
+} from './validator';
 
 export const getFieldInputValidator = (options: ValidateOptions): Validator => {
   switch (options.type) {

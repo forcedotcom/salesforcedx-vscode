@@ -6,10 +6,10 @@
  */
 
 import {
-  ClassMember,
-  Location,
-  DecoratorTargetType,
-  DecoratorTargetProperty
+  type ClassMember,
+  type Location,
+  type DecoratorTargetType,
+  type DecoratorTargetProperty
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 
 export interface Metadata {

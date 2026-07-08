@@ -6,12 +6,12 @@
  */
 import * as os from 'node:os';
 import { join, resolve } from 'node:path';
-import { FileEvent, FileChangeType } from 'vscode-languageserver';
+import { type FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { LspFileSystemAccessor } from '../src/providers/lspFileSystemAccessor';
-import { PackageJson } from '../src/types/packageJson';
+import { type PackageJson } from '../src/types/packageJson';
 import * as utils from '../src/utils';
-import { NormalizedPath } from '../src/utils';
+import { type NormalizedPath } from '../src/utils';
 import { WorkspaceContext } from '../src/testSupport/workspaceContext';
 
 describe('utils', () => {

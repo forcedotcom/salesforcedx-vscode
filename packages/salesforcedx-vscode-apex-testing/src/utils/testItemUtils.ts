@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { SUITE_PARENT_ID, TEST_ID_PREFIXES } from '../constants';
 
 type TestItemType = 'suite' | 'class' | 'method' | 'suite-class' | 'namespace' | 'package' | 'unknown';

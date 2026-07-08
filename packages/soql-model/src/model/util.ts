@@ -12,7 +12,7 @@ import { IncludesConditionImpl } from './impl/includesConditionImpl';
 import { InListConditionImpl } from './impl/inListConditionImpl';
 import { NestedConditionImpl } from './impl/nestedConditionImpl';
 import { UnmodeledSyntaxImpl } from './impl/unmodeledSyntaxImpl';
-import { AndOr, Condition } from './model';
+import { type AndOr, type Condition } from './model';
 
 const stripNesting = (condition: Condition): Condition => {
   while (condition instanceof NestedConditionImpl) {

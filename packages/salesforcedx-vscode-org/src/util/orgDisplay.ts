@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo, Connection, Org, OrgConfigProperties } from '@salesforce/core';
+import { type AuthFields, AuthInfo, Connection, Org, OrgConfigProperties } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Schema from 'effect/Schema';
-import { OrgInfo } from '../types/orgInfo';
+import { type OrgInfo } from '../types/orgInfo';
 import { getConfigAggregatorEffect } from './configAggregatorEffect';
 import {
   getConnectionStatusFromError,

@@ -5,19 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
+import { type Command, type CommandExecution } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
-  ContinueResponse,
+  type ContinueResponse,
   notificationService,
   ProgressNotification,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { Properties, Measurements } from '@salesforce/vscode-service-provider';
+import { type Properties, type Measurements } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { telemetryService } from '../../telemetry';
-import { CommandletExecutor } from './commandletExecutor';
+import { type CommandletExecutor } from './commandletExecutor';
 
 export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('push-errors');

@@ -13,7 +13,7 @@ import {
   type TestResult,
   ApexTestResultOutcome
 } from '../tests/types';
-import { elapsedTime, HeapMonitor, Row, Table } from '../utils';
+import { elapsedTime, HeapMonitor, type Row, Table } from '../utils';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 

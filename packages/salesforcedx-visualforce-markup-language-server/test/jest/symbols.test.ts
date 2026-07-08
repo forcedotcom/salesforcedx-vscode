@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { Location, Range, SymbolInformation, SymbolKind, TextDocument } from 'vscode-languageserver-types';
+import { Location, Range, type SymbolInformation, SymbolKind, TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src';
 
 describe('HTML Symbols', () => {

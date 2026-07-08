@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { ApexLanguageClient } from '../../../src/apexLanguageClient';
+import { type ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus } from '../../../src/languageUtils/languageClientManager';

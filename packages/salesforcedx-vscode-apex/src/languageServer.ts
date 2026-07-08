@@ -11,9 +11,9 @@ import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
-  Executable,
-  LanguageClientOptions,
-  ProvideCodeLensesSignature,
+  type Executable,
+  type LanguageClientOptions,
+  type ProvideCodeLensesSignature,
   RevealOutputChannelOn
 } from 'vscode-languageclient/node';
 import { URI } from 'vscode-uri';

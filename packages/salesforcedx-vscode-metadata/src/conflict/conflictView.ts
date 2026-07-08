@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { isDiffFilePair, type DiffFilePair } from '../shared/diff/diffTypes';
 import { detectConflictsFromTracking } from './conflictDetection';
-import { ConflictTreeItem } from './conflictTreeItem';
+import { type ConflictTreeItem } from './conflictTreeItem';
 import {
   ConflictTreeProvider,
   createEmptyConflictState,

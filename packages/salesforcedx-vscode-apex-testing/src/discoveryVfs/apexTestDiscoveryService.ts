@@ -9,7 +9,7 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { getFullClassName } from '../utils/toolingTestClassHelpers';
 import {

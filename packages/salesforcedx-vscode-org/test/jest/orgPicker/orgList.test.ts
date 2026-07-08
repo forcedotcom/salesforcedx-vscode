@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { OrgAuthorization } from '@salesforce/core';
+import { type OrgAuthorization } from '@salesforce/core';
 import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType

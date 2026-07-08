@@ -7,8 +7,8 @@
 
 import { LOCALE_JA } from './constants';
 import { LocalizationService } from './i18n/advancedLocalization';
-import { MessageArgs } from './types/localization/messageArgs';
-import { MessageBundle } from './types/localization/messageBundle';
+import { type MessageArgs } from './types/localization/messageArgs';
+import { type MessageBundle } from './types/localization/messageBundle';
 
 export type Nls<T extends MessageBundle> = {
   localize: <K extends keyof T & string>(key: K, ...args: MessageArgs<K, T>) => string;

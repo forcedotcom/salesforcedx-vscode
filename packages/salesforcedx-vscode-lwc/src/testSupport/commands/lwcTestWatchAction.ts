@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { testWatcher } from '../testRunner/testWatcher';
-import { TestExecutionInfo, TestFileInfo } from '../types';
+import { type TestExecutionInfo, type TestFileInfo } from '../types';
 
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 

@@ -5,21 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection, LoggerLevel } from '@salesforce/core';
-import { Duration } from '@salesforce/kit';
+import { type Connection, LoggerLevel } from '@salesforce/core';
+import { type Duration } from '@salesforce/kit';
 import { Client } from 'faye';
-import { Progress } from '../common';
+import { type Progress } from '../common';
 import { nls } from '../i18n';
 import {
-  ApexTestProgressValue,
-  ApexTestQueueItem,
-  ApexTestQueueItemRecord,
+  type ApexTestProgressValue,
+  type ApexTestQueueItem,
+  type ApexTestQueueItemRecord,
   ApexTestQueueItemStatus,
-  TestRunIdResult
+  type TestRunIdResult
 } from '../tests/types';
 import { queryAll } from '../tests/utils';
 import { elapsedTime, refreshAuth } from '../utils';
-import { RetrieveResultsInterval, StreamMessage, StreamingErrors, TestResultMessage } from './types';
+import { RetrieveResultsInterval, type StreamMessage, StreamingErrors, type TestResultMessage } from './types';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
 const DEFAULT_STREAMING_TIMEOUT_SEC = 14_400;

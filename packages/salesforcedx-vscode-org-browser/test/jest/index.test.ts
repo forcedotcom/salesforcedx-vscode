@@ -44,25 +44,25 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import { activateEffect, deactivateEffect } from '../../src/index';
-import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
+import { type ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
-import { MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
-import { MetadataDeployService } from 'salesforcedx-vscode-services/src/core/metadataDeployService';
-import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
+import { type MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
+import { type MetadataDeployService } from 'salesforcedx-vscode-services/src/core/metadataDeployService';
+import { type MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
 import { MetadataRegistryService } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
 import { MetadataRetrieveService } from 'salesforcedx-vscode-services/src/core/metadataRetrieveService';
 import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { type FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { ConfigService } from 'salesforcedx-vscode-services/src/core/configService';
 import { SettingsService, SettingsError } from 'salesforcedx-vscode-services/src/vscode/settingsService';
-import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
+import { type EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
-import { SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
+import { type SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
@@ -195,25 +195,24 @@ const MockErrorHandlerServiceLayer = Layer.succeed(
 );
 
 // 9. Mock ProjectService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const MockProjectServiceLayer = ProjectService.Default as any as Layer.Layer<ProjectService>;
 
 // 10. Mock MetadataRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const MockMetadataRetrieveServiceLayer = MetadataRetrieveService.Default as any as Layer.Layer<MetadataRetrieveService>;
 
 // 11. Mock MetadataRegistryService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const MockMetadataRegistryServiceLayer = MetadataRegistryService.Default as any as Layer.Layer<MetadataRegistryService>;
 
 // 12. Mock SourceTrackingService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const MockSourceTrackingServiceLayer = SourceTrackingService.Default as any as Layer.Layer<SourceTrackingService>;
 
 // 13. Mock OrgBrowserRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
 
 const MockOrgBrowserRetrieveServiceLayer =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   OrgBrowserRetrieveService.Default as any as Layer.Layer<OrgBrowserRetrieveService>;
 
 // 14. ExtensionProviderService mock

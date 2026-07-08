@@ -8,8 +8,8 @@ import {
   Disposable,
   Position,
   SnippetString,
-  TextDocument,
-  TextDocumentContentChangeEvent,
+  type TextDocument,
+  type TextDocumentContentChangeEvent,
   window,
   workspace
 } from 'vscode';

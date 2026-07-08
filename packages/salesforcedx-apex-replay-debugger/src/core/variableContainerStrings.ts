@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexVariableContainer } from '../adapter/variableContainer';
+import { type ApexVariableContainer } from '../adapter/variableContainer';
 import { LC_APEX_PRIMITIVE_STRING } from '../constants';
 
 export const isCollectionType = (typeName: string): boolean =>

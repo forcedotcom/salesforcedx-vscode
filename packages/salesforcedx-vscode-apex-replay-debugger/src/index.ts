@@ -8,9 +8,9 @@
 
 import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import {
-  MetricError,
-  MetricGeneral,
-  MetricLaunch,
+  type MetricError,
+  type MetricGeneral,
+  type MetricLaunch,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT,
@@ -22,7 +22,7 @@ import * as path from 'node:path';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {

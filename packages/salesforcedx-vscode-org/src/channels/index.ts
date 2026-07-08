@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { nls } from '../messages';
 
 const channelName = nls.localize('channel_name');

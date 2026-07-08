@@ -7,7 +7,7 @@
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
-import { LwcJestTestAssertionResult, LwcJestTestFileResult, LwcJestTestResults } from '../types';
+import { type LwcJestTestAssertionResult, type LwcJestTestFileResult, type LwcJestTestResults } from '../types';
 
 // VS Code's Test Results panel is an xterm, so we drive it with ANSI SGR codes
 // to emit a Jest-style report (colored PASS/FAIL badges, dim file paths with

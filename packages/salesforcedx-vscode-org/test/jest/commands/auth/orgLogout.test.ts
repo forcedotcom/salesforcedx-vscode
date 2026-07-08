@@ -8,6 +8,7 @@
 import { AuthRemover } from '@salesforce/core';
 import {
   ExtensionProviderService,
+  type buildAllServicesLayer,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
@@ -53,9 +54,7 @@ describe('OrgLogoutDefault', () => {
     isCurrentTargetOrgMock = jest.fn().mockReturnValue(Effect.succeed(true));
 
     resetOrgRuntimeForTesting();
-    setAllServicesLayer(
-      buildLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
-    );
+    setAllServicesLayer(buildLayer() as ReturnType<typeof buildAllServicesLayer>);
   });
 
   afterEach(() => {

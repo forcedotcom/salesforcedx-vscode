@@ -6,10 +6,10 @@
  */
 
 import { SOQLParser } from '@salesforce/soql-common/soql-parser.lib';
-import * as Parser from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
-import { SoqlParserVisitor } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParserVisitor';
+import type * as Parser from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
+import { type SoqlParserVisitor } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParserVisitor';
 import { parseHeaderComments } from '@salesforce/soql-common/soqlComments';
-import { AbstractParseTreeVisitor, ParseTree } from 'antlr4ts/tree';
+import { AbstractParseTreeVisitor, type ParseTree } from 'antlr4ts/tree';
 
 export type Selection = {
   selectionQueryText: string;

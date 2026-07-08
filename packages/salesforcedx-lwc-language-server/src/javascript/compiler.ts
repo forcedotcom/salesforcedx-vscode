@@ -5,16 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { transformSync } from '@lwc/compiler';
-import { CompilerDiagnostic, CompilerError } from '@lwc/errors';
-import { BundleConfig, ScriptFile, collectBundleMetadata } from '@lwc/metadata';
-import { AttributeInfo, ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { type CompilerDiagnostic, CompilerError } from '@lwc/errors';
+import { type BundleConfig, type ScriptFile, collectBundleMetadata } from '@lwc/metadata';
+import { type AttributeInfo, type ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
 import type { SourceLocation } from 'babel-types';
 import commentParser from 'comment-parser';
 import * as path from 'node:path';
-import { Diagnostic, DiagnosticSeverity, Location, Position, Range, TextDocument } from 'vscode-languageserver';
+import {
+  type Diagnostic,
+  DiagnosticSeverity,
+  Location,
+  Position,
+  Range,
+  type TextDocument
+} from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../constants';
-import { Metadata } from '../decorators/lwcDecorators';
+import { type Metadata } from '../decorators/lwcDecorators';
 import { mapLwcMetadataToInternal } from './typeMapping';
 
 interface CompilerResult {

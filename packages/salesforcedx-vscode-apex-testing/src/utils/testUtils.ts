@@ -6,14 +6,14 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { TestResult } from '@salesforce/apex-node';
+import { type TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
-import { ApexTestMethod } from '../views/lspConverter';
+import { type ApexTestMethod } from '../views/lspConverter';
 import { getFullClassName } from './toolingTestClassHelpers';
 
 /**

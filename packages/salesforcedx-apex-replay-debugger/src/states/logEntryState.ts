@@ -6,8 +6,8 @@
  */
 
 import { Source, StackFrame } from '@vscode/debugadapter';
-import { LogContext } from '../core/logContext';
-import { DebugLogState } from './debugLogState';
+import { type LogContext } from '../core/logContext';
+import { type DebugLogState } from './debugLogState';
 
 export class LogEntryState implements DebugLogState {
   public handle(logContext: LogContext): boolean {

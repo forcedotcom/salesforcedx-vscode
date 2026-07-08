@@ -19,14 +19,14 @@ import {
   Event,
   InitializedEvent,
   Source,
-  StackFrame,
+  type StackFrame,
   StoppedEvent,
   TerminatedEvent,
-  Thread
+  type Thread
 } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { BreakpointUtil, breakpointUtil } from '../../../src/breakpoints';
 import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';

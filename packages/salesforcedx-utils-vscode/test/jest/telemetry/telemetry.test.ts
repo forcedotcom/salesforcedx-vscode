@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import { type TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';

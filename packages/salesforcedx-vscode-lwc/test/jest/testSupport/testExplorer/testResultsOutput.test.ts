@@ -6,7 +6,7 @@
  */
 
 import { fileBadge } from '../../../../src/testSupport/testExplorer/testResultsOutput';
-import { LwcJestTestFileResult } from '../../../../src/testSupport/types';
+import { type LwcJestTestFileResult } from '../../../../src/testSupport/types';
 
 const makeFileResult = (overrides: Partial<LwcJestTestFileResult>): LwcJestTestFileResult =>
   ({

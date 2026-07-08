@@ -23,7 +23,7 @@ import { determineReporters } from '../../../../src/telemetry/reporters/determin
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamConfig';
 import { TelemetryFile } from '../../../../src/telemetry/reporters/telemetryFile';
-import { TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
+import { type TelemetryReporterConfig } from '../../../../src/telemetry/reporters/telemetryReporterConfig';
 
 jest.mock('vscode');
 const vscodeMocked = jest.mocked(vscode);

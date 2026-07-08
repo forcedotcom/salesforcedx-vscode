@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { DebugProtocol } from '@vscode/debugprotocol';
+import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 
 export type TraceCategory = 'all' | 'protocol' | 'logfile' | 'launch' | 'breakpoints';
 export type Step = 'Over' | 'In' | 'Out' | 'Run';
@@ -16,6 +17,6 @@ export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   logFileName: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
-  lineBreakpointInfo?: import('@salesforce/salesforcedx-utils').LineBreakpointInfo[];
+  lineBreakpointInfo?: LineBreakpointInfo[];
   projectPath: string | undefined;
 };

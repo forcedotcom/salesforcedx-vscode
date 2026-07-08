@@ -4,8 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { IAttributeData, ITagData, IValueData, IHTMLDataProvider } from 'vscode-html-languageservice';
-import ComponentIndexer from './componentIndexer';
+import type ComponentIndexer from './componentIndexer';
+import {
+  type IAttributeData,
+  type ITagData,
+  type IValueData,
+  type IHTMLDataProvider
+} from 'vscode-html-languageservice';
 import * as transformedLwcStandard from './resources/transformed-lwc-standard.json';
 import { getLwcName, getTagDescription, getPublicAttributes, getClassMembers, getTagName } from './tag';
 

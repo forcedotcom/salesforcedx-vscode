@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
-import * as vscode from 'vscode';
+import { type AsyncTestConfiguration, TestLevel, type TestService } from '@salesforce/apex-node';
+import type * as vscode from 'vscode';
 import { buildTestPayload } from '../../../src/utils/payloadBuilder';
 
 describe('payloadBuilder', () => {

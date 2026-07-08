@@ -6,8 +6,8 @@
  */
 
 import { ApexVariableContainer } from '../adapter/variableContainer';
-import { LogContext } from '../core/logContext';
-import { DebugLogState } from './debugLogState';
+import { type LogContext } from '../core/logContext';
+import { type DebugLogState } from './debugLogState';
 
 export class VariableAssignmentState implements DebugLogState {
   private fields: string[];

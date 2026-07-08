@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionContext } from 'vscode';
+import { type ExtensionContext } from 'vscode';
 import { TelemetryServiceProvider, TelemetryService } from '../services/telemetry';
 
 /**

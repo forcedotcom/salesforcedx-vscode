@@ -164,7 +164,7 @@ jest.mock('@salesforce/apex-node', () => ({
 }));
 
 import * as path from 'node:path';
-import { TestResult, TestService } from '@salesforce/apex-node';
+import { type TestResult, TestService } from '@salesforce/apex-node';
 import { URI } from 'vscode-uri';
 import * as vscode from 'vscode';
 import * as coreExtensionUtils from '../../../src/coreExtensionUtils';

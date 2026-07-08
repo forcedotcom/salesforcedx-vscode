@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
-import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
+import { type MetadataListResultItem, type MetadataDescribeResultItem } from './types';
 
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserTreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserTreeItem | undefined | void> = new vscode.EventEmitter();

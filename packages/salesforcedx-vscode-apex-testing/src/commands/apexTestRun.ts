@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
+import { type AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { window } from 'vscode';
@@ -13,7 +13,7 @@ import { nls } from '../messages';
 import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
-import { ApexTestQuickPickItem } from '../utils/fileHelpers';
+import { type ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { CancellationToken, TextDocument, extensions } from 'vscode';
+import { type CancellationToken, type TextDocument, extensions } from 'vscode';
 import { LWC_JEST_RUNNER_DUPLICATE_LENS_NOTICE_DISMISSED } from '../../../../src/testSupport/types/constants';
 
 // Mock the provideLwcTestCodeLens module

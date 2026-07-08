@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { MetadataDocumentationService } from '../../../src/metadataSupport/metadataDocumentationService';
+import { type MetadataDocumentationService } from '../../../src/metadataSupport/metadataDocumentationService';
 import {
   MetadataHoverProvider,
   isMetadataFile,

@@ -5,25 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  WorkspaceType,
+  type WorkspaceType,
   readJsonSync,
   writeJson,
-  SfdxTsConfig,
-  TsConfigPaths,
-  LspFileSystemAccessor,
+  type SfdxTsConfig,
+  type TsConfigPaths,
+  type LspFileSystemAccessor,
   normalizePath,
   Logger,
-  NormalizedPath
+  type NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
 import * as path from 'node:path';
-import { Connection, DocumentUri } from 'vscode-languageserver';
+import { type Connection, type DocumentUri } from 'vscode-languageserver';
 import { URI, Utils } from 'vscode-uri';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 import { detectWorkspaceHelper } from './detectWorkspaceHelper';
 
-import { Tag, TagAttrs, createTag, createTagFromFile, getTagName } from './tag';
+import { type Tag, type TagAttrs, createTag, createTagFromFile, getTagName } from './tag';
 
 const CUSTOM_COMPONENT_INDEX_PATH = path.join('.sfdx', 'indexes', 'lwc');
 const CUSTOM_COMPONENT_INDEX_FILE = path.join(CUSTOM_COMPONENT_INDEX_PATH, 'custom-components.json');

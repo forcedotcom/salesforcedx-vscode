@@ -74,7 +74,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
 });
 
-import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
+import { type TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
 import { Global } from '@salesforce/core';
 import * as path from 'node:path';
 import * as vscode from 'vscode';

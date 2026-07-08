@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Disposable, StatusBarItem, window } from 'vscode';
+import { type Disposable, type StatusBarItem, window } from 'vscode';
 import { nls } from '../messages';
 
 export class StatusBarToggle implements Disposable {

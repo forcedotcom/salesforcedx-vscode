@@ -5,30 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Class,
-  ClassMethod,
-  ClassProperty,
-  ScriptFile,
-  WireDecorator,
-  LwcDecorator,
-  SourceLocation,
-  Value
+  type Class,
+  type ClassMethod,
+  type ClassProperty,
+  type ScriptFile,
+  type WireDecorator,
+  type LwcDecorator,
+  type SourceLocation,
+  type Value
 } from '@lwc/metadata';
 
 import {
-  ClassMember as InternalClassMember,
-  Location as InternalLocation
+  type ClassMember as InternalClassMember,
+  type Location as InternalLocation
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  Metadata as InternalMetadata,
-  ModuleExports as InternalModuleExports,
-  ApiDecorator as InternalApiDecorator,
-  TrackDecorator as InternalTrackDecorator,
-  WireDecorator as InternalWireDecorator,
-  ApiDecoratorTarget,
-  TrackDecoratorTarget,
-  WireDecoratorTarget,
-  ClassMemberPropertyValue
+  type Metadata as InternalMetadata,
+  type ModuleExports as InternalModuleExports,
+  type ApiDecorator as InternalApiDecorator,
+  type TrackDecorator as InternalTrackDecorator,
+  type WireDecorator as InternalWireDecorator,
+  type ApiDecoratorTarget,
+  type TrackDecoratorTarget,
+  type WireDecoratorTarget,
+  type ClassMemberPropertyValue
 } from '../decorators/lwcDecorators';
 
 type InternalDecorator = InternalApiDecorator | InternalTrackDecorator | InternalWireDecorator;

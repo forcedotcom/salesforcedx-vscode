@@ -13,7 +13,7 @@ import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { gather, OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
+import { gather, type OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
 import { ConfigRefreshError, updateConfigAndStateAggregators } from '../util/orgUtil';
 
 /** sf org delete can take longer than the default 30s simpleExec timeout. */

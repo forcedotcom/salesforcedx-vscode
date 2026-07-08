@@ -17,7 +17,7 @@ import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';
 import { OAS_EXTENSION_ID } from './constants';
 import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
-import { oasDiagnosticCollection, ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
+import { oasDiagnosticCollection, type ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 
 /** Reports a step message into an active progress notification. */
 export type ProgressReporter = (message: string) => Effect.Effect<void>;

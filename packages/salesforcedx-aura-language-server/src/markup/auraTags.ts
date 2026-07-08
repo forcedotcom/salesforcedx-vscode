@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TagInfo, getHover } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { IAttributeData, IHTMLDataProvider, IValueData } from 'vscode-html-languageservice';
-import AuraIndexer from '../aura-indexer/indexer';
+import type AuraIndexer from '../aura-indexer/indexer';
+import { type TagInfo, getHover } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { type IAttributeData, type IHTMLDataProvider, type IValueData } from 'vscode-html-languageservice';
 
 let indexer: AuraIndexer;
 

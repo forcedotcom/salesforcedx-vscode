@@ -6,10 +6,10 @@
  */
 import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import {
-  CancelResponse,
-  ContinueResponse,
+  type CancelResponse,
+  type ContinueResponse,
   LibraryCommandletExecutor,
-  ParametersGatherer,
+  type ParametersGatherer,
   SfCommandlet,
   hasRootWorkspace,
   projectPaths,

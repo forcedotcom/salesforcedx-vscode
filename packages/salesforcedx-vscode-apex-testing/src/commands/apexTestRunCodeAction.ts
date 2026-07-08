@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
-import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
+import { type ApexTestResultData, TestLevel, type TestResult, TestService } from '@salesforce/apex-node';
+import { type ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import { type NamedPackageDir } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';

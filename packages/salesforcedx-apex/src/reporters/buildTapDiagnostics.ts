@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as os from 'node:os';
-import { ApexTestResultData, ApexTestResultOutcome } from '../tests/types';
+import { type ApexTestResultData, ApexTestResultOutcome } from '../tests/types';
 /**
  * this regex is flagged as likely incorrect by Cursor, BUT there is a unit test that specs
  * expect(result[12].diagnostics).to.eql([

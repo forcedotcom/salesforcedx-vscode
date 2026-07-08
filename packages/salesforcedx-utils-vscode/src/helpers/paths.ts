@@ -7,7 +7,7 @@
 
 import { Global } from '@salesforce/core/global';
 import * as path from 'node:path';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
 

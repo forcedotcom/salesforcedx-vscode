@@ -7,7 +7,7 @@
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
-import { CustomObjectField } from './types';
+import { type CustomObjectField } from './types';
 
 export const createCustomFieldNode = (projectComponentSet: ComponentSet) => (element: OrgBrowserTreeItem) =>
   Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {

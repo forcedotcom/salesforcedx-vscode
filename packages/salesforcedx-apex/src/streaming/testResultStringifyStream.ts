@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Logger } from '@salesforce/core';
-import { Readable, ReadableOptions } from 'node:stream';
-import { TestResult } from '../tests/types';
+import { Readable, type ReadableOptions } from 'node:stream';
+import { type TestResult } from '../tests/types';
 import { elapsedTime } from '../utils';
 
 type TestResultStringifyStreamOptions = ReadableOptions & {

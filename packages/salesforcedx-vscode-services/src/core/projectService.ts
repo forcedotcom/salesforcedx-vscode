@@ -16,7 +16,7 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { normalize } from 'node:path';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { toUri } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';

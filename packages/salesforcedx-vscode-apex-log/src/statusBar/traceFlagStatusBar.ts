@@ -16,7 +16,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { messages } from '../messages/i18n';
+import { type messages } from '../messages/i18n';
 import { type LogCollectorState, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
 import { isTraceFlagActive } from '../traceFlags/traceFlagActive';
 

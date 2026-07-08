@@ -14,9 +14,9 @@ jest.mock('@vscode/debugadapter', () => ({
   }
 }));
 
-import { StackFrame } from '@vscode/debugadapter';
+import { type StackFrame } from '@vscode/debugadapter';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { breakpointUtil } from '../../../src/breakpoints';
 import {
   EVENT_CODE_UNIT_FINISHED,
@@ -35,6 +35,7 @@ import {
 } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import {
+  type DebugLogState,
   FrameEntryState,
   FrameExitState,
   LogEntryState,
@@ -139,9 +140,7 @@ describe('LogContext', () => {
   });
 
   it('Should handle undefined log event', () => {
-    jest
-      .spyOn(LogContext.prototype, 'parseLogEvent')
-      .mockReturnValue(undefined as unknown as import('../../../src/states').DebugLogState);
+    jest.spyOn(LogContext.prototype, 'parseLogEvent').mockReturnValue(undefined as unknown as DebugLogState);
     context.updateFrames();
     expect(context.getLogLinePosition()).toBe(3);
   });

@@ -12,12 +12,17 @@ import {
   ColorPresentation,
   type ExtensionContext,
   languages,
-  Position,
-  Range,
-  TextDocument
+  type Position,
+  type Range,
+  type TextDocument
 } from 'vscode';
 import { ConfigurationFeature } from 'vscode-languageclient/lib/common/configuration';
-import { LanguageClient, RequestType, TextDocumentPositionParams, TransportKind } from 'vscode-languageclient/node';
+import {
+  LanguageClient,
+  RequestType,
+  type TextDocumentPositionParams,
+  TransportKind
+} from 'vscode-languageclient/node';
 import {
   type ColorPresentationParams,
   ColorPresentationRequest,

@@ -4,18 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { ApexLanguageClient } from '../apexLanguageClient';
+import { type ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
 import * as languageServer from '../languageServer';
 import { nls } from '../messages';
 import { retrieveEnableSyncInitJobs } from '../settings';
 import { getTelemetryService } from '../telemetry/telemetry';
-import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
+import { ApexLSPConverter, type ApexTestMethod, type LSPApexTestMethod } from '../views/lspConverter';
 
 export enum ClientStatus {
   Unavailable,

@@ -7,7 +7,10 @@
 
 import * as Context from 'effect/Context';
 import * as Layer from 'effect/Layer';
-import { ApexTestingDiscoveryFsProvider, getApexTestingDiscoveryFsProvider } from './apexTestingDiscoveryFsProvider';
+import {
+  type ApexTestingDiscoveryFsProvider,
+  getApexTestingDiscoveryFsProvider
+} from './apexTestingDiscoveryFsProvider';
 
 /**
  * Context.Tag wrapping the vscode-owned in-memory `ApexTestingDiscoveryFsProvider` instance.

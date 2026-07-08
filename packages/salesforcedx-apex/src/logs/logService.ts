@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection, Logger, Org, StatusResult, StreamingClient } from '@salesforce/core';
+import { type Connection, Logger, type Org, type StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
 import type { AnyJson, JsonMap } from '@salesforce/ts-types';
 import * as path from 'node:path';
@@ -13,7 +13,7 @@ import { createFile } from '../utils';
 import { elapsedTime } from '../utils/elapsedTime';
 import { TraceFlags } from '../utils/traceFlags';
 import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, MAX_NUM_LOGS, STREAMING_LOG_TOPIC } from './constants';
-import { ApexLogGetOptions, LogRecord, LogResult } from './types';
+import { type ApexLogGetOptions, type LogRecord, type LogResult } from './types';
 
 type StreamingLogMessage = {
   errorName?: string;

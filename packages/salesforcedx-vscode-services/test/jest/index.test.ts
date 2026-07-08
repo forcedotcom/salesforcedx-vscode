@@ -23,6 +23,7 @@ jest.mock('@salesforce/core', () => ({
   }
 }));
 
+import type { ExtensionContext } from 'vscode';
 import { activate, deactivate } from '../../src/index';
 import * as Effect from 'effect/Effect';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
@@ -237,7 +238,7 @@ describe('Extension', () => {
         get: jest.fn().mockReturnValue(undefined),
         update: jest.fn().mockResolvedValue(undefined)
       }
-    } as unknown as import('vscode').ExtensionContext;
+    } as unknown as ExtensionContext;
 
     // In environments where os.homedir() returns undefined, activation may fail
     // but should still return the API

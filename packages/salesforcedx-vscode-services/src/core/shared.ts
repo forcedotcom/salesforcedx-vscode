@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Org, Connection, ConfigAggregator } from '@salesforce/core';
+import { Org, type Connection, type ConfigAggregator } from '@salesforce/core';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 

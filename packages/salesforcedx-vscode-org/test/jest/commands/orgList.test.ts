@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, Org, OrgAuthorization } from '@salesforce/core';
-import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { AuthRemover, Org, type OrgAuthorization } from '@salesforce/core';
+import { createTable, ExtensionProviderService, type buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -119,11 +119,7 @@ describe('orgList command', () => {
     // Default the ConnectionService.listAllAuthorizations mock to an empty Effect; suites override below.
     listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
     resetOrgRuntimeForTesting();
-    setAllServicesLayer(
-      buildServicesLayer(listAllAuthorizationsMock) as ReturnType<
-        typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer
-      >
-    );
+    setAllServicesLayer(buildServicesLayer(listAllAuthorizationsMock) as ReturnType<typeof buildAllServicesLayer>);
 
     // Mock createTable function
     (createTable as jest.Mock).mockReturnValue('mocked table output');

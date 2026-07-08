@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CodeCoverageResult } from '@salesforce/apex-node';
+import { type CodeCoverageResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
-import { FileType, Range, TextDocument, window } from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { FileType, Range, type TextDocument, window } from 'vscode';
+import { type URI, Utils } from 'vscode-uri';
 import { IS_TEST_REG_EXP, RESULT_MAX_AGE_MS } from '../constants';
 import { nls } from '../messages';
 import { getTestResultsFolder } from '../utils/pathHelpers';

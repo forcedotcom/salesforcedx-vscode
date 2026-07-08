@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
-import * as Layer from 'effect/Layer';
+import { type buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import type * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 
 /**

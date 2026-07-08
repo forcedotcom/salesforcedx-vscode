@@ -10,6 +10,7 @@
 import type ts from 'typescript/lib/tsserverlibrary';
 import { getMessagesForFile, type MessagesResult } from './messageCache';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- `export = init` can't reference a type-only import name in its signature (TS4078); inline import() is required here
 function init(modules: { typescript: typeof import('typescript/lib/tsserverlibrary') }) {
   const ts = modules.typescript;
 

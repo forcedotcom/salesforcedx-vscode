@@ -6,9 +6,9 @@
  */
 import * as Effect from 'effect/Effect';
 import { JSONPath } from 'jsonpath-plus';
-import { OpenAPIV3 } from 'openapi-types';
+import { type OpenAPIV3 } from 'openapi-types';
 import { propertyCorrectionStep } from '../../../src/oas/documentProcessorPipeline/propertyCorrectionStep';
-import { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
+import { type ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
 
 describe('propertyCorrectionStep', () => {
   let openAPIDoc: OpenAPIV3.Document;

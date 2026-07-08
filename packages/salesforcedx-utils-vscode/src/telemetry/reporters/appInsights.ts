@@ -6,6 +6,7 @@
 import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import { TelemetryReporter as VSCodeTelemetryReporter } from '@vscode/extension-telemetry';
+import type * as applicationinsights from 'applicationinsights';
 import { Disposable, env, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
@@ -16,7 +17,7 @@ const DEFAULT_AI_CONNECTION_STRING: string =
   'InstrumentationKey=f5cbbeba-e06b-4657-b99c-62024c9d36bf;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=1485438c-5495-43dc-8c0a-b51e860b6cba';
 
 // Conditionally import applicationinsights only in Node.js mode
-let appInsights: typeof import('applicationinsights') | undefined;
+let appInsights: typeof applicationinsights | undefined;
 if (process.env.ESBUILD_PLATFORM !== 'web') {
   appInsights = require('applicationinsights');
 }
@@ -27,7 +28,7 @@ export class AppInsights
 {
   private appInsightsClient: typeof appInsights extends undefined
     ? undefined
-    : import('applicationinsights').TelemetryClient | undefined;
+    : applicationinsights.TelemetryClient | undefined;
   private webReporter: VSCodeTelemetryReporter | undefined;
   private userOptIn: boolean = false;
   private toDispose: Disposable[] = [];

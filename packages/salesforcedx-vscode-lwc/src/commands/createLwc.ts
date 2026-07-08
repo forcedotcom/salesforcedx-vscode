@@ -11,7 +11,7 @@ import { AURA_TYPE, LWC_TYPE } from '@salesforce/salesforcedx-lightning-lsp-comm
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForLwcName } from './promptForLwcName';
 

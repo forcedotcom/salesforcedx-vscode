@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Indexer,
-  TagInfo,
+  type Indexer,
+  type TagInfo,
   extractJsonFromImport,
   Logger,
   componentFromFile,
@@ -14,11 +14,11 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as LineColumnFinderModule from 'line-column';
 import { EventEmitter as EventsEmitter } from 'node:events';
-import { Node } from 'vscode-html-languageservice';
-import { Location } from 'vscode-languageserver';
+import { type Node } from 'vscode-html-languageservice';
+import { type Location } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { parse, elapsedMillis } from '../auraUtils';
-import { AuraWorkspaceContext } from '../context/auraContext';
+import { type AuraWorkspaceContext } from '../context/auraContext';
 import * as auraStandardImport from '../resources/aura-standard.json';
 import * as transformedAuraSystemImport from '../resources/transformed-aura-system.json';
 
