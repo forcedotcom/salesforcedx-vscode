@@ -7,7 +7,7 @@
 
 import { getInput, setOutput, setFailed } from '@actions/core';
 import { context, getOctokit } from '@actions/github';
-import { Label } from '@octokit/webhooks-types';
+import { type Label } from '@octokit/webhooks-types';
 
 async function run() {
   try {
