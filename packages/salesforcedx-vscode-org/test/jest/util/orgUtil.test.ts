@@ -364,6 +364,7 @@ describe('updateConfigAndStateAggregators', () => {
   it('should call getConnection after invalidating caches to refresh TargetOrgRef', async () => {
     await updateConfigAndStateAggregators();
 
+    expect(StateAggregator.clearInstanceAsync).toHaveBeenCalled();
     expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
     expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
     expect(getConnectionMock).toHaveBeenCalled();
@@ -373,6 +374,7 @@ describe('updateConfigAndStateAggregators', () => {
     getConnectionMock.mockReturnValue(Effect.fail(new Error('No target org configured')));
 
     await expect(updateConfigAndStateAggregators()).resolves.toBeUndefined();
+    expect(StateAggregator.clearInstanceAsync).toHaveBeenCalled();
     expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
     expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
     expect(getConnectionMock).toHaveBeenCalled();

@@ -117,11 +117,8 @@ export const updateConfigAndStateAggregatorsEffect = Effect.fn('updateConfigAndS
   // Force the StateAggregator to drop ALL cached instances (incl. the default used by
   // AuthInfo.listAllAuthorizations) so this config file change is accounted for.
   yield* Effect.tryPromise({
-    try: async () => {
-      await StateAggregator.clearInstanceAsync();
-    },
-    catch: cause =>
-      new AggregatorReloadError({ message: 'Failed to reload config/state aggregators', cause: String(cause) })
+    try: () => StateAggregator.clearInstanceAsync(),
+    catch: cause => new AggregatorReloadError({ message: 'Failed to reload state aggregator', cause: String(cause) })
   });
   yield* api.services.ConfigService.invalidateConfigAggregator();
   yield* api.services.ConnectionService.invalidateCachedConnections();
