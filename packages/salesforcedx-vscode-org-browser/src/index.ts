@@ -77,7 +77,8 @@ const computeSuggestions = (
 };
 
 const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(function* (
-  treeProvider: MetadataTypeTreeProvider
+  treeProvider: MetadataTypeTreeProvider,
+  context: vscode.ExtensionContext
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const previousTypeFilter = treeProvider.typeFilter;
@@ -110,15 +111,26 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
       yield* Ref.set(acceptedRef, true);
       const { typeFilter, componentFilter } = parseFilterValue(value, cachedTypeNames);
       treeProvider.setTextFilter(typeFilter, componentFilter);
-      yield* Effect.promise(() =>
-        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined)
+      yield* Effect.all(
+        [
+          Effect.promise(() => context.workspaceState.update('orgBrowser.typeFilter', typeFilter)),
+          Effect.promise(() => context.workspaceState.update('orgBrowser.componentFilter', componentFilter)),
+          Effect.promise(() =>
+            vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined)
+          )
+        ],
+        { concurrency: 'unbounded' }
       );
       picker.dispose();
       yield* Deferred.succeed(deferred, undefined);
     });
 
   picker.onDidChangeValue(value => run(Queue.offer(queue, value)));
-  picker.onDidAccept(() => run(commit(picker.value)));
+  picker.onDidAccept(() => {
+    // If input is empty, clear the filter regardless of selected item
+    const valueToCommit = picker.value.length === 0 ? '' : (picker.selectedItems[0]?.label ?? picker.value);
+    run(commit(valueToCommit));
+  });
   picker.onDidHide(() =>
     run(
       Effect.gen(function* () {
@@ -200,15 +212,23 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   // Read persisted filter state
   const showLocal = context.workspaceState.get<boolean>('orgBrowser.showLocal') ?? true;
   const showOrg = context.workspaceState.get<boolean>('orgBrowser.showOrg') ?? true;
+  const typeFilter = context.workspaceState.get<string | undefined>('orgBrowser.typeFilter');
+  const componentFilter = context.workspaceState.get<string | undefined>('orgBrowser.componentFilter');
+
   treeProvider.setShowLocal(showLocal);
   treeProvider.setShowOrg(showOrg);
+  if (typeFilter !== undefined || componentFilter !== undefined) {
+    treeProvider.setTextFilter(typeFilter, componentFilter);
+  }
 
   // Set initial context keys
   yield* Effect.all(
     [
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', showLocal)),
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', showOrg)),
-      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', false)),
+      Effect.promise(() =>
+        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined)
+      ),
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', false))
     ],
     { concurrency: 'unbounded' }
@@ -285,8 +305,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           treeProvider.setShowOrg(false);
         })
       ),
-      registerCommand(`${TREE_VIEW_ID}.filterText`, () => openFilterTextPicker(treeProvider)),
-      registerCommand(`${TREE_VIEW_ID}.filterText.active`, () => openFilterTextPicker(treeProvider))
+      registerCommand(`${TREE_VIEW_ID}.filterText`, () => openFilterTextPicker(treeProvider, context)),
+      registerCommand(`${TREE_VIEW_ID}.filterText.active`, () => openFilterTextPicker(treeProvider, context))
     ],
     { concurrency: 'unbounded' }
   );

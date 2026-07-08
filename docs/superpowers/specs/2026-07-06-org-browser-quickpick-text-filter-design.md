@@ -4,7 +4,7 @@
 
 Part of the "IDEx - Org Browser: View Filters" epic. Sibling stories: W-23296072
 (showLocal/showOrg toggle filters, shipped) and W-23237576 (filter state persistence
-across reload, not started — persistence is explicitly out of scope here).
+across reload, originally out of scope — now implemented).
 
 A proof-of-concept exists on branch `phale/org-browser-experiment`, commit
 `21a06f93d` ("live QuickPick filter with suggestions and preview tab cleanup").
@@ -23,8 +23,6 @@ filters to components of type `ApexClass` whose name contains `MyClass`).
 ## Non-goals
 
 - `@tag` state filtering (`@modified`, `@deleted`, etc.)
-- Persisting the text filter to `workspaceState` across reload/restart (left to
-  W-23237576)
 - Auto-appending `:` when a type suggestion is selected
 - A `TreeView.description` label showing the current filter text in the view title
 
@@ -95,7 +93,7 @@ public clearTextFilter(): void {
 }
 ```
 
-In-memory only — no `workspaceState` read/write for this story.
+Persisted to `workspaceState` (keys: `sf.orgBrowser.typeFilter`, `sf.orgBrowser.componentFilter`); restored on provider construction.
 
 **Match rule for `_typeFilter`** (resolved via the presence of `_componentFilter`,
 not a separate boolean — a colon in the input is exactly what puts `_componentFilter`

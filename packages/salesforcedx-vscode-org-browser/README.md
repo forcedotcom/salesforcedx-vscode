@@ -118,6 +118,7 @@ This extension provides org browsing capabilities for Salesforce development in 
 - Browse Salesforce org metadata
 - Retrieve components from org
 - Interactive org navigation
+- Text filter by Type:Component (persisted across reload)
 
 ## Requirements
 
