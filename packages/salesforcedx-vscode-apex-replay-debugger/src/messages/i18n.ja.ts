@@ -56,5 +56,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   debug_test_no_results_found: 'テスト結果が見つかりませんでした',
   debug_test_no_debug_log: 'テスト結果に関連するデバッグログが見つかりませんでした',
   channel_name: 'Apex Replay デバッガ',
-  apex_execute_debug_failed: '匿名 Apex の実行に失敗しました: %s'
+  apex_execute_text: '匿名 Apex を実行',
+  apex_execute_debug_failed: '匿名 Apex の実行に失敗しました: %s',
+  apex_execute_debug_success: 'Anonymous Apex が正常に実行されました'
 };

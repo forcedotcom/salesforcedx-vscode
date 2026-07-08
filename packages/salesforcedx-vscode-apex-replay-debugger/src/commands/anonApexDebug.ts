@@ -96,7 +96,7 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
 });
 
 export const anonApexDebug = async (): Promise<void> => {
-  await vscode.window.withProgress(
+  const success = await vscode.window.withProgress(
     { location: vscode.ProgressLocation.Notification, title: nls.localize('apex_execute_text'), cancellable: false },
     () =>
       getRuntime()
@@ -105,4 +105,7 @@ export const anonApexDebug = async (): Promise<void> => {
           void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
         })
   );
+  if (success) {
+    void vscode.window.showInformationMessage(nls.localize('apex_execute_debug_success'));
+  }
 };
