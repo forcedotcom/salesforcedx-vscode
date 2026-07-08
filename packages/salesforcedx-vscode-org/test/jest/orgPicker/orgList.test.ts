@@ -120,8 +120,8 @@ describe('OrgList tests', () => {
             // stub both so the data-loading path runs against fakes (no real I/O). ConfigService is used via
             // static accessors: getTargetDevHub/getTargetOrg (default-org config) and setTargetOrg (picker).
             ConfigService: Object.assign(Effect.succeed({}), {
-              getTargetDevHub: () => Effect.succeed(undefined),
-              getTargetOrg: () => Effect.succeed(undefined),
+              getTargetDevHub: () => Effect.void,
+              getTargetOrg: () => Effect.void,
               setTargetOrg: setTargetOrgMock
             }),
             AliasService: Effect.succeed({

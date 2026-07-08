@@ -63,6 +63,7 @@ describe('ConfigService.setTargetOrg', () => {
 });
 
 const TARGET_ORG_KEY: string = OrgConfigProperties.TARGET_ORG;
+const TARGET_DEV_HUB_KEY: string = OrgConfigProperties.TARGET_DEV_HUB;
 
 describe('ConfigService.getTargetOrg', () => {
   const getPropertyValueMock = jest.fn();
@@ -96,6 +97,43 @@ describe('ConfigService.getTargetOrg', () => {
     getPropertyValueMock.mockReturnValue(undefined);
 
     const value = await Effect.runPromise(ConfigService.getTargetOrg().pipe(Effect.provide(ConfigService.Default)));
+
+    expect(value).toBeUndefined();
+  });
+});
+
+describe('ConfigService.getTargetDevHub', () => {
+  const getPropertyValueMock = jest.fn();
+
+  beforeEach(() => {
+    getPropertyValueMock.mockReset();
+    const agg = {
+      getPropertyValue: getPropertyValueMock,
+      getConfig: () => ({}),
+      reload: () => Promise.resolve(agg)
+    } as unknown as ConfigAggregator;
+    aggregatorCreateMock.mockReset().mockResolvedValue(agg);
+    vscode.workspace.workspaceFolders = [
+      {
+        uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
+        name: 'mock-workspace',
+        index: 0
+      }
+    ];
+  });
+
+  it('returns the configured target-dev-hub value', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_DEV_HUB_KEY ? 'MyHub' : undefined));
+
+    const value = await Effect.runPromise(ConfigService.getTargetDevHub().pipe(Effect.provide(ConfigService.Default)));
+
+    expect(value).toBe('MyHub');
+  });
+
+  it('returns undefined when target-dev-hub is not set', async () => {
+    getPropertyValueMock.mockReturnValue(undefined);
+
+    const value = await Effect.runPromise(ConfigService.getTargetDevHub().pipe(Effect.provide(ConfigService.Default)));
 
     expect(value).toBeUndefined();
   });

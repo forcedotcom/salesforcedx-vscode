@@ -85,18 +85,20 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       yield* configCache.invalidateAll;
     });
 
+    /** Reads a string config property from the current aggregator, or undefined if unset */
+    const readConfigString = Effect.fn('ConfigService.readConfigString')(function* (prop: OrgConfigProperties) {
+      const agg = yield* getConfigAggregator();
+      return agg.getPropertyValue<string>(prop) ?? undefined;
+    });
+
     /** Returns the current target-org value (alias or username), or undefined if not set */
     const getTargetOrg = Effect.fn('ConfigService.getTargetOrg')(function* () {
-      const agg = yield* getConfigAggregator();
-      const value = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
-      return value ? String(value) : undefined;
+      return yield* readConfigString(OrgConfigProperties.TARGET_ORG);
     });
 
     /** Returns the current target-dev-hub value (alias or username), or undefined if not set */
     const getTargetDevHub = Effect.fn('ConfigService.getTargetDevHub')(function* () {
-      const agg = yield* getConfigAggregator();
-      const value = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
-      return value ? String(value) : undefined;
+      return yield* readConfigString(OrgConfigProperties.TARGET_DEV_HUB);
     });
 
     /** Returns true if the given username/aliases match the currently configured target org */
@@ -104,8 +106,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       username: string,
       aliases: readonly string[]
     ) {
-      const agg = yield* getConfigAggregator();
-      const targetOrgOrAlias = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
+      const targetOrgOrAlias = yield* readConfigString(OrgConfigProperties.TARGET_ORG);
       if (!targetOrgOrAlias) return false;
       return targetOrgOrAlias === username || aliases.includes(targetOrgOrAlias);
     });
@@ -115,8 +116,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       username: string,
       aliases: readonly string[]
     ) {
-      const agg = yield* getConfigAggregator();
-      const targetDevHubOrAlias = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
+      const targetDevHubOrAlias = yield* readConfigString(OrgConfigProperties.TARGET_DEV_HUB);
       if (!targetDevHubOrAlias) return false;
       return targetDevHubOrAlias === username || aliases.includes(targetDevHubOrAlias);
     });
