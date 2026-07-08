@@ -427,23 +427,23 @@
           "group": "navigation@1"
         },
         {
-          "command": "sfdxOrgBrowser.refreshType",
-          "when": "view == sfdxOrgBrowser",
-          "group": "navigation@2"
-        },
-        {
-          "command": "sfdxOrgBrowser.collapseAll",
-          "when": "view == sfdxOrgBrowser",
-          "group": "navigation@3"
-        },
-        {
           "command": "sfdxOrgBrowser.filterText",
           "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == false",
-          "group": "navigation@4"
+          "group": "navigation@2"
         },
         {
           "command": "sfdxOrgBrowser.filterText.active",
           "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == true",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser",
+          "group": "navigation@3"
+        },
+        {
+          "command": "sfdxOrgBrowser.collapseAll",
+          "when": "view == sfdxOrgBrowser",
           "group": "navigation@4"
         }
       ],
