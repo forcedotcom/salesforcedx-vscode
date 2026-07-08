@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, type Page } from '@playwright/test';
 import {
+  clickModalDialogButton,
   closeWelcomeTabs,
   createMinimalOrg,
   ensureSecondarySideBarHidden,
@@ -49,7 +49,7 @@ test('org extension: SFDX: Display Org Details for Default Org logs the org tabl
 
   await test.step('confirm the sensitive-info modal', async () => {
     // the sensitive-info modal now gates the table; confirm it (Continue) so the table is written.
-    await clickModalDialogButton(page, nls.localize('org_display_continue_label'));
+    await clickModalDialogButton(page, nls.localize('org_display_continue_label'), 10_000);
   });
 
   await test.step('assert org table in output channel', async () => {
@@ -59,14 +59,3 @@ test('org extension: SFDX: Display Org Details for Default Org logs the org tabl
     await waitForOutputChannelText(page, { expectedText: 'Connected Status', timeout: 60_000 });
   });
 });
-
-/** Click a modal-dialog button by its label. `window.dialogStyle: custom` (fixture) renders the modal as
- * DOM (.monaco-dialog-box) so Playwright can click it; native Electron dialogs are inaccessible. */
-const clickModalDialogButton = async (page: Page, label: string, timeout = 10_000): Promise<void> => {
-  const dialogButton = page
-    .locator('.monaco-dialog-box, .dialog-shadow')
-    .getByRole('button', { name: label, exact: true })
-    .first();
-  await expect(dialogButton).toBeVisible({ timeout });
-  await dialogButton.click();
-};

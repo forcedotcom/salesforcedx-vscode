@@ -8,6 +8,7 @@
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
+  clickModalDialogButton,
   clickOrgPickerStatusBar,
   closeWelcomeTabs,
   createMinimalOrg,
@@ -79,7 +80,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
     await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
     // sensitive-info modal now gates the table; confirm it (Continue) so the table is written.
-    await clickModalButton(page, nls.localize('org_display_continue_label'));
+    await clickModalDialogButton(page, nls.localize('org_display_continue_label'), 10_000);
     // orgDisplay renders a table containing the org's Username row to the output channel.
     await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
     await waitForOutputChannelText(page, { expectedText: 'Username' });
@@ -150,7 +151,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await toggleMultiPickRow(page, THROWAWAY_ORG_ALIAS);
     await page.keyboard.press('Enter');
     // CONFIRM (not cancel): click the modal's confirm button so the logout proceeds.
-    await clickModalButton(page, 'Logout');
+    await clickModalDialogButton(page, 'Logout', 10_000);
     await expectNoErrorNotification(page);
 
     // Primary durable signal: poll the CLI until the throwaway org is no longer authorized.
@@ -183,20 +184,13 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
 
     await executeCommandWithCommandPalette(page, packageNls.org_logout_default_text);
     // Throwaway is a scratch org -> confirm the scratch modal (do NOT Escape) so removeAuth runs.
-    await clickModalButton(page, 'Logout');
+    await clickModalDialogButton(page, 'Logout', 10_000);
     await expectNoErrorNotification(page);
 
     // Durable signal: poll the CLI until the default org is no longer authorized.
     await expectOrgLoggedOut(DEFAULT_LOGOUT_ORG_ALIAS);
   });
 });
-
-/** Click a button (e.g. the confirm action) in a VS Code custom-style modal dialog. */
-const clickModalButton = async (page: import('@playwright/test').Page, label: string): Promise<void> => {
-  const button = page.locator('.monaco-dialog-box').getByRole('button', { name: label }).first();
-  await button.waitFor({ state: 'visible', timeout: 10_000 });
-  await button.click();
-};
 
 /** Poll the CLI until the alias is no longer authorized (durable, non-racy removal signal). */
 const expectOrgLoggedOut = async (alias: string, timeoutMs = 30_000): Promise<void> => {
