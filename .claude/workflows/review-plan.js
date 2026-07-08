@@ -13,8 +13,6 @@ export const meta = {
 const _a = args || {}
 const planPath = typeof _a === 'string' ? _a.trim() : _a.planPath
 const wt = (typeof _a === 'object' && _a.wt) || '.'
-// used only by the prime agent's standalone/re-plan diff branch; empty in the auto-build-wi pre-Build case
-const base = (typeof _a === 'object' && _a.base) || 'origin/develop'
 const subject = (typeof _a === 'object' && _a.subject) || ''
 const details = (typeof _a === 'object' && _a.details) || ''
 const commitMessage = typeof _a === 'object' ? _a.commitMessage : undefined
@@ -108,16 +106,6 @@ const OK_SCHEMA = {
   properties: { ok: { type: 'boolean' }, detail: { type: ['string', 'null'] } },
 }
 
-const PRIME_SCHEMA = {
-  type: 'object',
-  required: ['pkgs', 'files', 'diff'],
-  properties: {
-    pkgs: { type: 'array', items: { type: 'string' } },
-    files: { type: 'array', items: { type: 'string' } },
-    diff: { type: 'string' },
-  },
-}
-
 // =====================================================================
 // PROMPTS
 // =====================================================================
@@ -153,30 +141,18 @@ ${details || '(empty)'}
 
 Return ONLY the structured result.`
 
-const primePrompt = `Read the plan at ${planPath} (relative to ${wt}) and extract the code it references, so a downstream reviewer can start warm.
-
-Do BOTH:
-1. Parse the plan text. Collect every repo-relative path it cites — from \`file:line\` citations and any \`packages/...\` / \`src/...\` mention. Put them in \`files\` (paths only, drop the :line suffix, dedupe). Derive \`pkgs\`: the distinct \`packages/<pkg>\` roots those paths fall under (e.g. \`packages/foo/src/x.ts\` → \`packages/foo\`).
-2. From ${wt}, run \`git diff --name-only ${base}...HEAD\` and \`git diff ${base}...HEAD\`. Return the full diff body as \`diff\`. Empty stdout → \`diff: ""\` (expected in the pre-build plan stage). If the diff body exceeds ~60000 chars, return \`diff: "<truncated — run git diff ${base}...HEAD>"\` instead of the body. Union any diff file paths into \`files\` and their package roots into \`pkgs\`.
-
-Return ONLY the structured result {pkgs, files, diff}.`
-
-const adversaryPlanReviewPrompt = (pointers, diff) => `Adversarially review the plan at ${planPath} (relative to ${wt}).
+const adversaryPlanReviewPrompt = `Adversarially review the plan at ${planPath} (relative to ${wt}).
 
 WI Subject: ${subject}
 WI Details:
 ${details || '(empty)'}
 
-Read these first, before any grep/find — start warm:
-${pointers}
+Start warm — before any grep/find:
+- Read ${wt}/CONTEXT-MAP.md.
+- The plan cites the code it discusses via \`file:line\` citations and \`packages/...\` / \`src/...\` mentions. Read those existing cited files, and the \`packages/<pkg>/CONTEXT.md\` for every package the plan cites, to jump straight to the code. (New files the plan proposes to create won't exist yet — skip those.)
 
-Use the handed-in file list + CONTEXT pointers to jump straight to the code the plan cites. Do NOT \`find\` / \`git show\` to re-discover package layout or the files the plan already names.
+Do NOT \`find\` / \`git show\` to re-discover package layout or the files the plan already names.
 
-${
-  diff
-    ? `Branch diff (standalone re-plan case — code already on the branch):\n${diff}\n`
-    : `No diff yet (pre-build plan stage) — the plan's cited files above are your map.\n`
-}
 ADR consistency check. Read the ADRs under ${wt}/docs/adr/ (repo-wide) plus any ${wt}/packages/*/docs/adr/ for packages the plan touches. A recorded ADR is binding by default (Status frontmatter is optional; an ADR without an explicit Proposed/Rejected/Deprecated/Superseded marker is Accepted). Then:
 - Flag (finding) any plan step that contradicts an ADR's decision, or re-proposes an alternative an ADR explicitly rejected/superseded. Cite the ADR file in 'evidence'.
 - Flag (finding) any decision the plan implies that WOULD warrant a new ADR — per ${wt}/.claude/skills/grill-me/ADR-FORMAT.md "When to offer" (all three gates: hard to reverse, surprising without context, real trade-off) — when the plan does not already sequence an ADR-writing step. Suggest sequencing the ADR first (see work-item-sequencing "ADRs sequence first").
@@ -221,28 +197,6 @@ if (!planReview.approved) {
   })
 }
 
-// Prime the adversary with the code the plan references (pre-build: no diff, so
-// the plan-cited files + package CONTEXT.md are the warm-start map).
-const prime = await agent(primePrompt, {
-  schema: PRIME_SCHEMA,
-  label: `prime-${label}`,
-  phase: 'Plan review',
-  model: 'haiku',
-})
-
-const primeFiles = ((prime && prime.files) || []).map(f => f.trim()).filter(Boolean)
-const primePkgs = ((prime && prime.pkgs) || []).map(p => p.trim()).filter(Boolean)
-const primeDiff = (prime && prime.diff) || ''
-const pkgContexts = [...new Set(primePkgs)].map(p => `${wt}/${p}/CONTEXT.md`)
-
-const pointers = [
-  `${wt}/CONTEXT-MAP.md`,
-  ...pkgContexts,
-  ...primeFiles.map(f => `${wt}/${f}`),
-]
-  .map(p => `- ${p}`)
-  .join('\n')
-
 const [effectPlanReview, e2ePlanReview, adversaryPlanReview] = await parallel([
   () =>
     agent(effectPlanReviewPrompt, {
@@ -259,7 +213,7 @@ const [effectPlanReview, e2ePlanReview, adversaryPlanReview] = await parallel([
       agentType: 'e2e-advocate',
     }),
   () =>
-    agent(adversaryPlanReviewPrompt(pointers, primeDiff), {
+    agent(adversaryPlanReviewPrompt, {
       schema: PLAN_ADVERSARY_SCHEMA,
       label: `adversary-plan-${label}`,
       phase: 'Plan review',
