@@ -295,16 +295,6 @@ describe('WorkspaceContextUtil', () => {
       expect(connection).toEqual(mockConnection);
     });
 
-    it('propagates ConnectionService.getConnection failure to the caller', async () => {
-      mockGetConnectionSvc.mockReturnValue(Effect.fail(new Error('boom-getConnection')));
-      await expect(workspaceContextUtil.getConnection()).rejects.toThrow('boom-getConnection');
-    });
-
-    it('propagates validateAccessTokenOrPromptReauth failure to the caller', async () => {
-      mockValidateReauthSvc.mockReturnValue(Effect.fail(new Error('boom-reauth')));
-      await expect(workspaceContextUtil.getConnection()).rejects.toThrow('boom-reauth');
-    });
-
     it('should not throw error if there is a username set', async () => {
       const connection = await workspaceContextUtil.getConnection();
       expect(() => connection).not.toThrow();

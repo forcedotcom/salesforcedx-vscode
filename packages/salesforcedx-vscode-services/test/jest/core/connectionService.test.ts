@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
+import { ChannelService } from '../../../src/vscode/channelService';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
 const USERNAME = 'expired@test.com';
@@ -22,11 +23,11 @@ const ALIAS = 'ExpiredOrg';
 const INSTANCE_URL = 'https://expired.my.salesforce.com';
 const LOGIN_BUTTON = 'Login';
 
-const mockConfigService = (): Layer.Layer<ConfigService> =>
+const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<ConfigService> =>
   Layer.succeed(
     ConfigService,
     ConfigService.make({
-      getConfigAggregator: () => Effect.succeed({} as never),
+      getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => targetOrg } as never),
       invalidateConfigAggregator: () => Effect.void,
       getTargetDevHub: () => Effect.succeed(undefined),
       isCurrentTargetOrg: () => Effect.succeed(false),
@@ -51,10 +52,25 @@ const mockAliasService = (aliases: string[]): Layer.Layer<AliasService> =>
     })
   );
 
-const buildLayer = (aliases: string[] = [ALIAS]) =>
+// Mock ChannelService directly rather than the real module-scoped OutputChannel cache (infinite TTL),
+// which would leak the first test's channel object across the whole run.
+const channelAppend = jest.fn();
+const channelShowMock = jest.fn();
+const mockChannelService = (): Layer.Layer<ChannelService> =>
+  Layer.succeed(
+    ChannelService,
+    ChannelService.make({
+      getChannel: Effect.succeed({} as never),
+      showChannel: Effect.sync(() => channelShowMock()),
+      clearChannel: Effect.void,
+      appendToChannel: (message: string) => Effect.sync(() => channelAppend(message))
+    })
+  );
+
+const buildLayer = (targetOrg: string | undefined = ALIAS) =>
   Layer.provide(
     ConnectionService.DefaultWithoutDependencies,
-    Layer.mergeAll(mockConfigService(), mockSettingsService(), mockAliasService(aliases))
+    Layer.mergeAll(mockConfigService(targetOrg), mockSettingsService(), mockAliasService([ALIAS]), mockChannelService())
   );
 
 type ConnOverrides = {
@@ -75,17 +91,8 @@ const makeConn = ({ isAccessTokenFlow = true, identity, username = USERNAME }: C
 describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   let showErrorMessageSpy: jest.SpyInstance;
   let executeCommandSpy: jest.SpyInstance;
-  let createOutputChannelSpy: jest.SpyInstance;
-  let channelAppendLine: jest.Mock;
-  let channelShow: jest.Mock;
 
   beforeEach(() => {
-    channelAppendLine = jest.fn();
-    channelShow = jest.fn();
-    // resetMocks wipes the createOutputChannel impl the module-level channel cache relies on
-    createOutputChannelSpy = jest
-      .spyOn(vscode.window, 'createOutputChannel')
-      .mockReturnValue({ appendLine: channelAppendLine, show: channelShow, clear: jest.fn() } as never);
     showErrorMessageSpy = jest.spyOn(vscode.window, 'showErrorMessage').mockResolvedValue(undefined);
     executeCommandSpy = jest.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined);
   });
@@ -143,10 +150,9 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
       LOGIN_BUTTON
     );
     expect(executeCommandSpy).toHaveBeenCalledWith('sf.org.login.web', INSTANCE_URL, ALIAS);
-    // logs to the services-owned 'Salesforce Services' channel (default ChannelService) and reveals it
-    expect(createOutputChannelSpy).toHaveBeenCalledWith('Salesforce Services');
-    expect(channelAppendLine).toHaveBeenCalledWith(expect.stringContaining('Error refreshing access token'));
-    expect(channelShow).toHaveBeenCalled();
+    // logs the reauth error to the channel and reveals it
+    expect(channelAppend).toHaveBeenCalledWith(expect.stringContaining('Error refreshing access token'));
+    expect(channelShowMock).toHaveBeenCalled();
   });
 
   it('falls back to username when no alias exists', async () => {
@@ -154,8 +160,9 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
     const conn = makeConn({ identity });
     showErrorMessageSpy.mockResolvedValue(LOGIN_BUTTON);
 
+    // target-org configured as the raw username (no alias) → dispatch falls back to the username
     await Effect.runPromiseExit(
-      ConnectionService.validateAccessTokenOrPromptReauth(conn).pipe(Effect.provide(buildLayer([])))
+      ConnectionService.validateAccessTokenOrPromptReauth(conn).pipe(Effect.provide(buildLayer(USERNAME)))
     );
 
     expect(executeCommandSpy).toHaveBeenCalledWith('sf.org.login.web', INSTANCE_URL, USERNAME);
@@ -175,19 +182,21 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
     expect(executeCommandSpy).not.toHaveBeenCalled();
   });
 
-  it('post-failure retries cleanly (failure TTL zero re-runs identity on next call)', async () => {
+  it('does not re-nag: a still-cached failed Connection is not re-validated on the next call (one modal per session)', async () => {
     const identity = jest.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
+    showErrorMessageSpy.mockResolvedValue(undefined);
 
     await Effect.runPromiseExit(
       Effect.gen(function* () {
         yield* Effect.exit(ConnectionService.validateAccessTokenOrPromptReauth(conn));
-        // failure TTL is Duration.zero; advance real time past the load instant so the entry is evicted
         yield* Effect.sleep(Duration.millis(5));
+        // same Connection object → cached failure retained → no re-validate, no repeat modal
         yield* Effect.exit(ConnectionService.validateAccessTokenOrPromptReauth(conn));
       }).pipe(Effect.provide(buildLayer()))
     );
 
-    expect(identity).toHaveBeenCalledTimes(2);
+    expect(identity).toHaveBeenCalledTimes(1);
+    expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
   });
 });
