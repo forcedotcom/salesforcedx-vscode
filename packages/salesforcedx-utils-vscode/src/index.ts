@@ -8,11 +8,7 @@
 export { ChannelService } from './commands/channelService';
 export { notificationService } from './commands/notificationService';
 export { ProgressNotification } from './commands/progressNotification';
-export {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
-  type FlagParameter
-} from './commands/parameterGatherers';
+export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigUtil } from './config/configUtil';
@@ -34,7 +30,7 @@ export { fileExtensionsMatch, projectPaths } from './helpers/paths';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
 export type { SharedAuthState } from './helpers/authUtils';
-export { getTargetOrgOrAlias, getTargetDevHubOrAlias, getOrgApiVersion } from './util/authInfo';
+export { getTargetOrgOrAlias, getTargetDevHubOrAlias } from './util/authInfo';
 export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
 
