@@ -142,29 +142,37 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     if (!element) {
       // Both OFF = empty tree (explicit "show nothing" state)
       if (!provider.showLocal && !provider.showOrg) {
+        yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', true));
         return [];
       }
 
       const types = yield* metadataDescribeService.describe();
       const allNodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
 
-      // Both ON = show everything
-      if (provider.showLocal && provider.showOrg) {
-        return allNodes.filter(node => passesTypeFilter(node, provider));
-      }
+      const result = yield* (() => {
+        // Both ON = show everything
+        if (provider.showLocal && provider.showOrg) {
+          return Effect.succeed(allNodes.filter(node => passesTypeFilter(node, provider)));
+        }
+        // localOnly mode: show only types that have local source files
+        if (provider.showLocal && !provider.showOrg) {
+          return Effect.gen(function* () {
+            const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+            const localTypeNames = new Set<string>(
+              Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
+            );
+            return allNodes.filter(node => localTypeNames.has(node.xmlName) && passesTypeFilter(node, provider));
+          });
+        }
+        // orgOnly mode: show all types (all types exist in the org by definition)
+        // Child-level filtering will hide components with local files
+        return Effect.succeed(allNodes.filter(node => passesTypeFilter(node, provider)));
+      })();
 
-      // localOnly mode: show only types that have local source files
-      if (provider.showLocal && !provider.showOrg) {
-        const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-        const localTypeNames = new Set<string>(
-          Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
-        );
-        return allNodes.filter(node => localTypeNames.has(node.xmlName) && passesTypeFilter(node, provider));
-      }
-
-      // orgOnly mode: show all types (all types exist in the org by definition)
-      // Child-level filtering will hide components with local files
-      return allNodes.filter(node => passesTypeFilter(node, provider));
+      yield* Effect.promise(() =>
+        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', result.length === 0)
+      );
+      return result;
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
