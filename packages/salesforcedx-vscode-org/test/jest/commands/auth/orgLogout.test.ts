@@ -6,91 +6,185 @@
  */
 
 import { AuthRemover } from '@salesforce/core';
-import {
-  ExtensionProviderService,
-  type ExtensionProviderService as ExtensionProviderServiceType
-} from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import { OrgLogoutDefault } from '../../../../src/commands/auth/orgLogout';
-import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
+import * as Exit from 'effect/Exit';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { orgLogoutDefaultCommand } from '../../../../src/commands/auth/orgLogout';
+import { makeConfirmOrThrow, UserCancellationError } from '../../testHelpers/promptServiceStub';
 
-jest.mock('../../../../src/telemetry', () => ({
-  telemetryService: { sendException: jest.fn() }
+const mockUpdateConfigAndStateAggregatorsEffect = jest.fn<Effect.Effect<void, never, never>, []>(() => Effect.void);
+jest.mock('../../../../src/util/orgUtil', () => ({
+  updateConfigAndStateAggregatorsEffect: () => mockUpdateConfigAndStateAggregatorsEffect()
 }));
 
-jest.mock('../../../../src/channels', () => ({
-  OUTPUT_CHANNEL: {}
-}));
+type OrgSnapshot = { username?: string; isScratch?: boolean; aliases?: readonly string[] };
 
-describe('OrgLogoutDefault', () => {
+const buildServices = (opts: {
+  isProject: boolean;
+  confirm: boolean;
+  orgInfo: OrgSnapshot;
+  isCurrentTargetOrg: boolean;
+  unsetTargetOrg: jest.Mock;
+}) => ({
+  ProjectService: {
+    getSfProject: () =>
+      opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
+  },
+  PromptService: Effect.succeed({ confirmOrThrow: makeConfirmOrThrow(opts.confirm) }),
+  WorkspaceService: {
+    getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' })
+  },
+  ConfigService: {
+    isCurrentTargetOrg: () => Effect.succeed(opts.isCurrentTargetOrg),
+    unsetTargetOrg: opts.unsetTargetOrg
+  },
+  TargetOrgRef: () => SubscriptionRef.make(opts.orgInfo),
+  UserCancellationError
+});
+
+const run = (opts: {
+  isProject: boolean;
+  confirm: boolean;
+  orgInfo: OrgSnapshot;
+  isCurrentTargetOrg?: boolean;
+  unsetTargetOrg: jest.Mock;
+}) =>
+  Effect.runPromiseExit(
+    orgLogoutDefaultCommand().pipe(
+      Effect.provideService(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({ services: buildServices({ isCurrentTargetOrg: true, ...opts }) })
+      } as unknown as ExtensionProviderService)
+    ) as Effect.Effect<void, unknown, never>
+  );
+
+describe('orgLogoutDefaultCommand', () => {
   let removeAuthMock: jest.Mock;
   let unsetTargetOrgMock: jest.Mock;
-  let isCurrentTargetOrgMock: jest.Mock;
-
-  const buildLayer = () => {
-    const mockServicesApi = {
-      services: {
-        ConfigService: {
-          isCurrentTargetOrg: isCurrentTargetOrgMock,
-          unsetTargetOrg: unsetTargetOrgMock
-        }
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    return Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
-  };
+  let showInformationMessageMock: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     removeAuthMock = jest.fn().mockResolvedValue(undefined);
     jest.spyOn(AuthRemover, 'create').mockResolvedValue({
       removeAuth: removeAuthMock
     } as unknown as AuthRemover);
-
     unsetTargetOrgMock = jest.fn().mockReturnValue(Effect.void);
-    isCurrentTargetOrgMock = jest.fn().mockReturnValue(Effect.succeed(true));
-
-    resetOrgRuntimeForTesting();
-    setAllServicesLayer(
-      buildLayer() as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
-    );
+    mockUpdateConfigAndStateAggregatorsEffect.mockReturnValue(Effect.void);
+    showInformationMessageMock = jest.spyOn(notificationService, 'showInformationMessage').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it('clears the target-org ref in-process when the logged-out org was the target', async () => {
+  it('logs out a non-scratch default org, refreshes, and clears the target-org ref', async () => {
     const username = 'user@example.com';
-    const result = await new OrgLogoutDefault().run({ type: 'CONTINUE', data: username });
+    const exit = await run({
+      isProject: true,
+      confirm: true,
+      orgInfo: { username, aliases: ['myOrg'] },
+      unsetTargetOrg: unsetTargetOrgMock
+    });
 
-    expect(result).toBe(true);
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(AuthRemover.create).toHaveBeenCalledWith({ projectPath: '/workspace', skipCache: true });
     expect(removeAuthMock).toHaveBeenCalledWith(username);
-    // in-process ref clear (not the async config-file watcher) is what clears the apex-testing tree
+    expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
+    // in-process ref clear (not the async config-file watcher) is what clears the apex-testing tree (#7624)
     expect(unsetTargetOrgMock).toHaveBeenCalledTimes(1);
   });
 
-  it('does not clear the ref when the logged-out org was not the target', async () => {
-    isCurrentTargetOrgMock.mockReturnValue(Effect.succeed(false));
-    const username = 'other@example.com';
-    const result = await new OrgLogoutDefault().run({ type: 'CONTINUE', data: username });
+  it('does not clear the ref when the logged-out org was not the current target', async () => {
+    const username = 'user@example.com';
+    const exit = await run({
+      isProject: true,
+      confirm: true,
+      orgInfo: { username },
+      isCurrentTargetOrg: false,
+      unsetTargetOrg: unsetTargetOrgMock
+    });
 
-    expect(result).toBe(true);
+    expect(Exit.isSuccess(exit)).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
+    expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
     // logging out a non-target org must leave the current target-org (and its ref) intact
     expect(unsetTargetOrgMock).not.toHaveBeenCalled();
   });
 
-  it('returns false and does not throw when removeAuth rejects', async () => {
-    const username = 'user@example.com';
-    removeAuthMock.mockRejectedValue(new Error('removal failed'));
+  it('logs out a scratch default org after the confirm prompt is accepted', async () => {
+    const username = 'scratch@example.com';
+    const exit = await run({
+      isProject: true,
+      confirm: true,
+      orgInfo: { username, isScratch: true, aliases: ['myScratch'] },
+      unsetTargetOrg: unsetTargetOrgMock
+    });
 
-    const result = await new OrgLogoutDefault().run({ type: 'CONTINUE', data: username });
-
-    expect(result).toBe(false);
+    expect(Exit.isSuccess(exit)).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
+    expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
+    expect(unsetTargetOrgMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels (no removeAuth/refresh/ref-clear) when the scratch confirm modal is declined', async () => {
+    const exit = await run({
+      isProject: true,
+      confirm: false,
+      orgInfo: { username: 'scratch@example.com', isScratch: true },
+      unsetTargetOrg: unsetTargetOrgMock
+    });
+
+    // cancellation is caught and turned into a no-op success
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(removeAuthMock).not.toHaveBeenCalled();
+    expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
+    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+  });
+
+  it('shows an info message (no removeAuth/refresh/ref-clear) when there is no default org', async () => {
+    const exit = await run({
+      isProject: true,
+      confirm: true,
+      orgInfo: {},
+      unsetTargetOrg: unsetTargetOrgMock
+    });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(showInformationMessageMock).toHaveBeenCalledTimes(1);
+    expect(removeAuthMock).not.toHaveBeenCalled();
+    expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
+    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+  });
+
+  it('fails the precondition (no removeAuth) when not in a project', async () => {
+    const exit = await run({
+      isProject: false,
+      confirm: true,
+      orgInfo: { username: 'user@example.com' },
+      unsetTargetOrg: unsetTargetOrgMock
+    });
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
+    expect(removeAuthMock).not.toHaveBeenCalled();
+    expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
+    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+  });
+
+  it('fails with OrgLogoutError (no refresh/ref-clear) when removeAuth rejects', async () => {
+    removeAuthMock.mockRejectedValue(new Error('removal failed'));
+    const exit = await run({
+      isProject: true,
+      confirm: true,
+      orgInfo: { username: 'user@example.com' },
+      unsetTargetOrg: unsetTargetOrgMock
+    });
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgLogoutError');
+    expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
     expect(unsetTargetOrgMock).not.toHaveBeenCalled();
   });
 });
