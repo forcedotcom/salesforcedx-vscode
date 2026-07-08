@@ -29,6 +29,7 @@ const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<C
     ConfigService.make({
       getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => targetOrg } as never),
       invalidateConfigAggregator: () => Effect.void,
+      getTargetOrg: () => Effect.succeed(targetOrg),
       getTargetDevHub: () => Effect.succeed(undefined),
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),

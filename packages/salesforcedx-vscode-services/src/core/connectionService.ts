@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
@@ -234,9 +234,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       yield* channelService.showChannel;
       // Pass the configured target-org-or-alias (matching the old WorkspaceContextUtil behavior) so the
       // reauthed org keeps its existing alias, rather than an arbitrary first-registered alias.
-      const targetOrgOrAlias = yield* configService
-        .getConfigAggregator()
-        .pipe(Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)));
+      const targetOrgOrAlias = yield* configService.getTargetOrg();
       const alias = targetOrgOrAlias && targetOrgOrAlias !== username ? targetOrgOrAlias : undefined;
       const loginButton = nls.localize('error_access_token_expired_login_button');
       const selection = yield* Effect.promise(() =>
@@ -263,14 +261,11 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(e => promptReauth(conn, username, e)));
     });
 
-    // Coordinates access-token reauth. Keyed by the live Connection (reference identity) so N concurrent
-    // callers sharing one cached Connection collapse to a SINGLE in-flight lookup (Cache dedup) → one modal,
-    // while a recreated Connection (post-invalidation) is a fresh key that revalidates. Success TTL 30min
-    // replaces the old 5-min revalidation throttle. Failure entries are ALSO retained (same TTL) — this is
-    // the reference-keyed equivalent of the old "known bad connection" set: it preserves the "one modal per
-    // username per session" invariant so a still-cached expired Connection is not re-validated (and the user
-    // re-nagged) on every subsequent getConnection. After reauth, invalidateCachedConnections yields a fresh
-    // Connection = fresh key, so the retry happens against the new object rather than the known-bad one.
+    // Coordinates access-token reauth, keyed by the live Connection (reference identity): N concurrent
+    // callers sharing one cached Connection collapse to a SINGLE in-flight lookup (Cache dedup) → one modal.
+    // Both success and failure entries are retained for the TTL, so a still-cached expired Connection is not
+    // re-validated (and the user re-nagged) on every getConnection — one modal per Connection. Reauth runs
+    // invalidateCachedConnections, yielding a fresh Connection = fresh key, so the retry validates the new object.
     const reauthCache = yield* Cache.makeWith({
       capacity: 100,
       timeToLive: () => Duration.minutes(30),
@@ -301,8 +296,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
-            const usernameOrAlias = yield* configService.getConfigAggregator().pipe(
-              Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
+            const usernameOrAlias = yield* configService.getTargetOrg().pipe(
               Effect.filterOrFail(
                 targetOrg => targetOrg != null,
                 () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
