@@ -52,6 +52,7 @@ const writeOrgInfoToChannel = Effect.fn('orgDisplay.writeOrgInfoToChannel')(func
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* (yield* api.services.PromptService).confirmOrThrow({
     message: nls.localize('org_display_access_warning'),
+    detail: nls.localize('org_display_access_warning_detail'),
     confirmLabel: nls.localize('org_display_continue_label')
   });
   const channel = yield* api.services.ChannelService;
