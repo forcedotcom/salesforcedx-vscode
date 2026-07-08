@@ -16,8 +16,7 @@ import * as vscode from 'vscode';
 import {
   DEFAULT_ALIAS,
   gatherAccessTokenParams,
-  gatherAuthParams,
-  ScratchOrgLogoutParamsGatherer
+  gatherAuthParams
 } from '../../../../src/commands/auth/authParamsGatherer';
 import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
 import { nls } from '../../../../src/messages';
@@ -156,20 +155,6 @@ describe('AuthParamsGatherer', () => {
       expect(validateAlias?.('bad;alias')).toBe(nls.localize('error_invalid_org_alias'));
       expect(validateAlias?.('GoodAlias')).toBeUndefined();
       expect(validateAlias?.('')).toBeUndefined();
-    });
-  });
-
-  describe('ScratchOrgLogoutParamsGatherer', () => {
-    it('CONTINUE with the username when confirmed', async () => {
-      useLayer(true);
-      const result = await new ScratchOrgLogoutParamsGatherer('user@example.com', 'myScratch').gather();
-      expect(result).toEqual({ type: 'CONTINUE', data: 'user@example.com' });
-    });
-
-    it('CANCEL when the confirmation is dismissed', async () => {
-      useLayer(false);
-      const result = await new ScratchOrgLogoutParamsGatherer('user@example.com', 'myScratch').gather();
-      expect(result).toEqual({ type: 'CANCEL' });
     });
   });
 });

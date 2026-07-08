@@ -8,6 +8,7 @@
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
+  clickOrgPickerStatusBar,
   closeWelcomeTabs,
   createMinimalOrg,
   createThrowawayOrg,
@@ -16,6 +17,7 @@ import {
   execAsync,
   executeCommandWithCommandPalette,
   expectOrgPickerListsOrg,
+  expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_LIST_ROW,
@@ -34,6 +36,12 @@ import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixture
 // `channel_name` from salesforcedx-vscode-org/src/messages/i18n.ts (orgDisplay writes its table here).
 const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 
+// Second throwaway org for the default-logout step: set AS the workspace default, then logged out via
+// sf.org.logout.default. Distinct from THROWAWAY_ORG_ALIAS (consumed by the logout.all step) and never
+// MINIMAL_ORG_ALIAS. This exercises the "logged-out org is also the current default" path (the in-process
+// ref clear that clearOnLogout guards, W-23069609) — the logout.all step never sets its org as default.
+const DEFAULT_LOGOUT_ORG_ALIAS = 'logoutDefaultThrowawayOrg';
+
 // Exercises the three migrated org pickers (Effect + PromptService.considerUndefinedAsCancellation):
 //   - selectOrgForDisplay (single-pick)  -> sf.org.display.username
 //   - selectDeletableOrg (multi-pick + confirm) -> sf.org.delete.username
@@ -46,11 +54,13 @@ const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 test('org pickers: display, delete, logout pick + confirm + cancel flows', async ({ page }) => {
   test.setTimeout(180_000);
 
-  await test.step('setup scratch default org + throwaway logout org', async () => {
+  await test.step('setup scratch default org + throwaway logout orgs', async () => {
     const createResult = await createMinimalOrg();
-    // Dedicated throwaway org for the real-logout step; never MINIMAL_ORG_ALIAS (shared with siblings
+    // Dedicated throwaway org for the real logout.all step; never MINIMAL_ORG_ALIAS (shared with siblings
     // + relied on staying authed by the cancel steps). Authed on disk so the logout picker lists it.
     await createThrowawayOrg();
+    // Second throwaway for the logout.default step (set AS default, then logged out).
+    await createThrowawayOrg(DEFAULT_LOGOUT_ORG_ALIAS);
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
@@ -150,6 +160,26 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     ).toHaveCount(0, { timeout: 15_000 });
     await page.keyboard.press('Escape');
     await expect(page.locator(QUICK_INPUT_WIDGET)).toBeHidden({ timeout: 10_000 });
+  });
+
+  // Real logout of the CURRENT DEFAULT org via sf.org.logout.default (W-23069609). Set the dedicated
+  // second throwaway AS the default first (so removeAuth unsets the current default — the path that
+  // must clear the in-process ref), confirm the scratch modal, then assert removal durably via the CLI.
+  // Sequenced last: it leaves the workspace with no default org. MINIMAL_ORG_ALIAS stays authed.
+  await test.step('LOGOUT DEFAULT real: confirm removes auth for the default org', async () => {
+    // Switch default from the fixture's MINIMAL org to the throwaway via the picker.
+    await clickOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
+    await expectOrgPickerListsOrg(page, DEFAULT_LOGOUT_ORG_ALIAS);
+    await selectOrgInPicker(page, DEFAULT_LOGOUT_ORG_ALIAS);
+    await expectOrgPickerStatusBar(page, DEFAULT_LOGOUT_ORG_ALIAS);
+
+    await executeCommandWithCommandPalette(page, packageNls.org_logout_default_text);
+    // Throwaway is a scratch org -> confirm the scratch modal (do NOT Escape) so removeAuth runs.
+    await clickModalButton(page, 'Logout');
+    await expectNoErrorNotification(page);
+
+    // Durable signal: poll the CLI until the default org is no longer authorized.
+    await expectOrgLoggedOut(DEFAULT_LOGOUT_ORG_ALIAS);
   });
 });
 
