@@ -132,7 +132,11 @@ class QuickLaunch {
 
 export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   await vscode.window.withProgress(
-    { location: vscode.ProgressLocation.Notification, title: nls.localize('debug_test_exec_name'), cancellable: false },
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Running ${nls.localize('debug_test_exec_name')}`,
+      cancellable: false
+    },
     () => new QuickLaunch().debugTest(className, methodName)
   );
 };
