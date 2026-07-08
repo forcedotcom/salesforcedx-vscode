@@ -97,8 +97,8 @@ test('Org Browser - filter toggles: filter state persists across reload', async 
   await test.step('reload window', async () => {
     await reloadWindow(page);
     await waitForVSCodeWorkbench(page);
-    // Web mode: wait longer for extension to activate and set sf:has_target_org context
-    await page.waitForTimeout(3000);
+    // Web mode: wait longer for extension to activate and set context keys
+    await page.waitForTimeout(10_000);
   });
 
   await test.step('verify showLocal remains OFF after reload', async () => {
