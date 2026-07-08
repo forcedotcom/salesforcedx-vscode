@@ -7,14 +7,10 @@
 
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { nls } from '../messages';
 import { gatherOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { OrgInfo } from '../types/orgInfo';
 import { getOrgInfoEffect, orgInfoFromConnection } from '../util/orgDisplay';
-
-/** Shared sensitive-info warning shown before the org-details table (both display paths). */
-const ACCESS_WARNING = `Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.
-Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.
-For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.`;
 
 const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
   const columns: Column[] = [
@@ -50,12 +46,16 @@ const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
   return createTable(rows, columns, 'Org Description');
 };
 
-/** Write the sensitive-info warning followed by the org-details table to the output channel. */
+/** Gate the org-details table behind a modal sensitive-info confirmation; Cancel aborts with
+ * UserCancellationError (silently swallowed at the command boundary), so no org info is shown. */
 const writeOrgInfoToChannel = Effect.fn('orgDisplay.writeOrgInfoToChannel')(function* (orgInfo: OrgInfo) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* (yield* api.services.PromptService).confirmOrThrow({
+    message: nls.localize('org_display_access_warning'),
+    detail: nls.localize('org_display_access_warning_detail'),
+    confirmLabel: nls.localize('org_display_continue_label')
+  });
   const channel = yield* api.services.ChannelService;
-  yield* channel.appendToChannel(ACCESS_WARNING);
-  yield* channel.appendToChannel('');
   yield* channel.appendToChannel(formatOrgInfoAsTable(orgInfo));
   yield* channel.showChannel;
 });
@@ -63,7 +63,8 @@ const writeOrgInfoToChannel = Effect.fn('orgDisplay.writeOrgInfoToChannel')(func
 /**
  * Effect command for `sf.org.display.default`: derive the default org's `Connection` via
  * `ConnectionService.getConnection()` (no username resolution — the connection carries the
- * username), derive `OrgInfo` from it, and write the warning + details table to the channel.
+ * username), derive `OrgInfo` from it, then gate the details table behind the modal sensitive-info
+ * confirmation before writing it to the channel.
  */
 export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -79,9 +80,9 @@ export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(fu
 });
 
 /**
- * Effect command for `sf.org.display.username`: pick an authed org, then write its details table
- * (preceded by the sensitive-info warning) to the output channel. Resolves `OrgInfo` for the
- * picked username directly (ConnectionService only resolves the default org).
+ * Effect command for `sf.org.display.username`: pick an authed org, then gate its details table
+ * behind the modal sensitive-info confirmation before writing it to the output channel. Resolves
+ * `OrgInfo` for the picked username directly (ConnectionService only resolves the default org).
  */
 export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

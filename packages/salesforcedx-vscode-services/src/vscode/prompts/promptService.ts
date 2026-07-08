@@ -71,9 +71,10 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
     const confirmOrThrow = Effect.fn('PromptService.confirmOrThrow')(function* (params: {
       readonly message: string;
       readonly confirmLabel: string;
+      readonly detail?: string;
     }) {
       const choice = yield* Effect.promise(() =>
-        vscode.window.showWarningMessage(params.message, { modal: true }, params.confirmLabel)
+        vscode.window.showWarningMessage(params.message, { modal: true, detail: params.detail }, params.confirmLabel)
       );
       if (choice !== params.confirmLabel)
         return yield* new UserCancellationError({ message: 'User cancelled confirmation' });

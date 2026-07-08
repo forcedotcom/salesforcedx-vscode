@@ -6,6 +6,7 @@
  */
 
 import {
+  clickModalDialogButton,
   closeWelcomeTabs,
   createMinimalOrg,
   ensureSecondarySideBarHidden,
@@ -16,6 +17,7 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
+import { nls } from '../../../src/messages';
 import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
 
 // e2e-COVERED: SFDX: Display Org Details for Default Org against a real scratch default org.
@@ -43,6 +45,11 @@ test('org extension: SFDX: Display Org Details for Default Org logs the org tabl
 
   await test.step('run Display Org Details for Default Org', async () => {
     await executeCommandWithCommandPalette(page, packageNls.org_display_default_text);
+  });
+
+  await test.step('confirm the sensitive-info modal', async () => {
+    // the sensitive-info modal now gates the table; confirm it (Continue) so the table is written.
+    await clickModalDialogButton(page, nls.localize('org_display_continue_label'), 10_000);
   });
 
   await test.step('assert org table in output channel', async () => {
