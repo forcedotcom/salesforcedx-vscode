@@ -17,7 +17,7 @@ ALWAYS operate inside the parent's current working directory. NEVER edit absolut
 ## Scope
 
 - **In scope**: .claude/skills/, .claude/agents/, .cursor/rules/, docs/, contributing/, packages/\*\*/README.md; **comments in changed src** (\*.ts/\*.tsx) per Responsibility 1 — the `**/*.ts` trigger sends this agent to fix code comments too. Only touch comments on/adjacent to changed lines; never edit src logic.
-- **Excluded**: **/\*.plan.md, **/plan.md
+- **Excluded**: .claude/plans/\*\* (plans are named `W-*.md`, not just `*.plan.md` — never rewrite them), **/\*.plan.md, **/plan.md
 
 ## Responsibilities (priority order)
 
