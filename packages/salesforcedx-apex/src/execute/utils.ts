@@ -16,6 +16,7 @@ const xmlCharMap: { [key: string]: string } = {
 
 const escapeXml = (data: string): string => data.replaceAll(/[<>&'\"]/g, (char: string) => xmlCharMap[char]);
 
+// Encodes request body with SOAP envelope and explicit DebuggingHeader: Apex_code=Finest, Visualforce=Finer
 export function encodeBody(accessToken: string, data: string): string {
   const escapedData = escapeXml(data);
 
@@ -27,7 +28,10 @@ xmlns:apex="http://soap.sforce.com/2006/08/apex">
         <cmd:SessionHeader>
             <cmd:sessionId>${accessToken}</cmd:sessionId>
         </cmd:SessionHeader>
-        <apex:DebuggingHeader><apex:debugLevel>DEBUGONLY</apex:debugLevel></apex:DebuggingHeader>
+        <apex:DebuggingHeader>
+            <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
+            <apex:categories><apex:category>Visualforce</apex:category><apex:level>Finer</apex:level></apex:categories>
+        </apex:DebuggingHeader>
     </env:Header>
     <env:Body>
         <${action} xmlns="http://soap.sforce.com/2006/08/apex">
