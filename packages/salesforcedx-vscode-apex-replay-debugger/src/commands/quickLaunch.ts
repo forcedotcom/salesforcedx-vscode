@@ -15,17 +15,11 @@ import {
 } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import {
-  ContinueResponse,
-  LibraryCommandletExecutor,
-  notificationService,
-  projectPaths,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
+import * as vscode from 'vscode';
 import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpointService';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
 import { getRuntime } from '../services/runtime';
@@ -77,7 +71,7 @@ class QuickLaunch {
         return true;
       }
     } else if (testResult.message) {
-      notificationService.showErrorMessage(testResult.message);
+      void vscode.window.showErrorMessage(testResult.message);
     }
     return false;
   }
@@ -136,30 +130,9 @@ class QuickLaunch {
   }
 }
 
-class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
-  constructor() {
-    super(nls.localize('debug_test_exec_name'), 'debug_test_replay_debugger', OUTPUT_CHANNEL);
-  }
-
-  public async run(response: ContinueResponse<string[]>): Promise<boolean> {
-    if (!response.data) {
-      return false;
-    }
-
-    const className = response.data[0];
-    const methodName = response.data[1];
-    const quickLaunch = new QuickLaunch();
-    const success = await quickLaunch.debugTest(className, methodName);
-
-    return success;
-  }
-}
-
 export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
-  const executor = new TestDebuggerExecutor();
-  const response: ContinueResponse<string[]> = {
-    type: 'CONTINUE',
-    data: [className, methodName].filter((f): f is string => f !== undefined)
-  };
-  await executor.execute(response);
+  await vscode.window.withProgress(
+    { location: vscode.ProgressLocation.Notification, title: nls.localize('debug_test_exec_name'), cancellable: false },
+    () => new QuickLaunch().debugTest(className, methodName)
+  );
 };
