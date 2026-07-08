@@ -45,7 +45,8 @@ export const messages = {
   error_access_token_expired: 'Access token expired or invalid.',
   error_access_token_expired_detail:
     'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.  See the output channel for more details on the auth error',
-  error_access_token_expired_login_button: 'Login'
+  error_access_token_expired_login_button: 'Login',
+  error_access_token_refresh_failed: 'Unable to refresh your access token.  Please login again.'
 } as const;
 
 export type MessageKey = keyof typeof messages;
