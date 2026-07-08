@@ -20,7 +20,7 @@ All destinations below are spans / span attributes. No entry is a "log".
 
 ## `apexLSPLog` export mechanism (the decision this ADR settles)
 
-`client.onTelemetry` fires once per Jorje feature event. `apexLspTelemetryAllowlist.ts` enumerates the Jorje feature names (`JORJE_LSP_TELEMETRY_FEATURES_FROM_SOURCE`, lines 16-67), and `BLOCKED_APEX_LSP_TELEMETRY_FEATURES` (lines 74-108) strips the per-request / high-volume paths — hover, completion strategies, document lifecycle, etc. — so that only lower-volume features flow to App Insights via `isApexLspTelemetryAllowed` (line 119). This volume bound is load-bearing and the migration must preserve it.
+`client.onTelemetry` fires once per Jorje feature event. `apexLspTelemetryAllowlist.ts` enumerates the Jorje feature names (`JORJE_LSP_TELEMETRY_FEATURES_FROM_SOURCE`, lines 16-65), and `BLOCKED_APEX_LSP_TELEMETRY_FEATURES` (lines 74-108) strips the per-request / high-volume paths — hover, completion strategies, document lifecycle, etc. — so that only lower-volume features flow to App Insights via `isApexLspTelemetryAllowed` (line 119). This volume bound is load-bearing and the migration must preserve it.
 
 - **Do NOT make each `apexLSPLog` event its own top-level span.** Top-level spans ship to App Insights automatically; the many allowlisted features firing repeatedly would reintroduce exactly the volume the blocked-features list exists to suppress.
 
