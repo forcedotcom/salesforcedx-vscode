@@ -14,12 +14,12 @@ import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
 import { getOrgShape } from './workspaceOrgShape';
 
-const getConnectionEffect = Effect.fn('workspaceContext.getConnection')(function* () {
+const getConnection = Effect.fn('workspaceContext.getConnection')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* api.services.ConnectionService.getConnection();
 });
 
-const getDevHubIdEffect = Effect.fn('workspaceContext.getDevHubId')(function* () {
+const getDevHubId = Effect.fn('workspaceContext.getDevHubId')(function* () {
   const info = yield* getDefaultOrgInfo();
   return info.devHubOrgId;
 });
@@ -63,7 +63,7 @@ export class WorkspaceContext {
   // @deprecated. Use getConnection from the Services extension.
   // maintained for backward compatibility for 2PP using vscode-core API
   public async getConnection(): Promise<Connection> {
-    return getRuntime().runPromise(getConnectionEffect());
+    return getRuntime().runPromise(getConnection());
   }
 
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
@@ -74,8 +74,7 @@ export class WorkspaceContext {
         WorkspaceContextUtil.getInstance().orgShape = orgShape;
         WorkspaceContextUtil.getInstance().devHubId = undefined;
         try {
-          // in-repo: call ConnectionService directly (avoid utils facade round-trip)
-          const connection = await getRuntime().runPromise(getConnectionEffect());
+          const connection = await this.getConnection();
           WorkspaceContextUtil.getInstance().orgEdition = connection.getAuthInfoFields().orgEdition;
         } catch {
           /* best effort — orgEdition may not yet be populated */
@@ -83,7 +82,7 @@ export class WorkspaceContext {
       }
       if (orgShape === 'Scratch') {
         const devHubId = await getRuntime().runPromise(
-          getDevHubIdEffect().pipe(Effect.catchAll(() => Effect.succeed(undefined)))
+          getDevHubId().pipe(Effect.catchAll(() => Effect.succeed(undefined)))
         );
         WorkspaceContextUtil.getInstance().devHubId = devHubId;
       }
