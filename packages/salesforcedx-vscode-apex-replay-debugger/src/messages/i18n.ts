@@ -53,6 +53,7 @@ export const messages = {
   channel_name: 'Apex Replay Debugger',
   apex_execute_text: 'Execute Anonymous Apex',
   apex_execute_debug_failed: 'Execute anonymous failed: %s',
+  apex_execute_debug_success: 'Execute Anonymous Apex successfully ran',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:
