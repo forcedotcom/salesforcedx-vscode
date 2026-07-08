@@ -62,7 +62,8 @@ const writeOrgInfoToChannel = Effect.fn('orgDisplay.writeOrgInfoToChannel')(func
 /**
  * Effect command for `sf.org.display.default`: derive the default org's `Connection` via
  * `ConnectionService.getConnection()` (no username resolution — the connection carries the
- * username), derive `OrgInfo` from it, and write the warning + details table to the channel.
+ * username), derive `OrgInfo` from it, then gate the details table behind the modal sensitive-info
+ * confirmation before writing it to the channel.
  */
 export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -78,9 +79,9 @@ export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(fu
 });
 
 /**
- * Effect command for `sf.org.display.username`: pick an authed org, then write its details table
- * (preceded by the sensitive-info warning) to the output channel. Resolves `OrgInfo` for the
- * picked username directly (ConnectionService only resolves the default org).
+ * Effect command for `sf.org.display.username`: pick an authed org, then gate its details table
+ * behind the modal sensitive-info confirmation before writing it to the output channel. Resolves
+ * `OrgInfo` for the picked username directly (ConnectionService only resolves the default org).
  */
 export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
