@@ -49,17 +49,25 @@ const UserCancellationError = class extends Error {
   public readonly _tag = 'UserCancellationError';
 };
 
-const buildServices = (opts: {
+type CommandOpts = {
   isProject: boolean;
   getConnection: Effect.Effect<Connection, unknown>;
   appendToChannel: jest.Mock;
   show: jest.Mock;
-}) => ({
+  /** whether the modal sensitive-info confirm is accepted (default true); false → UserCancellationError */
+  confirm?: boolean;
+};
+
+const buildServices = (opts: CommandOpts) => ({
   ProjectService: {
     getSfProject: () =>
       opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
   ConnectionService: { getConnection: () => opts.getConnection },
+  PromptService: Effect.succeed({
+    confirmOrThrow: () =>
+      opts.confirm === false ? Effect.fail(new UserCancellationError()) : Effect.succeed(undefined)
+  }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>
       Effect.sync(() => {
@@ -75,15 +83,7 @@ const buildServices = (opts: {
 // org-info/picker helpers add Alias/Channel/Connection/Project services); those are satisfied at
 // runtime by the jest-mocked modules, so widen the command's R to ExtensionProviderService for the
 // type-only provide and erase the remaining R via the final cast.
-const runCommand = (
-  command: typeof orgDisplayDefaultCommand | typeof orgDisplayUsernameCommand,
-  opts: {
-    isProject: boolean;
-    getConnection: Effect.Effect<Connection, unknown>;
-    appendToChannel: jest.Mock;
-    show: jest.Mock;
-  }
-) =>
+const runCommand = (command: typeof orgDisplayDefaultCommand | typeof orgDisplayUsernameCommand, opts: CommandOpts) =>
   Effect.runPromiseExit(
     (command() as Effect.Effect<void, unknown, ExtensionProviderService>).pipe(
       Effect.provideService(ExtensionProviderService, {
@@ -98,7 +98,7 @@ describe('orgDisplayDefaultCommand', () => {
     orgInfoFromConnection.mockImplementation(() => Effect.succeed(ORG_INFO));
   });
 
-  it('derives org info from the default connection, appends warning + table, shows the channel', async () => {
+  it('derives org info from the default connection, appends the table after confirm, shows the channel', async () => {
     const appendToChannel = jest.fn();
     const show = jest.fn();
     const exit = await runCommand(orgDisplayDefaultCommand, {
@@ -109,9 +109,27 @@ describe('orgDisplayDefaultCommand', () => {
     });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    // a stable, unconditional row of the rendered table proves orgInfo flowed into formatOrgInfoAsTable
-    expect(appendToChannel).toHaveBeenCalledWith(expect.stringContaining('Connected Status'));
+    // table is now the first channel write (no leading warning line); a stable, unconditional row
+    // proves orgInfo flowed into formatOrgInfoAsTable
+    expect(appendToChannel.mock.calls[0][0]).toContain('Connected Status');
     expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('aborts with UserCancellationError when the sensitive-info modal is declined: no append, no show', async () => {
+    const appendToChannel = jest.fn();
+    const show = jest.fn();
+    const exit = await runCommand(orgDisplayDefaultCommand, {
+      isProject: true,
+      getConnection: Effect.succeed(FAKE_CONN),
+      appendToChannel,
+      show,
+      confirm: false
+    });
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+    expect(appendToChannel).not.toHaveBeenCalled();
+    expect(show).not.toHaveBeenCalled();
   });
 
   it('short-circuits on no project: no getConnection, no append', async () => {
@@ -151,7 +169,7 @@ describe('orgDisplayUsernameCommand', () => {
     getOrgInfoEffect.mockImplementation(() => Effect.succeed(ORG_INFO));
   });
 
-  it('picks an org, fetches org info, writes the warning + table, and shows the channel', async () => {
+  it('picks an org, fetches org info, writes the table after confirm, and shows the channel', async () => {
     gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
     const appendToChannel = jest.fn();
     const show = jest.fn();
@@ -165,10 +183,28 @@ describe('orgDisplayUsernameCommand', () => {
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(getOrgInfoEffect).toHaveBeenCalledWith('me@scratch.org');
-    // warning is the first channel write, then the rendered table (contains the Username row)
-    expect(appendToChannel.mock.calls[0][0]).toContain('Warning: This command will expose sensitive information');
-    expect(appendToChannel.mock.calls.some(([msg]) => String(msg).includes('Username'))).toBe(true);
+    // table is the first (and only) channel write, containing the Username row
+    expect(appendToChannel.mock.calls[0][0]).toContain('Username');
     expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('aborts with UserCancellationError when the sensitive-info modal is declined: no append, no show', async () => {
+    gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
+    const appendToChannel = jest.fn();
+    const show = jest.fn();
+
+    const exit = await runCommand(orgDisplayUsernameCommand, {
+      isProject: true,
+      getConnection: Effect.succeed(FAKE_CONN),
+      appendToChannel,
+      show,
+      confirm: false
+    });
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
+    expect(appendToChannel).not.toHaveBeenCalled();
+    expect(show).not.toHaveBeenCalled();
   });
 
   it('propagates UserCancellationError (no channel writes) when the picker is cancelled', async () => {

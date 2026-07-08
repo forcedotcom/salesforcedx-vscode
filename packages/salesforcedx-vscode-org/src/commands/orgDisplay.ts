@@ -7,14 +7,10 @@
 
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { nls } from '../messages';
 import { gatherOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
 import { OrgInfo } from '../types/orgInfo';
 import { getOrgInfoEffect, orgInfoFromConnection } from '../util/orgDisplay';
-
-/** Shared sensitive-info warning shown before the org-details table (both display paths). */
-const ACCESS_WARNING = `Warning: This command will expose sensitive information that allows for subsequent activity using your current authenticated session.
-Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.
-For additional information, please review the authorization section of the https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.`;
 
 const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
   const columns: Column[] = [
@@ -50,12 +46,15 @@ const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
   return createTable(rows, columns, 'Org Description');
 };
 
-/** Write the sensitive-info warning followed by the org-details table to the output channel. */
+/** Gate the org-details table behind a modal sensitive-info confirmation; Cancel aborts with
+ * UserCancellationError (silently swallowed at the command boundary), so no org info is shown. */
 const writeOrgInfoToChannel = Effect.fn('orgDisplay.writeOrgInfoToChannel')(function* (orgInfo: OrgInfo) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* (yield* api.services.PromptService).confirmOrThrow({
+    message: nls.localize('org_display_access_warning'),
+    confirmLabel: nls.localize('org_display_continue_label')
+  });
   const channel = yield* api.services.ChannelService;
-  yield* channel.appendToChannel(ACCESS_WARNING);
-  yield* channel.appendToChannel('');
   yield* channel.appendToChannel(formatOrgInfoAsTable(orgInfo));
   yield* channel.showChannel;
 });
