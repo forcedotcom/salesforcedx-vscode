@@ -279,7 +279,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     /**
      * If the connection uses the access-token (session-ID) flow — which cannot silently refresh — validate
-     * that the token still works via `identity()`. On failure, log to the Org Management channel, show a modal,
+     * that the token still works via `identity()`. On failure, log to the Salesforce Services channel, show a modal,
      * and (if accepted) dispatch `sf.org.login.web`. No-op for refreshable (web/JWT) flows.
      */
     const validateAccessTokenOrPromptReauth = Effect.fn('ConnectionService.validateAccessTokenOrPromptReauth')(
