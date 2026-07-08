@@ -20,7 +20,6 @@ import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
@@ -51,13 +50,6 @@ export enum VSCodeWindowTypeEnum {
   Error = 1,
   Informational = 2,
   Warning = 3
-}
-
-const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-  'salesforce.salesforcedx-vscode-core'
-);
-if (!salesforceCoreExtension) {
-  throw new Error('Salesforce Core Extension not initialized');
 }
 
 const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
@@ -194,18 +186,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   const checkpointsView = vscode.window.registerTreeDataProvider('sf.view.checkpoint', checkpointService);
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
 
-  // Activate Salesforce Core and Apex Extensions
-  if (!salesforceCoreExtension.isActive) {
-    yield* Effect.promise(() => salesforceCoreExtension.activate());
-  }
+  // Activate Salesforce Apex Extension
   if (!salesforceApexExtension.isActive) {
     yield* Effect.promise(() => salesforceApexExtension.activate());
   }
-
-  // Workspace Context
-  yield* Effect.promise(() =>
-    salesforceCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext)
-  );
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async (test: { name: string }) => {

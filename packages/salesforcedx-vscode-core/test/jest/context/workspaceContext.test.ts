@@ -4,8 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  OrgUserInfo,
+  OrgShape,
+  WorkspaceContextUtil,
+  refreshAllExtensionReporters
+} from '@salesforce/salesforcedx-utils-vscode';
 import { WorkspaceContext } from '../../../src/context';
+
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
+  refreshAllExtensionReporters: jest.fn().mockResolvedValue(undefined)
+}));
+
+const refreshAllExtensionReportersMock = refreshAllExtensionReporters as jest.Mock;
 
 const mockRunPromise = jest.fn();
 jest.mock('../../../src/services/runtime', () => ({
@@ -16,6 +28,11 @@ const getOrgShapeMock = jest.fn();
 jest.mock('../../../src/context/workspaceOrgShape', () => ({
   getOrgShape: (...args: any[]) => getOrgShapeMock(...args)
 }));
+
+const makeWorkspaceContextUtilStub = () => ({
+  onOrgChange: jest.fn(),
+  initialize: jest.fn().mockResolvedValue(undefined)
+});
 
 describe('workspaceContext', () => {
   describe('handleOrgShapeChange', () => {
@@ -134,10 +151,7 @@ describe('workspaceContext', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockWorkspaceContextUtil = {
-        onOrgChange: jest.fn(),
-        initialize: jest.fn().mockResolvedValue(undefined)
-      };
+      mockWorkspaceContextUtil = makeWorkspaceContextUtilStub();
       jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil);
       mockRunPromise.mockResolvedValue(mockConnection);
 
@@ -191,6 +205,39 @@ describe('workspaceContext', () => {
       expect(conn2).toBe(mockConnection);
       expect(conn3).toBe(mockConnection);
       expect(mockRunPromise).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('handleTelemetryUpdate telemetry refresh on org change', () => {
+    const coreCtx = { extension: { id: 'salesforce.salesforcedx-vscode-core' }, subscriptions: [] } as any;
+    const replayCtx = {
+      extension: { id: 'salesforce.salesforcedx-vscode-apex-replay-debugger' },
+      subscriptions: []
+    } as any;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(makeWorkspaceContextUtilStub() as any);
+    });
+
+    // documents _doInitialize id-gating: core ctx → coreExtensionContext set → refreshers run.
+    it('refreshes all extension reporters when initialized with core context', async () => {
+      const workspaceContext = WorkspaceContext.getInstance(true);
+      await workspaceContext.initialize(coreCtx);
+
+      await (workspaceContext as any).handleTelemetryUpdate();
+
+      expect(refreshAllExtensionReportersMock).toHaveBeenCalledWith(coreCtx);
+    });
+
+    // non-core ctx → coreExtensionContext stays unset → refreshers no-op.
+    it('does not refresh reporters when initialized with a non-core (replay) context', async () => {
+      const workspaceContext = WorkspaceContext.getInstance(true);
+      await workspaceContext.initialize(replayCtx);
+
+      await (workspaceContext as any).handleTelemetryUpdate();
+
+      expect(refreshAllExtensionReportersMock).not.toHaveBeenCalled();
     });
   });
 });
