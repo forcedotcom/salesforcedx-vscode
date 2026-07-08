@@ -43,7 +43,8 @@ import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
   createClassAndMethodsFactory,
-  getNamespaceDisplayLabel
+  getNamespaceDisplayLabel,
+  resolvePackageInfoForClassId
 } from './orgTestItems';
 
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
@@ -461,9 +462,7 @@ export class ApexTestController {
 
           // Find or create package node
           const classEntry = classEntriesList[0];
-          const info = Option.getOrUndefined(
-            Option.flatMap(classEntry.entries[0].id, id => Option.fromNullable(classIdToPackage.get(id)))
-          );
+          const info = resolvePackageInfoForClassId(classEntry.entries[0].id, classIdToPackage);
           const packageLabel = info?.packageName ?? _pkgKey;
           const pkgNodeId = `${nsKey}/${_pkgKey}`;
           let packageItem: vscode.TestItem | undefined;

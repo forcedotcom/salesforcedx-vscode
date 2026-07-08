@@ -135,6 +135,16 @@ export const isNonEmptyClassEntriesList = (list: ClassEntry[] | undefined): list
   list !== undefined && Array.isNonEmptyArray(list) && Array.isNonEmptyArray(list[0].entries);
 
 /**
+ * Resolves package info for an Option-wrapped class id against the id→package map.
+ * `none` id or missing map entry → `undefined`.
+ */
+export const resolvePackageInfoForClassId = (
+  id: Option.Option<string>,
+  classIdToPackage: Map<string, ResolvedPackageInfo>
+): ResolvedPackageInfo | undefined =>
+  Option.getOrUndefined(Option.flatMapNullable(id, classId => classIdToPackage.get(classId)));
+
+/**
  * Returns the display label and stable ID for a package node in the Test Explorer.
  * Handles unpackaged, 1GP (namespaced), and 2GP (including Unlocked suffix when applicable).
  * Requires classEntriesList to be non-empty with non-empty entries.
@@ -158,7 +168,7 @@ export const getPackageLabelAndId = (
     };
   }
   const firstClass = classEntriesList[0].entries[0];
-  const info = Option.getOrUndefined(Option.flatMap(firstClass.id, id => Option.fromNullable(classIdToPackage.get(id))));
+  const info = resolvePackageInfoForClassId(firstClass.id, classIdToPackage);
   const baseName = info?.packageName ?? pkgKey;
   const packageLabel =
     info?.containerOptions === 'Unlocked'
