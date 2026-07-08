@@ -31,6 +31,7 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
+import { nls } from '../../../src/messages';
 import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
 
 // `channel_name` from salesforcedx-vscode-org/src/messages/i18n.ts (orgDisplay writes its table here).
@@ -72,18 +73,25 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await verifyCommandExists(page, packageNls.org_login_web_authorize_org_text, 60_000);
   });
 
-  await test.step('DISPLAY: selectOrgForDisplay lists the org, pick it, assert output table', async () => {
+  await test.step('DISPLAY: selectOrgForDisplay lists the org, pick it, confirm modal, assert output table', async () => {
     await executeCommandWithCommandPalette(page, packageNls.org_display_username_text);
     // selectOrgForDisplay (single-pick) lists the seeded scratch org.
     await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
     await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
+    // sensitive-info modal now gates the table; confirm it (Continue) so the table is written.
+    await clickModalButton(page, nls.localize('org_display_continue_label'));
     // orgDisplay renders a table containing the org's Username row to the output channel.
     await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
     await waitForOutputChannelText(page, { expectedText: 'Username' });
-    // and the sensitive-info warning (ACCESS_WARNING) precedes the table — warning-path coverage.
-    await waitForOutputChannelText(page, {
-      expectedText: 'Warning: This command will expose sensitive information'
-    });
+  });
+
+  await test.step('DISPLAY cancel modal: Esc on the sensitive-info modal maps to CANCEL (no error toast, no table)', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.org_display_username_text);
+    await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
+    await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
+    // dismiss the sensitive-info modal -> UserCancellationError -> CANCEL, no org info shown.
+    await page.keyboard.press('Escape');
+    await expectNoErrorNotification(page);
   });
 
   await test.step('DISPLAY cancel: Esc on the picker maps to CANCEL (no error toast)', async () => {
