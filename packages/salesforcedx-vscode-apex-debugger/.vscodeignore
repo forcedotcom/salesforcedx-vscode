@@ -5,6 +5,7 @@ out/test/**
 test/**
 src/**
 **/*.map
+dist/*-metafile.json
 .gitignore
 .circular-deps.json
 .eslintcache

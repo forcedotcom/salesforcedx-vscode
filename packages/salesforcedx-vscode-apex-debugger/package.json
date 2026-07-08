@@ -105,12 +105,14 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/effect.mjs",
         "out/**",
         "package.json"
       ],
       "output": [
         "dist/index.js",
-        "dist/index.js.map"
+        "dist/index.js.map",
+        "dist/node-metafile.json"
       ]
     },
     "vscode:bundle": {
