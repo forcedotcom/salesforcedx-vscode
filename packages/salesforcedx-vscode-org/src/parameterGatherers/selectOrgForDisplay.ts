@@ -8,7 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
+import * as packageNls from '../../package.nls.json';
 import { buildOrgQuickPickItems, isOrgItem } from '../orgPicker/orgList';
 import { getFreshAuthorizations } from '../util/orgUtil';
 
@@ -21,7 +21,7 @@ export const gatherOrgForDisplay = Effect.fn('SelectOrgForDisplay.gather')(funct
   const items = buildOrgQuickPickItems(freshAuthorizations, defaultConfig);
   const selection = yield* Effect.promise(() =>
     vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('org_select_text'),
+      placeHolder: packageNls.org_select_text,
       matchOnDescription: true,
       matchOnDetail: true
     })

@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
+import * as packageNls from '../../package.nls.json';
 import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
 import {
@@ -124,23 +125,23 @@ const orgAuthToQuickPickItem =
 /** Action items for SFDX commands */
 const ACTION_ITEMS: OrgQuickPickItem[] = [
   {
-    label: `${ICONS.ADD} ${nls.localize('org_login_web_authorize_org_text')}`,
+    label: `${ICONS.ADD} ${packageNls.org_login_web_authorize_org_text}`,
     commandId: 'sf.org.login.web'
   },
   {
-    label: `${ICONS.ADD} ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
+    label: `${ICONS.ADD} ${packageNls.org_login_web_authorize_dev_hub_text}`,
     commandId: 'sf.org.login.web.dev.hub'
   },
   {
-    label: `${ICONS.ADD} ${nls.localize('org_create_default_scratch_org_text')}`,
+    label: `${ICONS.ADD} ${packageNls.org_create_default_scratch_org_text}`,
     commandId: 'sf.org.create'
   },
   {
-    label: `${ICONS.ADD} ${nls.localize('org_login_access_token_text')}`,
+    label: `${ICONS.ADD} ${packageNls.org_login_access_token_text}`,
     commandId: 'sf.org.login.access.token'
   },
   {
-    label: `${ICONS.ADD} ${nls.localize('org_list_clean_text')}`,
+    label: `${ICONS.ADD} ${packageNls.org_list_clean_text}`,
     commandId: 'sf.org.list.clean'
   }
 ];
@@ -192,7 +193,7 @@ export const setDefaultOrg = Effect.fn('OrgList.setDefaultOrg')(function* () {
 
   const selection: OrgQuickPickItem = yield* Effect.promise(() =>
     vscode.window.showQuickPick(quickPickList, {
-      placeHolder: nls.localize('org_select_text'),
+      placeHolder: packageNls.org_select_text,
       matchOnDescription: true,
       matchOnDetail: true
     })

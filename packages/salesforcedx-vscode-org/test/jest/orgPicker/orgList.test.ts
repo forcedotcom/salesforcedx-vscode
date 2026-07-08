@@ -14,7 +14,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
-import { nls } from '../../../src/messages';
+import * as packageNls from '../../../package.nls.json';
 import * as orgListModule from '../../../src/orgPicker/orgList';
 import { authorizationsToQuickPickItems } from '../../../src/orgPicker/orgList';
 import * as orgUtil from '../../../src/util/orgUtil';
@@ -159,7 +159,7 @@ describe('OrgList tests', () => {
       describe('Org picker SFDX commands', () => {
         it('should handle org login web authorization selection', async () => {
           showQuickPickMock.mockResolvedValueOnce({
-            label: `${ICONS.ADD} ${nls.localize('org_login_web_authorize_org_text')}`,
+            label: `${ICONS.ADD} ${packageNls.org_login_web_authorize_org_text}`,
             commandId: 'sf.org.login.web'
           });
 
@@ -171,7 +171,7 @@ describe('OrgList tests', () => {
 
         it('should handle org login web dev hub authorization selection', async () => {
           showQuickPickMock.mockResolvedValueOnce({
-            label: `${ICONS.ADD} ${nls.localize('org_login_web_authorize_dev_hub_text')}`,
+            label: `${ICONS.ADD} ${packageNls.org_login_web_authorize_dev_hub_text}`,
             commandId: 'sf.org.login.web.dev.hub'
           });
 
@@ -183,7 +183,7 @@ describe('OrgList tests', () => {
 
         it('should handle create default scratch org selection', async () => {
           showQuickPickMock.mockResolvedValueOnce({
-            label: `${ICONS.ADD} ${nls.localize('org_create_default_scratch_org_text')}`,
+            label: `${ICONS.ADD} ${packageNls.org_create_default_scratch_org_text}`,
             commandId: 'sf.org.create'
           });
 
@@ -195,7 +195,7 @@ describe('OrgList tests', () => {
 
         it('should handle org login access token selection', async () => {
           showQuickPickMock.mockResolvedValueOnce({
-            label: `${ICONS.ADD} ${nls.localize('org_login_access_token_text')}`,
+            label: `${ICONS.ADD} ${packageNls.org_login_access_token_text}`,
             commandId: 'sf.org.login.access.token'
           });
 
@@ -207,7 +207,7 @@ describe('OrgList tests', () => {
 
         it('should handle org list clean selection', async () => {
           showQuickPickMock.mockResolvedValueOnce({
-            label: `${ICONS.ADD} ${nls.localize('org_list_clean_text')}`,
+            label: `${ICONS.ADD} ${packageNls.org_list_clean_text}`,
             commandId: 'sf.org.list.clean'
           });
 
