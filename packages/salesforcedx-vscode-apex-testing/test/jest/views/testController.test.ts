@@ -175,11 +175,7 @@ import * as extensionProvider from '../../../src/services/extensionProvider';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
 import * as EffectModule from 'effect/Effect';
-import {
-  ApexTestController,
-  closeForeignApexTestingTabs,
-  getTestController
-} from '../../../src/views/testController';
+import { ApexTestController, closeForeignApexTestingTabs, getTestController } from '../../../src/views/testController';
 
 // The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
 // the production module accessors use) to seed test state.

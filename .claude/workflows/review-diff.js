@@ -34,7 +34,9 @@ const SKILLS_DIR = '.claude/skills'
 // thermoPrompt step below; the generic skill fan-out must not invoke it a second time. The skill
 // also carries `disable-model-invocation: true`, so it should never be auto-selected on its own.
 const REVIEW_SKILL_DENYLIST = [
+  'backlog-grooming',
   'changelog',
+  'dependabot-alerts',
   'feature-branch',
   'grill-me',
   'gus-cli',
@@ -45,6 +47,7 @@ const REVIEW_SKILL_DENYLIST = [
   'query-app-insights',
   'span-file-export',
   'thermonuclear-code-quality-review',
+  'work-item-sequencing',
 ]
 
 // Severity rank for sorting. effect 'must'/'should'/'consider' map to
