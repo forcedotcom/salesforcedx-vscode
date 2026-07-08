@@ -110,7 +110,7 @@ export const messages = {
   apex_test_aggregate_failed_message: '%s test(s) failed',
   apex_test_failed_no_details_message: 'Test failed',
   apex_test_results_restored_message:
-    'Test results restored from %s previous run(s), most recent: %s. Re-enable via setting: salesforcedx-vscode-apex-testing.restore-previous-results',
+    'Test results restored from %d previous run(s), most recent: %s. Re-enable via setting: salesforcedx-vscode-apex-testing.restore-previous-results',
   apex_test_results_restored_disable_action: "Don't Restore Again"
 } as const;
 
