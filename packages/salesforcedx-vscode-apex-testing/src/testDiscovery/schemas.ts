@@ -6,20 +6,40 @@
  */
 /* eslint-disable jsdoc/check-indentation */
 
-type ToolingTestMethod = {
-  name: string;
-  line?: number;
-  column?: number;
-};
+import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 
-// Single authoritative shape for test classes (matches Tooling REST response)
-export type ToolingTestClass = {
-  id: string; // may be "" for some flow tests
-  name: string;
-  // For Apex tests this is "" (default) or a namespace; for flow tests it follows "FlowTesting[.Namespace]"
-  namespacePrefix: string;
-  testMethods: ToolingTestMethod[];
-};
+const ToolingTestMethod = Schema.Struct({
+  name: Schema.String,
+  line: Schema.optional(Schema.Number),
+  column: Schema.optional(Schema.Number)
+});
+
+/**
+ * Wire `""` sentinel ⇄ domain `Option<string>`: decode `""` → `Option.none()`, any other string →
+ * `Option.some(s)`; encode back to the raw string (`none` → `""`). Lives at the parse boundary so the
+ * domain type never carries an empty-string "missing" sentinel.
+ */
+const OptionFromEmptyString = Schema.transform(Schema.String, Schema.OptionFromSelf(Schema.String), {
+  strict: true,
+  decode: s => (s === '' ? Option.none() : Option.some(s)),
+  encode: Option.getOrElse(() => '')
+});
+
+/**
+ * Normalized domain test class. `id` absent (some flow tests) = `Option.none`; `namespacePrefix` none =
+ * default Apex namespace, `Option.some('FlowTesting[.Namespace]')` = flow test.
+ */
+export const ToolingTestClass = Schema.Struct({
+  id: OptionFromEmptyString,
+  name: Schema.String,
+  namespacePrefix: OptionFromEmptyString,
+  testMethods: Schema.Array(ToolingTestMethod)
+});
+export type ToolingTestClass = Schema.Schema.Type<typeof ToolingTestClass>;
+
+/** Raw Tooling REST shape (pre-decode): `id`/`namespacePrefix` are plain strings, possibly `""`. */
+export type ToolingTestClassWire = Schema.Schema.Encoded<typeof ToolingTestClass>;
 
 export type TestDiscoveryResult = {
   classes: ToolingTestClass[];
@@ -27,7 +47,7 @@ export type TestDiscoveryResult = {
 
 // Tooling REST /tooling/tests response types
 export type ToolingTestsPage = {
-  apexTestClasses: ToolingTestClass[]; // [] if none
+  apexTestClasses: ToolingTestClassWire[]; // [] if none
   size: number;
   nextRecordsUrl: string | null;
   testSetSignature: string;

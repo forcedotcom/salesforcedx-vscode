@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
+import type { DiscoverTestsOptions, TestDiscoveryResult, ToolingTestsPage } from './schemas';
+import { ToolingTestClass } from './schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type * as Either from 'effect/Either';
+import * as Schema from 'effect/Schema';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -71,7 +73,12 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
       if (pageResult._tag === 'Right') {
         const page: ToolingTestsPage = pageResult.right;
         if (page?.apexTestClasses?.length) {
-          classes.push(...page.apexTestClasses);
+          // Decode the wire `""` sentinel to Option.none() at the parse boundary; a ParseError maps onto
+          // the same failure channel as a fetch failure.
+          const decoded = yield* Schema.decodeUnknown(Schema.Array(ToolingTestClass))(page.apexTestClasses).pipe(
+            Effect.mapError(error => new Error(`Failed to decode test discovery page: ${error.message}`))
+          );
+          classes.push(...decoded);
         }
         nextUrl = page?.nextRecordsUrl ?? undefined;
       }
