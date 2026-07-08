@@ -25,7 +25,7 @@
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
     "istanbul-reports": "^3.2.0",
-    "json-stream-stringify": "^3.1.6"
+    "json-stream-stringify": "^3.1.7"
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
