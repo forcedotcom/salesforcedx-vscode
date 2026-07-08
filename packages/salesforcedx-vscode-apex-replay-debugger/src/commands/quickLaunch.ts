@@ -13,7 +13,6 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
@@ -26,109 +25,58 @@ import { getRuntime } from '../services/runtime';
 import { retrieveTestCodeCoverage } from '../utils/settings';
 import { launchFromLogFile } from './launchFromLogFile';
 
-type TestRunResult = {
-  logFileId?: string;
-  message?: string;
-  success: boolean;
-};
+const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass: string, testName?: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const connection = yield* api.services.ConnectionService.getConnection();
 
-type LogFileRetrieveResult = {
-  filePath?: string;
-  success: boolean;
-};
+  if (!(yield* Effect.promise(() => ensureTraceFlagsForCurrentUser()))) return false;
 
-class QuickLaunch {
-  public async debugTest(testClass: string, testName?: string): Promise<boolean> {
-    const connection = await getRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.ConnectionService.getConnection();
-      })
+  if (checkpointService.hasOneOrMoreActiveCheckpoints()) {
+    if (!(yield* Effect.promise(() => sfCreateCheckpoints()))) return false;
+  }
+
+  const testService = new TestService(connection);
+  const singleTestName = testName ? `${testClass}.${testName}` : undefined;
+  const payload = yield* Effect.promise(() =>
+    testService.buildSyncPayload(
+      TestLevel.RunSpecifiedTests,
+      singleTestName,
+      singleTestName ? undefined : testClass,
+      undefined,
+      !retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
+    )
+  );
+  // W-18453221
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
+  if (workspaceUtils.hasRootWorkspace()) {
+    yield* Effect.promise(() =>
+      testService.writeResultFiles(
+        result,
+        { dirPath: projectPaths.apexTestResultsFolder(), resultFormats: [ResultFormat.json] },
+        retrieveTestCodeCoverage()
+      )
     );
+  }
 
-    if (!connection) {
-      return false;
-    }
-
-    if (!(await ensureTraceFlagsForCurrentUser())) {
-      return false;
-    }
-
-    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints();
-    if (oneOrMoreCheckpoints) {
-      const createCheckpointsResult = await sfCreateCheckpoints();
-      if (!createCheckpointsResult) {
-        return false;
-      }
-    }
-    const testResult = await this.runTests(connection, testClass, testName);
-
-    if (testResult.success && testResult.logFileId) {
-      const logFileRetrieve = await this.retrieveLogFile(connection, testResult.logFileId);
-
-      if (logFileRetrieve.success && logFileRetrieve.filePath) {
-        await launchFromLogFile(logFileRetrieve.filePath, false);
-        return true;
-      }
-    } else if (testResult.message) {
-      void vscode.window.showErrorMessage(testResult.message);
-    }
+  const tests: ApexTestResultData[] = result.tests;
+  if (tests.length === 0) {
+    void vscode.window.showErrorMessage(nls.localize('debug_test_no_results_found'));
     return false;
   }
 
-  private async runTests(connection: Connection, testClass: string, testMethod?: string): Promise<TestRunResult> {
-    const testService = new TestService(connection);
-    try {
-      const singleTestName = testMethod ? `${testClass}.${testMethod}` : undefined;
-      const payload = await testService.buildSyncPayload(
-        TestLevel.RunSpecifiedTests,
-        singleTestName,
-        singleTestName ? undefined : testClass,
-        undefined,
-        !retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
-      );
-      // W-18453221
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const result: TestResult = (await testService.runTestSynchronous(payload, true)) as TestResult;
-      if (workspaceUtils.hasRootWorkspace()) {
-        const apexTestResultsPath = projectPaths.apexTestResultsFolder();
-        await testService.writeResultFiles(
-          result,
-          { dirPath: apexTestResultsPath, resultFormats: [ResultFormat.json] },
-          retrieveTestCodeCoverage()
-        );
-      }
-      const tests: ApexTestResultData[] = result.tests;
-      if (tests.length === 0) {
-        return {
-          success: false,
-          message: nls.localize('debug_test_no_results_found')
-        };
-      }
-
-      const testResult = testMethod ? (tests.find(test => test.methodName === testMethod) ?? tests[0]) : tests[0];
-      if (!testResult?.apexLogId) {
-        return {
-          success: false,
-          message: nls.localize('debug_test_no_debug_log')
-        };
-      }
-
-      return { logFileId: testResult.apexLogId, success: true };
-    } catch (e) {
-      return { message: e.message, success: false };
-    }
+  const testResult = testName ? (tests.find(test => test.methodName === testName) ?? tests[0]) : tests[0];
+  if (!testResult?.apexLogId) {
+    void vscode.window.showErrorMessage(nls.localize('debug_test_no_debug_log'));
+    return false;
   }
 
-  private async retrieveLogFile(connection: Connection, logId: string): Promise<LogFileRetrieveResult> {
-    const logService = new LogService(connection);
-    const outputDir = projectPaths.debugLogsFolder();
-
-    await logService.getLogs({ logId, outputDir });
-    const logPath = path.join(outputDir, `${logId}.log`);
-    return { filePath: logPath, success: true };
-  }
-}
+  const logId = testResult.apexLogId!;
+  const logService = new LogService(connection);
+  yield* Effect.promise(() => logService.getLogs({ logId, outputDir: projectPaths.debugLogsFolder() }));
+  yield* Effect.promise(() => launchFromLogFile(path.join(projectPaths.debugLogsFolder(), `${logId}.log`), false));
+  return true;
+});
 
 export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const success = await vscode.window.withProgress(
@@ -137,7 +85,12 @@ export const setupAndDebugTests = async (className: string, methodName?: string)
       title: `Running ${nls.localize('debug_test_exec_name')}`,
       cancellable: false
     },
-    () => new QuickLaunch().debugTest(className, methodName)
+    () =>
+      getRuntime()
+        .runPromise(debugTest(className, methodName))
+        .catch((error: unknown) => {
+          void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
+        })
   );
   if (success) {
     void vscode.window.showInformationMessage(nls.localize('debug_test_success'));
