@@ -6,6 +6,7 @@
  */
 
 import { type ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type * as effectExtUtils from '@salesforce/effect-ext-utils';
 import type * as languageServerOrphanHandler from '../../src/languageServerOrphanHandler';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -17,6 +18,7 @@ import * as vscode from 'vscode';
 import { UBER_JAR_NAME } from '../../src/constants';
 import { nls } from '../../src/messages';
 import { setTelemetryService } from '../../src/telemetry/telemetry';
+import type * as telemetryModule from '../../src/telemetry/telemetry';
 import { MockTelemetryService } from './telemetry/mockTelemetryService';
 
 jest.mock('../../src/channels', () => ({
@@ -80,12 +82,8 @@ const loadHandler = (platform: NodeJS.Platform, telemetry: MockTelemetryService)
       }
     | undefined;
   jest.isolateModules(() => {
-    (
-      require('../../src/telemetry/telemetry') as { setTelemetryService: typeof setTelemetryService }
-    ).setTelemetryService(telemetry);
-    const { ExtensionProviderService: Provider } = require('@salesforce/effect-ext-utils') as {
-      ExtensionProviderService: typeof ExtensionProviderService;
-    };
+    (require('../../src/telemetry/telemetry') as typeof telemetryModule).setTelemetryService(telemetry);
+    const { ExtensionProviderService: Provider } = require('@salesforce/effect-ext-utils') as typeof effectExtUtils;
     const { checkAndResolveOrphanedLanguageServers } =
       require('../../src/languageServerOrphanHandler') as typeof languageServerOrphanHandler;
     result = { checkAndResolveOrphanedLanguageServers, Provider };
@@ -261,13 +259,9 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
     const holder: { root?: Tracer.Span } = {};
     let program: Effect.Effect<void> | undefined;
     jest.isolateModules(() => {
-      const telemetryModule = require('../../src/telemetry/telemetry') as {
-        setTelemetryService: typeof setTelemetryService;
-      };
-      telemetryModule.setTelemetryService(telemetry);
-      const { ExtensionProviderService: IsolatedProvider } = require('@salesforce/effect-ext-utils') as {
-        ExtensionProviderService: typeof ExtensionProviderService;
-      };
+      (require('../../src/telemetry/telemetry') as typeof telemetryModule).setTelemetryService(telemetry);
+      const { ExtensionProviderService: IsolatedProvider } =
+        require('@salesforce/effect-ext-utils') as typeof effectExtUtils;
       const { checkAndResolveOrphanedLanguageServers: checkOnWindows } =
         require('../../src/languageServerOrphanHandler') as typeof languageServerOrphanHandler;
       program = Effect.gen(function* () {
