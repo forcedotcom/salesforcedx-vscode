@@ -84,7 +84,8 @@ const makeContext = (
     getTestService: () => ({ retrieveAllSuites: () => Promise.resolve([]) }),
     persistDiscoveredClasses: () => Promise.resolve(),
     updateTestResults: () => Promise.resolve(),
-    applyStaleTags: jest.fn(),
+    staleTag: undefined,
+    getSuiteToClasses: () => new Map<string, Set<string>>(),
     getMethodIdsFromResultFile: () => Promise.resolve(new Set<string>()),
     ...overrides
   };

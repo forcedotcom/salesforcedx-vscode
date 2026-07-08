@@ -6,8 +6,17 @@
  */
 
 import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { buildTestPayload } from '../../../src/utils/payloadBuilder';
+import { buildTestPayload as buildTestPayloadEffect } from '../../../src/utils/payloadBuilder';
+
+// buildTestPayload is now an Effect.fn; run it to a Promise so the existing assertions hold.
+const buildTestPayload = (
+  testService: TestService,
+  testsToRun: vscode.TestItem[],
+  testNames: string[],
+  codeCoverage: boolean
+) => Effect.runPromise(buildTestPayloadEffect(testService, testsToRun, testNames, codeCoverage));
 
 describe('payloadBuilder', () => {
   let mockTestService: jest.Mocked<TestService>;

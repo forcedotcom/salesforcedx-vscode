@@ -107,7 +107,8 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
   });
 
   await test.step('run all tests and verify stale tag is removed', async () => {
-    // clearStaleTagsForTests removes the staleTag for methods that ran (testController.ts:483-556).
+    // ApexTestTreeService.clearStaleTags removes the staleTag for methods that ran (invoked from
+    // ApexTestExecutionService.executeTests).
     // Running all tests clears every stale method; once no items carry @stale, filtering by the
     // tag yields zero matches, so no test rows are visible.
     await runAllTestsAndWaitForCompletion(page, TEST_RUN_TIMEOUT);

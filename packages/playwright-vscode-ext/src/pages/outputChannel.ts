@@ -188,8 +188,10 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
 export const selectOutputChannel = async (page: Page, channelName: string, timeout = 30_000): Promise<void> => {
   // VS Code uses a monaco-select-box with custom UI in the output panel toolbar
   // The actual <select> is hidden but we can still interact with it programmatically
+  // Ensure the panel is open (intervening UI can collapse it between calls) rather than
+  // assuming it's already visible.
+  await ensureOutputPanelOpen(page);
   const panel = outputPanel(page);
-  await panel.waitFor({ state: 'visible', timeout: 5000 });
 
   // Re-query the dropdown each time to avoid stale element issues
   // The dropdown is a hidden select element with class monaco-select-box
