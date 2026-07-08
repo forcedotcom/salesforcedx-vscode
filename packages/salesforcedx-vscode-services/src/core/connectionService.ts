@@ -248,6 +248,11 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         yield* Effect.promise(() =>
           vscode.commands.executeCommand('sf.org.login.web', conn.instanceUrl, alias ?? username)
         );
+        // executeCommand resolves only after `sf org login web` finishes (see orgLoginWebExec), so the
+        // fresh auth file is on disk here. Drop the stale cached Connection ourselves rather than relying
+        // on the org command's config-refresh side effect — next getConnection rebuilds AuthInfo from disk
+        // = fresh reauthCache key, so the retry validates the new token instead of the known-bad object.
+        yield* invalidateCachedConnections();
       }
       return yield* new AccessTokenExpiredError({
         message: nls.localize('error_access_token_refresh_failed'),
@@ -263,12 +268,16 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     // Coordinates access-token reauth, keyed by the live Connection (reference identity): N concurrent
     // callers sharing one cached Connection collapse to a SINGLE in-flight lookup (Cache dedup) → one modal.
-    // Both success and failure entries are retained for the TTL, so a still-cached expired Connection is not
-    // re-validated (and the user re-nagged) on every getConnection — one modal per Connection. Reauth runs
-    // invalidateCachedConnections, yielding a fresh Connection = fresh key, so the retry validates the new object.
+    // Success TTL is short (1min) so a token that expires mid-session — e.g. a 15-min high-security org
+    // whose lifetime is under a long success cache — is re-probed promptly rather than assumed valid.
+    // Failure entries live longer (one modal per Connection); reauth invalidates the connection cache,
+    // yielding a fresh Connection = fresh key, so the retry validates the new object before this expires.
     const reauthCache = yield* Cache.makeWith({
       capacity: 100,
-      timeToLive: () => Duration.minutes(30),
+      timeToLive: Exit.match({
+        onSuccess: () => Duration.minutes(1),
+        onFailure: () => Duration.minutes(30)
+      }),
       lookup: runReauthLookup
     });
 
@@ -305,7 +314,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const username = yield* aliasService
               .getUsernameFromAlias(usernameOrAlias)
               .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            return yield* connectionCache.get(username);
+            const desktopConn = yield* connectionCache.get(username);
+            // Session-ID (access-token) orgs can't silently refresh; validate before handing the
+            // connection out so EVERY consumer — not just the legacy WorkspaceContextUtil facade —
+            // gets the reauth modal on an expired token. No-op for refreshable (web/JWT) flows.
+            yield* validateAccessTokenOrPromptReauth(desktopConn);
+            return desktopConn;
           });
 
       // update the org ref in the background

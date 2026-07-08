@@ -288,10 +288,9 @@ describe('WorkspaceContextUtil', () => {
       mockServicesApi(mockConnection);
     });
 
-    it('should delegate to ConnectionService.getConnection + validateAccessTokenOrPromptReauth', async () => {
+    it('should delegate to ConnectionService.getConnection (which validates the token internally)', async () => {
       const connection = await workspaceContextUtil.getConnection();
       expect(mockGetConnectionSvc).toHaveBeenCalled();
-      expect(mockValidateReauthSvc).toHaveBeenCalledWith(mockConnection);
       expect(connection).toEqual(mockConnection);
     });
 

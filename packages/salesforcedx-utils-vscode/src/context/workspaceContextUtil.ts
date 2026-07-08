@@ -25,18 +25,14 @@ export type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
 export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 
 /**
- * Delegates to the services extension's ConnectionService: get the target-org Connection, then run the
- * access-token reauth check (which prompts + dispatches sf.org.login.web on an expired session-ID flow).
- * The reauth coordination (one-modal-per-username dedup, revalidation throttle) lives in ConnectionService.
+ * Delegates to the services extension's ConnectionService.getConnection, which validates the token
+ * (prompting + dispatching sf.org.login.web on an expired session-ID flow) before returning. The reauth
+ * coordination (one-modal-per-connection dedup) lives in ConnectionService.
  */
 const getValidatedConnection = Effect.fn('WorkspaceContextUtil.getConnection')(function* () {
   const api = yield* getServicesApi;
   const prebuilt = Layer.succeedContext(api.services.prebuiltServicesDependencies);
-  return yield* Effect.gen(function* () {
-    const conn = yield* api.services.ConnectionService.getConnection();
-    yield* api.services.ConnectionService.validateAccessTokenOrPromptReauth(conn);
-    return conn;
-  }).pipe(Effect.provide(prebuilt));
+  return yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(prebuilt));
 });
 
 /**
