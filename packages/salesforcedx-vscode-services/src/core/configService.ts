@@ -85,6 +85,13 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       yield* configCache.invalidateAll;
     });
 
+    /** Returns the current target-org value (alias or username), or undefined if not set */
+    const getTargetOrg = Effect.fn('ConfigService.getTargetOrg')(function* () {
+      const agg = yield* getConfigAggregator();
+      const value = agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
+      return value ? String(value) : undefined;
+    });
+
     /** Returns the current target-dev-hub value (alias or username), or undefined if not set */
     const getTargetDevHub = Effect.fn('ConfigService.getTargetDevHub')(function* () {
       const agg = yield* getConfigAggregator();
@@ -145,6 +152,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
     return {
       getConfigAggregator,
       invalidateConfigAggregator,
+      getTargetOrg,
       getTargetDevHub,
       isCurrentTargetOrg,
       isCurrentTargetDevHub,

@@ -6,6 +6,7 @@
  */
 
 import { Config, OrgConfigProperties } from '@salesforce/core';
+import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Effect from 'effect/Effect';
 import { ConfigService, ConfigWriteError } from '../../../src/core/configService';
 
@@ -14,9 +15,16 @@ jest.mock('@salesforce/core', () => ({
   Config: { create: jest.fn(), getDefaultOptions: jest.fn().mockReturnValue({}) }
 }));
 
+jest.mock('@salesforce/core/configAggregator', () => ({
+  ConfigAggregator: { create: jest.fn() }
+}));
+
+const vscode = require('vscode');
+
 const setMock = jest.fn();
 const writeMock = jest.fn();
 const createMock = jest.mocked(Config.create);
+const aggregatorCreateMock = jest.mocked(ConfigAggregator.create);
 
 describe('ConfigService.setTargetOrg', () => {
   beforeEach(() => {
@@ -51,5 +59,44 @@ describe('ConfigService.setTargetOrg', () => {
 
     expect(error).toBeInstanceOf(ConfigWriteError);
     expect(error.message).toContain('disk full');
+  });
+});
+
+const TARGET_ORG_KEY: string = OrgConfigProperties.TARGET_ORG;
+
+describe('ConfigService.getTargetOrg', () => {
+  const getPropertyValueMock = jest.fn();
+
+  beforeEach(() => {
+    getPropertyValueMock.mockReset();
+    const agg = {
+      getPropertyValue: getPropertyValueMock,
+      getConfig: () => ({}),
+      reload: () => Promise.resolve(agg)
+    } as unknown as ConfigAggregator;
+    aggregatorCreateMock.mockReset().mockResolvedValue(agg);
+    vscode.workspace.workspaceFolders = [
+      {
+        uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
+        name: 'mock-workspace',
+        index: 0
+      }
+    ];
+  });
+
+  it('returns the configured target-org value', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? 'MyOrg' : undefined));
+
+    const value = await Effect.runPromise(ConfigService.getTargetOrg().pipe(Effect.provide(ConfigService.Default)));
+
+    expect(value).toBe('MyOrg');
+  });
+
+  it('returns undefined when target-org is not set', async () => {
+    getPropertyValueMock.mockReturnValue(undefined);
+
+    const value = await Effect.runPromise(ConfigService.getTargetOrg().pipe(Effect.provide(ConfigService.Default)));
+
+    expect(value).toBeUndefined();
   });
 });
