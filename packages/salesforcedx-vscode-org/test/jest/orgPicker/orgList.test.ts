@@ -117,16 +117,13 @@ describe('OrgList tests', () => {
               getConnection: getConnectionMock
             },
             // getFreshAuthorizations yields ConfigService (default-org config) + AliasService (disk aliases);
-            // stub both so the data-loading path runs against fakes (no real I/O).
-            // ConfigService is consumed two ways: `yield* api.services.ConfigService` (configAggregatorEffect)
-            // AND the static accessor `api.services.ConfigService.setTargetOrg(...)` (picker). Mock it as an
-            // Effect (for the yield) with setTargetOrg attached as a property (for the static accessor call).
-            ConfigService: Object.assign(
-              Effect.succeed({
-                getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => undefined })
-              }),
-              { setTargetOrg: setTargetOrgMock }
-            ),
+            // stub both so the data-loading path runs against fakes (no real I/O). ConfigService is used via
+            // static accessors: getTargetDevHub/getTargetOrg (default-org config) and setTargetOrg (picker).
+            ConfigService: Object.assign(Effect.succeed({}), {
+              getTargetDevHub: () => Effect.succeed(undefined),
+              getTargetOrg: () => Effect.succeed(undefined),
+              setTargetOrg: setTargetOrgMock
+            }),
             AliasService: Effect.succeed({
               getAllAliases: () => Effect.succeed({}),
               getUsernameFromAlias: () => Effect.succeed(Option.none())

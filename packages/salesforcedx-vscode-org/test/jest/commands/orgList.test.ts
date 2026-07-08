@@ -78,24 +78,6 @@ jest.mock('../../../src/telemetry', () => ({
     sendException: jest.fn()
   }
 }));
-// Mock configAggregatorEffect module
-const mockConfigAggregatorStore: {
-  value: {
-    getPropertyValue: jest.Mock;
-  };
-} = {
-  value: {
-    getPropertyValue: jest.fn().mockReturnValue(undefined)
-  }
-};
-
-jest.mock('../../../src/util/configAggregatorEffect', () => ({
-  // Reference mockConfigAggregatorStore from closure
-  get getConfigAggregatorEffect() {
-    return Effect.succeed(mockConfigAggregatorStore.value);
-  }
-}));
-
 // Use the real extensionProvider so setAllServicesLayer/getOrgRuntime drive a runtime whose
 // ConnectionService.listAllAuthorizations is the mock seeded in beforeEach.
 const buildServicesLayer = (mock: jest.Mock) =>
@@ -127,11 +109,6 @@ describe('orgList command', () => {
 
     // Mock createTable function
     (createTable as jest.Mock).mockReturnValue('mocked table output');
-
-    // Reset mockConfigAggregatorStore
-    mockConfigAggregatorStore.value = {
-      getPropertyValue: jest.fn().mockReturnValue(undefined)
-    };
 
     // Spy on getAuthFieldsFor
     mockGetAuthFieldsFor = jest.spyOn(orgUtil, 'getAuthFieldsFor');
