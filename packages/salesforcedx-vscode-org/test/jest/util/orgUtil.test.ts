@@ -11,7 +11,7 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import { ConfigUtil, notificationService, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -329,9 +329,6 @@ describe('updateConfigAndStateAggregators', () => {
     jest.restoreAllMocks();
     resetOrgRuntimeForTesting();
 
-    jest.spyOn(ConfigAggregatorProvider, 'getInstance').mockReturnValue({
-      reloadConfigAggregators: jest.fn()
-    } as any);
     jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
     (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
 
