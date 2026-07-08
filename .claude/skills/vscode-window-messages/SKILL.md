@@ -39,6 +39,8 @@ await notificationService.showInformationMessage(nls.localize('retrieve_canceled
 
 All message strings and button labels must use `nls.localize()`. Enforced by `no-vscode-message-literals` ESLint rule.
 
+**Exception — command-title button labels:** a button/confirm label that mirrors a manifest command title may be sourced from `package.nls.json` (e.g. `packageNls.org_delete_default_text`) instead of `nls.localize()`, keeping the manifest and runtime label in sync from one source. The `no-vscode-message-literals` rule only inspects the message (first) argument, not button-label positions, so it neither enforces nor flags this — don't flag it as a lint gap. Prefer `nls.localize()` for standalone labels.
+
 ```typescript
 // CORRECT
 await vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));

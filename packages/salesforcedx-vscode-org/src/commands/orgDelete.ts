@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as packageNls from '../../package.nls.json';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { gather, OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
@@ -38,7 +39,7 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   const promptService = yield* api.services.PromptService;
   yield* promptService.confirmOrThrow({
     message: nls.localize('parameter_gatherer_placeholder_delete_default_org'),
-    confirmLabel: nls.localize('org_delete_default_text')
+    confirmLabel: packageNls.org_delete_default_text
   });
 
   const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
@@ -116,7 +117,7 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
   // interrupt is NOT a typed failure, so `Effect.partition`'s per-element `Effect.either` does not capture it;
   // it propagates out as a `UserCancellationError` that the command boundary swallows (user cancelled).
   const [failed, successes] = yield* Effect.partition(orgs, deleteOne, { concurrency: 1 }).pipe(
-    promptService.withCancellableProgress(nls.localize('org_delete_username_text'))
+    promptService.withCancellableProgress(packageNls.org_delete_username_text)
   );
 
   yield* Effect.forEach(successes, ({ output }) => channel.appendToChannel(output), { discard: true });
