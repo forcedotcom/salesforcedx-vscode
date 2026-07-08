@@ -29,6 +29,11 @@ jest.mock('../../../src/context/workspaceOrgShape', () => ({
   getOrgShape: (...args: any[]) => getOrgShapeMock(...args)
 }));
 
+const makeWorkspaceContextUtilStub = () => ({
+  onOrgChange: jest.fn(),
+  initialize: jest.fn().mockResolvedValue(undefined)
+});
+
 describe('workspaceContext', () => {
   describe('handleOrgShapeChange', () => {
     const mockOrgUserInfo: OrgUserInfo = { username: 'test-username' };
@@ -144,10 +149,7 @@ describe('workspaceContext', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockWorkspaceContextUtil = {
-        onOrgChange: jest.fn(),
-        initialize: jest.fn().mockResolvedValue(undefined)
-      };
+      mockWorkspaceContextUtil = makeWorkspaceContextUtilStub();
       jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil);
       mockRunPromise.mockResolvedValue(mockConnection);
 
@@ -213,14 +215,10 @@ describe('workspaceContext', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
-        onOrgChange: jest.fn(),
-        initialize: jest.fn().mockResolvedValue(undefined)
-      } as any);
+      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(makeWorkspaceContextUtilStub() as any);
     });
 
-    // core's own activate() initialized with core ctx → refreshers run on org change.
-    // This is the case the removed replay initialize race broke (replay winning left core ctx unset).
+    // documents _doInitialize id-gating: core ctx → coreExtensionContext set → refreshers run.
     it('refreshes all extension reporters when initialized with core context', async () => {
       const workspaceContext = WorkspaceContext.getInstance(true);
       await workspaceContext.initialize(coreCtx);
@@ -230,8 +228,7 @@ describe('workspaceContext', () => {
       expect(refreshAllExtensionReportersMock).toHaveBeenCalledWith(coreCtx);
     });
 
-    // Pre-fix, replay winning the initialize race left core in exactly this no-op state.
-    // Post-fix only core calls initialize so this branch is unreachable in prod.
+    // non-core ctx → coreExtensionContext stays unset → refreshers no-op.
     it('does not refresh reporters when initialized with a non-core (replay) context', async () => {
       const workspaceContext = WorkspaceContext.getInstance(true);
       await workspaceContext.initialize(replayCtx);
