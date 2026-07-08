@@ -107,7 +107,9 @@ export class LogContext {
       this.logLines &&
       this.logLines.length > 0 &&
       this.logLines[0].match(
-        /(\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;.*|\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;.*)/
+        // Matches logs with APEX_CODE,FINEST and VISUALFORCE at FINER or FINEST level.
+        // The optional semicolons (;?) handle cases where Visualforce is the last category.
+        /(\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;?.*|\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;?.*)/
       ) !== null
     );
   }
