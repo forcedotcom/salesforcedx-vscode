@@ -52,6 +52,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
     '言語サーバからブレークポイントの情報を取得できませんでした。言語サーバが起動していません。',
   unable_to_retrieve_org_info: 'OrgInfo を取得できませんでした。',
   debug_test_exec_name: 'テストをデバッグ',
+  debug_test_success: 'テストが正常に実行されました',
   debug_test_no_results_found: 'テスト結果が見つかりませんでした',
   debug_test_no_debug_log: 'テスト結果に関連するデバッグログが見つかりませんでした',
   channel_name: 'Apex Replay デバッガ',

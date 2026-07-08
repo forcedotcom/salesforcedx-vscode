@@ -47,6 +47,7 @@ export const messages = {
   language_client_not_ready: 'Unable to retrieve breakpoint info from language server, language server is not ready',
   unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
   debug_test_exec_name: 'Debug Test(s)',
+  debug_test_success: 'Debug Test(s) successfully ran',
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',
   channel_name: 'Apex Replay Debugger',
