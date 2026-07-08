@@ -28,7 +28,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.31.5",
+    "@salesforce/core": "^8.32.2",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-services": "*",
