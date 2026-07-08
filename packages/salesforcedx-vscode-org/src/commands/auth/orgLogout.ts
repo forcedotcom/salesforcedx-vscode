@@ -6,36 +6,15 @@
  */
 
 import { AuthRemover } from '@salesforce/core';
-import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import {
-  ContinueResponse,
-  LibraryCommandletExecutor,
-  ParametersGatherer,
-  SfCommandlet,
-  notificationService,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../../channels';
-import { getOrgRuntime } from '../../extensionProvider';
 import { nls } from '../../messages';
 import { buildOrgQuickPickItems, isOrgItem } from '../../orgPicker/orgList';
-import { telemetryService } from '../../telemetry';
 import { getFreshAuthorizations, updateConfigAndStateAggregatorsEffect } from '../../util/orgUtil';
-import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
-// SimpleGatherer - need to inline this small utility
-class SimpleGatherer<T> implements ParametersGatherer<T> {
-  private data: T;
-  constructor(data: T) {
-    this.data = data;
-  }
-  public gather(): Promise<ContinueResponse<T>> {
-    return Promise.resolve({ type: 'CONTINUE', data: this.data });
-  }
-}
 
 /**
  * Raised when `AuthRemover.removeAuth` rejects for an org. Uses `Effect.tryPromise` so the core
@@ -143,56 +122,59 @@ export const orgLogoutAllCommand = Effect.fn('orgLogoutAllCommand')(
   Effect.catchTag('UserCancellationError', () => Effect.void)
 );
 
-export class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
-  private readonly orgAliases: readonly string[];
+/**
+ * Effect command for `sf.org.logout.default`: log out the current default org.
+ * No default org is an intentional no-op (info message). Scratch orgs require a confirm modal
+ * (declining is a no-op cancellation). Every other failure propagates to ErrorHandlerService.
+ */
+export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
+  function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    // precondition: typed FailedToResolveSfProjectError (rendered by ErrorHandlerService) when no project
+    yield* api.services.ProjectService.getSfProject();
 
-  constructor(aliases: readonly string[] = []) {
-    super(nls.localize('org_logout_default_text'), 'org_logout_default', OUTPUT_CHANNEL);
-    this.orgAliases = aliases;
-  }
-
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
-    try {
-      // check BEFORE removeAuth: after it unsets config the target-org is already gone
-      const wasTargetOrg = await getOrgRuntime().runPromise(checkIsCurrentTargetOrg(response.data, this.orgAliases));
-      // projectPath resolves local config from the workspace, not process.cwd(); skipCache forces a
-      // disk re-read so removeAuth (unsetConfigValues + unsetAliases, authRemover.js L50-54) unsets the
-      // current target-org rather than a stale cached value
-      const authRemover = await AuthRemover.create({
-        projectPath: workspaceUtils.getRootWorkspacePath(),
-        skipCache: true
-      });
-      await authRemover.removeAuth(response.data);
-      // removeAuth writes config.json but never clears the in-process defaultOrgRef; the config-file
-      // watcher backstop is unreliable within the command window, so clear it here (W-23069610). Only
-      // when the logged-out org was the target — logging out another org must not clear the ref.
-      if (wasTargetOrg) {
-        await getOrgRuntime().runPromise(clearTargetOrgRef());
-      }
-    } catch (e) {
-      const err = e instanceof Error ? e : new Error(String(e));
-      telemetryService.sendException('org_logout_default', `Error: name = ${err.name} message = ${err.message}`);
-      return false;
+    const { username, isScratch, aliases } = yield* resolveTargetOrg();
+    if (!username) {
+      return yield* Effect.sync(() =>
+        notificationService.showInformationMessage(nls.localize('org_logout_no_default_org'))
+      );
     }
-    return true;
-  }
-}
 
-export const orgLogoutDefault = async () => {
-  const { username, isScratch, aliases } = await getOrgRuntime().runPromise(resolveTargetOrg());
-  if (username) {
-    // confirm logout for scratch orgs due to special considerations:
-    // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
-    const logoutCommandlet = new SfCommandlet(
-      sfProjectPreconditionChecker,
-      isScratch ? new ScratchOrgLogoutParamsGatherer(username, aliases[0]) : new SimpleGatherer<string>(username),
-      new OrgLogoutDefault(aliases)
-    );
-    await logoutCommandlet.run();
-  } else {
-    void notificationService.showInformationMessage(nls.localize('org_logout_no_default_org'));
-  }
-};
+    if (isScratch) {
+      // confirm logout for scratch orgs due to special considerations:
+      // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
+      const promptService = yield* api.services.PromptService;
+      yield* promptService.confirmOrThrow({
+        message: nls.localize('org_logout_scratch_prompt', aliases[0] ?? username),
+        confirmLabel: nls.localize('org_logout_scratch_logout')
+      });
+    }
+
+    // check BEFORE removeAuth: after it unsets config the target-org is already gone
+    const wasTargetOrg = yield* checkIsCurrentTargetOrg(username, aliases);
+
+    // projectPath resolves local config from the workspace, not process.cwd(); skipCache forces a
+    // disk re-read so removeAuth (unsetConfigValues + unsetAliases, authRemover.js L50-54) unsets the
+    // current target-org rather than a stale cached value
+    const { fsPath: projectPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+    const authRemover = yield* Effect.tryPromise({
+      try: () => AuthRemover.create({ projectPath, skipCache: true }),
+      catch: cause =>
+        new OrgLogoutError({ username, message: 'Failed to initialize AuthRemover', cause: String(cause) })
+    });
+    yield* removeAuth(authRemover, username);
+    yield* updateConfigAndStateAggregatorsEffect();
+
+    // removeAuth writes config.json but updateConfigAndStateAggregatorsEffect swallows the post-logout
+    // getConnection failure and never clears the in-process defaultOrgRef; clear it here deterministically
+    // (W-23069610). Only when the logged-out org was the target — logging out another org must not clear it.
+    if (wasTargetOrg) {
+      yield* clearTargetOrgRef();
+    }
+  },
+  // Declined scratch confirm is intentional; swallow it. All other errors surface to ErrorHandlerService.
+  Effect.catchTag('UserCancellationError', () => Effect.void)
+);
 
 const checkIsCurrentTargetOrg = Effect.fn('OrgLogout.checkIsCurrentTargetOrg')(function* (
   username: string,
