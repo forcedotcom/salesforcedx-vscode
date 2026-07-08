@@ -5,15 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  AuthFields,
-  AuthInfo,
-  AuthRemover,
-  Org,
-  OrgAuthorization,
-  OrgConfigProperties,
-  StateAggregator
-} from '@salesforce/core';
+import { AuthFields, AuthInfo, AuthRemover, Org, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
@@ -25,7 +17,6 @@ import * as Schema from 'effect/Schema';
 import { channelService } from '../channels';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
-import { getConfigAggregatorEffect } from './configAggregatorEffect';
 
 const DAYS_BEFORE_EXPIRE = 5;
 
@@ -332,9 +323,11 @@ export const getFreshAuthorizations = Effect.fn('orgUtil.getFreshAuthorizations'
 
 /** Get default org and devhub configuration */
 const getDefaultOrgConfigurationEffect = Effect.fn('OrgUtil.getDefaultOrgConfiguration')(function* () {
-  const configAggregator = yield* getConfigAggregatorEffect;
-  const defaultDevHubProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
-  const defaultOrgProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const [defaultDevHubProperty, defaultOrgProperty] = yield* Effect.all([
+    api.services.ConfigService.getTargetDevHub(),
+    api.services.ConfigService.getTargetOrg()
+  ]);
 
   return {
     defaultDevHubProperty,

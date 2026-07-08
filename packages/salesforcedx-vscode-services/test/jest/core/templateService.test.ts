@@ -38,6 +38,7 @@ const createMockConfigService = (templateDir?: string): Layer.Layer<ConfigServic
           reload: () => Promise.resolve({})
         } as unknown as ConfigAggregator),
       invalidateConfigAggregator: () => Effect.void,
+      getTargetOrg: () => Effect.succeed(undefined),
       getTargetDevHub: () => Effect.succeed(undefined),
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),
@@ -58,6 +59,7 @@ const createFailingConfigService = (): Layer.Layer<ConfigService> =>
           ) as unknown as import('../../../src/core/configService').FailedToCreateConfigAggregatorError
         ),
       invalidateConfigAggregator: () => Effect.void,
+      getTargetOrg: () => Effect.succeed(undefined),
       getTargetDevHub: () => Effect.succeed(undefined),
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),

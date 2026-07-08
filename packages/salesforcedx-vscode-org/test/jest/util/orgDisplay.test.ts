@@ -39,12 +39,8 @@ const provide = <A, E>(effect: Effect.Effect<A, E, any>, opts: Services) =>
               getUsernameFromAlias: (alias: string) => Effect.succeed(Option.fromNullable(opts.aliases[alias])),
               getAllAliases: () => Effect.succeed(opts.aliases)
             }),
-            ConfigService: Effect.succeed({
-              getConfigAggregator: () =>
-                Effect.succeed({
-                  getPropertyValue: (_key: string) => opts.configTargetOrg
-                })
-            })
+            // consumed via the static accessor api.services.ConfigService.getTargetOrg()
+            ConfigService: { getTargetOrg: () => Effect.succeed(opts.configTargetOrg) }
           }
         })
       } as unknown as ExtensionProviderService)
