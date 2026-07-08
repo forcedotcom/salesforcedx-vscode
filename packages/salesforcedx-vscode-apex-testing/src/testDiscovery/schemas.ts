@@ -17,13 +17,14 @@ const ToolingTestMethod = Schema.Struct({
 });
 
 /**
- * Wire `""` sentinel ⇄ domain `Option<string>`: decode `""` → `Option.none()`, any other string →
- * `Option.some(s)`; encode back to the raw string (`none` → `""`). Lives at the parse boundary so the
- * domain type never carries an empty-string "missing" sentinel.
+ * Wire `""` sentinel ⇄ domain `Option<string>`: decode `""` (or whitespace-only) → `Option.none()`, any
+ * other string → `Option.some(s)`; encode back to the raw string (`none` → `""`). Lives at the parse
+ * boundary so the domain type never carries an empty-string "missing" sentinel. Trimming keeps a
+ * whitespace-only prefix collapsing to the default/local namespace, matching the prior `.trim()` guards.
  */
 const OptionFromEmptyString = Schema.transform(Schema.String, Schema.OptionFromSelf(Schema.String), {
   strict: true,
-  decode: s => (s === '' ? Option.none() : Option.some(s)),
+  decode: s => (s.trim() === '' ? Option.none() : Option.some(s)),
   encode: Option.getOrElse(() => '')
 });
 

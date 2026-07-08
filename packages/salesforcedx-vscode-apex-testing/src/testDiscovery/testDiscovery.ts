@@ -6,6 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import type * as Either from 'effect/Either';
 import * as Schema from 'effect/Schema';
@@ -72,12 +73,20 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
       if (pageResult._tag === 'Right') {
         const page: ToolingTestsPage = pageResult.right;
         if (page?.apexTestClasses?.length) {
-          // Decode the wire `""` sentinel to Option.none() at the parse boundary; a ParseError maps onto
-          // the same failure channel as a fetch failure.
-          const decoded = yield* Schema.decodeUnknown(Schema.Array(ToolingTestClass))(page.apexTestClasses).pipe(
-            Effect.mapError(error => new Error(`Failed to decode test discovery page: ${error.message}`))
+          // Decode the wire `""` sentinel to Option.none() at the parse boundary. Decode per-record so a
+          // single malformed record degrades to a partial result (mirroring the 431 path) instead of
+          // aborting the entire discovery.
+          const decodeRecord = Schema.decodeUnknown(ToolingTestClass);
+          const results = yield* Effect.forEach(page.apexTestClasses, record =>
+            Effect.either(decodeRecord(record))
           );
-          classes.push(...decoded);
+          classes.push(...Array.getRights(results));
+          const failures = Array.getLefts(results);
+          if (failures.length > 0) {
+            yield* Effect.logWarning(
+              `Skipped ${failures.length} malformed test discovery record(s): ${failures.map(e => e.message).join('; ')}`
+            );
+          }
         }
         nextUrl = page?.nextRecordsUrl ?? undefined;
       }
