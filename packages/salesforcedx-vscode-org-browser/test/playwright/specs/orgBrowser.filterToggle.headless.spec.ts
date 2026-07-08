@@ -97,13 +97,13 @@ test('Org Browser - filter toggles: filter state persists across reload', async 
   await test.step('reload window', async () => {
     await reloadWindow(page);
     await waitForVSCodeWorkbench(page);
-    // Web mode: wait longer for extension to activate and set context keys
-    await page.waitForTimeout(10_000);
   });
 
   await test.step('verify showLocal remains OFF after reload', async () => {
     const orgBrowserPageAfter = new OrgBrowserPage(page);
-    await orgBrowserPageAfter.openOrgBrowser();
+    // Web mode: extension activation (and the context keys the view depends on) is slower
+    // right after a reload, so give the activity bar item longer to appear than usual.
+    await orgBrowserPageAfter.openOrgBrowser(45_000);
     const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
     await expect(showLocalButton).toBeVisible({ timeout: 15_000 });
   });

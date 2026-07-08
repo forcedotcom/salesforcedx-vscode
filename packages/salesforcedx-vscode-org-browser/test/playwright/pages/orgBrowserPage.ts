@@ -43,11 +43,14 @@ export class OrgBrowserPage {
 
   /**
    * Open the Org Browser by clicking its activity bar item
+   * @param activityBarTimeout Timeout for the activity bar item to appear. Web mode needs a longer
+   * timeout right after a reload, since extension activation (and the context keys the view's
+   * `viewsWelcome` entries depend on) is slower there than on desktop.
    */
-  public async openOrgBrowser(): Promise<void> {
+  public async openOrgBrowser(activityBarTimeout = 15_000): Promise<void> {
     await this.waitForProject();
     await expect(this.activityBarItem, 'Activity bar item for Org Browser should be visible').toBeVisible({
-      timeout: 15_000
+      timeout: activityBarTimeout
     });
 
     // Trigger navigation to Org Browser and wait for the types response
