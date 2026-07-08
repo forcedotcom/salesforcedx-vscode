@@ -7,6 +7,7 @@
 
 import type { ResolvedPackageInfo, ToolingTestClass } from '../testDiscovery/schemas';
 import * as Array from 'effect/Array';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } from '../constants';
@@ -37,8 +38,8 @@ type NamespacePackageStructure = Map<string, Map<string, ClassEntry[]>>;
 export const buildClassIdToNamespace = (apexClasses: ToolingTestClass[]): Map<string, string> => {
   const map = new Map<string, string>();
   for (const cls of apexClasses) {
-    if (cls.id && typeof cls.id === 'string') {
-      map.set(cls.id, (cls.namespacePrefix ?? '').trim());
+    if (Option.isSome(cls.id)) {
+      map.set(cls.id.value, Option.getOrElse(cls.namespacePrefix, () => ''));
     }
   }
   return map;
@@ -83,10 +84,9 @@ export const buildNamespacePackageStructure = (
 
   for (const cls of apexClasses) {
     const fullClassName = getFullClassName(cls);
-    const namespaceLabel = (cls.namespacePrefix ?? '').trim();
-    const namespaceKey = namespaceLabel === '' ? LOCAL_NAMESPACE_KEY : namespaceLabel;
-    const pkgInfo = cls.id ? classIdToPackage.get(cls.id) : undefined;
-    const pkgKey = pkgInfo?.package2Id ?? (namespaceLabel !== '' ? '1gp' : UNPACKAGED_PACKAGE_KEY);
+    const namespaceKey = Option.match(cls.namespacePrefix, { onNone: () => LOCAL_NAMESPACE_KEY, onSome: ns => ns });
+    const pkgInfo = Option.match(cls.id, { onNone: () => undefined, onSome: id => classIdToPackage.get(id) });
+    const pkgKey = pkgInfo?.package2Id ?? (Option.isSome(cls.namespacePrefix) ? '1gp' : UNPACKAGED_PACKAGE_KEY);
     addToPackage(namespaceKey, pkgKey, fullClassName, Array.make(cls));
   }
 
@@ -158,7 +158,7 @@ export const getPackageLabelAndId = (
     };
   }
   const firstClass = classEntriesList[0].entries[0];
-  const info = firstClass.id ? classIdToPackage.get(firstClass.id) : undefined;
+  const info = Option.getOrUndefined(Option.flatMap(firstClass.id, id => Option.fromNullable(classIdToPackage.get(id))));
   const baseName = info?.packageName ?? pkgKey;
   const packageLabel =
     info?.containerOptions === 'Unlocked'

@@ -5,12 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DiscoverTestsOptions, TestDiscoveryResult, ToolingTestsPage } from './schemas';
-import { ToolingTestClass } from './schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type * as Either from 'effect/Either';
 import * as Schema from 'effect/Schema';
+import { type DiscoverTestsOptions, type TestDiscoveryResult, type ToolingTestsPage, ToolingTestClass } from './schemas';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.

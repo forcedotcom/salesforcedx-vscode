@@ -9,8 +9,10 @@ import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
@@ -239,10 +241,7 @@ export class ApexTestController {
   }
 
   private async fetchClassBodiesByFullName(classes: ToolingTestClass[]): Promise<Map<string, string>> {
-    const classIds = classes
-      .map(cls => cls.id)
-      .filter((id): id is string => typeof id === 'string' && id.length > 0)
-      .toSorted();
+    const classIds = Array.getSomes(classes.map(cls => cls.id)).toSorted();
     const bodyByFullName = new Map<string, string>();
     if (classIds.length === 0) {
       return bodyByFullName;
@@ -422,7 +421,7 @@ export class ApexTestController {
 
   private async addClassToTree(cls: ToolingTestClass, classNameToUri: Map<string, URI>, orgKey: string): Promise<void> {
     const [connection, orgInfo] = await Promise.all([this.getConnection(), getDefaultOrgInfo()]);
-    const classIds = cls.id ? [cls.id] : [];
+    const classIds = Option.match(cls.id, { onNone: () => [], onSome: id => [id] });
     const classIdToPackage = await resolvePackage2Members(
       connection,
       classIds,
@@ -462,7 +461,9 @@ export class ApexTestController {
 
           // Find or create package node
           const classEntry = classEntriesList[0];
-          const info = classEntry.entries[0].id ? classIdToPackage.get(classEntry.entries[0].id) : undefined;
+          const info = Option.getOrUndefined(
+            Option.flatMap(classEntry.entries[0].id, id => Option.fromNullable(classIdToPackage.get(id)))
+          );
           const packageLabel = info?.packageName ?? _pkgKey;
           const pkgNodeId = `${nsKey}/${_pkgKey}`;
           let packageItem: vscode.TestItem | undefined;

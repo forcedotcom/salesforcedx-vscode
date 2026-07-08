@@ -6,6 +6,7 @@
  */
 /* eslint-disable jsdoc/check-indentation */
 
+import type { Package2Member } from '@salesforce/types/tooling';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 
@@ -67,8 +68,6 @@ export type DiscoverTestsOptions = {
 };
 
 // Package resolution: use WSDL-generated types from @salesforce/types (forcedotcom/wsdl)
-import type { Package2Member } from '@salesforce/types/tooling';
-
 /** Package2Member query result; wsdl type omits MetadataComponentId and Package2Id for some API versions. */
 export type Package2MemberRecord = Package2Member & {
   MetadataComponentId?: string;
