@@ -157,7 +157,7 @@ jobs:
         shell: bash
         run: |
           for i in $(seq 1 60); do
-            if curl -fsS "$CODE_BUILDER_URL" >/dev/null 2>&1; then echo "up after ${i}s"; exit 0; fi
+            if curl -fsS "$CODE_BUILDER_URL" >/dev/null 2>&1; then echo "up after $((i * 2))s"; exit 0; fi
             sleep 2
           done
           echo "::error::Code Builder never became reachable at $CODE_BUILDER_URL"; docker logs "$CONTAINER_NAME" || true; exit 1
@@ -172,7 +172,7 @@ jobs:
         run: |
           docker restart "$CONTAINER_NAME"
           for i in $(seq 1 60); do
-            if curl -fsS "$CODE_BUILDER_URL" >/dev/null 2>&1; then echo "up after ${i}s"; exit 0; fi
+            if curl -fsS "$CODE_BUILDER_URL" >/dev/null 2>&1; then echo "up after $((i * 2))s"; exit 0; fi
             sleep 2
           done
           echo "::error::Code Builder never came back after restart"; docker logs "$CONTAINER_NAME" || true; exit 1
