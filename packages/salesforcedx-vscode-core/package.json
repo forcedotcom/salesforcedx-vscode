@@ -132,8 +132,7 @@
         "out/**"
       ],
       "output": [
-        "dist",
-        "dist/node-metafile.json"
+        "dist"
       ]
     },
     "test": {
