@@ -167,6 +167,23 @@ jobs:
           done
           echo "::error::Code Builder never became reachable at $CODE_BUILDER_URL"; docker logs "$CONTAINER_NAME" || true; exit 1
 
+      # Container opens ~/e2e-project untrusted → Restricted Mode, where the Salesforce extensions
+      # don't activate and their commands never register. The desktop fixture uses
+      # --disable-workspace-trust; the code-server equivalent is this machine setting, written before
+      # the swap restart so the host boots trusting the workspace.
+      - name: Disable workspace trust in container
+        run: |
+          docker exec "$CONTAINER_NAME" bash -lc '
+            set -e
+            for d in "$HOME/.local/share/code-server/Machine" "$HOME/.local/share/code-server/User"; do
+              mkdir -p "$d"
+              f="$d/settings.json"
+              [ -s "$f" ] || echo "{}" > "$f"
+              tmp="$(mktemp)"
+              jq ".\"security.workspace.trust.enabled\" = false" "$f" > "$tmp" && mv "$tmp" "$f"
+            done
+          '
+
       - name: Swap in built extensions
         run: bash .github/workflows/scripts/codeBuilderSwapExtensions.sh "$CONTAINER_NAME" "$PWD/built-vsix"
 
