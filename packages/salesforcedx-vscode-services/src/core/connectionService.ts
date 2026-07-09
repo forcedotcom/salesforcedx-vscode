@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
@@ -65,6 +65,19 @@ export class FailedToResolveUsernameError extends Schema.TaggedError<FailedToRes
 
 export class NoTargetOrgConfiguredError extends Schema.TaggedError<NoTargetOrgConfiguredError>()(
   'NoTargetOrgConfiguredError',
+  {
+    message: Schema.String
+  }
+) {}
+
+/**
+ * A per-username connection was requested on the web bundle. The web `connectionCache.lookup`
+ * (`createWebConnection`) parses its key as `instanceUrl###accessToken###apiVersion`, so a bare
+ * username silently mis-parses — there is no username→connection path on web. Consumers degrade
+ * gracefully rather than crash.
+ */
+export class UsernameConnectionNotSupportedOnWebError extends Schema.TaggedError<UsernameConnectionNotSupportedOnWebError>()(
+  'UsernameConnectionNotSupportedOnWebError',
   {
     message: Schema.String
   }
@@ -207,6 +220,20 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
+
+    /**
+     * Alias-resolve `usernameOrAlias`, then fetch the (desktop) cached `Connection`. Shared by
+     * `getConnection` (default org) and `getConnectionForUsername` (arbitrary org). Deliberately does
+     * NOT touch the SubscriptionRef — only `getConnection` forks `maybeUpdateDefaultOrgRef`, so the
+     * two accessors diverge on that side effect.
+     */
+    const resolveAndConnect = Effect.fn('ConnectionService.resolveAndConnect')(function* (usernameOrAlias: string) {
+      const username = yield* aliasService
+        .getUsernameFromAlias(usernameOrAlias)
+        .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
+      return yield* connectionCache.get(username);
+    });
+
     /** Get a Connection to the target org */
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
@@ -219,17 +246,14 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
-            const usernameOrAlias = yield* configService.getConfigAggregator().pipe(
-              Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
+            // single source of the target-org lookup (shared with OrgInfoService via ConfigService)
+            const usernameOrAlias = yield* configService.getTargetOrg().pipe(
               Effect.filterOrFail(
-                targetOrg => targetOrg != null,
+                (targetOrg): targetOrg is string => targetOrg != null,
                 () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
               )
             );
-            const username = yield* aliasService
-              .getUsernameFromAlias(usernameOrAlias)
-              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            return yield* connectionCache.get(username);
+            return yield* resolveAndConnect(usernameOrAlias);
           });
 
       // update the org ref in the background
@@ -240,6 +264,23 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         Effect.forkDaemon
       );
       return conn;
+    });
+
+    /**
+     * Get a Connection for an arbitrary org (alias or username). Unlike {@link getConnection}, this
+     * NEVER forks `maybeUpdateDefaultOrgRef`, so inspecting a non-default org does not corrupt the
+     * tracked default-org identity (telemetry/context). Web is unsupported: the web connection cache
+     * keys on `instanceUrl###accessToken###apiVersion`, not a username, so bail with a typed error.
+     */
+    const getConnectionForUsername = Effect.fn('ConnectionService.getConnectionForUsername')(function* (
+      username: string
+    ) {
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        return yield* new UsernameConnectionNotSupportedOnWebError({
+          message: 'Per-username connections are not supported on web'
+        });
+      }
+      return yield* resolveAndConnect(username);
     });
 
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
@@ -269,7 +310,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       });
     });
 
-    return { getConnection, invalidateCachedConnections, listAllAuthorizations };
+    return { getConnection, getConnectionForUsername, invalidateCachedConnections, listAllAuthorizations };
   })
 }) {}
 

@@ -29,6 +29,7 @@ import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
+import { OrgInfoService } from './core/orgInfoService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
@@ -93,6 +94,7 @@ export type SalesforceVSCodeServicesApi = {
       | PromptService
       | MetadataRegistryService
       | MetadataRetrieveService
+      | OrgInfoService
       | ProjectService
       | Resource.Resource
       | SettingsChangePubSub
@@ -132,6 +134,7 @@ export type SalesforceVSCodeServicesApi = {
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
+    OrgInfoService: typeof OrgInfoService;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: typeof SdkLayerFor;
@@ -182,7 +185,8 @@ export type {
   FailedToCreateConnectionError,
   FailedToResolveUsernameError,
   NoTargetOrgConfiguredError,
-  FailedToListAuthorizationsError
+  FailedToListAuthorizationsError,
+  UsernameConnectionNotSupportedOnWebError
 } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
@@ -348,6 +352,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     PromptService.Default,
     MetadataRegistryService.Default,
     MetadataRetrieveService.Default,
+    OrgInfoService.Default,
     ProjectService.Default,
     SettingsService.Default,
     SettingsChangePubSub.Default,
@@ -402,6 +407,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
+      OrgInfoService,
       ProjectService,
       getSdkLayerConfigFromContext,
       SdkLayerFor,
@@ -466,6 +472,7 @@ export {
 export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
+export type { OrgInfoService, NoUsernameError, OrgInfoConnectionError } from './core/orgInfoService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
