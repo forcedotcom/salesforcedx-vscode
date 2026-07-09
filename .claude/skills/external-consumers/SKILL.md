@@ -40,7 +40,6 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core').expor
 
 | Repo | Visibility | Consumed |
 |------|-----------|----------|
-| [einstein-gpt](https://github.com/forcedotcom/salesforcedx-vscode-einstein-gpt) | **Private** | `services.{ChannelService,WorkspaceContext,SalesforceProjectConfig,CommandEventDispatcher}`, `workspaceContextUtils.getOrgShape` |
 | [vscode-agents](https://github.com/forcedotcom/vscode-agents) | Public | `services.{ChannelService,TelemetryService,WorkspaceContext}` |
 | [metadata-visualizer](https://github.com/forcedotcom/salesforce-metadata-visualizer) | **Private** | `services.TelemetryService` |
 | [code-analyzer](https://github.com/forcedotcom/sfdx-code-analyzer-vscode) | Public | `services.WorkspaceContext` (direct), telemetry via service-provider |
@@ -64,8 +63,10 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core').expor
 
 | Repo | Notes |
 |------|-------|
+| [einstein-gpt](https://github.com/forcedotcom/salesforcedx-vscode-einstein-gpt) | **Private**. Now the Agentforce Vibes monorepo (`packages/`, pnpm). extensionDependency = `salesforcedx-vscode-services` only; dropped core. Direct core API (`services.{ChannelService,WorkspaceContext,SalesforceProjectConfig,CommandEventDispatcher}`, `getOrgShape`) all dead. Still uses `@salesforce/vscode-service-provider` `ServiceType.Telemetry` (see below). |
 | [slds](https://github.com/forcedotcom/salesforcedx-vscode-slds) | No extensionDep, no getExtension. In same extension pack. |
 | [apex-language-support](https://github.com/forcedotcom/apex-language-support) | Experimental. String refs only in tests/comments. |
+| apex-oas (in-repo) | extensionDependency = `salesforcedx-vscode-apex` + `salesforcedx-vscode-services`; no core dep. Reads project/registry/fs via services-extension `api.services.*`. Only cross-extension `.exports` use is apex's `.languageClientManager`. |
 
 ## In-repo consumers
 
@@ -77,15 +78,13 @@ Always grep for `\.exports\.\w+` across the full monorepo, not just `coreExtensi
 
 | Package | Files | Members accessed |
 |---------|-------|------------------|
-| apex | `coreExtensionUtils.ts`, `index.ts`, `languageServer.ts` | `.WorkspaceContext`, `.services.TelemetryService`, `.getAuthFields`, `.services.SalesforceProjectConfig` |
+| apex | `coreExtensionUtils.ts`, `index.ts`, `languageServer.ts` | `.WorkspaceContext`, `.services.TelemetryService`, `.getAuthFields` |
 | apex-debugger | `coreExtensionUtils.ts`, `index.ts`, `debugConfigurationProvider.ts` | `.channelService`, `.SfCommandlet`, `.telemetryService`, `.SfCommandletExecutor` |
-| apex-replay-debugger | `index.ts`, `checkpointService.ts`, `quickLaunch.ts`, `debugConfigurationProvider.ts` | `.services.WorkspaceContext`, `.getUserId` |
-| apex-oas | `index.ts`, `oasUtils.ts`, `externalServiceRegistrationManager.ts` | `.WorkspaceContext`, `.services.SalesforceProjectConfig`, `.services.RegistryAccess`, `.services.FsService` |
 | utils-vscode | `authUtils.ts`, `workspaceContextUtil.ts`, `telemetryUtils.ts` | `.sharedAuthState`, `.channelService`, `.getSharedTelemetryUserId` (phantom — not on API type) |
 
 ## Keeping current
 
-Verified 2026-04-29. Before asserting "nobody uses X":
+Verified 2026-07-02. Before asserting "nobody uses X":
 1. Grep monorepo for `\.exports\.MEMBER` — catches direct access outside wrapper files
 2. Search `org:forcedotcom` and `org:salesforcecli` via `gh api`
 3. Read private repos via contents API

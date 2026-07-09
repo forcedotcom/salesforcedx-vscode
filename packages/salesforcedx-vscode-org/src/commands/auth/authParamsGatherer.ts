@@ -6,11 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { runGatherer } from '../../parameterGatherers/runGatherer';
 import { validateAliasInput } from '../../util/orgAlias';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
@@ -159,31 +157,6 @@ export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gath
     instanceUrl
   };
 });
-
-const gatherScratchOrgLogout = Effect.fn('ScratchOrgLogoutParamsGatherer.gather')(function* (params: {
-  readonly username: string;
-  readonly alias: string | undefined;
-}) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-
-  yield* promptService.confirmOrThrow({
-    message: nls.localize('org_logout_scratch_prompt', params.alias ?? params.username),
-    confirmLabel: nls.localize('org_logout_scratch_logout')
-  });
-  return params.username;
-});
-
-export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string> {
-  constructor(
-    public readonly username: string,
-    public readonly alias?: string
-  ) {}
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    return runGatherer(gatherScratchOrgLogout({ username: this.username, alias: this.alias }));
-  }
-}
 
 const getProjectLoginUrl = Effect.fn('AuthParamsGatherer.getProjectLoginUrl')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

@@ -5,12 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { effectEsmConditions } from '../../scripts/bundling/effect.mjs';
 import { build } from 'esbuild';
+import { writeFile } from 'fs/promises';
 
-await build({
+const nodeBuild = await build({
   ...nodeConfig,
+  ...effectEsmConditions,
   external: ['vscode', 'applicationinsights', 'jsonpath', 'jsonc-parser'],
   keepNames: false,
   entryPoints: ['./src/index.ts'],
-  outdir: 'dist'
+  outdir: 'dist',
+  metafile: true
 });
+
+await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));

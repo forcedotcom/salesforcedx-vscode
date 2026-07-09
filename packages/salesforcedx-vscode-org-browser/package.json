@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.3.0",
+  "version": "67.4.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,7 +34,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.31.5",
+    "@salesforce/core": "^8.32.2",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/source-deploy-retrieve": "^12.32.5",
     "salesforcedx-vscode-services": "*"
@@ -104,6 +104,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/effect.mjs",
         "out/**"
       ],
       "output": [
@@ -120,6 +121,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/effect.mjs",
         "out/**"
       ],
       "output": [

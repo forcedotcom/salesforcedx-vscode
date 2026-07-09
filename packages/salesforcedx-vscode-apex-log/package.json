@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.3.0",
+  "version": "67.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,13 +28,13 @@
   "browser": "./dist/web/index.js",
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/types": "^1.6.0",
+    "@salesforce/types": "^1.8.0",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.31.5",
+    "@salesforce/core": "^8.32.2",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -101,6 +101,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/effect.mjs",
         "out/**"
       ],
       "output": [
@@ -118,6 +119,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/effect.mjs",
         "out/**"
       ],
       "output": [

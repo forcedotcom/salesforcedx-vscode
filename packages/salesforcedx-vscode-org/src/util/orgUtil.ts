@@ -5,15 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  AuthFields,
-  AuthInfo,
-  AuthRemover,
-  Org,
-  OrgAuthorization,
-  OrgConfigProperties,
-  StateAggregator
-} from '@salesforce/core';
+import { AuthFields, AuthInfo, AuthRemover, Org, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
@@ -25,9 +17,18 @@ import * as Schema from 'effect/Schema';
 import { channelService } from '../channels';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
-import { getConfigAggregatorEffect } from './configAggregatorEffect';
 
 const DAYS_BEFORE_EXPIRE = 5;
+
+/**
+ * Raised when reloading the on-disk ConfigAggregator / StateAggregator caches rejects.
+ * Surfaces a real message to ErrorHandlerService instead of escaping as a defect.
+ * @ExportTaggedError
+ */
+export class AggregatorReloadError extends Schema.TaggedError<AggregatorReloadError>()('AggregatorReloadError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.String)
+}) {}
 
 const orgExpiresSoon = (authFields: AuthFields) =>
   isString(authFields.expirationDate) &&
@@ -102,11 +103,28 @@ export const getAuthFieldsFor = async (username: string): Promise<AuthFields> =>
 
   return authInfo.getFields();
 };
-const refreshConnection = Effect.fn('updateConfigAndStateAggregators', {
+/**
+ * Effect form of {@link updateConfigAndStateAggregators}. Reloads the on-disk
+ * ConfigAggregator + StateAggregator caches, then invalidates the services-api config/connection
+ * caches and re-fetches the connection. Exported so Effect commands can `yield*` it directly
+ * instead of bouncing through the async wrapper (which re-enters the runtime via runPromise).
+ */
+export const updateConfigAndStateAggregatorsEffect = Effect.fn('updateConfigAndStateAggregators', {
   root: true,
   attributes: { telemetryIgnore: true }
 })(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  // Force the ConfigAggregatorProvider to reload its stored ConfigAggregators and the
+  // StateAggregator to drop ALL cached instances (incl. the default used by
+  // AuthInfo.listAllAuthorizations) so this config file change is accounted for.
+  yield* Effect.tryPromise({
+    try: async () => {
+      await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
+      await StateAggregator.clearInstanceAsync();
+    },
+    catch: cause =>
+      new AggregatorReloadError({ message: 'Failed to reload config/state aggregators', cause: String(cause) })
+  });
   yield* api.services.ConfigService.invalidateConfigAggregator();
   yield* api.services.ConnectionService.invalidateCachedConnections();
   yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
@@ -117,17 +135,7 @@ export class ConfigRefreshError extends Schema.TaggedError<ConfigRefreshError>()
 }) {}
 
 export const updateConfigAndStateAggregators = async (): Promise<void> => {
-  // Force the ConfigAggregatorProvider to reload its stored
-  // ConfigAggregators so that this config file change is accounted
-  // for and the ConfigAggregators are updated with the latest info.
-  const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
-  await configAggregatorProvider.reloadConfigAggregators();
-  // Also force the StateAggregator to reload to have the latest
-  // authorization info. Called without args to clear ALL cached instances,
-  // including the default one used by AuthInfo.listAllAuthorizations().
-  await StateAggregator.clearInstanceAsync();
-
-  await getOrgRuntime().runPromise(refreshConnection());
+  await getOrgRuntime().runPromise(updateConfigAndStateAggregatorsEffect());
 };
 
 /** Get connection status from error */
@@ -315,9 +323,11 @@ export const getFreshAuthorizations = Effect.fn('orgUtil.getFreshAuthorizations'
 
 /** Get default org and devhub configuration */
 const getDefaultOrgConfigurationEffect = Effect.fn('OrgUtil.getDefaultOrgConfiguration')(function* () {
-  const configAggregator = yield* getConfigAggregatorEffect;
-  const defaultDevHubProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_DEV_HUB);
-  const defaultOrgProperty = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const [defaultDevHubProperty, defaultOrgProperty] = yield* Effect.all([
+    api.services.ConfigService.getTargetDevHub(),
+    api.services.ConfigService.getTargetOrg()
+  ]);
 
   return {
     defaultDevHubProperty,

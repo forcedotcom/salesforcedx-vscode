@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/apex-node",
   "description": "Salesforce JS library for Apex",
-  "version": "67.3.0",
+  "version": "67.4.0",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/src/index.js",
@@ -17,7 +17,7 @@
     }
   },
   "dependencies": {
-    "@salesforce/core": "^8.31.5",
+    "@salesforce/core": "^8.32.2",
     "@salesforce/kit": "^3.2.6",
     "@salesforce/ts-types": "^2.0.10",
     "fast-glob": "^3.3.2",
@@ -25,7 +25,7 @@
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
     "istanbul-reports": "^3.2.0",
-    "json-stream-stringify": "^3.1.6"
+    "json-stream-stringify": "^3.1.7"
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
