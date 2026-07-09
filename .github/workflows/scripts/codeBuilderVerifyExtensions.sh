@@ -32,7 +32,9 @@ for id in "${!EXPECTED[@]}"; do
   want="${EXPECTED[$id]}"
 
   # Exactly one override dir per id (a leftover published-version dir would be a second match).
-  dirs="$(docker exec "$CONTAINER" bash -lc "ls -d ${OVERRIDES_DIR}/${id}-* 2>/dev/null || true")"
+  # The dir is "<id>-<version>" and versions start with a digit; anchor on "-[0-9]" so a shorter id
+  # (salesforcedx-vscode, -org) doesn't prefix-match longer siblings (-apex, -org-browser).
+  dirs="$(docker exec "$CONTAINER" bash -lc "ls -d ${OVERRIDES_DIR}/${id}-[0-9]* 2>/dev/null || true")"
   count="$(printf '%s\n' "$dirs" | grep -c . || true)"
   if [ "$count" -ne 1 ]; then
     echo "FAIL ${id}: expected exactly 1 override dir, found ${count}: ${dirs//$'\n'/ }"
