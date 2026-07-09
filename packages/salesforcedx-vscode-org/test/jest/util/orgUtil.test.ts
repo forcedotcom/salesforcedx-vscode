@@ -45,6 +45,15 @@ describe('orgUtil tests', () => {
     listAllAuthorizations: () => Effect.promise(() => AuthInfo.listAllAuthorizations())
   });
 
+  // checkForSoonToBeExpiredOrgs leaks ChannelService / ConnectionService into its R channel (it yields
+  // those off the services api); the seeded mockLayer's mock api satisfies them at runtime, so widen R
+  // to ExtensionProviderService for the type-only provide.
+  const runCheck = (mockLayer: Layer.Layer<ExtensionProviderServiceType>): Promise<void> =>
+    (checkForSoonToBeExpiredOrgs() as Effect.Effect<void, unknown, ExtensionProviderServiceType>).pipe(
+      Effect.provide(mockLayer),
+      Effect.runPromise
+    );
+
   const orgName1 = 'dreamhouse-org';
   const orgName2 = 'ebikes-lwc';
   const now = new Date();
@@ -108,7 +117,7 @@ describe('orgUtil tests', () => {
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
     expect(appendToChannelMock).not.toHaveBeenCalled();
@@ -138,7 +147,7 @@ describe('orgUtil tests', () => {
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
     expect(appendToChannelMock).not.toHaveBeenCalled();
@@ -174,7 +183,7 @@ describe('orgUtil tests', () => {
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendToChannelMock).not.toHaveBeenCalled();
@@ -211,7 +220,7 @@ describe('orgUtil tests', () => {
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendToChannelMock).toHaveBeenCalled();
@@ -265,7 +274,7 @@ describe('orgUtil tests', () => {
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendToChannelMock).toHaveBeenCalled();
@@ -330,7 +339,7 @@ describe('orgUtil tests', () => {
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     // Assert that the notifications for both orgs are displayed
     expect(showWarningMessageSpy).toHaveBeenCalledTimes(2);

@@ -96,9 +96,16 @@ const buildServicesLayer = (listMock: jest.Mock) =>
     } as unknown as SalesforceVSCodeServicesApi)
   } as unknown as ExtensionProviderService);
 
-// Run a helper Effect against the seeded layer.
-const runWithServices = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService>): Promise<A> =>
-  Effect.runPromise(effect.pipe(Effect.provide(buildServicesLayer(listAllAuthorizationsMock))));
+// Run a helper Effect against the seeded layer. The migrated helpers leak ChannelService /
+// ConnectionService (and, via getDefaultOrgConfiguration, Alias/Config services) into their R
+// channel because they yield those off the services api; at runtime the seeded mock api satisfies
+// them, so widen R to ExtensionProviderService for the type-only provide.
+const runWithServices = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
+  Effect.runPromise(
+    (effect as Effect.Effect<A, E, ExtensionProviderService>).pipe(
+      Effect.provide(buildServicesLayer(listAllAuthorizationsMock))
+    )
+  );
 
 describe('orgList command', () => {
   let mockGetAuthFieldsFor: jest.SpyInstance;
