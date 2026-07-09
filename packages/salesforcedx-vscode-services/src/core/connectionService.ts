@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
@@ -14,8 +14,11 @@ import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
+import { ChannelService } from '../vscode/channelService';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { AliasService } from './alias';
@@ -82,6 +85,11 @@ export class UsernameConnectionNotSupportedOnWebError extends Schema.TaggedError
     message: Schema.String
   }
 ) {}
+
+export class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpiredError>()('AccessTokenExpiredError', {
+  message: Schema.String,
+  username: Schema.optional(Schema.String)
+}) {}
 
 class FailedToGetTracksSourceError extends Schema.TaggedError<FailedToGetTracksSourceError>()(
   'FailedToGetTracksSourceError',
@@ -186,6 +194,9 @@ const connectionCache = Effect.runSync(
   })
 );
 
+const resolveUsername = (conn: Connection): string | undefined =>
+  conn.getUsername() ?? conn.getAuthInfoFields().username;
+
 type IdentityResult = { username: string; userId: string };
 
 const identityCache = new Map<string, IdentityResult>();
@@ -194,7 +205,7 @@ const getUserFromUserSobject = (orgId: string, conn: Connection) => {
   const cached = identityCache.get(orgId);
   if (cached) return Effect.succeed(cached);
 
-  const username = conn.getUsername() ?? conn.getAuthInfoFields().username;
+  const username = resolveUsername(conn);
   if (!username) return Effect.void;
 
   return Effect.tryPromise(() =>
@@ -215,11 +226,12 @@ const getUserFromUserSobject = (orgId: string, conn: Connection) => {
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   accessors: true,
-  dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default],
+  dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default, ChannelService.Default],
   effect: Effect.gen(function* () {
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
+    const channelService = yield* ChannelService;
 
     /**
      * Alias-resolve `usernameOrAlias`, then fetch the (desktop) cached `Connection`. Shared by
@@ -233,6 +245,75 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
       return yield* connectionCache.get(username);
     });
+
+    // On identity() failure: log to the services-owned 'Salesforce Services' channel (default ChannelService),
+    // show the modal, and (if accepted) dispatch sf.org.login.web. We must NOT create a
+    // ChannelServiceLayer('Salesforce Org Management') here: services is a *dependency* of the org extension,
+    // so that would createOutputChannel('Salesforce Org Management') from a second bundle → a DUPLICATE channel
+    // with the same display name the org ext already owns.
+    const promptReauth = Effect.fn('ConnectionService.promptReauth')(function* (
+      conn: Connection,
+      username: string,
+      error: unknown
+    ) {
+      yield* channelService.appendToChannel(`Error refreshing access token: ${String(error)}`);
+      yield* channelService.showChannel;
+      // Pass the configured target-org-or-alias (matching the old WorkspaceContextUtil behavior) so the
+      // reauthed org keeps its existing alias, rather than an arbitrary first-registered alias.
+      const targetOrgOrAlias = yield* configService
+        .getConfigAggregator()
+        .pipe(Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)));
+      const alias = targetOrgOrAlias && targetOrgOrAlias !== username ? targetOrgOrAlias : undefined;
+      const loginButton = nls.localize('error_access_token_expired_login_button');
+      const selection = yield* Effect.promise(() =>
+        vscode.window.showErrorMessage(
+          nls.localize('error_access_token_expired'),
+          { modal: true, detail: nls.localize('error_access_token_expired_detail') },
+          loginButton
+        )
+      );
+      if (selection === loginButton) {
+        yield* Effect.promise(() =>
+          vscode.commands.executeCommand('sf.org.login.web', conn.instanceUrl, alias ?? username)
+        );
+      }
+      return yield* new AccessTokenExpiredError({
+        message: nls.localize('error_access_token_refresh_failed'),
+        username
+      });
+    });
+
+    const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (conn: Connection) {
+      const username = resolveUsername(conn);
+      if (!username) return;
+      yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(e => promptReauth(conn, username, e)));
+    });
+
+    // Coordinates access-token reauth. Keyed by the live Connection (reference identity) so N concurrent
+    // callers sharing one cached Connection collapse to a SINGLE in-flight lookup (Cache dedup) → one modal,
+    // while a recreated Connection (post-invalidation) is a fresh key that revalidates. Success TTL 30min
+    // replaces the old 5-min revalidation throttle. Failure entries are ALSO retained (same TTL) — this is
+    // the reference-keyed equivalent of the old "known bad connection" set: it preserves the "one modal per
+    // username per session" invariant so a still-cached expired Connection is not re-validated (and the user
+    // re-nagged) on every subsequent getConnection. After reauth, invalidateCachedConnections yields a fresh
+    // Connection = fresh key, so the retry happens against the new object rather than the known-bad one.
+    const reauthCache = yield* Cache.makeWith({
+      capacity: 100,
+      timeToLive: () => Duration.minutes(30),
+      lookup: runReauthLookup
+    });
+
+    /**
+     * If the connection uses the access-token (session-ID) flow — which cannot silently refresh — validate
+     * that the token still works via `identity()`. On failure, log to the Salesforce Services channel, show a modal,
+     * and (if accepted) dispatch `sf.org.login.web`. No-op for refreshable (web/JWT) flows.
+     */
+    const validateAccessTokenOrPromptReauth = Effect.fn('ConnectionService.validateAccessTokenOrPromptReauth')(
+      function* (conn: Connection) {
+        if (!conn.getAuthInfo().isAccessTokenFlow()) return;
+        yield* reauthCache.get(conn);
+      }
+    );
 
     /** Get a Connection to the target org */
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
@@ -310,7 +391,13 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       });
     });
 
-    return { getConnection, getConnectionForUsername, invalidateCachedConnections, listAllAuthorizations };
+    return {
+      getConnection,
+      getConnectionForUsername,
+      validateAccessTokenOrPromptReauth,
+      invalidateCachedConnections,
+      listAllAuthorizations
+    };
   })
 }) {}
 
@@ -357,7 +444,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
 
   // User SOQL can fail or return nothing (query/API edge cases) while AuthInfo still has the login username.
   // Without this fallback, TargetOrgRef stays username-less and the org picker / display-org commands misreport "no default org".
-  const authUsername = conn.getUsername() ?? conn.getAuthInfoFields().username;
+  const authUsername = resolveUsername(conn);
   const username = queriedUsername ?? authUsername ?? undefined;
   const userId = queriedUserId;
 

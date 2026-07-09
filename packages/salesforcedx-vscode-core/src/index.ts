@@ -16,7 +16,6 @@ import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
 import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
 import { SfCommandletExecutor } from './commands/util';
@@ -47,9 +46,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   // Initialize services layer first so getRuntime() can use it.
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
 
-  // Set shared Auth State
-  const sharedAuthState = SharedAuthState.getInstance();
-
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getUserId,
@@ -59,7 +55,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     WorkspaceContext,
     telemetryService,
     workspaceContextUtils,
-    sharedAuthState,
     services: {
       RegistryAccess,
       ChannelService,
@@ -210,7 +205,6 @@ export type SalesforceVSCodeCoreApi = {
   WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
-  sharedAuthState: SharedAuthState;
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;

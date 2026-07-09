@@ -16,6 +16,7 @@ import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { clearDefaultOrgRef, getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { OrgInfoService } from '../../../src/core/orgInfoService';
+import { ChannelService } from '../../../src/vscode/channelService';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
 jest.mock('@salesforce/core', () => ({
@@ -84,6 +85,7 @@ const buildOrgInfoLayer = (opts: {
       getConnection: () => Effect.succeed(buildMockConnection()),
       getConnectionForUsername: (opts.connForUsername ??
         ((username: string) => Effect.succeed(buildMockConnection({ authFields: { ...DEFAULT_AUTH_FIELDS, username } })))) as ConnectionService['getConnectionForUsername'],
+      validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
       listAllAuthorizations: () => Effect.succeed([])
     })
@@ -306,7 +308,16 @@ describe('ConnectionService default-org ref side effect', () => {
       getAllAliases: () => Effect.succeed({}),
       unsetAliases: () => Effect.void
     } as unknown as AliasService),
-    Layer.succeed(SettingsService, {} as unknown as SettingsService)
+    Layer.succeed(SettingsService, {} as unknown as SettingsService),
+    Layer.succeed(
+      ChannelService,
+      ChannelService.make({
+        getChannel: Effect.succeed({} as never),
+        showChannel: Effect.void,
+        clearChannel: Effect.void,
+        appendToChannel: () => Effect.void
+      })
+    )
   );
   const connLayer = Layer.provide(ConnectionService.DefaultWithoutDependencies, connDeps);
 

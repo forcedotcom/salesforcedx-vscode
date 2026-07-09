@@ -186,7 +186,8 @@ export type {
   FailedToResolveUsernameError,
   NoTargetOrgConfiguredError,
   FailedToListAuthorizationsError,
-  UsernameConnectionNotSupportedOnWebError
+  UsernameConnectionNotSupportedOnWebError,
+  AccessTokenExpiredError
 } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
