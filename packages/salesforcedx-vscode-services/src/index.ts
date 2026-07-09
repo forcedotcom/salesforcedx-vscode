@@ -438,6 +438,7 @@ const deactivateEffect = Effect.gen(function* () {
 );
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
+export { OrgInfoStruct, type OrgInfo } from './core/schemas/orgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
