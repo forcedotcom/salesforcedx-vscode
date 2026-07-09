@@ -95,6 +95,7 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/effect.mjs",
         "../../scripts/bundling/web.mjs",
         "out/**",
         "package.json"
