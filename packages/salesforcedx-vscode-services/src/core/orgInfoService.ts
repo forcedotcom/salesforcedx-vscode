@@ -49,6 +49,7 @@ export class OrgInfoConnectionError extends Schema.TaggedError<OrgInfoConnection
   message: Schema.String
 }) {}
 
+/* jscpd:ignore-start — deliberate copy of org pkg `util/orgUtil.ts`; services can't import org pkg (org depends on services) */
 /** Check if org should be removed based on error. Ported from org pkg `util/orgUtil.ts`. */
 const shouldRemoveOrg = (err: unknown): boolean => {
   const lowerMsg = (err instanceof Error ? err.message : String(err)).toLowerCase();
@@ -75,6 +76,7 @@ const getConnectionStatusFromError = (err: unknown, username?: string): string =
 
   return message;
 };
+/* jscpd:ignore-end */
 
 /** Build the typed connection failure from a caught (unknown) error. */
 const connectionError = (username: string, error: unknown): OrgInfoConnectionError =>
@@ -123,13 +125,6 @@ export class OrgInfoService extends Effect.Service<OrgInfoService>()('OrgInfoSer
     const aliasService = yield* AliasService;
     const configService = yield* ConfigService;
 
-    const getAllAliases = Effect.fn('OrgInfoService.getAllAliases')(function* (username: string) {
-      const orgs = yield* aliasService.getAllAliases();
-      return Object.entries(orgs)
-        .filter(([, u]) => u === username)
-        .map(([alias]) => alias);
-    });
-
     /** Test connection to determine status */
     const getConnectionStatus = Effect.fn('OrgInfoService.getConnectionStatus')(function* (
       conn: Connection,
@@ -168,7 +163,7 @@ export class OrgInfoService extends Effect.Service<OrgInfoService>()('OrgInfoSer
     ) {
       const authInfo = conn.getAuthInfo();
       const authFields = authInfo.getFields(true);
-      const aliases = yield* getAllAliases(username);
+      const aliases = yield* aliasService.getAliasesFromUsername(username);
 
       // Check if this is a scratch org
       const isScratchOrg = Boolean(authFields.devHubUsername);
@@ -215,9 +210,9 @@ export class OrgInfoService extends Effect.Service<OrgInfoService>()('OrgInfoSer
         catch: error => connectionError(username, error)
       }).pipe(
         Effect.flatMap(authInfo =>
-          getAllAliases(username).pipe(
-            Effect.map(aliases => createOrgInfo(username, authInfo.getFields(true), aliases, connectionStatus))
-          )
+          aliasService
+            .getAliasesFromUsername(username)
+            .pipe(Effect.map(aliases => createOrgInfo(username, authInfo.getFields(true), aliases, connectionStatus)))
         ),
         // If we can't even get auth info, use minimal info with error status
         Effect.orElseSucceed(() => createOrgInfo(username, undefined, [], connectionStatus))

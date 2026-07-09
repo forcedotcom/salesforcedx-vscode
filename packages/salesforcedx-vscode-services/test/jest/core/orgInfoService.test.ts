@@ -224,6 +224,20 @@ describe('OrgInfoService.getOrgInfoForUsername', () => {
     }
   });
 
+  it.each([
+    ['System is down for maintenance', 'Down (Maintenance)'],
+    ['<html><body>Gateway Timeout</body></html>', 'Bad Response'],
+    ['no such org: test@example.com', 'Invalid org: test@example.com']
+  ])('maps SOQL error %p to connection status %p', async (errMessage, expectedStatus) => {
+    const layer = buildOrgInfoLayer({
+      connForUsername: () =>
+        Effect.succeed(buildMockConnection({ singleRecordQuery: jest.fn().mockRejectedValue(new Error(errMessage)) }))
+    });
+    const exit = await runOrgInfo(OrgInfoService.getOrgInfoForUsername('test@example.com'), layer);
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) expect(exit.value.connectionStatus).toBe(expectedStatus);
+  });
+
   it('web: getConnectionForUsername failure degrades gracefully (no fromKey mis-parse)', async () => {
     // Simulate the web guard by having getConnectionForUsername fail with the typed web error.
     const layer = buildOrgInfoLayer({
@@ -253,6 +267,26 @@ describe('OrgInfoService.getOrgInfoFromConnection', () => {
       expect(exit.value.username).toBe('test@example.com');
       expect(exit.value.orgName).toBe('Test Org');
       expect(exit.value.connectionStatus).toBe('Connected');
+    }
+  });
+
+  it('fails with NoUsernameError when the connection carries no username', async () => {
+    const conn = buildMockConnection({ authFields: { ...DEFAULT_AUTH_FIELDS, username: undefined } });
+    const layer = buildOrgInfoLayer({});
+    const exit = await runOrgInfo(OrgInfoService.getOrgInfoFromConnection(conn), layer);
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('NoUsernameError');
+  });
+
+  it('SOQL failure degrades to an error-status OrgInfo (typed catch, not a die)', async () => {
+    const queryError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
+    const conn = buildMockConnection({ singleRecordQuery: jest.fn().mockRejectedValue(queryError) });
+    const layer = buildOrgInfoLayer({});
+    const exit = await runOrgInfo(OrgInfoService.getOrgInfoFromConnection(conn), layer);
+    expect(Exit.isSuccess(exit)).toBe(true);
+    if (Exit.isSuccess(exit)) {
+      expect(exit.value.username).toBe('test@example.com');
+      expect(exit.value.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
     }
   });
 });
