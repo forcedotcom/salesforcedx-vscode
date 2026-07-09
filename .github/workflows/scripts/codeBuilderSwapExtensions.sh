@@ -16,6 +16,17 @@ set -euo pipefail
 CONTAINER="${1:?container name/id required}"
 VSIX_DIR="${2:?vsix dir required}"
 OVERRIDES_DIR="/base/extension-overrides"
+# Where code-server serves; used to wait out the mid-swap restart.
+CODE_BUILDER_URL="${CODE_BUILDER_URL:-http://localhost:8123}"
+
+wait_for_workbench() {
+  for _ in $(seq 1 60); do
+    curl -fsS "$CODE_BUILDER_URL" >/dev/null 2>&1 && return 0
+    sleep 2
+  done
+  echo "Code Builder never became reachable at $CODE_BUILDER_URL after restart" >&2
+  return 1
+}
 
 # In-scope: the monorepo-built extensions Code Builder installs. Publisher is always `salesforce`.
 # Keep in sync with the VSIX produced by `vscode:package` across the monorepo.
@@ -39,6 +50,13 @@ for id in "${IN_SCOPE_IDS[@]}"; do
   # Override dirs are named "<publisher>.<name>-<version>"; glob strips the version.
   docker exec "$CONTAINER" bash -lc "rm -rf ${OVERRIDES_DIR}/${id}-*" || true
 done
+
+# code-server refuses to reinstall an extension the live host still has registered
+# ("Please restart VS Code before reinstalling ..."). Restart after clearing the overrides so
+# the host boots without them, then install into a host with no conflicting registration.
+echo "==> Restarting container to clear stale extension registrations"
+docker restart "$CONTAINER" >/dev/null
+wait_for_workbench
 
 echo "==> Installing VSIX under test into ${OVERRIDES_DIR}"
 for vsix in "$VSIX_DIR"/*.vsix; do
