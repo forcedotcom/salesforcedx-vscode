@@ -1,25 +1,29 @@
-# Org Browser QuickPick Text Filter (W-23237574) Implementation Plan
+# Org Browser Text Filter with Wildcard Support (W-23237574) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status:** Implementation complete. Original QuickPick design replaced with InputBox + wildcard pattern matching.
 
-**Goal:** Add a QuickPick-driven text filter to the Org Browser tree (`sfdxOrgBrowser.filterText`), supporting live-preview `Type:Component` filtering that composes (AND) with the existing showLocal/showOrg toggles.
+**Goal:** Add text filter to Org Browser tree (`sfdxOrgBrowser.filterText`) supporting wildcard patterns (`*`) that compose (AND) with showLocal/showOrg toggles.
 
-**Architecture:** Two new fields (`_typeFilter`, `_componentFilter`) and two methods (`setTextFilter`, `clearTextFilter`) on `MetadataTypeTreeProvider`; filtering logic lives in pure helper functions in `metadataTypeTreeProvider.ts` so they're unit-testable without the Effect runtime. `index.ts` gains two command registrations that open a `vscode.window.createQuickPick()`, debounce input via `effect/Stream`, and call the provider's setters. `package.json`/`package.nls.json` get matching command/menu/nls entries. A new Playwright spec covers the end-to-end UX.
+**Architecture:** Two fields (`_typeFilter`, `_componentFilter`) on `MetadataTypeTreeProvider`; `setTextFilter()` setter; filtering via wildcard-to-regex conversion in `metadataTypeTreeProvider.ts`. `index.ts` opens `vscode.window.showInputBox()`, parses input, persists to `workspaceState`, updates context key. `package.json`/`package.nls.json` entries. Playwright spec covers UX end-to-end.
 
-**Tech Stack:** TypeScript, Effect-TS (`Effect.gen`, `Stream.debounce`, `Queue`, `Deferred`, `Runtime.runFork`/`runCallback`), VS Code Extension API (`QuickPick`), Jest (unit tests for pure filter helpers), Playwright (`@salesforce/playwright-vscode-ext`, headless spec).
+**Tech Stack:** TypeScript, Effect-TS, VS Code Extension API (InputBox), Playwright.
 
-## Global Constraints
+## Implementation Notes
 
-- Text filter now persisted to `workspaceState` (originally deferred to W-23237576, now implemented).
-- No `@tag` state filtering — out of scope, needs sync-state infra that doesn't exist yet.
-- No auto-appending `:` when a type suggestion is selected.
-- No `TreeView.description` or other persistent hover text showing the filter value — icon fill state is the only always-visible signal.
-- `QuickPick.validationMessage` is unavailable on this repo's pinned `@types/vscode@1.90.0` (only `InputBox` has it) — do not use it; an unresolved type just yields empty suggestions/empty tree.
-- Debounce: 150ms. Minimum characters before type-level filtering kicks in (no colon case): 3.
-- Match rule: no colon yet → case-insensitive **substring** match on `xmlName` (multi-type narrowing); colon present → case-insensitive **exact** match on the resolved single type name (see spec's "Match rule for `_typeFilter`" section).
-- `Escape`/focus-loss (`onDidHide` without accept) is a pure cancel — always reverts to the filter that was active before the picker opened. Enter on an empty value is the only way to clear an active filter.
-- Follow existing package lint rules for `packages/salesforcedx-vscode-org-browser/**/*.ts`: `functional/no-let` (error — use `Ref`/reduce patterns, not mutable locals), `prefer-arrow/prefer-arrow-functions`, `@typescript-eslint/no-explicit-any` (error), `class-methods-use-this` (error).
-- Spec doc: `docs/superpowers/specs/2026-07-06-org-browser-quickpick-text-filter-design.md` (as amended — root-filter match rule, no validation message).
+**Wildcard syntax:** `*` matches any characters (zero or more). Patterns are case-insensitive and converted to regexes for matching.
+- `ApexClass` → exact match
+- `Apex*` → types starting with Apex
+- `*Class` → types ending with Class
+- `Apex*:File*` → types matching Apex* AND components matching File*
+
+**InputBox + Enter semantics (vs original QuickPick):**
+- InputBox: user types pattern, presses Enter to apply (no live preview, no suggestions).
+- Escape reverts to pre-open filter (pure cancel).
+- Empty input on Enter clears filter.
+
+**Filter persistence:** typeFilter/componentFilter saved to `workspaceState` on commit, restored on activation.
+
+**Composable:** Text filter ANDs with showLocal/showOrg toggles — both must pass for node visibility.
 
 ---
 

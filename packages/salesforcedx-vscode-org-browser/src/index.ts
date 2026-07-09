@@ -30,64 +30,25 @@ import {
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
-type FilterQuickPickItem = vscode.QuickPickItem;
-
-const parseFilterValue = (
-  value: string,
-  cachedTypeNames: string[]
-): { typeFilter: string | undefined; componentFilter: string | undefined } => {
+const parseFilterValue = (value: string): { typeFilter: string | undefined; componentFilter: string | undefined } => {
   if (value.length === 0) return { typeFilter: undefined, componentFilter: undefined };
   const colonIdx = value.indexOf(':');
   if (colonIdx === -1) {
-    return value.length >= 3
-      ? { typeFilter: value, componentFilter: undefined }
-      : { typeFilter: undefined, componentFilter: undefined };
+    return { typeFilter: value.trim(), componentFilter: undefined };
   }
   const typePart = value.substring(0, colonIdx).trim();
-  const resolvedType = cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
   const componentPart = value.substring(colonIdx + 1).trim();
-  return { typeFilter: resolvedType, componentFilter: componentPart };
+  return { typeFilter: typePart, componentFilter: componentPart };
 };
 
-const computeSuggestions = (
-  value: string,
-  cachedTypeNames: string[],
-  treeProvider: MetadataTypeTreeProvider
-): Promise<FilterQuickPickItem[]> => {
-  const colonIdx = value.indexOf(':');
-  if (colonIdx === -1) {
-    const lower = value.toLowerCase();
-    const names = value.length >= 3 ? cachedTypeNames.filter(t => t.toLowerCase().includes(lower)) : cachedTypeNames;
-    return Promise.resolve(names.map(label => ({ label })));
-  }
-  const typePart = value.substring(0, colonIdx).trim();
-  const componentPart = value
-    .substring(colonIdx + 1)
-    .trim()
-    .toLowerCase();
-  const resolvedType = cachedTypeNames.find(t => t.toLowerCase() === typePart.toLowerCase()) ?? typePart;
-  const typeNode = new OrgBrowserTreeItem({ kind: 'type', xmlName: resolvedType, label: resolvedType });
-  return treeProvider
-    .getChildren(typeNode)
-    .then(children =>
-      children
-        .filter(c => c.componentName?.toLowerCase().includes(componentPart))
-        .map(c => ({ label: `${typePart}:${c.componentName ?? ''}` }))
-    );
-};
+type FilterQuickPickItem = vscode.QuickPickItem;
 
 const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(function* (
   treeProvider: MetadataTypeTreeProvider,
   context: vscode.ExtensionContext
 ) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const previousTypeFilter = treeProvider.typeFilter;
   const previousComponentFilter = treeProvider.componentFilter;
-
-  const cachedTypeNames = yield* api.services.MetadataDescribeService.describe().pipe(
-    Effect.map(types => types.map(t => t.xmlName).toSorted()),
-    Effect.catchAll(() => Effect.succeed<string[]>([]))
-  );
 
   const runtime = yield* Effect.runtime();
   const run = Runtime.runFork(runtime);
@@ -104,12 +65,12 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
       ? `${previousTypeFilter}:${previousComponentFilter}`
       : previousTypeFilter
     : '';
-  picker.items = cachedTypeNames.map(label => ({ label }));
+  picker.items = []; // Suggestions populated by live filtering as user types
 
   const commit = (value: string) =>
     Effect.gen(function* () {
       yield* Ref.set(acceptedRef, true);
-      const { typeFilter, componentFilter } = parseFilterValue(value, cachedTypeNames);
+      const { typeFilter, componentFilter } = parseFilterValue(value);
       treeProvider.setTextFilter(typeFilter, componentFilter);
       yield* Effect.all(
         [
@@ -127,8 +88,8 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
 
   picker.onDidChangeValue(value => run(Queue.offer(queue, value)));
   picker.onDidAccept(() => {
-    // If input is empty, clear the filter regardless of selected item
-    const valueToCommit = picker.value.length === 0 ? '' : (picker.selectedItems[0]?.label ?? picker.value);
+    // Accept whatever the user typed, not just selected items
+    const valueToCommit = picker.value;
     run(commit(valueToCommit));
   });
   picker.onDidHide(() =>
@@ -144,18 +105,14 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
     )
   );
 
+  // Live filtering: update tree as user types
   yield* Effect.fork(
     Stream.fromQueue(queue).pipe(
       Stream.debounce(Duration.millis(150)),
       Stream.runForEach(value =>
         Effect.gen(function* () {
-          const { typeFilter, componentFilter } = parseFilterValue(value, cachedTypeNames);
+          const { typeFilter, componentFilter } = parseFilterValue(value);
           treeProvider.setTextFilter(typeFilter, componentFilter);
-          const suggestions = yield* Effect.tryPromise({
-            try: () => computeSuggestions(value, cachedTypeNames, treeProvider),
-            catch: () => new Error('computeSuggestions failed')
-          }).pipe(Effect.catchAll(() => Effect.succeed<FilterQuickPickItem[]>([])));
-          picker.items = suggestions;
         })
       )
     )

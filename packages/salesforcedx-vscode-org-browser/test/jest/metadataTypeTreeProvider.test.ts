@@ -24,19 +24,20 @@ describe('passesTypeFilter', () => {
     expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(true);
   });
 
-  it('substring-matches (case-insensitive) when no colon has been typed', () => {
+  it('exact-matches (case-insensitive) without wildcards', () => {
     const provider = new MetadataTypeTreeProvider();
-    provider.setTextFilter('apex', undefined);
+    provider.setTextFilter('ApexClass', undefined);
     expect(passesTypeFilter(typeNode('ApexClass'), provider)).toBe(true);
-    expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(true);
+    expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(false);
     expect(passesTypeFilter(typeNode('CustomObject'), provider)).toBe(false);
   });
 
-  it('exact-matches (case-insensitive) once a colon has been typed, even with an empty component filter', () => {
+  it('wildcard-matches when * is present', () => {
     const provider = new MetadataTypeTreeProvider();
-    provider.setTextFilter('apexclass', '');
+    provider.setTextFilter('Apex*', undefined);
     expect(passesTypeFilter(typeNode('ApexClass'), provider)).toBe(true);
-    expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(false);
+    expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(true);
+    expect(passesTypeFilter(typeNode('CustomObject'), provider)).toBe(false);
   });
 });
 
@@ -80,9 +81,17 @@ describe('applyViewModeChildFilter with component filter', () => {
     expect(applyViewModeChildFilter(nodes, provider)).toEqual(nodes);
   });
 
-  it('substring-matches componentName case-insensitively when componentFilter is set', () => {
+  it('exact-matches componentName case-insensitively when componentFilter is set without wildcards', () => {
     const provider = new MetadataTypeTreeProvider();
-    provider.setTextFilter('ApexClass', 'foo');
+    provider.setTextFilter('ApexClass', 'FooBar');
+    const foo = componentNode('ApexClass', 'FooBar');
+    const baz = componentNode('ApexClass', 'Baz');
+    expect(applyViewModeChildFilter([foo, baz], provider)).toEqual([foo]);
+  });
+
+  it('wildcard-matches componentName when componentFilter contains *', () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter('ApexClass', '*Bar');
     const foo = componentNode('ApexClass', 'FooBar');
     const baz = componentNode('ApexClass', 'Baz');
     expect(applyViewModeChildFilter([foo, baz], provider)).toEqual([foo]);

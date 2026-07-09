@@ -1,24 +1,20 @@
-# Org Browser QuickPick text filter (W-23237574)
+# Org Browser text filter with wildcard support (W-23237574)
 
 ## Context
 
 Part of the "IDEx - Org Browser: View Filters" epic. Sibling stories: W-23296072
 (showLocal/showOrg toggle filters, shipped) and W-23237576 (filter state persistence
-across reload, originally out of scope — now implemented).
+across reload, implemented).
 
-A proof-of-concept exists on branch `phale/org-browser-experiment`, commit
-`21a06f93d` ("live QuickPick filter with suggestions and preview tab cleanup").
-This design ports that commit's `Type:Component` text-filter behavior into the
-current codebase, adapted to the present tree provider shape. A later commit on
-that branch (`ffca17eef`) added `@tag` change-state filtering — explicitly excluded
-from this story; it depends on sync-state tracking that doesn't exist in the
-current codebase and isn't mentioned in this story's title.
+Initial implementation used a QuickPick with live preview and substring matching.
+Updated to use QuickPick in freeform mode with real-time wildcard pattern filtering.
 
 ## Goal
 
-Add a QuickPick-driven text filter to the Org Browser tree, with live preview as
-the user types, supporting a `Type:Component` syntax (e.g. `ApexClass:MyClass`
-filters to components of type `ApexClass` whose name contains `MyClass`).
+Add a freeform QuickPick text filter to the Org Browser tree supporting wildcard
+patterns with `*` (e.g. `Apex*` matches ApexClass, ApexPage, ApexTrigger; 
+`Apex*:File*` filters types matching Apex* and components matching File*).
+Tree filters in real-time as you type.
 
 ## Non-goals
 
@@ -28,57 +24,44 @@ filters to components of type `ApexClass` whose name contains `MyClass`).
 
 ## UX
 
-**Trigger:** one toolbar icon in the Org Browser view, alongside the existing
-showLocal/showOrg toggles. Uses codicon `$(filter)` when inactive and
-`$(filter-filled)` when a filter is active, swapped via a `sf:orgBrowser.textFilterActive`
-context key — the same pattern already used for `showLocal.on`/`showLocal.off`.
+**Trigger:** toolbar icon in the Org Browser view, alongside existing showLocal/showOrg
+toggles. Uses codicon `$(filter)` when inactive, `$(filter-filled)` when active,
+swapped via `sf:orgBrowser.textFilterActive` context key.
 
-Clicking the icon always opens the same QuickPick command
-(`sfdxOrgBrowser.filterText`); there is no separate "clear" command/icon. If a
-filter is currently active, the picker opens pre-populated with that filter's
-text so the user can edit or delete it.
+Clicking opens QuickPick (`sfdxOrgBrowser.filterText`) in freeform mode with live filtering.
+If a filter is active, QuickPick pre-populates with current filter text for editing.
 
-**Suggestions while typing** (before commit, live in the QuickPick's item list):
-- No colon in the input: items are metadata type names (from `describe()`)
-  case-insensitively matching the typed substring.
-- Colon present (`Type:` typed): the part before the colon is resolved to a real
-  type name (case-insensitive match against the cached type list, or used
-  literally if unresolved); items become that type's component names (fetched via
-  `treeProvider.getChildren`), narrowed by the substring typed after the colon.
-- If the part before the colon doesn't resolve to any known type, the item list is
-  simply empty (no components to suggest) and the live tree preview updates to an
-  empty result. No separate validation message is shown — the empty tree/list is
-  the feedback. (`QuickPick.validationMessage` doesn't exist on this repo's pinned
-  `@types/vscode@1.90.0`, which only has it on `InputBox`; not worth bumping a
-  shared dependency for this.)
+**Input format:**
+- Wildcard `*` matches any characters (zero or more).
+- No colon: filter type names (e.g., `Apex*` matches ApexClass, ApexPage, ...).
+- Colon present: `Type:Component` (e.g., `Apex*:File*` filters types matching Apex*
+  and components matching File*).
+- Empty input clears the filter.
 
-**Live tree preview:** debounced 150ms. Below 3 characters (and no colon), the
-type-level filter is not applied — the tree shows all types (matches existing
-POC behavior; avoids filtering to near-nothing while the user is starting to type).
-At 3+ characters or once a colon is present, the tree filters live using the same
-resolution rules as the suggestion list.
+**Live filtering:**
+- Tree updates as you type with 150ms debounce.
+- Clean text input field (no suggestion dropdown).
+- Accept any freeform text input.
 
-**Commit / cancel semantics** (resolves an ambiguity the POC didn't handle
-cleanly):
-- `onDidAccept` (Enter): commit the current value as the active filter — including
-  an empty value, which clears the filter entirely. Close the picker.
-- `onDidHide` without accept (Escape or focus-loss): always revert the tree to
-  whatever filter was active *before this picker session opened* — Escape is a
-  pure cancel, it can never be used to clear an active filter. To clear a filter,
-  the user must delete the text and press Enter on the empty value.
+**Matching logic:**
+- Type names matched case-insensitively; wildcards expand to regex.
+- Example patterns:
+  - `ApexClass` → exact type name
+  - `Apex*` → types starting with Apex
+  - `*Class` → types ending with Class
+  - `Apex*:Test*` → types starting with Apex, components starting with Test
 
-No `TreeView.description` or other persistent hover text is added; the
-filled/unfilled icon state is the only always-visible signal that a filter is
-active.
+**Commit / cancel semantics:**
+- Enter: apply filter text (including empty value to clear).
+- Escape: revert to pre-open filter state (no change).
 
 ## Data model / state
 
-New fields on `MetadataTypeTreeProvider` (`packages/salesforcedx-vscode-org-browser/src/tree/metadataTypeTreeProvider.ts`),
-mirroring the existing `_showLocal`/`_showOrg` pattern:
+Fields on `MetadataTypeTreeProvider` (`packages/salesforcedx-vscode-org-browser/src/tree/metadataTypeTreeProvider.ts`):
 
 ```ts
-private _typeFilter: string | undefined;      // text typed before ':' — see match rule below
-private _componentFilter: string | undefined; // substring typed after ':'; undefined until a colon exists in the input
+private _typeFilter: string | undefined;      // wildcard pattern before ':' 
+private _componentFilter: string | undefined; // wildcard pattern after ':'
 ```
 
 ```ts
@@ -87,103 +70,132 @@ public setTextFilter(typeFilter: string | undefined, componentFilter: string | u
   this._componentFilter = componentFilter;
   this._onDidChangeTreeData.fire(undefined);
 }
-
-public clearTextFilter(): void {
-  this.setTextFilter(undefined, undefined);
-}
 ```
 
-Persisted to `workspaceState` (keys: `sf.orgBrowser.typeFilter`, `sf.orgBrowser.componentFilter`); restored on provider construction.
+Persisted to `workspaceState` (keys: `orgBrowser.typeFilter`, `orgBrowser.componentFilter`);
+restored on activation.
 
-**Match rule for `_typeFilter`** (resolved via the presence of `_componentFilter`,
-not a separate boolean — a colon in the input is exactly what puts `_componentFilter`
-in the defined state, even as `''` when nothing follows the colon yet):
-- No colon typed yet (`_componentFilter === undefined`): `_typeFilter` is matched as
-  a case-insensitive **substring** against each type's `xmlName` — narrows to every
-  type whose name contains what's been typed so far (e.g. `"Apex"` keeps
-  `ApexClass`, `ApexTrigger`, `ApexPage`, ...). This matches the suggestion list
-  and mirrors the POC's `Set<string>` multi-type model.
-- Colon typed (`_componentFilter` is a string, possibly `''`): `_typeFilter` holds
-  the single type name — resolved case-insensitively against the cached type list
-  by the `index.ts` QuickPick handler before calling `setTextFilter`, or used
-  literally if unresolved — and is matched as a case-insensitive **exact** match
-  against `xmlName`. This narrows the root to at most one type.
+**Match rule:** Wildcard patterns converted to case-insensitive regexes:
+- `*` matches any characters (including none)
+- No colon (`_componentFilter === undefined`): type names matched as wildcards
+- Colon present (`_componentFilter` is a string): both type and component patterns matched as wildcards
 
 ## Filtering logic
 
-The text filter is a second, independent filter that composes with showLocal/showOrg
-as an AND — i.e. a node must pass both the existing local/org filter AND the new
-text filter to be visible. This matches how the POC's `applyChildFilters` composed
-`viewMode` and `componentFilter`.
+Text filter composes with showLocal/showOrg as AND — node must pass both existing 
+local/org filter AND text filter to be visible.
 
-**Root level** (`getChildrenOfTreeItem`, no `element`): after the existing
-showLocal/showOrg filtering produces `allNodes` (or the subset from local/org
-logic), if `_typeFilter` is set, further filter using the match rule above:
+**Helper functions:** Convert wildcard patterns to case-insensitive regexes:
 
 ```ts
-const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
-  if (provider.typeFilter === undefined) return true;
-  const lower = provider.typeFilter.toLowerCase();
-  return provider.componentFilter !== undefined
-    ? node.xmlName.toLowerCase() === lower // colon present: exact match, single type
-    : node.xmlName.toLowerCase().includes(lower); // no colon yet: substring match, multiple types
+const wildcardToRegex = (pattern: string): RegExp => {
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  const regex = escaped.replace(/\\\*/g, '.*');
+  return new RegExp(`^${regex}$`, 'i');
+};
+
+const matchesPattern = (text: string, pattern: string): boolean =>
+  wildcardToRegex(pattern).test(text);
+```
+
+**Root level** (`getChildrenOfTreeItem`, no `element`): After showLocal/showOrg 
+filtering, apply type filter if set via `passesTypeFilter()`:
+
+```ts
+const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean =>
+  provider.typeFilter === undefined || matchesPattern(node.xmlName, provider.typeFilter);
+```
+
+When component filter active, pre-filter types using `filterTypesWithMatchingComponents()`:
+
+```ts
+const filterTypesWithMatchingComponents = (
+  typeNodes: OrgBrowserTreeItem[],
+  provider: MetadataTypeTreeProvider,
+  metadataDescribeService: { listMetadata: (type: string) => Effect.Effect<...> }
+) => Effect.gen(function* () {
+  const componentFilter = provider.componentFilter!;
+  const typesWithMatchingComponents = yield* Effect.all(
+    typeNodes.map(typeNode =>
+      Effect.gen(function* () {
+        // For folder types, list the folders themselves (e.g., ReportFolder, EmailTemplateFolder)
+        const typeToList = typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
+        // List components for this type
+        const components = yield* metadataDescribeService.listMetadata(typeToList);
+        const hasMatch = components.some(c => c.fullName && matchesPattern(c.fullName, componentFilter));
+        return { typeNode, hasMatch };
+      })
+    ),
+    { concurrency: 10 }
+  );
+  return typesWithMatchingComponents.filter(t => t.hasMatch).map(t => t.typeNode);
+});
+```
+
+**AND logic:** When both type and component filters active (e.g., `Apex*:File*`):
+1. Type filter: include only types matching `Apex*` 
+2. Component pre-filter: from those types, keep only those with ≥1 component matching `File*`
+3. Result: shows types matching type filter that have at least one matching component
+
+**Component level** (type-expansion and folder-item children): Apply component 
+filter if set via `applyViewModeChildFilter()`:
+
+```ts
+const applyViewModeChildFilter = (
+  nodes: OrgBrowserTreeItem[],
+  provider: MetadataTypeTreeProvider
+): OrgBrowserTreeItem[] => {
+  // Apply showLocal/showOrg filtering first...
+  if (!provider.componentFilter) return viewModeFiltered;
+  const componentFilter = provider.componentFilter;
+  return viewModeFiltered.filter(n => n.componentName && matchesPattern(n.componentName, componentFilter));
 };
 ```
 
-**Component level** (`applyViewModeChildFilter`, used for both type-expansion and
-folder-item children): extend the existing function (or add a sibling filter
-applied after it) so that if `_componentFilter` is set (including `''`, which is a
-no-op since every string `.includes('')`), nodes are further filtered to
-`n.componentName?.toLowerCase().includes(_componentFilter.toLowerCase())`.
-
 ## Commands / package.json contributions
 
-Two command ids, both invoking the same picker-opening logic, matching the
-existing `showLocal.on`/`showLocal.off` precedent exactly (one command per icon
-state, swapped via `when`, rather than one command with a dynamically-changing
-icon):
-- `sfdxOrgBrowser.filterText` — icon `$(filter)`, shown when
-  `sf:orgBrowser.textFilterActive == false`.
-- `sfdxOrgBrowser.filterText.active` — icon `$(filter-filled)`, shown when
-  `sf:orgBrowser.textFilterActive == true`.
-- `view/title` menu contributions for both, gated on `sf:orgBrowser.textFilterActive`,
-  positioned in the existing `navigation@N` toolbar ordering alongside
-  showLocal/showOrg/refresh/collapseAll.
-- `package.nls.json` entries for both command titles.
+Two command IDs, both opening the same QuickPick (matching `showLocal.on`/`showLocal.off` pattern):
+- `sfdxOrgBrowser.filterText` — icon `$(filter)`, shown when `sf:orgBrowser.textFilterActive == false`.
+- `sfdxOrgBrowser.filterText.active` — icon `$(filter-filled)`, shown when `sf:orgBrowser.textFilterActive == true`.
+- `view/title` menu contributions positioned alongside showLocal/showOrg/refresh/collapseAll.
+- `package.nls.json` entries for command titles.
 
-Handler in `index.ts`, following the `registerCommandWithRuntime` /
-`getOrgBrowserRuntime()` pattern used for all other commands in this file:
-1. Snapshot `previousTypeFilter`/`previousComponentFilter` from the tree provider.
-2. Fetch cached type names via `MetadataDescribeService.describe()` (already
-   cached 30 min server-side — safe to call on every picker open).
-3. Wire `createQuickPick()`, `onDidChangeValue` (debounced 150ms, per the rules
-   above), `onDidAccept`, `onDidHide` as described in UX section.
-4. On accept, call `treeProvider.setTextFilter(...)` or `clearTextFilter()` and
-   update the `sf:orgBrowser.textFilterActive` context key.
-5. On cancel, call `treeProvider.setTextFilter(previousTypeFilter, previousComponentFilter)`
-   (or leave untouched if there was nothing to revert).
+Handler in `index.ts` (function `openFilterTextPicker`):
+1. Snapshot `previousTypeFilter`/`previousComponentFilter`.
+2. Create QuickPick with suggestions (type names from metadata).
+3. Attach handlers:
+   - `onDidChangeValue`: queue text changes to live-filter stream (150ms debounce).
+   - `onDidAccept`: commit `picker.value` (accept any text, not just selected items).
+   - `onDidHide`: revert to pre-open filter state if not committed.
+4. On accept: call `treeProvider.setTextFilter()`, persist to `workspaceState`, update context key.
+5. On cancel (Escape): restore previous filter state (revert).
 
 ## Testing
 
-New Playwright spec `packages/salesforcedx-vscode-org-browser/test/playwright/specs/orgBrowser.textFilter.headless.spec.ts`,
-modeled on `orgBrowser.filterToggle.headless.spec.ts` (same fixture setup:
-`createDreamhouseOrg`, `waitForVSCodeWorkbench`, `closeWelcomeTabs`,
-`upsertScratchOrgAuthFieldsToSettings`). Cases:
+Playwright spec: `packages/salesforcedx-vscode-org-browser/test/playwright/specs/orgBrowser.textFilter.headless.spec.ts`
+(fixture setup: `createDreamhouseOrg`, `waitForVSCodeWorkbench`, `closeWelcomeTabs`).
 
-- Toolbar icon visible, swaps to filled state when a filter is committed.
-- Typing a type name (3+ chars) live-narrows the root tree; committing keeps it
-  narrowed after the picker closes.
-- Typing `Type:partial` narrows both the picker's suggestion list and the
-  expanded type's children to matching component names.
-- An unresolved type name (with a colon typed) empties the tree.
-- Escape after typing reverts the tree to its pre-open filter state.
-- Deleting the text and pressing Enter clears the filter (icon reverts to
-  unfilled, tree shows everything the showLocal/showOrg toggles alone would show).
-- Text filter composes with an active showLocal/showOrg toggle (both apply
-  simultaneously).
+Cases:
+- Toolbar icon visible, swaps to filled when filter committed.
+- Wildcard patterns filter tree (e.g., `Apex*` matches ApexClass/ApexPage/ApexTrigger).
+- `Type:Component` format filters both type and component (e.g., `Apex*:File*`).
+- Escape reverts to pre-open filter state.
+- Empty input on Enter clears filter (icon unfilled).
+- Text filter composes with showLocal/showOrg toggles (AND logic).
+- Filter state persists across window reload.
 
-## Out of scope / follow-ups
+## Implementation notes
 
-- Persistence across reload → W-23237576.
-- `@tag` change-state filtering → not scheduled; would need sync-state tracking
-  infra first.
+**QuickPick in freeform mode:** Uses QuickPick with live filtering (150ms debounce).
+Type names are shown as suggestions (hints from metadata), but any text input is accepted
+via `picker.value`. Supports wildcard matching (`*` for any characters). Tree updates
+in real-time as you type, filtering shows live feedback before you press Enter.
+
+**Wildcard matching:** Patterns converted to case-insensitive regexes. `*` expands
+to `.*` in regex form. Example: `Apex*` becomes `/^Apex.*$/i`, matching ApexClass,
+ApexPage, ApexTrigger, etc.
+
+**Live filtering stream:** On `onDidChangeValue`, text is queued to an unbounded
+Effect Queue, then piped through a debounce (150ms) and stream processor that calls
+`treeProvider.setTextFilter()` for each debounced value. This allows the UI to update
+the tree in real-time without blocking picker interaction.

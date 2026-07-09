@@ -118,7 +118,12 @@ This extension provides org browsing capabilities for Salesforce development in 
 - Browse Salesforce org metadata
 - Retrieve components from org
 - Interactive org navigation
-- Text filter by Type:Component (persisted across reload)
+- Real-time text filter with wildcard support (persisted across reload)
+  - Clean text input with live tree filtering (150ms debounce)
+  - Filter types and components using wildcard patterns with `*` (matches any characters)
+  - Examples: `ApexClass` (exact match), `Apex*` (types starting with Apex), `*Class` (types ending with Class)
+  - Combine filters with AND logic: `Apex*:File*` shows types matching `Apex*` that have at least one component matching `File*` (types with no matching components are hidden); `*Class:*Test*` shows types ending with Class having at least one component ending with Test
+  - Tree updates as you type; press Enter to commit, Escape to cancel
 
 ## Requirements
 

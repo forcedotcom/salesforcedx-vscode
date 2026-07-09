@@ -9,5 +9,5 @@ export const messages = {
   confirm_overwrite: 'Overwrite local files for %s %s?',
   yes_button: 'Yes',
   no_button: 'No',
-  filter_text_placeholder: 'Type: e.g. ApexClass, or ApexClass:MyClass (empty to clear)'
+  filter_text_placeholder: 'Filter: e.g. ApexClass, Apex*:File*, *Class:*Test* (wildcards supported, empty to clear)'
 } as const;
