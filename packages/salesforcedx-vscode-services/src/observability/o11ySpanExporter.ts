@@ -35,11 +35,19 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
 // Run through the shared services runtime (not Effect.provide(ConnectionService.Default), which would
 // build a private ConnectionService per call — separate connection/reauth caches, defeating dedup).
 // The runtime is set early in activation; retry at 500ms until it exists (a background export can wait).
+// withTracerEnabled(false): the shared runtime carries the tracing SDK layer whose span processor IS
+// this exporter, so a traced getConnection here would emit spans that get exported, triggering another
+// getConnection → an unbounded self-feeding span loop that starves the single-threaded web worker
+// (VS Code reports the extension host as unresponsive, so no web extension registers its commands).
 const getConnection = () =>
   Effect.runPromise(
     getServicesRuntime().pipe(
       Effect.retry({ schedule: Schedule.fixed(Duration.millis(500)) }),
-      Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(ConnectionService.getConnection())))
+      Effect.flatMap(runtime =>
+        Effect.promise(() =>
+          runtime.runPromise(ConnectionService.getConnection().pipe(Effect.withTracerEnabled(false)))
+        )
+      )
     )
   );
 
