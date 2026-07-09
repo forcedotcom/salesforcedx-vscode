@@ -277,7 +277,7 @@ type DefaultOrgConfig = {
  * Returns the resolved username for a given alias, or the input if it is already a username.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
-export const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
+const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
   aliasOrUsername: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -290,7 +290,7 @@ export const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsername
  * Returns a map of username → aliases[]. Used to supplement stale StateAggregator data in the org picker.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
-export const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
+const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const aliasService = yield* api.services.AliasService;
   const orgs = yield* aliasService.getAllAliases();
