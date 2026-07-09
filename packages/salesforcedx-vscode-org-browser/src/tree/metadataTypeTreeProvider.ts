@@ -156,8 +156,8 @@ export const applyViewModeChildFilter = (
 };
 
 /**
- * Filter types to only those that have at least one component matching the component filter.
- * Used when both type and component filters are active to implement AND logic.
+ * Types with ≥1 component matching filter. Live-fetches components.
+ * AND logic: type:component returns types with matching components only.
  */
 const filterTypesWithMatchingComponents = <E, R>(
   typeNodes: OrgBrowserTreeItem[],
@@ -184,13 +184,21 @@ const filterTypesWithMatchingComponents = <E, R>(
       ),
       { concurrency: 10 }
     );
-    return typesWithMatchingComponents.filter(t => t.hasMatch).map(t => t.typeNode);
+    return typesWithMatchingComponents
+      .filter(t => t.hasMatch)
+      .map(
+        t =>
+          new OrgBrowserTreeItem({
+            kind: t.typeNode.kind,
+            xmlName: t.typeNode.xmlName,
+            label: t.typeNode.xmlName
+          })
+      );
   });
 
 /**
- * Filter types to only those with cached components matching the component filter.
- * Cache-only mode: types without cache entries are excluded (strict - cannot confirm match).
- * Used when component filter matches too many types to avoid excessive API calls.
+ * Cached components matching filter. Excludes uncached types (strict—can't confirm match).
+ * Used when >25 types matched to avoid excessive API calls.
  */
 const filterTypesWithCachedComponents = <E, R>(
   typeNodes: OrgBrowserTreeItem[],
@@ -213,7 +221,12 @@ const filterTypesWithCachedComponents = <E, R>(
           const hasMatch = cached.value.some(
             c => c.fullName && matchesPattern(c.fullName, componentFilter, componentIsRegex)
           );
-          return hasMatch ? typeNode : null;
+          if (!hasMatch) return null;
+          return new OrgBrowserTreeItem({
+            kind: typeNode.kind,
+            xmlName: typeNode.xmlName,
+            label: typeNode.xmlName
+          });
         })
       ),
       { concurrency: 'unbounded' } // no API calls, just cache reads
@@ -254,6 +267,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
               // Over threshold: cache-only (strict — unfetched types hidden)
               return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
             }
+            // No component filter: return all type-filtered nodes
             return typeFilteredNodes;
           });
         }
@@ -276,6 +290,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
               // Over threshold: cache-only (strict — unfetched types hidden)
               return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
             }
+            // No component filter: return all type-filtered nodes
             return typeFilteredNodes;
           });
         }
@@ -292,6 +307,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
             // Over threshold: cache-only (strict — unfetched types hidden)
             return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
           }
+          // Return type-filtered nodes
           return typeFilteredNodes;
         });
       })();
@@ -322,7 +338,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     }
     if (element.kind === 'type') {
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      return yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
+      const children = yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),
@@ -331,6 +347,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           )
         )
       );
+      return children;
     }
     if (element.kind === 'folder') {
       const { xmlName, folderName } = element;

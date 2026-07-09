@@ -162,7 +162,11 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
           Effect.promise(() => context.workspaceState.update('orgBrowser.typeIsRegex', typeIsRegex)),
           Effect.promise(() => context.workspaceState.update('orgBrowser.componentIsRegex', componentIsRegex)),
           Effect.promise(() =>
-            vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined)
+            vscode.commands.executeCommand(
+              'setContext',
+              'sf:orgBrowser.textFilterActive',
+              typeFilter !== undefined || componentFilter !== undefined
+            )
           )
         ],
         { concurrency: 'unbounded' }
@@ -182,7 +186,12 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
       Effect.gen(function* () {
         const accepted = yield* Ref.get(acceptedRef);
         if (!accepted) {
-          treeProvider.setTextFilter(previousTypeFilter, previousComponentFilter);
+          treeProvider.setTextFilter(
+            previousTypeFilter,
+            previousComponentFilter,
+            previousTypeIsRegex,
+            previousComponentIsRegex
+          );
         }
         picker.dispose();
         yield* Deferred.succeed(deferred, undefined);
@@ -198,6 +207,13 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
         Effect.gen(function* () {
           const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
           treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
+          yield* Effect.promise(() =>
+            vscode.commands.executeCommand(
+              'setContext',
+              'sf:orgBrowser.textFilterActive',
+              typeFilter !== undefined || componentFilter !== undefined
+            )
+          );
         })
       )
     )
@@ -271,7 +287,11 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', showLocal)),
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', showOrg)),
       Effect.promise(() =>
-        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined)
+        vscode.commands.executeCommand(
+          'setContext',
+          'sf:orgBrowser.textFilterActive',
+          typeFilter !== undefined || componentFilter !== undefined
+        )
       ),
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', false))
     ],

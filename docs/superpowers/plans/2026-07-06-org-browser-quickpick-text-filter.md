@@ -1,29 +1,36 @@
-# Org Browser Text Filter with Wildcard Support (W-23237574) Implementation Plan
+# Org Browser Text Filter with Wildcard & Regex Support (W-23237574) Implementation Plan
 
-> **Status:** Implementation complete. Original QuickPick design replaced with InputBox + wildcard pattern matching.
+> **Status:** Implementation complete. QuickPick with live filtering + regex/wildcard support + guardrailed broad-fetch confirmation.
 
-**Goal:** Add text filter to Org Browser tree (`sfdxOrgBrowser.filterText`) supporting wildcard patterns (`*`) that compose (AND) with showLocal/showOrg toggles.
+**Goal:** Add text filter to Org Browser tree (`sfdxOrgBrowser.filterText`) supporting wildcard patterns (`*`) and regex (`/pattern/`) with confirmation prompt for expensive broad-component fetches.
 
-**Architecture:** Two fields (`_typeFilter`, `_componentFilter`) on `MetadataTypeTreeProvider`; `setTextFilter()` setter; filtering via wildcard-to-regex conversion in `metadataTypeTreeProvider.ts`. `index.ts` opens `vscode.window.showInputBox()`, parses input, persists to `workspaceState`, updates context key. `package.json`/`package.nls.json` entries. Playwright spec covers UX end-to-end.
+**Architecture:** Filter state on `MetadataTypeTreeProvider`: `_typeFilter`, `_componentFilter`, `_typeIsRegex`, `_componentIsRegex`, `_userApprovedBroadFetch`. `setTextFilter()` accepts state fields; filtering via pattern matching in `metadataTypeTreeProvider.ts`. `index.ts` opens QuickPick, parses regex/wildcard syntax, persists to `workspaceState`. Helper functions: `filterTypesWithMatchingComponents()` (live-fetch ≤25 types), `filterTypesWithCachedComponents()` (cache-only >25 types). Confirmation prompt at 3 root filter sites.
 
-**Tech Stack:** TypeScript, Effect-TS, VS Code Extension API (InputBox), Playwright.
+**Tech Stack:** TypeScript, Effect-TS, VS Code Extension API (QuickPick), Playwright.
 
 ## Implementation Notes
 
-**Wildcard syntax:** `*` matches any characters (zero or more). Patterns are case-insensitive and converted to regexes for matching.
-- `ApexClass` → exact match
-- `Apex*` → types starting with Apex
-- `*Class` → types ending with Class
-- `Apex*:File*` → types matching Apex* AND components matching File*
+**Pattern syntax:**
+- Wildcard (default): `*` matches any chars (case-insensitive).
+  - `ApexClass` → exact match; `Apex*` → starts with Apex; `*Class` → ends with Class
+- Regex (opt-in): `/pattern/` delimiters; full regex syntax (`.`, `*`, `?`, `|`, `[]`, etc); invalid patterns → no matches.
+  - `/Apex.*/` → types starting with Apex; `/Apex.*/:/File.*/` → Apex types w/ File-named components
+- Type:Component: both patterns apply independently, joined by AND.
 
-**InputBox + Enter semantics (vs original QuickPick):**
-- InputBox: user types pattern, presses Enter to apply (no live preview, no suggestions).
-- Escape reverts to pre-open filter (pure cancel).
-- Empty input on Enter clears filter.
+**Filter state & persistence:**
+- Saved: `orgBrowser.{typeFilter, componentFilter, typeIsRegex, componentIsRegex}` in `workspaceState`.
+- Restored on activation.
 
-**Filter persistence:** typeFilter/componentFilter saved to `workspaceState` on commit, restored on activation.
+**Guardrailed broad-fetch (new):**
+- When component filter matches >25 types, prompt asks for confirmation before full-fetching all types.
+- Threshold: `MAX_TYPES_FOR_COMPONENT_PREFETCH = 25`.
+- Under threshold or after approval: `filterTypesWithMatchingComponents()` fetches all.
+- Over threshold + no approval: `filterTypesWithCachedComponents()` filters cache-only (strict — unfetched types excluded).
 
-**Composable:** Text filter ANDs with showLocal/showOrg toggles — both must pass for node visibility.
+**Composable:** Text filter ANDs with showLocal/showOrg toggles — all must pass.
+
+**Live context key updates:** Context key `sf:orgBrowser.textFilterActive` updates in real-time as user types in the live filtering stream (not just on commit).
+Enables toolbar icon swap and empty-tree message visibility without requiring Enter press.
 
 ---
 
@@ -398,6 +405,8 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const previousTypeFilter = treeProvider.typeFilter;
   const previousComponentFilter = treeProvider.componentFilter;
+  const previousTypeIsRegex = treeProvider.typeIsRegex;
+  const previousComponentIsRegex = treeProvider.componentIsRegex;
 
   const cachedTypeNames = yield* api.services.MetadataDescribeService.describe().pipe(
     Effect.map(types => types.map(t => t.xmlName).toSorted()),
@@ -424,10 +433,10 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
   const commit = (value: string) =>
     Effect.gen(function* () {
       yield* Ref.set(acceptedRef, true);
-      const { typeFilter, componentFilter } = parseFilterValue(value, cachedTypeNames);
-      treeProvider.setTextFilter(typeFilter, componentFilter);
+      const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value, cachedTypeNames);
+      treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
       yield* Effect.promise(() =>
-        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined)
+        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined || componentFilter !== undefined)
       );
       picker.dispose();
       yield* Deferred.succeed(deferred, undefined);
@@ -440,7 +449,7 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
       Effect.gen(function* () {
         const accepted = yield* Ref.get(acceptedRef);
         if (!accepted) {
-          treeProvider.setTextFilter(previousTypeFilter, previousComponentFilter);
+          treeProvider.setTextFilter(previousTypeFilter, previousComponentFilter, previousTypeIsRegex, previousComponentIsRegex);
         }
         picker.dispose();
         yield* Deferred.succeed(deferred, undefined);
@@ -455,6 +464,9 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
         Effect.gen(function* () {
           const { typeFilter, componentFilter } = parseFilterValue(value, cachedTypeNames);
           treeProvider.setTextFilter(typeFilter, componentFilter);
+          yield* Effect.promise(() =>
+            vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined || componentFilter !== undefined)
+          );
           const suggestions = yield* Effect.tryPromise({
             try: () => computeSuggestions(value, cachedTypeNames, treeProvider),
             catch: () => new Error('computeSuggestions failed')
