@@ -39,6 +39,12 @@ describe('orgUtil tests', () => {
       showChannel: Effect.sync(() => showChannelMock())
     });
 
+  // ConnectionService.listAllAuthorizations delegates to the mocked AuthInfo.listAllAuthorizations,
+  // mirroring the real service (which clears StateAggregator then calls AuthInfo.listAllAuthorizations).
+  const connectionServiceStub = () => ({
+    listAllAuthorizations: () => Effect.promise(() => AuthInfo.listAllAuthorizations())
+  });
+
   const orgName1 = 'dreamhouse-org';
   const orgName2 = 'ebikes-lwc';
   const now = new Date();
@@ -95,7 +101,8 @@ describe('orgUtil tests', () => {
     const mockServicesApi = {
       services: {
         TargetOrgRef: createMockTargetOrgRef(),
-        ChannelService: channelServiceStub()
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
@@ -124,7 +131,8 @@ describe('orgUtil tests', () => {
     const mockServicesApi = {
       services: {
         TargetOrgRef: createMockTargetOrgRef(),
-        ChannelService: channelServiceStub()
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
@@ -159,7 +167,8 @@ describe('orgUtil tests', () => {
     const mockServicesApi = {
       services: {
         TargetOrgRef: createMockTargetOrgRef('foo'),
-        ChannelService: channelServiceStub()
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
@@ -195,7 +204,8 @@ describe('orgUtil tests', () => {
     const mockServicesApi = {
       services: {
         TargetOrgRef: createMockTargetOrgRef(),
-        ChannelService: channelServiceStub()
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
@@ -248,7 +258,8 @@ describe('orgUtil tests', () => {
     const mockServicesApi = {
       services: {
         TargetOrgRef: createMockTargetOrgRef(),
-        ChannelService: channelServiceStub()
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
@@ -312,7 +323,8 @@ describe('orgUtil tests', () => {
     const mockServicesApi = {
       services: {
         TargetOrgRef: createMockTargetOrgRef('expired-org@salesforce.com'),
-        ChannelService: channelServiceStub()
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
