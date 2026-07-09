@@ -365,7 +365,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
       });
 
-      const classIds = Array.getSomes(apexClasses.map(cls => cls.id));
       const [connection, orgInfo] = yield* Effect.all(
         [
           Effect.try({
@@ -383,7 +382,13 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       if (!orgInfo.orgId) return;
       const orgKey = orgInfo.orgId;
       const classIdToPackage = yield* Effect.tryPromise({
-        try: () => resolvePackage2Members(connection, classIds, buildClassIdToNamespace(apexClasses), orgInfo),
+        try: () =>
+          resolvePackage2Members(
+            connection,
+            Array.getSomes(apexClasses.map(cls => cls.id)),
+            buildClassIdToNamespace(apexClasses),
+            orgInfo
+          ),
         catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
       });
 

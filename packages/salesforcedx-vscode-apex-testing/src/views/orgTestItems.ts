@@ -35,15 +35,8 @@ type NamespacePackageStructure = Map<string, Map<string, ClassEntry[]>>;
  * Builds a map from Apex class ID to namespace prefix for the given test classes.
  * Used when resolving package membership (e.g. InstalledSubscriberPackage fallback in subscriber orgs).
  */
-export const buildClassIdToNamespace = (apexClasses: ToolingTestClass[]): Map<string, Option.Option<string>> => {
-  const map = new Map<string, Option.Option<string>>();
-  for (const cls of apexClasses) {
-    if (Option.isSome(cls.id)) {
-      map.set(cls.id.value, cls.namespacePrefix);
-    }
-  }
-  return map;
-};
+export const buildClassIdToNamespace = (apexClasses: ToolingTestClass[]): Map<string, Option.Option<string>> =>
+  new Map(apexClasses.flatMap(cls => (Option.isSome(cls.id) ? [[cls.id.value, cls.namespacePrefix] as const] : [])));
 
 /**
  * Groups test classes by namespace and package (2GP / 1GP / unpackaged).

@@ -68,8 +68,7 @@ export type DiscoverTestsOptions = {
   namespacePrefix?: string;
 };
 
-// Package resolution: use WSDL-generated types from @salesforce/types (forcedotcom/wsdl)
-/** Package2Member query result; wsdl type omits MetadataComponentId and Package2Id for some API versions. */
+/** Package2Member (WSDL-generated, @salesforce/types); wsdl type omits MetadataComponentId and Package2Id for some API versions. */
 export type Package2MemberRecord = Package2Member & {
   MetadataComponentId?: string;
   Package2Id?: string;
