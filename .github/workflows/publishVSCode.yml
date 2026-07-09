@@ -78,10 +78,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-      # background: overlaps the slow release download; waited on before validate-vsix (needs node_modules)
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-        id: npm-install
-        background: true
       - name: downloadExtensionsFromRelease
         run: |
           mkdir ./extensions
@@ -94,8 +91,6 @@ jobs:
           NAMES=$(node scripts/parse-extension-names.js ./extensions)
           echo "names=$NAMES" >> "$GITHUB_OUTPUT"
           echo "Published extensions: $NAMES"
-      # validate-vsix imports glob/jszip → gate it on npm-install completing
-      - wait: npm-install
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./extensions
       - uses: salesforcecli/github-workflows/.github/actions/retry@main
