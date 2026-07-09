@@ -46,7 +46,7 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
               .map(
                 (cls): ApexTestQuickPickItem => ({
                   label: cls.name,
-                  description: Option.getOrElse(cls.namespacePrefix, () => ''),
+                  description: Option.getOrUndefined(cls.namespacePrefix),
                   type: 'Class' as const,
                   fullClassName: getFullClassName(cls)
                 })

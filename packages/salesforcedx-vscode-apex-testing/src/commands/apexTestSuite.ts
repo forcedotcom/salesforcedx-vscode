@@ -28,7 +28,7 @@ const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(functio
     .map(
       (cls): ApexTestQuickPickItem => ({
         label: cls.name,
-        description: Option.getOrElse(cls.namespacePrefix, () => ''),
+        description: Option.getOrUndefined(cls.namespacePrefix),
         type: 'Class',
         fullClassName: getFullClassName(cls)
       })
