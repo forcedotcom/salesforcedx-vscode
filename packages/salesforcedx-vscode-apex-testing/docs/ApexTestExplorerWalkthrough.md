@@ -90,6 +90,7 @@ Command Palette → **SFDX: Edit Apex Test Suite**, pick suite, check/uncheck cl
 - Current suite members are pre-checked
 - Check new classes to add them
 - Uncheck existing classes to remove them
+- Dismiss (Escape/click outside) to cancel without changes
 
 Suite operations use the org (Tooling API); changes persist on refresh. **Run** requires the suite to have members; empty suite shows error.
 

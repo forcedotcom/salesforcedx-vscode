@@ -159,8 +159,12 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
   const selection = yield* Effect.promise(() =>
     vscode.window.showQuickPick<EditableSuiteClassItem>(editableItems, { canPickMany: true })
   );
-  if (!selection || selection.length === 0) {
-    // Empty selection means uncheck everything — remove all current members
+  // undefined means dismissed (click outside / Escape) — cancel without modifying the suite
+  if (selection === undefined) {
+    return yield* new api.services.UserCancellationError();
+  }
+  if (selection.length === 0) {
+    // Empty array means user accepted with nothing checked — remove all current members
     const allMembershipIds = editableItems.filter(item => item.membershipId).map(item => item.membershipId!);
     return { suitename, toAdd: [], toRemove: allMembershipIds };
   }
