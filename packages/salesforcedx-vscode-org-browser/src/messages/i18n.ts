@@ -9,5 +9,6 @@ export const messages = {
   confirm_overwrite: 'Overwrite local files for %s %s?',
   yes_button: 'Yes',
   no_button: 'No',
-  filter_text_placeholder: 'Filter: Apex*, *:*Test* (wildcards) or /Apex.*/:/.*(Test|Spec)/ (regex), empty to clear'
+  filter_text_placeholder: 'Filter: Apex*, *:*Test* (wildcards) or /Apex.*/:/.*(Test|Spec)/ (regex), empty to clear',
+  filter_fetch_confirmation: '%s metadata types matched. Fetch components for all of them?'
 } as const;

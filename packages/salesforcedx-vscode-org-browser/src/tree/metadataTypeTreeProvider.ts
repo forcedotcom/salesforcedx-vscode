@@ -7,11 +7,12 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
-import { matchesPattern } from '../utils/wildcardPattern';
+import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from '../utils/wildcardPattern';
 import { createCustomFieldNode } from './customField';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
@@ -27,6 +28,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private _componentFilter: string | undefined;
   private _typeIsRegex = false;
   private _componentIsRegex = false;
+  private _userApprovedBroadFetch = false;
 
   public get showLocal(): boolean {
     return this._showLocal;
@@ -64,16 +66,22 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return this._componentIsRegex;
   }
 
+  public get userApprovedBroadFetch(): boolean {
+    return this._userApprovedBroadFetch;
+  }
+
   public setTextFilter(
     typeFilter: string | undefined,
     componentFilter: string | undefined,
     typeIsRegex = false,
-    componentIsRegex = false
+    componentIsRegex = false,
+    userApprovedBroadFetch = false
   ): void {
     this._typeFilter = typeFilter;
     this._componentFilter = componentFilter;
     this._typeIsRegex = typeIsRegex;
     this._componentIsRegex = componentIsRegex;
+    this._userApprovedBroadFetch = userApprovedBroadFetch;
     this._onDidChangeTreeData.fire(undefined);
   }
 
@@ -179,6 +187,40 @@ const filterTypesWithMatchingComponents = <E, R>(
     return typesWithMatchingComponents.filter(t => t.hasMatch).map(t => t.typeNode);
   });
 
+/**
+ * Filter types to only those with cached components matching the component filter.
+ * Cache-only mode: types without cache entries are excluded (strict - cannot confirm match).
+ * Used when component filter matches too many types to avoid excessive API calls.
+ */
+const filterTypesWithCachedComponents = <E, R>(
+  typeNodes: OrgBrowserTreeItem[],
+  provider: MetadataTypeTreeProvider,
+  metadataDescribeService: {
+    listMetadataCached: (type: string) => Effect.Effect<Option.Option<MetadataListResultItem[]>, E, R>;
+  }
+) =>
+  Effect.gen(function* () {
+    const componentFilter = provider.componentFilter!;
+    const componentIsRegex = provider.componentIsRegex;
+    const results = yield* Effect.all(
+      typeNodes.map(typeNode =>
+        Effect.gen(function* () {
+          const typeToList = typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
+          const cached = yield* metadataDescribeService.listMetadataCached(typeToList);
+          // Not cached → excluded (strict: can't confirm match)
+          if (Option.isNone(cached)) return null;
+          // Cached → check for matching components
+          const hasMatch = cached.value.some(
+            c => c.fullName && matchesPattern(c.fullName, componentFilter, componentIsRegex)
+          );
+          return hasMatch ? typeNode : null;
+        })
+      ),
+      { concurrency: 'unbounded' } // no API calls, just cache reads
+    );
+    return results.filter((n): n is OrgBrowserTreeItem => n !== null);
+  });
+
 const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider: MetadataTypeTreeProvider) =>
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
@@ -205,7 +247,12 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
             const typeFilteredNodes = allNodes.filter(node => passesTypeFilter(node, provider));
             // If component filter is active, pre-filter types that have no matching components
             if (provider.componentFilter && provider.componentFilter !== '') {
-              return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+              if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
+                // Under threshold or user approved: full fetch
+                return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+              }
+              // Over threshold: cache-only (strict — unfetched types hidden)
+              return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
             }
             return typeFilteredNodes;
           });
@@ -222,7 +269,12 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
             );
             // If component filter is active, pre-filter types that have no matching components
             if (provider.componentFilter && provider.componentFilter !== '') {
-              return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+              if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
+                // Under threshold or user approved: full fetch
+                return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+              }
+              // Over threshold: cache-only (strict — unfetched types hidden)
+              return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
             }
             return typeFilteredNodes;
           });
@@ -233,7 +285,12 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           const typeFilteredNodes = allNodes.filter(node => passesTypeFilter(node, provider));
           // If component filter is active, pre-filter types that have no matching components
           if (provider.componentFilter && provider.componentFilter !== '') {
-            return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+            if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
+              // Under threshold or user approved: full fetch
+              return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+            }
+            // Over threshold: cache-only (strict — unfetched types hidden)
+            return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
           }
           return typeFilteredNodes;
         });

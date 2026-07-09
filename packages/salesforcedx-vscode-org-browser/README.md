@@ -130,6 +130,7 @@ This extension provides org browsing capabilities for Salesforce development in 
   - **AND logic:** Both modes use AND logic when combining type and component filters
     - `Apex*:File*` shows types matching `Apex*` that have at least one component matching `File*`
     - Types with no matching components are hidden
+  - **Confirmation prompt for broad filters:** When a component filter matches more than 25 types, a prompt appears asking for confirmation before fetching components from all matched types (can be performance intensive)
   - Tree updates as you type; press Enter to commit, Escape to cancel
 
 ## Requirements

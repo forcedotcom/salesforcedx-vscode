@@ -29,6 +29,7 @@ import {
 } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
+import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from './utils/wildcardPattern';
 
 /**
  * Parse a single pattern (type or component) and return the pattern + regex flag.
@@ -99,6 +100,11 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
   const previousTypeIsRegex = treeProvider.typeIsRegex;
   const previousComponentIsRegex = treeProvider.componentIsRegex;
 
+  // Resolve services once for reuse in commit
+  const svcProvider = yield* ExtensionProviderService;
+  const api = yield* svcProvider.getServicesApi;
+  const metadataDescribeService = yield* api.services.MetadataDescribeService;
+
   const runtime = yield* Effect.runtime();
   const run = Runtime.runFork(runtime);
 
@@ -126,7 +132,29 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
     Effect.gen(function* () {
       yield* Ref.set(acceptedRef, true);
       const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
-      treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
+
+      // Check if we should prompt for broad component fetch
+      const userApprovedBroadFetch =
+        componentFilter && componentFilter !== '' && typeFilter
+          ? yield* Effect.gen(function* () {
+              const types = yield* metadataDescribeService.describe();
+              const matchedCount = types.filter(t => matchesPattern(t.xmlName, typeFilter, typeIsRegex)).length;
+
+              if (matchedCount > MAX_TYPES_FOR_COMPONENT_PREFETCH) {
+                return yield* Effect.promise(async () => {
+                  const result = await vscode.window.showInformationMessage(
+                    nls.localize('filter_fetch_confirmation', matchedCount.toString()),
+                    nls.localize('yes_button'),
+                    nls.localize('no_button')
+                  );
+                  return result === nls.localize('yes_button');
+                });
+              }
+              return false;
+            })
+          : false;
+
+      treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex, userApprovedBroadFetch);
       yield* Effect.all(
         [
           Effect.promise(() => context.workspaceState.update('orgBrowser.typeFilter', typeFilter)),

@@ -45,3 +45,10 @@ export const matchesPattern = (text: string, pattern: string, isRegex = false): 
   }
   return wildcardToRegex(pattern).test(text);
 };
+
+/**
+ * Maximum number of metadata types that will trigger automatic component pre-fetching.
+ * When a component filter matches more than this many types, the tree provider will
+ * use cache-only filtering unless the user explicitly approves a broad fetch.
+ */
+export const MAX_TYPES_FOR_COMPONENT_PREFETCH = 25;
