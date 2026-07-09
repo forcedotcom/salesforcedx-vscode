@@ -40,7 +40,7 @@ e2e is even more crucial in the extensions because much of the extensions API is
 These run locally and in Github Actions using Playwright. Two flavors exist:
 
 - **VS Code Desktop** (`test:desktop`) — runs against a real VS Code instance downloaded via `@vscode/test-electron`.
-- **Code Builder container** (`test:container`) — runs the core extension against the real Code Builder image, swapping the freshly-built extensions into the running `code-server` container.
+- **Code Builder container** (`test:container`) — runs the core extension against the real Code Builder image, swapping extensions (built by an upstream CI run) into the running `code-server` container.
 
 ### playwright
 

@@ -37,7 +37,7 @@ test('opens the command palette', async ({ vscodeApp }) => {
 
 See the [package source](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/playwright-vscode-ext) for the full set of exports: web/headless config factories (`createWebConfig`, `createHeadlessServer`), container fixtures (`createContainerConfig`, `createContainerTest` for Code Builder image testing), and example configurations.
 
-> Note: the desktop test factory (`createDesktopTest`) resolves extension VSIX paths relative to a repo root containing `packages/`, so it is intended for use inside the `salesforcedx-vscode` monorepo. The container factories (`createContainerConfig`, `createContainerTest`) point a browser at a Code Builder `code-server` URL and expect the correct extensions to already be present in that container — extension installation happens in the CI workflow, not the fixture. External consumers should use the web/headless and helper exports.
+> Note: the desktop test factory (`createDesktopTest`) resolves extension VSIX paths relative to a repo root containing `packages/`, so it is intended for use inside the `salesforcedx-vscode` monorepo. The container factories (`createContainerConfig`, `createContainerTest`) point a browser at a Code Builder `code-server` URL and expect the correct extensions to already be present in that container — extension deployment (downloading from a CI artifact and swapping in at runtime) happens in the CI workflow, not the fixture. External consumers should use the web/headless and helper exports.
 
 ## Repository
 

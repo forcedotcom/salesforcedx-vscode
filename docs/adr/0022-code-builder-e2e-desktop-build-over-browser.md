@@ -10,9 +10,9 @@ not `@vscode/test-web`, not Electron.
 Extensions under test are swapped into the running container **at runtime**: pull the
 published `workspace-manager/codebuilder:latest` image, `docker exec` to remove the
 in-scope `/base/extension-overrides/salesforce.<ext>-*` dirs and install the
-freshly-built vsix, then `docker restart` so the host boots holding the new versions.
+VSIX (downloaded from an upstream Build All run), then `docker restart` so the host boots holding the new versions.
 A filesystem version gate asserts each in-scope extension's installed version equals
-the built version (and exactly one dir per ID) before any spec runs.
+the shipped version from that artifact (and exactly one dir per ID) before any spec runs.
 
 ## Considered Options
 
@@ -25,9 +25,12 @@ the built version (and exactly one dir per ID) before any spec runs.
 - **Build the image from source per run** — rejected: needs the `GITHUB_APP_ACCESS_TOKEN`
   build secret (private code-server `.deb` + private extensions), is slow, and a local build
   can drift from what ships. Pulling the published image tests the real distro.
-- **Bake prerelease vsix at image build time** (CB's `INSTALL_PRERELEASE` path) — rejected
-  for v1: requires a `code-builder-images` change or build-secret plumbing. Runtime swap +
-  `docker restart` reaches the same clean-boot state with zero CB-repo involvement.
+- **Rebuild extensions in the workflow** — rejected: CI downloads the exact VSIX artifact from
+  an upstream Build All run (the same bytes about to ship), matching the desktop e2e leaves.
+  Rebuilding tests *a* build, not *the* release artifact, and adds latency.
+- **Bake prerelease vsix at image build time** (CB's `INSTALL_PRERELEASE` path) — rejected:
+  requires a `code-builder-images` change or build-secret plumbing. Runtime swap + `docker restart`
+  reaches the same clean-boot state with zero CB-repo involvement.
 - **Reload-window instead of container restart** — rejected: `Developer: Reload Window`
   races (must wait for re-scan) and does not re-run `before_start.sh`, so org auth would not
   refresh. `docker restart` swaps extensions AND re-runs `sfdx-org-auth.sh` in one lever.

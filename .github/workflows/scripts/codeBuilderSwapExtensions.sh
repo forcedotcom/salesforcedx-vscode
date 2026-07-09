@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Swap freshly-built monorepo VSIX into a running Code Builder container, then verify.
+# Swap the monorepo VSIX under test into a running Code Builder container, then verify.
 #
 # Runtime extension swap (no code-builder-images changes): for each in-scope extension, remove the
-# baked (published-version) override dir, install the built VSIX, then the caller restarts the
+# baked (published-version) override dir, install the VSIX under test, then the caller restarts the
 # container so the Node extension host boots holding the new versions. A filesystem version gate
-# then asserts each in-scope extension resolves to exactly one dir at the built version — activation
+# then asserts each in-scope extension resolves to exactly one dir at that version — activation
 # independent, so it cannot false-green on a lazily-activated extension.
 #
 # Usage: codeBuilderSwapExtensions.sh <container> <vsix-dir>
 #   <container>  running container name/id
-#   <vsix-dir>   host dir holding the built *.vsix (one per in-scope extension)
+#   <vsix-dir>   host dir holding the *.vsix under test (one per in-scope extension)
 
 set -euo pipefail
 
@@ -40,7 +40,7 @@ for id in "${IN_SCOPE_IDS[@]}"; do
   docker exec "$CONTAINER" bash -lc "rm -rf ${OVERRIDES_DIR}/${id}-*" || true
 done
 
-echo "==> Installing built VSIX into ${OVERRIDES_DIR}"
+echo "==> Installing VSIX under test into ${OVERRIDES_DIR}"
 for vsix in "$VSIX_DIR"/*.vsix; do
   [ -e "$vsix" ] || { echo "No VSIX found in $VSIX_DIR" >&2; exit 1; }
   base="$(basename "$vsix")"

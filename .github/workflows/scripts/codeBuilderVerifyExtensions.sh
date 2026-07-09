@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Version gate: assert each in-scope extension is installed at the built version, exactly once.
+# Version gate: assert each in-scope extension is installed at the version under test, exactly once.
 #
-# Reads the on-disk package.json in each override dir (activation-independent — reflects what the
-# host loads, unlike "Show Running Extensions" which omits un-activated extensions). Fails loud on
-# any mismatch or leftover published-version dir, so specs never run against stale code.
+# The expected version comes from the VSIX filenames downloaded from the upstream build — the bytes
+# about to ship. Reads the on-disk package.json in each override dir (activation-independent —
+# reflects what the host loads, unlike "Show Running Extensions" which omits un-activated
+# extensions). Fails loud on any mismatch or leftover published-version dir, so specs never run
+# against stale code.
 #
 # Usage: codeBuilderVerifyExtensions.sh <container> <vsix-dir>
 
@@ -40,7 +42,7 @@ for id in "${!EXPECTED[@]}"; do
 
   got="$(docker exec "$CONTAINER" bash -lc "cat ${dirs}/package.json | jq -r .version")"
   if [ "$got" != "$want" ]; then
-    echo "FAIL ${id}: installed version ${got}, expected built version ${want}"
+    echo "FAIL ${id}: installed version ${got}, expected version under test ${want}"
     fail=1
   else
     echo "OK   ${id}@${got}"
@@ -51,4 +53,4 @@ if [ "$fail" -ne 0 ]; then
   echo "::error::Code Builder extension version gate failed — container is running wrong/mixed versions." >&2
   exit 1
 fi
-echo "==> Version gate passed: all in-scope extensions at built versions."
+echo "==> Version gate passed: all in-scope extensions at the versions under test."

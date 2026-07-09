@@ -1,15 +1,25 @@
 name: Code Builder E2E (Playwright)
 
-# Runs Playwright specs against the real Code Builder workspace-manager image with freshly-built
-# (unreleased) monorepo extensions swapped in at runtime. Linux-only single job — the code-server
-# runtime is identical regardless of host OS, and containers are Linux.
+# Runs Playwright specs against the real Code Builder workspace-manager image, swapping in the
+# unreleased monorepo VSIX built by an upstream Build All run (downloaded by runId — the same bytes
+# about to ship, not a rebuild). Linux-only single job — the code-server runtime is identical
+# regardless of host OS, and containers are Linux.
 #
-# Manual/opt-in for now (workflow_dispatch/workflow_call); promote into e2e.yml's nightly fan-out
-# once it is reliably green.
+# Manual/opt-in for now (workflow_dispatch/workflow_call); promote into e2e.yml's fan-out, which
+# already threads the build runId, once it is reliably green.
 
 on:
   workflow_dispatch:
     inputs:
+      runId:
+        description: 'Run ID of the Build All run that produced the VSIX under test.'
+        required: true
+        type: string
+      artifactName:
+        description: 'Name of the VSIX artifact uploaded by that run.'
+        required: false
+        type: string
+        default: 'VS Code Extensions'
       image_tag:
         description: 'Code Builder image tag to pull (rolling: latest).'
         required: false
@@ -17,6 +27,13 @@ on:
         default: 'latest'
   workflow_call:
     inputs:
+      runId:
+        required: true
+        type: string
+      artifactName:
+        required: false
+        type: string
+        default: 'VS Code Extensions'
       image_tag:
         required: false
         type: string
@@ -71,16 +88,19 @@ jobs:
           command: npx playwright install chromium --with-deps
           retry_wait_seconds: 60
 
-      # Build the in-scope monorepo VSIX (the same bytes that ship). Each lands in packages/<pkg>/.
-      - name: Package extensions
-        run: npm run vscode:package
+      # Pull the VSIX under test from the upstream Build All run (same bytes about to ship) rather
+      # than building here — mirrors the desktop e2e leaves, which test the artifacts, not a rebuild.
+      - name: Download VSIX under test
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifactName }}
+          path: built-vsix
+          run-id: ${{ inputs.runId }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Stage built VSIX
+      - name: List VSIX under test
         shell: bash
-        run: |
-          mkdir -p built-vsix
-          cp packages/**/*.vsix built-vsix/
-          ls -la built-vsix
+        run: ls -la built-vsix
 
       # Auth token minted in-workflow by an IDEx-owned GitHub App (packages:read on the ghcr
       # package). No PAT, no per-user credential to manage.
