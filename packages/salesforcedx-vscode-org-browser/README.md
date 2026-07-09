@@ -132,6 +132,7 @@ This extension provides org browsing capabilities for Salesforce development in 
     - Types with no matching components are hidden
   - **Confirmation prompt for broad filters:** When a component filter matches more than 25 types, a prompt appears asking for confirmation before fetching components from all matched types (can be performance intensive)
   - Tree updates as you type; press Enter to commit, Escape to cancel
+  - **Cache status indicators:** When a type-only filter is active, metadata types appear dimmed (gray) if their components haven't been fetched yet, and normal text if fetched. Helps identify which types' components have been explored vs. remain unfetched. No dimming occurs when no filters are active.
 
 ## Requirements
 
