@@ -39,6 +39,28 @@ describe('passesTypeFilter', () => {
     expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(true);
     expect(passesTypeFilter(typeNode('CustomObject'), provider)).toBe(false);
   });
+
+  it('regex-matches when isRegex flag is true', () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter('Apex.*', undefined, true, false);
+    expect(passesTypeFilter(typeNode('ApexClass'), provider)).toBe(true);
+    expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(true);
+    expect(passesTypeFilter(typeNode('CustomObject'), provider)).toBe(false);
+  });
+
+  it('regex alternation works', () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter('(Apex|Custom).*', undefined, true, false);
+    expect(passesTypeFilter(typeNode('ApexClass'), provider)).toBe(true);
+    expect(passesTypeFilter(typeNode('CustomObject'), provider)).toBe(true);
+    expect(passesTypeFilter(typeNode('Layout'), provider)).toBe(false);
+  });
+
+  it('invalid regex returns no match', () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter('Apex(', undefined, true, false);
+    expect(passesTypeFilter(typeNode('ApexClass'), provider)).toBe(false);
+  });
 });
 
 describe('MetadataTypeTreeProvider text filter state', () => {

@@ -25,6 +25,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private _showOrg = true;
   private _typeFilter: string | undefined;
   private _componentFilter: string | undefined;
+  private _typeIsRegex = false;
+  private _componentIsRegex = false;
 
   public get showLocal(): boolean {
     return this._showLocal;
@@ -54,14 +56,29 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return this._componentFilter;
   }
 
-  public setTextFilter(typeFilter: string | undefined, componentFilter: string | undefined): void {
+  public get typeIsRegex(): boolean {
+    return this._typeIsRegex;
+  }
+
+  public get componentIsRegex(): boolean {
+    return this._componentIsRegex;
+  }
+
+  public setTextFilter(
+    typeFilter: string | undefined,
+    componentFilter: string | undefined,
+    typeIsRegex = false,
+    componentIsRegex = false
+  ): void {
     this._typeFilter = typeFilter;
     this._componentFilter = componentFilter;
+    this._typeIsRegex = typeIsRegex;
+    this._componentIsRegex = componentIsRegex;
     this._onDidChangeTreeData.fire(undefined);
   }
 
   public clearTextFilter(): void {
-    this.setTextFilter(undefined, undefined);
+    this.setTextFilter(undefined, undefined, false, false);
   }
 
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
@@ -104,7 +121,7 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
 
 export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
   if (provider.typeFilter === undefined) return true;
-  return matchesPattern(node.xmlName, provider.typeFilter);
+  return matchesPattern(node.xmlName, provider.typeFilter, provider.typeIsRegex);
 };
 
 export const applyViewModeChildFilter = (
@@ -125,7 +142,9 @@ export const applyViewModeChildFilter = (
 
   if (!provider.componentFilter || provider.componentFilter === '') return viewModeFiltered;
   const componentFilter = provider.componentFilter;
-  return viewModeFiltered.filter(n => n.componentName && matchesPattern(n.componentName, componentFilter));
+  return viewModeFiltered.filter(
+    n => n.componentName && matchesPattern(n.componentName, componentFilter, provider.componentIsRegex)
+  );
 };
 
 /**
@@ -141,6 +160,7 @@ const filterTypesWithMatchingComponents = <E, R>(
 ) =>
   Effect.gen(function* () {
     const componentFilter = provider.componentFilter!;
+    const componentIsRegex = provider.componentIsRegex;
     const typesWithMatchingComponents = yield* Effect.all(
       typeNodes.map(typeNode =>
         Effect.gen(function* () {
@@ -148,7 +168,9 @@ const filterTypesWithMatchingComponents = <E, R>(
           const typeToList = typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
           // List components for this type
           const components = yield* metadataDescribeService.listMetadata(typeToList);
-          const hasMatch = components.some(c => c.fullName && matchesPattern(c.fullName, componentFilter));
+          const hasMatch = components.some(
+            c => c.fullName && matchesPattern(c.fullName, componentFilter, componentIsRegex)
+          );
           return { typeNode, hasMatch };
         })
       ),

@@ -118,11 +118,18 @@ This extension provides org browsing capabilities for Salesforce development in 
 - Browse Salesforce org metadata
 - Retrieve components from org
 - Interactive org navigation
-- Real-time text filter with wildcard support (persisted across reload)
+- Real-time text filter with wildcard and regex support (persisted across reload)
   - Clean text input with live tree filtering (150ms debounce)
-  - Filter types and components using wildcard patterns with `*` (matches any characters)
-  - Examples: `ApexClass` (exact match), `Apex*` (types starting with Apex), `*Class` (types ending with Class)
-  - Combine filters with AND logic: `Apex*:File*` shows types matching `Apex*` that have at least one component matching `File*` (types with no matching components are hidden); `*Class:*Test*` shows types ending with Class having at least one component ending with Test
+  - **Wildcard mode (default):** Filter types and components using `*` (matches any characters)
+    - Examples: `ApexClass` (exact match), `Apex*` (types starting with Apex), `*Class` (types ending with Class)
+  - **Regex mode (opt-in):** Use `/pattern/` delimiters for full regular expression support
+    - Syntax: `/typePattern/` for type-only filtering, or `/typePattern/:/componentPattern/` for both
+    - Examples: `/Apex.*/` (types starting with Apex), `/Apex.*/:/File.*/` (types starting with Apex with components starting with File)
+    - Supports full regex syntax: `.` (any char), `*` (0+ repetitions), `?` (0-1), `|` (alternation), `[]` (character classes)
+    - Invalid regex patterns return no matches instead of errors
+  - **AND logic:** Both modes use AND logic when combining type and component filters
+    - `Apex*:File*` shows types matching `Apex*` that have at least one component matching `File*`
+    - Types with no matching components are hidden
   - Tree updates as you type; press Enter to commit, Escape to cancel
 
 ## Requirements

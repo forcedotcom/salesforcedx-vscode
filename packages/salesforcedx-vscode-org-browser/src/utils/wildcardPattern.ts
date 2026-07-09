@@ -17,9 +17,29 @@ const wildcardToRegex = (pattern: string): RegExp => {
 };
 
 /**
- * Tests if a string matches a pattern (exact match or wildcard).
+ * Safely creates a RegExp, returning undefined if the pattern is invalid.
  */
-export const matchesPattern = (text: string, pattern: string): boolean => {
+const safeRegex = (pattern: string): RegExp | undefined => {
+  // eslint-disable-next-line functional/no-try-statements
+  try {
+    return new RegExp(pattern, 'i');
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Tests if a string matches a pattern (exact match, wildcard, or regex).
+ * Regex mode: pattern is a string extracted from /pattern/ delimiters
+ * Wildcard mode: pattern may contain * wildcards
+ * Exact mode: pattern has no wildcards
+ */
+export const matchesPattern = (text: string, pattern: string, isRegex = false): boolean => {
+  if (isRegex) {
+    const regex = safeRegex(pattern);
+    return regex ? regex.test(text) : false;
+  }
+
   if (!pattern.includes('*')) {
     return text.toLowerCase() === pattern.toLowerCase();
   }

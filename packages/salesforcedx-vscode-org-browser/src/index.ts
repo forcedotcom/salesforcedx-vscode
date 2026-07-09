@@ -30,15 +30,62 @@ import {
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
-const parseFilterValue = (value: string): { typeFilter: string | undefined; componentFilter: string | undefined } => {
-  if (value.length === 0) return { typeFilter: undefined, componentFilter: undefined };
+/**
+ * Parse a single pattern (type or component) and return the pattern + regex flag.
+ * Handles /pattern/ regex syntax, returns pattern without delimiters.
+ */
+const parsePattern = (input: string): { pattern: string; isRegex: boolean } => {
+  if (input.startsWith('/')) {
+    const closeIdx = input.indexOf('/', 1);
+    if (closeIdx !== -1) {
+      return { pattern: input.substring(1, closeIdx), isRegex: true };
+    }
+  }
+  return { pattern: input, isRegex: false };
+};
+
+const parseFilterValue = (
+  value: string
+): {
+  typeFilter: string | undefined;
+  componentFilter: string | undefined;
+  typeIsRegex: boolean;
+  componentIsRegex: boolean;
+} => {
+  if (value.length === 0)
+    return { typeFilter: undefined, componentFilter: undefined, typeIsRegex: false, componentIsRegex: false };
+
+  // Convenience pattern: :component (empty type defaults to *)
+  if (value.startsWith(':')) {
+    const input = value.substring(1);
+    const { pattern, isRegex } = parsePattern(input);
+    return { typeFilter: '*', componentFilter: pattern, typeIsRegex: false, componentIsRegex: isRegex };
+  }
+
+  // Split at first unescaped colon
   const colonIdx = value.indexOf(':');
   if (colonIdx === -1) {
-    return { typeFilter: value.trim(), componentFilter: undefined };
+    // Type-only pattern
+    const { pattern, isRegex } = parsePattern(value.trim());
+    return { typeFilter: pattern, componentFilter: undefined, typeIsRegex: isRegex, componentIsRegex: false };
   }
-  const typePart = value.substring(0, colonIdx).trim();
-  const componentPart = value.substring(colonIdx + 1).trim();
-  return { typeFilter: typePart, componentFilter: componentPart };
+
+  // Type:component pattern
+  const typeInput = value.substring(0, colonIdx).trim();
+  const componentInput = value.substring(colonIdx + 1).trim();
+
+  const typeParsed = parsePattern(typeInput);
+  const componentParsed = parsePattern(componentInput);
+
+  // Empty type defaults to * (match all types)
+  const typeFilter = typeParsed.pattern === '' ? '*' : typeParsed.pattern;
+
+  return {
+    typeFilter,
+    componentFilter: componentParsed.pattern,
+    typeIsRegex: typeParsed.isRegex,
+    componentIsRegex: componentParsed.isRegex
+  };
 };
 
 type FilterQuickPickItem = vscode.QuickPickItem;
@@ -49,6 +96,8 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
 ) {
   const previousTypeFilter = treeProvider.typeFilter;
   const previousComponentFilter = treeProvider.componentFilter;
+  const previousTypeIsRegex = treeProvider.typeIsRegex;
+  const previousComponentIsRegex = treeProvider.componentIsRegex;
 
   const runtime = yield* Effect.runtime();
   const run = Runtime.runFork(runtime);
@@ -60,22 +109,30 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
   const picker = vscode.window.createQuickPick<FilterQuickPickItem>();
   picker.placeholder = nls.localize('filter_text_placeholder');
   picker.matchOnDescription = false;
+
+  // Reconstruct filter value with regex delimiters if needed
   picker.value = previousTypeFilter
     ? previousComponentFilter !== undefined
-      ? `${previousTypeFilter}:${previousComponentFilter}`
-      : previousTypeFilter
+      ? previousTypeIsRegex
+        ? `/${previousTypeFilter}/:${previousComponentIsRegex ? `/${previousComponentFilter}/` : previousComponentFilter}`
+        : `${previousTypeFilter}:${previousComponentIsRegex ? `/${previousComponentFilter}/` : previousComponentFilter}`
+      : previousTypeIsRegex
+        ? `/${previousTypeFilter}/`
+        : previousTypeFilter
     : '';
   picker.items = []; // Suggestions populated by live filtering as user types
 
   const commit = (value: string) =>
     Effect.gen(function* () {
       yield* Ref.set(acceptedRef, true);
-      const { typeFilter, componentFilter } = parseFilterValue(value);
-      treeProvider.setTextFilter(typeFilter, componentFilter);
+      const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
+      treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
       yield* Effect.all(
         [
           Effect.promise(() => context.workspaceState.update('orgBrowser.typeFilter', typeFilter)),
           Effect.promise(() => context.workspaceState.update('orgBrowser.componentFilter', componentFilter)),
+          Effect.promise(() => context.workspaceState.update('orgBrowser.typeIsRegex', typeIsRegex)),
+          Effect.promise(() => context.workspaceState.update('orgBrowser.componentIsRegex', componentIsRegex)),
           Effect.promise(() =>
             vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', typeFilter !== undefined)
           )
@@ -111,8 +168,8 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
       Stream.debounce(Duration.millis(150)),
       Stream.runForEach(value =>
         Effect.gen(function* () {
-          const { typeFilter, componentFilter } = parseFilterValue(value);
-          treeProvider.setTextFilter(typeFilter, componentFilter);
+          const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
+          treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
         })
       )
     )
@@ -171,11 +228,13 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const showOrg = context.workspaceState.get<boolean>('orgBrowser.showOrg') ?? true;
   const typeFilter = context.workspaceState.get<string | undefined>('orgBrowser.typeFilter');
   const componentFilter = context.workspaceState.get<string | undefined>('orgBrowser.componentFilter');
+  const typeIsRegex = context.workspaceState.get<boolean>('orgBrowser.typeIsRegex') ?? false;
+  const componentIsRegex = context.workspaceState.get<boolean>('orgBrowser.componentIsRegex') ?? false;
 
   treeProvider.setShowLocal(showLocal);
   treeProvider.setShowOrg(showOrg);
   if (typeFilter !== undefined || componentFilter !== undefined) {
-    treeProvider.setTextFilter(typeFilter, componentFilter);
+    treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
   }
 
   // Set initial context keys
