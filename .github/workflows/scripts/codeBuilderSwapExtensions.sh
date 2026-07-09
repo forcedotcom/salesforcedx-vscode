@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Swap the monorepo VSIX under test into a running Code Builder container, then verify.
+# Swap the monorepo VSIX under test into a Code Builder container, then verify.
 #
 # Runtime extension swap (no code-builder-images changes): for each in-scope extension, remove the
-# baked (published-version) override dir, install the VSIX under test, then the caller restarts the
-# container so the Node extension host boots holding the new versions. A filesystem version gate
-# then asserts each in-scope extension resolves to exactly one dir at that version — activation
-# independent, so it cannot false-green on a lazily-activated extension.
+# baked (published-version) override dir and unpack the VSIX under test into a same-shaped dir. We
+# unzip directly rather than `code-server --install-extension` because the CLI talks to the live
+# extension host, which refuses to reinstall an already-registered Extension Pack ("Please restart
+# VS Code before reinstalling ..."). Unzipping mirrors the baked layout exactly, so the caller's
+# `docker restart` then boots the host holding the new versions. A filesystem version gate asserts
+# each in-scope extension resolves to exactly one dir at that version.
 #
 # Usage: codeBuilderSwapExtensions.sh <container> <vsix-dir>
 #   <container>  running container name/id
@@ -16,17 +18,6 @@ set -euo pipefail
 CONTAINER="${1:?container name/id required}"
 VSIX_DIR="${2:?vsix dir required}"
 OVERRIDES_DIR="/base/extension-overrides"
-# Where code-server serves; used to wait out the mid-swap restart.
-CODE_BUILDER_URL="${CODE_BUILDER_URL:-http://localhost:8123}"
-
-wait_for_workbench() {
-  for _ in $(seq 1 60); do
-    curl -fsS "$CODE_BUILDER_URL" >/dev/null 2>&1 && return 0
-    sleep 2
-  done
-  echo "Code Builder never became reachable at $CODE_BUILDER_URL after restart" >&2
-  return 1
-}
 
 # In-scope: the monorepo-built extensions Code Builder installs. Publisher is always `salesforce`.
 # Keep in sync with the VSIX produced by `vscode:package` across the monorepo.
@@ -51,20 +42,30 @@ for id in "${IN_SCOPE_IDS[@]}"; do
   docker exec "$CONTAINER" bash -lc "rm -rf ${OVERRIDES_DIR}/${id}-*" || true
 done
 
-# code-server refuses to reinstall an extension the live host still has registered
-# ("Please restart VS Code before reinstalling ..."). Restart after clearing the overrides so
-# the host boots without them, then install into a host with no conflicting registration.
-echo "==> Restarting container to clear stale extension registrations"
-docker restart "$CONTAINER" >/dev/null
-wait_for_workbench
-
-echo "==> Installing VSIX under test into ${OVERRIDES_DIR}"
+echo "==> Unpacking VSIX under test into ${OVERRIDES_DIR}"
 for vsix in "$VSIX_DIR"/*.vsix; do
   [ -e "$vsix" ] || { echo "No VSIX found in $VSIX_DIR" >&2; exit 1; }
-  base="$(basename "$vsix")"
-  docker cp "$vsix" "$CONTAINER:/tmp/${base}"
-  docker exec "$CONTAINER" bash -lc \
-    "code-server --install-extension /tmp/${base} --extensions-dir ${OVERRIDES_DIR} --force"
+  base="$(basename "$vsix" .vsix)"   # salesforcedx-vscode-core-67.4.0
+  version="${base##*-}"              # 67.4.0
+  name="${base%-*}"                  # salesforcedx-vscode-core
+  dir="salesforce.${name}-${version}"
+
+  # A VSIX is a zip with the extension rooted under extension/. Unpack that into a same-named
+  # override dir so package.json lands at the dir root, matching the baked layout the host scans.
+  docker cp "$vsix" "$CONTAINER:/tmp/${base}.vsix"
+  docker exec "$CONTAINER" bash -lc "
+    set -e
+    rm -rf /tmp/x && mkdir -p /tmp/x
+    if command -v unzip >/dev/null 2>&1; then
+      unzip -q /tmp/${base}.vsix -d /tmp/x
+    else
+      python3 -c 'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' /tmp/${base}.vsix /tmp/x
+    fi
+    rm -rf ${OVERRIDES_DIR}/${dir}
+    mv /tmp/x/extension ${OVERRIDES_DIR}/${dir}
+    rm -rf /tmp/x /tmp/${base}.vsix
+  "
+  echo "  unpacked ${dir}"
 done
 
 echo "==> Swap complete. Caller must 'docker restart' before the version gate."
