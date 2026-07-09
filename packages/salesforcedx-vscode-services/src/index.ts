@@ -8,6 +8,7 @@ import type { Resource } from '@effect/opentelemetry';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
@@ -41,6 +42,8 @@ import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
+import { globalLayers } from './servicesLayers';
+import { disposeServicesRuntime, setServicesRuntime } from './servicesRuntime';
 import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -56,7 +59,6 @@ import { watchLwcAuraExtensionActivation } from './vscode/extensionActivator';
 import { setExtensionContext } from './vscode/extensionContext';
 import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
-import { ExtensionsService } from './vscode/extensionsService';
 import { FileChangePubSub } from './vscode/fileChangePubSub';
 import { FileWatcherLayer } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
@@ -326,43 +328,14 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ErrorHandlerService.Default
   ).pipe(Layer.provideMerge(ChannelService.Default));
 
-  /** they're global in the sense that they should be the same for all extension */
-  const globalLayers = Layer.mergeAll(
-    AliasService.Default,
-    TemplateService.Default,
-    ExtensionContextService.Default,
-    ExecuteAnonymousService.Default,
-    ExtensionsService.Default,
-    FileChangePubSub.Default,
-    ApexLogService.Default,
-    ComponentSetService.Default,
-    LightningComponentService.Default,
-    ConfigService.Default,
-    ConnectionService.Default,
-    EditorService.Default,
-    FsService.Default,
-    MediaService.Default,
-    MetadataChangeNotificationService.Default,
-    MetadataDescribeService.Default,
-    MetadataDeleteService.Default,
-    MetadataDeployService.Default,
-    PromptService.Default,
-    MetadataRegistryService.Default,
-    MetadataRetrieveService.Default,
-    ProjectService.Default,
-    SettingsService.Default,
-    SettingsChangePubSub.Default,
-    SourceTrackingService.Default,
-    TerminalService.Default,
-    TransmogrifierService.Default,
-    TraceFlagService.Default,
-    WorkspaceService.Default
-  );
-
   const requirements = Layer.mergeAll(internalLayers).pipe(Layer.provideMerge(globalLayers));
 
   // Build the layer with extensionScope - scoped services live until extension deactivates
   const builtContext = await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope));
+
+  // Publish a runtime over the built context for imperative VS Code boundaries (e.g. the O11y span
+  // exporter) that can't yield* into it directly — reuses these instances instead of rebuilding.
+  setServicesRuntime(ManagedRuntime.make(Layer.succeedContext(builtContext)));
 
   await activationEffect(context).pipe(
     Effect.provide(builtContext),
@@ -429,6 +402,9 @@ export const deactivate = async (): Promise<void> => {
 };
 
 const deactivateEffect = Effect.gen(function* () {
+  // dispose the runtime (interrupting in-flight fibers) BEFORE closing the scope that owns the services
+  // those fibers touch, so nothing runs against a torn-down service.
+  yield* disposeServicesRuntime();
   yield* closeExtensionScope();
   yield* ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))

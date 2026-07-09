@@ -8,11 +8,14 @@ import { SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
+import { getServicesRuntime } from '../servicesRuntime';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
@@ -29,8 +32,16 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
+// Run through the shared services runtime (not Effect.provide(ConnectionService.Default), which would
+// build a private ConnectionService per call — separate connection/reauth caches, defeating dedup).
+// The runtime is set early in activation; retry at 500ms until it exists (a background export can wait).
 const getConnection = () =>
-  Effect.runPromise(ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default)));
+  Effect.runPromise(
+    getServicesRuntime().pipe(
+      Effect.retry({ schedule: Schedule.fixed(Duration.millis(500)) }),
+      Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(ConnectionService.getConnection())))
+    )
+  );
 
 /**
  * OpenTelemetry span exporter that sends spans to O11y using @salesforce/o11y-reporter.
