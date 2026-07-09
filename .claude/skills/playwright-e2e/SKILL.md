@@ -35,6 +35,14 @@ Shared code (helpers, locators, configuration) for tests.
 - Requires `vscode:package` to have run first (produces `.vsix` in package dir). `test:desktop` depends on `vscode:package` for this reason.
 - Idempotent across parallel workers: atomic rename; second worker skips if cache exists.
 
+**Container mode** (Code Builder):
+
+- `createContainerConfig({ testDir: '…' })` — Playwright config factory for testing inside the Code Builder image at `http://localhost:8123` (code-server).
+- `createContainerTest()` — fixture for container tests; opens the browser pointing at the container URL.
+- See ADR [0022-code-builder-e2e-desktop-build-over-browser](../../docs/adr/0022-code-builder-e2e-desktop-build-over-browser.md) for design and runtime extension-swap strategy.
+- CI flow: [`.github/workflows/codeBuilderE2E.yml`](../../.github/workflows/codeBuilderE2E.yml) (manual/workflow_dispatch).
+- Run locally: `npm run test:container` (in salesforcedx-vscode-core). Requires a running container at `localhost:8123`.
+
 ## Span files (when debugging traces)
 
 Available local + CI/GHA.

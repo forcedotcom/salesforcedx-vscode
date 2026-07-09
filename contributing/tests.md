@@ -15,6 +15,15 @@ The test types from most preferred to least preferred are:
 To run all unit tests, execute `npm run compile && npm run test` from the root folder.
 Instructions for running Playwright E2E tests locally are in [.claude/skills/playwright-e2e/SKILL.md](../.claude/skills/playwright-e2e/SKILL.md).
 
+### End-to-End Tests (Desktop)
+
+Desktop E2E tests include two flavors:
+
+1. **VS Code Desktop** — `npm run test:desktop` in an extension package; Playwright drives a real VS Code instance downloaded via `@vscode/test-electron`, loading the freshly-built VSIX.
+2. **Code Builder container** — `npm run test:container` in the core package; Playwright drives a browser at the `code-server` runtime inside the Code Builder image, with freshly-built extensions swapped in at runtime. See ADR [0022-code-builder-e2e-desktop-build-over-browser](../docs/adr/0022-code-builder-e2e-desktop-build-over-browser.md).
+
+Both use the `@salesforce/playwright-vscode-ext` shared fixture/helper package and exercise the **desktop** extension build (Node extension host). See [.claude/skills/playwright-e2e/SKILL.md](../.claude/skills/playwright-e2e/SKILL.md) for local setup, running, and debugging.
+
 ### Unit Tests
 
 Unit tests priorities are as follows:
