@@ -41,7 +41,7 @@ export const ToolingTestClass = Schema.Struct({
 export type ToolingTestClass = Schema.Schema.Type<typeof ToolingTestClass>;
 
 /** Raw Tooling REST shape (pre-decode): `id`/`namespacePrefix` are plain strings, possibly `""`. */
-export type ToolingTestClassWire = Schema.Schema.Encoded<typeof ToolingTestClass>;
+type ToolingTestClassWire = Schema.Schema.Encoded<typeof ToolingTestClass>;
 
 export type TestDiscoveryResult = {
   classes: ToolingTestClass[];
