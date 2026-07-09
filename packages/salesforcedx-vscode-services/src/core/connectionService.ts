@@ -73,6 +73,19 @@ export class NoTargetOrgConfiguredError extends Schema.TaggedError<NoTargetOrgCo
   }
 ) {}
 
+/**
+ * A per-username connection was requested on the web bundle. The web `connectionCache.lookup`
+ * (`createWebConnection`) parses its key as `instanceUrl###accessToken###apiVersion`, so a bare
+ * username silently mis-parses — there is no username→connection path on web. Consumers degrade
+ * gracefully rather than crash.
+ */
+export class UsernameConnectionNotSupportedOnWebError extends Schema.TaggedError<UsernameConnectionNotSupportedOnWebError>()(
+  'UsernameConnectionNotSupportedOnWebError',
+  {
+    message: Schema.String
+  }
+) {}
+
 export class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpiredError>()('AccessTokenExpiredError', {
   message: Schema.String,
   username: Schema.optional(Schema.String)
@@ -220,6 +233,19 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const aliasService = yield* AliasService;
     const channelService = yield* ChannelService;
 
+    /**
+     * Alias-resolve `usernameOrAlias`, then fetch the (desktop) cached `Connection`. Shared by
+     * `getConnection` (default org) and `getConnectionForUsername` (arbitrary org). Deliberately does
+     * NOT touch the SubscriptionRef — only `getConnection` forks `maybeUpdateDefaultOrgRef`, so the
+     * two accessors diverge on that side effect.
+     */
+    const resolveAndConnect = Effect.fn('ConnectionService.resolveAndConnect')(function* (usernameOrAlias: string) {
+      const username = yield* aliasService
+        .getUsernameFromAlias(usernameOrAlias)
+        .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
+      return yield* connectionCache.get(username);
+    });
+
     // On identity() failure: log to the services-owned 'Salesforce Services' channel (default ChannelService),
     // show the modal, and (if accepted) dispatch sf.org.login.web. We must NOT create a
     // ChannelServiceLayer('Salesforce Org Management') here: services is a *dependency* of the org extension,
@@ -305,16 +331,14 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
+            // single source of the target-org lookup (shared with OrgInfoService via ConfigService)
             const usernameOrAlias = yield* configService.getTargetOrg().pipe(
               Effect.filterOrFail(
-                targetOrg => targetOrg != null,
+                (targetOrg): targetOrg is string => targetOrg != null,
                 () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
               )
             );
-            const username = yield* aliasService
-              .getUsernameFromAlias(usernameOrAlias)
-              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            const desktopConn = yield* connectionCache.get(username);
+            const desktopConn = yield* resolveAndConnect(usernameOrAlias);
             // Session-ID (access-token) orgs can't silently refresh; validate before handing the
             // connection out so EVERY consumer — not just the legacy WorkspaceContextUtil facade —
             // gets the reauth modal on an expired token. No-op for refreshable (web/JWT) flows.
@@ -330,6 +354,23 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         Effect.forkDaemon
       );
       return conn;
+    });
+
+    /**
+     * Get a Connection for an arbitrary org (alias or username). Unlike {@link getConnection}, this
+     * NEVER forks `maybeUpdateDefaultOrgRef`, so inspecting a non-default org does not corrupt the
+     * tracked default-org identity (telemetry/context). Web is unsupported: the web connection cache
+     * keys on `instanceUrl###accessToken###apiVersion`, not a username, so bail with a typed error.
+     */
+    const getConnectionForUsername = Effect.fn('ConnectionService.getConnectionForUsername')(function* (
+      username: string
+    ) {
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        return yield* new UsernameConnectionNotSupportedOnWebError({
+          message: 'Per-username connections are not supported on web'
+        });
+      }
+      return yield* resolveAndConnect(username);
     });
 
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
@@ -361,6 +402,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     return {
       getConnection,
+      getConnectionForUsername,
       validateAccessTokenOrPromptReauth,
       invalidateCachedConnections,
       listAllAuthorizations

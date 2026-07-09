@@ -19,8 +19,13 @@ export const considerUndefinedAsCancellation = <T>(value: T | undefined): Effect
     ? Effect.fail(new UserCancellationError())
     : Effect.succeed(value);
 
-/** Stub of `PromptService.confirmOrThrow`: `confirm: true` resolves, `false` fails with cancellation. */
+/** Stub of `PromptService.confirmOrThrow`: `confirm: true` resolves, `false` fails with cancellation.
+ * Params: `message`, `confirmLabel`, optional `detail`. */
 export const makeConfirmOrThrow =
   (confirm: boolean) =>
-  (_params: { readonly message: string; readonly confirmLabel: string }): Effect.Effect<void, UserCancellationError> =>
+  (_params: {
+    readonly message: string;
+    readonly confirmLabel: string;
+    readonly detail?: string;
+  }): Effect.Effect<void, UserCancellationError> =>
     confirm ? Effect.void : Effect.fail(new UserCancellationError());

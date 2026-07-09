@@ -30,6 +30,7 @@ import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
+import { OrgInfoService } from './core/orgInfoService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
@@ -95,6 +96,7 @@ export type SalesforceVSCodeServicesApi = {
       | PromptService
       | MetadataRegistryService
       | MetadataRetrieveService
+      | OrgInfoService
       | ProjectService
       | Resource.Resource
       | SettingsChangePubSub
@@ -134,6 +136,7 @@ export type SalesforceVSCodeServicesApi = {
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
+    OrgInfoService: typeof OrgInfoService;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: typeof SdkLayerFor;
@@ -185,6 +188,7 @@ export type {
   FailedToResolveUsernameError,
   NoTargetOrgConfiguredError,
   FailedToListAuthorizationsError,
+  UsernameConnectionNotSupportedOnWebError,
   AccessTokenExpiredError
 } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
@@ -376,6 +380,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
+      OrgInfoService,
       ProjectService,
       getSdkLayerConfigFromContext,
       SdkLayerFor,
@@ -415,6 +420,7 @@ const deactivateEffect = Effect.gen(function* () {
 );
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
+export { OrgInfoStruct, type OrgInfo } from './core/schemas/orgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
@@ -442,6 +448,7 @@ export {
 export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
+export type { OrgInfoService, NoUsernameError, OrgInfoConnectionError } from './core/orgInfoService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';

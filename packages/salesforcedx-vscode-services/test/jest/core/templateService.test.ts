@@ -96,6 +96,8 @@ const createMockConnectionService = (): Layer.Layer<ConnectionService> =>
     ConnectionService,
     ConnectionService.make({
       getConnection: () => Effect.succeed({ version: '60.0' } as unknown as import('@salesforce/core').Connection),
+      getConnectionForUsername: () =>
+        Effect.succeed({ version: '60.0' } as unknown as import('@salesforce/core').Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
       listAllAuthorizations: () => Effect.succeed([])
