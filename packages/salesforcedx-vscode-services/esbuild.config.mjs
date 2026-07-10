@@ -9,6 +9,7 @@ import copy from 'esbuild-plugin-copy';
 import { createRequire } from 'module';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { effectEsmConditions } from '../../scripts/bundling/effect.mjs';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
@@ -141,6 +142,7 @@ const buildWebConfig = async () => {
 // Desktop build (Node.js environment)
 const nodeBuild = await build({
   ...nodeConfig,
+  ...effectEsmConditions,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [...(nodeConfig.plugins ?? []), copyTemplates],
