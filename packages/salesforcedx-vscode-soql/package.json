@@ -165,6 +165,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/effect.mjs",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -185,6 +186,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/effect.mjs",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"

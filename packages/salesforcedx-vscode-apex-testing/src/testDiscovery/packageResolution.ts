@@ -8,6 +8,7 @@
 import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
+import * as Option from 'effect/Option';
 
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
 
@@ -82,7 +83,7 @@ const getComponentId = (m: Package2MemberRecord): string | undefined => m.Metada
  */
 const resolveFromInstalledSubscriberPackages = async (
   connection: Connection,
-  classIdToNamespace: Map<string, string>
+  classIdToNamespace: Map<string, Option.Option<string>>
 ): Promise<Map<string, ResolvedPackageInfo>> => {
   const result = new Map<string, ResolvedPackageInfo>();
   if (classIdToNamespace.size === 0) {
@@ -106,9 +107,8 @@ const resolveFromInstalledSubscriberPackages = async (
     }
     const noNsClassIdsAssigned: string[] = [];
     for (const [classId, namespacePrefix] of classIdToNamespace) {
-      const ns = (namespacePrefix ?? '').trim();
-      if (ns !== '') {
-        const pkg = byNamespace.get(ns);
+      if (Option.isSome(namespacePrefix)) {
+        const pkg = byNamespace.get(namespacePrefix.value);
         if (pkg?.SubscriberPackage?.Name != null && pkg.SubscriberPackageId) {
           result.set(classId, {
             package2Id: pkg.SubscriberPackageId,
@@ -209,7 +209,7 @@ const getUnpackagedApexClassIds = async (connection: Connection, classIds: strin
 export const resolvePackage2Members = async (
   connection: Connection,
   apexClassIds: string[],
-  classIdToNamespace?: Map<string, string>,
+  classIdToNamespace?: Map<string, Option.Option<string>>,
   orgInfo?: PackageResolutionOrgInfo
 ): Promise<Map<string, ResolvedPackageInfo>> => {
   const validIds = apexClassIds.filter(id => typeof id === 'string' && id.length > 0);

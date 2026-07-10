@@ -11,25 +11,48 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import { ConfigUtil, notificationService, ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { channelService } from '../../../src/channels';
 import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import { checkForSoonToBeExpiredOrgs, updateConfigAndStateAggregators } from '../../../src/util/orgUtil';
 
 describe('orgUtil tests', () => {
   let showWarningMessageSpy: jest.SpyInstance;
-  let appendLineSpy: jest.SpyInstance;
-  let showChannelOutputSpy: jest.SpyInstance;
+  // checkForSoonToBeExpiredOrgs now writes via the Effect ChannelService (yielded off the services api),
+  // not the legacy channelService singleton. These mocks stand in for appendToChannel/showChannel.
+  let appendToChannelMock: jest.Mock;
+  let showChannelMock: jest.Mock;
   let listAllAuthorizationsSpy: jest.SpyInstance;
   let authInfoCreateSpy: jest.SpyInstance;
   let getUsernameMock: jest.SpyInstance;
   let mockWatcher: any;
+
+  // ChannelService entry provided in every seeded ExtensionProviderService layer.
+  const channelServiceStub = () =>
+    Effect.succeed({
+      appendToChannel: (message: string) => Effect.sync(() => appendToChannelMock(message)),
+      showChannel: Effect.sync(() => showChannelMock())
+    });
+
+  // ConnectionService.listAllAuthorizations delegates to the mocked AuthInfo.listAllAuthorizations,
+  // mirroring the real service (which clears StateAggregator then calls AuthInfo.listAllAuthorizations).
+  const connectionServiceStub = () => ({
+    listAllAuthorizations: () => Effect.promise(() => AuthInfo.listAllAuthorizations())
+  });
+
+  // checkForSoonToBeExpiredOrgs leaks ChannelService / ConnectionService into its R channel (it yields
+  // those off the services api); the seeded mockLayer's mock api satisfies them at runtime, so widen R
+  // to ExtensionProviderService for the type-only provide.
+  const runCheck = (mockLayer: Layer.Layer<ExtensionProviderServiceType>): Promise<void> =>
+    (checkForSoonToBeExpiredOrgs() as Effect.Effect<void, unknown, ExtensionProviderServiceType>).pipe(
+      Effect.provide(mockLayer),
+      Effect.runPromise
+    );
 
   const orgName1 = 'dreamhouse-org';
   const orgName2 = 'ebikes-lwc';
@@ -71,8 +94,8 @@ describe('orgUtil tests', () => {
       }
     } as any);
     showWarningMessageSpy = jest.spyOn(notificationService, 'showWarningMessage').mockImplementation(jest.fn());
-    appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
-    showChannelOutputSpy = jest.spyOn(channelService, 'showChannelOutput');
+    appendToChannelMock = jest.fn();
+    showChannelMock = jest.fn();
     listAllAuthorizationsSpy = jest.spyOn(AuthInfo, 'listAllAuthorizations');
     authInfoCreateSpy = jest.spyOn(AuthInfo, 'create');
     getUsernameMock = jest.spyOn(ConfigUtil, 'getUsername');
@@ -86,17 +109,19 @@ describe('orgUtil tests', () => {
     listAllAuthorizationsSpy.mockResolvedValue([]);
     const mockServicesApi = {
       services: {
-        TargetOrgRef: createMockTargetOrgRef()
+        TargetOrgRef: createMockTargetOrgRef(),
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
-    expect(appendLineSpy).not.toHaveBeenCalled();
-    expect(showChannelOutputSpy).not.toHaveBeenCalled();
+    expect(appendToChannelMock).not.toHaveBeenCalled();
+    expect(showChannelMock).not.toHaveBeenCalled();
   });
 
   it('should not display a notification when dev hubs are present', async () => {
@@ -114,17 +139,19 @@ describe('orgUtil tests', () => {
     ]);
     const mockServicesApi = {
       services: {
-        TargetOrgRef: createMockTargetOrgRef()
+        TargetOrgRef: createMockTargetOrgRef(),
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
-    expect(appendLineSpy).not.toHaveBeenCalled();
-    expect(showChannelOutputSpy).not.toHaveBeenCalled();
+    expect(appendToChannelMock).not.toHaveBeenCalled();
+    expect(showChannelMock).not.toHaveBeenCalled();
     expect(authInfoCreateSpy).not.toHaveBeenCalled();
   });
 
@@ -148,17 +175,19 @@ describe('orgUtil tests', () => {
     getUsernameMock.mockResolvedValue('foo');
     const mockServicesApi = {
       services: {
-        TargetOrgRef: createMockTargetOrgRef('foo')
+        TargetOrgRef: createMockTargetOrgRef('foo'),
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
-    expect(appendLineSpy).not.toHaveBeenCalled();
-    expect(showChannelOutputSpy).not.toHaveBeenCalled();
+    expect(appendToChannelMock).not.toHaveBeenCalled();
+    expect(showChannelMock).not.toHaveBeenCalled();
     expect(authInfoCreateSpy).toHaveBeenCalled();
   });
 
@@ -183,19 +212,21 @@ describe('orgUtil tests', () => {
     });
     const mockServicesApi = {
       services: {
-        TargetOrgRef: createMockTargetOrgRef()
+        TargetOrgRef: createMockTargetOrgRef(),
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
-    expect(appendLineSpy).toHaveBeenCalled();
-    expect(appendLineSpy.mock.calls[0][0]).toContain(orgName1);
-    expect(appendLineSpy.mock.calls[0][0]).toContain('foo');
-    expect(showChannelOutputSpy).toHaveBeenCalled();
+    expect(appendToChannelMock).toHaveBeenCalled();
+    expect(appendToChannelMock.mock.calls[0][0]).toContain(orgName1);
+    expect(appendToChannelMock.mock.calls[0][0]).toContain('foo');
+    expect(showChannelMock).toHaveBeenCalled();
   });
 
   it('should display multiple orgs in the output when there are several scratch orgs about to expire', async () => {
@@ -235,21 +266,23 @@ describe('orgUtil tests', () => {
       });
     const mockServicesApi = {
       services: {
-        TargetOrgRef: createMockTargetOrgRef()
+        TargetOrgRef: createMockTargetOrgRef(),
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
-    expect(appendLineSpy).toHaveBeenCalled();
-    expect(appendLineSpy.mock.calls[0][0]).toContain(orgName1);
-    expect(appendLineSpy.mock.calls[0][0]).toContain('foo');
-    expect(appendLineSpy.mock.calls[0][0]).toContain(orgName2);
-    expect(appendLineSpy.mock.calls[0][0]).toContain('bar');
-    expect(showChannelOutputSpy).toHaveBeenCalled();
+    expect(appendToChannelMock).toHaveBeenCalled();
+    expect(appendToChannelMock.mock.calls[0][0]).toContain(orgName1);
+    expect(appendToChannelMock.mock.calls[0][0]).toContain('foo');
+    expect(appendToChannelMock.mock.calls[0][0]).toContain(orgName2);
+    expect(appendToChannelMock.mock.calls[0][0]).toContain('bar');
+    expect(showChannelMock).toHaveBeenCalled();
   });
 
   it('should display notifications for both an expired org and an org about to expire', async () => {
@@ -298,18 +331,20 @@ describe('orgUtil tests', () => {
     getUsernameMock.mockResolvedValue('expired-org@salesforce.com');
     const mockServicesApi = {
       services: {
-        TargetOrgRef: createMockTargetOrgRef('expired-org@salesforce.com')
+        TargetOrgRef: createMockTargetOrgRef('expired-org@salesforce.com'),
+        ChannelService: channelServiceStub(),
+        ConnectionService: connectionServiceStub()
       }
     } as unknown as SalesforceVSCodeServicesApi;
     const mockLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
     });
-    await checkForSoonToBeExpiredOrgs().pipe(Effect.provide(mockLayer), Effect.runPromise);
+    await runCheck(mockLayer);
 
     // Assert that the notifications for both orgs are displayed
     expect(showWarningMessageSpy).toHaveBeenCalledTimes(2);
-    expect(appendLineSpy).toHaveBeenCalled();
-    expect(showChannelOutputSpy).toHaveBeenCalled();
+    expect(appendToChannelMock).toHaveBeenCalled();
+    expect(showChannelMock).toHaveBeenCalled();
 
     // Verify the specific calls
     const calls = showWarningMessageSpy.mock.calls.map(call => call[0]);
@@ -329,9 +364,6 @@ describe('updateConfigAndStateAggregators', () => {
     jest.restoreAllMocks();
     resetOrgRuntimeForTesting();
 
-    jest.spyOn(ConfigAggregatorProvider, 'getInstance').mockReturnValue({
-      reloadConfigAggregators: jest.fn()
-    } as any);
     jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
     (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
 
@@ -367,6 +399,7 @@ describe('updateConfigAndStateAggregators', () => {
   it('should call getConnection after invalidating caches to refresh TargetOrgRef', async () => {
     await updateConfigAndStateAggregators();
 
+    expect(StateAggregator.clearInstanceAsync).toHaveBeenCalled();
     expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
     expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
     expect(getConnectionMock).toHaveBeenCalled();
@@ -376,6 +409,7 @@ describe('updateConfigAndStateAggregators', () => {
     getConnectionMock.mockReturnValue(Effect.fail(new Error('No target org configured')));
 
     await expect(updateConfigAndStateAggregators()).resolves.toBeUndefined();
+    expect(StateAggregator.clearInstanceAsync).toHaveBeenCalled();
     expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
     expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
     expect(getConnectionMock).toHaveBeenCalled();
