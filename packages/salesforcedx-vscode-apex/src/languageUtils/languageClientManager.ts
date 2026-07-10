@@ -6,6 +6,7 @@
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -13,8 +14,8 @@ import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
 import * as languageServer from '../languageServer';
 import { nls } from '../messages';
+import { getRuntime } from '../services/runtime';
 import { retrieveEnableSyncInitJobs } from '../settings';
-import { getTelemetryService } from '../telemetry/telemetry';
 import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
 
 export enum ClientStatus {
@@ -145,13 +146,19 @@ export class LanguageClientManager {
     source: 'commandPalette' | 'statusBar',
     restartBehavior: string
   ): Promise<void> {
-    const telemetryService = getTelemetryService();
-    telemetryService.sendEventData('apexLSPRestart', {
-      restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
-      selectedOption: selectedOption.type,
-      source,
-      defaultOption: restartBehavior
-    });
+    getRuntime().runFork(
+      Effect.void.pipe(
+        Effect.withSpan('apex.lsp.restart', {
+          attributes: {
+            restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
+            selectedOption: selectedOption.type,
+            source,
+            defaultOption: restartBehavior
+          },
+          root: true
+        })
+      )
+    );
   }
 
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
@@ -298,7 +305,6 @@ export class LanguageClientManager {
     extensionContext: vscode.ExtensionContext,
     languageServerStatusBarItem: ApexLSPStatusBarItem
   ): Promise<void> {
-    const telemetryService = getTelemetryService();
     try {
       const langClientStartTime = globalThis.performance.now();
 
@@ -322,9 +328,11 @@ export class LanguageClientManager {
 
         await languageClient.start();
         const startTime = globalThis.performance.now() - langClientStartTime;
-        telemetryService.sendEventData('apexLSPStartup', undefined, {
-          activationTime: startTime
-        });
+        getRuntime().runFork(
+          Effect.void.pipe(
+            Effect.withSpan('apex.lsp.startup', { attributes: { activationTime: startTime }, root: true })
+          )
+        );
         await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
         extensionContext.subscriptions.push(this.getClientInstance()!);
       } else {
