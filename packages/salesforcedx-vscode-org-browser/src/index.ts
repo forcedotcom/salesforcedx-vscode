@@ -192,6 +192,14 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
             previousTypeIsRegex,
             previousComponentIsRegex
           );
+          // Restore context key to match restored filter state
+          yield* Effect.promise(() =>
+            vscode.commands.executeCommand(
+              'setContext',
+              'sf:orgBrowser.textFilterActive',
+              previousTypeFilter !== undefined || previousComponentFilter !== undefined
+            )
+          );
         }
         picker.dispose();
         yield* Deferred.succeed(deferred, undefined);

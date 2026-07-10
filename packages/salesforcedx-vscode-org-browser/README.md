@@ -131,8 +131,9 @@ This extension provides org browsing capabilities for Salesforce development in 
     - `Apex*:File*` shows types matching `Apex*` that have at least one component matching `File*`
     - Types with no matching components are hidden
   - **Confirmation prompt for broad filters:** When a component filter matches more than 25 types, a prompt appears asking for confirmation before fetching components from all matched types (can be performance intensive)
-  - **Filter persistence:** Both filter patterns and regex flags persist across reload; component-only filters (`:MyComponent`) are recognized as active
-  - Tree updates as you type; press Enter to commit, Escape to cancel (reverts to pre-open state including regex flags)
+  - **Filter persistence:** Both filter patterns and regex flags persist across reload; component-only filters (`:MyComponent`) recognized as active (context key syncs in real-time)
+  - **Context key synchronization:** `sf:orgBrowser.textFilterActive` updates live as you type, on commit (Enter), and on revert (Escape), ensuring toolbar icon state stays in sync with filter state
+  - Tree updates as you type; press Enter to commit, Escape to cancel (reverts to pre-open state with all regex flags)
 
 ## Requirements
 

@@ -144,8 +144,8 @@ export const applyViewModeChildFilter = (
     if (provider.showLocal && !provider.showOrg) {
       return nodes.filter(n => n.filePresent === true);
     }
-    // orgOnly: keep only components without local files
-    return nodes.filter(n => n.filePresent !== true);
+    // orgOnly: show all components from org (inclusive - whether or not they also exist locally)
+    return nodes;
   })();
 
   if (!provider.componentFilter || provider.componentFilter === '') return viewModeFiltered;

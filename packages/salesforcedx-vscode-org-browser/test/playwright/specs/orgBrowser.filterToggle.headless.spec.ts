@@ -94,7 +94,7 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
     const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
     await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
 
-    // showLocal OFF + showOrg ON (default) = orgOnly mode: root shows all types, child-level filters org-only components
+    // showLocal OFF + showOrg ON (default) = orgOnly mode: root shows all types, child-level shows all org components
     await orgBrowserPage.waitForRootTypeCount(allItemsCount);
   });
 
@@ -140,7 +140,7 @@ test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types
   });
 
   await test.step('verify all types still visible at root level', async () => {
-    // orgOnly mode: root shows all types (they all exist in org), child-level filters to org-only components
+    // orgOnly mode: root shows all types (they all exist in org), child-level shows all org components
     await orgBrowserPage.waitForRootTypeCount(beforeCount);
   });
 });

@@ -29,8 +29,8 @@ Examples: `Apex*` (types starting with Apex), `/Apex.*/:/File.*/` (regex: Apex t
 toggles. Uses codicon `$(filter)` when inactive, `$(filter-filled)` when active,
 swapped via `sf:orgBrowser.textFilterActive` context key. Context key is true when either 
 typeFilter or componentFilter is active (component-only filters like `:MyComponent` count as active).
-Context key updates in real-time as user types in the live filtering stream, enabling immediate
-toolbar icon and message visibility without requiring commit.
+Context key updates in real-time as user types in the live filtering stream, on commit, and on
+Escape (revert), enabling immediate toolbar icon and message visibility without requiring commit.
 
 Clicking opens QuickPick (`sfdxOrgBrowser.filterText`) in freeform mode with live filtering.
 If a filter is active, QuickPick pre-populates with current filter text for editing.
@@ -59,8 +59,8 @@ If a filter is active, QuickPick pre-populates with current filter text for edit
 - Invalid regex → no matches (safe failure, not errors).
 
 **Commit / cancel semantics:**
-- Enter: apply filter text (including empty value to clear).
-- Escape: revert to pre-open filter state, including regex flags (no change).
+- Enter: apply filter text (including empty value to clear). Updates context key, persists text and regex flags.
+- Escape: revert to pre-open filter state with all regex flags. onDidHide restores previousTypeIsRegex and previousComponentIsRegex to prevent flag loss on dismiss.
 
 ## Data model / state
 
@@ -170,14 +170,14 @@ Two command IDs, both opening the same QuickPick (matching `showLocal.on`/`showL
 - `package.nls.json` entries for command titles.
 
 Handler in `index.ts` (function `openFilterTextPicker`):
-1. Snapshot `previousTypeFilter`/`previousComponentFilter`.
+1. Snapshot `previousTypeFilter`/`previousComponentFilter`/`previousTypeIsRegex`/`previousComponentIsRegex`.
 2. Create QuickPick with suggestions (type names from metadata).
 3. Attach handlers:
    - `onDidChangeValue`: queue text changes to live-filter stream (150ms debounce).
    - `onDidAccept`: commit `picker.value` (accept any text, not just selected items).
-   - `onDidHide`: revert to pre-open filter state if not committed.
-4. On accept: call `treeProvider.setTextFilter()`, persist to `workspaceState`, update context key.
-5. On cancel (Escape): restore previous filter state (revert).
+   - `onDidHide`: revert to pre-open filter state if not committed, restoring all regex flags.
+4. On accept: call `treeProvider.setTextFilter()` with text and flags, persist to `workspaceState`, update context key (checks both filters for active).
+5. On cancel (Escape): restore previous filter state + regex flags via onDidHide; context key updates to reflect restored state.
 
 ## Testing
 
@@ -205,8 +205,9 @@ Cases:
 - Wildcard: exact/substring, `*` expands to `.*`.
 
 **Live filtering stream:** Queue + 150ms debounce + stream processor → `treeProvider.setTextFilter()` + context key update.
-Staggers tree updates without blocking picker. Context key updates synchronously with filter changes,
-enabling real-time toolbar icon swap and empty-tree message visibility.
+Staggers tree updates without blocking picker. Context key updates synchronously on every debounced change,
+on commit (Enter), and on revert (Escape), enabling real-time toolbar icon swap and empty-tree message.
+Checks `typeFilter !== undefined || componentFilter !== undefined` to recognize component-only filters.
 
 **Guardrailed broad-fetch:** At 3 root filter sites:
 1. Count type nodes passing type filter.

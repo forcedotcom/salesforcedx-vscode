@@ -29,8 +29,9 @@
 
 **Composable:** Text filter ANDs with showLocal/showOrg toggles — all must pass.
 
-**Live context key updates:** Context key `sf:orgBrowser.textFilterActive` updates in real-time as user types in the live filtering stream (not just on commit).
-Enables toolbar icon swap and empty-tree message visibility without requiring Enter press.
+**Live context key updates:** Context key `sf:orgBrowser.textFilterActive` updates in real-time as user types; checked on commit, Escape revert, and live-filter stream debounce.
+Enables toolbar icon swap and empty-tree message visibility without commit. Key true when typeFilter or componentFilter is set (component-only filters count as active).
+Escape revert preserves regex flags (`typeIsRegex`, `componentIsRegex`) via onDidHide restoration.
 
 ---
 
@@ -261,8 +262,8 @@ export const applyViewModeChildFilter = (
     if (provider.showLocal && !provider.showOrg) {
       return nodes.filter(n => n.filePresent === true);
     }
-    // orgOnly: keep only components without local files
-    return nodes.filter(n => n.filePresent !== true);
+    // orgOnly: show all org components (both those unique to org and those also in local project)
+    return nodes;
   })();
 
   if (!provider.componentFilter) return viewModeFiltered;
@@ -299,8 +300,8 @@ In `metadataTypeTreeProvider.ts`, the root-level branch (`if (!element) { ... }`
         return allNodes.filter(node => localTypeNames.has(node.xmlName) && passesTypeFilter(node, provider));
       }
 
-      // orgOnly mode: show all types (all types exist in the org by definition)
-      // Child-level filtering will hide components with local files
+      // orgOnly mode: show all org components (both those unique to org and those also in local project)
+      // Child-level filtering applies showLocal/showOrg separately to each component
       return allNodes.filter(node => passesTypeFilter(node, provider));
     }
 ```
