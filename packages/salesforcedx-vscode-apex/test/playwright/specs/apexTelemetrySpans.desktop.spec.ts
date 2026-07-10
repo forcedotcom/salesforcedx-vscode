@@ -100,15 +100,21 @@ test('apex LSP activation telemetry is emitted as Effect spans; client is one sp
   expect(byName(flushed, 'apex.lsp.client').length).toBe(1);
 });
 
-test('apex LSP restart emits an apex.lsp.restart span with restart attributes', async ({ page, workspaceDir }) => {
+test('apex LSP restart emits a restart span AND still flushes exactly one client span per lifetime', async ({
+  page,
+  workspaceDir
+}) => {
   test.setTimeout(360_000);
 
+  // First client lifetime.
   await openFileByName(page, 'ExampleClass.cls');
   await waitForApexLspReady(page, workspaceDir);
 
   const sessionFile = await newestSpanFile();
   expect(sessionFile, 'a span jsonl file should exist after activation').toBeDefined();
 
+  // Drive a second `createLanguageServer` (second client lifetime). This closes the prior client's
+  // child scope, which ends/flushes the first apex.lsp.client span into the session jsonl.
   await triggerLspRestart(page, workspaceDir, { cleanDb: false, via: 'palette' });
 
   const rows = await waitForSpans(
@@ -118,4 +124,21 @@ test('apex LSP restart emits an apex.lsp.restart span with restart attributes', 
   );
   const restartSpan = byName(rows, 'apex.lsp.restart').find(s => s.attributes?.selectedOption !== undefined);
   expect(restartSpan?.attributes?.source).toBeDefined();
+
+  // Generate more Jorje events against the restarted client, then reload → deactivate closes the
+  // parent scope, ending/flushing the second client lifetime's span.
+  await openFileByName(page, 'ExampleClass.cls');
+  await waitForApexLspReady(page, workspaceDir);
+  await reloadWindow(page);
+
+  // ADR central decision under restart: exactly ONE apex.lsp.client span per lifetime — NOT
+  // N-per-event and NOT accumulated-across-restarts. One restart ⇒ two lifetimes ⇒ two spans in
+  // this session's jsonl. If restart extended a single shared scope (the N-not-1 regression), the
+  // first lifetime's span would never end at restart and this count would be wrong.
+  const flushed = await waitForSpans(
+    sessionFile!,
+    r => byName(r, 'apex.lsp.client').length >= 2,
+    'both client-lifetime spans flushed'
+  );
+  expect(byName(flushed, 'apex.lsp.client').length).toBe(2);
 });

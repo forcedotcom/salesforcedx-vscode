@@ -49,7 +49,7 @@ jest.mock('../../../src/services/runtime', () => {
         addLinks: () => {}
       } as Tracer.Span;
     },
-    context: (f: () => unknown) => f()
+    context: <X>(f: () => X) => f()
   });
   const layer = Layer.setTracer(recordingTracer);
   return {
