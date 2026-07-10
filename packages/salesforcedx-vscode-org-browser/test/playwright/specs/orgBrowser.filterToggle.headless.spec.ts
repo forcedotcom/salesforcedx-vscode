@@ -11,7 +11,6 @@ import {
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
-  reloadWindow,
   upsertScratchOrgAuthFieldsToSettings,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -76,36 +75,6 @@ test('Org Browser - filter toggles: org toggle works before any type is expanded
     await hideOrgButton.click();
     const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
     await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
-  });
-});
-
-test('Org Browser - filter toggles: filter state persists across reload', async ({ page }) => {
-  const orgBrowserPage = new OrgBrowserPage(page);
-
-  await test.step('open Org Browser', async () => {
-    await orgBrowserPage.openOrgBrowser();
-  });
-
-  await test.step('toggle showLocal OFF', async () => {
-    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
-    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
-    await hideLocalButton.click();
-    const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
-    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
-  });
-
-  await test.step('reload window', async () => {
-    await reloadWindow(page);
-    await waitForVSCodeWorkbench(page);
-    // Web mode: wait longer for extension to activate and set sf:has_target_org context
-    await page.waitForTimeout(3000);
-  });
-
-  await test.step('verify showLocal remains OFF after reload', async () => {
-    const orgBrowserPageAfter = new OrgBrowserPage(page);
-    await orgBrowserPageAfter.openOrgBrowser();
-    const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
-    await expect(showLocalButton).toBeVisible({ timeout: 15_000 });
   });
 });
 

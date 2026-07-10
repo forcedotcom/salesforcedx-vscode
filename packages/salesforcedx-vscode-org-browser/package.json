@@ -308,13 +308,13 @@
       },
       {
         "view": "sfdxOrgBrowser",
-        "contents": "%org_browser_local_only_empty%",
-        "when": "sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false"
+        "contents": "%org_browser_filters_empty%",
+        "when": "(sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty)"
       },
       {
         "view": "sfdxOrgBrowser",
         "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type.",
-        "when": "sf:orgBrowser.showOrg == true"
+        "when": "sf:orgBrowser.showOrg == true && sf:orgBrowser.treeEmpty == false"
       }
     ],
     "viewsContainers": {
@@ -390,6 +390,18 @@
           "dark": "resources/dark/cloud-on.svg",
           "light": "resources/light/cloud-on.svg"
         }
+      },
+      {
+        "command": "sfdxOrgBrowser.filterText",
+        "title": "%orgBrowser.command.filterText%",
+        "category": "Org Browser",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "sfdxOrgBrowser.filterText.active",
+        "title": "%orgBrowser.command.filterText.active%",
+        "category": "Org Browser",
+        "icon": "$(filter-filled)"
       }
     ],
     "menus": {
@@ -415,14 +427,24 @@
           "group": "navigation@1"
         },
         {
+          "command": "sfdxOrgBrowser.filterText",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == false",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText.active",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == true",
+          "group": "navigation@2"
+        },
+        {
           "command": "sfdxOrgBrowser.refreshType",
           "when": "view == sfdxOrgBrowser",
-          "group": "navigation@2"
+          "group": "navigation@3"
         },
         {
           "command": "sfdxOrgBrowser.collapseAll",
           "when": "view == sfdxOrgBrowser",
-          "group": "navigation@3"
+          "group": "navigation@4"
         }
       ],
       "commandPalette": [
@@ -444,6 +466,14 @@
         },
         {
           "command": "sfdxOrgBrowser.showOrg.off",
+          "when": "false"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText",
+          "when": "false"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText.active",
           "when": "false"
         }
       ],

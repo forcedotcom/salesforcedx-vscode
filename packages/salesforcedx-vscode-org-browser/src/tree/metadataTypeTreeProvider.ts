@@ -7,10 +7,12 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
+import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from '../utils/wildcardPattern';
 import { createCustomFieldNode } from './customField';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
@@ -22,6 +24,11 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   private _showLocal = true;
   private _showOrg = true;
+  private _typeFilter: string | undefined;
+  private _componentFilter: string | undefined;
+  private _typeIsRegex = false;
+  private _componentIsRegex = false;
+  private _userApprovedBroadFetch = false;
 
   public get showLocal(): boolean {
     return this._showLocal;
@@ -41,6 +48,45 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     if (this._showOrg === value) return;
     this._showOrg = value;
     this._onDidChangeTreeData.fire(undefined);
+  }
+
+  public get typeFilter(): string | undefined {
+    return this._typeFilter;
+  }
+
+  public get componentFilter(): string | undefined {
+    return this._componentFilter;
+  }
+
+  public get typeIsRegex(): boolean {
+    return this._typeIsRegex;
+  }
+
+  public get componentIsRegex(): boolean {
+    return this._componentIsRegex;
+  }
+
+  public get userApprovedBroadFetch(): boolean {
+    return this._userApprovedBroadFetch;
+  }
+
+  public setTextFilter(
+    typeFilter: string | undefined,
+    componentFilter: string | undefined,
+    typeIsRegex = false,
+    componentIsRegex = false,
+    userApprovedBroadFetch = false
+  ): void {
+    this._typeFilter = typeFilter;
+    this._componentFilter = componentFilter;
+    this._typeIsRegex = typeIsRegex;
+    this._componentIsRegex = componentIsRegex;
+    this._userApprovedBroadFetch = userApprovedBroadFetch;
+    this._onDidChangeTreeData.fire(undefined);
+  }
+
+  public clearTextFilter(): void {
+    this.setTextFilter(undefined, undefined, false, false);
   }
 
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
@@ -81,20 +127,112 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
   }
 });
 
-const applyViewModeChildFilter = (
+export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
+  if (provider.typeFilter === undefined) return true;
+  return matchesPattern(node.xmlName, provider.typeFilter, provider.typeIsRegex);
+};
+
+export const applyViewModeChildFilter = (
   nodes: OrgBrowserTreeItem[],
   provider: MetadataTypeTreeProvider
 ): OrgBrowserTreeItem[] => {
-  // both-on: show all children
-  if (provider.showLocal && provider.showOrg) return nodes;
-  // both-off: unreachable at child level (root returns empty)
-  if (!provider.showLocal && !provider.showOrg) return [];
-  if (provider.showLocal && !provider.showOrg) {
-    return nodes.filter(n => n.filePresent === true);
-  }
-  // orgOnly: keep only components without local files
-  return nodes.filter(n => n.filePresent !== true);
+  const viewModeFiltered = ((): OrgBrowserTreeItem[] => {
+    // both-on: show all children
+    if (provider.showLocal && provider.showOrg) return nodes;
+    // both-off: unreachable at child level (root returns empty)
+    if (!provider.showLocal && !provider.showOrg) return [];
+    if (provider.showLocal && !provider.showOrg) {
+      return nodes.filter(n => n.filePresent === true);
+    }
+    // orgOnly: keep only components without local files
+    return nodes.filter(n => n.filePresent !== true);
+  })();
+
+  if (!provider.componentFilter || provider.componentFilter === '') return viewModeFiltered;
+  const componentFilter = provider.componentFilter;
+  return viewModeFiltered.filter(
+    n => n.componentName && matchesPattern(n.componentName, componentFilter, provider.componentIsRegex)
+  );
 };
+
+/**
+ * Types with ≥1 component matching filter. Live-fetches components.
+ * AND logic: type:component returns types with matching components only.
+ */
+const filterTypesWithMatchingComponents = <E, R>(
+  typeNodes: OrgBrowserTreeItem[],
+  provider: MetadataTypeTreeProvider,
+  metadataDescribeService: {
+    listMetadata: (type: string) => Effect.Effect<MetadataListResultItem[], E, R>;
+  }
+) =>
+  Effect.gen(function* () {
+    const componentFilter = provider.componentFilter!;
+    const componentIsRegex = provider.componentIsRegex;
+    const typesWithMatchingComponents = yield* Effect.all(
+      typeNodes.map(typeNode =>
+        Effect.gen(function* () {
+          // For folder types, we need to list the folders themselves (e.g., ReportFolder, EmailTemplateFolder)
+          const typeToList = typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
+          // List components for this type
+          const components = yield* metadataDescribeService.listMetadata(typeToList);
+          const hasMatch = components.some(
+            c => c.fullName && matchesPattern(c.fullName, componentFilter, componentIsRegex)
+          );
+          return { typeNode, hasMatch };
+        })
+      ),
+      { concurrency: 10 }
+    );
+    return typesWithMatchingComponents
+      .filter(t => t.hasMatch)
+      .map(
+        t =>
+          new OrgBrowserTreeItem({
+            kind: t.typeNode.kind,
+            xmlName: t.typeNode.xmlName,
+            label: t.typeNode.xmlName
+          })
+      );
+  });
+
+/**
+ * Cached components matching filter. Excludes uncached types (strict—can't confirm match).
+ * Used when >25 types matched to avoid excessive API calls.
+ */
+const filterTypesWithCachedComponents = <E, R>(
+  typeNodes: OrgBrowserTreeItem[],
+  provider: MetadataTypeTreeProvider,
+  metadataDescribeService: {
+    listMetadataCached: (type: string) => Effect.Effect<Option.Option<MetadataListResultItem[]>, E, R>;
+  }
+) =>
+  Effect.gen(function* () {
+    const componentFilter = provider.componentFilter!;
+    const componentIsRegex = provider.componentIsRegex;
+    const results = yield* Effect.all(
+      typeNodes.map(typeNode =>
+        Effect.gen(function* () {
+          const typeToList = typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
+          const cached = yield* metadataDescribeService.listMetadataCached(typeToList);
+          // Not cached → excluded (strict: can't confirm match)
+          if (Option.isNone(cached)) return null;
+          // Cached → check for matching components
+          const hasMatch = cached.value.some(
+            c => c.fullName && matchesPattern(c.fullName, componentFilter, componentIsRegex)
+          );
+          if (!hasMatch) return null;
+          return new OrgBrowserTreeItem({
+            kind: typeNode.kind,
+            xmlName: typeNode.xmlName,
+            label: typeNode.xmlName
+          });
+        })
+      ),
+      { concurrency: 'unbounded' } // no API calls, just cache reads
+    );
+    return results.filter((n): n is OrgBrowserTreeItem => n !== null);
+  });
 
 const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider: MetadataTypeTreeProvider) =>
   Effect.gen(function* () {
@@ -108,29 +246,76 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     if (!element) {
       // Both OFF = empty tree (explicit "show nothing" state)
       if (!provider.showLocal && !provider.showOrg) {
+        yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', true));
         return [];
       }
 
       const types = yield* metadataDescribeService.describe();
       const allNodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
 
-      // Both ON = show everything
-      if (provider.showLocal && provider.showOrg) {
-        return allNodes;
-      }
+      const result = yield* (() => {
+        // Both ON = show everything
+        if (provider.showLocal && provider.showOrg) {
+          return Effect.gen(function* () {
+            const typeFilteredNodes = allNodes.filter(node => passesTypeFilter(node, provider));
+            // If component filter is active, pre-filter types that have no matching components
+            if (provider.componentFilter && provider.componentFilter !== '') {
+              if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
+                // Under threshold or user approved: full fetch
+                return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+              }
+              // Over threshold: cache-only (strict — unfetched types hidden)
+              return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
+            }
+            // No component filter: return all type-filtered nodes
+            return typeFilteredNodes;
+          });
+        }
+        // localOnly mode: show only types that have local source files
+        if (provider.showLocal && !provider.showOrg) {
+          return Effect.gen(function* () {
+            const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+            const localTypeNames = new Set<string>(
+              Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
+            );
+            const typeFilteredNodes = allNodes.filter(
+              node => localTypeNames.has(node.xmlName) && passesTypeFilter(node, provider)
+            );
+            // If component filter is active, pre-filter types that have no matching components
+            if (provider.componentFilter && provider.componentFilter !== '') {
+              if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
+                // Under threshold or user approved: full fetch
+                return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+              }
+              // Over threshold: cache-only (strict — unfetched types hidden)
+              return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
+            }
+            // No component filter: return all type-filtered nodes
+            return typeFilteredNodes;
+          });
+        }
+        // orgOnly mode: show all types (all types exist in the org by definition)
+        // Child-level filtering will hide components with local files
+        return Effect.gen(function* () {
+          const typeFilteredNodes = allNodes.filter(node => passesTypeFilter(node, provider));
+          // If component filter is active, pre-filter types that have no matching components
+          if (provider.componentFilter && provider.componentFilter !== '') {
+            if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
+              // Under threshold or user approved: full fetch
+              return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
+            }
+            // Over threshold: cache-only (strict — unfetched types hidden)
+            return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
+          }
+          // Return type-filtered nodes
+          return typeFilteredNodes;
+        });
+      })();
 
-      // localOnly mode: show only types that have local source files
-      if (provider.showLocal && !provider.showOrg) {
-        const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-        const localTypeNames = new Set<string>(
-          Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
-        );
-        return allNodes.filter(node => localTypeNames.has(node.xmlName));
-      }
-
-      // orgOnly mode: show all types (all types exist in the org by definition)
-      // Child-level filtering will hide components with local files
-      return allNodes;
+      yield* Effect.promise(() =>
+        vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', result.length === 0)
+      );
+      return result;
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
@@ -153,7 +338,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     }
     if (element.kind === 'type') {
       const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      return yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
+      const children = yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
         Effect.flatMap(components =>
           Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
             Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),
@@ -162,6 +347,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           )
         )
       );
+      return children;
     }
     if (element.kind === 'folder') {
       const { xmlName, folderName } = element;

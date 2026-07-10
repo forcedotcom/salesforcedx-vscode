@@ -41,9 +41,7 @@ export class OrgBrowserPage {
     await waitForWorkspaceReady(this.page, 15_000);
   }
 
-  /**
-   * Open the Org Browser by clicking its activity bar item
-   */
+  /** Open the Org Browser by clicking its activity bar item */
   public async openOrgBrowser(): Promise<void> {
     await this.waitForProject();
     await expect(this.activityBarItem, 'Activity bar item for Org Browser should be visible').toBeVisible({
