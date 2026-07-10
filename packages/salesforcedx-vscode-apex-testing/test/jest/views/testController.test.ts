@@ -18,7 +18,10 @@ jest.mock('../../../src/services/extensionProvider', () => {
   let mockReadFileResult = '';
   const mockReadFile = jest.fn(() => EffectLib.succeed(mockReadFileResult));
   const mockMetadataRetrieve = jest.fn(() => EffectLib.succeed({ getFileResponses: () => [] }));
-  const MockConnectionService = { getConnection: () => EffectLib.succeed(mockConnectionRef) };
+  const MockConnectionService = {
+    getConnection: () => EffectLib.succeed(mockConnectionRef),
+    invalidateCachedConnections: () => EffectLib.void
+  };
   const mockFsService = {
     readFile: mockReadFile,
     createDirectory: () => EffectLib.void,

@@ -5,7 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// discoverTests is a module-level Effect; the dedup tests count body runs via ensureInitialized, so a
+// populateSuiteItems now builds `new TestService(connection)` in-body (connection from
+// ConnectionService.getConnection). Mock the constructor to return a controllable instance (default: no
+// suites). retrieveAllSuites failures are recovered inside populateSuiteItems.
+let activeTestService: unknown = { retrieveAllSuites: () => Promise.resolve([]) };
+jest.mock('@salesforce/apex-node', () => ({
+  ...jest.requireActual('@salesforce/apex-node'),
+  TestService: jest.fn().mockImplementation(() => activeTestService)
+}));
+
+// discoverTests is a module-level Effect; the dedup tests count body runs via clearTree, so a
 // trivially-succeeding discovery keeps the body cheap. The mock returns an Effect (consumed via yield*).
 const mockDiscoverTests = jest.fn();
 jest.mock('../../../src/testDiscovery/testDiscovery', () => {
@@ -51,9 +60,17 @@ const mockSettingsService = {
   setValue: jest.fn(() => Effect.void)
 };
 
+// Connection is acquired via ConnectionService.getConnection() (static accessor). Controllable per test:
+// default succeeds; failure/gating tests replace the impl. The returned connection is only fed to
+// `new TestService(conn)`, which the module mock below intercepts.
+let getConnectionImpl: () => Effect.Effect<unknown, unknown> = () => Effect.succeed({});
+const mockConnectionService = { getConnection: () => getConnectionImpl() };
+
 // Minimal ambient services: discovery reaches getServicesApi; the no-classes path never touches FsService.
 // SettingsService is yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
-const mockServicesApi = { services: { SettingsService: Effect.succeed(mockSettingsService) } };
+const mockServicesApi = {
+  services: { SettingsService: Effect.succeed(mockSettingsService), ConnectionService: mockConnectionService }
+};
 const ExtensionProviderLayer = Layer.succeed(ExtensionProviderService, {
   getServicesApi: Effect.succeed(mockServicesApi)
 } as unknown as ExtensionProviderService);
@@ -70,11 +87,10 @@ const run = <A, E, R>(effect: Effect.Effect<A, E, ApexTestTreeService | R>) =>
 
 const fakeTestItem = (id: string): vscode.TestItem => ({ id, label: id }) as unknown as vscode.TestItem;
 
-// A controllable DiscoveryContext: ensureInitialized count proves how many times the body actually ran;
-// the gate Deferred lets a test hold the body open while a second caller arrives (dedup window).
-const makeContext = (
-  overrides: Partial<DiscoveryContext> & { onEnsureInitialized?: () => Promise<void> } = {}
-): DiscoveryContext => {
+// A controllable DiscoveryContext. Connection/TestService are no longer threaded in — discovery acquires
+// them via the mock ConnectionService + the mocked TestService constructor. clearTree count proves how many
+// times the discovery body actually ran.
+const makeContext = (overrides: Partial<DiscoveryContext> = {}): DiscoveryContext => {
   const controller = {
     items: { add: jest.fn(), replace: jest.fn() },
     createTestItem: jest.fn((id: string) => fakeTestItem(id)),
@@ -86,10 +102,7 @@ const makeContext = (
     orgOnlyTag: undefined,
     inWorkspaceTag: undefined,
     sessionStartTime: Date.now(),
-    ensureInitialized: overrides.onEnsureInitialized ?? (() => Promise.resolve()),
     clearTree: jest.fn(),
-    getConnection: () => ({}) as never,
-    getTestService: () => ({ retrieveAllSuites: () => Promise.resolve([]) }),
     persistDiscoveredClasses: () => Promise.resolve(),
     updateTestResults: () => Promise.resolve(),
     staleTag: undefined,
@@ -104,6 +117,8 @@ describe('ApexTestTreeService', () => {
     jest.clearAllMocks();
     mockDiscoverTests.mockReturnValue(undefined);
     restorePreviousResultsValue = false;
+    getConnectionImpl = () => Effect.succeed({});
+    activeTestService = { retrieveAllSuites: () => Promise.resolve([]) };
   });
 
   describe('reset', () => {
@@ -126,17 +141,13 @@ describe('ApexTestTreeService', () => {
 
   describe('discover dedup', () => {
     it('runs the body once when two callers overlap; the second awaits the same in-flight run', async () => {
-      // clearTree runs exactly once per discovery body (unlike ensureInitialized, which both discoverBody
-      // and populateSuiteItems call), so it is the precise body-run counter.
+      // clearTree runs exactly once per discovery body, so it is the precise body-run counter.
       const clearTree = jest.fn();
       const gate = await Effect.runPromise(Deferred.make<void>());
-      const ctx = makeContext({
-        clearTree,
-        onEnsureInitialized: async () => {
-          // Hold the first body open until released, so the second discover arrives mid-flight.
-          await Effect.runPromise(Deferred.await(gate));
-        }
-      });
+      // Hold the first body open (at the up-front getConnection) until released, so the second discover
+      // arrives mid-flight and awaits the same in-flight Deferred.
+      getConnectionImpl = () => Deferred.await(gate).pipe(Effect.as({}));
+      const ctx = makeContext({ clearTree });
 
       await run(
         Effect.gen(function* () {
@@ -169,10 +180,9 @@ describe('ApexTestTreeService', () => {
 
   describe('discover failure notification', () => {
     it('shows an error message when discovery fails with a generic message', async () => {
-      const ctx = makeContext({
-        onEnsureInitialized: () => Promise.reject(new Error('boom: connection failed')),
-        clearTree: jest.fn()
-      });
+      // The up-front getConnection failure is mapped to DiscoveryError and surfaced.
+      getConnectionImpl = () => Effect.fail(new Error('boom: connection failed'));
+      const ctx = makeContext({ clearTree: jest.fn() });
       await run(ApexTestTreeService.discover(ctx));
       expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('boom: connection failed');
       expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
@@ -180,9 +190,8 @@ describe('ApexTestTreeService', () => {
 
     it('shows a warning (not error) when discovery fails with the partial-discovery message', async () => {
       // toUserFriendlyApexTestError maps a 431 message to apex_test_discovery_partial_warning.
-      const ctx = makeContext({
-        onEnsureInitialized: () => Promise.reject(new Error('431 Request Header Fields Too Large'))
-      });
+      getConnectionImpl = () => Effect.fail(new Error('431 Request Header Fields Too Large'));
+      const ctx = makeContext();
       await run(ApexTestTreeService.discover(ctx));
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
         nls.localize('apex_test_discovery_partial_warning')

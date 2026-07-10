@@ -6,7 +6,7 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import type { Connection } from '@salesforce/core';
+import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
@@ -83,12 +83,9 @@ export type DiscoveryContext = {
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
   sessionStartTime: number;
-  ensureInitialized: () => Promise<void>;
   /** Full tree clear (controller.items + tree maps + shell-resident suiteToClasses), replicating the
    * legacy clearTestItems the discovery body ran at its start. */
   clearTree: () => void;
-  getConnection: () => Connection;
-  getTestService: () => { retrieveAllSuites: () => Promise<{ id: string; TestSuiteName: string }[]> };
   persistDiscoveredClasses: (classes: ToolingTestClass[]) => Promise<void>;
   updateTestResults: (uri: URI) => Promise<void>;
   staleTag: vscode.TestTag | undefined;
@@ -305,12 +302,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * early), so a suites outage never fails the whole discovery run.
      */
     const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(function* (ctx: DiscoveryContext) {
-      yield* Effect.tryPromise({
-        try: () => ctx.ensureInitialized(),
-        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-      });
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* api.services.ConnectionService.getConnection().pipe(
+        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+      );
 
-      const suites = yield* Effect.tryPromise(() => ctx.getTestService().retrieveAllSuites()).pipe(
+      const suites = yield* Effect.tryPromise(() => new TestService(connection).retrieveAllSuites()).pipe(
         Effect.catchAll(e =>
           Effect.logError('Error retrieving suites', { error: getMessageFromError(e) }).pipe(Effect.as([]))
         )
@@ -364,12 +361,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
       });
 
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const [connection, orgInfo] = yield* Effect.all(
         [
-          Effect.try({
-            try: () => ctx.getConnection(),
-            catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-          }),
+          api.services.ConnectionService.getConnection().pipe(
+            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+          ),
           Effect.tryPromise({
             try: () => getDefaultOrgInfo(),
             catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
@@ -602,10 +599,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * (no UnknownException bucket). doDiscover catches the union and notifies.
      */
     const discoverBody = Effect.fn('ApexTestTreeService.discoverBody')(function* (ctx: DiscoveryContext) {
-      yield* Effect.tryPromise({
-        try: () => ctx.ensureInitialized(),
-        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-      });
+      // Acquire the connection up front (fail-fast, replacing the legacy ensureInitialized); the cached
+      // ConnectionService reuses it for the populate* steps below.
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      yield* api.services.ConnectionService.getConnection().pipe(
+        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+      );
 
       // Replicates the legacy clearTestItems the discovery body ran before populating.
       yield* Effect.sync(() => ctx.clearTree());

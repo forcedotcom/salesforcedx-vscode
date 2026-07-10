@@ -129,7 +129,14 @@ export class ApexTestController {
   private async resetState(): Promise<void> {
     this.invalidateConnection();
     this.clearTestItems();
-    await getApexTestingRuntime().runPromise(ApexTestTreeService.clearRestoredResults());
+    await getApexTestingRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        // Drop the shared cached connection so the next getConnection() reloads AuthInfo from disk.
+        yield* api.services.ConnectionService.invalidateCachedConnections();
+        yield* ApexTestTreeService.clearRestoredResults();
+      })
+    );
   }
 
   /** Build the per-invocation runtime data the tree service needs (vscode objects + shell callbacks). */
@@ -140,10 +147,7 @@ export class ApexTestController {
       orgOnlyTag: this.orgOnlyTag,
       inWorkspaceTag: this.inWorkspaceTag,
       sessionStartTime: this.sessionStartTime,
-      ensureInitialized: () => this.ensureInitialized(),
       clearTree: () => this.clearTestItems(),
-      getConnection: () => this.getConnection(),
-      getTestService: () => this.getTestService(),
       persistDiscoveredClasses: classes => this.persistDiscoveredClasses(classes),
       updateTestResults: uri =>
         getApexTestingRuntime().runPromise(
@@ -248,6 +252,8 @@ export class ApexTestController {
       return bodyByFullName;
     }
 
+    // Discovery no longer pre-inits the shell connection (that moved to ConnectionService), so ensure it here.
+    await this.ensureInitialized();
     const connection = this.getConnection();
     const chunkSize = 200;
     for (let start = 0; start < classIds.length; start += chunkSize) {
@@ -784,8 +790,6 @@ export class ApexTestController {
       controller: this.controller,
       orgOnlyTag: this.orgOnlyTag,
       inWorkspaceTag: this.inWorkspaceTag,
-      ensureInitialized: () => this.ensureInitialized(),
-      getTestService: () => this.getTestService(),
       resolveSuiteChildren: suiteItem => this.resolveSuiteChildren(suiteItem),
       getSuiteToClasses: () => this.suiteToClasses
     };

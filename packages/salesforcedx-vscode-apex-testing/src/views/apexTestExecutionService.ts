@@ -40,13 +40,13 @@ const TEST_RESULT_JSON_FILE = 'test-result.json';
 /** How the run profile constrains an implicit "run all" (no explicit test selection). */
 export type ApexTestRunScope = 'workspace-first' | 'all-org' | 'stale-workspace' | 'stale-org';
 
-/** Per-invocation runtime data (params, not service deps). Tree maps come from ApexTestTreeService accessors. */
+/** Per-invocation runtime data (params, not service deps). Tree maps come from ApexTestTreeService accessors.
+ * Connection/TestService are no longer threaded in: methods acquire the connection on demand via
+ * ConnectionService.getConnection() (cached) + `new TestService(conn)`. */
 export type ExecutionContext = {
   controller: vscode.TestController;
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
-  ensureInitialized: () => Promise<void>;
-  getTestService: () => TestService;
   resolveSuiteChildren: (suiteItem: vscode.TestItem) => Promise<void>;
   getSuiteToClasses: () => Map<string, Set<string>>;
 };
@@ -197,12 +197,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       testsToRun,
       runAllTestsInOrg
     }: ExecuteTestsParams) {
-      yield* Effect.tryPromise({
-        try: () => ctx.ensureInitialized(),
-        catch: e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) })
-      });
-
-      const testService = ctx.getTestService();
+      const connApi = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* connApi.services.ConnectionService.getConnection().pipe(
+        Effect.mapError(e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) }))
+      );
+      const testService = new TestService(connection);
       const { payload, hasSuite, hasClass } = runAllTestsInOrg
         ? {
             payload: { testLevel: TestLevel.RunAllTestsInOrg, skipCodeCoverage: !codeCoverage },
