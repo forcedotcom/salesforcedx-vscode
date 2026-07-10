@@ -8,6 +8,7 @@
 import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
@@ -27,7 +28,7 @@ const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(functio
     .map(
       (cls): ApexTestQuickPickItem => ({
         label: cls.name,
-        description: cls.namespacePrefix ?? '',
+        description: Option.getOrUndefined(cls.namespacePrefix),
         type: 'Class',
         fullClassName: getFullClassName(cls)
       })

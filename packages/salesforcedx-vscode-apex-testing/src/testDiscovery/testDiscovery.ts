@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import type * as Either from 'effect/Either';
+import * as Schema from 'effect/Schema';
+import { type DiscoverTestsOptions, type TestDiscoveryResult, type ToolingTestsPage, ToolingTestClass } from './schemas';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -71,7 +73,20 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
       if (pageResult._tag === 'Right') {
         const page: ToolingTestsPage = pageResult.right;
         if (page?.apexTestClasses?.length) {
-          classes.push(...page.apexTestClasses);
+          // Decode the wire `""` sentinel to Option.none() at the parse boundary. Decode per-record so a
+          // single malformed record degrades to a partial result (mirroring the 431 path) instead of
+          // aborting the entire discovery.
+          const decodeRecord = Schema.decodeUnknown(ToolingTestClass);
+          const results = yield* Effect.forEach(page.apexTestClasses, record =>
+            Effect.either(decodeRecord(record))
+          );
+          classes.push(...Array.getRights(results));
+          const failures = Array.getLefts(results);
+          if (failures.length > 0) {
+            yield* Effect.logWarning(
+              `Skipped ${failures.length} malformed test discovery record(s): ${failures.map(e => e.message).join('; ')}`
+            );
+          }
         }
         nextUrl = page?.nextRecordsUrl ?? undefined;
       }
