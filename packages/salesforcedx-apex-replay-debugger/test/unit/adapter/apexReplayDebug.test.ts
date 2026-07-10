@@ -215,9 +215,11 @@ describe('Replay debugger adapter - unit', () => {
 
       expect(hasLogLinesStub).toHaveBeenCalledTimes(1);
       expect(meetsLogLevelRequirementsStub).toHaveBeenCalledTimes(1);
-      expect(printToDebugConsoleStub).toHaveBeenCalledTimes(1);
+      expect(printToDebugConsoleStub).toHaveBeenCalledTimes(2);
       const consoleMessage = printToDebugConsoleStub.mock.calls[0][0];
       expect(consoleMessage).toBe(nls.localize('session_started_text', logFileName));
+      const versionMismatchMessage = printToDebugConsoleStub.mock.calls[1][0];
+      expect(versionMismatchMessage).toBe(nls.localize('source_version_mismatch_text'));
       expect(sendResponseSpy).toHaveBeenCalledTimes(1);
       const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.mock.calls[0][0];
       expect(actualResponse.success).toBe(true);
