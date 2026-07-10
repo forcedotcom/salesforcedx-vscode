@@ -252,8 +252,9 @@ describe('index tests', () => {
       expect(stopSpy).not.toHaveBeenCalled();
     });
 
-    it('should not throw on deactivation (emits deactivation span)', async () => {
-      await expect(index.deactivate()).resolves.not.toThrow();
+    it('should still resolve when stop rejects (scope teardown/span flush not skipped)', async () => {
+      stopSpy.mockRejectedValue(new Error('Stopping the server timed out'));
+      await expect(index.deactivate()).resolves.toBeUndefined();
       expect(stopSpy).toHaveBeenCalled();
     });
   });

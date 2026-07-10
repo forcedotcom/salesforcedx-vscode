@@ -15,16 +15,19 @@ import { languageClientManager } from './languageClientManager';
 export const getLineBreakpointInfo = async () => languageClientManager.getLineBreakpointInfo();
 
 /** Fetch tests from the Language Server, emitting a top-level span with timing/count attrs. */
+const discoverFromLs = Effect.fn('apex.test.discovery', { root: true })(function* () {
+  const start = Date.now();
+  const tests = yield* Effect.tryPromise({
+    try: () => languageClientManager.getApexTests(),
+    catch: (e: unknown) => e
+  });
+  const durationMs = Date.now() - start;
+  yield* Effect.annotateCurrentSpan({ source: 'ls', ...buildMeasuresFromTests(tests, durationMs) });
+  return { tests, durationMs };
+});
+
 export const fetchFromLs = async (): Promise<{ tests: ApexTestMethod[]; durationMs: number }> =>
-  getRuntime().runPromise(
-    Effect.gen(function* () {
-      const start = Date.now();
-      const tests = yield* Effect.promise(() => languageClientManager.getApexTests());
-      const durationMs = Date.now() - start;
-      yield* Effect.annotateCurrentSpan({ source: 'ls', ...buildMeasuresFromTests(tests, durationMs) });
-      return { tests, durationMs };
-    }).pipe(Effect.withSpan('apex.test.discovery', { root: true }))
-  );
+  getRuntime().runPromise(discoverFromLs());
 
 /**
  * Returns Apex tests from the Language Server.

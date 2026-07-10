@@ -97,9 +97,16 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
 
 // root: true → exports as a top-level span (not an orphaned child of any ambient span)
 const deactivation = Effect.fn('apex.deactivation', { root: true })(function* () {
-  yield* Effect.promise(() => languageClientManager.getClientInstance()?.stop(30_000) ?? Promise.resolve());
-  languageClientManager.disposeOutputChannel();
-  yield* closeExtensionScope();
+  // `ensuring` guarantees teardown (dispose + closeExtensionScope) runs even if stop() rejects —
+  // otherwise the per-client child scope stays open and the long-lived apex.lsp.client span never
+  // ends/flushes. tryPromise (not promise) surfaces a stop() rejection as a typed failure; `ignore`
+  // then swallows it so deactivate() still resolves (teardown already happened).
+  yield* Effect.tryPromise(() => languageClientManager.getClientInstance()?.stop(30_000) ?? Promise.resolve()).pipe(
+    Effect.ensuring(
+      Effect.sync(() => languageClientManager.disposeOutputChannel()).pipe(Effect.zipRight(closeExtensionScope()))
+    ),
+    Effect.ignore
+  );
 });
 
 export const deactivate = async () => {

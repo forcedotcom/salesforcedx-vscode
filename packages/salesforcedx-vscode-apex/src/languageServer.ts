@@ -29,6 +29,7 @@ import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import * as requirements from './requirements';
+import { fireSpan } from './services/fireSpan';
 import { getRuntime } from './services/runtime';
 import {
   retrieveEnableApexLSErrorToTelemetry,
@@ -103,11 +104,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     if (jvmMaxHeap && typeof jvmMaxHeap === 'number') {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
-    getRuntime().runFork(
-      Effect.void.pipe(
-        Effect.withSpan('apex.lsp.settings', { attributes: { maxHeapSize: jvmMaxHeap ?? 0 }, root: true })
-      )
-    );
+    fireSpan('apex.lsp.settings', { maxHeapSize: jvmMaxHeap ?? 0 });
 
     if (DEBUG) {
       args.push(
@@ -134,9 +131,11 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     };
   } catch (err) {
     void vscode.window.showErrorMessage(err);
+    // Fail (not just logError) so the span ends with ERROR status: both AppInsights exporters
+    // classify by span.status.code === ERROR (severity 17/exception), else INFO (severity 9).
     getRuntime().runFork(
-      Effect.logError(LSP_ERR, err).pipe(
-        Effect.zipRight(Effect.annotateCurrentSpan('error', String(err?.error ?? err))),
+      Effect.annotateCurrentSpan('error', String(err?.error ?? err)).pipe(
+        Effect.zipRight(Effect.fail(err)),
         Effect.withSpan(LSP_ERR, { root: true })
       )
     );
