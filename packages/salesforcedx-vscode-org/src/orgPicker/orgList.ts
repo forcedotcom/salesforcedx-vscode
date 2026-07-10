@@ -146,11 +146,11 @@ const ACTION_ITEMS: OrgQuickPickItem[] = [
 ];
 
 // exported for test
-export const isOrgExpired = async (targetOrgOrAlias: string): Promise<boolean> => {
-  const authFields = await getAuthFieldsFor(targetOrgOrAlias);
+export const isOrgExpired = Effect.fn('OrgList.isOrgExpired')(function* (targetOrgOrAlias: string) {
+  const authFields = yield* getAuthFieldsFor(targetOrgOrAlias);
   const expirationDate = authFields.expirationDate ? new Date(authFields.expirationDate) : undefined;
   return expirationDate ? expirationDate < new Date() : false;
-};
+});
 
 export const authorizationsToQuickPickItems = (
   authorizations: OrgAuthorization[],
@@ -273,7 +273,7 @@ const getStatusBarContent = Effect.fn('updateTargetOrgDisplay', {
     };
   }
   const isExpired = isScratch
-    ? yield* Effect.tryPromise({ try: () => isOrgExpired(username), catch: e => e }).pipe(
+    ? yield* isOrgExpired(username).pipe(
         Effect.tapError(e => Effect.logWarning('isOrgExpired failed, treating as not expired', e)),
         Effect.orElseSucceed(() => false)
       )

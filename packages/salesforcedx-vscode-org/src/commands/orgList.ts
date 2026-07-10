@@ -14,7 +14,7 @@ import {
   displayRemainingOrgs,
   findRemovableOrgs,
   removeExpiredAndDeletedOrgs,
-  updateConfigAndStateAggregators
+  updateConfigAndStateAggregatorsEffect
 } from '../util/orgUtil';
 
 /** @ExportTaggedError */
@@ -31,13 +31,12 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
 
-  const removable = yield* Effect.tryPromise({
-    try: () => findRemovableOrgs(),
-    catch: error =>
-      new OrgListCleanError({
-        message: nls.localize('org_list_clean_general_error', error instanceof Error ? error.message : String(error))
-      })
-  });
+  const removable = yield* findRemovableOrgs().pipe(
+    Effect.catchTag(
+      'FailedToListAuthorizationsError',
+      error => new OrgListCleanError({ message: nls.localize('org_list_clean_general_error', error.message) })
+    )
+  );
 
   // Nothing to remove: tell the user instead of asking them to confirm a no-op.
   if (removable.length === 0) {
@@ -54,13 +53,12 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
     confirmLabel: nls.localize('org_list_clean_confirm_label')
   });
 
-  const removedOrgs = yield* Effect.tryPromise({
-    try: () => removeExpiredAndDeletedOrgs(removable),
-    catch: error =>
-      new OrgListCleanError({
-        message: nls.localize('org_list_clean_general_error', error instanceof Error ? error.message : String(error))
-      })
-  });
+  const removedOrgs = yield* removeExpiredAndDeletedOrgs(removable).pipe(
+    Effect.catchTag(
+      'AuthRemoverCreateError',
+      error => new OrgListCleanError({ message: nls.localize('org_list_clean_general_error', error.message) })
+    )
+  );
 
   const successMessage = nls.localize('org_list_clean_success_message', removedOrgs.length, removedOrgs.join(', '));
   yield* channel.appendToChannel(successMessage);
@@ -68,7 +66,12 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
 
   // Flush ConfigAggregator + StateAggregator so the org picker doesn't show just-removed orgs,
   // and so the table below reflects post-flush state.
-  yield* Effect.promise(() => updateConfigAndStateAggregators());
+  yield* updateConfigAndStateAggregatorsEffect().pipe(
+    Effect.catchTag(
+      'AggregatorReloadError',
+      error => new OrgListCleanError({ message: nls.localize('org_list_clean_general_error', error.message) })
+    )
+  );
 
-  yield* Effect.promise(() => displayRemainingOrgs());
+  yield* displayRemainingOrgs();
 });
