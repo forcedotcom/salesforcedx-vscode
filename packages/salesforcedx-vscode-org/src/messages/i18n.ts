@@ -23,12 +23,15 @@ export const messages = {
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   missing_default_org: 'No Default Org Set',
+  org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
   org_create_successfully_ran: 'SFDX: Create a Default Scratch Org... successfully ran',
   org_create_progress: 'Creating default scratch org',
   org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
   org_create_success: 'Successfully created scratch org %s (user %s, org id %s) and set it as the default org.',
+  org_delete_default_text: 'SFDX: Delete Default Org',
   org_delete_default_not_deletable:
     'The default org is not a scratch org or sandbox and cannot be deleted with this command.',
+  org_delete_username_text: 'SFDX: Delete Org...',
   org_delete_default_progress: 'Deleting default org',
   org_display_access_warning:
     'This command will expose sensitive information that allows for subsequent activity using your current authenticated session.',
@@ -37,6 +40,7 @@ export const messages = {
 For additional information, please review the authorization section of https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.`,
   org_display_continue_label: 'Continue',
   org_expired: 'Expired',
+  org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   org_list_clean_failed_to_remove_org: 'Failed to remove org %s: %s',
   org_list_clean_error_checking_org: 'Error checking org %s: %s',
   org_list_clean_general_error: 'General error during org cleanup: %s',
@@ -48,6 +52,9 @@ For additional information, please review the authorization section of https://d
   org_list_clean_confirm_label: 'Remove',
   org_list_no_orgs_found: 'No orgs found.',
   org_list_display_error: 'Error displaying org list: %s',
+  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
+  org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
+  org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
   org_login_web_progress: 'Authorizing org',
   org_login_web_dev_hub_progress: 'Authorizing dev hub',
   org_login_web_success: 'Successfully authorized org.',
@@ -75,6 +82,7 @@ For additional information, please review the authorization section of https://d
   org_logout_confirm_scratch_prompt:
     'Log out of %s org(s)?\n\nBefore logging out, ensure that you or someone on your team has a username and password for any scratch orgs. Otherwise you might lose all access.',
   org_open_container_mode_message_text: 'Access org %s as user %s with the following URL: %s',
+  org_select_text: 'Select an org to set as default',
   parameter_gatherer_enter_alias_name: 'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url: 'Enter a custom login URL or use the default URL',
   parameter_gatherer_enter_instance_url: 'Enter Instance URL',
