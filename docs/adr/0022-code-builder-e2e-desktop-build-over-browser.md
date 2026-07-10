@@ -8,10 +8,14 @@ shell-outs), not the browser/web-worker build. Its e2e suite runs the existing
 not `@vscode/test-web`, not Electron.
 
 Extensions under test are swapped into the running container **at runtime**: pull the
-published `workspace-manager/codebuilder:latest` image, `docker exec` to remove the
-in-scope `/base/extension-overrides/salesforce.<ext>-*` dirs and install the
-VSIX (downloaded from an upstream Build All run), then `docker restart` so the host boots holding the new versions.
-A filesystem version gate asserts each in-scope extension's installed version equals
+published `workspace-manager/codebuilder:latest` image, `docker exec` to remove both the
+in-scope `/base/extension-overrides/salesforce.<ext>-*` dirs and their runtime symlinks in
+`/home/codebuilder/.local/share/code-server/extensions/`, then unpack the VSIX (downloaded from an upstream
+Build All run) into a fresh override dir. The runtime symlinks must be cleared because
+`start.sh` re-links overrides into the runtime dir only when the override is strictly-newer
+semver than what's already linked; without clearing them, a same-or-lower VSIX would never
+re-link on restart and the host would load nothing. Then `docker restart` boots the host
+holding the new versions. A filesystem version gate asserts each in-scope extension's installed version equals
 the shipped version from that artifact (and exactly one dir per ID) before any spec runs.
 
 ## Considered Options

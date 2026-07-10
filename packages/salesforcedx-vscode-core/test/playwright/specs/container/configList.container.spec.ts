@@ -6,6 +6,7 @@
  */
 
 import {
+  clearAllNotifications,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
@@ -39,6 +40,8 @@ test('Config List (Code Builder): lists config variables in output channel', asy
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    // First container boot stacks telemetry/what's-new toasts that can cover the output toolbar.
+    await clearAllNotifications(page);
     await saveScreenshot(page, 'configList.container.01-ready.png');
   });
 
@@ -49,8 +52,11 @@ test('Config List (Code Builder): lists config variables in output channel', asy
 
   await test.step('verify output channel shows config table', async () => {
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, CORE_CHANNEL, 10_000);
-    await waitForOutputChannelText(page, { expectedText: messages.config_list_column_location, timeout: 10_000 });
+    await selectOutputChannel(page, CORE_CHANNEL, 30_000);
+    // First CLI shell-out in a cold container pays sf startup + telemetry init, so the channel can
+    // stay empty for several seconds after the command fires. Match the CLI-command budget other
+    // shell-out specs use (30s) rather than the 10s that fits an already-warm CLI.
+    await waitForOutputChannelText(page, { expectedText: messages.config_list_column_location, timeout: 30_000 });
     await saveScreenshot(page, 'configList.container.02-output-verified.png');
   });
 
