@@ -18,6 +18,12 @@ set -euo pipefail
 CONTAINER="${1:?container name/id required}"
 VSIX_DIR="${2:?vsix dir required}"
 OVERRIDES_DIR="/base/extension-overrides"
+# Runtime extensions dir code-server actually loads from. start.sh symlinks each override here, but
+# only when the override is a strictly-newer semver than what's already linked (see
+# _extensions-to-replace.js). On a restart the published-version symlink is already present, so a
+# same-or-lower VSIX-under-test would never re-link and the host would load nothing. Clearing the
+# in-scope entries here makes start.sh treat each swapped override as new and link it fresh.
+RUNTIME_EXT_DIR="/home/codebuilder/.local/share/code-server/extensions"
 
 # In-scope: the monorepo-built extensions Code Builder installs. Publisher is always `salesforce`.
 # Keep in sync with the VSIX produced by `vscode:package` across the monorepo.
@@ -36,10 +42,11 @@ IN_SCOPE_IDS=(
   salesforce.salesforcedx-vscode-visualforce
 )
 
-echo "==> Removing baked overrides for in-scope extensions"
+echo "==> Removing baked overrides + runtime symlinks for in-scope extensions"
 for id in "${IN_SCOPE_IDS[@]}"; do
-  # Override dirs are named "<publisher>.<name>-<version>"; glob strips the version.
-  docker exec "$CONTAINER" bash -lc "rm -rf ${OVERRIDES_DIR}/${id}-*" || true
+  # Override dirs are named "<publisher>.<name>-<version>"; glob strips the version. Clear both the
+  # override source and the runtime symlink so start.sh re-links the swapped version on restart.
+  docker exec "$CONTAINER" bash -lc "rm -rf ${OVERRIDES_DIR}/${id}-* ${RUNTIME_EXT_DIR}/${id}-*" || true
 done
 
 echo "==> Unpacking VSIX under test into ${OVERRIDES_DIR}"

@@ -175,13 +175,15 @@ jobs:
         run: |
           docker exec "$CONTAINER_NAME" bash -lc '
             set -e
-            for d in "$HOME/.local/share/code-server/Machine" "$HOME/.local/share/code-server/User"; do
-              mkdir -p "$d"
-              f="$d/settings.json"
-              [ -s "$f" ] || echo "{}" > "$f"
-              tmp="$(mktemp)"
-              jq ".\"security.workspace.trust.enabled\" = false" "$f" > "$tmp" && mv "$tmp" "$f"
-            done
+            # docker exec runs as root; write the codebuilder user'"'"'s settings.json (the path
+            # start.sh merges into), not $HOME (/root). This is the belt-and-suspenders trust lever;
+            # the baked settings already set it, but a restart could re-open the workspace untrusted.
+            f=/home/codebuilder/.local/share/code-server/User/settings.json
+            mkdir -p "$(dirname "$f")"
+            [ -s "$f" ] || echo "{}" > "$f"
+            tmp="$(mktemp)"
+            jq ".\"security.workspace.trust.enabled\" = false" "$f" > "$tmp" && mv "$tmp" "$f"
+            chown codebuilder:codebuilder "$f"
           '
 
       - name: Swap in built extensions
