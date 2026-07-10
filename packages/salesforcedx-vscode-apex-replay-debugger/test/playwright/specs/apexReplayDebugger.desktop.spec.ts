@@ -23,6 +23,7 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
+  waitForDebugConsoleText,
   waitForOutputChannelText,
   WORKBENCH,
   waitForQuickInputFirstOption
@@ -157,6 +158,12 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     const logTab = page.locator('.tab').filter({ hasText: /debug\.log/ });
     await logTab.click({ force: true });
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
+    // New on every launch: source/log version-mismatch note printed to the Debug Console (REPL).
+    // Debug Console output persists after the session ends, so this holds after continueDebugSession too.
+    await waitForDebugConsoleText(page, {
+      expectedText: 'ensure your workspace Apex source matches the version used when the log was generated',
+      timeout: 30_000
+    });
     await continueDebugSession(page);
   });
 

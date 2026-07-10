@@ -132,6 +132,8 @@ export {
   captureOutputChannelDetails
 } from './pages/outputChannel';
 
+export { ensureDebugConsoleOpen, waitForDebugConsoleText } from './pages/debugConsole';
+
 export {
   ensureProblemsViewOpen,
   getProblemsCount,
