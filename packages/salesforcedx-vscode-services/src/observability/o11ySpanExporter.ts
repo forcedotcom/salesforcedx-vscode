@@ -30,13 +30,9 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-// Run through the shared services runtime (not Effect.provide(ConnectionService.Default), which would
-// build a private ConnectionService per call — separate connection/reauth caches, defeating dedup).
-// Fails fast with ServicesRuntimeNotReady if the runtime isn't published yet. Do NOT retry-until-ready:
-// on web the SDK layer is built inside the awaited fileSystemSetup (index.ts), before setServicesRuntime
-// runs, so a getConnection that blocks waiting on the runtime deadlocks activation. Early spans aren't
-// lost — shutdown() below skips the buffer-draining flush until the runtime exists, so they stay buffered
-// on the shared O11yService singleton and upload on the next autobatch tick once getConnection works.
+// Run via shared runtime, not Effect.provide(ConnectionService.Default) (rebuilds per call).
+// Fails fast if runtime unpublished. MUST NOT retry: SDK layer built before setServicesRuntime runs,
+// blocking would deadlock activation. Early spans stay buffered; post-activation autobatch uploads them.
 const getConnection = () =>
   Effect.runPromise(
     getServicesRuntime().pipe(
@@ -151,13 +147,9 @@ export class O11ySpanExporter implements SpanExporter {
   }
 
   public shutdown(): Promise<void> {
-    // forceFlush drains the shared o11y buffer AT READ TIME (getRawContentsOfCoreEnvelope →
-    // getAllMessages(true) empties it), then uploads. If the services runtime isn't published yet, the
-    // upload's getConnection fails and the drained spans are lost with no re-buffer. This shutdown fires
-    // on web when the SDK layer built inside the awaited fileSystemSetup (index.ts) closes its scope —
-    // strictly BEFORE setServicesRuntime runs. Skip the flush in that window: the spans stay buffered on
-    // the shared O11yService singleton and the post-activation autobatch timer uploads them once the
-    // runtime exists. Only force-flush when the runtime is ready (real deactivation / later scope closes).
+    // forceFlush drains buffer at read time; if runtime unpublished, drained spans lost.
+    // On web, this fires before setServicesRuntime runs. Skip flush until runtime ready;
+    // post-activation autobatch uploads buffered spans then.
     return isServicesRuntimeReady() ? this.o11yService.forceFlush() : Promise.resolve();
   }
 }

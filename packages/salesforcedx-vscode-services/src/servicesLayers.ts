@@ -37,9 +37,8 @@ import { SettingsService } from './vscode/settingsService';
 import { WorkspaceService } from './vscode/workspaceService';
 
 /**
- * The service Defaults that are global in the sense that they should be the same for all extensions.
- * Lives in its own leaf module (imports only service classes, nothing from index.ts) so that the
- * services runtime type can be DERIVED from `typeof globalLayers` without a circular dependency.
+ * Global service Defaults (same for all extensions). Leaf module to avoid circular dependency
+ * when deriving runtime type from `typeof globalLayers`.
  */
 export const globalLayers = Layer.mergeAll(
   AliasService.Default,

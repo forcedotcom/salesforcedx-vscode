@@ -220,11 +220,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const aliasService = yield* AliasService;
     const channelService = yield* ChannelService;
 
-    // On identity() failure: log to the services-owned 'Salesforce Services' channel (default ChannelService),
-    // show the modal, and (if accepted) dispatch sf.org.login.web. We must NOT create a
-    // ChannelServiceLayer('Salesforce Org Management') here: services is a *dependency* of the org extension,
-    // so that would createOutputChannel('Salesforce Org Management') from a second bundle → a DUPLICATE channel
-    // with the same display name the org ext already owns.
+    // MUST NOT create ChannelServiceLayer('Salesforce Org Management'): services is a dependency of org ext,
+    // would create DUPLICATE channel. Log to default ChannelService instead.
     const promptReauth = Effect.fn('ConnectionService.promptReauth')(function* (
       conn: Connection,
       username: string,
@@ -232,8 +229,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     ) {
       yield* channelService.appendToChannel(`Error refreshing access token: ${String(error)}`);
       yield* channelService.showChannel;
-      // Pass the configured target-org-or-alias (matching the old WorkspaceContextUtil behavior) so the
-      // reauthed org keeps its existing alias, rather than an arbitrary first-registered alias.
+      // Preserve existing alias on reauth (not arbitrary first-registered alias).
       const targetOrgOrAlias = yield* configService.getTargetOrg();
       const alias = targetOrgOrAlias && targetOrgOrAlias !== username ? targetOrgOrAlias : undefined;
       const loginButton = nls.localize('error_access_token_expired_login_button');
@@ -248,10 +244,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         yield* Effect.promise(() =>
           vscode.commands.executeCommand('sf.org.login.web', conn.instanceUrl, alias ?? username)
         );
-        // executeCommand resolves only after `sf org login web` finishes (see orgLoginWebExec), so the
-        // fresh auth file is on disk here. Drop the stale cached Connection ourselves rather than relying
-        // on the org command's config-refresh side effect — next getConnection rebuilds AuthInfo from disk
-        // = fresh reauthCache key, so the retry validates the new token instead of the known-bad object.
+        // executeCommand blocks until login finishes; fresh auth file on disk. Invalidate cache so next
+        // getConnection rebuilds AuthInfo (fresh reauthCache key validates new token).
         yield* invalidateCachedConnections();
       }
       return yield* new AccessTokenExpiredError({
@@ -266,12 +260,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(e => promptReauth(conn, username, e)));
     });
 
-    // Coordinates access-token reauth, keyed by the live Connection (reference identity): N concurrent
-    // callers sharing one cached Connection collapse to a SINGLE in-flight lookup (Cache dedup) → one modal.
-    // Success TTL is short (1min) so a token that expires mid-session — e.g. a 15-min high-security org
-    // whose lifetime is under a long success cache — is re-probed promptly rather than assumed valid.
-    // Failure entries live longer (one modal per Connection); reauth invalidates the connection cache,
-    // yielding a fresh Connection = fresh key, so the retry validates the new object before this expires.
+    // Dedup N concurrent identity() calls via Connection reference. Success TTL 1min (re-probe mid-session tokens).
+    // Failure TTL 30min; reauth invalidates connection cache (fresh key, fresh auth), so retry validates before expiry.
     const reauthCache = yield* Cache.makeWith({
       capacity: 100,
       timeToLive: Exit.match({
@@ -315,9 +305,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
               .getUsernameFromAlias(usernameOrAlias)
               .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
             const desktopConn = yield* connectionCache.get(username);
-            // Session-ID (access-token) orgs can't silently refresh; validate before handing the
-            // connection out so EVERY consumer — not just the legacy WorkspaceContextUtil facade —
-            // gets the reauth modal on an expired token. No-op for refreshable (web/JWT) flows.
+            // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
+            // see reauth modal on expired token. No-op for refreshable flows.
             yield* validateAccessTokenOrPromptReauth(desktopConn);
             return desktopConn;
           });

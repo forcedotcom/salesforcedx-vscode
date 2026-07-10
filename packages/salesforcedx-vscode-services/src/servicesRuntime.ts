@@ -11,19 +11,15 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { globalLayers } from './servicesLayers';
 
-// Runtime type DERIVED from the layer that builds the services — never hand-listed, so it can't drift
-// from what activation actually provides. Error channel is Layer.Error (what building the graph can fail with).
+// DERIVED from layer; cannot drift. Error = Layer.Error (graph build failures).
 type ServicesRuntime = ManagedRuntime.ManagedRuntime<
   Layer.Layer.Success<typeof globalLayers>,
   Layer.Layer.Error<typeof globalLayers>
 >;
 
 /**
- * A ManagedRuntime over the single service context built during activation, for callers that live at an
- * imperative VS Code boundary (e.g. the O11y SpanExporter class) and can't `yield*` into the built context
- * directly. Reusing this runtime gives them the ONE shared service instances — same connection and reauth
- * caches — instead of `Effect.provide(SomeService.Default)`, which rebuilds the service graph (a fresh,
- * private instance) on every call. Set from activation once the context is built.
+ * Single shared runtime for imperative boundaries (e.g., O11y SpanExporter). Reused to share connection
+ * and reauth caches; `Effect.provide(SomeService.Default)` rebuilds the graph on each call.
  */
 // eslint-disable-next-line functional/no-let
 let servicesRuntime: ServicesRuntime | undefined;
@@ -35,18 +31,14 @@ export const setServicesRuntime = (runtime: ServicesRuntime): void => {
 };
 
 /**
- * Synchronous predicate for imperative boundaries that must decide NOW without an Effect (e.g.
- * O11ySpanExporter.shutdown). False means the shared runtime isn't published yet — callers should skip
- * work that depends on it (an upload flush that would drain the shared span buffer into a doomed request)
- * and let the post-activation autobatch timer handle it once this becomes true.
+ * Predicate for imperative boundaries. False → skip runtime-dependent work; post-activation autobatch
+ * handles it once true.
  */
 export const isServicesRuntimeReady = (): boolean => servicesRuntime !== undefined;
 
 /**
- * Yields the shared services runtime, or fails `ServicesRuntimeNotReady` if activation hasn't set it yet.
- * Callers must fail fast on that error, NOT retry-until-ready: the runtime is published only after the
- * service graph (which includes the tracing SDK layer / span exporter) finishes building, so a span
- * exporter that blocks waiting for it would deadlock web activation — see O11ySpanExporter.
+ * Yields shared runtime or fails `ServicesRuntimeNotReady`. MUST NOT retry: runtime published after graph
+ * builds (includes tracing SDK); blocking here deadlocks web activation.
  */
 export const getServicesRuntime = Effect.fn('getServicesRuntime')(function* () {
   if (!servicesRuntime) {
