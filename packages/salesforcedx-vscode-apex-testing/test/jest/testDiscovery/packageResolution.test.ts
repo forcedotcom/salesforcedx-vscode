@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import * as Option from 'effect/Option';
 import {
   resetPackageResolutionState,
   getPackageResolutionCacheKey,
@@ -222,9 +223,9 @@ describe('packageResolution', () => {
             }
           ]
         });
-      const classIdToNamespace = new Map<string, string>([
-        [classId, 'taf'],
-        ['01p000000000002AAA', '']
+      const classIdToNamespace = new Map<string, Option.Option<string>>([
+        [classId, Option.some('taf')],
+        ['01p000000000002AAA', Option.none()]
       ]);
       const result = await resolvePackage2Members(
         mockConnection as Connection,
@@ -261,7 +262,7 @@ describe('packageResolution', () => {
         .mockResolvedValueOnce({
           records: [{ Id: classId, ManageableState: 'installedEditable' }]
         });
-      const classIdToNamespace = new Map<string, string>([[classId, '']]);
+      const classIdToNamespace = new Map<string, Option.Option<string>>([[classId, Option.none()]]);
       const result = await resolvePackage2Members(mockConnection as Connection, [classId], classIdToNamespace);
       expect(result.size).toBe(1);
       const info = result.get(classId);
@@ -298,9 +299,9 @@ describe('packageResolution', () => {
             { Id: unpackagedId, ManageableState: null }
           ]
         });
-      const classIdToNamespace = new Map<string, string>([
-        [installedId, ''],
-        [unpackagedId, '']
+      const classIdToNamespace = new Map<string, Option.Option<string>>([
+        [installedId, Option.none()],
+        [unpackagedId, Option.none()]
       ]);
       const result = await resolvePackage2Members(
         mockConnection as Connection,
@@ -334,7 +335,7 @@ describe('packageResolution', () => {
         .mockResolvedValueOnce({
           records: [{ Id: classId, ManageableState: 'installedEditable' }]
         });
-      const classIdToNamespace = new Map<string, string>([[classId, '']]);
+      const classIdToNamespace = new Map<string, Option.Option<string>>([[classId, Option.none()]]);
       const first = await resolvePackage2Members(mockConnection as Connection, [classId], classIdToNamespace);
       expect(first.size).toBe(1);
       expect(first.get(classId)?.packageName).toBe('Trigger Actions Framework');
