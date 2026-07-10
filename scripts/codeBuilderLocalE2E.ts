@@ -15,9 +15,10 @@
  *
  * Prereqs:
  *   - docker running
- *   - op (1Password CLI) signed in — the script fetches the shared SVC_IDEE ghcr pull token from
- *     1Password so no per-dev PAT is needed. (Falls back to a CR_PAT env var if you'd rather supply
- *     your own classic PAT with read:packages, SSO-authorized for forcedotcom.)
+ *   - gh (GitHub CLI) logged in to github.com — the script pulls the private image as your own
+ *     GitHub user (your team has read on the image repo; the package inherits it). Your gh token
+ *     needs the read:packages scope; if it doesn't, the script tells you the one-line refresh.
+ *     (Falls back to a CR_PAT env var if you'd rather supply your own classic PAT.)
  *   - sf CLI logged in to a dev hub (for the scratch org)
  *
  * Usage: ts-node scripts/codeBuilderLocalE2E.ts [options]
@@ -58,15 +59,11 @@ const FIXTURE_HOST_DIR = join(
 const FIXTURE_MOUNT_PATH = '/home/codebuilder/fixture-project';
 
 /*
- * ghcr pull auth: a dedicated read:packages-only PAT for the SVC_IDEE bot lives in 1Password (vault
- * "Platform Dev Tools Team", Secure Note SVC_IDE_BOT_GHCR_READ_TOKEN — token in the notesPlain field).
- * op read resolves it at runtime so the token never lands in the repo. --account pins the Salesforce
- * tenant (devs often have a personal account too, which makes a bare op read ambiguous). Override
- * either via env if they differ.
+ * ghcr pull auth: each dev authenticates as their own GitHub user via the gh CLI — the team has read
+ * on the image repo and the package inherits repo permissions, so no shared bot user or PAT. The one
+ * catch is scope: a default `gh auth login` token lacks read:packages, which ghcr requires, so the
+ * login below fails loud with the refresh command if it's missing.
  */
-const GHCR_BOT_USER = 'SVC_IDEE';
-const OP_ACCOUNT = process.env.OP_ACCOUNT ?? 'salesforce.1password.com';
-const OP_GHCR_ITEM = process.env.OP_GHCR_ITEM ?? 'op://Platform Dev Tools Team/SVC_IDE_BOT_GHCR_READ_TOKEN/notesPlain';
 
 type Options = {
   runId?: string;
@@ -183,16 +180,19 @@ if (!has('docker')) {
 }
 
 /*
- * ghcr auth uses the shared SVC_IDEE bot PAT stored in 1Password, fetched via the op CLI — no
- * per-developer token. op is required unless the dev supplies their own CR_PAT override.
+ * ghcr auth uses your own GitHub identity via the gh CLI — the team has read on the image repo and
+ * the package inherits it, so no shared token. gh is required unless the dev supplies a CR_PAT.
  */
-if (!has('op') && !process.env.CR_PAT) {
-  problems.push(
-    `op (1Password CLI) — not installed. Used to fetch the shared ghcr pull token.\n` +
-      `      Install: ${brewOr('--cask 1password-cli', 'https://developer.1password.com/docs/cli/get-started/')}\n` +
-      `      then sign in (or enable Developer > CLI integration in the 1Password app).\n` +
-      `      (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)`
-  );
+if (!process.env.CR_PAT) {
+  if (!has('gh')) {
+    problems.push(
+      `gh (GitHub CLI) — not installed. Used to authenticate the image pull as your GitHub user.\n` +
+        `      Install: ${brewOr('gh', 'https://github.com/cli/cli#installation')}, then: gh auth login\n` +
+        `      (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)`
+    );
+  } else if (spawnSync('gh', ['auth', 'status', '-h', 'github.com'], { stdio: 'ignore' }).status !== 0) {
+    problems.push('gh (GitHub CLI) — not logged in to github.com. Run: gh auth login');
+  }
 }
 
 if (!sfInstalled) {
@@ -207,7 +207,7 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-/* --- ghcr login + pull: shared SVC_IDEE bot token from 1Password, no per-dev PAT --- */
+/* --- ghcr login + pull: your own GitHub identity via gh, no shared token --- */
 const dockerLogin = (user: string, token: string): boolean =>
   // stdin must be a pipe for `input`/--password-stdin to land; 'ignore' would close it and log in blank.
   spawnSync('docker', ['login', 'ghcr.io', '-u', user, '--password-stdin'], {
@@ -215,28 +215,26 @@ const dockerLogin = (user: string, token: string): boolean =>
     stdio: ['pipe', 'ignore', 'ignore']
   }).status === 0;
 
-const OP_FIX =
-  `Could not read the ghcr token from 1Password (${OP_GHCR_ITEM}, account ${OP_ACCOUNT}).\n` +
-  '    Make sure the 1Password app CLI integration is on (Settings > Developer > "Integrate with 1Password CLI"),\n' +
-  '    or run `op signin`, and that you have access to the "Platform Dev Tools Team" vault.\n' +
-  '    Override with OP_GHCR_ITEM / OP_ACCOUNT if they differ. (Or set CR_PAT to your own classic PAT.)';
-
 log('Logging in to ghcr.io');
 if (process.env.CR_PAT) {
   // Explicit PAT wins if provided (classic PAT with read:packages, SSO-authorized for forcedotcom).
-  if (!dockerLogin(GHCR_BOT_USER, process.env.CR_PAT)) {
-    console.error('docker login with CR_PAT failed — check the token has read:packages and is SSO-authorized.');
+  // GitHub accepts any non-empty username with a PAT, so 'oauth' is a safe placeholder here.
+  if (!dockerLogin('oauth', process.env.CR_PAT)) {
+    console.error('docker login with CR_PAT failed — the token is empty or malformed.');
     process.exit(1);
   }
 } else {
-  // Preflight guaranteed op is installed; fetch the shared bot token it holds.
-  const token = tryCapture('op', ['read', '--account', OP_ACCOUNT, OP_GHCR_ITEM]);
-  if (!token) {
-    console.error(`\n${OP_FIX}`);
+  // Preflight guaranteed gh is installed and logged in to github.com. Pull as the dev's own user.
+  const user = tryCapture('gh', ['api', 'user', '-q', '.login']);
+  const token = tryCapture('gh', ['auth', 'token', '-h', 'github.com']);
+  if (!user || !token) {
+    console.error('Could not read your GitHub identity from gh — run `gh auth login` and re-run.');
     process.exit(1);
   }
-  if (!dockerLogin(GHCR_BOT_USER, token)) {
-    console.error('docker login to ghcr.io failed with the SVC_IDEE bot token — the token may be expired.');
+  // Login validates the credential, not its scopes — it succeeds even without read:packages. The
+  // scope (and repo-access) check happens at pull time below, so a scope problem surfaces there.
+  if (!dockerLogin(user, token)) {
+    console.error('docker login to ghcr.io failed — your gh credential looks invalid. Try `gh auth login`.');
     process.exit(1);
   }
 }
@@ -244,7 +242,11 @@ if (process.env.CR_PAT) {
 log(`Pulling ${image}`);
 if (spawnSync('docker', ['pull', image], { stdio: 'inherit' }).status !== 0) {
   console.error(
-    '\nCould not pull the Code Builder image. The SVC_IDEE bot token may be expired or lack read:packages / SSO.'
+    '\nCould not pull the Code Builder image (a 403 here is usually a missing scope, not bad creds).\n' +
+      '    ghcr requires the read:packages scope, which a default `gh auth login` does not request. Add it:\n' +
+      '        gh auth refresh -h github.com -s read:packages\n' +
+      '    then re-run. If it still fails, your GitHub account may lack read on the image repo.\n' +
+      '    (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)'
   );
   process.exit(1);
 }
