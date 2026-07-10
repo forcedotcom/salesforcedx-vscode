@@ -233,6 +233,49 @@ if (spawnSync('docker', ['pull', image], { stdio: 'inherit' }).status !== 0) {
   process.exit(1);
 }
 
+/*
+ * The VSIX version isn't release-bumped, so it matches the marketplace build too — the semver can't
+ * tell you whether you're testing shipping or pre-release bytes. Log the real provenance instead:
+ * for --run-id, the source run's workflow/branch/commit/timestamp; for a local build, your git HEAD.
+ */
+const logRunProvenance = (runId: string): void => {
+  const raw = tryCapture('gh', [
+    'run',
+    'view',
+    runId,
+    '-R',
+    'forcedotcom/salesforcedx-vscode',
+    '--json',
+    'workflowName,displayTitle,headBranch,headSha,event,createdAt,url'
+  ]);
+  log('VSIX under test — provenance');
+  if (raw) {
+    const m = JSON.parse(raw);
+    console.log('    Built by the upstream run:');
+    console.log(`      Source run:   ${m.url}`);
+    console.log(`      Workflow:     ${m.workflowName}`);
+    console.log(`      Trigger:      ${m.event}`);
+    console.log(`      Branch:       ${m.headBranch}`);
+    console.log(`      Commit:       ${m.headSha}`);
+    console.log(`      Commit title: ${m.displayTitle}`);
+    console.log(`      Built at:     ${m.createdAt} (UTC)`);
+  } else {
+    console.log(`    Could not resolve run ${runId} metadata (run may be expired/deleted).`);
+  }
+  console.log('    NOTE: the VSIX semver is not release-bumped, so it also matches the marketplace build.');
+};
+
+const logLocalProvenance = (): void => {
+  const sha = tryCapture('git', ['rev-parse', 'HEAD']) ?? 'unknown';
+  const branch = tryCapture('git', ['rev-parse', '--abbrev-ref', 'HEAD']) ?? 'unknown';
+  const dirty = tryCapture('git', ['status', '--porcelain']);
+  log('VSIX under test — provenance');
+  console.log('    Built locally from your working tree:');
+  console.log(`      Branch:       ${branch}`);
+  console.log(`      Commit:       ${sha}${dirty ? ' (+ uncommitted changes)' : ''}`);
+  console.log('    NOTE: the VSIX semver is not release-bumped, so it also matches the marketplace build.');
+};
+
 /* --- gather the VSIX under test -------------------------------------------- */
 if (opts.runId) {
   if (!has('gh')) {
@@ -251,6 +294,7 @@ if (opts.runId) {
     '-R',
     'forcedotcom/salesforcedx-vscode'
   ]);
+  logRunProvenance(opts.runId);
 } else {
   log('Building VSIX from your working tree (npm run vscode:package)');
   run('npm', ['run', 'vscode:package'], { cwd: REPO_ROOT });
@@ -268,6 +312,7 @@ if (opts.runId) {
       cpSync(join(pkgDir, f), join(vsixDir, f));
     }
   }
+  logLocalProvenance();
 }
 const vsixCount = readdirSync(vsixDir).filter(f => f.endsWith('.vsix')).length;
 if (vsixCount === 0) {

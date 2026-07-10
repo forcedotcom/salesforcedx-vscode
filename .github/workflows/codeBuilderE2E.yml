@@ -105,9 +105,34 @@ jobs:
           run-id: ${{ env.RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: List VSIX under test
+      # The VSIX version (e.g. 67.4.0) is NOT bumped until release, so it matches the marketplace
+      # build too — the semver alone can't tell a reader whether these are shipping or pre-release
+      # bytes. Log the source run's real provenance (workflow, branch, commit, timestamp) so it's
+      # unambiguous which assets are under test, then list the files.
+      - name: Provenance of VSIX under test
         shell: bash
-        run: ls -la built-vsix
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::group::VSIX under test — provenance"
+          if meta="$(gh run view "$RUN_ID" -R forcedotcom/salesforcedx-vscode \
+            --json workflowName,displayTitle,headBranch,headSha,event,createdAt,url 2>/dev/null)"; then
+            echo "These extensions were built by:"
+            echo "  Source run:   $(jq -r .url <<<"$meta")"
+            echo "  Workflow:     $(jq -r .workflowName <<<"$meta")"
+            echo "  Trigger:      $(jq -r .event <<<"$meta")"
+            echo "  Branch:       $(jq -r .headBranch <<<"$meta")"
+            echo "  Commit:       $(jq -r .headSha <<<"$meta")"
+            echo "  Commit title: $(jq -r .displayTitle <<<"$meta")"
+            echo "  Built at:     $(jq -r .createdAt <<<"$meta") (UTC)"
+          else
+            echo "Could not resolve run $RUN_ID metadata (run may be expired/deleted)."
+          fi
+          echo "  Artifact:     $ARTIFACT_NAME (from run $RUN_ID)"
+          echo "NOTE: the semver below is not release-bumped, so it also matches the marketplace build."
+          echo "The provenance above is the source of truth for what is under test."
+          echo "::endgroup::"
+          ls -la built-vsix
 
       # Pull the private CB image with this repo's built-in GITHUB_TOKEN — the package's Manage
       # Actions access grants salesforcedx-vscode read, so no App/PAT/private key is needed.
