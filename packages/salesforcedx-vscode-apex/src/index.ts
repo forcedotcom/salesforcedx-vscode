@@ -8,13 +8,10 @@
 import {
   buildAllServicesLayer,
   closeExtensionScope,
-  ExtensionPackageJsonSchema,
   ExtensionProviderService,
-  type ExtensionPackageJson,
   getExtensionScope
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
@@ -31,12 +28,6 @@ import {
 import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
-import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
-
-/** Internal-only; activate() rejects via runPromise on failure. */
-class TelemetryUnavailableError extends Schema.TaggedError<TelemetryUnavailableError>()('TelemetryUnavailableError', {
-  message: Schema.String
-}) {}
 
 export const activate = async (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
@@ -54,17 +45,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
 ) {
   const vscodeCoreExtension = yield* Effect.promise(() => getVscodeCoreExtension());
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
-
-  // Telemetry
-  const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
-    Effect.catchAll(() => Effect.succeed<ExtensionPackageJson>({}))
-  );
-  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance(pjson.name);
-  if (!telemetryService) {
-    return yield* new TelemetryUnavailableError({ message: 'Could not fetch a telemetry service instance' });
-  }
-  yield* Effect.promise(() => telemetryService.initializeService(context));
-  setTelemetryService(telemetryService);
 
   // fails with the typed NoWorkspaceOpenError from WorkspaceService when no workspace is open
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -115,11 +95,15 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
   return vscode.Disposable.from(anonApexRunDelegateCmd, restartApexLanguageServerCmd);
 };
 
-export const deactivate = async () => {
-  await languageClientManager.getClientInstance()?.stop(30_000);
+// root: true → exports as a top-level span (not an orphaned child of any ambient span)
+const deactivation = Effect.fn('apex.deactivation', { root: true })(function* () {
+  yield* Effect.promise(() => languageClientManager.getClientInstance()?.stop(30_000) ?? Promise.resolve());
   languageClientManager.disposeOutputChannel();
-  getTelemetryService().sendExtensionDeactivationEvent();
-  await getRuntime().runPromise(closeExtensionScope());
+  yield* closeExtensionScope();
+});
+
+export const deactivate = async () => {
+  await getRuntime().runPromise(deactivation());
 };
 
 export type {
