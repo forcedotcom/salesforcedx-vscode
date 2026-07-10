@@ -9,11 +9,6 @@ name: Code Builder E2E (Playwright)
 # already threads the build runId, once it is reliably green.
 
 on:
-  # TEMP (revert before merge): push trigger + hardcoded RUN_ID fallback to exercise the workflow
-  # on GitHub without merging. push events supply no inputs.runId, so the download falls back to
-  # the hardcoded run below.
-  push:
-    branches: [jh/W-23385030-codebuilder-e2e]
   workflow_dispatch:
     inputs:
       runId:
@@ -64,10 +59,8 @@ jobs:
       SF_TEMP_SHOW_SECRETS: true
       CONTAINER_NAME: codebuilder-e2e
       CODE_BUILDER_URL: http://localhost:8123
-      # TEMP (revert before merge): fallbacks so push events (no inputs.*) resolve to a known-good
-      # Commit Workflow run with a live "VS Code Extensions" artifact.
-      RUN_ID: ${{ inputs.runId || '29048910951' }}
-      ARTIFACT_NAME: ${{ inputs.artifactName || 'VS Code Extensions' }}
+      RUN_ID: ${{ inputs.runId }}
+      ARTIFACT_NAME: ${{ inputs.artifactName }}
       # Rolling tag by default. inputs.image_tag is a trusted dispatch/call input; kept in env
       # (never inlined into a run: command) to avoid script injection.
       IMAGE: ghcr.io/forcedotcom/code-builder-images/workspace-manager/codebuilder:${{ inputs.image_tag || 'latest' }}

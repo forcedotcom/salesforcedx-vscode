@@ -56,3 +56,7 @@ the shipped version from that artifact (and exactly one dir per ID) before any s
   (a CB PR) only if runtime swap proves flaky.
 - Pulling `:latest` (rolling) means a CB image change can shift the baseline; accepted as the
   honest "what's live now" signal over a pinned tag.
+- Running the container outside an MDE generates expected console noise from CB environment
+  artifacts: the image writes an env-ready marker to `/projects` (unmounted in `docker run`),
+  and bundled Agentforce MCP servers fail to reach their backends. These are suppressed in
+  `nonCriticalErrorPatterns` and do not indicate test failure or extension issues.
