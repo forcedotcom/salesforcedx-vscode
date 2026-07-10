@@ -20,6 +20,8 @@ import { MessageKey } from './i18n';
 export const messages: Partial<Record<MessageKey, string>> = {
   session_language_server_error_text: '言語サーバーの起動中にエラーが発生しました。',
   session_started_text: 'Apex Replay Debugger セッションをログファイル %s で開始しました。',
+  source_version_mismatch_text:
+    '注意: ワークスペースの Apex ソースが、ログの生成時に使用されたバージョンと一致していることを確認してください。一致していない場合、一部のブレークポイントがヒットしないことがあります。',
   session_terminated_text: 'Apex Replay Debugger セッションを終了しました。',
   no_log_file_text: 'ログファイルが見つからないか、ファイルにログの行が含まれていません。',
   incorrect_log_levels_text:

@@ -18,6 +18,8 @@
 export const messages = {
   session_language_server_error_text: 'Apex language server could not provide information about valid breakpoints.',
   session_started_text: 'Apex Replay Debugger session started for log file %s.',
+  source_version_mismatch_text:
+    'Note: ensure your workspace Apex source matches the version used when the log was generated, or some breakpoints may not be hit.',
   session_terminated_text: 'Apex Replay Debugger session terminated.',
   no_log_file_text: 'The log file either is missing or does not have any log lines in it.',
   incorrect_log_levels_text:

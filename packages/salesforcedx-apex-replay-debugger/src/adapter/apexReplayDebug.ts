@@ -126,6 +126,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       );
     } else {
       this.printToDebugConsole(nls.localize('session_started_text', this.logContext.getLogFileName()));
+      this.printToDebugConsole(nls.localize('source_version_mismatch_text'));
       if (this.logContext.scanLogForHeapDumpLines() && !(await this.logContext.fetchOverlayResultsForApexHeapDumps())) {
         response.message = nls.localize('heap_dump_error_wrap_up_text');
         this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
