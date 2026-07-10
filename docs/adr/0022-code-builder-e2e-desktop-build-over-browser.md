@@ -83,3 +83,40 @@ the shipped version from that artifact (and exactly one dir per ID) before any s
   artifacts: the image writes an env-ready marker to `/projects` (unmounted in `docker run`),
   and bundled Agentforce MCP servers fail to reach their backends. These are suppressed in
   `nonCriticalErrorPatterns` and do not indicate test failure or extension issues.
+
+## Workspace seeding
+
+What the workbench opens is decided by the image's own bootstrap, not by this repo. On the
+container's **first** start, `before_start.sh` runs `sfdx-setup.sh` (once — it is gated behind a
+`~/.codebuilder` marker file and skipped on every later start, including our swap `docker restart`),
+which:
+
+- with `SFDX_COBU_PROJECTNAME` + `SFDX_COBU_TEMPLATE` set, runs `sfdx project generate` into the
+  home dir, or
+- with `SFDX_COBU_GITHUB_PROJECT_URL` set instead, `git clone`s that repo,
+
+then writes `~/.local/share/code-server/coder.json` with `{"query":{"folder":"<project path>"}}` so
+code-server opens that folder. The workflow currently sets `SFDX_COBU_PROJECTNAME=e2e-project` /
+`SFDX_COBU_TEMPLATE=standard`, so the container opens a **bare generated `standard` project** — empty
+`force-app`, no metadata. `SFDX_COBU_GITHUB_PROJECT_URL` is a dormant path (nothing sends it; the
+seeding block is untouched since 2023) — do not build on it.
+
+Specs that need real metadata to drive against (open a class, run a test, deploy) therefore have
+nothing seeded today. Two ways to get there, mirroring the desktop side:
+
+- **Create metadata mid-spec via extension commands** — reuse `createApexClass` /
+  `createAndDeployApexTestClass` from `playwright-vscode-ext` against the bare project. No image
+  involvement, but slower and it exercises the create-command path rather than a fixed starting
+  state.
+- **Volume-mount a fixture project (candidate, not yet built)** — keep a version-controlled SFDX
+  project under `test/playwright/fixtures/` (with `sfdx-project.json` and prepopulated `force-app`
+  metadata), `docker run -v <fixture>:<path-in-container>`, then point code-server at it by writing
+  `coder.json` ourselves via `docker exec` (the same lever already used to disable workspace trust
+  and swap extensions). Deterministic and in-repo. Deliberately does **not** reuse the `SFDX_COBU_*`
+  env path or the GitHub-clone branch: those run only on first boot behind the `.codebuilder` gate
+  and live in image code the CB team owns and can change, whereas a mount is applied by Docker at
+  `run` time, survives restart, and depends on nothing inside the image except the `coder.json`
+  folder query. Same decoupling principle as the extension-swap options above — do not rely on
+  contracts the `code-builder-images` team can move under us. Load-bearing detail for whoever
+  implements this: changing the opened folder means the disable-workspace-trust step and the
+  workbench-ready wait must target the new path, or extensions open untrusted and never activate.
