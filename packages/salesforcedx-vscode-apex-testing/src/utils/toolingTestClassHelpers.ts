@@ -6,14 +6,16 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
+import * as Option from 'effect/Option';
 
 /**
  * Builds a full class name from a ToolingTestClass, including namespace prefix if present
  */
 export const getFullClassName = (cls: ToolingTestClass): string =>
-  cls.namespacePrefix ? `${cls.namespacePrefix}.${cls.name}` : cls.name;
+  Option.match(cls.namespacePrefix, { onNone: () => cls.name, onSome: ns => `${ns}.${cls.name}` });
 
 /**
  * Checks if a ToolingTestClass is a Flow test (Flow tests have namespacePrefix starting with 'FlowTesting')
  */
-export const isFlowTest = (cls: ToolingTestClass): boolean => cls.namespacePrefix?.startsWith('FlowTesting') ?? false;
+export const isFlowTest = (cls: ToolingTestClass): boolean =>
+  Option.exists(cls.namespacePrefix, ns => ns.startsWith('FlowTesting'));

@@ -9,6 +9,7 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
@@ -17,9 +18,9 @@ import { ApexTestMethod } from '../views/lspConverter';
 import { getFullClassName } from './toolingTestClassHelpers';
 
 /**
- * Checks if a ToolingTestClass has a non-empty namespace prefix
+ * Checks if a ToolingTestClass has a namespace prefix
  */
-const hasNamespace = (cls: ToolingTestClass): boolean => (cls.namespacePrefix?.trim() ?? '') !== '';
+const hasNamespace = (cls: ToolingTestClass): boolean => Option.isSome(cls.namespacePrefix);
 
 /**
  * Fetch tests from the Tooling API Test Discovery endpoint

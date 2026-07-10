@@ -191,6 +191,7 @@ import * as extensionProvider from '../../../src/services/extensionProvider';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
 import * as EffectModule from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { ApexTestController, closeForeignApexTestingTabs, getTestController } from '../../../src/views/testController';
 
 // The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
@@ -542,18 +543,18 @@ describe('ApexTestController', () => {
     it('should discover tests and populate test items', async () => {
       const mockClasses = [
         {
-          id: '01p000000000001AAA',
+          id: Option.some('01p000000000001AAA'),
           name: 'TestClass1',
-          namespacePrefix: '',
+          namespacePrefix: Option.none(),
           testMethods: [
             { name: 'testMethod1', line: 1, column: 0 },
             { name: 'testMethod2', line: 2, column: 0 }
           ]
         },
         {
-          id: '01p000000000002AAA',
+          id: Option.some('01p000000000002AAA'),
           name: 'TestClass2',
-          namespacePrefix: '',
+          namespacePrefix: Option.none(),
           testMethods: [{ name: 'testMethod3', line: 1, column: 0 }]
         }
       ];
@@ -600,9 +601,9 @@ describe('ApexTestController', () => {
     it('should tag tests that exist in org but not in local workspace', async () => {
       const mockClasses = [
         {
-          id: '01p000000000001AAA',
+          id: Option.some('01p000000000001AAA'),
           name: 'OrgOnlyClass',
-          namespacePrefix: '',
+          namespacePrefix: Option.none(),
           testMethods: [{ name: 'testMethod1', line: 1, column: 0 }]
         }
       ];
@@ -1061,7 +1062,9 @@ describe('ApexTestController', () => {
       // Mock discovery to return the same class with same method
       discoverTestsSpyLocal.mockReturnValue(
         Effect.succeed({
-          classes: [{ id: '01p123', name: 'MyTestClass', namespacePrefix: '', testMethods: [{ name: 'testMethod1' }] }]
+          classes: [
+            { id: Option.some('01p123'), name: 'MyTestClass', namespacePrefix: Option.none(), testMethods: [{ name: 'testMethod1' }] }
+          ]
         })
       );
 

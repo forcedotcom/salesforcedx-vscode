@@ -6,20 +6,30 @@
  */
 /* eslint-disable jsdoc/check-indentation */
 
-type ToolingTestMethod = {
-  name: string;
-  line?: number;
-  column?: number;
-};
+import type { Package2Member } from '@salesforce/types/tooling';
+import * as Schema from 'effect/Schema';
 
-// Single authoritative shape for test classes (matches Tooling REST response)
-export type ToolingTestClass = {
-  id: string; // may be "" for some flow tests
-  name: string;
-  // For Apex tests this is "" (default) or a namespace; for flow tests it follows "FlowTesting[.Namespace]"
-  namespacePrefix: string;
-  testMethods: ToolingTestMethod[];
-};
+const ToolingTestMethod = Schema.Struct({
+  name: Schema.String,
+  line: Schema.optional(Schema.Number),
+  column: Schema.optional(Schema.Number)
+});
+
+/**
+ * Normalized domain test class. `OptionFromNonEmptyTrimmedString` maps the wire `""` sentinel ⇄
+ * `Option<string>` at the parse boundary. `id` absent (some flow tests) = `Option.none`; `namespacePrefix`
+ * none = default Apex namespace, `Option.some('FlowTesting[.Namespace]')` = flow test.
+ */
+export const ToolingTestClass = Schema.Struct({
+  id: Schema.OptionFromNonEmptyTrimmedString,
+  name: Schema.String,
+  namespacePrefix: Schema.OptionFromNonEmptyTrimmedString,
+  testMethods: Schema.Array(ToolingTestMethod)
+});
+export type ToolingTestClass = Schema.Schema.Type<typeof ToolingTestClass>;
+
+/** Raw Tooling REST shape (pre-decode): `id`/`namespacePrefix` are plain strings, possibly `""`. */
+type ToolingTestClassWire = Schema.Schema.Encoded<typeof ToolingTestClass>;
 
 export type TestDiscoveryResult = {
   classes: ToolingTestClass[];
@@ -27,7 +37,7 @@ export type TestDiscoveryResult = {
 
 // Tooling REST /tooling/tests response types
 export type ToolingTestsPage = {
-  apexTestClasses: ToolingTestClass[]; // [] if none
+  apexTestClasses: ToolingTestClassWire[]; // [] if none
   size: number;
   nextRecordsUrl: string | null;
   testSetSignature: string;
@@ -46,10 +56,7 @@ export type DiscoverTestsOptions = {
   namespacePrefix?: string;
 };
 
-// Package resolution: use WSDL-generated types from @salesforce/types (forcedotcom/wsdl)
-import type { Package2Member } from '@salesforce/types/tooling';
-
-/** Package2Member query result; wsdl type omits MetadataComponentId and Package2Id for some API versions. */
+/** Package2Member (WSDL-generated, @salesforce/types); wsdl type omits MetadataComponentId and Package2Id for some API versions. */
 export type Package2MemberRecord = Package2Member & {
   MetadataComponentId?: string;
   Package2Id?: string;

@@ -8,6 +8,7 @@
 import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { window } from 'vscode';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -45,7 +46,7 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
               .map(
                 (cls): ApexTestQuickPickItem => ({
                   label: cls.name,
-                  description: cls.namespacePrefix ?? '',
+                  description: Option.getOrUndefined(cls.namespacePrefix),
                   type: 'Class' as const,
                   fullClassName: getFullClassName(cls)
                 })

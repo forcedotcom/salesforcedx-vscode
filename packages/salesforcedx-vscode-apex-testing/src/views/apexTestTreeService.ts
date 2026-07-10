@@ -8,6 +8,7 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -364,9 +365,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
       });
 
-      const classIds = apexClasses
-        .map(cls => cls.id)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0);
       const [connection, orgInfo] = yield* Effect.all(
         [
           Effect.try({
@@ -384,7 +382,13 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       if (!orgInfo.orgId) return;
       const orgKey = orgInfo.orgId;
       const classIdToPackage = yield* Effect.tryPromise({
-        try: () => resolvePackage2Members(connection, classIds, buildClassIdToNamespace(apexClasses), orgInfo),
+        try: () =>
+          resolvePackage2Members(
+            connection,
+            Array.getSomes(apexClasses.map(cls => cls.id)),
+            buildClassIdToNamespace(apexClasses),
+            orgInfo
+          ),
         catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
       });
 
