@@ -62,7 +62,8 @@ It wraps [`scripts/codeBuilderLocalE2E.ts`](../../scripts/codeBuilderLocalE2E.ts
 
 - Docker running.
 - `sf` logged in to a dev hub (the script reuses `minimalTestOrg` if present, else creates it).
-- `gh` logged in (`gh auth login`). The CB image is a **private** ghcr package, so a local pull needs a token — but you don't hand-manage a PAT: the script pulls with your `gh` credential. The one requirement is the `read:packages` scope, which the default `gh` token lacks; the script adds it for you the first time (`gh auth refresh --scopes read:packages`, a one-time browser flow). forcedotcom enforces SAML SSO, so that gh credential must be authorized for the org — normally already true from `gh auth login`; if the pull 403s, re-run `gh auth login` and complete the SSO prompt. A classic PAT (`read:packages`, SSO-authorized) still works if you'd rather: export it as `CR_PAT` and the script uses it instead.
+- `op` (1Password CLI) signed in to fetch shared SVC_IDEE ghcr token (vault "Platform Dev Tools Team", `SVC_IDE_BOT_GHCR_READ_TOKEN`). No per-dev PAT management. Overridable via `OP_ACCOUNT` / `OP_GHCR_ITEM` env vars; set `CR_PAT` (classic PAT, `read:packages`, SSO-authorized) to skip.
+- `gh` logged in — only for `--run-id` (CI artifact download), not image pull.
 
 **Debugging a failure:** run with `--no-teardown`, then open `http://localhost:8123` in a browser to drive the same workbench the test sees. Container logs: `docker logs codebuilder-e2e-local`. Playwright HTML report: `packages/salesforcedx-vscode-core/playwright-report/index.html`. The version gate fails loud if the swapped extensions don't match the built versions — that means the swap didn't take, not a test bug.
 

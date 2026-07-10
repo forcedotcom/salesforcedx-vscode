@@ -15,8 +15,9 @@
  *
  * Prereqs:
  *   - docker running
- *   - gh CLI logged in (`gh auth login`) with read:packages — the script adds the scope for you if
- *     it's missing. No manually-managed PAT needed. (Falls back to a CR_PAT env var if gh is absent.)
+ *   - op (1Password CLI) signed in — the script fetches the shared SVC_IDEE ghcr pull token from
+ *     1Password so no per-dev PAT is needed. (Falls back to a CR_PAT env var if you'd rather supply
+ *     your own classic PAT with read:packages, SSO-authorized for forcedotcom.)
  *   - sf CLI logged in to a dev hub (for the scratch org)
  *
  * Usage: ts-node scripts/codeBuilderLocalE2E.ts [options]
@@ -39,6 +40,17 @@ const CONTAINER_NAME = 'codebuilder-e2e-local';
 const ORG_ALIAS = 'minimalTestOrg';
 const CODE_BUILDER_URL = 'http://localhost:8123';
 const ARTIFACT_NAME = 'VS Code Extensions';
+
+/*
+ * ghcr pull auth: a dedicated read:packages-only PAT for the SVC_IDEE bot lives in 1Password (vault
+ * "Platform Dev Tools Team", Secure Note SVC_IDE_BOT_GHCR_READ_TOKEN — token in the notesPlain field).
+ * op read resolves it at runtime so the token never lands in the repo. --account pins the Salesforce
+ * tenant (devs often have a personal account too, which makes a bare op read ambiguous). Override
+ * either via env if they differ.
+ */
+const GHCR_BOT_USER = 'SVC_IDEE';
+const OP_ACCOUNT = process.env.OP_ACCOUNT ?? 'salesforce.1password.com';
+const OP_GHCR_ITEM = process.env.OP_GHCR_ITEM ?? 'op://Platform Dev Tools Team/SVC_IDE_BOT_GHCR_READ_TOKEN/notesPlain';
 
 type Options = {
   runId?: string;
@@ -102,8 +114,14 @@ const opts = parseArgs(process.argv.slice(2));
 const image = `ghcr.io/forcedotcom/code-builder-images/workspace-manager/codebuilder:${opts.imageTag}`;
 const vsixDir = mkdtempSync(join(tmpdir(), 'cb-e2e-vsix-'));
 
+// Flipped once the container is actually started, so a preflight bail-out doesn't emit
+// teardown noise for a container that never launched.
+let containerStarted = false;
 const teardown = (): void => {
   rmSync(vsixDir, { recursive: true, force: true });
+  if (!containerStarted) {
+    return;
+  }
   if (opts.teardown) {
     log(`Tearing down container ${CONTAINER_NAME}`);
     spawnSync('docker', ['rm', '-f', CONTAINER_NAME], { stdio: 'ignore' });
@@ -114,63 +132,111 @@ const teardown = (): void => {
 };
 process.on('exit', teardown);
 
-/* --- preflight ------------------------------------------------------------- */
-if (!tryCapture('docker', ['--version'])) {
-  console.error('docker is required');
-  process.exit(1);
+/* --- preflight -------------------------------------------------------------
+ * Assume a teammate's box has none of the required tooling. Check every external
+ * dependency up front, collect ALL problems, and print one consolidated report with
+ * copy-paste fixes — a failure five minutes into a container pull is a bad first run.
+ */
+const onMac = process.platform === 'darwin';
+const brewOr = (formula: string, other: string): string => (onMac ? `brew install ${formula}` : other);
+
+const has = (file: string): boolean => spawnSync(file, ['--version'], { stdio: 'ignore' }).status === 0;
+
+/* sf is npx-able (@salesforce/cli), so a missing global install is a warning, not a blocker —
+ * fall back to `npx @salesforce/cli`. docker and gh are not npx-able and must be installed. */
+const sfInstalled = has('sf');
+const sfCmd = (): [string, string[]] => (sfInstalled ? ['sf', []] : ['npx', ['-y', '@salesforce/cli']]);
+const runSf = (args: string[], opts: { cwd?: string; stdio?: 'inherit' | 'ignore' } = {}): number => {
+  const [file, prefix] = sfCmd();
+  return spawnSync(file, [...prefix, ...args], { stdio: opts.stdio ?? 'inherit', cwd: opts.cwd }).status ?? 1;
+};
+const captureSf = (args: string[]): string => {
+  const [file, prefix] = sfCmd();
+  return execFileSync(file, [...prefix, ...args], { encoding: 'utf-8' }).trim();
+};
+
+const problems: string[] = [];
+
+if (!has('docker')) {
+  problems.push(
+    `docker — not installed. Needed to run the Code Builder image.\n` +
+      `      Install Docker Desktop: ${brewOr('--cask docker', 'https://docs.docker.com/engine/install/')}`
+  );
+} else if (spawnSync('docker', ['info'], { stdio: 'ignore' }).status !== 0) {
+  problems.push('docker — installed but the daemon is not running. Start Docker Desktop and re-run.');
 }
-if (spawnSync('docker', ['info'], { stdio: 'ignore' }).status !== 0) {
-  console.error('docker daemon is not running');
-  process.exit(1);
+
+/*
+ * ghcr auth uses the shared SVC_IDEE bot PAT stored in 1Password, fetched via the op CLI — no
+ * per-developer token. op is required unless the dev supplies their own CR_PAT override.
+ */
+if (!has('op') && !process.env.CR_PAT) {
+  problems.push(
+    `op (1Password CLI) — not installed. Used to fetch the shared ghcr pull token.\n` +
+      `      Install: ${brewOr('--cask 1password-cli', 'https://developer.1password.com/docs/cli/get-started/')}\n` +
+      `      then sign in (or enable Developer > CLI integration in the 1Password app).\n` +
+      `      (Or set CR_PAT to a classic PAT with read:packages, SSO-authorized for forcedotcom.)`
+  );
 }
-if (!tryCapture('sf', ['--version'])) {
-  console.error('sf CLI is required');
+
+if (!sfInstalled) {
+  log('sf CLI not found on PATH — falling back to `npx @salesforce/cli` (slower; consider a global install).');
+}
+
+if (problems.length > 0) {
+  console.error('\nMissing prerequisites — fix these and re-run:\n');
+  for (const p of problems) {
+    console.error(`  • ${p}\n`);
+  }
   process.exit(1);
 }
 
-/* --- ghcr login: reuse the dev's gh credential, no manual PAT --------------- */
-const ghUser = (): string => tryCapture('gh', ['api', 'user', '-q', '.login']) ?? process.env.USER ?? 'unknown';
-const dockerLogin = (token: string): boolean =>
-  spawnSync('docker', ['login', 'ghcr.io', '-u', ghUser(), '--password-stdin'], { input: token, stdio: 'ignore' })
-    .status === 0;
+/* --- ghcr login + pull: shared SVC_IDEE bot token from 1Password, no per-dev PAT --- */
+const dockerLogin = (user: string, token: string): boolean =>
+  // stdin must be a pipe for `input`/--password-stdin to land; 'ignore' would close it and log in blank.
+  spawnSync('docker', ['login', 'ghcr.io', '-u', user, '--password-stdin'], {
+    input: token,
+    stdio: ['pipe', 'ignore', 'ignore']
+  }).status === 0;
+
+const OP_FIX =
+  `Could not read the ghcr token from 1Password (${OP_GHCR_ITEM}, account ${OP_ACCOUNT}).\n` +
+  '    Make sure the 1Password app CLI integration is on (Settings > Developer > "Integrate with 1Password CLI"),\n' +
+  '    or run `op signin`, and that you have access to the "Platform Dev Tools Team" vault.\n' +
+  '    Override with OP_GHCR_ITEM / OP_ACCOUNT if they differ. (Or set CR_PAT to your own classic PAT.)';
 
 log('Logging in to ghcr.io');
 if (process.env.CR_PAT) {
   // Explicit PAT wins if provided (classic PAT with read:packages, SSO-authorized for forcedotcom).
-  if (!dockerLogin(process.env.CR_PAT)) {
-    console.error('docker login with CR_PAT failed');
+  if (!dockerLogin(GHCR_BOT_USER, process.env.CR_PAT)) {
+    console.error('docker login with CR_PAT failed — check the token has read:packages and is SSO-authorized.');
     process.exit(1);
-  }
-} else if (tryCapture('gh', ['--version'])) {
-  const token = tryCapture('gh', ['auth', 'token']);
-  if (!token) {
-    console.error('gh is installed but not logged in. Run: gh auth login');
-    process.exit(1);
-  }
-  // ghcr pull needs read:packages, which the default gh OAuth token lacks — add it once (browser flow).
-  if (!dockerLogin(token)) {
-    log('ghcr login failed — adding read:packages to your gh credential (one-time)');
-    run('gh', ['auth', 'refresh', '--scopes', 'read:packages']);
-    const refreshed = capture('gh', ['auth', 'token']);
-    if (!dockerLogin(refreshed)) {
-      console.error('ghcr login still failing after refresh — check SSO authorization for forcedotcom.');
-      process.exit(1);
-    }
   }
 } else {
+  // Preflight guaranteed op is installed; fetch the shared bot token it holds.
+  const token = tryCapture('op', ['read', '--account', OP_ACCOUNT, OP_GHCR_ITEM]);
+  if (!token) {
+    console.error(`\n${OP_FIX}`);
+    process.exit(1);
+  }
+  if (!dockerLogin(GHCR_BOT_USER, token)) {
+    console.error('docker login to ghcr.io failed with the SVC_IDEE bot token — the token may be expired.');
+    process.exit(1);
+  }
+}
+
+log(`Pulling ${image}`);
+if (spawnSync('docker', ['pull', image], { stdio: 'inherit' }).status !== 0) {
   console.error(
-    'Need either the gh CLI (recommended) or a CR_PAT env var (classic PAT, read:packages, SSO-authorized).'
+    '\nCould not pull the Code Builder image. The SVC_IDEE bot token may be expired or lack read:packages / SSO.'
   );
   process.exit(1);
 }
 
-log(`Pulling ${image}`);
-run('docker', ['pull', image]);
-
 /* --- gather the VSIX under test -------------------------------------------- */
 if (opts.runId) {
-  if (!tryCapture('gh', ['--version'])) {
-    console.error('--run-id needs the gh CLI');
+  if (!has('gh')) {
+    console.error('--run-id needs the gh CLI to download the artifact. Install gh and run: gh auth login');
     process.exit(1);
   }
   log(`Downloading VSIX artifact from Build All run ${opts.runId}`);
@@ -211,7 +277,7 @@ if (vsixCount === 0) {
 log(`Testing ${vsixCount} VSIX from ${vsixDir}`);
 
 /* --- scratch org ----------------------------------------------------------- */
-if (spawnSync('sf', ['org', 'display', '-o', ORG_ALIAS], { stdio: 'ignore' }).status === 0) {
+if (runSf(['org', 'display', '-o', ORG_ALIAS], { stdio: 'ignore' }) === 0) {
   log(`Reusing existing scratch org ${ORG_ALIAS}`);
 } else {
   log(`Creating scratch org ${ORG_ALIAS}`);
@@ -228,19 +294,17 @@ if (spawnSync('sf', ['org', 'display', '-o', ORG_ALIAS], { stdio: 'ignore' }).st
     sourceApiVersion: '64.0'
   };
   writeFileSync(join(proj, 'sfdx-project.json'), JSON.stringify(sfdxProject));
-  const created = spawnSync(
-    'sf',
-    ['org', 'create', 'scratch', '-d', '-w', '30', '-a', ORG_ALIAS, '--edition', 'developer'],
-    { cwd: proj, stdio: 'inherit' }
-  );
+  const created = runSf(['org', 'create', 'scratch', '-d', '-w', '30', '-a', ORG_ALIAS, '--edition', 'developer'], {
+    cwd: proj
+  });
   rmSync(proj, { recursive: true, force: true });
-  if (created.status !== 0) {
-    console.error('Scratch org create failed — is a dev hub set as default? (sf org login ...)');
+  if (created !== 0) {
+    console.error('Scratch org create failed — is a dev hub set as default? (sf org login web --set-default-dev-hub)');
     process.exit(1);
   }
 }
 
-const orgJson = JSON.parse(capture('sf', ['org', 'display', '-o', ORG_ALIAS, '--json']));
+const orgJson = JSON.parse(captureSf(['org', 'display', '-o', ORG_ALIAS, '--json']));
 const instanceUrl: string = orgJson.result.instanceUrl;
 const accessToken: string = orgJson.result.accessToken;
 
@@ -264,14 +328,27 @@ run('docker', [
   '8123:58080',
   image
 ]);
+containerStarted = true;
 
+/*
+ * Poll for reachability synchronously (the script reads top-to-bottom like the shell original) but
+ * without a curl dependency — run the fetch in a short-lived node child. node is guaranteed present
+ * since this script is running under it, so there's no extra tool to install.
+ */
+const reachable = (url: string): boolean =>
+  spawnSync(
+    process.execPath,
+    ['-e', `fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))`, url],
+    {
+      stdio: 'ignore'
+    }
+  ).status === 0;
 const sleep = (ms: number): void => {
-  // Synchronous sleep so the linear script reads top-to-bottom like the shell original.
-  spawnSync('sleep', [String(ms / 1000)]);
+  spawnSync(process.execPath, ['-e', `setTimeout(()=>{}, ${ms})`]);
 };
 const waitForWorkbench = (): void => {
   for (let i = 0; i < 60; i++) {
-    if (spawnSync('curl', ['-fsS', CODE_BUILDER_URL], { stdio: 'ignore' }).status === 0) {
+    if (reachable(CODE_BUILDER_URL)) {
       return;
     }
     sleep(2000);
