@@ -8,14 +8,11 @@ import { SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
-import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Schedule from 'effect/Schedule';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
-import { getServicesRuntime } from '../servicesRuntime';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
@@ -32,24 +29,15 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-// Run through the shared services runtime (not Effect.provide(ConnectionService.Default), which would
-// build a private ConnectionService per call — separate connection/reauth caches, defeating dedup).
-// The runtime is set early in activation; retry at 500ms until it exists (a background export can wait).
-// withTracerEnabled(false): the shared runtime carries the tracing SDK layer whose span processor IS
-// this exporter, so a traced getConnection here would emit spans that get exported, triggering another
-// getConnection → an unbounded self-feeding span loop that starves the single-threaded web worker
-// (VS Code reports the extension host as unresponsive, so no web extension registers its commands).
+// Build a PRIVATE ConnectionService here (Effect.provide(ConnectionService.Default)) rather than routing
+// through the shared services runtime. The shared runtime's context carries the tracing SDK layer whose
+// span processor IS this exporter, so a getConnection run on it emits spans that get exported, triggering
+// another getConnection → an unbounded self-feeding span loop that starves the single-threaded web worker
+// (VS Code reports the extension host as unresponsive, so no web extension registers its commands). The
+// private layer carries no tracer, so it cannot feed the loop; the module-level connectionCache is shared
+// across every ConnectionService instance regardless, so this does not fragment the connection cache.
 const getConnection = () =>
-  Effect.runPromise(
-    getServicesRuntime().pipe(
-      Effect.retry({ schedule: Schedule.fixed(Duration.millis(500)) }),
-      Effect.flatMap(runtime =>
-        Effect.promise(() =>
-          runtime.runPromise(ConnectionService.getConnection().pipe(Effect.withTracerEnabled(false)))
-        )
-      )
-    )
-  );
+  Effect.runPromise(ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default)));
 
 /**
  * OpenTelemetry span exporter that sends spans to O11y using @salesforce/o11y-reporter.
