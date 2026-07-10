@@ -22,5 +22,8 @@ export const NON_CRITICAL_NETWORK_PATTERNS = [
   'services/oauth2/userinfo',
   // Salesforce sObject describe endpoint — LSP/autocomplete may describe objects (including internal
   // types like "Object") as-you-type; describe 404s are non-critical to test assertions
-  '/describe'
+  '/describe',
+  // code-server platform artifact, not extension behavior: vsda is VS Code's optional signature-
+  // verification WASM, which code-server doesn't bundle, so it 404s on every workbench load.
+  'vsda' // vsda_bg.wasm / vsda.js signature-verification module absent in code-server
 ] as const;
