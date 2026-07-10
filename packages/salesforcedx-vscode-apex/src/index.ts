@@ -8,13 +8,10 @@
 import {
   buildAllServicesLayer,
   closeExtensionScope,
-  ExtensionPackageJsonSchema,
   ExtensionProviderService,
-  type ExtensionPackageJson,
   getExtensionScope
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
@@ -30,13 +27,7 @@ import {
 } from './languageUtils';
 import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
-import { getRuntime } from './services/runtime';
-import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
-
-/** Internal-only; activate() rejects via runPromise on failure. */
-class TelemetryUnavailableError extends Schema.TaggedError<TelemetryUnavailableError>()('TelemetryUnavailableError', {
-  message: Schema.String
-}) {}
+import { disposeRuntime, getRuntime } from './services/runtime';
 
 export const activate = async (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
@@ -54,17 +45,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
 ) {
   const vscodeCoreExtension = yield* Effect.promise(() => getVscodeCoreExtension());
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
-
-  // Telemetry
-  const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
-    Effect.catchAll(() => Effect.succeed<ExtensionPackageJson>({}))
-  );
-  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance(pjson.name);
-  if (!telemetryService) {
-    return yield* new TelemetryUnavailableError({ message: 'Could not fetch a telemetry service instance' });
-  }
-  yield* Effect.promise(() => telemetryService.initializeService(context));
-  setTelemetryService(telemetryService);
 
   // fails with the typed NoWorkspaceOpenError from WorkspaceService when no workspace is open
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -115,11 +95,27 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
   return vscode.Disposable.from(anonApexRunDelegateCmd, restartApexLanguageServerCmd);
 };
 
+// root: true → exports as a top-level span (not an orphaned child of any ambient span)
+const deactivation = Effect.fn('apex.deactivation', { root: true })(function* () {
+  // `ensuring` guarantees teardown (dispose + closeExtensionScope) runs even if stop() rejects —
+  // otherwise the per-client child scope stays open and the long-lived apex.lsp.client span never
+  // ends/flushes. tryPromise (not promise) surfaces a stop() rejection as a typed failure; `ignore`
+  // then swallows it so deactivate() still resolves (teardown already happened).
+  yield* Effect.tryPromise(() => languageClientManager.getClientInstance()?.stop(30_000) ?? Promise.resolve()).pipe(
+    Effect.ensuring(
+      Effect.sync(() => languageClientManager.disposeOutputChannel()).pipe(Effect.zipRight(closeExtensionScope()))
+    ),
+    Effect.ignore
+  );
+});
+
 export const deactivate = async () => {
-  await languageClientManager.getClientInstance()?.stop(30_000);
-  languageClientManager.disposeOutputChannel();
-  getTelemetryService().sendExtensionDeactivationEvent();
-  await getRuntime().runPromise(closeExtensionScope());
+  await getRuntime().runPromise(deactivation());
+  // Dispose AFTER the deactivation effect resolves (client stopped, scopes closed, spans ended):
+  // closing the runtime's scope runs the NodeSdk finalizer (forceFlush → shutdown) so the ended
+  // apex.lsp.client span is exported instead of being dropped by the BatchSpanProcessor's UNREF'd
+  // 5s timer on window reload/host teardown.
+  await disposeRuntime();
 };
 
 export type {
