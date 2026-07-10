@@ -86,5 +86,12 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   // remote connection that doesn't exist in @vscode/test-web. Tracked upstream:
   // https://github.com/microsoft/vscode/issues/318222
   'agentHostSandboxForwarder',
-  'Remote agent host is not enabled'
+  'Remote agent host is not enabled',
+  // Code Builder container run outside an MDE: the image writes its readiness marker to /projects,
+  // which isn't mounted in a bare `docker run`, and the bundled Agentforce MCP servers can't reach
+  // their backends. Both are CB-runtime environment artifacts, unrelated to the extension under test.
+  '.code-builder-environment-ready', // CB env-ready marker write to unmounted /projects
+  'MCP server', // Agentforce MCP client can't connect to its backend in a bare container
+  'Failed to list toolsets', // paired MCP toolset enumeration failure
+  'Failed to connect with SSE transport' // MCP SSE/HTTP transport fallback failure (405)
 ] as const;
