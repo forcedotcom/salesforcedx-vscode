@@ -20,7 +20,6 @@ import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
-import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { soqlMiddleware } from './embeddedSoql';
 import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
@@ -231,15 +230,19 @@ const getNamespaceFromProject = Effect.fn('apex.provideCodeLenses.getNamespaceFr
   return project.getSfProjectJson().getContents().namespace;
 });
 
+const getNamespaceFromOrg = Effect.fn('apex.provideCodeLenses.getNamespaceFromOrg')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const connection = yield* api.services.ConnectionService.getConnection();
+  return connection.getAuthInfoFields().namespacePrefix ?? undefined;
+});
+
 const provideCodeLenses = async (
   document: vscode.TextDocument,
   token: vscode.CancellationToken,
   next: ProvideCodeLensesSignature
 ) => {
-  const vscodeCoreExtension = await getVscodeCoreExtension();
   const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
-    // convert null to undefined
-    vscodeCoreExtension.exports.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
+    getRuntime().runPromise(getNamespaceFromOrg()),
     getRuntime().runPromise(getNamespaceFromProject()),
     next(document, token)
   ]);
