@@ -27,7 +27,7 @@ import {
 } from './languageUtils';
 import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
-import { getRuntime } from './services/runtime';
+import { disposeRuntime, getRuntime } from './services/runtime';
 
 export const activate = async (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
@@ -111,6 +111,11 @@ const deactivation = Effect.fn('apex.deactivation', { root: true })(function* ()
 
 export const deactivate = async () => {
   await getRuntime().runPromise(deactivation());
+  // Dispose AFTER the deactivation effect resolves (client stopped, scopes closed, spans ended):
+  // closing the runtime's scope runs the NodeSdk finalizer (forceFlush → shutdown) so the ended
+  // apex.lsp.client span is exported instead of being dropped by the BatchSpanProcessor's UNREF'd
+  // 5s timer on window reload/host teardown.
+  await disposeRuntime();
 };
 
 export type {
