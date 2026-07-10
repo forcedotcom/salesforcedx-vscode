@@ -48,7 +48,14 @@ jest.mock('../../../src/services/extensionProvider', () => {
       WorkspaceService: MockWorkspaceService,
       MetadataRetrieveService: {
         retrieve: mockMetadataRetrieve
-      }
+      },
+      // restore-previous-results defaults false so discovery's restore step short-circuits in tests not
+      // exercising it; other keys fall through to their provided default. Yielded as an instance
+      // (yield* api.services.SettingsService), so wrap in Effect.succeed.
+      SettingsService: EffectLib.succeed({
+        getValue: (_section: string, key: string, defaultValue: unknown) =>
+          EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
+      })
     }
   };
   const ExtensionProviderLayer = Layer.effect(
@@ -120,18 +127,6 @@ jest.mock('../../../src/utils/testUtils', () => {
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
 });
-
-jest.mock('../../../src/settings', () => ({
-  retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
-  retrieveTestRunConcise: jest.fn().mockReturnValue(false),
-  retrieveOutputFormat: jest.fn().mockReturnValue('text'),
-  retrieveTestSortOrder: jest.fn().mockReturnValue('runtime'),
-  retrievePerformanceThreshold: jest.fn().mockReturnValue(5000),
-  retrieveCoverageThreshold: jest.fn().mockReturnValue(75),
-  // Default off: discovery's restore-previous-results step short-circuits in tests not exercising it.
-  retrieveRestorePreviousResults: jest.fn().mockReturnValue(false),
-  disableRestorePreviousResults: jest.fn()
-}));
 
 jest.mock('../../../src/testDiscovery/packageResolution', () => ({
   resolvePackage2Members: jest.fn().mockResolvedValue(new Map())
@@ -1063,7 +1058,12 @@ describe('ApexTestController', () => {
       discoverTestsSpyLocal.mockReturnValue(
         Effect.succeed({
           classes: [
-            { id: Option.some('01p123'), name: 'MyTestClass', namespacePrefix: Option.none(), testMethods: [{ name: 'testMethod1' }] }
+            {
+              id: Option.some('01p123'),
+              name: 'MyTestClass',
+              namespacePrefix: Option.none(),
+              testMethods: [{ name: 'testMethod1' }]
+            }
           ]
         })
       );

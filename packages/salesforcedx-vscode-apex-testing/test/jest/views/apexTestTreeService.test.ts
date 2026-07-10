@@ -13,11 +13,6 @@ jest.mock('../../../src/testDiscovery/testDiscovery', () => {
   return { discoverTests: () => mockDiscoverTests() ?? EffectLib.succeed({ classes: [] }) };
 });
 
-jest.mock('../../../src/settings', () => ({
-  retrieveRestorePreviousResults: jest.fn().mockReturnValue(false),
-  disableRestorePreviousResults: jest.fn()
-}));
-
 // getTestResultsFolder normally needs TargetOrgRef/WorkspaceService/FsService.createDirectory; the
 // restore-apply test only cares about the dir-listing + apply loop, so return a fixed folder URI.
 const mockGetTestResultsFolder = jest.fn();
@@ -45,17 +40,30 @@ import type { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
 import { ApexTestTreeService, type DiscoveryContext } from '../../../src/views/apexTestTreeService';
 
+// Controllable restore-previous-results value surfaced through the mock SettingsService (replaces the old
+// jest.mock('../../../src/settings') target).
+let restorePreviousResultsValue = false;
+const mockGetValue = jest.fn((_section: string, key: string, defaultValue: unknown) =>
+  Effect.succeed(key === 'restore-previous-results' ? restorePreviousResultsValue : defaultValue)
+);
+const mockSettingsService = {
+  getValue: mockGetValue,
+  setValue: jest.fn(() => Effect.void)
+};
+
 // Minimal ambient services: discovery reaches getServicesApi; the no-classes path never touches FsService.
-const mockServicesApi = { services: {} };
+// SettingsService is yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
+const mockServicesApi = { services: { SettingsService: Effect.succeed(mockSettingsService) } };
 const ExtensionProviderLayer = Layer.succeed(ExtensionProviderService, {
   getServicesApi: Effect.succeed(mockServicesApi)
 } as unknown as ExtensionProviderService);
 
 // baseLayer() constructs a fresh service instance (fresh Refs) per call, so every run() is isolated.
-// The restore-apply test builds its own layerWithFs instead of reusing baseLayer: it needs a real FsService
-// in the ambient env (the restore body yields ExtensionProviderService at call time), which the bare
-// ExtensionProviderLayer here does not provide.
-const baseLayer = () => Layer.provide(ApexTestTreeService.Default, ExtensionProviderLayer);
+// ExtensionProviderLayer is also merged ambiently (not just provided to the service): the restore body
+// yields ExtensionProviderService at call time in the caller's context, so it must remain in the env.
+// The restore-apply test builds its own layerWithFs to add a real FsService on top.
+const baseLayer = () =>
+  Layer.merge(Layer.provide(ApexTestTreeService.Default, ExtensionProviderLayer), ExtensionProviderLayer);
 
 const run = <A, E, R>(effect: Effect.Effect<A, E, ApexTestTreeService | R>) =>
   Effect.runPromise(Effect.provide(effect as Effect.Effect<A, E, ApexTestTreeService>, baseLayer()));
@@ -95,6 +103,7 @@ describe('ApexTestTreeService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDiscoverTests.mockReturnValue(undefined);
+    restorePreviousResultsValue = false;
   });
 
   describe('reset', () => {
@@ -183,15 +192,14 @@ describe('ApexTestTreeService', () => {
   });
 
   describe('restorePreviousResults test-and-set', () => {
+    // restore-previous-results is read via SettingsService.getValue at the top of the body; count those
+    // reads to prove how many times the body actually ran past the guard.
+    const bodyEntries = () => mockGetValue.mock.calls.filter(([, key]) => key === 'restore-previous-results').length;
+
     it('only one of two concurrent restores proceeds past the isRestoringResults guard', async () => {
-      // retrieveRestorePreviousResults is mocked false, so a proceeding restore short-circuits right
-      // after the guard. We observe the guard directly: a second concurrent call sees the flag set.
-      const settings = jest.requireMock('../../../src/settings');
-      let bodyEntries = 0;
-      settings.retrieveRestorePreviousResults.mockImplementation(() => {
-        bodyEntries++;
-        return false;
-      });
+      // restore-previous-results is false, so a proceeding restore short-circuits right after the guard.
+      // We observe the guard directly: a second concurrent call sees the flag set.
+      restorePreviousResultsValue = false;
       const ctx = makeContext();
 
       await run(
@@ -203,17 +211,12 @@ describe('ApexTestTreeService', () => {
         })
       );
 
-      // Guard short-circuited: the body (retrieveRestorePreviousResults) was never reached.
-      expect(bodyEntries).toBe(0);
+      // Guard short-circuited: the body (restore-previous-results read) was never reached.
+      expect(bodyEntries()).toBe(0);
     });
 
     it('proceeds and resets the flag when no restore is in flight', async () => {
-      const settings = jest.requireMock('../../../src/settings');
-      let bodyEntries = 0;
-      settings.retrieveRestorePreviousResults.mockImplementation(() => {
-        bodyEntries++;
-        return false;
-      });
+      restorePreviousResultsValue = false;
       const ctx = makeContext();
 
       await run(
@@ -225,7 +228,7 @@ describe('ApexTestTreeService', () => {
         })
       );
 
-      expect(bodyEntries).toBe(1);
+      expect(bodyEntries()).toBe(1);
     });
   });
 
@@ -239,8 +242,7 @@ describe('ApexTestTreeService', () => {
     const u3 = fakeUri('/r/test-result-3.json');
 
     it('surfaces the offending URI and preserves oldest-first ordering', async () => {
-      const settings = jest.requireMock('../../../src/settings');
-      settings.retrieveRestorePreviousResults.mockReturnValue(true);
+      restorePreviousResultsValue = true;
       mockGetTestResultsFolder.mockReturnValue(Effect.succeed(fakeUri('/r')));
 
       // Recent mtimes (within RESULT_MAX_AGE_MS of now), increasing so oldest-first apply order is u1,u2,u3.
@@ -255,7 +257,9 @@ describe('ApexTestTreeService', () => {
         stat: (uri: URI) => Effect.succeed({ mtime: mtimes.get(uri.path)! })
       };
       const ExtProviderWithFs = Layer.succeed(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: { FsService: fsService } })
+        getServicesApi: Effect.succeed({
+          services: { FsService: fsService, SettingsService: Effect.succeed(mockSettingsService) }
+        })
       } as unknown as ExtensionProviderService);
       // ExtProviderWithFs both satisfies ApexTestTreeService.Default and stays in the ambient env (the
       // restore body yields ExtensionProviderService at call time in the caller's context).

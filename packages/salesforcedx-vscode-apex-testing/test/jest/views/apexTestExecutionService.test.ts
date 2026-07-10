@@ -12,13 +12,6 @@ jest.mock('../../../src/services/extensionProvider', () => ({
   setAllServicesLayer: jest.fn()
 }));
 
-jest.mock('../../../src/settings', () => ({
-  retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
-  retrieveTestRunConcise: jest.fn().mockReturnValue(false),
-  retrieveOutputFormat: jest.fn().mockReturnValue('text'),
-  retrieveTestSortOrder: jest.fn().mockReturnValue('runtime')
-}));
-
 // Keep result processing + report generation out of scope; assert orchestration only.
 const mockUpdateTestRunResults = jest.fn();
 jest.mock('../../../src/utils/testResultProcessor', () => ({
@@ -63,10 +56,22 @@ import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 
 const appendToChannel = jest.fn(() => Effect.void);
 const readFile = jest.fn((_uri: URI) => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
+// Mirror the prior settings-mock defaults through the SettingsService accessor.
+const settingsValues: Record<string, unknown> = {
+  'retrieve-test-code-coverage': false,
+  'test-run-concise': false,
+  outputFormat: 'text',
+  testSortOrder: 'runtime'
+};
 const mockApi = {
   services: {
     ChannelService: Effect.succeed({ appendToChannel }),
-    FsService: { readFile: (uri: URI) => readFile(uri) }
+    FsService: { readFile: (uri: URI) => readFile(uri) },
+    // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
+    SettingsService: Effect.succeed({
+      getValue: (_section: string, key: string, defaultValue: unknown) =>
+        Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue)
+    })
   }
 };
 const ExtProviderLayer = Layer.succeed(ExtensionProviderService, {

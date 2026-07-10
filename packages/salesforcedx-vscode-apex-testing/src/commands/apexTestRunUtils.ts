@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
-import * as settings from '../settings';
+import { APEX_TESTING_SECTION } from '../constants';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
 
@@ -77,8 +77,12 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
   yield* appendTestOutput(result, options.codeCoverage, options.concise);
 
   // Generate and open test report
-  const outputFormat = settings.retrieveOutputFormat();
-  const sortOrder = settings.retrieveTestSortOrder();
+  const settings = yield* api.services.SettingsService;
+  const outputFormat =
+    (yield* settings.getValue<'markdown' | 'text'>(APEX_TESTING_SECTION, 'outputFormat', 'markdown')) ?? 'markdown';
+  const sortOrder =
+    (yield* settings.getValue<'runtime' | 'coverage' | 'severity'>(APEX_TESTING_SECTION, 'testSortOrder', 'runtime')) ??
+    'runtime';
   yield* writeAndOpenTestReport(result, options.outputDir, outputFormat, options.codeCoverage, sortOrder).pipe(
     Effect.catchAll(error => Effect.logError(`Failed to generate test report: ${String(error)}`))
   );

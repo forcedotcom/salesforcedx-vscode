@@ -13,8 +13,8 @@ import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
+import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
-import * as settings from '../settings';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
 import { notificationService } from '../utils/notificationHelpers';
@@ -43,7 +43,10 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
   // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
-  const codeCoverage = settings.retrieveTestCodeCoverage();
+  const settings = yield* api.services.SettingsService;
+  const codeCoverage =
+    (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
+  const concise = (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)) ?? false;
 
   const { payload, outputDir } = yield* Effect.all(
     {
@@ -70,7 +73,7 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
     payload,
     outputDir,
     codeCoverage,
-    concise: settings.retrieveTestRunConcise(),
+    concise,
     telemetryTrigger: 'codeAction'
   }).pipe(
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),

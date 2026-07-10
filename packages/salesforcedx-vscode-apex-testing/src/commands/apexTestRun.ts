@@ -10,8 +10,8 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { window } from 'vscode';
+import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
-import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
@@ -103,10 +103,17 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
   // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
+  const settings = yield* api.services.SettingsService;
+  const codeCoverage =
+    (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
+  const concise = (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)) ?? false;
+
   const { payload, outputDir } = yield* Effect.all(
     {
       payload: api.services.ConnectionService.getConnection().pipe(
-        Effect.flatMap(connection => Effect.promise(() => buildTestPayload(new TestService(connection), selection)))
+        Effect.flatMap(connection =>
+          Effect.promise(() => buildTestPayload(new TestService(connection), selection, codeCoverage))
+        )
       ),
       outputDir: getTestResultsFolder()
     },
@@ -120,8 +127,8 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
   return yield* runApexTests({
     payload,
     outputDir,
-    codeCoverage: settings.retrieveTestCodeCoverage(),
-    concise: settings.retrieveTestRunConcise(),
+    codeCoverage,
+    concise,
     telemetryTrigger: 'quickPick'
   }).pipe(
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
@@ -141,7 +148,8 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
 
 const buildTestPayload = async (
   testService: TestService,
-  data: ApexTestQuickPickItem
+  data: ApexTestQuickPickItem,
+  codeCoverage: boolean
 ): Promise<AsyncTestConfiguration> => {
   const testLevel = TestLevel.RunSpecifiedTests;
   switch (data.type) {
@@ -152,17 +160,10 @@ const buildTestPayload = async (
         data.fullClassName,
         undefined,
         undefined,
-        !settings.retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
+        !codeCoverage // the setting enables code coverage, so we need to pass false to disable it
       );
     case 'Suite':
-      return await testService.buildAsyncPayload(
-        testLevel,
-        undefined,
-        undefined,
-        data.label,
-        undefined,
-        !settings.retrieveTestCodeCoverage()
-      );
+      return await testService.buildAsyncPayload(testLevel, undefined, undefined, data.label, undefined, !codeCoverage);
     case 'AllLocal':
       return { testLevel: TestLevel.RunLocalTests };
     case 'All':

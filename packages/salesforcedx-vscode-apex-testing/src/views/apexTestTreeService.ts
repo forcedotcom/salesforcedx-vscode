@@ -17,10 +17,9 @@ import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
+import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { getDefaultOrgInfo } from '../coreExtensionUtils';
 import { nls } from '../messages';
-import * as settings from '../settings';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
@@ -441,11 +440,14 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     });
 
     const restoreResultsBody = Effect.fn('ApexTestTreeService.restoreResultsBody')(function* (ctx: DiscoveryContext) {
-      if (!settings.retrieveRestorePreviousResults()) {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const settings = yield* api.services.SettingsService;
+      const restorePrevious =
+        (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'restore-previous-results', true)) ?? true;
+      if (!restorePrevious) {
         return;
       }
 
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const resultDir = yield* getTestResultsFolder().pipe(
         // Pre-scan org-config failure: no result file to attribute, so uri is omitted (non-fatal).
         Effect.catchTag('NoDefaultOrgError', e => new RestoreResultsError({ message: e.message }))
@@ -558,7 +560,13 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         )
       );
       if (selection === disableAction) {
-        yield* Effect.promise(() => settings.disableRestorePreviousResults());
+        // Preserve legacy behavior: write to Workspace target (not Global).
+        yield* settings.setValue(
+          APEX_TESTING_SECTION,
+          'restore-previous-results',
+          false,
+          vscode.ConfigurationTarget.Workspace
+        );
       }
     });
 
