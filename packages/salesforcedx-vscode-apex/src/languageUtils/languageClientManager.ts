@@ -6,7 +6,6 @@
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
-import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -14,7 +13,7 @@ import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
 import * as languageServer from '../languageServer';
 import { nls } from '../messages';
-import { getRuntime } from '../services/runtime';
+import { fireSpan } from '../services/fireSpan';
 import { retrieveEnableSyncInitJobs } from '../settings';
 import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
 
@@ -146,19 +145,12 @@ export class LanguageClientManager {
     source: 'commandPalette' | 'statusBar',
     restartBehavior: string
   ): Promise<void> {
-    getRuntime().runFork(
-      Effect.void.pipe(
-        Effect.withSpan('apex.lsp.restart', {
-          attributes: {
-            restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
-            selectedOption: selectedOption.type,
-            source,
-            defaultOption: restartBehavior
-          },
-          root: true
-        })
-      )
-    );
+    fireSpan('apex.lsp.restart', {
+      restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
+      selectedOption: selectedOption.type,
+      source,
+      defaultOption: restartBehavior
+    });
   }
 
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
@@ -328,11 +320,7 @@ export class LanguageClientManager {
 
         await languageClient.start();
         const startTime = globalThis.performance.now() - langClientStartTime;
-        getRuntime().runFork(
-          Effect.void.pipe(
-            Effect.withSpan('apex.lsp.startup', { attributes: { activationTime: startTime }, root: true })
-          )
-        );
+        fireSpan('apex.lsp.startup', { activationTime: startTime });
         await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
         extensionContext.subscriptions.push(this.getClientInstance()!);
       } else {
