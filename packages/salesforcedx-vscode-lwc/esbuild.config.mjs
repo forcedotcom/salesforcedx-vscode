@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { effectEsmConditions } from '../../scripts/bundling/effect.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 import { build } from 'esbuild';
 import { writeFile } from 'fs/promises';
@@ -16,6 +17,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 // Node.js build (desktop VS Code)
 const nodeBuild = await build({
   ...nodeConfig,
+  ...effectEsmConditions,
   loader: { '.node': 'file' },
   external: [...nodeConfig.external, '@babel/preset-typescript/package.json', 'jest-editor-support', '@babel/core'],
   entryPoints: ['./src/index.ts'],
