@@ -42,6 +42,19 @@ the shipped version from that artifact (and exactly one dir per ID) before any s
   rejected: activation is lazy, so an un-activated in-scope extension is silently absent and
   a mismatch reads as pass. The on-disk `package.json` reflects what is *installed*,
   activation-independent.
+- **Unconditionally wipe all `salesforce.*` extensions, then install** (instead of clearing
+  in-scope dirs to win the precedence relink) — candidate, stronger reliability, not yet
+  adopted. The current swap rides two contracts the `code-builder-images` team owns: `start.sh`
+  re-links an override only when it is strictly-newer semver, and the workaround of clearing
+  the baked override + runtime symlink to make ours count as "new." Both break if that linking
+  rule changes or if an unreleased build carries an equal-or-lower version than what is baked
+  (a real case once pre-release builds are not version-bumped). Deleting every `salesforce.*`
+  dir from the runtime and override locations unconditionally — then installing ours as the only
+  copy present — removes the dependency on semver precedence entirely: with nothing to compare
+  against, ours is the only thing that can load. Tradeoff: it tests a clean install rather than an
+  upgrade-over-existing, and it must wipe by publisher glob rather than a hardcoded ID list so a
+  baked extension under an unlisted ID cannot survive. Tracked in the PR; adopt if the precedence
+  race proves fragile or once equal-version pre-release builds land.
 
 ## Consequences
 
@@ -54,6 +67,16 @@ the shipped version from that artifact (and exactly one dir per ID) before any s
 - The version gate is the safety net for runtime swap: if CB's directory layout or extension
   IDs change, the gate fails loud rather than testing stale code. Revisit build-time baking
   (a CB PR) only if runtime swap proves flaky.
+- The gate compares installed semver against the artifact's semver, not bytes. When the swapped
+  build shares a version with the baked one — an unreleased build not yet version-bumped — a
+  swap that silently no-ops would still pass the gate, since `67.4.0 == 67.4.0` holds against the
+  leftover baked copy. Closing this needs a content check (hash the VSIX bytes and assert the
+  installed dir matches) or a build stamp (a git SHA / build timestamp baked into the VSIX at
+  package time, gated on directly and surfaced in the provenance banner). The unconditional-wipe
+  option above is complementary: wipe proves *only ours can load*; a content/stamp check proves
+  *the bytes are the ones intended*. Official pre-release versions from `code-builder-images`
+  would satisfy the current semver gate, but by fixing the version contract rather than removing
+  the dependency on it — the wipe + content check hold regardless of how versioning evolves.
 - Pulling `:latest` (rolling) means a CB image change can shift the baseline; accepted as the
   honest "what's live now" signal over a pinned tag.
 - Running the container outside an MDE generates expected console noise from CB environment
