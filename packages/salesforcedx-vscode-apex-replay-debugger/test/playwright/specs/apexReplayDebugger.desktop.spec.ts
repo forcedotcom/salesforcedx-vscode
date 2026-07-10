@@ -160,6 +160,9 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     // New on every launch: source/log version-mismatch note printed to the Debug Console (REPL).
     // Debug Console output persists after the session ends, so this holds after continueDebugSession too.
+    // Asserted once here (not in the other two launch steps below): the print is unconditional in the
+    // launchRequest else branch, so one launch fully guards the code path. Because the console persists
+    // and is never cleared between steps, re-asserting later would match this step's line and add no signal.
     await waitForDebugConsoleText(page, {
       expectedText: 'ensure your workspace Apex source matches the version used when the log was generated',
       timeout: 30_000

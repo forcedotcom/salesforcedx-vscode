@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { isDesktop } from '../utils/helpers';
+import { isDesktop, normalizeNonBreakingSpaces } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
 import { openCommandPalette } from './commands';
@@ -28,9 +28,7 @@ const ensureOutputFilterReady = async (page: Page, timeout: number) => {
 /** Get all text content from the currently-visible Monaco lines, normalized */
 const getAllOutputText = async (page: Page): Promise<string> => {
   const codeArea = outputPanelCodeArea(page);
-  const text = await codeArea.textContent();
-  // Normalize non-breaking spaces (char 160) to regular spaces (char 32)
-  return (text ?? '').replaceAll('\u00A0', ' ');
+  return normalizeNonBreakingSpaces(await codeArea.textContent());
 };
 
 /** Wait for output channel to have content */

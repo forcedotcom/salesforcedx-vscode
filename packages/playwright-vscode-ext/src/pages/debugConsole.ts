@@ -6,9 +6,8 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { QUICK_INPUT_LIST_ROW } from '../utils/locators';
-import { activeQuickInputTextField, activeQuickInputWidget } from '../utils/quickInput';
-import { openCommandPalette } from './commands';
+import { normalizeNonBreakingSpaces } from '../utils/helpers';
+import { executeCommandWithCommandPalette } from './commands';
 
 // Debug Console (REPL) is a distinct panel from the Output channel (workbench.panel.output)
 const REPL_PANEL_ID = '[id="workbench.panel.repl"]';
@@ -23,26 +22,20 @@ export const ensureDebugConsoleOpen = async (page: Page): Promise<void> => {
     return;
   }
 
-  await openCommandPalette(page);
-  const widget = activeQuickInputWidget(page);
-  const input = activeQuickInputTextField(page);
-  await input.waitFor({ state: 'attached', timeout: 5000 });
-  await input.click({ force: true, timeout: 5000 });
-  await input.fill('>Debug Console: Focus on Debug Console View', { force: true });
-  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
-  await page.keyboard.press('Enter');
-
+  await executeCommandWithCommandPalette(page, 'Debug Console: Focus on Debug Console View');
   await expect(panel).toBeVisible({ timeout: 10_000 });
 };
 
-/** Get all visible Debug Console row text, normalized (non-breaking spaces -> regular spaces) */
-const getAllDebugConsoleText = async (page: Page): Promise<string> => {
-  const text = (await replRows(page).allTextContents()).join('\n');
-  // Normalize non-breaking spaces (char 160) to regular spaces (char 32)
-  return text.replaceAll('\u00A0', ' ');
-};
+/** Get all currently-rendered Debug Console row text, normalized (non-breaking spaces -> regular spaces) */
+const getAllDebugConsoleText = async (page: Page): Promise<string> =>
+  normalizeNonBreakingSpaces((await replRows(page).allTextContents()).join('\n'));
 
-/** Wait for the Debug Console (REPL) panel to contain specific text. Throws if not found within timeout. */
+/**
+ * Wait for the Debug Console (REPL) panel to contain specific text. Throws if not found within timeout.
+ * The REPL is a virtualized monaco-list, so only in-viewport rows exist in the DOM and the console
+ * auto-scrolls to the newest line. Sweep top->bottom (bounded) so earlier lines that scrolled out of
+ * the viewport are still found. Mirrors the sweep in waitForOutputChannelText.
+ */
 export const waitForDebugConsoleText = async (
   page: Page,
   opts: { expectedText: string; timeout?: number }
@@ -50,12 +43,26 @@ export const waitForDebugConsoleText = async (
   const { expectedText, timeout = 30_000 } = opts;
   await ensureDebugConsoleOpen(page);
 
+  // force: true — REPL toolbar/overlays can intercept pointer events on the list
+  await replRows(page)
+    .first()
+    .click({ force: true })
+    .catch(() => {});
+
+  const PAGE_STEPS = 30;
+
   await expect(async () => {
-    const combinedText = await getAllDebugConsoleText(page);
-    const sample = combinedText.slice(-400).trim().replaceAll('\n', ' -> ');
-    expect(
-      combinedText.includes(expectedText),
-      `Expected "${expectedText}" in Debug Console. Last visible content: ${sample || '(empty)'}`
-    ).toBe(true);
+    // Fast path: text may already be in the visible viewport
+    if ((await getAllDebugConsoleText(page)).includes(expectedText)) return;
+
+    // Sweep top -> bottom; exit as soon as text is found
+    await page.keyboard.press('Control+Home');
+    for (let i = 0; i < PAGE_STEPS; i++) {
+      if ((await getAllDebugConsoleText(page)).includes(expectedText)) return;
+      await page.keyboard.press('PageDown');
+    }
+
+    const sample = (await getAllDebugConsoleText(page)).slice(-400).trim().replaceAll('\n', ' -> ');
+    throw new Error(`Expected "${expectedText}" in Debug Console. Last visible content: ${sample || '(empty)'}`);
   }).toPass({ timeout });
 };

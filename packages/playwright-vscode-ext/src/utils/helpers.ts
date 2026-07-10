@@ -423,6 +423,10 @@ export const typingSpeed = 50; // ms
 /** Escape regex metacharacters in `s` so it can be embedded in a `RegExp`. */
 export const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+/** Normalize non-breaking spaces (char 160) to regular spaces (char 32). */
+export const normalizeNonBreakingSpaces = (text: string | null | undefined): string =>
+  (text ?? '').replaceAll('\u00A0', ' ');
+
 /** Returns true if running on desktop (Electron), regardless of platform */
 export const isDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1';
 
