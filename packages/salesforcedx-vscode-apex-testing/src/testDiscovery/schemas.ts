@@ -7,7 +7,6 @@
 /* eslint-disable jsdoc/check-indentation */
 
 import type { Package2Member } from '@salesforce/types/tooling';
-import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 
 const ToolingTestMethod = Schema.Struct({
@@ -17,25 +16,14 @@ const ToolingTestMethod = Schema.Struct({
 });
 
 /**
- * Wire `""` sentinel ⇄ domain `Option<string>`: decode `""` (or whitespace-only) → `Option.none()`, any
- * other string → `Option.some(s)`; encode back to the raw string (`none` → `""`). Lives at the parse
- * boundary so the domain type never carries an empty-string "missing" sentinel. Trimming keeps a
- * whitespace-only prefix collapsing to the default/local namespace, matching the prior `.trim()` guards.
- */
-const OptionFromEmptyString = Schema.transform(Schema.String, Schema.OptionFromSelf(Schema.String), {
-  strict: true,
-  decode: s => (s.trim() === '' ? Option.none() : Option.some(s)),
-  encode: Option.getOrElse(() => '')
-});
-
-/**
- * Normalized domain test class. `id` absent (some flow tests) = `Option.none`; `namespacePrefix` none =
- * default Apex namespace, `Option.some('FlowTesting[.Namespace]')` = flow test.
+ * Normalized domain test class. `OptionFromNonEmptyTrimmedString` maps the wire `""` sentinel ⇄
+ * `Option<string>` at the parse boundary. `id` absent (some flow tests) = `Option.none`; `namespacePrefix`
+ * none = default Apex namespace, `Option.some('FlowTesting[.Namespace]')` = flow test.
  */
 export const ToolingTestClass = Schema.Struct({
-  id: OptionFromEmptyString,
+  id: Schema.OptionFromNonEmptyTrimmedString,
   name: Schema.String,
-  namespacePrefix: OptionFromEmptyString,
+  namespacePrefix: Schema.OptionFromNonEmptyTrimmedString,
   testMethods: Schema.Array(ToolingTestMethod)
 });
 export type ToolingTestClass = Schema.Schema.Type<typeof ToolingTestClass>;
