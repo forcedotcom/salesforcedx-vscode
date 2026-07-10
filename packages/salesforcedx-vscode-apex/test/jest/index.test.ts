@@ -28,7 +28,8 @@ jest.mock('../../src/services/extensionProvider', () => ({
 }));
 
 jest.mock('../../src/services/runtime', () => ({
-  getRuntime: () => ({ runPromise: (eff: any) => require('effect/Effect').runPromise(eff) })
+  getRuntime: () => ({ runPromise: (eff: any) => require('effect/Effect').runPromise(eff) }),
+  disposeRuntime: () => Promise.resolve()
 }));
 
 import { URI } from 'vscode-uri';
