@@ -145,6 +145,7 @@
     "vscode:package:modern": "wireit",
     "vscode:package:legacy": "wireit",
     "run:web": "wireit",
+    "test:container:local": "ts-node scripts/codeBuilderLocalE2E.ts",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",

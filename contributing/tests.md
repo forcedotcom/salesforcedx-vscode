@@ -20,7 +20,7 @@ Instructions for running Playwright E2E tests locally are in [.claude/skills/pla
 Desktop E2E tests include two flavors:
 
 1. **VS Code Desktop** — `npm run test:desktop` in an extension package; Playwright drives a real VS Code instance downloaded via `@vscode/test-electron`, loading the freshly-built VSIX.
-2. **Code Builder container** — `npm run test:container` in the core package; Playwright drives a browser at the `code-server` runtime inside the Code Builder image, with extensions (built by an upstream run) downloaded and swapped in at runtime. See ADR [0022-code-builder-e2e-desktop-build-over-browser](../docs/adr/0022-code-builder-e2e-desktop-build-over-browser.md).
+2. **Code Builder container** — `npm run test:container:local`; stands up the real Code Builder image, swaps in the extensions under test, and drives a browser at the `code-server` runtime in one command. Builds VSIX from your working tree by default; pass `--run-id <buildAllRunId>` to test the exact CI artifact instead. See ADR [0022-code-builder-e2e-desktop-build-over-browser](../docs/adr/0022-code-builder-e2e-desktop-build-over-browser.md) and the playwright-e2e skill for prereqs and debugging.
 
 Both use the `@salesforce/playwright-vscode-ext` shared fixture/helper package and exercise the **desktop** extension build (Node extension host). See [.claude/skills/playwright-e2e/SKILL.md](../.claude/skills/playwright-e2e/SKILL.md) for local setup, running, and debugging.
 

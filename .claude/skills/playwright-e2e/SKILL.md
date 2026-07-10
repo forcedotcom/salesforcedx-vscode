@@ -41,7 +41,32 @@ Shared code (helpers, locators, configuration) for tests.
 - `createContainerTest()` — fixture for container tests; opens the browser pointing at the container URL.
 - See ADR [0022-code-builder-e2e-desktop-build-over-browser](../../docs/adr/0022-code-builder-e2e-desktop-build-over-browser.md) for design and runtime extension-swap strategy.
 - CI flow: [`.github/workflows/codeBuilderE2E.yml`](../../.github/workflows/codeBuilderE2E.yml) (manual/workflow_dispatch).
-- Run locally: `npm run test:container` (in salesforcedx-vscode-core). Requires a running container at `localhost:8123`.
+
+### Running Code Builder e2e locally
+
+One command stands up the container, swaps in your extensions, and runs the specs:
+
+```bash
+npm run test:container:local              # builds VSIX from your working tree, runs all container specs
+npm run test:container:local -- --grep "Config List"   # one spec
+npm run test:container:local -- --no-teardown          # leave the container up to poke at localhost:8123
+npm run test:container:local -- --run-id <buildAllRunId>  # test the exact CI artifact instead of a local build
+npm run test:container:local -- --debug   # headed + Playwright inspector
+```
+
+It wraps [`scripts/codeBuilderLocalE2E.ts`](../../scripts/codeBuilderLocalE2E.ts), the local twin of the CI workflow — same pull → swap → restart → version-gate → run pipeline, reusing the same `codeBuilderSwapExtensions.ts` / `codeBuilderVerifyExtensions.ts` the workflow calls.
+
+**Default is build-from-working-tree**, so you iterate on extension code and re-run to test your live edits. Use `--run-id` only to reproduce a specific CI failure against the shipping bytes.
+
+**Prereqs:**
+
+- Docker running.
+- `sf` logged in to a dev hub (the script reuses `minimalTestOrg` if present, else creates it).
+- `gh` logged in (`gh auth login`). The CB image is a **private** ghcr package, so a local pull needs a token — but you don't hand-manage a PAT: the script pulls with your `gh` credential. The one requirement is the `read:packages` scope, which the default `gh` token lacks; the script adds it for you the first time (`gh auth refresh --scopes read:packages`, a one-time browser flow). forcedotcom enforces SAML SSO, so that gh credential must be authorized for the org — normally already true from `gh auth login`; if the pull 403s, re-run `gh auth login` and complete the SSO prompt. A classic PAT (`read:packages`, SSO-authorized) still works if you'd rather: export it as `CR_PAT` and the script uses it instead.
+
+**Debugging a failure:** run with `--no-teardown`, then open `http://localhost:8123` in a browser to drive the same workbench the test sees. Container logs: `docker logs codebuilder-e2e-local`. Playwright HTML report: `packages/salesforcedx-vscode-core/playwright-report/index.html`. The version gate fails loud if the swapped extensions don't match the built versions — that means the swap didn't take, not a test bug.
+
+Note the container runs the **full** installed extension set and outside an MDE, so expect benign console/network noise (unmounted `/projects` marker, Agentforce MCP failures, code-server `vsda` 404) — these are allow-listed in `nonCriticalErrorPatterns` / `nonCriticalNetworkPatterns`, not test failures.
 
 ## Span files (when debugging traces)
 
