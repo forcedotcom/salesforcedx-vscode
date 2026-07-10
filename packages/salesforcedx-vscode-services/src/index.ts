@@ -8,6 +8,7 @@ import type { Resource } from '@effect/opentelemetry';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
@@ -43,6 +44,7 @@ import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { globalLayers } from './servicesLayers';
+import { disposeServicesRuntime, setServicesRuntime } from './servicesRuntime';
 import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -335,6 +337,13 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // Build the layer with extensionScope - scoped services live until extension deactivates
   const builtContext = await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope));
 
+  // Publish a runtime over the built context for imperative VS Code boundaries (e.g. the O11y span
+  // exporter) that can't yield* into it directly — reuses these shared instances (one connection +
+  // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
+  // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
+  // fails fast until this is set, so it never blocks activation waiting on it.
+  setServicesRuntime(ManagedRuntime.make(Layer.succeedContext(builtContext)));
+
   await activationEffect(context).pipe(
     Effect.provide(builtContext),
     Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
@@ -401,6 +410,9 @@ export const deactivate = async (): Promise<void> => {
 };
 
 const deactivateEffect = Effect.gen(function* () {
+  // dispose the runtime (interrupting in-flight fibers) BEFORE closing the scope that owns the services
+  // those fibers touch, so nothing runs against a torn-down service.
+  yield* disposeServicesRuntime();
   yield* closeExtensionScope();
   yield* ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
