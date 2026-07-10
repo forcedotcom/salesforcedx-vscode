@@ -101,22 +101,30 @@ code-server opens that folder. The workflow currently sets `SFDX_COBU_PROJECTNAM
 `force-app`, no metadata. `SFDX_COBU_GITHUB_PROJECT_URL` is a dormant path (nothing sends it; the
 seeding block is untouched since 2023) — do not build on it.
 
-Specs that need real metadata to drive against (open a class, run a test, deploy) therefore have
-nothing seeded today. Two ways to get there, mirroring the desktop side:
+Specs that need real metadata to drive against (open a class, run a test, deploy) therefore cannot
+rely on the generated project. The harness seeds by **volume-mounting a fixture project** rather
+than creating metadata mid-spec: a version-controlled SFDX project lives at
+`packages/salesforcedx-vscode-core/test/playwright/fixtures/container-workspace/` (`sfdx-project.json`
+plus `force-app` metadata — start with one Apex class and its test, grow it as specs need), the
+`docker run` bind-mounts it to `/home/codebuilder/fixture-project`, and `codeBuilderSeedWorkspace.ts`
+writes `coder.json` via `docker exec` to point code-server there. It runs after the workbench is up
+and before the swap restart, so the host boots opening the fixture. This is deterministic, in-repo,
+and editable alongside the tests.
 
-- **Create metadata mid-spec via extension commands** — reuse `createApexClass` /
-  `createAndDeployApexTestClass` from `playwright-vscode-ext` against the bare project. No image
-  involvement, but slower and it exercises the create-command path rather than a fixed starting
-  state.
-- **Volume-mount a fixture project (candidate, not yet built)** — keep a version-controlled SFDX
-  project under `test/playwright/fixtures/` (with `sfdx-project.json` and prepopulated `force-app`
-  metadata), `docker run -v <fixture>:<path-in-container>`, then point code-server at it by writing
-  `coder.json` ourselves via `docker exec` (the same lever already used to disable workspace trust
-  and swap extensions). Deterministic and in-repo. Deliberately does **not** reuse the `SFDX_COBU_*`
-  env path or the GitHub-clone branch: those run only on first boot behind the `.codebuilder` gate
-  and live in image code the CB team owns and can change, whereas a mount is applied by Docker at
-  `run` time, survives restart, and depends on nothing inside the image except the `coder.json`
-  folder query. Same decoupling principle as the extension-swap options above — do not rely on
-  contracts the `code-builder-images` team can move under us. Load-bearing detail for whoever
-  implements this: changing the opened folder means the disable-workspace-trust step and the
-  workbench-ready wait must target the new path, or extensions open untrusted and never activate.
+It deliberately does **not** reuse the `SFDX_COBU_*` env path or the GitHub-clone branch: those run
+only on first boot behind the `.codebuilder` gate and live in image code the CB team owns and can
+change, whereas a mount is applied by Docker at `run` time, survives restart, and depends on nothing
+inside the image except the `coder.json` folder query. Same decoupling principle as the
+extension-swap options above — do not rely on contracts the `code-builder-images` team can move under
+us. The mount targets `/home/codebuilder/fixture-project`, **not** the `SFDX_COBU_PROJECTNAME` path
+(`/home/codebuilder/e2e-project`): mounting over that path would collide with `sfdx project generate
+--output-dir /home/codebuilder`, which aborts on a non-empty target dir under `set -eo pipefail`.
+
+Load-bearing detail for anyone changing which folder opens: the disable-workspace-trust step and the
+workbench-ready wait must stay consistent with it. The trust setting is workspace-agnostic
+(`security.workspace.trust.enabled = false`), so it already covers the mount; a per-folder trust
+mechanism would not.
+
+Creating metadata mid-spec via `createApexClass` / `createAndDeployApexTestClass` (as desktop specs
+do) stays available for specs that specifically want to exercise the create path, but the mounted
+fixture is the default because it tests a fixed starting state without image involvement.

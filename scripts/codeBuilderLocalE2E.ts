@@ -42,6 +42,22 @@ const CODE_BUILDER_URL = 'http://localhost:8123';
 const ARTIFACT_NAME = 'VS Code Extensions';
 
 /*
+ * Checked-in fixture project bind-mounted into the container so specs open a workspace with real
+ * metadata. Mount path must match FIXTURE_MOUNT_PATH in codeBuilderSeedWorkspace.ts (and the -v in
+ * the workflow); the seed script writes coder.json to point code-server at it.
+ */
+const FIXTURE_HOST_DIR = join(
+  REPO_ROOT,
+  'packages',
+  'salesforcedx-vscode-core',
+  'test',
+  'playwright',
+  'fixtures',
+  'container-workspace'
+);
+const FIXTURE_MOUNT_PATH = '/home/codebuilder/fixture-project';
+
+/*
  * ghcr pull auth: a dedicated read:packages-only PAT for the SVC_IDEE bot lives in 1Password (vault
  * "Platform Dev Tools Team", Secure Note SVC_IDE_BOT_GHCR_READ_TOKEN — token in the notesPlain field).
  * op read resolves it at runtime so the token never lands in the repo. --account pins the Salesforce
@@ -365,10 +381,10 @@ run('docker', [
   `SF_ACCESS_TOKEN=${accessToken}`,
   '-e',
   `INSTANCE_URL=${instanceUrl}`,
-  '-e',
-  'SFDX_COBU_PROJECTNAME=e2e-project',
-  '-e',
-  'SFDX_COBU_TEMPLATE=standard',
+  // Bind-mount the fixture project; codeBuilderSeedWorkspace.ts points code-server at it. No
+  // SFDX_COBU_PROJECTNAME — that generate path would collide with the mount and only runs first boot.
+  '-v',
+  `${FIXTURE_HOST_DIR}:${FIXTURE_MOUNT_PATH}`,
   '-p',
   '8123:58080',
   image
@@ -420,6 +436,9 @@ run('docker', [
   chown codebuilder:codebuilder "$f"
 `
 ]);
+
+log('Seeding workspace (point code-server at the mounted fixture)');
+run('ts-node', [join(SCRIPT_DIR, 'codeBuilderSeedWorkspace.ts'), CONTAINER_NAME], { cwd: REPO_ROOT });
 
 log('Swapping in built extensions');
 run('ts-node', [join(SCRIPT_DIR, 'codeBuilderSwapExtensions.ts'), CONTAINER_NAME, vsixDir], { cwd: REPO_ROOT });
