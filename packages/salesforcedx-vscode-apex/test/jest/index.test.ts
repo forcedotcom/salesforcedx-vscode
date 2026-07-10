@@ -7,13 +7,11 @@
 import * as vscode from 'vscode';
 
 // Mock vscode.extensions.getExtension before any imports that trigger src/index.ts
-const mockWorkspaceContext = { initialize: jest.fn() };
 const mockTelemetryService = {
   initializeService: jest.fn(),
   sendExtensionDeactivationEvent: jest.fn()
 };
 const mockCoreExports = {
-  WorkspaceContext: { getInstance: () => mockWorkspaceContext },
   services: { TelemetryService: { getInstance: () => mockTelemetryService } }
 };
 const mockExtension = { exports: mockCoreExports, isActive: true };
