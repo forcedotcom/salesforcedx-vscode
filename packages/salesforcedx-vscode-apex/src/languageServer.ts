@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as Scope from 'effect/Scope';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
@@ -44,7 +45,6 @@ import {
   retrieveGeneralPropAccessModifiers
 } from './settings';
 import { isApexLspTelemetryAllowed } from './telemetry/apexLspTelemetryAllowlist';
-import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 0;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
@@ -73,7 +73,6 @@ const startedInDebugMode = (): boolean => {
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 const createServer = async (extensionContext: vscode.ExtensionContext): Promise<Executable> => {
-  const telemetryService = getTelemetryService();
   try {
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
@@ -102,9 +101,11 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     if (jvmMaxHeap && typeof jvmMaxHeap === 'number') {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
-    telemetryService.sendEventData('apexLSPSettings', undefined, {
-      maxHeapSize: jvmMaxHeap ?? 0
-    });
+    getRuntime().runFork(
+      Effect.void.pipe(
+        Effect.withSpan('apex.lsp.settings', { attributes: { maxHeapSize: jvmMaxHeap ?? 0 }, root: true })
+      )
+    );
 
     if (DEBUG) {
       args.push(
@@ -131,7 +132,12 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     };
   } catch (err) {
     void vscode.window.showErrorMessage(err);
-    telemetryService.sendException(LSP_ERR, err.error);
+    getRuntime().runFork(
+      Effect.logError(LSP_ERR, err).pipe(
+        Effect.zipRight(Effect.annotateCurrentSpan('error', String(err?.error ?? err))),
+        Effect.withSpan(LSP_ERR, { root: true })
+      )
+    );
     throw err;
   }
 };
@@ -142,7 +148,6 @@ export const createLanguageServer = async (
   extensionContext: vscode.ExtensionContext,
   outputChannel?: vscode.OutputChannel
 ): Promise<ApexLanguageClient> => {
-  const telemetryService = getTelemetryService();
   const server = await createServer(extensionContext);
   const client = new ApexLanguageClient(
     'apex',
@@ -151,9 +156,21 @@ export const createLanguageServer = async (
     await buildClientOptions(outputChannel)
   );
 
+  // One long-lived ROOT span for the whole language-client session. `apexLSPLog` is high-volume
+  // (one per Jorje feature event); per ADR-0002 we write attrs onto this single span rather than
+  // emitting N top-level spans. `root: true` makes it export as top-level; extending the extension
+  // scope keeps it unended (so `attribute` keeps working) until closeExtensionScope() on
+  // deactivate/restart, at which point it ends and the exporter ships it.
+  const clientSpan = getRuntime().runSync(
+    getExtensionScope().pipe(
+      Effect.flatMap(scope => Effect.makeSpanScoped('apex.lsp.client', { root: true }).pipe(Scope.extend(scope)))
+    )
+  );
+
   client.onTelemetry((data: { properties?: Record<string, string>; measures?: Record<string, number> }) => {
     if (isApexLspTelemetryAllowed(data.properties)) {
-      telemetryService.sendEventData('apexLSPLog', data.properties, data.measures);
+      // Write directly to the held span (attrs last-write-wins); no fork, no annotateRootSpan.
+      Object.entries({ ...data.properties, ...data.measures }).forEach(([k, v]) => clientSpan.attribute(k, v));
     }
   });
 
