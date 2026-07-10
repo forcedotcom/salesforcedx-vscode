@@ -4,6 +4,7 @@
 .circular-deps.json
 .eslintcache
 **/*.map
+dist/*-metafile.json
 
 # ignore unused rxjs code
 node_modules/rxjs/src/**
