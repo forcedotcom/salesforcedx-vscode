@@ -793,15 +793,16 @@ HARD RULES:
 - Do NOT run any other queries. Zero records is valid — return {records: []}.
 - Do NOT modify the WHERE clause or transform fields.`
 
-// Numeric-sequencing gate: fetch every WI in the given epics so we can read their dotted
+// Numeric-sequencing gate: fetch every WI in ONE epic so we can read their dotted
 // Subject__c prefixes + Status. NO open-only filter — a satisfied prerequisite is Closed,
-// which an open-only WHERE would hide (skill ## Reading, step 1).
-const epicSiblingsQueryPrompt = epicIds =>
+// which an open-only WHERE would hide (skill ## Reading, step 1). Queried per-epic (not
+// batched across epics) — a single combined query capped at LIMIT 200 can fill entirely
+// from one large epic and silently return zero rows for another, making that epic's
+// unfinished siblings invisible to the gate.
+const epicSiblingsQueryPrompt = epicId =>
   `Run EXACTLY ONE SOQL query — the one below — and return its records.
 
-sf data query --query "SELECT Name, Subject__c, Status__c, Epic__c FROM ADM_Work__c WHERE Epic__c IN (${epicIds
-    .map(id => `'${id}'`)
-    .join(',')}) LIMIT 200" -o gus --result-format json
+sf data query --query "SELECT Name, Subject__c, Status__c, Epic__c FROM ADM_Work__c WHERE Epic__c = '${epicId}' LIMIT 200" -o gus --result-format json
 
 Return {records: <result.records, verbatim>}.
 
@@ -1383,24 +1384,30 @@ const pickCandidate = async (identity, inFlightWis) => {
   // same-first-segment siblings (1.1, 1.2) run in PARALLEL. So gate on the TOP segment only —
   // a candidate is blocked iff its epic still holds an UNFINISHED WI with a strictly-smaller
   // leading integer (done = Closed/Completed, reusing isBlockerSatisfied). Unnumbered
-  // candidates are always ready; candidates without an epic can't be sequenced. One batched
-  // query per the distinct epics in play, fetched WITHOUT an open-only filter so Closed
-  // prerequisites are visible.
+  // candidates are always ready; candidates without an epic can't be sequenced. One query PER
+  // distinct epic in play (not batched — a shared LIMIT 200 across epics can silently starve
+  // a large epic of its own rows), fetched WITHOUT an open-only filter so Closed prerequisites
+  // are visible.
   const seqCandidates = candidateList
     .map(c => ({ c, seq: parseSequence(c.subject) }))
     .filter(({ c, seq }) => seq && c.epicId)
   const seqEpicIds = [...new Set(seqCandidates.map(({ c }) => c.epicId))]
   if (seqEpicIds.length) {
-    const epicRaw = await agent(epicSiblingsQueryPrompt(seqEpicIds), {
-      schema: EPIC_WI_RECORDS_SCHEMA,
-      label: 'query-epic-siblings',
-      phase: 'Pick candidate',
-      model: 'haiku',
-    })
+    const epicRawByEpic = await parallel(
+      seqEpicIds.map(epicId => () =>
+        agent(epicSiblingsQueryPrompt(epicId), {
+          schema: EPIC_WI_RECORDS_SCHEMA,
+          label: `query-epic-siblings-${epicId}`,
+          phase: 'Pick candidate',
+          model: 'haiku',
+        })
+      )
+    )
+    const epicRecords = epicRawByEpic.filter(Boolean).flatMap(r => r.records || [])
     // Per epic: the smallest top-level integer among UNFINISHED numbered WIs. A candidate
     // whose own top segment exceeds that minimum is gated behind unfinished earlier work.
     // Unnumbered WIs neither gate nor are gated; done (Closed/Completed) WIs don't gate.
-    const minUnfinishedTopByEpic = (epicRaw.records || [])
+    const minUnfinishedTopByEpic = epicRecords
       .map(r => ({ epicId: r.Epic__c || '', top: topSegment(parseSequence(r.Subject__c)), status: r.Status__c || '' }))
       .filter(r => r.top !== null && !isBlockerSatisfied(r.status))
       .reduce((m, r) => {
