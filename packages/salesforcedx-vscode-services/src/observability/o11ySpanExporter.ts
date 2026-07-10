@@ -13,6 +13,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
+import { getServicesRuntime, isServicesRuntimeReady } from '../servicesRuntime';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
@@ -29,15 +30,19 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-// Build a PRIVATE ConnectionService here (Effect.provide(ConnectionService.Default)) rather than routing
-// through the shared services runtime. The shared runtime's context carries the tracing SDK layer whose
-// span processor IS this exporter, so a getConnection run on it emits spans that get exported, triggering
-// another getConnection → an unbounded self-feeding span loop that starves the single-threaded web worker
-// (VS Code reports the extension host as unresponsive, so no web extension registers its commands). The
-// private layer carries no tracer, so it cannot feed the loop; the module-level connectionCache is shared
-// across every ConnectionService instance regardless, so this does not fragment the connection cache.
+// Run through the shared services runtime (not Effect.provide(ConnectionService.Default), which would
+// build a private ConnectionService per call — separate connection/reauth caches, defeating dedup).
+// Fails fast with ServicesRuntimeNotReady if the runtime isn't published yet. Do NOT retry-until-ready:
+// on web the SDK layer is built inside the awaited fileSystemSetup (index.ts), before setServicesRuntime
+// runs, so a getConnection that blocks waiting on the runtime deadlocks activation. Early spans aren't
+// lost — shutdown() below skips the buffer-draining flush until the runtime exists, so they stay buffered
+// on the shared O11yService singleton and upload on the next autobatch tick once getConnection works.
 const getConnection = () =>
-  Effect.runPromise(ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default)));
+  Effect.runPromise(
+    getServicesRuntime().pipe(
+      Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(ConnectionService.getConnection())))
+    )
+  );
 
 /**
  * OpenTelemetry span exporter that sends spans to O11y using @salesforce/o11y-reporter.
@@ -146,6 +151,13 @@ export class O11ySpanExporter implements SpanExporter {
   }
 
   public shutdown(): Promise<void> {
-    return this.o11yService.forceFlush();
+    // forceFlush drains the shared o11y buffer AT READ TIME (getRawContentsOfCoreEnvelope →
+    // getAllMessages(true) empties it), then uploads. If the services runtime isn't published yet, the
+    // upload's getConnection fails and the drained spans are lost with no re-buffer. This shutdown fires
+    // on web when the SDK layer built inside the awaited fileSystemSetup (index.ts) closes its scope —
+    // strictly BEFORE setServicesRuntime runs. Skip the flush in that window: the spans stay buffered on
+    // the shared O11yService singleton and the post-activation autobatch timer uploads them once the
+    // runtime exists. Only force-flush when the runtime is ready (real deactivation / later scope closes).
+    return isServicesRuntimeReady() ? this.o11yService.forceFlush() : Promise.resolve();
   }
 }
