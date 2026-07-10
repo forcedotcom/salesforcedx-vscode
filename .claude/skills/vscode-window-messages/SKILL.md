@@ -39,6 +39,8 @@ await notificationService.showInformationMessage(nls.localize('retrieve_canceled
 
 All message strings and button labels must use `nls.localize()`. Enforced by `no-vscode-message-literals` ESLint rule.
 
+**Button labels should use `nls.localize()`** even for command titles. Importing `package.nls.json` directly strips locale context—only manifest `%key%` reads locale-specific JSON files. Use `nls.localize()` to preserve Japanese and other locales via `i18n.ja.ts`.
+
 ```typescript
 // CORRECT
 await vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
