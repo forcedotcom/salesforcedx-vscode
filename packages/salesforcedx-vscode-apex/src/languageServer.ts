@@ -224,16 +224,16 @@ const buildClientOptions = async (outputChannel?: vscode.OutputChannel): Promise
   return options;
 };
 
-const getNamespaceFromProject = Effect.fn('apex.provideCodeLenses.getNamespaceFromProject')(function* () {
+const getNamespaces = Effect.fn('apex.provideCodeLenses.getNamespaces')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const project = yield* api.services.ProjectService.getSfProject();
-  return project.getSfProjectJson().getContents().namespace;
-});
-
-const getNamespaceFromOrg = Effect.fn('apex.provideCodeLenses.getNamespaceFromOrg')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const conn = yield* api.services.ConnectionService.getConnection();
-  return conn.getAuthInfoFields().namespacePrefix ?? undefined;
+  const [conn, project] = yield* Effect.all(
+    [api.services.ConnectionService.getConnection(), api.services.ProjectService.getSfProject()],
+    { concurrency: 'unbounded' }
+  );
+  return {
+    nsFromOrg: conn.getAuthInfoFields().namespacePrefix ?? undefined,
+    nsFromProject: project.getSfProjectJson().getContents().namespace
+  };
 });
 
 const provideCodeLenses = async (
@@ -241,9 +241,8 @@ const provideCodeLenses = async (
   token: vscode.CancellationToken,
   next: ProvideCodeLensesSignature
 ) => {
-  const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
-    getRuntime().runPromise(getNamespaceFromOrg()),
-    getRuntime().runPromise(getNamespaceFromProject()),
+  const [{ nsFromOrg, nsFromProject }, lenses] = await Promise.all([
+    getRuntime().runPromise(getNamespaces()),
     next(document, token)
   ]);
   return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
