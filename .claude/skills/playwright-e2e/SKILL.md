@@ -39,7 +39,7 @@ Shared code (helpers, locators, configuration) for tests.
 
 - `createContainerConfig({ testDir: '…' })` — Playwright config factory for testing inside the Code Builder image at `http://localhost:8123` (code-server).
 - `createContainerTest()` — fixture for container tests; opens the browser pointing at the container URL.
-- See ADR [0022-code-builder-e2e-desktop-build-over-browser](../../docs/adr/0022-code-builder-e2e-desktop-build-over-browser.md) for design and runtime extension-swap strategy.
+- Workspace seeding: specs open a version-controlled fixture project (mount at `/home/codebuilder/fixture-project`), not the image's bare generated project. `codeBuilderSeedWorkspace.ts` writes `coder.json` via `docker exec` after workbench bootstrap. See ADR [0022-code-builder-e2e-desktop-build-over-browser](../../docs/adr/0022-code-builder-e2e-desktop-build-over-browser.md) for design + extension-swap strategy.
 - CI flow: [`.github/workflows/codeBuilderE2E.yml`](../../.github/workflows/codeBuilderE2E.yml) (manual/workflow_dispatch).
 
 ### Running Code Builder e2e locally
