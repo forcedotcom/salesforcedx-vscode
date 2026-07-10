@@ -168,11 +168,13 @@ export const createLanguageServer = async (
   // emitting N top-level spans. `root: true` makes it export as top-level. The span lives in a
   // per-client child scope: closing the prior child (below) ends/flushes the prior span on restart,
   // and closeExtensionScope() on deactivate closes the parent (transitively this child) at teardown.
-  const extScope = getRuntime().runSync(getExtensionScope());
-  if (clientScope) getRuntime().runSync(Scope.close(clientScope, Exit.void)); // end/flush prior client span on restart
-  clientScope = getRuntime().runSync(Scope.fork(extScope, ExecutionStrategy.sequential));
   const clientSpan = getRuntime().runSync(
-    Effect.makeSpanScoped('apex.lsp.client', { root: true }).pipe(Scope.extend(clientScope))
+    Effect.gen(function* () {
+      const extScope = yield* getExtensionScope();
+      if (clientScope) yield* Scope.close(clientScope, Exit.void); // end/flush prior client span on restart
+      clientScope = yield* Scope.fork(extScope, ExecutionStrategy.sequential);
+      return yield* Effect.makeSpanScoped('apex.lsp.client', { root: true }).pipe(Scope.extend(clientScope));
+    })
   );
 
   client.onTelemetry((data: { properties?: Record<string, string>; measures?: Record<string, number> }) => {

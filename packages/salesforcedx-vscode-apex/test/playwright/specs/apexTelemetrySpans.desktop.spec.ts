@@ -6,7 +6,13 @@
  */
 
 import { expect } from '@playwright/test';
-import { openFileByName, reloadWindow } from '@salesforce/playwright-vscode-ext';
+import {
+  openFileByName,
+  reloadWindow,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
+  validateNoCriticalErrors
+} from '@salesforce/playwright-vscode-ext';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -60,11 +66,18 @@ const waitForSpans = (file: string, predicate: (rows: SpanRow[]) => boolean, mes
 
 const byName = (rows: SpanRow[], name: string): SpanRow[] => rows.filter(r => r.name === name);
 
+// Two separate test() blocks (not one-test-with-steps) is intentional here: each scenario needs a
+// FRESH Electron session so its span jsonl file starts empty and the apex.lsp.client count assertion
+// (exactly-1 vs exactly-2-after-restart) is unambiguous. Sharing one session would carry the first
+// scenario's flushed client span into the second's count. See apexLspRestart.desktop.spec.ts for the
+// same multi-test-per-file precedent in this directory.
 test('apex LSP activation telemetry is emitted as Effect spans; client is one span not N', async ({
   page,
   workspaceDir
 }) => {
   test.setTimeout(360_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
   await openFileByName(page, 'ExampleClass.cls');
   await waitForApexLspReady(page, workspaceDir);
@@ -98,6 +111,8 @@ test('apex LSP activation telemetry is emitted as Effect spans; client is one sp
     'flushed apex.lsp.client span'
   );
   expect(byName(flushed, 'apex.lsp.client').length).toBe(1);
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('apex LSP restart emits a restart span AND still flushes exactly one client span per lifetime', async ({
@@ -105,6 +120,8 @@ test('apex LSP restart emits a restart span AND still flushes exactly one client
   workspaceDir
 }) => {
   test.setTimeout(360_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
   // First client lifetime.
   await openFileByName(page, 'ExampleClass.cls');
@@ -141,4 +158,6 @@ test('apex LSP restart emits a restart span AND still flushes exactly one client
     'both client-lifetime spans flushed'
   );
   expect(byName(flushed, 'apex.lsp.client').length).toBe(2);
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
