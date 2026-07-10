@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -16,12 +17,12 @@ export const getLineBreakpointInfo = async () => languageClientManager.getLineBr
 
 /** Fetch tests from the Language Server, emitting a top-level span with timing/count attrs. */
 const discoverFromLs = Effect.fn('apex.test.discovery', { root: true })(function* () {
-  const start = Date.now();
+  const start = yield* Clock.currentTimeMillis;
   const tests = yield* Effect.tryPromise({
     try: () => languageClientManager.getApexTests(),
     catch: (e: unknown) => e
   });
-  const durationMs = Date.now() - start;
+  const durationMs = (yield* Clock.currentTimeMillis) - start;
   yield* Effect.annotateCurrentSpan({ source: 'ls', ...buildMeasuresFromTests(tests, durationMs) });
   return { tests, durationMs };
 });

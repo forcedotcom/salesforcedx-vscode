@@ -25,8 +25,9 @@ import { test } from '../fixtures';
 import { triggerLspRestart, waitForApexLspReady } from '../utils/apexLspUtils';
 
 // Spans are written as JSONL to ~/.sf/vscode-spans (enableFileTraces is on by default in desktop e2e).
-// The dir is shared across runs, so each assertion targets a specific jsonl file (one per Electron
-// session) captured during the test — never a blind "newest across the dir".
+// The dir is shared across runs. newestSpanFile() picks the lexically-newest jsonl in the dir; each
+// test captures that once (after waitForApexLspReady, which comfortably exceeds the BatchSpanProcessor
+// flush delay so the current session's file exists) and then targets that single file for all asserts.
 const SPANS_DIR = path.join(os.homedir(), '.sf', 'vscode-spans');
 
 type SpanRow = { kind?: string; name?: string; attributes?: Record<string, unknown> };
@@ -79,38 +80,44 @@ test('apex LSP activation telemetry is emitted as Effect spans; client is one sp
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await openFileByName(page, 'ExampleClass.cls');
-  await waitForApexLspReady(page, workspaceDir);
+  const sessionFile = await test.step('open .cls and wait for LSP ready', async () => {
+    await openFileByName(page, 'ExampleClass.cls');
+    await waitForApexLspReady(page, workspaceDir);
+    const file = await newestSpanFile();
+    expect(file, 'a span jsonl file should exist after activation').toBeDefined();
+    return file;
+  });
 
-  const sessionFile = await newestSpanFile();
-  expect(sessionFile, 'a span jsonl file should exist after activation').toBeDefined();
+  await test.step('apex.lsp.settings span emitted on activation with maxHeapSize', async () => {
+    await waitForSpans(
+      sessionFile!,
+      rows => byName(rows, 'apex.lsp.settings').some(s => s.attributes?.maxHeapSize !== undefined),
+      'apex.lsp.settings span with maxHeapSize'
+    );
+  });
 
-  // 1. apex.lsp.settings span emitted on activation with maxHeapSize attribute.
-  await waitForSpans(
-    sessionFile!,
-    rows => byName(rows, 'apex.lsp.settings').some(s => s.attributes?.maxHeapSize !== undefined),
-    'apex.lsp.settings span with maxHeapSize'
-  );
+  await test.step('apex.lsp.startup span emitted on activation with activationTime', async () => {
+    await waitForSpans(
+      sessionFile!,
+      rows => byName(rows, 'apex.lsp.startup').some(s => s.attributes?.activationTime !== undefined),
+      'apex.lsp.startup span with activationTime'
+    );
+  });
 
-  // 2. apex.lsp.startup span emitted on activation with activationTime attribute.
-  await waitForSpans(
-    sessionFile!,
-    rows => byName(rows, 'apex.lsp.startup').some(s => s.attributes?.activationTime !== undefined),
-    'apex.lsp.startup span with activationTime'
-  );
+  await test.step('reload flushes exactly one apex.lsp.client span', async () => {
+    // Reload the window: VS Code deactivates the extension → deactivate() closes the extension scope →
+    // the long-lived apex.lsp.client span ends and the file exporter flushes it into this session's jsonl.
+    await reloadWindow(page);
 
-  // Reload the window: VS Code deactivates the extension → deactivate() closes the extension scope →
-  // the long-lived apex.lsp.client span ends and the file exporter flushes it into this session's jsonl.
-  await reloadWindow(page);
-
-  // 3. ADR central decision: this one client session produced exactly ONE apex.lsp.client span
-  //    (attrs merged onto the held span, last-write-wins), NOT one span per Jorje apexLSPLog event.
-  const flushed = await waitForSpans(
-    sessionFile!,
-    rows => byName(rows, 'apex.lsp.client').length > 0,
-    'flushed apex.lsp.client span'
-  );
-  expect(byName(flushed, 'apex.lsp.client').length).toBe(1);
+    // ADR central decision: this one client session produced exactly ONE apex.lsp.client span
+    // (attrs merged onto the held span, last-write-wins), NOT one span per Jorje apexLSPLog event.
+    const flushed = await waitForSpans(
+      sessionFile!,
+      rows => byName(rows, 'apex.lsp.client').length > 0,
+      'flushed apex.lsp.client span'
+    );
+    expect(byName(flushed, 'apex.lsp.client').length).toBe(1);
+  });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
@@ -123,41 +130,46 @@ test('apex LSP restart emits a restart span AND still flushes exactly one client
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  // First client lifetime.
-  await openFileByName(page, 'ExampleClass.cls');
-  await waitForApexLspReady(page, workspaceDir);
+  const sessionFile = await test.step('first client lifetime: open .cls and wait for LSP ready', async () => {
+    await openFileByName(page, 'ExampleClass.cls');
+    await waitForApexLspReady(page, workspaceDir);
+    const file = await newestSpanFile();
+    expect(file, 'a span jsonl file should exist after activation').toBeDefined();
+    return file;
+  });
 
-  const sessionFile = await newestSpanFile();
-  expect(sessionFile, 'a span jsonl file should exist after activation').toBeDefined();
+  await test.step('restart emits apex.lsp.restart span with restart attrs', async () => {
+    // Drive a second `createLanguageServer` (second client lifetime). This closes the prior client's
+    // child scope, which ends/flushes the first apex.lsp.client span into the session jsonl.
+    await triggerLspRestart(page, workspaceDir, { cleanDb: false, via: 'palette' });
 
-  // Drive a second `createLanguageServer` (second client lifetime). This closes the prior client's
-  // child scope, which ends/flushes the first apex.lsp.client span into the session jsonl.
-  await triggerLspRestart(page, workspaceDir, { cleanDb: false, via: 'palette' });
+    const rows = await waitForSpans(
+      sessionFile!,
+      r => byName(r, 'apex.lsp.restart').some(s => s.attributes?.selectedOption !== undefined),
+      'apex.lsp.restart span with restart attrs'
+    );
+    const restartSpan = byName(rows, 'apex.lsp.restart').find(s => s.attributes?.selectedOption !== undefined);
+    expect(restartSpan?.attributes?.source).toBeDefined();
+  });
 
-  const rows = await waitForSpans(
-    sessionFile!,
-    r => byName(r, 'apex.lsp.restart').some(s => s.attributes?.selectedOption !== undefined),
-    'apex.lsp.restart span with restart attrs'
-  );
-  const restartSpan = byName(rows, 'apex.lsp.restart').find(s => s.attributes?.selectedOption !== undefined);
-  expect(restartSpan?.attributes?.source).toBeDefined();
+  await test.step('second lifetime + reload flushes exactly two client spans', async () => {
+    // Generate more Jorje events against the restarted client, then reload → deactivate closes the
+    // parent scope, ending/flushing the second client lifetime's span.
+    await openFileByName(page, 'ExampleClass.cls');
+    await waitForApexLspReady(page, workspaceDir);
+    await reloadWindow(page);
 
-  // Generate more Jorje events against the restarted client, then reload → deactivate closes the
-  // parent scope, ending/flushing the second client lifetime's span.
-  await openFileByName(page, 'ExampleClass.cls');
-  await waitForApexLspReady(page, workspaceDir);
-  await reloadWindow(page);
-
-  // ADR central decision under restart: exactly ONE apex.lsp.client span per lifetime — NOT
-  // N-per-event and NOT accumulated-across-restarts. One restart ⇒ two lifetimes ⇒ two spans in
-  // this session's jsonl. If restart extended a single shared scope (the N-not-1 regression), the
-  // first lifetime's span would never end at restart and this count would be wrong.
-  const flushed = await waitForSpans(
-    sessionFile!,
-    r => byName(r, 'apex.lsp.client').length >= 2,
-    'both client-lifetime spans flushed'
-  );
-  expect(byName(flushed, 'apex.lsp.client').length).toBe(2);
+    // ADR central decision under restart: exactly ONE apex.lsp.client span per lifetime — NOT
+    // N-per-event and NOT accumulated-across-restarts. One restart ⇒ two lifetimes ⇒ two spans in
+    // this session's jsonl. If restart extended a single shared scope (the N-not-1 regression), the
+    // first lifetime's span would never end at restart and this count would be wrong.
+    const flushed = await waitForSpans(
+      sessionFile!,
+      r => byName(r, 'apex.lsp.client').length >= 2,
+      'both client-lifetime spans flushed'
+    );
+    expect(byName(flushed, 'apex.lsp.client').length).toBe(2);
+  });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
