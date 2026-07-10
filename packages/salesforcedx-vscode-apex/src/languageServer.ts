@@ -8,6 +8,8 @@
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as ExecutionStrategy from 'effect/ExecutionStrategy';
+import * as Exit from 'effect/Exit';
 import * as Scope from 'effect/Scope';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -144,6 +146,12 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
 
 const protocol2CodeConverter = (value: string) => URI.parse(value);
 
+// Per-client-lifetime child scope of the extension scope. `createLanguageServer` runs on first
+// activation AND every LSP restart, so we close the prior child scope before forking the next —
+// that ends/flushes the prior `apex.lsp.client` span at restart, keeping exactly ONE live client
+// span at a time (ADR-0002 invariant) instead of N unended spans accumulating until deactivate.
+let clientScope: Scope.CloseableScope | undefined;
+
 export const createLanguageServer = async (
   extensionContext: vscode.ExtensionContext,
   outputChannel?: vscode.OutputChannel
@@ -158,13 +166,14 @@ export const createLanguageServer = async (
 
   // One long-lived ROOT span for the whole language-client session. `apexLSPLog` is high-volume
   // (one per Jorje feature event); per ADR-0002 we write attrs onto this single span rather than
-  // emitting N top-level spans. `root: true` makes it export as top-level; extending the extension
-  // scope keeps it unended (so `attribute` keeps working) until closeExtensionScope() on
-  // deactivate/restart, at which point it ends and the exporter ships it.
+  // emitting N top-level spans. `root: true` makes it export as top-level. The span lives in a
+  // per-client child scope: closing the prior child (below) ends/flushes the prior span on restart,
+  // and closeExtensionScope() on deactivate closes the parent (transitively this child) at teardown.
+  const extScope = getRuntime().runSync(getExtensionScope());
+  if (clientScope) getRuntime().runSync(Scope.close(clientScope, Exit.void)); // end/flush prior client span on restart
+  clientScope = getRuntime().runSync(Scope.fork(extScope, ExecutionStrategy.sequential));
   const clientSpan = getRuntime().runSync(
-    getExtensionScope().pipe(
-      Effect.flatMap(scope => Effect.makeSpanScoped('apex.lsp.client', { root: true }).pipe(Scope.extend(scope)))
-    )
+    Effect.makeSpanScoped('apex.lsp.client', { root: true }).pipe(Scope.extend(clientScope))
   );
 
   client.onTelemetry((data: { properties?: Record<string, string>; measures?: Record<string, number> }) => {
