@@ -9,8 +9,16 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-/** A synthetic, already-expired scratch-org username. Underscore/at keeps it distinct from real orgs. */
-export const STALE_SCRATCH_ORG_USERNAME = 'stale-expired-e2e@example.com';
+/**
+ * A synthetic, already-expired scratch-org username. Underscore/at keeps it distinct from real orgs.
+ * Scoped per worker process (`TEST_WORKER_INDEX` + a random suffix) because it lands in the shared,
+ * global `~/.sfdx` auth dir — `createDesktopTest` isolates userDataDir/workspace but NOT `$HOME`, and
+ * the desktop config runs `fullyParallel`, so an unscoped fixed username would let one test's stale
+ * org be seen by a sibling worker's `listAllAuthorizations` and race its assertions.
+ */
+export const STALE_SCRATCH_ORG_USERNAME = `stale-expired-e2e-${process.env.TEST_WORKER_INDEX ?? '0'}-${Math.random()
+  .toString(36)
+  .slice(2)}@example.com`;
 
 /**
  * Write a synthetic scratch-org auth file (plaintext, `AuthInfo.create` reads it) into the CLI auth
