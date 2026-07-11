@@ -6,13 +6,12 @@
  */
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { isProductionTelemetryExportEnabled } from './spanUtils';
 
 /**
- * Wraps a real SpanExporter with a per-export telemetry gate. The gate is re-checked
+ * Wraps a real SpanExporter with a per-export gate. The `isEnabled` predicate is re-checked
  * on every export batch so toggling `telemetry.enabled` mid-session takes effect without
  * a reload. The delegate exporter is constructed lazily on the first enabled export and
- * cached, so a telemetry-disabled session never runs the delegate ctor (avoids Azure
+ * cached, so a disabled session never runs the delegate ctor (avoids Azure
  * Statsbeat / network setup that some exporter ctors trigger).
  */
 export class GatedSpanExporter implements SpanExporter {
@@ -20,11 +19,11 @@ export class GatedSpanExporter implements SpanExporter {
 
   constructor(
     private readonly make: () => SpanExporter,
-    private readonly o11yEndpoint?: string
+    private readonly isEnabled: () => boolean
   ) {}
 
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
-    if (!isProductionTelemetryExportEnabled(this.o11yEndpoint)) {
+    if (!this.isEnabled()) {
       resultCallback({ code: ExportResultCode.SUCCESS });
       return;
     }

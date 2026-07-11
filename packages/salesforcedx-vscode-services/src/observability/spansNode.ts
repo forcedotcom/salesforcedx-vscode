@@ -16,7 +16,7 @@ import { Global } from '@salesforce/core/global';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { join } from 'node:path';
-import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
+import { DEFAULT_AI_CONNECTION_STRING, isProductionTelemetryExportEnabled } from './appInsights';
 import { ApplicationInsightsNodeExporter } from './applicationInsightsNodeExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { makeLocalEnvelopeSender } from './localEnvelopeSender';
@@ -80,25 +80,29 @@ export const NodeSdkLayerFor = ({
       // (mid-session toggle) and lazily constructs the delegate on first enabled export so a
       // disabled session runs no delegate ctor (no Azure Statsbeat/network setup).
       new SpanTransformProcessor(
-        new GatedSpanExporter(() =>
-          enableCustomEventsFromSpans
-            ? // customEvents path (LogRecord-based); localIngestionEndpoint diverts to local server in dev/test
-              new ApplicationInsightsNodeExporter(effectiveConnectionString, localIngestionEndpoint)
-            : // dependencies path; localIngestionEndpoint diverts to local server in dev/test
-              new FilteredAzureMonitorTraceExporter(
-                {
-                  connectionString: effectiveConnectionString,
-                  storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
-                },
-                localIngestionEndpoint
-              )
+        new GatedSpanExporter(
+          () =>
+            enableCustomEventsFromSpans
+              ? // customEvents path (LogRecord-based); localIngestionEndpoint diverts to local server in dev/test
+                new ApplicationInsightsNodeExporter(effectiveConnectionString, localIngestionEndpoint)
+              : // dependencies path; localIngestionEndpoint diverts to local server in dev/test
+                new FilteredAzureMonitorTraceExporter(
+                  {
+                    connectionString: effectiveConnectionString,
+                    storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
+                  },
+                  localIngestionEndpoint
+                ),
+          () => isProductionTelemetryExportEnabled()
         ),
         enableCustomEventsFromSpans || localIngestionEndpoint
           ? undefined
           : {
               exportTimeoutMillis: 15_000,
               maxQueueSize: 1000
-            }
+            },
+        // skip per-span attribute enrichment when the gate is disabled (attrs would be discarded)
+        () => isProductionTelemetryExportEnabled()
       ),
       // O11y processor present whenever an endpoint is configured; the gate (localhost bypass +
       // telemetry setting) now lives in GatedSpanExporter and is re-checked per export.
@@ -107,8 +111,10 @@ export const NodeSdkLayerFor = ({
             new SpanTransformProcessor(
               new GatedSpanExporter(
                 () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId),
-                o11yEndpoint
-              )
+                () => isProductionTelemetryExportEnabled(o11yEndpoint)
+              ),
+              undefined,
+              () => isProductionTelemetryExportEnabled(o11yEndpoint)
             )
           ]
         : []),

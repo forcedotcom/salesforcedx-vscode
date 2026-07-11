@@ -7,18 +7,11 @@
 
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { workspace } from 'vscode';
 import { GatedSpanExporter } from '../../../src/observability/gatedSpanExporter';
 
-// isTelemetryExtensionConfigurationEnabled reads config.get; spy so tests are independent of the
-// default mock (resetMocks clears the shared spy between tests, so set it explicitly each time).
-const spyTelemetry = (enabled: boolean): void => {
-  jest.spyOn(workspace, 'getConfiguration').mockReturnValue({
-    get: () => enabled
-  } as unknown as ReturnType<typeof workspace.getConfiguration>);
-};
-const disableTelemetry = (): void => spyTelemetry(false);
-const enableTelemetry = (): void => spyTelemetry(true);
+// GatedSpanExporter is decoupled from telemetry config: the gate is an injected predicate.
+const enabled = (): boolean => true;
+const disabled = (): boolean => false;
 
 const spans = [{ name: 'span' } as unknown as ReadableSpan];
 
@@ -29,9 +22,8 @@ const makeFakeExporter = (): SpanExporter & { export: jest.Mock; shutdown: jest.
 
 describe('GatedSpanExporter', () => {
   it('disabled: returns SUCCESS and NEVER constructs the delegate (no Statsbeat/network setup)', () => {
-    disableTelemetry();
     const make = jest.fn(makeFakeExporter);
-    const exporter = new GatedSpanExporter(make);
+    const exporter = new GatedSpanExporter(make, disabled);
 
     const cb = jest.fn();
     exporter.export(spans, cb);
@@ -42,10 +34,9 @@ describe('GatedSpanExporter', () => {
   });
 
   it('enabled: constructs the delegate once, caches it, and forwards spans on each export', () => {
-    enableTelemetry();
     const fake = makeFakeExporter();
     const make = jest.fn(() => fake);
-    const exporter = new GatedSpanExporter(make);
+    const exporter = new GatedSpanExporter(make, enabled);
 
     exporter.export(spans, jest.fn());
     exporter.export(spans, jest.fn());
@@ -55,30 +46,33 @@ describe('GatedSpanExporter', () => {
     expect(fake.export.mock.calls[0][0]).toBe(spans);
   });
 
-  it('localhost o11yEndpoint bypasses a disabled setting: constructs delegate and forwards', () => {
-    disableTelemetry();
+  it('re-checks the gate per export: enabled then disabled stops forwarding without re-construct', () => {
     const fake = makeFakeExporter();
     const make = jest.fn(() => fake);
-    const exporter = new GatedSpanExporter(make, 'http://localhost:4318');
+    let on = true;
+    const exporter = new GatedSpanExporter(make, () => on);
 
     exporter.export(spans, jest.fn());
+    on = false;
+    const cb = jest.fn();
+    exporter.export(spans, cb);
 
     expect(make).toHaveBeenCalledTimes(1);
     expect(fake.export).toHaveBeenCalledTimes(1);
+    expect(cb).toHaveBeenCalledWith({ code: ExportResultCode.SUCCESS });
   });
 
   it('shutdown before any export resolves without constructing the delegate', async () => {
     const make = jest.fn(makeFakeExporter);
-    const exporter = new GatedSpanExporter(make);
+    const exporter = new GatedSpanExporter(make, enabled);
 
     await expect(exporter.shutdown()).resolves.toBeUndefined();
     expect(make).not.toHaveBeenCalled();
   });
 
   it('shutdown after an enabled export delegates to the constructed exporter', async () => {
-    enableTelemetry();
     const fake = makeFakeExporter();
-    const exporter = new GatedSpanExporter(() => fake);
+    const exporter = new GatedSpanExporter(() => fake, enabled);
 
     exporter.export(spans, jest.fn());
     await exporter.shutdown();
