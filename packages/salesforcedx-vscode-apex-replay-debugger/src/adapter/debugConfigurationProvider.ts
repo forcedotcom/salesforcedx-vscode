@@ -5,11 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
 import { nls } from '../messages';
+import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
+import { getRuntime } from '../services/runtime';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   private salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(
@@ -98,7 +103,35 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       }
     }
 
+    if (typeof config.logFileContents === 'string' && config.logFileContents.includes('|HEAP_DUMP|')) {
+      config.heapDumpResults = await this.resolveHeapDumpResults(config.logFileContents);
+    }
+
     return config;
+  }
+
+  /**
+   * Resolves the target-org connection and batch-fetches overlay results for every heap dump in the log.
+   * Non-fatal: an org-resolution/fetch failure attaches a single error marker so the adapter surfaces it,
+   * matching prior behavior where a failed fetch still launches the session.
+   */
+  private async resolveHeapDumpResults(logFileContents: string): Promise<HeapDumpResult[]> {
+    return getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const conn = yield* api.services.ConnectionService.getConnection();
+        return yield* fetchHeapDumpOverlayResults(conn, logFileContents);
+      }).pipe(
+        Effect.catchAll(error =>
+          Effect.succeed<HeapDumpResult[]>([
+            {
+              heapDumpId: '',
+              error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}`
+            }
+          ])
+        )
+      )
+    );
   }
 
   private async isLanguageClientReady(): Promise<void> {

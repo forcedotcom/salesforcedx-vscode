@@ -36,6 +36,7 @@
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "salesforcedx-vscode-apex-log": "*",
+    "salesforcedx-vscode-services": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
@@ -43,8 +44,7 @@
     "@salesforce/core": "^8.32.2",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-metadata": "*",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-metadata": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
