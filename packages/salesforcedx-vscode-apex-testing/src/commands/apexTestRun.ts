@@ -10,7 +10,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { window } from 'vscode';
-import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
@@ -18,7 +17,7 @@ import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
-import { runApexTests } from './apexTestRunUtils';
+import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
 
 /** Prompt the user to pick a test target (suite, class, or all). Fails with UserCancellationError on dismiss. */
 const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
@@ -96,28 +95,11 @@ export const apexTestRun = Effect.fn('apexTestRun')(function* () {
  * UserCancellationError rather than resolving to undefined.
  * Used by the run-tests command palette and the suite-run command. */
 export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const channelService = yield* api.services.ChannelService;
-  const executionName = nls.localize('apex_test_run_text');
-  // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
-  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
+  const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
-  const settings = yield* api.services.SettingsService;
-  const codeCoverage =
-    (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
-  const concise = (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)) ?? false;
-
-  const { payload, outputDir } = yield* Effect.all(
-    {
-      payload: api.services.ConnectionService.getConnection().pipe(
-        Effect.flatMap(connection =>
-          Effect.promise(() => buildTestPayload(new TestService(connection), selection, codeCoverage))
-        )
-      ),
-      outputDir: getTestResultsFolder()
-    },
-    { concurrency: 'unbounded' }
+  const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
+    (testService, cc) => buildTestPayload(testService, selection, cc),
+    getTestResultsFolder()
   );
 
   if (selection.type === 'Class' && selection.fullClassName) {

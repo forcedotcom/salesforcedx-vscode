@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
+import { ApexTestResultData, TestLevel, TestResult } from '@salesforce/apex-node';
 import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import { type NamedPackageDir } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
@@ -13,13 +13,12 @@ import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { runApexTests } from './apexTestRunUtils';
+import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
 class WorkspaceFolderError extends Schema.TaggedError<WorkspaceFolderError>()('WorkspaceFolderError', {
@@ -37,36 +36,19 @@ class NoCachedTestError extends Schema.TaggedError<NoCachedTestError>()('NoCache
 const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (tests: string[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ProjectService.getSfProject();
-  const promptService = yield* api.services.PromptService;
-  const channelService = yield* api.services.ChannelService;
-  const executionName = nls.localize('apex_test_run_text');
-  // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
-  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
+  const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
-  const settings = yield* api.services.SettingsService;
-  const codeCoverage =
-    (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
-  const concise = (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)) ?? false;
-
-  const { payload, outputDir } = yield* Effect.all(
-    {
-      payload: api.services.ConnectionService.getConnection().pipe(
-        Effect.flatMap(connection =>
-          Effect.promise(() =>
-            new TestService(connection).buildAsyncPayload(
-              TestLevel.RunSpecifiedTests,
-              tests.join(),
-              undefined,
-              undefined,
-              undefined,
-              !codeCoverage // the setting enables code coverage, so we need to pass false to disable it
-            )
-          )
-        )
+  const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
+    (testService, cc) =>
+      testService.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        tests.join(),
+        undefined,
+        undefined,
+        undefined,
+        !cc // the setting enables code coverage, so we need to pass false to disable it
       ),
-      outputDir: getTempFolder()
-    },
-    { concurrency: 'unbounded' }
+    getTempFolder()
   );
 
   const result = yield* runApexTests({

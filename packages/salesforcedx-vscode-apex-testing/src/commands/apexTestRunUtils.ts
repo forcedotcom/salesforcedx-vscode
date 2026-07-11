@@ -11,6 +11,7 @@ import * as Stream from 'effect/Stream';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
+import { nls } from '../messages';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
 
@@ -21,6 +22,47 @@ type ApexTestRunOptions = {
   concise: boolean;
   telemetryTrigger: 'quickPick' | 'codeAction' | 'testView';
 };
+
+/**
+ * Shared run-command context: the prompt/channel services plus the `Ended …` completion sentinel that
+ * the quick-pick + code-action commands both set up identically before running.
+ */
+export const getRunCommandContext = Effect.fn('getRunCommandContext')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const channelService = yield* api.services.ChannelService;
+  const executionName = nls.localize('apex_test_run_text');
+  // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
+  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
+  return { promptService, channelService, executionName, appendEnded };
+});
+
+/**
+ * Shared prelude for the quick-pick + code-action run commands: read the codeCoverage/concise settings,
+ * then resolve the payload (built from a fresh TestService on the cached connection) and outputDir
+ * concurrently. `buildPayload`/`outputDir` are the only bits that differ between the two callers.
+ */
+export const resolveRunInputs = <E, R>(
+  buildPayload: (testService: TestService, codeCoverage: boolean) => Promise<AsyncTestConfiguration>,
+  outputDir: Effect.Effect<URI, E, R>
+) =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const settings = yield* api.services.SettingsService;
+    const codeCoverage =
+      (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
+    const concise = (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)) ?? false;
+    const resolved = yield* Effect.all(
+      {
+        payload: api.services.ConnectionService.getConnection().pipe(
+          Effect.flatMap(connection => Effect.promise(() => buildPayload(new TestService(connection), codeCoverage)))
+        ),
+        outputDir
+      },
+      { concurrency: 'unbounded' }
+    );
+    return { codeCoverage, concise, payload: resolved.payload, outputDir: resolved.outputDir };
+  });
 
 /** Append human-formatted test output to the output channel */
 const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (

@@ -194,8 +194,8 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       testsToRun,
       runAllTestsInOrg
     }: ExecuteTestsParams) {
-      const connApi = yield* (yield* ExtensionProviderService).getServicesApi;
-      const connection = yield* connApi.services.ConnectionService.getConnection().pipe(
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* api.services.ConnectionService.getConnection().pipe(
         Effect.mapError(e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) }))
       );
       const testService = new TestService(connection);
@@ -246,8 +246,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       yield* Ref.set(lastProcessedResultFile, Option.some(Utils.joinPath(outputDir, writtenResultFilename)));
 
       // Generate and open the report (non-fatal: log + continue on failure).
-      const reportApi = yield* (yield* ExtensionProviderService).getServicesApi;
-      const reportSettings = yield* reportApi.services.SettingsService;
+      const reportSettings = yield* api.services.SettingsService;
       const outputFormat =
         (yield* reportSettings.getValue<'markdown' | 'text'>(APEX_TESTING_SECTION, 'outputFormat', 'markdown')) ??
         'markdown';
@@ -293,7 +292,6 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       }
       // Sentinel (run path only): e2e gates run completion on `Ended SFDX: Run Apex Tests`. Uses the
       // ambient 'Apex Testing' ChannelService (api.services), same channel the run-command files emit to.
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const channelService = yield* api.services.ChannelService;
       yield* channelService.appendToChannel(`Ended ${executionName}`);
     });
