@@ -162,11 +162,9 @@ export const updateTestRunResults = (params: {
         totalSkipped++;
         classResult.skipped++;
       }
-    } else {
-      // Test result doesn't match any known test item
-      // This can happen if the test was run as part of a suite but isn't in our tree
-      console.debug(`Test result for ${fullTestName} doesn't match any test item. Available items: ${testMap.size}`);
     }
+    // else: test result doesn't match any known test item (e.g. run as part of a suite but not in our
+    // tree). Nothing to update — previously a console.debug, dropped as pure debug noise.
   }
 
   // Helper to recursively update all class items under a suite

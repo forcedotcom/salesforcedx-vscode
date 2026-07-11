@@ -166,13 +166,6 @@ const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise
 
     // Get method locations from document symbols only
     const methodLocationMap = await getMethodLocationsFromSymbols(uri, Array.from(methodNames));
-    const symbolsFound = methodLocationMap?.size ?? 0;
-    const totalMethods = methodNames.size;
-
-    // Log only if document symbols failed completely
-    if (symbolsFound === 0 && totalMethods > 0) {
-      console.log(`[TEST LOCATION] ${className}: Document symbols failed - found 0 of ${totalMethods} methods`);
-    }
 
     // Use (0,0) as default for methods not found in document symbols
     const defaultLocation = new vscode.Location(
@@ -239,10 +232,9 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
       return index;
     }).pipe(
       Effect.withSpan('buildClassToUriIndex', { attributes: { classCount: classNames.length } }),
-      Effect.catchAll(error => {
-        console.error('[Apex Testing] Error building class to URI index:', error);
-        return Effect.succeed(new Map<string, URI>());
-      })
+      Effect.catchAll(error =>
+        Effect.logError('Error building class to URI index', { error }).pipe(Effect.as(new Map<string, URI>()))
+      )
     )
   );
 };

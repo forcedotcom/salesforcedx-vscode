@@ -343,7 +343,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     ) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const methodIds = new Set<string>();
-      const resultText = yield* api.services.FsService.readFile(testResultUri).pipe(Effect.catchAll(() => Effect.void));
+      const resultText = yield* api.services.FsService.readFile(testResultUri).pipe(
+        Effect.catchTag('FsServiceError', () => Effect.void)
+      );
       if (resultText === undefined) {
         return methodIds;
       }
@@ -371,7 +373,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       );
 
       const suites = yield* Effect.tryPromise(() => new TestService(connection).retrieveAllSuites()).pipe(
-        Effect.catchAll(e =>
+        Effect.catchTag('UnknownException', e =>
           Effect.logError('Error retrieving suites', { error: getMessageFromError(e) }).pipe(Effect.as([]))
         )
       );
@@ -710,13 +712,23 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       }
 
       yield* restoreResultsBody(ctx).pipe(
-        // Restore is non-fatal: any failure (RestoreResultsError, or a services/workspace lookup failure)
-        // leaves a valid empty tree, so recover all of them with a warning.
-        Effect.catchAll(e =>
-          Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)).pipe(
-            Effect.annotateLogs({ uri: e._tag === 'RestoreResultsError' ? e.uri : undefined })
-          )
-        ),
+        // Restore is non-fatal: any failure (RestoreResultsError, or a services/workspace/settings lookup
+        // failure) leaves a valid empty tree, so recover each tagged error with a warning. Only
+        // RestoreResultsError carries the offending result-file uri.
+        Effect.catchTags({
+          RestoreResultsError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)).pipe(
+              Effect.annotateLogs({ uri: e.uri })
+            ),
+          NoWorkspaceOpenError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
+          ServicesExtensionNotFoundError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
+          InvalidServicesApiError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
+          MissingSettingsError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e))
+        }),
         Effect.ensuring(Ref.set(isRestoringResults, false))
       );
     });
@@ -1094,6 +1106,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           yield* clearAllSuiteChildren();
         }
       }).pipe(
+        // Broad by design: the inner pipeline's error channel is a plain `Error` (discoverTests +
+        // resolvePackage2Members re-throw untagged), so there is no tagged union to switch on. Incremental
+        // update is a non-fatal optimization — any failure logs and leaves the existing tree valid.
         Effect.catchAll(error =>
           Effect.logWarning('Incremental test-tree update failed (non-fatal)', {
             message: toUserFriendlyApexTestError(error)
