@@ -406,5 +406,30 @@ describe('orgList command', () => {
         expect.stringContaining(nls.localize('org_list_display_error', 'List error'))
       );
     });
+
+    // A dev hub has no expirationDate, so @salesforce/core reports isExpired: 'unknown' (a truthy
+    // string). processOrgForDisplay must only skip DEFINITELY-expired orgs (=== true), otherwise the
+    // dev hub is dropped and its live connection status is never probed (regression: hub row missing).
+    it('should not skip a non-scratch org whose isExpired is "unknown"', async () => {
+      listAllAuthorizationsMock.mockReturnValue(
+        Effect.succeed([
+          { username: 'hub@example.com', aliases: ['hub'], isDevHub: false, isScratch: false, isExpired: 'unknown' }
+        ] as unknown as OrgAuthorization[])
+      );
+      // Non-scratch (no expirationDate) => determineConnectedStatusForNonScratchOrg runs the live probe.
+      mockGetAuthFieldsFor.mockReturnValue(Effect.succeed({}));
+      const mockConn = {
+        getAuthInfoFields: jest.fn().mockReturnValue({}),
+        refreshAuth: jest.fn().mockResolvedValue(undefined),
+        getUsername: jest.fn().mockReturnValue('hub@example.com')
+      };
+      getConnectionMock.mockReturnValue(Effect.succeed(mockConn));
+
+      await runWithServices(displayRemainingOrgs());
+
+      // The org was processed (not early-returned): its auth fields were fetched and the live probe ran.
+      expect(mockGetAuthFieldsFor).toHaveBeenCalledWith('hub@example.com');
+      expect(mockConn.refreshAuth).toHaveBeenCalled();
+    });
   });
 });

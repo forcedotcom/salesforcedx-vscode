@@ -445,7 +445,10 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
 /** Process a single org authorization into display data */
 const processOrgForDisplay = Effect.fn('OrgUtil.processOrgForDisplay')(
   function* (orgAuth: OrgAuthorization, defaultConfig: DefaultOrgConfig) {
-    if (orgAuth.isExpired) {
+    // isExpired is `boolean | 'unknown'`: non-scratch orgs (e.g. the dev hub) have no expirationDate
+    // so @salesforce/core reports 'unknown' (authInfo.js). A loose truthy check drops them (and thus
+    // never runs determineConnectedStatusForNonScratchOrg) — only skip orgs that are DEFINITELY expired.
+    if (orgAuth.isExpired === true) {
       return undefined;
     }
     const authFields = yield* getAuthFieldsFor(orgAuth.username);
