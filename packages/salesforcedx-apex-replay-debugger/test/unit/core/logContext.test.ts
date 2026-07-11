@@ -285,6 +285,62 @@ describe('LogContext', () => {
     expect(context.hasHeapDumpForTopFrame()).toBeUndefined();
   });
 
+  describe('setHeapDumpResults', () => {
+    const twoDumpLog = [
+      '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
+      '<TimeInfo>|HEAP_DUMP|[11]|id1|ClassName1|ns1|11',
+      '<TimeInfo>|HEAP_DUMP|[22]|id2|ClassName2|ns2|22'
+    ];
+
+    const makeSuccess = (id: string) =>
+      ({ Id: id }) as unknown as import('../../../src/commands').ApexExecutionOverlayResultCommandSuccess;
+
+    it('Should apply a success result onto the matching heap dump by id', () => {
+      readLogFileSpy.mockRestore();
+      readLogFileSpy = jest.spyOn(LogContextUtil.prototype, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
+      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context.scanLogForHeapDumpLines();
+
+      context.setHeapDumpResults([{ heapDumpId: 'id1', success: makeSuccess('id1') }]);
+
+      const [dump1, dump2] = context.getHeapDumps();
+      expect(dump1.getOverlaySuccessResult()?.Id).toBe('id1');
+      expect(dump2.getOverlaySuccessResult()).toBeUndefined();
+    });
+
+    it('Should apply results for every heap dump (multi-dump regression)', () => {
+      readLogFileSpy.mockRestore();
+      readLogFileSpy = jest.spyOn(LogContextUtil.prototype, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
+      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context.scanLogForHeapDumpLines();
+
+      context.setHeapDumpResults([
+        { heapDumpId: 'id1', success: makeSuccess('id1') },
+        { heapDumpId: 'id2', success: makeSuccess('id2') }
+      ]);
+
+      const [dump1, dump2] = context.getHeapDumps();
+      expect(dump1.getOverlaySuccessResult()?.Id).toBe('id1');
+      expect(dump2.getOverlaySuccessResult()?.Id).toBe('id2');
+    });
+
+    it('Should send an error entry to the debug console', () => {
+      readLogFileSpy.mockRestore();
+      readLogFileSpy = jest.spyOn(LogContextUtil.prototype, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
+      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      const errorToDebugConsoleSpy = jest
+        .spyOn(context.getSession(), 'errorToDebugConsole')
+        .mockImplementation(() => {});
+      context.scanLogForHeapDumpLines();
+
+      context.setHeapDumpResults([{ heapDumpId: 'id1', error: 'boom' }]);
+
+      expect(errorToDebugConsoleSpy).toHaveBeenCalledTimes(1);
+      expect(errorToDebugConsoleSpy).toHaveBeenCalledWith('boom');
+      expect(context.getHeapDumps()[0].getOverlaySuccessResult()).toBeUndefined();
+    });
+  });
+
   describe('Log event parser', () => {
     beforeEach(() => {
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
