@@ -114,13 +114,26 @@ describe('ConnectionService.getConnection (desktop)', () => {
     expect(getPropertyValueMock).not.toHaveBeenCalled();
   });
 
-  it('given a username, does NOT mutate the default-org ref', async () => {
-    connectionCreateMock.mockResolvedValue(makeConn('given@example.com'));
+  it('given a username, does NOT fork the default-org ref update', async () => {
+    // maybeUpdateDefaultOrgRef (the only forked ref-update path) reads conn.getAuthInfoFields();
+    // spying on it lets us assert the fork body never ran, deterministically (no setTimeout race).
+    const getAuthInfoFieldsSpy = jest.fn(() => ({
+      username: 'given@example.com',
+      orgId: '00Dxx',
+      tracksSource: false,
+      isScratch: false,
+      isSandbox: false
+    }));
+    connectionCreateMock.mockResolvedValue({
+      getUsername: () => 'given@example.com',
+      getAuthInfoFields: getAuthInfoFieldsSpy,
+      getFields: () => ({ username: 'given@example.com' }),
+      query: async () => ({ records: [], totalSize: 0 })
+    } as unknown as Connection);
 
     await run(ConnectionService.getConnection('given@example.com'));
-    // let any (erroneously) forked ref-update settle
-    await new Promise(resolve => setTimeout(resolve, 20));
 
+    expect(getAuthInfoFieldsSpy).not.toHaveBeenCalled();
     const orgInfo = await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.get(ref))));
     expect(orgInfo.orgId).toBeUndefined();
   });

@@ -205,15 +205,14 @@ export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.deter
           catch: cause => new OrgConnectionCheckError({ cause, username: conn.getUsername() ?? username })
         }).pipe(Effect.as('Connected'));
   },
-  // refreshAuth live-probe failure → status string (unchanged behavior)
-  Effect.catchTag('OrgConnectionCheckError', ({ cause, username }) =>
-    Effect.succeed(getConnectionStatusFromError(cause, username))
-  ),
-  // Keep each getConnection tag distinct to the boundary; every one carries its own message so the
-  // string-matcher still classifies (e.g. NamedOrgNotFound → "Invalid org: <username>"). No collapse.
+  // Every connection-status error (the refreshAuth live-probe failure + the getConnection tags) maps to
+  // a status string via getConnectionStatusFromError, which reads .message so a bad auth still classifies
+  // (e.g. NamedOrgNotFound → "Invalid org: <username>"). Enumerating the tags gives compile-time
+  // exhaustiveness over the error channel. OrgConnectionCheckError uses its own .cause/.username fields.
   (self, username: string) =>
     self.pipe(
       Effect.catchTags({
+        OrgConnectionCheckError: err => Effect.succeed(getConnectionStatusFromError(err.cause, err.username)),
         NoTargetOrgConfiguredError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         FailedToCreateConfigAggregatorError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         FailedToCreateAuthInfoError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
