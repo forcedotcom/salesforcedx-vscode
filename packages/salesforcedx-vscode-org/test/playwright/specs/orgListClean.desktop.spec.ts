@@ -7,17 +7,24 @@
 
 import { expect, type Page } from '@playwright/test';
 import {
+  clickModalDialogButton,
   closeWelcomeTabs,
   createMinimalOrg,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  removeStaleScratchOrgAuth,
+  selectOutputChannel,
   upsertScratchOrgAuthFieldsToSettings,
   verifyCommandExists,
   waitForNotification,
-  waitForVSCodeWorkbench
+  waitForOutputChannelText,
+  waitForVSCodeWorkbench,
+  writeStaleScratchOrgAuth
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 import { orgDesktopMinimalDefaultCustomDialogTest as test } from '../fixtures/desktopFixtures';
+
+const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 
 // Exercises sf.org.list.clean (orgListCleanCommand). The fixture seeds a non-expired scratch org
 // (MINIMAL_ORG_ALIAS) as default, so there is nothing expired/deleted to remove. The command must
@@ -53,3 +60,46 @@ const expectNoConfirmModal = async (page: Page): Promise<void> => {
     'a no-op clean must not prompt for confirmation'
   ).toHaveCount(0);
 };
+
+// Exercises the MIGRATED path: seeding a synthetic expired scratch org makes the removal set non-empty,
+// so after confirm+remove the command calls displayRemainingOrgs -> processOrgForDisplay ->
+// determineConnectedStatusForNonScratchOrg('hub') -> getConnection('hub') + conn.refreshAuth(). The
+// live `hub` dev hub (authed globally in orgE2E.yml) is a non-scratch, live org, so its remaining-orgs
+// row must show Status 'Connected' — proving the migrated getConnection(username)+refreshAuth probe ran
+// live end-to-end. (The minimalTestOrg scratch row hits the 'Active' branch and is NOT proof.)
+test('org list clean: removable org -> confirm, remove, remaining-orgs table shows hub Connected', async ({ page }) => {
+  test.setTimeout(180_000);
+
+  await test.step('setup scratch default org + synthetic expired org', async () => {
+    const createResult = await createMinimalOrg();
+    await writeStaleScratchOrgAuth();
+    await waitForVSCodeWorkbench(page);
+    await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  });
+
+  // Gate on an always-present activation command so we don't false-negative on slow startup.
+  await test.step('verify extension is activated', async () => {
+    await verifyCommandExists(page, packageNls.org_login_web_authorize_org_text, 60_000);
+  });
+
+  try {
+    await test.step('run command -> confirm removal of the expired org', async () => {
+      await executeCommandWithCommandPalette(page, packageNls.org_list_clean_text);
+      // Non-empty removal set: the confirm modal must appear; click its Remove button.
+      await clickModalDialogButton(page, 'Remove');
+    });
+
+    await test.step('remaining-orgs table shows hub with Status Connected', async () => {
+      await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
+      // The remaining-orgs table renders after removal. The hub row (a live non-scratch org) reaching
+      // 'Connected' proves determineConnectedStatusForNonScratchOrg('hub') ran getConnection + refreshAuth live.
+      await waitForOutputChannelText(page, { expectedText: 'Connected', timeout: 90_000 });
+      await waitForOutputChannelText(page, { expectedText: 'hub', timeout: 5000 });
+    });
+  } finally {
+    // The synthetic org is removed by the command on success, but clean up defensively in case of failure.
+    await removeStaleScratchOrgAuth();
+  }
+});

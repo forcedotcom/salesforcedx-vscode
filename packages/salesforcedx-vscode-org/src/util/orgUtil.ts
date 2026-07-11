@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo, AuthRemover, Org, OrgAuthorization, StateAggregator } from '@salesforce/core';
+import { AuthFields, AuthInfo, AuthRemover, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
@@ -37,7 +37,7 @@ export class GetAuthFieldsError extends Schema.TaggedError<GetAuthFieldsError>()
   username: Schema.String
 }) {}
 
-/** Raised when `Org.create`/`refreshAuth` rejects while checking a non-scratch org's connection (leaf Promise, caught in-fn). */
+/** Raised when `conn.refreshAuth()` live-probe rejects while checking a non-scratch org's connection (caught in-fn). */
 class OrgConnectionCheckError extends Schema.TaggedError<OrgConnectionCheckError>()('OrgConnectionCheckError', {
   cause: Schema.Unknown,
   username: Schema.String
@@ -194,22 +194,34 @@ export const shouldRemoveOrg = (err: any): boolean => {
 /** Check actual connection status by testing the connection */
 export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.determineConnectedStatusForNonScratchOrg')(
   function* (username: string) {
-    const org = yield* Effect.tryPromise({
-      try: () => Org.create({ aliasOrUsername: username }),
-      catch: cause => new OrgConnectionCheckError({ cause, username })
-    });
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const conn = yield* api.services.ConnectionService.getConnection(username);
 
-    // Skip connection testing for scratch orgs (they have DEV_HUB_USERNAME)
-    return org.getField(Org.Fields.DEV_HUB_USERNAME)
+    // Skip connection testing for scratch orgs (they have a devHubUsername)
+    return conn.getAuthInfoFields().devHubUsername
       ? undefined
       : yield* Effect.tryPromise({
-          try: () => org.refreshAuth(),
-          catch: cause => new OrgConnectionCheckError({ cause, username: org.getUsername() ?? username })
+          try: () => conn.refreshAuth(),
+          catch: cause => new OrgConnectionCheckError({ cause, username: conn.getUsername() ?? username })
         }).pipe(Effect.as('Connected'));
   },
+  // refreshAuth live-probe failure → status string (unchanged behavior)
   Effect.catchTag('OrgConnectionCheckError', ({ cause, username }) =>
     Effect.succeed(getConnectionStatusFromError(cause, username))
-  )
+  ),
+  // Keep each getConnection tag distinct to the boundary; every one carries its own message so the
+  // string-matcher still classifies (e.g. NamedOrgNotFound → "Invalid org: <username>"). No collapse.
+  (self, username: string) =>
+    self.pipe(
+      Effect.catchTags({
+        NoTargetOrgConfiguredError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        FailedToCreateConfigAggregatorError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        FailedToCreateAuthInfoError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        FailedToCreateConnectionError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        MissingSettingsError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        NoWorkspaceOpenError: err => Effect.succeed(getConnectionStatusFromError(err, username))
+      })
+    )
 );
 
 /** A removable org plus the channel line describing why it's removable. */
@@ -234,15 +246,14 @@ const classifyOrgForRemoval = Effect.fn('OrgUtil.classifyOrgForRemoval')(functio
   }
 
   return yield* getAuthFieldsFor(orgAuth.username).pipe(
-    Effect.map(
-      (authFields): RemovableOrg | undefined =>
-        // Scratch org whose expiration date has passed
-        authFields.expirationDate && new Date(authFields.expirationDate) < new Date()
-          ? {
-              username: orgAuth.username,
-              logLine: nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
-            }
-          : undefined
+    Effect.map((authFields): RemovableOrg | undefined =>
+      // Scratch org whose expiration date has passed
+      authFields.expirationDate && new Date(authFields.expirationDate) < new Date()
+        ? {
+            username: orgAuth.username,
+            logLine: nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
+          }
+        : undefined
     ),
     // If we can't get auth fields, the org might be deleted/invalid - mark it for removal
     Effect.catchTag('GetAuthFieldsError', error =>
@@ -444,7 +455,7 @@ const processOrgForDisplay = Effect.fn('OrgUtil.processOrgForDisplay')(
     const status = authFields.expirationDate
       ? 'Active' // For scratch orgs, we assume they're active if not expired
       : // For non-scratch orgs, test the actual connection
-        (yield* determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected';
+        ((yield* determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected');
     // Determine expiration date display
     return {
       '': determineOrgMarkers(orgAuth, defaultConfig),
@@ -507,17 +518,17 @@ export const displayRemainingOrgs = Effect.fn('OrgUtil.displayRemainingOrgs')(fu
     const defaultConfig = yield* getDefaultOrgConfigurationEffect();
 
     // Process each org authorization into display data
-    const orgData = (
-      yield* Effect.forEach(orgAuthorizations, orgAuth => processOrgForDisplay(orgAuth, defaultConfig), {
-        concurrency: 'unbounded'
-      })
-    ).filter(isNotUndefined);
+    const orgData = (yield* Effect.forEach(orgAuthorizations, orgAuth => processOrgForDisplay(orgAuth, defaultConfig), {
+      concurrency: 'unbounded'
+    })).filter(isNotUndefined);
 
     // Create and display the table
     yield* createAndDisplayOrgTable(orgData);
   }).pipe(
     Effect.catchAll(error =>
-      channel.appendToChannel(`\n${nls.localize('org_list_display_error', 'message' in error ? error.message : String(error))}`)
+      channel.appendToChannel(
+        `\n${nls.localize('org_list_display_error', 'message' in error ? error.message : String(error))}`
+      )
     )
   );
 });
