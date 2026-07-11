@@ -1030,55 +1030,8 @@ describe('ApexTestController', () => {
       expect(suiteItem.children.replace).toHaveBeenCalledWith([]);
     });
 
-    it('should invalidate test results for changed classes', async () => {
-      const Effect = jest.requireActual('effect/Effect');
-
-      // Set up an existing class item in the controller
-      const classItems = treeMap('getClassItems');
-      const methodItems = treeMap('getMethodItems');
-
-      const existingMethodItem = {
-        id: 'method:MyTestClass.testMethod1',
-        label: 'testMethod1'
-      } as unknown as vscode.TestItem;
-
-      const existingClassItem = {
-        id: 'class:MyTestClass',
-        label: 'MyTestClass',
-        tags: [],
-        children: {
-          forEach: (cb: (item: vscode.TestItem) => void) => cb(existingMethodItem),
-          add: jest.fn(),
-          delete: jest.fn(),
-          size: 1
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      classItems.set('MyTestClass', existingClassItem);
-      methodItems.set('method:MyTestClass.testMethod1', existingMethodItem);
-
-      // Mock discovery to return the same class with same method
-      discoverTestsSpyLocal.mockReturnValue(
-        Effect.succeed({
-          classes: [
-            {
-              id: Option.some('01p123'),
-              name: 'MyTestClass',
-              namespacePrefix: Option.none(),
-              testMethods: [{ name: 'testMethod1' }]
-            }
-          ]
-        })
-      );
-
-      // Mock invalidateTestResults on the controller
-      (mockTestController as any).invalidateTestResults = jest.fn();
-
-      const changes = new Map([['MyTestClass', 'changed']]);
-      await controller.incrementalUpdate(changes, false);
-
-      expect((mockTestController as any).invalidateTestResults).toHaveBeenCalledWith(existingClassItem);
-    });
+    // Diff internals (add/diff/remove class, invalidateTestResults, removeEmptyAncestors) moved into
+    // ApexTestTreeService; see test/jest/views/apexTestTreeService.test.ts "incrementalUpdate diff".
   });
 });
 

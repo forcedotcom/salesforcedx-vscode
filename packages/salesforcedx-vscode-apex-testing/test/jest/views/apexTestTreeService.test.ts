@@ -38,16 +38,53 @@ jest.mock('../../../src/services/extensionProvider', () => ({
   setAllServicesLayer: jest.fn()
 }));
 
+// Tree-mutation methods (incrementalUpdate/resolveSuiteChildren) call getDefaultOrgInfo for the org key and
+// resolvePackage2Members / buildClassToUriIndex for placement. Controllable per test; defaults give a valid
+// org + empty package/URI maps so addClassToTree exercises the namespace/package build path.
+let mockOrgInfo: { orgId?: string; username?: string } = { orgId: 'org123', username: 'user@example.com' };
+jest.mock('../../../src/coreExtensionUtils', () => ({
+  getDefaultOrgInfo: () => Promise.resolve(mockOrgInfo)
+}));
+jest.mock('../../../src/testDiscovery/packageResolution', () => ({
+  resolvePackage2Members: () => Promise.resolve(new Map())
+}));
+let mockClassNameToUri = new Map<string, URI>();
+jest.mock('../../../src/utils/testUtils', () => {
+  const actual = jest.requireActual('../../../src/utils/testUtils');
+  return {
+    ...actual,
+    buildClassToUriIndex: () => Promise.resolve(mockClassNameToUri),
+    getMethodLocationsFromSymbols: () => Promise.resolve(undefined)
+  };
+});
+const mockSaveDiscoveredClasses = jest.fn();
+jest.mock('../../../src/discoveryVfs/apexTestDiscoveryService', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  return {
+    ApexTestDiscoveryService: {
+      saveDiscoveredClasses: (...args: unknown[]) => {
+        mockSaveDiscoveredClasses(...args);
+        return EffectLib.void;
+      }
+    }
+  };
+});
+
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
+import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
-import { ApexTestTreeService, type DiscoveryContext } from '../../../src/views/apexTestTreeService';
+import {
+  ApexTestTreeService,
+  type DiscoveryContext,
+  type TreeMutationContext
+} from '../../../src/views/apexTestTreeService';
 
 // Controllable restore-previous-results value surfaced through the mock SettingsService (replaces the old
 // jest.mock('../../../src/settings') target).
@@ -87,6 +124,59 @@ const run = <A, E, R>(effect: Effect.Effect<A, E, ApexTestTreeService | R>) =>
 
 const fakeTestItem = (id: string): vscode.TestItem => ({ id, label: id }) as unknown as vscode.TestItem;
 
+// A TestItem whose children collection is a live Map (add/delete/replace/forEach/size), so the moved
+// tree-mutation methods (addClassToTree/diffClassMethods/removeClassFromTree) can be exercised end-to-end.
+const richTestItem = (id: string, label = id, uri?: URI): vscode.TestItem => {
+  const kids = new Map<string, vscode.TestItem>();
+  const children = {
+    add: (item: vscode.TestItem) => kids.set(item.id, item),
+    delete: (childId: string) => kids.delete(childId),
+    replace: (items: vscode.TestItem[]) => {
+      kids.clear();
+      items.forEach(i => kids.set(i.id, i));
+    },
+    forEach: (cb: (item: vscode.TestItem) => void) => kids.forEach(cb),
+    get size() {
+      return kids.size;
+    }
+  } as unknown as vscode.TestItemCollection;
+  return { id, label, uri, tags: undefined, children } as unknown as vscode.TestItem;
+};
+
+// TreeMutationContext whose controller.items is a live Map-backed collection + createTestItem builds
+// richTestItems. invalidateTestResults is a spy so callers can assert it fired.
+const makeMutationContext = (overrides: Partial<TreeMutationContext> = {}) => {
+  const topItems = new Map<string, vscode.TestItem>();
+  const invalidateTestResults = jest.fn();
+  const controller = {
+    items: {
+      add: (item: vscode.TestItem) => topItems.set(item.id, item),
+      delete: (id: string) => topItems.delete(id),
+      forEach: (cb: (item: vscode.TestItem) => void) => topItems.forEach(cb),
+      get size() {
+        return topItems.size;
+      }
+    },
+    createTestItem: (id: string, label: string, uri?: URI) => richTestItem(id, label, uri),
+    invalidateTestResults
+  } as unknown as vscode.TestController;
+  const ctx: TreeMutationContext = {
+    controller,
+    orgOnlyTag: undefined,
+    inWorkspaceTag: undefined,
+    staleTag: { id: 'stale' } as vscode.TestTag,
+    ...overrides
+  };
+  return { ctx, invalidateTestResults, topItems };
+};
+
+const toolingClass = (name: string, methods: string[], id = `01p_${name}`): unknown => ({
+  id: Option.some(id),
+  name,
+  namespacePrefix: Option.none(),
+  testMethods: methods.map((m, i) => ({ name: m, line: i + 1, column: 0 }))
+});
+
 // A controllable DiscoveryContext. Connection/TestService are no longer threaded in — discovery acquires
 // them via the mock ConnectionService + the mocked TestService constructor. clearTree count proves how many
 // times the discovery body actually ran.
@@ -103,11 +193,8 @@ const makeContext = (overrides: Partial<DiscoveryContext> = {}): DiscoveryContex
     inWorkspaceTag: undefined,
     sessionStartTime: Date.now(),
     clearTree: jest.fn(),
-    persistDiscoveredClasses: () => Promise.resolve(),
     updateTestResults: () => Promise.resolve(),
     staleTag: undefined,
-    getSuiteToClasses: () => new Map<string, Set<string>>(),
-    getMethodIdsFromResultFile: () => Promise.resolve(new Set<string>()),
     ...overrides
   };
 };
@@ -119,6 +206,8 @@ describe('ApexTestTreeService', () => {
     restorePreviousResultsValue = false;
     getConnectionImpl = () => Effect.succeed({});
     activeTestService = { retrieveAllSuites: () => Promise.resolve([]) };
+    mockOrgInfo = { orgId: 'org123', username: 'user@example.com' };
+    mockClassNameToUri = new Map<string, URI>();
   });
 
   describe('reset', () => {
@@ -263,7 +352,10 @@ describe('ApexTestTreeService', () => {
       ]);
       const fsService = {
         readDirectory: () => Effect.succeed([u1, u2, u3]),
-        stat: (uri: URI) => Effect.succeed({ mtime: mtimes.get(uri.path)! })
+        stat: (uri: URI) => Effect.succeed({ mtime: mtimes.get(uri.path)! }),
+        // getMethodIdsFromResultFile (moved into the tree svc) now reads the result file directly; empty
+        // tests => empty method-id set, matching the removed getMethodIdsFromResultFile callback stub.
+        readFile: () => Effect.succeed('{"tests":[]}')
       };
       const ExtProviderWithFs = Layer.succeed(ExtensionProviderService, {
         getServicesApi: Effect.succeed({
@@ -277,7 +369,6 @@ describe('ApexTestTreeService', () => {
       const applied: string[] = [];
       const ctx = makeContext({
         sessionStartTime: 0,
-        getMethodIdsFromResultFile: () => Promise.resolve(new Set<string>()),
         updateTestResults: (uri: URI) => {
           applied.push(uri.path);
           return uri.path === u2.path ? Promise.reject(new Error('apply failed')) : Promise.resolve();
@@ -305,6 +396,282 @@ describe('ApexTestTreeService', () => {
       expect(applied).toEqual([u1.path, u2.path]);
       // Per-item RestoreResultsError carries the offending URI, not an opaque bucket.
       expect(logged.some(l => l.annotations.uri === u2.path)).toBe(true);
+    });
+  });
+
+  describe('incrementalUpdate diff', () => {
+    // addClassToTree + persistDiscoveredClasses both acquire a connection and run tooling.query; provide one.
+    const withTooling = () => {
+      getConnectionImpl = () => Effect.succeed({ tooling: { query: () => Promise.resolve({ records: [] }) } });
+    };
+
+    it('adds a newly-created class under its namespace/package node', async () => {
+      withTooling();
+      const { ctx, topItems } = makeMutationContext();
+      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('NewClass', ['t1'])] }));
+
+      await run(
+        Effect.gen(function* () {
+          yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['NewClass', 'created']]), false);
+          const classItems = yield* ApexTestTreeService.getClassItems();
+          expect(classItems.has('NewClass')).toBe(true);
+        })
+      );
+      // A namespace node was created under controller.items for the added class.
+      expect(topItems.size).toBeGreaterThan(0);
+    });
+
+    it('diffs a changed class (invalidates results, replaces method children)', async () => {
+      withTooling();
+      const { ctx, invalidateTestResults } = makeMutationContext();
+      // Seed an existing class item with one method; discovery returns a different method set.
+      const existingClass = richTestItem('class:MyClass', 'MyClass');
+      existingClass.children.add(richTestItem('method:MyClass.old', 'old'));
+      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('MyClass', ['fresh'])] }));
+
+      await run(
+        Effect.gen(function* () {
+          const classItems = yield* ApexTestTreeService.getClassItems();
+          classItems.set('MyClass', existingClass);
+          const methodItems = yield* ApexTestTreeService.getMethodItems();
+          methodItems.set('method:MyClass.old', richTestItem('method:MyClass.old', 'old'));
+
+          yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['MyClass', 'changed']]), false);
+
+          // Stale 'old' method removed from the map, fresh method added.
+          expect(methodItems.has('method:MyClass.old')).toBe(false);
+          expect(methodItems.has('method:MyClass.fresh')).toBe(true);
+        })
+      );
+      expect(invalidateTestResults).toHaveBeenCalledWith(existingClass);
+    });
+
+    it('removes a deleted class and prunes empty ancestor nodes', async () => {
+      const { ctx, topItems } = makeMutationContext();
+      // Namespace > package > class tree; deleting the class should prune package + namespace.
+      const namespaceItem = richTestItem('ns:default', 'default');
+      const packageItem = richTestItem('default/pkg', 'pkg');
+      const classItem = richTestItem('class:Doomed', 'Doomed');
+      packageItem.children.add(classItem);
+      namespaceItem.children.add(packageItem);
+      ctx.controller.items.add(namespaceItem);
+
+      await run(
+        Effect.gen(function* () {
+          const classItems = yield* ApexTestTreeService.getClassItems();
+          classItems.set('Doomed', classItem);
+          const classToParent = yield* ApexTestTreeService.getClassToParentItem();
+          classToParent.set('Doomed', packageItem);
+
+          yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['Doomed', 'deleted']]), false);
+
+          expect(classItems.has('Doomed')).toBe(false);
+        })
+      );
+      // Package emptied -> namespace emptied -> namespace pruned from controller.items.
+      expect(topItems.size).toBe(0);
+    });
+
+    it('skips the diff when there is no default org', async () => {
+      mockOrgInfo = {};
+      const { ctx } = makeMutationContext();
+      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('NewClass', ['t1'])] }));
+
+      await run(
+        Effect.gen(function* () {
+          yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['NewClass', 'created']]), false);
+          const classItems = yield* ApexTestTreeService.getClassItems();
+          expect(classItems.has('NewClass')).toBe(false);
+        })
+      );
+    });
+
+    it('clears all suite children when includesSuiteChange is true', async () => {
+      const { ctx } = makeMutationContext();
+      const suiteItem = richTestItem('suite:MySuite', 'MySuite');
+      suiteItem.children.add(richTestItem('suiteClass:MySuite:A', 'A'));
+
+      await run(
+        Effect.gen(function* () {
+          const suiteItems = yield* ApexTestTreeService.getSuiteItems();
+          suiteItems.set('MySuite', suiteItem);
+          yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['X', 'deleted']]), true);
+          expect(suiteItem.children.size).toBe(0);
+        })
+      );
+    });
+  });
+
+  describe('resolveSuiteChildren + suiteToClasses Ref', () => {
+    it('records the suite→classes mapping and adds placeholder child items', async () => {
+      activeTestService = {
+        retrieveAllSuites: () => Promise.resolve([]),
+        getTestsInSuite: () => Promise.resolve([{ ApexClassId: '01pAAA' }])
+      };
+      getConnectionImpl = () =>
+        Effect.succeed({
+          tooling: { query: () => Promise.resolve({ records: [{ Name: 'Member', NamespacePrefix: null }] }) }
+        });
+      const { ctx } = makeMutationContext();
+      const suiteItem = richTestItem('suite:MySuite', 'MySuite');
+
+      await run(
+        Effect.gen(function* () {
+          yield* ApexTestTreeService.resolveSuiteChildren(ctx, suiteItem);
+          const suiteToClasses = yield* ApexTestTreeService.getSuiteToClasses();
+          expect([...(suiteToClasses.get('MySuite') ?? [])]).toEqual(['Member']);
+        })
+      );
+      // One placeholder child added under the suite for the member class.
+      expect(suiteItem.children.size).toBe(1);
+    });
+
+    it('fails with ResolveSuiteChildrenError when the tooling query throws', async () => {
+      activeTestService = {
+        retrieveAllSuites: () => Promise.resolve([]),
+        getTestsInSuite: () => Promise.reject(new Error('suite query boom'))
+      };
+      const { ctx } = makeMutationContext();
+      const suiteItem = richTestItem('suite:MySuite', 'MySuite');
+
+      const exit = await Effect.runPromiseExit(
+        Effect.provide(
+          ApexTestTreeService.resolveSuiteChildren(ctx, suiteItem) as Effect.Effect<void, unknown, ApexTestTreeService>,
+          baseLayer()
+        )
+      );
+      expect(exit._tag).toBe('Failure');
+    });
+
+    it('reset clears the suiteToClasses Ref (live map, stable identity)', async () => {
+      await run(
+        Effect.gen(function* () {
+          // getSuiteToClasses returns the live Ref-backed Map; mutate it, then assert reset empties it in place.
+          const suiteToClasses = yield* ApexTestTreeService.getSuiteToClasses();
+          suiteToClasses.set('S', new Set(['C']));
+          yield* ApexTestTreeService.reset();
+          const after = yield* ApexTestTreeService.getSuiteToClasses();
+          expect(after).toBe(suiteToClasses);
+          expect(after.size).toBe(0);
+        })
+      );
+    });
+
+    it('fresh layer isolates the suiteToClasses Ref across runs', async () => {
+      await run(
+        Effect.gen(function* () {
+          const map = yield* ApexTestTreeService.getSuiteToClasses();
+          map.set('LEAK', new Set(['x']));
+        })
+      );
+      // A second run() builds a fresh service instance (fresh Refs), so the prior mutation must not leak.
+      await run(
+        Effect.gen(function* () {
+          const map = yield* ApexTestTreeService.getSuiteToClasses();
+          expect(map.has('LEAK')).toBe(false);
+        })
+      );
+    });
+  });
+
+  describe('persistDiscoveredClasses (best-effort)', () => {
+    it('skips persistence when there is no default org', async () => {
+      mockOrgInfo = {};
+      const { ctx } = makeMutationContext();
+      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('C', ['t'])] }));
+      await run(ApexTestTreeService.incrementalUpdate(ctx, new Map([['C', 'created']]), false));
+      expect(mockSaveDiscoveredClasses).not.toHaveBeenCalled();
+    });
+
+    it('persists discovered apex classes when an org is present', async () => {
+      getConnectionImpl = () => Effect.succeed({ tooling: { query: () => Promise.resolve({ records: [] }) } });
+      const { ctx } = makeMutationContext();
+      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('C', ['t'])] }));
+      await run(ApexTestTreeService.incrementalUpdate(ctx, new Map([['C', 'created']]), false));
+      expect(mockSaveDiscoveredClasses).toHaveBeenCalledWith('org123', expect.any(Array), expect.any(Map));
+    });
+  });
+
+  describe('getMethodIdsFromResultFile (via restore scan)', () => {
+    it('parses Class.method ids from the result JSON and marks them stale', async () => {
+      restorePreviousResultsValue = true;
+      const now = Date.now();
+      const u = { path: '/r/test-result.json', toString: () => '/r/test-result.json' } as unknown as URI;
+      mockGetTestResultsFolder.mockReturnValue(Effect.succeed({ toString: () => 'dir' } as unknown as URI));
+      const resultJson = JSON.stringify({ tests: [{ apexClass: { fullName: 'MyClass' }, methodName: 'testA' }] });
+      const fsService = {
+        readDirectory: () => Effect.succeed([u]),
+        stat: () => Effect.succeed({ mtime: now - 1000 }),
+        readFile: () => Effect.succeed(resultJson)
+      };
+      const ExtProviderWithFs = Layer.succeed(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({
+          services: { FsService: fsService, SettingsService: Effect.succeed(mockSettingsService) }
+        })
+      } as unknown as ExtensionProviderService);
+      const layerWithFs = Layer.merge(Layer.provide(ApexTestTreeService.Default, ExtProviderWithFs), ExtProviderWithFs);
+
+      // Full restore reaches the "results restored" notification; give it a resolvable stub.
+      (vscode.window.showInformationMessage as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+
+      // sessionStartTime after the file mtime => the parsed method is treated as pre-session (stale).
+      const applied: string[] = [];
+      const ctx = makeContext({
+        sessionStartTime: now,
+        updateTestResults: (uri: URI) => {
+          applied.push(uri.path);
+          return Promise.resolve();
+        }
+      });
+
+      await Effect.runPromise(
+        Effect.provide(
+          ApexTestTreeService.restorePreviousResults(ctx) as Effect.Effect<void, never, ApexTestTreeService>,
+          layerWithFs
+        )
+      );
+      // The result file was scanned + applied (its parsed method ids drove the stale/session partition).
+      expect(applied).toEqual([u.path]);
+    });
+
+    it('disables restore via the Workspace configuration target when the user picks "Don\'t Restore Again"', async () => {
+      restorePreviousResultsValue = true;
+      const now = Date.now();
+      const u = { path: '/r/test-result.json', toString: () => '/r/test-result.json' } as unknown as URI;
+      mockGetTestResultsFolder.mockReturnValue(Effect.succeed({ toString: () => 'dir' } as unknown as URI));
+      const fsService = {
+        readDirectory: () => Effect.succeed([u]),
+        stat: () => Effect.succeed({ mtime: now - 1000 }),
+        readFile: () => Effect.succeed('{"tests":[]}')
+      };
+      const ExtProviderWithFs = Layer.succeed(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({
+          services: { FsService: fsService, SettingsService: Effect.succeed(mockSettingsService) }
+        })
+      } as unknown as ExtensionProviderService);
+      const layerWithFs = Layer.merge(Layer.provide(ApexTestTreeService.Default, ExtProviderWithFs), ExtProviderWithFs);
+
+      // User clicks the "disable" action on the restored-results notification.
+      (vscode.window.showInformationMessage as jest.Mock) = jest
+        .fn()
+        .mockResolvedValue(nls.localize('apex_test_results_restored_disable_action'));
+
+      const ctx = makeContext({ sessionStartTime: now, updateTestResults: () => Promise.resolve() });
+
+      await Effect.runPromise(
+        Effect.provide(
+          ApexTestTreeService.restorePreviousResults(ctx) as Effect.Effect<void, never, ApexTestTreeService>,
+          layerWithFs
+        )
+      );
+
+      // Legacy behavior: the disable write targets Workspace (not Global) config.
+      expect(mockSettingsService.setValue).toHaveBeenCalledWith(
+        expect.any(String),
+        'restore-previous-results',
+        false,
+        vscode.ConfigurationTarget.Workspace
+      );
     });
   });
 });
