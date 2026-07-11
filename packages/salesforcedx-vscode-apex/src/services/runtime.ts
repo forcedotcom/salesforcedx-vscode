@@ -15,11 +15,9 @@ export const getRuntime = () => {
   return _apexRuntime;
 };
 
-// Dispose the runtime on deactivate: closing the ManagedRuntime's own scope runs the NodeSdk
-// tracer-provider finalizer (forceFlush → shutdown), guaranteeing ended spans (notably the
-// long-lived apex.lsp.client span and one-shot event spans) are exported instead of relying on
-// the BatchSpanProcessor's default 5s UNREF'd timer, which is routinely lost on reload/shutdown.
-// Clears the memo so a re-activation in the same host process rebuilds a fresh runtime.
+// Dispose on deactivate: closing the ManagedRuntime scope runs the NodeSdk finalizer (forceFlush →
+// shutdown) so ended spans export instead of relying on the BatchSpanProcessor's UNREF'd 5s timer
+// (routinely lost on reload/shutdown). Clears the memo so re-activation rebuilds a fresh runtime.
 export const disposeRuntime = async (): Promise<void> => {
   if (_apexRuntime) {
     await _apexRuntime.dispose();

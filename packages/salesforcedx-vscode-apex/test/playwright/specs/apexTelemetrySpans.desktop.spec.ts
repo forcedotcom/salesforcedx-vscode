@@ -67,6 +67,12 @@ const waitForSpans = (file: string, predicate: (rows: SpanRow[]) => boolean, mes
 
 const byName = (rows: SpanRow[], name: string): SpanRow[] => rows.filter(r => r.name === name);
 
+// Narrow the newestSpanFile() result to a string so the rest of the test body avoids `!` assertions.
+const requireFile = (file: string | undefined): string => {
+  if (file === undefined) throw new Error('a span jsonl file should exist after activation');
+  return file;
+};
+
 // Two separate test() blocks (not one-test-with-steps) is intentional here: each scenario needs a
 // FRESH Electron session so its span jsonl file starts empty and the apex.lsp.client count assertion
 // (exactly-1 vs exactly-2-after-restart) is unambiguous. Sharing one session would carry the first
@@ -85,12 +91,12 @@ test('apex LSP activation telemetry is emitted as Effect spans; client is one sp
     await waitForApexLspReady(page, workspaceDir);
     const file = await newestSpanFile();
     expect(file, 'a span jsonl file should exist after activation').toBeDefined();
-    return file;
+    return requireFile(file);
   });
 
   await test.step('apex.lsp.settings span emitted on activation with maxHeapSize', async () => {
     await waitForSpans(
-      sessionFile!,
+      sessionFile,
       rows => byName(rows, 'apex.lsp.settings').some(s => s.attributes?.maxHeapSize !== undefined),
       'apex.lsp.settings span with maxHeapSize'
     );
@@ -98,7 +104,7 @@ test('apex LSP activation telemetry is emitted as Effect spans; client is one sp
 
   await test.step('apex.lsp.startup span emitted on activation with activationTime', async () => {
     await waitForSpans(
-      sessionFile!,
+      sessionFile,
       rows => byName(rows, 'apex.lsp.startup').some(s => s.attributes?.activationTime !== undefined),
       'apex.lsp.startup span with activationTime'
     );
@@ -112,7 +118,7 @@ test('apex LSP activation telemetry is emitted as Effect spans; client is one sp
     // ADR central decision: this one client session produced exactly ONE apex.lsp.client span
     // (attrs merged onto the held span, last-write-wins), NOT one span per Jorje apexLSPLog event.
     const flushed = await waitForSpans(
-      sessionFile!,
+      sessionFile,
       rows => byName(rows, 'apex.lsp.client').length > 0,
       'flushed apex.lsp.client span'
     );
@@ -135,7 +141,7 @@ test('apex LSP restart emits a restart span AND still flushes exactly one client
     await waitForApexLspReady(page, workspaceDir);
     const file = await newestSpanFile();
     expect(file, 'a span jsonl file should exist after activation').toBeDefined();
-    return file;
+    return requireFile(file);
   });
 
   await test.step('restart emits apex.lsp.restart span with restart attrs', async () => {
@@ -144,7 +150,7 @@ test('apex LSP restart emits a restart span AND still flushes exactly one client
     await triggerLspRestart(page, workspaceDir, { cleanDb: false, via: 'palette' });
 
     const rows = await waitForSpans(
-      sessionFile!,
+      sessionFile,
       r => byName(r, 'apex.lsp.restart').some(s => s.attributes?.selectedOption !== undefined),
       'apex.lsp.restart span with restart attrs'
     );
@@ -164,7 +170,7 @@ test('apex LSP restart emits a restart span AND still flushes exactly one client
     // this session's jsonl. If restart extended a single shared scope (the N-not-1 regression), the
     // first lifetime's span would never end at restart and this count would be wrong.
     const flushed = await waitForSpans(
-      sessionFile!,
+      sessionFile,
       r => byName(r, 'apex.lsp.client').length >= 2,
       'both client-lifetime spans flushed'
     );

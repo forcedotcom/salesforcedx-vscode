@@ -5,67 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import * as Tracer from 'effect/Tracer';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
+import type { RecordedSpan } from '../testUtils/recordingTracer';
 
 // Spans emitted via getRuntime().runFork are recorded so restart telemetry (name + attributes) can be asserted.
 // Prefixed `mock*` so jest.mock's factory may reference it (jest hoists the factory above imports).
-const mockRecordedSpans: { name: string; attributes: Map<string, unknown> }[] = [];
+const mockRecordedSpans: RecordedSpan[] = [];
 
 const spanAttributes = (name: string): Record<string, unknown> | undefined => {
   const hit = mockRecordedSpans.find(s => s.name === name);
   return hit ? Object.fromEntries(hit.attributes) : undefined;
 };
 
-jest.mock('../../../src/services/runtime', () => {
-  const recordingTracer = Tracer.make({
-    span: (name, parent, context, links, startTime, kind, options) => {
-      const attributes = new Map<string, unknown>(Object.entries(options?.attributes ?? {}));
-      mockRecordedSpans.push({ name, attributes });
-      return {
-        _tag: 'Span',
-        name,
-        spanId: `span-${mockRecordedSpans.length}`,
-        traceId: 'trace',
-        parent,
-        context,
-        links,
-        status: { _tag: 'Started', startTime },
-        attributes,
-        sampled: true,
-        kind,
-        end: () => {},
-        attribute: (key: string, value: unknown) => {
-          attributes.set(key, value);
-        },
-        event: () => {},
-        addLinks: () => {}
-      } as Tracer.Span;
-    },
-    context: <X>(f: () => X) => f()
-  });
-  const layer = Layer.setTracer(recordingTracer);
-  return {
-    getRuntime: () => ({
-      runFork: (eff: Effect.Effect<unknown, unknown>) => {
-        Effect.runSync(
-          eff.pipe(
-            Effect.provide(layer),
-            Effect.catchAllCause(() => Effect.void)
-          ) as Effect.Effect<void>
-        );
-        return undefined;
-      }
-    })
-  };
-});
+// forkSync: this suite asserts restart-span attrs synchronously right after runFork, so run the fork
+// on the calling stack (runSync) rather than detaching a fiber.
+jest.mock('../../../src/services/runtime', () =>
+  require('../testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans, { forkSync: true })
+);
 
 // Mock ApexLSPStatusBarItem class
 jest.mock('../../../src/apexLspStatusBarItem', () => ({

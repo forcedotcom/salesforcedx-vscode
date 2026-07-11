@@ -15,3 +15,16 @@ import { getRuntime } from './runtime';
 export const fireSpan = (name: string, attributes: Record<string, string | number>): void => {
   getRuntime().runFork(Effect.void.pipe(Effect.withSpan(name, { attributes, root: true })));
 };
+
+/**
+ * Emit a top-level error span (fire-and-forget). Fails inside the span so it ends with ERROR status:
+ * both AppInsights exporters classify by span.status.code === ERROR (severity 17/exception), else INFO.
+ */
+export const fireErrorSpan = (name: string, error: { error?: unknown }): void => {
+  getRuntime().runFork(
+    Effect.annotateCurrentSpan('error', String(error?.error ?? error)).pipe(
+      Effect.zipRight(Effect.fail(error)),
+      Effect.withSpan(name, { root: true })
+    )
+  );
+};

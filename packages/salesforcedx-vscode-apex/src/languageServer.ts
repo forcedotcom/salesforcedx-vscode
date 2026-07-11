@@ -32,7 +32,7 @@ import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import * as requirements from './requirements';
-import { fireSpan } from './services/fireSpan';
+import { fireErrorSpan, fireSpan } from './services/fireSpan';
 import { getRuntime } from './services/runtime';
 import {
   retrieveEnableApexLSErrorToTelemetry,
@@ -134,31 +134,21 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     };
   } catch (err) {
     void vscode.window.showErrorMessage(err);
-    // Fail (not just logError) so the span ends with ERROR status: both AppInsights exporters
-    // classify by span.status.code === ERROR (severity 17/exception), else INFO (severity 9).
-    getRuntime().runFork(
-      Effect.annotateCurrentSpan('error', String(err?.error ?? err)).pipe(
-        Effect.zipRight(Effect.fail(err)),
-        Effect.withSpan(LSP_ERR, { root: true })
-      )
-    );
+    fireErrorSpan(LSP_ERR, err);
     throw err;
   }
 };
 
 const protocol2CodeConverter = (value: string) => URI.parse(value);
 
-// One long-lived ROOT span per language-client lifetime. `apexLSPLog` is high-volume (one per Jorje
-// feature event); per ADR-0002 we write attrs onto this single span rather than emitting N top-level
-// spans. Held in a Ref<Option> (not a bare module `let` — Effect primitive for shared mutable state)
-// alongside its per-client child scope, so a restart can end/flush the prior span before opening the
-// next. Mirrors the sanctioned `Effect.runSync(Ref.make(...))` singleton idiom in apex-log.
+// One long-lived ROOT span per client lifetime. `apexLSPLog` is high-volume; per ADR-0002 we write
+// attrs onto this single span, not N top-level spans. Held in a Ref<Option> (Effect primitive for
+// shared mutable state) with its child scope so a restart can flush the prior span before the next.
 const clientSpanRef = Effect.runSync(Ref.make(Option.none<{ scope: Scope.CloseableScope; span: Tracer.Span }>()));
 
-// `createLanguageServer` runs on first activation AND every LSP restart, so we close the prior child
-// scope (ends/flushes the prior span) before forking the next — keeping exactly ONE live client span
-// at a time (ADR-0002 invariant). The child scope is forked from the extension scope, so
-// closeExtensionScope() on deactivate transitively closes it (final flush).
+// Runs on first activation AND every restart: close the prior child scope (flushes prior span) before
+// forking the next — exactly ONE live client span (ADR-0002). Forked from the extension scope so
+// closeExtensionScope() on deactivate transitively closes it.
 const rotateClientSpan = Effect.fn('apex.lsp.client.rotate')(function* () {
   const prev = yield* Ref.get(clientSpanRef);
   yield* Option.match(prev, {
@@ -170,8 +160,9 @@ const rotateClientSpan = Effect.fn('apex.lsp.client.rotate')(function* () {
   yield* Ref.set(clientSpanRef, Option.some({ scope: child, span }));
 });
 
-// Write allowlisted Jorje telemetry attrs onto the held client span (attrs last-write-wins); no fork
-// per event, no new span. onNone (no live client span) is a no-op.
+// Write allowlisted Jorje telemetry attrs onto the held client span (attrs last-write-wins); no new
+// span per event (the call site forks a short fiber per event, but they all share this one span).
+// onNone (no live client span) is a no-op.
 const annotateClientSpan = Effect.fn('apex.lsp.client.annotate')(function* (attributes: Record<string, unknown>) {
   const current = yield* Ref.get(clientSpanRef);
   yield* Option.match(current, {

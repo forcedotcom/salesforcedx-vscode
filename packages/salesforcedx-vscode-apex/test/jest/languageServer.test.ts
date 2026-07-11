@@ -5,66 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import * as Tracer from 'effect/Tracer';
 import * as vscode from 'vscode';
+import type { RecordedSpan } from './testUtils/recordingTracer';
 
 // Record every span (name + attrs + ended flag) so the apex.lsp.client rotation can be asserted:
 // each createLanguageServer opens exactly one client span; a restart ends the prior one and opens a
 // new one; onTelemetry writes attrs onto the current live span. Prefixed `mock*` for jest hoisting.
-type RecordedSpan = { name: string; attributes: Map<string, unknown>; ended: boolean };
 const mockRecordedSpans: RecordedSpan[] = [];
 
 const clientSpans = (): RecordedSpan[] => mockRecordedSpans.filter(s => s.name === 'apex.lsp.client');
 
-jest.mock('../../src/services/runtime', () => {
-  const recordingTracer = Tracer.make({
-    span: (name, parent, context, links, startTime, kind, options) => {
-      const attributes = new Map<string, unknown>(Object.entries(options?.attributes ?? {}));
-      const recorded: RecordedSpan = { name, attributes, ended: false };
-      mockRecordedSpans.push(recorded);
-      return {
-        _tag: 'Span',
-        name,
-        spanId: `span-${mockRecordedSpans.length}`,
-        traceId: 'trace',
-        parent,
-        context,
-        links,
-        status: { _tag: 'Started', startTime },
-        attributes,
-        sampled: true,
-        kind,
-        end: () => {
-          recorded.ended = true;
-        },
-        attribute: (key: string, value: unknown) => {
-          attributes.set(key, value);
-        },
-        event: () => {},
-        addLinks: () => {}
-      } as Tracer.Span;
-    },
-    context: <X>(f: () => X) => f()
-  });
-  const layer = Layer.setTracer(recordingTracer);
-  return {
-    getRuntime: () => ({
-      runPromise: (eff: Effect.Effect<unknown, unknown>) => Effect.runPromise(eff.pipe(Effect.provide(layer))),
-      runFork: (eff: Effect.Effect<unknown, unknown>) => {
-        Effect.runFork(
-          eff.pipe(
-            Effect.provide(layer),
-            Effect.catchAllCause(() => Effect.void)
-          )
-        );
-        return undefined;
-      },
-      runSync: (eff: Effect.Effect<unknown, unknown>) => Effect.runSync(eff.pipe(Effect.provide(layer)))
-    })
-  };
-});
+jest.mock('../../src/services/runtime', () =>
+  require('./testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans)
+);
 
 // Stub the java/requirements resolution so createServer doesn't touch the filesystem/JDK.
 jest.mock('../../src/requirements', () => ({
@@ -132,6 +85,16 @@ describe('languageServer client span', () => {
     capturedOnTelemetry?.({ properties: { Feature: 'Hover' }, measures: {} });
     await new Promise(r => setImmediate(r));
     expect(clientSpans()[0].attributes.has('Feature')).toBe(false);
+  });
+
+  it('records an errored apexLSPError span when createServer fails', async () => {
+    (resolveRequirements as jest.Mock).mockRejectedValue({ error: 'no java found' });
+    await expect(createLanguageServer(mockContext)).rejects.toBeDefined();
+    await new Promise(r => setImmediate(r));
+    const errSpan = mockRecordedSpans.find(s => s.name === 'apexLSPError');
+    expect(errSpan?.attributes.get('error')).toBe('no java found');
+    // fireErrorSpan fails inside the span so it ends with ERROR status (severity 17 in AppInsights).
+    expect(errSpan?.ended).toBe(true);
   });
 
   it('restart ends the prior client span and opens exactly one new live span', async () => {

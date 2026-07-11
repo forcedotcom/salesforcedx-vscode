@@ -93,10 +93,9 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
 
 // root: true → exports as a top-level span (not an orphaned child of any ambient span)
 const deactivation = Effect.fn('apex.deactivation', { root: true })(function* () {
-  // `ensuring` guarantees teardown (dispose + closeExtensionScope) runs even if stop() rejects —
-  // otherwise the per-client child scope stays open and the long-lived apex.lsp.client span never
-  // ends/flushes. tryPromise (not promise) surfaces a stop() rejection as a typed failure; `ignore`
-  // then swallows it so deactivate() still resolves (teardown already happened).
+  // `ensuring` runs teardown (disposeOutputChannel + closeExtensionScope) even if stop() rejects, so
+  // the client child scope closes and the apex.lsp.client span flushes. `tryPromise`+`ignore`: surface
+  // the rejection then swallow it so deactivate() still resolves.
   yield* Effect.tryPromise(() => languageClientManager.getClientInstance()?.stop(30_000) ?? Promise.resolve()).pipe(
     Effect.ensuring(
       Effect.sync(() => languageClientManager.disposeOutputChannel()).pipe(Effect.zipRight(closeExtensionScope()))
@@ -107,10 +106,9 @@ const deactivation = Effect.fn('apex.deactivation', { root: true })(function* ()
 
 export const deactivate = async () => {
   await getRuntime().runPromise(deactivation());
-  // Dispose AFTER the deactivation effect resolves (client stopped, scopes closed, spans ended):
-  // closing the runtime's scope runs the NodeSdk finalizer (forceFlush → shutdown) so the ended
-  // apex.lsp.client span is exported instead of being dropped by the BatchSpanProcessor's UNREF'd
-  // 5s timer on window reload/host teardown.
+  // Dispose AFTER deactivation resolves (spans ended): closing the runtime scope runs the NodeSdk
+  // finalizer (forceFlush → shutdown) so ended spans export instead of being dropped by the
+  // BatchSpanProcessor's UNREF'd 5s timer on reload/teardown.
   await disposeRuntime();
 };
 
