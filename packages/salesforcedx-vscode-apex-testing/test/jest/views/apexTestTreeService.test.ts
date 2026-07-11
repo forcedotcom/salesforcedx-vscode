@@ -634,6 +634,45 @@ describe('ApexTestTreeService', () => {
       expect(applied).toEqual([u.path]);
     });
 
+    it('recovers a corrupt/truncated result file to an empty id set instead of failing the restore', async () => {
+      restorePreviousResultsValue = true;
+      const now = Date.now();
+      const u = { path: '/r/test-result.json', toString: () => '/r/test-result.json' } as unknown as URI;
+      mockGetTestResultsFolder.mockReturnValue(Effect.succeed({ toString: () => 'dir' } as unknown as URI));
+      const fsService = {
+        readDirectory: () => Effect.succeed([u]),
+        stat: () => Effect.succeed({ mtime: now - 1000 }),
+        // Malformed JSON: JSON.parse throws; the scan must recover (no uncaught defect) rather than die.
+        readFile: () => Effect.succeed('{ this is not: valid json')
+      };
+      const ExtProviderWithFs = Layer.succeed(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({
+          services: { FsService: fsService, SettingsService: Effect.succeed(mockSettingsService) }
+        })
+      } as unknown as ExtensionProviderService);
+      const layerWithFs = Layer.merge(Layer.provide(ApexTestTreeService.Default, ExtProviderWithFs), ExtProviderWithFs);
+
+      (vscode.window.showInformationMessage as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+
+      const applied: string[] = [];
+      const ctx = makeContext({
+        sessionStartTime: now,
+        updateTestResults: (uri: URI) => {
+          applied.push(uri.path);
+          return Promise.resolve();
+        }
+      });
+
+      // Must resolve (not reject with a JSON.parse defect); the corrupt file yields no method ids.
+      await Effect.runPromise(
+        Effect.provide(
+          ApexTestTreeService.restorePreviousResults(ctx) as Effect.Effect<void, never, ApexTestTreeService>,
+          layerWithFs
+        )
+      );
+      expect(applied).toEqual([u.path]);
+    });
+
     it('disables restore via the Workspace configuration target when the user picks "Don\'t Restore Again"', async () => {
       restorePreviousResultsValue = true;
       const now = Date.now();

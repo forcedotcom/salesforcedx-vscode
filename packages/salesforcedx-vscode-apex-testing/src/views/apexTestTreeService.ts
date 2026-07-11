@@ -349,8 +349,15 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       if (resultText === undefined) {
         return methodIds;
       }
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const resultContent = JSON.parse(resultText) as TestResult;
+      // Recover a corrupt/truncated file to "no ids" (matches the doc + legacy try/catch) so a bad file
+      // never becomes an uncaught defect that aborts the restore path.
+      const resultContent = yield* Effect.try(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        () => JSON.parse(resultText) as TestResult
+      ).pipe(Effect.orElseSucceed(() => undefined));
+      if (resultContent === undefined) {
+        return methodIds;
+      }
       for (const test of resultContent.tests ?? []) {
         const className = test.apexClass?.fullName;
         const methodName = test.methodName;

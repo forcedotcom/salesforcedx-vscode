@@ -167,8 +167,6 @@ const makeCtx = (overrides: Partial<ExecutionContext> = {}): ExecutionContext =>
   } as unknown as vscode.TestController,
   orgOnlyTag,
   inWorkspaceTag,
-  resolveSuiteChildren: () => Promise.resolve(),
-  getSuiteToClasses: () => new Map<string, Set<string>>(),
   ...overrides
 });
 
@@ -200,7 +198,6 @@ describe('ApexTestExecutionService', () => {
       setTestService(makeTestService());
       await runEff(
         ApexTestExecutionService.executeTests({
-          ctx: makeCtx(),
           testNames: ['MyClass.testA'],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -221,7 +218,6 @@ describe('ApexTestExecutionService', () => {
       const { run } = fakeRun();
       await runEff(
         ApexTestExecutionService.executeTests({
-          ctx: makeCtx(),
           testNames: [],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -249,7 +245,6 @@ describe('ApexTestExecutionService', () => {
       await runEff(
         Effect.gen(function* () {
           yield* ApexTestExecutionService.executeTests({
-            ctx,
             testNames: ['MyClass.testA'],
             outputDir: URI.file('/tmp'),
             codeCoverage: false,
@@ -278,7 +273,6 @@ describe('ApexTestExecutionService', () => {
           const methods = yield* ApexTestTreeService.getMethodItems();
           methods.set('MyClass.testA', method);
           yield* ApexTestExecutionService.executeTests({
-            ctx: makeCtx(),
             testNames: ['MyClass.testA'],
             outputDir: URI.file('/tmp'),
             codeCoverage: false,
@@ -300,7 +294,6 @@ describe('ApexTestExecutionService', () => {
       // Mixed suite+class with no methods -> buildTestPayload reaches the no-payload branch.
       const exit = await runExit(
         ApexTestExecutionService.executeTests({
-          ctx: makeCtx(),
           testNames: ['A'],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -392,8 +385,8 @@ describe('ApexTestExecutionService', () => {
       const { run, errored, end } = fakeRun();
       const runTestAsynchronous = jest.fn();
       setTestService(makeTestService({ runTestAsynchronous }));
+      // suite:Empty has no entry in the tree-service suiteToClasses Ref, so runTests treats it as empty.
       const ctx = makeCtx({
-        getSuiteToClasses: () => new Map([['Empty', new Set<string>()]]),
         controller: {
           items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
           createTestRun: jest.fn(() => run)
