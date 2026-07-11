@@ -4,25 +4,31 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Clock from 'effect/Clock';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
-import { getTelemetryService } from '../telemetry/telemetry';
+import { getRuntime } from '../services/runtime';
 import { ApexTestMethod } from '../views/lspConverter';
 import { languageClientManager } from './languageClientManager';
 
 export const getLineBreakpointInfo = async () => languageClientManager.getLineBreakpointInfo();
 
-/** Fetch tests from the Language Server and emit telemetry */
-export const fetchFromLs = async (): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
-  const telemetry = getTelemetryService();
-  const start = Date.now();
-  telemetry.sendEventData('apexTestDiscoveryStart', { source: 'ls' });
-  const tests = await languageClientManager.getApexTests();
-  const durationMs = Date.now() - start;
-  telemetry.sendEventData('apexTestDiscoveryEnd', { source: 'ls' }, buildMeasuresFromTests(tests, durationMs));
+/** Fetch tests from the Language Server, emitting a top-level span with timing/count attrs. */
+const discoverFromLs = Effect.fn('apex.test.discovery', { root: true })(function* () {
+  const start = yield* Clock.currentTimeMillis;
+  const tests = yield* Effect.tryPromise({
+    try: () => languageClientManager.getApexTests(),
+    catch: (e: unknown) => e
+  });
+  const durationMs = (yield* Clock.currentTimeMillis) - start;
+  yield* Effect.annotateCurrentSpan({ source: 'ls', ...buildMeasuresFromTests(tests, durationMs) });
   return { tests, durationMs };
-};
+});
+
+export const fetchFromLs = async (): Promise<{ tests: ApexTestMethod[]; durationMs: number }> =>
+  getRuntime().runPromise(discoverFromLs());
 
 /**
  * Returns Apex tests from the Language Server.
