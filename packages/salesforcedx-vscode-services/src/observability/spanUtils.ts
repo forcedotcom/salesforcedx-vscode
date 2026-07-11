@@ -6,6 +6,12 @@
  */
 import { type Attributes, type HrTime } from '@opentelemetry/api';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { isTelemetryExtensionConfigurationEnabled } from './appInsights';
+
+/** Per-export telemetry gate; checked fresh each batch → honors mid-session toggle.
+    o11yEndpoint localhost bypasses the setting (dev sink). */
+export const isProductionTelemetryExportEnabled = (o11yEndpoint?: string): boolean =>
+  Boolean(o11yEndpoint?.includes('localhost')) || isTelemetryExtensionConfigurationEnabled();
 
 /** Check if a span is a top-level span (has no parent) */
 const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
