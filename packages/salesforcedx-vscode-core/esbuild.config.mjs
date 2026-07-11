@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { effectEsmConditions } from '../../scripts/bundling/effect.mjs';
 import { build } from 'esbuild';
+import { writeFile } from 'fs/promises';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -43,13 +45,17 @@ const rootTemplates = path.join(__dirname, '..', '..', 'node_modules', '@salesfo
 const srcTemplatesPath = fs.existsSync(packageTemplates) ? packageTemplates : rootTemplates;
 const destTemplatesPath = path.join(__dirname, 'dist', 'templates');
 
-await build({
+const nodeBuild = await build({
   ...nodeConfig,
+  ...effectEsmConditions,
   entryPoints: ['./src/index.ts'],
   outdir: 'dist/src',
   external: [...nodeConfig.external, 'applicationinsights'],
-  minify: true
+  minify: true,
+  metafile: true
 });
+
+await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
 
 if (fs.existsSync(srcTemplatesPath)) {
   copyFiles(srcTemplatesPath, destTemplatesPath);
