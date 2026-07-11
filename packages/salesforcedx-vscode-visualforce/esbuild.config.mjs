@@ -13,7 +13,6 @@ import { effectEsmConditions } from '../../scripts/bundling/effect.mjs';
 const nodeBuild = await build({
   ...nodeConfig,
   ...effectEsmConditions,
-  external: ['vscode'],
   mainFields: ['module', 'main'],
   entryPoints: ['./out/src/extension.js'],
   outfile: './dist/index.js',
@@ -24,9 +23,9 @@ await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, nu
 
 // the language server is a whole other package and we'll need to bundle that separately
 // No effect in its graph; keeps its own literal conditions + mainFields (W-19480954 LS bundling).
+// conditions value mirrors effectEsmConditions but intentionally stays literal — out of shared-effect scope (ADR 0021).
 await build({
   ...nodeConfig,
-  external: ['vscode'],
   conditions: ['import', 'module', 'default'],
   mainFields: ['module', 'main'],
   entryPoints: ['../salesforcedx-visualforce-language-server/out/src/visualforceServer.js'],
