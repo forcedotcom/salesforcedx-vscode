@@ -12,4 +12,4 @@ To shrink bundles, esbuild resolves `effect`'s ESM build via `conditions: ['impo
 
 Promotion criterion: fold `effectEsmConditions` into `nodeConfig` as an always-on default only after ≥3 packages opt in **and** a full `npm run vscode:bundle` across all node consumers is green with no resolution regressions.
 
-`salesforcedx-vscode-visualforce` keeps its own pre-existing `conditions` + `mainFields` pair (language-server bundling, a distinct concern) — out of scope, not migrated.
+`salesforcedx-vscode-visualforce`'s **extension** build (`dist/index.js`) consumes shared `effectEsmConditions` (effect in its graph). Its **language-server** build (`dist/visualforceServer.js`) keeps its own literal `conditions` + `mainFields` pair (no effect in graph; W-19480954 LS bundling, a distinct concern) — out of the shared-effect scope.
