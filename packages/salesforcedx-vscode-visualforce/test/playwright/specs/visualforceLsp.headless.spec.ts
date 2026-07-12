@@ -56,39 +56,47 @@ test.describe('Visualforce LSP', () => {
     test.setTimeout(3 * 60 * 1000);
 
     const name = `LspPage${Date.now()}`;
-    await seedAndOpenPage(page, name);
-
-    // Type a partial apex tag, then explicitly trigger IntelliSense (the LSP may still be initializing).
-    await page.keyboard.type('<apex:pageM');
-    await page.keyboard.press('Control+Space');
-
     const suggestWidget = page.locator('.suggest-widget');
-    await suggestWidget.waitFor({ state: 'visible', timeout: 30_000 });
-
     const suggestions = suggestWidget.locator('.monaco-list-row');
-    await suggestions.first().waitFor({ state: 'visible', timeout: 10_000 });
-    const suggestionTexts = await suggestions.allTextContents();
-    const hasPageMessage = suggestionTexts.some(t => t.toLowerCase().includes('apex:pagemessage'));
-    expect(
-      hasPageMessage,
-      `Expected "apex:pageMessage" in suggestions, got: ${suggestionTexts.slice(0, 5).join(' | ')}`
-    ).toBe(true);
-    await saveScreenshot(page, 'vf-lsp-autocompletion.suggestions.png');
 
-    // Accept the completion and save; the inserted tag must land in the editor buffer.
-    const pageMessageRow = suggestions.filter({ hasText: /apex:pageMessage/i }).first();
-    await pageMessageRow.click();
-    await saveFile(page);
-    await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+    await test.step('seed and open a .page file', async () => {
+      await seedAndOpenPage(page, name);
+    });
 
-    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.page"]`);
-    await expect(editor.locator('.view-lines')).toContainText('apex:pageMessage', { timeout: 10_000 });
-    await saveScreenshot(page, 'vf-lsp-autocompletion.inserted.png');
+    await test.step('type a partial apex tag and trigger IntelliSense', async () => {
+      // Explicitly trigger IntelliSense (the LSP may still be initializing).
+      await page.keyboard.type('<apex:pageM');
+      await page.keyboard.press('Control+Space');
+      await suggestWidget.waitFor({ state: 'visible', timeout: 30_000 });
+    });
+
+    await test.step('assert apex:pageMessage is suggested', async () => {
+      await suggestions.first().waitFor({ state: 'visible', timeout: 10_000 });
+      const suggestionTexts = await suggestions.allTextContents();
+      const hasPageMessage = suggestionTexts.some(t => t.toLowerCase().includes('apex:pagemessage'));
+      expect(
+        hasPageMessage,
+        `Expected "apex:pageMessage" in suggestions, got: ${suggestionTexts.slice(0, 5).join(' | ')}`
+      ).toBe(true);
+      await saveScreenshot(page, 'vf-lsp-autocompletion.suggestions.png');
+    });
+
+    await test.step('accept the completion and save', async () => {
+      const pageMessageRow = suggestions.filter({ hasText: /apex:pageMessage/i }).first();
+      await pageMessageRow.click();
+      await saveFile(page);
+      await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+    });
+
+    await test.step('assert the inserted tag lands in the editor buffer', async () => {
+      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.page"]`);
+      await expect(editor.locator('.view-lines')).toContainText('apex:pageMessage', { timeout: 10_000 });
+      await saveScreenshot(page, 'vf-lsp-autocompletion.inserted.png');
+    });
   });
 
   // TODO: Go to Definition is not implemented in the Visualforce language server — documented gap carried over
-  // from the deleted visualforceLsp.desktop.spec.ts. Re-enable when the LS gains definition support.
-  test.skip('supports Go to Definition', async () => {});
+  // from the deleted visualforceLsp.desktop.spec.ts. Add a spec here when the LS gains definition support.
 
   test.afterEach(async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);

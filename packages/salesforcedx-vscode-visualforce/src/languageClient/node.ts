@@ -6,7 +6,12 @@
  */
 
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
-import { buildDocumentSelector, getBaseClientOptions, type VisualforceInitializationOptions } from './clientOptions';
+import {
+  buildDocumentSelector,
+  buildSchemes,
+  getBaseClientOptions,
+  type VisualforceInitializationOptions
+} from './clientOptions';
 
 /** Desktop language client: the server runs as a node child process over IPC. */
 export const createLanguageClient = (
@@ -24,7 +29,7 @@ export const createLanguageClient = (
 
   const clientOptions: LanguageClientOptions = {
     ...getBaseClientOptions(initializationOptions),
-    documentSelector: buildDocumentSelector(['file'])
+    documentSelector: buildDocumentSelector(buildSchemes())
   };
 
   return new LanguageClient('visualforce', 'Visualforce Language Server', serverOptions, clientOptions);
