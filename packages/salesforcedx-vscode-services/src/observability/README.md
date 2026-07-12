@@ -343,6 +343,8 @@ These settings must be enabled for App Insights and O11y to work:
 - `salesforcedx-vscode-core.telemetry.enabled` - Extension telemetry toggle (must be true for App Insights/O11y)
 - `salesforcedx-vscode-core.telemetry.allowDevMode` - Dev mode telemetry override (default: false)
 
+These are checked per export (via `GatedSpanExporter`), not once at Layer build, so toggling `telemetry.enabled` mid-session takes effect without a reload. The App Insights delegate exporter is constructed lazily on the first enabled export, so a telemetry-disabled session does no Azure/Statsbeat network setup.
+
 **Dev Mode Note**: On Node, dev/test mode auto-diverts App Insights to localhost (see [Inspecting App Insights Envelopes Locally](#inspecting-app-insights-envelopes-locally)) — telemetry is force-enabled there since it provably cannot reach Azure. On Web, telemetry behavior follows standard VS Code telemetry settings.
 
 ## Local Debugging
