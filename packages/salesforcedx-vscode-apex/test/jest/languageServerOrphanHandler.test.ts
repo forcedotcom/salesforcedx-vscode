@@ -15,8 +15,6 @@ import type * as Tracer from 'effect/Tracer';
 import * as vscode from 'vscode';
 import { UBER_JAR_NAME } from '../../src/constants';
 import { nls } from '../../src/messages';
-import { setTelemetryService } from '../../src/telemetry/telemetry';
-import { MockTelemetryService } from './telemetry/mockTelemetryService';
 
 jest.mock('../../src/channels', () => ({
   channelService: {
@@ -62,14 +60,14 @@ const makeApi = (responses: { match: string; result: ExecResult }[]) => ({
 
 /**
  * Load the handler + its ExtensionProviderService tag from one isolated module graph, with `platform`
- * pinned at module-load time, and bind the telemetry mock into that graph.
+ * pinned at module-load time.
  *
  * The handler captures `process.platform` into a module-level `isWindows` constant on import, so the
  * platform must be set before requiring it — otherwise on Windows CI the non-Windows tests would hit
  * the powershell command path their stubs don't mock. The ExtensionProviderService tag is re-required
  * from the same graph so the provided service matches the tag identity the handler resolves against.
  */
-const loadHandler = (platform: NodeJS.Platform, telemetry: MockTelemetryService) => {
+const loadHandler = (platform: NodeJS.Platform) => {
   const original = process.platform;
   Object.defineProperty(process, 'platform', { value: platform, configurable: true });
   let result:
@@ -79,9 +77,6 @@ const loadHandler = (platform: NodeJS.Platform, telemetry: MockTelemetryService)
       }
     | undefined;
   jest.isolateModules(() => {
-    (require('../../src/telemetry/telemetry') as typeof import('../../src/telemetry/telemetry')).setTelemetryService(
-      telemetry
-    );
     const { ExtensionProviderService: Provider } =
       require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
     const { checkAndResolveOrphanedLanguageServers } =
@@ -108,12 +103,8 @@ const captureRoot = (holder: { root?: Tracer.Span }) => (effect: Effect.Effect<v
     return yield* effect;
   }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
 
-const run = (
-  telemetry: MockTelemetryService,
-  responses: { match: string; result: ExecResult }[],
-  holder: { root?: Tracer.Span } = {}
-) => {
-  const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin', telemetry);
+const run = (responses: { match: string; result: ExecResult }[], holder: { root?: Tracer.Span } = {}) => {
+  const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
   return Effect.runPromise(
     (checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)) as Effect.Effect<void>).pipe(
       captureRoot(holder)
@@ -133,12 +124,8 @@ const KILL_RETRY_TOTAL_SECONDS = Array.from(
 ).reduce((sum, s) => sum + s, 0);
 
 /** Run on the TestClock, advancing past the (bounded) kill-retry backoff so scheduled retries fire without real waits. */
-const runWithClock = (
-  telemetry: MockTelemetryService,
-  responses: { match: string; result: ExecResult }[],
-  holder: { root?: Tracer.Span } = {}
-) => {
-  const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin', telemetry);
+const runWithClock = (responses: { match: string; result: ExecResult }[], holder: { root?: Tracer.Span } = {}) => {
+  const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
   return Effect.runPromise(
     Effect.gen(function* () {
       holder.root = yield* Effect.currentSpan;
@@ -158,15 +145,10 @@ const setWarningChoices = ({ warning = [], confirm = [] }: Choices) => {
 };
 
 describe('languageServerOrphanHandler', () => {
-  let telemetry: MockTelemetryService;
   let killSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    telemetry = new MockTelemetryService();
-    telemetry.sendEventData = jest.fn();
-    telemetry.sendException = jest.fn();
-    setTelemetryService(telemetry);
     killSpy = jest.spyOn(process, 'kill').mockReturnValue(true);
     delete process.env.ESBUILD_PLATFORM;
   });
@@ -176,13 +158,13 @@ describe('languageServerOrphanHandler', () => {
   });
 
   it('no orphan processes → no prompt, no kill', async () => {
-    await run(telemetry, [{ match: 'ps -e', result: '' }]);
+    await run([{ match: 'ps -e', result: '' }]);
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(killSpy).not.toHaveBeenCalled();
   });
 
   it('parent alive → not orphaned → no prompt', async () => {
-    await run(telemetry, [
+    await run([
       { match: 'ps -e', result: HEALTHY_LIST },
       { match: 'ps -p 5678', result: 'alive' }
     ]);
@@ -192,17 +174,17 @@ describe('languageServerOrphanHandler', () => {
 
   it('orphan found + user confirms → kill called', async () => {
     setWarningChoices({ warning: [nls.localize('terminate_processes')], confirm: [nls.localize('yes')] });
-    await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
+    await run([{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
   });
 
   it('user dismisses prompt → UserCancellationError caught → no kill', async () => {
     setWarningChoices({ warning: [undefined as unknown as string] });
-    await run(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
+    await run([{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).not.toHaveBeenCalled();
   });
 
-  it('kill fails twice then succeeds → retry within bound, no exception telemetry', async () => {
+  it('kill fails twice then succeeds → retry within bound', async () => {
     setWarningChoices({ warning: [nls.localize('terminate_processes')], confirm: [nls.localize('yes')] });
     killSpy
       .mockImplementationOnce(() => {
@@ -212,9 +194,8 @@ describe('languageServerOrphanHandler', () => {
         throw new Error('boom2');
       })
       .mockReturnValueOnce(true);
-    await runWithClock(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }]);
+    await runWithClock([{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).toHaveBeenCalledTimes(3);
-    expect(telemetry.sendException).not.toHaveBeenCalled();
   });
 
   it('kill fails all attempts → ProcessTerminationError caught internally + root-span annotation, never propagates', async () => {
@@ -223,15 +204,14 @@ describe('languageServerOrphanHandler', () => {
       throw new Error('always');
     });
     const holder: { root?: Tracer.Span } = {};
-    await expect(runWithClock(telemetry, [{ match: 'ps -e', result: ORPHAN_LIST }], holder)).resolves.toBeUndefined();
+    await expect(runWithClock([{ match: 'ps -e', result: ORPHAN_LIST }], holder)).resolves.toBeUndefined();
     expect(killSpy).toHaveBeenCalledTimes(3);
-    expect(telemetry.sendException).not.toHaveBeenCalled();
     expect(holder.root?.attributes.get('orphanKillError')).toBe('always');
   });
 
   it('web platform → TerminalServiceError → empty result, no prompt', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
-    await run(telemetry, [{ match: 'ps -e', result: { fail: 'Not available on web' } }]);
+    await run([{ match: 'ps -e', result: { fail: 'Not available on web' } }]);
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(killSpy).not.toHaveBeenCalled();
   });
@@ -239,13 +219,9 @@ describe('languageServerOrphanHandler', () => {
 
 describe('languageServerOrphanHandler (Windows powershell guard)', () => {
   const originalPlatform = process.platform;
-  let telemetry: MockTelemetryService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    telemetry = new MockTelemetryService();
-    telemetry.sendException = jest.fn();
-    setTelemetryService(telemetry);
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
   });
 
@@ -259,9 +235,6 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
     const holder: { root?: Tracer.Span } = {};
     let program: Effect.Effect<void> | undefined;
     jest.isolateModules(() => {
-      const telemetryModule =
-        require('../../src/telemetry/telemetry') as typeof import('../../src/telemetry/telemetry');
-      telemetryModule.setTelemetryService(telemetry);
       const { ExtensionProviderService: IsolatedProvider } =
         require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
       const { checkAndResolveOrphanedLanguageServers: checkOnWindows } =

@@ -7,13 +7,7 @@
 import * as vscode from 'vscode';
 
 // Mock vscode.extensions.getExtension before any imports that trigger src/index.ts
-const mockTelemetryService = {
-  initializeService: jest.fn(),
-  sendExtensionDeactivationEvent: jest.fn()
-};
-const mockCoreExports = {
-  services: { TelemetryService: { getInstance: () => mockTelemetryService } }
-};
+const mockCoreExports = {};
 const mockExtension = { exports: mockCoreExports, isActive: true };
 (jest.spyOn(vscode.extensions, 'getExtension') as any).mockImplementation((id: string) => {
   if (id === 'salesforce.salesforcedx-vscode-core') return mockExtension;
@@ -24,10 +18,6 @@ const mockExtension = { exports: mockCoreExports, isActive: true };
 jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(() => Promise.resolve());
 
 jest.mock('./../../src/apexLspStatusBarItem');
-jest.mock('../../src/telemetry/telemetry', () => ({
-  getTelemetryService: jest.fn(),
-  setTelemetryService: jest.fn()
-}));
 
 jest.mock('../../src/services/extensionProvider', () => ({
   buildAllServicesLayer: () => ({}),
@@ -35,7 +25,8 @@ jest.mock('../../src/services/extensionProvider', () => ({
 }));
 
 jest.mock('../../src/services/runtime', () => ({
-  getRuntime: () => ({ runPromise: (eff: any) => require('effect/Effect').runPromise(eff) })
+  getRuntime: () => ({ runPromise: (eff: any) => require('effect/Effect').runPromise(eff) }),
+  disposeRuntime: () => Promise.resolve()
 }));
 
 import { URI } from 'vscode-uri';
@@ -44,9 +35,7 @@ import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientManager, indexerDoneHandler } from '../../src/languageUtils';
 import { ClientStatus } from '../../src/languageUtils/languageClientManager';
-import { getTelemetryService } from '../../src/telemetry/telemetry';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
-import { MockTelemetryService } from './telemetry/mockTelemetryService';
 
 describe('index tests', () => {
   describe('indexDoneHandler', () => {
@@ -165,7 +154,6 @@ describe('index tests', () => {
 
   describe('activate', () => {
     let mockContext: vscode.ExtensionContext;
-    let telemetryServiceMock: MockTelemetryService;
     let originalWorkspaceFolders: any;
     let originalExtensions: any;
 
@@ -203,8 +191,6 @@ describe('index tests', () => {
         extensionMode: vscode.ExtensionMode.Test
       } as unknown as vscode.ExtensionContext;
 
-      telemetryServiceMock = new MockTelemetryService();
-      (getTelemetryService as jest.Mock).mockResolvedValue(telemetryServiceMock); // Ensure this works with the Jest mock
       // Store original workspaceFolders
       originalWorkspaceFolders = vscode.workspace.workspaceFolders;
 
@@ -241,23 +227,13 @@ describe('index tests', () => {
       });
       await expect(index.activate(mockContext)).rejects.toThrow(''); //should be "Unable to determine workspace folders for workspace"
     });
-
-    it('should throw error if telemetry service fails to initialize', async () => {
-      mockTelemetryService.initializeService = jest
-        .fn()
-        .mockRejectedValue(new Error('Could not fetch a telemetry service instance'));
-      await expect(index.activate(mockContext)).rejects.toThrow('Could not fetch a telemetry service instance');
-    });
   });
 
   describe('deactivate', () => {
     let stopSpy: jest.SpyInstance;
-    let telemetryServiceMock: MockTelemetryService;
 
     beforeEach(() => {
       stopSpy = jest.fn();
-      telemetryServiceMock = new MockTelemetryService();
-      (getTelemetryService as jest.Mock).mockReturnValue(telemetryServiceMock);
       jest
         .spyOn(languageClientManager, 'getClientInstance')
         .mockReturnValue({ stop: stopSpy } as unknown as ApexLanguageClient);
@@ -274,17 +250,9 @@ describe('index tests', () => {
       expect(stopSpy).not.toHaveBeenCalled();
     });
 
-    it('should send telemetry event on deactivation', async () => {
-      const sendEventSpy = jest.spyOn(telemetryServiceMock, 'sendExtensionDeactivationEvent');
-      await index.deactivate();
-      expect(sendEventSpy).toHaveBeenCalled();
-    });
-
-    it('should handle telemetry service failure', async () => {
-      mockTelemetryService.initializeService = jest
-        .fn()
-        .mockRejectedValue(new Error('Could not fetch a telemetry service instance'));
-      await index.deactivate(); // Should not throw
+    it('should still resolve when stop rejects (scope teardown/span flush not skipped)', async () => {
+      stopSpy.mockRejectedValue(new Error('Stopping the server timed out'));
+      await expect(index.deactivate()).resolves.toBeUndefined();
       expect(stopSpy).toHaveBeenCalled();
     });
   });

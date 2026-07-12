@@ -14,3 +14,13 @@ export const getRuntime = () => {
   _apexRuntime ??= createApexRuntime();
   return _apexRuntime;
 };
+
+// Dispose on deactivate: closing the ManagedRuntime scope runs the NodeSdk finalizer (forceFlush →
+// shutdown) so ended spans export instead of relying on the BatchSpanProcessor's UNREF'd 5s timer
+// (routinely lost on reload/shutdown). Clears the memo so re-activation rebuilds a fresh runtime.
+export const disposeRuntime = async (): Promise<void> => {
+  if (_apexRuntime) {
+    await _apexRuntime.dispose();
+    _apexRuntime = undefined;
+  }
+};
