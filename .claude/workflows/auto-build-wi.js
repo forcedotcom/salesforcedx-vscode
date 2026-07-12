@@ -892,6 +892,7 @@ Restart-aware: this may be a re-run after a prior crash. First check whether ${w
 Otherwise:
 1. Decide if the WI is implementable: can you name (a) what files/area to touch and (b) a definition of done? If either is genuinely unknowable, return {verdict: 'blocked', blocked: {questions: [...]}} with concrete questions.
 2. Otherwise, write the plan to ${wt}/.claude/plans/${chosen.name}.md in the concise style you just read. Sections: Context, Phases (each phase = one commit; include commit message), Skills to apply, Verification (excluding things covered by e2e tests on the branch — note which are e2e-covered).
+   Doc-output altitude: for any phase whose output path matches \`docs/adr/**\` / \`packages/*/docs/adr/**\` / \`**/CONTEXT.md\` / \`**/CONTEXT-MAP.md\`, state intent + target path + format-file ref (\`.claude/skills/grill-me/ADR-FORMAT.md\` or \`CONTEXT-FORMAT.md\`) only. Do NOT pre-spec the doc's prose into the plan.
 3. Return {verdict: 'plan', plan: {phases, skills, verification}}.
 
 Do not commit yet.`
@@ -915,6 +916,8 @@ const buildPrompt = (chosen, identity) => {
   return `Build WI ${chosen.name} per the plan at ${wt}/.claude/plans/${chosen.name}.md.
 
 Operate inside ${wt}. Execute each plan phase end-to-end and commit per the plan's commit-message boundaries (one commit per phase). Apply the skills listed in the plan.
+
+Before writing any output whose path matches \`docs/adr/**\` / \`packages/*/docs/adr/**\` / \`**/CONTEXT.md\` / \`**/CONTEXT-MAP.md\`, Read the matching format file (\`${wt}/.claude/skills/grill-me/ADR-FORMAT.md\` or \`CONTEXT-FORMAT.md\`) and obey it: 1-3 sentences core; optional sections only when earned; downstream-WI detail belongs in downstream WIs, not this doc.
 
 Repo hooks run on tool calls and will surface compile / lint / dead-code / LSP / effect issues — use that feedback to drive correctness. Do NOT run your own retry counter. If you genuinely cannot make progress, return {status: 'stuck', reason}.
 
