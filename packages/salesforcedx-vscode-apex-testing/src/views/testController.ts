@@ -13,6 +13,7 @@ import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as Option from 'effect/Option';
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
@@ -692,7 +693,7 @@ export class ApexTestController {
         })
       );
 
-      if (typeof result === 'string') {
+      if (isString(result)) {
         await notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled'));
         return;
       }
@@ -878,9 +879,7 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
 };
 
 const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
-  const filePath = result
-    .getFileResponses()
-    .find(r => typeof r.filePath === 'string' && r.filePath.length > 0)?.filePath;
+  const filePath = result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath;
   return filePath ? URI.file(filePath) : undefined;
 };
 
