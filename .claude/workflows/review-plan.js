@@ -157,6 +157,8 @@ ADR consistency check. Read the ADRs under ${wt}/docs/adr/ (repo-wide) plus any 
 - Flag (finding) any plan step that contradicts an ADR's decision, or re-proposes an alternative an ADR explicitly rejected/superseded. Cite the ADR file in 'evidence'.
 - Flag (finding) any decision the plan implies that WOULD warrant a new ADR — per ${wt}/.claude/skills/grill-me/ADR-FORMAT.md "When to offer" (all three gates: hard to reverse, surprising without context, real trade-off) — when the plan does not already sequence an ADR-writing step. Suggest sequencing the ADR first (see work-item-sequencing "ADRs sequence first").
 
+Doc-altitude check. If the plan proposes any phase whose target output path matches \`docs/adr/\` / \`packages/*/docs/adr/\` / \`CONTEXT.md\` / \`CONTEXT-MAP.md\`, flag (finding) any such phase that pre-specs the doc's prose into the plan body instead of stating intent + target path + format-file ref. Cite ${wt}/.claude/skills/grill-me/ADR-FORMAT.md "When to offer" / altitude in 'evidence'. If no phase targets such a doc path, this check produces nothing.
+
 Return ONLY the structured result.`
 
 const planAdvocateRevisePrompt = advocateRevisions =>
