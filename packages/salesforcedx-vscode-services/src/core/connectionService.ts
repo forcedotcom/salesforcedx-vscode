@@ -208,8 +208,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
-    /** Get a Connection to the target org */
-    const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
+    /**
+     * Get a Connection to an org. Desktop: `username` given → alias-resolve it and skip the config
+     * `target-org` lookup; omitted → resolve the configured default org (unchanged). Web ignores the param.
+     * When `username` is given, the default-org ref is NOT mutated (an arbitrary org must not overwrite it).
+     */
+    const getConnection = Effect.fn('ConnectionService.getConnection')(function* (username?: string) {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.gen(function* () {
             // Web environment - get connection from settings
@@ -220,26 +224,30 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
-            const usernameOrAlias = yield* configService.getConfigAggregator().pipe(
-              Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
-              Effect.filterOrFail(
-                targetOrg => targetOrg != null,
-                () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
-              )
-            );
-            const username = yield* aliasService
+            const usernameOrAlias =
+              username ??
+              (yield* configService.getConfigAggregator().pipe(
+                Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
+                Effect.filterOrFail(
+                  targetOrg => targetOrg != null,
+                  () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
+                )
+              ));
+            const resolved = yield* aliasService
               .getUsernameFromAlias(usernameOrAlias)
               .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            return yield* connectionCache.get(username);
+            return yield* connectionCache.get(resolved);
           });
 
-      // update the org ref in the background
-      yield* maybeUpdateDefaultOrgRef(conn).pipe(
-        Effect.provide(AliasService.Default),
-        Effect.tapError(e => Effect.logWarning(String(e))),
-        Effect.catchAll(() => Effect.void),
-        Effect.forkDaemon
-      );
+      // update the org ref in the background — ONLY for the default org (no explicit username)
+      if (username === undefined) {
+        yield* maybeUpdateDefaultOrgRef(conn).pipe(
+          Effect.provide(AliasService.Default),
+          Effect.tapError(e => Effect.logWarning(String(e))),
+          Effect.catchAll(() => Effect.void),
+          Effect.forkDaemon
+        );
+      }
       return conn;
     });
 
