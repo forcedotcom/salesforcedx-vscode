@@ -10,6 +10,12 @@
 // never enables web. `run:web`/`test:web` set VF_WEB_SPIKE=1 so this injects `browser` for the dev/test run only,
 // and the manifest is restored to its browser-less committed state afterward.
 //
+// TIME-BOXED SPIKE ARTIFACT — this manifest-mutating script is a known anti-pattern (see `packageJson` skill).
+// It must be DELETED once the go/no-go WI decides how to ship (or not ship) web support; do NOT copy this
+// pattern to other extensions. Callers wrap it in a shell `trap ... EXIT INT TERM` so restore runs on Ctrl-C /
+// signal termination, not only on normal exit; a SIGKILL / machine crash between add and remove can still leave
+// `browser` injected (recover with `git checkout package.json`).
+//
 // Usage:
 //   node scripts/spike-browser-field.mjs add      # inject browser (no-op unless VF_WEB_SPIKE is set)
 //   node scripts/spike-browser-field.mjs remove    # restore browser-less manifest

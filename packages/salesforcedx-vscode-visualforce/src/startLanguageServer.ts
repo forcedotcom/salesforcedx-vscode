@@ -27,7 +27,7 @@ import {
   type ColorPresentation as LSPColorPresentation
 } from 'vscode-languageserver-protocol';
 import { createLanguageClient } from './languageClient';
-import { buildSchemes } from './languageClient/clientOptions';
+import { buildDocumentSelector, buildSchemes } from './languageClient/clientOptions';
 import { activateTagClosing } from './tagClosing';
 
 const TagCloseRequest = {
@@ -44,11 +44,7 @@ export const startLanguageServer = Effect.fn('startLanguageServer')(function* (c
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         yield* api.services.ChannelService.pipe(
-          Effect.flatMap(svc =>
-            svc.appendToChannel(
-              `Visualforce language server unavailable: failed to start worker from ${error.serverPath}`
-            )
-          )
+          Effect.flatMap(svc => svc.appendToChannel(`Visualforce language server unavailable: ${error.message}`))
         );
         return undefined;
       })
@@ -65,46 +61,43 @@ export const startLanguageServer = Effect.fn('startLanguageServer')(function* (c
 
   // non-fatal: color/tag-closing features unavailable if this throws
   yield* Effect.try(() => {
-    const colorDisposable = languages.registerColorProvider(
-      schemes.map(scheme => ({ language: 'visualforce', scheme })),
-      {
-        provideDocumentColors: (document: TextDocument): Thenable<ColorInformation[]> => {
-          const params: DocumentColorParams = {
-            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(document)
-          };
-          return client.sendRequest(DocumentColorRequest.type, params).then((symbols: LSPColorInformation[]) =>
-            symbols.map((symbol: LSPColorInformation) => {
-              const range = client.protocol2CodeConverter.asRange(symbol.range);
-              const color = new Color(symbol.color.red, symbol.color.green, symbol.color.blue, symbol.color.alpha);
-              return new ColorInformation(range, color);
-            })
+    const colorDisposable = languages.registerColorProvider(buildDocumentSelector(schemes), {
+      provideDocumentColors: (document: TextDocument): Thenable<ColorInformation[]> => {
+        const params: DocumentColorParams = {
+          textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(document)
+        };
+        return client.sendRequest(DocumentColorRequest.type, params).then((symbols: LSPColorInformation[]) =>
+          symbols.map((symbol: LSPColorInformation) => {
+            const range = client.protocol2CodeConverter.asRange(symbol.range);
+            const color = new Color(symbol.color.red, symbol.color.green, symbol.color.blue, symbol.color.alpha);
+            return new ColorInformation(range, color);
+          })
+        );
+      },
+      provideColorPresentations: (
+        color: Color,
+        colorContext: { document: TextDocument; range: Range }
+      ): Thenable<ColorPresentation[]> => {
+        const params: ColorPresentationParams = {
+          textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(colorContext.document),
+          range: client.code2ProtocolConverter.asRange(colorContext.range),
+          color
+        };
+        return client
+          .sendRequest(ColorPresentationRequest.type, params)
+          .then(async (presentations: LSPColorPresentation[]) =>
+            Promise.all(
+              presentations.map(async (p: LSPColorPresentation) => {
+                const presentation = new ColorPresentation(p.label);
+                presentation.textEdit = p.textEdit && client.protocol2CodeConverter.asTextEdit(p.textEdit);
+                presentation.additionalTextEdits =
+                  p.additionalTextEdits && (await client.protocol2CodeConverter.asTextEdits(p.additionalTextEdits));
+                return presentation;
+              })
+            )
           );
-        },
-        provideColorPresentations: (
-          color: Color,
-          colorContext: { document: TextDocument; range: Range }
-        ): Thenable<ColorPresentation[]> => {
-          const params: ColorPresentationParams = {
-            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(colorContext.document),
-            range: client.code2ProtocolConverter.asRange(colorContext.range),
-            color
-          };
-          return client
-            .sendRequest(ColorPresentationRequest.type, params)
-            .then(async (presentations: LSPColorPresentation[]) =>
-              Promise.all(
-                presentations.map(async (p: LSPColorPresentation) => {
-                  const presentation = new ColorPresentation(p.label);
-                  presentation.textEdit = p.textEdit && client.protocol2CodeConverter.asTextEdit(p.textEdit);
-                  presentation.additionalTextEdits =
-                    p.additionalTextEdits && (await client.protocol2CodeConverter.asTextEdits(p.additionalTextEdits));
-                  return presentation;
-                })
-              )
-            );
-        }
       }
-    );
+    });
     context.subscriptions.push(colorDisposable);
 
     const tagDisposable = activateTagClosing(

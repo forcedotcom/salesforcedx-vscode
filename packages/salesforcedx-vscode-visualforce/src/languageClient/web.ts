@@ -20,6 +20,7 @@ import {
 export class LanguageClientWorkerStartError extends Schema.TaggedError<LanguageClientWorkerStartError>()(
   'LanguageClientWorkerStartError',
   {
+    message: Schema.String,
     serverPath: Schema.String,
     cause: Schema.Unknown
   }
@@ -35,7 +36,12 @@ export const createLanguageClient = Effect.fn('createWebLanguageClient')(functio
 ) {
   const worker = yield* Effect.try({
     try: () => new Worker(serverPath),
-    catch: cause => new LanguageClientWorkerStartError({ serverPath, cause })
+    catch: cause =>
+      new LanguageClientWorkerStartError({
+        message: `failed to start Visualforce language server worker from ${serverPath}`,
+        serverPath,
+        cause
+      })
   });
 
   const outputChannel = window.createOutputChannel('Visualforce Language Server');

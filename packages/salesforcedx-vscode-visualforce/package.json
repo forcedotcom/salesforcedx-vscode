@@ -155,7 +155,7 @@
       "output": []
     },
     "test:web": {
-      "command": "node ./scripts/spike-browser-field.mjs add && (playwright test --config=test/playwright/playwright.config.web.ts; code=$?; node ./scripts/spike-browser-field.mjs remove; exit $code)",
+      "command": "node ./scripts/spike-browser-field.mjs add && (trap 'node ./scripts/spike-browser-field.mjs remove' EXIT INT TERM; playwright test --config=test/playwright/playwright.config.web.ts)",
       "env": {
         "VF_WEB_SPIKE": "1",
         "PLAYWRIGHT_WORKERS": {
@@ -176,7 +176,7 @@
       "output": []
     },
     "run:web": {
-      "command": "node ./scripts/spike-browser-field.mjs add && (npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable; code=$?; node ./scripts/spike-browser-field.mjs remove; exit $code)",
+      "command": "node ./scripts/spike-browser-field.mjs add && (trap 'node ./scripts/spike-browser-field.mjs remove' EXIT INT TERM; npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable)",
       "service": true,
       "env": {
         "VF_WEB_SPIKE": "1"

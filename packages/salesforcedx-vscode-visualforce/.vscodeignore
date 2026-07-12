@@ -6,6 +6,7 @@
 .vscode-test/**
 .wireit/**
 dist/*-metafile.json
+dist/web/**
 *.xml
 *.vsix
 out/**
