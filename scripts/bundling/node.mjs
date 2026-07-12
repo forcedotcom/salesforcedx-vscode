@@ -6,6 +6,9 @@ export const nodeConfig = {
   bundle: true,
   format: 'cjs',
   platform: 'node',
+  // Resolve effect's ESM build so unused submodules (e.g. fast-check via Schema) tree-shake out.
+  // Promoted from per-package opt-in (effectEsmConditions) per ADR 0021 node criterion.
+  conditions: ['import', 'module', 'default'],
   target: 'es2023',
   keepNames: true,
   minify,

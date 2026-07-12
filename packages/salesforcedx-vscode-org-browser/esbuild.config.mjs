@@ -12,7 +12,6 @@ import { writeFile } from 'fs/promises';
 
 const nodeBuild = await build({
   ...nodeConfig,
-  ...effectEsmConditions,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [...(nodeConfig.plugins ?? [])],
