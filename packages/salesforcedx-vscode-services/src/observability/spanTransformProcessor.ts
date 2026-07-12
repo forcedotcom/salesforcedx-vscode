@@ -14,14 +14,17 @@ import { getDefaultOrgRef } from '../core/defaultOrgRef';
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(exporter: SpanExporter, options?: BufferConfig) {
+  private readonly shouldEnrich: () => boolean;
+
+  constructor(exporter: SpanExporter, options?: BufferConfig, shouldEnrich: () => boolean = () => true) {
     super(exporter, options);
+    this.shouldEnrich = shouldEnrich;
   }
 
   public onStart(span: Span, parentContext: Context): void {
-    // for top level spans, add additional attributes
-    if (!span.parentSpanContext) {
+    // for top level spans, add additional attributes — skipped when the exporter gate is disabled
+    // (the enrichment would be computed per-span then discarded by the gated exporter)
+    if (!span.parentSpanContext && this.shouldEnrich()) {
       const resourceAttrs = span.resource.attributes;
       const extensionName = resourceAttrs['extension.name'];
       const extensionVersion = resourceAttrs['extension.version'];
