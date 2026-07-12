@@ -7,6 +7,7 @@
 
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { ChannelService } from './channelService';
@@ -20,10 +21,10 @@ const hasCause = (e: unknown): e is { cause: unknown } => typeof e === 'object' 
 
 /** Recursively extract actions from error chain */
 const getActions = (error: unknown): string[] => {
-  if (!(error instanceof Error)) return [];
+  if (!isError(error)) return [];
   const actions = hasActions(error) ? error.actions.filter(Boolean) : [];
   const innerCause = hasCause(error) ? error.cause : undefined;
-  const causeActions = innerCause instanceof Error ? getActions(innerCause) : [];
+  const causeActions = isError(innerCause) ? getActions(innerCause) : [];
   return [...actions, ...causeActions];
 };
 
@@ -36,9 +37,9 @@ const isMetadataCompletedWithErrorsSummaryError = (error: unknown): boolean => {
 };
 
 const getBaseMessage = (error: unknown): string => {
-  if (error instanceof Error) {
+  if (isError(error)) {
     const innerCause = hasCause(error) ? error.cause : undefined;
-    return innerCause instanceof Error ? getBaseMessage(innerCause) : error.message;
+    return isError(innerCause) ? getBaseMessage(innerCause) : error.message;
   }
   if (typeof error === 'object' && error !== null && 'message' in error) {
     const msg = Reflect.get(error, 'message');
