@@ -116,20 +116,24 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
    * matching prior behavior where a failed fetch still launches the session.
    */
   private async resolveHeapDumpResults(logFileContents: string): Promise<HeapDumpResult[]> {
+    // Org/connection resolution failures keep the localized org-info label; a HeapDumpOverlayFetchError
+    // is a batch-request failure, so it surfaces its own message rather than being mislabeled as org-info.
+    const orgInfoError = (error: unknown): HeapDumpResult[] => [
+      { heapDumpId: '', error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}` }
+    ];
     return getRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const conn = yield* api.services.ConnectionService.getConnection();
         return yield* fetchHeapDumpOverlayResults(conn, logFileContents);
       }).pipe(
-        Effect.catchAll(error =>
-          Effect.succeed<HeapDumpResult[]>([
-            {
-              heapDumpId: '',
-              error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}`
-            }
-          ])
-        )
+        Effect.catchTags({
+          NoTargetOrgConfiguredError: error => Effect.succeed(orgInfoError(error)),
+          FailedToCreateConnectionError: error => Effect.succeed(orgInfoError(error)),
+          HeapDumpOverlayFetchError: error =>
+            Effect.succeed<HeapDumpResult[]>([{ heapDumpId: '', error: errorToString(error) }])
+        }),
+        Effect.catchAll(error => Effect.succeed(orgInfoError(error)))
       )
     );
   }
