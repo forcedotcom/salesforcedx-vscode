@@ -8,7 +8,7 @@ import { build } from 'esbuild';
 import { writeFile } from 'fs/promises';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 
-// Desktop extension bundle — consumes effect; ESM conditions now inherited from nodeConfig (ADR 0021)
+// Desktop extension bundle — consumes effect; ESM conditions inherited from nodeConfig
 const nodeBuild = await build({
   ...nodeConfig,
   mainFields: ['module', 'main'],

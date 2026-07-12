@@ -7,7 +7,8 @@ export const nodeConfig = {
   format: 'cjs',
   platform: 'node',
   // Resolve effect's ESM build so unused submodules (e.g. fast-check via Schema) tree-shake out.
-  // Promoted from per-package opt-in (effectEsmConditions) per ADR 0021 node criterion.
+  // Global on purpose: alters resolution for EVERY dep, not just effect. Validated across all node
+  // consumers by a full vscode:bundle + desktop e2e. Do not re-scope to per-package opt-in or delete.
   conditions: ['import', 'module', 'default'],
   target: 'es2023',
   keepNames: true,

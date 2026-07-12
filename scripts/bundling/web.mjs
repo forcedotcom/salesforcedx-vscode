@@ -45,7 +45,8 @@ export const commonConfigBrowser = {
   format: 'cjs',
   platform: 'browser',
   // Resolve effect's ESM build so unused submodules (e.g. fast-check via Schema) tree-shake out.
-  // Promoted from per-package opt-in (effectEsmConditions) per ADR 0021 browser criterion (web e2e green).
+  // Global on purpose: alters resolution for EVERY dep in each browser bundle (ships to web/Web Console).
+  // Validated by per-package web e2e specs before going always-on. Do not re-scope to opt-in or delete.
   conditions: ['import', 'module', 'default'],
   external: ['vscode'],
   // TODO: we need a way to turn this off for debugging and local dev
