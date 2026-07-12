@@ -6,6 +6,7 @@
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -233,7 +234,7 @@ export class LanguageClientManager {
       try {
         await alc.stop();
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = isError(error) ? error.message : String(error);
         vscode.window.showWarningMessage(
           `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
         );
@@ -259,7 +260,7 @@ export class LanguageClientManager {
             await this.createLanguageClient(extensionContext, statusBarInstance);
           } catch (error) {
             // Log any errors that occur during client creation
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorMessage = isError(error) ? error.message : String(error);
             console.error('Error creating language client:', errorMessage);
             vscode.window.showErrorMessage(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
           } finally {
@@ -332,7 +333,7 @@ export class LanguageClientManager {
       let errorMessage = '';
       if (typeof error === 'string') {
         errorMessage = error;
-      } else if (error instanceof Error) {
+      } else if (isError(error)) {
         errorMessage = error.message ?? nls.localize('unknown_error');
       } else {
         errorMessage = nls.localize('unknown_error');
