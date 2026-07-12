@@ -6,6 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
@@ -569,7 +570,7 @@ class LwcTestController {
         appendLine(run, nls.localize('no_test_results_produced_message'));
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = isError(error) ? error.message : String(error);
       if (sourceItem) {
         run.errored(sourceItem, new vscode.TestMessage(message));
       } else {

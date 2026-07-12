@@ -9,6 +9,7 @@ import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
 import * as Option from 'effect/Option';
+import { isError } from 'effect/Predicate';
 
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
 
@@ -42,7 +43,7 @@ export const resetPackageResolutionState = (): void => {
 
 /** Returns true if the error indicates Package2Member (or Package2) is not available in this org. */
 const isPackage2UnavailableError = (error: unknown): boolean => {
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = isError(error) ? error.message : String(error);
   const lower = msg.toLowerCase();
   return (
     lower.includes('package2member') ||
@@ -57,7 +58,7 @@ const isPackage2UnavailableError = (error: unknown): boolean => {
 
 /** True when the error is "no such column" for the given field (e.g. subscriber orgs where Package2Member has SubjectId but not MetadataComponentId). */
 const isNoSuchColumnForField = (error: unknown, field: string): boolean => {
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = isError(error) ? error.message : String(error);
   const lower = msg.toLowerCase();
   return lower.includes('no such column') && lower.includes(field.toLowerCase());
 };

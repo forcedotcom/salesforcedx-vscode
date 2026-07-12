@@ -9,8 +9,14 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import type * as Either from 'effect/Either';
+import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { type DiscoverTestsOptions, type TestDiscoveryResult, type ToolingTestsPage, ToolingTestClass } from './schemas';
+import {
+  type DiscoverTestsOptions,
+  type TestDiscoveryResult,
+  type ToolingTestsPage,
+  ToolingTestClass
+} from './schemas';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -54,13 +60,13 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
           try: (): Promise<ToolingTestsPage> =>
             connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
           catch: (error): Error =>
-            new Error(`Failed to fetch test discovery page: ${error instanceof Error ? error.message : String(error)}`)
+            new Error(`Failed to fetch test discovery page: ${isError(error) ? error.message : String(error)}`)
         })
       );
 
       if (pageResult._tag === 'Left') {
         const error = pageResult.left;
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = isError(error) ? error.message : String(error);
         // Check if it's a 431 error (Request Header Fields Too Large)
         if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
           partialResult = true;
@@ -77,9 +83,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
           // single malformed record degrades to a partial result (mirroring the 431 path) instead of
           // aborting the entire discovery.
           const decodeRecord = Schema.decodeUnknown(ToolingTestClass);
-          const results = yield* Effect.forEach(page.apexTestClasses, record =>
-            Effect.either(decodeRecord(record))
-          );
+          const results = yield* Effect.forEach(page.apexTestClasses, record => Effect.either(decodeRecord(record)));
           classes.push(...Array.getRights(results));
           const failures = Array.getLefts(results);
           if (failures.length > 0) {

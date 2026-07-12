@@ -14,6 +14,7 @@ import { fs } from '@salesforce/core/fs';
 import type { MetadataType } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { isError } from 'effect/Predicate';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
@@ -28,7 +29,7 @@ import { VirtualFsProviderError } from './virtualFsProviderError';
 
 /** Convert ENOENT errors to VS Code FileSystemError.FileNotFound */
 const handleFileSystemError = (error: unknown, uri: URI): never => {
-  if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+  if (isError(error) && 'code' in error && error.code === 'ENOENT') {
     throw vscode.FileSystemError.FileNotFound(uri);
   }
   throw error;

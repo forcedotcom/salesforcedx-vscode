@@ -8,6 +8,7 @@
 import { Org, Connection, ConfigAggregator } from '@salesforce/core';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 
 export class GetOrgFromConnectionError extends Data.TaggedError('GetOrgFromConnectionError')<{
   readonly cause: unknown;
@@ -23,6 +24,6 @@ export const getOrgFromConnection = (connection: Connection, aggregator?: Config
 /** Normalize an unknown catch value to a real `Error` cause plus its `message`, so tagged errors that
  * spread this surface the underlying text instead of an empty message in pretty-printed output. */
 export const unknownToErrorCause = (error: unknown): { cause: Error; message: string } => {
-  const cause = error instanceof Error ? error : new Error(String(error));
+  const cause = isError(error) ? error : new Error(String(error));
   return { cause, message: cause.message };
 };

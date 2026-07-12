@@ -6,6 +6,7 @@
  */
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -70,12 +71,11 @@ const ERROR_PATTERNS = [
 
 /** Formats error messages for better user experience */
 export const formatErrorMessage = (error: unknown): string => {
-  const errorString =
-    error instanceof Error
-      ? error.message
-      : error && typeof error === 'object' && 'message' in error
-        ? String(error.message)
-        : String(error);
+  const errorString = isError(error)
+    ? error.message
+    : error && typeof error === 'object' && 'message' in error
+      ? String(error.message)
+      : String(error);
   const matched = ERROR_PATTERNS.find(({ match }) => match(errorString));
   return matched ? nls.localize(matched.key) : nls.localize('data_query_error_message', errorString);
 };

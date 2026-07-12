@@ -27,6 +27,7 @@ import {
 } from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { debuggerStop } from './commands/debuggerStop';
@@ -280,7 +281,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
         registerIsvAuthWatcher(extensionContext);
         await setupGlobalDefaultUserIsvAuth();
       },
-      catch: e => new IsvAuthSetupError({ message: e instanceof Error ? e.message : String(e) })
+      catch: e => new IsvAuthSetupError({ message: isError(e) ? e.message : String(e) })
     }).pipe(
       // ISV setup failure is non-fatal to activation: surface a warning + log, don't fail the fiber
       Effect.catchTag('IsvAuthSetupError', e =>

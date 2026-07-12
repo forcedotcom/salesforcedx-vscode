@@ -9,6 +9,7 @@ import { OrgConfigProperties } from '@salesforce/core';
 import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { isError } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -118,7 +119,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
     try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
     catch: e =>
       new TemplatesManifestLoadError({
-        message: nls.localize('template_service_manifest_load_failed', e instanceof Error ? e.message : String(e)),
+        message: nls.localize('template_service_manifest_load_failed', isError(e) ? e.message : String(e)),
         cause: e
       })
   });
@@ -146,7 +147,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
               message: nls.localize(
                 'template_service_file_copy_failed',
                 relativePath,
-                e instanceof Error ? e.message : String(e)
+                isError(e) ? e.message : String(e)
               ),
               cause: e
             })

@@ -7,6 +7,7 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { ChildProcess } from './childProcess';
 
@@ -21,7 +22,7 @@ export class TerminalServiceError extends Schema.TaggedError<TerminalServiceErro
 const hasStringStdout = (e: Error): e is Error & { stdout: string } => 'stdout' in e && typeof e.stdout === 'string';
 
 const execErrorMessage = (e: unknown): string => {
-  if (!(e instanceof Error)) return 'exec failed';
+  if (!isError(e)) return 'exec failed';
   const trimmedStdout = hasStringStdout(e) ? e.stdout.trim() : '';
   return trimmedStdout && !e.message.includes(trimmedStdout) ? `${e.message}\n${trimmedStdout}` : e.message;
 };

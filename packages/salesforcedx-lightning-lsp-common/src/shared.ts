@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isError } from 'effect/Predicate';
 import * as path from 'node:path';
 import { isPackageJson } from './types/packageJson';
 
@@ -75,9 +76,7 @@ export const detectWorkspaceHelper = async (root: string, fs: WorkspaceFileSyste
         return 'STANDARD';
       }
     } catch (e) {
-      console.error(
-        `Error encountered while trying to detect workspace type: ${e instanceof Error ? e.message : String(e)}`
-      );
+      console.error(`Error encountered while trying to detect workspace type: ${isError(e) ? e.message : String(e)}`);
     }
   }
 

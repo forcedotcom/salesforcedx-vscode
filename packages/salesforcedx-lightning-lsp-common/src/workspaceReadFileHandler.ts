@@ -8,6 +8,7 @@
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import {
@@ -28,7 +29,7 @@ import {
   type WorkspaceDeleteFileResult
 } from './lspCustomRequests';
 
-const errorMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+const errorMessage = (e: unknown): string => (isError(e) ? e.message : String(e));
 
 const isVscodeFileStat = (x: unknown): x is vscode.FileStat =>
   typeof x === 'object' && x !== null && 'type' in x && 'ctime' in x && 'mtime' in x && 'size' in x;
@@ -174,7 +175,7 @@ export const registerWorkspaceReadFileHandler = (
       Effect.catchAll(e =>
         Effect.sync(() => {
           const message = errorMessage(e);
-          const stack = e instanceof Error ? e.stack : undefined;
+          const stack = isError(e) ? e.stack : undefined;
           log.appendLine(`[findFiles] error: ${message}`);
           if (stack) log.appendLine(`[findFiles] stack: ${stack}`);
           return { uris: undefined };

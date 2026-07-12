@@ -12,6 +12,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
@@ -46,7 +47,7 @@ const getConnection = async (): Promise<Connection | undefined> => {
     );
   } catch (error) {
     const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
-      error instanceof Error ? error.message : String(error)
+      isError(error) ? error.message : String(error)
     }`;
     writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
     return undefined;

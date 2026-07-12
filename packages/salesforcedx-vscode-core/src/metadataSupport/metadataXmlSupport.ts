@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isError } from 'effect/Predicate';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -103,7 +104,7 @@ export class MetadataXmlSupport {
       channelService.appendLine(nls.localize('metadata_xml_redhat_extension_setup_success'));
     } catch (error) {
       channelService.appendLine(nls.localize('metadata_xml_fail_redhat_extension'));
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = isError(error) ? error.message : String(error);
       channelService.appendLine(errorMsg);
     }
   }

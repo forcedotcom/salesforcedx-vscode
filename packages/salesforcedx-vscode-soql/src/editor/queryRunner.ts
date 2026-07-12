@@ -9,6 +9,7 @@ import type { QueryResult } from '../types';
 import type { Connection } from '@salesforce/core';
 import * as soqlComments from '@salesforce/soql-common/soqlComments';
 import type { JsonMap } from '@salesforce/ts-types';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { stripAllRows } from './allRows';
@@ -17,7 +18,7 @@ const hasMessage = (obj: unknown): obj is { message: unknown } =>
   typeof obj === 'object' && obj !== null && 'message' in obj;
 
 const getErrorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : hasMessage(error) ? String(error.message) : String(error);
+  isError(error) ? error.message : hasMessage(error) ? String(error.message) : String(error);
 
 export const runQuery =
   (conn: Connection) =>

@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
@@ -44,7 +45,7 @@ const lookupClassBody = (className: string) =>
     return apexClass.Body;
   }).pipe(
     Effect.catchAll((error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = isError(error) ? error.message : String(error);
       return Effect.succeed(`// Error retrieving class '${className}' from org: ${errorMessage}`);
     })
   );
@@ -159,7 +160,7 @@ export const openOrgApexClass = async (className: string, position?: vscode.Posi
       }
     }).pipe(
       Effect.catchAll((error: unknown) => {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = isError(error) ? error.message : String(error);
         return Effect.sync(
           () =>
             void vscode.window.showErrorMessage(
