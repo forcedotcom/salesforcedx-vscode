@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Column, createTable, Row } from '../../src/table';
+import { type Column, createTable, type Row } from '../../src/table';
 
 // Find column boundaries by looking for separator pattern '  ' (2 spaces)
 const findColumnStarts = (line: string): number[] => {

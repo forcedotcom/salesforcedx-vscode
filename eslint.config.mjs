@@ -735,6 +735,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
+    files: ['packages/effect-ext-utils/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // class-methods-use-this for packages not yet using Effect
     files: [
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
