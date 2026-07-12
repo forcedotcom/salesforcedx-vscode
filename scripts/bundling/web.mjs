@@ -44,6 +44,9 @@ export const commonConfigBrowser = {
   bundle: true,
   format: 'cjs',
   platform: 'browser',
+  // Resolve effect's ESM build so unused submodules (e.g. fast-check via Schema) tree-shake out.
+  // Promoted from per-package opt-in (effectEsmConditions) per ADR 0021 browser criterion (web e2e green).
+  conditions: ['import', 'module', 'default'],
   external: ['vscode'],
   // TODO: we need a way to turn this off for debugging and local dev
   minify: process.env.DEBUG_BUNDLE !== '1',
