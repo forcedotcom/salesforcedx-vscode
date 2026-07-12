@@ -12,17 +12,16 @@ import {
   createMinimalOrg,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  removeStaleScratchOrgAuth,
   selectOutputChannel,
   upsertScratchOrgAuthFieldsToSettings,
   verifyCommandExists,
   waitForNotification,
   waitForOutputChannelText,
-  waitForVSCodeWorkbench,
-  writeStaleScratchOrgAuth
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 import { orgDesktopMinimalDefaultCustomDialogTest as test } from '../fixtures/desktopFixtures';
+import { removeStaleScratchOrgAuth, writeStaleScratchOrgAuth } from '../helpers/staleScratchOrgAuth';
 
 const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 

@@ -16,7 +16,7 @@ import * as path from 'node:path';
  * the desktop config runs `fullyParallel`, so an unscoped fixed username would let one test's stale
  * org be seen by a sibling worker's `listAllAuthorizations` and race its assertions.
  */
-export const STALE_SCRATCH_ORG_USERNAME = `stale-expired-e2e-${process.env.TEST_WORKER_INDEX ?? '0'}-${Math.random()
+const STALE_SCRATCH_ORG_USERNAME = `stale-expired-e2e-${process.env.TEST_WORKER_INDEX ?? '0'}-${Math.random()
   .toString(36)
   .slice(2)}@example.com`;
 

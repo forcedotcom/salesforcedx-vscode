@@ -81,11 +81,6 @@ export {
   HUB_ORG_ALIAS
 } from './orgs/nonTrackingScratchOrgSetup';
 export { getTargetDevHub } from './orgs/devHub';
-export {
-  writeStaleScratchOrgAuth,
-  removeStaleScratchOrgAuth,
-  STALE_SCRATCH_ORG_USERNAME
-} from './orgs/staleScratchOrgAuth';
 export { execAsync, env } from './orgs/shared';
 
 // Pages
