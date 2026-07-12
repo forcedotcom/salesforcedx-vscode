@@ -9,3 +9,5 @@ Web status per extension (by `browser` field in `package.json`):
 - **Enabled**: services, metadata, org-browser, lwc, apex-log, apex-testing, soql.
 - **Deliberately not** (see their ADRs): org, apex-oas, apex/Jorje.
 - **Not yet / welcome** (not rejected): replay-debugger, aura/lightning, visualforce.
+
+Visualforce web support is under active spike (W-23358899): the extension + LSP are being proven on VS Code Web behind a build-time gate, so the shipped VSIX stays browser-less. VF remains in the "Not yet" bucket; the go/no-go decision (and any productionize step that ships `browser`) is recorded in a later, separately-sequenced WI — not this spike.
