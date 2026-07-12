@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo, AuthRemover, Org, OrgAuthorization, StateAggregator } from '@salesforce/core';
+import { AuthFields, AuthInfo, AuthRemover, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
@@ -37,7 +37,7 @@ export class GetAuthFieldsError extends Schema.TaggedError<GetAuthFieldsError>()
   username: Schema.String
 }) {}
 
-/** Raised when `Org.create`/`refreshAuth` rejects while checking a non-scratch org's connection (leaf Promise, caught in-fn). */
+/** Raised when `conn.refreshAuth()` live-probe rejects while checking a non-scratch org's connection (caught in-fn). */
 class OrgConnectionCheckError extends Schema.TaggedError<OrgConnectionCheckError>()('OrgConnectionCheckError', {
   cause: Schema.Unknown,
   username: Schema.String
@@ -194,22 +194,33 @@ export const shouldRemoveOrg = (err: any): boolean => {
 /** Check actual connection status by testing the connection */
 export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.determineConnectedStatusForNonScratchOrg')(
   function* (username: string) {
-    const org = yield* Effect.tryPromise({
-      try: () => Org.create({ aliasOrUsername: username }),
-      catch: cause => new OrgConnectionCheckError({ cause, username })
-    });
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const conn = yield* api.services.ConnectionService.getConnection(username);
 
-    // Skip connection testing for scratch orgs (they have DEV_HUB_USERNAME)
-    return org.getField(Org.Fields.DEV_HUB_USERNAME)
+    // Skip connection testing for scratch orgs (they have a devHubUsername)
+    return conn.getAuthInfoFields().devHubUsername
       ? undefined
       : yield* Effect.tryPromise({
-          try: () => org.refreshAuth(),
-          catch: cause => new OrgConnectionCheckError({ cause, username: org.getUsername() ?? username })
+          try: () => conn.refreshAuth(),
+          catch: cause => new OrgConnectionCheckError({ cause, username: conn.getUsername() ?? username })
         }).pipe(Effect.as('Connected'));
   },
-  Effect.catchTag('OrgConnectionCheckError', ({ cause, username }) =>
-    Effect.succeed(getConnectionStatusFromError(cause, username))
-  )
+  // Every connection-status error (the refreshAuth live-probe failure + the getConnection tags) maps to
+  // a status string via getConnectionStatusFromError, which reads .message so a bad auth still classifies
+  // (e.g. NamedOrgNotFound → "Invalid org: <username>"). Enumerating the tags gives compile-time
+  // exhaustiveness over the error channel. OrgConnectionCheckError uses its own .cause/.username fields.
+  (self, username: string) =>
+    self.pipe(
+      Effect.catchTags({
+        OrgConnectionCheckError: err => Effect.succeed(getConnectionStatusFromError(err.cause, err.username)),
+        NoTargetOrgConfiguredError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        FailedToCreateConfigAggregatorError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        FailedToCreateAuthInfoError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        FailedToCreateConnectionError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        MissingSettingsError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        NoWorkspaceOpenError: err => Effect.succeed(getConnectionStatusFromError(err, username))
+      })
+    )
 );
 
 /** A removable org plus the channel line describing why it's removable. */
@@ -434,7 +445,10 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
 /** Process a single org authorization into display data */
 const processOrgForDisplay = Effect.fn('OrgUtil.processOrgForDisplay')(
   function* (orgAuth: OrgAuthorization, defaultConfig: DefaultOrgConfig) {
-    if (orgAuth.isExpired) {
+    // isExpired is `boolean | 'unknown'`: non-scratch orgs (e.g. the dev hub) have no expirationDate
+    // so @salesforce/core reports 'unknown' (authInfo.js). A loose truthy check drops them (and thus
+    // never runs determineConnectedStatusForNonScratchOrg) — only skip orgs that are DEFINITELY expired.
+    if (orgAuth.isExpired === true) {
       return undefined;
     }
     const authFields = yield* getAuthFieldsFor(orgAuth.username);

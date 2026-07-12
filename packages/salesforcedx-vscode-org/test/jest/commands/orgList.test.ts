@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, Org, OrgAuthorization } from '@salesforce/core';
+import { AuthRemover, OrgAuthorization } from '@salesforce/core';
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
@@ -25,6 +25,7 @@ import * as orgUtil from '../../../src/util/orgUtil';
 // The migrated helpers are pure Effects: they resolve org auths through ConnectionService.listAllAuthorizations
 // (an Effect) and write to the Effect ChannelService (yielded off the services api), never the legacy singleton.
 let listAllAuthorizationsMock: jest.Mock;
+let getConnectionMock: jest.Mock;
 let appendToChannelMock: jest.Mock;
 let showChannelMock: jest.Mock;
 
@@ -35,12 +36,6 @@ jest.mock('@salesforce/core', () => ({
   },
   AuthInfo: {
     listAllAuthorizations: jest.fn()
-  },
-  Org: {
-    create: jest.fn(),
-    Fields: {
-      DEV_HUB_USERNAME: 'DevHubUsername'
-    }
   },
   ConfigAggregator: {
     create: jest.fn().mockImplementation(() => ({
@@ -82,7 +77,8 @@ const buildServicesLayer = (listMock: jest.Mock) =>
     getServicesApi: Effect.succeed({
       services: {
         ConnectionService: {
-          listAllAuthorizations: listMock
+          listAllAuthorizations: listMock,
+          getConnection: getConnectionMock
         },
         ConfigService: {
           getTargetDevHub: () => Effect.succeed(undefined),
@@ -116,6 +112,8 @@ describe('orgList command', () => {
 
     // Default the ConnectionService.listAllAuthorizations mock to an empty Effect; suites override below.
     listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
+    // Default getConnection to a never-called stub; the determineConnectedStatus suite overrides it.
+    getConnectionMock = jest.fn();
     appendToChannelMock = jest.fn();
     showChannelMock = jest.fn();
 
@@ -131,53 +129,73 @@ describe('orgList command', () => {
   });
 
   describe('determineConnectedStatusForNonScratchOrg', () => {
-    const mockOrg = {
-      getField: jest.fn(),
+    // conn stands in for the jsforce Connection getConnection(username) resolves to.
+    const mockConn = {
+      getAuthInfoFields: jest.fn(),
       refreshAuth: jest.fn(),
       getUsername: jest.fn().mockReturnValue('test@example.com')
     };
 
     beforeEach(() => {
-      jest.clearAllMocks();
-      (Org.create as jest.Mock).mockResolvedValue(mockOrg);
+      mockConn.getAuthInfoFields.mockReset();
+      mockConn.refreshAuth.mockReset();
+      // Default: getConnection succeeds with mockConn; per-test overrides for failure cases.
+      getConnectionMock.mockReturnValue(Effect.succeed(mockConn));
     });
 
     it('should return undefined for scratch orgs', async () => {
-      mockOrg.getField.mockReturnValue('hub@example.com'); // Has DEV_HUB_USERNAME
+      mockConn.getAuthInfoFields.mockReturnValue({ devHubUsername: 'hub@example.com' });
 
-      const result = await Effect.runPromise(determineConnectedStatusForNonScratchOrg('scratch@example.com'));
+      const result = await runWithServices(determineConnectedStatusForNonScratchOrg('scratch@example.com'));
 
       expect(result).toBeUndefined();
-      expect(mockOrg.refreshAuth).not.toHaveBeenCalled();
+      expect(mockConn.refreshAuth).not.toHaveBeenCalled();
     });
 
     it('should return Connected for valid non-scratch org', async () => {
-      mockOrg.getField.mockReturnValue(null); // No DEV_HUB_USERNAME
-      mockOrg.refreshAuth.mockResolvedValue(undefined);
+      mockConn.getAuthInfoFields.mockReturnValue({}); // No devHubUsername
+      mockConn.refreshAuth.mockResolvedValue(undefined);
 
-      const result = await Effect.runPromise(determineConnectedStatusForNonScratchOrg('prod@example.com'));
+      const result = await runWithServices(determineConnectedStatusForNonScratchOrg('prod@example.com'));
 
       expect(result).toBe('Connected');
-      expect(mockOrg.refreshAuth).toHaveBeenCalled();
+      expect(mockConn.refreshAuth).toHaveBeenCalled();
     });
 
-    it('should handle connection errors', async () => {
-      mockOrg.getField.mockReturnValue(null);
-      const error = new Error('Connection failed');
-      mockOrg.refreshAuth.mockRejectedValue(error);
+    it('should handle refreshAuth live-probe errors', async () => {
+      mockConn.getAuthInfoFields.mockReturnValue({});
+      mockConn.refreshAuth.mockRejectedValue(new Error('Connection failed'));
 
-      const result = await Effect.runPromise(determineConnectedStatusForNonScratchOrg('invalid@example.com'));
+      const result = await runWithServices(determineConnectedStatusForNonScratchOrg('invalid@example.com'));
 
       // getConnectionStatusFromError falls through to the raw message for unrecognized errors
       expect(result).toBe('Connection failed');
     });
 
-    it('should handle org creation failure', async () => {
-      (Org.create as jest.Mock).mockRejectedValue(new Error('Org not found'));
+    // The real getConnection tags are Schema.TaggedError (extend Error), so getConnectionStatusFromError
+    // reads `.message`. Model that with an Error instance carrying the `_tag` catchTags matches on.
+    const taggedError = (tag: string, message: string) => Object.assign(new Error(message), { _tag: tag });
 
-      const result = await Effect.runPromise(determineConnectedStatusForNonScratchOrg('notfound@example.com'));
+    it('should classify a removable getConnection failure via the distinct tag (not a generic collapse)', async () => {
+      getConnectionMock.mockReturnValue(
+        Effect.fail(taggedError('FailedToCreateAuthInfoError', 'no such org: NamedOrgNotFound'))
+      );
 
-      expect(result).toBe('Org not found');
+      const result = await runWithServices(determineConnectedStatusForNonScratchOrg('notfound@example.com'));
+
+      // proves the distinct tag reaches the string-matcher (shouldRemoveOrg → Invalid org)
+      expect(result).toBe('Invalid org: notfound@example.com');
+      expect(mockConn.refreshAuth).not.toHaveBeenCalled();
+    });
+
+    it('should fall through to the raw message for a non-removable getConnection failure', async () => {
+      getConnectionMock.mockReturnValue(
+        Effect.fail(taggedError('FailedToCreateConnectionError', 'Failed to create connection: boom'))
+      );
+
+      const result = await runWithServices(determineConnectedStatusForNonScratchOrg('prod@example.com'));
+
+      expect(result).toBe('Failed to create connection: boom');
     });
   });
 
@@ -387,6 +405,31 @@ describe('orgList command', () => {
       expect(appendToChannelMock).toHaveBeenCalledWith(
         expect.stringContaining(nls.localize('org_list_display_error', 'List error'))
       );
+    });
+
+    // A dev hub has no expirationDate, so @salesforce/core reports isExpired: 'unknown' (a truthy
+    // string). processOrgForDisplay must only skip DEFINITELY-expired orgs (=== true), otherwise the
+    // dev hub is dropped and its live connection status is never probed (regression: hub row missing).
+    it('should not skip a non-scratch org whose isExpired is "unknown"', async () => {
+      listAllAuthorizationsMock.mockReturnValue(
+        Effect.succeed([
+          { username: 'hub@example.com', aliases: ['hub'], isDevHub: false, isScratch: false, isExpired: 'unknown' }
+        ] as unknown as OrgAuthorization[])
+      );
+      // Non-scratch (no expirationDate) => determineConnectedStatusForNonScratchOrg runs the live probe.
+      mockGetAuthFieldsFor.mockReturnValue(Effect.succeed({}));
+      const mockConn = {
+        getAuthInfoFields: jest.fn().mockReturnValue({}),
+        refreshAuth: jest.fn().mockResolvedValue(undefined),
+        getUsername: jest.fn().mockReturnValue('hub@example.com')
+      };
+      getConnectionMock.mockReturnValue(Effect.succeed(mockConn));
+
+      await runWithServices(displayRemainingOrgs());
+
+      // The org was processed (not early-returned): its auth fields were fetched and the live probe ran.
+      expect(mockGetAuthFieldsFor).toHaveBeenCalledWith('hub@example.com');
+      expect(mockConn.refreshAuth).toHaveBeenCalled();
     });
   });
 });
