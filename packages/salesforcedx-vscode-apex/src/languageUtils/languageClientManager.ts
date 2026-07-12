@@ -14,8 +14,8 @@ import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
 import * as languageServer from '../languageServer';
 import { nls } from '../messages';
+import { fireSpan } from '../services/fireSpan';
 import { retrieveEnableSyncInitJobs } from '../settings';
-import { getTelemetryService } from '../telemetry/telemetry';
 import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
 
 export enum ClientStatus {
@@ -146,8 +146,7 @@ export class LanguageClientManager {
     source: 'commandPalette' | 'statusBar',
     restartBehavior: string
   ): Promise<void> {
-    const telemetryService = getTelemetryService();
-    telemetryService.sendEventData('apexLSPRestart', {
+    fireSpan('apex.lsp.restart', {
       restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
       selectedOption: selectedOption.type,
       source,
@@ -299,7 +298,6 @@ export class LanguageClientManager {
     extensionContext: vscode.ExtensionContext,
     languageServerStatusBarItem: ApexLSPStatusBarItem
   ): Promise<void> {
-    const telemetryService = getTelemetryService();
     try {
       const langClientStartTime = globalThis.performance.now();
 
@@ -323,9 +321,7 @@ export class LanguageClientManager {
 
         await languageClient.start();
         const startTime = globalThis.performance.now() - langClientStartTime;
-        telemetryService.sendEventData('apexLSPStartup', undefined, {
-          activationTime: startTime
-        });
+        fireSpan('apex.lsp.startup', { activationTime: startTime });
         await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
         extensionContext.subscriptions.push(this.getClientInstance()!);
       } else {
