@@ -12,7 +12,7 @@ import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import * as Option from 'effect/Option';
-import { isNotUndefined, isString } from 'effect/Predicate';
+import { isError, isNotUndefined, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
@@ -166,7 +166,7 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
 
 /** Get connection status from error */
 export const getConnectionStatusFromError = (err: any, username?: string): string => {
-  const message = err instanceof Error ? err.message : String(err);
+  const message = isError(err) ? err.message : String(err);
   const lowerMsg = message.toLowerCase();
 
   if (lowerMsg.includes('maintenance')) return 'Down (Maintenance)';
@@ -187,7 +187,7 @@ export const getConnectionStatusFromError = (err: any, username?: string): strin
 
 /** Check if org should be removed based on error */
 export const shouldRemoveOrg = (err: any): boolean => {
-  const lowerMsg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  const lowerMsg = (isError(err) ? err.message : String(err)).toLowerCase();
   return ['invalid_login', 'no such org', 'namedorgnotfound', 'noauthinfofound'].some(msg => lowerMsg.includes(msg));
 };
 
@@ -234,15 +234,14 @@ const classifyOrgForRemoval = Effect.fn('OrgUtil.classifyOrgForRemoval')(functio
   }
 
   return yield* getAuthFieldsFor(orgAuth.username).pipe(
-    Effect.map(
-      (authFields): RemovableOrg | undefined =>
-        // Scratch org whose expiration date has passed
-        authFields.expirationDate && new Date(authFields.expirationDate) < new Date()
-          ? {
-              username: orgAuth.username,
-              logLine: nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
-            }
-          : undefined
+    Effect.map((authFields): RemovableOrg | undefined =>
+      // Scratch org whose expiration date has passed
+      authFields.expirationDate && new Date(authFields.expirationDate) < new Date()
+        ? {
+            username: orgAuth.username,
+            logLine: nls.localize('org_list_clean_removing_expired_org', orgAuth.username, authFields.expirationDate)
+          }
+        : undefined
     ),
     // If we can't get auth fields, the org might be deleted/invalid - mark it for removal
     Effect.catchTag('GetAuthFieldsError', error =>
@@ -299,7 +298,7 @@ export const removeExpiredAndDeletedOrgs = Effect.fn('OrgUtil.removeExpiredAndDe
             try: () => authRemover.removeAuth(username),
             catch: removeError =>
               new RemoveAuthError({
-                message: removeError instanceof Error ? removeError.message : String(removeError),
+                message: isError(removeError) ? removeError.message : String(removeError),
                 username
               })
           })
@@ -444,7 +443,7 @@ const processOrgForDisplay = Effect.fn('OrgUtil.processOrgForDisplay')(
     const status = authFields.expirationDate
       ? 'Active' // For scratch orgs, we assume they're active if not expired
       : // For non-scratch orgs, test the actual connection
-        (yield* determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected';
+        ((yield* determineConnectedStatusForNonScratchOrg(orgAuth.username)) ?? 'Connected');
     // Determine expiration date display
     return {
       '': determineOrgMarkers(orgAuth, defaultConfig),
@@ -507,17 +506,17 @@ export const displayRemainingOrgs = Effect.fn('OrgUtil.displayRemainingOrgs')(fu
     const defaultConfig = yield* getDefaultOrgConfigurationEffect();
 
     // Process each org authorization into display data
-    const orgData = (
-      yield* Effect.forEach(orgAuthorizations, orgAuth => processOrgForDisplay(orgAuth, defaultConfig), {
-        concurrency: 'unbounded'
-      })
-    ).filter(isNotUndefined);
+    const orgData = (yield* Effect.forEach(orgAuthorizations, orgAuth => processOrgForDisplay(orgAuth, defaultConfig), {
+      concurrency: 'unbounded'
+    })).filter(isNotUndefined);
 
     // Create and display the table
     yield* createAndDisplayOrgTable(orgData);
   }).pipe(
     Effect.catchAll(error =>
-      channel.appendToChannel(`\n${nls.localize('org_list_display_error', 'message' in error ? error.message : String(error))}`)
+      channel.appendToChannel(
+        `\n${nls.localize('org_list_display_error', 'message' in error ? error.message : String(error))}`
+      )
     )
   );
 });

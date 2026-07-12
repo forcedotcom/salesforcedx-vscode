@@ -6,6 +6,7 @@
  */
 
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { isError } from 'effect/Predicate';
 import * as util from 'node:util';
 import * as vscode from 'vscode';
 import { ConfigUtil } from '../config/configUtil';
@@ -192,7 +193,7 @@ export class WorkspaceContextUtil {
         this._orgEdition = authFields?.orgEdition;
       } catch (error: unknown) {
         this._orgId = '';
-        if (error instanceof Error) {
+        if (isError(error)) {
           console.log('There was an problem getting the orgId of the default org: ', error);
           TelemetryService.getInstance().sendException(
             WORKSPACE_CONTEXT_ORG_ID_ERROR,
