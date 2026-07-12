@@ -12,6 +12,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
+import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getCliId } from '../observability/cliTelemetry';
@@ -357,8 +358,8 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       webUserId,
       aliases,
       username,
-      ...(typeof cliId === 'string' ? { cliId } : {}),
-      ...(typeof orgEdition === 'string' ? { orgEdition } : {})
+      ...(isString(cliId) ? { cliId } : {}),
+      ...(isString(orgEdition) ? { orgEdition } : {})
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
   );
 
