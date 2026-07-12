@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import {
   Color,
@@ -16,8 +17,7 @@ import {
   Range,
   TextDocument
 } from 'vscode';
-import { ConfigurationFeature } from 'vscode-languageclient/lib/common/configuration';
-import { LanguageClient, RequestType, TextDocumentPositionParams, TransportKind } from 'vscode-languageclient/node';
+import { RequestType, TextDocumentPositionParams } from 'vscode-languageclient';
 import {
   type ColorPresentationParams,
   ColorPresentationRequest,
@@ -26,55 +26,47 @@ import {
   type ColorInformation as LSPColorInformation,
   type ColorPresentation as LSPColorPresentation
 } from 'vscode-languageserver-protocol';
-import { Utils } from 'vscode-uri';
+import { createLanguageClient } from './languageClient';
+import { buildSchemes } from './languageClient/clientOptions';
 import { activateTagClosing } from './tagClosing';
 
 const TagCloseRequest = {
   type: new RequestType<TextDocumentPositionParams, string, any>('html/tag')
 } as const;
 
+// Web drops the JavaScript embedded mode (its `typescript` dep is node-only); css stays on both platforms.
+const embeddedLanguages = { css: true, javascript: process.env.ESBUILD_PLATFORM !== 'web' };
+
 export const startLanguageServer = Effect.fn('startLanguageServer')(function* (context: ExtensionContext) {
-  const module = Utils.joinPath(context.extensionUri, 'dist', 'visualforceServer.js').fsPath;
-  const client = new LanguageClient(
-    'visualforce',
-    'Visualforce Language Server',
-    {
-      run: { module, transport: TransportKind.ipc },
-      debug: {
-        module,
-        transport: TransportKind.ipc,
-        options: { execArgv: ['--nolazy', '--inspect=6004'] }
-      }
-    },
-    {
-      documentSelector: [
-        {
-          language: 'visualforce',
-          scheme: 'file'
-        }
-      ],
-      synchronize: {
-        configurationSection: ['visualforce', 'css', 'javascript']
-      },
-      initializationOptions: {
-        embeddedLanguages: { css: true, javascript: true }
-      }
-    }
+  const client = yield* createLanguageClient(context.extensionUri, { embeddedLanguages }).pipe(
+    Effect.catchTag('LanguageClientWorkerStartError', error =>
+      // Non-fatal for the spike: LSP unavailable, but the extension still activates.
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        yield* api.services.ChannelService.pipe(
+          Effect.flatMap(svc =>
+            svc.appendToChannel(
+              `Visualforce language server unavailable: failed to start worker from ${error.serverPath}`
+            )
+          )
+        );
+        return undefined;
+      })
+    )
   );
-  client.registerFeature(new ConfigurationFeature(client));
+  if (!client) {
+    return;
+  }
 
   yield* Effect.promise(() => client.start());
   context.subscriptions.push(client);
 
+  const schemes = buildSchemes();
+
   // non-fatal: color/tag-closing features unavailable if this throws
   yield* Effect.try(() => {
     const colorDisposable = languages.registerColorProvider(
-      [
-        {
-          language: 'visualforce',
-          scheme: 'file'
-        }
-      ],
+      schemes.map(scheme => ({ language: 'visualforce', scheme })),
       {
         provideDocumentColors: (document: TextDocument): Thenable<ColorInformation[]> => {
           const params: DocumentColorParams = {
