@@ -124,7 +124,6 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
-        "../../scripts/bundling/effect.mjs",
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
@@ -149,7 +148,6 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
-        "../../scripts/bundling/effect.mjs",
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",

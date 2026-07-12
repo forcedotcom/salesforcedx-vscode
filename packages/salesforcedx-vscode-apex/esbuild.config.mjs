@@ -7,12 +7,10 @@
 import { build } from 'esbuild';
 import copy from 'esbuild-plugin-copy';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
-import { effectEsmConditions } from '../../scripts/bundling/effect.mjs';
 import { writeFile } from 'fs/promises';
 
 const nodeBuild = await build({
   ...nodeConfig,
-  ...effectEsmConditions,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [
