@@ -91,6 +91,8 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/effect.mjs",
+        "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
         "out/**"
       ],
       "output": [
@@ -180,6 +182,9 @@
       ]
     }
   },
+  "activationEvents": [
+    "onLanguage:visualforce"
+  ],
   "main": "./dist/index.js",
   "contributes": {
     "commands": [
