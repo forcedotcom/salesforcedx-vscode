@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { MessageKey } from './i18n';
+import { type MessageKey } from './i18n';
 
 export const messages: Partial<Record<MessageKey, string>> = {
   predicates_no_folder_opened_text:
