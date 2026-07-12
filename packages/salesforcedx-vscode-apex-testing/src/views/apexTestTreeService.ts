@@ -107,8 +107,7 @@ export type DiscoveryContext = {
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
   sessionStartTime: number;
-  /** Full tree clear (controller.items + tree maps), replicating the legacy clearTestItems the discovery
-   * body ran at its start. */
+  /** Full tree clear (controller.items + tree maps). */
   clearTree: () => void;
   /** Apply an on-disk result file to the live tree. Stays a callback (not a direct ApexTestExecutionService
    * call) because the execution service imports this tree service — a direct call would be a cycle. */
@@ -762,7 +761,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
 
-      // Best-effort snapshot; internally recovers, so it never fails the discovery run.
       yield* persistDiscoveredClasses(discoveryResult.classes);
 
       if (discoveryResult.classes.length > 0) {
@@ -947,7 +945,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       discoveredClass: ToolingTestClass,
       classNameToUri: Map<string, URI>
     ) {
-      const currentMethodItems = yield* Ref.get(methodItems);
       // Tooling API is authoritative for which methods are test methods (@isTest)
       const discoveredMethodNames = new Set((discoveredClass.testMethods ?? []).map(m => m.name));
 
@@ -967,6 +964,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           }
         }
       }
+      const currentMethodItems = yield* Ref.get(methodItems);
       yield* Effect.sync(() => {
         for (const method of discoveredClass.testMethods ?? []) {
           if (!methodPositions.has(method.name)) {
@@ -1044,10 +1042,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       changes: Map<string, string>
     ) {
       const apexClasses = discoveredClasses.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
-      const discoveryMap = new Map<string, ToolingTestClass>();
-      for (const cls of apexClasses) {
-        discoveryMap.set(getFullClassName(cls), cls);
-      }
+      const discoveryMap = new Map(apexClasses.map(cls => [getFullClassName(cls), cls]));
 
       const classNameToUri = yield* Effect.promise(() => buildClassToUriIndex(apexClasses.map(cls => cls.name)));
       const { orgId } = yield* Effect.promise(() => getDefaultOrgInfo());

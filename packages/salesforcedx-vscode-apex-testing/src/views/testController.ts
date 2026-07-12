@@ -28,12 +28,7 @@ const TEST_CONTROLLER_ID = 'sf.apex.testController';
 export const getTestClassName = (uri: URI): string | undefined => {
   const uriStr = uri.toString();
   const classItems = getApexTestingRuntime().runSync(ApexTestTreeService.getClassItems());
-  for (const [className, item] of classItems) {
-    if (item.uri?.toString() === uriStr) {
-      return className;
-    }
-  }
-  return undefined;
+  return [...classItems].find(([, item]) => item.uri?.toString() === uriStr)?.[0];
 };
 
 /** Clear all suite children so they re-query from the org (delegates to the tree service). */

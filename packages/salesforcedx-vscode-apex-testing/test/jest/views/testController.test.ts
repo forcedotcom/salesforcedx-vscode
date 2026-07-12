@@ -124,7 +124,6 @@ jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
   return {
     ...actual,
-    getApexTests: jest.fn(),
     buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
     getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(undefined),
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
@@ -291,7 +290,6 @@ describe('ApexTestController', () => {
       .fn()
       .mockResolvedValue({ orgId: 'org123', username: 'user@example.com' });
 
-    (testUtils.getApexTests as jest.Mock) = jest.fn().mockResolvedValue([]);
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(undefined);
     const Effect = jest.requireActual('effect/Effect');
