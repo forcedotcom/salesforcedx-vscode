@@ -6,8 +6,8 @@ This is the *mechanism* behind [ADR-0009](./0009-reduce-cli-deps-web-no-cli.md)'
 
 Web status per extension (by `browser` field in `package.json`):
 
-- **Enabled**: services, metadata, org-browser, lwc, apex-log, apex-testing, soql.
+- **Enabled**: services, metadata, org-browser, lwc, apex-log, apex-testing, soql, visualforce.
 - **Deliberately not** (see their ADRs): org, apex-oas, apex/Jorje.
-- **Not yet / welcome** (not rejected): replay-debugger, aura/lightning, visualforce.
+- **Not yet / welcome** (not rejected): replay-debugger, aura/lightning.
 
-Visualforce web support is under active spike (W-23358899): the extension + LSP are being proven on VS Code Web behind a build-time gate. The `browser` field + web bundle (`dist/web/`) are built but gated by `spike-browser-field.mjs` so the shipped VSIX stays browser-less. VF remains in the "Not yet" bucket; the go/no-go decision to ship `browser` is recorded in a later, separately-sequenced WI.
+Visualforce ships `browser` permanently (W-23358900): the W-23358899 spike proved the extension + language server on VS Code Web (completion on `.page` via a `vscode-languageclient/browser` worker), and the web e2e spec now runs in CI (`visualforceE2E.yml` `e2e-web`), so the spike gate is removed and the web bundle (`dist/web/`) ships in the VSIX.
