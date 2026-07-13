@@ -14,6 +14,10 @@
     "./lib/src/utils": {
       "types": "./lib/src/utils/index.d.ts",
       "default": "./lib/src/utils/index.js"
+    },
+    "./lib/src/tests/types.js": {
+      "types": "./lib/src/tests/types.d.ts",
+      "default": "./lib/src/tests/types.js"
     }
   },
   "dependencies": {
