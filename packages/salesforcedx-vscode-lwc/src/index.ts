@@ -14,6 +14,7 @@ import {
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelAdapter } from './channel';
@@ -90,7 +91,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   }).pipe(
     Effect.tapError(error =>
       channelSvc.appendToChannel(
-        nls.localize('lwc_language_server_start_failed', error instanceof Error ? error.message : String(error))
+        nls.localize('lwc_language_server_start_failed', isError(error) ? error.message : String(error))
       )
     )
   );
@@ -115,7 +116,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
       channelSvc.appendToChannel(
         nls.localize(
           'lwc_language_server_client_start_failed',
-          startError instanceof Error ? startError.message : String(startError)
+          isError(startError) ? startError.message : String(startError)
         )
       )
     )

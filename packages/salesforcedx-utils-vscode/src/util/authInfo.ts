@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { notificationService } from '../commands/notificationService';
 import { ConfigSource, ConfigUtil } from '../config/configUtil';
@@ -25,7 +26,7 @@ export const getTargetOrgOrAlias = async (enableWarning: boolean): Promise<strin
 
     return targetOrgOrAlias;
   } catch (err) {
-    if (err instanceof Error) {
+    if (isError(err)) {
       telemetryService.sendException('get_target_org_alias', err.message);
     }
     return undefined;
@@ -58,7 +59,7 @@ export const getTargetDevHubOrAlias = async (
     }
     return JSON.stringify(targetDevHub).replaceAll('"', '');
   } catch (err) {
-    if (err instanceof Error) {
+    if (isError(err)) {
       telemetryService.sendException('get_target_dev_hub_alias', err.message);
     }
     return undefined;

@@ -47,6 +47,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   };
 });
 
+import * as Option from 'effect/Option';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import { discoverTests } from '../../../src/testDiscovery/testDiscovery';
 
@@ -95,6 +96,23 @@ describe('TestDiscovery', () => {
     expect(result.classes[0].testMethods).toHaveLength(2);
     expect(result.classes[1].name).toBe('OtherClass');
     expect(result.classes[1].testMethods).toHaveLength(1);
+  });
+
+  it('decodes wire "" sentinels to Option.none() and non-empty prefixes to Option.some()', async () => {
+    (mockConnection.request as jest.Mock).mockResolvedValueOnce({
+      apexTestClasses: [
+        { id: '', name: 'DefaultNsClass', namespacePrefix: '', testMethods: [{ name: 'testOne' }] },
+        { id: '01pFLOW', name: 'FlowClass', namespacePrefix: 'FlowTesting', testMethods: [{ name: 'testTwo' }] }
+      ],
+      nextRecordsUrl: null
+    });
+
+    const result = await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
+
+    expect(result.classes[0].id).toEqual(Option.none());
+    expect(result.classes[0].namespacePrefix).toEqual(Option.none());
+    expect(result.classes[1].id).toEqual(Option.some('01pFLOW'));
+    expect(result.classes[1].namespacePrefix).toEqual(Option.some('FlowTesting'));
   });
 
   it('gracefully returns empty when API returns no classes', async () => {
