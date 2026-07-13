@@ -26,15 +26,15 @@ export interface CancellationToken {
   /**
    * An event which fires upon cancellation.
    */
-  onCancellationRequested: Function;
+  onCancellationRequested: (listener: () => void | Promise<void>) => void;
 }
 
 class Token implements CancellationToken {
   public isCancellationRequested = false;
-  public callbacks: Function[] = [];
-  onCancellationRequested(listener: Function): void {
+  public callbacks: (() => void | Promise<void>)[] = [];
+  onCancellationRequested(listener: () => void | Promise<void>): void {
     if (this.isCancellationRequested) {
-      listener();
+      void listener();
     } else {
       this.callbacks.push(listener);
     }

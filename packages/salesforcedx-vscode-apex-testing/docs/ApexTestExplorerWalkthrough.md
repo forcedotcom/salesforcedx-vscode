@@ -83,6 +83,17 @@ Test Explorer's built-in **Clear All Results** (`...` menu) removes pass/fail ic
 
 To permanently remove stored results, run **SFDX: Clear Apex Test Results** from Command Palette. This deletes result files so they won't be restored on refresh or reload.
 
+## Edit tests in a suite
+
+Command Palette → **SFDX: Edit Apex Test Suite**, pick suite, check/uncheck classes:
+- All test classes are shown
+- Current suite members are pre-checked
+- Check new classes to add them
+- Uncheck existing classes to remove them
+- Dismiss (Escape/click outside) to cancel without changes
+
+Suite operations use the org (Tooling API); changes persist on refresh. **Run** requires the suite to have members; empty suite shows error.
+
 ## Related commands
 
-From the Command Palette: **Run Apex Tests**, **Run Apex Test Class**, **Run Apex Test Method**, **Run Apex Test Suite**, **Clear Apex Test Results**, plus suite create/add. The explorer is the main place to browse, filter, and pick what to run.
+From the Command Palette: **Run Apex Tests**, **Run Apex Test Class**, **Run Apex Test Method**, **Run Apex Test Suite**, **Clear Apex Test Results**, plus suite create/edit. The explorer is the main place to browse, filter, and pick what to run.

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { createFile } from './fileSystemHandler';
 export type { ApexDiagnostic, CommonOptions, Row } from './types';
 export { Table } from './table';
 export { getCurrentTime, formatStartTime, msToSecond } from './dateUtil';
