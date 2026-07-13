@@ -32,7 +32,6 @@ import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache
 import { getCSSMode } from './cssMode';
 import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
-import { getJavascriptMode } from './javascriptMode';
 
 export type Settings = LanguageSettings & {
   css?: any;
@@ -76,7 +75,9 @@ type LanguageModeRange = Range & {
   attributeValue?: boolean;
 };
 
-export const getLanguageModes = (supportedLanguages: { [languageId: string]: boolean }): LanguageModes => {
+export const getLanguageModes = async (supportedLanguages: {
+  [languageId: string]: boolean;
+}): Promise<LanguageModes> => {
   const htmlLanguageService = getHTMLLanguageService();
   const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(10, 60, document =>
     getDocumentRegions(htmlLanguageService, document)
@@ -90,7 +91,11 @@ export const getLanguageModes = (supportedLanguages: { [languageId: string]: boo
   if (supportedLanguages['css']) {
     modes['css'] = getCSSMode(documentRegions);
   }
-  if (supportedLanguages['javascript']) {
+  // Build-time gate: `process.env.ESBUILD_PLATFORM !== 'web'` is replaced by esbuild's `define`, so the web
+  // bundle collapses this branch to dead code and tree-shakes javascriptMode + its static `typescript` import
+  // (typescript uses node fs and breaks in the browser). Node build keeps JS mode (literal true).
+  if (supportedLanguages['javascript'] && process.env.ESBUILD_PLATFORM !== 'web') {
+    const { getJavascriptMode } = await import('./javascriptMode.js');
     modes['javascript'] = getJavascriptMode(documentRegions);
   }
   return {
