@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   clearOutputChannel,
   createApexClass,
@@ -155,7 +155,30 @@ test('Update Checkpoints in Org: shows error when more than 5 checkpoints are en
   });
 });
 
-// ── Spec 4: Debug test — no results / no debug log ───────────────────────────
+// ── Spec 4: Debug test — no debug log ────────────────────────────────────────
+
+const LOCAL_NAMESPACE_LABEL = '(Local Namespace)';
+const UNPACKAGED_METADATA_LABEL = '(Unpackaged Metadata)';
+
+const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
+  const row = page.locator('[role="treeitem"]').filter({ hasText: rowLabel }).first();
+  await row.waitFor({ state: 'visible', timeout: 15_000 });
+  const twistie = row.locator('.monaco-tl-twistie');
+  const collapsed = await twistie.evaluate(el => el.classList.contains('collapsed')).catch(() => false);
+  if (!collapsed) return;
+  await twistie.click({ force: true });
+  await page.waitForTimeout(400);
+};
+
+const refreshTestsAndWaitForRebuild = async (page: Page): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
+  await page
+    .getByText(LOCAL_NAMESPACE_LABEL)
+    .first()
+    .waitFor({ state: 'hidden', timeout: 2000 })
+    .catch(() => {});
+  await expect(page.getByText(LOCAL_NAMESPACE_LABEL).first()).toBeVisible({ timeout: 60_000 });
+};
 
 const emptyTestClassContent = [
   '@IsTest',
@@ -167,10 +190,10 @@ const emptyTestClassContent = [
   '}'
 ].join('\n');
 
-test('Debug Test: shows error notifications for no results and missing debug log', async ({ page }) => {
+test('Debug Test: shows error notification for missing debug log', async ({ page }) => {
   test.setTimeout(600_000);
 
-  await test.step('setup minimal org and deploy test classes', async () => {
+  await test.step('setup minimal org and deploy EmptyTestClass', async () => {
     await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
 
@@ -188,13 +211,18 @@ test('Debug Test: shows error notifications for no results and missing debug log
   });
 
   await test.step('debug EmptyTestClass — no System.debug means no debug log attached to result', async () => {
-    await openFileByName(page, 'EmptyTestClass.cls');
-
-    // Trigger via sf.test.view.debugTests which calls setupAndDebugTests
     await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
-    await expect(page.getByText('EmptyTestClass').first()).toBeVisible({ timeout: 60_000 });
+    await refreshTestsAndWaitForRebuild(page);
 
-    // Expand tree and click Debug Tests on the class row
+    // Expand namespace and package parents so the class row enters the DOM
+    await expandTreeRow(page, LOCAL_NAMESPACE_LABEL);
+    await page
+      .locator('[role="treeitem"]')
+      .filter({ hasText: UNPACKAGED_METADATA_LABEL })
+      .first()
+      .waitFor({ state: 'visible', timeout: 10_000 });
+    await expandTreeRow(page, UNPACKAGED_METADATA_LABEL);
+
     const classRow = page.getByRole('treeitem', { name: /EmptyTestClass/i });
     await classRow.waitFor({ state: 'visible', timeout: 30_000 });
     await expect(async () => {
