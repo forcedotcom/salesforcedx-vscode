@@ -152,6 +152,59 @@ Bail conditions (`if (isDebug || !single) return;`) aren't dispatch dimensions.
 Pattern: short-circuit prerequisites up top, matcher handles real variance on
 proven-good input.
 
+## Linear body → point-free pipe, not a generator
+
+Straight-line `Effect.fn` body — data in, one path out, no branching, no reused
+intermediate — is a single point-free `pipe`. Reserve `function*` for **dependent**
+`yield*`, branching, or early return.
+
+```typescript
+// PREFERRED — one pipe: constructors/array ops as steps, Effect.map for the tail
+export const parseAndFilterUsers = Effect.fn('svc.parseAndFilterUsers')(
+  (jsonText: string) =>
+    pipe(
+      JSON.parse(jsonText),
+      Arr.filter(user => user.status === 'active'),
+      Arr.map(user => user.id),
+      Arr.dedupe,
+      // data-last, point-free — the fn, not Arr.dedupe(xs)
+      Chunk.fromIterable,
+      Effect.succeed
+    )
+);
+
+// GENERATOR — yield* to resolve a dependency, then run the stream pipe
+export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayResults')(function* (
+  logFileContents: string
+) {
+  // dependent yield*: resolve conn from ExtensionProviderService, then pipe
+  const conn = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+    Effect.flatMap(api => api.services.ConnectionService.getConnection())
+  );
+  return yield* pipe(
+    extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)),
+    Arr.map(entry => entry.heapDumpId),
+    Arr.dedupe,
+    Stream.fromIterable,
+    Stream.grouped(MAX_BATCH_SIZE),
+    Stream.mapEffect(chunk => runOverlayBatch(conn, Chunk.toArray(chunk)), { concurrency: BATCH_API_CONCURRENCY }),
+    Stream.flattenIterables,
+    Stream.runCollect,
+    Effect.map(Chunk.toArray)
+  );
+});
+
+// AVOID — generator whose consts are each read once on the next line
+export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayResults')(function* (
+  conn: Connection,
+  logFileContents: string
+) {
+  const uniqueIds = Arr.dedupe(extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)).map(e => e.heapDumpId));
+  const results = yield* Stream.fromIterable(uniqueIds).pipe(/* ...same ops... */, Stream.runCollect);
+  return Chunk.toArray(results);
+});
+```
+
 ## Quick reference
 
 | Situation | Do | Don't |
@@ -165,3 +218,4 @@ proven-good input.
 | 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)` | nested ternary |
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
+| Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
