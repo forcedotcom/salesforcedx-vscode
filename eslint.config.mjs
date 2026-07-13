@@ -629,7 +629,6 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
       'packages/salesforcedx-apex-replay-debugger/**',
-      'packages/salesforcedx-apex/**',
       'packages/salesforcedx-vscode-soql/**',
       'packages/soql-model/**'
     ],
@@ -639,9 +638,9 @@ export default [
   },
   {
     // history-preserving import of forcedotcom/salesforcedx-apex: the upstream
-    // published library predates the monorepo's stricter style rules. Relax the
-    // upstream-style rules for its src (test/** is already relaxed above) to avoid
-    // restyling imported, history-tracked code. Matches the legacy-package blocks.
+    // published library predates the monorepo's stricter style rules. Single
+    // exemption block for the whole package src (test/** relaxed separately above).
+    // Surface shrinks as later refactors (methods->functions, Effect) land.
     files: ['packages/salesforcedx-apex/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-assertions': 'off',
@@ -651,16 +650,29 @@ export default [
       'no-param-reassign': 'off',
       'no-restricted-imports': 'off',
       'unicorn/no-array-sort': 'off',
-      'unicorn/prefer-single-call': 'off'
+      'unicorn/prefer-single-call': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      'header/header': 'off',
+      'barrel-files/avoid-barrel-files': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/no-restricted-types': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      'no-useless-escape': 'off',
+      'prefer-arrow/prefer-arrow-functions': 'off'
     }
   },
   {
     // Override header rules
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**/*.ts',
-      'packages/salesforcedx-visualforce-language-server/**/*.ts',
-      // history-preserving import; do not rewrite upstream Copyright (c) 2020 headers
-      'packages/salesforcedx-apex/**/*.ts'
+      'packages/salesforcedx-visualforce-language-server/**/*.ts'
     ],
     rules: {
       'header/header': 'off'
@@ -782,7 +794,6 @@ export default [
     files: [
       'packages/salesforcedx-apex-debugger/**/*.ts',
       'packages/salesforcedx-apex-replay-debugger/**/*.ts',
-      'packages/salesforcedx-apex/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-org/**/*.ts',
       'packages/salesforcedx-vscode-core/**/*.ts'
