@@ -1,6 +1,6 @@
 # Expose `lib/src/tests/types.js` as an explicit subpath export
 
-The W-23051181 migration scoped `@salesforce/apex-node`'s `exports` map down to `.` + `./lib/src/utils`, but `salesforcecli/plugin-apex` imports `@salesforce/apex-node/lib/src/tests/types.js` (`jsonReporter.ts` + 3 NUT files), which now fails with `ERR_PACKAGE_PATH_NOT_EXPORTED`. We add that one concrete subpath entry (mirroring the `./lib/src/utils` precedent) rather than widening the map, because the `exports` map is public API on a published package and narrowing it later is a breaking change.
+The W-23051181 migration scoped `@salesforce/apex-node`'s `exports` map down to `.` + `./lib/src/utils`, but external consumers import `@salesforce/apex-node/lib/src/tests/types.js`, which now fails with `ERR_PACKAGE_PATH_NOT_EXPORTED`. Known consumers of this deep path: `salesforcecli/plugin-apex` (`jsonReporter.ts` + 3 NUT files, `TestRunIdResult`/`ApexTestRunResultStatus`) and `salesforcecli/mcp` (`packages/mcp-provider-dx-core/src/tools/run_apex_test.ts`, production code, `ApexTestResultOutcome`). We add that one concrete subpath entry (mirroring the `./lib/src/utils` precedent) rather than widening the map, because the `exports` map is public API on a published package and narrowing it later is a breaking change.
 
 ## Considered Options
 

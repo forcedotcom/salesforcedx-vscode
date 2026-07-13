@@ -31,6 +31,8 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      - uses: google/wireit@setup-github-actions-caching/v2
+
       - name: Install and build apex library
         run: |
           npm ci
