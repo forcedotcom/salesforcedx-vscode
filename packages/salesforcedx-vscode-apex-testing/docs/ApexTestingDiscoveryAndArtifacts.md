@@ -6,12 +6,13 @@ This note documents how Apex Testing currently handles test discovery data and t
 
 - Activation initializes `ApexTestController` in `src/index.ts`.
 - Org changes trigger `testController.refresh()` from `initializeTestDiscovery()`.
-- `refresh()` in `src/views/testController.ts` deduplicates concurrent calls (later callers join the in-flight refresh rather than starting a second one); calls `doRefresh()`:
-  - Ensures org connection and `TestService`.
-  - Clears in-memory test items.
-  - Populates suites (`retrieveAllSuites()`).
-  - Fetches discovered classes from Tooling API via `src/testDiscovery/testDiscovery.ts`.
-  - Builds Test Explorer items from discovered classes.
+- `refresh()` in `src/views/testController.ts` resets state then discovers tests:
+  - Clears in-memory test state via `resetState()`.
+  - Fetches test data via `discoverTests()`.
+
+## Test Suite Create/Edit Completion Sentinel
+
+Suite create (`buildSuite`) and edit (`applyEdits`) operations emit a channel sentinel (`Ended SFDX: Create Apex Test Suite` or `Ended SFDX: Edit Apex Test Suite`) to signal completion for E2E tests. The sentinel fires **after** the refresh completes on success (ensuring the tree is fully rebuilt), but fires **immediately** on failure. This ordering prevents E2E tests gating on the sentinel from racing against an in-flight refresh.
 
 ## In-Memory Runtime State
 

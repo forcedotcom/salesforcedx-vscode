@@ -244,17 +244,20 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
     { concurrency: 'unbounded' }
   );
 
+  // On failure write the sentinel immediately; on success defer it until after refresh so that
+  // listeners (including E2E tests) that gate on "Ended …" see a fully-rebuilt tree.
   yield* applyEffect.pipe(
-    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+    Effect.tapError(() => appendEnded),
     promptService.withCancellableProgress(executionName)
   );
 
+  // Clear suite children and do a full refresh, then signal completion.
+  // tapBoth ensures the sentinel fires whether refresh succeeds or fails.
+  clearAllSuiteChildren();
+  yield* Effect.promise(() => getTestController().refresh()).pipe(Effect.ensuring(appendEnded));
+
   yield* channelService.showChannel;
   notificationService.showSuccessfulExecution(executionName);
-
-  // Clear all suite children so they re-query from org instead of using stale local files, then refresh
-  clearAllSuiteChildren();
-  yield* Effect.promise(() => getTestController().refresh());
 });
 
 export const apexTestSuiteEdit = Effect.fn('apexTestSuiteEdit')(function* () {

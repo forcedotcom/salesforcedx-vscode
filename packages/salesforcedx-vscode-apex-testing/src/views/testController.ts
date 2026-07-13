@@ -109,21 +109,7 @@ export class ApexTestController {
     return this.controller;
   }
 
-  private refreshPromise: Promise<void> | undefined;
-
-  /**
-   * Refresh the test tree. Concurrent calls join the in-flight refresh rather than
-   * starting a second one — a concurrent resetState() mid-discovery would invalidate
-   * the connection and leave the tree permanently empty.
-   */
-  public refresh(): Promise<void> {
-    this.refreshPromise ??= this.doRefresh().finally(() => {
-      this.refreshPromise = undefined;
-    });
-    return this.refreshPromise;
-  }
-
-  private async doRefresh(): Promise<void> {
+  public async refresh(): Promise<void> {
     await this.resetState();
     await this.discoverTests();
   }
