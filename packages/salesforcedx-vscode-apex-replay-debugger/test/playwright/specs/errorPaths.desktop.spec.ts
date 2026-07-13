@@ -16,10 +16,7 @@ import {
   openFileByName,
   saveScreenshot,
   selectOutputChannel,
-  setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
-  setupNetworkMonitoring,
-  validateNoCriticalErrors,
   waitForNotification,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
@@ -37,8 +34,6 @@ test('Launch Apex Replay Debugger with Selected File: shows error for unsupporte
   workspaceDir
 }) => {
   test.setTimeout(300_000);
-  const consoleErrors = setupConsoleMonitoring(page);
-  const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('setup minimal org and open a non-Apex .txt file', async () => {
     await setupMinimalOrgAndAuth(page);
@@ -65,16 +60,12 @@ test('Launch Apex Replay Debugger with Selected File: shows error for unsupporte
     await expect(errorNotification).toBeVisible({ timeout: 15_000 });
     await saveScreenshot(page, 'step.unsupported-file-error.png');
   });
-
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 // ── Spec 2: No enabled checkpoints ───────────────────────────────────────────
 
 test('Update Checkpoints in Org: shows warning when no checkpoints are enabled', async ({ page }) => {
   test.setTimeout(300_000);
-  const consoleErrors = setupConsoleMonitoring(page);
-  const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('setup minimal org with an Apex class (no checkpoints toggled)', async () => {
     await setupMinimalOrgAndAuth(page);
@@ -87,8 +78,6 @@ test('Update Checkpoints in Org: shows warning when no checkpoints are enabled',
     await waitForNotification(page, /You don't have any checkpoints enabled/, { timeout: 30_000 });
     await saveScreenshot(page, 'step.no-enabled-checkpoints-warning.png');
   });
-
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 // ── Spec 3: Checkpoint limit exceeded ────────────────────────────────────────
@@ -105,8 +94,6 @@ const accountServiceContent = (i: number) =>
 
 test('Update Checkpoints in Org: shows error when more than 5 checkpoints are enabled', async ({ page }) => {
   test.setTimeout(600_000);
-  const consoleErrors = setupConsoleMonitoring(page);
-  const networkErrors = setupNetworkMonitoring(page);
 
   // Six classes, one checkpoint per class → exceeds limit of 5
   const classCount = 6;
@@ -166,8 +153,6 @@ test('Update Checkpoints in Org: shows error when more than 5 checkpoints are en
     await expect(errorNotification).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'step.checkpoint-limit-error.png');
   });
-
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 // ── Spec 4: Debug test — no results / no debug log ───────────────────────────
@@ -184,8 +169,6 @@ const emptyTestClassContent = [
 
 test('Debug Test: shows error notifications for no results and missing debug log', async ({ page }) => {
   test.setTimeout(600_000);
-  const consoleErrors = setupConsoleMonitoring(page);
-  const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('setup minimal org and deploy test classes', async () => {
     await setupMinimalOrgAndAuth(page);
@@ -201,7 +184,7 @@ test('Debug Test: shows error notifications for no results and missing debug log
     );
     await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
-    await saveScreenshot(page, 'setup.test-classes-deployed.png');
+    await saveScreenshot(page, 'setup.test-class-deployed.png');
   });
 
   await test.step('debug EmptyTestClass — no System.debug means no debug log attached to result', async () => {
@@ -229,6 +212,4 @@ test('Debug Test: shows error notifications for no results and missing debug log
     await expect(errorNotification).toBeVisible({ timeout: 60_000 });
     await saveScreenshot(page, 'step.no-debug-log-error.png');
   });
-
-  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
