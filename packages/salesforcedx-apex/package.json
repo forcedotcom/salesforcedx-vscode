@@ -56,6 +56,7 @@
     "lint": "wireit",
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules lib dist coverage .wireit .eslintcache .circular-deps.json",
+    "test:compile": "wireit",
     "test": "wireit"
   },
   "wireit": {
@@ -72,10 +73,21 @@
         "lib/**"
       ]
     },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
     "test": {
       "command": "jest",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
         "src/**/*.ts",
