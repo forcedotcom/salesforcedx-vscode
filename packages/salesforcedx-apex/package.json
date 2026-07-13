@@ -51,7 +51,6 @@
     "lib/src"
   ],
   "scripts": {
-    "preinstall": "node ../../scripts/require-root-install.js",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
