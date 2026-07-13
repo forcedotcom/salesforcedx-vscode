@@ -6,13 +6,16 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   extractHeapDumpIdsFromLog,
   type ApexExecutionOverlayResultCommandSuccess,
   type HeapDumpResult
 } from '@salesforce/salesforcedx-apex-replay-debugger';
+import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import { pipe } from 'effect/Function';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 
@@ -74,19 +77,23 @@ const runOverlayBatch = Effect.fn('heapDumpOverlayFetch.runOverlayBatch')(functi
 /**
  * Extracts heap-dump ids from the log, dedups them, and batch-fetches their overlay results
  * via the tooling composite/batch API (25 per batch, up to 15 batches in flight).
+ * Resolves the target-org connection from the services extension via ExtensionProviderService.
  */
 export const fetchHeapDumpOverlayResults = Effect.fn('heapDumpOverlayFetch.fetchHeapDumpOverlayResults')(function* (
-  conn: Connection,
   logFileContents: string
 ) {
-  const uniqueIds = [
-    ...new Set(extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)).map(entry => entry.heapDumpId))
-  ];
-  const results = yield* Stream.fromIterable(uniqueIds).pipe(
+  const conn = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+    Effect.flatMap(api => api.services.ConnectionService.getConnection())
+  );
+  return yield* pipe(
+    extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)),
+    Arr.map(entry => entry.heapDumpId),
+    Arr.dedupe,
+    Stream.fromIterable,
     Stream.grouped(MAX_BATCH_SIZE),
     Stream.mapEffect(chunk => runOverlayBatch(conn, Chunk.toArray(chunk)), { concurrency: BATCH_API_CONCURRENCY }),
     Stream.flattenIterables,
-    Stream.runCollect
+    Stream.runCollect,
+    Effect.map(Chunk.toArray)
   );
-  return Chunk.toArray(results);
 });

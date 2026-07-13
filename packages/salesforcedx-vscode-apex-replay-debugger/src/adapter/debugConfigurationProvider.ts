@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
@@ -104,38 +103,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     if (typeof config.logFileContents === 'string' && config.logFileContents.includes('|HEAP_DUMP|')) {
-      config.heapDumpResults = await this.resolveHeapDumpResults(config.logFileContents);
+      config.heapDumpResults = await resolveHeapDumpResults(config.logFileContents);
     }
 
     return config;
-  }
-
-  /**
-   * Resolves the target-org connection and batch-fetches overlay results for every heap dump in the log.
-   * Non-fatal: an org-resolution/fetch failure attaches a single error marker so the adapter surfaces it,
-   * matching prior behavior where a failed fetch still launches the session.
-   */
-  private async resolveHeapDumpResults(logFileContents: string): Promise<HeapDumpResult[]> {
-    // Org/connection resolution failures keep the localized org-info label; a HeapDumpOverlayFetchError
-    // is a batch-request failure, so it surfaces its own message rather than being mislabeled as org-info.
-    const orgInfoError = (error: unknown): HeapDumpResult[] => [
-      { heapDumpId: '', error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}` }
-    ];
-    return getRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const conn = yield* api.services.ConnectionService.getConnection();
-        return yield* fetchHeapDumpOverlayResults(conn, logFileContents);
-      }).pipe(
-        Effect.catchTags({
-          NoTargetOrgConfiguredError: error => Effect.succeed(orgInfoError(error)),
-          FailedToCreateConnectionError: error => Effect.succeed(orgInfoError(error)),
-          HeapDumpOverlayFetchError: error =>
-            Effect.succeed<HeapDumpResult[]>([{ heapDumpId: '', error: errorToString(error) }])
-        }),
-        Effect.catchAll(error => Effect.succeed(orgInfoError(error)))
-      )
-    );
   }
 
   private async isLanguageClientReady(): Promise<void> {
@@ -161,6 +132,27 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
   }
 }
+
+/**
+ * Resolves the target-org connection and batch-fetches overlay results for every heap dump in the log.
+ * Non-fatal: an org-resolution/fetch failure attaches a single error marker so the adapter surfaces it,
+ * matching prior behavior where a failed fetch still launches the session.
+ */
+const resolveHeapDumpResults = (logFileContents: string): Promise<HeapDumpResult[]> => {
+  // Org/connection resolution failures keep the localized org-info label; a HeapDumpOverlayFetchError
+  // is a batch-request failure, so it surfaces its own message rather than being mislabeled as org-info.
+  const orgInfoError = (error: unknown): HeapDumpResult[] => [
+    { heapDumpId: '', error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}` }
+  ];
+  return fetchHeapDumpOverlayResults(logFileContents).pipe(
+    Effect.catchTag('HeapDumpOverlayFetchError', error =>
+      Effect.succeed<HeapDumpResult[]>([{ heapDumpId: '', error: errorToString(error) }])
+    ),
+    // Everything else (org/connection resolution failures) keeps the localized org-info label.
+    Effect.catchAll(error => Effect.succeed(orgInfoError(error))),
+    getRuntime().runPromise
+  );
+};
 
 // Helper function to extract filename from path (web-compatible)
 const getBasename = (filePath: string): string => {
