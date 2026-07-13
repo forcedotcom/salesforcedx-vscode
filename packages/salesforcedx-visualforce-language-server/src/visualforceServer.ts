@@ -8,12 +8,17 @@ import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-lan
 import * as path from 'node:path';
 import * as url from 'node:url';
 import {
+  BrowserMessageReader,
+  BrowserMessageWriter,
+  createConnection as createBrowserConnection
+} from 'vscode-languageserver/browser';
+import {
   ColorPresentationParams,
   CompletionItem,
   CompletionList,
   CompletionParams,
   Connection,
-  createConnection,
+  createConnection as createNodeConnection,
   Disposable,
   DocumentColorParams,
   DocumentRangeFormattingRequest,
@@ -47,8 +52,12 @@ const TagCloseRequest = {
   type: new RequestType<TextDocumentPositionParams, string, any>('html/tag')
 } as const;
 
-// Create a connection for the server
-const connection: Connection = createConnection();
+// Create a connection for the server. Web runs in a web worker (BrowserMessageReader/Writer over globalThis);
+// node uses the default IPC/stdio transport. Branch is build-time via esbuild `define ESBUILD_PLATFORM`.
+const connection: Connection =
+  process.env.ESBUILD_PLATFORM === 'web'
+    ? createBrowserConnection(new BrowserMessageReader(globalThis), new BrowserMessageWriter(globalThis))
+    : createNodeConnection();
 
 console.log = connection.console.log.bind(connection.console);
 console.error = connection.console.error.bind(connection.console);
@@ -98,12 +107,12 @@ const getDocumentSettings = (textDocument: TextDocument, needsDocumentSettings: 
 
 // After the server has started the client sends an initialize request. The server receives
 // in the passed params the rootPath of the workspace plus the client capabilities
-connection.onInitialize((params: InitializeParams): InitializeResult => {
+connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
   const initializationOptions = params.initializationOptions;
 
   workspacePath = params.rootPath;
 
-  languageModes = getLanguageModes(
+  languageModes = await getLanguageModes(
     initializationOptions ? initializationOptions.embeddedLanguages : { css: true, javascript: true }
   );
   documents.onDidClose(e => {
