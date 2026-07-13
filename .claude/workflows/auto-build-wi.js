@@ -793,15 +793,16 @@ HARD RULES:
 - Do NOT run any other queries. Zero records is valid — return {records: []}.
 - Do NOT modify the WHERE clause or transform fields.`
 
-// Numeric-sequencing gate: fetch every WI in the given epics so we can read their dotted
+// Numeric-sequencing gate: fetch every WI in ONE epic so we can read their dotted
 // Subject__c prefixes + Status. NO open-only filter — a satisfied prerequisite is Closed,
-// which an open-only WHERE would hide (skill ## Reading, step 1).
-const epicSiblingsQueryPrompt = epicIds =>
+// which an open-only WHERE would hide (skill ## Reading, step 1). Queried per-epic (not
+// batched across epics) — a single combined query capped at LIMIT 200 can fill entirely
+// from one large epic and silently return zero rows for another, making that epic's
+// unfinished siblings invisible to the gate.
+const epicSiblingsQueryPrompt = epicId =>
   `Run EXACTLY ONE SOQL query — the one below — and return its records.
 
-sf data query --query "SELECT Name, Subject__c, Status__c, Epic__c FROM ADM_Work__c WHERE Epic__c IN (${epicIds
-    .map(id => `'${id}'`)
-    .join(',')}) LIMIT 200" -o gus --result-format json
+sf data query --query "SELECT Name, Subject__c, Status__c, Epic__c FROM ADM_Work__c WHERE Epic__c = '${epicId}' LIMIT 200" -o gus --result-format json
 
 Return {records: <result.records, verbatim>}.
 
@@ -891,6 +892,7 @@ Restart-aware: this may be a re-run after a prior crash. First check whether ${w
 Otherwise:
 1. Decide if the WI is implementable: can you name (a) what files/area to touch and (b) a definition of done? If either is genuinely unknowable, return {verdict: 'blocked', blocked: {questions: [...]}} with concrete questions.
 2. Otherwise, write the plan to ${wt}/.claude/plans/${chosen.name}.md in the concise style you just read. Sections: Context, Phases (each phase = one commit; include commit message), Skills to apply, Verification (excluding things covered by e2e tests on the branch — note which are e2e-covered).
+   Doc-output altitude: for any phase whose output path matches \`docs/adr/**\` / \`packages/*/docs/adr/**\` / \`**/CONTEXT.md\` / \`**/CONTEXT-MAP.md\`, state intent + target path + format-file ref (\`.claude/skills/grill-me/ADR-FORMAT.md\` or \`CONTEXT-FORMAT.md\`) only. Do NOT pre-spec the doc's prose into the plan.
 3. Return {verdict: 'plan', plan: {phases, skills, verification}}.
 
 Do not commit yet.`
@@ -914,6 +916,8 @@ const buildPrompt = (chosen, identity) => {
   return `Build WI ${chosen.name} per the plan at ${wt}/.claude/plans/${chosen.name}.md.
 
 Operate inside ${wt}. Execute each plan phase end-to-end and commit per the plan's commit-message boundaries (one commit per phase). Apply the skills listed in the plan.
+
+Before writing any output whose path matches \`docs/adr/**\` / \`packages/*/docs/adr/**\` / \`**/CONTEXT.md\` / \`**/CONTEXT-MAP.md\`, Read the matching format file (\`${wt}/.claude/skills/grill-me/ADR-FORMAT.md\` or \`CONTEXT-FORMAT.md\`) and obey it: 1-3 sentences core; optional sections only when earned; downstream-WI detail belongs in downstream WIs, not this doc.
 
 Repo hooks run on tool calls and will surface compile / lint / dead-code / LSP / effect issues — use that feedback to drive correctness. Do NOT run your own retry counter. If you genuinely cannot make progress, return {status: 'stuck', reason}.
 
@@ -1383,24 +1387,30 @@ const pickCandidate = async (identity, inFlightWis) => {
   // same-first-segment siblings (1.1, 1.2) run in PARALLEL. So gate on the TOP segment only —
   // a candidate is blocked iff its epic still holds an UNFINISHED WI with a strictly-smaller
   // leading integer (done = Closed/Completed, reusing isBlockerSatisfied). Unnumbered
-  // candidates are always ready; candidates without an epic can't be sequenced. One batched
-  // query per the distinct epics in play, fetched WITHOUT an open-only filter so Closed
-  // prerequisites are visible.
+  // candidates are always ready; candidates without an epic can't be sequenced. One query PER
+  // distinct epic in play (not batched — a shared LIMIT 200 across epics can silently starve
+  // a large epic of its own rows), fetched WITHOUT an open-only filter so Closed prerequisites
+  // are visible.
   const seqCandidates = candidateList
     .map(c => ({ c, seq: parseSequence(c.subject) }))
     .filter(({ c, seq }) => seq && c.epicId)
   const seqEpicIds = [...new Set(seqCandidates.map(({ c }) => c.epicId))]
   if (seqEpicIds.length) {
-    const epicRaw = await agent(epicSiblingsQueryPrompt(seqEpicIds), {
-      schema: EPIC_WI_RECORDS_SCHEMA,
-      label: 'query-epic-siblings',
-      phase: 'Pick candidate',
-      model: 'haiku',
-    })
+    const epicRawByEpic = await parallel(
+      seqEpicIds.map(epicId => () =>
+        agent(epicSiblingsQueryPrompt(epicId), {
+          schema: EPIC_WI_RECORDS_SCHEMA,
+          label: `query-epic-siblings-${epicId}`,
+          phase: 'Pick candidate',
+          model: 'haiku',
+        })
+      )
+    )
+    const epicRecords = epicRawByEpic.filter(Boolean).flatMap(r => r.records || [])
     // Per epic: the smallest top-level integer among UNFINISHED numbered WIs. A candidate
     // whose own top segment exceeds that minimum is gated behind unfinished earlier work.
     // Unnumbered WIs neither gate nor are gated; done (Closed/Completed) WIs don't gate.
-    const minUnfinishedTopByEpic = (epicRaw.records || [])
+    const minUnfinishedTopByEpic = epicRecords
       .map(r => ({ epicId: r.Epic__c || '', top: topSegment(parseSequence(r.Subject__c)), status: r.Status__c || '' }))
       .filter(r => r.top !== null && !isBlockerSatisfied(r.status))
       .reduce((m, r) => {

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, OrgConfigProperties } from '@salesforce/core';
+import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
@@ -207,8 +207,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
-    /** Get a Connection to the target org */
-    const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
+    /**
+     * Get a Connection to an org. Desktop: `username` given → alias-resolve it and skip the config
+     * `target-org` lookup; omitted → resolve the configured default org (unchanged). Web ignores the param.
+     * When `username` is given, the default-org ref is NOT mutated (an arbitrary org must not overwrite it).
+     */
+    const getConnection = Effect.fn('ConnectionService.getConnection')(function* (username?: string) {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.gen(function* () {
             // Web environment - get connection from settings
@@ -219,26 +223,30 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
-            const usernameOrAlias = yield* configService.getConfigAggregator().pipe(
-              Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
-              Effect.filterOrFail(
-                targetOrg => targetOrg != null,
-                () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
-              )
-            );
-            const username = yield* aliasService
+            const usernameOrAlias =
+              username ??
+              (yield* configService.getConfigAggregator().pipe(
+                Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
+                Effect.filterOrFail(
+                  targetOrg => targetOrg != null,
+                  () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
+                )
+              ));
+            const resolved = yield* aliasService
               .getUsernameFromAlias(usernameOrAlias)
               .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            return yield* connectionCache.get(username);
+            return yield* connectionCache.get(resolved);
           });
 
-      // update the org ref in the background
-      yield* maybeUpdateDefaultOrgRef(conn).pipe(
-        Effect.provide(AliasService.Default),
-        Effect.tapError(e => Effect.logWarning(String(e))),
-        Effect.catchAll(() => Effect.void),
-        Effect.forkDaemon
-      );
+      // update the org ref in the background — ONLY for the default org (no explicit username)
+      if (username === undefined) {
+        yield* maybeUpdateDefaultOrgRef(conn).pipe(
+          Effect.provide(AliasService.Default),
+          Effect.tapError(e => Effect.logWarning(String(e))),
+          Effect.catchAll(() => Effect.void),
+          Effect.forkDaemon
+        );
+      }
       return conn;
     });
 
@@ -247,8 +255,16 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       yield* connectionCache.invalidateAll;
     });
 
-    /** List all org authorizations known to the CLI (wraps `AuthInfo.listAllAuthorizations`). */
+    /**
+     * List all org authorizations known to the CLI (wraps `AuthInfo.listAllAuthorizations`).
+     * Clears the StateAggregator first: `AuthInfo.listAllAuthorizations` reads via a cached
+     * StateAggregator whose `orgs.readAll` only *adds* to its `configs` map and never evicts
+     * entries for files deleted out of process (orgAccessor.js `readAll` L81-103). A logged-out
+     * org (its auth file removed by `AuthRemover.removeAuth`) therefore lingers in the cache, so
+     * the org pickers keep listing it. Resetting the instance forces a fresh disk read.
+     */
     const listAllAuthorizations = Effect.fn('ConnectionService.listAllAuthorizations')(function* () {
+      yield* Effect.promise(() => StateAggregator.clearInstanceAsync());
       return yield* Effect.tryPromise({
         try: () => AuthInfo.listAllAuthorizations(),
         catch: error => {

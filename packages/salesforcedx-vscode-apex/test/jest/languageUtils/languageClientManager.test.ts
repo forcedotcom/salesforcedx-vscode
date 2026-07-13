@@ -11,8 +11,22 @@ import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { languageClientManager } from '../../../src/languageUtils';
 import { ClientStatus } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
-import { setTelemetryService } from '../../../src/telemetry/telemetry';
-import { MockTelemetryService } from '../telemetry/mockTelemetryService';
+import type { RecordedSpan } from '../testUtils/recordingTracer';
+
+// Spans emitted via getRuntime().runFork are recorded so restart telemetry (name + attributes) can be asserted.
+// Prefixed `mock*` so jest.mock's factory may reference it (jest hoists the factory above imports).
+const mockRecordedSpans: RecordedSpan[] = [];
+
+const spanAttributes = (name: string): Record<string, unknown> | undefined => {
+  const hit = mockRecordedSpans.find(s => s.name === name);
+  return hit ? Object.fromEntries(hit.attributes) : undefined;
+};
+
+// forkSync: this suite asserts restart-span attrs synchronously right after runFork, so run the fork
+// on the calling stack (runSync) rather than detaching a fiber.
+jest.mock('../../../src/services/runtime', () =>
+  require('../testUtils/recordingTracer').createRecordingRuntimeMock(() => mockRecordedSpans, { forkSync: true })
+);
 
 // Mock ApexLSPStatusBarItem class
 jest.mock('../../../src/apexLspStatusBarItem', () => ({
@@ -126,12 +140,12 @@ describe('Language Client Manager', () => {
     let mockClient: ApexLanguageClient;
     let mockStatusBar: ApexLSPStatusBarItem;
     let setTimeoutSpy: jest.SpyInstance;
-    let mockTelemetryService: MockTelemetryService;
 
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
       jest.clearAllTimers();
+      mockRecordedSpans.length = 0;
 
       // Setup setTimeout spy
       setTimeoutSpy = jest.spyOn(global, 'setTimeout');
@@ -150,11 +164,6 @@ describe('Language Client Manager', () => {
         error: jest.fn(),
         restarting: jest.fn()
       } as unknown as ApexLSPStatusBarItem;
-
-      // Setup telemetry service mock
-      mockTelemetryService = new MockTelemetryService();
-      setTelemetryService(mockTelemetryService);
-      mockTelemetryService.sendEventData = jest.fn();
 
       // Mock VSCode workspace configuration
       const mockGetConfiguration = jest.fn().mockReturnValue({
@@ -322,8 +331,8 @@ describe('Language Client Manager', () => {
         // Verify showQuickPick was called
         expect(vscode.window.showQuickPick).toHaveBeenCalled();
 
-        // Verify telemetry was sent
-        expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
+        // Verify restart telemetry span carries the expected attributes
+        expect(spanAttributes('apex.lsp.restart')).toEqual({
           restartBehavior: 'prompt',
           selectedOption: 'restart',
           source: 'commandPalette',
@@ -347,8 +356,8 @@ describe('Language Client Manager', () => {
         // Verify showQuickPick was not called
         expect(vscode.window.showQuickPick).not.toHaveBeenCalled();
 
-        // Verify telemetry was sent
-        expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
+        // Verify restart telemetry span carries the expected attributes
+        expect(spanAttributes('apex.lsp.restart')).toEqual({
           restartBehavior: 'restart',
           selectedOption: 'restart',
           source: 'statusBar',
@@ -395,8 +404,8 @@ describe('Language Client Manager', () => {
           expect.any(Object)
         );
 
-        // Verify telemetry was sent
-        expect(mockTelemetryService.sendEventData).toHaveBeenCalledWith('apexLSPRestart', {
+        // Verify restart telemetry span carries the expected attributes
+        expect(spanAttributes('apex.lsp.restart')).toEqual({
           restartBehavior: 'reset',
           selectedOption: 'reset',
           source: 'commandPalette',

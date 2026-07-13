@@ -111,6 +111,22 @@ Prefer `package.nls.json` for command titles instead of hardcoded strings.
 - Pattern: `import packageNls from '../../../package.nls.json'` (adjust path for package root)
 - Use for `executeCommandWithCommandPalette`, `executeExplorerContextMenuCommand`, `executeEditorContextMenuCommand`, `verifyCommandExists`, and `waitForOutputChannelText` expectedText (e.g. `Ended ${packageNls.deploy_this_source_text}`)
 
+## Commands with Editor Selection
+
+Selection-guarded commands (e.g., debug/execute from selection) require editor focus + selection. Preserve both with `preserveSelection: true`:
+
+```typescript
+// Setup selection first (ensure editor has focus)
+await page.keyboard.press('Control+a');
+
+// Open palette — preserve selection
+await executeCommandWithCommandPalette(page, commandTitle, undefined, {
+  preserveSelection: true
+});
+```
+
+Without it: palette open blurs editor, clears selection, hides selection-guarded commands.
+
 ## Clicking Code Lenses
 
 Use `clickCodeLens(page, text, opts?)` for code lens actions.
@@ -119,6 +135,18 @@ Use `clickCodeLens(page, text, opts?)` for code lens actions.
 - **Apex callers** — pass longer timeout (e.g. `{ timeout: 180_000 }`) to account for Apex Language Server indexing
 - Helper returns on first lens with visible text matching (whitespace-tolerant exact match)
 - Limitation: can't disambiguate multiple lenses with identical labels in same file — caller must scope the search (e.g. navigate to specific line first)
+
+## Output Panel and Debug Sessions
+
+Debug sessions that open extension-specific output channels can hang or behave unexpectedly if a non-debug output panel is already visible. Before launching debug sessions, close the panel with `hidePanel(page)`.
+
+```typescript
+// Before debug session startup
+await hidePanel(page);
+await clickCodeLens(page, 'Debug'); // or run debug command
+```
+
+Use `ensureOutputPanelOpen(page)` to prepare output during setup; close before each debug trigger to prevent interference.
 
 ## Notifications and Toast Messages
 

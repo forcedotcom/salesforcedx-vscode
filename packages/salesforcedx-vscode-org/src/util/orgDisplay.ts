@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo, Connection, Org, OrgConfigProperties } from '@salesforce/core';
+import { AuthFields, AuthInfo, Connection, Org } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Schema from 'effect/Schema';
 import { OrgInfo } from '../types/orgInfo';
-import { getConfigAggregatorEffect } from './configAggregatorEffect';
 import {
   getConnectionStatusFromError,
   readAliasesByUsernameFromDiskEffect,
@@ -64,10 +64,9 @@ const connectionError = (username: string, error: unknown): OrgInfoConnectionErr
 
 /** Resolve username from provided username or project config. */
 const resolveUsername = Effect.fn('orgDisplay.resolveUsername')(function* (username?: string) {
-  const fromConfig = username
-    ? undefined
-    : (yield* getConfigAggregatorEffect).getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
-  const usernameOrAlias = username ?? (typeof fromConfig === 'string' ? fromConfig : undefined);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fromConfig = username ? undefined : yield* api.services.ConfigService.getTargetOrg();
+  const usernameOrAlias = username ?? fromConfig;
 
   if (!usernameOrAlias) {
     return yield* new NoUsernameError({ message: messages.no_username_provided });

@@ -13,6 +13,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -27,13 +28,12 @@ import { WorkspaceContext, workspaceContextUtils } from './context';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { SalesforceProjectConfig } from './salesforceProject/salesforceProjectConfig';
 import { setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
+import { setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
@@ -55,7 +55,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     channelService,
     getUserId,
     getAuthFields,
-    isCLIInstalled,
     SfCommandlet,
     SfCommandletExecutor,
     WorkspaceContext,
@@ -65,7 +64,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     services: {
       RegistryAccess,
       ChannelService,
-      SalesforceProjectConfig,
       TelemetryService,
       WorkspaceContext,
       CommandEventDispatcher
@@ -173,7 +171,7 @@ const handleTheUnhandled = (): void => {
     // Attach a catch handler to the promise to handle the rejection
     promise.catch(error => {
       // Collect relevant data
-      if (error instanceof Error) {
+      if (isError(error)) {
         collectedData.message = error.message;
         collectedData.stackTrace = error.stack ?? 'No stack trace available';
       } else if (typeof error === 'string') {
@@ -208,7 +206,6 @@ export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getUserId: typeof getUserId;
   getAuthFields: typeof getAuthFields;
-  isCLIInstalled: typeof isCLIInstalled;
   SfCommandlet: typeof SfCommandlet;
   SfCommandletExecutor: typeof SfCommandletExecutor;
   WorkspaceContext: typeof WorkspaceContext;
@@ -218,7 +215,6 @@ export type SalesforceVSCodeCoreApi = {
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
-    SalesforceProjectConfig: typeof SalesforceProjectConfig;
     TelemetryService: typeof TelemetryService;
     WorkspaceContext: typeof WorkspaceContext;
     CommandEventDispatcher: typeof CommandEventDispatcher;

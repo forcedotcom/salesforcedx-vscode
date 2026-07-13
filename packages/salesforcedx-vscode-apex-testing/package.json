@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.3.0",
+  "version": "67.5.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -30,14 +30,14 @@
   "dependencies": {
     "@salesforce/apex-node": "*",
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/types": "^1.7.1",
+    "@salesforce/types": "^1.8.0",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.32.5",
+    "@salesforce/source-deploy-retrieve": "^12.37.0",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -310,7 +310,7 @@
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sf.apex.test.suite.add",
+          "command": "sf.apex.test.suite.edit",
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
@@ -349,8 +349,8 @@
         "title": "%apex_test_suite_create_text%"
       },
       {
-        "command": "sf.apex.test.suite.add",
-        "title": "%apex_test_suite_add_text%"
+        "command": "sf.apex.test.suite.edit",
+        "title": "%apex_test_suite_edit_text%"
       },
       {
         "command": "sf.apex.test.last.class.run",

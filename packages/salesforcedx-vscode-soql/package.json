@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.3.0",
+  "version": "67.5.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,7 +35,6 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.31.5",
     "@salesforce/effect-ext-utils": "*",
     "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
@@ -61,6 +60,7 @@
     "@rollup/plugin-inject": "^5.0.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^1.0.0",
+    "@salesforce/core": "^8.32.2",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "*",

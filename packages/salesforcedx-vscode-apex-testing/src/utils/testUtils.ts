@@ -9,6 +9,7 @@ import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
@@ -17,9 +18,9 @@ import { ApexTestMethod } from '../views/lspConverter';
 import { getFullClassName } from './toolingTestClassHelpers';
 
 /**
- * Checks if a ToolingTestClass has a non-empty namespace prefix
+ * Checks if a ToolingTestClass has a namespace prefix
  */
-const hasNamespace = (cls: ToolingTestClass): boolean => (cls.namespacePrefix?.trim() ?? '') !== '';
+const hasNamespace = (cls: ToolingTestClass): boolean => Option.isSome(cls.namespacePrefix);
 
 /**
  * Fetch tests from the Tooling API Test Discovery endpoint
@@ -247,36 +248,31 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
 };
 
 /** Writes test result JSON file using FsService (works in both desktop and web modes) */
-const writeTestResultJson = async (result: TestResult, outputDir: URI): Promise<void> => {
+const writeTestResultJson = Effect.fn('testUtils.writeTestResultJson')(function* (result: TestResult, outputDir: URI) {
   const testRunId = result.summary?.testRunId;
   const jsonFilename = testRunId ? `test-result-${testRunId}.json` : 'test-result.json';
   const jsonContent = JSON.stringify(result, null, 2);
-  await getApexTestingRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const jsonFileUri = Utils.joinPath(outputDir, jsonFilename);
-      yield* api.services.FsService.safeWriteFile(jsonFileUri, jsonContent);
-    })
-  );
-};
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const jsonFileUri = Utils.joinPath(outputDir, jsonFilename);
+  yield* api.services.FsService.safeWriteFile(jsonFileUri, jsonContent);
+});
 
 /** Writes test-run-id.txt using FsService (works in both desktop and web) so file watcher and controller can read it */
-const writeTestRunIdFile = async (result: TestResult, outputDir: URI): Promise<void> => {
+const writeTestRunIdFile = Effect.fn('testUtils.writeTestRunIdFile')(function* (result: TestResult, outputDir: URI) {
   const testRunId = result.summary?.testRunId;
   if (!testRunId) {
     return;
   }
-  await getApexTestingRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const fileUri = Utils.joinPath(outputDir, 'test-run-id.txt');
-      yield* api.services.FsService.writeFile(fileUri, testRunId);
-    })
-  );
-};
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fileUri = Utils.joinPath(outputDir, 'test-run-id.txt');
+  yield* api.services.FsService.writeFile(fileUri, testRunId);
+});
 
 /** Writes test-result-<runId>-codecoverage.json using FsService (same content as apex-node writeResultFiles; works on web and desktop) */
-const writeCodeCoverageJson = async (result: TestResult, outputDir: URI): Promise<void> => {
+const writeCodeCoverageJson = Effect.fn('testUtils.writeCodeCoverageJson')(function* (
+  result: TestResult,
+  outputDir: URI
+) {
   const testRunId = result.summary?.testRunId;
   if (!testRunId || !result.tests?.length) {
     return;
@@ -285,14 +281,10 @@ const writeCodeCoverageJson = async (result: TestResult, outputDir: URI): Promis
     .map(record => record.perClassCoverage)
     .filter((pcc): pcc is NonNullable<typeof pcc> => Boolean(pcc?.length));
   const jsonContent = JSON.stringify(coverageData, null, 2);
-  await getApexTestingRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const jsonFileUri = Utils.joinPath(outputDir, `test-result-${testRunId}-codecoverage.json`);
-      yield* api.services.FsService.writeFile(jsonFileUri, jsonContent);
-    })
-  );
-};
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const jsonFileUri = Utils.joinPath(outputDir, `test-result-${testRunId}-codecoverage.json`);
+  yield* api.services.FsService.writeFile(jsonFileUri, jsonContent);
+});
 
 /** Reads test-run-id.txt using FsService (works in both desktop and web) */
 export const readTestRunIdFile = async (apexTestDir: URI): Promise<string | undefined> =>
@@ -305,19 +297,19 @@ export const readTestRunIdFile = async (apexTestDir: URI): Promise<string | unde
     }).pipe(Effect.catchAll(() => Effect.succeed(undefined)))
   );
 
-/** Writes test result JSON file via FsService (works on web and desktop) */
-export const writeTestResultJsonFile = async (
+/**
+ * Writes test result JSON file (result + run-id + optional coverage) via FsService (works on web and
+ * desktop). Surfaces FsServiceError on the error channel; callers decide fatality (both current callers
+ * treat a write failure as non-fatal and log + continue).
+ */
+export const writeTestResultJsonFile = Effect.fn('testUtils.writeTestResultJsonFile')(function* (
   result: TestResult,
   outputDir: URI,
   codeCoverage: boolean
-): Promise<void> => {
-  try {
-    await writeTestResultJson(result, outputDir);
-    await writeTestRunIdFile(result, outputDir);
-    if (codeCoverage) {
-      await writeCodeCoverageJson(result, outputDir);
-    }
-  } catch (error) {
-    console.error('Failed to write JSON test result file:', error);
+) {
+  yield* writeTestResultJson(result, outputDir);
+  yield* writeTestRunIdFile(result, outputDir);
+  if (codeCoverage) {
+    yield* writeCodeCoverageJson(result, outputDir);
   }
-};
+});

@@ -8,6 +8,13 @@ Adversarial plan reviewer. Plans land before code. Find failure modes — regres
 
 Don't rewrite. Don't soften. Punch list to address before build.
 
+## Evidence budget
+
+- Start from the handed-in cited-file list + CONTEXT map. Reserve grep/find for concepts those pointers don't cover.
+- `grep -rn` once per concept across a package; never re-run an already-searched pattern.
+- Batch related patterns into one alternation (`grep -rnE 'a|b|c'`).
+- No `git show` / `find -maxdepth 2` to re-discover package layout — the pointers already name it.
+
 ## Rules
 
 - file:line (or plan quote) evidence per finding.

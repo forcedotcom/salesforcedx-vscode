@@ -8,14 +8,16 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { RESULT_MAX_AGE_MS } from '../constants';
+import { RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { getDefaultOrgInfo } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -24,7 +26,15 @@ import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { sortByMtimeAscending } from '../utils/sortHelpers';
-import { createNamespaceId, createSuiteId } from '../utils/testItemUtils';
+import {
+  createNamespaceId,
+  createSuiteId,
+  extractClassName,
+  extractSuiteName,
+  isClass,
+  isMethod,
+  isSuite
+} from '../utils/testItemUtils';
 import { buildClassToUriIndex } from '../utils/testUtils';
 import { isFlowTest } from '../utils/toolingTestClassHelpers';
 import {
@@ -82,11 +92,34 @@ export type DiscoveryContext = {
   getTestService: () => { retrieveAllSuites: () => Promise<{ id: string; TestSuiteName: string }[]> };
   persistDiscoveredClasses: (classes: ToolingTestClass[]) => Promise<void>;
   updateTestResults: (uri: URI) => Promise<void>;
-  applyStaleTags: (staleMethodIds?: Set<string>) => void;
+  staleTag: vscode.TestTag | undefined;
+  getSuiteToClasses: () => Map<string, Set<string>>;
   getMethodIdsFromResultFile: (uri: URI) => Promise<Set<string>>;
 };
 
 const BATCH_SIZE = 50;
+
+const STALE = 'stale';
+const isStale = (item: vscode.TestItem): boolean => !!item.tags?.some(t => t.id === STALE);
+/** Add the stale tag to an item if absent (idempotent). */
+const addStaleTag = (item: vscode.TestItem, staleTag: vscode.TestTag): void => {
+  const existingTags = item.tags ?? [];
+  if (!existingTags.some(t => t.id === STALE)) {
+    item.tags = [...existingTags, staleTag];
+  }
+};
+const removeStaleTag = (item: vscode.TestItem): void => {
+  item.tags = (item.tags ?? []).filter(t => t.id !== STALE);
+};
+/** A class owns a stale method when any method whose id is prefixed by `class.` is stale. */
+const classHasStaleMethod = (methodItems: Map<string, vscode.TestItem>, className: string): boolean =>
+  [...methodItems.entries()].some(([id, item]) => id.startsWith(`${className}.`) && isStale(item));
+/** A suite owns a stale class when any of its member classes is stale. */
+const suiteHasStaleClass = (classItems: Map<string, vscode.TestItem>, classNames: Set<string>): boolean =>
+  [...classNames].some(cn => {
+    const classItem = classItems.get(cn);
+    return classItem ? isStale(classItem) : false;
+  });
 
 /**
  * Surface a discovery-path failure to the user: warning when the friendly message is the
@@ -170,6 +203,104 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     });
 
     /**
+     * Mark methods stale (all, or a given subset), then propagate the stale tag up to class and suite
+     * items that own a stale descendant. Restore path (pre-session results) and the shell delegate here.
+     */
+    const markStaleTags = Effect.fn('ApexTestTreeService.markStaleTags')(function* (
+      staleTag: vscode.TestTag | undefined,
+      suiteToClasses: Map<string, Set<string>>,
+      staleMethodIds?: Set<string>
+    ) {
+      if (!staleTag) {
+        return;
+      }
+      const [currentMethods, currentClasses, currentSuites] = yield* Effect.all([
+        Ref.get(methodItems),
+        Ref.get(classItems),
+        Ref.get(suiteItems)
+      ]);
+      yield* Effect.sync(() => {
+        for (const [methodId, methodItem] of currentMethods) {
+          if (!staleMethodIds || staleMethodIds.has(methodId)) {
+            addStaleTag(methodItem, staleTag);
+          }
+        }
+        for (const [className, classItem] of currentClasses) {
+          if (classHasStaleMethod(currentMethods, className)) {
+            addStaleTag(classItem, staleTag);
+          }
+        }
+        for (const [suiteName, suiteItem] of currentSuites) {
+          const classNames = suiteToClasses.get(suiteName);
+          if (classNames && suiteHasStaleClass(currentClasses, classNames)) {
+            addStaleTag(suiteItem, staleTag);
+          }
+        }
+      });
+    });
+
+    /**
+     * Inverse of markStaleTags: clear the stale tag from the methods that just ran (expanded from the
+     * selected class/suite items), then clear it from parent class and suite items once none of their
+     * members remain stale. Called after a run from the execution service.
+     */
+    const clearStaleTags = Effect.fn('ApexTestTreeService.clearStaleTags')(function* (
+      testsToRun: vscode.TestItem[],
+      suiteToClasses: Map<string, Set<string>>
+    ) {
+      const [currentMethods, currentClasses, currentSuites] = yield* Effect.all([
+        Ref.get(methodItems),
+        Ref.get(classItems),
+        Ref.get(suiteItems)
+      ]);
+      // Method map keys omit the method: prefix; expand each selection to its member method ids.
+      const methodIdsForClass = (className: string): string[] =>
+        [...currentMethods.keys()].filter(id => id.startsWith(`${className}.`));
+      const classNamesForTest = (test: vscode.TestItem): string[] =>
+        isClass(test.id)
+          ? [extractClassName(test.id)].filter((cn): cn is string => !!cn)
+          : isSuite(test.id)
+            ? [...(suiteToClasses.get(extractSuiteName(test.id) ?? '') ?? [])]
+            : [];
+      const methodIdsForTest = (test: vscode.TestItem): string[] =>
+        isMethod(test.id)
+          ? [test.id.replace(TEST_ID_PREFIXES.METHOD, '')]
+          : classNamesForTest(test).flatMap(methodIdsForClass);
+
+      const runMethodIds = HashSet.fromIterable(testsToRun.flatMap(methodIdsForTest));
+      // Classes touched by a run method that actually exists in the tree (its parent's stale tag may clear).
+      const affectedClasses = HashSet.fromIterable(
+        HashSet.toValues(runMethodIds)
+          .filter(id => currentMethods.has(id))
+          .map(id => id.split('.')[0])
+      );
+
+      yield* Effect.sync(() => {
+        // Clear stale tags from methods that ran.
+        HashSet.forEach(runMethodIds, methodId => {
+          const methodItem = currentMethods.get(methodId);
+          if (methodItem) {
+            removeStaleTag(methodItem);
+          }
+        });
+        // Clear the stale tag from parent classes once no member method remains stale.
+        HashSet.forEach(affectedClasses, className => {
+          const classItem = currentClasses.get(className);
+          if (classItem && !classHasStaleMethod(currentMethods, className)) {
+            removeStaleTag(classItem);
+          }
+        });
+        // Clear the stale tag from suites once no member class remains stale.
+        currentSuites.forEach((suiteItem, suiteName) => {
+          const classNames = suiteToClasses.get(suiteName);
+          if (classNames && !suiteHasStaleClass(currentClasses, classNames)) {
+            removeStaleTag(suiteItem);
+          }
+        });
+      });
+    });
+
+    /**
      * Populate the "Apex Test Suites" parent node and its suite children from the org (Tooling API).
      * retrieveAllSuites failure is logged and recovered to "no suites" (the legacy behavior: log + return
      * early), so a suites outage never fails the whole discovery run.
@@ -234,9 +365,6 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
       });
 
-      const classIds = apexClasses
-        .map(cls => cls.id)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0);
       const [connection, orgInfo] = yield* Effect.all(
         [
           Effect.try({
@@ -254,7 +382,13 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       if (!orgInfo.orgId) return;
       const orgKey = orgInfo.orgId;
       const classIdToPackage = yield* Effect.tryPromise({
-        try: () => resolvePackage2Members(connection, classIds, buildClassIdToNamespace(apexClasses), orgInfo),
+        try: () =>
+          resolvePackage2Members(
+            connection,
+            Array.getSomes(apexClasses.map(cls => cls.id)),
+            buildClassIdToNamespace(apexClasses),
+            orgInfo
+          ),
         catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
       });
 
@@ -384,21 +518,23 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       );
 
       // Only mark pre-session methods as stale
-      yield* Effect.sync(() => ctx.applyStaleTags(staleMethodIds));
+      yield* markStaleTags(ctx.staleTag, ctx.getSuiteToClasses(), staleMethodIds);
 
       // Invalidate stale methods and classes where ALL methods are stale
       const currentMethodItems = yield* Ref.get(methodItems);
       const currentClassItems = yield* Ref.get(classItems);
+      // Classes owning an invalidated stale method (dedup); invalidate those whose every method is stale.
+      const affectedClasses = HashSet.fromIterable(
+        [...staleMethodIds].filter(id => currentMethodItems.has(id)).map(id => id.split('.')[0])
+      );
       yield* Effect.sync(() => {
-        const affectedClasses = new Set<string>();
         staleMethodIds.forEach(methodId => {
           const methodItem = currentMethodItems.get(methodId);
           if (methodItem) {
             ctx.controller.invalidateTestResults(methodItem);
-            affectedClasses.add(methodId.split('.')[0]);
           }
         });
-        affectedClasses.forEach(className => {
+        HashSet.forEach(affectedClasses, className => {
           const classPrefix = `${className}.`;
           const allMethodsStale = [...currentMethodItems.entries()]
             .filter(([id]) => id.startsWith(classPrefix))
@@ -415,18 +551,15 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       // Most recent result's mtime (notification only); reuse the scan's mtime, no extra FsService.stat.
       const runDate = new Date(sortedRecent.at(-1)!.mtime).toLocaleString();
       const disableAction = nls.localize('apex_test_results_restored_disable_action');
-      yield* Effect.sync(() => {
-        void vscode.window
-          .showInformationMessage(
-            nls.localize('apex_test_results_restored_message', String(recentUris.length), runDate),
-            disableAction
-          )
-          .then(selection => {
-            if (selection === disableAction) {
-              void settings.disableRestorePreviousResults();
-            }
-          });
-      });
+      const selection = yield* Effect.promise(() =>
+        vscode.window.showInformationMessage(
+          nls.localize('apex_test_results_restored_message', recentUris.length, runDate),
+          disableAction
+        )
+      );
+      if (selection === disableAction) {
+        yield* Effect.promise(() => settings.disableRestorePreviousResults());
+      }
     });
 
     /**
@@ -497,7 +630,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * (logWarning), preserving the legacy non-fatal behavior of those two paths.
      */
     const doDiscover = Effect.fn('ApexTestTreeService.doDiscover')(function* (ctx: DiscoveryContext) {
-      yield* discoverBody(ctx).pipe(Effect.catchAll(notifyDiscoveryFailure));
+      yield* discoverBody(ctx).pipe(
+        Effect.catchTags({
+          DiscoveryError: notifyDiscoveryFailure,
+          PackageResolutionError: notifyDiscoveryFailure
+        })
+      );
     });
 
     /**
@@ -539,6 +677,8 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       getClassItems,
       getSuiteItems,
       getClassToParentItem,
+      markStaleTags,
+      clearStaleTags,
       reset,
       clearRestoredResults,
       restorePreviousResults,

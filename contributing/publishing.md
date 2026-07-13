@@ -106,7 +106,7 @@ Full details on the CBW release lifecycle, CDN caching, and rollback procedures 
 
 ## Closing Shipped GitHub Issues
 
-Issues and discussions labeled `pending release` are automatically closed after successful publish to MS Marketplace. The `closePendingReleaseIssues.yml` workflow posts a comment with the release version and closes both. Trigger manually via **Close Pending Release Issues** workflow if needed.
+After successful publish to MS Marketplace, the `closePendingReleaseIssues.yml` workflow automatically closes issues and discussions referenced in `CHANGELOG.md`. It parses the changelog for the current release version, extracts issue and discussion numbers, posts a comment with the release version, and closes any still-open items (leaving already-closed ones with the comment only). Trigger manually via **Close Pending Release Issues** workflow if needed.
 
 After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SKILL.md) Claude skill to close open GitHub issues whose linked GUS work items are closed and whose issue numbers appear in the published `CHANGELOG.md`.
 

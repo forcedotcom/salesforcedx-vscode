@@ -69,7 +69,10 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
     return undefined;
   }
 
-  yield* Effect.tryPromise(() => writeTestResultJsonFile(result, options.outputDir, options.codeCoverage));
+  // Non-fatal: a write failure logs and the run continues (report generation still happens below).
+  yield* writeTestResultJsonFile(result, options.outputDir, options.codeCoverage).pipe(
+    Effect.catchAll(error => Effect.logError(`Failed to write JSON test result file: ${String(error)}`))
+  );
 
   yield* appendTestOutput(result, options.codeCoverage, options.concise);
 
