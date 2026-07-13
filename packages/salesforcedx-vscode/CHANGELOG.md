@@ -6,13 +6,11 @@
 
 - The **SFDX: Display Org Details** and **SFDX: Display Org Details for Default Org** commands now show a modal warning and require you to click **Continue** before sensitive org info is written to the output channel. Clicking **Cancel** aborts without showing anything. ([PR #7690](https://github.com/forcedotcom/salesforcedx-vscode/pull/7690))
 
-## Changed
+## Fixed
 
 #### salesforcedx-vscode-apex-replay-debugger
 
 - We removed the broken **SFDX: Execute Anonymous Apex with Currently Selected Text** command and renamed **SFDX: Debug Anonymous Apex** to **SFDX: Debug Anonymous Apex with Editor's Selected Text**. The debug command now also works on highlighted text in Anonymous Apex (`.apex`) files, matching the execute command. ([PR #7680](https://github.com/forcedotcom/salesforcedx-vscode/pull/7680))
-
-## Fixed
 
 #### salesforcedx-apex
 
