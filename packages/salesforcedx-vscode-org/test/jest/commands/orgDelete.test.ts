@@ -16,8 +16,8 @@ import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from '../../../src/
 import type { OrgToDelete } from '../../../src/parameterGatherers/selectDeletableOrg';
 
 jest.mock('../../../src/channels', () => ({
-  channelService: { appendLine: jest.fn(), showChannelOutput: jest.fn() },
-  OUTPUT_CHANNEL: {}
+  getOrgChannelService: () => ({ appendLine: jest.fn(), showChannelOutput: jest.fn() }),
+  setOrgChannel: jest.fn()
 }));
 
 const mockUpdateConfigAndStateAggregators = jest.fn<Promise<void>, []>();
