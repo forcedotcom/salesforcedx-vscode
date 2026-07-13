@@ -643,9 +643,9 @@ export default [
     // Surface shrinks as later refactors (methods->functions, Effect) land.
     files: ['packages/salesforcedx-apex/**/*.ts'],
     rules: {
+      // upstream style: avoid restyling imported, history-tracked code
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',
-      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
       '@typescript-eslint/no-shadow': 'off',
       'no-param-reassign': 'off',
       'no-restricted-imports': 'off',
@@ -654,6 +654,9 @@ export default [
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       'header/header': 'off',
       'barrel-files/avoid-barrel-files': 'off',
+      'prefer-arrow/prefer-arrow-functions': 'off',
+      // unfixed type-safety debt: to be resolved by later refactors, not upstream style
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
@@ -663,9 +666,7 @@ export default [
       '@typescript-eslint/no-restricted-types': 'off',
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/require-await': 'off',
-      '@typescript-eslint/no-misused-promises': 'off',
-      'no-useless-escape': 'off',
-      'prefer-arrow/prefer-arrow-functions': 'off'
+      '@typescript-eslint/no-misused-promises': 'off'
     }
   },
   {
