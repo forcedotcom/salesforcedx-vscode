@@ -1,0 +1,75 @@
+name: Apex Consumer NUTs
+
+# Regression net for packages/salesforcedx-apex (@salesforce/apex-node): build this
+# branch's library, pack it, then run consuming CLI plugins' NUTs against it.
+on:
+  push:
+    branches-ignore: [main, develop]
+    paths:
+      - 'packages/salesforcedx-apex/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}-apexConsumerNuts
+  cancel-in-progress: true
+
+jobs:
+  nuts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: [plugin-apex, plugin-flow]
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install and build apex library
+        run: |
+          npm ci
+          npm run compile -w packages/salesforcedx-apex
+
+      - name: Pack apex library tarball
+        run: |
+          # npm pack -w writes the tarball to the root cwd (not the package dir)
+          TGZ=$(npm pack -w packages/salesforcedx-apex --silent)
+          echo "TGZ=$(pwd)/$TGZ" >> "$GITHUB_ENV"
+
+      - name: Install Salesforce CLI
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm install -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'nightly' }}
+          retry_wait_seconds: 30
+
+      - name: Checkout consumer plugin
+        uses: actions/checkout@v4
+        with:
+          repository: salesforcecli/${{ matrix.plugin }}
+          path: consumer
+
+      - name: Install consumer with branch-built apex-node
+        working-directory: consumer
+        run: |
+          yarn install --network-timeout 600000
+          yarn add "file:$TGZ"
+          npx yarn-deduplicate
+          yarn install --network-timeout 600000
+          yarn build
+
+      - name: Run consumer NUTs
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          retry_on: error
+          command: cd consumer && yarn test:nuts
+        env:
+          TESTKIT_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+          SF_DISABLE_TELEMETRY: true
