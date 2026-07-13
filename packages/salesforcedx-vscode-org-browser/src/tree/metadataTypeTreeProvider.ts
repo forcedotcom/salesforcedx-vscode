@@ -295,7 +295,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           });
         }
         // orgOnly mode: show all types (all types exist in the org by definition)
-        // Child-level filtering will hide components with local files
+        // Child-level shows all org components (inclusive of those also in local)
         return Effect.gen(function* () {
           const typeFilteredNodes = allNodes.filter(node => passesTypeFilter(node, provider));
           // If component filter is active, pre-filter types that have no matching components

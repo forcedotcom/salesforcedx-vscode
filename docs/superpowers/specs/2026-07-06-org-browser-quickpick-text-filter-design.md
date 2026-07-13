@@ -148,6 +148,13 @@ const filterTypesWithCachedComponents = (...) =>
 
 **Component level** (type-expansion children): Apply component filter via `applyViewModeChildFilter()`:
 
+View mode filtering at child level:
+- **Both ON:** show all components
+- **LocalOnly:** filter to components with local files (filePresent: true)
+- **OrgOnly:** show all org components (inclusive of those also in local project)
+
+Then apply component filter if active:
+
 ```ts
 const applyViewModeChildFilter = (
   nodes: OrgBrowserTreeItem[],
