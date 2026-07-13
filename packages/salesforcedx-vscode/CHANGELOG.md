@@ -1,25 +1,104 @@
-# 67.4.0 - July 8, 2026
+# 67.5.0 - July 15, 2026
 
-## Fixed
+## Added
 
-#### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode-org
 
-- We fixed a bug where the **Apex Tests** view kept showing tests from a disconnected org after you logged out or deleted the default org. The test tree now clears automatically without requiring a window reload. ([PR #7605](https://github.com/forcedotcom/salesforcedx-vscode/pull/7605))
+- Add username param to ConnectionService.getConnection, migrate determineConnectedStatusForNonScratchOrg - W-23354940 ([PR #7738](https://github.com/forcedotcom/salesforcedx-vscode/pull/7738))
 
-- We fixed a bug where org-only Apex test files stayed open in stale virtual editors after logout. Those editors now close and their cached contents are purged when the org is lost. ([PR #7611](https://github.com/forcedotcom/salesforcedx-vscode/pull/7611))
-
-- We fixed a bug where the **Re-Run Last Class** and **Re-Run Last Method** commands never appeared after running tests from the Command Palette or the **Testing** sidebar. The last run is now cached from those entry points too. ([PR #7627](https://github.com/forcedotcom/salesforcedx-vscode/pull/7627))
-
-#### salesforcedx-vscode-metadata
-
-- We fixed a bug where refreshing SObject definitions failed with a generic "An error has occurred" toast. The notification now shows the underlying cause of the failure. ([PR #7658](https://github.com/forcedotcom/salesforcedx-vscode/pull/7658), [ISSUE #7632](https://github.com/forcedotcom/salesforcedx-vscode/issues/7632))
-
-- We fixed a bug where the in-manifest deploy and retrieve commands did not appear for manifest files with custom names such as `sfdxPackage.xml`. Any file matching `*Package.xml` now gets these commands, even outside a `manifest/` directory. ([PR #7616](https://github.com/forcedotcom/salesforcedx-vscode/pull/7616))
+- Gate orgDisplay sensitive-info behind modal confirm - W-23230633 ([PR #7690](https://github.com/forcedotcom/salesforcedx-vscode/pull/7690))
 
 #### salesforcedx-vscode-services
 
-- We fixed a bug where the trace flag status bar kept showing an expiration date after the trace flag tracking the current user was removed. The status bar now changes back to **No Tracing** when that happens. ([PR #7670](https://github.com/forcedotcom/salesforcedx-vscode/pull/7670))
+- Add username param to ConnectionService.getConnection, migrate determineConnectedStatusForNonScratchOrg - W-23354940 ([PR #7738](https://github.com/forcedotcom/salesforcedx-vscode/pull/7738))
 
-## Under the Hood
+- Gate orgDisplay sensitive-info behind modal confirm - W-23230633 ([PR #7690](https://github.com/forcedotcom/salesforcedx-vscode/pull/7690))
 
-- We made some under the hood changes. ([PR #7667](https://github.com/forcedotcom/salesforcedx-vscode/pull/7667), [PR #7673](https://github.com/forcedotcom/salesforcedx-vscode/pull/7673), [PR #7675](https://github.com/forcedotcom/salesforcedx-vscode/pull/7675))
+## Fixed
+
+#### docs
+
+- Resolve effect ESM to shrink bundle - W-23313216 ([PR #7737](https://github.com/forcedotcom/salesforcedx-vscode/pull/7737))
+
+- Shrink bundle via esbuild ESM resolution of effect - W-23313202 ([PR #7692](https://github.com/forcedotcom/salesforcedx-vscode/pull/7692))
+
+#### salesforcedx-apex
+
+- Correct handling of log levels to be able to debug Anonymous Apex - W-23339705 ([PR #7683](https://github.com/forcedotcom/salesforcedx-vscode/pull/7683))
+
+#### salesforcedx-apex-replay-debugger
+
+- Correct handling of log levels to be able to debug Anonymous Apex - W-23339705 ([PR #7683](https://github.com/forcedotcom/salesforcedx-vscode/pull/7683))
+
+#### salesforcedx-utils-vscode
+
+- Remove dead getOrgApiVersion + FlagParameter exports from utils-vscode - W-23355254 ([PR #7697](https://github.com/forcedotcom/salesforcedx-vscode/pull/7697))
+
+#### salesforcedx-vscode-apex
+
+- Resolve effect ESM to shrink bundle - W-23313207 ([PR #7721](https://github.com/forcedotcom/salesforcedx-vscode/pull/7721))
+
+- Add ADR to migrate telemetry to Effect spans/logs - W-23348766 ([PR #7694](https://github.com/forcedotcom/salesforcedx-vscode/pull/7694))
+
+#### salesforcedx-vscode-apex-debugger
+
+- Shrink bundle via esbuild ESM resolution of effect - W-23313202 ([PR #7692](https://github.com/forcedotcom/salesforcedx-vscode/pull/7692))
+
+#### salesforcedx-vscode-apex-log
+
+- Shrink bundle via esbuild ESM resolution of effect - W-23313203 ([PR #7703](https://github.com/forcedotcom/salesforcedx-vscode/pull/7703))
+
+#### salesforcedx-vscode-apex-oas
+
+- Shrink bundle via esbuild ESM resolution of effect - W-23313204 ([PR #7707](https://github.com/forcedotcom/salesforcedx-vscode/pull/7707))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Resolve effect ESM to shrink bundle - W-23313205 ([PR #7714](https://github.com/forcedotcom/salesforcedx-vscode/pull/7714))
+
+- Get rid of old broken command SFDX: Execute Anonymous Apex with Currently Selected Text + rename debug command to SFDX: Debug Anonymous Apex with Editor's Selected Text for consistency - W-23329171 ([PR #7680](https://github.com/forcedotcom/salesforcedx-vscode/pull/7680))
+
+#### salesforcedx-vscode-apex-testing
+
+- Shrink apex-testing bundle via esbuild ESM resolution of effect - W-23313206 ([PR #7715](https://github.com/forcedotcom/salesforcedx-vscode/pull/7715))
+
+#### salesforcedx-vscode-core
+
+- Shrink core bundle via esbuild ESM resolution of effect - W-23313208 ([PR #7719](https://github.com/forcedotcom/salesforcedx-vscode/pull/7719))
+
+#### salesforcedx-vscode-lightning
+
+- Resolve effect ESM to shrink bundle - W-23313209 ([PR #7720](https://github.com/forcedotcom/salesforcedx-vscode/pull/7720))
+
+#### salesforcedx-vscode-lwc
+
+- Resolve effect ESM to shrink bundle - W-23313210 ([PR #7722](https://github.com/forcedotcom/salesforcedx-vscode/pull/7722))
+
+#### salesforcedx-vscode-metadata
+
+- Shrink metadata bundle via esbuild ESM resolution of effect - W-23313212 ([PR #7723](https://github.com/forcedotcom/salesforcedx-vscode/pull/7723))
+
+#### salesforcedx-vscode-org
+
+- Resolve effect ESM to shrink bundle - W-23313213 ([PR #7724](https://github.com/forcedotcom/salesforcedx-vscode/pull/7724))
+
+#### salesforcedx-vscode-org-browser
+
+- Shrink bundle via esbuild ESM resolution of effect - W-23313202 ([PR #7692](https://github.com/forcedotcom/salesforcedx-vscode/pull/7692))
+
+#### salesforcedx-vscode-services
+
+- Gate telemetry exporters per-export instead of per-Layer - W-23369387 ([PR #7740](https://github.com/forcedotcom/salesforcedx-vscode/pull/7740))
+
+- Resolve effect ESM to shrink bundle - W-23313214 ([PR #7725](https://github.com/forcedotcom/salesforcedx-vscode/pull/7725))
+
+- Correct handling of log levels to be able to debug Anonymous Apex - W-23339705 ([PR #7683](https://github.com/forcedotcom/salesforcedx-vscode/pull/7683))
+
+#### salesforcedx-vscode-soql
+
+- Resolve effect ESM to shrink bundle - W-23313215 ([PR #7726](https://github.com/forcedotcom/salesforcedx-vscode/pull/7726))
+
+#### salesforcedx-vscode-visualforce
+
+- Resolve effect ESM to shrink bundle - W-23313216 ([PR #7737](https://github.com/forcedotcom/salesforcedx-vscode/pull/7737))
+
