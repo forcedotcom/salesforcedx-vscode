@@ -7,12 +7,10 @@
 import { build } from 'esbuild';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
-import { effectEsmConditions } from '../../scripts/bundling/effect.mjs';
 import { writeFile } from 'fs/promises';
 
 const nodeBuild = await build({
   ...nodeConfig,
-  ...effectEsmConditions,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [...(nodeConfig.plugins ?? [])],
@@ -22,7 +20,6 @@ const nodeBuild = await build({
 // Browser build (browser environment)
 const browserBuild = await build({
   ...commonConfigBrowser,
-  ...effectEsmConditions,
   external: ['vscode'],
   entryPoints: ['./out/src/index.js'],
   outdir: './dist/web',

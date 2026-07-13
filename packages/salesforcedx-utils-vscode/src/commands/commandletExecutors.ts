@@ -7,6 +7,7 @@
 import type { ContinueResponse } from './parameterGatherers';
 import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
 import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import type { Event } from 'vscode';
 import { CliCommandExecutor } from '../cli/commandExecutor';
@@ -170,7 +171,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
         this.telemetry.measurements
       );
     } catch (e) {
-      if (e instanceof Error) {
+      if (isError(e)) {
         telemetryService.sendException(
           `LibraryCommandletExecutor - ${this.logName}`,
           `Error: name = ${e.name} message = ${e.message}`

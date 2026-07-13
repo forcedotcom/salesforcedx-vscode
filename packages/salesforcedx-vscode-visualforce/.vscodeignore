@@ -1,26 +1,33 @@
-.gitignore
-.circular-deps.json
-.eslintcache
-.eslint.json
 .vscode/**
 .vscode-test/**
+.vscode-test-web/**
 .wireit/**
-dist/*-metafile.json
-*.xml
-*.vsix
+node_modules
 out/**
-test/**
 src/**
+test/**
 **/*.map
+**/*.node
+dist/*-metafile.json
+dist/web/**
+*.xml
+playwright*.ts
+playwright-report/**
+test-results/**
 **/*.ts
-**/tsconfig.json
-test/**
-src/**
-tsconfig.json
 coverage
+junit*
+*.vsix
+.circular-deps.json
+.eslintcache
+.gitignore
 esbuild.config.mjs
 jest.config.js
-node_modules
+tsconfig.json
+.eslint.json
+
+# unique to this package
+scripts/**
 
 # do not reach outside the package
 ../../**

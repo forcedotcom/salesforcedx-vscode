@@ -97,6 +97,16 @@ export const apexTestRun = Effect.fn('apexTestRun')(function* () {
 export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
   const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
+  if (selection.type === 'Suite') {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const connection = yield* api.services.ConnectionService.getConnection();
+    const members = yield* Effect.tryPromise(() => new TestService(connection).getTestsInSuite(selection.label));
+    if (members.length === 0) {
+      void window.showErrorMessage(nls.localize('apex_test_suite_empty_message_notification', selection.label));
+      return yield* new api.services.UserCancellationError();
+    }
+  }
+
   const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
     (testService, cc) => buildTestPayload(testService, selection, cc),
     getTestResultsFolder()
