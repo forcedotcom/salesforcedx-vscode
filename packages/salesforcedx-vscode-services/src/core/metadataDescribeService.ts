@@ -415,6 +415,16 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       return yield* listMetadataCache.get(key);
     });
 
+    const listMetadataCached = Effect.fn('MetadataDescribeService.listMetadataCached')(function* (
+      type: string,
+      folder?: string
+    ) {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      const { listMetadataCache } = yield* orgCacheRegistry.get(orgId ?? 'default');
+      const key = yield* S.decode(ListMetadataKeySchema)({ type, folder });
+      return yield* listMetadataCache.getOptionComplete(key);
+    });
+
     return {
       /** Clears the cached Metadata API describe result for the current org. */
       invalidateDescribe,
@@ -431,6 +441,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
        * Results are cached per-org by type+folder key (TTL 5 min).
        */
       listMetadata,
+      /**
+       * Peeks at the cached listMetadata result for a given type and optional folder
+       * without triggering a fetch. Returns Option.none() if not in cache.
+       */
+      listMetadataCached,
       /**
        * Returns the list of all SObjects in the org with name and custom flag.
        * Uses GET /services/data/v{version}/sobjects/

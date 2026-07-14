@@ -13,7 +13,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -169,7 +169,7 @@ const handleTheUnhandled = (): void => {
       if (isError(error)) {
         collectedData.message = error.message;
         collectedData.stackTrace = error.stack ?? 'No stack trace available';
-      } else if (typeof error === 'string') {
+      } else if (isString(error)) {
         collectedData.message = error;
       }
     });

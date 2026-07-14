@@ -28,7 +28,7 @@ import { test } from '../fixtures';
 /**
  * Seed an empty `.page` in `force-app` via the Explorer "New File..." action (uses `workspace.fs`:
  * disk on desktop, memfs on web) and open it. Opening a `.page` triggers the extension's
- * `onLanguage:visualforce` activation and starts the language server — the spike's core assertion.
+ * `onLanguage:visualforce` activation and starts the language server — this spec's core assertion.
  */
 const seedAndOpenPage = async (page: Page, name: string): Promise<void> => {
   await executeExplorerContextMenuCommand(page, /force-app/, /New File\.\.\./);

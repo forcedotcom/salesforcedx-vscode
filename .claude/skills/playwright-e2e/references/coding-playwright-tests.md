@@ -57,6 +57,7 @@ VS Code API (tree views, editors, output panels) only contains visible DOM lines
 
 - Don't rely on `scrollTo` - target element won't exist
 - `scrollIntoViewIfNeeded` probably won't help
+- **Tree item count:** Use `aria-setsize` (VS Code's tree model count) instead of `.count()` (DOM nodes). Reads full child count regardless of viewport. Pattern: `getByRole('treeitem', { level: 1 }).first().getAttribute('aria-setsize')`. See `OrgBrowserPage` helpers: `getRootTypeCount()`, `waitForRootTypeCount(expected)`, `getStableRootTypeCount()` (tolerates scroll/unmount race)
 
 ## Modal Dialog Buttons
 
