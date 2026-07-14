@@ -7,6 +7,9 @@
 
 import * as Duration from 'effect/Duration';
 
+/** VS Code settings section for this extension (SettingsService section arg). */
+export const APEX_TESTING_SECTION = 'salesforcedx-vscode-apex-testing';
+
 export const PASS_RESULT = 'Pass';
 export const FAIL_RESULT = 'Fail';
 export const SKIP_RESULT = 'Skip';

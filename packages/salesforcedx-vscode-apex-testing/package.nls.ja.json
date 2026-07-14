@@ -1,7 +1,7 @@
 {
   "apex_test_run_text": "SFDX: Apex テストを実行",
-  "apex_test_suite_add_text": "SFDX: Apex テストスイートにテストを追加",
   "apex_test_suite_create_text": "SFDX: Apex テストスイートを作成",
+  "apex_test_suite_edit_text": "SFDX: Apex テストスイートを編集",
   "apex_test_suite_run_text": "SFDX: Apex テストスイートを実行",
   "apex_test_class_run_text": "SFDX: Apex テストクラスを実行",
   "apex_test_last_class_run_text": "SFDX: 最後に実行した Apex テストクラスを再実行",
