@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
@@ -283,8 +283,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       }
     );
 
-    /** Get a Connection to the target org */
-    const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
+    /**
+     * Get a Connection to an org. Desktop: `username` given → alias-resolve it and skip the config
+     * `target-org` lookup; omitted → resolve the configured default org (unchanged). Web ignores the param.
+     * When `username` is given, the default-org ref is NOT mutated (an arbitrary org must not overwrite it).
+     */
+    const getConnection = Effect.fn('ConnectionService.getConnection')(function* (username?: string) {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.gen(function* () {
             // Web environment - get connection from settings
@@ -295,29 +299,34 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
-            const usernameOrAlias = yield* configService.getTargetOrg().pipe(
-              Effect.filterOrFail(
-                targetOrg => targetOrg != null,
-                () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
-              )
-            );
-            const username = yield* aliasService
+            const usernameOrAlias =
+              username ??
+              (yield* configService.getConfigAggregator().pipe(
+                Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
+                Effect.filterOrFail(
+                  targetOrg => targetOrg != null,
+                  () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
+                )
+              ));
+            const resolved = yield* aliasService
               .getUsernameFromAlias(usernameOrAlias)
               .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            const desktopConn = yield* connectionCache.get(username);
+            const desktopConn = yield* connectionCache.get(resolved);
             // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
             // see reauth modal on expired token. No-op for refreshable flows.
             yield* validateAccessTokenOrPromptReauth(desktopConn);
             return desktopConn;
           });
 
-      // update the org ref in the background
-      yield* maybeUpdateDefaultOrgRef(conn).pipe(
-        Effect.provide(AliasService.Default),
-        Effect.tapError(e => Effect.logWarning(String(e))),
-        Effect.catchAll(() => Effect.void),
-        Effect.forkDaemon
-      );
+      // update the org ref in the background — ONLY for the default org (no explicit username)
+      if (username === undefined) {
+        yield* maybeUpdateDefaultOrgRef(conn).pipe(
+          Effect.provide(AliasService.Default),
+          Effect.tapError(e => Effect.logWarning(String(e))),
+          Effect.catchAll(() => Effect.void),
+          Effect.forkDaemon
+        );
+      }
       return conn;
     });
 

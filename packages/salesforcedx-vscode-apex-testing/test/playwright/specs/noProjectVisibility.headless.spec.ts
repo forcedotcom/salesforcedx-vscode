@@ -34,8 +34,8 @@ import { emptyWorkspaceTest as test } from '../fixtures';
       // Create Apex Test Suite
       await verifyCommandDoesNotExist(page, packageNls.apex_test_suite_create_text);
 
-      // Add Tests to Apex Test Suite
-      await verifyCommandDoesNotExist(page, packageNls.apex_test_suite_add_text);
+      // Edit Apex Test Suite
+      await verifyCommandDoesNotExist(page, packageNls.apex_test_suite_edit_text);
 
       // Re-Run Last Run Apex Test Class
       await verifyCommandDoesNotExist(page, packageNls.apex_test_last_class_run_text);

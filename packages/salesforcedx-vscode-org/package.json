@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.4.0",
+  "version": "67.5.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -88,7 +88,6 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
-        "../../scripts/bundling/effect.mjs",
         "out/**"
       ],
       "output": [

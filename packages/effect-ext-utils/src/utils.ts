@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isError } from 'effect/Predicate';
+
 export const getJsonCandidate = (str: string): string | undefined => {
   const firstCurly = str.indexOf('{');
   const lastCurly = str.lastIndexOf('}');
@@ -100,7 +102,7 @@ export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str &
 export const stripAnsi = (str: string): string => (str ? str.replaceAll(ansiRegex(), '') : str);
 
 export const getMessageFromError = (err: unknown): string => {
-  if (err instanceof Error) {
+  if (isError(err)) {
     return err.message;
   }
   if (typeof err === 'string') {

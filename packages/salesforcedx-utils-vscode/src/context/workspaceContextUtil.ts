@@ -9,6 +9,7 @@ import { Connection, StateAggregator } from '@salesforce/core';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers/paths';
@@ -107,7 +108,7 @@ export class WorkspaceContextUtil {
         this._orgEdition = authFields?.orgEdition;
       } catch (error: unknown) {
         this._orgId = '';
-        if (error instanceof Error) {
+        if (isError(error)) {
           console.log('There was an problem getting the orgId of the default org: ', error);
           TelemetryService.getInstance().sendException(
             WORKSPACE_CONTEXT_ORG_ID_ERROR,

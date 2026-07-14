@@ -16,6 +16,7 @@
  * local server unreachable.
  */
 import { ExportResultCode, type ExportResult } from '@opentelemetry/core';
+import { isError } from 'effect/Predicate';
 
 /** Matches the private sender shape the Azure exporters call (trace: `sender`, log: `_sender`). */
 export type LocalEnvelopeSender = {
@@ -36,7 +37,7 @@ export const makeLocalEnvelopeSender = (localEndpoint: string): LocalEnvelopeSen
         });
         return { code: ExportResultCode.SUCCESS };
       } catch (error) {
-        return { code: ExportResultCode.FAILED, error: error instanceof Error ? error : new Error(String(error)) };
+        return { code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(String(error)) };
       }
     },
     shutdown: () => Promise.resolve()
