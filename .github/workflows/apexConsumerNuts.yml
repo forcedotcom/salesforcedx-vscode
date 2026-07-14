@@ -64,7 +64,11 @@ jobs:
           yarn add "file:$TGZ"
           npx yarn-deduplicate
           yarn install --network-timeout 600000
-          yarn build
+          # compile only (not `build`): NUTs run the compiled command lib via
+          # testkit execCmd. `build` also runs the plugin's wireit `lint`, whose
+          # eslint walks up from this nested consumer dir into the monorepo root
+          # eslint.config.mjs and fails on the unbuilt eslint-local-rules import.
+          yarn compile
 
       - name: Run consumer NUTs
         uses: salesforcecli/github-workflows/.github/actions/retry@main
