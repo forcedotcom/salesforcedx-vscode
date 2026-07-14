@@ -7,7 +7,7 @@
 import type { SdkLayerConfig } from './sdkLayerConfig';
 import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter';
 import { NodeSdk, OtlpLogger, OtlpSerialization } from '@effect/opentelemetry';
-import { FetchHttpClient } from '@effect/platform';
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import type { ExportResult } from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';

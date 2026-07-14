@@ -28,6 +28,8 @@ VSCode strongly recommends bundling your code (taking tons of js files and node_
 
 Bundle from compiled (`out/`), not source. Shared configs: [node.mjs](../scripts/bundling/node.mjs), [web.mjs](../scripts/bundling/web.mjs). Desktop: `dist/index.js`. **Web:** `dist/web/index.js`; use `commonConfigBrowser` from web.mjs.
 
+**Effect imports:** Prefer deep namespace imports from `@effect/platform` (e.g., `import * as FetchHttpClient from '@effect/platform/FetchHttpClient'`) over barrel imports (`import { FetchHttpClient } from '@effect/platform'`). Barrel imports bundle HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake, bloating bundles ~5.5MB. See [effect-best-practices skill](../.claude/skills/effect-best-practices/SKILL.md).
+
 When you add a dependency, run the bundling process to make sure that your dep is bundleable. If your extension is desktop-only, you **can** put unbundleable dependencies in `external` property of the esbuild config which tells esbuild to not bundle that (ship it "as is" in node_modules). This can make extensions really big, and **is not possible at all on the web.** If you want your extension to work on the web, you'll have to bundle all the dependencies.
 
 **Web only:** `external: ['vscode']` — no other externals; web cannot ship unbundled node_modules.
