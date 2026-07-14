@@ -19,7 +19,6 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
-import { ChannelService } from '../vscode/channelService';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { NoWorkspaceOpenError } from '../vscode/workspaceService';
@@ -215,24 +214,18 @@ const getUserFromUserSobject = (orgId: string, conn: Connection) => {
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   accessors: true,
-  dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default, ChannelService.Default],
+  dependencies: [ConfigService.Default, SettingsService.Default, AliasService.Default],
   effect: Effect.gen(function* () {
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
-    const channelService = yield* ChannelService;
 
-    // MUST NOT create ChannelServiceLayer('Salesforce Org Management'): services is a dependency of org ext,
-    // would create DUPLICATE channel. Log to default ChannelService instead.
     // explicit type breaks the promptReauth → reauthCache → runReauthLookup → promptReauth inference cycle
     const promptReauth: (
       conn: Connection,
-      username: string,
-      error: unknown
+      username: string
     ) => Effect.Effect<never, NoWorkspaceOpenError | FailedToCreateConfigAggregatorError | AccessTokenExpiredError> =
-      Effect.fn('ConnectionService.promptReauth')(function* (conn: Connection, username: string, error: unknown) {
-        yield* channelService.appendToChannel(`Error refreshing access token: ${String(error)}`);
-        yield* channelService.showChannel;
+      Effect.fn('ConnectionService.promptReauth')(function* (conn: Connection, username: string) {
         // Preserve existing alias on reauth (not arbitrary first-registered alias).
         const targetOrgOrAlias = yield* configService.getTargetOrg();
         const alias = targetOrgOrAlias && targetOrgOrAlias !== username ? targetOrgOrAlias : undefined;
@@ -267,7 +260,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     // invalidated) so identity() always probes the current auth.
     const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (username: string) {
       const conn = yield* connectionCache.get(username);
-      yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(e => promptReauth(conn, username, e)));
+      yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(() => promptReauth(conn, username)));
     });
 
     // Dedup concurrent identity() calls per username. Success TTL 1min (re-probe mid-session tokens).
@@ -283,8 +276,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     /**
      * If the connection uses the access-token (session-ID) flow — which cannot silently refresh — validate
-     * that the token still works via `identity()`. On failure, log to the Salesforce Services channel, show a modal,
-     * and (if accepted) dispatch `sf.org.login.web`. No-op for refreshable (web/JWT) flows.
+     * that the token still works via `identity()`. On failure, show a modal and (if accepted) dispatch
+     * `sf.org.login.web`. No-op for refreshable (web/JWT) flows.
      */
     const validateAccessTokenOrPromptReauth = Effect.fn('ConnectionService.validateAccessTokenOrPromptReauth')(
       function* (conn: Connection) {

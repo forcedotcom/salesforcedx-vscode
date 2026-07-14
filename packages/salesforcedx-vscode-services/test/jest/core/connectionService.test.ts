@@ -18,7 +18,6 @@ import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { ChannelService } from '../../../src/vscode/channelService';
 import { SettingsService } from '../../../src/vscode/settingsService';
 
 jest.mock('@salesforce/core', () => ({
@@ -62,25 +61,10 @@ const mockAliasService = (aliases: string[]): Layer.Layer<AliasService> =>
     })
   );
 
-// Mock ChannelService directly rather than the real module-scoped OutputChannel cache (infinite TTL),
-// which would leak the first test's channel object across the whole run.
-const channelAppend = jest.fn();
-const channelShowMock = jest.fn();
-const mockChannelService = (): Layer.Layer<ChannelService> =>
-  Layer.succeed(
-    ChannelService,
-    ChannelService.make({
-      getChannel: Effect.succeed({} as never),
-      showChannel: Effect.sync(() => channelShowMock()),
-      clearChannel: Effect.void,
-      appendToChannel: (message: string) => Effect.sync(() => channelAppend(message))
-    })
-  );
-
 const buildLayer = (targetOrg: string | undefined = ALIAS) =>
   Layer.provide(
     ConnectionService.DefaultWithoutDependencies,
-    Layer.mergeAll(mockConfigService(targetOrg), mockSettingsService(), mockAliasService([ALIAS]), mockChannelService())
+    Layer.mergeAll(mockConfigService(targetOrg), mockSettingsService(), mockAliasService([ALIAS]))
   );
 
 type ConnOverrides = {
@@ -171,9 +155,6 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
       LOGIN_BUTTON
     );
     expect(executeCommandSpy).toHaveBeenCalledWith('sf.org.login.web', INSTANCE_URL, ALIAS);
-    // logs the reauth error to the channel and reveals it
-    expect(channelAppend).toHaveBeenCalledWith(expect.stringContaining('Error refreshing access token'));
-    expect(channelShowMock).toHaveBeenCalled();
   });
 
   it('falls back to username when no alias exists', async () => {
@@ -293,19 +274,9 @@ const MockAliasServiceLayer = Layer.succeed(
 
 const MockSettingsServiceLayer = Layer.succeed(SettingsService, SettingsService.make({} as unknown as SettingsService));
 
-const MockChannelServiceLayer = Layer.succeed(
-  ChannelService,
-  ChannelService.make({
-    getChannel: Effect.succeed({} as never),
-    showChannel: Effect.void,
-    clearChannel: Effect.void,
-    appendToChannel: () => Effect.void
-  })
-);
-
 const serviceLayer = Layer.provide(
   ConnectionService.DefaultWithoutDependencies,
-  Layer.mergeAll(MockConfigServiceLayer, MockAliasServiceLayer, MockSettingsServiceLayer, MockChannelServiceLayer)
+  Layer.mergeAll(MockConfigServiceLayer, MockAliasServiceLayer, MockSettingsServiceLayer)
 );
 
 const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
