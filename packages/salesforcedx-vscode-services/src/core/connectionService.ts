@@ -22,8 +22,9 @@ import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
 import { ChannelService } from '../vscode/channelService';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
+import { NoWorkspaceOpenError } from '../vscode/workspaceService';
 import { AliasService } from './alias';
-import { ConfigService } from './configService';
+import { ConfigService, FailedToCreateConfigAggregatorError } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
@@ -223,46 +224,54 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     // MUST NOT create ChannelServiceLayer('Salesforce Org Management'): services is a dependency of org ext,
     // would create DUPLICATE channel. Log to default ChannelService instead.
-    const promptReauth = Effect.fn('ConnectionService.promptReauth')(function* (
+    // explicit type breaks the promptReauth → reauthCache → runReauthLookup → promptReauth inference cycle
+    const promptReauth: (
       conn: Connection,
       username: string,
       error: unknown
-    ) {
-      yield* channelService.appendToChannel(`Error refreshing access token: ${String(error)}`);
-      yield* channelService.showChannel;
-      // Preserve existing alias on reauth (not arbitrary first-registered alias).
-      const targetOrgOrAlias = yield* configService.getTargetOrg();
-      const alias = targetOrgOrAlias && targetOrgOrAlias !== username ? targetOrgOrAlias : undefined;
-      const loginButton = nls.localize('error_access_token_expired_login_button');
-      const selection = yield* Effect.promise(() =>
-        vscode.window.showErrorMessage(
-          nls.localize('error_access_token_expired'),
-          { modal: true, detail: nls.localize('error_access_token_expired_detail') },
-          loginButton
-        )
-      );
-      if (selection === loginButton) {
-        yield* Effect.promise(() =>
-          vscode.commands.executeCommand('sf.org.login.web', conn.instanceUrl, alias ?? username)
+    ) => Effect.Effect<never, NoWorkspaceOpenError | FailedToCreateConfigAggregatorError | AccessTokenExpiredError> =
+      Effect.fn('ConnectionService.promptReauth')(function* (conn: Connection, username: string, error: unknown) {
+        yield* channelService.appendToChannel(`Error refreshing access token: ${String(error)}`);
+        yield* channelService.showChannel;
+        // Preserve existing alias on reauth (not arbitrary first-registered alias).
+        const targetOrgOrAlias = yield* configService.getTargetOrg();
+        const alias = targetOrgOrAlias && targetOrgOrAlias !== username ? targetOrgOrAlias : undefined;
+        const loginButton = nls.localize('error_access_token_expired_login_button');
+        const selection = yield* Effect.promise(() =>
+          vscode.window.showErrorMessage(
+            nls.localize('error_access_token_expired'),
+            { modal: true, detail: nls.localize('error_access_token_expired_detail') },
+            loginButton
+          )
         );
-        // executeCommand blocks until login finishes; fresh auth file on disk. Invalidate cache so next
-        // getConnection rebuilds AuthInfo (fresh reauthCache key validates new token).
-        yield* invalidateCachedConnections();
-      }
-      return yield* new AccessTokenExpiredError({
-        message: nls.localize('error_access_token_refresh_failed'),
-        username
+        if (selection === loginButton) {
+          yield* Effect.promise(() =>
+            vscode.commands.executeCommand('sf.org.login.web', conn.instanceUrl, alias ?? username)
+          );
+          // executeCommand blocks until login finishes; fresh auth file on disk. Invalidate both caches so the
+          // next getConnection rebuilds AuthInfo AND re-runs the reauth probe against the new token (the failed
+          // reauth entry is keyed by username, so it must be dropped explicitly or it would stay cached 30min).
+          yield* invalidateCachedConnections();
+          yield* reauthCache.invalidate(username);
+        }
+        return yield* new AccessTokenExpiredError({
+          message: nls.localize('error_access_token_refresh_failed'),
+          username
+        });
       });
-    });
 
-    const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (conn: Connection) {
-      const username = resolveUsername(conn);
-      if (!username) return;
+    // Keyed by RESOLVED USERNAME (matching connectionCache), NOT the Connection object: connectionCache is
+    // invalidated on every config-file change (configFileWatcher) + on org switch, so a Connection-keyed reauth
+    // cache would treat each rebuilt Connection for the SAME org as new and re-prompt — stacking a modal per
+    // invalidation. Re-fetch the Connection here (cache hit in the common path; a fresh valid one if it was
+    // invalidated) so identity() always probes the current auth.
+    const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (username: string) {
+      const conn = yield* connectionCache.get(username);
       yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(e => promptReauth(conn, username, e)));
     });
 
-    // Dedup N concurrent identity() calls via Connection reference. Success TTL 1min (re-probe mid-session tokens).
-    // Failure TTL 30min; reauth invalidates connection cache (fresh key, fresh auth), so retry validates before expiry.
+    // Dedup concurrent identity() calls per username. Success TTL 1min (re-probe mid-session tokens).
+    // Failure TTL 30min: one modal per username per session; reauth's invalidate drops it so a fresh login re-probes.
     const reauthCache = yield* Cache.makeWith({
       capacity: 100,
       timeToLive: Exit.match({
@@ -280,7 +289,9 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const validateAccessTokenOrPromptReauth = Effect.fn('ConnectionService.validateAccessTokenOrPromptReauth')(
       function* (conn: Connection) {
         if (!conn.getAuthInfo().isAccessTokenFlow()) return;
-        yield* reauthCache.get(conn);
+        const username = resolveUsername(conn);
+        if (!username) return;
+        yield* reauthCache.get(username);
       }
     );
 
