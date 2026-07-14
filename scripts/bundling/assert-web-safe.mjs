@@ -6,9 +6,14 @@
  */
 
 // Anti-regression guard: fail a web (browser) bundle that externalizes any node builtin
-// outside the documented benign allowlist. A future apex src edit that adds a bare
-// require('child_process'), an un-aliased builtin, etc. would surface here as a throw
-// instead of silently shipping node-only code into the web extension host bundle.
+// outside the documented benign allowlist (e.g. a try/catch-wrapped require of an
+// un-aliased builtin that esbuild leaves external).
+// Scope/limits: this is a post-build metafile check on EXTERNAL imports only. It does NOT
+// catch a builtin that web.mjs aliases to a polyfill (incl. empty-polyfills.js) — those
+// resolve cleanly and never appear as externals, so a new call into an empty-polyfilled
+// builtin (child_process, net, tls, dns, http2, os, fs, ...) would bundle as a silent
+// runtime no-op without tripping this guard. An un-aliased, un-wrapped builtin import
+// fails esbuild resolution before this runs. See .claude/plans/W-23059502.md for the gap.
 
 import { readFile } from 'node:fs/promises';
 import { builtinModules } from 'node:module';
