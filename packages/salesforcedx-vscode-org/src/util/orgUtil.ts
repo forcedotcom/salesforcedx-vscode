@@ -7,13 +7,13 @@
 
 import { AuthFields, AuthInfo, AuthRemover, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { ICONS } from '@salesforce/vscode-services';
 import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
 import * as Option from 'effect/Option';
 import { isError, isNotUndefined, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as vscode from 'vscode';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
 
@@ -92,7 +92,7 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
     Stream.tap(o =>
       // special warning about when default orgs expire
       defaultOrgRef.username && o.username === defaultOrgRef.username && orgIsExpired(o)
-        ? Effect.sync(() => void notificationService.showWarningMessage(nls.localize('default_org_expired')))
+        ? Effect.sync(() => void vscode.window.showWarningMessage(nls.localize('default_org_expired')))
         : Effect.void
     ),
     // Filter out the expired orgs.
@@ -110,10 +110,6 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
     return;
   }
 
-  notificationService.showWarningMessage(
-    nls.localize('pending_org_expiration_notification_message', DAYS_BEFORE_EXPIRE)
-  );
-
   yield* channel.appendToChannel(
     nls.localize(
       'pending_org_expiration_output_channel_message',
@@ -121,7 +117,19 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
       Chunk.toArray(results).join('\n\n')
     )
   );
-  yield* channel.showChannel;
+
+  // Runs unbidden (forkDaemon), so must not reveal the channel: focus-out cancels an open picker.
+  // Offer Show Output; reveal only on click.
+  const showOutputText = nls.localize('org_login_web_show_output_button_text');
+  const selection = yield* Effect.promise(() =>
+    vscode.window.showWarningMessage(
+      nls.localize('pending_org_expiration_notification_message', DAYS_BEFORE_EXPIRE),
+      showOutputText
+    )
+  );
+  if (selection === showOutputText) {
+    yield* channel.showChannel;
+  }
 });
 
 /** Fetch AuthFields for a username. Leaf Promise (`AuthInfo.create`/`getFields`); no runtime re-entry. */
