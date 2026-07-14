@@ -1,7 +1,7 @@
 ---
 name: effect-best-practices
 description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
-version: 1.3.0
+version: 1.5.0
 ---
 
 For diff/plan review against these patterns, invoke the `effect-advocate` subagent (`.claude/agents/effect-advocate.md`).
@@ -363,38 +363,8 @@ To skip the initial snapshot (e.g. avoid a spurious refresh on activation), use 
 
 ## Anti-Patterns (Forbidden)
 
-These patterns are **never acceptable**:
-
-```typescript
-// FORBIDDEN - runSync/runPromise inside services
-const result = Effect.runSync(someEffect); // Never do this
-
-// FORBIDDEN - throw inside Effect.gen
-yield *
-  Effect.gen(function* () {
-    if (bad) throw new Error('No!'); // Use Effect.fail instead
-  });
-
-// FORBIDDEN - catchAll losing type info
-yield * effect.pipe(Effect.catchAll(() => Effect.fail(new GenericError())));
-
-// FORBIDDEN - swallowing errors (most errors surface to user; only catch when ignoring intentionally or providing better message)
-yield * effect.pipe(Effect.catchAll(() => Effect.void));
-
-// FORBIDDEN - console.log
-console.log('debug'); // Use Effect.log
-
-// FORBIDDEN - process.env directly (runtime config)
-const key = process.env.API_KEY; // Use Config.string("API_KEY")
-
-// EXCEPTION - build-time/bundle-time variables (e.g., ESBUILD_*)
-const platform = process.env.ESBUILD_PLATFORM === 'web' ? webImpl : desktopImpl; // OK - build-time conditional
-
-// FORBIDDEN - null/undefined in domain types
-type User = { name: string | null }; // Use Option<string>
-```
-
-See `references/anti-patterns.md` for the complete list with rationale.
+The DON'T column above names each forbidden pattern. `references/anti-patterns.md`
+has the complete list — each with rationale and the correct alternative.
 
 ## Imports: Prefer Deep Imports from @effect/platform
 
@@ -439,7 +409,7 @@ See `references/observability-patterns.md` for metrics and tracing patterns.
 
 For detailed patterns, consult these reference files in the `references/` directory:
 
-- `composition-style.md` - Effects as flat build-then-run pipes: terminal runner, point-free safety, keep side effects (even terminal) in tap, Match dispatch, guard clauses
+- `composition-style.md` - Effects as flat build-then-run pipes: terminal runner, point-free safety, keep side effects (even terminal) in tap, Match dispatch, guard clauses, linear body as point-free pipe vs generator
 - `service-patterns.md` - Service definition, Effect.fn, Context.Tag exceptions
 - `error-patterns.md` - Schema.TaggedError, error remapping, retry patterns
 - `schema-patterns.md` - Branded types, transforms, Schema.Class
