@@ -136,7 +136,7 @@ export class UserService extends Effect.Service<UserService>()("UserService", {
 **Correct:**
 ```typescript
 const findById = Effect.fn("UserService.findById")(
-    function* (id: UserId): Effect.Effect<User, UserNotFoundError> {
+    function* (id: UserId) {
         // ...
     }
 )
