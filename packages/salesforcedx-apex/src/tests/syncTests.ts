@@ -43,7 +43,7 @@ export class SyncTests {
     options: SyncTestConfiguration,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult | null> {
+  ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     try {
       const url = `${this.connection.tooling._baseUrl()}/runTestsSynchronous`;
@@ -57,7 +57,8 @@ export class SyncTests {
       const testRun = (await this.connection.tooling.request(request)) as SyncTestResult;
 
       if (token?.isCancellationRequested) {
-        return null;
+        // preserves upstream runtime behavior: cancellation returns null
+        return null as unknown as TestResult;
       }
 
       return await this.formatSyncResults(testRun, getCurrentTime(), codeCoverage);
