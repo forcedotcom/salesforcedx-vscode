@@ -225,7 +225,7 @@ Services should return `Effect` types, never `Promise`:
 ```typescript
 // CORRECT
 const findById = Effect.fn("UserService.findById")(
-    function* (id: UserId): Effect.Effect<User, UserNotFoundError> {
+    function* (id: UserId) {
         // ...
     }
 )
@@ -241,7 +241,7 @@ const findById = async (id: UserId): Promise<User> => {
 ```typescript
 // CORRECT - findById can fail, findByIdOption returns Option
 const findById = Effect.fn("UserService.findById")(
-    function* (id: UserId): Effect.Effect<User, UserNotFoundError> {
+    function* (id: UserId) {
         const maybeUser = yield* repo.findById(id)
         return yield* Option.match(maybeUser, {
             onNone: () => Effect.fail(new UserNotFoundError({ userId: id, message: "Not found" })),
@@ -251,7 +251,7 @@ const findById = Effect.fn("UserService.findById")(
 )
 
 const findByIdOption = Effect.fn("UserService.findByIdOption")(
-    function* (id: UserId): Effect.Effect<Option<User>> {
+    function* (id: UserId) {
         return yield* repo.findById(id)
     }
 )
