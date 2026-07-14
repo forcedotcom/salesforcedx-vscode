@@ -5,10 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { DebugProtocol } from '@vscode/debugprotocol';
+import { ApexExecutionOverlayResultCommandSuccess } from '../commands';
 
 export type TraceCategory = 'all' | 'protocol' | 'logfile' | 'launch' | 'breakpoints';
 export type Step = 'Over' | 'In' | 'Out' | 'Run';
 export type ScopeType = 'local' | 'static' | 'global';
+
+/** Overlay-result fetch outcome for a single heap dump, resolved host-side and passed to the adapter. */
+export type HeapDumpResult = { heapDumpId: string } & (
+  | { success: ApexExecutionOverlayResultCommandSuccess }
+  | { error: string }
+);
 
 export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   logFileContents: string; // File contents (for web compatibility)
@@ -18,4 +25,5 @@ export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   trace?: boolean | string;
   lineBreakpointInfo?: import('@salesforce/salesforcedx-utils').LineBreakpointInfo[];
   projectPath: string | undefined;
+  heapDumpResults?: HeapDumpResult[];
 };

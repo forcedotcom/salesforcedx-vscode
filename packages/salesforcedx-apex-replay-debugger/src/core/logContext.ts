@@ -5,14 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, Org } from '@salesforce/core';
 import { StackFrame } from '@vscode/debugadapter';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../adapter/types';
+import { HeapDumpResult, LaunchRequestArguments } from '../adapter/types';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { breakpointUtil } from '../breakpoints';
-import { ApexExecutionOverlayResultCommandSuccess, OrgInfoError } from '../commands';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -44,9 +42,12 @@ import {
   VariableAssignmentState,
   VariableBeginState
 } from '../states';
+import { extractHeapDumpIdsFromLog } from './extractHeapDumpIds';
 import { Handles } from './handles';
 import { ApexHeapDump } from './heapDump';
 import { LogContextUtil } from './logContextUtil';
+
+const HEAP_DUMP_MARKER = /\|HEAP_DUMP\|/;
 
 export class LogContext {
   private readonly util = new LogContextUtil();
@@ -201,85 +202,28 @@ export class LogContext {
   }
 
   public scanLogForHeapDumpLines(): boolean {
-    const heapDumpRegex = RegExp(/\|HEAP_DUMP\|/);
+    // Report malformed HEAP_DUMP lines (too few fields) — only happens if the user hand-edited the log.
     this.logLines.forEach((line, index) => {
-      if (heapDumpRegex.test(line)) {
-        const splitLine = line.split('|');
-        if (splitLine.length >= 7) {
-          const heapDump = new ApexHeapDump(
-            splitLine[3] /* heapDumpId */,
-            splitLine[4] /* className */,
-            splitLine[5] /* namespace */,
-            Number(splitLine[6]) /* line */
-          );
-          this.apexHeapDumps.push(heapDump);
-        } else {
-          // With the way log lines are, this would only happen
-          // if the user manually edited the log file.
-          this.session.printToDebugConsole(nls.localize('malformed_log_line', index + 1, line));
-        }
+      if (HEAP_DUMP_MARKER.test(line) && line.split('|').length < 7) {
+        this.session.printToDebugConsole(nls.localize('malformed_log_line', index + 1, line));
       }
     });
+    extractHeapDumpIdsFromLog(this.logLines).forEach(entry =>
+      this.apexHeapDumps.push(new ApexHeapDump(entry.heapDumpId, entry.className, entry.namespace, entry.line))
+    );
     return this.apexHeapDumps.length > 0;
   }
 
-  public async fetchOverlayResultsForApexHeapDumps(): Promise<boolean> {
-    let success = true;
-    try {
-      // Get username from project path
-      const configAggregator = await ConfigAggregator.create({
-        projectPath: this.launchArgs.projectPath
-      });
-      const aliasOrUsername = configAggregator.getPropertyValue<string>('target-org');
-      if (!aliasOrUsername) {
-        throw new Error(nls.localize('unable_to_retrieve_org_info'));
+  /** Applies host-fetched overlay results onto the scanned heap dumps (matched by id). */
+  public setHeapDumpResults(results: HeapDumpResult[]): void {
+    results.forEach(result => {
+      const heapDump = this.apexHeapDumps.find(dump => dump.getHeapDumpId() === result.heapDumpId);
+      if ('error' in result) {
+        this.session.errorToDebugConsole(result.error);
+      } else if (heapDump) {
+        heapDump.setOverlaySuccessResult(result.success);
       }
-
-      // Create connection
-      const org = await Org.create({ aliasOrUsername, aggregator: configAggregator });
-      const connection = org.getConnection();
-
-      for (const heapDump of this.apexHeapDumps) {
-        this.session.printToDebugConsole(nls.localize('fetching_heap_dump', heapDump.toString()));
-        try {
-          const result = await connection.tooling
-            .sobject('ApexExecutionOverlayResult')
-            .retrieve(heapDump.getHeapDumpId());
-          // jsforce doesn't have these tooling types
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          heapDump.setOverlaySuccessResult(result as unknown as ApexExecutionOverlayResultCommandSuccess);
-          return true;
-        } catch (error) {
-          const errorMessage =
-            error instanceof Error && 'errorCode' in error && typeof error.errorCode === 'string'
-              ? nls.localize('heap_dump_error', error.message, error.errorCode, heapDump.toString())
-              : `${String(error)}. ${heapDump.toString()}`;
-          this.session.errorToDebugConsole(errorMessage);
-          return false;
-        }
-      }
-    } catch (error) {
-      success = false;
-      let errorMessage: string;
-
-      // Check if error is already an Error object with a message
-      if (error instanceof Error) {
-        errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${error.message}`;
-      } else {
-        // Try to parse as JSON (for backwards compatibility)
-        try {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const result = JSON.parse(error as string) as OrgInfoError;
-          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
-        } catch {
-          // If JSON parsing fails, treat as string
-          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${String(error)}`;
-        }
-      }
-
-      this.session.errorToDebugConsole(errorMessage);
-    }
-    return success;
+    });
   }
 
   public getLogFileName(): string {

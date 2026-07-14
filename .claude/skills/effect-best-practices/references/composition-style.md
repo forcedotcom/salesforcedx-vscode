@@ -152,6 +152,68 @@ Bail conditions (`if (isDebug || !single) return;`) aren't dispatch dimensions.
 Pattern: short-circuit prerequisites up top, matcher handles real variance on
 proven-good input.
 
+## Linear body → point-free pipe, not a generator
+
+Straight-line `Effect.fn` body — data in, one path out, no branching, no reused
+intermediate — is a single point-free `pipe`. Reserve `function*` for **dependent**
+`yield*`, branching, or early return.
+
+Seed value already an `Effect`/`Tag` (e.g. a service accessor) → start with
+`.pipe(...)` directly on it, same as every other example in this file. Only reach
+for the standalone `pipe(value, ...)` import when the seed is a plain value (array,
+string, parsed JSON) that isn't an Effect yet.
+
+Any step that can throw (parsing, JSON, non-Effect FFI) must be lifted with
+`Effect.try`/`Effect.tryPromise` — a bare throw inside the pipe's input becomes an
+uncatchable `Die` defect, not a typed failure (`catchTag`/`catchAll` won't see it).
+Same rule as "no throw inside Effect.gen" in `anti-patterns.md`, applied to
+point-free pipes too.
+
+```typescript
+// PREFERRED — one pipe: constructors/array ops as steps, Effect.map for the tail
+export const parseAndFilterUsers = Effect.fn('svc.parseAndFilterUsers')(
+  (jsonText: string) =>
+    Effect.try({ try: () => JSON.parse(jsonText), catch: cause => new JsonParseError({ cause }) }).pipe(
+      Effect.map(Arr.filter(user => user.status === 'active')),
+      Effect.map(Arr.map(user => user.id)),
+      // data-last, point-free — the fn, not Arr.dedupe(xs)
+      Effect.map(Arr.dedupe),
+      Effect.map(Chunk.fromIterable)
+    )
+);
+
+// GENERATOR — yield* to resolve a dependency, then run the stream pipe
+export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayResults')(function* (
+  logFileContents: string
+) {
+  // dependent yield*: resolve conn from ExtensionProviderService, then pipe
+  const conn = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+    Effect.flatMap(api => api.services.ConnectionService.getConnection())
+  );
+  return yield* pipe(
+    extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)),
+    Arr.map(entry => entry.heapDumpId),
+    Arr.dedupe,
+    Stream.fromIterable,
+    Stream.grouped(MAX_BATCH_SIZE),
+    Stream.mapEffect(chunk => runOverlayBatch(conn, Chunk.toArray(chunk)), { concurrency: BATCH_API_CONCURRENCY }),
+    Stream.flattenIterables,
+    Stream.runCollect,
+    Effect.map(Chunk.toArray)
+  );
+});
+
+// AVOID — generator whose consts are each read once on the next line
+export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayResults')(function* (
+  conn: Connection,
+  logFileContents: string
+) {
+  const uniqueIds = Arr.dedupe(extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)).map(e => e.heapDumpId));
+  const results = yield* Stream.fromIterable(uniqueIds).pipe(/* ...same ops... */, Stream.runCollect);
+  return Chunk.toArray(results);
+});
+```
+
 ## Quick reference
 
 | Situation | Do | Don't |
@@ -165,3 +227,6 @@ proven-good input.
 | 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)` | nested ternary |
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
+| Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
+| Point-free pipe seed | `.pipe(...)` on an existing Effect/Tag; standalone `pipe(value, ...)` only when the seed isn't an Effect yet | standalone `pipe(someEffect, ...)` when `someEffect.pipe(...)` works |
+| Throwing step inside a point-free pipe (parse, FFI) | lift with `Effect.try`/`Effect.tryPromise` | bare `JSON.parse(...)`/throwing call as a pipe step |

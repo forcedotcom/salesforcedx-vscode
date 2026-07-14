@@ -76,7 +76,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(this.initializedResponse);
   }
 
-  public async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
+  public launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
     let lineBreakpointInfoAvailable = false;
     if (args?.lineBreakpointInfo) {
       lineBreakpointInfoAvailable = true;
@@ -126,16 +126,20 @@ export class ApexReplayDebug extends LoggingDebugSession {
       );
     } else {
       this.printToDebugConsole(nls.localize('session_started_text', this.logContext.getLogFileName()));
-      if (this.logContext.scanLogForHeapDumpLines() && !(await this.logContext.fetchOverlayResultsForApexHeapDumps())) {
-        response.message = nls.localize('heap_dump_error_wrap_up_text');
-        this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
-        this.sendEvent(
-          new Event(SEND_METRIC_ERROR_EVENT, {
-            subject: 'Fetching heap dumps failed',
-            callstack: new Error().stack,
-            message: response.message
-          })
-        );
+      if (this.logContext.scanLogForHeapDumpLines()) {
+        const heapDumpResults = args.heapDumpResults ?? [];
+        this.logContext.setHeapDumpResults(heapDumpResults);
+        if (heapDumpResults.some(result => 'error' in result)) {
+          response.message = nls.localize('heap_dump_error_wrap_up_text');
+          this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
+          this.sendEvent(
+            new Event(SEND_METRIC_ERROR_EVENT, {
+              subject: 'Fetching heap dumps failed',
+              callstack: new Error().stack,
+              message: response.message
+            })
+          );
+        }
       }
       response.success = true;
     }
