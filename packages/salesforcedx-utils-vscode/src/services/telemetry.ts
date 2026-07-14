@@ -14,6 +14,7 @@ import {
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
@@ -426,6 +427,6 @@ export class TelemetryService implements TelemetryServiceInterface {
 const stripEmptyValues = (obj: Record<string, string | undefined | null>): Record<string, string> =>
   Object.fromEntries(Object.entries(obj).filter(isStringEntry));
 
-const isStringEntry = (entry: [string, unknown]): entry is [string, string] => typeof entry[1] === 'string';
+const isStringEntry = (entry: [string, unknown]): entry is [string, string] => isString(entry[1]);
 
 export const telemetryService = TelemetryServiceProvider.getInstance();

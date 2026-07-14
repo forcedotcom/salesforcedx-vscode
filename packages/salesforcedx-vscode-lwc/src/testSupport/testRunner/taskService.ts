@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { appendToChannel } from '../../channel';
 import { nls } from '../../messages';
@@ -76,7 +77,7 @@ class TaskService {
       taskStartEvent => {
         const { execution } = taskStartEvent;
         const { definition } = execution.task;
-        const sfTaskId = typeof definition.sfTaskId === 'string' ? definition.sfTaskId : undefined;
+        const sfTaskId = isString(definition.sfTaskId) ? definition.sfTaskId : undefined;
         if (sfTaskId) {
           const foundTask = this.createdTasks.get(sfTaskId);
           if (foundTask) {
@@ -92,7 +93,7 @@ class TaskService {
       taskEndEvent => {
         const { execution } = taskEndEvent;
         const { definition } = execution.task;
-        const sfTaskId = typeof definition.sfTaskId === 'string' ? definition.sfTaskId : undefined;
+        const sfTaskId = isString(definition.sfTaskId) ? definition.sfTaskId : undefined;
         if (sfTaskId) {
           const foundTask = this.createdTasks.get(sfTaskId);
           if (foundTask) {

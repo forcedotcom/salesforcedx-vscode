@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isString } from 'effect/Predicate';
 import { URI, Utils } from 'vscode-uri';
 
 /**
@@ -13,7 +14,7 @@ import { URI, Utils } from 'vscode-uri';
  * @returns A properly parsed VS Code URI
  */
 export const toUri = (filePath: string | URI): URI => {
-  if (typeof filePath !== 'string') return filePath;
+  if (!isString(filePath)) return filePath;
 
   if (/^[a-z][\w+.-]*:/i.test(filePath) && !/^[a-z]:/i.test(filePath)) {
     return URI.parse(filePath);

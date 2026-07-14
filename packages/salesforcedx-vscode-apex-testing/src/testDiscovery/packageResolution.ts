@@ -9,7 +9,7 @@ import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
 
@@ -213,7 +213,7 @@ export const resolvePackage2Members = async (
   classIdToNamespace?: Map<string, Option.Option<string>>,
   orgInfo?: PackageResolutionOrgInfo
 ): Promise<Map<string, ResolvedPackageInfo>> => {
-  const validIds = apexClassIds.filter(id => typeof id === 'string' && id.length > 0);
+  const validIds = apexClassIds.filter(id => isString(id) && id.length > 0);
   if (validIds.length === 0) {
     return new Map();
   }
@@ -322,9 +322,7 @@ export const resolvePackage2Members = async (
 
   if (allMembers.length > 0) {
     const package2Ids = [
-      ...new Set(
-        allMembers.map(m => m.Package2Id).filter((id): id is string => typeof id === 'string' && id.length > 0)
-      )
+      ...new Set(allMembers.map(m => m.Package2Id).filter((id): id is string => isString(id) && id.length > 0))
     ];
     const package2ById = new Map<string, Package2>();
 

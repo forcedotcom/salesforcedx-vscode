@@ -7,7 +7,7 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { ChildProcess } from './childProcess';
 
@@ -19,7 +19,7 @@ export class TerminalServiceError extends Schema.TaggedError<TerminalServiceErro
 /** node's `exec` rejection (ExecException) carries `.stdout`/`.stderr`. Its `.message` already appends
  * stderr, but never stdout — `sf --json` puts its error payload on stdout, so fold any stdout not already
  * present into the message so failure-inspecting callers see the full output. */
-const hasStringStdout = (e: Error): e is Error & { stdout: string } => 'stdout' in e && typeof e.stdout === 'string';
+const hasStringStdout = (e: Error): e is Error & { stdout: string } => 'stdout' in e && isString(e.stdout);
 
 const execErrorMessage = (e: unknown): string => {
   if (!isError(e)) return 'exec failed';

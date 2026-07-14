@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import { ApexLogBodyFetchError, ApexLogQueryError } from '../errors/apexLogErrors';
 import { ConnectionService } from './connectionService';
 import { unknownToErrorCause } from './shared';
@@ -83,7 +84,7 @@ export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogSer
       const body = yield* Effect.tryPromise({
         try: async () => {
           const res = await conn.request({ method: 'GET', url });
-          return typeof res === 'string' ? res : String(res);
+          return isString(res) ? res : String(res);
         },
         catch: error => {
           const { cause } = unknownToErrorCause(error);

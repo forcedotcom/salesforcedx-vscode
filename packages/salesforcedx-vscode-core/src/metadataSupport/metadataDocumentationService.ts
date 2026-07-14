@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { isString } from 'effect/Predicate';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 
@@ -181,11 +182,11 @@ export class MetadataDocumentationService {
           const appinfo = annotation['xsd:appinfo'];
 
           if (documentation) {
-            description = typeof documentation === 'string' ? documentation : (documentation['#text'] ?? '');
+            description = isString(documentation) ? documentation : (documentation['#text'] ?? '');
           }
 
           if (appinfo) {
-            const appinfoText = typeof appinfo === 'string' ? appinfo : (appinfo['#text'] ?? '');
+            const appinfoText = isString(appinfo) ? appinfo : (appinfo['#text'] ?? '');
             const urlMatch = appinfoText.match(/Documentation:\s*(https?:\/\/[^\s]+)/);
             if (urlMatch) {
               developerGuideUrl = urlMatch[1];
@@ -252,13 +253,13 @@ export class MetadataDocumentationService {
           // Extract documentation
           if (annotation['xsd:documentation']) {
             const doc = annotation['xsd:documentation'];
-            description = typeof doc === 'string' ? doc : (doc['#text'] ?? '');
+            description = isString(doc) ? doc : (doc['#text'] ?? '');
           }
 
           // Extract type from appinfo if available
           if (annotation['xsd:appinfo']) {
             const appinfo = annotation['xsd:appinfo'];
-            const appinfoText = typeof appinfo === 'string' ? appinfo : (appinfo['#text'] ?? '');
+            const appinfoText = isString(appinfo) ? appinfo : (appinfo['#text'] ?? '');
             const typeMatch = appinfoText.match(/Type:\s*(.+)/);
             if (typeMatch) {
               fieldType = typeMatch[1].trim();

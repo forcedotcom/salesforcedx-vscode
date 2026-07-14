@@ -9,6 +9,7 @@
 // Original version licensed under the Eclipse Public License (EPL)
 
 import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { isString } from 'effect/Predicate';
 import * as cp from 'node:child_process';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
@@ -123,7 +124,7 @@ const checkJavaRuntime = async (): Promise<string> =>
         return;
       }
 
-      if (!home || typeof home !== 'string') {
+      if (!home || !isString(home)) {
         reject(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
         return;
       }
@@ -140,7 +141,7 @@ const readJavaConfig = (): string | undefined => {
 };
 
 const expandHomeDir = (p: string): string | undefined => {
-  if (!p || typeof p !== 'string') {
+  if (!p || !isString(p)) {
     return undefined;
   }
   if (p === '~') return homedir();
@@ -149,14 +150,14 @@ const expandHomeDir = (p: string): string | undefined => {
 };
 
 const isLocal = (javaHome: string): boolean => {
-  if (!javaHome || typeof javaHome !== 'string') {
+  if (!javaHome || !isString(javaHome)) {
     return true; // Consider invalid paths as local for safety
   }
   return !path.isAbsolute(javaHome);
 };
 
 export const checkJavaVersion = async (javaHome: string): Promise<boolean> => {
-  if (!javaHome || typeof javaHome !== 'string') {
+  if (!javaHome || !isString(javaHome)) {
     throw new Error(nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK));
   }
 

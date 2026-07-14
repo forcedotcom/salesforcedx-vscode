@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 
 export const getJsonCandidate = (str: string): string | undefined => {
   const firstCurly = str.indexOf('{');
@@ -105,7 +105,7 @@ export const getMessageFromError = (err: unknown): string => {
   if (isError(err)) {
     return err.message;
   }
-  if (typeof err === 'string') {
+  if (isString(err)) {
     return err;
   }
   if (err) {

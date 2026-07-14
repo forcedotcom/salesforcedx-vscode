@@ -8,6 +8,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_TESTING_SCHEME, isForeignOrgClassUri } from '../discoveryVfs/apexTestingDiscoveryFs';
@@ -277,7 +278,7 @@ export class ApexTestController {
         })
       );
 
-      if (typeof result === 'string') {
+      if (isString(result)) {
         await notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled'));
         return;
       }
@@ -423,9 +424,7 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
 };
 
 const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
-  const filePath = result
-    .getFileResponses()
-    .find(r => typeof r.filePath === 'string' && r.filePath.length > 0)?.filePath;
+  const filePath = result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath;
   return filePath ? URI.file(filePath) : undefined;
 };
 

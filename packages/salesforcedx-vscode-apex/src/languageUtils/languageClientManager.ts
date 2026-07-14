@@ -6,7 +6,7 @@
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -331,7 +331,7 @@ export class LanguageClientManager {
       }
     } catch (error) {
       let errorMessage = '';
-      if (typeof error === 'string') {
+      if (isString(error)) {
         errorMessage = error;
       } else if (isError(error)) {
         errorMessage = error.message ?? nls.localize('unknown_error');

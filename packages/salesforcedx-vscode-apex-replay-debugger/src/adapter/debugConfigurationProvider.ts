@@ -6,6 +6,7 @@
  */
 
 import { errorToString, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { isString } from 'effect/Predicate';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
@@ -83,7 +84,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       // User needs to select a file
       try {
         const logFilePath = await vscode.commands.executeCommand('extension.replay-debugger.getLogFileName');
-        if (logFilePath && typeof logFilePath === 'string') {
+        if (logFilePath && isString(logFilePath)) {
           config.logFileContents = await readFile(logFilePath);
           config.logFilePath = logFilePath;
           config.logFileName = getBasename(logFilePath);

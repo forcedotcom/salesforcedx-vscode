@@ -7,6 +7,7 @@
 
 import type * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 
 type MetadataRegistry = {
@@ -62,7 +63,7 @@ const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> => 
   const folderNames = new Set<string>();
   for (const typeName of DEFAULT_APEX_TYPE_NAMES) {
     const mdType = registryAccess.getTypeByName(typeName);
-    if (typeof mdType?.directoryName === 'string' && mdType.directoryName.trim().length > 0) {
+    if (isString(mdType?.directoryName) && mdType.directoryName.trim().length > 0) {
       folderNames.add(toNormalizedFolderName(mdType.directoryName));
     }
   }

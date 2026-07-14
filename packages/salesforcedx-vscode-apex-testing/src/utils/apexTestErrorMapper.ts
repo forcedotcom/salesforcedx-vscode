@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import { nls } from '../messages';
 
 /** Common Salesforce API / connection error patterns that should be mapped to user-friendly messages */
@@ -40,14 +40,14 @@ const ORG_UNREACHABLE_PATTERNS = ['http response contains html content', 'status
 
 const getMessageFromObject = (obj: object): string | undefined => {
   const m: unknown = Object.getOwnPropertyDescriptor(obj, 'message')?.value;
-  return typeof m === 'string' ? m : undefined;
+  return isString(m) ? m : undefined;
 };
 
 const getRawMessage = (error: unknown): string => {
   if (isError(error)) {
     return error.message;
   }
-  if (typeof error === 'string') {
+  if (isString(error)) {
     return error;
   }
   if (error && typeof error === 'object') {

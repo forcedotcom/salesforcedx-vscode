@@ -6,6 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -30,11 +31,7 @@ const ensureValidRegistrationProviderType = Effect.fn('ApexOas.OasChecker.ensure
     const parser = new XMLParser();
     const jsonObj = parser.parse(xmlContent);
     const registrationProviderType = jsonObj.ExternalServiceRegistration?.registrationProviderType;
-    if (
-      !isValidRegistrationProviderType(
-        typeof registrationProviderType === 'string' ? registrationProviderType : undefined
-      )
-    ) {
+    if (!isValidRegistrationProviderType(isString(registrationProviderType) ? registrationProviderType : undefined)) {
       return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
     }
   }
@@ -50,7 +47,7 @@ const extractOpenApiDocument = Effect.fn('ApexOas.OasChecker.extractOpenApiDocum
   if (!fullPath.endsWith('.xml')) return content;
   const jsonObj = new XMLParser().parse(content);
   const schema: unknown = jsonObj.ExternalServiceRegistration?.schema;
-  return typeof schema === 'string' ? schema : undefined;
+  return isString(schema) ? schema : undefined;
 });
 
 /**

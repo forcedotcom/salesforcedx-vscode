@@ -22,6 +22,7 @@ import {
   writeFile,
   fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
+import { isString } from 'effect/Predicate';
 import { SpawnOptions } from 'node:child_process';
 import * as path from 'node:path';
 import { URL } from 'node:url';
@@ -166,7 +167,7 @@ export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}
     const orgNamespaceQueryResponse = JSON.parse(orgNamespaceQueryJson);
     if (
       orgNamespaceQueryResponse.result?.records?.[0] &&
-      typeof orgNamespaceQueryResponse.result.records[0].NamespacePrefix === 'string'
+      isString(orgNamespaceQueryResponse.result.records[0].NamespacePrefix)
     ) {
       return orgNamespaceQueryResponse.result.records[0].NamespacePrefix;
     }
@@ -440,7 +441,7 @@ class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
       const parameter = url.searchParams;
       const loginUrl = parameter.get('url');
       const sessionId = parameter.get('sessionId');
-      if (typeof loginUrl !== 'string' || typeof sessionId !== 'string') {
+      if (!isString(loginUrl) || !isString(sessionId)) {
         return nls.localize('parameter_gatherer_invalid_forceide_url');
       }
     } catch {
