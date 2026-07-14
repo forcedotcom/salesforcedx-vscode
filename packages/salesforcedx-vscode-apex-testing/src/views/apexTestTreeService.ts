@@ -558,6 +558,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       return bodyByFullName;
     });
 
+    const logPersistWarning = (error: unknown) =>
+      Effect.logWarning('failed to persist discovered Apex classes', { error });
+
     /**
      * Persist the discovered classes to the org-keyed VFS snapshot (best-effort optimization). Org-info
      * lookup, body fetch, and the write are recovered on failure so persistence never fails the discovery run.
@@ -574,10 +577,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgId, apexClasses, classBodiesByFullName);
       }).pipe(
         Effect.catchTags({
-          DiscoveryClearError: error => Effect.logWarning('failed to persist discovered Apex classes', { error }),
-          ServicesExtensionNotFoundError: error =>
-            Effect.logWarning('failed to persist discovered Apex classes', { error }),
-          InvalidServicesApiError: error => Effect.logWarning('failed to persist discovered Apex classes', { error })
+          DiscoveryClearError: logPersistWarning,
+          ServicesExtensionNotFoundError: logPersistWarning,
+          InvalidServicesApiError: logPersistWarning
         })
       );
     });
