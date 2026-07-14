@@ -30,21 +30,19 @@ jest.mock('../../../src/utils/pathHelpers', () => {
   return { getTestResultsFolder: () => mockGetTestResultsFolder() ?? EffectLib.succeed({ toString: () => 'dir' }) };
 });
 
-// Break the import cycle apexTestTreeService -> coreExtensionUtils -> extensionProvider (whose layer
-// references ApexTestTreeService.Default at module-eval). The tests provide layers directly via
-// Effect.provide, so the runtime accessor here is never used.
+// Break the import cycle apexTestTreeService -> extensionProvider (whose layer references
+// ApexTestTreeService.Default at module-eval). The tests provide layers directly via Effect.provide, so
+// the runtime accessor here is never used.
 jest.mock('../../../src/services/extensionProvider', () => ({
   getApexTestingRuntime: jest.fn(),
   setAllServicesLayer: jest.fn()
 }));
 
-// Tree-mutation methods (incrementalUpdate/resolveSuiteChildren) call getDefaultOrgInfo for the org key and
-// resolvePackage2Members / buildClassToUriIndex for placement. Controllable per test; defaults give a valid
-// org + empty package/URI maps so addClassToTree exercises the namespace/package build path.
+// Tree-mutation methods (incrementalUpdate/resolveSuiteChildren) read the org key inline via the Services
+// TargetOrgRef seam (see mockServicesApi below) and resolvePackage2Members / buildClassToUriIndex for
+// placement. Controllable per test; defaults give a valid org + empty package/URI maps so addClassToTree
+// exercises the namespace/package build path.
 let mockOrgInfo: { orgId?: string; username?: string } = { orgId: 'org123', username: 'user@example.com' };
-jest.mock('../../../src/coreExtensionUtils', () => ({
-  getDefaultOrgInfo: () => Promise.resolve(mockOrgInfo)
-}));
 jest.mock('../../../src/testDiscovery/packageResolution', () => ({
   resolvePackage2Members: () => Promise.resolve(new Map())
 }));
@@ -77,6 +75,7 @@ import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
@@ -105,8 +104,15 @@ const mockConnectionService = { getConnection: () => getConnectionImpl() };
 
 // Minimal ambient services: discovery reaches getServicesApi; the no-classes path never touches FsService.
 // SettingsService is yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
+// TargetOrgRef backs the inline getDefaultOrgInfo helper (yield* api.services.TargetOrgRef() then
+// SubscriptionRef.get). Build a fresh SubscriptionRef from the current mockOrgInfo per call so per-test
+// mutations (mockOrgInfo = {} for the no-org path) take effect. Mirrors watchers/testDiscovery.test.ts.
 const mockServicesApi = {
-  services: { SettingsService: Effect.succeed(mockSettingsService), ConnectionService: mockConnectionService }
+  services: {
+    SettingsService: Effect.succeed(mockSettingsService),
+    ConnectionService: mockConnectionService,
+    TargetOrgRef: () => SubscriptionRef.make(mockOrgInfo)
+  }
 };
 const ExtensionProviderLayer = Layer.succeed(ExtensionProviderService, {
   getServicesApi: Effect.succeed(mockServicesApi)

@@ -7,6 +7,7 @@
 
 jest.mock('../../../src/services/extensionProvider', () => {
   const EffectLib = jest.requireActual('effect/Effect');
+  const SubscriptionRef = jest.requireActual('effect/SubscriptionRef');
   const Layer = jest.requireActual('effect/Layer');
   const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
   const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
@@ -58,7 +59,11 @@ jest.mock('../../../src/services/extensionProvider', () => {
       SettingsService: EffectLib.succeed({
         getValue: (_section: string, key: string, defaultValue: unknown) =>
           EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
-      })
+      }),
+      // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService (jest.requireActual above):
+      // persistDiscoveredClasses/addClassToTree/applyIncrementalDiff yield* api.services.TargetOrgRef() then
+      // SubscriptionRef.get for the org key. Fresh ref per call. Mirrors watchers/testDiscovery.test.ts.
+      TargetOrgRef: () => SubscriptionRef.make({ orgId: 'org123', username: 'user@example.com' })
     }
   };
   const ExtensionProviderLayer = Layer.effect(
@@ -114,11 +119,6 @@ jest.mock('../../../src/services/extensionProvider', () => {
     }
   };
 });
-
-jest.mock('../../../src/coreExtensionUtils', () => ({
-  getConnection: jest.fn(),
-  getDefaultOrgInfo: jest.fn().mockResolvedValue({ orgId: 'org123', username: 'user@example.com' })
-}));
 
 jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
@@ -180,7 +180,6 @@ import * as path from 'node:path';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import { URI } from 'vscode-uri';
 import * as vscode from 'vscode';
-import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
 import * as pathHelpers from '../../../src/utils/pathHelpers';
 import { notificationService } from '../../../src/utils/notificationHelpers';
@@ -284,11 +283,7 @@ describe('ApexTestController', () => {
       }
     };
 
-    (coreExtensionUtils.getConnection as jest.Mock) = jest.fn().mockResolvedValue(mockConnection);
     (extensionProvider as any).__setMockConnection?.(mockConnection);
-    (coreExtensionUtils.getDefaultOrgInfo as jest.Mock) = jest
-      .fn()
-      .mockResolvedValue({ orgId: 'org123', username: 'user@example.com' });
 
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(undefined);
