@@ -9,6 +9,7 @@ import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
@@ -108,7 +109,7 @@ export class O11ySpanExporter implements SpanExporter {
             }
 
             // PFT for new extensions
-            if (this.productFeatureId && typeof span.attributes['command'] === 'string') {
+            if (this.productFeatureId && isString(span.attributes['command'])) {
               this.o11yService.logEventWithSchema(
                 {
                   eventName: 'vscodeExtension.executed',
