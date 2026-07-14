@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { isError } from 'effect/Predicate';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
@@ -18,9 +19,9 @@ const getStandardSObjectsDirectory = (projectPath: string) =>
   path.join(projectPath, '.sfdx', 'tools', SOBJECTS_DIR, STANDARDOBJECTS_DIR);
 
 const extractErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) return error.message;
+  if (isError(error)) return error.message;
   if (typeof error === 'object' && error !== null) {
-    if ('error' in error && error.error instanceof Error) return error.error.message;
+    if ('error' in error && isError(error.error)) return error.error.message;
     if ('message' in error && typeof error.message === 'string') return error.message;
   }
   return String(error);

@@ -9,8 +9,8 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
+import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
-import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../settings';
 import { NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
 
 /** Collects stream output into a UTF-8 encoded Uint8Array with LF line endings */
@@ -55,11 +55,11 @@ const createReportTransformer = (
   result: TestResult,
   format: OutputFormat,
   codeCoverage: boolean,
-  sortOrder: TestSortOrder
-): MarkdownTextFormatTransformer => {
-  const performanceThresholdMs = retrievePerformanceThreshold();
-  const coverageThresholdPercent = retrieveCoverageThreshold();
-  return new MarkdownTextFormatTransformer(result, {
+  sortOrder: TestSortOrder,
+  performanceThresholdMs: number,
+  coverageThresholdPercent: number
+): MarkdownTextFormatTransformer =>
+  new MarkdownTextFormatTransformer(result, {
     format,
     sortOrder,
     performanceThresholdMs,
@@ -67,7 +67,6 @@ const createReportTransformer = (
     codeCoverage,
     timestamp: new Date()
   });
-};
 
 /** Generates report URI using the library's format: test-result-{testRunId}.{ext} */
 const generateReportUri = (outputDir: URI, testRunId: string | undefined, extension: string): URI => {
@@ -111,9 +110,21 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
   yield* Effect.annotateCurrentSpan({ outputFormat: format });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelSvc = yield* api.services.ChannelService;
+  const settings = yield* api.services.SettingsService;
+  const performanceThresholdMs =
+    (yield* settings.getValue<number>(APEX_TESTING_SECTION, 'testPerformanceThresholdMs', 5000)) ?? 5000;
+  const coverageThresholdPercent =
+    (yield* settings.getValue<number>(APEX_TESTING_SECTION, 'testCoverageThresholdPercent', 75)) ?? 75;
 
   // Write directly to UTF-8 bytes (with LF newlines) without building a large intermediate string.
-  const transformer = createReportTransformer(result, format, codeCoverage, sortOrder);
+  const transformer = createReportTransformer(
+    result,
+    format,
+    codeCoverage,
+    sortOrder,
+    performanceThresholdMs,
+    coverageThresholdPercent
+  );
 
   // Generate filename using library's format: test-result-{testRunId}.{ext}
   const extension = format === 'markdown' ? '.md' : '.txt';

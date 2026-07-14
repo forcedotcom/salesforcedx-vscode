@@ -9,7 +9,6 @@ import copy from 'esbuild-plugin-copy';
 import { createRequire } from 'module';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { effectEsmConditions } from '../../scripts/bundling/effect.mjs';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
@@ -54,11 +53,19 @@ const copyTemplates = copy({
 //   - apexclass / apextrigger: apex-log (web)
 //   - lightningcomponent/lwc:  lwc (web)
 //   - analytics:               metadata `sf.analytics.generate.template` (registered on web)
+//   - visualforcepage / visualforcecomponent: visualforce (web) `sf.visualforce.generate.page`/`.component`
 // Excluded: project (React scaffolds, ~350+ files; project-generate is desktop-only in metadata),
 // lightningcomponent/aura + lightningapp/event/interface (lightning ext has no `browser`),
-// visualforce* (visualforce ext has no `browser`), staticresource (no web creator).
+// staticresource (no web creator).
 // Keep this in sync with the web extensions' TemplateService.create call sites.
-const WEB_TEMPLATE_PREFIXES = ['apexclass/', 'apextrigger/', 'lightningcomponent/lwc/', 'analytics/'];
+const WEB_TEMPLATE_PREFIXES = [
+  'apexclass/',
+  'apextrigger/',
+  'lightningcomponent/lwc/',
+  'analytics/',
+  'visualforcepage/',
+  'visualforcecomponent/'
+];
 
 // Generate manifest listing template file paths (relative to templates root) for the WEB bundle to copy
 // into memfs (vscode.workspace.fs.readDirectory is unsupported on HTTPS extension URIs). Desktop ignores
@@ -142,7 +149,6 @@ const buildWebConfig = async () => {
 // Desktop build (Node.js environment)
 const nodeBuild = await build({
   ...nodeConfig,
-  ...effectEsmConditions,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [...(nodeConfig.plugins ?? []), copyTemplates],

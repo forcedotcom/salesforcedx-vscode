@@ -5,8 +5,8 @@ This note documents how Apex Testing currently handles test discovery data and t
 ## Discovery Flow
 
 - Activation initializes `ApexTestController` in `src/index.ts`.
-- Org changes trigger `testController.discoverTests()` from `initializeTestDiscovery()`.
-- `discoverTests()` in `src/views/testController.ts`:
+- Org changes trigger `testController.refresh()` from `initializeTestDiscovery()`.
+- `refresh()` in `src/views/testController.ts` deduplicates concurrent calls (later callers join the in-flight refresh rather than starting a second one); calls `doRefresh()`:
   - Ensures org connection and `TestService`.
   - Clears in-memory test items.
   - Populates suites (`retrieveAllSuites()`).

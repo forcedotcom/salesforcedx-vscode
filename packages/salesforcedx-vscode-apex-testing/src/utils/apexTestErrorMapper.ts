@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isError } from 'effect/Predicate';
 import { nls } from '../messages';
 
 /** Common Salesforce API / connection error patterns that should be mapped to user-friendly messages */
@@ -43,7 +44,7 @@ const getMessageFromObject = (obj: object): string | undefined => {
 };
 
 const getRawMessage = (error: unknown): string => {
-  if (error instanceof Error) {
+  if (isError(error)) {
     return error.message;
   }
   if (typeof error === 'string') {
