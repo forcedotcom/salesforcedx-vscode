@@ -334,7 +334,8 @@ export const DailyReportCronLayer = DailyReportCron.toLayer(
 ### From HTTP Handler
 
 ```typescript
-import { HttpApi, HttpApiEndpoint } from "@effect/platform"
+import * as HttpApi from "@effect/platform/HttpApi"
+import * as HttpApiEndpoint from "@effect/platform/HttpApiEndpoint"
 
 const createOrder = HttpApiEndpoint.post("createOrder", "/orders")
     .setPayload(CreateOrderInput)

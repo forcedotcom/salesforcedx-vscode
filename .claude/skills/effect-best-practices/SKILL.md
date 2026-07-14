@@ -25,6 +25,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 
 | Category          | DO                                                       | DON'T                                                            |
 | ----------------- | -------------------------------------------------------- | ---------------------------------------------------------------- |
+| Imports           | `import * as X from '@effect/platform/X'` (deep)         | `import { X } from '@effect/platform'` (barrel bundles Swagger UI) |
 | Services          | `Effect.Service` with `accessors: true`                  | `Context.Tag` for business logic                                 |
 | Dependencies      | `dependencies: [Dep.Default]` in service                 | Manual `Layer.provide` at usage sites                            |
 | Errors            | `Schema.TaggedError` with `message` field                | Plain classes or generic Error                                   |
@@ -44,6 +45,20 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Atom Updates      | `useAtomSet` in React components                         | `Atom.update` imperatively from React                            |
 | Atom Cleanup      | `get.addFinalizer()` for side effects                    | Missing cleanup for event listeners                              |
 | Atom Results      | `Result.builder` with `onErrorTag`                       | Ignoring loading/error states                                    |
+
+## Imports: deep-import @effect/platform
+
+Deep-import `@effect/platform` submodules; never use the barrel. The barrel re-exports `HttpApiSwagger`, which drags in a bundled Swagger UI that esbuild cannot tree-shake. That bloats desktop + web bundles by ~5.5MB each and matches ClamAV signature `Js.Dropper.Agent-9605010-0`, which silently deactivates the OpenVSX publish.
+
+```typescript
+// DO — deep namespace import, tree-shakes cleanly
+import * as HttpApiSchema from '@effect/platform/HttpApiSchema';
+
+// DON'T — barrel import bundles Swagger UI
+import { HttpApiSchema } from '@effect/platform';
+```
+
+Enforced by `effect/no-import-from-barrel-package` (auto-fixable) for `effect` and `@effect/platform` in the Effect-services eslint override.
 
 ## Service Definition Pattern
 
@@ -123,7 +138,7 @@ See `references/service-patterns.md` for detailed patterns.
 
 ```typescript
 import { Schema } from 'effect';
-import { HttpApiSchema } from '@effect/platform';
+import * as HttpApiSchema from '@effect/platform/HttpApiSchema';
 
 export class UserNotFoundError extends Schema.TaggedError<UserNotFoundError>()(
   'UserNotFoundError',

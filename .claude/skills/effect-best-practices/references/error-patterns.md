@@ -134,7 +134,7 @@ export class SessionExpiredError extends Schema.TaggedError<SessionExpiredError>
 
 ```typescript
 import { Schema } from "effect"
-import { HttpApiSchema } from "@effect/platform"
+import * as HttpApiSchema from "@effect/platform/HttpApiSchema"
 
 export class UserNotFoundError extends Schema.TaggedError<UserNotFoundError>()(
     "UserNotFoundError",
