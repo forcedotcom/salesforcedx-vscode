@@ -84,6 +84,10 @@ export const expectOrgPickerActionItems = async (
  */
 export const selectOrgInPicker = async (page: Page, alias: string, opts?: { timeout?: number }): Promise<void> => {
   await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: opts?.timeout ?? 10_000 });
+  // The org list loads asynchronously (AuthInfo.listAllAuthorizations). Wait for the picker to
+  // populate its first row before typing — typing into an empty picker filters against rows that
+  // haven't rendered yet, so the org row can never match the filter and the waitFor below times out.
+  await waitForQuickInputFirstOption(page);
   await page.keyboard.type(alias);
   const orgRow = activeQuickInputWidget(page)
     .locator(QUICK_INPUT_LIST_ROW)

@@ -14,7 +14,7 @@ const xmlCharMap: { [key: string]: string } = {
   "'": '&apos;'
 };
 
-const escapeXml = (data: string): string => data.replaceAll(/[<>&'\"]/g, (char: string) => xmlCharMap[char]);
+const escapeXml = (data: string): string => data.replaceAll(/[<>&'"]/g, (char: string) => xmlCharMap[char]);
 
 // Encodes request body with SOAP envelope and explicit DebuggingHeader: Apex_code=Finest, Visualforce=Finer
 export function encodeBody(accessToken: string, data: string): string {

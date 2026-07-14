@@ -96,6 +96,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
       "output": [
@@ -112,6 +113,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
       "output": [

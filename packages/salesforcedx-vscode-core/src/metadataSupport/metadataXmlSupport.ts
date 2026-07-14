@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -122,7 +122,7 @@ export class MetadataXmlSupport {
 
     const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
-    if (typeof pluginVersionNumber !== 'string') {
+    if (!isString(pluginVersionNumber)) {
       channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
       return;
     }

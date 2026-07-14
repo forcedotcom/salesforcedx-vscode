@@ -7,7 +7,7 @@
 
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { ChannelService } from './channelService';
@@ -43,7 +43,7 @@ const getBaseMessage = (error: unknown): string => {
   }
   if (typeof error === 'object' && error !== null && 'message' in error) {
     const msg = Reflect.get(error, 'message');
-    if (typeof msg === 'string') return msg;
+    if (isString(msg)) return msg;
   }
   return String(error);
 };
