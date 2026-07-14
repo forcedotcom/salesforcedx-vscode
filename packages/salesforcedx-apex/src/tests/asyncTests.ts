@@ -108,8 +108,7 @@ export class AsyncTests {
       }
 
       if (token?.isCancellationRequested) {
-        // preserves upstream runtime behavior: cancellation returns null
-        return null as unknown as TestResult;
+        throw new Error(nls.localize('testRunCancelled'));
       }
 
       const pollingClient = await PollingClient.create({
@@ -258,8 +257,7 @@ export class AsyncTests {
       });
 
       if (token?.isCancellationRequested) {
-        // preserves upstream runtime behavior: cancellation returns null
-        return null as unknown as TestResult;
+        throw new Error(nls.localize('testRunCancelled'));
       }
 
       const formattedResults = await this.formatAsyncResults(

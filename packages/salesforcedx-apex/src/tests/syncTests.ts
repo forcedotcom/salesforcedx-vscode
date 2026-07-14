@@ -8,6 +8,7 @@
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core';
 import { CancellationToken } from '../common';
+import { nls } from '../i18n';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
@@ -57,8 +58,7 @@ export class SyncTests {
       const testRun = (await this.connection.tooling.request(request)) as SyncTestResult;
 
       if (token?.isCancellationRequested) {
-        // preserves upstream runtime behavior: cancellation returns null
-        return null as unknown as TestResult;
+        throw new Error(nls.localize('testRunCancelled'));
       }
 
       return await this.formatSyncResults(testRun, getCurrentTime(), codeCoverage);
