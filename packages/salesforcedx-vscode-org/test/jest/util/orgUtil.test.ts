@@ -11,7 +11,7 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import { ConfigUtil, notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -93,7 +93,10 @@ describe('orgUtil tests', () => {
         }
       }
     } as any);
-    showWarningMessageSpy = jest.spyOn(notificationService, 'showWarningMessage').mockImplementation(jest.fn());
+    // The expiry-soon warning is now a direct vscode.window.showWarningMessage with a Show Output action.
+    // Default the return to undefined (user dismissed without clicking) so the channel reveal stays gated;
+    // tests that assert the reveal set a resolved value matching the button label.
+    showWarningMessageSpy = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
     appendToChannelMock = jest.fn();
     showChannelMock = jest.fn();
     listAllAuthorizationsSpy = jest.spyOn(AuthInfo, 'listAllAuthorizations');
@@ -191,7 +194,9 @@ describe('orgUtil tests', () => {
     expect(authInfoCreateSpy).toHaveBeenCalled();
   });
 
-  it('should display a notification when the scratch org is about to expire', async () => {
+  it('reveals the Output panel only when the user clicks Show Output on the expiry warning', async () => {
+    // Simulate the user clicking the Show Output action on the warning toast.
+    showWarningMessageSpy.mockResolvedValue(nls.localize('org_login_web_show_output_button_text'));
     listAllAuthorizationsSpy.mockResolvedValue([
       {
         isDevHub: false,
@@ -282,7 +287,9 @@ describe('orgUtil tests', () => {
     expect(appendToChannelMock.mock.calls[0][0]).toContain('foo');
     expect(appendToChannelMock.mock.calls[0][0]).toContain(orgName2);
     expect(appendToChannelMock.mock.calls[0][0]).toContain('bar');
-    expect(showChannelMock).toHaveBeenCalled();
+    // Default spy return is undefined (user dismissed the toast) → the panel must not be revealed.
+    // This is the fix: the background check must never steal focus by auto-revealing the Output panel.
+    expect(showChannelMock).not.toHaveBeenCalled();
   });
 
   it('should display notifications for both an expired org and an org about to expire', async () => {
@@ -344,7 +351,8 @@ describe('orgUtil tests', () => {
     // Assert that the notifications for both orgs are displayed
     expect(showWarningMessageSpy).toHaveBeenCalledTimes(2);
     expect(appendToChannelMock).toHaveBeenCalled();
-    expect(showChannelMock).toHaveBeenCalled();
+    // Neither toast was clicked (default undefined) → the panel stays hidden; no focus steal.
+    expect(showChannelMock).not.toHaveBeenCalled();
 
     // Verify the specific calls
     const calls = showWarningMessageSpy.mock.calls.map(call => call[0]);
