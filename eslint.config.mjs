@@ -679,7 +679,12 @@ export default [
       'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {
-      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
+      // Ban barrel imports from effect packages; deep-import the submodule instead
+      // (import * as X from 'pkg/X'). @effect/platform barrel re-exports HttpApiSwagger's
+      // bundled Swagger UI, which esbuild cannot tree-shake — bloats bundles ~5MB and
+      // trips ClamAV scanners, silently breaking OpenVSX publish. Generic list-driven
+      // guard: add future bundle-heavy effect packages here.
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect', '@effect/platform'] }],
       'barrel-files/avoid-barrel-files': 'error',
       'barrel-files/avoid-re-export-all': 'error',
       'functional/no-throw-statements': 'error',
