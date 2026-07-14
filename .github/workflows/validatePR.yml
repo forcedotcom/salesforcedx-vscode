@@ -56,6 +56,7 @@ jobs:
         run: npm run check:knip
   check-effect-diagnostics:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v6
