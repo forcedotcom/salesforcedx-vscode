@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -37,7 +37,7 @@ export interface Indexer {
 const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirectoryConfig => {
   if (typeof value !== 'object' || value === null) return false;
   const obj = value;
-  return 'path' in obj && typeof obj.path === 'string';
+  return 'path' in obj && isString(obj.path);
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
@@ -410,9 +410,7 @@ export abstract class BaseWorkspaceContext {
           // freshly computed typingsInclude. This prevents leftover paths when the
           // package directory structure changes between activations.
           const userInclude = Array.isArray(existingInclude)
-            ? existingInclude.filter(
-                (item): item is string => typeof item === 'string' && !item.includes('.sfdx/typings/lwc')
-              )
+            ? existingInclude.filter((item): item is string => isString(item) && !item.includes('.sfdx/typings/lwc'))
             : [];
 
           const mergedConfig = {

@@ -7,6 +7,7 @@
 import { build } from 'esbuild';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
+import { assertWebSafe } from '../../scripts/bundling/assert-web-safe.mjs';
 import { writeFile } from 'fs/promises';
 
 // Desktop build (Node.js environment)
@@ -30,3 +31,6 @@ const browserBuild = await build({
 
 await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
 await writeFile('dist/browser-metafile.json', JSON.stringify(browserBuild.metafile, null, 2));
+
+// Anti-regression: fail the bundle if the web closure leaks a non-allowlisted node builtin.
+await assertWebSafe('dist/browser-metafile.json');
