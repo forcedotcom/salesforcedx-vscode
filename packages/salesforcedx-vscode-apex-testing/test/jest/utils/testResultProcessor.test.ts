@@ -414,7 +414,6 @@ describe('testResultProcessor', () => {
       const methodItems = new Map();
 
       const classItems = new Map();
-      const consoleSpy = jest.spyOn(console, 'debug').mockImplementation();
 
       const result: TestResult = {
         tests: [
@@ -438,9 +437,9 @@ describe('testResultProcessor', () => {
         concise: false
       });
 
+      // Unmatched result: no test item to update, so the run records nothing (previously a console.debug).
       expect(run.passed).not.toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(run.failed).not.toHaveBeenCalled();
     });
 
     it('should add HumanReporter output', () => {

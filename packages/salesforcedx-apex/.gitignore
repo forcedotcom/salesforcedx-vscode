@@ -18,8 +18,6 @@ xunit.xml
 junit-custom.xml
 path
 
-# nyc test coverage
-.nyc_output
 /test-results
 
 # Eclipse
@@ -46,9 +44,6 @@ lib-cov
 # Coverage directory used by tools like istanbul
 coverage
 *.lcov
-
-# nyc test coverage
-.nyc_output
 
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
 .grunt

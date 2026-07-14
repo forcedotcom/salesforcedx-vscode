@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/apex-node",
   "description": "Salesforce JS library for Apex",
-  "version": "67.4.0",
+  "version": "67.5.0",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/src/index.js",
@@ -52,6 +52,7 @@
     "lint": "wireit",
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules lib dist coverage .wireit .eslintcache .circular-deps.json",
+    "test:compile": "wireit",
     "test": "wireit"
   },
   "wireit": {
@@ -68,10 +69,21 @@
         "lib/**"
       ]
     },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
     "test": {
       "command": "jest",
       "dependencies": [
-        "compile"
+        "test:compile"
       ],
       "files": [
         "src/**/*.ts",

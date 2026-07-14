@@ -1,25 +1,21 @@
-# 67.4.0 - July 8, 2026
+# 67.5.0 - July 15, 2026
+
+## Added
+
+#### salesforcedx-vscode-org
+
+- The **SFDX: Display Org Details** and **SFDX: Display Org Details for Default Org** commands now show a modal warning and require you to click **Continue** before sensitive org info is written to the output channel. Clicking **Cancel** aborts without showing anything. ([PR #7690](https://github.com/forcedotcom/salesforcedx-vscode/pull/7690))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode-apex-replay-debugger
 
-- We fixed a bug where the **Apex Tests** view kept showing tests from a disconnected org after you logged out or deleted the default org. The test tree now clears automatically without requiring a window reload. ([PR #7605](https://github.com/forcedotcom/salesforcedx-vscode/pull/7605))
+- We removed the broken **SFDX: Execute Anonymous Apex with Currently Selected Text** command and renamed **SFDX: Debug Anonymous Apex** to **SFDX: Debug Anonymous Apex with Editor's Selected Text**. The debug command now also works on highlighted text in Anonymous Apex (`.apex`) files, matching the execute command. ([PR #7680](https://github.com/forcedotcom/salesforcedx-vscode/pull/7680))
 
-- We fixed a bug where org-only Apex test files stayed open in stale virtual editors after logout. Those editors now close and their cached contents are purged when the org is lost. ([PR #7611](https://github.com/forcedotcom/salesforcedx-vscode/pull/7611))
+#### salesforcedx-apex
 
-- We fixed a bug where the **Re-Run Last Class** and **Re-Run Last Method** commands never appeared after running tests from the Command Palette or the **Testing** sidebar. The last run is now cached from those entry points too. ([PR #7627](https://github.com/forcedotcom/salesforcedx-vscode/pull/7627))
+- We fixed a bug where debugging Anonymous Apex failed because of incorrect log-level handling. You can now debug Anonymous Apex from the **Debug** code lens, **SFDX: Launch Apex Replay Debugger with Selected File**, and **SFDX: Debug Anonymous Apex with Editor's Selected Text**. ([PR #7683](https://github.com/forcedotcom/salesforcedx-vscode/pull/7683))
 
-#### salesforcedx-vscode-metadata
+#### salesforcedx-vscode-org
 
-- We fixed a bug where refreshing SObject definitions failed with a generic "An error has occurred" toast. The notification now shows the underlying cause of the failure. ([PR #7658](https://github.com/forcedotcom/salesforcedx-vscode/pull/7658), [ISSUE #7632](https://github.com/forcedotcom/salesforcedx-vscode/issues/7632))
-
-- We fixed a bug where the in-manifest deploy and retrieve commands did not appear for manifest files with custom names such as `sfdxPackage.xml`. Any file matching `*Package.xml` now gets these commands, even outside a `manifest/` directory. ([PR #7616](https://github.com/forcedotcom/salesforcedx-vscode/pull/7616))
-
-#### salesforcedx-vscode-services
-
-- We fixed a bug where the trace flag status bar kept showing an expiration date after the trace flag tracking the current user was removed. The status bar now changes back to **No Tracing** when that happens. ([PR #7670](https://github.com/forcedotcom/salesforcedx-vscode/pull/7670))
-
-## Under the Hood
-
-- We made some under the hood changes. ([PR #7667](https://github.com/forcedotcom/salesforcedx-vscode/pull/7667), [PR #7673](https://github.com/forcedotcom/salesforcedx-vscode/pull/7673), [PR #7675](https://github.com/forcedotcom/salesforcedx-vscode/pull/7675))
+- We fixed a bug where the dev hub was missing from the org table in **SFDX: Display Org Details**. ([PR #7738](https://github.com/forcedotcom/salesforcedx-vscode/pull/7738))
