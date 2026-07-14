@@ -78,7 +78,6 @@ Always grep for `\.exports\.\w+` across the full monorepo, not just `coreExtensi
 
 | Package | Files | Members accessed |
 |---------|-------|------------------|
-| apex | `languageServer.ts` | `.getAuthFields` |
 | apex-debugger | `coreExtensionUtils.ts`, `index.ts`, `debugConfigurationProvider.ts` | `.channelService`, `.SfCommandlet`, `.telemetryService`, `.SfCommandletExecutor` |
 | utils-vscode | `authUtils.ts`, `workspaceContextUtil.ts`, `telemetryUtils.ts` | `.sharedAuthState`, `.channelService`, `.getSharedTelemetryUserId` (phantom — not on API type) |
 
