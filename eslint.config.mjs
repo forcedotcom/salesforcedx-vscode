@@ -39,8 +39,6 @@ export default [
     ignores: [
       '**/out/**',
       '**/dist/**',
-      // salesforcedx-apex emits to lib/ (deep-import compat) instead of out/; don't lint build output
-      'packages/salesforcedx-apex/lib/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',
@@ -466,6 +464,13 @@ export default [
       'no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: '@effect/platform',
+              message:
+                'Import from a submodule (e.g. @effect/platform/FetchHttpClient) instead of the barrel. The barrel pulls in HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake — it bloats bundles ~5.5MB and trips ClamAV scanners, silently breaking OpenVSX publish. See docs/Build.md.'
+            }
+          ],
           patterns: [
             {
               group: ['node:fs', 'fs-extra'],
@@ -629,7 +634,6 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
       'packages/salesforcedx-apex-replay-debugger/**',
-      'packages/salesforcedx-apex/**',
       'packages/salesforcedx-vscode-soql/**',
       'packages/soql-model/**'
     ],
@@ -639,28 +643,42 @@ export default [
   },
   {
     // history-preserving import of forcedotcom/salesforcedx-apex: the upstream
-    // published library predates the monorepo's stricter style rules. Relax the
-    // upstream-style rules for its src (test/** is already relaxed above) to avoid
-    // restyling imported, history-tracked code. Matches the legacy-package blocks.
+    // published library predates the monorepo's stricter style rules. Single
+    // exemption block for the whole package src (test/** relaxed separately above).
+    // Surface shrinks as later refactors (methods->functions, Effect) land.
     files: ['packages/salesforcedx-apex/**/*.ts'],
     rules: {
+      // upstream style: avoid restyling imported, history-tracked code
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',
-      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
       '@typescript-eslint/no-shadow': 'off',
       'no-param-reassign': 'off',
       'no-restricted-imports': 'off',
       'unicorn/no-array-sort': 'off',
-      'unicorn/prefer-single-call': 'off'
+      'unicorn/prefer-single-call': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      'header/header': 'off',
+      'barrel-files/avoid-barrel-files': 'off',
+      'prefer-arrow/prefer-arrow-functions': 'off',
+      // unfixed type-safety debt: to be resolved by later refactors, not upstream style
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/no-restricted-types': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-misused-promises': 'off'
     }
   },
   {
     // Override header rules
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**/*.ts',
-      'packages/salesforcedx-visualforce-language-server/**/*.ts',
-      // history-preserving import; do not rewrite upstream Copyright (c) 2020 headers
-      'packages/salesforcedx-apex/**/*.ts'
+      'packages/salesforcedx-visualforce-language-server/**/*.ts'
     ],
     rules: {
       'header/header': 'off'
@@ -746,15 +764,16 @@ export default [
   },
   {
     // class-methods-use-this for packages not yet using Effect
+    // (apex-oas omitted: covered by the Effect-services block above, which sets both rules)
     files: [
-      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
       'packages/soql-common/**/*.ts',
       'packages/soql-model/**/*.ts'
     ],
     rules: {
-      'class-methods-use-this': 'error'
+      'class-methods-use-this': 'error',
+      'local/no-explicit-effect-return-type': 'error'
     }
   },
   {
@@ -782,7 +801,6 @@ export default [
     files: [
       'packages/salesforcedx-apex-debugger/**/*.ts',
       'packages/salesforcedx-apex-replay-debugger/**/*.ts',
-      'packages/salesforcedx-apex/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-org/**/*.ts',
       'packages/salesforcedx-vscode-core/**/*.ts'

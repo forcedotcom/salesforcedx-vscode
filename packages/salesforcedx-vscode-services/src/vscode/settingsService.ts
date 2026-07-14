@@ -64,11 +64,16 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
-    const setValue = Effect.fn('SettingsService.setValue')(function* <T>(section: string, key: string, value: T) {
+    const setValue = Effect.fn('SettingsService.setValue')(function* <T>(
+      section: string,
+      key: string,
+      value: T,
+      target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
+    ) {
       return yield* Effect.tryPromise({
         try: async () => {
           const config = vscode.workspace.getConfiguration(section);
-          await config.update(key, value, vscode.ConfigurationTarget.Global);
+          await config.update(key, value, target);
         },
         catch: error => {
           const { cause } = unknownToErrorCause(error);
@@ -210,7 +215,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     return {
       /** Get a value from settings. @param section The settings section @param key The settings key @param defaultValue Optional default value */
       getValue,
-      /** Set a value in settings. @param section The settings section @param key The settings key @param value The value to set */
+      /** Set a value in settings. @param section The settings section @param key The settings key @param value The value to set @param target Configuration target (defaults to Global) */
       setValue,
       /** Get the Salesforce instance URL from settings */
       getInstanceUrl,

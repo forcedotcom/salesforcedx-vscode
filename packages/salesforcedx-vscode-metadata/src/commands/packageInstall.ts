@@ -10,7 +10,7 @@ import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@sal
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -147,7 +147,7 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
 
 const extractErrors = (record: PackageInstallRequest): string => {
   const list = record.Errors?.errors ?? [];
-  const messages = list.map(e => e.message).filter(m => typeof m === 'string' && m.length > 0);
+  const messages = list.map(e => e.message).filter(m => isString(m) && m.length > 0);
   const detail = messages.length === 0 ? 'Unknown error' : messages.join('; ');
   return nls.localize('package_install_failed_message', detail);
 };

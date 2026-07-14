@@ -8,6 +8,7 @@
 import { type LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as vscode from 'vscode';
 import { LLMCallFailed, LLMConnectionFailed, LLMRateLimited } from '../errors';
@@ -34,7 +35,7 @@ const isConnectionError = (cause: unknown): boolean =>
  * Advisory only — read from `packageJSON.version` (the installed manifest), never a hard gate. */
 const v4RegressionHint = (): string => {
   const version: unknown = vscode.extensions.getExtension(GPT_EXTENSION_ID)?.packageJSON?.version;
-  if (typeof version !== 'string') return '';
+  if (!isString(version)) return '';
   return /^4\./.test(version) ? ` ${nls.localize('llm_service_gpt_v4_hint', version)}` : '';
 };
 

@@ -9,7 +9,7 @@
  * Safely converts any error-like value to a string for use in templates
  * Handles Error objects, strings, and unknown types
  */
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 
 export const errorToString = (error: unknown): string => {
   if (isError(error)) {
@@ -18,7 +18,7 @@ export const errorToString = (error: unknown): string => {
     }
     return error.toString();
   }
-  if (typeof error === 'string') {
+  if (isString(error)) {
     return error;
   }
   if (error && typeof error === 'object' && 'toString' in error) {

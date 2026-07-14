@@ -6,7 +6,7 @@
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
-import { isError } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -16,7 +16,6 @@ import * as languageServer from '../languageServer';
 import { nls } from '../messages';
 import { fireSpan } from '../services/fireSpan';
 import { retrieveEnableSyncInitJobs } from '../settings';
-import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
 
 export enum ClientStatus {
   Unavailable,
@@ -111,14 +110,6 @@ export class LanguageClientManager {
 
   public async getLineBreakpointInfo(): Promise<LineBreakpointInfo[]> {
     return this.clientInstance ? this.clientInstance.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS) : [];
-  }
-
-  public async getApexTests(): Promise<ApexTestMethod[]> {
-    return this.clientInstance
-      ? (await this.clientInstance.sendRequest<LSPApexTestMethod[]>('test/getTestMethods')).map(requestInfo =>
-          ApexLSPConverter.toApexTestMethod(requestInfo)
-        )
-      : [];
   }
 
   public async getExceptionBreakpointInfo(): Promise<{}> {
@@ -331,7 +322,7 @@ export class LanguageClientManager {
       }
     } catch (error) {
       let errorMessage = '';
-      if (typeof error === 'string') {
+      if (isString(error)) {
         errorMessage = error;
       } else if (isError(error)) {
         errorMessage = error.message ?? nls.localize('unknown_error');
