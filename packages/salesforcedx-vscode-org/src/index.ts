@@ -15,7 +15,7 @@ import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vsco
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from './channels';
+import { getOrgChannelService, setOrgChannel } from './channels';
 import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
 import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
@@ -59,7 +59,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 
   const api: SalesforceVSCodeOrgApi = {
-    channelService
+    channelService: getOrgChannelService()
   };
   return api;
 };
@@ -67,11 +67,13 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  // Register output channel
-  extensionContext.subscriptions.push(OUTPUT_CHANNEL);
-
   // Register Effect-based commands with AllServicesLayer for proper tracing
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  // Wire the legacy wrapper to the Effect channel so only one 'Salesforce Org Management' channel exists.
+  const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
+  setOrgChannel(orgChannel);
+  extensionContext.subscriptions.push(orgChannel);
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
