@@ -399,6 +399,7 @@
       "files": [
         "packages/*/src/**/*.ts",
         "packages/*/tsconfig.json",
+        "packages/*/package.json",
         "tsconfig.common.json",
         "config/effect-diagnostics.json",
         "scripts/effect-diagnostics.mjs"
