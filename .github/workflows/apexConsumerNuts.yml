@@ -21,6 +21,14 @@ jobs:
       fail-fast: false
       matrix:
         plugin: [plugin-apex, plugin-flow]
+    # Disable wireit's GitHub Actions cache backend for the whole job. Both the
+    # monorepo build and the consumer's `yarn compile` shell out to wireit; when
+    # the Actions cache service returns a non-429/503 error (e.g. an Azure edge
+    # HTTP 400 outage page) wireit throws fatally instead of degrading, failing
+    # the build. `none` skips the cache entirely — these one-shot CI builds don't
+    # benefit from it anyway.
+    env:
+      WIREIT_CACHE: none
     steps:
       - name: Checkout monorepo
         uses: actions/checkout@v4
@@ -30,8 +38,6 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'npm'
-
-      - uses: google/wireit@setup-github-actions-caching/v2
 
       - name: Install and build apex library
         run: |
