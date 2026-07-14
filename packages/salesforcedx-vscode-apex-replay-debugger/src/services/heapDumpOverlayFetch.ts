@@ -19,64 +19,43 @@ import { pipe } from 'effect/Function';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 
-const OVERLAY_CLIENT_ID = 'sfdx-vscode';
-const MAX_BATCH_SIZE = 25;
-const BATCH_API_CONCURRENCY = 15;
-
-type BatchError = { errorCode: string; message: string };
-type BatchSubRequest = { method: string; url: string };
-type BatchRequest = { batchRequests: BatchSubRequest[] };
-type BatchSubResponse = { statusCode: number; result: ApexExecutionOverlayResultCommandSuccess | BatchError[] };
-type BatchResponse = { hasErrors: boolean; results: BatchSubResponse[] };
+// SOQL `IN` collections cap at 200 items; a single tooling query returns the full HeapDump
+// compound field for each id — which /composite/batch does NOT (it returns only the sobject
+// `attributes` stub, dropping HeapDump), so batching per-id GETs there yields empty overlays.
+const MAX_QUERY_IDS = 200;
+const QUERY_CONCURRENCY = 15;
 
 class HeapDumpOverlayFetchError extends S.TaggedError<HeapDumpOverlayFetchError>()('HeapDumpOverlayFetchError', {
   cause: S.Unknown,
   message: S.String
 }) {}
 
-const isBatchError = (result: BatchSubResponse['result']): result is BatchError[] => Array.isArray(result);
-
-const toResult = (heapDumpId: string, subResponse: BatchSubResponse): HeapDumpResult =>
-  subResponse.statusCode >= 200 && subResponse.statusCode < 300 && !isBatchError(subResponse.result)
-    ? { heapDumpId, success: subResponse.result }
-    : {
-        heapDumpId,
-        error: isBatchError(subResponse.result)
-          ? `${subResponse.result[0]?.message ?? 'Unknown error'} (${subResponse.result[0]?.errorCode ?? subResponse.statusCode})`
-          : `HTTP ${subResponse.statusCode}`
-      };
-
-/** POST /composite/batch retrieving overlay results for a chunk of heap-dump ids (dynamic API version). */
-const runOverlayBatch = Effect.fn('heapDumpOverlayFetch.runOverlayBatch')(function* (conn: Connection, ids: string[]) {
-  const body: BatchRequest = {
-    batchRequests: ids.map(id => ({
-      method: 'GET',
-      url: `v${conn.version}/tooling/sobjects/ApexExecutionOverlayResult/${id}`
-    }))
-  };
-  const response = yield* Effect.tryPromise({
-    try: () =>
-      conn.request<BatchResponse>({
-        method: 'POST',
-        url: '/composite/batch',
-        body: JSON.stringify(body),
-        headers: {
-          'User-Agent': 'salesforcedx-extension',
-          'Sforce-Call-Options': `client=${OVERLAY_CLIENT_ID}`
-        }
-      }),
+/** Tooling query for a chunk of heap-dump ids, mapped to a HeapDumpResult per id (missing id → error). */
+const runOverlayQuery = Effect.fn('heapDumpOverlayFetch.runOverlayQuery')(function* (conn: Connection, ids: string[]) {
+  const soql = `SELECT Id, HeapDump, ApexResult, SOQLResult, Line, Iteration, ClassName, Namespace, IsDumpingHeap, OverlayResultLength FROM ApexExecutionOverlayResult WHERE Id IN (${ids
+    .map(id => `'${id}'`)
+    .join(',')})`;
+  const result = yield* Effect.tryPromise({
+    try: () => conn.tooling.query<ApexExecutionOverlayResultCommandSuccess>(soql),
     catch: error =>
       new HeapDumpOverlayFetchError({
         cause: error,
         message: `Failed to fetch heap dump overlay results: ${error instanceof Error ? error.message : String(error)}`
       })
   });
-  return ids.map((id, i) => toResult(id, response.results[i]));
+  const byId = new Map(result.records.map(record => [record.Id, record]));
+  return ids.map((id): HeapDumpResult => {
+    const record = byId.get(id);
+    return record
+      ? { heapDumpId: id, success: record }
+      : { heapDumpId: id, error: `No overlay result found for ${id}` };
+  });
 });
 
 /**
- * Extracts heap-dump ids from the log, dedups them, and batch-fetches their overlay results
- * via the tooling composite/batch API (25 per batch, up to 15 batches in flight).
+ * Extracts heap-dump ids from the log, dedups them, and fetches their overlay results via a
+ * tooling SOQL query (200 ids per query, up to 15 queries in flight). A single query returns the
+ * full HeapDump compound field per id; /composite/batch omits it, so a query is used instead.
  * Resolves the target-org connection from the services extension via ExtensionProviderService.
  */
 export const fetchHeapDumpOverlayResults = Effect.fn('heapDumpOverlayFetch.fetchHeapDumpOverlayResults')(function* (
@@ -90,8 +69,8 @@ export const fetchHeapDumpOverlayResults = Effect.fn('heapDumpOverlayFetch.fetch
     Arr.map(entry => entry.heapDumpId),
     Arr.dedupe,
     Stream.fromIterable,
-    Stream.grouped(MAX_BATCH_SIZE),
-    Stream.mapEffect(chunk => runOverlayBatch(conn, Chunk.toArray(chunk)), { concurrency: BATCH_API_CONCURRENCY }),
+    Stream.grouped(MAX_QUERY_IDS),
+    Stream.mapEffect(chunk => runOverlayQuery(conn, Chunk.toArray(chunk)), { concurrency: QUERY_CONCURRENCY }),
     Stream.flattenIterables,
     Stream.runCollect,
     Effect.map(Chunk.toArray)
