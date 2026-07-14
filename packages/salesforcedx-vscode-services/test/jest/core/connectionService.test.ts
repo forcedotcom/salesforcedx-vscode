@@ -102,9 +102,18 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   let showErrorMessageSpy: jest.SpyInstance;
   let executeCommandSpy: jest.SpyInstance;
 
-  beforeEach(() => {
+  // runReauthLookup re-fetches the Connection via the module-scoped connectionCache (keyed by username),
+  // so identity() is probed on whatever Connection.create yields — seed it with the mock conn under test.
+  const seedConnectionCache = (conn: Connection) => {
+    jest.mocked(AuthInfo.create).mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
+    jest.mocked(Connection.create).mockResolvedValue(conn);
+  };
+
+  beforeEach(async () => {
     showErrorMessageSpy = jest.spyOn(vscode.window, 'showErrorMessage').mockResolvedValue(undefined);
     executeCommandSpy = jest.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined);
+    // connectionCache is module-scoped (30min TTL, keyed by username) → drop it so each test seeds fresh.
+    await Effect.runPromise(ConnectionService.invalidateCachedConnections().pipe(Effect.provide(buildLayer())));
   });
 
   afterEach(() => {
@@ -126,6 +135,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   it('validates via identity() and does not prompt on success; caches (skips identity on second call)', async () => {
     const identity = jest.fn().mockResolvedValue({ user_id: '005' });
     const conn = makeConn({ identity });
+    seedConnectionCache(conn);
 
     await Effect.runPromise(
       Effect.gen(function* () {
@@ -141,6 +151,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   it('on identity failure shows modal ONCE across N concurrent callers (Cache dedup) and dispatches sf.org.login.web', async () => {
     const identity = jest.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
+    seedConnectionCache(conn);
     showErrorMessageSpy.mockResolvedValue(LOGIN_BUTTON);
 
     const exit = await Effect.runPromiseExit(
@@ -168,6 +179,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   it('falls back to username when no alias exists', async () => {
     const identity = jest.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
+    seedConnectionCache(conn);
     showErrorMessageSpy.mockResolvedValue(LOGIN_BUTTON);
 
     // target-org configured as the raw username (no alias) → dispatch falls back to the username
@@ -181,6 +193,7 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
   it('does not dispatch login when modal dismissed, and fails with AccessTokenExpiredError', async () => {
     const identity = jest.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
+    seedConnectionCache(conn);
     showErrorMessageSpy.mockResolvedValue(undefined);
 
     const exit = await Effect.runPromiseExit(
@@ -192,21 +205,42 @@ describe('ConnectionService.validateAccessTokenOrPromptReauth', () => {
     expect(executeCommandSpy).not.toHaveBeenCalled();
   });
 
-  it('does not re-nag: a still-cached failed Connection is not re-validated on the next call (one modal per session)', async () => {
+  it('does not re-nag: a still-cached failed username is not re-validated on the next call (one modal per session)', async () => {
     const identity = jest.fn().mockRejectedValue(new Error('token expired'));
     const conn = makeConn({ identity });
+    seedConnectionCache(conn);
     showErrorMessageSpy.mockResolvedValue(undefined);
 
     await Effect.runPromiseExit(
       Effect.gen(function* () {
         yield* Effect.exit(ConnectionService.validateAccessTokenOrPromptReauth(conn));
         yield* Effect.sleep(Duration.millis(5));
-        // same Connection object → cached failure retained → no re-validate, no repeat modal
+        // same username → cached failure retained → no re-validate, no repeat modal
         yield* Effect.exit(ConnectionService.validateAccessTokenOrPromptReauth(conn));
       }).pipe(Effect.provide(buildLayer()))
     );
 
     expect(identity).toHaveBeenCalledTimes(1);
+    expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not stack modals when the Connection object is rebuilt for the same username (config-change churn)', async () => {
+    // Regression for the two-stacked-modals bug: connectionCache is invalidated on every config-file change,
+    // so getConnection yields a NEW Connection object each time. A Connection-object-keyed reauth cache would
+    // re-prompt per rebuild; username-keying dedupes to one modal.
+    const identity = jest.fn().mockRejectedValue(new Error('token expired'));
+    showErrorMessageSpy.mockResolvedValue(undefined);
+
+    // three distinct Connection objects for the same username, each seeded fresh (mimics rebuild-per-invalidation)
+    await Effect.runPromiseExit(
+      Effect.forEach([0, 1, 2], () =>
+        Effect.gen(function* () {
+          seedConnectionCache(makeConn({ identity }));
+          yield* Effect.exit(ConnectionService.validateAccessTokenOrPromptReauth(makeConn({ identity })));
+        })
+      ).pipe(Effect.provide(buildLayer()))
+    );
+
     expect(showErrorMessageSpy).toHaveBeenCalledTimes(1);
   });
 });
