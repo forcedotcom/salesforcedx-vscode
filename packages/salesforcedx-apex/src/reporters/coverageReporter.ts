@@ -120,7 +120,7 @@ export class CoverageReporter {
     const coverageMap = libCoverage.createCoverageMap();
     this.coverage.records.forEach((record: ApexCodeCoverageRecord | ApexCodeCoverageAggregateRecord) => {
       const fileCoverageData: libCoverage.FileCoverageData = {} as libCoverage.FileCoverageData;
-      const fileRegEx = new RegExp(`${record.ApexClassOrTrigger.Name}\.(cls|trigger)`);
+      const fileRegEx = new RegExp(`${record.ApexClassOrTrigger.Name}.(cls|trigger)`);
       fileCoverageData.fnMap = {};
       fileCoverageData.branchMap = {};
       fileCoverageData.path = path.join(
