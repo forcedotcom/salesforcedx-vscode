@@ -53,7 +53,7 @@ export class NoUsernameError extends Schema.TaggedError<NoUsernameError>()('NoUs
  * Connection/query to the resolved org failed. Carries the resolved username plus a status message
  * so the table can render a degraded OrgInfo.
  */
-export class OrgInfoConnectionError extends Schema.TaggedError<OrgInfoConnectionError>()('OrgInfoConnectionError', {
+class OrgInfoConnectionError extends Schema.TaggedError<OrgInfoConnectionError>()('OrgInfoConnectionError', {
   username: Schema.String,
   message: Schema.String
 }) {}
