@@ -39,8 +39,6 @@ export default [
     ignores: [
       '**/out/**',
       '**/dist/**',
-      // salesforcedx-apex emits to lib/ (deep-import compat) instead of out/; don't lint build output
-      'packages/salesforcedx-apex/lib/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',

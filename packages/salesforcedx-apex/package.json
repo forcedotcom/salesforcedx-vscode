@@ -4,16 +4,12 @@
   "version": "67.5.0",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
-  "main": "lib/src/index.js",
-  "types": "lib/src/index.d.ts",
+  "main": "out/src/index.js",
+  "types": "out/src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/src/index.d.ts",
-      "default": "./lib/src/index.js"
-    },
-    "./lib/src/utils": {
-      "types": "./lib/src/utils/index.d.ts",
-      "default": "./lib/src/utils/index.js"
+      "types": "./out/src/index.d.ts",
+      "default": "./out/src/index.js"
     }
   },
   "dependencies": {
@@ -44,14 +40,14 @@
     "salesforcedx"
   ],
   "files": [
-    "lib/src"
+    "out/src"
   ],
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
-    "clean": "shx rm -rf node_modules lib dist coverage .wireit .eslintcache .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test:compile": "wireit",
     "test": "wireit"
   },
@@ -66,7 +62,7 @@
         "package.json"
       ],
       "output": [
-        "lib/**"
+        "out/**"
       ]
     },
     "test:compile": {
