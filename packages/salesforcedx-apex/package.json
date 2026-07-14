@@ -10,6 +10,10 @@
     ".": {
       "types": "./out/src/index.d.ts",
       "default": "./out/src/index.js"
+    },
+    "./lib/src/tests/types.js": {
+      "types": "./out/src/tests/types.d.ts",
+      "default": "./out/src/tests/types.js"
     }
   },
   "dependencies": {
@@ -43,7 +47,6 @@
     "out/src"
   ],
   "scripts": {
-    "preinstall": "node ../../scripts/require-root-install.js",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
