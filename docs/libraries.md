@@ -34,3 +34,9 @@ Related: `@salesforce/apex` (LWC module resolver; repo not in metadata). `@sales
    - Web: `npm run run:web`
 1. **Repeat** — After any change to the library: build → copy → bundle -> Launch.
 1. **Restore (optional)** — When done, run `npm install` to restore the published versions from the lockfile.
+
+## Consumer Library Verification in CI
+
+`apexConsumerNuts.yml` workflow tests branch-built libraries (`@salesforce/apex-node`) against external consumers (`salesforcecli/plugin-apex`, `salesforcecli/plugin-flow`) to catch breaking changes early.
+
+**SHA Marker Pattern:** Workflow stamps `$GITHUB_SHA` into the packed lib as `BRANCH_BUILD_SHA.txt`. Before tests run, verification step resolves the lib's entry and checks the marker matches the branch SHA, ensuring the consumer loaded the branch tarball (not published npm). Guards against silent fallback if tarball swap fails.

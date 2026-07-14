@@ -8,6 +8,7 @@
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core';
 import { CancellationToken } from '../common';
+import { nls } from '../i18n';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
@@ -43,7 +44,7 @@ export class SyncTests {
     options: SyncTestConfiguration,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult | null> {
+  ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     try {
       const url = `${this.connection.tooling._baseUrl()}/runTestsSynchronous`;
@@ -57,7 +58,7 @@ export class SyncTests {
       const testRun = (await this.connection.tooling.request(request)) as SyncTestResult;
 
       if (token?.isCancellationRequested) {
-        return null;
+        throw new Error(nls.localize('testRunCancelled'));
       }
 
       return await this.formatSyncResults(testRun, getCurrentTime(), codeCoverage);

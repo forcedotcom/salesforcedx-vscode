@@ -307,7 +307,7 @@ export class TestService {
     options: SyncTestConfiguration,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult | TestRunIdResult | null> {
+  ): Promise<TestResult | TestRunIdResult> {
     HeapMonitor.getInstance().startMonitoring();
     try {
       return await this.syncService.runTests(options, codeCoverage, token);
@@ -334,7 +334,7 @@ export class TestService {
     token?: CancellationToken,
     timeout?: Duration,
     interval?: Duration
-  ): Promise<TestResult | TestRunIdResult | null> {
+  ): Promise<TestResult | TestRunIdResult> {
     HeapMonitor.getInstance().startMonitoring();
     try {
       return await this.asyncService.runTests(
@@ -362,7 +362,7 @@ export class TestService {
     testRunId: string,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult | null> {
+  ): Promise<TestResult> {
     HeapMonitor.getInstance().startMonitoring();
     try {
       return await this.asyncService.reportAsyncResults(testRunId, codeCoverage, token);

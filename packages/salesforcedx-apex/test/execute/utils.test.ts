@@ -13,6 +13,7 @@ describe('encodeBody for execute request', () => {
   const debugHeader = `<apex:DebuggingHeader>
             <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
             <apex:categories><apex:category>Visualforce</apex:category><apex:level>Finer</apex:level></apex:categories>
+            <apex:categories><apex:category>Apex_profiling</apex:category><apex:level>Info</apex:level></apex:categories>
         </apex:DebuggingHeader>`;
   const action = 'executeAnonymous';
   const expectedBody = `<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"

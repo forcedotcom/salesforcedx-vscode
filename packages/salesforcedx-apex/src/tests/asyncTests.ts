@@ -96,7 +96,7 @@ export class AsyncTests {
     token?: CancellationToken,
     timeout?: Duration,
     interval: Duration = POLLING_FREQUENCY
-  ): Promise<TestResult | TestRunIdResult | null> {
+  ): Promise<TestResult | TestRunIdResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.runTests');
     let testRunId = '';
 
@@ -108,7 +108,7 @@ export class AsyncTests {
       }
 
       if (token?.isCancellationRequested) {
-        return null;
+        throw new Error(nls.localize('testRunCancelled'));
       }
 
       const pollingClient = await PollingClient.create({
@@ -236,7 +236,7 @@ export class AsyncTests {
     testRunId: string,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult | null> {
+  ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.reportAsyncResults');
     try {
       const sClient = new StreamingClient(this.connection);
@@ -257,7 +257,7 @@ export class AsyncTests {
       });
 
       if (token?.isCancellationRequested) {
-        return null;
+        throw new Error(nls.localize('testRunCancelled'));
       }
 
       const formattedResults = await this.formatAsyncResults(

@@ -26,6 +26,7 @@ export const messages = {
   execAnonInputPrompt:
     'Start typing Apex code. Press the Enter key after each line, then press CTRL+D when finished.\n',
   execAnonInputTimeout: 'Timed out while waiting for user input.',
+  testRunCancelled: 'The test run was cancelled.',
   noTestResultSummary: 'No test results were found for test run %s',
   noTestQueueResults: 'No test results were found in the queue for test run %s',
   noAccessTokenFound: 'No access token could be found for the provided username',
