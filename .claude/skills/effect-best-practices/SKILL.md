@@ -396,6 +396,23 @@ type User = { name: string | null }; // Use Option<string>
 
 See `references/anti-patterns.md` for the complete list with rationale.
 
+## Imports: Prefer Deep Imports from @effect/platform
+
+Barrel imports from `@effect/platform` bundle HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake. This bloats web/desktop bundles by ~5.5MB per output and can trigger security scanner false positives (e.g., ClamAV signatures).
+
+**Always import the submodule as a namespace** (the submodule *is* the namespace — it has no self-named export):
+
+```typescript
+// CORRECT — deep namespace import, tree-shakes unused
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+// use: FetchHttpClient.layer
+
+// WRONG — barrel import drags in HttpApiSwagger
+import { FetchHttpClient } from '@effect/platform';
+```
+
+Matches the repo's `import * as Effect from 'effect/Effect'` style. Applies to all `@effect/*` packages. Check import source before committing.
+
 ## Observability
 
 ```typescript
