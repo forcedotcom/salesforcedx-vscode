@@ -29,8 +29,8 @@ await build({
   outfile: './dist/visualforceServer.js'
 });
 
-// Browser extension bundle (VS Code for the Web) — W-23358899 spike.
-// outfile (not outdir) so the entry `extension.js` emits as `index.js`, matching the gated `browser` field.
+// Browser extension bundle (VS Code for the Web).
+// outfile (not outdir) so the entry `extension.js` emits as `index.js`, matching the `browser` field.
 const browserBuild = await build({
   ...commonConfigBrowser,
   external: ['vscode'],

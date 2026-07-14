@@ -154,9 +154,8 @@
       "output": []
     },
     "test:web": {
-      "command": "node ./scripts/spike-browser-field.mjs add && (trap 'node ./scripts/spike-browser-field.mjs remove' EXIT INT TERM; playwright test --config=test/playwright/playwright.config.web.ts)",
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
       "env": {
-        "VF_WEB_SPIKE": "1",
         "PLAYWRIGHT_WORKERS": {
           "external": true
         }
@@ -164,22 +163,19 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/playwright/**/*.ts",
-        "package*.json",
-        "scripts/spike-browser-field.mjs"
+        "package*.json"
       ],
       "output": []
     },
     "run:web": {
-      "command": "node ./scripts/spike-browser-field.mjs add && (trap 'node ./scripts/spike-browser-field.mjs remove' EXIT INT TERM; npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable)",
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
       "service": true,
-      "env": {
-        "VF_WEB_SPIKE": "1"
-      },
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
@@ -221,6 +217,7 @@
     "onLanguage:visualforce"
   ],
   "main": "./dist/index.js",
+  "browser": "./dist/web/index.js",
   "contributes": {
     "commands": [
       {

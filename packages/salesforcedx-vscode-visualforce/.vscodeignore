@@ -9,7 +9,6 @@ test/**
 **/*.map
 **/*.node
 dist/*-metafile.json
-dist/web/**
 *.xml
 playwright*.ts
 playwright-report/**
@@ -25,9 +24,6 @@ esbuild.config.mjs
 jest.config.js
 tsconfig.json
 .eslint.json
-
-# unique to this package
-scripts/**
 
 # do not reach outside the package
 ../../**

@@ -40,7 +40,7 @@ const embeddedLanguages = { css: true, javascript: process.env.ESBUILD_PLATFORM 
 export const startLanguageServer = Effect.fn('startLanguageServer')(function* (context: ExtensionContext) {
   const client = yield* createLanguageClient(context.extensionUri, { embeddedLanguages }).pipe(
     Effect.catchTag('LanguageClientWorkerStartError', error =>
-      // Non-fatal for the spike: LSP unavailable, but the extension still activates.
+      // Non-fatal: LSP unavailable, but the extension still activates.
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         yield* api.services.ChannelService.pipe(
