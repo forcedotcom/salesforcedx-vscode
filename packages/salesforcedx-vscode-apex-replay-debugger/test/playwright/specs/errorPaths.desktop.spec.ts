@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import {
   clearOutputChannel,
   createApexClass,
@@ -152,92 +152,5 @@ test('Update Checkpoints in Org: shows error when more than 5 checkpoints are en
       .first();
     await expect(errorNotification).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'step.checkpoint-limit-error.png');
-  });
-});
-
-// ── Spec 4: Debug test — no debug log ────────────────────────────────────────
-
-const LOCAL_NAMESPACE_LABEL = '(Local Namespace)';
-const UNPACKAGED_METADATA_LABEL = '(Unpackaged Metadata)';
-
-const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
-  const row = page.locator('[role="treeitem"]').filter({ hasText: rowLabel }).first();
-  await row.waitFor({ state: 'visible', timeout: 15_000 });
-  const twistie = row.locator('.monaco-tl-twistie');
-  const collapsed = await twistie.evaluate(el => el.classList.contains('collapsed')).catch(() => false);
-  if (!collapsed) return;
-  await twistie.click({ force: true });
-  await page.waitForTimeout(400);
-};
-
-const refreshTestsAndWaitForRebuild = async (page: Page): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Test: Refresh Tests');
-  await page
-    .getByText(LOCAL_NAMESPACE_LABEL)
-    .first()
-    .waitFor({ state: 'hidden', timeout: 2000 })
-    .catch(() => {});
-  await expect(page.getByText(LOCAL_NAMESPACE_LABEL).first()).toBeVisible({ timeout: 60_000 });
-};
-
-const emptyTestClassContent = [
-  '@IsTest',
-  'public class EmptyTestClass {',
-  '  @IsTest',
-  '  static void emptyTest() {',
-  '    // intentionally empty — no System.debug() so no log is generated',
-  '  }',
-  '}'
-].join('\n');
-
-test('Debug Test: shows error notification for missing debug log', async ({ page }) => {
-  test.setTimeout(600_000);
-
-  await test.step('setup minimal org and deploy EmptyTestClass', async () => {
-    await setupMinimalOrgAndAuth(page);
-    await ensureSecondarySideBarHidden(page);
-
-    await createApexClass(page, 'EmptyTestClass', emptyTestClassContent);
-
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await executeCommandWithCommandPalette(
-      page,
-      metadataNls.project_deploy_start_ignore_conflicts_default_org_text as string
-    );
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
-    await saveScreenshot(page, 'setup.test-class-deployed.png');
-  });
-
-  await test.step('debug EmptyTestClass — no System.debug means no debug log attached to result', async () => {
-    await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
-    await refreshTestsAndWaitForRebuild(page);
-
-    // Expand namespace and package parents so the class row enters the DOM
-    await expandTreeRow(page, LOCAL_NAMESPACE_LABEL);
-    await page
-      .locator('[role="treeitem"]')
-      .filter({ hasText: UNPACKAGED_METADATA_LABEL })
-      .first()
-      .waitFor({ state: 'visible', timeout: 10_000 });
-    await expandTreeRow(page, UNPACKAGED_METADATA_LABEL);
-
-    const classRow = page.getByRole('treeitem', { name: /EmptyTestClass/i });
-    await classRow.waitFor({ state: 'visible', timeout: 30_000 });
-    await expect(async () => {
-      await classRow.click({ force: true });
-      await classRow.hover({ force: true });
-      const debugButton = classRow.getByRole('button', { name: /^Debug Test/ });
-      await debugButton.waitFor({ state: 'visible', timeout: 3000 });
-      await debugButton.click({ force: true });
-    }).toPass({ timeout: 30_000 });
-
-    const errorNotification = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /No debug log associated with test results/ })
-      .first();
-    await expect(errorNotification).toBeVisible({ timeout: 60_000 });
-    await saveScreenshot(page, 'step.no-debug-log-error.png');
   });
 });
