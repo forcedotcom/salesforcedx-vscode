@@ -18,7 +18,6 @@ import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { checkAndResolveOrphanedLanguageServers } from './languageServerOrphanHandler';
 import {
   configureApexLanguage,
-  getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   languageClientManager,
@@ -35,7 +34,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
   return {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
-    getApexTests,
     languageClientManager
   };
 };
@@ -135,6 +133,5 @@ export type {
 export type ApexVSCodeApi = {
   getLineBreakpointInfo: typeof getLineBreakpointInfo;
   getExceptionBreakpointInfo: typeof getExceptionBreakpointInfo;
-  getApexTests: typeof getApexTests;
   languageClientManager: typeof languageClientManager;
 };
