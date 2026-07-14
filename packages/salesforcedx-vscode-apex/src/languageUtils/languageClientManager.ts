@@ -16,7 +16,6 @@ import * as languageServer from '../languageServer';
 import { nls } from '../messages';
 import { fireSpan } from '../services/fireSpan';
 import { retrieveEnableSyncInitJobs } from '../settings';
-import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
 
 export enum ClientStatus {
   Unavailable,
@@ -111,14 +110,6 @@ export class LanguageClientManager {
 
   public async getLineBreakpointInfo(): Promise<LineBreakpointInfo[]> {
     return this.clientInstance ? this.clientInstance.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS) : [];
-  }
-
-  public async getApexTests(): Promise<ApexTestMethod[]> {
-    return this.clientInstance
-      ? (await this.clientInstance.sendRequest<LSPApexTestMethod[]>('test/getTestMethods')).map(requestInfo =>
-          ApexLSPConverter.toApexTestMethod(requestInfo)
-        )
-      : [];
   }
 
   public async getExceptionBreakpointInfo(): Promise<{}> {
