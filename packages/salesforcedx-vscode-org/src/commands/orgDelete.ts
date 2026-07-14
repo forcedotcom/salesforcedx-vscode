@@ -12,7 +12,7 @@ import { identity } from 'effect/Function';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { channelService } from '../channels';
+import { getOrgChannelService } from '../channels';
 import { nls } from '../messages';
 import { gather, OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
 import { ConfigRefreshError, updateConfigAndStateAggregators } from '../util/orgUtil';
@@ -68,7 +68,7 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   const channel = yield* api.services.ChannelService;
   yield* channel.appendToChannel(output);
   yield* Effect.sync(() => {
-    channelService.showChannelOutput();
+    getOrgChannelService().showChannelOutput();
   });
 
   yield* Effect.tryPromise({
