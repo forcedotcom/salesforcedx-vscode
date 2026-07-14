@@ -158,18 +158,27 @@ Straight-line `Effect.fn` body — data in, one path out, no branching, no reuse
 intermediate — is a single point-free `pipe`. Reserve `function*` for **dependent**
 `yield*`, branching, or early return.
 
+Seed value already an `Effect`/`Tag` (e.g. a service accessor) → start with
+`.pipe(...)` directly on it, same as every other example in this file. Only reach
+for the standalone `pipe(value, ...)` import when the seed is a plain value (array,
+string, parsed JSON) that isn't an Effect yet.
+
+Any step that can throw (parsing, JSON, non-Effect FFI) must be lifted with
+`Effect.try`/`Effect.tryPromise` — a bare throw inside the pipe's input becomes an
+uncatchable `Die` defect, not a typed failure (`catchTag`/`catchAll` won't see it).
+Same rule as "no throw inside Effect.gen" in `anti-patterns.md`, applied to
+point-free pipes too.
+
 ```typescript
 // PREFERRED — one pipe: constructors/array ops as steps, Effect.map for the tail
 export const parseAndFilterUsers = Effect.fn('svc.parseAndFilterUsers')(
   (jsonText: string) =>
-    pipe(
-      JSON.parse(jsonText),
-      Arr.filter(user => user.status === 'active'),
-      Arr.map(user => user.id),
-      Arr.dedupe,
+    Effect.try({ try: () => JSON.parse(jsonText), catch: cause => new JsonParseError({ cause }) }).pipe(
+      Effect.map(Arr.filter(user => user.status === 'active')),
+      Effect.map(Arr.map(user => user.id)),
       // data-last, point-free — the fn, not Arr.dedupe(xs)
-      Chunk.fromIterable,
-      Effect.succeed
+      Effect.map(Arr.dedupe),
+      Effect.map(Chunk.fromIterable)
     )
 );
 
@@ -219,3 +228,5 @@ export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayRe
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
 | Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
+| Point-free pipe seed | `.pipe(...)` on an existing Effect/Tag; standalone `pipe(value, ...)` only when the seed isn't an Effect yet | standalone `pipe(someEffect, ...)` when `someEffect.pipe(...)` works |
+| Throwing step inside a point-free pipe (parse, FFI) | lift with `Effect.try`/`Effect.tryPromise` | bare `JSON.parse(...)`/throwing call as a pipe step |
