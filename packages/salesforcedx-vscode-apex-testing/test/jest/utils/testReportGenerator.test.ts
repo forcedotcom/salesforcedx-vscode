@@ -54,10 +54,20 @@ jest.mock('../../../src/services/extensionProvider', () => {
     getChannel: Effect.succeed({ appendLine: jest.fn(), show: jest.fn() })
   };
 
+  const mockSettingsService = {
+    getValue: (_section: string, key: string, defaultValue: unknown) =>
+      // Default thresholds: testPerformanceThresholdMs=5000, testCoverageThresholdPercent=75.
+      Effect.succeed(
+        key === 'testPerformanceThresholdMs' ? 5000 : key === 'testCoverageThresholdPercent' ? 75 : defaultValue
+      )
+  };
+
   const mockServicesApi = {
     services: {
       FsService: MockFsService,
-      ChannelService: Effect.succeed(MockChannelServiceInstance)
+      ChannelService: Effect.succeed(MockChannelServiceInstance),
+      // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
+      SettingsService: Effect.succeed(mockSettingsService)
     }
   };
   const MockAllServicesLayer = Layer.effect(
@@ -80,8 +90,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getApexTestingRuntime } from '../../../src/services/extensionProvider';
-import * as settings from '../../../src/settings';
-import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../../../src/settings';
 import { writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
 
 // Additional mock functions for vscode APIs
@@ -113,10 +121,6 @@ describe('testReportGenerator', () => {
     jest.spyOn(vscode.window, 'showTextDocument').mockImplementation(mockShowTextDocument);
     jest.spyOn(vscode.window, 'showInformationMessage').mockImplementation(mockShowInformationMessage);
     jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(mockExecuteCommand);
-
-    // Mock settings to return default thresholds
-    jest.spyOn(settings, 'retrievePerformanceThreshold').mockReturnValue(5000);
-    jest.spyOn(settings, 'retrieveCoverageThreshold').mockReturnValue(75);
 
     // Mock vscode.Uri.file
     (vscode.Uri.file as jest.Mock) = jest.fn((p: string) => ({
@@ -151,8 +155,9 @@ describe('testReportGenerator', () => {
     codeCoverage: boolean = false,
     sortOrder: 'runtime' | 'coverage' | 'severity' = 'runtime'
   ): Promise<string> => {
-    const performanceThresholdMs = retrievePerformanceThreshold();
-    const coverageThresholdPercent = retrieveCoverageThreshold();
+    // Mirror the SettingsService defaults the source reads (testPerformanceThresholdMs=5000, %=75).
+    const performanceThresholdMs = 5000;
+    const coverageThresholdPercent = 75;
     const transformer = new MarkdownTextFormatTransformer(result, {
       format: 'markdown',
       sortOrder,
@@ -170,8 +175,9 @@ describe('testReportGenerator', () => {
     timestamp: Date,
     codeCoverage: boolean = false
   ): Promise<string> => {
-    const performanceThresholdMs = retrievePerformanceThreshold();
-    const coverageThresholdPercent = retrieveCoverageThreshold();
+    // Mirror the SettingsService defaults the source reads (testPerformanceThresholdMs=5000, %=75).
+    const performanceThresholdMs = 5000;
+    const coverageThresholdPercent = 75;
     const transformer = new MarkdownTextFormatTransformer(result, {
       format: 'text',
       sortOrder: 'runtime',

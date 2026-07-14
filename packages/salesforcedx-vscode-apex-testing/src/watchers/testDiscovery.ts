@@ -52,16 +52,14 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
               { concurrency: 'unbounded', discard: true }
             )
         ).pipe(
-          // Swallow VFS-clear failures (scoped tag, logged) so they don't kill the reactor.
+          // Swallow VFS-clear failures (scoped tag, logged) so they don't kill the reactor. This is the
+          // only error the branch can raise (the refresh/clearAll promises + tab-close have no failure
+          // channel), so no further catchAll is needed.
           Effect.catchTag('DiscoveryClearError', error =>
             Effect.logDebug('Apex Testing: discovery VFS clear failed').pipe(
               Effect.annotateLogs({ orgKey: error.orgKey, scheme: 'apex-testing' })
             )
-          ),
-          Effect.catchAll(error => {
-            console.debug('[Apex Testing] Test discovery setup failed:', error);
-            return Effect.void;
-          })
+          )
         )
       )
     )

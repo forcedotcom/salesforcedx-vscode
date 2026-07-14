@@ -13,7 +13,7 @@ import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import { FileType, Range, TextDocument, window } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { IS_TEST_REG_EXP, RESULT_MAX_AGE_MS } from '../constants';
+import { APEX_TESTING_SECTION, IS_TEST_REG_EXP, RESULT_MAX_AGE_MS } from '../constants';
 import { nls } from '../messages';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { sortByMtimeAscending } from '../utils/sortHelpers';
@@ -184,8 +184,7 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
 
       // When restore-previous-results is disabled, only use the most recent file
       const restorePrevious =
-        (yield* settings.getValue<boolean>('salesforcedx-vscode-apex-testing', 'restore-previous-results', true)) ??
-        true;
+        (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'restore-previous-results', true)) ?? true;
       const filesToRead = restorePrevious ? sortedEntries.map(e => e.name) : [sortedEntries.at(-1)!.name];
 
       // concurrency: 1 (sequential) is required — last-write-wins aggregation depends on chronological
@@ -271,11 +270,8 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const settings = yield* api.services.SettingsService;
       const disableWarning =
-        (yield* settings.getValue<boolean>(
-          'salesforcedx-vscode-apex-testing',
-          'disable-warnings-for-missing-coverage',
-          false
-        )) ?? false;
+        (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'disable-warnings-for-missing-coverage', false)) ??
+        false;
       if (disableWarning) {
         const svc = yield* api.services.ChannelService;
         yield* svc.appendToChannel(e.message);

@@ -14,10 +14,11 @@ const value = yield* api.services.SettingsService.getValue('section', 'key', def
 
 ### setValue
 
-Set a setting value:
+Set a setting value (defaults to `ConfigurationTarget.Global`; pass a target to override):
 
 ```typescript
 yield* api.services.SettingsService.setValue('section', 'key', value);
+yield* api.services.SettingsService.setValue('section', 'key', value, vscode.ConfigurationTarget.Workspace);
 ```
 
 ### getInstanceUrl
@@ -93,6 +94,6 @@ const apiVersion = yield* api.services.SettingsService.getApiVersion();
 ## Notes
 
 - Web methods (instanceUrl, accessToken, apiVersion) use `CODE_BUILDER_WEB_SECTION`
-- `setValue` updates globally (`ConfigurationTarget.Global`)
+- `setValue` defaults to `ConfigurationTarget.Global`; pass a `target` arg (e.g. `Workspace`) to override
 - Empty strings = missing for web settings
 - Default API version: '64.0'
