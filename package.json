@@ -137,6 +137,7 @@
     "check:actions": "wireit",
     "check:format:staged": "wireit",
     "check:knip": "wireit",
+    "check:effect-diagnostics": "wireit",
     "check:branch": "wireit",
     "precommit": "wireit",
     "prepush": "wireit",
@@ -387,6 +388,20 @@
         "tsconfig*.json",
         "packages/*/tsconfig*.json",
         "packages/*/src/**/*.ts"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node scripts/effect-diagnostics.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "packages/*/src/**/*.ts",
+        "packages/*/tsconfig.json",
+        "tsconfig.common.json",
+        "config/effect-diagnostics.json",
+        "scripts/effect-diagnostics.mjs"
       ],
       "output": []
     },
