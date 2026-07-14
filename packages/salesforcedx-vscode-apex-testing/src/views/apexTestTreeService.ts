@@ -15,10 +15,10 @@ import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
-import { getDefaultOrgInfo } from '../coreExtensionUtils';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { nls } from '../messages';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
@@ -153,6 +153,15 @@ const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFai
         ? vscode.window.showWarningMessage(friendlyMessage)
         : vscode.window.showErrorMessage(friendlyMessage))
   );
+});
+
+/**
+ * Read the current default org info ({ orgId, username }) inline from the Services TargetOrgRef.
+ * Mirrors pathHelpers.getTestResultsFolder; avoids a file read for cache keys.
+ */
+const getDefaultOrgInfo = Effect.fn('ApexTestTreeService.getDefaultOrgInfo')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 });
 
 /**
@@ -438,10 +447,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           api.services.ConnectionService.getConnection().pipe(
             Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
           ),
-          Effect.tryPromise({
-            try: () => getDefaultOrgInfo(),
-            catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-          })
+          getDefaultOrgInfo().pipe(
+            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+          )
         ],
         { concurrency: 'unbounded' }
       );
@@ -559,15 +567,17 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     ) {
       const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
       yield* Effect.gen(function* () {
-        const { orgId } = yield* Effect.tryPromise(() => getDefaultOrgInfo());
+        const { orgId } = yield* getDefaultOrgInfo();
         // No default org → nothing to key the snapshot by; persistence is best-effort, so skip.
         if (!orgId) return;
         const classBodiesByFullName = yield* fetchClassBodiesByFullName(apexClasses);
         yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgId, apexClasses, classBodiesByFullName);
       }).pipe(
         Effect.catchTags({
-          UnknownException: error => Effect.logWarning('failed to persist discovered Apex classes', { error }),
-          DiscoveryClearError: error => Effect.logWarning('failed to persist discovered Apex classes', { error })
+          DiscoveryClearError: error => Effect.logWarning('failed to persist discovered Apex classes', { error }),
+          ServicesExtensionNotFoundError: error =>
+            Effect.logWarning('failed to persist discovered Apex classes', { error }),
+          InvalidServicesApiError: error => Effect.logWarning('failed to persist discovered Apex classes', { error })
         })
       );
     });
@@ -872,7 +882,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     ) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const connection = yield* api.services.ConnectionService.getConnection();
-      const orgInfo = yield* Effect.promise(() => getDefaultOrgInfo());
+      const orgInfo = yield* getDefaultOrgInfo();
       const classIds = Option.match(cls.id, { onNone: () => [], onSome: id => [id] });
       const classIdToPackage = yield* Effect.promise(() =>
         resolvePackage2Members(connection, classIds, buildClassIdToNamespace([cls]), orgInfo)
@@ -1045,7 +1055,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const discoveryMap = new Map(apexClasses.map(cls => [getFullClassName(cls), cls]));
 
       const classNameToUri = yield* Effect.promise(() => buildClassToUriIndex(apexClasses.map(cls => cls.name)));
-      const { orgId } = yield* Effect.promise(() => getDefaultOrgInfo());
+      const { orgId } = yield* getDefaultOrgInfo();
       // No default org → no org-scoped tree to diff against.
       if (!orgId) return;
 
