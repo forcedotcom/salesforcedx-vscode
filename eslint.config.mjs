@@ -809,6 +809,14 @@ export default [
     }
   },
   {
+    // no-explicit-any enforced for apex-testing src (W-23354483).
+    // Scoped to src/** so the later test-files block keeps it off for tests.
+    files: ['packages/salesforcedx-vscode-apex-testing/src/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error'
+    }
+  },
+  {
     // Prevent direct imports from services extension (except in services package itself)
     // Only applies to src directories, not test directories
     files: ['packages/**/src/**/*.ts'],
