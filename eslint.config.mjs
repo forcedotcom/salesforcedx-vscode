@@ -772,7 +772,8 @@ export default [
       'packages/soql-model/**/*.ts'
     ],
     rules: {
-      'class-methods-use-this': 'error'
+      'class-methods-use-this': 'error',
+      'local/no-explicit-effect-return-type': 'error'
     }
   },
   {
