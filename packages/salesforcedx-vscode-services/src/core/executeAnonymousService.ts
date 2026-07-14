@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
@@ -100,7 +101,7 @@ export const parseSoapResponse = (raw: unknown): ParseSoapResult => {
   if (!execResponse) {
     return { success: false, error: 'Invalid SOAP response: missing executeAnonymousResponse.result' };
   }
-  const logBody = (typeof header?.DebuggingInfo?.debugLog === 'string' && header.DebuggingInfo.debugLog) || '';
+  const logBody = (isString(header?.DebuggingInfo?.debugLog) && header.DebuggingInfo.debugLog) || '';
   const result: ExecuteAnonymousResult = {
     compiled: execResponse.compiled === 'true',
     success: execResponse.success === 'true',
