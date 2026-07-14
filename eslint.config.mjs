@@ -764,15 +764,16 @@ export default [
   },
   {
     // class-methods-use-this for packages not yet using Effect
+    // (apex-oas omitted: covered by the Effect-services block above, which sets both rules)
     files: [
-      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
       'packages/soql-common/**/*.ts',
       'packages/soql-model/**/*.ts'
     ],
     rules: {
-      'class-methods-use-this': 'error'
+      'class-methods-use-this': 'error',
+      'local/no-explicit-effect-return-type': 'error'
     }
   },
   {
