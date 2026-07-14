@@ -421,7 +421,8 @@
         "check:package-lock",
         "check:lock-sync",
         "check:actions",
-        "check:knip"
+        "check:knip",
+        "check:effect-diagnostics"
       ]
     },
     "prepush": {
