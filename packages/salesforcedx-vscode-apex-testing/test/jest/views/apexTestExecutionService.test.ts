@@ -12,11 +12,12 @@ jest.mock('../../../src/services/extensionProvider', () => ({
   setAllServicesLayer: jest.fn()
 }));
 
-jest.mock('../../../src/settings', () => ({
-  retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
-  retrieveTestRunConcise: jest.fn().mockReturnValue(false),
-  retrieveOutputFormat: jest.fn().mockReturnValue('text'),
-  retrieveTestSortOrder: jest.fn().mockReturnValue('runtime')
+// The execution service now builds `new TestService(connection)` in-body (connection from
+// ConnectionService.getConnection). Mock the constructor to return a controllable instance per test.
+let activeTestService: unknown;
+jest.mock('@salesforce/apex-node', () => ({
+  ...jest.requireActual('@salesforce/apex-node'),
+  TestService: jest.fn().mockImplementation(() => activeTestService)
 }));
 
 // Keep result processing + report generation out of scope; assert orchestration only.
@@ -63,10 +64,25 @@ import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 
 const appendToChannel = jest.fn(() => Effect.void);
 const readFile = jest.fn((_uri: URI) => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
+// Mirror the prior settings-mock defaults through the SettingsService accessor.
+const settingsValues: Record<string, unknown> = {
+  'retrieve-test-code-coverage': false,
+  'test-run-concise': false,
+  outputFormat: 'text',
+  testSortOrder: 'runtime'
+};
 const mockApi = {
   services: {
     ChannelService: Effect.succeed({ appendToChannel }),
-    FsService: { readFile: (uri: URI) => readFile(uri) }
+    FsService: { readFile: (uri: URI) => readFile(uri) },
+    // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
+    SettingsService: Effect.succeed({
+      getValue: (_section: string, key: string, defaultValue: unknown) =>
+        Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue)
+    }),
+    // getConnection is a static accessor (api.services.ConnectionService.getConnection()); the returned
+    // connection is only fed to `new TestService(conn)`, which the module mock intercepts, so a stub is fine.
+    ConnectionService: { getConnection: () => Effect.succeed({}) }
   }
 };
 const ExtProviderLayer = Layer.succeed(ExtensionProviderService, {
@@ -151,16 +167,19 @@ const makeCtx = (overrides: Partial<ExecutionContext> = {}): ExecutionContext =>
   } as unknown as vscode.TestController,
   orgOnlyTag,
   inWorkspaceTag,
-  ensureInitialized: () => Promise.resolve(),
-  getTestService: () => makeTestService(),
-  resolveSuiteChildren: () => Promise.resolve(),
-  getSuiteToClasses: () => new Map<string, Set<string>>(),
   ...overrides
 });
+
+/** Install the TestService instance that the in-body `new TestService(conn)` will return. */
+const setTestService = (svc: TestService) => {
+  activeTestService = svc;
+};
 
 describe('ApexTestExecutionService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default TestService for the in-body `new TestService(conn)`; individual tests override via setTestService.
+    activeTestService = makeTestService();
     appendToChannel.mockImplementation(() => Effect.void);
     readFile.mockImplementation(() => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
     // updateTestResults uses `new vscode.TestRunRequest()` / `new vscode.TestMessage()` — make them
@@ -176,10 +195,9 @@ describe('ApexTestExecutionService', () => {
     it('emits the run-path sentinel once when tests ran', async () => {
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run } = fakeRun();
-      const testService = makeTestService();
+      setTestService(makeTestService());
       await runEff(
         ApexTestExecutionService.executeTests({
-          ctx: makeCtx({ getTestService: () => testService }),
           testNames: ['MyClass.testA'],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -196,11 +214,10 @@ describe('ApexTestExecutionService', () => {
     it('uses the RunAllTestsInOrg payload (no buildAsyncPayload) when runAllTestsInOrg', async () => {
       const buildAsyncPayload = jest.fn();
       const runTestAsynchronous = jest.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } });
-      const testService = makeTestService({ buildAsyncPayload, runTestAsynchronous });
+      setTestService(makeTestService({ buildAsyncPayload, runTestAsynchronous }));
       const { run } = fakeRun();
       await runEff(
         ApexTestExecutionService.executeTests({
-          ctx: makeCtx({ getTestService: () => testService }),
           testNames: [],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -221,13 +238,13 @@ describe('ApexTestExecutionService', () => {
       const runTestAsynchronous = jest
         .fn()
         .mockResolvedValue({ tests: [], summary: { testsRan: 1, testRunId: 'RID' } });
-      const ctx = makeCtx({ getTestService: () => makeTestService({ runTestAsynchronous }) });
+      setTestService(makeTestService({ runTestAsynchronous }));
+      const ctx = makeCtx();
       // executeTests writes the Ref; a subsequent onResultFileCreate for the same file must skip re-apply.
       mockReadTestRunIdFile.mockResolvedValue('RID');
       await runEff(
         Effect.gen(function* () {
           yield* ApexTestExecutionService.executeTests({
-            ctx,
             testNames: ['MyClass.testA'],
             outputDir: URI.file('/tmp'),
             codeCoverage: false,
@@ -256,7 +273,6 @@ describe('ApexTestExecutionService', () => {
           const methods = yield* ApexTestTreeService.getMethodItems();
           methods.set('MyClass.testA', method);
           yield* ApexTestExecutionService.executeTests({
-            ctx: makeCtx(),
             testNames: ['MyClass.testA'],
             outputDir: URI.file('/tmp'),
             codeCoverage: false,
@@ -274,11 +290,10 @@ describe('ApexTestExecutionService', () => {
       const class1 = fakeItem('class:A', 'A');
       const suite1 = fakeItem('suite:S', 'S');
       const { run } = fakeRun();
-      const testService = makeTestService({ buildAsyncPayload: jest.fn().mockResolvedValue(undefined) });
+      setTestService(makeTestService({ buildAsyncPayload: jest.fn().mockResolvedValue(undefined) }));
       // Mixed suite+class with no methods -> buildTestPayload reaches the no-payload branch.
       const exit = await runExit(
         ApexTestExecutionService.executeTests({
-          ctx: makeCtx({ getTestService: () => testService }),
           testNames: ['A'],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -319,8 +334,8 @@ describe('ApexTestExecutionService', () => {
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run, errored, end } = fakeRun();
       const runTestAsynchronous = jest.fn().mockRejectedValue(new Error('async run boom'));
+      setTestService(makeTestService({ runTestAsynchronous }));
       const ctx = makeCtx({
-        getTestService: () => makeTestService({ runTestAsynchronous }),
         controller: {
           items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
           createTestRun: jest.fn(() => run)
@@ -344,8 +359,8 @@ describe('ApexTestExecutionService', () => {
       const { run, errored } = fakeRun();
       mockGetTestResultsFolder.mockReturnValue(Effect.fail({ _tag: 'NoDefaultOrgError', message: 'no org' }));
       const runTestAsynchronous = jest.fn();
+      setTestService(makeTestService({ runTestAsynchronous }));
       const ctx = makeCtx({
-        getTestService: () => makeTestService({ runTestAsynchronous }),
         controller: {
           items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
           createTestRun: jest.fn(() => run)
@@ -369,9 +384,9 @@ describe('ApexTestExecutionService', () => {
       const suite = fakeItem('suite:Empty', 'Empty');
       const { run, errored, end } = fakeRun();
       const runTestAsynchronous = jest.fn();
+      setTestService(makeTestService({ runTestAsynchronous }));
+      // suite:Empty has no entry in the tree-service suiteToClasses Ref, so runTests treats it as empty.
       const ctx = makeCtx({
-        getTestService: () => makeTestService({ runTestAsynchronous }),
-        getSuiteToClasses: () => new Map([['Empty', new Set<string>()]]),
         controller: {
           items: { forEach: jest.fn() } as unknown as vscode.TestItemCollection,
           createTestRun: jest.fn(() => run)
