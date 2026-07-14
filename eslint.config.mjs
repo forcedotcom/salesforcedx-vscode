@@ -681,9 +681,10 @@ export default [
     rules: {
       // Ban barrel imports from effect packages; deep-import the submodule instead
       // (import * as X from 'pkg/X'). @effect/platform barrel re-exports HttpApiSwagger's
-      // bundled Swagger UI, which esbuild cannot tree-shake — bloats bundles ~5MB and
-      // trips ClamAV scanners, silently breaking OpenVSX publish. Generic list-driven
-      // guard: add future bundle-heavy effect packages here.
+      // bundled Swagger UI, which esbuild cannot tree-shake — bloats bundles ~5.5MB and
+      // trips ClamAV scanners, silently breaking OpenVSX publish. Curated allowlist:
+      // only the packages below are guarded (e.g. @effect/opentelemetry is not yet
+      // listed); add bundle-heavy effect packages here as they surface.
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect', '@effect/platform'] }],
       'barrel-files/avoid-barrel-files': 'error',
       'barrel-files/avoid-re-export-all': 'error',

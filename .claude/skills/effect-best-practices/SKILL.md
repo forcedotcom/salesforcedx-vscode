@@ -48,7 +48,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 
 ## Imports: deep-import @effect/platform
 
-Deep-import `@effect/platform` submodules; never use the barrel. The barrel re-exports `HttpApiSwagger`, which drags in a bundled Swagger UI that esbuild cannot tree-shake. That bloats desktop + web bundles by ~5.5MB each and matches ClamAV signature `Js.Dropper.Agent-9605010-0`, which silently deactivates the OpenVSX publish.
+Barrel re-exports `HttpApiSwagger` → bundled Swagger UI, un-tree-shakeable: +~5.5MB per bundle, matches ClamAV sig `Js.Dropper.Agent-9605010-0`, silently deactivates the OpenVSX publish.
 
 ```typescript
 // DO — deep namespace import, tree-shakes cleanly
@@ -58,7 +58,7 @@ import * as HttpApiSchema from '@effect/platform/HttpApiSchema';
 import { HttpApiSchema } from '@effect/platform';
 ```
 
-Enforced by `effect/no-import-from-barrel-package` (auto-fixable) for `effect` and `@effect/platform` in the Effect-services eslint override.
+Enforced by `effect/no-import-from-barrel-package` for `effect` + `@effect/platform` (Effect-services override). Auto-fix only for single-specifier imports; multi-specifier barrels report but split manually.
 
 ## Service Definition Pattern
 
