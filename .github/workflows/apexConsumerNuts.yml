@@ -39,8 +39,8 @@ jobs:
           npm run compile -w packages/salesforcedx-apex
           # Stamp this commit's SHA into the built output so the consumer can
           # prove it resolved THIS branch's tarball (see "Verify" step below).
-          # lib/src is the package's `files` allowlist, so the marker is packed.
-          echo "$GITHUB_SHA" > packages/salesforcedx-apex/lib/src/BRANCH_BUILD_SHA.txt
+          # out/src is the package's `files` allowlist, so the marker is packed.
+          echo "$GITHUB_SHA" > packages/salesforcedx-apex/out/src/BRANCH_BUILD_SHA.txt
 
       - name: Pack apex library tarball
         run: |
@@ -79,7 +79,7 @@ jobs:
         run: |
           # Resolve apex-node's real entry (package.json is not in its `exports`
           # map, so require.resolve on the bare specifier is the only safe way in),
-          # then read the SHA marker packed next to lib/src/index.js.
+          # then read the SHA marker packed next to out/src/index.js.
           ENTRY=$(node -p "require.resolve('@salesforce/apex-node')")
           MARKER="$(dirname "$ENTRY")/BRANCH_BUILD_SHA.txt"
           if [ ! -f "$MARKER" ]; then
