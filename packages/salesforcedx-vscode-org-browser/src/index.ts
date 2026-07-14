@@ -8,7 +8,7 @@
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined } from 'effect/Predicate';
+import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
@@ -98,7 +98,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const lastVersion = context.globalState.get<string>('orgBrowser.walkthroughVersion');
   if (lastVersion === undefined) {
     const ver = context.extension.packageJSON?.version;
-    const currentVersion = typeof ver === 'string' ? ver : '0.0.0';
+    const currentVersion = isString(ver) ? ver : '0.0.0';
     yield* Effect.promise(() => context.globalState.update('orgBrowser.walkthroughVersion', currentVersion));
     yield* Effect.promise(() =>
       vscode.commands.executeCommand(
