@@ -27,6 +27,25 @@ describe('HTML Hover', () => {
     expect(hover && document.offsetAt(hover.range.start)).toBe(expectedHoverOffset);
   };
 
+  const assertVisualforceHover = (
+    value: string,
+    expectedHoverLabel: string | undefined,
+    expectedHoverOffset: number | undefined
+  ): void => {
+    const offset = value.indexOf('|');
+    value = value.substr(0, offset) + value.substr(offset + 1);
+
+    const document = TextDocument.create('test://test/test.page', 'visualforce', 0, value);
+
+    const position = document.positionAt(offset);
+    const ls = htmlLanguageService.getLanguageService();
+    const htmlDoc = ls.parseHTMLDocument(document);
+
+    const hover = ls.doHover(document, position, htmlDoc);
+    expect(hover?.contents[0].value).toBe(expectedHoverLabel);
+    expect(hover && document.offsetAt(hover.range.start)).toBe(expectedHoverOffset);
+  };
+
   test('Single', () => {
     assertHover('|<html></html>', undefined, undefined);
     assertHover('<|html></html>', '<html>', 1);
@@ -41,5 +60,12 @@ describe('HTML Hover', () => {
     assertHover('<html></htm|l>', '</html>', 8);
     assertHover('<html></html|>', '</html>', 8);
     assertHover('<html></html>|', undefined, undefined);
+  });
+
+  test('Visualforce mixed-case tags render original case', () => {
+    assertVisualforceHover('<apex:pageBl|ock></apex:pageBlock>', '<apex:pageBlock>', 1);
+    assertVisualforceHover('<apex:pageBlock></apex:pageBl|ock>', '</apex:pageBlock>', 18);
+    assertVisualforceHover('<apex:outputFi|eld></apex:outputField>', '<apex:outputField>', 1);
+    assertVisualforceHover('<apex:outputField></apex:outputFi|eld>', '</apex:outputField>', 20);
   });
 });

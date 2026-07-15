@@ -17,11 +17,11 @@ export function doHover(document: TextDocument, position: Position, htmlDocument
   }
   const tagProviders = allTagProviders.filter(p => p.isApplicable(document.languageId));
   function getTagHover(tag: string, range: Range, open: boolean): Hover {
-    tag = tag.toLowerCase();
+    const lowerTag = tag.toLowerCase();
     for (const provider of tagProviders) {
-      const entry = provider.getTags().find(e => e.tag === tag);
+      const entry = provider.getTags().find(e => e.tag.toLowerCase() === lowerTag);
       if (entry) {
-        const tagLabel = open ? '<' + tag + '>' : '</' + tag + '>';
+        const tagLabel = open ? '<' + entry.tag + '>' : '</' + entry.tag + '>';
         return {
           contents: [{ language: 'html', value: tagLabel }, MarkedString.fromPlainText(entry.label)],
           range
