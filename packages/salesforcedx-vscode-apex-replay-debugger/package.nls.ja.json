@@ -12,5 +12,6 @@
   "sf_update_checkpoints_in_org": "SFDX: 組織のチェックポイントをアップデート",
   "sf_toggle_checkpoint": "SFDX: チェックポイントを切り替え",
   "run_tests_and_debug": "テストをデバッグ",
-  "run_single_test_and_debug": "1 つのテストをデバッグ"
+  "run_single_test_and_debug": "1 つのテストをデバッグ",
+  "debug_test_success": "テストが正常に実行されました"
 }

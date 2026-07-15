@@ -774,7 +774,8 @@ export default [
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
-      'local/no-effect-service-accessor-calls': 'error'
+      'local/no-effect-service-accessor-calls': 'error',
+      'local/no-successive-annotate-current-span': 'error'
     }
   },
   {
@@ -811,11 +812,13 @@ export default [
     }
   },
   {
-    // no-explicit-any enforced for apex-testing src (W-23354483).
-    // Scoped to src/** so the later test-files block keeps it off for tests.
+    // no-explicit-any (W-23354483) and prefer-property-signatures (W-23354485)
+    // enforced for apex-testing src.
+    // Scoped to src/** so the later test-files block keeps them off for tests.
     files: ['packages/salesforcedx-vscode-apex-testing/src/**/*.ts'],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'error'
+      '@typescript-eslint/no-explicit-any': 'error',
+      'functional/prefer-property-signatures': 'error'
     }
   },
   {
