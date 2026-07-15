@@ -18,8 +18,6 @@ import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
-import { OrgShape } from '../context/workspaceContextUtil';
-import { shapeFrom } from '../context/workspaceOrgShape';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -27,11 +25,15 @@ import {
   SFDX_EXTENSION_PACK_NAME,
   UNAUTHENTICATED_USER
 } from '../constants';
+import { OrgShape } from '../context/workspaceContextUtil';
+import { shapeFrom } from '../context/workspaceOrgShape';
 import { errorToString } from '../helpers/errorUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
+import { LogStream } from '../telemetry/reporters/logStream';
 import { O11yReporter } from '../telemetry/reporters/o11yReporter';
+import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
@@ -256,9 +258,10 @@ export class TelemetryService implements TelemetryServiceInterface {
     }
 
     // Sourced from services-owned identity; webUserId always defined (UNAUTHENTICATED_USER until auth).
-    const { cliId, webUserId } = await this.getIdentityFromServices();
+    const { cliId, webUserId, orgId, orgShape, devHubId, orgEdition } = await this.getIdentityFromServices();
     this.warnDegradedSession(cliId);
     const userId = cliId ?? '';
+    const orgIdentity = { orgId, orgShape, devHubId, orgEdition };
 
     // priority: extension specific one, OR core default one, OR original one
     const { productFeatureId: thisExtensionPftId } = extensionPackageJsonSchema.parse(
@@ -268,10 +271,15 @@ export class TelemetryService implements TelemetryServiceInterface {
       extensionContext.extension.packageJSON
     );
     this.reporters
+      .filter(r => r instanceof TelemetryFile || r instanceof LogStream)
+      // TelemetryFile/LogStream lack userId/webUserId — cache org identity only.
+      .map(r => (r.orgIdentity = orgIdentity));
+    this.reporters
       .filter(r => r instanceof AppInsights || r instanceof O11yReporter)
       .map(r => {
         r.userId = userId;
         r.webUserId = webUserId;
+        r.orgIdentity = orgIdentity;
         return r;
       })
       .filter(r => r instanceof O11yReporter)
