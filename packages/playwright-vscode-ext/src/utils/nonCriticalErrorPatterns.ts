@@ -90,5 +90,6 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   // VS Code 1.129+ bundled vscode.mermaid-markdown-features uses the chatParticipantPrivate
   // proposed API without it being enabled; the extension logs this on boot. Unrelated to our
   // extensions — https://github.com/forcedotcom/salesforcedx-vscode/pull/7774
-  'chatParticipantPrivate'
+  'chatParticipantPrivate',
+  'renderMermaidDiagram' // bundled vscode.mermaid-markdown-features tool not contributed w/o chat proposed API (same cause as above)
 ] as const;
