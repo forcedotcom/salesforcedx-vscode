@@ -10,7 +10,6 @@ export { notificationService } from './commands/notificationService';
 export { ProgressNotification } from './commands/progressNotification';
 export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
-export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigUtil } from './config/configUtil';
 export { SFDX_CORE_CONFIGURATION_NAME, TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from './constants';
 export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
