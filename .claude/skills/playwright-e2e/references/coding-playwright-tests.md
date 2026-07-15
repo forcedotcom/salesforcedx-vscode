@@ -59,9 +59,21 @@ VS Code API (tree views, editors, output panels) only contains visible DOM lines
 - `scrollIntoViewIfNeeded` probably won't help
 - **Tree item count:** Use `aria-setsize` (VS Code's tree model count) instead of `.count()` (DOM nodes). Reads full child count regardless of viewport. Pattern: `getByRole('treeitem', { level: 1 }).first().getAttribute('aria-setsize')`. See `OrgBrowserPage` helpers: `getRootTypeCount()`, `waitForRootTypeCount(expected)`, `getStableRootTypeCount()` (tolerates scroll/unmount race)
 
-## Dialog Styles and macOS
+## Modal Dialog Buttons
 
 Desktop fixture sets `window.menuStyle: "custom"` (context menus stay in DOM on macOS; use shared context-menu helpers) and `window.dialogStyle: "custom"` when spec needs to click modal dialog buttons (routes `showWarningMessage`, etc. through VS Code's DOM renderer for Playwright automation).
+
+**Dismiss async modals deterministically:** a `confirmOrThrow`/`showWarningMessage` modal that renders only after a network round-trip (e.g. the org-display sensitive-info prompt appears after an org SOQL query) must be dismissed with `clickModalDialogButton(page, buttonLabel, timeoutMs)`, NOT a blind `page.keyboard.press('Escape')`. Escape races the render: if it lands before the modal appears, the modal opens afterward and lingers, blocking the next command palette. `clickModalDialogButton` waits for the modal, then clicks. (Escape is still fine for dismissing quick-input pickers — those are already open when you press it.)
+
+```typescript
+// Good: waits for the async modal, then dismisses it
+await selectOrgInPicker(page, alias);
+await clickModalDialogButton(page, 'Cancel', 30_000);
+
+// Bad: Escape races the modal render — the modal may open after and linger
+await selectOrgInPicker(page, alias);
+await page.keyboard.press('Escape');
+```
 
 ## Selectors and Assertions
 

@@ -23,6 +23,16 @@ Given → alias-resolve it, skip the config `target-org` lookup, and do NOT muta
 
 Returns `Connection` from `@salesforce/core`.
 
+Auto-validates access-token (session-ID) flow connections via `identity()` before returning. On failure: shows a reauth modal, and (if accepted) dispatches `sf.org.login.web`, then fails with `AccessTokenExpiredError`. No-op for refreshable (web/JWT) flows. Consumers get the reauth modal automatically — no need to re-implement token validation.
+
+### validateAccessTokenOrPromptReauth
+
+Runs the access-token validation above against a given `Connection` (called internally by `getConnection`):
+
+```typescript
+yield* api.services.ConnectionService.validateAccessTokenOrPromptReauth(connection);
+```
+
 ### invalidateCachedConnections
 
 After auth files or tokens change on disk, drop cached JSForce connections so the next `getConnection()` reloads `AuthInfo`:
@@ -36,6 +46,7 @@ yield* api.services.ConnectionService.invalidateCachedConnections();
 - `NoTargetOrgConfiguredError` - No target org
 - `FailedToResolveUsernameError` - Can't resolve username/alias
 - `FailedToCreateConnectionError` - Connection creation failed
+- `AccessTokenExpiredError` - Session-ID token expired; reauth modal shown, `sf.org.login.web` dispatched
 
 ## Examples
 
