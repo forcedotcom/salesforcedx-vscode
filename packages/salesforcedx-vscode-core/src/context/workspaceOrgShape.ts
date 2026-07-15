@@ -11,9 +11,6 @@ import * as Effect from 'effect/Effect';
 import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
 
-// Re-exported so existing core test import (`../../../src/context/workspaceOrgShape`) stays green.
-export { shapeFrom };
-
 const getOrgShapeEffect = Effect.fn('workspaceOrgShape.getOrgShape')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
@@ -24,3 +21,6 @@ const getOrgShapeEffect = Effect.fn('workspaceOrgShape.getOrgShape')(function* (
 
 export const getOrgShape = async (_username: string): Promise<OrgShape> =>
   getRuntime().runPromise(getOrgShapeEffect().pipe(Effect.catchAll(() => Effect.succeed<OrgShape>('Undefined'))));
+
+// Re-exported so existing core test import (`../../../src/context/workspaceOrgShape`) stays green.
+export { type OrgShape, shapeFrom } from '@salesforce/salesforcedx-utils-vscode';
