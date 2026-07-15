@@ -817,7 +817,15 @@ export default [
     files: ['packages/salesforcedx-vscode-apex-testing/src/**/*.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
-      'functional/prefer-property-signatures': 'error'
+      'functional/prefer-property-signatures': 'error',
+      'prefer-arrow/prefer-arrow-functions': [
+        'error',
+        {
+          disallowPrototype: true,
+          singleReturnOnly: false,
+          classPropertiesAllowed: false
+        }
+      ]
     }
   },
   {
