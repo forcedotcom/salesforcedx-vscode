@@ -26,7 +26,6 @@ import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
-import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { soqlMiddleware } from './embeddedSoql';
 import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
@@ -259,10 +258,17 @@ const buildClientOptions = async (outputChannel?: vscode.OutputChannel): Promise
   return options;
 };
 
-const getNamespaceFromProject = Effect.fn('apex.provideCodeLenses.getNamespaceFromProject')(function* () {
+const getNamespaces = Effect.fn('apex.provideCodeLenses.getNamespaces')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const project = yield* api.services.ProjectService.getSfProject();
-  return project.getSfProjectJson().getContents().namespace;
+  const [conn, project] = yield* Effect.all(
+    [api.services.ConnectionService.getConnection(), api.services.ProjectService.getSfProject()],
+    { concurrency: 'unbounded' }
+  );
+  return {
+    // convert null to undefined
+    nsFromOrg: conn.getAuthInfoFields().namespacePrefix ?? undefined,
+    nsFromProject: project.getSfProjectJson().getContents().namespace
+  };
 });
 
 const provideCodeLenses = async (
@@ -270,11 +276,8 @@ const provideCodeLenses = async (
   token: vscode.CancellationToken,
   next: ProvideCodeLensesSignature
 ) => {
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
-    // convert null to undefined
-    vscodeCoreExtension.exports.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
-    getRuntime().runPromise(getNamespaceFromProject()),
+  const [{ nsFromOrg, nsFromProject }, lenses] = await Promise.all([
+    getRuntime().runPromise(getNamespaces()),
     next(document, token)
   ]);
   return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
