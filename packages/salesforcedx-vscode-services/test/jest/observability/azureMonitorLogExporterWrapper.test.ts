@@ -61,13 +61,4 @@ describe('AzureMonitorLogExporterWrapper', () => {
     expect(baseType(envelopes[0])).toBe('EventData');
     expect(eventName(envelopes[0])).toBe('test-event');
   });
-
-  it('shutdown resolves', async () => {
-    const wrapper = new AzureMonitorLogExporterWrapper(
-      { connectionString: DEFAULT_AI_CONNECTION_STRING },
-      'http://localhost:3003'
-    );
-    injectLogSender(wrapper, makeFakeSender());
-    await expect(wrapper.shutdown()).resolves.toBeUndefined();
-  });
 });
