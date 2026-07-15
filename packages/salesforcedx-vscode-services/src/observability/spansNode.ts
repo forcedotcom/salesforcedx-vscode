@@ -28,7 +28,6 @@ import { SpanTransformProcessor } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
 
 export class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
-  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
   constructor(options: ConstructorParameters<typeof AzureMonitorTraceExporter>[0], localIngestionEndpoint?: string) {
     super(options);
     // @ts-expect-error -- `shouldCreateResourceMetric` is a private SDK field; suppresses the never-sampled _OTELRESOURCE_/_APPRESOURCEPREVIEW_ metric (~22% AI ingestion).

@@ -48,7 +48,7 @@ export const handleApplyEditWithFs = async (params: ApplyWorkspaceEditParams): P
         const edits = change.edits;
         if (edits.length === 0) continue;
         // Server sends a single insert at (0,0) with full content for create/write
-        const content = edits.map(e => e.newText).join('');
+        const content = edits.map(e => ('newText' in e ? e.newText : '')).join('');
         const vsUri = URI.parse(uriStr);
         const parentUri = Utils.joinPath(vsUri, '..');
         await workspace.fs.createDirectory(parentUri);

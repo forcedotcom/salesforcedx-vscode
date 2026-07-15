@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,9 +34,9 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.32.2",
+    "@salesforce/core": "^8.28.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.37.0",
+    "@salesforce/source-deploy-retrieve": "^12.32.5",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -303,18 +303,7 @@
     "viewsWelcome": [
       {
         "view": "sfdxOrgBrowser",
-        "contents": "%org_browser_filters_all_off%",
-        "when": "sf:orgBrowser.showLocal == false && sf:orgBrowser.showOrg == false"
-      },
-      {
-        "view": "sfdxOrgBrowser",
-        "contents": "%org_browser_filters_empty%",
-        "when": "(sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty)"
-      },
-      {
-        "view": "sfdxOrgBrowser",
-        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type.",
-        "when": "sf:orgBrowser.showOrg == true && sf:orgBrowser.treeEmpty == false"
+        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
       }
     ],
     "viewsContainers": {
@@ -363,118 +352,25 @@
         "title": "%orgBrowser.command.collapseAll%",
         "category": "Org Browser",
         "icon": "$(collapse-all)"
-      },
-      {
-        "command": "sfdxOrgBrowser.showLocal.on",
-        "title": "%orgBrowser.command.showLocal.on%",
-        "category": "Org Browser",
-        "icon": "$(folder)"
-      },
-      {
-        "command": "sfdxOrgBrowser.showLocal.off",
-        "title": "%orgBrowser.command.showLocal.off%",
-        "category": "Org Browser",
-        "icon": "$(folder-opened)"
-      },
-      {
-        "command": "sfdxOrgBrowser.showOrg.on",
-        "title": "%orgBrowser.command.showOrg.on%",
-        "category": "Org Browser",
-        "icon": "$(cloud)"
-      },
-      {
-        "command": "sfdxOrgBrowser.showOrg.off",
-        "title": "%orgBrowser.command.showOrg.off%",
-        "category": "Org Browser",
-        "icon": {
-          "dark": "resources/dark/cloud-on.svg",
-          "light": "resources/light/cloud-on.svg"
-        }
-      },
-      {
-        "command": "sfdxOrgBrowser.filterText",
-        "title": "%orgBrowser.command.filterText%",
-        "category": "Org Browser",
-        "icon": "$(filter)"
-      },
-      {
-        "command": "sfdxOrgBrowser.filterText.active",
-        "title": "%orgBrowser.command.filterText.active%",
-        "category": "Org Browser",
-        "icon": "$(filter-filled)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "sfdxOrgBrowser.showLocal.on",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showLocal == false",
-          "group": "navigation@0"
-        },
-        {
-          "command": "sfdxOrgBrowser.showLocal.off",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showLocal == true",
-          "group": "navigation@0"
-        },
-        {
-          "command": "sfdxOrgBrowser.showOrg.on",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == false",
-          "group": "navigation@1"
-        },
-        {
-          "command": "sfdxOrgBrowser.showOrg.off",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == true",
-          "group": "navigation@1"
-        },
-        {
-          "command": "sfdxOrgBrowser.filterText",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == false",
-          "group": "navigation@2"
-        },
-        {
-          "command": "sfdxOrgBrowser.filterText.active",
-          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == true",
-          "group": "navigation@2"
-        },
-        {
           "command": "sfdxOrgBrowser.refreshType",
           "when": "view == sfdxOrgBrowser",
-          "group": "navigation@3"
+          "group": "navigation@0"
         },
         {
           "command": "sfdxOrgBrowser.collapseAll",
           "when": "view == sfdxOrgBrowser",
-          "group": "navigation@4"
+          "group": "navigation@1"
         }
       ],
       "commandPalette": [
         {
           "command": "sf.org-browser.walkthrough.open",
           "when": "sf:has_target_org"
-        },
-        {
-          "command": "sfdxOrgBrowser.showLocal.on",
-          "when": "false"
-        },
-        {
-          "command": "sfdxOrgBrowser.showLocal.off",
-          "when": "false"
-        },
-        {
-          "command": "sfdxOrgBrowser.showOrg.on",
-          "when": "false"
-        },
-        {
-          "command": "sfdxOrgBrowser.showOrg.off",
-          "when": "false"
-        },
-        {
-          "command": "sfdxOrgBrowser.filterText",
-          "when": "false"
-        },
-        {
-          "command": "sfdxOrgBrowser.filterText.active",
-          "when": "false"
         }
       ],
       "view/item/context": [

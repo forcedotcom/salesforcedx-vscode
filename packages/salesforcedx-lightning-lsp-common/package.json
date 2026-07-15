@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-lightning-lsp-common",
   "displayName": "Lightning LSP Common",
-  "version": "64.16.1",
+  "version": "64.17.0",
   "description": "Common components for lwc-language-server and aura-language-server.",
   "publisher": "salesforce",
   "engines": {

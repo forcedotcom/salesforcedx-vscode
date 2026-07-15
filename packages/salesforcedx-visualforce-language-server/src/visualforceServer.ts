@@ -33,13 +33,7 @@ import {
   TextDocuments,
   TextDocumentSyncKind
 } from 'vscode-languageserver/node';
-import {
-  ColorInformation,
-  ColorPresentationRequest,
-  ConfigurationParams,
-  ConfigurationRequest,
-  DocumentColorRequest
-} from 'vscode-languageserver-protocol';
+import { ColorInformation, ConfigurationParams } from 'vscode-languageserver-protocol';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic, DocumentLink, SymbolInformation } from 'vscode-languageserver-types';
 import { URI } from 'vscode-uri';
@@ -96,7 +90,7 @@ const getDocumentSettings = (textDocument: TextDocument, needsDocumentSettings: 
         ]
       };
       promise = connection
-        .sendRequest(ConfigurationRequest.type, configRequestParam)
+        .sendRequest('workspace/configuration', configRequestParam)
         .then(s => ({ css: s[0], visualforce: s[1], javascript: s[2] }));
       documentSettings[textDocument.uri] = promise;
     }
@@ -369,7 +363,7 @@ connection.onDocumentSymbol(documentSymbolParms => {
   return symbols;
 });
 
-connection.onRequest(DocumentColorRequest.type, (params: DocumentColorParams) => {
+connection.onRequest('textDocument/documentColor', (params: DocumentColorParams) => {
   const document = documents.get(params.textDocument.uri);
   if (!document) {
     throw new Error('Document not found');
@@ -383,7 +377,7 @@ connection.onRequest(DocumentColorRequest.type, (params: DocumentColorParams) =>
   return infos;
 });
 
-connection.onRequest(ColorPresentationRequest.type, (params: ColorPresentationParams) => {
+connection.onRequest('textDocument/colorPresentation', (params: ColorPresentationParams) => {
   const document = documents.get(params.textDocument.uri);
   if (!document) {
     throw new Error('Document not found');

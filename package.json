@@ -22,6 +22,7 @@
     "node": "^22.19.0",
     "npm": "^11",
     "semver": "^7.5.4",
+    "simple-git": "^3.36.0",
     "ts-node": "10.9.2",
     "url": "0.11.4"
   },
@@ -33,7 +34,7 @@
     "@commitlint/config-conventional": "^19.8.1",
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.86.2",
-    "@eslint/json": "^0.13.2",
+    "@eslint/json": "^0.14.0",
     "@html-eslint/eslint-plugin": "0.59.0",
     "@html-eslint/parser": "0.59.0",
     "@octokit/core": "^7",
@@ -130,6 +131,11 @@
     "compile:github-actions": "wireit",
     "lint": "wireit",
     "test": "wireit",
+    "test:unit": "npm run test",
+    "test:coverage": "npm run test",
+    "test:coverage:report": "echo 'Coverage report generation not configured'",
+    "package:packages": "npm run vscode:package",
+    "package:packages:prerelease": "npm run vscode:package",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
@@ -137,6 +143,7 @@
     "check:actions": "wireit",
     "check:format:staged": "wireit",
     "check:knip": "wireit",
+    "check:effect-diagnostics": "wireit",
     "check:branch": "wireit",
     "precommit": "wireit",
     "prepush": "wireit",
@@ -390,6 +397,21 @@
       ],
       "output": []
     },
+    "check:effect-diagnostics": {
+      "command": "node scripts/effect-diagnostics.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "packages/*/src/**/*.ts",
+        "packages/*/tsconfig.json",
+        "packages/*/package.json",
+        "tsconfig.common.json",
+        "config/effect-diagnostics.json",
+        "scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
+    },
     "check:format:staged": {
       "command": "pretty-quick --staged"
     },
@@ -406,7 +428,8 @@
         "check:package-lock",
         "check:lock-sync",
         "check:actions",
-        "check:knip"
+        "check:knip",
+        "check:effect-diagnostics"
       ]
     },
     "prepush": {

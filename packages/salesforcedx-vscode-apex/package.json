@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,7 +28,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "*",
+    "@salesforce/apex-node": "^8.4.21",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -39,10 +39,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.32.2",
-    "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-core": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/core": "^8.28.0",
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
@@ -60,9 +58,7 @@
     "copy:grammars": "wireit",
     "copy:jar": "wireit",
     "test": "wireit",
-    "test:compile": "wireit",
-    "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug"
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
@@ -71,7 +67,6 @@
       "dependencies": [
         "copy:grammars",
         "copy:jar",
-        "../salesforcedx-apex:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
@@ -92,32 +87,11 @@
     "test:compile": {
       "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "compile",
-        "../playwright-vscode-ext:compile"
+        "compile"
       ],
       "files": [
         "test/**/*.ts",
         "test/tsconfig.json"
-      ],
-      "output": []
-    },
-    "test:desktop": {
-      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
-      "env": {
-        "VSCODE_DESKTOP": "1",
-        "E2E_FROM_VSIX": {
-          "external": true
-        }
-      },
-      "dependencies": [
-        "test:compile",
-        "vscode:package",
-        "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy"
-      ],
-      "files": [
-        "test/playwright/**/*.ts",
-        "package*.json"
       ],
       "output": []
     },

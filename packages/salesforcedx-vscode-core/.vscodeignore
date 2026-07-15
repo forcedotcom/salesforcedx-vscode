@@ -1,35 +1,32 @@
-.vscode/**
-.vscode-test/**
-.wireit/**
-.circular-deps.json
+# Exclude test and development files
+**/.vscode-test/**
+**/test/**
+**/*.test.*
+**/*.spec.*
+
+# Exclude source files (keep only compiled output)
+src/**/*.ts
+!src/**/*.d.ts
+
+# Exclude build artifacts
+*.log
 .eslintcache
-**/*.map
-dist/*-metafile.json
+.nyc_output/
+coverage/
+.wireit/
 
-# ignore unused rxjs code
-node_modules/rxjs/src/**
-node_modules/rxjs/bundles/**
-node_modules/rxjs/_esm5/**
-node_modules/rxjs/_esm2015/**
-node_modules/inquirer/node_modules/rxjs/src/**
-node_modules/inquirer/node_modules/rxjs/bundles/**
-node_modules/inquirer/node_modules/rxjs/_esm5/**
-node_modules/inquirer/node_modules/rxjs/_esm2015/**
-node_modules/**/rxjs/src/**
-node_modules/**/rxjs/bundles/**
-node_modules/**/rxjs/_esm5/**
-node_modules/**/rxjs/_esm2015/**
+# Exclude config files
+tsconfig*.json
+.eslintrc*
+.prettierrc*
+.mocharc*
+webpack*.js
 
-# ignore unused jsforce code
-node_modules/jsforce/test/**
-node_modules/jsforce/build/**
-
-# ignore unused sfdx-faye code
-node_modules/sfdx-faye/examples/**
-node_modules/sfdx-faye/site/**
-node_modules/sfdx-faye/spec/**
-
-# ignore unused dayjs code
-node_modules/dayjs/esm/**
-
-metadata_types_map.json
+# Exclude monorepo root files and sibling packages
+# These get included when vsce resolves workspace dependencies
+**/../*.json
+**/../*.md
+**/../*.txt
+**/../*.js
+**/../*.mjs
+**/../**/node_modules/**

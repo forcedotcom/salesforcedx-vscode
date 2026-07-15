@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -29,16 +29,17 @@
     "salesforce.salesforcedx-vscode-services"
   ],
   "activationEvents": [],
-  "main": "./out/src",
+  "main": "./out/src/index.js",
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
-    "applicationinsights": "1.0.7",
+    "applicationinsights": "1.8.10",
     "effect": "^3.21.2",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1",
@@ -60,7 +61,7 @@
     "test:desktop:ui": "VSCODE_DESKTOP=1 npm run test:desktop -- --headed",
     "vscode:bundle": "wireit",
     "vscode:package:legacy": "wireit",
-    "vscode:prepublish": "npm prune --production",
+    "vscode:prepublish": "echo 'Skipping prune - using vsce --no-dependencies'",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"
   },
@@ -86,7 +87,7 @@
         "acorn": "^6.0.0",
         "acorn-loose": "^6.0.0",
         "acorn-walk": "^6.0.0",
-        "applicationinsights": "1.0.7",
+        "applicationinsights": "1.8.10",
         "vscode-html-languageservice": "^5.5.1"
       },
       "devDependencies": {},
@@ -106,6 +107,7 @@
       "command": "tsc --pretty",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile",
         "../salesforcedx-aura-language-server:compile",
@@ -240,10 +242,6 @@
       {
         "command": "sf.internal.lightning.generate.interface",
         "title": "%lightning_generate_interface_text%"
-      },
-      {
-        "command": "sf.lightning.aura.rename",
-        "title": "%rename_lightning_component_text%"
       }
     ],
     "menus": {
@@ -279,10 +277,6 @@
         {
           "command": "sf.internal.lightning.generate.interface",
           "when": "false"
-        },
-        {
-          "command": "sf.lightning.aura.rename",
-          "when": "false"
         }
       ],
       "explorer/context": [
@@ -317,16 +311,6 @@
         {
           "command": "sf.internal.lightning.generate.interface",
           "when": "explorerResourceIsFolder && sf:internal_dev"
-        },
-        {
-          "command": "sf.lightning.aura.rename",
-          "when": "sf:project_opened && resource =~ /.*\\/aura\\/.*(\\/[^\\/]+\\.(cmp|app|css|js|svg|design|auradoc|evt|xml))?$/"
-        }
-      ],
-      "editor/context": [
-        {
-          "command": "sf.lightning.aura.rename",
-          "when": "sf:project_opened && resource =~ /.*\\/aura\\/[^\\/]+\\/[^\\/]+\\.(cmp|app|css|js|svg|design|auradoc|evt|xml)$/"
         }
       ]
     },

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,32 +27,38 @@
   "categories": [
     "Programming Languages"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.23.1",
     "@stoplight/spectral-functions": "1.10.2",
-    "@stoplight/spectral-rulesets": "1.22.4",
+    "@stoplight/spectral-rulesets": "1.22.6",
     "ejs": "3.1.10",
     "fast-xml-parser": "^5.7.1",
     "jsonpath-plus": "10.4.0",
     "vscode-uri": "^3.1.0",
-    "yaml": "^2.9.0"
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/core": "^8.28.0",
+    "@types/async-lock": "1.4.2",
     "@types/ejs": "3.1.5",
     "openapi-types": "12.1.3",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-services": "*",
+    "salesforcedx-vscode-core": "*",
     "vscode-languageserver-protocol": "3.17.5"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
-    "salesforce.salesforcedx-vscode-services"
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-services",
+    "salesforce.salesforcedx-einstein-gpt"
   ],
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
@@ -64,9 +70,7 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
-    "test:compile": "wireit",
-    "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug"
+    "test:compile": "wireit"
   },
   "wireit": {
     "compile": {
@@ -74,8 +78,10 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-apex:compile"
+        "../salesforcedx-vscode-apex:compile",
+        "../salesforcedx-vscode-core:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -148,33 +154,6 @@
       "dependencies": [
         "vscode:bundle"
       ]
-    },
-    "test:desktop": {
-      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
-      "env": {
-        "VSCODE_DESKTOP": "1",
-        "E2E_FROM_VSIX": {
-          "external": true
-        },
-        "PLAYWRIGHT_WORKERS": {
-          "external": true
-        }
-      },
-      "dependencies": [
-        "vscode:package:legacy",
-        "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-services:spans:server",
-        "../salesforcedx-vscode-apex:vscode:package",
-        "../salesforcedx-vscode-apex-log:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
-        "../salesforcedx-vscode-metadata:vscode:package",
-        "../playwright-vscode-ext:compile"
-      ],
-      "files": [
-        "test/playwright/**/*.ts",
-        "package*.json"
-      ],
-      "output": []
     }
   },
   "packaging": {
@@ -199,37 +178,37 @@
       "devDependencies": {}
     }
   },
-  "main": "./out/src",
+  "main": "dist/index.js",
   "contributes": {
     "menus": {
       "editor/context": [
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && salesforcedx-einstein-gpt.isEnabled"
         },
         {
           "command": "sf.validate.oas.document",
-          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && sf:muleDxApiInactive"
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
         }
       ],
       "explorer/context": [
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/"
+          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
         },
         {
           "command": "sf.validate.oas.document",
-          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && sf:muleDxApiInactive"
+          "when": "sf:project_opened && sf:has_target_org && ((resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ && !sf:is_esr_decomposed) || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
         }
       ],
       "commandPalette": [
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sf:project_opened && sf:has_target_org && salesforcedx-einstein-gpt.isEnabled"
         },
         {
           "command": "sf.validate.oas.document",
-          "when": "sf:project_opened && sf:has_target_org && sf:muleDxApiInactive"
+          "when": "sf:project_opened && sf:has_target_org && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
         }
       ]
     },

@@ -175,6 +175,7 @@ class CheckpointService implements TreeDataProvider<BaseNode> {
     if (numEnabledCheckpoints > MAX_ALLOWED_CHECKPOINTS) {
       const errorMessage = nls.localize('up_to_five_checkpoints', numEnabledCheckpoints);
       writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+      return false;
     }
     return true;
   }
@@ -184,6 +185,7 @@ class CheckpointService implements TreeDataProvider<BaseNode> {
     if (numEnabledCheckpoints === 0) {
       const errorMessage = nls.localize('no_enabled_checkpoints');
       writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Warning);
+      return false;
     }
     return true;
   }
@@ -523,6 +525,7 @@ const setTypeRefsForEnabledCheckpoints = (): boolean => {
 };
 
 // The order of operations here should be to
+// 0. Validate that at least one checkpoint is enabled
 // 1. Get the source/line information
 // 2. Validate the existing checkpoint information
 //    a. validate there are only 5 active checkpoints
@@ -539,6 +542,10 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
   if (!creatingCheckpoints) {
     creatingCheckpoints = true;
   } else {
+    return false;
+  }
+  if (!checkpointService.hasOneOrMoreActiveCheckpoints()) {
+    creatingCheckpoints = false;
     return false;
   }
   let updateError = false;

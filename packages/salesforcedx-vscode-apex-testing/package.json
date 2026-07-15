@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,16 +28,15 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "*",
+    "@salesforce/apex-node": "^8.4.21",
     "@salesforce/effect-ext-utils": "*",
-    "@salesforce/types": "^1.8.0",
+    "@salesforce/types": "^1.7.1",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.37.0",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -69,8 +68,8 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-apex:compile",
         "../salesforcedx-utils:compile",
+        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-services:compile"
@@ -96,7 +95,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
       "output": [
@@ -113,7 +111,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
       "output": [
@@ -204,10 +201,8 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
-        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
-        "../salesforcedx-vscode-apex:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -230,11 +225,8 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
-        "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
-        "../salesforcedx-vscode-apex:vscode:package",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -280,7 +272,6 @@
     "menus": {
       "view/title": [],
       "view/item/context": [],
-      "testing/test/context": [],
       "explorer/context": [],
       "commandPalette": [
         {
@@ -312,7 +303,7 @@
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sf.apex.test.suite.edit",
+          "command": "sf.apex.test.suite.add",
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
@@ -328,12 +319,12 @@
           "when": "false"
         },
         {
-          "command": "sf.apex.test.results.clear",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
           "command": "sf.apex.testing.walkthrough.open",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.apex.test.results.clear",
+          "when": "sf:project_opened && sf:has_target_org"
         }
       ]
     },
@@ -351,8 +342,8 @@
         "title": "%apex_test_suite_create_text%"
       },
       {
-        "command": "sf.apex.test.suite.edit",
-        "title": "%apex_test_suite_edit_text%"
+        "command": "sf.apex.test.suite.add",
+        "title": "%apex_test_suite_add_text%"
       },
       {
         "command": "sf.apex.test.last.class.run",
@@ -383,12 +374,12 @@
         "title": "%apex_test_refresh_title%"
       },
       {
-        "command": "sf.apex.test.results.clear",
-        "title": "%apex_test_clear_results_text%"
-      },
-      {
         "command": "sf.apex.testing.walkthrough.open",
         "title": "%apex_testing_walkthrough_open_command%"
+      },
+      {
+        "command": "sf.apex.test.results.clear",
+        "title": "%apex_test_clear_results_text%"
       }
     ],
     "viewsWelcome": [
@@ -451,33 +442,6 @@
               "image": "images/walkthrough/view-test-results.png",
               "altText": "%apex_testing_walkthrough_step5_alt%"
             }
-          },
-          {
-            "id": "stale-results",
-            "title": "%apex_testing_walkthrough_step6_title%",
-            "description": "%apex_testing_walkthrough_step6_description%",
-            "media": {
-              "markdown": "images/walkthrough/stale-results.md"
-            }
-          },
-          {
-            "id": "deploy-freshness",
-            "title": "%apex_testing_walkthrough_step7_title%",
-            "description": "%apex_testing_walkthrough_step7_description%",
-            "media": {
-              "markdown": "images/walkthrough/deploy-freshness.md"
-            }
-          },
-          {
-            "id": "clear-results",
-            "title": "%apex_testing_walkthrough_step8_title%",
-            "description": "%apex_testing_walkthrough_step8_description%",
-            "media": {
-              "markdown": "images/walkthrough/clear-results.md"
-            },
-            "completionEvents": [
-              "onCommand:sf.apex.test.results.clear"
-            ]
           }
         ]
       }
@@ -541,11 +505,6 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_disable_warnings_for_missing_coverage%"
-        },
-        "salesforcedx-vscode-apex-testing.restore-previous-results": {
-          "type": "boolean",
-          "default": true,
-          "description": "%apex_restore_previous_results_description%"
         }
       }
     }

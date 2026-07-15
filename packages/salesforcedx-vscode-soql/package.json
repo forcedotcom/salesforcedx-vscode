@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -35,14 +35,15 @@
     "soql builder"
   ],
   "dependencies": {
+    "@salesforce/core": "^8.28.0",
     "@salesforce/effect-ext-utils": "*",
-    "effect": "^3.21.2",
     "@salesforce/soql-common": "*",
-    "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
+    "@salesforce/soql-model": "*",
     "@salesforce/vscode-i18n": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
+    "effect": "^3.21.2",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -50,26 +51,47 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.0.0",
     "@lwc/engine-dom": "^9.0.0",
-    "@lwc/eslint-plugin-lwc": "^3.5.0",
-    "@lwc/jest-preset": "^19.6.1",
-    "@lwc/rollup-plugin": "^9.3.4",
+    "@lwc/eslint-plugin-lwc": "^3.3.0",
+    "@lwc/jest-preset": "^19.0.0",
+    "@lwc/module-resolver": "9.3.4",
+    "commondir": "^1.0.1",
+    "deepmerge": "^4.2.2",
+    "estree-walker": "^2.0.2",
+    "fdir": "^6.2.0",
+    "is-module": "^1.0.0",
+    "is-reference": "^3.0.3",
+    "magic-string": "^0.30.3",
+    "picomatch": "^4.0.2",
+    "resolve": "^1.22.1",
+    "serialize-javascript": "^6.0.1",
+    "smob": "^1.5.0",
+    "terser": "^5.17.4",
+    "@lwc/rollup-plugin": "^9.0.0",
     "@lwc/synthetic-shadow": "^9.1.1",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-babel": "^6.0.0",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-inject": "^5.0.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
-    "@rollup/plugin-terser": "^1.0.0",
-    "@salesforce/core": "^8.32.2",
+    "@rollup/plugin-terser": "^0.4.0",
+    "@salesforce/core": "^8.28.0",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/ts-types": "^2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
+    "immutable": "^5.1.5",
     "jest-environment-jsdom": "^29.0.0",
     "rollup": "^4.0.0",
+    "rxjs": "^7.8.2",
     "salesforcedx-vscode-services": "*"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-darwin-arm64": "4.62.0",
+    "@rollup/rollup-darwin-x64": "4.62.0",
+    "@rollup/rollup-linux-x64-gnu": "4.62.0",
+    "@rollup/rollup-win32-x64-msvc": "4.62.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -103,7 +125,6 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../soql-common:compile",
-        "../soql-model:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
@@ -130,7 +151,7 @@
     "build:soql-builder-ui": {
       "command": "cd src/soql-builder-ui && rollup -c rollup.config.mjs",
       "dependencies": [
-        "../soql-model:compile"
+        "../soql-common:compile"
       ],
       "files": [
         "src/soql-builder-ui/*.{ts,html}",
@@ -143,9 +164,6 @@
     },
     "test:soql-builder-ui": {
       "command": "jest --config src/soql-builder-ui/jest.config.js",
-      "dependencies": [
-        "../soql-model:compile"
-      ],
       "files": [
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/jest.config.js",

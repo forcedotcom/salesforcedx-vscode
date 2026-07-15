@@ -7,6 +7,7 @@
     "packages/*/**/__tests__/fixtures/**",
     "packages/salesforcedx-vscode-apex/test/jest/testUtils/recordingTracer.ts",
     ".github/actions/*/lib/**",
+    ".github/scripts/**",
     "scripts/validation-utils.js",
     "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/model.ts",
     "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts",

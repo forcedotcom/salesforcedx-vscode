@@ -6,7 +6,6 @@
  */
 import { isError, isString } from 'effect/Predicate';
 import { Connection, MessageType } from 'vscode-languageserver';
-import { LogMessageNotification } from 'vscode-languageserver-protocol';
 
 /**
  * Formats console arguments into a single message string.
@@ -78,7 +77,7 @@ export class Logger {
     }
 
     const formattedMessage = formatMessage(...args);
-    void Logger.connection.sendNotification(LogMessageNotification.type, {
+    void Logger.connection.sendNotification('window/logMessage', {
       type: level,
       message: formattedMessage
     });

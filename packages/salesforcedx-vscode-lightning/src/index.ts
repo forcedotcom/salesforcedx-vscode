@@ -7,10 +7,7 @@
 
 import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { AURA_SERVER_READY_NOTIFICATION, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
-import {
-  ApplyWorkspaceEditRequest,
-  handleApplyEditWithFs
-} from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
+import { handleApplyEditWithFs } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import * as Effect from 'effect/Effect';
@@ -167,7 +164,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
   // Create the language client and start the client.
   const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
   // Handle workspace/applyEdit by writing via workspace.fs (no IDE open); must register before start()
-  client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
+  client.onRequest('workspace/applyEdit', handleApplyEditWithFs);
   console.log(`Server module path: ${serverModule}`);
 
   // Create language status item to show indexing progress

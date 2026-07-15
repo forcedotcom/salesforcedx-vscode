@@ -78,7 +78,7 @@ import { nls } from '../messages';
 import { RequestService } from '../requestService/requestService';
 
 // Below import has to be required for bundling
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const AsyncLock = require('async-lock');
 
 const TRACE_ALL = 'all';

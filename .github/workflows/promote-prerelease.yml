@@ -1,0 +1,42 @@
+name: Promote Nightly to Pre-release
+
+on:
+  schedule:
+    # Wednesdays at 7 AM UTC
+    - cron: '0 7 * * 3'
+  workflow_dispatch:
+    inputs:
+      min-tag-age-days:
+        description: 'Minimum nightly age in days before eligible for promotion (default: 7)'
+        required: false
+        default: '7'
+        type: string
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing or tagging)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: promote-prerelease
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  promote:
+    # IMPORTANT: This repo is for CI testing only.
+    # dry-run is ALWAYS true to prevent accidental marketplace publishes.
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
+    with:
+      min-tag-age-days: ${{ inputs.min-tag-age-days || '7' }}
+      # Pattern for all salesforcedx-vscode-* extensions
+      vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
+      exclude-web-vsix: 'false'
+      # Use 'suite' to indicate this tracks the whole extension suite (all 16 extensions from one nightly build)
+      extension-name: 'salesforcedx-vscode-suite'
+      dry-run: 'true'  # ← FORCE true - this is a test repo, never publish for real
+    secrets: inherit

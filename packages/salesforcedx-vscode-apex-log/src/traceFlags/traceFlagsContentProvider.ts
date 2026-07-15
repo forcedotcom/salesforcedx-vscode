@@ -11,7 +11,6 @@ import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
-import { getRuntime } from '../services/runtime';
 import { isTraceFlagActive } from './traceFlagActive';
 
 export const SCHEME = 'sf-traceflags';
@@ -119,6 +118,8 @@ class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvid
     const orgId = extractOrgIdFromUri(uri);
     if (!orgId) return JSON.stringify({ error: 'Invalid trace flags URI: orgId missing' });
 
+    // Import from runtimeGetter to avoid circular dependency
+    const { getRuntime } = await import('../services/runtimeGetter.js');
     return getRuntime().runPromise(
       fetchTraceFlagsContent().pipe(
         Effect.catchAll((e: unknown) =>

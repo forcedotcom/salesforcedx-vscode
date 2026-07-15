@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,8 +28,9 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.32.2",
+    "@salesforce/core": "^8.28.0",
     "@salesforce/effect-ext-utils": "*",
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-services": "*",
     "@salesforce/vscode-i18n": "*",
@@ -37,10 +38,8 @@
     "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
-    "@effect/opentelemetry": "0.63.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "jest-junit": "14.0.1",
-    "salesforcedx-vscode-services": "*"
+    "jest-junit": "14.0.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -64,6 +63,7 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
@@ -215,11 +215,11 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.org.login.web",
+          "command": "sf.org.login.access.token",
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.org.login.access.token",
+          "command": "sf.org.login.web",
           "when": "sf:project_opened"
         },
         {
@@ -248,7 +248,7 @@
         },
         {
           "command": "sf.org.delete.default",
-          "when": "sf:project_opened && sf:has_target_org && sf:default_org_deletable"
+          "when": "sf:project_opened && sf:has_target_org"
         },
         {
           "command": "sf.org.delete.username",

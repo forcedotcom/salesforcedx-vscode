@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -31,6 +31,7 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-lwc-language-server": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "jest-editor-support": "31.1.2",
@@ -41,6 +42,7 @@
     "which": "1.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "@salesforce/playwright-vscode-ext": "*",
     "@types/uuid": "^3.4.8",
     "@types/which": "^1.3.1",
@@ -53,7 +55,7 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "run:web": "wireit",
-    "vscode:prepublish": "npm prune --production",
+    "vscode:prepublish": "echo 'Skipping prune - using vsce --no-dependencies'",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -75,6 +77,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-lwc-language-server:compile",
         "../salesforcedx-lightning-lsp-common:compile",
@@ -304,7 +307,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
+  "main": "dist/index.js",
   "browser": "./dist/web/index.js",
   "serverPath": [
     "dist",
@@ -337,12 +340,7 @@
       "test": []
     },
     "menus": {
-      "editor/context": [
-        {
-          "command": "sf.lightning.lwc.rename",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/[^\\/]+\\/[^\\/]+\\.(html|css|js|ts|xml|svg)$/"
-        }
-      ],
+      "editor/context": [],
       "editor/title": [
         {
           "command": "sf.lightning.lwc.test.editorTitle.run",
@@ -368,28 +366,11 @@
       "editor/title/context": [],
       "view/title": [],
       "view/item/context": [],
-      "explorer/context": [
-        {
-          "command": "sf.lightning.lwc.rename",
-          "when": "sf:project_opened && resource =~ /.*\\/lwc\\/.*(\\/[^\\/]+\\.(html|css|js|ts|xml|svg))?$/"
-        },
-        {
-          "command": "sf.metadata.lightning.generate.lwc",
-          "when": "explorerResourceIsFolder && resourceFilename == lwc && sf:project_opened"
-        },
-        {
-          "command": "sf.internal.lightning.generate.lwc",
-          "when": "explorerResourceIsFolder && sf:internal_dev"
-        }
-      ],
+      "explorer/context": [],
       "commandPalette": [
         {
           "command": "sf.metadata.lightning.generate.lwc",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.lightning.lwc.rename",
-          "when": "false"
         },
         {
           "command": "sf.internal.lightning.generate.lwc",
@@ -437,10 +418,6 @@
       {
         "command": "sf.internal.lightning.generate.lwc",
         "title": "%lightning_generate_lwc_text%"
-      },
-      {
-        "command": "sf.lightning.lwc.rename",
-        "title": "%rename_lightning_component_text%"
       },
       {
         "command": "sf.lightning.lwc.test.file.debug",

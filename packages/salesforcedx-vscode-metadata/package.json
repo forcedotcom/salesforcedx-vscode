@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -34,9 +34,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.37.0",
+    "@salesforce/source-deploy-retrieve": "^12.32.5",
     "@salesforce/source-tracking": "^7.8.16",
-    "@salesforce/types": "^1.8.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -58,10 +57,9 @@
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "check:circular-deps": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
     "test:compile": "wireit"
   },
@@ -135,25 +133,10 @@
         "coverage"
       ]
     },
-    "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
-      "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "src/**/*.ts",
-        "tsconfig.json",
-        "../../tsconfig.common.json"
-      ],
-      "output": [
-        ".circular-deps.json"
-      ]
-    },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
-        "check:circular-deps",
         "compile"
       ],
       "files": [
@@ -165,7 +148,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -218,7 +201,6 @@
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex-log:vscode:package",
-        "../salesforcedx-vscode-lwc:vscode:package:legacy",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -342,7 +324,7 @@
         ],
         "filenamePatterns": [
           "**/manifest/**/*.xml",
-          "**/*[Pp]ackage.xml"
+          "package.xml"
         ]
       }
     ],
@@ -495,10 +477,6 @@
         {
           "command": "sf.metadata.project.info",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.package.install",
-          "when": "sf:project_opened && sf:has_target_org"
         }
       ],
       "editor/context": [
@@ -694,10 +672,6 @@
       {
         "command": "sf.metadata.project.info",
         "title": "%project_info_text%"
-      },
-      {
-        "command": "sf.package.install",
-        "title": "%package_install_text%"
       }
     ]
   }

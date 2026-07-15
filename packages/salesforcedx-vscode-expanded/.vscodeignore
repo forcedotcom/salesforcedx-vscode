@@ -1,5 +1,39 @@
+# Extension pack only needs metadata files
+# Exclude everything except what's explicitly needed
+
+# Exclude all common directories
+node_modules/**
+dist/**
+out/**
+src/**
+test/**
+tests/**
+.vscode/**
+.vscode-test/**
+.github/**
 .wireit/**
-.circular-deps.json
+scripts/**
+contributing/**
+
+# Exclude config and build files
+*.ts
+*.js
+*.js.map
+*.d.ts
+.eslintrc*
 .eslintcache
-images/**/*
+.gitignore
+.npmignore
+tsconfig*.json
+webpack*.js
+rollup*.js
+.circular-deps.json
+package-lock.json
+yarn.lock
+
+# Include only what's needed
+!package.json
+!LICENSE.txt
+!README.md
+!CHANGELOG.md
 !images/VSCodeBundle.png

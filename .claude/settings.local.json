@@ -11,7 +11,12 @@
       "Bash(sf org:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:code.visualstudio.com)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(gh api *)",
+      "Bash(gh run *)",
+      "Bash(gh pr *)",
+      "Bash(cd ~ && gh pr diff 514 --repo forcedotcom/apex-language-support -- .github/workflows/nightly.yml | grep -A 50 \"^+jobs:\")",
+      "Read(//Users/madhur.shrivastava/**)"
     ],
     "autoApprove": [
       "PostToolUse",

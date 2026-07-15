@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ApplyWorkspaceEditRequest,
-  handleApplyEditWithFs
-} from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
+import { handleApplyEditWithFs } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { isError } from 'effect/Predicate';
 import { window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
@@ -75,7 +72,7 @@ export const createLanguageClient = (
   const client = new LanguageClient('lwcLanguageServer', 'LWC Language Server', clientOptions, worker);
 
   // Handle workspace/applyEdit by writing via workspace.fs (no IDE open);
-  client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
+  client.onRequest('workspace/applyEdit', handleApplyEditWithFs);
 
   // Add event listeners to track client lifecycle
   client.onDidChangeState(event => {

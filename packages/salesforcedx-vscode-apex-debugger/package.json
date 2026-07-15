@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "66.16.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,7 +28,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.32.2",
+    "@salesforce/core": "^8.28.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
@@ -51,7 +51,7 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:bundle:build": "wireit",
-    "vscode:prepublish": "npm prune --production",
+    "vscode:prepublish": "echo 'Skipping prune - using vsce --no-dependencies'",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -110,8 +110,7 @@
       ],
       "output": [
         "dist/index.js",
-        "dist/index.js.map",
-        "dist/node-metafile.json"
+        "dist/index.js.map"
       ]
     },
     "vscode:bundle": {
@@ -166,7 +165,7 @@
   "activationEvents": [
     "onDebugResolve:apex"
   ],
-  "main": "./out/src",
+  "main": "./out/src/index.js",
   "packaging": {
     "assets": [
       "LICENSE.txt",
