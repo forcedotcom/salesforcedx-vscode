@@ -19,7 +19,7 @@ import { ChannelService } from './channelService';
 import { notificationService } from './notificationService';
 import { ProgressNotification } from './progressNotification';
 
-export type CommandletExecutor<T> = {
+type CommandletExecutor<T> = {
   execute(response: ContinueResponse<T>): void | Promise<void>;
   readonly onDidFinishExecution?: Event<number>;
 };

@@ -9,9 +9,3 @@ import type { CancelResponse, ContinueResponse } from './parameterGatherers';
 export type PostconditionChecker<T> = {
   check(inputs: ContinueResponse<T> | CancelResponse): Promise<ContinueResponse<T> | CancelResponse>;
 };
-
-export class EmptyPostChecker implements PostconditionChecker<any> {
-  public async check(inputs: ContinueResponse<any> | CancelResponse): Promise<ContinueResponse<any> | CancelResponse> {
-    return inputs;
-  }
-}
