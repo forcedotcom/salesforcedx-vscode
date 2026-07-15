@@ -11,6 +11,7 @@ export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: [
+    'salesforcedx-vscode-core',
     'salesforcedx-vscode-apex',
     'salesforcedx-vscode-apex-log',
     'salesforcedx-vscode-apex-testing',

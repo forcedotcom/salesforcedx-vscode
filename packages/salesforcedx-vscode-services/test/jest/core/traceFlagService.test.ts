@@ -66,6 +66,7 @@ const buildMockConnectionLayer = (opts: {
           tooling: { query: toolingSpy },
           query: querySpy
         } as unknown as Connection),
+      validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
       listAllAuthorizations: () => Effect.succeed([])
     })
@@ -347,6 +348,7 @@ const buildToolingMutationLayer = (opts: {
         Effect.succeed({
           tooling: { create: createSpy, delete: deleteSpy }
         } as unknown as Connection),
+      validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
       listAllAuthorizations: () => Effect.succeed([])
     })

@@ -5,13 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { StateAggregator } from '@salesforce/core';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { ConfigUtil } from '../../../src/config/configUtil';
 import { WorkspaceContextUtil, WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages/messages';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
 import { TelemetryService } from '../../../src/services/telemetry';
+
+// getConnection delegates to ConnectionService via getServicesApi; the mock (below) supplies an api whose
+// getConnection succeeds with a mock connection and whose reauth check is a no-op.
+const mockGetConnectionSvc = jest.fn();
+const mockValidateReauthSvc = jest.fn();
 
 jest.mock('@salesforce/core', () => ({
   Logger: {
@@ -29,23 +35,33 @@ jest.mock('@salesforce/core', () => ({
   StateAggregator: {
     clearInstance: jest.fn()
   },
-
-  AuthInfo: {
-    create: jest.fn()
-  },
-
-  Connection: {
-    create: jest.fn()
-  },
   envVars: {
     getNumber: jest.fn()
   }
 }));
+jest.mock('@salesforce/effect-ext-utils', () => {
+  const E = require('effect/Effect');
+  const Ctx = require('effect/Context');
+  return {
+    getServicesApi: E.succeed({
+      services: {
+        prebuiltServicesDependencies: Ctx.empty(),
+        ConnectionService: {
+          getConnection: (...args: unknown[]) => mockGetConnectionSvc(...args),
+          validateAccessTokenOrPromptReauth: (...args: unknown[]) => mockValidateReauthSvc(...args)
+        }
+      }
+    })
+  };
+});
 jest.mock('../../../src/config/configUtil');
 
-const authInfoMock = jest.mocked(AuthInfo);
-const connectionMock = jest.mocked(Connection);
 const configUtilMock = jest.mocked(ConfigUtil);
+
+const mockServicesApi = (connection: unknown) => {
+  mockGetConnectionSvc.mockReturnValue(Effect.succeed(connection));
+  mockValidateReauthSvc.mockReturnValue(Effect.void);
+};
 
 const mockedVSCode = jest.mocked(vscode);
 
@@ -101,7 +117,6 @@ describe('WorkspaceContextUtil', () => {
   });
 
   it('test for the constructor', () => {
-    expect(workspaceContextUtil).toHaveProperty('sessionConnections');
     expect(workspaceContextUtil).toHaveProperty('onOrgChangeEmitter');
     expect(workspaceContextUtil).toHaveProperty('cliConfigWatcher', mockWatcher);
     expect(mockFileSystemWatcher).toHaveBeenCalled();
@@ -263,38 +278,20 @@ describe('WorkspaceContextUtil', () => {
   });
 
   describe('getConnection', () => {
-    const mockAuthInfo = { test: 'test' };
     const mockConnection = {
-      authInfo: mockAuthInfo,
       getAuthInfo: () => ({ isAccessTokenFlow: () => false })
     };
 
     beforeEach(() => {
-      jest.spyOn(AuthInfo, 'create');
-      jest.spyOn(Connection, 'create').mockResolvedValue(mockConnection as any);
-      // Reset the getConnection mock for these tests
+      // getConnection delegates to ConnectionService; restore the method spy so the real facade runs.
       getConnectionMock.mockRestore();
-      getConnectionMock = jest.spyOn(workspaceContextUtil, 'getConnection');
+      mockServicesApi(mockConnection);
     });
 
-    it('should return connection for the default org', async () => {
-      authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
-      authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
-      connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
+    it('should delegate to ConnectionService.getConnection (which validates the token internally)', async () => {
       const connection = await workspaceContextUtil.getConnection();
-      expect(connectionMock.create).toHaveBeenCalledWith({
-        authInfo: mockAuthInfo
-      });
+      expect(mockGetConnectionSvc).toHaveBeenCalled();
       expect(connection).toEqual(mockConnection);
-    });
-
-    it('should return a cached connection for the default org if there is one', async () => {
-      authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
-      connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
-      await workspaceContextUtil.getConnection();
-      await workspaceContextUtil.getConnection();
-
-      expect(connectionMock.create).toHaveBeenCalledTimes(1);
     });
 
     it('should not throw error if there is a username set', async () => {

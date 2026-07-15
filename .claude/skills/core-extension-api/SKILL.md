@@ -37,7 +37,7 @@ See [external-consumers](../external-consumers/SKILL.md) for full list and searc
 ```
 channelService, getUserId, getAuthFields, isCLIInstalled,
 SfCommandlet, SfCommandletExecutor, WorkspaceContext,
-telemetryService, workspaceContextUtils, sharedAuthState
+telemetryService, workspaceContextUtils
 ```
 
 ### `services` (class constructors with static methods)

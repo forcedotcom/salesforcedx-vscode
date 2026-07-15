@@ -11,6 +11,7 @@ description: TypeScript coding standards — apply when writing, reviewing, or r
 - prefer map/filter over loops/conditionals
 - avoid mutation
 - avoid `any`
+- derive types from the source of truth; don't hand-write or narrow them to satisfy the compiler.  ex: use ReturnType<> to match something
 - no enums or namespaces (enums compile to weird JS; use string union types instead; exception: interfaces defined outside this repo that we can't change)
 - no runtime errors for developer mistakes (use types to ensure exhaustive switch/case; don't throw for null/undefined when input/consumer is within our control)
 - .ts filenames: camelCase, no hyphens, no leading capitals

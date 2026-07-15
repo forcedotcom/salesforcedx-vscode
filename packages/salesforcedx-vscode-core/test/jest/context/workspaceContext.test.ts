@@ -39,6 +39,10 @@ describe('workspaceContext', () => {
     const mockOrgUserInfo: OrgUserInfo = { username: 'test-username' };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
 
+    const mockConnection = {
+      getAuthInfoFields: jest.fn()
+    };
+
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
       orgShape: undefined as OrgShape | undefined,
@@ -46,10 +50,7 @@ describe('workspaceContext', () => {
       orgEdition: undefined as string | undefined,
       username: 'mock-username',
       alias: 'mock-alias',
-      orgId: 'mock-org-id',
-      getConnection: jest.fn().mockResolvedValue({
-        getAuthInfoFields: jest.fn().mockReturnValue({ orgId: '000', orgEdition: 'Developer Edition' })
-      })
+      orgId: 'mock-org-id'
     };
 
     beforeEach(() => {
@@ -60,7 +61,9 @@ describe('workspaceContext', () => {
 
       getOrgShapeMock.mockResolvedValue('Undefined');
 
-      mockRunPromise.mockResolvedValue(undefined);
+      mockConnection.getAuthInfoFields.mockReturnValue({ orgId: '000', orgEdition: 'Developer Edition' });
+      // orgEdition now flows through the services runtime (ConnectionService), not the utils facade
+      mockRunPromise.mockResolvedValue(mockConnection);
     });
 
     it('should set orgShape and devHubId to undefined if orgShape is Undefined', async () => {
@@ -88,7 +91,8 @@ describe('workspaceContext', () => {
 
     it('should set orgShape and devHubId if orgShape is Scratch', async () => {
       getOrgShapeMock.mockResolvedValue('Scratch');
-      mockRunPromise.mockResolvedValueOnce('test-dev-hub-id');
+      // first runPromise resolves the connection (orgEdition), second resolves the devHubId
+      mockRunPromise.mockResolvedValueOnce(mockConnection).mockResolvedValueOnce('test-dev-hub-id');
       const workspaceContext = WorkspaceContext.getInstance();
 
       await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
@@ -101,9 +105,7 @@ describe('workspaceContext', () => {
 
     it('should set orgEdition from auth fields when orgShape is not Undefined', async () => {
       getOrgShapeMock.mockResolvedValue('Production');
-      mockWorkspaceContextUtil.getConnection.mockResolvedValue({
-        getAuthInfoFields: jest.fn().mockReturnValue({ orgId: '000', orgEdition: 'Developer Edition' })
-      });
+      mockRunPromise.mockResolvedValue(mockConnection);
       const workspaceContext = WorkspaceContext.getInstance();
 
       await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
@@ -114,7 +116,7 @@ describe('workspaceContext', () => {
     it('should not set orgEdition if getConnection fails', async () => {
       mockWorkspaceContextUtil.orgEdition = undefined;
       getOrgShapeMock.mockResolvedValue('Production');
-      mockWorkspaceContextUtil.getConnection.mockRejectedValue(new Error('connection failed'));
+      mockRunPromise.mockRejectedValue(new Error('connection failed'));
       const workspaceContext = WorkspaceContext.getInstance();
 
       await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
