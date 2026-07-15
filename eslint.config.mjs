@@ -811,12 +811,13 @@ export default [
     }
   },
   {
-    // no-explicit-any (W-23354483) and prefer-property-signatures (W-23354485)
-    // enforced for apex-testing src.
+    // no-explicit-any (W-23354483), consistent-type-definitions type (W-23354484),
+    // and prefer-property-signatures (W-23354485) enforced for apex-testing src.
     // Scoped to src/** so the later test-files block keeps them off for tests.
     files: ['packages/salesforcedx-vscode-apex-testing/src/**/*.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'functional/prefer-property-signatures': 'error'
     }
   },
