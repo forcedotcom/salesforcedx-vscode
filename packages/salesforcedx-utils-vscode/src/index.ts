@@ -8,8 +8,6 @@
 export { ChannelService } from './commands/channelService';
 export { notificationService } from './commands/notificationService';
 export { ProgressNotification } from './commands/progressNotification';
-export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
-export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { ConfigUtil } from './config/configUtil';
 export { SFDX_CORE_CONFIGURATION_NAME, TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from './constants';
 export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
@@ -34,8 +32,6 @@ export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
 
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
-export type { PreconditionChecker } from './commands/preconditionCheckers';
-export type { PostconditionChecker } from './commands/postconditionCheckers';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
 export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';

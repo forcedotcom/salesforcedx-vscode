@@ -10,7 +10,6 @@ import {
   CliCommandExecutor,
   workspaceUtils,
   ContinueResponse,
-  EmptyParametersGatherer,
   notificationService,
   ParametersGatherer,
   ProgressNotification
@@ -18,7 +17,7 @@ import {
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getChannelService, getSfCommandletExecutorClass, getTelemetryService } from '../utils/coreExtensionUtils';
-import { SfCommandlet } from '../utils/sfCommandlet';
+import { EmptyParametersGatherer, SfCommandlet } from '../utils/sfCommandlet';
 
 type QueryResponse = {
   status: number;
