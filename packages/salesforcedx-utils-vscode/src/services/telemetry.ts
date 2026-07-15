@@ -25,7 +25,6 @@ import {
   SFDX_EXTENSION_PACK_NAME,
   UNAUTHENTICATED_USER
 } from '../constants';
-import { OrgShape } from '../context/workspaceContextUtil';
 import { shapeFrom } from '../context/workspaceOrgShape';
 import { errorToString } from '../helpers/errorUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
@@ -34,18 +33,14 @@ import { determineReporters, initializeO11yReporter } from '../telemetry/reporte
 import { LogStream } from '../telemetry/reporters/logStream';
 import { O11yReporter } from '../telemetry/reporters/o11yReporter';
 import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
-import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
+import { OrgIdentity, TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 
 type IdentityFromServices = {
   cliId: string | undefined;
   webUserId: string;
-  orgId?: string;
-  orgShape?: OrgShape;
-  devHubId?: string;
-  orgEdition?: string;
-};
+} & OrgIdentity;
 
 const FALLBACK_IDENTITY: IdentityFromServices = {
   cliId: undefined,
@@ -270,22 +265,23 @@ export class TelemetryService implements TelemetryServiceInterface {
     const { productFeatureId: coreEtensionPftId } = extensionPackageJsonSchema.parse(
       extensionContext.extension.packageJSON
     );
+    // fresh object per reporter — avoid aliasing one shared-mutable orgIdentity across instances
     this.reporters
       .filter(r => r instanceof TelemetryFile || r instanceof LogStream)
       // TelemetryFile/LogStream lack userId/webUserId — cache org identity only.
-      .map(r => (r.orgIdentity = orgIdentity));
+      .forEach(r => (r.orgIdentity = { ...orgIdentity }));
     this.reporters
       .filter(r => r instanceof AppInsights || r instanceof O11yReporter)
-      .map(r => {
+      .forEach(r => {
         r.userId = userId;
         r.webUserId = webUserId;
-        r.orgIdentity = orgIdentity;
-        return r;
-      })
+        r.orgIdentity = { ...orgIdentity };
+      });
+    this.reporters
       .filter(r => r instanceof O11yReporter)
       // don't overwrite PFT if already set
       .filter(r => r.productFeatureId === undefined)
-      .map(r => (r.productFeatureId = thisExtensionPftId ?? coreEtensionPftId));
+      .forEach(r => (r.productFeatureId = thisExtensionPftId ?? coreEtensionPftId));
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {

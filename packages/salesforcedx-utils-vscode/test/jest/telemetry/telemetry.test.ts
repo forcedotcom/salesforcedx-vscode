@@ -359,7 +359,12 @@ describe('Telemetry', () => {
     });
 
     describe('updateReporters caches org identity', () => {
-      const orgIdentity = { orgId: '00Dxx', orgShape: 'Scratch', devHubId: '00Dhub', orgEdition: 'Developer Edition' };
+      const orgIdentity = {
+        orgId: '00Dxx',
+        orgShape: 'Scratch' as const,
+        devHubId: '00Dhub',
+        orgEdition: 'Developer Edition'
+      };
       // Object.create(prototype) so `instanceof` matches without running heavy constructors.
       const appInsights = Object.assign(Object.create(AppInsights.prototype), { userId: '', webUserId: '' });
       const o11y = Object.assign(Object.create(O11yReporter.prototype), { userId: '', webUserId: '' });
@@ -377,7 +382,7 @@ describe('Telemetry', () => {
           cliId: 'cli',
           webUserId: 'sha',
           ...orgIdentity
-        } as any);
+        });
       });
 
       it('sets orgIdentity on every reporter class', async () => {
