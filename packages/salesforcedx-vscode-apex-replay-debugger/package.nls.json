@@ -13,5 +13,6 @@
   "sf_update_checkpoints_in_org": "SFDX: Update Checkpoints in Org",
   "sf_toggle_checkpoint": "SFDX: Toggle Checkpoint",
   "run_tests_and_debug": "Debug Tests",
-  "run_single_test_and_debug": "Debug Single Test"
+  "run_single_test_and_debug": "Debug Single Test",
+  "debug_test_success": "Debug Test(s) successfully ran"
 }

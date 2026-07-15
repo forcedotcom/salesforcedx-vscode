@@ -4,13 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
-  CancelResponse,
-  ContinueResponse,
-  LibraryCommandletExecutor,
-  ParametersGatherer,
-  SfCommandlet,
   hasRootWorkspace,
   projectPaths,
   createDirectory,
@@ -22,9 +17,8 @@ import * as path from 'node:path';
 import { format } from 'node:util';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { getRuntime } from '../services/runtime';
 
 export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
 
@@ -36,12 +30,6 @@ export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
   const sec2Digit = makeDoubleDigit(localUTCDate.getSeconds());
 
   return `${localUTCDate.getFullYear()}${month2Digit}${date2Digit}${hour2Digit}${mins2Digit}${sec2Digit}`;
-};
-
-type ApexExecuteParameters = {
-  apexCode?: string;
-  fileName?: string;
-  selection?: vscode.Range;
 };
 
 const getLogFilePath = (): string => {
@@ -65,79 +53,59 @@ const launchReplayDebugger = async (logs?: string): Promise<boolean> => {
   return true;
 };
 
-class AnonApexGatherer implements ParametersGatherer<ApexExecuteParameters> {
-  public gather(): Promise<CancelResponse | ContinueResponse<ApexExecuteParameters>> {
-    if (hasRootWorkspace()) {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        return Promise.resolve({ type: 'CANCEL' });
-      }
+type AnonApexContext =
+  | { kind: 'code'; apexCode: string; selectionRange?: vscode.Range; documentUri: URI }
+  | { kind: 'file'; filePath: string; documentUri: URI };
 
-      const document = editor.document;
-      if (!editor.selection.isEmpty || document.isUntitled || document.isDirty) {
-        return Promise.resolve({
-          type: 'CONTINUE',
-          data: {
-            apexCode: !editor.selection.isEmpty ? document.getText(editor.selection) : document.getText(),
-            selection: !editor.selection.isEmpty
-              ? new vscode.Range(editor.selection.start, editor.selection.end)
-              : undefined
-          }
-        });
-      }
-
-      return Promise.resolve({
-        type: 'CONTINUE',
-        data: { fileName: document.uri.fsPath }
-      });
-    }
-    return Promise.resolve({ type: 'CANCEL' });
+const getAnonApexContext = (): AnonApexContext | undefined => {
+  if (!hasRootWorkspace()) return undefined;
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return undefined;
+  const document = editor.document;
+  if (!editor.selection.isEmpty || document.isUntitled || document.isDirty) {
+    return {
+      kind: 'code',
+      apexCode: !editor.selection.isEmpty ? document.getText(editor.selection) : document.getText(),
+      selectionRange: !editor.selection.isEmpty
+        ? new vscode.Range(editor.selection.start, editor.selection.end)
+        : undefined,
+      documentUri: URI.parse(document.uri.toString())
+    };
   }
-}
+  return { kind: 'file', filePath: document.uri.fsPath, documentUri: URI.file(document.uri.fsPath) };
+};
 
-class AnonApexLibraryDebugExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
-  constructor() {
-    super(nls.localize('apex_execute_text'), 'apex_execute_library', OUTPUT_CHANNEL);
-  }
+const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug')(function* () {
+  const ctx = getAnonApexContext();
+  if (!ctx) return false;
 
-  public async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
-    const { apexCode, fileName: apexFilePath, selection } = response.data;
-    const code = apexCode ?? (apexFilePath ? await readFile(apexFilePath) : undefined);
-    if (!code) {
-      return false;
-    }
+  const code = ctx.kind === 'code' ? ctx.apexCode : yield* Effect.promise(() => readFile(ctx.filePath));
+  if (!code) return false;
 
-    let execResult;
-    try {
-      execResult = await Effect.runPromise(
-        Effect.gen(function* () {
-          const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          const { result, logBody } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(code);
-          const documentUri = apexFilePath
-            ? URI.file(apexFilePath)
-            : URI.parse(vscode.window.activeTextEditor!.document.uri.toString());
-          yield* api.services.ExecuteAnonymousService.reportExecResult(result, documentUri, selection?.start.line);
-          return { result, logBody };
-        }).pipe(Effect.provide(AllServicesLayer))
-      );
-    } catch (error) {
-      void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
-      return false;
-    }
-
-    if (!execResult?.result) {
-      return false;
-    }
-
-    return await launchReplayDebugger(execResult.logBody ?? undefined);
-  }
-}
-
-export const anonApexDebug = async () => {
-  const commandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new AnonApexGatherer(),
-    new AnonApexLibraryDebugExecutor()
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { result, logBody } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(code);
+  yield* api.services.ExecuteAnonymousService.reportExecResult(
+    result,
+    ctx.documentUri,
+    ctx.kind === 'code' ? ctx.selectionRange?.start.line : undefined
   );
-  await commandlet.run();
+
+  if (!result.compiled || !result.success) return false;
+
+  return yield* Effect.promise(() => launchReplayDebugger(logBody ?? undefined));
+});
+
+export const anonApexDebug = async (): Promise<void> => {
+  const success = await vscode.window.withProgress(
+    { location: vscode.ProgressLocation.Notification, title: nls.localize('apex_execute_text'), cancellable: false },
+    () =>
+      getRuntime()
+        .runPromise(executeAnonApexDebug())
+        .catch((error: unknown) => {
+          void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
+        })
+  );
+  if (success) {
+    void vscode.window.showInformationMessage(nls.localize('apex_execute_debug_success'));
+  }
 };

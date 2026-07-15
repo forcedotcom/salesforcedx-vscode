@@ -9,6 +9,13 @@
 - invariant: **always single-org** — only the org it started in, no cross-org switch (why the org extension is excluded)
 - _Avoid_: "web extension" (ambiguous), "vscode.dev mode", "browser mode"
 
+### Effect boundary
+
+- the exported `async` function that calls `getRuntime().runPromise(effectFn())` and owns all user-facing error display for that command
+- every VS Code command that uses Effect has exactly one; errors that escape the Effect channel surface here as Promise rejections and are caught with `.catch()`
+- error display belongs here, not inside the Effect pipeline — the pipeline should let failures propagate through the channel
+- contrast: an **imperative core** is an `async` function that sits inside the boundary but hasn't been fully Effect-ified — it handles some errors internally via try/catch, leaving others to escape unhandled; this is a partially migrated state, not the target pattern
+
 ### HashableUri
 
 - structural wrapper around `vscode-uri` `URI` adding Effect `Hash`/`Equal` symbols
