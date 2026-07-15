@@ -8,43 +8,25 @@ import { TextDocument } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../../src';
 
 describe('HTML Hover', () => {
-  const assertHover = (
-    value: string,
-    expectedHoverLabel: string | undefined,
-    expectedHoverOffset: number | undefined
-  ): void => {
-    const offset = value.indexOf('|');
-    value = value.substr(0, offset) + value.substr(offset + 1);
+  const assertHoverFor =
+    (uri: string, languageId: string) =>
+    (value: string, expectedHoverLabel: string | undefined, expectedHoverOffset: number | undefined): void => {
+      const offset = value.indexOf('|');
+      value = value.substr(0, offset) + value.substr(offset + 1);
 
-    const document = TextDocument.create('test://test/test.html', 'html', 0, value);
+      const document = TextDocument.create(uri, languageId, 0, value);
 
-    const position = document.positionAt(offset);
-    const ls = htmlLanguageService.getLanguageService();
-    const htmlDoc = ls.parseHTMLDocument(document);
+      const position = document.positionAt(offset);
+      const ls = htmlLanguageService.getLanguageService();
+      const htmlDoc = ls.parseHTMLDocument(document);
 
-    const hover = ls.doHover(document, position, htmlDoc);
-    expect(hover?.contents[0].value).toBe(expectedHoverLabel);
-    expect(hover && document.offsetAt(hover.range.start)).toBe(expectedHoverOffset);
-  };
+      const hover = ls.doHover(document, position, htmlDoc);
+      expect(hover?.contents[0].value).toBe(expectedHoverLabel);
+      expect(hover && document.offsetAt(hover.range.start)).toBe(expectedHoverOffset);
+    };
 
-  const assertVisualforceHover = (
-    value: string,
-    expectedHoverLabel: string | undefined,
-    expectedHoverOffset: number | undefined
-  ): void => {
-    const offset = value.indexOf('|');
-    value = value.substr(0, offset) + value.substr(offset + 1);
-
-    const document = TextDocument.create('test://test/test.page', 'visualforce', 0, value);
-
-    const position = document.positionAt(offset);
-    const ls = htmlLanguageService.getLanguageService();
-    const htmlDoc = ls.parseHTMLDocument(document);
-
-    const hover = ls.doHover(document, position, htmlDoc);
-    expect(hover?.contents[0].value).toBe(expectedHoverLabel);
-    expect(hover && document.offsetAt(hover.range.start)).toBe(expectedHoverOffset);
-  };
+  const assertHover = assertHoverFor('test://test/test.html', 'html');
+  const assertVisualforceHover = assertHoverFor('test://test/test.page', 'visualforce');
 
   test('Single', () => {
     assertHover('|<html></html>', undefined, undefined);

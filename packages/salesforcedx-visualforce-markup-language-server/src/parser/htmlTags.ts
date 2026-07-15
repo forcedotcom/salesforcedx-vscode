@@ -1171,13 +1171,13 @@ export function getValuesDefault(
 ): string[] {
   const prefix = attribute + ':';
   const processAttributes = (attributes: string[]): string[] =>
-    attributes.reduce<string[]>((acc, attr) => {
+    attributes.flatMap(attr => {
       if (attr.length > prefix.length && strings.startsWithCaseInsentively(attr, prefix)) {
         const typeInfo = attr.substr(prefix.length);
-        return typeInfo === 'v' ? [...acc, attribute] : [...acc, ...(valueSets[typeInfo] ?? [])];
+        return typeInfo === 'v' ? [attribute] : (valueSets[typeInfo] ?? []);
       }
-      return acc;
-    }, []);
+      return [];
+    });
   const tagAttributes = tag && tagSet[tag] && tagSet[tag].attributes ? tagSet[tag].attributes : [];
   const customTagAttributes = customTags && customTags[tag] ? customTags[tag] : [];
   return [...processAttributes(tagAttributes), ...processAttributes(globalAttributes), ...processAttributes(customTagAttributes)];
