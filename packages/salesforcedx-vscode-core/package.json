@@ -38,7 +38,7 @@
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
-    "applicationinsights": "1.0.7",
+    "applicationinsights": "1.8.10",
     "effect": "^3.21.2",
     "fast-xml-parser": "^5.7.1",
     "glob": "^11.1.0",
@@ -67,7 +67,7 @@
     "packageUpdates": {
       "main": "dist/src/index.js",
       "dependencies": {
-        "applicationinsights": "1.0.7",
+        "applicationinsights": "1.8.10",
         "@salesforce/o11y-reporter": "^1.8.5"
       },
       "devDependencies": {}

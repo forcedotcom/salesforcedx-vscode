@@ -17,7 +17,7 @@
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@vscode/extension-telemetry": "^1.0.0",
-    "applicationinsights": "1.0.7",
+    "applicationinsights": "1.8.10",
     "cross-spawn": "7.0.6",
     "effect": "^3.21.2",
     "o11y_schema": "^264.89.0",
