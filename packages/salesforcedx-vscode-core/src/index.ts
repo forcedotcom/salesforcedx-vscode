@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { buildAllServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
-import {
-  ChannelService,
-  SFDX_CORE_CONFIGURATION_NAME,
-  SfCommandlet,
-  TelemetryService
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
@@ -51,7 +46,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     channelService,
     getUserId,
     getAuthFields,
-    SfCommandlet,
     SfCommandletExecutor,
     WorkspaceContext,
     telemetryService,
@@ -201,7 +195,6 @@ export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getUserId: typeof getUserId;
   getAuthFields: typeof getAuthFields;
-  SfCommandlet: typeof SfCommandlet;
   SfCommandletExecutor: typeof SfCommandletExecutor;
   WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;

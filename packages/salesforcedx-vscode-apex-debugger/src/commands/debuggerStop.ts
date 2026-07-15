@@ -10,19 +10,14 @@ import {
   CliCommandExecutor,
   workspaceUtils,
   ContinueResponse,
-  EmptyParametersGatherer,
   notificationService,
   ParametersGatherer,
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import {
-  getChannelService,
-  getSfCommandlet,
-  getSfCommandletExecutorClass,
-  getTelemetryService
-} from '../utils/coreExtensionUtils';
+import { getChannelService, getSfCommandletExecutorClass, getTelemetryService } from '../utils/coreExtensionUtils';
+import { EmptyParametersGatherer, SfCommandlet } from '../utils/sfCommandlet';
 
 type QueryResponse = {
   status: number;
@@ -111,7 +106,6 @@ class StopActiveDebuggerSessionExecutor {
       if (queryResponse?.result?.size === 1) {
         const sessionIdToUpdate = queryResponse.result.records[0].Id;
         if (sessionIdToUpdate?.startsWith('07a')) {
-          const SfCommandlet = await getSfCommandlet();
           const sessionDetachCommandlet = new SfCommandlet(
             sfProjectPreconditionChecker,
             new IdGatherer(sessionIdToUpdate),
@@ -127,7 +121,6 @@ class StopActiveDebuggerSessionExecutor {
 }
 
 export const debuggerStop = async () => {
-  const SfCommandlet = await getSfCommandlet();
   const sessionStopCommandlet = new SfCommandlet(
     sfProjectPreconditionChecker,
     new EmptyParametersGatherer(),
