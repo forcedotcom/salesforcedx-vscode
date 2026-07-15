@@ -27,9 +27,6 @@ const getActiveSalesforceCoreExtension = async (): Promise<vscode.Extension<Sale
 /** Get the channel service from the Salesforce Core extension */
 export const getChannelService = async () => (await getActiveSalesforceCoreExtension()).exports.channelService;
 
-/** Get the SfCommandlet class from the Salesforce Core extension */
-export const getSfCommandlet = async () => (await getActiveSalesforceCoreExtension()).exports.SfCommandlet;
-
 /** Get the telemetry service from the Salesforce Core extension */
 export const getTelemetryService = async () => (await getActiveSalesforceCoreExtension()).exports.telemetryService;
 
