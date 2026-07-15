@@ -39,7 +39,10 @@ export const setupConsoleMonitoring = (page: Page): ConsoleError[] => {
 export const setupNetworkMonitoring = (page: Page): NetworkError[] => {
   const networkErrors: NetworkError[] = [];
   page.on('response', response => {
-    if (!response.ok()) {
+    // 3xx is a followed redirect, not a failure — code-server redirects its root (/) to the
+    // versioned workbench path on load, which would otherwise surface as a spurious HTTP 302.
+    const status = response.status();
+    if (!response.ok() && !(status >= 300 && status < 400)) {
       networkErrors.push({
         status: response.status(),
         url: response.url(),

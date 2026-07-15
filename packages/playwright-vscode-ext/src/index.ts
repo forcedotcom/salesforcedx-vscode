@@ -166,6 +166,7 @@ export { saveScreenshot } from './shared/screenshotUtils';
 // Fixtures
 export { createEmptyTestWorkspace, createTestWorkspace } from './fixtures/desktopWorkspace';
 export { createDesktopTest } from './fixtures/createDesktopTest';
+export { createContainerTest } from './fixtures/createContainerTest';
 export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureTypes';
 
 // Web
@@ -174,3 +175,4 @@ export { createHeadlessServer, setupSignalHandlers } from './web/createHeadlessS
 // Config factories
 export { createWebConfig } from './config/createWebConfig';
 export { createDesktopConfig } from './config/createDesktopConfig';
+export { createContainerConfig } from './config/createContainerConfig';

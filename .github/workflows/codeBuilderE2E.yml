@@ -1,0 +1,262 @@
+name: Code Builder E2E (Playwright)
+
+# Runs Playwright specs against the real Code Builder workspace-manager image, swapping in the
+# unreleased monorepo VSIX built by an upstream Build All run (downloaded by runId — the same bytes
+# about to ship, not a rebuild). Linux-only single job — the code-server runtime is identical
+# regardless of host OS, and containers are Linux.
+#
+# Manual/opt-in for now (workflow_dispatch/workflow_call); promote into e2e.yml's fan-out, which
+# already threads the build runId, once it is reliably green.
+
+on:
+  workflow_dispatch:
+    inputs:
+      runId:
+        description: 'Run ID of the Build All run that produced the VSIX under test.'
+        required: true
+        type: string
+      artifactName:
+        description: 'Name of the VSIX artifact uploaded by that run.'
+        required: false
+        type: string
+        default: 'VS Code Extensions'
+      image_tag:
+        description: 'Code Builder image tag to pull (rolling: latest).'
+        required: false
+        type: string
+        default: 'latest'
+  workflow_call:
+    inputs:
+      runId:
+        required: true
+        type: string
+      artifactName:
+        required: false
+        type: string
+        default: 'VS Code Extensions'
+      image_tag:
+        required: false
+        type: string
+        default: 'latest'
+
+concurrency:
+  group: ci-${{ github.ref }}-codeBuilderE2E
+  cancel-in-progress: true
+
+jobs:
+  code-builder-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      # Pull the private CB image with this repo's GITHUB_TOKEN — the package's Manage Actions
+      # access grants salesforcedx-vscode read on workspace-manager/codebuilder.
+      packages: read
+    env:
+      CI: 1
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      SF_TEMP_SHOW_SECRETS: true
+      CONTAINER_NAME: codebuilder-e2e
+      CODE_BUILDER_URL: http://localhost:8123
+      RUN_ID: ${{ inputs.runId }}
+      ARTIFACT_NAME: ${{ inputs.artifactName }}
+      # Rolling tag by default. inputs.image_tag is a trusted dispatch/call input; kept in env
+      # (never inlined into a run: command) to avoid script injection.
+      IMAGE: ghcr.io/forcedotcom/code-builder-images/workspace-manager/codebuilder:${{ inputs.image_tag || 'latest' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.22.3'
+          cache: 'npm'
+
+      - uses: google/wireit@setup-github-actions-caching/v2
+
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+
+      - name: Install Salesforce CLI
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
+          retry_wait_seconds: 30
+
+      - name: Install Playwright chromium
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npx playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      # Pull the VSIX under test from the upstream Build All run (same bytes about to ship) rather
+      # than building here — mirrors the desktop e2e leaves, which test the artifacts, not a rebuild.
+      - name: Download VSIX under test
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: built-vsix
+          run-id: ${{ env.RUN_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The VSIX version (e.g. 67.4.0) is NOT bumped until release, so it matches the marketplace
+      # build too — the semver alone can't tell a reader whether these are shipping or pre-release
+      # bytes. Log the source run's real provenance (workflow, branch, commit, timestamp) so it's
+      # unambiguous which assets are under test, then list the files.
+      - name: Provenance of VSIX under test
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::group::VSIX under test — provenance"
+          if meta="$(gh run view "$RUN_ID" -R forcedotcom/salesforcedx-vscode \
+            --json workflowName,displayTitle,headBranch,headSha,event,createdAt,url 2>/dev/null)"; then
+            echo "These extensions were built by:"
+            echo "  Source run:   $(jq -r .url <<<"$meta")"
+            echo "  Workflow:     $(jq -r .workflowName <<<"$meta")"
+            echo "  Trigger:      $(jq -r .event <<<"$meta")"
+            echo "  Branch:       $(jq -r .headBranch <<<"$meta")"
+            echo "  Commit:       $(jq -r .headSha <<<"$meta")"
+            echo "  Commit title: $(jq -r .displayTitle <<<"$meta")"
+            echo "  Built at:     $(jq -r .createdAt <<<"$meta") (UTC)"
+          else
+            echo "Could not resolve run $RUN_ID metadata (run may be expired/deleted)."
+          fi
+          echo "  Artifact:     $ARTIFACT_NAME (from run $RUN_ID)"
+          echo "NOTE: the semver below is not release-bumped, so it also matches the marketplace build."
+          echo "The provenance above is the source of truth for what is under test."
+          echo "::endgroup::"
+          ls -la built-vsix
+
+      # Pull the private CB image with this repo's built-in GITHUB_TOKEN — the package's Manage
+      # Actions access grants salesforcedx-vscode read, so no App/PAT/private key is needed.
+      - name: Log in to ghcr.io
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Pull Code Builder image
+        run: docker pull "$IMAGE"
+
+      - name: Auth to dev hub
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+          retry_wait_seconds: 30
+
+      - name: Generate minimal project
+        run: sf project generate -n minimal-project
+
+      - name: Create scratch org and export auth
+        shell: bash
+        working-directory: minimal-project
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30 > org.json
+          INSTANCE_URL="$(sf org display -o "$MINIMAL_ORG_ALIAS" --json | jq -r '.result.instanceUrl')"
+          ACCESS_TOKEN="$(sf org display -o "$MINIMAL_ORG_ALIAS" --json | jq -r '.result.accessToken')"
+          echo "INSTANCE_URL=$INSTANCE_URL" >> "$GITHUB_ENV"
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "SF_ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
+
+      # code-server serves on 58080 (--auth none); publish to 8123. Org auth runs at container start
+      # from SF_ACCESS_TOKEN/INSTANCE_URL, and re-runs on the restart below. The fixture project is
+      # bind-mounted (seed step below points code-server at it) — no SFDX_COBU_PROJECTNAME, since that
+      # generate path would collide with the mount and only runs on first boot anyway.
+      - name: Run container
+        run: |
+          docker run -d --name "$CONTAINER_NAME" \
+            -e SF_ACCESS_TOKEN="$SF_ACCESS_TOKEN" \
+            -e INSTANCE_URL="$INSTANCE_URL" \
+            -v "$PWD/packages/salesforcedx-vscode-core/test/playwright/fixtures/container-workspace:/home/codebuilder/fixture-project" \
+            -p 8123:58080 "$IMAGE"
+
+      - name: Wait for workbench
+        shell: bash
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS "$CODE_BUILDER_URL" >/dev/null 2>&1; then echo "up after $((i * 2))s"; exit 0; fi
+            sleep 2
+          done
+          echo "::error::Code Builder never became reachable at $CODE_BUILDER_URL"; docker logs "$CONTAINER_NAME" || true; exit 1
+
+      # An untrusted workspace opens in Restricted Mode, where the Salesforce extensions don't
+      # activate and their commands never register. The desktop fixture uses --disable-workspace-trust;
+      # the code-server equivalent is this machine setting (workspace-agnostic, so it covers the mounted
+      # fixture), written before the swap restart so the host boots trusting the workspace.
+      - name: Disable workspace trust in container
+        run: |
+          docker exec "$CONTAINER_NAME" bash -lc '
+            set -e
+            # docker exec runs as root; write the codebuilder user'"'"'s settings.json (the path
+            # start.sh merges into), not $HOME (/root). This is the belt-and-suspenders trust lever;
+            # the baked settings already set it, but a restart could re-open the workspace untrusted.
+            f=/home/codebuilder/.local/share/code-server/User/settings.json
+            mkdir -p "$(dirname "$f")"
+            [ -s "$f" ] || echo "{}" > "$f"
+            tmp="$(mktemp)"
+            jq ".\"security.workspace.trust.enabled\" = false" "$f" > "$tmp" && mv "$tmp" "$f"
+            chown codebuilder:codebuilder "$f"
+          '
+
+      # Point code-server at the bind-mounted fixture (writes coder.json). Before the swap restart so
+      # the host boots opening the fixture. Bypasses the image's first-boot generate path on purpose.
+      - name: Seed workspace with fixture project
+        run: npx ts-node scripts/codeBuilderSeedWorkspace.ts "$CONTAINER_NAME"
+
+      - name: Swap in built extensions
+        run: npx ts-node scripts/codeBuilderSwapExtensions.ts "$CONTAINER_NAME" "$PWD/built-vsix"
+
+      # Restart re-scans /base/extension-overrides (swap takes effect) AND re-runs sfdx-org-auth.sh
+      # (fresh org login). Single lever for both.
+      - name: Restart container
+        shell: bash
+        run: |
+          docker restart "$CONTAINER_NAME"
+          for i in $(seq 1 60); do
+            if curl -fsS "$CODE_BUILDER_URL" >/dev/null 2>&1; then echo "up after $((i * 2))s"; exit 0; fi
+            sleep 2
+          done
+          echo "::error::Code Builder never came back after restart"; docker logs "$CONTAINER_NAME" || true; exit 1
+
+      - name: Verify extension versions (gate)
+        run: npx ts-node scripts/codeBuilderVerifyExtensions.ts "$CONTAINER_NAME" "$PWD/built-vsix"
+
+      - name: Run Code Builder E2E tests
+        run: npm run test:container -w salesforcedx-vscode-core -- --reporter=html
+
+      - name: Container logs
+        if: always()
+        run: docker logs "$CONTAINER_NAME" || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-codebuilder
+          path: packages/salesforcedx-vscode-core/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-codebuilder
+          path: packages/salesforcedx-vscode-core/test-results
+          if-no-files-found: ignore
+
+      - name: Teardown container
+        if: always()
+        continue-on-error: true
+        run: docker rm -f "$CONTAINER_NAME" || true
+
+      - name: Cleanup scratch org
+        if: always()
+        continue-on-error: true
+        run: sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

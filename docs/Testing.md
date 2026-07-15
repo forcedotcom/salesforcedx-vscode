@@ -37,7 +37,10 @@ Use ex: `npm run test -w packages/salesforcedx-vscode-soql -- --coverage` to see
 
 e2e is even more crucial in the extensions because much of the extensions API is "run-time only." You **could** write unit tests to check vscode notifications, but you're mocking all of that and there's no way to assert that you're doing it correctly. It's more useful to have an e2e environment running **real** vscode and asserting it does what you expect.
 
-These run locally and in Github Actions using Playwright.
+These run locally and in Github Actions using Playwright. Two flavors exist:
+
+- **VS Code Desktop** (`test:desktop`) — runs against a real VS Code instance downloaded via `@vscode/test-electron`.
+- **Code Builder container** (`test:container:local`) — runs the core extension against the real Code Builder image, swapping the extensions under test into the running `code-server` container. `npm run test:container:local` stands up the container and runs the specs in one command; see the playwright-e2e skill for prereqs and debugging.
 
 ### playwright
 
