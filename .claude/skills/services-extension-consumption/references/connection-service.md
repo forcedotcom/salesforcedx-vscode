@@ -23,7 +23,7 @@ Given → alias-resolve it, skip the config `target-org` lookup, and do NOT muta
 
 Returns `Connection` from `@salesforce/core`.
 
-Auto-validates access-token (session-ID) flow connections via `identity()` before returning. On failure: logs to the `Salesforce Services` channel, shows a reauth modal, and (if accepted) dispatches `sf.org.login.web`, then fails with `AccessTokenExpiredError`. No-op for refreshable (web/JWT) flows. Consumers get the reauth modal automatically — no need to re-implement token validation.
+Auto-validates access-token (session-ID) flow connections via `identity()` before returning. On failure: shows a reauth modal, and (if accepted) dispatches `sf.org.login.web`, then fails with `AccessTokenExpiredError`. No-op for refreshable (web/JWT) flows. Consumers get the reauth modal automatically — no need to re-implement token validation.
 
 ### validateAccessTokenOrPromptReauth
 
