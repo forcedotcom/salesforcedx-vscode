@@ -8,13 +8,10 @@ import { Command, CommandOutput, SfCommandBuilder, CommandExecution } from '@sal
 import {
   CancelResponse,
   CliCommandExecutor,
-  CompositeParametersGatherer,
   ContinueResponse,
   createDirectory,
   notificationService,
   ParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker,
   ProgressNotification,
   projectPaths,
   readFile,
@@ -31,7 +28,12 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
 import { getChannelService, getSfCommandletExecutorClass } from '../../utils/coreExtensionUtils';
-import { SfCommandlet } from '../../utils/sfCommandlet';
+import {
+  CompositeParametersGatherer,
+  PostconditionChecker,
+  PreconditionChecker,
+  SfCommandlet
+} from '../../utils/sfCommandlet';
 
 type InstalledPackageInfo = {
   id: string;

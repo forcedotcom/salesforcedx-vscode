@@ -8,9 +8,7 @@ import {
   CancelResponse,
   ContinueResponse,
   notificationService,
-  ParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
@@ -18,6 +16,44 @@ type CommandletExecutor<T> = {
   execute(response: ContinueResponse<T>): void | Promise<void>;
   readonly onDidFinishExecution?: vscode.Event<number>;
 };
+
+export type PreconditionChecker = {
+  check(): Promise<boolean> | boolean;
+};
+
+export type PostconditionChecker<T> = {
+  check(inputs: ContinueResponse<T> | CancelResponse): Promise<ContinueResponse<T> | CancelResponse>;
+};
+
+export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
+  private readonly gatherers: ParametersGatherer<any>[];
+  constructor(...gatherers: ParametersGatherer<any>[]) {
+    this.gatherers = gatherers;
+  }
+  public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
+    const aggregatedData: any = {};
+    for (const gatherer of this.gatherers) {
+      const input = await gatherer.gather();
+      if (input.type === 'CONTINUE') {
+        Object.keys(input.data).map(key => (aggregatedData[key] = input.data[key]));
+      } else {
+        return {
+          type: 'CANCEL'
+        };
+      }
+    }
+    return {
+      type: 'CONTINUE',
+      data: aggregatedData
+    };
+  }
+}
+
+export class EmptyParametersGatherer implements ParametersGatherer<{}> {
+  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    return Promise.resolve({ type: 'CONTINUE', data: {} });
+  }
+}
 
 class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(inputs: ContinueResponse<any> | CancelResponse): Promise<ContinueResponse<any> | CancelResponse> {
