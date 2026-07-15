@@ -811,10 +811,12 @@ export default [
   },
   {
     // no-explicit-any enforced for apex-testing src (W-23354483).
+    // consistent-type-definitions type enforced for apex-testing src (W-23354484).
     // Scoped to src/** so the later test-files block keeps it off for tests.
     files: ['packages/salesforcedx-vscode-apex-testing/src/**/*.ts'],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'error'
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type']
     }
   },
   {
