@@ -6,24 +6,13 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { OrgShape } from '@salesforce/salesforcedx-utils-vscode';
+import { OrgShape, shapeFrom } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
 
-type OrgShapeInfo = { isScratch?: boolean; isSandbox?: boolean; alias?: string; username?: string };
-
-/**
- * Maps DefaultOrgInfo fields from `defaultOrgRef` to an OrgShape literal.
- * Precedence: Scratch > Sandbox > Production (when alias or username known) > Undefined.
- * Exported for unit-test coverage of the precedence mapping.
- */
-export const shapeFrom = (info: OrgShapeInfo): OrgShape => {
-  if (info.isScratch) return 'Scratch';
-  if (info.isSandbox) return 'Sandbox';
-  if (info.alias ?? info.username) return 'Production';
-  return 'Undefined';
-};
+// Re-exported so existing core test import (`../../../src/context/workspaceOrgShape`) stays green.
+export { shapeFrom };
 
 const getOrgShapeEffect = Effect.fn('workspaceOrgShape.getOrgShape')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
