@@ -8,13 +8,10 @@ import { Command, CommandOutput, SfCommandBuilder, CommandExecution } from '@sal
 import {
   CancelResponse,
   CliCommandExecutor,
-  CompositeParametersGatherer,
   ContinueResponse,
   createDirectory,
   notificationService,
   ParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker,
   ProgressNotification,
   projectPaths,
   readFile,
@@ -30,7 +27,13 @@ import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instr
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
-import { getChannelService, getSfCommandlet, getSfCommandletExecutorClass } from '../../utils/coreExtensionUtils';
+import { getChannelService, getSfCommandletExecutorClass } from '../../utils/coreExtensionUtils';
+import {
+  CompositeParametersGatherer,
+  PostconditionChecker,
+  PreconditionChecker,
+  SfCommandlet
+} from '../../utils/sfCommandlet';
 
 type InstalledPackageInfo = {
   id: string;
@@ -486,7 +489,6 @@ class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
 }
 
 export const isvDebugBootstrap = async (): Promise<void> => {
-  const SfCommandlet = await getSfCommandlet();
   const forceIdeUrlGatherer = new EnterForceIdeUri();
   const workspaceChecker = new EmptyPreChecker();
   const parameterGatherer = new CompositeParametersGatherer(

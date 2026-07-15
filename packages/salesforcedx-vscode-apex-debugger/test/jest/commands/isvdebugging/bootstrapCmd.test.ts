@@ -14,9 +14,6 @@ jest.spyOn(vscode.extensions, 'getExtension').mockReturnValue({
     SfCommandletExecutor: class MockSfCommandletExecutor {
       // Mock implementation
     },
-    SfCommandlet: class MockSfCommandlet {
-      // Mock implementation
-    },
     channelService: {
       appendLine: jest.fn(),
       streamCommandOutput: jest.fn(),
