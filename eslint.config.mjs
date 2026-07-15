@@ -774,6 +774,7 @@ export default [
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
+      'local/no-effect-service-accessor-calls': 'error',
       'local/no-successive-annotate-current-span': 'error'
     }
   },
