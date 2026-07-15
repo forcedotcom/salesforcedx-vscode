@@ -9,12 +9,12 @@ import { SUITE_PARENT_ID, TEST_ID_PREFIXES } from '../constants';
 
 type TestItemType = 'suite' | 'class' | 'method' | 'suite-class' | 'namespace' | 'package' | 'unknown';
 
-interface TestIdInfo {
+type TestIdInfo = {
   type: TestItemType;
   name: string;
   suiteName?: string;
   className?: string;
-}
+};
 
 /**
  * Parses a test item ID and returns information about its type and name

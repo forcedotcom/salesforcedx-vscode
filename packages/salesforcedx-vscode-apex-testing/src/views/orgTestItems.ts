@@ -175,7 +175,7 @@ export const getPackageLabelAndId = (
 /**
  * Context required to create class and method TestItems. Passed to createClassAndMethodsFactory.
  */
-interface CreateClassAndMethodsContext {
+type CreateClassAndMethodsContext = {
   controller: vscode.TestController;
   classItems: Map<string, vscode.TestItem>;
   methodItems: Map<string, vscode.TestItem>;
@@ -183,7 +183,7 @@ interface CreateClassAndMethodsContext {
   orgKey: string;
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
-}
+};
 
 /**
  * Returns a function that creates a class TestItem and its method TestItems, and registers them in the given maps.
