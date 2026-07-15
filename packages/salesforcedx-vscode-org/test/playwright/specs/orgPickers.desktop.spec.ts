@@ -86,12 +86,14 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await waitForOutputChannelText(page, { expectedText: 'Username' });
   });
 
-  await test.step('DISPLAY cancel modal: Esc on the sensitive-info modal maps to CANCEL (no error toast, no table)', async () => {
+  await test.step('DISPLAY cancel modal: Cancel on the sensitive-info modal maps to CANCEL (no error toast, no table)', async () => {
     await executeCommandWithCommandPalette(page, packageNls.org_display_username_text);
     await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
     await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
-    // dismiss the sensitive-info modal -> UserCancellationError -> CANCEL, no org info shown.
-    await page.keyboard.press('Escape');
+    // The modal appears only after an org SOQL round-trip; wait for it, then click Cancel (a blind Esc
+    // races the modal render — if it lands before the modal appears, the modal lingers and blocks the
+    // next command palette). Cancel -> UserCancellationError -> CANCEL, no org info shown.
+    await clickModalDialogButton(page, 'Cancel', 30_000);
     await expectNoErrorNotification(page);
   });
 
