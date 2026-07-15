@@ -18,6 +18,8 @@ import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
+import { OrgShape } from '../context/workspaceContextUtil';
+import { shapeFrom } from '../context/workspaceOrgShape';
 import {
   DEFAULT_AIKEY,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -37,11 +39,19 @@ import { isInternalHost } from '../telemetry/utils/isInternal';
 type IdentityFromServices = {
   cliId: string | undefined;
   webUserId: string;
+  orgId?: string;
+  orgShape?: OrgShape;
+  devHubId?: string;
+  orgEdition?: string;
 };
 
 const FALLBACK_IDENTITY: IdentityFromServices = {
   cliId: undefined,
-  webUserId: UNAUTHENTICATED_USER
+  webUserId: UNAUTHENTICATED_USER,
+  orgId: undefined,
+  orgShape: undefined,
+  devHubId: undefined,
+  orgEdition: undefined
 };
 
 const fallback = Effect.succeed(FALLBACK_IDENTITY);
@@ -53,9 +63,23 @@ const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
       Effect.flatMap(api => api.services.TargetOrgRef()),
       Effect.flatMap(SubscriptionRef.get),
       Effect.map(
-        ({ cliId, webUserId }): IdentityFromServices => ({
+        ({
           cliId,
-          webUserId: webUserId ?? UNAUTHENTICATED_USER
+          webUserId,
+          orgId,
+          isScratch,
+          isSandbox,
+          orgEdition,
+          devHubOrgId,
+          alias,
+          username
+        }): IdentityFromServices => ({
+          cliId,
+          webUserId: webUserId ?? UNAUTHENTICATED_USER,
+          orgId,
+          orgShape: shapeFrom({ isScratch, isSandbox, alias, username }),
+          devHubId: devHubOrgId,
+          orgEdition
         })
       ),
       Effect.tapError(e => Effect.log(`getIdentityFromServices error: ${String(e)}`)),
