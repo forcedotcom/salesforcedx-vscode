@@ -34,7 +34,17 @@ const providerLayer = (conn: unknown) =>
     })
   } as unknown as ExtensionProviderService);
 
-const run = (conn: unknown) => Effect.runPromise(debuggerStop().pipe(Effect.provide(providerLayer(conn))));
+// providerLayer satisfies ConnectionService/ChannelService at runtime, but the api's typed accessors re-add
+// them to the effect's R channel; cast R away since the layer fully provides them.
+const run = (conn: unknown) =>
+  Effect.runPromise(
+    debuggerStop().pipe(Effect.provide(providerLayer(conn))) as Effect.Effect<void, unknown, never>
+  );
+
+const runFlipped = (conn: unknown) =>
+  Effect.runPromise(
+    debuggerStop().pipe(Effect.provide(providerLayer(conn)), Effect.flip) as Effect.Effect<unknown, never, never>
+  );
 
 describe('debuggerStop', () => {
   beforeEach(() => {
@@ -68,9 +78,7 @@ describe('debuggerStop', () => {
 
   it('surfaces a DebuggerSessionQueryError (not swallowed) when the query rejects', async () => {
     const { conn, update } = makeConnection(() => Promise.reject(new Error('boom')));
-    const error = await Effect.runPromise(
-      debuggerStop().pipe(Effect.provide(providerLayer(conn)), Effect.flip)
-    );
+    const error = await runFlipped(conn);
     expect(error).toBeInstanceOf(DebuggerSessionQueryError);
     expect(update).not.toHaveBeenCalled();
   });

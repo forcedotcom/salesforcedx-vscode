@@ -40,8 +40,10 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
@@ -52,6 +54,7 @@
     "vscode:bundle": "wireit",
     "vscode:bundle:build": "wireit",
     "vscode:prepublish": "npm prune --production",
+    "vscode:package": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -59,7 +62,10 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:e2e": "wireit"
   },
   "wireit": {
     "compile": {
@@ -88,13 +94,61 @@
     "test:compile": {
       "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "compile"
+        "compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/**/*.ts",
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls.json",
+        "package.nls.ja.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    },
+    "test:desktop": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-services:spans:server",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:desktop"
+      ]
     },
     "vscode:bundle:build": {
       "command": "node ./esbuild.config.mjs",
