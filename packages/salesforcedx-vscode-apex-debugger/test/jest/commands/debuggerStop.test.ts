@@ -27,9 +27,12 @@ const providerLayer = (conn: unknown) =>
       services: {
         ProjectService: { getSfProject: () => Effect.void },
         ConnectionService: { getConnection: () => Effect.succeed(conn) },
-        ChannelService: Effect.succeed({
-          appendToChannel: () => Effect.void,
-          showChannel: Effect.void
+        // withProgress is a pipeable operator; the mock passes the wrapped effect through unchanged.
+        PromptService: Effect.succeed({
+          withProgress:
+            () =>
+            <A, E, R>(self: Effect.Effect<A, E, R>) =>
+              self
         })
       }
     })
@@ -57,20 +60,13 @@ describe('debuggerStop', () => {
     expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('No Apex Debugger session found.');
   });
 
-  it('detaches the session when the query returns a single 07a-prefixed record', async () => {
+  it('detaches the session and shows the success toast when the query returns a record', async () => {
     const { conn, sobject, update } = makeConnection(() => Promise.resolve({ records: [{ Id: '07aXX0000000001' }] }));
     await run(conn);
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledTimes(1);
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000001', Status: 'Detach' });
-    expect(vscode.window.showInformationMessage).not.toHaveBeenCalled();
-  });
-
-  it('does NOT update (info-message branch) when the single record Id is not 07a-prefixed', async () => {
-    const { conn, update } = makeConnection(() => Promise.resolve({ records: [{ Id: '001XX0000000001' }] }));
-    await run(conn);
-    expect(update).not.toHaveBeenCalled();
-    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('No Apex Debugger session found.');
+    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Apex Debugger session stopped.');
   });
 
   it('surfaces a DebuggerSessionQueryError (not swallowed) when the query rejects', async () => {
