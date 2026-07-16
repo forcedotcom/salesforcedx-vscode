@@ -6,11 +6,10 @@
  */
 
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
+import { OrgInfo } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import { nls } from '../messages';
 import { gatherOrgForDisplay } from '../parameterGatherers/selectOrgForDisplay';
-import { OrgInfo } from '../types/orgInfo';
-import { getOrgInfoEffect, orgInfoFromConnection } from '../util/orgDisplay';
 
 const formatOrgInfoAsTable = (orgInfo: OrgInfo): string => {
   const columns: Column[] = [
@@ -75,7 +74,7 @@ export const orgDisplayDefaultCommand = Effect.fn('orgDisplayDefaultCommand')(fu
 
   // resolves TARGET_ORG; fails typed NoTargetOrgConfiguredError (rendered by ErrorHandlerService)
   const conn = yield* api.services.ConnectionService.getConnection();
-  const orgInfo = yield* orgInfoFromConnection(conn);
+  const orgInfo = yield* api.services.OrgInfoService.getOrgInfoFromConnection(conn);
   yield* writeOrgInfoToChannel(orgInfo);
 });
 
@@ -93,6 +92,6 @@ export const orgDisplayUsernameCommand = Effect.fn('orgDisplayUsernameCommand')(
 
   // picker selection; UserCancellationError propagates to ErrorHandlerService (no error toast on Esc).
   const { username } = yield* gatherOrgForDisplay();
-  const orgInfo = yield* getOrgInfoEffect(username);
+  const orgInfo = yield* api.services.OrgInfoService.getOrgInfoForUsername(username);
   yield* writeOrgInfoToChannel(orgInfo);
 });
