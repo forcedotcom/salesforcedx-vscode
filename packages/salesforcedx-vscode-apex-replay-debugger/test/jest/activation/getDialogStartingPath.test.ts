@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
@@ -16,13 +17,26 @@ import { LAST_OPENED_LOG_FOLDER_KEY } from '../../../src/debuggerConstants';
 
 jest.mock('vscode');
 
-/** Layer that reports the workspace as empty/non-empty through the services-extension API. */
-const provideWorkspace = (isEmpty: boolean) =>
-  Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({
-      services: { WorkspaceService: { getWorkspaceInfo: () => Effect.succeed({ isEmpty }) } }
-    } as unknown as SalesforceVSCodeServicesApi)
-  });
+/**
+ * The source calls the static accessor `api.services.WorkspaceService.getWorkspaceInfo()`, which reads
+ * `WorkspaceService` from context. Provide the real class through the api plus a mock service instance so
+ * the accessor resolves and the effect's requirements are satisfied.
+ */
+const provideWorkspace = (isEmpty: boolean) => {
+  const info = { path: '/mock', fsPath: '/mock', isEmpty, isVirtualFs: false, cwd: '/mock' } as const;
+  return Layer.mergeAll(
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed({ services: { WorkspaceService } } as unknown as SalesforceVSCodeServicesApi)
+    }),
+    Layer.succeed(
+      WorkspaceService,
+      new WorkspaceService({
+        getWorkspaceInfo: () => Effect.succeed(info),
+        getWorkspaceInfoOrThrow: () => Effect.succeed(info)
+      } as unknown as WorkspaceService)
+    )
+  );
+};
 
 const run = (extContext: vscode.ExtensionContext, isEmpty: boolean) =>
   Effect.runPromise(getDialogStartingPath(extContext).pipe(Effect.provide(provideWorkspace(isEmpty))));
