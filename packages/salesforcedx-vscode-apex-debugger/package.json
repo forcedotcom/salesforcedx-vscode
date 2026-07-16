@@ -54,7 +54,6 @@
     "vscode:bundle": "wireit",
     "vscode:bundle:build": "wireit",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -103,24 +102,6 @@
       ],
       "output": []
     },
-    "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
-      "dependencies": [
-        "vscode:bundle"
-      ],
-      "files": [
-        "package.json",
-        "package.nls.json",
-        "package.nls.ja.json",
-        "README.md",
-        "CHANGELOG.md",
-        "LICENSE.txt",
-        "images/**"
-      ],
-      "output": [
-        "*.vsix"
-      ]
-    },
     "test:desktop": {
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
       "env": {
@@ -133,7 +114,7 @@
         }
       },
       "dependencies": [
-        "vscode:package",
+        "vscode:package:legacy",
         "../salesforcedx-vscode-core:vscode:package:legacy",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
