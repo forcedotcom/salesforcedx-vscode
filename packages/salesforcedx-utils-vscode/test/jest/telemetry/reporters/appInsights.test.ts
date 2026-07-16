@@ -48,12 +48,40 @@ describe('AppInsights', () => {
     });
 
     it('should send orgId to appInsightsClient.trackException', () => {
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, 'test-webUser', false);
+      appInsights.orgIdentity = { devHubId: '', orgId: dummyOrgId };
+      (appInsights as any).userOptIn = true;
+      (appInsights as any).appInsightsClient = {
+        trackException: trackExceptionMock,
+        trackEvent: trackEventMock
+      };
+
       // Act
       appInsights.sendExceptionEvent('Dummy Exception', 'a dummy exception occurred');
 
       // Assert
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
+    });
+
+    it('should omit org properties when orgIdentity is unset', () => {
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, 'test-webUser', false);
+      (appInsights as any).userOptIn = true;
+      (appInsights as any).appInsightsClient = {
+        trackException: trackExceptionMock,
+        trackEvent: trackEventMock
+      };
+
+      appInsights.sendTelemetryEvent('No Org Event', {}, {});
+      appInsights.sendExceptionEvent('No Org Exception', 'an exception with no org');
+
+      const eventProps = trackEventMock.mock.calls[0][0].properties;
+      const exceptionProps = trackExceptionMock.mock.calls[0][0].properties;
+      [eventProps, exceptionProps].forEach(props => {
+        expect(props.orgId).toBeUndefined();
+        expect(props.orgShape).toBeUndefined();
+        expect(props.devHubId).toBeUndefined();
+      });
     });
 
     it('should include orgEdition in event properties when available', () => {

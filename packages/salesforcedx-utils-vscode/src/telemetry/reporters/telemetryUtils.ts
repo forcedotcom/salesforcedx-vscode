@@ -8,6 +8,12 @@
 import * as os from 'node:os';
 import { env, UIKind, version } from 'vscode';
 import { CommonProperties, InternalProperties } from './loggingProperties';
+import type { OrgIdentity } from './telemetryReporterConfig';
+
+export const getOrgIdentityProps = (orgIdentity?: OrgIdentity): Record<string, string> => {
+  const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = orgIdentity ?? {};
+  return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
+};
 
 export const getCommonProperties = (extensionId: string, extensionVersion: string): CommonProperties => {
   const commonProperties: CommonProperties = {

@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
 import { getRootWorkspacePath } from '../../workspaces/workspaceUtils';
+import { getOrgIdentityProps } from './telemetryUtils';
 
 /**
  * Represents a telemetry file that logs telemetry events by appending to a local file.
@@ -34,7 +35,7 @@ export class TelemetryFile implements TelemetryReporter {
     properties?: { [key: string]: string },
     measurements?: { [key: string]: number }
   ): void {
-    const baseProps = this.getBaseProps();
+    const baseProps = getOrgIdentityProps(this.orgIdentity);
     void this.writeToFile(eventName, { ...baseProps, ...properties, ...measurements });
   }
 
@@ -73,11 +74,6 @@ export class TelemetryFile implements TelemetryReporter {
     const content = `${JSON.stringify({ timestamp, command, data }, null, 2)},`;
     this.buffer += content;
     await this.flushBuffer();
-  }
-
-  private getBaseProps(): Record<string, string> {
-    const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = this.orgIdentity ?? {};
-    return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
   }
 
   private async flushBuffer(): Promise<void> {

@@ -8,7 +8,7 @@ import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import { TelemetryReporter as VSCodeTelemetryReporter } from '@vscode/extension-telemetry';
 import { Disposable, env, workspace } from 'vscode';
 import { isInternalHost } from '../utils/isInternal';
-import { getCommonProperties, getInternalProperties } from './telemetryUtils';
+import { getCommonProperties, getInternalProperties, getOrgIdentityProps } from './telemetryUtils';
 
 /** Same connection string as telemetry (salesforcedx-vscode-services observability). */
 const DEFAULT_AI_CONNECTION_STRING: string =
@@ -131,7 +131,7 @@ export class AppInsights
       return;
     }
 
-    const baseProps = this.getBaseProps();
+    const baseProps = getOrgIdentityProps(this.orgIdentity);
     const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties, webUserId: this.webUserId });
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -169,7 +169,7 @@ export class AppInsights
       return;
     }
 
-    const baseProps = this.getBaseProps();
+    const baseProps = getOrgIdentityProps(this.orgIdentity);
     const finalProps = this.applyTelemetryTag({ ...baseProps, webUserId: this.webUserId });
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -248,10 +248,5 @@ export class AppInsights
     [key: string]: string;
   } {
     return this.telemetryTag ? { ...properties, telemetryTag: this.telemetryTag } : properties;
-  }
-
-  private getBaseProps(): Record<string, string> {
-    const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = this.orgIdentity ?? {};
-    return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
   }
 }
