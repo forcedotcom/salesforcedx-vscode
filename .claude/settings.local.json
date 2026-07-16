@@ -12,11 +12,18 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:code.visualstudio.com)",
       "Bash(npx tsc:*)",
-      "Bash(gh api *)",
-      "Bash(gh run *)",
-      "Bash(gh pr *)",
-      "Bash(cd ~ && gh pr diff 514 --repo forcedotcom/apex-language-support -- .github/workflows/nightly.yml | grep -A 50 \"^+jobs:\")",
-      "Read(//Users/madhur.shrivastava/**)"
+      "Bash(diff /Users/madhur.shrivastava/apex-language-support/.github/actions/check-ci-status/action.yml /Users/madhur.shrivastava/salesforcedx-vscode/.github/actions/check-ci-status/action.yml)",
+      "Read(//Users/madhur.shrivastava/apex-language-support/.github/actions/check-ci-status/**)",
+      "Bash(ls -la /Users/madhur.shrivastava/github-workflows/ 2>/dev/null || echo \"Directory does not exist\")",
+      "Read(//Users/madhur.shrivastava/github-workflows/**)",
+      "Bash(diff -rq /Users/madhur.shrivastava/apex-language-support/.github/actions/calculate-artifact-name /Users/madhur.shrivastava/salesforcedx-vscode/.github/actions/calculate-artifact-name)",
+      "Read(//Users/madhur.shrivastava/apex-language-support/.github/actions/calculate-artifact-name/**)",
+      "Bash(diff -rq /Users/madhur.shrivastava/apex-language-support/.github/actions/publish-vsix /Users/madhur.shrivastava/salesforcedx-vscode/.github/actions/publish-vsix)",
+      "Read(//Users/madhur.shrivastava/apex-language-support/.github/actions/publish-vsix/**)",
+      "Bash(diff -rq /Users/madhur.shrivastava/apex-language-support/.github/actions/npm-install-with-retries /Users/madhur.shrivastava/salesforcedx-vscode/.github/actions/npm-install-with-retries)",
+      "Read(//Users/madhur.shrivastava/apex-language-support/.github/actions/npm-install-with-retries/**)",
+      "Bash(cd /Users/madhur.shrivastava/apex-language-support && grep -r \"\\\\.github/actions/\" .github/workflows/ | grep -E \"\\(check-ci-status|calculate-artifact-name|publish-vsix\\)\" | head -20)",
+      "Read(//Users/madhur.shrivastava/apex-language-support/**)"
     ],
     "autoApprove": [
       "PostToolUse",

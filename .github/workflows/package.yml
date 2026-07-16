@@ -78,7 +78,7 @@ jobs:
           node-version: ${{ inputs.node-version || '22.x' }}
 
       - name: Install dependencies
-        uses: ./.github/actions/npm-install-with-retries
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
 
       # Compile all packages first to ensure dependencies are built
       - name: Compile packages
@@ -154,7 +154,7 @@ jobs:
 
       - name: Calculate artifact name
         id: calc-artifact-name
-        uses: ./.github/actions/calculate-artifact-name
+        uses: salesforcecli/github-workflows/.github/actions/calculate-artifact-name@ms/shared-ci-actions
         with:
           artifact-name: ${{ inputs.artifact-name }}
           dry-run: ${{ inputs.dry-run }}

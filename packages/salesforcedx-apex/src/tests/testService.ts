@@ -34,6 +34,7 @@ import {
   TestLevel,
   TestResult,
   TestRunIdResult,
+  TestCancelledResult,
   TestSuiteMembershipRecord
 } from './types';
 import { getBufferSize, getJsonIndent, isFlowTest, queryNamespaces } from './utils';
@@ -307,7 +308,7 @@ export class TestService {
     options: SyncTestConfiguration,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult | TestRunIdResult> {
+  ): Promise<TestResult | TestRunIdResult | TestCancelledResult> {
     HeapMonitor.getInstance().startMonitoring();
     try {
       return await this.syncService.runTests(options, codeCoverage, token);
@@ -334,7 +335,7 @@ export class TestService {
     token?: CancellationToken,
     timeout?: Duration,
     interval?: Duration
-  ): Promise<TestResult | TestRunIdResult> {
+  ): Promise<TestResult | TestRunIdResult | TestCancelledResult> {
     HeapMonitor.getInstance().startMonitoring();
     try {
       return await this.asyncService.runTests(

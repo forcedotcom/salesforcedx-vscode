@@ -121,6 +121,38 @@ The current `promote-prerelease.yml` and `ext-nightly-finder.ts` are designed fo
 - Runs `npm run vscode:package` (or `:package:modern`) via Wireit
 - Uploads VSIX artifacts with run isolation naming
 
+#### 5. `publishVSCode.yml` - Production Release Publishing
+
+**Triggers:**
+- Release: New stable release (not pre-release) tagged `vX.Y.Z`
+- Manual: `workflow_dispatch` with optional version override
+
+**Purpose:** Publishes stable extensions to VS Code Marketplace + Open VSX
+
+**Flow:**
+```mermaid
+graph TB
+    A[prepare-environment-from-main] --> B[validate-vsix]
+    A --> C[build-extension-list]
+    A --> D[ctc-open]
+    B --> E[publish]
+    C --> E
+    D --> E
+    E --> F[ctcClose]
+```
+
+**Key Jobs:**
+1. **prepare-environment-from-main**: Extract version from main branch
+2. **build-extension-list**: Generate list of all 16 extensions
+3. **validate-vsix**: Download VSIX from release; validate OPC Part URIs via `scripts/validate-vsix-opc.mjs`
+4. **publish**: Call shared `vscode-publish-extensions.yml` workflow (dry-run always `true`)
+5. **ctcOpen/ctcClose**: Track via Salesforce change case
+
+**Validation Gate:**
+- ✅ VSIX files downloaded from GitHub release
+- ✅ OPC Part URI validation (prevents corrupted/invalid VSIX)
+- ✅ Publish result tracked via audit logging
+
 ---
 
 ## Version Scheme
@@ -198,19 +230,20 @@ All actions located in `.github/actions/`:
 **Purpose:** Publishes VSIX files to marketplace with dry-run support
 
 **Inputs:**
-- `vsix-path` - Path to VSIX file
-- `publish-tool` - Tool to use (`vsce` or `ovsx`)
-- `pre-release` - Publish as pre-release (`true`/`false`)
-- `dry-run` - Dry-run mode (`true`/`false`)
+- `vsix-path` — VSIX file path
+- `publish-tool` — Tool to use (`vsce` or `ovsx`)
+- `pre-release` — Publish as pre-release
+- `dry-run` — Dry-run mode
 
 **Environment:**
-- `VSCE_PERSONAL_ACCESS_TOKEN` - For VS Code Marketplace
-- `OVSX_PAT` - For Open VSX Registry
+- `VSCE_PERSONAL_ACCESS_TOKEN` — VS Code Marketplace token
+- `OVSX_PAT` — Open VSX Registry token
 
 **Features:**
-- Validates VSIX file exists and has correct extension
+- Validates VSIX file exists & correct extension
 - Audits publish attempts for compliance
-- Supports dry-run for testing
+- Captures exit code via step output (`steps.publish.outputs.result` → `success` or `failure`)
+- Supports dry-run testing
 - Skips duplicate publishes with `--skip-duplicate`
 
 ### `npm-install-with-retries`

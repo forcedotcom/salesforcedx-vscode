@@ -3,72 +3,61 @@
 ## Files Copied from apex-language-support
 
 ### ✅ Workflows (`.github/workflows/`)
-- ✅ `nightly.yml` - Nightly release orchestrator
-- ✅ `nightly-extensions.yml` - Extension build & release workflow
-- ✅ `promote-prerelease.yml` - Weekly pre-release promotion
-- ✅ `package.yml` - VSIX packaging workflow
+- ✅ `nightly.yml` — Nightly release orchestrator
+- ✅ `nightly-extensions.yml` — Extension build & release
+- ✅ `promote-prerelease.yml` — Weekly pre-release promotion
+- ✅ `package.yml` — VSIX packaging
 
-### ✅ TypeScript Scripts (`.github/scripts/`)
-- ✅ `index.ts` - CLI entry point
-- ✅ `types.ts` - Type definitions
-- ✅ `utils.ts` - Shared utilities
-- ✅ `audit-logger.ts` - Audit logging
-- ✅ `ext-build-type.ts` - Build type detection
-- ✅ `ext-change-detector.ts` - Change detection + conventional commits
-- ✅ `ext-github-releases.ts` - GitHub Release creation
-- ✅ `ext-nightly-finder.ts` - Nightly candidate finder
-- ✅ `ext-package-selector.ts` - Extension discovery
-- ✅ `ext-publish-matrix.ts` - Publish matrix generation
-- ✅ `ext-release-plan.ts` - Release plan display
-- ✅ `ext-version-bumper.ts` - Version bumping with odd/even scheme
-- ✅ `npm-change-detector.ts` - NPM package change detection
-- ✅ `npm-package-details.ts` - Package details extraction
-- ✅ `npm-package-selector.ts` - NPM package selection
-- ✅ `npm-release-plan.ts` - NPM release plan
-- ✅ `npm-types.ts` - NPM type definitions
+### ✅ TypeScript Scripts
+**Not copied** — `nightly.yml` uses shared reusable workflow `salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main`, downloads scripts at runtime via curl.
 
 ### ✅ Composite Actions (`.github/actions/`)
-- ✅ `check-ci-status/` - CI status verification
-- ✅ `publish-vsix/` - VSIX marketplace publishing
-- ✅ `npm-install-with-retries/` - Reliable npm install
-- ✅ `calculate-artifact-name/` - Artifact naming with run isolation
+- ✅ `check-ci-status/` → shared via `salesforcecli/github-workflows@ms/shared-ci-actions`
+- ✅ `publish-vsix/` → shared via `salesforcecli/github-workflows@ms/shared-ci-actions`
+- ✅ `npm-install-with-retries/` → uses `npmInstallWithRetries@main` from github-workflows
+- ✅ `calculate-artifact-name/` → shared via `salesforcecli/github-workflows@ms/shared-ci-actions`
 
-### ✅ Dependencies Added
-- ✅ `simple-git@^3.36.0` added to `package.json` dependencies
+### ✅ Dependencies
+- ✅ `simple-git@^3.36.0` added
 
 ### ✅ Documentation
-- ✅ `PRERELEASE-CI.md` - Complete prerelease CI documentation
-- ✅ `MIGRATION-SUMMARY.md` - This file
+- ✅ `PRERELEASE-CI.md` — [Complete prerelease CI guide](./PRERELEASE-CI.md)
+- ✅ `MIGRATION-SUMMARY.md` — This file
 
 ---
 
 ## Adaptations Made
 
 ### Workflows
-1. **`nightly.yml`** - Removed hardcoded `apex-lsp-vscode-extension` from extension options
-   - Now supports generic extension discovery
+1. **`nightly.yml`** — Removed hardcoded `apex-lsp-vscode-extension`; supports generic extension discovery
 
 ### Scripts
-- All scripts work generically with `packages/*` structure ✅
-- Extension discovery via `publisher` field in package.json ✅
+- Generic `packages/*` structure support ✅
+- Extension discovery via `publisher` field ✅
+
+### Shared Actions Migration (2026-07-16)
+
+3 composite actions moved to `salesforcecli/github-workflows@ms/shared-ci-actions`:
+- `check-ci-status`, `calculate-artifact-name`, `publish-vsix`
+- Local `npm-install-with-retries` → `npmInstallWithRetries@main`
+
+Both repos reference shared versions. When `ms/shared-ci-actions` merges to `main`:
+1. Update workflow refs from `@ms/shared-ci-actions` → `@main`
+2. Test in apex-language-support & salesforcedx-vscode
+3. Verify CI status, artifact naming, VSIX publishing end-to-end
 
 ---
 
-## ⚠️ Known Limitations
+## ⚠️ Known Issues
 
-### Multi-Extension Support
+### 1. Multi-Extension Support
 
-The **promote-prerelease workflow** needs adaptation for salesforcedx-vscode's multiple extensions:
+`promote-prerelease.yml` & `ext-nightly-finder.ts` need adaptation for multi-extension (currently designed for single extension like apex-language-support).
 
-**Current Issue:**
-- `ext-nightly-finder.ts` has hardcoded `apex-lsp-vscode-extension` in tracking tag checks (lines 135, 147)
-- `promote-prerelease.yml` promotes only one extension per run
-
-**Solutions:**
+**Current issue:** Hardcoded `apex-lsp-vscode-extension` in `ext-nightly-finder.ts` lines 135, 147; promotes 1 extension/run.
 
 **Option A: Per-Extension Matrix (Recommended)**
 ```yaml
-# In promote-prerelease.yml, add matrix job:
 jobs:
   list-extensions:
     outputs:
@@ -90,7 +79,6 @@ jobs:
 
 **Option B: Script Parameter**
 ```typescript
-// In ext-nightly-finder.ts, replace hardcoded name:
 const extensionName = process.env.EXTENSION_NAME || 'apex-lsp-vscode-extension';
 const versionSpecificPrefix = `marketplace-prerelease-${extensionName}-v${version}`;
 ```
@@ -101,18 +89,14 @@ const versionSpecificPrefix = `marketplace-prerelease-${extensionName}-v${versio
 
 ### 1. Configure Secrets
 
-Set these in GitHub repository settings → Secrets and variables → Actions:
-
-```bash
-IDEE_GH_TOKEN              # GitHub token with write access
-VSCE_PERSONAL_ACCESS_TOKEN # VS Code Marketplace token
-IDEE_OVSX_PAT             # Open VSX Registry token
-```
+GitHub → Settings → Secrets and variables → Actions:
+- `IDEE_GH_TOKEN` — GitHub token (write access)
+- `VSCE_PERSONAL_ACCESS_TOKEN` — VS Code Marketplace token
+- `IDEE_OVSX_PAT` — Open VSX Registry token
 
 ### 2. Install Dependencies
 
 ```bash
-cd /Users/madhur.shrivastava/salesforcedx-vscode
 npm install
 ```
 
@@ -125,8 +109,7 @@ gh workflow run nightly.yml -f dry-run=true -f extensions=changed
 ### 4. Review Workflow Run
 
 ```bash
-gh run list --workflow=nightly.yml
-gh run view <run-id>
+gh run list --workflow=nightly.yml && gh run view <run-id>
 ```
 
 ### 5. Test Extension Discovery
@@ -134,40 +117,30 @@ gh run view <run-id>
 ```bash
 npx tsx .github/scripts/index.ts ext-package-selector
 ```
-
-Expected output:
-```json
-["salesforcedx-vscode", "salesforcedx-vscode-apex", "salesforcedx-vscode-core", ...]
-```
+Expected: `["salesforcedx-vscode", "salesforcedx-vscode-apex", ...]`
 
 ---
 
 ## Testing Checklist
 
-### Phase 1: Dry-Run Tests ✅
+### Phase 1: Dry-Run Tests
 
-- [ ] Run `npx tsx .github/scripts/index.ts ext-package-selector` - verify all extensions discovered
-- [ ] Run `gh workflow run nightly.yml -f dry-run=true -f extensions=changed`
-- [ ] Verify workflow completes without errors
-- [ ] Check that no actual git tags/commits created
-- [ ] Verify no VSIX uploaded to artifacts
+- [ ] Extension discovery: `npx tsx .github/scripts/index.ts ext-package-selector`
+- [ ] Dry-run: `gh workflow run nightly.yml -f dry-run=true -f extensions=changed`
+- [ ] No errors, no tags/commits, no VSIX uploaded
 
-### Phase 2: First Nightly Build 🔄
+### Phase 2: First Nightly Build
 
-- [ ] Run `gh workflow run nightly.yml -f extensions=changed` (no dry-run)
-- [ ] Verify version bumps committed to main
-- [ ] Verify nightly tags created: `<pkg>-v<version>-nightly.<date>`
-- [ ] Verify GitHub Releases created with VSIX attachments
-- [ ] Download VSIX from release and test installation
+- [ ] Run: `gh workflow run nightly.yml -f extensions=changed`
+- [ ] Version bumps committed, tags created `<pkg>-v<version>-nightly.<date>`
+- [ ] GitHub Releases with VSIX attachments; VSIX installs
 
-### Phase 3: Pre-release Promotion (After Adaptation) 🚧
+### Phase 3: Pre-release Promotion (After Adaptation)
 
-- [ ] Wait ≥7 days after first nightly
-- [ ] Adapt `promote-prerelease.yml` for multi-extension (see Options above)
-- [ ] Run `gh workflow run promote-prerelease.yml -f dry-run=true`
-- [ ] Run actual promotion (no dry-run)
-- [ ] Verify extensions published to VSCE + OVSX as pre-release
-- [ ] Verify tracking tags created
+- [ ] Wait ≥7 days
+- [ ] Adapt `promote-prerelease.yml` for multi-extension (see [Options](#1-multi-extension-support))
+- [ ] Dry-run: `gh workflow run promote-prerelease.yml -f dry-run=true`
+- [ ] Run promotion; verify VSCE + OVSX pre-release published, tracking tags created
 
 ---
 
@@ -176,49 +149,46 @@ Expected output:
 If issues occur, revert with:
 
 ```bash
-cd /Users/madhur.shrivastava/salesforcedx-vscode
-
-# Revert all changes
+# Revert workflows
 git checkout -- .github/workflows/nightly.yml \
                 .github/workflows/nightly-extensions.yml \
                 .github/workflows/promote-prerelease.yml \
                 .github/workflows/package.yml \
                 package.json
 
-# Remove copied files
-rm -rf .github/scripts/
-rm -rf .github/actions/calculate-artifact-name/
-rm -rf .github/actions/check-ci-status/
-rm -rf .github/actions/npm-install-with-retries/
-rm -rf .github/actions/publish-vsix/
-rm .github/workflows/PRERELEASE-CI.md
-rm .github/workflows/MIGRATION-SUMMARY.md
+# Remove documentation (shared actions/scripts live in github-workflows, not locally)
+rm .github/workflows/PRERELEASE-CI.md .github/workflows/MIGRATION-SUMMARY.md
 ```
 
 ---
 
 ## Support
 
-For issues or questions:
-
-1. Check `PRERELEASE-CI.md` troubleshooting section
-2. Review original apex-language-support workflows: https://github.com/forcedotcom/apex-language-support/tree/main/.github/workflows
-3. File issue in salesforcedx-vscode repository
+1. [PRERELEASE-CI.md troubleshooting](./PRERELEASE-CI.md#troubleshooting)
+2. [apex-language-support workflows](https://github.com/forcedotcom/apex-language-support/tree/main/.github/workflows)
+3. File issue in salesforcedx-vscode repo
 
 ---
 
 ## Next Steps
 
-1. ✅ Review this migration summary
-2. ⚠️ Configure GitHub secrets
-3. ⚠️ Test extension discovery script
-4. ⚠️ Run first nightly build with dry-run
-5. ⚠️ Adapt promote-prerelease.yml for multi-extension support
-6. ⚠️ Run first production nightly build
-7. ⚠️ Wait 7 days and test pre-release promotion
+1. Configure GitHub secrets
+2. Test extension discovery: `npx tsx .github/scripts/index.ts ext-package-selector`
+3. Dry-run: `gh workflow run nightly.yml -f dry-run=true -f extensions=changed`
+4. Build: `gh workflow run nightly.yml -f extensions=changed`
+5. Adapt `promote-prerelease.yml` for multi-extension (see [Known Issues](#1-multi-extension-support))
+6. Wait ≥7 days, test pre-release promotion
+7. Monitor marketplace
 
 ---
 
-Migration completed: 2026-05-19
-Source: apex-language-support @ main
-Target: salesforcedx-vscode @ main
+## Version History
+
+| Date | Event |
+|------|-------|
+| 2026-07-15 | Migration committed (05aedfed9) |
+| 2026-05-19 | Migration docs prepared |
+| Source | apex-language-support @ main |
+| Target | salesforcedx-vscode @ develop |
+
+**Note:** apex-language-support continues evolving; periodic sync recommended for actions/scripts.

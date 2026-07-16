@@ -491,6 +491,16 @@ export type TestRunIdResult = {
   testRunId: string;
 };
 
+/**
+ * Represents a cancelled test run.
+ * Using a discriminated union makes cancellation explicit in the type system
+ * instead of relying on thrown exceptions for control flow.
+ */
+export type TestCancelledResult = {
+  cancelled: true;
+  reason: string;
+};
+
 export type TestResult = {
   summary: TestResultRaw['summary'];
   tests: ApexTestResultData[];

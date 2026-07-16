@@ -98,10 +98,34 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     secrets: inherit
 
+  # Validate VSIX files before publishing
+  validate-vsix:
+    needs: [prepare-environment-from-main]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Download VSIXs from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
+        run: |
+          mkdir ./extensions
+          gh release download v$RELEASE_VERSION -D ./extensions
+          echo "Downloaded VSIX files:"
+          ls -lh ./extensions/*.vsix
+      - name: Validate VSIX OPC Part URIs
+        run: node scripts/validate-vsix-opc.mjs ./extensions
+
   # Publish all extensions using shared workflow
   # This replaces the custom publish job with standardized shared workflow
   publish:
-    needs: ['ctc-open', 'prepare-environment-from-main', 'build-extension-list']
+    needs: ['ctc-open', 'prepare-environment-from-main', 'build-extension-list', 'validate-vsix']
     # IMPORTANT: This repo is for CI testing only.
     # dry-run is ALWAYS true to prevent accidental marketplace publishes.
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main

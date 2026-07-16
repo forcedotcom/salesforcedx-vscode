@@ -20,7 +20,8 @@ import {
   SyncTestFailure,
   SyncTestResult,
   TestResult,
-  TestResultRaw
+  TestResultRaw,
+  TestCancelledResult
 } from './types';
 import { calculateCodeCoverage, calculatePercentage, computeTestCategory, transformTestResult } from './utils';
 
@@ -44,7 +45,7 @@ export class SyncTests {
     options: SyncTestConfiguration,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult> {
+  ): Promise<TestResult | TestCancelledResult> {
     HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     try {
       const url = `${this.connection.tooling._baseUrl()}/runTestsSynchronous`;
@@ -58,7 +59,10 @@ export class SyncTests {
       const testRun = (await this.connection.tooling.request(request)) as SyncTestResult;
 
       if (token?.isCancellationRequested) {
-        throw new Error(nls.localize('testRunCancelled'));
+        return {
+          cancelled: true,
+          reason: nls.localize('testRunCancelled')
+        };
       }
 
       return await this.formatSyncResults(testRun, getCurrentTime(), codeCoverage);

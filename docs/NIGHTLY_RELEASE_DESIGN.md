@@ -210,13 +210,27 @@ Validate your extension paths configuration:
     done
 ```
 
+## Performance Optimizations
+
+### Tag Discovery (getAllTagsWithMeta)
+- **Before:** O(n) sequential git log calls per tag
+- **After:** Single git log + `--simplify-by-decoration` = O(1) git operations
+- Fetches all tag metadata in one call with `%H %D %ct` format
+
+### Tracking Tag Lookups (hasTrackingTag)
+- **Before:** O(n) linear search of all tags
+- **After:** Pre-computed marketplace-tag index = O(m) where m << n
+- Pre-filters to `marketplace-*` tags (small subset), reducing search space
+
+**Impact:** Nightly candidate discovery now scales efficiently regardless of tag count.
+
 ## Future Improvements
 
-1. **Monorepo tool integration:** Consider using Lerna, Nx, or Turborepo for better monorepo management
-2. **Rollback support:** Add automated rollback if nightly releases fail validation
-3. **Metrics and notifications:** Track release success rates, notify on failures
-4. **Canary releases:** Support gradual rollout to subset of users
-5. **Parallel publishing:** Publish to multiple registries concurrently
+1. **Monorepo tool integration:** Lerna, Nx, or Turborepo for better management
+2. **Rollback support:** Auto-rollback if validation fails
+3. **Metrics & notifications:** Track success rates, alert on failures
+4. **Canary releases:** Gradual rollout to subset of users
+5. **Parallel publishing:** Multi-registry publishing
 
 ## References
 
@@ -234,4 +248,4 @@ For questions or issues with this design, reach out to:
 
 ---
 
-*Last Updated: 2026-06-18*
+*Last Updated: 2026-07-16*
