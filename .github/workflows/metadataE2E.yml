@@ -212,6 +212,10 @@ jobs:
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
+      # VSIX-installed extensions run in Production mode, so the Azure exporter's local-divert is off by
+      # default. Point it at the span file server (spans:server, http://localhost:3003) so azureExporterDivert
+      # spec's Breeze envelopes reach ~/.sf/vscode-appinsights instead of unreachable Azure.
+      SF_OTEL_INGESTION_ENDPOINT: http://localhost:3003
       # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
       SF_TEMP_SHOW_SECRETS: true
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&

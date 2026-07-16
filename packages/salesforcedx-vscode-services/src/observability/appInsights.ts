@@ -34,8 +34,14 @@ const getExtensionMode = (): ExtensionMode | undefined =>
 const isDevOrTestMode = (): boolean =>
   getExtensionMode() === ExtensionMode.Development || getExtensionMode() === ExtensionMode.Test;
 
+// Node local divert: Development/Test extension mode OR an explicit SF_OTEL_INGESTION_ENDPOINT
+// (e.g. VSIX-installed e2e, which runs in Production mode). Both point the sender at the local
+// span file server (see sdkLayerConfig.resolveLocalIngestionEndpoint), so the endpoint is provably
+// local and telemetry is always emitted regardless of the telemetryLevel / telemetry.enabled gates.
 const isLocalDivertMode = (): boolean =>
-  process.env.ESBUILD_PLATFORM === 'web' ? process.env.ESBUILD_WEB_LOCAL === '1' : isDevOrTestMode();
+  process.env.ESBUILD_PLATFORM === 'web'
+    ? process.env.ESBUILD_WEB_LOCAL === '1'
+    : isDevOrTestMode() || Boolean(process.env.SF_OTEL_INGESTION_ENDPOINT);
 
 const isTelemetryExtensionConfigurationEnabled = (): boolean => {
   // Node dev/test: always emit; everything is diverted to a local endpoint, never Azure.
