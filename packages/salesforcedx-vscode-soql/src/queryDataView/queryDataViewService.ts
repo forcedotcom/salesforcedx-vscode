@@ -167,7 +167,9 @@ export class QueryDataViewService {
         const disposable = panel.webview.onDidReceiveMessage((event: DataViewEvent) => {
           void emit.single(event);
         });
-        return Effect.sync(() => disposable.dispose());
+        return Effect.sync(() => {
+          disposable.dispose();
+        });
       }).pipe(
         Stream.mapEffect(
           event =>

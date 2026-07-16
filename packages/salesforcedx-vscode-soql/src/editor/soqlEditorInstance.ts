@@ -99,7 +99,9 @@ export class SOQLEditorInstance {
         const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
           void emit.single(event);
         });
-        return Effect.sync(() => disposable.dispose());
+        return Effect.sync(() => {
+          disposable.dispose();
+        });
       }).pipe(
         Stream.mapEffect(
           event =>

@@ -23,7 +23,11 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
       Effect.runSync(PubSub.publish(editorPubSub, editor));
     });
     Effect.runSync(PubSub.publish(editorPubSub, vscode.window.activeTextEditor));
-    yield* Effect.addFinalizer(() => Effect.sync(() => disposable?.dispose()));
+    yield* Effect.addFinalizer(() =>
+      Effect.sync(() => {
+        disposable?.dispose();
+      })
+    );
 
     /** Get URI from active editor, fails with NoActiveEditorError if none */
     const getActiveEditorUri = Effect.fn('EditorService.getActiveEditorUri')(function* () {
