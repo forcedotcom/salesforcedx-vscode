@@ -74,6 +74,19 @@ export class NoTargetOrgConfiguredError extends Schema.TaggedError<NoTargetOrgCo
   }
 ) {}
 
+/**
+ * Raised when `getConnection(username)` is called on web for a non-default username. The web
+ * connection cache is keyed by `instanceUrl###accessToken###apiVersion` (`createWebConnection`), so
+ * a bare username silently mis-parses — there is no username→connection path on web. Consumers
+ * degrade gracefully rather than crash.
+ */
+export class UsernameConnectionNotSupportedOnWebError extends Schema.TaggedError<UsernameConnectionNotSupportedOnWebError>()(
+  'UsernameConnectionNotSupportedOnWebError',
+  {
+    message: Schema.String
+  }
+) {}
+
 export class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpiredError>()('AccessTokenExpiredError', {
   message: Schema.String,
   username: Schema.optional(Schema.String)
@@ -296,6 +309,13 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* (username?: string) {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.gen(function* () {
+            // Web has no username→connection path: the cache is keyed by instanceUrl/accessToken, so a
+            // requested non-default username would silently return the default web org. Fail typed instead.
+            if (username !== undefined) {
+              return yield* new UsernameConnectionNotSupportedOnWebError({
+                message: `Connecting to a specific username ("${username}") is not supported on web`
+              });
+            }
             // Web environment - get connection from settings
             const instanceUrl = yield* settingsService.getInstanceUrl();
             const accessToken = yield* settingsService.getAccessToken();
