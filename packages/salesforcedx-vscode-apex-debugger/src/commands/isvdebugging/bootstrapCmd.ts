@@ -14,6 +14,7 @@ import {
   safeDelete,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import { isError, isString } from 'effect/Predicate';
@@ -34,9 +35,14 @@ type InstalledPackageInfo = {
   versionNumber: string;
 };
 
-export const ISVDEBUGGER = 'isvdebuggermdapitmp';
-export const INSTALLED_PACKAGES = 'installed-packages';
-export const PACKAGE_XML = 'package.xml';
+const ISVDEBUGGER = 'isvdebuggermdapitmp';
+const INSTALLED_PACKAGES = 'installed-packages';
+const PACKAGE_XML = 'package.xml';
+
+/** `sf project retrieve start` (org-wide ApexClass/ApexTrigger + per-package source) routinely runs several
+ * minutes on real subscriber orgs; simpleExec's default 30s timeout would kill bootstrap mid-flow. Override it
+ * for every bootstrap CLI call (parity with orgCreate's CREATE_TIMEOUT precedent). */
+const CLI_TIMEOUT = Duration.minutes(15);
 
 /** sfdx-project.json namespace write failed. Previously swallowed (logged + returned, truncating the rest of the flow). @ExportTaggedError */
 export class IsvBootstrapProjectConfigError extends Schema.TaggedError<IsvBootstrapProjectConfigError>()(
@@ -101,10 +107,18 @@ export const parsePackageInstalledListJson = (packagesJson: string): InstalledPa
   );
 };
 
+/** The forceide:// URL's `url`/`sessionId` values are interpolated into shell command strings (config set /
+ * --target-org). A pasted URL is attacker-shapeable, and double-quote wrapping does NOT neutralize `$`, backtick,
+ * `\`, `"` under /bin/sh, so reject any shell metacharacter here (parity with validateAliasInput's shell-safe
+ * gate). Legitimate Salesforce session ids / login URLs never contain these. */
+const SHELL_UNSAFE = /[`$\\"'|&;<>()\s]/;
+
 const uriValidator = (value: string): string | undefined => {
   try {
     const parameter = new URL(value).searchParams;
-    if (!isString(parameter.get('url')) || !isString(parameter.get('sessionId'))) {
+    const url = parameter.get('url');
+    const sessionId = parameter.get('sessionId');
+    if (!isString(url) || !isString(sessionId) || SHELL_UNSAFE.test(url) || SHELL_UNSAFE.test(sessionId)) {
       return nls.localize('parameter_gatherer_invalid_forceide_url');
     }
   } catch {
@@ -137,14 +151,16 @@ const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(funct
       orgName: new URL(forceIdeUri).hostname
     };
   }
-  yield* Effect.promise(() =>
-    Promise.resolve(vscode.window.showErrorMessage(nls.localize('parameter_gatherer_invalid_forceide_url')))
+  yield* Effect.sync(
+    () => void vscode.window.showErrorMessage(nls.localize('parameter_gatherer_invalid_forceide_url'))
   );
   return yield* new api.services.UserCancellationError({});
 });
 
 /** Prompts for project name (prefilled from the sanitized org name) + parent folder; enforces the overwrite prompt. */
-const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNameAndFolder')(function* (orgName: string) {
+const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNameAndFolder')(function* (
+  orgName: string
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 
@@ -220,11 +236,13 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const salesforceProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
 
   // Thread the GlobalCliEnvironment map (NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY) into every
-  // bootstrap sf call so corp-proxy CA certs and CLI env survive (parity with the old patchEnv). simpleExec
-  // merges this over process.env; the auto-injected SF_JSON_TO_STDOUT/FORCE_COLOR still apply.
+  // bootstrap sf call so corp-proxy CA certs and CLI env survive — bootstrap previously opted out of process.env
+  // inheritance but still got this Map via patchEnv. simpleExec merges this over process.env; the auto-injected
+  // SF_JSON_TO_STDOUT/FORCE_COLOR still apply.
   const env = Object.fromEntries(GlobalCliEnvironment.environmentVariables);
 
-  const runSf = (command: string, cwd: string) => terminalService.simpleExec({ command, parse: identity, env, cwd });
+  const runSf = (command: string, cwd: string) =>
+    terminalService.simpleExec({ command, parse: identity, env, cwd, timeout: CLI_TIMEOUT });
 
   const append = (message: string) => channel.appendToChannel(message);
 
@@ -296,10 +314,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
 
   // 4: get list of installed packages
   yield* append(nls.localize('isv_debug_bootstrap_list_installed_packages'));
-  const packagesJson = yield* runSf(
-    `sf package installed list --target-org "${sessionId}" --json`,
-    projectPath
-  );
+  const packagesJson = yield* runSf(`sf package installed list --target-org "${sessionId}" --json`, projectPath);
   const packageInfos = parsePackageInstalledListJson(packagesJson);
 
   // 5a: create directory where packages are to be retrieved (.sfdx/tools/installed-packages)
@@ -333,7 +348,11 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
           Effect.tryPromise({
             try: () =>
               writeFile(
-                path.join(projectInstalledPackagesPath, packageInfo.name.replaceAll('.', '-'), 'installed-package.json'),
+                path.join(
+                  projectInstalledPackagesPath,
+                  packageInfo.name.replaceAll('.', '-'),
+                  'installed-package.json'
+                ),
                 JSON.stringify(packageInfo, null, 2)
               ),
             catch: e => new IsvBootstrapInstalledPackageWriteError({ message: isError(e) ? e.message : String(e) })
@@ -384,5 +403,5 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
 
   // last step: open the folder in VS Code
   yield* append(nls.localize('isv_debug_bootstrap_open_project'));
-  yield* Effect.promise(() => Promise.resolve(vscode.commands.executeCommand('vscode.openFolder', URI.file(projectPath))));
+  yield* Effect.promise(() => vscode.commands.executeCommand('vscode.openFolder', URI.file(projectPath)));
 });
