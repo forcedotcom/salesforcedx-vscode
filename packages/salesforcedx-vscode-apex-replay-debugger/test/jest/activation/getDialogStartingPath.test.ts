@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from '../../../src/activation/getDialogStartingPath';
@@ -13,10 +16,20 @@ import { LAST_OPENED_LOG_FOLDER_KEY } from '../../../src/debuggerConstants';
 
 jest.mock('vscode');
 
+/** Layer that reports the workspace as empty/non-empty through the services-extension API. */
+const provideWorkspace = (isEmpty: boolean) =>
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({
+      services: { WorkspaceService: { getWorkspaceInfo: () => Effect.succeed({ isEmpty }) } }
+    } as unknown as SalesforceVSCodeServicesApi)
+  });
+
+const run = (extContext: vscode.ExtensionContext, isEmpty: boolean) =>
+  Effect.runPromise(getDialogStartingPath(extContext).pipe(Effect.provide(provideWorkspace(isEmpty))));
+
 describe('getDialogStartingPath', () => {
   const testPath = '/here/is/a/fake/path/to/';
-  let hasRootWorkspaceStub: jest.SpyInstance;
-  let mockGet: jest.SpyInstance;
+  let mockGet: jest.Mock;
   let mockExtensionContext: any;
   let vsCodeUriMock: jest.SpyInstance;
   let debugLogsFolderMock: jest.SpyInstance;
@@ -24,7 +37,6 @@ describe('getDialogStartingPath', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
     mockGet = jest.fn();
     mockExtensionContext = {
       workspaceState: { get: mockGet }
@@ -38,14 +50,11 @@ describe('getDialogStartingPath', () => {
   });
 
   it('Should return last opened log folder if present', async () => {
-    hasRootWorkspaceStub.mockReturnValue(true);
     mockGet.mockReturnValue(testPath);
     vsCodeUriMock.mockReturnValue({ path: testPath } as URI);
 
-    // Act
-    const dialogStartingPathUri = await getDialogStartingPath(mockExtensionContext);
+    const dialogStartingPathUri = await run(mockExtensionContext, false);
 
-    expect(hasRootWorkspaceStub).toHaveBeenCalled();
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(vscode.workspace.fs.stat).toHaveBeenCalled();
     expect(vsCodeUriMock).toHaveBeenCalledWith(testPath);
@@ -53,7 +62,6 @@ describe('getDialogStartingPath', () => {
   });
 
   it('Should return project log folder when last opened log folder not present', async () => {
-    hasRootWorkspaceStub.mockReturnValue(true);
     mockGet.mockReturnValue(undefined);
     const fakePathToDebugLogsFolder = 'path/to/debug/logs';
     debugLogsFolderMock.mockReturnValue(fakePathToDebugLogsFolder);
@@ -61,10 +69,8 @@ describe('getDialogStartingPath', () => {
       path: fakePathToDebugLogsFolder
     } as URI);
 
-    // Act
-    const dialogStartingPathUri = await getDialogStartingPath(mockExtensionContext);
+    const dialogStartingPathUri = await run(mockExtensionContext, false);
 
-    expect(hasRootWorkspaceStub).toHaveBeenCalled();
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(vscode.workspace.fs.stat).toHaveBeenCalled();
     expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
@@ -72,7 +78,6 @@ describe('getDialogStartingPath', () => {
   });
 
   it('Should return state folder as fallback when project log folder not present', async () => {
-    hasRootWorkspaceStub.mockReturnValue(true);
     mockGet.mockReturnValue(undefined);
     const fakePathToDebugLogsFolder = 'path/to/debug/logs';
     debugLogsFolderMock.mockReturnValue(fakePathToDebugLogsFolder);
@@ -84,10 +89,8 @@ describe('getDialogStartingPath', () => {
       path: fakePathToStateFolder
     } as URI);
 
-    // Act
-    const dialogStartingPathUri = await getDialogStartingPath(mockExtensionContext);
+    const dialogStartingPathUri = await run(mockExtensionContext, false);
 
-    expect(hasRootWorkspaceStub).toHaveBeenCalled();
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(vscode.workspace.fs.stat).toHaveBeenCalled();
     expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToStateFolder);
@@ -95,11 +98,9 @@ describe('getDialogStartingPath', () => {
   });
 
   it('Should return undefined when not in a project workspace', async () => {
-    hasRootWorkspaceStub.mockReturnValue(false);
     mockGet.mockReturnValue(testPath);
 
-    // Act
-    const dialogStartingPathUri = await getDialogStartingPath(mockExtensionContext);
+    const dialogStartingPathUri = await run(mockExtensionContext, true);
 
     expect(dialogStartingPathUri as URI).toBeUndefined();
   });
