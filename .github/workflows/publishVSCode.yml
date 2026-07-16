@@ -1,7 +1,5 @@
 name: Publish in Microsoft Marketplace
 
-# IMPORTANT: This repo is for CI testing only.
-# dry-run is ALWAYS true to prevent accidental marketplace publishes.
 # Publishing uses shared vscode-publish-extensions workflow for consistency.
 
 on:
@@ -122,12 +120,8 @@ jobs:
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./extensions
 
-  # Publish all extensions using shared workflow
-  # This replaces the custom publish job with standardized shared workflow
   publish:
     needs: ['ctc-open', 'prepare-environment-from-main', 'build-extension-list', 'validate-vsix']
-    # IMPORTANT: This repo is for CI testing only.
-    # dry-run is ALWAYS true to prevent accidental marketplace publishes.
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
     with:
       branch: 'main'
@@ -135,7 +129,7 @@ jobs:
       registries: 'all'
       pre-release: 'false'  # Stable releases (even minor versions)
       version-bump: 'none'  # Version already set in release
-      dry-run: true  # ← FORCE true - this is a test repo, never publish for real
+      dry-run: false  # Publish to marketplace
     secrets: inherit
 
   ctcCloseSuccess:

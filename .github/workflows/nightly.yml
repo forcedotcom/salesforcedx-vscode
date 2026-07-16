@@ -41,13 +41,16 @@ jobs:
     steps:
       - name: Build extension list
         id: list
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_EXTENSIONS: ${{ github.event.inputs.extensions }}
         run: |
           # For scheduled runs or empty input, publish all extensions
-          if [ "${{ github.event_name }}" = "schedule" ] || [ -z "${{ github.event.inputs.extensions }}" ]; then
+          if [ "$EVENT_NAME" = "schedule" ] || [ -z "$INPUT_EXTENSIONS" ]; then
             EXTENSIONS="salesforcedx-vscode-core,salesforcedx-vscode-services,salesforcedx-vscode-apex,salesforcedx-vscode-apex-debugger,salesforcedx-vscode-apex-replay-debugger,salesforcedx-vscode-apex-log,salesforcedx-vscode-apex-oas,salesforcedx-vscode-apex-testing,salesforcedx-vscode-lightning,salesforcedx-vscode-lwc,salesforcedx-vscode-visualforce,salesforcedx-vscode-soql,salesforcedx-vscode-metadata,salesforcedx-vscode-org,salesforcedx-vscode-org-browser,salesforcedx-vscode-expanded"
             echo "Publishing all 16 extensions"
           else
-            EXTENSIONS="${{ github.event.inputs.extensions }}"
+            EXTENSIONS="$INPUT_EXTENSIONS"
             echo "Publishing specified extensions: $EXTENSIONS"
           fi
 
@@ -55,15 +58,12 @@ jobs:
 
   nightly-release:
     needs: build-extension-list
-    # IMPORTANT: This repo is for CI testing only.
-    # dry-run is ALWAYS true to prevent accidental marketplace publishes.
     uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
     with:
       branch: ${{ github.event.inputs.branch || 'develop' }}
-      # Pass explicit comma-separated extension names (never "all" or "changed")
       extensions: ${{ needs.build-extension-list.outputs.extensions }}
       registries: 'all'
       pre-release: 'true'
       version-bump: 'auto'
-      dry-run: true  # ← FORCE true - this is a test repo, never publish for real
+      dry-run: ${{ github.event.inputs.dry-run || false }}
     secrets: inherit

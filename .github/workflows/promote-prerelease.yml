@@ -28,15 +28,11 @@ permissions:
 
 jobs:
   promote:
-    # IMPORTANT: This repo is for CI testing only.
-    # dry-run is ALWAYS true to prevent accidental marketplace publishes.
     uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
     with:
       min-tag-age-days: ${{ inputs.min-tag-age-days || '7' }}
-      # Pattern for all salesforcedx-vscode-* extensions
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
       exclude-web-vsix: 'false'
-      # Use 'suite' to indicate this tracks the whole extension suite (all 16 extensions from one nightly build)
       extension-name: 'salesforcedx-vscode-suite'
-      dry-run: 'true'  # ← FORCE true - this is a test repo, never publish for real
+      dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
