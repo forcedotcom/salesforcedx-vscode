@@ -74,7 +74,6 @@ const registerCommands = (): vscode.Disposable => {
     'sf.debug.exception.breakpoint',
     configureExceptionBreakpoint
   );
-  const isvBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
   const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
     cachedExceptionBreakpoints.forEach(breakpoint => {
       const args: SetExceptionBreakpointsArguments = {
@@ -84,7 +83,7 @@ const registerCommands = (): vscode.Disposable => {
     });
   });
 
-  return vscode.Disposable.from(customEventHandler, exceptionBreakpointCmd, isvBootstrapCmd, startSessionHandler);
+  return vscode.Disposable.from(customEventHandler, exceptionBreakpointCmd, startSessionHandler);
 };
 
 export type ExceptionBreakpointItem = vscode.QuickPickItem & {
@@ -259,7 +258,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   // Register Effect-based commands with AllServicesLayer for tracing + global error/cancellation handling
-  yield* api.services.registerCommandWithLayer(AllServicesLayer)('sf.debugger.stop', debuggerStop);
+  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+  yield* registerCommand('sf.debugger.stop', debuggerStop);
+  yield* registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
   const terminalService = yield* api.services.TerminalService;
   // `sf` CLI present? (`sf --version` exits 0). CLI-absence is a normal outcome here, so the
   // TerminalServiceError is intentionally caught into `false` — skip ISV setup, don't fail activation.

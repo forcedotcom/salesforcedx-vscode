@@ -4,36 +4,26 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command, CommandOutput, SfCommandBuilder, CommandExecution } from '@salesforce/salesforcedx-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils';
 import {
-  CancelResponse,
-  CliCommandExecutor,
-  ContinueResponse,
   createDirectory,
-  notificationService,
-  ParametersGatherer,
-  ProgressNotification,
+  fileOrFolderExists,
   projectPaths,
   readFile,
   safeDelete,
-  writeFile,
-  fileOrFolderExists
+  writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
-import { isString } from 'effect/Predicate';
-import { SpawnOptions } from 'node:child_process';
+import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
+import { isError, isString } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { URL } from 'node:url';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
-import { getChannelService, getSfCommandletExecutorClass } from '../../utils/coreExtensionUtils';
-import {
-  CompositeParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker,
-  SfCommandlet
-} from '../../utils/sfCommandlet';
 
 type InstalledPackageInfo = {
   id: string;
@@ -48,234 +38,236 @@ export const ISVDEBUGGER = 'isvdebuggermdapitmp';
 export const INSTALLED_PACKAGES = 'installed-packages';
 export const PACKAGE_XML = 'package.xml';
 
-type ProjectURI = {
-  projectUri: string;
+/** sfdx-project.json namespace write failed. Previously swallowed (logged + returned, truncating the rest of the flow). @ExportTaggedError */
+export class IsvBootstrapProjectConfigError extends Schema.TaggedError<IsvBootstrapProjectConfigError>()(
+  'IsvBootstrapProjectConfigError',
+  { message: Schema.String }
+) {}
+
+/** package.xml creation failed. Previously swallowed. @ExportTaggedError */
+export class IsvBootstrapPackageXmlError extends Schema.TaggedError<IsvBootstrapPackageXmlError>()(
+  'IsvBootstrapPackageXmlError',
+  { message: Schema.String }
+) {}
+
+/** installed-package.json write failed. Previously swallowed. @ExportTaggedError */
+export class IsvBootstrapInstalledPackageWriteError extends Schema.TaggedError<IsvBootstrapInstalledPackageWriteError>()(
+  'IsvBootstrapInstalledPackageWriteError',
+  { message: Schema.String }
+) {}
+
+/** temp-file cleanup failed. Previously swallowed. @ExportTaggedError */
+export class IsvBootstrapCleanupError extends Schema.TaggedError<IsvBootstrapCleanupError>()(
+  'IsvBootstrapCleanupError',
+  { message: Schema.String }
+) {}
+
+/** launch.json write failed. Previously swallowed. @ExportTaggedError */
+export class IsvBootstrapLaunchJsonError extends Schema.TaggedError<IsvBootstrapLaunchJsonError>()(
+  'IsvBootstrapLaunchJsonError',
+  { message: Schema.String }
+) {}
+
+const relativeMetadataTempPath = () => path.join(projectPaths.relativeToolsFolder(), ISVDEBUGGER);
+const relativeApexPackageXmlPath = () => path.join(relativeMetadataTempPath(), PACKAGE_XML);
+const relativeInstalledPackagesPath = () => path.join(projectPaths.relativeToolsFolder(), INSTALLED_PACKAGES);
+
+/** Parses `sf data query --json` stdout for `Organization.NamespacePrefix`; empty string when absent. */
+export const parseOrgNamespaceQueryResultJson = (orgNamespaceQueryJson: string): string => {
+  const orgNamespaceQueryResponse = JSON.parse(orgNamespaceQueryJson);
+  if (
+    orgNamespaceQueryResponse.result?.records?.[0] &&
+    isString(orgNamespaceQueryResponse.result.records[0].NamespacePrefix)
+  ) {
+    return orgNamespaceQueryResponse.result.records[0].NamespacePrefix;
+  }
+  return '';
 };
 
-type ProjectName = {
-  projectName: string;
+/** Parses `sf package installed list --json` stdout into the installed-package descriptors. */
+export const parsePackageInstalledListJson = (packagesJson: string): InstalledPackageInfo[] => {
+  const packagesData = JSON.parse(packagesJson);
+  return packagesData.result.map(
+    (entry: any) =>
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      ({
+        id: entry.SubscriberPackageId,
+        name: entry.SubscriberPackageName,
+        namespace: entry.SubscriberPackageNamespace,
+        versionId: entry.SubscriberPackageVersionId,
+        versionName: entry.SubscriberPackageVersionName,
+        versionNumber: entry.SubscriberPackageVersionNumber
+      }) as InstalledPackageInfo
+  );
 };
 
-type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & { projectTemplate?: string };
-
-/** Prompts user for input and returns trimmed value */
-const getFormattedString = async (prompt: string, value?: string) => {
-  const input = await vscode.window.showInputBox({
-    prompt,
-    value
-  });
-  return input ? input.trim() : input;
+const uriValidator = (value: string): string | undefined => {
+  try {
+    const parameter = new URL(value).searchParams;
+    if (!isString(parameter.get('url')) || !isString(parameter.get('sessionId'))) {
+      return nls.localize('parameter_gatherer_invalid_forceide_url');
+    }
+  } catch {
+    return nls.localize('parameter_gatherer_invalid_forceide_url');
+  }
+  return undefined;
 };
 
-class SelectProjectName implements ParametersGatherer<ProjectName> {
-  private readonly prefillValueProvider?: () => string;
+/** Prompts for the forceide:// URL and parses its login URL / session id / org name. Esc → UserCancellationError. */
+const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+  const forceIdeUri = yield* Effect.promise(() =>
+    vscode.window.showInputBox({
+      prompt: nls.localize('parameter_gatherer_paste_forceide_url'),
+      placeHolder: nls.localize('parameter_gatherer_paste_forceide_url_placeholder'),
+      ignoreFocusOut: true,
+      validateInput: uriValidator
+    })
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
-  constructor(prefillValueProvider?: () => string) {
-    this.prefillValueProvider = prefillValueProvider;
+  const parameter = new URL(forceIdeUri).searchParams;
+  const loginUrl = parameter.get('url');
+  const sessionId = parameter.get('sessionId');
+  if (loginUrl && sessionId) {
+    const protocolPrefix = parameter.get('secure') === '0' ? 'http://' : 'https://';
+    return {
+      loginUrl: loginUrl.toLowerCase().startsWith('http') ? loginUrl : protocolPrefix + loginUrl,
+      sessionId,
+      orgName: new URL(forceIdeUri).hostname
+    };
+  }
+  yield* Effect.promise(() =>
+    Promise.resolve(vscode.window.showErrorMessage(nls.localize('parameter_gatherer_invalid_forceide_url')))
+  );
+  return yield* new api.services.UserCancellationError({});
+});
+
+/** Prompts for project name (prefilled from the sanitized org name) + parent folder; enforces the overwrite prompt. */
+const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNameAndFolder')(function* (orgName: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
+
+  const projectName = yield* Effect.promise(() =>
+    vscode.window.showInputBox({
+      prompt: nls.localize('parameter_gatherer_enter_project_name'),
+      value: orgName ? sanitize(orgName.replaceAll('+', '_')) : ''
+    })
+  ).pipe(
+    Effect.flatMap(promptService.considerUndefinedAsCancellation),
+    Effect.map(name => name.trim())
+  );
+  if (projectName.length === 0) {
+    return yield* new api.services.UserCancellationError({});
   }
 
-  public async gather(): Promise<CancelResponse | ContinueResponse<ProjectName>> {
-    const prompt = nls.localize('parameter_gatherer_enter_project_name');
-    const prefillValue = this.prefillValueProvider ? this.prefillValueProvider() : '';
-    const projectName = await getFormattedString(prompt, prefillValue);
-    return projectName ? { type: 'CONTINUE', data: { projectName } } : { type: 'CANCEL' };
-  }
-}
-
-class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<ProjectURI>> {
-    const projectUri = await vscode.window.showOpenDialog({
+  const folderSelection = yield* Effect.promise(() =>
+    vscode.window.showOpenDialog({
       canSelectFiles: false,
       canSelectFolders: true,
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
-    });
-    return projectUri?.length === 1
-      ? { type: 'CONTINUE', data: { projectUri: projectUri[0].fsPath } }
-      : { type: 'CANCEL' };
+    })
+  );
+  if (folderSelection?.length !== 1) {
+    return yield* new api.services.UserCancellationError({});
   }
-}
+  const projectUri = folderSelection[0].fsPath;
 
-class PathExistsChecker implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
-  public async check(
-    inputs: ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse
-  ): Promise<ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse> {
-    if (inputs.type === 'CONTINUE') {
-      if (!(await fileOrFolderExists(path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)))) {
-        return inputs;
-      } else {
-        const overwrite = await notificationService.showWarningMessage(
+  const exists = yield* Effect.promise(() => fileOrFolderExists(path.join(projectUri, `${projectName}/`)));
+  if (exists) {
+    const overwrite = nls.localize('warning_prompt_overwrite');
+    const choice = yield* Effect.promise(() =>
+      Promise.resolve(
+        vscode.window.showWarningMessage(
           nls.localize('warning_prompt_dir_overwrite'),
-          nls.localize('warning_prompt_overwrite'),
+          overwrite,
           nls.localize('warning_prompt_overwrite_cancel')
-        );
-        if (overwrite === nls.localize('warning_prompt_overwrite')) {
-          return inputs;
-        }
-      }
+        )
+      )
+    );
+    if (choice !== overwrite) {
+      return yield* new api.services.UserCancellationError({});
     }
-    return { type: 'CANCEL' };
-  }
-}
-
-class EmptyPreChecker implements PreconditionChecker {
-  public check(): boolean {
-    return true;
-  }
-}
-
-export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}> {
-  public readonly relativeMetadataTempPath = path.join(projectPaths.relativeToolsFolder(), ISVDEBUGGER);
-  public readonly relativeApexPackageXmlPath = path.join(this.relativeMetadataTempPath, PACKAGE_XML);
-  public readonly relativeInstalledPackagesPath = path.join(projectPaths.relativeToolsFolder(), INSTALLED_PACKAGES);
-
-  public build(_data: {}): Command {
-    throw new Error('not in use');
   }
 
-  public buildCreateProjectCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('isv_debug_bootstrap_create_project'))
-      .withArg('project:generate')
-      .withFlag('--name', data.projectName)
-      .withFlag('--output-dir', data.projectUri)
-      .withFlag('--template', 'standard')
-      .withLogName('isv_debug_bootstrap_create_project')
-      .build();
-  }
+  return { projectName, projectUri };
+});
 
-  public buildConfigureProjectCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('isv_debug_bootstrap_configure_project'))
-      .withArg('config:set')
-      .withArg(`org-isv-debugger-sid=${data.sessionId}`)
-      .withArg(`org-isv-debugger-url=${data.loginUrl}`)
-      .withArg(`org-instance-url=${data.loginUrl}`)
-      .withLogName('isv_debug_bootstrap_configure_project')
-      .build();
-  }
+/**
+ * Effect command for `sf.debug.isv.bootstrap`: scaffold an ISV Debugger project for a subscriber org.
+ *
+ * Gathers the forceide:// URL + project name/folder, then drives the CLI (project generate, config set,
+ * namespace query, org/package source retrieve, package list) via TerminalService at the project-scoped
+ * `cwd`, threading `GlobalCliEnvironment` (NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY) into
+ * each call. All fs steps fail with dedicated tagged errors (rendered by ErrorHandlerService) instead of
+ * being swallowed.
+ */
+export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const terminalService = yield* api.services.TerminalService;
+  const channel = yield* api.services.ChannelService;
 
-  public buildQueryForOrgNamespacePrefixCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace'))
-      .withArg('data:query')
-      .withFlag('--query', 'SELECT NamespacePrefix FROM Organization LIMIT 1')
-      .withFlag('--target-org', data.sessionId)
-      .withJson()
-      .withLogName('isv_debug_bootstrap_configure_project_retrieve_namespace')
-      .build();
-  }
+  const { loginUrl, sessionId, orgName } = yield* gatherForceIdeUri();
+  const { projectName, projectUri } = yield* gatherProjectNameAndFolder(orgName);
 
-  public parseOrgNamespaceQueryResultJson(orgNamespaceQueryJson: string): string {
-    const orgNamespaceQueryResponse = JSON.parse(orgNamespaceQueryJson);
-    if (
-      orgNamespaceQueryResponse.result?.records?.[0] &&
-      isString(orgNamespaceQueryResponse.result.records[0].NamespacePrefix)
-    ) {
-      return orgNamespaceQueryResponse.result.records[0].NamespacePrefix;
-    }
-    return '';
-  }
+  // CLI auth is set via project-local config (org-isv-debugger-sid), so all steps run inside the project cwd.
+  const projectParentPath = projectUri;
+  const projectPath = path.join(projectParentPath, projectName);
+  const projectMetadataTempPath = path.join(projectPath, relativeMetadataTempPath());
+  const apexRetrievePackageXmlPath = path.join(projectPath, relativeApexPackageXmlPath());
+  const projectInstalledPackagesPath = path.join(projectPath, relativeInstalledPackagesPath());
+  const salesforceProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
 
-  public buildRetrieveOrgSourceCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('isv_debug_bootstrap_retrieve_org_source'))
-      .withArg('project:retrieve:start')
-      .withFlag('--manifest', this.relativeApexPackageXmlPath)
-      .withFlag('--target-org', data.sessionId)
-      .withLogName('isv_debug_bootstrap_retrieve_org_source')
-      .build();
-  }
+  // Thread the GlobalCliEnvironment map (NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY) into every
+  // bootstrap sf call so corp-proxy CA certs and CLI env survive (parity with the old patchEnv). simpleExec
+  // merges this over process.env; the auto-injected SF_JSON_TO_STDOUT/FORCE_COLOR still apply.
+  const env = Object.fromEntries(GlobalCliEnvironment.environmentVariables);
 
-  public buildPackageInstalledListAsJsonCommand(data: IsvDebugBootstrapConfig): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('isv_debug_bootstrap_list_installed_packages'))
-      .withArg('package:installed:list')
-      .withFlag('--target-org', data.sessionId)
-      .withJson()
-      .withLogName('isv_debug_bootstrap_list_installed_packages')
-      .build();
-  }
+  const runSf = (command: string, cwd: string) => terminalService.simpleExec({ command, parse: identity, env, cwd });
 
-  public buildRetrievePackageSourceCommand(data: IsvDebugBootstrapConfig, packageName: string): Command {
-    return new SfCommandBuilder()
-      .withDescription(nls.localize('isv_debug_bootstrap_retrieve_package_source', packageName))
-      .withArg('project:retrieve:start')
-      .withFlag('--package-name', packageName)
-      .withFlag('--target-org', data.sessionId)
-      .withFlag('--target-metadata-dir', this.relativeInstalledPackagesPath)
-      .withArg('--unzip')
-      .withFlag('--zip-file-name', packageName.replaceAll('.', '-')) // with '.' in packagename it trims the string at index('.') and name the folder after substring e.g. salesforce.fth becomes salesforce
-      .withLogName('isv_debug_bootstrap_retrieve_packages_source')
-      .build();
-  }
+  const append = (message: string) => channel.appendToChannel(message);
 
-  public parsePackageInstalledListJson(packagesJson: string): InstalledPackageInfo[] {
-    const packagesData = JSON.parse(packagesJson);
-    return packagesData.result.map(
-      (entry: any) =>
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        ({
-          id: entry.SubscriberPackageId,
-          name: entry.SubscriberPackageName,
-          namespace: entry.SubscriberPackageNamespace,
-          versionId: entry.SubscriberPackageVersionId,
-          versionName: entry.SubscriberPackageVersionName,
-          versionNumber: entry.SubscriberPackageVersionNumber
-        }) as InstalledPackageInfo
-    );
-  }
+  yield* channel.showChannel;
 
-  public async execute(response: ContinueResponse<IsvDebugBootstrapConfig>): Promise<void> {
-    const channelService = await getChannelService();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
+  // remove any previous project at this path location
+  yield* Effect.tryPromise({
+    try: () => safeDelete(projectPath, { recursive: true }),
+    catch: e => new IsvBootstrapCleanupError({ message: isError(e) ? e.message : String(e) })
+  });
 
-    const projectParentPath = response.data.projectUri;
-    const projectPath = path.join(projectParentPath, response.data.projectName);
-    const projectMetadataTempPath = path.join(projectPath, this.relativeMetadataTempPath);
-    const apexRetrievePackageXmlPath = path.join(projectPath, this.relativeApexPackageXmlPath);
-    const projectInstalledPackagesPath = path.join(projectPath, this.relativeInstalledPackagesPath);
+  // 1: create project
+  yield* append(nls.localize('isv_debug_bootstrap_create_project'));
+  yield* runSf(
+    `sf project generate --name "${projectName}" --output-dir "${projectUri}" --template standard`,
+    projectParentPath
+  );
 
-    // remove any previous project at this path location
-    await safeDelete(projectPath, { recursive: true });
-    // 1: create project
-    await this.executeCommand(
-      this.buildCreateProjectCommand(response.data),
-      { cwd: projectParentPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
+  // 2: configure project (writes project-local .sf/config.json, keyed to cwd=projectPath)
+  yield* append(nls.localize('isv_debug_bootstrap_configure_project'));
+  yield* runSf(
+    `sf config set org-isv-debugger-sid="${sessionId}" org-isv-debugger-url="${loginUrl}" org-instance-url="${loginUrl}"`,
+    projectPath
+  );
 
-    // 2: configure project
-    await this.executeCommand(
-      this.buildConfigureProjectCommand(response.data),
-      { cwd: projectPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
-
-    // 2b: update sfdx-project.json with namespace
-    const orgNamespaceInfoResponseJson = await this.executeCommand(
-      this.buildQueryForOrgNamespacePrefixCommand(response.data),
-      { cwd: projectPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
-    try {
-      const salesforceProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
+  // 2b: update sfdx-project.json with namespace
+  yield* append(nls.localize('isv_debug_bootstrap_configure_project_retrieve_namespace'));
+  const orgNamespaceInfoResponseJson = yield* runSf(
+    `sf data query --query "SELECT NamespacePrefix FROM Organization LIMIT 1" --target-org "${sessionId}" --json`,
+    projectPath
+  );
+  yield* Effect.tryPromise({
+    try: async () => {
       const salesforceProjectConfig = JSON.parse(await readFile(salesforceProjectJsonFile));
-      salesforceProjectConfig.namespace = this.parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson);
+      salesforceProjectConfig.namespace = parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson);
       await writeFile(salesforceProjectJsonFile, JSON.stringify(salesforceProjectConfig, null, 2));
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(nls.localize('error_updating_salesforce_project', error.toString()));
-      notificationService.showErrorMessage(nls.localize('error_updating_salesforce_project', error.toString()));
-      return;
-    }
+    },
+    catch: e => new IsvBootstrapProjectConfigError({ message: isError(e) ? e.message : String(e) })
+  });
 
-    // 3a: create package.xml for downloading org apex
-    try {
+  // 3a: create package.xml for downloading org apex
+  yield* Effect.tryPromise({
+    try: async () => {
       await createDirectory(projectMetadataTempPath);
       await writeFile(
         apexRetrievePackageXmlPath,
@@ -291,75 +283,76 @@ export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}
   </types>
 </Package>`
       );
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(nls.localize('error_creating_packagexml', error.toString()));
-      notificationService.showErrorMessage(nls.localize('error_creating_packagexml', error.toString()));
-      return;
-    }
+    },
+    catch: e => new IsvBootstrapPackageXmlError({ message: isError(e) ? e.message : String(e) })
+  });
 
-    // 3b: retrieve unmanaged org source
-    await this.executeCommand(
-      this.buildRetrieveOrgSourceCommand(response.data),
-      { cwd: projectPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
+  // 3b: retrieve unmanaged org source (--manifest is relative → resolvable at cwd=projectPath)
+  yield* append(nls.localize('isv_debug_bootstrap_retrieve_org_source'));
+  yield* runSf(
+    `sf project retrieve start --manifest "${relativeApexPackageXmlPath()}" --target-org "${sessionId}"`,
+    projectPath
+  );
 
-    // 4: get list of installed packages
-    const packagesJson = await this.executeCommand(
-      this.buildPackageInstalledListAsJsonCommand(response.data),
-      { cwd: projectPath },
-      cancellationTokenSource,
-      cancellationToken
-    );
-    const packageInfos = this.parsePackageInstalledListJson(packagesJson);
+  // 4: get list of installed packages
+  yield* append(nls.localize('isv_debug_bootstrap_list_installed_packages'));
+  const packagesJson = yield* runSf(
+    `sf package installed list --target-org "${sessionId}" --json`,
+    projectPath
+  );
+  const packageInfos = parsePackageInstalledListJson(packagesJson);
 
-    // 5a: create directory where packages are to be retrieved
-    await createDirectory(projectInstalledPackagesPath); // .sfdx/tools/installed-packages
-    const packageNames = packageInfos.map(entry => entry.name);
+  // 5a: create directory where packages are to be retrieved (.sfdx/tools/installed-packages)
+  yield* Effect.tryPromise({
+    try: () => createDirectory(projectInstalledPackagesPath),
+    catch: e => new IsvBootstrapInstalledPackageWriteError({ message: isError(e) ? e.message : String(e) })
+  });
 
-    // 5b: retrieve packages
-    // TODO: what if packageNames.length is 0?
-    for (const packageName of packageNames) {
-      await this.executeCommand(
-        this.buildRetrievePackageSourceCommand(response.data, packageName),
-        { cwd: projectPath },
-        cancellationTokenSource,
-        cancellationToken
-      );
-    }
+  // 5b: retrieve packages
+  yield* Effect.forEach(
+    packageInfos,
+    packageInfo =>
+      append(nls.localize('isv_debug_bootstrap_retrieve_package_source', packageInfo.name)).pipe(
+        Effect.zipRight(
+          runSf(
+            // '.' in package name trims the folder name (salesforce.fth → salesforce), so replace it in zip-file-name
+            `sf project retrieve start --package-name "${packageInfo.name}" --target-org "${sessionId}" --target-metadata-dir "${relativeInstalledPackagesPath()}" --unzip --zip-file-name "${packageInfo.name.replaceAll('.', '-')}"`,
+            projectPath
+          )
+        )
+      ),
+    { discard: true }
+  );
 
-    for (const packageInfo of packageInfos) {
-      channelService.appendLine(nls.localize('isv_debug_bootstrap_processing_package', packageInfo.name));
+  // generate installed-package.json files
+  yield* Effect.forEach(
+    packageInfos,
+    packageInfo =>
+      append(nls.localize('isv_debug_bootstrap_processing_package', packageInfo.name)).pipe(
+        Effect.zipRight(
+          Effect.tryPromise({
+            try: () =>
+              writeFile(
+                path.join(projectInstalledPackagesPath, packageInfo.name.replaceAll('.', '-'), 'installed-package.json'),
+                JSON.stringify(packageInfo, null, 2)
+              ),
+            catch: e => new IsvBootstrapInstalledPackageWriteError({ message: isError(e) ? e.message : String(e) })
+          })
+        )
+      ),
+    { discard: true }
+  );
 
-      // generate installed-package.json file
-      try {
-        await writeFile(
-          path.join(projectInstalledPackagesPath, packageInfo.name.replaceAll('.', '-'), 'installed-package.json'),
-          JSON.stringify(packageInfo, null, 2)
-        );
-      } catch (error) {
-        console.error(error);
-        channelService.appendLine(nls.localize('error_writing_installed_package_info', error.toString()));
-        notificationService.showErrorMessage(nls.localize('error_writing_installed_package_info', error.toString()));
-        return;
-      }
-    }
+  // 5c: cleanup temp files
+  yield* Effect.tryPromise({
+    try: () => safeDelete(projectMetadataTempPath, { recursive: true }),
+    catch: e => new IsvBootstrapCleanupError({ message: isError(e) ? e.message : String(e) })
+  });
 
-    // 5c: cleanup temp files
-    try {
-      await safeDelete(projectMetadataTempPath, { recursive: true });
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(nls.localize('error_cleanup_temp_files', error.toString()));
-      notificationService.showErrorMessage(nls.localize('error_cleanup_temp_files', error.toString()));
-      return;
-    }
-
-    // 6: generate launch configuration
-    channelService.appendLine(nls.localize('isv_debug_bootstrap_generate_launchjson'));
-    try {
+  // 6: generate launch configuration
+  yield* append(nls.localize('isv_debug_bootstrap_generate_launchjson'));
+  yield* Effect.tryPromise({
+    try: async () => {
       const projectVsCodeFolder = path.join(projectPath, '.vscode');
       await createDirectory(projectVsCodeFolder);
       await writeFile(
@@ -385,126 +378,11 @@ export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}
           2
         )
       );
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(nls.localize('error_creating_launchjson', error.toString()));
-      notificationService.showErrorMessage(nls.localize('error_creating_launchjson', error.toString()));
-      return;
-    }
+    },
+    catch: e => new IsvBootstrapLaunchJsonError({ message: isError(e) ? e.message : String(e) })
+  });
 
-    // last step: open the folder in VS Code
-    channelService.appendLine(nls.localize('isv_debug_bootstrap_open_project'));
-    await vscode.commands.executeCommand('vscode.openFolder', URI.file(projectPath));
-  }
-
-  public async executeCommand(
-    command: Command,
-    options: SpawnOptions,
-    cancellationTokenSource: vscode.CancellationTokenSource,
-    cancellationToken: vscode.CancellationToken
-  ): Promise<string> {
-    const startTime = globalThis.performance.now();
-    // do not inherit global env because we are setting our own auth
-    const execution = new CliCommandExecutor(command, options, false).execute(cancellationToken);
-
-    const result = new CommandOutput().getCmdResult(execution);
-
-    await this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    execution.processExitSubject.subscribe(() => {
-      this.logMetric(execution.command.logName, startTime);
-    });
-    return result;
-  }
-
-  protected async attachExecution(
-    execution: CommandExecution,
-    cancellationTokenSource: vscode.CancellationTokenSource,
-    cancellationToken: vscode.CancellationToken
-  ) {
-    const channelService = await getChannelService();
-    channelService.streamCommandOutput(execution);
-    channelService.showChannelOutput();
-    notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
-    ProgressNotification.show(execution, cancellationTokenSource);
-  }
-}
-
-type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate & ForceIdeUri;
-
-type ForceIdeUri = {
-  loginUrl: string;
-  sessionId: string;
-  orgName: string;
-};
-
-class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
-  public static readonly uriValidator = (value: string) => {
-    try {
-      const url = new URL(value);
-      const parameter = url.searchParams;
-      const loginUrl = parameter.get('url');
-      const sessionId = parameter.get('sessionId');
-      if (!isString(loginUrl) || !isString(sessionId)) {
-        return nls.localize('parameter_gatherer_invalid_forceide_url');
-      }
-    } catch {
-      return nls.localize('parameter_gatherer_invalid_forceide_url');
-    }
-
-    return null; // all good
-  };
-
-  public forceIdUrl?: ForceIdeUri;
-  public async gather(): Promise<CancelResponse | ContinueResponse<ForceIdeUri>> {
-    const forceIdeUri = await vscode.window.showInputBox({
-      prompt: nls.localize('parameter_gatherer_paste_forceide_url'),
-      placeHolder: nls.localize('parameter_gatherer_paste_forceide_url_placeholder'),
-      ignoreFocusOut: true,
-      validateInput: EnterForceIdeUri.uriValidator
-    });
-
-    if (forceIdeUri) {
-      const url = new URL(forceIdeUri);
-      const parameter = url.searchParams;
-      const loginUrl = parameter.get('url');
-      const sessionId = parameter.get('sessionId');
-      if (loginUrl && sessionId) {
-        const protocolPrefix = parameter.get('secure') === '0' ? 'http://' : 'https://';
-        this.forceIdUrl = {
-          loginUrl: loginUrl.toLowerCase().startsWith('http') ? loginUrl : protocolPrefix + loginUrl,
-          sessionId,
-          orgName: url.hostname
-        };
-        return {
-          type: 'CONTINUE',
-          data: this.forceIdUrl
-        };
-      }
-
-      vscode.window.showErrorMessage(nls.localize('parameter_gatherer_invalid_forceide_url'));
-    }
-
-    return { type: 'CANCEL' };
-  }
-}
-
-export const isvDebugBootstrap = async (): Promise<void> => {
-  const forceIdeUrlGatherer = new EnterForceIdeUri();
-  const workspaceChecker = new EmptyPreChecker();
-  const parameterGatherer = new CompositeParametersGatherer(
-    forceIdeUrlGatherer,
-    new SelectProjectName(() => {
-      if (forceIdeUrlGatherer.forceIdUrl?.orgName) {
-        return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replaceAll('+', '_'));
-      }
-      return '';
-    }),
-    new SelectProjectFolder()
-  );
-  const pathExistsChecker = new PathExistsChecker();
-
-  const executor = new IsvDebugBootstrapExecutor();
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor, pathExistsChecker);
-
-  await commandlet.run();
-};
+  // last step: open the folder in VS Code
+  yield* append(nls.localize('isv_debug_bootstrap_open_project'));
+  yield* Effect.promise(() => Promise.resolve(vscode.commands.executeCommand('vscode.openFolder', URI.file(projectPath))));
+});
