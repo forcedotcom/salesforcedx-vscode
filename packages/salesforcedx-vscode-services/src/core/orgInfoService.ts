@@ -45,7 +45,7 @@ export class NoUsernameError extends Schema.TaggedError<NoUsernameError>()('NoUs
  * Connection/query to the resolved org failed. Carries the resolved username plus a status message
  * so the table can render a degraded OrgInfo.
  */
-export class OrgInfoConnectionError extends Schema.TaggedError<OrgInfoConnectionError>()('OrgInfoConnectionError', {
+class OrgInfoConnectionError extends Schema.TaggedError<OrgInfoConnectionError>()('OrgInfoConnectionError', {
   username: Schema.String,
   message: Schema.String
 }) {}
@@ -127,18 +127,15 @@ export class OrgInfoService extends Effect.Service<OrgInfoService>()('OrgInfoSer
     const configService = yield* ConfigService;
 
     /** Test connection to determine status */
-    const getConnectionStatus = Effect.fn('OrgInfoService.getConnectionStatus')(function* (
-      conn: Connection,
-      username: string
-    ) {
-      return yield* Effect.tryPromise({
+    const getConnectionStatus = Effect.fn('OrgInfoService.getConnectionStatus')((conn: Connection, username: string) =>
+      Effect.tryPromise({
         try: () => conn.identity(),
         catch: error => getConnectionStatusFromError(error, username)
-      }).pipe(Effect.match({ onSuccess: () => 'Connected', onFailure: status => status }));
-    });
+      }).pipe(Effect.match({ onSuccess: () => 'Connected', onFailure: status => status }))
+    );
 
-    const queryScratchOrg = Effect.fn('OrgInfoService.queryScratchOrg')(function* (org: Org, orgId: string) {
-      return yield* Effect.tryPromise({
+    const queryScratchOrg = Effect.fn('OrgInfoService.queryScratchOrg')((org: Org, orgId: string) =>
+      Effect.tryPromise({
         try: async () => {
           const hubOrg = await org.getDevHubOrg();
           if (!hubOrg) {
@@ -154,8 +151,8 @@ export class OrgInfoService extends Effect.Service<OrgInfoService>()('OrgInfoSer
           );
         },
         catch: error => connectionError(orgId, error)
-      }).pipe(Effect.orElseSucceed(() => undefined));
-    });
+      }).pipe(Effect.orElseSucceed(() => undefined))
+    );
 
     /** Derive OrgInfo from an established connection. Shared by the default-org and per-username paths. */
     const getOrgInfoFromConnectionCore = Effect.fn('OrgInfoService.getOrgInfoFromConnectionCore')(function* (
@@ -181,7 +178,7 @@ export class OrgInfoService extends Effect.Service<OrgInfoService>()('OrgInfoSer
       const scratchOrgQuery =
         isScratchOrg && authFields.orgId
           ? yield* getOrgFromConnection(conn).pipe(
-              Effect.mapError(e => connectionError(username, e.cause)),
+              Effect.catchTag('GetOrgFromConnectionError', e => Effect.fail(connectionError(username, e.cause))),
               Effect.flatMap(org => queryScratchOrg(org, authFields.orgId!))
             )
           : undefined;
@@ -250,10 +247,12 @@ export class OrgInfoService extends Effect.Service<OrgInfoService>()('OrgInfoSer
           OrgInfoConnectionError: err => buildErrorOrgInfo(err.username, err.message),
           // web has no username→connection path; degrade gracefully instead of a fromKey mis-parse
           UsernameConnectionNotSupportedOnWebError: err => buildErrorOrgInfo(resolvedUsername, err.message),
+          // fall back to the tagged error itself (an Error) when the optional cause is absent,
+          // so an omitted cause never renders the literal string 'undefined' as the status
           FailedToCreateAuthInfoError: err =>
-            buildErrorOrgInfo(resolvedUsername, getConnectionStatusFromError(err.cause, resolvedUsername)),
+            buildErrorOrgInfo(resolvedUsername, getConnectionStatusFromError(err.cause ?? err, resolvedUsername)),
           FailedToCreateConnectionError: err =>
-            buildErrorOrgInfo(resolvedUsername, getConnectionStatusFromError(err.cause, resolvedUsername))
+            buildErrorOrgInfo(resolvedUsername, getConnectionStatusFromError(err.cause ?? err, resolvedUsername))
         })
       );
     });
