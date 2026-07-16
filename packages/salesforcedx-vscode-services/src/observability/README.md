@@ -369,14 +369,14 @@ When `enableCustomEventsFromSpans` is enabled, `ApplicationInsightsNodeExporter`
 
 **Automatic in Dev/Test Mode**: When running extensions in Development or Test mode (`ExtensionMode.Development`/`Test`), Node automatically diverts App Insights envelopes to `http://localhost:3003/v2.1/track` without requiring env var or setting. Telemetry is force-enabled (provably safe since it cannot reach Azure).
 
-**Manual or Custom Port**: Override the default with `SF_OTEL_INGESTION_ENDPOINT=http://localhost:NNNN`.
+**Custom Port (Dev/Test)**: For a non-standard local port, set `SF_OTEL_INGESTION_ENDPOINT=http://localhost:NNNN` in dev/test mode.
 
 **Divert Mechanism**: Both `FilteredAzureMonitorTraceExporter` (dependencies path) and `ApplicationInsightsNodeExporter` (customEvents path) swap their private HTTP transport to POST Breeze envelopes over plain HTTP to the local endpoint. This avoids the Azure SDK's `ConnectionStringParser.sanitizeUrl`, which force-upgrades `http://` → `https://`, making plain-HTTP localhost servers unreachable.
 
 **To inspect**:
 
 1. Start the span file server: `npm run spans:server -w salesforcedx-vscode-services` (listens on `http://localhost:3003`)
-2. Launch the extension in dev/test mode, or set `SF_OTEL_INGESTION_ENDPOINT=http://localhost:3003`
+2. Launch the extension in dev/test mode
 3. Reload the VS Code window
 4. Run commands or trigger spans — envelopes are written to `~/.sf/vscode-appinsights/appinsights-{ISO-timestamp}.jsonl` (gzip-decompressed, newline-delimited JSON) or `appinsights-web-{ISO-timestamp}.jsonl` for web
 5. Inspect: `cat ~/.sf/vscode-appinsights/appinsights-*.jsonl | jq '.' | less`

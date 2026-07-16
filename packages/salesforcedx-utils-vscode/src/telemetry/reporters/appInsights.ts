@@ -3,7 +3,7 @@
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
 
-import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
+import type { OrgIdentity, TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import { TelemetryReporter as VSCodeTelemetryReporter } from '@vscode/extension-telemetry';
 import { Disposable, env, workspace } from 'vscode';
@@ -38,6 +38,8 @@ export class AppInsights
 
   // user defined tag to add to properties that is defined via setting
   private telemetryTag: string | undefined;
+
+  public orgIdentity?: OrgIdentity;
 
   constructor(
     private extensionId: string,
