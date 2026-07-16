@@ -1,4 +1,9 @@
 name: Publish in Microsoft Marketplace
+
+# IMPORTANT: This repo is for CI testing only.
+# dry-run is ALWAYS true to prevent accidental marketplace publishes.
+# Publishing uses shared vscode-publish-extensions workflow for consistency.
+
 on:
   release:
     # This limits the workflow to releases that are not pre-releases
@@ -6,6 +11,12 @@ on:
     types: [released]
   #  Button for publishing main branch in case there is a failure on the release.
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty to read from main branch)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   prepare-environment-from-main:
@@ -17,6 +28,7 @@ jobs:
     environment: publish
     outputs:
       RELEASE_VERSION: ${{ steps.getMainVersion.outputs.version }}
+      RELEASE_TAG: ${{ steps.getReleaseTag.outputs.tag }}
       CBW_RELEASE_TYPE: ${{ steps.cbwReleaseType.outputs.type }}
       GUS_BUILD: ${{ steps.getGusBuild.outputs.gusBuild}}
       SF_CHANGE_CASE_SCHEDULE_BUILD: ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}
@@ -27,8 +39,16 @@ jobs:
       - run: git fetch --tags --quiet
       - id: getMainVersion
         run: |
-          echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - run: echo "Main Version is ${{ steps.getMainVersion.outputs.version }}"
+      - id: getReleaseTag
+        run: |
+          echo "tag=v${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
       - id: cbwReleaseType
         run: |
           VERSION="${{ steps.getMainVersion.outputs.version }}"
@@ -53,50 +73,70 @@ jobs:
       - id: getScheduledBuild
         run: |
           echo "sfChangeCaseScheduleBuild=offcore.tooling.${{ steps.getMainVersion.outputs.version }}" >> $GITHUB_OUTPUT
-      - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"\
+      - run: echo "SF_CHANGE_CASE_SCHEDULE_BUILD is ${{ steps.getScheduledBuild.outputs.sfChangeCaseScheduleBuild }}"
+
+  # Build list of extensions from release
+  build-extension-list:
+    needs: [prepare-environment-from-main]
+    runs-on: ubuntu-latest
+    outputs:
+      extensions: ${{ steps.list.outputs.extensions }}
+    steps:
+      - name: Build extension list
+        id: list
+        env:
+          RELEASE_TAG: ${{ needs.prepare-environment-from-main.outputs.RELEASE_TAG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # All 16 extensions in this repo
+          EXTENSIONS="salesforcedx-vscode-core,salesforcedx-vscode-services,salesforcedx-vscode-apex,salesforcedx-vscode-apex-debugger,salesforcedx-vscode-apex-replay-debugger,salesforcedx-vscode-apex-log,salesforcedx-vscode-apex-oas,salesforcedx-vscode-apex-testing,salesforcedx-vscode-lightning,salesforcedx-vscode-lwc,salesforcedx-vscode-visualforce,salesforcedx-vscode-soql,salesforcedx-vscode-metadata,salesforcedx-vscode-org,salesforcedx-vscode-org-browser,salesforcedx-vscode-expanded"
+          echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
+          echo "Publishing all 16 extensions"
 
   ctc-open:
     needs: [prepare-environment-from-main]
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     secrets: inherit
 
-  publish:
-    needs: ['ctc-open', 'prepare-environment-from-main']
+  # Validate VSIX files before publishing
+  validate-vsix:
+    needs: [prepare-environment-from-main]
     runs-on: ubuntu-latest
-    outputs:
-      extensions: ${{ steps.collect-extensions.outputs.names }}
-    env:
-      VSCE_PERSONAL_ACCESS_TOKEN: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
-      PUBLISH_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
-      GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: 'main'
-          token: ${{ secrets.IDEE_GH_TOKEN }}
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-      - name: downloadExtensionsFromRelease
+      - name: Download VSIXs from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
         run: |
           mkdir ./extensions
-          gh release download v${{ env.PUBLISH_VERSION }} -D ./extensions
-      - name: Display downloaded vsix files
-        run: ls -R ./extensions
-      - name: Collect published extension names
-        id: collect-extensions
-        run: |
-          NAMES=$(node scripts/parse-extension-names.js ./extensions)
-          echo "names=$NAMES" >> "$GITHUB_OUTPUT"
-          echo "Published extensions: $NAMES"
+          gh release download v$RELEASE_VERSION -D ./extensions
+          echo "Downloaded VSIX files:"
+          ls -lh ./extensions/*.vsix
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./extensions
-      - uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: |
-            cmd=$(find . -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx vsce publish --skip-duplicate --pat "%s" --packagePath "%s" && ' "${VSCE_PERSONAL_ACCESS_TOKEN}" '{}' | sed 's/ && $//')&&[ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
+
+  # Publish all extensions using shared workflow
+  # This replaces the custom publish job with standardized shared workflow
+  publish:
+    needs: ['ctc-open', 'prepare-environment-from-main', 'build-extension-list', 'validate-vsix']
+    # IMPORTANT: This repo is for CI testing only.
+    # dry-run is ALWAYS true to prevent accidental marketplace publishes.
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
+    with:
+      branch: 'main'
+      extensions: ${{ needs.build-extension-list.outputs.extensions }}
+      registries: 'all'
+      pre-release: 'false'  # Stable releases (even minor versions)
+      version-bump: 'none'  # Version already set in release
+      dry-run: true  # ← FORCE true - this is a test repo, never publish for real
+    secrets: inherit
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
@@ -108,7 +148,7 @@ jobs:
 
   ctcCloseFail:
     needs: [ctc-open, publish]
-    if: always() && inputs.ctc && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
+    if: always() && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:
@@ -120,7 +160,7 @@ jobs:
   # Uses repository_dispatch (not workflow_call) because GitHub Actions blocks
   # public repos from calling reusable workflows in private repos.
   trigger-cbw-release:
-    needs: [publish, prepare-environment-from-main]
+    needs: [publish, prepare-environment-from-main, build-extension-list]
     if: needs.publish.result == 'success' && vars.CBW_TRIGGER_ENABLED != 'false'
     continue-on-error: true
     runs-on: ubuntu-latest
@@ -138,7 +178,7 @@ jobs:
           GH_TOKEN: ${{ steps.dispatch-token.outputs.token }}
           VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
           RELEASE_TYPE: ${{ needs.prepare-environment-from-main.outputs.CBW_RELEASE_TYPE }}
-          EXTENSIONS: ${{ needs.publish.outputs.extensions }}
+          EXTENSIONS: ${{ needs.build-extension-list.outputs.extensions }}
         run: |
           echo "Dispatching extension-publish event to code-builder-web with version $VERSION (release-type: $RELEASE_TYPE, extensions: $EXTENSIONS)"
           gh api repos/forcedotcom/code-builder-web/dispatches \

@@ -71,7 +71,11 @@ The merge into `main` will trigger a run of the 'Test, Build, and Release' GHA w
 - send a slack notification that a release workflow has been initiated
 - create a tag and release in GitHub
 
-After the release has been created, it will trigger two publish actions for publishing in the MS Marketplace and the Open VSX. Each action will send a notification to slack to request approval to publish the vsix files.
+After the release has been created, it will trigger the `publishVSCode.yml` workflow that will:
+
+- validate VSIX OPC Part URIs (ensures files are not corrupted)
+- download vsix files from the GitHub release
+- send a notification requesting approval to publish the vsix files to the marketplaces
 
 Before approving the release to the marketplace, download the vsix files from the release you just created, install them locally and verify they are working as expected.
 

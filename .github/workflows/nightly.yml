@@ -1,0 +1,69 @@
+name: Nightly Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to release from'
+        required: false
+        default: 'develop'
+        type: string
+      extensions:
+        description: |
+          Comma-separated extension names (e.g., "salesforcedx-vscode-apex,salesforcedx-vscode-core")
+          Leave empty to publish ALL 16 extensions
+        required: false
+        default: ''
+        type: string
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing)'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # Nightly pre-release build at 4 AM UTC - publishes all extensions
+    - cron: '0 4 * * *'
+
+concurrency:
+  group: nightly-${{ github.workflow }}-${{ github.event.inputs.branch || 'develop' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  build-extension-list:
+    runs-on: ubuntu-latest
+    outputs:
+      extensions: ${{ steps.list.outputs.extensions }}
+    steps:
+      - name: Build extension list
+        id: list
+        run: |
+          # For scheduled runs or empty input, publish all extensions
+          if [ "${{ github.event_name }}" = "schedule" ] || [ -z "${{ github.event.inputs.extensions }}" ]; then
+            EXTENSIONS="salesforcedx-vscode-core,salesforcedx-vscode-services,salesforcedx-vscode-apex,salesforcedx-vscode-apex-debugger,salesforcedx-vscode-apex-replay-debugger,salesforcedx-vscode-apex-log,salesforcedx-vscode-apex-oas,salesforcedx-vscode-apex-testing,salesforcedx-vscode-lightning,salesforcedx-vscode-lwc,salesforcedx-vscode-visualforce,salesforcedx-vscode-soql,salesforcedx-vscode-metadata,salesforcedx-vscode-org,salesforcedx-vscode-org-browser,salesforcedx-vscode-expanded"
+            echo "Publishing all 16 extensions"
+          else
+            EXTENSIONS="${{ github.event.inputs.extensions }}"
+            echo "Publishing specified extensions: $EXTENSIONS"
+          fi
+
+          echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
+
+  nightly-release:
+    needs: build-extension-list
+    # IMPORTANT: This repo is for CI testing only.
+    # dry-run is ALWAYS true to prevent accidental marketplace publishes.
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
+    with:
+      branch: ${{ github.event.inputs.branch || 'develop' }}
+      # Pass explicit comma-separated extension names (never "all" or "changed")
+      extensions: ${{ needs.build-extension-list.outputs.extensions }}
+      registries: 'all'
+      pre-release: 'true'
+      version-bump: 'auto'
+      dry-run: true  # ← FORCE true - this is a test repo, never publish for real
+    secrets: inherit
