@@ -19,6 +19,7 @@ import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
+import { OrgInfoService } from './core/orgInfoService';
 import { ProjectService } from './core/projectService';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService } from './core/templateService';
@@ -62,6 +63,7 @@ export const globalLayers = Layer.mergeAll(
   PromptService.Default,
   MetadataRegistryService.Default,
   MetadataRetrieveService.Default,
+  OrgInfoService.Default,
   ProjectService.Default,
   SettingsService.Default,
   SettingsChangePubSub.Default,
