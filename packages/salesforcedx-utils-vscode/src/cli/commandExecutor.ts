@@ -51,13 +51,13 @@ export class CliCommandExecutor {
       : options;
   }
 
-  public execute(cancellationToken?: CancellationToken): CliCommandExecution {
+  public execute(cancellationToken?: CancellationToken): CommandExecution {
     const childProcess = crossSpawn(this.command.command, this.command.args, this.options);
     return new CliCommandExecution(this.command, childProcess, cancellationToken);
   }
 }
 
-export class CliCommandExecution implements CommandExecution {
+class CliCommandExecution implements CommandExecution {
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
   public readonly processExitSubject: Observable<number | undefined>;
