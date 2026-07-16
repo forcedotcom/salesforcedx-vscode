@@ -8,14 +8,15 @@
 import * as Effect from 'effect/Effect';
 
 export type ExecResult = { stdout: string; stderr: string };
-export type ExecOptions = { timeout?: number; signal?: AbortSignal; env?: Record<string, string> };
+export type ExecOptions = { timeout?: number; signal?: AbortSignal; env?: Record<string, string>; cwd?: string };
 
 /** Resolve node exec options from our ExecOptions. With an `env` override, spread `process.env` under it so
  * PATH survives (node only inherits the parent env when `env` is omitted entirely); without one, omit `env`
- * so node inherits the full parent env. Pure fn so the merge is unit-testable without the lazy node import. */
+ * so node inherits the full parent env. `cwd` is threaded through only when set (else node uses process.cwd()).
+ * Pure fn so the merge is unit-testable without the lazy node import. */
 export const resolveExecOptions = (
   options: ExecOptions
-): { timeout?: number; signal?: AbortSignal; env?: NodeJS.ProcessEnv } => {
+): { timeout?: number; signal?: AbortSignal; env?: NodeJS.ProcessEnv; cwd?: string } => {
   const { env, ...rest } = options;
   return env ? { ...rest, env: { ...process.env, ...env } } : rest;
 };
