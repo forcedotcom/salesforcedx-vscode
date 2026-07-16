@@ -7,7 +7,6 @@ import type { OrgIdentity, TelemetryReporterWithModifiableUserProperties } from 
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import { TelemetryReporter as VSCodeTelemetryReporter } from '@vscode/extension-telemetry';
 import { Disposable, env, workspace } from 'vscode';
-import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
@@ -132,7 +131,7 @@ export class AppInsights
       return;
     }
 
-    const baseProps = getBaseProps();
+    const baseProps = this.getBaseProps();
     const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties, webUserId: this.webUserId });
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -170,7 +169,7 @@ export class AppInsights
       return;
     }
 
-    const baseProps = getBaseProps();
+    const baseProps = this.getBaseProps();
     const finalProps = this.applyTelemetryTag({ ...baseProps, webUserId: this.webUserId });
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -250,10 +249,9 @@ export class AppInsights
   } {
     return this.telemetryTag ? { ...properties, telemetryTag: this.telemetryTag } : properties;
   }
-}
 
-const getBaseProps = (): Record<string, string> => {
-  const context = WorkspaceContextUtil.getInstance();
-  const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = context;
-  return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
-};
+  private getBaseProps(): Record<string, string> {
+    const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = this.orgIdentity ?? {};
+    return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
+  }
+}

@@ -10,7 +10,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
-import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { getRootWorkspacePath } from '../../workspaces/workspaceUtils';
 
 /**
@@ -77,13 +76,8 @@ export class TelemetryFile implements TelemetryReporter {
   }
 
   private getBaseProps(): Record<string, string> {
-    try {
-      const context = WorkspaceContextUtil.getInstance();
-      const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = context;
-      return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
-    } catch {
-      return {};
-    }
+    const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = this.orgIdentity ?? {};
+    return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
   }
 
   private async flushBuffer(): Promise<void> {

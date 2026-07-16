@@ -6,7 +6,6 @@
  */
 import * as os from 'node:os';
 import { workspace } from 'vscode';
-import { WorkspaceContextUtil } from '../../../../src';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 import { CommonProperties, InternalProperties } from '../../../../src/telemetry/reporters/loggingProperties';
 import { getCommonProperties, getInternalProperties } from '../../../../src/telemetry/reporters/telemetryUtils';
@@ -18,7 +17,6 @@ describe('AppInsights', () => {
   const fakeKey = 'testKey';
 
   describe('sendTelemetryEvent and sendExceptionEvent', () => {
-    let getInstanceMock: jest.SpyInstance;
     const dummyOrgId = '000dummyOrgId';
     const getMock = jest.fn().mockReturnValueOnce(true);
     const fakeConfig: any = { get: getMock };
@@ -28,17 +26,13 @@ describe('AppInsights', () => {
     const trackEventMock = jest.fn();
 
     beforeEach(() => {
-      // Arrange
-      getInstanceMock = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue({ devHubId: '', orgId: dummyOrgId, orgShape: '' } as any);
-
       jest.spyOn(workspace, 'getConfiguration').mockReturnValue(fakeConfig);
       jest.spyOn(AppInsights.prototype as any, 'updateUserOptIn').mockReturnValue('');
     });
 
     it('should send telemetry data to appInsightsClient.trackEvent', () => {
       appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, 'test-webUser', false);
+      appInsights.orgIdentity = { devHubId: '', orgId: dummyOrgId };
       (appInsights as any).userOptIn = true;
       (appInsights as any).appInsightsClient = {
         trackException: trackExceptionMock,
@@ -49,7 +43,6 @@ describe('AppInsights', () => {
       appInsights.sendTelemetryEvent('Dummy Telemetry Event', {}, {});
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock).toHaveBeenCalledTimes(1);
       expect(trackEventMock.mock.calls[0][0]).toMatchSnapshot();
     });
@@ -59,20 +52,13 @@ describe('AppInsights', () => {
       appInsights.sendExceptionEvent('Dummy Exception', 'a dummy exception occurred');
 
       // Assert
-      expect(getInstanceMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock).toHaveBeenCalledTimes(1);
       expect(trackExceptionMock.mock.calls[0][0]).toMatchSnapshot();
     });
 
     it('should include orgEdition in event properties when available', () => {
-      getInstanceMock.mockReturnValue({
-        devHubId: '',
-        orgId: dummyOrgId,
-        orgShape: 'Production',
-        orgEdition: 'Enterprise Edition'
-      });
-
       appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, 'test-webUser', false);
+      appInsights.orgIdentity = { orgId: dummyOrgId, orgShape: 'Production', orgEdition: 'Enterprise Edition' };
       (appInsights as any).userOptIn = true;
       (appInsights as any).appInsightsClient = {
         trackException: trackExceptionMock,
