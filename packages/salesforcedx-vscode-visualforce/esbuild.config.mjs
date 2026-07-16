@@ -6,6 +6,7 @@
  */
 import { build } from 'esbuild';
 import { writeFile } from 'fs/promises';
+import { assertWebSafe } from '../../scripts/bundling/assert-web-safe.mjs';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
@@ -56,6 +57,8 @@ const serverBrowserBuild = await build({
   metafile: true
 });
 
+await writeFile('dist/web-server-metafile.json', JSON.stringify(serverBrowserBuild.metafile, null, 2));
+
 // Regression guard: the web LS bundle must NOT contain the node-only `typescript` package (it uses node fs).
 // Phase 1's build-time dead-code elimination (languageModes.ts) is what keeps it out; if this fires, fix there.
 const typescriptInWebServer = Object.keys(serverBrowserBuild.metafile.inputs).filter(p =>
@@ -67,3 +70,9 @@ if (typescriptInWebServer.length > 0) {
       `Phase 1 dead-code elimination regressed — fix languageModes.ts, do not alias.`
   );
 }
+
+// Anti-regression guard: both web bundles must not externalize a non-allowlisted node builtin.
+// Locks W-23358901's source-level removal of node:path/node:url from the LS — catches future
+// node-builtin creep into the web LS (and the web extension bundle).
+await assertWebSafe('dist/web-server-metafile.json');
+await assertWebSafe('dist/browser-metafile.json');
