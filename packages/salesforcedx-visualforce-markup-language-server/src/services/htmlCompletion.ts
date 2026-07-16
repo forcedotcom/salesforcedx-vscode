@@ -60,7 +60,7 @@ export function doComplete(
   function collectOpenTagSuggestions(afterOpenBracket: number, tagNameEnd?: number): CompletionList {
     const range = getReplaceRange(afterOpenBracket, tagNameEnd);
     tagProviders.forEach(provider => {
-      provider.collectTags((tag, label) => {
+      provider.getTags().forEach(({ tag, label }) => {
         result.items.push({
           label: tag,
           kind: CompletionItemKind.Property,
@@ -126,7 +126,7 @@ export function doComplete(
     }
 
     tagProviders.forEach(provider => {
-      provider.collectTags((tag, label) => {
+      provider.getTags().forEach(({ tag, label }) => {
         result.items.push({
           label: '/' + tag,
           kind: CompletionItemKind.Property,
@@ -175,7 +175,7 @@ export function doComplete(
       : '="$1"';
     const tag = currentTag.toLowerCase();
     tagProviders.forEach(provider => {
-      provider.collectAttributes(tag, (attribute, type) => {
+      provider.getAttributes(tag).forEach(({ attribute, type }) => {
         let codeSnippet = attribute;
         if (type !== 'v' && value.length) {
           codeSnippet = codeSnippet + value;
@@ -210,7 +210,7 @@ export function doComplete(
     const tag = currentTag.toLowerCase();
     const attribute = currentAttributeName.toLowerCase();
     tagProviders.forEach(provider => {
-      provider.collectValues(tag, attribute, value => {
+      provider.getValues(tag, attribute).forEach(value => {
         const insertText = addQuotes ? '"' + value + '"' : value;
         result.items.push({
           label: value,

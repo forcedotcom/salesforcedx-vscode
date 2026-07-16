@@ -46,12 +46,15 @@ export function isEmptyElement(e: string): boolean {
   );
 }
 
+export type TagEntry = { tag: string; label: string };
+export type AttributeEntry = { attribute: string; type: string };
+
 export type IHTMLTagProvider = {
   getId(): string;
   isApplicable(languageId: string);
-  collectTags(collector: (tag: string, label: string) => void): void;
-  collectAttributes(tag: string, collector: (attribute: string, type: string) => void): void;
-  collectValues(tag: string, attribute: string, collector: (value: string) => void): void;
+  getTags(): TagEntry[];
+  getAttributes(tag: string): AttributeEntry[];
+  getValues(tag: string, attribute: string): string[];
 };
 
 type ITagSet = {
@@ -1132,93 +1135,52 @@ export function getHTML5TagProvider(): IHTMLTagProvider {
   return {
     getId: () => 'html5',
     isApplicable: () => true,
-    collectTags: (collector: (tag: string, label: string) => void) => collectTagsDefault(collector, HTML_TAGS),
-    collectAttributes: (tag: string, collector: (attribute: string, type: string) => void) => {
-      if (HTML_TAGS[tag]) {
-        collectAttributesDefault(tag, collector, HTML_TAGS, globalAttributes);
-        eventHandlers.forEach(handler => {
-          collector(handler, 'event');
-        });
-      }
-    },
-    collectValues: (tag: string, attribute: string, collector: (value: string) => void) =>
-      collectValuesDefault(tag, attribute, collector, HTML_TAGS, globalAttributes, valueSets)
+    getTags: () => getTagsDefault(HTML_TAGS),
+    getAttributes: (tag: string) =>
+      HTML_TAGS[tag]
+        ? [
+            ...getAttributesDefault(tag, HTML_TAGS, globalAttributes),
+            ...eventHandlers.map(handler => ({ attribute: handler, type: 'event' }))
+          ]
+        : [],
+    getValues: (tag: string, attribute: string) =>
+      getValuesDefault(tag, attribute, HTML_TAGS, globalAttributes, valueSets)
   };
 }
 
-function collectTagsDefault(collector: (tag: string, label: string) => void, tagSet: ITagSet): void {
-  for (const tag in tagSet) {
-    if (tagSet.hasOwnProperty(tag)) {
-      collector(tag, tagSet[tag].documentation);
-    }
-  }
+function getTagsDefault(tagSet: ITagSet): TagEntry[] {
+  return Object.keys(tagSet).map(tag => ({ tag, label: tagSet[tag].documentation }));
 }
 
-function collectAttributesDefault(
-  tag: string,
-  collector: (attribute: string, type: string) => void,
-  tagSet: ITagSet,
-  globalAttributes: string[]
-): void {
-  globalAttributes.forEach(attr => {
+function getAttributesDefault(tag: string, tagSet: ITagSet, globalAttributes: string[]): AttributeEntry[] {
+  const toEntry = (attr: string): AttributeEntry => {
     const segments = attr.split(':');
-    collector(segments[0], segments[1]);
-  });
-  if (tag) {
-    const tags = tagSet[tag];
-    if (tags) {
-      const attributes = tags.attributes;
-      if (attributes) {
-        attributes.forEach(attr => {
-          const segments = attr.split(':');
-          collector(segments[0], segments[1]);
-        });
-      }
-    }
-  }
+    return { attribute: segments[0], type: segments[1] };
+  };
+  const tagAttributes = tag && tagSet[tag] && tagSet[tag].attributes ? tagSet[tag].attributes : [];
+  return [...globalAttributes, ...tagAttributes].map(toEntry);
 }
 
-export function collectValuesDefault(
+export function getValuesDefault(
   tag: string,
   attribute: string,
-  collector: (value: string) => void,
   tagSet: ITagSet,
   globalAttributes: string[],
   valueSets: IValueSets,
   customTags?: { [tag: string]: string[] }
-): void {
+): string[] {
   const prefix = attribute + ':';
-  const processAttributes = (attributes: string[]) => {
-    attributes.forEach(attr => {
+  const processAttributes = (attributes: string[]): string[] =>
+    attributes.flatMap(attr => {
       if (attr.length > prefix.length && strings.startsWithCaseInsentively(attr, prefix)) {
         const typeInfo = attr.substr(prefix.length);
-        if (typeInfo === 'v') {
-          collector(attribute);
-        } else {
-          const values = valueSets[typeInfo];
-          if (values) {
-            values.forEach(collector);
-          }
-        }
+        return typeInfo === 'v' ? [attribute] : (valueSets[typeInfo] ?? []);
       }
+      return [];
     });
-  };
-  if (tag) {
-    const tags = tagSet[tag];
-    if (tags) {
-      const attributes = tags.attributes;
-      if (attributes) {
-        processAttributes(attributes);
-      }
-    }
-  }
-  processAttributes(globalAttributes);
-  if (customTags) {
-    const customTagAttributes = customTags[tag];
-    if (customTagAttributes) {
-      processAttributes(customTagAttributes);
-    }
-  }
+  const tagAttributes = tag && tagSet[tag] && tagSet[tag].attributes ? tagSet[tag].attributes : [];
+  const customTagAttributes = customTags && customTags[tag] ? customTags[tag] : [];
+  return [...processAttributes(tagAttributes), ...processAttributes(globalAttributes), ...processAttributes(customTagAttributes)];
 }
 /*!
 END THIRD PARTY
