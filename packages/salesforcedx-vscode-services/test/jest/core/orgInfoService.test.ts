@@ -6,7 +6,6 @@
  */
 
 import { AuthInfo, Connection, OrgConfigProperties, Org, type ConfigAggregator } from '@salesforce/core';
-import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
@@ -381,11 +380,13 @@ describe('OrgInfoService defaultOrgRef regression (real ConnectionService)', () 
     }));
     connectionCreateMock.mockResolvedValue(makeRealDesktopConn('default@example.com', getAuthInfoFieldsSpy));
 
-    // getConnection + a short sleep share one runtime so the forkDaemon body is scheduled before assert.
+    // getConnection + a scheduler yield share one runtime so the forkDaemon body is scheduled before assert.
+    // yieldNow (not a wall-clock sleep) is deterministic: getAuthInfoFields is the first sync statement in
+    // maybeUpdateDefaultOrgRef, so the forked fiber runs up to that call on the yield — no timing race.
     await Effect.runPromise(
       Effect.gen(function* () {
         yield* ConnectionService.getConnection();
-        yield* Effect.sleep(Duration.millis(50));
+        yield* Effect.yieldNow();
       }).pipe(Effect.provide(realConnectionLayer))
     );
 

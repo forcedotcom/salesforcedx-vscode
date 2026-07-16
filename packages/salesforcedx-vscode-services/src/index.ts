@@ -451,7 +451,7 @@ export {
 export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
-export type { OrgInfoService, NoUsernameError, OrgInfoConnectionError } from './core/orgInfoService';
+export type { OrgInfoService, NoUsernameError } from './core/orgInfoService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
