@@ -95,6 +95,53 @@ test.describe('Visualforce LSP', () => {
     });
   });
 
+  test('provides hover for mixed-case apex tags in .page files', async ({ page }) => {
+    test.setTimeout(3 * 60 * 1000);
+
+    const name = `LspHoverPage${Date.now()}`;
+
+    await test.step('seed and open a .page file', async () => {
+      await seedAndOpenPage(page, name);
+    });
+
+    await test.step('type page content with mixed-case apex tags', async () => {
+      await page.keyboard.type('<apex:pageBlock></apex:pageBlock>\n<apex:outputField/>');
+    });
+
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.page"]`);
+
+    // Cold-LSP race: the first hover can land before the LS is ready and never re-triggers. Poll:
+    // clear any open hover, move the pointer off the token so the next hover() is a genuine pointer
+    // transition that re-drives the provider, then assert the card shows the original-case tag.
+    const assertHover = async (tagName: string): Promise<void> => {
+      const tagToken = editor
+        .locator('.view-lines span')
+        .filter({ hasText: new RegExp(`^${tagName}$`) })
+        .first();
+      await tagToken.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(async () => {
+        await page.keyboard.press('Escape');
+        const editorBox = await editor.boundingBox();
+        await page.mouse.move((editorBox?.x ?? 0) + 10, (editorBox?.y ?? 0) + (editorBox?.height ?? 0) - 10);
+        await tagToken.hover();
+        await expect(
+          page.locator('.monaco-hover:not(.hidden)').filter({ hasText: tagName }),
+          `Visualforce LSP hover card should show ${tagName}`
+        ).toBeVisible({ timeout: 3000 });
+      }).toPass({ timeout: 45_000 });
+    };
+
+    await test.step('hover apex:pageBlock and verify the hover card', async () => {
+      await assertHover('apex:pageBlock');
+      await saveScreenshot(page, 'vf-lsp-hover.pageBlock.png');
+    });
+
+    await test.step('hover apex:outputField and verify the hover card', async () => {
+      await assertHover('apex:outputField');
+      await saveScreenshot(page, 'vf-lsp-hover.outputField.png');
+    });
+  });
+
   // TODO: Go to Definition is not implemented in the Visualforce language server — documented gap carried over
   // from the deleted visualforceLsp.desktop.spec.ts. Add a spec here when the LS gains definition support.
 
