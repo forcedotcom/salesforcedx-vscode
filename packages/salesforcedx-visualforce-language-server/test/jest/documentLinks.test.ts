@@ -27,6 +27,16 @@ describe('resolveReference (document link resolution)', () => {
     );
   });
 
+  it('routes a base-resolved root-relative ref through workspacePath (not escaping to fs root)', () => {
+    // <base href="/assets/"> + relative ref: legacy resolved base FIRST (-> /assets/foo.png) then the
+    // root-relative branch joined workspacePath. A base-branch early return would escape to
+    // file:///assets/foo.png; this locks the workspace-anchored target.
+    const workspacePath = '/ws';
+    expect(resolveReference(workspacePath, 'file:///ws/pages/a.page', 'foo.png', '/assets/')).toBe(
+      Utils.joinPath(URI.file(workspacePath), '/assets/foo.png').toString()
+    );
+  });
+
   it('resolves a doc-relative ref (no base, no workspacePath)', () => {
     expect(resolveReference(undefined, 'test://test/a.page', 'foo.png')).toBe('test://test/foo.png');
   });
