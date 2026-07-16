@@ -7,12 +7,7 @@
 import * as vscode from 'vscode';
 
 // Mock vscode.extensions.getExtension before any imports that trigger src/index.ts
-const mockCoreExports = {};
-const mockExtension = { exports: mockCoreExports, isActive: true };
-(jest.spyOn(vscode.extensions, 'getExtension') as any).mockImplementation((id: string) => {
-  if (id === 'salesforce.salesforcedx-vscode-core') return mockExtension;
-  return { isActive: true, exports: {} };
-});
+(jest.spyOn(vscode.extensions, 'getExtension') as any).mockImplementation(() => ({ isActive: true, exports: {} }));
 
 // Mock vscode commands
 jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(() => Promise.resolve());
@@ -171,11 +166,10 @@ describe('index tests', () => {
         }
       };
 
-      // Mock extensions API for both core and apex extensions
+      // Mock extensions API for the apex extension
       Object.defineProperty(vscode, 'extensions', {
         get: () => ({
           getExtension: (id: string) => {
-            if (id === 'salesforce.salesforcedx-vscode-core') return mockExtension;
             if (id === 'salesforce.salesforcedx-vscode-apex') return mockApexExtension;
             return { isActive: true, exports: {} };
           }
