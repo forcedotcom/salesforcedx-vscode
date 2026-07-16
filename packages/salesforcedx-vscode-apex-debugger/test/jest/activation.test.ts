@@ -28,6 +28,8 @@ const extensionProviderLayer = (isCliInstalled: boolean) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
+        // activation registers sf.debugger.stop via registerCommandWithLayer; stub it to a no-op Effect
+        registerCommandWithLayer: () => () => Effect.void,
         TerminalService: Effect.succeed({
           // catchTag in the activation matches on `_tag`, so a tagged failure object is enough (the real
           // TerminalServiceError is a type-only export of the services barrel).

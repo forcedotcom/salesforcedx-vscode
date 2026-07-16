@@ -4,127 +4,69 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { CommandOutput, Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import {
-  CliCommandExecutor,
-  workspaceUtils,
-  ContinueResponse,
-  notificationService,
-  ParametersGatherer,
-  ProgressNotification
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { getChannelService, getSfCommandletExecutorClass, getTelemetryService } from '../utils/coreExtensionUtils';
-import { EmptyParametersGatherer, SfCommandlet } from '../utils/sfCommandlet';
 
-type QueryResponse = {
-  status: number;
-  result: QueryResult;
-};
-
-type QueryResult = {
-  size: number;
-  totalSize: number;
-  records: QueryRecord[];
-};
-
-type QueryRecord = {
-  Id: string;
-};
-
-type IdSelection = { id: string };
-class IdGatherer implements ParametersGatherer<IdSelection> {
-  private readonly sessionIdToUpdate: string;
-
-  constructor(sessionIdToUpdate: string) {
-    this.sessionIdToUpdate = sessionIdToUpdate;
+/**
+ * Raised when the `ApexDebuggerSession` tooling query fails. Previously the executor swallowed this in a
+ * bare `catch {}`; now it flows to ErrorHandlerService for user-facing rendering.
+ * @ExportTaggedError
+ */
+export class DebuggerSessionQueryError extends Schema.TaggedError<DebuggerSessionQueryError>()(
+  'DebuggerSessionQueryError',
+  {
+    message: Schema.String
   }
+) {}
 
-  public gather(): Promise<ContinueResponse<IdSelection>> {
-    return Promise.resolve({ type: 'CONTINUE', data: { id: this.sessionIdToUpdate } });
+/**
+ * Raised when the `ApexDebuggerSession` Status='Detach' tooling update fails.
+ * @ExportTaggedError
+ */
+export class DebuggerSessionUpdateError extends Schema.TaggedError<DebuggerSessionUpdateError>()(
+  'DebuggerSessionUpdateError',
+  {
+    message: Schema.String
   }
-}
+) {}
 
-class DebuggerSessionDetachExecutor extends getSfCommandletExecutorClass()<IdSelection> {
-  public build(data: IdSelection): Command {
-    return new SfCommandBuilder()
-      .withArg('data:update:record')
-      .withDescription(nls.localize('debugger_stop_text'))
-      .withFlag('--sobject', 'ApexDebuggerSession')
-      .withFlag('--record-id', data ? data.id : '')
-      .withFlag('--values', 'Status="Detach"')
-      .withArg('--use-tooling-api')
-      .withLogName('debugger_stop')
-      .build();
-  }
-}
+/**
+ * Effect command for `sf.debugger.stop`: find the active Apex Debugger session and detach it.
+ *
+ * Queries the tooling API for a single active `ApexDebuggerSession`; if exactly one is found whose Id is an
+ * ApexDebuggerSession id (`07a` prefix), updates its Status to `Detach`. Otherwise reports that no session
+ * was found. Query/update failures surface as tagged errors (rendered by ErrorHandlerService) rather than
+ * being swallowed.
+ */
+export const debuggerStop = Effect.fn('debuggerStop')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const conn = yield* api.services.ConnectionService.getConnection();
+  const channel = yield* api.services.ChannelService;
 
-class StopActiveDebuggerSessionExecutor {
-  public build(_data: {}): Command {
-    return new SfCommandBuilder()
-      .withArg('data:query')
-      .withDescription(nls.localize('debugger_query_session_text'))
-      .withFlag('--query', "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1")
-      .withArg('--use-tooling-api')
-      .withJson()
-      .withLogName('debugger_query_session')
-      .build();
-  }
+  yield* channel.appendToChannel(nls.localize('debugger_query_session_text'));
+  yield* channel.showChannel;
 
-  public async execute(response: ContinueResponse<{}>): Promise<void> {
-    const startTime = globalThis.performance.now();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const channelService = await getChannelService();
+  const result = yield* Effect.tryPromise({
+    try: () =>
+      conn.tooling.query<{ Id: string }>("SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"),
+    catch: e => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) })
+  });
 
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspaceUtils.getRootWorkspacePath()
-    }).execute(cancellationToken);
-
-    const resultPromise = new CommandOutput().getCmdResult(execution);
-    execution.processExitSubject.subscribe(() => {
-      // Log metric using telemetry service from core
-      void getTelemetryService()
-        .then(telemetryService => {
-          telemetryService.sendCommandEvent(execution.command.logName, startTime);
-        })
-        .catch(() => {
-          // Telemetry service not available, skip logging
-        });
+  const sessionId = result.records.length === 1 ? result.records[0].Id : undefined;
+  if (sessionId?.startsWith('07a')) {
+    yield* channel.appendToChannel(nls.localize('debugger_stop_text'));
+    yield* Effect.tryPromise({
+      try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id: sessionId, Status: 'Detach' }),
+      catch: e => new DebuggerSessionUpdateError({ message: isError(e) ? e.message : String(e) })
     });
-    channelService.streamCommandOutput(execution);
-    channelService.showChannelOutput();
-    void ProgressNotification.show(execution, cancellationTokenSource);
-
-    try {
-      const result = await resultPromise;
-      // remove when we drop CLI invocations
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const queryResponse = JSON.parse(result) as QueryResponse;
-      if (queryResponse?.result?.size === 1) {
-        const sessionIdToUpdate = queryResponse.result.records[0].Id;
-        if (sessionIdToUpdate?.startsWith('07a')) {
-          const sessionDetachCommandlet = new SfCommandlet(
-            sfProjectPreconditionChecker,
-            new IdGatherer(sessionIdToUpdate),
-            new DebuggerSessionDetachExecutor()
-          );
-          await sessionDetachCommandlet.run();
-        }
-      } else {
-        void notificationService.showInformationMessage(nls.localize('debugger_stop_none_found_text'));
-      }
-    } catch {}
+    return;
   }
-}
 
-export const debuggerStop = async () => {
-  const sessionStopCommandlet = new SfCommandlet(
-    sfProjectPreconditionChecker,
-    new EmptyParametersGatherer(),
-    new StopActiveDebuggerSessionExecutor()
+  yield* Effect.promise(() =>
+    Promise.resolve(vscode.window.showInformationMessage(nls.localize('debugger_stop_none_found_text')))
   );
-  await sessionStopCommandlet.run();
-};
+});

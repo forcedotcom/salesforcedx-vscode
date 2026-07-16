@@ -36,7 +36,7 @@ import { getActiveApexExtension } from './context/apexExtension';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
 import { IsvAuthSetupError } from './errors';
 import { nls } from './messages';
-import { setAllServicesLayer } from './services/extensionProvider';
+import { AllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { getTelemetryService } from './utils/coreExtensionUtils';
 
@@ -75,7 +75,6 @@ const registerCommands = (): vscode.Disposable => {
     configureExceptionBreakpoint
   );
   const isvBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
-  const debuggerStopCmd = vscode.commands.registerCommand('sf.debugger.stop', debuggerStop);
   const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
     cachedExceptionBreakpoints.forEach(breakpoint => {
       const args: SetExceptionBreakpointsArguments = {
@@ -85,13 +84,7 @@ const registerCommands = (): vscode.Disposable => {
     });
   });
 
-  return vscode.Disposable.from(
-    customEventHandler,
-    exceptionBreakpointCmd,
-    isvBootstrapCmd,
-    debuggerStopCmd,
-    startSessionHandler
-  );
+  return vscode.Disposable.from(customEventHandler, exceptionBreakpointCmd, isvBootstrapCmd, startSessionHandler);
 };
 
 export type ExceptionBreakpointItem = vscode.QuickPickItem & {
@@ -265,6 +258,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
   });
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  // Register Effect-based commands with AllServicesLayer for tracing + global error/cancellation handling
+  yield* api.services.registerCommandWithLayer(AllServicesLayer)('sf.debugger.stop', debuggerStop);
   const terminalService = yield* api.services.TerminalService;
   // `sf` CLI present? (`sf --version` exits 0). CLI-absence is a normal outcome here, so the
   // TerminalServiceError is intentionally caught into `false` — skip ISV setup, don't fail activation.
