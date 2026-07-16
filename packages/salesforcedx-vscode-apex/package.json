@@ -41,7 +41,6 @@
   "devDependencies": {
     "@salesforce/core": "^8.32.2",
     "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -74,8 +73,7 @@
         "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
-        "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -111,8 +109,7 @@
       "dependencies": [
         "test:compile",
         "vscode:package",
-        "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy"
+        "../salesforcedx-vscode-services:vscode:package"
       ],
       "files": [
         "test/playwright/**/*.ts",
