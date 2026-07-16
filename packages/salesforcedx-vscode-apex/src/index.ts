@@ -14,7 +14,6 @@ import {
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
-import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { checkAndResolveOrphanedLanguageServers } from './languageServerOrphanHandler';
 import {
   configureApexLanguage,
@@ -41,8 +40,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(function* (
   context: vscode.ExtensionContext
 ) {
-  yield* Effect.promise(() => getVscodeCoreExtension());
-
   // fails with the typed NoWorkspaceOpenError from WorkspaceService when no workspace is open
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow();
