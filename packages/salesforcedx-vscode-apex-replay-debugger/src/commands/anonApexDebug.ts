@@ -68,7 +68,11 @@ const getAnonApexContext = Effect.fn('ApexReplayDebugger.getAnonApexContext')(fu
       documentUri: URI.parse(document.uri.toString())
     } satisfies AnonApexContext;
   }
-  return { kind: 'file', filePath: document.uri.fsPath, documentUri: URI.file(document.uri.fsPath) } satisfies AnonApexContext;
+  return {
+    kind: 'file',
+    filePath: document.uri.fsPath,
+    documentUri: URI.file(document.uri.fsPath)
+  } satisfies AnonApexContext;
 });
 
 const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug')(function* () {
