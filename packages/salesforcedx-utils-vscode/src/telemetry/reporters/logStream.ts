@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { OrgIdentity } from './telemetryReporterConfig';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
 import { Disposable, workspace } from 'vscode';
@@ -15,6 +16,7 @@ import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
  * Represents a telemetry reporter that logs telemetry events to a file.
  */
 export class LogStream extends Disposable implements TelemetryReporter {
+  public orgIdentity?: OrgIdentity;
   private toDispose: Disposable[] = [];
   private logUri: URI;
   private buffer: string = '';

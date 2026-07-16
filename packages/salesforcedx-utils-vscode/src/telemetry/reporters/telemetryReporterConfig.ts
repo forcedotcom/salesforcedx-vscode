@@ -4,6 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { OrgShape } from '../../context/workspaceContextUtil';
+
+/** Org identity fields carried on the services identity bridge, cached onto reporters. */
+export type OrgIdentity = {
+  orgId?: string;
+  orgShape?: OrgShape;
+  devHubId?: string;
+  orgEdition?: string;
+};
+
 export type TelemetryReporterConfig = {
   extName: string;
   version: string;
@@ -15,4 +25,6 @@ export type TelemetryReporterConfig = {
 };
 
 /** update existing telemetry reporters with new user ID and web user ID */
-export type TelemetryReporterWithModifiableUserProperties = Pick<TelemetryReporterConfig, 'userId' | 'webUserId'>;
+export type TelemetryReporterWithModifiableUserProperties = Pick<TelemetryReporterConfig, 'userId' | 'webUserId'> & {
+  orgIdentity?: OrgIdentity;
+};

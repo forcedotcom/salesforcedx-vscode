@@ -16,7 +16,18 @@ const InvalidServicesApiError = class extends Error {
   public readonly _tag = 'InvalidServicesApiError';
 };
 
-type OrgInfoShape = { cliId?: string; userId?: string; webUserId?: string };
+type OrgInfoShape = {
+  cliId?: string;
+  userId?: string;
+  webUserId?: string;
+  orgId?: string;
+  isScratch?: boolean;
+  isSandbox?: boolean;
+  orgEdition?: string;
+  devHubOrgId?: string;
+  alias?: string;
+  username?: string;
+};
 const makeRef = (info: OrgInfoShape) => Effect.runSync(SubscriptionRef.make<OrgInfoShape>(info));
 
 const mockApiState = {
@@ -65,7 +76,34 @@ describe('TelemetryService.getIdentityFromServices', () => {
   it('returns identity from defaultOrgRef on happy path', async () => {
     mockApiState.ref = makeRef({ cliId: 'cli', userId: 'soql', webUserId: 'sha' });
     const result = await new TelemetryService().getIdentityFromServices();
-    expect(result).toEqual({ cliId: 'cli', webUserId: 'sha' });
+    // bare mock has no org fields -> shapeFrom yields 'Undefined' (a defined key toEqual won't ignore)
+    expect(result).toEqual(expect.objectContaining({ cliId: 'cli', webUserId: 'sha', orgShape: 'Undefined' }));
+  });
+
+  it('derives orgShape Production from alias via shapeFrom wiring', async () => {
+    mockApiState.ref = makeRef({ cliId: 'cli', webUserId: 'sha', alias: 'my-org' });
+    const result = await new TelemetryService().getIdentityFromServices();
+    expect(result.orgShape).toBe('Production');
+  });
+
+  it('derives orgShape Scratch and propagates org fields through the bridge', async () => {
+    mockApiState.ref = makeRef({
+      cliId: 'cli',
+      webUserId: 'sha',
+      isScratch: true,
+      orgId: '00Dxx',
+      devHubOrgId: '00Dhub',
+      orgEdition: 'Developer Edition'
+    });
+    const result = await new TelemetryService().getIdentityFromServices();
+    expect(result).toEqual(
+      expect.objectContaining({
+        orgShape: 'Scratch',
+        orgId: '00Dxx',
+        devHubId: '00Dhub',
+        orgEdition: 'Developer Edition'
+      })
+    );
   });
 
   it('falls back webUserId to UNAUTHENTICATED_USER when missing', async () => {

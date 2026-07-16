@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
+import type { OrgIdentity, TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import { O11yService } from '@salesforce/o11y-reporter';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import { Disposable, env, workspace } from 'vscode';
@@ -29,6 +29,7 @@ export class O11yReporter
   implements TelemetryReporter, TelemetryReporterWithModifiableUserProperties
 {
   public productFeatureId: string | undefined;
+  public orgIdentity?: OrgIdentity;
   private userOptIn: boolean = false;
   private o11yUploadEndpoint: string;
   private toDispose: Disposable[] = [];
