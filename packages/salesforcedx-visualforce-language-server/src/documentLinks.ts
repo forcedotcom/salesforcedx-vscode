@@ -21,14 +21,7 @@ import { URI, Utils } from 'vscode-uri';
 //     input regresses vs `url.resolve` (which never throws).
 const SENTINEL_BASE = 'https://web-safe.invalid/';
 
-const isAbsoluteUrl = (value: string): boolean => {
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
-  }
-};
+const isAbsoluteUrl = (value: string): boolean => URL.canParse(value);
 
 // Root-relative result of legacy `url.resolve(base, ref)`, else undefined. Root-relative iff ref is not
 // absolute, base is not absolute, and (ref or base) starts with '/'.
