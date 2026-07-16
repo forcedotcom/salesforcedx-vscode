@@ -87,7 +87,7 @@ Inspect App Insights telemetry each platform would send to Azure — captured lo
 
 | Platform | Trigger | Exporter | Endpoint | File prefix |
 |----------|---------|----------|----------|-------------|
-| Desktop (Node) | Dev/Test mode (auto); `SF_OTEL_INGESTION_ENDPOINT` overrides | Azure Monitor | `/v2.1/track` | `appinsights-` |
+| Desktop (Node) | Dev/Test mode (auto); custom port via `SF_OTEL_INGESTION_ENDPOINT` | Azure Monitor | `/v2.1/track` | `appinsights-` |
 | Web | `ESBUILD_WEB_LOCAL=1` (auto under `run:web`) | `@vscode/extension-telemetry` | `/v2.1/track` | `appinsights-web-` |
 
 Start server first: `npm run spans:server -w salesforcedx-vscode-services`
