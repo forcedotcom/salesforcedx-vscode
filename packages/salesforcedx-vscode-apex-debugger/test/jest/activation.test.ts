@@ -15,9 +15,6 @@ import * as coreExtensionUtils from '../../src/utils/coreExtensionUtils';
 
 jest.mock('../../src/utils/coreExtensionUtils', () => ({
   ...jest.requireActual('../../src/utils/coreExtensionUtils'),
-  // getSfCommandletExecutorClass() runs at debuggerStop.ts import time and needs the core extension;
-  // return a dummy base class so index.ts loads without a live core extension.
-  getSfCommandletExecutorClass: jest.fn(() => class {}),
   getTelemetryService: jest.fn()
 }));
 
