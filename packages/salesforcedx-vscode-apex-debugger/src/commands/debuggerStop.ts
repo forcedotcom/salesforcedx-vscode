@@ -14,7 +14,6 @@ import { nls } from '../messages';
 /**
  * Raised when the `ApexDebuggerSession` tooling query fails. Previously the executor swallowed this in a
  * bare `catch {}`; now it flows to ErrorHandlerService for user-facing rendering.
- * @ExportTaggedError
  */
 export class DebuggerSessionQueryError extends Schema.TaggedError<DebuggerSessionQueryError>()(
   'DebuggerSessionQueryError',
@@ -44,6 +43,12 @@ export class DebuggerSessionUpdateError extends Schema.TaggedError<DebuggerSessi
  */
 export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project (parity
+  // with the migrated org commands and the old sfProjectPreconditionChecker gate).
+  yield* api.services.ProjectService.getSfProject();
+
   const conn = yield* api.services.ConnectionService.getConnection();
   const channel = yield* api.services.ChannelService;
 
@@ -51,8 +56,7 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   yield* channel.showChannel;
 
   const result = yield* Effect.tryPromise({
-    try: () =>
-      conn.tooling.query<{ Id: string }>("SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"),
+    try: () => conn.tooling.query<{ Id: string }>("SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"),
     catch: e => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) })
   });
 
@@ -66,7 +70,5 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
     return;
   }
 
-  yield* Effect.promise(() =>
-    Promise.resolve(vscode.window.showInformationMessage(nls.localize('debugger_stop_none_found_text')))
-  );
+  yield* Effect.sync(() => void vscode.window.showInformationMessage(nls.localize('debugger_stop_none_found_text')));
 });

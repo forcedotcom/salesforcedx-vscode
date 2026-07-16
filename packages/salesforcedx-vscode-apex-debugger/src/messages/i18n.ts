@@ -40,11 +40,6 @@ export const messages = {
   isv_debug_bootstrap_processing_package: 'Processing package: %s',
   isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
   isv_debug_bootstrap_open_project: 'Opening project in Visual Studio Code',
-  error_creating_packagexml: 'Error creating package.xml. %s',
-  error_updating_salesforce_project: 'Error updating sfdx-project.json: %s',
-  error_writing_installed_package_info: 'Error writing installed-package.json: %s',
-  error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
-  error_creating_launchjson: 'Error creating launch.json: %s',
   warning_prompt_dir_overwrite:
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_overwrite: 'Overwrite',

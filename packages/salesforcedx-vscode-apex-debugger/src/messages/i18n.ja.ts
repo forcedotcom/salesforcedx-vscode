@@ -44,11 +44,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   isv_debug_bootstrap_processing_package: 'パッケージを処理しています: %s',
   isv_debug_bootstrap_generate_launchjson: '起動構成ファイルを作成しています',
   isv_debug_bootstrap_open_project: 'プロジェクトを新しい Visual Studio Code のウィンドウで開いています',
-  error_creating_packagexml: 'package.xml の作成中にエラー: %s',
-  error_updating_salesforce_project: 'sfdx-project.json の更新中にエラー: %s',
-  error_writing_installed_package_info: 'installed-package.json の書き込み中にエラー: %s',
-  error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
-  error_creating_launchjson: 'launch.json の作成中にエラー: %s',
   warning_prompt_dir_overwrite:
     '指定したプロジェクト名のフォルダが選択したディレクトリに既に存在します。上書きしますか?',
   warning_prompt_overwrite: '上書き',

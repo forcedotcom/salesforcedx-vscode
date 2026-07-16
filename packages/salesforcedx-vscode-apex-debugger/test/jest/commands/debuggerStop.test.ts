@@ -25,6 +25,7 @@ const providerLayer = (conn: unknown) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
+        ProjectService: { getSfProject: () => Effect.void },
         ConnectionService: { getConnection: () => Effect.succeed(conn) },
         ChannelService: Effect.succeed({
           appendToChannel: () => Effect.void,
@@ -37,9 +38,7 @@ const providerLayer = (conn: unknown) =>
 // providerLayer satisfies ConnectionService/ChannelService at runtime, but the api's typed accessors re-add
 // them to the effect's R channel; cast R away since the layer fully provides them.
 const run = (conn: unknown) =>
-  Effect.runPromise(
-    debuggerStop().pipe(Effect.provide(providerLayer(conn))) as Effect.Effect<void, unknown, never>
-  );
+  Effect.runPromise(debuggerStop().pipe(Effect.provide(providerLayer(conn))) as Effect.Effect<void, unknown, never>);
 
 const runFlipped = (conn: unknown) =>
   Effect.runPromise(
@@ -59,9 +58,7 @@ describe('debuggerStop', () => {
   });
 
   it('detaches the session when the query returns a single 07a-prefixed record', async () => {
-    const { conn, sobject, update } = makeConnection(() =>
-      Promise.resolve({ records: [{ Id: '07aXX0000000001' }] })
-    );
+    const { conn, sobject, update } = makeConnection(() => Promise.resolve({ records: [{ Id: '07aXX0000000001' }] }));
     await run(conn);
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledTimes(1);
