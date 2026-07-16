@@ -28,7 +28,6 @@ export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
 export { getTargetOrgOrAlias, getTargetDevHubOrAlias } from './util/authInfo';
 export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
-export { CliCommandExecutor } from './cli/commandExecutor';
 
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
