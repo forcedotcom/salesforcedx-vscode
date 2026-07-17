@@ -11,6 +11,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeExplorerContextMenuCommand,
+  EXPLORER_INLINE_INPUT,
   saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -33,11 +34,13 @@ import { test } from '../fixtures';
 const seedAndOpenPage = async (page: Page, name: string): Promise<void> => {
   await executeExplorerContextMenuCommand(page, /force-app/, /New File\.\.\./);
 
-  // Inline input box in the Explorer tree: type the filename and confirm.
-  // Wait for the inline input to render + focus before typing — otherwise keystrokes land on the
-  // still-focused tree and the filename is dropped, so no `.page` editor opens (30s waitFor timeout).
-  await page.locator('.explorer-folders-view input.input').waitFor({ state: 'visible', timeout: 10_000 });
-  await page.keyboard.type(`${name}.page`);
+  // Inline input box in the Explorer tree: fill the filename on the element and confirm.
+  // `fill()` targets the located input directly, so the filename lands regardless of focus timing —
+  // `page.keyboard.type` would race the tree→input focus handoff and drop/truncate keystrokes, so
+  // no `.page` editor opens (30s waitFor timeout). fill() also avoids pressSequentially CI timeouts.
+  const input = page.locator(EXPLORER_INLINE_INPUT);
+  await input.waitFor({ state: 'visible', timeout: 10_000 });
+  await input.fill(`${name}.page`, { force: true });
   await page.keyboard.press('Enter');
 
   const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.page"]`);
