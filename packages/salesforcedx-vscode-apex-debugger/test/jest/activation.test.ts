@@ -15,9 +15,6 @@ import * as coreExtensionUtils from '../../src/utils/coreExtensionUtils';
 
 jest.mock('../../src/utils/coreExtensionUtils', () => ({
   ...jest.requireActual('../../src/utils/coreExtensionUtils'),
-  // getSfCommandletExecutorClass() runs at debuggerStop.ts import time and needs the core extension;
-  // return a dummy base class so index.ts loads without a live core extension.
-  getSfCommandletExecutorClass: jest.fn(() => class {}),
   getTelemetryService: jest.fn()
 }));
 
@@ -28,6 +25,8 @@ const extensionProviderLayer = (isCliInstalled: boolean) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
+        // activation registers sf.debugger.stop via registerCommandWithLayer; stub it to a no-op Effect
+        registerCommandWithLayer: () => () => Effect.void,
         TerminalService: Effect.succeed({
           // catchTag in the activation matches on `_tag`, so a tagged failure object is enough (the real
           // TerminalServiceError is a type-only export of the services barrel).

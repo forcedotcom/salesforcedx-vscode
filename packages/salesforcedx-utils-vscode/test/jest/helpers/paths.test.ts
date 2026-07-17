@@ -72,28 +72,6 @@ describe('test project paths', () => {
     });
   });
 
-  describe('test relativeStateFolder', () => {
-    it('should be defined', () => {
-      expect(projectPaths.relativeStateFolder).toBeDefined();
-    });
-
-    it('should return a path to the relative state folder', () => {
-      const relativeStateFolder = projectPaths.relativeStateFolder();
-      expect(relativeStateFolder).toEqual(FAKE_STATE_FOLDER);
-    });
-  });
-
-  describe('test relativeToolsFolder', () => {
-    it('should be defined', () => {
-      expect(projectPaths.relativeToolsFolder).toBeDefined();
-    });
-
-    it('should return a path to the relative tools folder', () => {
-      const relativeToolsFolder = projectPaths.relativeToolsFolder();
-      expect(relativeToolsFolder).toEqual(path.join(FAKE_STATE_FOLDER, TOOLS));
-    });
-  });
-
   describe('test toolsFolder', () => {
     beforeEach(() => {
       jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);

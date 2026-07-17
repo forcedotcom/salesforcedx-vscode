@@ -26,4 +26,14 @@ describe('resolveExecOptions', () => {
     expect('env' in resolved).toBe(false);
     expect(resolved.timeout).toBe(5);
   });
+
+  it('threads cwd through when set', () => {
+    const resolved = resolveExecOptions({ timeout: 5, cwd: '/tmp/project' });
+    expect(resolved.cwd).toBe('/tmp/project');
+  });
+
+  it('omits cwd when undefined', () => {
+    const resolved = resolveExecOptions({ timeout: 5 });
+    expect('cwd' in resolved).toBe(false);
+  });
 });

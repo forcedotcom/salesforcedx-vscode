@@ -24,17 +24,5 @@ const getActiveSalesforceCoreExtension = async (): Promise<vscode.Extension<Sale
   return salesforceCoreExtension;
 };
 
-/** Get the channel service from the Salesforce Core extension */
-export const getChannelService = async () => (await getActiveSalesforceCoreExtension()).exports.channelService;
-
 /** Get the telemetry service from the Salesforce Core extension */
 export const getTelemetryService = async () => (await getActiveSalesforceCoreExtension()).exports.telemetryService;
-
-/** Get the SfCommandletExecutor class from the Salesforce Core extension */
-export const getSfCommandletExecutorClass = () => {
-  const salesforceCoreExtension = getSalesforceCoreExtension();
-  if (!salesforceCoreExtension.exports) {
-    throw new Error('Salesforce Core Extension not available');
-  }
-  return salesforceCoreExtension.exports.SfCommandletExecutor;
-};

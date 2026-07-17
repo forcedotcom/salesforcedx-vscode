@@ -138,6 +138,30 @@ describe('TerminalService.simpleExec', () => {
     expect(capture.options?.env).toBeUndefined();
   });
 
+  it('forwards cwd to the child exec when set', async () => {
+    const capture: { options?: ExecOptions } = {};
+    await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal =>
+          terminal.simpleExec({ command: 'sf project generate', parse: s => s, cwd: '/tmp/project' })
+        )
+      ),
+      withExec(capturingExec(capture))
+    );
+
+    expect(capture.options?.cwd).toBe('/tmp/project');
+  });
+
+  it('omits cwd from the child exec when not set', async () => {
+    const capture: { options?: ExecOptions } = {};
+    await run(
+      TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf foo', parse: s => s }))),
+      withExec(capturingExec(capture))
+    );
+
+    expect(capture.options?.cwd).toBeUndefined();
+  });
+
   it('folds exec-rejection stdout into the error message (sf --json errors land on stdout)', async () => {
     // node's exec rejection appends stderr to .message but never stdout; `sf --json` writes its
     // PortInUseError payload to stdout, so the message must carry it for callers to detect.

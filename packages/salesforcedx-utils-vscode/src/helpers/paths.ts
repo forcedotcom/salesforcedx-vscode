@@ -71,13 +71,6 @@ const toolsFolder = (): string => {
   return pathToToolsFolder;
 };
 
-const relativeStateFolder = (): string => Global.STATE_FOLDER;
-
-const relativeToolsFolder = (): string => {
-  const relativePathToToolsFolder = path.join(projectPaths.relativeStateFolder(), TOOLS);
-  return relativePathToToolsFolder;
-};
-
 export const projectPaths = {
   stateFolder,
   metadataFolder,
@@ -87,7 +80,5 @@ export const projectPaths = {
   debugLogsFolder,
   salesforceProjectConfig,
   toolsFolder,
-  lwcTestResultsFolder,
-  relativeStateFolder,
-  relativeToolsFolder
+  lwcTestResultsFolder
 };
