@@ -4,107 +4,40 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { TestLevel, TestResult, TestService } from '@salesforce/apex-node';
-import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
-import * as Match from 'effect/Match';
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
-import { TEST_ID_PREFIXES } from '../constants';
-import { getConnection, getDefaultOrgInfo } from '../coreExtensionUtils';
-import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
+import { URI } from 'vscode-uri';
 import { APEX_TESTING_SCHEME, isForeignOrgClassUri } from '../discoveryVfs/apexTestingDiscoveryFs';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
-import * as settings from '../settings';
-import { resolvePackage2Members } from '../testDiscovery/packageResolution';
-import { discoverTests } from '../testDiscovery/testDiscovery';
-import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
-import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { notificationService } from '../utils/notificationHelpers';
 import { getOrgApexClassProvider } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { buildTestPayload } from '../utils/payloadBuilder';
-import {
-  createMethodId,
-  createNamespaceId,
-  createSuiteClassId,
-  extractClassName,
-  extractSuiteName,
-  filterTestItemsByRequestExclude,
-  gatherTests,
-  getTestName,
-  isClass,
-  isMethod,
-  isSuite,
-  isSuiteClass
-} from '../utils/testItemUtils';
-import { writeAndOpenTestReport } from '../utils/testReportGenerator';
-import { updateTestRunResults } from '../utils/testResultProcessor';
-import {
-  buildClassToUriIndex,
-  getMethodLocationsFromSymbols,
-  readTestRunIdFile,
-  writeTestResultJsonFile
-} from '../utils/testUtils';
-import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
-import { ApexTestTreeService, type DiscoveryContext } from './apexTestTreeService';
-import {
-  buildClassIdToNamespace,
-  buildNamespacePackageStructure,
-  createClassAndMethodsFactory,
-  getNamespaceDisplayLabel
-} from './orgTestItems';
+import { isClass, isMethod, isSuite } from '../utils/testItemUtils';
+import { getMethodLocationsFromSymbols } from '../utils/testUtils';
+import { ApexTestExecutionService, type ApexTestRunScope, type ExecutionContext } from './apexTestExecutionService';
+import { ApexTestTreeService, type DiscoveryContext, type TreeMutationContext } from './apexTestTreeService';
 
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
-const TEST_RESULT_JSON_FILE = 'test-result.json';
 
-// The suite/class/method/classToParent maps live in ApexTestTreeService Refs (single source of truth).
-// These read the live Map object via a synchronous Ref read; reset clears them in place, so callers that
-// mutate the returned map (removeClassFromTree.delete, diffClassMethods.set) keep writing through to the
-// service. Sync TestRun callers (applyStaleTags/clearStaleTagsForTests) read through the same accessors.
-const suiteItems = (): Map<string, vscode.TestItem> =>
-  getApexTestingRuntime().runSync(ApexTestTreeService.getSuiteItems());
-const classItems = (): Map<string, vscode.TestItem> =>
-  getApexTestingRuntime().runSync(ApexTestTreeService.getClassItems());
-const methodItems = (): Map<string, vscode.TestItem> =>
-  getApexTestingRuntime().runSync(ApexTestTreeService.getMethodItems());
-const classToParentItem = (): Map<string, vscode.TestItem> =>
-  getApexTestingRuntime().runSync(ApexTestTreeService.getClassToParentItem());
-
-/** Apex test class name for the given file URI, if it is a known test class. */
+/** Apex test class name for the given file URI, if it is a known test class. Reads the live class-items
+ * map from ApexTestTreeService (single source of truth) via a synchronous Ref read. */
 export const getTestClassName = (uri: URI): string | undefined => {
   const uriStr = uri.toString();
-  for (const [className, item] of classItems()) {
-    if (item.uri?.toString() === uriStr) {
-      return className;
-    }
-  }
-  return undefined;
+  const classItems = getApexTestingRuntime().runSync(ApexTestTreeService.getClassItems());
+  return [...classItems].find(([, item]) => item.uri?.toString() === uriStr)?.[0];
 };
 
-/** Clear all suite children so they re-query from the org. */
-export const clearAllSuiteChildren = (): void => {
-  for (const suiteItem of suiteItems().values()) {
-    suiteItem.children.replace([]);
-  }
-};
-
-/** How the run profile constrains an implicit "run all" (no explicit test selection). */
-type ApexTestRunScope = 'workspace-first' | 'all-org' | 'stale-workspace' | 'stale-org';
+/** Clear all suite children so they re-query from the org (delegates to the tree service). */
+export const clearAllSuiteChildren = (): void =>
+  getApexTestingRuntime().runSync(ApexTestTreeService.clearAllSuiteChildren());
 
 export class ApexTestController {
   private controller: vscode.TestController;
-  private lastProcessedResultFile: URI | null = null;
-  private connection: Connection | undefined;
-  private testService: TestService | undefined;
-  // suiteToClasses STAYS a shell field in 4.1: its only writers (resolveSuiteChildren/clearTestItems)
-  // are out-of-scope; moving it to a service Ref while its writer stays on shell would diverge.
-  private suiteToClasses: Map<string, Set<string>> = new Map();
   private inWorkspaceTag: vscode.TestTag | undefined;
   private orgOnlyTag: vscode.TestTag | undefined;
   private suiteTag: vscode.TestTag | undefined;
@@ -130,7 +63,21 @@ export class ApexTestController {
     return this.controller;
   }
 
-  public async refresh(): Promise<void> {
+  private refreshPromise: Promise<void> | undefined;
+
+  /**
+   * Refresh the test tree. Concurrent calls join the in-flight refresh rather than
+   * starting a second one — a concurrent resetState() mid-discovery would invalidate
+   * the connection and leave the tree permanently empty.
+   */
+  public refresh(): Promise<void> {
+    this.refreshPromise ??= this.doRefresh().finally(() => {
+      this.refreshPromise = undefined;
+    });
+    return this.refreshPromise;
+  }
+
+  private async doRefresh(): Promise<void> {
     await this.resetState();
     await this.discoverTests();
   }
@@ -145,9 +92,16 @@ export class ApexTestController {
 
   /** Drop the connection/caches, empty the tree, and re-arm result restoration for the next discovery. */
   private async resetState(): Promise<void> {
-    this.invalidateConnection();
+    getOrgApexClassProvider().clearAllCache();
     this.clearTestItems();
-    await getApexTestingRuntime().runPromise(ApexTestTreeService.clearRestoredResults());
+    await getApexTestingRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        // Drop the shared cached connection so the next getConnection() reloads AuthInfo from disk.
+        yield* api.services.ConnectionService.invalidateCachedConnections();
+        yield* ApexTestTreeService.clearRestoredResults();
+      })
+    );
   }
 
   /** Build the per-invocation runtime data the tree service needs (vscode objects + shell callbacks). */
@@ -158,14 +112,22 @@ export class ApexTestController {
       orgOnlyTag: this.orgOnlyTag,
       inWorkspaceTag: this.inWorkspaceTag,
       sessionStartTime: this.sessionStartTime,
-      ensureInitialized: () => this.ensureInitialized(),
       clearTree: () => this.clearTestItems(),
-      getConnection: () => this.getConnection(),
-      getTestService: () => this.getTestService(),
-      persistDiscoveredClasses: classes => this.persistDiscoveredClasses(classes),
-      updateTestResults: uri => this.updateTestResults(uri),
-      applyStaleTags: staleMethodIds => this.applyStaleTags(staleMethodIds),
-      getMethodIdsFromResultFile: uri => ApexTestController.getMethodIdsFromResultFile(uri)
+      updateTestResults: (uri: URI) =>
+        getApexTestingRuntime().runPromise(
+          ApexTestExecutionService.updateTestResults(this.buildExecutionContext(), uri)
+        ),
+      staleTag: this.staleTag
+    };
+  }
+
+  /** Build the per-invocation vscode objects the tree-mutation methods need (controller + tags). */
+  private buildTreeMutationContext(): TreeMutationContext {
+    return {
+      controller: this.controller,
+      orgOnlyTag: this.orgOnlyTag,
+      inWorkspaceTag: this.inWorkspaceTag,
+      staleTag: this.staleTag
     };
   }
 
@@ -191,559 +153,33 @@ export class ApexTestController {
     );
   }
 
-  /**
-   * Ensures connection and testService are initialized
-   * @throws Error if initialization fails
-   */
-  private async ensureInitialized(): Promise<void> {
-    if (this.connection && this.testService) {
-      return;
-    }
-
-    this.connection = await getConnection();
-    if (!this.connection) {
-      throw new Error(nls.localize('apex_test_connection_failed_message'));
-    }
-    this.testService = new TestService(this.connection);
-  }
-
-  /**
-   * Gets the test service, throwing if not initialized
-   */
-  private getTestService(): TestService {
-    if (!this.testService) {
-      throw new Error(nls.localize('apex_test_service_not_initialized_message'));
-    }
-    return this.testService;
-  }
-
-  /**
-   * Gets the connection, throwing if not initialized
-   */
-  private getConnection(): Connection {
-    if (!this.connection) {
-      throw new Error(nls.localize('apex_test_connection_not_initialized_message'));
-    }
-    return this.connection;
-  }
-
   public async discoverTests(): Promise<void> {
     // Single-shot dedup + catchTags-based failure notification live in the tree service (discover).
     await getApexTestingRuntime().runPromise(ApexTestTreeService.discover(this.buildDiscoveryContext()));
   }
 
-  private async persistDiscoveredClasses(classes: ToolingTestClass[]): Promise<void> {
-    const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
-    const fetchClassBodies = (input: ToolingTestClass[]) => this.fetchClassBodiesByFullName(input);
-    // Discovery persistence is best-effort: org-info lookup, class-body fetch, and the VFS write are
-    // logged and ignored on failure so they never fail the discovery run (the snapshot is an
-    // optimization, not required for the test tree to render).
-    await getApexTestingRuntime().runPromise(
-      Effect.gen(function* () {
-        const { orgId } = yield* Effect.tryPromise(() => getDefaultOrgInfo());
-        // No default org → nothing to key the snapshot by; persistence is best-effort, so skip.
-        if (!orgId) return;
-        const classBodiesByFullName = yield* Effect.tryPromise(() => fetchClassBodies(apexClasses));
-        yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgId, apexClasses, classBodiesByFullName);
-      }).pipe(
-        Effect.catchTags({
-          UnknownException: error => Effect.logWarning('failed to persist discovered Apex classes', { error }),
-          DiscoveryClearError: error => Effect.logWarning('failed to persist discovered Apex classes', { error })
-        }),
-        Effect.withSpan('ApexTestController.persistDiscoveredClasses')
-      )
-    );
-  }
-
-  private async fetchClassBodiesByFullName(classes: ToolingTestClass[]): Promise<Map<string, string>> {
-    const classIds = classes
-      .map(cls => cls.id)
-      .filter((id): id is string => typeof id === 'string' && id.length > 0)
-      .toSorted();
-    const bodyByFullName = new Map<string, string>();
-    if (classIds.length === 0) {
-      return bodyByFullName;
-    }
-
-    const connection = this.getConnection();
-    const chunkSize = 200;
-    for (let start = 0; start < classIds.length; start += chunkSize) {
-      const chunkIds = classIds.slice(start, start + chunkSize);
-      const inClause = chunkIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
-      const query = `SELECT Id, Name, NamespacePrefix, Body FROM ApexClass WHERE Id IN (${inClause})`;
-      const queryResult = await connection.tooling.query<{
-        Name: string;
-        NamespacePrefix?: string | null;
-        Body?: string | null;
-      }>(query);
-      for (const record of queryResult.records) {
-        const fullClassName = record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name;
-        bodyByFullName.set(
-          fullClassName,
-          record.Body ?? nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName)
-        );
-      }
-    }
-
-    for (const cls of classes) {
-      const fullClassName = getFullClassName(cls);
-      if (!bodyByFullName.has(fullClassName)) {
-        bodyByFullName.set(fullClassName, nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName));
-      }
-    }
-    return bodyByFullName;
-  }
-
-  private static async getMethodIdsFromResultFile(testResultUri: URI): Promise<Set<string>> {
-    const methodIds = new Set<string>();
-    try {
-      const resultText = await getApexTestingRuntime().runPromise(
-        Effect.gen(function* () {
-          const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          return yield* api.services.FsService.readFile(testResultUri);
-        })
-      );
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const resultContent = JSON.parse(resultText) as TestResult;
-      for (const test of resultContent.tests ?? []) {
-        const className = test.apexClass?.fullName;
-        const methodName = test.methodName;
-        if (className && methodName) {
-          methodIds.add(`${className}.${methodName}`);
-        }
-      }
-    } catch {
-      // If we can't read the file, return empty set
-    }
-    return methodIds;
-  }
-
   /**
-   * Applies stale tags to methods whose results came from pre-session files.
-   * Also propagates to parent class items and suite items that contain stale methods.
-   * @param staleMethodIds Set of method IDs to mark as stale. If undefined, marks all methods.
-   */
-  private applyStaleTags(staleMethodIds?: Set<string>): void {
-    for (const [methodId, methodItem] of methodItems()) {
-      if (staleMethodIds && !staleMethodIds.has(methodId)) {
-        continue;
-      }
-      const existingTags = methodItem.tags ?? [];
-      if (!existingTags.some(t => t.id === 'stale')) {
-        methodItem.tags = [...existingTags, this.staleTag!];
-      }
-    }
-
-    // Propagate stale tag to class items that have any stale methods
-    for (const [className, classItem] of classItems()) {
-      const classPrefix = `${className}.`;
-      const hasStaleMethod = [...methodItems().entries()].some(
-        ([id, item]) => id.startsWith(classPrefix) && item.tags?.some(t => t.id === 'stale')
-      );
-      if (hasStaleMethod) {
-        const existingTags = classItem.tags ?? [];
-        if (!existingTags.some(t => t.id === 'stale')) {
-          classItem.tags = [...existingTags, this.staleTag!];
-        }
-      }
-    }
-
-    // Propagate stale tag to suite items that contain any stale classes
-    for (const [suiteName, suiteItem] of suiteItems()) {
-      const classNames = this.suiteToClasses.get(suiteName);
-      if (classNames) {
-        const hasStaleClass = [...classNames].some(cn => {
-          const classItem = classItems().get(cn);
-          return classItem?.tags?.some(t => t.id === 'stale');
-        });
-        if (hasStaleClass) {
-          const existingTags = suiteItem.tags ?? [];
-          if (!existingTags.some(t => t.id === 'stale')) {
-            suiteItem.tags = [...existingTags, this.staleTag!];
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Clears stale tags from specific test items that were just run.
-   * @param testsToRun The tests that were executed in the run
-   */
-  private clearStaleTagsForTests(testsToRun: vscode.TestItem[]): void {
-    // Build a set of method map keys that were just run (keys don't have the method: prefix)
-    const runMethodIds = new Set<string>();
-    for (const test of testsToRun) {
-      if (isMethod(test.id)) {
-        runMethodIds.add(test.id.replace(TEST_ID_PREFIXES.METHOD, ''));
-      } else if (isClass(test.id)) {
-        const className = extractClassName(test.id);
-        if (className) {
-          const classPrefix = `${className}.`;
-          for (const methodId of methodItems().keys()) {
-            if (methodId.startsWith(classPrefix)) {
-              runMethodIds.add(methodId);
-            }
-          }
-        }
-      } else if (isSuite(test.id)) {
-        // Add all methods from all classes in the suite
-        const suiteName = extractSuiteName(test.id);
-        const classNames = suiteName ? this.suiteToClasses.get(suiteName) : undefined;
-        if (classNames) {
-          for (const className of classNames) {
-            const classPrefix = `${className}.`;
-            for (const methodId of methodItems().keys()) {
-              if (methodId.startsWith(classPrefix)) {
-                runMethodIds.add(methodId);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Clear stale tags from methods that were run
-    const affectedClasses = new Set<string>();
-    for (const methodId of runMethodIds) {
-      const methodItem = methodItems().get(methodId);
-      if (methodItem) {
-        const nextTags = (methodItem.tags ?? []).filter(t => t.id !== 'stale');
-        methodItem.tags = nextTags;
-        affectedClasses.add(methodId.split('.')[0]);
-      }
-    }
-
-    // Remove stale tag from parent class items if no methods remain stale
-    for (const className of affectedClasses) {
-      const classItem = classItems().get(className);
-      if (classItem) {
-        const classPrefix = `${className}.`;
-        const hasStaleMethod = [...methodItems().entries()].some(
-          ([id, item]) => id.startsWith(classPrefix) && item.tags?.some(t => t.id === 'stale')
-        );
-        if (!hasStaleMethod) {
-          const nextTags = (classItem.tags ?? []).filter(t => t.id !== 'stale');
-          classItem.tags = nextTags;
-        }
-      }
-    }
-
-    // Remove stale tag from suite items if no member classes remain stale
-    for (const [suiteName, suiteItem] of suiteItems()) {
-      const classNames = this.suiteToClasses.get(suiteName);
-      if (classNames) {
-        const hasStaleClass = [...classNames].some(cn => {
-          const classItem = classItems().get(cn);
-          return classItem?.tags?.some(t => t.id === 'stale');
-        });
-        if (!hasStaleClass) {
-          const nextTags = (suiteItem.tags ?? []).filter(t => t.id !== 'stale');
-          suiteItem.tags = nextTags;
-        }
-      }
-    }
-  }
-
-  /**
-   * Incrementally updates the test tree based on deployed metadata changes.
+   * Incrementally updates the test tree based on deployed metadata changes (delegated to the tree service).
    * Unlike discoverTests/refresh, this preserves existing test results for unchanged classes.
    */
   public async incrementalUpdate(changes: Map<string, string>, includesSuiteChange: boolean): Promise<void> {
-    try {
-      await this.ensureInitialized();
-
-      // Handle deletions immediately (no API call needed)
-      for (const [fullName, changeType] of changes) {
-        if (changeType === 'deleted') {
-          this.removeClassFromTree(fullName);
-        }
-      }
-
-      // If any created/changed entries remain, call discovery API and apply diff
-      const nonDeleteChanges = new Map([...changes].filter(([_, changeType]) => changeType !== 'deleted'));
-
-      if (nonDeleteChanges.size > 0) {
-        const discoveryResult = await getApexTestingRuntime().runPromise(discoverTests());
-        await this.persistDiscoveredClasses(discoveryResult.classes);
-        await this.applyIncrementalDiff(discoveryResult.classes, nonDeleteChanges);
-      }
-
-      if (includesSuiteChange) {
-        clearAllSuiteChildren();
-      }
-    } catch {
-      // Non-fatal: incremental update failure doesn't affect existing tree state
-    }
-  }
-
-  private removeClassFromTree(fullClassName: string): void {
-    const classItem = classItems().get(fullClassName);
-    if (!classItem) {
-      return;
-    }
-
-    // Remove method items
-    classItem.children.forEach(methodItem => {
-      methodItems().delete(methodItem.id);
-    });
-
-    // Remove class from parent
-    const parentItem = classToParentItem().get(fullClassName);
-    if (parentItem) {
-      parentItem.children.delete(classItem.id);
-      // Clean up empty parent nodes
-      if (parentItem.children.size === 0) {
-        this.removeEmptyAncestors(parentItem);
-      }
-    }
-
-    classItems().delete(fullClassName);
-    classToParentItem().delete(fullClassName);
-  }
-
-  private removeEmptyAncestors(item: vscode.TestItem): void {
-    // Walk up the tree removing empty nodes (package → namespace)
-    // TestItems don't have a parent reference, so we search controller.items
-    this.controller.items.forEach(namespaceItem => {
-      namespaceItem.children.forEach(packageItem => {
-        if (packageItem.id === item.id && packageItem.children.size === 0) {
-          namespaceItem.children.delete(packageItem.id);
-        }
-      });
-      if (namespaceItem.children.size === 0) {
-        this.controller.items.delete(namespaceItem.id);
-      }
-    });
-  }
-
-  private async applyIncrementalDiff(
-    discoveredClasses: ToolingTestClass[],
-    changes: Map<string, string>
-  ): Promise<void> {
-    const apexClasses = discoveredClasses.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
-    const discoveryMap = new Map<string, ToolingTestClass>();
-    for (const cls of apexClasses) {
-      discoveryMap.set(getFullClassName(cls), cls);
-    }
-
-    const classNameToUri = await buildClassToUriIndex(apexClasses.map(cls => cls.name));
-    const { orgId } = await getDefaultOrgInfo();
-    // No default org → no org-scoped tree to diff against.
-    if (!orgId) return;
-
-    for (const [fullName, changeType] of changes) {
-      const discoveredClass = discoveryMap.get(fullName);
-      const existingClassItem = classItems().get(fullName);
-
-      if (changeType === 'created' || (!existingClassItem && discoveredClass)) {
-        // New class: add to tree
-        if (discoveredClass) {
-          await this.addClassToTree(discoveredClass, classNameToUri, orgId);
-        }
-      } else if (changeType === 'changed' && existingClassItem && discoveredClass) {
-        // Always apply stale tags for filtering (remove active tags)
-        existingClassItem.children.forEach(methodItem => {
-          const existingTags = methodItem.tags ?? [];
-          if (!existingTags.some(t => t.id === 'stale')) {
-            methodItem.tags = [...existingTags, this.staleTag!];
-          }
-        });
-
-        // Invalidate existing results before diffing (so new methods aren't marked stale)
-        this.controller.invalidateTestResults(existingClassItem);
-        await this.diffClassMethods(fullName, existingClassItem, discoveredClass, classNameToUri);
-      } else if (existingClassItem && !discoveredClass) {
-        // Class no longer in discovery (e.g. @isTest removed) — remove it
-        this.removeClassFromTree(fullName);
-      }
-    }
-  }
-
-  private async addClassToTree(cls: ToolingTestClass, classNameToUri: Map<string, URI>, orgKey: string): Promise<void> {
-    const [connection, orgInfo] = await Promise.all([this.getConnection(), getDefaultOrgInfo()]);
-    const classIds = cls.id ? [cls.id] : [];
-    const classIdToPackage = await resolvePackage2Members(
-      connection,
-      classIds,
-      buildClassIdToNamespace([cls]),
-      orgInfo
+    await getApexTestingRuntime().runPromise(
+      ApexTestTreeService.incrementalUpdate(this.buildTreeMutationContext(), changes, includesSuiteChange)
     );
-
-    const structure = buildNamespacePackageStructure([cls], classIdToPackage);
-    const createClassAndMethods = createClassAndMethodsFactory({
-      controller: this.controller,
-      classItems: classItems(),
-      methodItems: methodItems(),
-      classNameToUri,
-      orgKey,
-      orgOnlyTag: this.orgOnlyTag,
-      inWorkspaceTag: this.inWorkspaceTag
-    });
-
-    for (const [nsKey, pkMap] of structure) {
-      for (const [_pkgKey, classEntriesList] of pkMap) {
-        for (const { fullClassName: fcn, entries } of classEntriesList) {
-          // Find or create namespace node
-          let namespaceItem: vscode.TestItem | undefined;
-          this.controller.items.forEach(item => {
-            if (item.id === createNamespaceId(nsKey)) {
-              namespaceItem = item;
-            }
-          });
-          if (!namespaceItem) {
-            namespaceItem = this.controller.createTestItem(
-              createNamespaceId(nsKey),
-              getNamespaceDisplayLabel(nsKey),
-              undefined
-            );
-            this.controller.items.add(namespaceItem);
-          }
-
-          // Find or create package node
-          const classEntry = classEntriesList[0];
-          const info = classEntry.entries[0].id ? classIdToPackage.get(classEntry.entries[0].id) : undefined;
-          const packageLabel = info?.packageName ?? _pkgKey;
-          const pkgNodeId = `${nsKey}/${_pkgKey}`;
-          let packageItem: vscode.TestItem | undefined;
-          namespaceItem.children.forEach(item => {
-            if (item.id === pkgNodeId || item.label === packageLabel) {
-              packageItem = item;
-            }
-          });
-          if (!packageItem) {
-            packageItem = this.controller.createTestItem(pkgNodeId, packageLabel, undefined);
-            namespaceItem.children.add(packageItem);
-          }
-
-          const classItem = createClassAndMethods(fcn, entries);
-          packageItem.children.add(classItem);
-          classToParentItem().set(fcn, packageItem);
-        }
-      }
-    }
   }
 
-  private async diffClassMethods(
-    fullClassName: string,
-    classItem: vscode.TestItem,
-    discoveredClass: ToolingTestClass,
-    classNameToUri: Map<string, URI>
-  ): Promise<void> {
-    // Tooling API is authoritative for which methods are test methods (@isTest)
-    const discoveredMethodNames = new Set((discoveredClass.testMethods ?? []).map(m => m.name));
-
-    const localUri = classNameToUri.get(discoveredClass.name);
-    const uri = localUri ?? classItem.uri;
-    const isOrgOnly = !localUri;
-
-    // Use LSP for positions (accurate after deploy), fall back to Tooling API positions
-    const methodPositions = new Map<string, { line: number; column: number }>();
-    if (localUri) {
-      const symbolLocations = await getMethodLocationsFromSymbols(localUri, [...discoveredMethodNames]);
-      if (symbolLocations) {
-        for (const [name, location] of symbolLocations) {
-          methodPositions.set(name, { line: location.range.start.line, column: location.range.start.character });
-        }
-      }
-    }
-    for (const method of discoveredClass.testMethods ?? []) {
-      if (!methodPositions.has(method.name)) {
-        methodPositions.set(method.name, {
-          line: Math.max(0, (method.line ?? 1) - 1),
-          column: Math.max(0, (method.column ?? 1) - 1)
-        });
-      }
-    }
-
-    const existingMethodsByName = new Map<string, vscode.TestItem>();
-    classItem.children.forEach(child => {
-      if (isMethod(child.id)) {
-        existingMethodsByName.set(child.label, child);
-      }
-    });
-
-    // Remove methods no longer in discovery
-    for (const [methodName, methodItem] of existingMethodsByName) {
-      if (!discoveredMethodNames.has(methodName)) {
-        methodItems().delete(methodItem.id);
-        existingMethodsByName.delete(methodName);
-      }
-    }
-
-    // Sort method names by resolved position
-    const sortedMethodNames = [...discoveredMethodNames].toSorted((a, b) => {
-      const posA = methodPositions.get(a);
-      const posB = methodPositions.get(b);
-      return (posA?.line ?? 0) - (posB?.line ?? 0);
-    });
-
-    // Build ordered children list
-    const orderedChildren: vscode.TestItem[] = [];
-    for (const methodName of sortedMethodNames) {
-      const existing = existingMethodsByName.get(methodName);
-      if (existing) {
-        const pos = methodPositions.get(methodName);
-        if (pos) {
-          const position = new vscode.Position(pos.line, pos.column);
-          existing.range = new vscode.Range(position, position);
-        }
-        orderedChildren.push(existing);
-      } else {
-        const methodId = createMethodId(fullClassName, methodName);
-        const pos = methodPositions.get(methodName) ?? { line: 0, column: 0 };
-        const position = new vscode.Position(pos.line, pos.column);
-        const range = new vscode.Range(position, position);
-        const methodItem = this.controller.createTestItem(methodId, methodName, uri);
-        methodItem.range = range;
-        if (isOrgOnly && this.orgOnlyTag) {
-          methodItem.tags = [this.orgOnlyTag];
-        } else if (this.inWorkspaceTag) {
-          methodItem.tags = [this.inWorkspaceTag];
-        }
-        methodItems().set(methodId, methodItem);
-        orderedChildren.push(methodItem);
-      }
-    }
-
-    // Replace all children in source order
-    classItem.children.replace(orderedChildren);
-
-    // Update class tags if workspace presence changed (URI is readonly on TestItem)
-    if (localUri && this.inWorkspaceTag && !classItem.tags?.includes(this.inWorkspaceTag)) {
-      classItem.tags = [this.inWorkspaceTag];
-    }
-  }
-
+  // Watcher boundary: the execution service owns the dedup (lastProcessedResultFile Ref) + result apply.
   public async onResultFileCreate(apexTestDir: URI, testResultUri: URI): Promise<void> {
-    const testRunId = await readTestRunIdFile(apexTestDir);
-
-    const expectedResultUri = Utils.joinPath(
-      apexTestDir,
-      testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE
+    await getApexTestingRuntime().runPromise(
+      ApexTestExecutionService.onResultFileCreate(this.buildExecutionContext(), apexTestDir, testResultUri)
     );
-
-    if (testResultUri.toString() === expectedResultUri.toString()) {
-      if (this.lastProcessedResultFile?.toString() === testResultUri.toString()) {
-        return;
-      }
-      this.lastProcessedResultFile = testResultUri;
-      await this.updateTestResults(testResultUri);
-    }
   }
 
   private clearTestItems(): void {
     void vscode.commands.executeCommand('testing.clearTestResults');
     this.controller.items.replace([]);
-    // The suite/class/method/classToParent maps live in the tree service; reset clears them in place.
+    // The suite/class/method/classToParent/suiteToClasses maps live in the tree service; reset clears them in place.
     getApexTestingRuntime().runSync(ApexTestTreeService.reset());
-    this.suiteToClasses.clear();
-  }
-
-  private invalidateConnection(): void {
-    this.connection = undefined;
-    this.testService = undefined;
-    getOrgApexClassProvider().clearAllCache();
   }
 
   private setupRunProfiles(): void {
@@ -842,7 +278,7 @@ export class ApexTestController {
         })
       );
 
-      if (typeof result === 'string') {
+      if (isString(result)) {
         await notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled'));
         return;
       }
@@ -874,450 +310,44 @@ export class ApexTestController {
     }
   }
 
+  /** Resolve-handler boundary for suite expansion: delegates to the tree service, mapping the tagged
+   * ResolveSuiteChildrenError to the legacy user-facing notification message. */
   private async resolveSuiteChildren(suiteItem: vscode.TestItem): Promise<void> {
-    // If children are already populated, skip
-    if (suiteItem.children.size > 0) {
-      return;
-    }
-
-    const suiteName = extractSuiteName(suiteItem.id);
-    if (!suiteName) {
-      return;
-    }
-
-    try {
-      // Ensure connection and testService are initialized
-      await this.ensureInitialized();
-
-      // Get test suite membership records (contains ApexClassId)
-      const classesInSuite = await this.getTestService().getTestsInSuite(suiteName);
-
-      if (classesInSuite.length === 0) {
-        getApexTestingRuntime().runSync(Effect.logDebug('No test classes found for suite', { suiteName }));
-        return;
-      }
-
-      // Extract class IDs and query for class names and namespace (for full name lookup)
-      const classIds = classesInSuite.map(record => record.ApexClassId);
-      const classNamesQuery = `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Id IN (${classIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',')})`;
-      const queryResult = await this.getConnection().tooling.query<{
-        Name: string;
-        NamespacePrefix: string | null;
-      }>(classNamesQuery);
-
-      const classNames = queryResult.records.map((record: { Name: string; NamespacePrefix?: string | null }) =>
-        record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name
-      );
-
-      // Store the mapping of suite to classes (full class names for lookup)
-      this.suiteToClasses.set(suiteName, new Set(classNames));
-
-      // Add class items as children of the suite (placeholders; actual class items live under namespace/package)
-      for (const className of classNames) {
-        const existingClassItem = classItems().get(className);
-        const classItem = this.controller.createTestItem(
-          createSuiteClassId(suiteName, className),
-          className,
-          existingClassItem?.uri
-        );
-        suiteItem.children.add(classItem);
-      }
-    } catch (error) {
-      const friendlyMessage = toUserFriendlyApexTestError(error);
-      throw new Error(nls.localize('apex_test_resolve_suite_children_failed_message', suiteName, friendlyMessage));
-    }
+    const ctx = this.buildTreeMutationContext();
+    await getApexTestingRuntime().runPromise(
+      ApexTestTreeService.resolveSuiteChildren(ctx, suiteItem).pipe(
+        Effect.catchTag('ResolveSuiteChildrenError', error =>
+          Effect.sync(
+            () =>
+              void vscode.window.showErrorMessage(
+                nls.localize('apex_test_resolve_suite_children_failed_message', error.suiteName, error.message)
+              )
+          )
+        )
+      )
+    );
   }
 
+  /** Build the per-invocation runtime data the execution service needs (sibling to buildDiscoveryContext). */
+  private buildExecutionContext(): ExecutionContext {
+    return {
+      controller: this.controller,
+      orgOnlyTag: this.orgOnlyTag,
+      inWorkspaceTag: this.inWorkspaceTag
+    };
+  }
+
+  // Single VS Code boundary for the run-profile callback: the execution pipeline stays an Effect until the
+  // runPromise here. The service owns gather/scope/expand/execute/debug + result processing.
   private async runTests(
     request: vscode.TestRunRequest,
     token: vscode.CancellationToken,
     isDebug: boolean,
     runScope: ApexTestRunScope
   ): Promise<void> {
-    const run = this.controller.createTestRun(request);
-    let testsToRun = gatherTests(request, this.controller.items, suiteItems());
-
-    await cacheSingleSelection(request, isDebug);
-
-    // Implicit full run: no explicit selection. Restrict to in-workspace tests for the default Run/Debug profiles.
-    // When the user (or explorer filter) supplies request.include, run exactly that set—e.g. filtered-visible tests.
-    const isImplicitFullRun = !request.include?.length;
-    if (runScope === 'workspace-first' && isImplicitFullRun && this.inWorkspaceTag) {
-      testsToRun = testsToRun.filter(test => test.tags?.includes(this.inWorkspaceTag!));
-    }
-
-    // Stale profiles: expand all items to methods, keep only those with stale + location tag
-    if (runScope === 'stale-workspace' || runScope === 'stale-org') {
-      const requiredLocationTag = runScope === 'stale-workspace' ? 'in-workspace' : 'org-only';
-      const staleMethods: vscode.TestItem[] = [];
-      const isStaleAndMatchesLocation = (item: vscode.TestItem): boolean =>
-        !!(item.tags?.some(t => t.id === 'stale') && item.tags?.some(t => t.id === requiredLocationTag));
-
-      for (const test of testsToRun) {
-        if (isMethod(test.id)) {
-          if (isStaleAndMatchesLocation(test)) {
-            staleMethods.push(test);
-          }
-        } else {
-          // Parent item (class, suite, namespace) — find stale methods in methodItems
-          const classNames: string[] = [];
-          if (isClass(test.id)) {
-            const cn = extractClassName(test.id);
-            if (cn) {
-              classNames.push(cn);
-            }
-          } else if (isSuite(test.id)) {
-            const suiteName = extractSuiteName(test.id);
-            const suiteClasses = suiteName ? this.suiteToClasses.get(suiteName) : undefined;
-            if (suiteClasses) {
-              classNames.push(...suiteClasses);
-            }
-          }
-
-          for (const className of classNames) {
-            const classPrefix = `${className}.`;
-            for (const [methodId, methodItem] of methodItems()) {
-              if (methodId.startsWith(classPrefix) && isStaleAndMatchesLocation(methodItem)) {
-                staleMethods.push(methodItem);
-              }
-            }
-          }
-        }
-      }
-      testsToRun = staleMethods;
-    }
-
-    // Resolve any suite in testsToRun so we have class data (for empty-suite check and expansion)
-    for (const test of testsToRun) {
-      if (isSuite(test.id)) {
-        const suiteName = extractSuiteName(test.id);
-        if (suiteName && test.children.size === 0) {
-          await this.resolveSuiteChildren(test);
-        }
-      }
-    }
-
-    // Expand suites to their classes/methods when running all tests
-    // This ensures we use method names instead of suite parameters, which allows running multiple suites
-    if (!request.include || request.include.length === 0) {
-      const expandedTests: vscode.TestItem[] = [];
-      for (const test of testsToRun) {
-        if (isSuite(test.id)) {
-          // Expand suite to its classes - resolve suite if needed, then get class names
-          const suiteName = extractSuiteName(test.id);
-          if (suiteName) {
-            // Resolve suite children if not already resolved
-            if (test.children.size === 0) {
-              await this.resolveSuiteChildren(test);
-            }
-            const classNames = this.suiteToClasses.get(suiteName);
-            if (classNames && classNames.size > 0) {
-              // Find the actual class items and add their methods
-              for (const className of classNames) {
-                const classItem = classItems().get(className);
-                if (classItem) {
-                  // Add all methods from this class
-                  classItem.children.forEach(methodItem => {
-                    expandedTests.push(methodItem);
-                  });
-                }
-              }
-            } else {
-              // Suite not resolved yet or has no classes - keep the suite item (will be handled by payload builder)
-              expandedTests.push(test);
-            }
-          } else {
-            expandedTests.push(test);
-          }
-        } else {
-          // Not a suite - keep as-is
-          expandedTests.push(test);
-        }
-      }
-      testsToRun = expandedTests;
-    }
-
-    // Suite expansion pulls methods from live class items and can reintroduce tests hidden by the explorer filter.
-    testsToRun = filterTestItemsByRequestExclude(testsToRun, request.exclude);
-
-    // Check for empty test suites and show clear error
-    const emptySuiteItems = testsToRun.filter(
-      test => isSuite(test.id) && (this.suiteToClasses.get(extractSuiteName(test.id) ?? '')?.size ?? 0) === 0
+    await getApexTestingRuntime().runPromise(
+      ApexTestExecutionService.runTests(this.buildExecutionContext(), request, token, isDebug, runScope)
     );
-    if (emptySuiteItems.length > 0) {
-      const emptySuiteNames = emptySuiteItems.map(test => extractSuiteName(test.id)).filter((n): n is string => !!n);
-      for (const suiteItem of emptySuiteItems) {
-        run.errored(suiteItem, new vscode.TestMessage(nls.localize('apex_test_suite_empty_message')));
-      }
-      void notificationService.showErrorMessage(
-        nls.localize('apex_test_suite_empty_message_notification', emptySuiteNames.join(', '))
-      );
-      testsToRun = testsToRun.filter(test => !emptySuiteItems.includes(test));
-    }
-
-    if (testsToRun.length === 0) {
-      run.end();
-      return;
-    }
-
-    try {
-      // Mark tests as running
-      for (const test of testsToRun) {
-        run.started(test);
-      }
-
-      if (isDebug) {
-        // For debug, delegate to existing debug commands
-        await this.debugTests(testsToRun, run);
-      } else {
-        // For run, execute tests using existing Apex test execution
-        const testNames = testsToRun.map(test => getTestName(test));
-        const tmpFolder = await getTempFolder();
-        const codeCoverage = settings.retrieveTestCodeCoverage();
-        // RunAllTestsInOrg only for the explicit "all org" profile on an implicit full run
-        const runAllTestsInOrg =
-          runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
-        await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, runAllTestsInOrg);
-      }
-
-      const testCount = testsToRun.length;
-      getApexTestingRuntime().runFork(
-        Effect.annotateCurrentSpan({
-          trigger: 'testController',
-          isDebug: String(isDebug),
-          testsRan: testCount
-        }).pipe(Effect.withSpan('apexTestRun'))
-      );
-    } catch (error) {
-      const friendlyMessage = toUserFriendlyApexTestError(error);
-      for (const test of testsToRun) {
-        run.errored(test, new vscode.TestMessage(friendlyMessage));
-      }
-    } finally {
-      run.end();
-    }
-  }
-
-  private async debugTests(testsToRun: vscode.TestItem[], run: vscode.TestRun): Promise<void> {
-    // Check for org-only tests - debugging is not supported for these
-    let testsToDebug = testsToRun;
-    if (this.orgOnlyTag) {
-      const orgOnlyTests = testsToRun.filter(test => test.tags?.includes(this.orgOnlyTag!));
-      if (orgOnlyTests.length > 0) {
-        const errorMessage = nls.localize('apex_test_debug_org_only_warning_message');
-        for (const test of orgOnlyTests) {
-          run.errored(test, new vscode.TestMessage(errorMessage));
-        }
-        // Show failure notification
-        void notificationService.showErrorMessage(errorMessage);
-        // Filter out org-only tests
-        testsToDebug = testsToRun.filter(test => !test.tags?.includes(this.orgOnlyTag!));
-      }
-    }
-
-    if (testsToDebug.length === 0) {
-      return;
-    }
-
-    const classIdsToDebug = new Set<string>();
-    const methodsToDebug = new Map<string, Set<string>>();
-
-    for (const test of testsToDebug) {
-      try {
-        if (isMethod(test.id)) {
-          // Extract class name from method ID (format: ClassName.MethodName)
-          const testName = getTestName(test);
-          const className = extractClassName(test.id);
-          if (className) {
-            const existingMethods = methodsToDebug.get(className) ?? new Set<string>();
-            existingMethods.add(testName);
-            methodsToDebug.set(className, existingMethods);
-          } else {
-            // Fallback: debug single method if we can't extract class name
-            await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: testName });
-          }
-        } else if (isClass(test.id)) {
-          // Debug class (all methods in class)
-          const className = getTestName(test);
-          classIdsToDebug.add(className);
-        } else if (isSuite(test.id)) {
-          // Suites cannot be debugged - only individual classes or methods can be debugged
-          run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')));
-        }
-      } catch (error) {
-        const friendlyMessage = toUserFriendlyApexTestError(error);
-        run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
-      }
-    }
-
-    for (const className of classIdsToDebug) {
-      try {
-        await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
-      } catch (error) {
-        const friendlyMessage = toUserFriendlyApexTestError(error);
-        for (const test of testsToDebug) {
-          if (
-            (isClass(test.id) && getTestName(test) === className) ||
-            (isMethod(test.id) && extractClassName(test.id) === className)
-          ) {
-            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
-          }
-        }
-      }
-    }
-
-    for (const [className, methods] of methodsToDebug) {
-      // If class-level debug is explicitly selected, skip method-level debug for the same class.
-      if (classIdsToDebug.has(className)) {
-        continue;
-      }
-
-      for (const methodName of methods) {
-        try {
-          await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: methodName });
-        } catch (error) {
-          const friendlyMessage = toUserFriendlyApexTestError(error);
-          for (const test of testsToDebug) {
-            if (isMethod(test.id) && extractClassName(test.id) === className && getTestName(test) === methodName) {
-              run.errored(
-                test,
-                new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage))
-              );
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private async executeTests(
-    testNames: string[],
-    outputDir: URI,
-    codeCoverage: boolean,
-    token: vscode.CancellationToken,
-    run: vscode.TestRun,
-    testsToRun: vscode.TestItem[],
-    runAllTestsInOrg = false
-  ): Promise<void> {
-    // Ensure connection and testService are initialized
-    await this.ensureInitialized();
-
-    const testService = this.getTestService();
-    const { payload, hasSuite, hasClass } = runAllTestsInOrg
-      ? {
-          payload: {
-            testLevel: TestLevel.RunAllTestsInOrg,
-            skipCodeCoverage: !codeCoverage
-          },
-          hasSuite: false,
-          hasClass: false
-        }
-      : await buildTestPayload(testService, testsToRun, testNames, codeCoverage);
-
-    if (!payload) {
-      throw new Error(nls.localize('apex_test_payload_build_failed_message'));
-    }
-
-    // TODO: fix in apex-node W-18453221
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const result = (await testService.runTestAsynchronous(
-      payload,
-      codeCoverage,
-      false,
-      {
-        report: value => {
-          // Add progress messages to test run output
-          if (value.type === 'StreamingClientProgress' || value.type === 'FormatTestResultProgress') {
-            run.appendOutput(`${value.message}\n`);
-          }
-        }
-      },
-      token
-    )) as TestResult;
-
-    if (token.isCancellationRequested) {
-      return;
-    }
-
-    // Write JSON test result file and claim it as processed so the testResultsFileWatcher's
-    // onResultFileCreate -> updateTestResults path treats it as already-processed and skips
-    // creating a second, disconnected TestRun for these same results. Without this, that
-    // second run is constructed with a fresh vscode.TestRunRequest(), which detaches it from
-    // the shared Run-All request. As a consequence, when "Test: Run All Tests" kicks off both
-    // Apex and LWC controllers and Apex finishes second, the shared (LWC + Apex) group gets
-    // evicted to "older results" and only the fresh Apex-only run remains as "current".
-    await writeTestResultJsonFile(result, outputDir, codeCoverage);
-    const writtenResultFilename = result.summary?.testRunId
-      ? `test-result-${result.summary.testRunId}.json`
-      : TEST_RESULT_JSON_FILE;
-    this.lastProcessedResultFile = Utils.joinPath(outputDir, writtenResultFilename);
-
-    // Generate and open test report (forked; continue even if report generation fails)
-    const outputFormat = settings.retrieveOutputFormat();
-    const sortOrder = settings.retrieveTestSortOrder();
-    getApexTestingRuntime().runFork(
-      writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
-        Effect.tap(() => Effect.annotateCurrentSpan({ trigger: 'testExplorer' })),
-        Effect.withSpan('apexTestReportGenerated'),
-        Effect.catchAllCause(cause => Effect.logError('Failed to generate test report', cause))
-      )
-    );
-
-    // Clear stale indicators and apply active tags BEFORE updating results.
-    // VS Code snapshots item.description when run.passed() is called.
-    this.clearStaleTagsForTests(testsToRun);
-
-    // Update test results in Test Explorer (will snapshot the cleared description)
-    updateTestRunResults({
-      result,
-      run,
-      testsToRun,
-      methodItems: methodItems(),
-      classItems: classItems(),
-      codeCoverage
-    });
-
-    // Nothing ran (regardless of pass/fail) → no success notification, nothing to name.
-    const totalCount = result.summary.testsRan ?? 0;
-    if (totalCount === 0) {
-      return;
-    }
-
-    // Determine execution name based on what was run (hasSuite and hasClass set above)
-    const executionName = Match.value({ hasSuite, hasClass }).pipe(
-      Match.when({ hasSuite: true }, () => nls.localize('apex_test_suite_run_text')),
-      Match.when({ hasClass: true }, () => nls.localize('apex_test_class_run_text')),
-      Match.orElse(() => nls.localize('apex_test_run_text'))
-    );
-    notificationService.showSuccessfulExecution(executionName);
-  }
-
-  private async updateTestResults(testResultUri: URI): Promise<void> {
-    const resultText = await getApexTestingRuntime().runPromise(
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        return yield* api.services.FsService.readFile(testResultUri);
-      })
-    );
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const resultContent = JSON.parse(resultText) as TestResult;
-
-    const run = this.controller.createTestRun(new vscode.TestRunRequest());
-    try {
-      const codeCoverage = settings.retrieveTestCodeCoverage();
-      const concise = settings.retrieveTestRunConcise();
-      updateTestRunResults({
-        result: resultContent,
-        run,
-        testsToRun: [],
-        methodItems: methodItems(),
-        classItems: classItems(),
-        codeCoverage,
-        concise
-      });
-    } finally {
-      run.end();
-    }
   }
 
   public dispose(): void {
@@ -1326,32 +356,6 @@ export class ApexTestController {
 }
 
 // Module-level utility functions extracted from ApexTestController
-
-// Cache single class/method selections so Re-Run Last Class/Method surfaces (esp. web, no code lenses).
-// Detect from the RAW request.include before suite resolution/expansion. Run-profile only (not Debug).
-// Suite-class ids (suite-class:Suite:Class) are a single class hit; getTestName yields the bare class name.
-// Bare suite/namespace/package/multi-select/implicit-full leave the cache untouched.
-// Cache is set before run viability is known (matches code-lens order): a single class/method that resolves
-// to zero runnable tests still populates Re-Run Last and flips sf:has_cached_test_*. Acceptable—single targets
-// are normally non-empty, and re-running a no-op selection is harmless.
-// Best-effort: failures are logged (tapError) then swallowed (ignore) so they never fail the run.
-const cacheSingleSelection = async (request: vscode.TestRunRequest, isDebug: boolean): Promise<void> => {
-  const single = request.include?.length === 1 ? request.include[0] : undefined;
-  if (isDebug || !single) {
-    return;
-  }
-  await Match.value(single.id).pipe(
-    Match.when(
-      id => isClass(id) || isSuiteClass(id),
-      () => ApexTestRunCacheService.setCachedClassTestParam(getTestName(single))
-    ),
-    Match.when(isMethod, () => ApexTestRunCacheService.setCachedMethodTestParam(getTestName(single))),
-    Match.orElse(() => Effect.void),
-    Effect.tapError(error => Effect.logWarning('apex test re-run cache set failed', { error })),
-    Effect.ignore,
-    getApexTestingRuntime().runPromise
-  );
-};
 
 const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Promise<void> => {
   if (!classItem.uri) {
@@ -1420,9 +424,7 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
 };
 
 const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
-  const filePath = result
-    .getFileResponses()
-    .find(r => typeof r.filePath === 'string' && r.filePath.length > 0)?.filePath;
+  const filePath = result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath;
   return filePath ? URI.file(filePath) : undefined;
 };
 
@@ -1454,14 +456,6 @@ const closeEditorTabByUri = Effect.fn('ApexTesting.closeEditorTabByUri')(functio
   const target = HashableUri.fromUri(uri);
   yield* closeMatchingTabs(tabUri => Equal.equals(HashableUri.fromUri(tabUri), target));
 });
-
-const getTempFolder = async (): Promise<URI> => {
-  try {
-    return await getApexTestingRuntime().runPromise(getTestResultsFolder());
-  } catch {
-    throw new Error(nls.localize('cannot_determine_workspace'));
-  }
-};
 
 let testControllerInst: ApexTestController | undefined;
 

@@ -6,27 +6,39 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import type { Connection } from '@salesforce/core';
+import { TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { RESULT_MAX_AGE_MS } from '../constants';
-import { getDefaultOrgInfo } from '../coreExtensionUtils';
+import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
+import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { nls } from '../messages';
-import * as settings from '../settings';
 import { resolvePackage2Members } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { sortByMtimeAscending } from '../utils/sortHelpers';
-import { createNamespaceId, createSuiteId } from '../utils/testItemUtils';
-import { buildClassToUriIndex } from '../utils/testUtils';
-import { isFlowTest } from '../utils/toolingTestClassHelpers';
+import {
+  createMethodId,
+  createNamespaceId,
+  createSuiteClassId,
+  createSuiteId,
+  extractClassName,
+  extractSuiteName,
+  isClass,
+  isMethod,
+  isSuite
+} from '../utils/testItemUtils';
+import { buildClassToUriIndex, getMethodLocationsFromSymbols } from '../utils/testUtils';
+import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
@@ -35,6 +47,7 @@ import {
   getPackageKeysOrdered,
   getPackageLabelAndId,
   isNonEmptyClassEntriesList,
+  resolvePackageInfoForClassId,
   sortNamespaceKeys
 } from './orgTestItems';
 
@@ -63,10 +76,30 @@ class RestoreResultsError extends Schema.TaggedError<RestoreResultsError>()('Res
 }) {}
 
 /**
- * Runtime data the shell passes into discovery methods: vscode lifecycle objects (controller, tags),
- * the lazily-initialized org connection/testService, and callbacks to shell-resident helpers that stay
- * out of scope for 4.1 (persist, result application, stale tagging). These are params (per-invocation
- * runtime data), not service dependencies.
+ * Suite-children resolution failure surfaced to the user (carries the suite name + friendly message).
+ * The connection failure arrives as a ConnectionService tagged error; the suite-query wrapping maps to
+ * this so the vscode boundary can notify with the legacy apex_test_resolve_suite_children_failed_message.
+ */
+class ResolveSuiteChildrenError extends Schema.TaggedError<ResolveSuiteChildrenError>()('ResolveSuiteChildrenError', {
+  suiteName: Schema.String,
+  message: Schema.String
+}) {}
+
+/**
+ * Per-invocation vscode objects the tree-mutation methods (incrementalUpdate / resolveSuiteChildren) need:
+ * the controller and the four tags. Params (runtime data), not service dependencies.
+ */
+export type TreeMutationContext = {
+  controller: vscode.TestController;
+  orgOnlyTag: vscode.TestTag | undefined;
+  inWorkspaceTag: vscode.TestTag | undefined;
+  staleTag: vscode.TestTag | undefined;
+};
+
+/**
+ * Runtime data the shell passes into discovery methods: vscode lifecycle objects (controller, tags) plus
+ * two callbacks to shell-resident helpers (full tree clear + on-disk result application). These are params
+ * (per-invocation runtime data), not service dependencies.
  */
 export type DiscoveryContext = {
   controller: vscode.TestController;
@@ -74,19 +107,37 @@ export type DiscoveryContext = {
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
   sessionStartTime: number;
-  ensureInitialized: () => Promise<void>;
-  /** Full tree clear (controller.items + tree maps + shell-resident suiteToClasses), replicating the
-   * legacy clearTestItems the discovery body ran at its start. */
+  /** Full tree clear (controller.items + tree maps). */
   clearTree: () => void;
-  getConnection: () => Connection;
-  getTestService: () => { retrieveAllSuites: () => Promise<{ id: string; TestSuiteName: string }[]> };
-  persistDiscoveredClasses: (classes: ToolingTestClass[]) => Promise<void>;
+  /** Apply an on-disk result file to the live tree. Stays a callback (not a direct ApexTestExecutionService
+   * call) because the execution service imports this tree service — a direct call would be a cycle. */
   updateTestResults: (uri: URI) => Promise<void>;
-  applyStaleTags: (staleMethodIds?: Set<string>) => void;
-  getMethodIdsFromResultFile: (uri: URI) => Promise<Set<string>>;
+  staleTag: vscode.TestTag | undefined;
 };
 
 const BATCH_SIZE = 50;
+
+const STALE = 'stale';
+const isStale = (item: vscode.TestItem): boolean => !!item.tags?.some(t => t.id === STALE);
+/** Add the stale tag to an item if absent (idempotent). */
+const addStaleTag = (item: vscode.TestItem, staleTag: vscode.TestTag): void => {
+  const existingTags = item.tags ?? [];
+  if (!existingTags.some(t => t.id === STALE)) {
+    item.tags = [...existingTags, staleTag];
+  }
+};
+const removeStaleTag = (item: vscode.TestItem): void => {
+  item.tags = (item.tags ?? []).filter(t => t.id !== STALE);
+};
+/** A class owns a stale method when any method whose id is prefixed by `class.` is stale. */
+const classHasStaleMethod = (methodItems: Map<string, vscode.TestItem>, className: string): boolean =>
+  [...methodItems.entries()].some(([id, item]) => id.startsWith(`${className}.`) && isStale(item));
+/** A suite owns a stale class when any of its member classes is stale. */
+const suiteHasStaleClass = (classItems: Map<string, vscode.TestItem>, classNames: Set<string>): boolean =>
+  [...classNames].some(cn => {
+    const classItem = classItems.get(cn);
+    return classItem ? isStale(classItem) : false;
+  });
 
 /**
  * Surface a discovery-path failure to the user: warning when the friendly message is the
@@ -102,6 +153,15 @@ const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFai
         ? vscode.window.showWarningMessage(friendlyMessage)
         : vscode.window.showErrorMessage(friendlyMessage))
   );
+});
+
+/**
+ * Read the current default org info ({ orgId, username }) inline from the Services TargetOrgRef.
+ * Mirrors pathHelpers.getTestResultsFolder; avoids a file read for cache keys.
+ */
+const getDefaultOrgInfo = Effect.fn('ApexTestTreeService.getDefaultOrgInfo')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
 });
 
 /**
@@ -125,6 +185,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     const classItems = yield* Ref.make<Map<string, vscode.TestItem>>(new Map());
     const methodItems = yield* Ref.make<Map<string, vscode.TestItem>>(new Map());
     const classToParentItem = yield* Ref.make<Map<string, vscode.TestItem>>(new Map());
+    // 9th shared-state Ref: suite name → member class full names. Written by resolveSuiteChildren, read by
+    // stale-tag propagation + the execution service's suite expansion. Was a shell Map field pre-WI-5.
+    const suiteToClasses = yield* Ref.make<Map<string, Set<string>>>(new Map());
     const hasRestoredResults = yield* Ref.make(false);
     const isRestoringResults = yield* Ref.make(false);
     // Zero-arg single-shot dedup: first discover() creates+stores the Deferred, late callers await it.
@@ -154,6 +217,19 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       return yield* Ref.get(classToParentItem);
     });
 
+    /** Read the current suite→classes map (member class full names per suite). */
+    const getSuiteToClasses = Effect.fn('ApexTestTreeService.getSuiteToClasses')(function* () {
+      return yield* Ref.get(suiteToClasses);
+    });
+
+    /** Record the member class full names for a single suite (resolveSuiteChildren writer). */
+    const setSuiteClasses = Effect.fn('ApexTestTreeService.setSuiteClasses')(function* (
+      suiteName: string,
+      classNames: Set<string>
+    ) {
+      yield* Ref.update(suiteToClasses, map => map.set(suiteName, classNames));
+    });
+
     /**
      * Clear all tree maps in place (shell clearTestItems delegates the moved-map clears here).
      * Clears in place rather than swapping in fresh Maps so any holder of the map reference (the shell,
@@ -164,9 +240,140 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Ref.get(suiteItems),
         Ref.get(classItems),
         Ref.get(methodItems),
-        Ref.get(classToParentItem)
+        Ref.get(classToParentItem),
+        Ref.get(suiteToClasses)
       ]);
       yield* Effect.sync(() => maps.forEach(map => map.clear()));
+    });
+
+    /**
+     * Mark methods stale (all, or a given subset), then propagate the stale tag up to class and suite
+     * items that own a stale descendant. Restore path (pre-session results) and the shell delegate here.
+     */
+    const markStaleTags = Effect.fn('ApexTestTreeService.markStaleTags')(function* (
+      staleTag: vscode.TestTag | undefined,
+      staleMethodIds?: Set<string>
+    ) {
+      if (!staleTag) {
+        return;
+      }
+      const [currentMethods, currentClasses, currentSuites, currentSuiteToClasses] = yield* Effect.all([
+        Ref.get(methodItems),
+        Ref.get(classItems),
+        Ref.get(suiteItems),
+        Ref.get(suiteToClasses)
+      ]);
+      yield* Effect.sync(() => {
+        for (const [methodId, methodItem] of currentMethods) {
+          if (!staleMethodIds || staleMethodIds.has(methodId)) {
+            addStaleTag(methodItem, staleTag);
+          }
+        }
+        for (const [className, classItem] of currentClasses) {
+          if (classHasStaleMethod(currentMethods, className)) {
+            addStaleTag(classItem, staleTag);
+          }
+        }
+        for (const [suiteName, suiteItem] of currentSuites) {
+          const classNames = currentSuiteToClasses.get(suiteName);
+          if (classNames && suiteHasStaleClass(currentClasses, classNames)) {
+            addStaleTag(suiteItem, staleTag);
+          }
+        }
+      });
+    });
+
+    /**
+     * Inverse of markStaleTags: clear the stale tag from the methods that just ran (expanded from the
+     * selected class/suite items), then clear it from parent class and suite items once none of their
+     * members remain stale. Called after a run from the execution service.
+     */
+    const clearStaleTags = Effect.fn('ApexTestTreeService.clearStaleTags')(function* (testsToRun: vscode.TestItem[]) {
+      const [currentMethods, currentClasses, currentSuites, currentSuiteToClasses] = yield* Effect.all([
+        Ref.get(methodItems),
+        Ref.get(classItems),
+        Ref.get(suiteItems),
+        Ref.get(suiteToClasses)
+      ]);
+      // Method map keys omit the method: prefix; expand each selection to its member method ids.
+      const methodIdsForClass = (className: string): string[] =>
+        [...currentMethods.keys()].filter(id => id.startsWith(`${className}.`));
+      const classNamesForTest = (test: vscode.TestItem): string[] =>
+        isClass(test.id)
+          ? [extractClassName(test.id)].filter((cn): cn is string => !!cn)
+          : isSuite(test.id)
+            ? [...(currentSuiteToClasses.get(extractSuiteName(test.id) ?? '') ?? [])]
+            : [];
+      const methodIdsForTest = (test: vscode.TestItem): string[] =>
+        isMethod(test.id)
+          ? [test.id.replace(TEST_ID_PREFIXES.METHOD, '')]
+          : classNamesForTest(test).flatMap(methodIdsForClass);
+
+      const runMethodIds = HashSet.fromIterable(testsToRun.flatMap(methodIdsForTest));
+      // Classes touched by a run method that actually exists in the tree (its parent's stale tag may clear).
+      const affectedClasses = HashSet.fromIterable(
+        HashSet.toValues(runMethodIds)
+          .filter(id => currentMethods.has(id))
+          .map(id => id.split('.')[0])
+      );
+
+      yield* Effect.sync(() => {
+        // Clear stale tags from methods that ran.
+        HashSet.forEach(runMethodIds, methodId => {
+          const methodItem = currentMethods.get(methodId);
+          if (methodItem) {
+            removeStaleTag(methodItem);
+          }
+        });
+        // Clear the stale tag from parent classes once no member method remains stale.
+        HashSet.forEach(affectedClasses, className => {
+          const classItem = currentClasses.get(className);
+          if (classItem && !classHasStaleMethod(currentMethods, className)) {
+            removeStaleTag(classItem);
+          }
+        });
+        // Clear the stale tag from suites once no member class remains stale.
+        currentSuites.forEach((suiteItem, suiteName) => {
+          const classNames = currentSuiteToClasses.get(suiteName);
+          if (classNames && !suiteHasStaleClass(currentClasses, classNames)) {
+            removeStaleTag(suiteItem);
+          }
+        });
+      });
+    });
+
+    /**
+     * Parse an on-disk test-result JSON file into the set of `Class.method` ids it contains. Read failures
+     * (missing/unparseable file) resolve to an empty set — a best-effort scan for the restore path.
+     */
+    const getMethodIdsFromResultFile = Effect.fn('ApexTestTreeService.getMethodIdsFromResultFile')(function* (
+      testResultUri: URI
+    ) {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const methodIds = new Set<string>();
+      const resultText = yield* api.services.FsService.readFile(testResultUri).pipe(
+        Effect.catchTag('FsServiceError', () => Effect.void)
+      );
+      if (resultText === undefined) {
+        return methodIds;
+      }
+      // Recover a corrupt/truncated file to "no ids" (matches the doc + legacy try/catch) so a bad file
+      // never becomes an uncaught defect that aborts the restore path.
+      const resultContent = yield* Effect.try(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        () => JSON.parse(resultText) as TestResult
+      ).pipe(Effect.orElseSucceed(() => undefined));
+      if (resultContent === undefined) {
+        return methodIds;
+      }
+      for (const test of resultContent.tests ?? []) {
+        const className = test.apexClass?.fullName;
+        const methodName = test.methodName;
+        if (className && methodName) {
+          methodIds.add(`${className}.${methodName}`);
+        }
+      }
+      return methodIds;
     });
 
     /**
@@ -175,13 +382,13 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * early), so a suites outage never fails the whole discovery run.
      */
     const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(function* (ctx: DiscoveryContext) {
-      yield* Effect.tryPromise({
-        try: () => ctx.ensureInitialized(),
-        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-      });
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* api.services.ConnectionService.getConnection().pipe(
+        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+      );
 
-      const suites = yield* Effect.tryPromise(() => ctx.getTestService().retrieveAllSuites()).pipe(
-        Effect.catchAll(e =>
+      const suites = yield* Effect.tryPromise(() => new TestService(connection).retrieveAllSuites()).pipe(
+        Effect.catchTag('UnknownException', e =>
           Effect.logError('Error retrieving suites', { error: getMessageFromError(e) }).pipe(Effect.as([]))
         )
       );
@@ -234,19 +441,15 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
       });
 
-      const classIds = apexClasses
-        .map(cls => cls.id)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0);
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const [connection, orgInfo] = yield* Effect.all(
         [
-          Effect.try({
-            try: () => ctx.getConnection(),
-            catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-          }),
-          Effect.tryPromise({
-            try: () => getDefaultOrgInfo(),
-            catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-          })
+          api.services.ConnectionService.getConnection().pipe(
+            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+          ),
+          getDefaultOrgInfo().pipe(
+            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+          )
         ],
         { concurrency: 'unbounded' }
       );
@@ -254,7 +457,13 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       if (!orgInfo.orgId) return;
       const orgKey = orgInfo.orgId;
       const classIdToPackage = yield* Effect.tryPromise({
-        try: () => resolvePackage2Members(connection, classIds, buildClassIdToNamespace(apexClasses), orgInfo),
+        try: () =>
+          resolvePackage2Members(
+            connection,
+            Array.getSomes(apexClasses.map(cls => cls.id)),
+            buildClassIdToNamespace(apexClasses),
+            orgInfo
+          ),
         catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
       });
 
@@ -306,12 +515,84 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       );
     });
 
-    const restoreResultsBody = Effect.fn('ApexTestTreeService.restoreResultsBody')(function* (ctx: DiscoveryContext) {
-      if (!settings.retrieveRestorePreviousResults()) {
-        return;
+    /**
+     * Query the Tooling API for the source body of each discovered class (chunked, IN-clause), keyed by full
+     * class name. Missing bodies fall back to a localized placeholder so the VFS snapshot always has an entry.
+     */
+    const fetchClassBodiesByFullName = Effect.fn('ApexTestTreeService.fetchClassBodiesByFullName')(function* (
+      classes: ToolingTestClass[]
+    ) {
+      const classIds = Array.getSomes(classes.map(cls => cls.id)).toSorted();
+      const bodyByFullName = new Map<string, string>();
+      if (classIds.length === 0) {
+        return bodyByFullName;
       }
 
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* api.services.ConnectionService.getConnection();
+      const chunkSize = 200;
+      for (let start = 0; start < classIds.length; start += chunkSize) {
+        const chunkIds = classIds.slice(start, start + chunkSize);
+        const inClause = chunkIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
+        const query = `SELECT Id, Name, NamespacePrefix, Body FROM ApexClass WHERE Id IN (${inClause})`;
+        const queryResult = yield* Effect.promise(() =>
+          connection.tooling.query<{ Name: string; NamespacePrefix?: string | null; Body?: string | null }>(query)
+        );
+        for (const record of queryResult.records) {
+          const fullClassName = record.NamespacePrefix?.trim()
+            ? `${record.NamespacePrefix}.${record.Name}`
+            : record.Name;
+          bodyByFullName.set(
+            fullClassName,
+            record.Body ?? nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName)
+          );
+        }
+      }
+
+      for (const cls of classes) {
+        const fullClassName = getFullClassName(cls);
+        if (!bodyByFullName.has(fullClassName)) {
+          bodyByFullName.set(fullClassName, nls.localize('apex_discovery_vfs_class_body_placeholder', fullClassName));
+        }
+      }
+      return bodyByFullName;
+    });
+
+    const logPersistWarning = (error: unknown) =>
+      Effect.logWarning('failed to persist discovered Apex classes', { error });
+
+    /**
+     * Persist the discovered classes to the org-keyed VFS snapshot (best-effort optimization). Org-info
+     * lookup, body fetch, and the write are recovered on failure so persistence never fails the discovery run.
+     */
+    const persistDiscoveredClasses = Effect.fn('ApexTestTreeService.persistDiscoveredClasses')(function* (
+      classes: ToolingTestClass[]
+    ) {
+      const apexClasses = classes.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
+      yield* Effect.gen(function* () {
+        const { orgId } = yield* getDefaultOrgInfo();
+        // No default org → nothing to key the snapshot by; persistence is best-effort, so skip.
+        if (!orgId) return;
+        const classBodiesByFullName = yield* fetchClassBodiesByFullName(apexClasses);
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgId, apexClasses, classBodiesByFullName);
+      }).pipe(
+        Effect.catchTags({
+          DiscoveryClearError: logPersistWarning,
+          ServicesExtensionNotFoundError: logPersistWarning,
+          InvalidServicesApiError: logPersistWarning
+        })
+      );
+    });
+
+    const restoreResultsBody = Effect.fn('ApexTestTreeService.restoreResultsBody')(function* (ctx: DiscoveryContext) {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const settings = yield* api.services.SettingsService;
+      const restorePrevious =
+        (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'restore-previous-results', true)) ?? true;
+      if (!restorePrevious) {
+        return;
+      }
+
       const resultDir = yield* getTestResultsFolder().pipe(
         // Pre-scan org-config failure: no result file to attribute, so uri is omitted (non-fatal).
         Effect.catchTag('NoDefaultOrgError', e => new RestoreResultsError({ message: e.message }))
@@ -345,10 +626,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           Effect.flatMap(stat =>
             now - stat.mtime > RESULT_MAX_AGE_MS
               ? Effect.succeed(Option.none<{ uri: URI; mtime: number }>())
-              : Effect.tryPromise({
-                  try: () => ctx.getMethodIdsFromResultFile(uri),
-                  catch: e => new RestoreResultsError({ uri: uri.toString(), message: getMessageFromError(e) })
-                }).pipe(
+              : getMethodIdsFromResultFile(uri).pipe(
+                  Effect.mapError(
+                    e => new RestoreResultsError({ uri: uri.toString(), message: getMessageFromError(e) })
+                  ),
                   Effect.map(methodsInFile => {
                     const targetSet = stat.mtime < ctx.sessionStartTime ? staleMethodIds : sessionMethodIds;
                     methodsInFile.forEach(methodId => targetSet.add(methodId));
@@ -384,21 +665,23 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       );
 
       // Only mark pre-session methods as stale
-      yield* Effect.sync(() => ctx.applyStaleTags(staleMethodIds));
+      yield* markStaleTags(ctx.staleTag, staleMethodIds);
 
       // Invalidate stale methods and classes where ALL methods are stale
       const currentMethodItems = yield* Ref.get(methodItems);
       const currentClassItems = yield* Ref.get(classItems);
+      // Classes owning an invalidated stale method (dedup); invalidate those whose every method is stale.
+      const affectedClasses = HashSet.fromIterable(
+        [...staleMethodIds].filter(id => currentMethodItems.has(id)).map(id => id.split('.')[0])
+      );
       yield* Effect.sync(() => {
-        const affectedClasses = new Set<string>();
         staleMethodIds.forEach(methodId => {
           const methodItem = currentMethodItems.get(methodId);
           if (methodItem) {
             ctx.controller.invalidateTestResults(methodItem);
-            affectedClasses.add(methodId.split('.')[0]);
           }
         });
-        affectedClasses.forEach(className => {
+        HashSet.forEach(affectedClasses, className => {
           const classPrefix = `${className}.`;
           const allMethodsStale = [...currentMethodItems.entries()]
             .filter(([id]) => id.startsWith(classPrefix))
@@ -415,18 +698,21 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       // Most recent result's mtime (notification only); reuse the scan's mtime, no extra FsService.stat.
       const runDate = new Date(sortedRecent.at(-1)!.mtime).toLocaleString();
       const disableAction = nls.localize('apex_test_results_restored_disable_action');
-      yield* Effect.sync(() => {
-        void vscode.window
-          .showInformationMessage(
-            nls.localize('apex_test_results_restored_message', String(recentUris.length), runDate),
-            disableAction
-          )
-          .then(selection => {
-            if (selection === disableAction) {
-              void settings.disableRestorePreviousResults();
-            }
-          });
-      });
+      const selection = yield* Effect.promise(() =>
+        vscode.window.showInformationMessage(
+          nls.localize('apex_test_results_restored_message', recentUris.length, runDate),
+          disableAction
+        )
+      );
+      if (selection === disableAction) {
+        // Preserve legacy behavior: write to Workspace target (not Global).
+        yield* settings.setValue(
+          APEX_TESTING_SECTION,
+          'restore-previous-results',
+          false,
+          vscode.ConfigurationTarget.Workspace
+        );
+      }
     });
 
     /**
@@ -444,13 +730,23 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       }
 
       yield* restoreResultsBody(ctx).pipe(
-        // Restore is non-fatal: any failure (RestoreResultsError, or a services/workspace lookup failure)
-        // leaves a valid empty tree, so recover all of them with a warning.
-        Effect.catchAll(e =>
-          Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)).pipe(
-            Effect.annotateLogs({ uri: e._tag === 'RestoreResultsError' ? e.uri : undefined })
-          )
-        ),
+        // Restore is non-fatal: any failure (RestoreResultsError, or a services/workspace/settings lookup
+        // failure) leaves a valid empty tree, so recover each tagged error with a warning. Only
+        // RestoreResultsError carries the offending result-file uri.
+        Effect.catchTags({
+          RestoreResultsError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)).pipe(
+              Effect.annotateLogs({ uri: e.uri })
+            ),
+          NoWorkspaceOpenError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
+          ServicesExtensionNotFoundError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
+          InvalidServicesApiError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
+          MissingSettingsError: e =>
+            Effect.logWarning('Failed to restore previous test results', getMessageFromError(e))
+        }),
         Effect.ensuring(Ref.set(isRestoringResults, false))
       );
     });
@@ -461,10 +757,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * (no UnknownException bucket). doDiscover catches the union and notifies.
      */
     const discoverBody = Effect.fn('ApexTestTreeService.discoverBody')(function* (ctx: DiscoveryContext) {
-      yield* Effect.tryPromise({
-        try: () => ctx.ensureInitialized(),
-        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-      });
+      // Acquire the connection up front (fail-fast, replacing the legacy ensureInitialized); the cached
+      // ConnectionService reuses it for the populate* steps below.
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      yield* api.services.ConnectionService.getConnection().pipe(
+        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
+      );
 
       // Replicates the legacy clearTestItems the discovery body ran before populating.
       yield* Effect.sync(() => ctx.clearTree());
@@ -475,10 +773,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
 
-      yield* Effect.tryPromise({
-        try: () => ctx.persistDiscoveredClasses(discoveryResult.classes),
-        catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
-      });
+      yield* persistDiscoveredClasses(discoveryResult.classes);
 
       if (discoveryResult.classes.length > 0) {
         yield* populateTestItemsFromOrg(ctx, discoveryResult.classes);
@@ -497,7 +792,12 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * (logWarning), preserving the legacy non-fatal behavior of those two paths.
      */
     const doDiscover = Effect.fn('ApexTestTreeService.doDiscover')(function* (ctx: DiscoveryContext) {
-      yield* discoverBody(ctx).pipe(Effect.catchAll(notifyDiscoveryFailure));
+      yield* discoverBody(ctx).pipe(
+        Effect.catchTags({
+          DiscoveryError: notifyDiscoveryFailure,
+          PackageResolutionError: notifyDiscoveryFailure
+        })
+      );
     });
 
     /**
@@ -530,6 +830,381 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       yield* Ref.set(hasRestoredResults, false);
     });
 
+    // Walk up the tree removing empty package/namespace nodes. TestItems have no parent reference, so
+    // search controller.items. Pure vscode mutation (no Ref reads); kept as a plain helper.
+    const removeEmptyAncestors = (controller: vscode.TestController, item: vscode.TestItem): void => {
+      controller.items.forEach(namespaceItem => {
+        namespaceItem.children.forEach(packageItem => {
+          if (packageItem.id === item.id && packageItem.children.size === 0) {
+            namespaceItem.children.delete(packageItem.id);
+          }
+        });
+        if (namespaceItem.children.size === 0) {
+          controller.items.delete(namespaceItem.id);
+        }
+      });
+    };
+
+    /** Remove a class (and its methods) from the tree maps + its parent node, pruning empty ancestors. */
+    const removeClassFromTree = Effect.fn('ApexTestTreeService.removeClassFromTree')(function* (
+      ctx: TreeMutationContext,
+      fullClassName: string
+    ) {
+      const [currentClassItems, currentMethodItems, currentClassToParent] = yield* Effect.all([
+        Ref.get(classItems),
+        Ref.get(methodItems),
+        Ref.get(classToParentItem)
+      ]);
+      const classItem = currentClassItems.get(fullClassName);
+      if (!classItem) {
+        return;
+      }
+      yield* Effect.sync(() => {
+        classItem.children.forEach(methodItem => {
+          currentMethodItems.delete(methodItem.id);
+        });
+        const parentItem = currentClassToParent.get(fullClassName);
+        if (parentItem) {
+          parentItem.children.delete(classItem.id);
+          if (parentItem.children.size === 0) {
+            removeEmptyAncestors(ctx.controller, parentItem);
+          }
+        }
+        currentClassItems.delete(fullClassName);
+        currentClassToParent.delete(fullClassName);
+      });
+    });
+
+    /** Add a newly-discovered class to the tree under its namespace/package, resolving package membership. */
+    const addClassToTree = Effect.fn('ApexTestTreeService.addClassToTree')(function* (
+      ctx: TreeMutationContext,
+      cls: ToolingTestClass,
+      classNameToUri: Map<string, URI>,
+      orgKey: string
+    ) {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* api.services.ConnectionService.getConnection();
+      const orgInfo = yield* getDefaultOrgInfo();
+      const classIds = Option.match(cls.id, { onNone: () => [], onSome: id => [id] });
+      const classIdToPackage = yield* Effect.promise(() =>
+        resolvePackage2Members(connection, classIds, buildClassIdToNamespace([cls]), orgInfo)
+      );
+
+      const [currentClassItems, currentMethodItems, currentClassToParent] = yield* Effect.all([
+        Ref.get(classItems),
+        Ref.get(methodItems),
+        Ref.get(classToParentItem)
+      ]);
+      const structure = buildNamespacePackageStructure([cls], classIdToPackage);
+      const createClassAndMethods = createClassAndMethodsFactory({
+        controller: ctx.controller,
+        classItems: currentClassItems,
+        methodItems: currentMethodItems,
+        classNameToUri,
+        orgKey,
+        orgOnlyTag: ctx.orgOnlyTag,
+        inWorkspaceTag: ctx.inWorkspaceTag
+      });
+
+      yield* Effect.sync(() => {
+        for (const [nsKey, pkMap] of structure) {
+          for (const [pkgKey, classEntriesList] of pkMap) {
+            for (const { fullClassName: fcn, entries } of classEntriesList) {
+              let namespaceItem: vscode.TestItem | undefined;
+              ctx.controller.items.forEach(item => {
+                if (item.id === createNamespaceId(nsKey)) {
+                  namespaceItem = item;
+                }
+              });
+              if (!namespaceItem) {
+                namespaceItem = ctx.controller.createTestItem(
+                  createNamespaceId(nsKey),
+                  getNamespaceDisplayLabel(nsKey),
+                  undefined
+                );
+                ctx.controller.items.add(namespaceItem);
+              }
+
+              const classEntry = classEntriesList[0];
+              const info = resolvePackageInfoForClassId(classEntry.entries[0].id, classIdToPackage);
+              const packageLabel = info?.packageName ?? pkgKey;
+              const pkgNodeId = `${nsKey}/${pkgKey}`;
+              let packageItem: vscode.TestItem | undefined;
+              namespaceItem.children.forEach(item => {
+                if (item.id === pkgNodeId || item.label === packageLabel) {
+                  packageItem = item;
+                }
+              });
+              if (!packageItem) {
+                packageItem = ctx.controller.createTestItem(pkgNodeId, packageLabel, undefined);
+                namespaceItem.children.add(packageItem);
+              }
+
+              const classItem = createClassAndMethods(fcn, entries);
+              packageItem.children.add(classItem);
+              currentClassToParent.set(fcn, packageItem);
+            }
+          }
+        }
+      });
+    });
+
+    /** Diff an existing class's method items against a fresh discovery (add/remove/reorder + reposition). */
+    const diffClassMethods = Effect.fn('ApexTestTreeService.diffClassMethods')(function* (
+      ctx: TreeMutationContext,
+      fullClassName: string,
+      classItem: vscode.TestItem,
+      discoveredClass: ToolingTestClass,
+      classNameToUri: Map<string, URI>
+    ) {
+      // Tooling API is authoritative for which methods are test methods (@isTest)
+      const discoveredMethodNames = new Set((discoveredClass.testMethods ?? []).map(m => m.name));
+
+      const localUri = classNameToUri.get(discoveredClass.name);
+      const uri = localUri ?? classItem.uri;
+      const isOrgOnly = !localUri;
+
+      // Use LSP for positions (accurate after deploy), fall back to Tooling API positions
+      const methodPositions = new Map<string, { line: number; column: number }>();
+      if (localUri) {
+        const symbolLocations = yield* Effect.promise(() =>
+          getMethodLocationsFromSymbols(localUri, [...discoveredMethodNames])
+        );
+        if (symbolLocations) {
+          for (const [name, location] of symbolLocations) {
+            methodPositions.set(name, { line: location.range.start.line, column: location.range.start.character });
+          }
+        }
+      }
+      const currentMethodItems = yield* Ref.get(methodItems);
+      yield* Effect.sync(() => {
+        for (const method of discoveredClass.testMethods ?? []) {
+          if (!methodPositions.has(method.name)) {
+            methodPositions.set(method.name, {
+              line: Math.max(0, (method.line ?? 1) - 1),
+              column: Math.max(0, (method.column ?? 1) - 1)
+            });
+          }
+        }
+
+        const existingMethodsByName = new Map<string, vscode.TestItem>();
+        classItem.children.forEach(child => {
+          if (isMethod(child.id)) {
+            existingMethodsByName.set(child.label, child);
+          }
+        });
+
+        // Remove methods no longer in discovery
+        for (const [methodName, methodItem] of existingMethodsByName) {
+          if (!discoveredMethodNames.has(methodName)) {
+            currentMethodItems.delete(methodItem.id);
+            existingMethodsByName.delete(methodName);
+          }
+        }
+
+        // Sort method names by resolved position
+        const sortedMethodNames = [...discoveredMethodNames].toSorted((a, b) => {
+          const posA = methodPositions.get(a);
+          const posB = methodPositions.get(b);
+          return (posA?.line ?? 0) - (posB?.line ?? 0);
+        });
+
+        // Build ordered children list
+        const orderedChildren: vscode.TestItem[] = [];
+        for (const methodName of sortedMethodNames) {
+          const existing = existingMethodsByName.get(methodName);
+          if (existing) {
+            const pos = methodPositions.get(methodName);
+            if (pos) {
+              const position = new vscode.Position(pos.line, pos.column);
+              existing.range = new vscode.Range(position, position);
+            }
+            orderedChildren.push(existing);
+          } else {
+            const methodId = createMethodId(fullClassName, methodName);
+            const pos = methodPositions.get(methodName) ?? { line: 0, column: 0 };
+            const position = new vscode.Position(pos.line, pos.column);
+            const range = new vscode.Range(position, position);
+            const methodItem = ctx.controller.createTestItem(methodId, methodName, uri);
+            methodItem.range = range;
+            if (isOrgOnly && ctx.orgOnlyTag) {
+              methodItem.tags = [ctx.orgOnlyTag];
+            } else if (ctx.inWorkspaceTag) {
+              methodItem.tags = [ctx.inWorkspaceTag];
+            }
+            currentMethodItems.set(methodId, methodItem);
+            orderedChildren.push(methodItem);
+          }
+        }
+
+        // Replace all children in source order
+        classItem.children.replace(orderedChildren);
+
+        // Update class tags if workspace presence changed (URI is readonly on TestItem)
+        if (localUri && ctx.inWorkspaceTag && !classItem.tags?.includes(ctx.inWorkspaceTag)) {
+          classItem.tags = [ctx.inWorkspaceTag];
+        }
+      });
+    });
+
+    /** Apply the created/changed diff from a fresh discovery to the existing tree (add/diff/remove class). */
+    const applyIncrementalDiff = Effect.fn('ApexTestTreeService.applyIncrementalDiff')(function* (
+      ctx: TreeMutationContext,
+      discoveredClasses: ToolingTestClass[],
+      changes: Map<string, string>
+    ) {
+      const apexClasses = discoveredClasses.filter(cls => cls.testMethods?.length > 0 && !isFlowTest(cls));
+      const discoveryMap = new Map(apexClasses.map(cls => [getFullClassName(cls), cls]));
+
+      const classNameToUri = yield* Effect.promise(() => buildClassToUriIndex(apexClasses.map(cls => cls.name)));
+      const { orgId } = yield* getDefaultOrgInfo();
+      // No default org → no org-scoped tree to diff against.
+      if (!orgId) return;
+
+      const currentClassItems = yield* Ref.get(classItems);
+      for (const [fullName, changeType] of changes) {
+        const discoveredClass = discoveryMap.get(fullName);
+        const existingClassItem = currentClassItems.get(fullName);
+
+        if (changeType === 'created' || (!existingClassItem && discoveredClass)) {
+          if (discoveredClass) {
+            yield* addClassToTree(ctx, discoveredClass, classNameToUri, orgId);
+          }
+        } else if (changeType === 'changed' && existingClassItem && discoveredClass) {
+          // Always apply stale tags for filtering (remove active tags)
+          yield* Effect.sync(() => {
+            existingClassItem.children.forEach(methodItem => {
+              const existingTags = methodItem.tags ?? [];
+              if (!existingTags.some(t => t.id === STALE) && ctx.staleTag) {
+                methodItem.tags = [...existingTags, ctx.staleTag];
+              }
+            });
+            // Invalidate existing results before diffing (so new methods aren't marked stale)
+            ctx.controller.invalidateTestResults(existingClassItem);
+          });
+          yield* diffClassMethods(ctx, fullName, existingClassItem, discoveredClass, classNameToUri);
+        } else if (existingClassItem && !discoveredClass) {
+          // Class no longer in discovery (e.g. @isTest removed) — remove it
+          yield* removeClassFromTree(ctx, fullName);
+        }
+      }
+    });
+
+    /**
+     * Incrementally update the tree from deployed metadata changes, preserving results for unchanged classes.
+     * Non-fatal: any failure is logged and swallowed (the existing tree stays valid). Deletions apply
+     * immediately; created/changed entries trigger a fresh discovery + diff.
+     */
+    const incrementalUpdate = Effect.fn('ApexTestTreeService.incrementalUpdate')(function* (
+      ctx: TreeMutationContext,
+      changes: Map<string, string>,
+      includesSuiteChange: boolean
+    ) {
+      yield* Effect.gen(function* () {
+        // Handle deletions immediately (no API call needed)
+        for (const [fullName, changeType] of changes) {
+          if (changeType === 'deleted') {
+            yield* removeClassFromTree(ctx, fullName);
+          }
+        }
+
+        // If any created/changed entries remain, call discovery API and apply diff
+        const nonDeleteChanges = new Map([...changes].filter(([, changeType]) => changeType !== 'deleted'));
+        if (nonDeleteChanges.size > 0) {
+          const discoveryResult = yield* discoverTests();
+          yield* persistDiscoveredClasses(discoveryResult.classes);
+          yield* applyIncrementalDiff(ctx, discoveryResult.classes, nonDeleteChanges);
+        }
+
+        if (includesSuiteChange) {
+          yield* clearAllSuiteChildren();
+        }
+      }).pipe(
+        // Broad by design: the inner pipeline's error channel is a plain `Error` (discoverTests +
+        // resolvePackage2Members re-throw untagged), so there is no tagged union to switch on. Incremental
+        // update is a non-fatal optimization — any failure logs and leaves the existing tree valid.
+        Effect.catchAll(error =>
+          Effect.logWarning('Incremental test-tree update failed (non-fatal)', {
+            message: toUserFriendlyApexTestError(error)
+          })
+        )
+      );
+    });
+
+    /**
+     * Lazily resolve a suite's member classes (Tooling API) into placeholder child items and record the
+     * suite→classes mapping in the Ref. Connection/query failures map to ResolveSuiteChildrenError for the
+     * vscode boundary to notify.
+     */
+    const resolveSuiteChildren = Effect.fn('ApexTestTreeService.resolveSuiteChildren')(function* (
+      ctx: TreeMutationContext,
+      suiteItem: vscode.TestItem
+    ) {
+      // If children are already populated, skip
+      if (suiteItem.children.size > 0) {
+        return;
+      }
+      const suiteName = extractSuiteName(suiteItem.id);
+      if (!suiteName) {
+        return;
+      }
+
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* api.services.ConnectionService.getConnection().pipe(
+        Effect.mapError(e => new ResolveSuiteChildrenError({ suiteName, message: toUserFriendlyApexTestError(e) }))
+      );
+
+      const classNames = yield* Effect.tryPromise({
+        try: async () => {
+          const classesInSuite = await new TestService(connection).getTestsInSuite(suiteName);
+          if (classesInSuite.length === 0) {
+            return [];
+          }
+          const classIds = classesInSuite.map(record => record.ApexClassId);
+          const classNamesQuery = `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Id IN (${classIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',')})`;
+          const queryResult = await connection.tooling.query<{ Name: string; NamespacePrefix: string | null }>(
+            classNamesQuery
+          );
+          return queryResult.records.map((record: { Name: string; NamespacePrefix?: string | null }) =>
+            record.NamespacePrefix?.trim() ? `${record.NamespacePrefix}.${record.Name}` : record.Name
+          );
+        },
+        catch: e => new ResolveSuiteChildrenError({ suiteName, message: toUserFriendlyApexTestError(e) })
+      });
+
+      if (classNames.length === 0) {
+        yield* Effect.logDebug('No test classes found for suite', { suiteName });
+        return;
+      }
+
+      const currentClassItems = yield* Ref.get(classItems);
+      // Store the mapping of suite to classes (full class names for lookup)
+      yield* setSuiteClasses(suiteName, new Set(classNames));
+
+      yield* Effect.sync(() => {
+        // Add class items as children of the suite (placeholders; actual class items live under namespace/package)
+        for (const className of classNames) {
+          const existingClassItem = currentClassItems.get(className);
+          const classItem = ctx.controller.createTestItem(
+            createSuiteClassId(suiteName, className),
+            className,
+            existingClassItem?.uri
+          );
+          suiteItem.children.add(classItem);
+        }
+      });
+    });
+
+    /** Clear every suite item's children so they re-query from the org on next expand. */
+    const clearAllSuiteChildren = Effect.fn('ApexTestTreeService.clearAllSuiteChildren')(function* () {
+      const currentSuiteItems = yield* Ref.get(suiteItems);
+      yield* Effect.sync(() => {
+        for (const suiteItem of currentSuiteItems.values()) {
+          suiteItem.children.replace([]);
+        }
+      });
+    });
+
     return {
       // isRestoringResults is exposed only as a test seam for the test-and-set guard; the other Refs
       // and the discovery sub-steps (populateSuiteItems/populateTestItemsFromOrg) stay private so callers
@@ -539,10 +1214,16 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       getClassItems,
       getSuiteItems,
       getClassToParentItem,
+      getSuiteToClasses,
+      markStaleTags,
+      clearStaleTags,
       reset,
       clearRestoredResults,
       restorePreviousResults,
-      discover
+      discover,
+      incrementalUpdate,
+      resolveSuiteChildren,
+      clearAllSuiteChildren
     };
   })
 }) {}

@@ -48,6 +48,7 @@ export const messages = {
   unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_success: 'Debug Test(s) successfully ran',
+  debug_test_failed: 'Debug Test(s) failed: %s',
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',
   channel_name: 'Apex Replay Debugger',

@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
@@ -38,7 +39,7 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
 
   const failedResponses = yield* getMergedDeployFailures(result);
   const failedWithPaths = failedResponses.filter(
-    (fr): fr is typeof fr & { filePath: string } => typeof fr.filePath === 'string' && fr.filePath.length > 0
+    (fr): fr is typeof fr & { filePath: string } => isString(fr.filePath) && fr.filePath.length > 0
   );
   if (failedResponses.length > 0) {
     if (failedWithPaths.length > 0) {

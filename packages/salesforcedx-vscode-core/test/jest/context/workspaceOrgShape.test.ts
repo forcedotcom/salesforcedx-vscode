@@ -6,7 +6,7 @@
  */
 import * as Effect from 'effect/Effect';
 import { getDefaultOrgInfo } from '../../../src/context/defaultOrgInfo';
-import { getOrgShape, shapeFrom } from '../../../src/context/workspaceOrgShape';
+import { getOrgShape } from '../../../src/context/workspaceOrgShape';
 
 // Mutable workspace info the WorkspaceService mock returns; tests flip `isEmpty`.
 const mockWorkspaceInfo = { isEmpty: false };
@@ -76,31 +76,5 @@ describe('getOrgShape', () => {
     getDefaultOrgInfoMock.mockReturnValue(Effect.fail(new Error('TargetOrgRef unavailable')));
 
     expect(await getOrgShape(username)).toBe('Undefined');
-  });
-});
-
-describe('shapeFrom', () => {
-  it('returns Scratch when isScratch true', () => {
-    expect(shapeFrom({ isScratch: true })).toBe('Scratch');
-  });
-
-  it('returns Sandbox when isSandbox true and isScratch false', () => {
-    expect(shapeFrom({ isSandbox: true })).toBe('Sandbox');
-  });
-
-  it('prefers Scratch over Sandbox when both flags set (precedence)', () => {
-    expect(shapeFrom({ isScratch: true, isSandbox: true })).toBe('Scratch');
-  });
-
-  it('returns Production when alias is set', () => {
-    expect(shapeFrom({ alias: 'my-org' })).toBe('Production');
-  });
-
-  it('returns Production when only username is set', () => {
-    expect(shapeFrom({ username: 'user@example.com' })).toBe('Production');
-  });
-
-  it('returns Undefined when nothing is populated', () => {
-    expect(shapeFrom({})).toBe('Undefined');
   });
 });

@@ -13,14 +13,14 @@ import { format } from '../../src/modes/formatting';
 import { getLanguageModes } from '../../src/modes/languageModes';
 
 describe('HTML Embedded Formatting', () => {
-  const assertFormat = (
+  const assertFormat = async (
     value: string,
     expected: string,
     options?: any,
     formatOptions: FormattingOptions = FormattingOptions.create(2, true),
     message?: string
-  ): void => {
-    const languageModes = getLanguageModes({ css: true, javascript: true });
+  ): Promise<void> => {
+    const languageModes = await getLanguageModes({ css: true, javascript: true });
 
     try {
       if (options) {
@@ -54,79 +54,85 @@ describe('HTML Embedded Formatting', () => {
     }
   };
 
-  const assertFormatWithFixture = (
+  const assertFormatWithFixture = async (
     fixtureName: string,
     expectedPath: string,
     options?: any,
     formatOptions?: FormattingOptions
-  ): void => {
+  ): Promise<void> => {
     const input = fs.readFileSync(path.join(__dirname, 'fixtures', 'inputs', fixtureName)).toString();
     const expected = fs.readFileSync(path.join(__dirname, 'fixtures', 'expected', expectedPath)).toString();
-    assertFormat(input, expected, options, formatOptions, expectedPath);
+    await assertFormat(input, expected, options, formatOptions, expectedPath);
   };
 
-  it('Should handle HTML only', () => {
-    assertFormat('<html><body><p>Hello</p></body></html>', '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>');
-    assertFormat('|<html><body><p>Hello</p></body></html>|', '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>');
-    assertFormat('<html>|<body><p>Hello</p></body>|</html>', '<html><body>\n  <p>Hello</p>\n</body></html>');
+  it('Should handle HTML only', async () => {
+    await assertFormat(
+      '<html><body><p>Hello</p></body></html>',
+      '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>'
+    );
+    await assertFormat(
+      '|<html><body><p>Hello</p></body></html>|',
+      '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>'
+    );
+    await assertFormat('<html>|<body><p>Hello</p></body>|</html>', '<html><body>\n  <p>Hello</p>\n</body></html>');
   });
 
-  it('Should handle HTML & Scripts', () => {
-    assertFormat(
+  it('Should handle HTML & Scripts', async () => {
+    await assertFormat(
       '<html><head><script></script></head></html>',
       '<html>\n\n<head>\n  <script></script>\n</head>\n\n</html>'
     );
-    assertFormat(
+    await assertFormat(
       '<html><head><script>var x=1;</script></head></html>',
       '<html>\n\n<head>\n  <script>var x = 1;</script>\n</head>\n\n</html>'
     );
-    assertFormat(
+    await assertFormat(
       '<html><head><script>\nvar x=2;\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    var x = 2;\n  </script>\n</head>\n\n</html>'
     );
-    assertFormat(
+    await assertFormat(
       '<html><head>\n  <script>\nvar x=3;\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    var x = 3;\n  </script>\n</head>\n\n</html>'
     );
-    assertFormat(
+    await assertFormat(
       '<html><head>\n  <script>\nvar x=4;\nconsole.log("Hi");\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    var x = 4;\n    console.log("Hi");\n  </script>\n</head>\n\n</html>'
     );
-    assertFormat(
+    await assertFormat(
       '<html><head>\n  |<script>\nvar x=5;\n</script>|</head></html>',
       '<html><head>\n  <script>\n    var x = 5;\n  </script></head></html>'
     );
   });
 
-  it('HTML & Scripts - Fixtures', () => {
-    assertFormatWithFixture('19813.html', '19813.html');
-    assertFormatWithFixture('19813.html', '19813-4spaces.html', void 0, FormattingOptions.create(4, true));
-    assertFormatWithFixture('19813.html', '19813-tab.html', void 0, FormattingOptions.create(1, false));
-    assertFormatWithFixture('21634.html', '21634.html');
+  it('HTML & Scripts - Fixtures', async () => {
+    await assertFormatWithFixture('19813.html', '19813.html');
+    await assertFormatWithFixture('19813.html', '19813-4spaces.html', void 0, FormattingOptions.create(4, true));
+    await assertFormatWithFixture('19813.html', '19813-tab.html', void 0, FormattingOptions.create(1, false));
+    await assertFormatWithFixture('21634.html', '21634.html');
   });
 
-  it('Should handle script end tag', () => {
-    assertFormat(
+  it('Should handle script end tag', async () => {
+    await assertFormat(
       '<html>\n<head>\n  <script>\nvar x  =  0;\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    var x = 0;\n  </script>\n</head>\n\n</html>'
     );
   });
 
-  it('Should handle HTML & multiple scripts', () => {
-    assertFormat(
+  it('Should handle HTML & multiple scripts', async () => {
+    await assertFormat(
       '<html><head>\n<script>\nif(x){\nbar(); }\n</script><script>\nfunction(x){    }\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    if (x) {\n      bar();\n    }\n  </script>\n  <script>\n    function(x) {}\n  </script>\n</head>\n\n</html>'
     );
   });
 
-  it('Should handle HTML & styles', () => {
-    assertFormat(
+  it('Should handle HTML & styles', async () => {
+    await assertFormat(
       '<html><head>\n<style>\n.foo{display:none;}\n</style></head></html>',
       '<html>\n\n<head>\n  <style>\n    .foo {\n      display: none;\n    }\n  </style>\n</head>\n\n</html>'
     );
   });
 
-  it('Should handle EndWithNewline', () => {
+  it('Should handle EndWithNewline', async () => {
     const options = {
       visualforce: {
         format: {
@@ -134,32 +140,36 @@ describe('HTML Embedded Formatting', () => {
         }
       }
     };
-    assertFormat(
+    await assertFormat(
       '<html><body><p>Hello</p></body></html>',
       '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>\n',
       options
     );
-    assertFormat('<html>|<body><p>Hello</p></body>|</html>', '<html><body>\n  <p>Hello</p>\n</body></html>', options);
-    assertFormat(
+    await assertFormat(
+      '<html>|<body><p>Hello</p></body>|</html>',
+      '<html><body>\n  <p>Hello</p>\n</body></html>',
+      options
+    );
+    await assertFormat(
       '<html><head><script>\nvar x=1;\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    var x = 1;\n  </script>\n</head>\n\n</html>\n',
       options
     );
   });
 
-  it('Should handle inside script', () => {
-    assertFormat(
+  it('Should handle inside script', async () => {
+    await assertFormat(
       '<html><head>\n  <script>\n|var x=6;|\n</script></head></html>',
       '<html><head>\n  <script>\n  var x = 6;\n</script></head></html>'
     );
-    assertFormat(
+    await assertFormat(
       '<html><head>\n  <script>\n|var x=6;\nvar y=  9;|\n</script></head></html>',
       '<html><head>\n  <script>\n  var x = 6;\n  var y = 9;\n</script></head></html>'
     );
   });
 
-  it('Should handle range after new line', () => {
-    assertFormat(
+  it('Should handle range after new line', async () => {
+    await assertFormat(
       '<html><head>\n  |<script>\nvar x=6;\n</script>\n|</head></html>',
       '<html><head>\n  <script>\n    var x = 6;\n  </script>\n</head></html>'
     );

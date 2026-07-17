@@ -13,6 +13,7 @@ import * as debounce from 'debounce';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import { isError } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import type { DescribeSObjectResult } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -129,7 +130,9 @@ export class SOQLEditorInstance {
         const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
           void emit.single(event);
         });
-        return Effect.sync(() => disposable.dispose());
+        return Effect.sync(() => {
+          disposable.dispose();
+        });
       }).pipe(
         Stream.mapEffect(
           event =>
@@ -250,9 +253,9 @@ export class SOQLEditorInstance {
         ).pipe(
           Effect.catchAllCause(cause => {
             const err = Cause.squash(cause);
-            return appendToChannel(
-              nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
-            ).pipe(Effect.andThen(this.runQueryDone()));
+            return appendToChannel(nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))).pipe(
+              Effect.andThen(this.runQueryDone())
+            );
           }),
           Effect.withSpan('SOQLEditor.run_query')
         );
@@ -275,9 +278,9 @@ export class SOQLEditorInstance {
         }).pipe(
           Effect.catchAllCause(cause => {
             const err = Cause.squash(cause);
-            return appendToChannel(
-              nls.localize('error_run_soql_query', err instanceof Error ? err.message : String(err))
-            ).pipe(Effect.andThen(this.getQueryPlanDone()));
+            return appendToChannel(nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))).pipe(
+              Effect.andThen(this.getQueryPlanDone())
+            );
           }),
           Effect.withSpan('SOQLEditor.get_query_plan')
         );

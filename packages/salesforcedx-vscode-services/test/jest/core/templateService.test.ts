@@ -38,6 +38,7 @@ const createMockConfigService = (templateDir?: string): Layer.Layer<ConfigServic
           reload: () => Promise.resolve({})
         } as unknown as ConfigAggregator),
       invalidateConfigAggregator: () => Effect.void,
+      getTargetOrg: () => Effect.succeed(undefined),
       getTargetDevHub: () => Effect.succeed(undefined),
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),
@@ -58,6 +59,7 @@ const createFailingConfigService = (): Layer.Layer<ConfigService> =>
           ) as unknown as import('../../../src/core/configService').FailedToCreateConfigAggregatorError
         ),
       invalidateConfigAggregator: () => Effect.void,
+      getTargetOrg: () => Effect.succeed(undefined),
       getTargetDevHub: () => Effect.succeed(undefined),
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),
@@ -94,6 +96,7 @@ const createMockConnectionService = (): Layer.Layer<ConnectionService> =>
     ConnectionService,
     ConnectionService.make({
       getConnection: () => Effect.succeed({ version: '60.0' } as unknown as import('@salesforce/core').Connection),
+      validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
       listAllAuthorizations: () => Effect.succeed([])
     })

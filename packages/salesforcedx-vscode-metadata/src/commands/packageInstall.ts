@@ -10,6 +10,7 @@ import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@sal
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { isError } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Str from 'effect/String';
@@ -83,7 +84,7 @@ const verifyPackageAvailable = Effect.fn('packageInstall.verifyPackageAvailable'
   const conn = yield* api.services.ConnectionService.getConnection();
   const result = yield* Effect.tryPromise({
     try: () => conn.tooling.query<{ Id: string }>(`SELECT Id FROM SubscriberPackageVersion WHERE Id ='${packageId}'`),
-    catch: e => new PackageInstallFailedError({ message: e instanceof Error ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
   });
   if (result.records.length === 0) {
     return yield* new PackageInstallFailedError({
@@ -114,7 +115,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
   };
   const result = yield* Effect.tryPromise({
     try: () => conn.tooling.create('PackageInstallRequest', body),
-    catch: e => new PackageInstallFailedError({ message: e instanceof Error ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
   });
   const single = Array.isArray(result) ? result[0] : result;
   if (!single?.success) {
@@ -133,7 +134,7 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
       conn.tooling.query<PackageInstallRequest>(
         `SELECT Id, Status, Errors FROM PackageInstallRequest WHERE Id = '${requestId}'`
       ),
-    catch: e => new PackageInstallFailedError({ message: e instanceof Error ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
   }).pipe(
     Effect.retry({
       schedule: Schedule.exponential(Duration.seconds(1), 2.0).pipe(

@@ -14,6 +14,7 @@ import {
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
@@ -24,23 +25,30 @@ import {
   SFDX_EXTENSION_PACK_NAME,
   UNAUTHENTICATED_USER
 } from '../constants';
+import { shapeFrom } from '../context/workspaceOrgShape';
 import { errorToString } from '../helpers/errorUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
+import { LogStream } from '../telemetry/reporters/logStream';
 import { O11yReporter } from '../telemetry/reporters/o11yReporter';
-import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
+import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
+import { OrgIdentity, TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 
 type IdentityFromServices = {
   cliId: string | undefined;
   webUserId: string;
-};
+} & OrgIdentity;
 
 const FALLBACK_IDENTITY: IdentityFromServices = {
   cliId: undefined,
-  webUserId: UNAUTHENTICATED_USER
+  webUserId: UNAUTHENTICATED_USER,
+  orgId: undefined,
+  orgShape: undefined,
+  devHubId: undefined,
+  orgEdition: undefined
 };
 
 const fallback = Effect.succeed(FALLBACK_IDENTITY);
@@ -52,9 +60,23 @@ const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
       Effect.flatMap(api => api.services.TargetOrgRef()),
       Effect.flatMap(SubscriptionRef.get),
       Effect.map(
-        ({ cliId, webUserId }): IdentityFromServices => ({
+        ({
           cliId,
-          webUserId: webUserId ?? UNAUTHENTICATED_USER
+          webUserId,
+          orgId,
+          isScratch,
+          isSandbox,
+          orgEdition,
+          devHubOrgId,
+          alias,
+          username
+        }): IdentityFromServices => ({
+          cliId,
+          webUserId: webUserId ?? UNAUTHENTICATED_USER,
+          orgId,
+          orgShape: shapeFrom({ isScratch, isSandbox, alias, username }),
+          devHubId: devHubOrgId,
+          orgEdition
         })
       ),
       Effect.tapError(e => Effect.log(`getIdentityFromServices error: ${String(e)}`)),
@@ -231,9 +253,10 @@ export class TelemetryService implements TelemetryServiceInterface {
     }
 
     // Sourced from services-owned identity; webUserId always defined (UNAUTHENTICATED_USER until auth).
-    const { cliId, webUserId } = await this.getIdentityFromServices();
+    const { cliId, webUserId, orgId, orgShape, devHubId, orgEdition } = await this.getIdentityFromServices();
     this.warnDegradedSession(cliId);
     const userId = cliId ?? '';
+    const orgIdentity = { orgId, orgShape, devHubId, orgEdition };
 
     // priority: extension specific one, OR core default one, OR original one
     const { productFeatureId: thisExtensionPftId } = extensionPackageJsonSchema.parse(
@@ -242,17 +265,23 @@ export class TelemetryService implements TelemetryServiceInterface {
     const { productFeatureId: coreEtensionPftId } = extensionPackageJsonSchema.parse(
       extensionContext.extension.packageJSON
     );
+    // fresh object per reporter — avoid aliasing one shared-mutable orgIdentity across instances
+    this.reporters
+      .filter(r => r instanceof TelemetryFile || r instanceof LogStream)
+      // TelemetryFile/LogStream lack userId/webUserId — cache org identity only.
+      .forEach(r => (r.orgIdentity = { ...orgIdentity }));
     this.reporters
       .filter(r => r instanceof AppInsights || r instanceof O11yReporter)
-      .map(r => {
+      .forEach(r => {
         r.userId = userId;
         r.webUserId = webUserId;
-        return r;
-      })
+        r.orgIdentity = { ...orgIdentity };
+      });
+    this.reporters
       .filter(r => r instanceof O11yReporter)
       // don't overwrite PFT if already set
       .filter(r => r.productFeatureId === undefined)
-      .map(r => (r.productFeatureId = thisExtensionPftId ?? coreEtensionPftId));
+      .forEach(r => (r.productFeatureId = thisExtensionPftId ?? coreEtensionPftId));
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
@@ -426,6 +455,6 @@ export class TelemetryService implements TelemetryServiceInterface {
 const stripEmptyValues = (obj: Record<string, string | undefined | null>): Record<string, string> =>
   Object.fromEntries(Object.entries(obj).filter(isStringEntry));
 
-const isStringEntry = (entry: [string, unknown]): entry is [string, string] => typeof entry[1] === 'string';
+const isStringEntry = (entry: [string, unknown]): entry is [string, string] => isString(entry[1]);
 
 export const telemetryService = TelemetryServiceProvider.getInstance();

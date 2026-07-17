@@ -9,6 +9,7 @@ import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -119,7 +120,7 @@ const handleDeployError = Effect.fn('deployOnSave:handleDeployError')(function* 
     return;
   }
 
-  const errorMessage = err instanceof Error ? err.message : JSON.stringify(err, null, 2);
+  const errorMessage = isError(err) ? err.message : JSON.stringify(err, null, 2);
 
   if (errorMessage.includes('NoTargetOrgSet') || errorMessage.includes('No default org')) {
     yield* channelService.appendToChannel(nls.localize('deploy_on_save_error_no_target_org'));

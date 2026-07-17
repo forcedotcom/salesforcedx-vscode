@@ -14,9 +14,10 @@ const xmlCharMap: { [key: string]: string } = {
   "'": '&apos;'
 };
 
-const escapeXml = (data: string): string => data.replaceAll(/[<>&'\"]/g, (char: string) => xmlCharMap[char]);
+const escapeXml = (data: string): string => data.replaceAll(/[<>&'"]/g, (char: string) => xmlCharMap[char]);
 
-// Encodes request body with SOAP envelope and explicit DebuggingHeader: Apex_code=Finest, Visualforce=Finer
+// Encodes request body with SOAP envelope and explicit DebuggingHeader: Apex_code=Finest, Visualforce=Finer,
+// Apex_profiling=Info. Apex_profiling emits the CUMULATIVE_LIMIT_USAGE block (e.g. "Number of SOQL queries:").
 export function encodeBody(accessToken: string, data: string): string {
   const escapedData = escapeXml(data);
 
@@ -31,6 +32,7 @@ xmlns:apex="http://soap.sforce.com/2006/08/apex">
         <apex:DebuggingHeader>
             <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
             <apex:categories><apex:category>Visualforce</apex:category><apex:level>Finer</apex:level></apex:categories>
+            <apex:categories><apex:category>Apex_profiling</apex:category><apex:level>Info</apex:level></apex:categories>
         </apex:DebuggingHeader>
     </env:Header>
     <env:Body>

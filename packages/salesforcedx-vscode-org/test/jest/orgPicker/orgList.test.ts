@@ -60,11 +60,9 @@ describe('OrgList tests', () => {
       it('should return true when org expiration date is in the past', async () => {
         const pastDate = new Date();
         pastDate.setDate(pastDate.getDate() - 1);
-        getAuthFieldsForMock.mockResolvedValueOnce({
-          expirationDate: pastDate.toISOString()
-        });
+        getAuthFieldsForMock.mockReturnValueOnce(Effect.succeed({ expirationDate: pastDate.toISOString() }));
 
-        const result = await orgListModule.isOrgExpired('test-org');
+        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org'));
 
         expect(result).toBe(true);
         expect(getAuthFieldsForMock).toHaveBeenCalledWith('test-org');
@@ -73,22 +71,18 @@ describe('OrgList tests', () => {
       it('should return false when org expiration date is in the future', async () => {
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 1);
-        getAuthFieldsForMock.mockResolvedValueOnce({
-          expirationDate: futureDate.toISOString()
-        });
+        getAuthFieldsForMock.mockReturnValueOnce(Effect.succeed({ expirationDate: futureDate.toISOString() }));
 
-        const result = await orgListModule.isOrgExpired('test-org');
+        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org'));
 
         expect(result).toBe(false);
         expect(getAuthFieldsForMock).toHaveBeenCalledWith('test-org');
       });
 
       it('should return false when org has no expiration date', async () => {
-        getAuthFieldsForMock.mockResolvedValueOnce({
-          expirationDate: undefined
-        });
+        getAuthFieldsForMock.mockReturnValueOnce(Effect.succeed({ expirationDate: undefined }));
 
-        const result = await orgListModule.isOrgExpired('test-org');
+        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org'));
 
         expect(result).toBe(false);
         expect(getAuthFieldsForMock).toHaveBeenCalledWith('test-org');
@@ -117,16 +111,13 @@ describe('OrgList tests', () => {
               getConnection: getConnectionMock
             },
             // getFreshAuthorizations yields ConfigService (default-org config) + AliasService (disk aliases);
-            // stub both so the data-loading path runs against fakes (no real I/O).
-            // ConfigService is consumed two ways: `yield* api.services.ConfigService` (configAggregatorEffect)
-            // AND the static accessor `api.services.ConfigService.setTargetOrg(...)` (picker). Mock it as an
-            // Effect (for the yield) with setTargetOrg attached as a property (for the static accessor call).
-            ConfigService: Object.assign(
-              Effect.succeed({
-                getConfigAggregator: () => Effect.succeed({ getPropertyValue: () => undefined })
-              }),
-              { setTargetOrg: setTargetOrgMock }
-            ),
+            // stub both so the data-loading path runs against fakes (no real I/O). ConfigService is used via
+            // static accessors: getTargetDevHub/getTargetOrg (default-org config) and setTargetOrg (picker).
+            ConfigService: Object.assign(Effect.succeed({}), {
+              getTargetDevHub: () => Effect.void,
+              getTargetOrg: () => Effect.void,
+              setTargetOrg: setTargetOrgMock
+            }),
             AliasService: Effect.succeed({
               getAllAliases: () => Effect.succeed({}),
               getUsernameFromAlias: () => Effect.succeed(Option.none())

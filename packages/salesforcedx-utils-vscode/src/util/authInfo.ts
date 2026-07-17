@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { notificationService } from '../commands/notificationService';
 import { ConfigSource, ConfigUtil } from '../config/configUtil';
@@ -26,7 +26,7 @@ export const getTargetOrgOrAlias = async (enableWarning: boolean): Promise<strin
 
     return targetOrgOrAlias;
   } catch (err) {
-    if (err instanceof Error) {
+    if (isError(err)) {
       telemetryService.sendException('get_target_org_alias', err.message);
     }
     return undefined;
@@ -59,51 +59,9 @@ export const getTargetDevHubOrAlias = async (
     }
     return JSON.stringify(targetDevHub).replaceAll('"', '');
   } catch (err) {
-    if (err instanceof Error) {
+    if (isError(err)) {
       telemetryService.sendException('get_target_dev_hub_alias', err.message);
     }
-    return undefined;
-  }
-};
-
-const getUsername = async (usernameOrAlias: string): Promise<string> => {
-  const info = await StateAggregator.getInstance();
-  return info.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
-};
-
-const getConnection = async (usernameOrAlias?: string): Promise<Connection> => {
-  const resolved = usernameOrAlias ?? (await getTargetOrgOrAlias(true));
-  if (!resolved) {
-    throw new Error(nls.localize('error_no_target_org'));
-  }
-  const username = await getUsername(resolved);
-  return await Connection.create({
-    authInfo: await AuthInfo.create({ username })
-  });
-};
-
-/**
- * Gets the org API version as a numeric value.
- * Uses instanceApiVersion (max supported API version) from auth fields if available,
- * otherwise falls back to the connection's configured API version.
- * @returns The org API version as a number, or undefined if unable to retrieve.
- */
-export const getOrgApiVersion = async (): Promise<number | undefined> => {
-  try {
-    const connection = await getConnection();
-    const authFields = connection.getAuthInfoFields();
-
-    // Prefer instanceApiVersion (max supported API version) if available
-    const instanceApiVersion = authFields.instanceApiVersion;
-    if (instanceApiVersion) {
-      return parseFloat(instanceApiVersion);
-    }
-
-    // Fallback to the connection's configured API version
-    const apiVersion = connection.getApiVersion();
-    return apiVersion ? parseFloat(apiVersion) : undefined;
-  } catch (err) {
-    console.error('Failed to retrieve org version:', err);
     return undefined;
   }
 };

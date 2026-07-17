@@ -8,6 +8,8 @@
 import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
+import * as Option from 'effect/Option';
+import { isError, isString } from 'effect/Predicate';
 
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
 
@@ -41,7 +43,7 @@ export const resetPackageResolutionState = (): void => {
 
 /** Returns true if the error indicates Package2Member (or Package2) is not available in this org. */
 const isPackage2UnavailableError = (error: unknown): boolean => {
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = isError(error) ? error.message : String(error);
   const lower = msg.toLowerCase();
   return (
     lower.includes('package2member') ||
@@ -56,7 +58,7 @@ const isPackage2UnavailableError = (error: unknown): boolean => {
 
 /** True when the error is "no such column" for the given field (e.g. subscriber orgs where Package2Member has SubjectId but not MetadataComponentId). */
 const isNoSuchColumnForField = (error: unknown, field: string): boolean => {
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = isError(error) ? error.message : String(error);
   const lower = msg.toLowerCase();
   return lower.includes('no such column') && lower.includes(field.toLowerCase());
 };
@@ -82,7 +84,7 @@ const getComponentId = (m: Package2MemberRecord): string | undefined => m.Metada
  */
 const resolveFromInstalledSubscriberPackages = async (
   connection: Connection,
-  classIdToNamespace: Map<string, string>
+  classIdToNamespace: Map<string, Option.Option<string>>
 ): Promise<Map<string, ResolvedPackageInfo>> => {
   const result = new Map<string, ResolvedPackageInfo>();
   if (classIdToNamespace.size === 0) {
@@ -106,9 +108,8 @@ const resolveFromInstalledSubscriberPackages = async (
     }
     const noNsClassIdsAssigned: string[] = [];
     for (const [classId, namespacePrefix] of classIdToNamespace) {
-      const ns = (namespacePrefix ?? '').trim();
-      if (ns !== '') {
-        const pkg = byNamespace.get(ns);
+      if (Option.isSome(namespacePrefix)) {
+        const pkg = byNamespace.get(namespacePrefix.value);
         if (pkg?.SubscriberPackage?.Name != null && pkg.SubscriberPackageId) {
           result.set(classId, {
             package2Id: pkg.SubscriberPackageId,
@@ -209,10 +210,10 @@ const getUnpackagedApexClassIds = async (connection: Connection, classIds: strin
 export const resolvePackage2Members = async (
   connection: Connection,
   apexClassIds: string[],
-  classIdToNamespace?: Map<string, string>,
+  classIdToNamespace?: Map<string, Option.Option<string>>,
   orgInfo?: PackageResolutionOrgInfo
 ): Promise<Map<string, ResolvedPackageInfo>> => {
-  const validIds = apexClassIds.filter(id => typeof id === 'string' && id.length > 0);
+  const validIds = apexClassIds.filter(id => isString(id) && id.length > 0);
   if (validIds.length === 0) {
     return new Map();
   }
@@ -321,9 +322,7 @@ export const resolvePackage2Members = async (
 
   if (allMembers.length > 0) {
     const package2Ids = [
-      ...new Set(
-        allMembers.map(m => m.Package2Id).filter((id): id is string => typeof id === 'string' && id.length > 0)
-      )
+      ...new Set(allMembers.map(m => m.Package2Id).filter((id): id is string => isString(id) && id.length > 0))
     ];
     const package2ById = new Map<string, Package2>();
 

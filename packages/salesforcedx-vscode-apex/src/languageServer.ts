@@ -5,9 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as ExecutionStrategy from 'effect/ExecutionStrategy';
+import * as Exit from 'effect/Exit';
+import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
+import * as Scope from 'effect/Scope';
+import type * as Tracer from 'effect/Tracer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
@@ -20,12 +26,12 @@ import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
-import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { soqlMiddleware } from './embeddedSoql';
 import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import * as requirements from './requirements';
+import { fireErrorSpan, fireSpan } from './services/fireSpan';
 import { getRuntime } from './services/runtime';
 import {
   retrieveEnableApexLSErrorToTelemetry,
@@ -44,7 +50,6 @@ import {
   retrieveGeneralPropAccessModifiers
 } from './settings';
 import { isApexLspTelemetryAllowed } from './telemetry/apexLspTelemetryAllowlist';
-import { getTelemetryService } from './telemetry/telemetry';
 
 const JDWP_DEBUG_PORT = 0;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
@@ -73,7 +78,6 @@ const startedInDebugMode = (): boolean => {
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 const createServer = async (extensionContext: vscode.ExtensionContext): Promise<Executable> => {
-  const telemetryService = getTelemetryService();
   try {
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
@@ -102,9 +106,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     if (jvmMaxHeap && typeof jvmMaxHeap === 'number') {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
-    telemetryService.sendEventData('apexLSPSettings', undefined, {
-      maxHeapSize: jvmMaxHeap ?? 0
-    });
+    fireSpan('apex.lsp.settings', { maxHeapSize: jvmMaxHeap ?? 0 });
 
     if (DEBUG) {
       args.push(
@@ -131,18 +133,47 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
     };
   } catch (err) {
     void vscode.window.showErrorMessage(err);
-    telemetryService.sendException(LSP_ERR, err.error);
+    fireErrorSpan(LSP_ERR, err);
     throw err;
   }
 };
 
 const protocol2CodeConverter = (value: string) => URI.parse(value);
 
+// One long-lived ROOT span per client lifetime. `apexLSPLog` is high-volume; per ADR-0002 we write
+// attrs onto this single span, not N top-level spans. Held in a Ref<Option> (Effect primitive for
+// shared mutable state) with its child scope so a restart can flush the prior span before the next.
+const clientSpanRef = Effect.runSync(Ref.make(Option.none<{ scope: Scope.CloseableScope; span: Tracer.Span }>()));
+
+// Runs on first activation AND every restart: close the prior child scope (flushes prior span) before
+// forking the next — exactly ONE live client span (ADR-0002). Forked from the extension scope so
+// closeExtensionScope() on deactivate transitively closes it.
+const rotateClientSpan = Effect.fn('apex.lsp.client.rotate')(function* () {
+  const prev = yield* Ref.get(clientSpanRef);
+  yield* Option.match(prev, {
+    onNone: () => Effect.void,
+    onSome: ({ scope }) => Scope.close(scope, Exit.void)
+  });
+  const child = yield* Scope.fork(yield* getExtensionScope(), ExecutionStrategy.sequential);
+  const span = yield* Effect.makeSpanScoped('apex.lsp.client', { root: true }).pipe(Scope.extend(child));
+  yield* Ref.set(clientSpanRef, Option.some({ scope: child, span }));
+});
+
+// Write allowlisted Jorje telemetry attrs onto the held client span (attrs last-write-wins); no new
+// span per event (the call site forks a short fiber per event, but they all share this one span).
+// onNone (no live client span) is a no-op.
+const annotateClientSpan = Effect.fn('apex.lsp.client.annotate')(function* (attributes: Record<string, unknown>) {
+  const current = yield* Ref.get(clientSpanRef);
+  yield* Option.match(current, {
+    onNone: () => Effect.void,
+    onSome: ({ span }) => Effect.sync(() => Object.entries(attributes).forEach(([k, v]) => span.attribute(k, v)))
+  });
+});
+
 export const createLanguageServer = async (
   extensionContext: vscode.ExtensionContext,
   outputChannel?: vscode.OutputChannel
 ): Promise<ApexLanguageClient> => {
-  const telemetryService = getTelemetryService();
   const server = await createServer(extensionContext);
   const client = new ApexLanguageClient(
     'apex',
@@ -151,9 +182,11 @@ export const createLanguageServer = async (
     await buildClientOptions(outputChannel)
   );
 
+  await getRuntime().runPromise(rotateClientSpan());
+
   client.onTelemetry((data: { properties?: Record<string, string>; measures?: Record<string, number> }) => {
     if (isApexLspTelemetryAllowed(data.properties)) {
-      telemetryService.sendEventData('apexLSPLog', data.properties, data.measures);
+      getRuntime().runFork(annotateClientSpan({ ...data.properties, ...data.measures }));
     }
   });
 
@@ -225,10 +258,17 @@ const buildClientOptions = async (outputChannel?: vscode.OutputChannel): Promise
   return options;
 };
 
-const getNamespaceFromProject = Effect.fn('apex.provideCodeLenses.getNamespaceFromProject')(function* () {
+const getNamespaces = Effect.fn('apex.provideCodeLenses.getNamespaces')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const project = yield* api.services.ProjectService.getSfProject();
-  return project.getSfProjectJson().getContents().namespace;
+  const [conn, project] = yield* Effect.all(
+    [api.services.ConnectionService.getConnection(), api.services.ProjectService.getSfProject()],
+    { concurrency: 'unbounded' }
+  );
+  return {
+    // convert null to undefined
+    nsFromOrg: conn.getAuthInfoFields().namespacePrefix ?? undefined,
+    nsFromProject: project.getSfProjectJson().getContents().namespace
+  };
 });
 
 const provideCodeLenses = async (
@@ -236,11 +276,8 @@ const provideCodeLenses = async (
   token: vscode.CancellationToken,
   next: ProvideCodeLensesSignature
 ) => {
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
-    // convert null to undefined
-    vscodeCoreExtension.exports.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
-    getRuntime().runPromise(getNamespaceFromProject()),
+  const [{ nsFromOrg, nsFromProject }, lenses] = await Promise.all([
+    getRuntime().runPromise(getNamespaces()),
     next(document, token)
   ]);
   return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));

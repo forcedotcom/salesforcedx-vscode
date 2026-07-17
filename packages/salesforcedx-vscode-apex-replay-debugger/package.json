@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.4.0",
+  "version": "67.5.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -43,14 +43,12 @@
     "@salesforce/core": "^8.32.2",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*",
     "salesforcedx-vscode-metadata": "*",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-log",
-    "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
@@ -78,7 +76,6 @@
         "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
-        "../salesforcedx-vscode-core:compile",
         "../salesforcedx-vscode-services:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-metadata:compile"
