@@ -8,7 +8,6 @@
 import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
-import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isError, isString } from 'effect/Predicate';
 
@@ -73,10 +72,7 @@ const isNoSuchColumnForField = (error: unknown, field: string): boolean => {
  * - `trySubjectId`: MetadataComponentId column absent; caller should retry with SubjectId.
  * - `error`: query failed for another reason; caller falls back to InstalledSubscriberPackage.
  */
-type MemberQueryOutcome =
-  | { readonly _tag: 'ok' }
-  | { readonly _tag: 'trySubjectId' }
-  | { readonly _tag: 'error'; readonly error: unknown };
+type MemberQueryOutcome = { readonly _tag: 'ok' } | { readonly _tag: 'trySubjectId' } | { readonly _tag: 'error' };
 
 const getComponentId = (m: Package2MemberRecord): string | undefined => m.MetadataComponentId ?? m.SubjectId;
 
@@ -280,7 +276,7 @@ export const resolvePackage2Members = async (
         if (isPackage2UnavailableError(error)) {
           packageResolutionUnavailableOrgs.add(cacheKey);
         }
-        return { _tag: 'error', error };
+        return { _tag: 'error' };
       }
     }
     return { _tag: 'ok' };
@@ -306,16 +302,12 @@ export const resolvePackage2Members = async (
   // Query by MetadataComponentId; retry by SubjectId when that column is absent (trySubjectId)
   // or when the primary query returned no rows. runMemberQuery already records unavailable orgs.
   const primary = await runMemberQuery('MetadataComponentId');
-  const primaryOutcome = await Match.value(primary).pipe(
-    Match.tag('trySubjectId', () => runMemberQuery('SubjectId', SUBJECT_ID_COLUMNS)),
-    Match.tag('ok', () =>
-      allMembers.length === 0
-        ? runMemberQuery('SubjectId', SUBJECT_ID_COLUMNS)
-        : Promise.resolve<MemberQueryOutcome>({ _tag: 'ok' })
-    ),
-    Match.tag('error', errorOutcome => Promise.resolve<MemberQueryOutcome>(errorOutcome)),
-    Match.exhaustive
-  );
+  const primaryOutcome: MemberQueryOutcome =
+    primary._tag === 'error'
+      ? primary
+      : primary._tag === 'trySubjectId' || allMembers.length === 0
+        ? await runMemberQuery('SubjectId', SUBJECT_ID_COLUMNS)
+        : primary;
   if (primaryOutcome._tag === 'error') {
     return cacheAndReturnFallback();
   }
