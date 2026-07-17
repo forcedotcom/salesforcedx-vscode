@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -32,10 +31,4 @@ export const getUserId = async (): Promise<string | undefined> => {
 
   const connection = await getConnection();
   return connection.getAuthInfoFields().userId ?? (await connection.identity()).user_id;
-};
-
-/** Get auth fields from the workspace context */
-export const getAuthFields = async (): Promise<AuthFields> => {
-  const connection = await getConnection();
-  return connection.getAuthInfoFields();
 };
