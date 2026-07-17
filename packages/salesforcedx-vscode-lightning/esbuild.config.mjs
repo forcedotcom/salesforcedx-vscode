@@ -7,13 +7,17 @@
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { build } from 'esbuild';
 import { cpSync, existsSync } from 'fs';
+import { writeFile } from 'fs/promises';
 
-await build({
+const nodeBuild = await build({
   ...nodeConfig,
   external: ['vscode'],
   entryPoints: ['./src/index.ts'],
-  outdir: 'dist'
+  outdir: 'dist',
+  metafile: true
 });
+
+await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
 
 // Bundle the Aura language server to ensure consistency between dev and packaged versions
 // This matches the pattern used by LWC, Visualforce and SOQL extensions

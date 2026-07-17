@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import { ApexTestDiscoveryService } from '../../../src/discoveryVfs/apexTestDiscoveryService';
 import { ApexTestingDiscoveryFsProviderTag } from '../../../src/discoveryVfs/apexTestDiscoveryFsProviderTag';
 import {
@@ -25,9 +26,9 @@ const decoder = new TextDecoder();
 const throwsWithCode = (fn: () => unknown, code: string) => expect(fn).toThrow(expect.objectContaining({ code }));
 
 const classOf = (name: string, methods: string[]): ToolingTestClass => ({
-  id: `id-${name}`,
+  id: Option.some(`id-${name}`),
   name,
-  namespacePrefix: '',
+  namespacePrefix: Option.none(),
   testMethods: methods.map(m => ({ name: m }))
 });
 

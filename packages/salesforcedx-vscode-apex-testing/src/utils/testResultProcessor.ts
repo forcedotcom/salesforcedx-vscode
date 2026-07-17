@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { HumanReporter, TestResult } from '@salesforce/apex-node';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { nls } from '../messages';
@@ -165,7 +166,9 @@ export const updateTestRunResults = (params: {
     } else {
       // Test result doesn't match any known test item
       // This can happen if the test was run as part of a suite but isn't in our tree
-      console.debug(`Test result for ${fullTestName} doesn't match any test item. Available items: ${testMap.size}`);
+      Effect.runSync(
+        Effect.logDebug(`Test result for ${fullTestName} doesn't match any test item`, { availableItems: testMap.size })
+      );
     }
   }
 

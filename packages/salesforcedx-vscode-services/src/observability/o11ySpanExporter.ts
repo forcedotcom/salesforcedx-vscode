@@ -9,10 +9,12 @@ import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
+import { getServicesRuntime, isServicesRuntimeReady } from '../servicesRuntime';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
@@ -29,8 +31,15 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
+// Run via shared runtime, not Effect.provide(ConnectionService.Default) (rebuilds per call).
+// Fails fast if runtime unpublished. MUST NOT retry: SDK layer built before setServicesRuntime runs,
+// blocking would deadlock activation. Early spans stay buffered; post-activation autobatch uploads them.
 const getConnection = () =>
-  Effect.runPromise(ConnectionService.getConnection().pipe(Effect.provide(ConnectionService.Default)));
+  Effect.runPromise(
+    getServicesRuntime().pipe(
+      Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(ConnectionService.getConnection())))
+    )
+  );
 
 /**
  * OpenTelemetry span exporter that sends spans to O11y using @salesforce/o11y-reporter.
@@ -108,7 +117,7 @@ export class O11ySpanExporter implements SpanExporter {
             }
 
             // PFT for new extensions
-            if (this.productFeatureId && typeof span.attributes['command'] === 'string') {
+            if (this.productFeatureId && isString(span.attributes['command'])) {
               this.o11yService.logEventWithSchema(
                 {
                   eventName: 'vscodeExtension.executed',
@@ -139,6 +148,9 @@ export class O11ySpanExporter implements SpanExporter {
   }
 
   public shutdown(): Promise<void> {
-    return this.o11yService.forceFlush();
+    // forceFlush drains buffer at read time; if runtime unpublished, drained spans lost.
+    // On web, this fires before setServicesRuntime runs. Skip flush until runtime ready;
+    // post-activation autobatch uploads buffered spans then.
+    return isServicesRuntimeReady() ? this.o11yService.forceFlush() : Promise.resolve();
   }
 }

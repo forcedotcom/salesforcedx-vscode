@@ -14,6 +14,7 @@ import { fs } from '@salesforce/core/fs';
 import type { MetadataType } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { isError, isString } from 'effect/Predicate';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
@@ -28,7 +29,7 @@ import { VirtualFsProviderError } from './virtualFsProviderError';
 
 /** Convert ENOENT errors to VS Code FileSystemError.FileNotFound */
 const handleFileSystemError = (error: unknown, uri: URI): never => {
-  if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+  if (isError(error) && 'code' in error && error.code === 'ENOENT') {
     throw vscode.FileSystemError.FileNotFound(uri);
   }
   throw error;
@@ -182,12 +183,12 @@ export class FsProvider implements vscode.FileSystemProvider {
     exclude?: vscode.GlobPattern | null,
     maxResults?: number
   ): Promise<URI[]> {
-    const pattern = typeof include === 'string' ? include : include.pattern;
+    const pattern = isString(include) ? include : include.pattern;
     const baseUri =
       (typeof include === 'object' && 'baseUri' in include ? include.baseUri : undefined) ??
       vscode.workspace.workspaceFolders?.[0]?.uri;
     if (!baseUri) return [];
-    const excludeArr = exclude == null ? undefined : typeof exclude === 'string' ? [exclude] : [exclude.pattern];
+    const excludeArr = exclude == null ? undefined : isString(exclude) ? [exclude] : [exclude.pattern];
     // Only runs on web (memfs); node:fs.glob returns AsyncIterator but we never hit that path
     // this is fixed in higher memfs versions, but there's other conflicts there (would break sfdx-core support for node 20)
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- web-only, memfs returns Promise<string[]>

@@ -5,21 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { buildAllServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
-import {
-  ChannelService,
-  SFDX_CORE_CONFIGURATION_NAME,
-  SfCommandlet,
-  TelemetryService
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
 import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
-import { SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
@@ -47,19 +41,13 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   // Initialize services layer first so getRuntime() can use it.
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
 
-  // Set shared Auth State
-  const sharedAuthState = SharedAuthState.getInstance();
-
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getUserId,
     getAuthFields,
-    SfCommandlet,
-    SfCommandletExecutor,
     WorkspaceContext,
     telemetryService,
     workspaceContextUtils,
-    sharedAuthState,
     services: {
       RegistryAccess,
       ChannelService,
@@ -170,10 +158,10 @@ const handleTheUnhandled = (): void => {
     // Attach a catch handler to the promise to handle the rejection
     promise.catch(error => {
       // Collect relevant data
-      if (error instanceof Error) {
+      if (isError(error)) {
         collectedData.message = error.message;
         collectedData.stackTrace = error.stack ?? 'No stack trace available';
-      } else if (typeof error === 'string') {
+      } else if (isString(error)) {
         collectedData.message = error;
       }
     });
@@ -205,12 +193,9 @@ export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getUserId: typeof getUserId;
   getAuthFields: typeof getAuthFields;
-  SfCommandlet: typeof SfCommandlet;
-  SfCommandletExecutor: typeof SfCommandletExecutor;
   WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
-  sharedAuthState: SharedAuthState;
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;

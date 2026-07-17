@@ -27,11 +27,6 @@ export const messages = {
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_target_dev_hub: 'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
 
-  error_access_token_expired: 'Access token expired or invalid.',
-  error_access_token_expired_detail:
-    'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.  See the output channel for more details on the auth error',
-  error_access_token_expired_login_button: 'Login',
-
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:

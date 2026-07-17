@@ -8,6 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 import { CancellationToken, CodeLens, ExtensionContext, languages, Range, TextDocument } from 'vscode';
@@ -58,8 +59,8 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
       })
     ];
   });
-  const itemsWithDebugLevel = allActiveItems.filter(
-    (item): item is typeof item & { debugLevelName: string } => typeof item.debugLevelName === 'string'
+  const itemsWithDebugLevel = allActiveItems.filter((item): item is typeof item & { debugLevelName: string } =>
+    isString(item.debugLevelName)
   );
   const changeDebugLevelLenses = itemsWithDebugLevel.flatMap(item => {
     const idIdx = text.indexOf(`"id": "${item.id}"`);

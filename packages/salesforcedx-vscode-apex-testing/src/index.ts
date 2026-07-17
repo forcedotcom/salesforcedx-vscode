@@ -17,6 +17,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { CodeCoverageHandler, watchActiveEditorForCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
+import { apexTestRun } from './commands/apexTestRun';
 import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
@@ -25,12 +26,9 @@ import {
   apexTestLastClassRunCodeAction,
   apexTestLastMethodRunCodeAction,
   apexTestMethodRunCodeAction,
-  apexTestMethodRunCodeActionDelegate,
-  apexTestRun,
-  apexTestSuiteAdd,
-  apexTestSuiteCreate,
-  apexTestSuiteRun
-} from './commands';
+  apexTestMethodRunCodeActionDelegate
+} from './commands/apexTestRunCodeAction';
+import { apexTestSuiteCreate, apexTestSuiteEdit, apexTestSuiteRun } from './commands/apexTestSuite';
 import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
 import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
@@ -94,8 +92,8 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   const registerCommand = api.services.registerCommandWithRuntime(getApexTestingRuntime());
   yield* Effect.all([
     registerCommand('sf.apex.test.run', apexTestRun),
-    registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd),
     registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
+    registerCommand('sf.apex.test.suite.edit', apexTestSuiteEdit),
     registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
     registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction),
     registerCommand('sf.apex.test.last.class.run', apexTestLastClassRunCodeAction),

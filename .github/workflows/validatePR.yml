@@ -42,3 +42,28 @@ jobs:
       - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - name: Validate GitHub Actions
         run: npm run check:actions
+  check-knip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          cache: npm
+      - uses: google/wireit@setup-github-actions-caching/v2
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Check knip
+        run: npm run check:knip
+  check-effect-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          cache: npm
+      - uses: google/wireit@setup-github-actions-caching/v2
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
+      - name: Check Effect LS diagnostics
+        run: npm run check:effect-diagnostics

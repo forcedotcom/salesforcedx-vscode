@@ -5,10 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type FlagParameter<T> = {
-  flag?: T;
-};
-
 export type ContinueResponse<T> = {
   type: 'CONTINUE';
   data: T;
@@ -22,33 +18,3 @@ export type CancelResponse = {
 export type ParametersGatherer<T> = {
   gather(): Promise<CancelResponse | ContinueResponse<T>>;
 };
-
-export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: ParametersGatherer<any>[];
-  constructor(...gatherers: ParametersGatherer<any>[]) {
-    this.gatherers = gatherers;
-  }
-  public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
-    const aggregatedData: any = {};
-    for (const gatherer of this.gatherers) {
-      const input = await gatherer.gather();
-      if (input.type === 'CONTINUE') {
-        Object.keys(input.data).map(key => (aggregatedData[key] = input.data[key]));
-      } else {
-        return {
-          type: 'CANCEL'
-        };
-      }
-    }
-    return {
-      type: 'CONTINUE',
-      data: aggregatedData
-    };
-  }
-}
-
-export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return Promise.resolve({ type: 'CONTINUE', data: {} });
-  }
-}

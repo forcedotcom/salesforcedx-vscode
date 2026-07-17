@@ -6,6 +6,7 @@
  */
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
+import { isError, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -13,9 +14,8 @@ import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
 import * as languageServer from '../languageServer';
 import { nls } from '../messages';
+import { fireSpan } from '../services/fireSpan';
 import { retrieveEnableSyncInitJobs } from '../settings';
-import { getTelemetryService } from '../telemetry/telemetry';
-import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
 
 export enum ClientStatus {
   Unavailable,
@@ -112,14 +112,6 @@ export class LanguageClientManager {
     return this.clientInstance ? this.clientInstance.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS) : [];
   }
 
-  public async getApexTests(): Promise<ApexTestMethod[]> {
-    return this.clientInstance
-      ? (await this.clientInstance.sendRequest<LSPApexTestMethod[]>('test/getTestMethods')).map(requestInfo =>
-          ApexLSPConverter.toApexTestMethod(requestInfo)
-        )
-      : [];
-  }
-
   public async getExceptionBreakpointInfo(): Promise<{}> {
     return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS) : {};
   }
@@ -145,8 +137,7 @@ export class LanguageClientManager {
     source: 'commandPalette' | 'statusBar',
     restartBehavior: string
   ): Promise<void> {
-    const telemetryService = getTelemetryService();
-    telemetryService.sendEventData('apexLSPRestart', {
+    fireSpan('apex.lsp.restart', {
       restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
       selectedOption: selectedOption.type,
       source,
@@ -234,7 +225,7 @@ export class LanguageClientManager {
       try {
         await alc.stop();
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = isError(error) ? error.message : String(error);
         vscode.window.showWarningMessage(
           `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
         );
@@ -260,7 +251,7 @@ export class LanguageClientManager {
             await this.createLanguageClient(extensionContext, statusBarInstance);
           } catch (error) {
             // Log any errors that occur during client creation
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorMessage = isError(error) ? error.message : String(error);
             console.error('Error creating language client:', errorMessage);
             vscode.window.showErrorMessage(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
           } finally {
@@ -298,7 +289,6 @@ export class LanguageClientManager {
     extensionContext: vscode.ExtensionContext,
     languageServerStatusBarItem: ApexLSPStatusBarItem
   ): Promise<void> {
-    const telemetryService = getTelemetryService();
     try {
       const langClientStartTime = globalThis.performance.now();
 
@@ -322,9 +312,7 @@ export class LanguageClientManager {
 
         await languageClient.start();
         const startTime = globalThis.performance.now() - langClientStartTime;
-        telemetryService.sendEventData('apexLSPStartup', undefined, {
-          activationTime: startTime
-        });
+        fireSpan('apex.lsp.startup', { activationTime: startTime });
         await this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem);
         extensionContext.subscriptions.push(this.getClientInstance()!);
       } else {
@@ -334,9 +322,9 @@ export class LanguageClientManager {
       }
     } catch (error) {
       let errorMessage = '';
-      if (typeof error === 'string') {
+      if (isString(error)) {
         errorMessage = error;
-      } else if (error instanceof Error) {
+      } else if (isError(error)) {
         errorMessage = error.message ?? nls.localize('unknown_error');
       } else {
         errorMessage = nls.localize('unknown_error');

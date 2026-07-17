@@ -283,6 +283,40 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 });
 ```
 
+## Testing
+
+Mock services via `Layer.succeed` and combine with `Layer.mergeAll`. For static accessors (e.g., `api.services.WorkspaceService.getWorkspaceInfo()`), wire both the provider and service:
+
+```typescript
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+
+// Mock both ExtensionProviderService and WorkspaceService
+const mockWorkspaceLayer = Layer.mergeAll(
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({
+      services: { WorkspaceService } // Accessor sees real class
+    } as unknown as SalesforceVSCodeServicesApi)
+  }),
+  Layer.succeed(
+    WorkspaceService,
+    new WorkspaceService({
+      getWorkspaceInfo: () => Effect.succeed({ path: '/mock', fsPath: '/mock', isEmpty: false, isVirtualFs: false, cwd: '/mock' }),
+      getWorkspaceInfoOrThrow: () => Effect.succeed(/* ... */)
+    } as unknown as WorkspaceService)
+  )
+);
+
+// Use in test
+const result = await Effect.runPromise(
+  myEffect().pipe(Effect.provide(mockWorkspaceLayer))
+);
+```
+
+For direct service mocking (no accessor), use `Layer.succeed(Service, mockImpl)` alone.
+
 ## Common Patterns
 
 - Start with `Layer.succeedContext(api.services.prebuiltServicesDependencies)` — don't add individual `*.Default` for services already there

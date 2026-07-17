@@ -4,27 +4,56 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
+  APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
   createApexClass,
   EDITOR_WITH_URI,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  NOTIFICATION_LIST_ITEM,
   openFileByName,
+  QUICK_INPUT_WIDGET,
+  removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
+  selectQuickInputOptionByTyping,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  waitForQuickInputFirstOption,
+  WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 
+import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+
+// Localized fragment of the base adapter's `heap_dump_error_wrap_up_text` (salesforcedx-apex-replay-debugger
+// i18n) — emitted to the Debug Console only when host↔adapter heapDumpResults wiring fails.
+const HEAP_DUMP_ERROR_TEXT = /Problems were encountered while retrieving heap dump information/;
+
+/** Continue debug session (dismiss hover, Escape, then F5). Repeats until session ends. */
+const continueDebugSession = async (page: Page, maxContinues = 3): Promise<void> => {
+  const toolbar = page.locator('.debug-toolbar');
+  for (let i = 0; i < maxContinues; i++) {
+    await toolbar.waitFor({ state: 'visible', timeout: 15_000 });
+    await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('F5');
+    const sessionEnded = await expect(toolbar)
+      .not.toBeVisible({ timeout: 30_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (sessionEnded) break;
+  }
+  await expect(toolbar).not.toBeVisible({ timeout: 45_000 });
+};
 
 test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ page }) => {
   test.setTimeout(600_000);
@@ -100,6 +129,89 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
       timeout: 60_000
     });
     await saveScreenshot(page, 'step.checkpoints-updated.png');
+  });
+
+  // The steps below restore the heap-dump replay flow dropped in the WDIO→Playwright port
+  // (old trailApexReplayDebugger.e2e.ts). They exercise the host-side overlay fetch + the
+  // host↔adapter `heapDumpResults` wiring + the multi-dump fetch fix (W-23355895).
+  await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
+    await removeAllDebugLevels(page);
+  });
+
+  await test.step('create trace flag for current user', async () => {
+    await executeCommandWithCommandPalette(
+      page,
+      apexLogNls['apexLog.command.traceFlagsCreateForCurrentUser'] as string
+    );
+    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ });
+    await expect(statusBar).toBeVisible({ timeout: 60_000 });
+  });
+
+  await test.step('exec anon that hits the checkpoint line so the org captures a heap dump', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Apex Log');
+    await clearOutputChannel(page);
+
+    await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.createAnonymousApexScript'] as string);
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
+    await page.keyboard.type('RunCheckpoint');
+    await page.keyboard.press('Enter');
+    // Name InputBox transitions to a directory QuickPick (2 options) — accept the first
+    await waitForQuickInputFirstOption(page);
+    await page.keyboard.press('Enter');
+
+    await page
+      .locator('.tab')
+      .filter({ hasText: /RunCheckpoint\.apex/ })
+      .waitFor({ state: 'visible', timeout: 15_000 });
+    await openFileByName(page, 'RunCheckpoint.apex');
+    const editorArea = page.locator('.editor-instance .view-lines').first();
+    await editorArea.click({ force: true });
+    await page.keyboard.press('Control+a');
+    await page.keyboard.type("new AccountService().createAccount('Acme', '123', 'ACME');");
+
+    await page.keyboard.press('F1');
+    await selectQuickInputOptionByTyping(page, apexLogNls['apexLog.command.executeDocument'] as string);
+
+    const successNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /executed successfully/i })
+      .first();
+    await expect(successNotification).toBeVisible({ timeout: 30_000 });
+    await successNotification.getByRole('button', { name: /Open Log/i }).click();
+    const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await saveScreenshot(page, 'step.checkpoint-exec-anon-done.png');
+  });
+
+  await test.step('launch replay against the heap-dump log and assert no heap_dump_error', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Replay Debugger');
+    await clearOutputChannel(page);
+
+    const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
+    await logTab.click({ force: true });
+    await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
+    // Replay pauses on entry first (debug toolbar appears), then continue through the heap-dump line.
+    await expect(page.locator('.debug-toolbar')).toBeVisible({ timeout: 30_000 });
+    await continueDebugSession(page);
+
+    // Regression guard: the Apex Replay Debugger output/Debug Console must NOT contain the
+    // heap-dump error wrap-up text. Its presence means the host fetch failed or the
+    // heapDumpResults never reached the adapter.
+    await expect(
+      page.locator(`${WORKBENCH} .repl .monaco-list-row`).filter({ hasText: HEAP_DUMP_ERROR_TEXT })
+    ).toHaveCount(0);
+    await saveScreenshot(page, 'step.checkpoint-replay-done.png');
+  });
+
+  await test.step('turn off trace flag', async () => {
+    await executeCommandWithCommandPalette(
+      page,
+      apexLogNls['apexLog.command.traceFlagsDeleteForCurrentUser'] as string
+    );
+    const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ });
+    await expect(statusBar).toBeVisible({ timeout: 30_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

@@ -8,6 +8,8 @@
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
+  clickModalDialogButton,
+  clickOrgPickerStatusBar,
   closeWelcomeTabs,
   createMinimalOrg,
   createThrowawayOrg,
@@ -16,6 +18,7 @@ import {
   execAsync,
   executeCommandWithCommandPalette,
   expectOrgPickerListsOrg,
+  expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_LIST_ROW,
@@ -29,10 +32,17 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
+import { nls } from '../../../src/messages';
 import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
 
 // `channel_name` from salesforcedx-vscode-org/src/messages/i18n.ts (orgDisplay writes its table here).
 const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
+
+// Second throwaway org for the default-logout step: set AS the workspace default, then logged out via
+// sf.org.logout.default. Distinct from THROWAWAY_ORG_ALIAS (consumed by the logout.all step) and never
+// MINIMAL_ORG_ALIAS. This exercises the "logged-out org is also the current default" path (the in-process
+// ref clear that clearOnLogout guards, W-23069609) — the logout.all step never sets its org as default.
+const DEFAULT_LOGOUT_ORG_ALIAS = 'logoutDefaultThrowawayOrg';
 
 // Exercises the three migrated org pickers (Effect + PromptService.considerUndefinedAsCancellation):
 //   - selectOrgForDisplay (single-pick)  -> sf.org.display.username
@@ -46,11 +56,13 @@ const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 test('org pickers: display, delete, logout pick + confirm + cancel flows', async ({ page }) => {
   test.setTimeout(180_000);
 
-  await test.step('setup scratch default org + throwaway logout org', async () => {
+  await test.step('setup scratch default org + throwaway logout orgs', async () => {
     const createResult = await createMinimalOrg();
-    // Dedicated throwaway org for the real-logout step; never MINIMAL_ORG_ALIAS (shared with siblings
+    // Dedicated throwaway org for the real logout.all step; never MINIMAL_ORG_ALIAS (shared with siblings
     // + relied on staying authed by the cancel steps). Authed on disk so the logout picker lists it.
     await createThrowawayOrg();
+    // Second throwaway for the logout.default step (set AS default, then logged out).
+    await createThrowawayOrg(DEFAULT_LOGOUT_ORG_ALIAS);
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
@@ -62,18 +74,27 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await verifyCommandExists(page, packageNls.org_login_web_authorize_org_text, 60_000);
   });
 
-  await test.step('DISPLAY: selectOrgForDisplay lists the org, pick it, assert output table', async () => {
+  await test.step('DISPLAY: selectOrgForDisplay lists the org, pick it, confirm modal, assert output table', async () => {
     await executeCommandWithCommandPalette(page, packageNls.org_display_username_text);
     // selectOrgForDisplay (single-pick) lists the seeded scratch org.
     await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
     await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
+    // sensitive-info modal now gates the table; confirm it (Continue) so the table is written.
+    await clickModalDialogButton(page, nls.localize('org_display_continue_label'), 10_000);
     // orgDisplay renders a table containing the org's Username row to the output channel.
     await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
     await waitForOutputChannelText(page, { expectedText: 'Username' });
-    // and the sensitive-info warning (ACCESS_WARNING) precedes the table — warning-path coverage.
-    await waitForOutputChannelText(page, {
-      expectedText: 'Warning: This command will expose sensitive information'
-    });
+  });
+
+  await test.step('DISPLAY cancel modal: Cancel on the sensitive-info modal maps to CANCEL (no error toast, no table)', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.org_display_username_text);
+    await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
+    await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
+    // The modal appears only after an org SOQL round-trip; wait for it, then click Cancel (a blind Esc
+    // races the modal render — if it lands before the modal appears, the modal lingers and blocks the
+    // next command palette). Cancel -> UserCancellationError -> CANCEL, no org info shown.
+    await clickModalDialogButton(page, 'Cancel', 30_000);
+    await expectNoErrorNotification(page);
   });
 
   await test.step('DISPLAY cancel: Esc on the picker maps to CANCEL (no error toast)', async () => {
@@ -132,7 +153,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await toggleMultiPickRow(page, THROWAWAY_ORG_ALIAS);
     await page.keyboard.press('Enter');
     // CONFIRM (not cancel): click the modal's confirm button so the logout proceeds.
-    await clickModalButton(page, 'Logout');
+    await clickModalDialogButton(page, 'Logout', 10_000);
     await expectNoErrorNotification(page);
 
     // Primary durable signal: poll the CLI until the throwaway org is no longer authorized.
@@ -151,14 +172,27 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await page.keyboard.press('Escape');
     await expect(page.locator(QUICK_INPUT_WIDGET)).toBeHidden({ timeout: 10_000 });
   });
-});
 
-/** Click a button (e.g. the confirm action) in a VS Code custom-style modal dialog. */
-const clickModalButton = async (page: import('@playwright/test').Page, label: string): Promise<void> => {
-  const button = page.locator('.monaco-dialog-box').getByRole('button', { name: label }).first();
-  await button.waitFor({ state: 'visible', timeout: 10_000 });
-  await button.click();
-};
+  // Real logout of the CURRENT DEFAULT org via sf.org.logout.default (W-23069609). Set the dedicated
+  // second throwaway AS the default first (so removeAuth unsets the current default — the path that
+  // must clear the in-process ref), confirm the scratch modal, then assert removal durably via the CLI.
+  // Sequenced last: it leaves the workspace with no default org. MINIMAL_ORG_ALIAS stays authed.
+  await test.step('LOGOUT DEFAULT real: confirm removes auth for the default org', async () => {
+    // Switch default from the fixture's MINIMAL org to the throwaway via the picker.
+    await clickOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
+    await expectOrgPickerListsOrg(page, DEFAULT_LOGOUT_ORG_ALIAS);
+    await selectOrgInPicker(page, DEFAULT_LOGOUT_ORG_ALIAS);
+    await expectOrgPickerStatusBar(page, DEFAULT_LOGOUT_ORG_ALIAS);
+
+    await executeCommandWithCommandPalette(page, packageNls.org_logout_default_text);
+    // Throwaway is a scratch org -> confirm the scratch modal (do NOT Escape) so removeAuth runs.
+    await clickModalDialogButton(page, 'Logout', 10_000);
+    await expectNoErrorNotification(page);
+
+    // Durable signal: poll the CLI until the default org is no longer authorized.
+    await expectOrgLoggedOut(DEFAULT_LOGOUT_ORG_ALIAS);
+  });
+});
 
 /** Poll the CLI until the alias is no longer authorized (durable, non-racy removal signal). */
 const expectOrgLoggedOut = async (alias: string, timeoutMs = 30_000): Promise<void> => {

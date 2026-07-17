@@ -7,6 +7,7 @@
 
 import type { ResolvedPackageInfo, ToolingTestClass } from '../testDiscovery/schemas';
 import * as Array from 'effect/Array';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } from '../constants';
@@ -34,15 +35,8 @@ type NamespacePackageStructure = Map<string, Map<string, ClassEntry[]>>;
  * Builds a map from Apex class ID to namespace prefix for the given test classes.
  * Used when resolving package membership (e.g. InstalledSubscriberPackage fallback in subscriber orgs).
  */
-export const buildClassIdToNamespace = (apexClasses: ToolingTestClass[]): Map<string, string> => {
-  const map = new Map<string, string>();
-  for (const cls of apexClasses) {
-    if (cls.id && typeof cls.id === 'string') {
-      map.set(cls.id, (cls.namespacePrefix ?? '').trim());
-    }
-  }
-  return map;
-};
+export const buildClassIdToNamespace = (apexClasses: ToolingTestClass[]): Map<string, Option.Option<string>> =>
+  new Map(apexClasses.flatMap(cls => (Option.isSome(cls.id) ? [[cls.id.value, cls.namespacePrefix] as const] : [])));
 
 /**
  * Groups test classes by namespace and package (2GP / 1GP / unpackaged).
@@ -83,10 +77,9 @@ export const buildNamespacePackageStructure = (
 
   for (const cls of apexClasses) {
     const fullClassName = getFullClassName(cls);
-    const namespaceLabel = (cls.namespacePrefix ?? '').trim();
-    const namespaceKey = namespaceLabel === '' ? LOCAL_NAMESPACE_KEY : namespaceLabel;
-    const pkgInfo = cls.id ? classIdToPackage.get(cls.id) : undefined;
-    const pkgKey = pkgInfo?.package2Id ?? (namespaceLabel !== '' ? '1gp' : UNPACKAGED_PACKAGE_KEY);
+    const namespaceKey = Option.match(cls.namespacePrefix, { onNone: () => LOCAL_NAMESPACE_KEY, onSome: ns => ns });
+    const pkgInfo = Option.match(cls.id, { onNone: () => undefined, onSome: id => classIdToPackage.get(id) });
+    const pkgKey = pkgInfo?.package2Id ?? (Option.isSome(cls.namespacePrefix) ? '1gp' : UNPACKAGED_PACKAGE_KEY);
     addToPackage(namespaceKey, pkgKey, fullClassName, Array.make(cls));
   }
 
@@ -135,6 +128,16 @@ export const isNonEmptyClassEntriesList = (list: ClassEntry[] | undefined): list
   list !== undefined && Array.isNonEmptyArray(list) && Array.isNonEmptyArray(list[0].entries);
 
 /**
+ * Resolves package info for an Option-wrapped class id against the id→package map.
+ * `none` id or missing map entry → `undefined`.
+ */
+export const resolvePackageInfoForClassId = (
+  id: Option.Option<string>,
+  classIdToPackage: Map<string, ResolvedPackageInfo>
+): ResolvedPackageInfo | undefined =>
+  Option.getOrUndefined(Option.flatMapNullable(id, classId => classIdToPackage.get(classId)));
+
+/**
  * Returns the display label and stable ID for a package node in the Test Explorer.
  * Handles unpackaged, 1GP (namespaced), and 2GP (including Unlocked suffix when applicable).
  * Requires classEntriesList to be non-empty with non-empty entries.
@@ -158,7 +161,7 @@ export const getPackageLabelAndId = (
     };
   }
   const firstClass = classEntriesList[0].entries[0];
-  const info = firstClass.id ? classIdToPackage.get(firstClass.id) : undefined;
+  const info = resolvePackageInfoForClassId(firstClass.id, classIdToPackage);
   const baseName = info?.packageName ?? pkgKey;
   const packageLabel =
     info?.containerOptions === 'Unlocked'
@@ -172,7 +175,7 @@ export const getPackageLabelAndId = (
 /**
  * Context required to create class and method TestItems. Passed to createClassAndMethodsFactory.
  */
-interface CreateClassAndMethodsContext {
+type CreateClassAndMethodsContext = {
   controller: vscode.TestController;
   classItems: Map<string, vscode.TestItem>;
   methodItems: Map<string, vscode.TestItem>;
@@ -180,7 +183,7 @@ interface CreateClassAndMethodsContext {
   orgKey: string;
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
-}
+};
 
 /**
  * Returns a function that creates a class TestItem and its method TestItems, and registers them in the given maps.

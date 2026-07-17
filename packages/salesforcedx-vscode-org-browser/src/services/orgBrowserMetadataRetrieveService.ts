@@ -8,6 +8,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -29,7 +30,7 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
     ignoreConflicts: true,
     progressLocation: options?.progressLocation
   });
-  if (typeof result === 'string') {
+  if (isString(result)) {
     return result;
   }
   const fileResponses = result.getFileResponses().filter(f => f.filePath);
