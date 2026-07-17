@@ -11,8 +11,15 @@ import { env, UIKind, version } from 'vscode';
 import { CommonProperties, InternalProperties } from './loggingProperties';
 
 export const getOrgIdentityProps = (orgIdentity?: OrgIdentity): Record<string, string> => {
-  const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = orgIdentity ?? {};
-  return orgId ? { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) } : {};
+  const { orgId, orgShape, devHubId, orgEdition } = orgIdentity ?? {};
+  return orgId
+    ? {
+        orgId,
+        ...(orgShape ? { orgShape } : {}),
+        ...(devHubId ? { devHubId } : {}),
+        ...(orgEdition ? { orgEdition } : {})
+      }
+    : {};
 };
 
 export const getCommonProperties = (extensionId: string, extensionVersion: string): CommonProperties => {
