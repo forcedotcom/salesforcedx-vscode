@@ -4,8 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
-import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -15,6 +16,7 @@ import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAV
 import * as languageServer from '../languageServer';
 import { nls } from '../messages';
 import { fireSpan } from '../services/fireSpan';
+import { getRuntime } from '../services/runtime';
 import { retrieveEnableSyncInitJobs } from '../settings';
 
 export enum ClientStatus {
@@ -232,7 +234,13 @@ export class LanguageClientManager {
       }
 
       if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
-        await this.removeApexDB();
+        try {
+          await this.removeApexDB();
+        } catch (error) {
+          // Swallow so a failed DB cleanup can never strand this.isRestarting = true.
+          const errorMessage = isError(error) ? error.message : String(error);
+          console.log(`Error, failed to remove apex db: ${errorMessage}`);
+        }
       }
 
       // Clear any existing timeout
@@ -268,21 +276,42 @@ export class LanguageClientManager {
   }
 
   private async removeApexDB(): Promise<void> {
-    if (hasRootWorkspace() && vscode.workspace.workspaceFolders) {
-      const wsrf = vscode.workspace.workspaceFolders[0].uri;
-      const toolsUri = URI.parse(wsrf.toString()).with({ path: `${wsrf.path}/.sfdx/tools` });
-      try {
-        await Promise.all(
-          (await vscode.workspace.fs.readDirectory(toolsUri))
-            .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
-            .map(([name]) => name)
-            .map(folder => URI.parse(toolsUri.toString()).with({ path: `${toolsUri.path}/${folder}` }))
-            .map(folderUri => vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true }))
+    await getRuntime().runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const info = yield* api.services.WorkspaceService.getWorkspaceInfo();
+        if (info.isEmpty) {
+          return;
+        }
+        const wsrf = info.uri;
+        const toolsUri = URI.parse(wsrf.toString()).with({ path: `${wsrf.path}/.sfdx/tools` });
+        yield* Effect.tryPromise(async () => {
+          await Promise.all(
+            (await vscode.workspace.fs.readDirectory(toolsUri))
+              .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
+              .map(([name]) => name)
+              .map(folder => URI.parse(toolsUri.toString()).with({ path: `${toolsUri.path}/${folder}` }))
+              .map(folderUri => vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true }))
+          );
+        }).pipe(
+          // Match the old swallow-and-continue: a failed fs delete never rejects removeApexDB.
+          Effect.catchAll(error =>
+            Effect.sync(() => {
+              console.log(`Error, failed to delete folder:${isError(error) ? error.message : String(error)}`);
+            })
+          )
         );
-      } catch (error) {
-        console.log(`Error, failed to delete folder:${error.message}`);
-      }
-    }
+      }).pipe(
+        // No services extension ⇒ skip DB cleanup, exactly like the old hasRootWorkspace() guard returning false.
+        Effect.catchTags({
+          ServicesExtensionNotFoundError: () => Effect.void,
+          InvalidServicesApiError: () => Effect.void
+        }),
+        // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in jest)
+        // needn't supply ExtensionProviderService.
+        Effect.provideService(ExtensionProviderService, { getServicesApi })
+      )
+    );
   }
 
   public async createLanguageClient(
