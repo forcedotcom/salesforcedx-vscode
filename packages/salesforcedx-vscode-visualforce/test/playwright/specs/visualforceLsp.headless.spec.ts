@@ -34,6 +34,9 @@ const seedAndOpenPage = async (page: Page, name: string): Promise<void> => {
   await executeExplorerContextMenuCommand(page, /force-app/, /New File\.\.\./);
 
   // Inline input box in the Explorer tree: type the filename and confirm.
+  // Wait for the inline input to render + focus before typing — otherwise keystrokes land on the
+  // still-focused tree and the filename is dropped, so no `.page` editor opens (30s waitFor timeout).
+  await page.locator('.explorer-folders-view input.input').waitFor({ state: 'visible', timeout: 10_000 });
   await page.keyboard.type(`${name}.page`);
   await page.keyboard.press('Enter');
 
