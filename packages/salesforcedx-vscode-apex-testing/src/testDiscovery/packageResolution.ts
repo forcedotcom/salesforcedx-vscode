@@ -63,13 +63,16 @@ const isNoSuchColumnForField = (error: unknown, field: string): boolean => {
   return lower.includes('no such column') && lower.includes(field.toLowerCase());
 };
 
-/** Thrown when MetadataComponentId is not available so caller should try SubjectId. */
-class TrySubjectIdError extends Error {
-  constructor() {
-    super('TrySubjectId');
-    this.name = 'TrySubjectIdError';
-  }
-}
+/**
+ * Outcome of a Package2Member batch query.
+ * - `ok`: query succeeded (members pushed into the shared accumulator).
+ * - `trySubjectId`: MetadataComponentId column absent; caller should retry with SubjectId.
+ * - `error`: query failed for another reason; caller falls back to InstalledSubscriberPackage.
+ */
+type MemberQueryOutcome =
+  | { readonly _tag: 'ok' }
+  | { readonly _tag: 'trySubjectId' }
+  | { readonly _tag: 'error'; readonly error: unknown };
 
 const getComponentId = (m: Package2MemberRecord): string | undefined => m.MetadataComponentId ?? m.SubjectId;
 
@@ -250,7 +253,10 @@ export const resolvePackage2Members = async (
 
   const allMembers: Package2MemberRecord[] = [];
 
-  const runMemberQuery = async (field: 'MetadataComponentId' | 'SubjectId', columns?: string): Promise<void> => {
+  const runMemberQuery = async (
+    field: 'MetadataComponentId' | 'SubjectId',
+    columns?: string
+  ): Promise<MemberQueryOutcome> => {
     const selectList = columns ?? `Id, ${field}, Package2Id`;
     for (let i = 0; i < validIds.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
       const batch = validIds.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
@@ -265,14 +271,15 @@ export const resolvePackage2Members = async (
         }
       } catch (error) {
         if (field === 'MetadataComponentId' && isNoSuchColumnForField(error, 'MetadataComponentId')) {
-          throw new TrySubjectIdError();
+          return { _tag: 'trySubjectId' };
         }
         if (isPackage2UnavailableError(error)) {
           packageResolutionUnavailableOrgs.add(cacheKey);
         }
-        throw error;
+        return { _tag: 'error', error };
       }
     }
+    return { _tag: 'ok' };
   };
 
   let subjectIdOnly = false;
@@ -283,37 +290,33 @@ export const resolvePackage2Members = async (
     return new Map();
   };
 
-  try {
-    await runMemberQuery('MetadataComponentId');
-    if (allMembers.length === 0) {
-      await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
+  const cacheAndReturnFallback = async (): Promise<Map<string, ResolvedPackageInfo>> => {
+    const fallback = await tryInstalledSubscriberFallback();
+    const cache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
+    for (const [id, info] of fallback) {
+      cache.set(id, info);
     }
-  } catch (error) {
-    if (error instanceof TrySubjectIdError) {
-      try {
-        // Skyline-style columns: SubjectId, SubjectKeyPrefix, Package2Id (see sfCli.ts)
-        await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
-        subjectIdOnly = true;
-      } catch (e2) {
-        if (isPackage2UnavailableError(e2)) {
-          packageResolutionUnavailableOrgs.add(cacheKey);
-        }
-        const fallback = await tryInstalledSubscriberFallback();
-        const cache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
-        for (const [id, info] of fallback) {
-          cache.set(id, info);
-        }
-        packageResolutionCache.set(cacheKey, cache);
-        return fallback;
+    packageResolutionCache.set(cacheKey, cache);
+    return fallback;
+  };
+
+  const primary = await runMemberQuery('MetadataComponentId');
+  if (primary._tag === 'trySubjectId') {
+    // Skyline-style columns: SubjectId, SubjectKeyPrefix, Package2Id (see sfCli.ts)
+    const retry = await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
+    if (retry._tag === 'error') {
+      if (isPackage2UnavailableError(retry.error)) {
+        packageResolutionUnavailableOrgs.add(cacheKey);
       }
-    } else {
-      const fallback = await tryInstalledSubscriberFallback();
-      const cache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
-      for (const [id, info] of fallback) {
-        cache.set(id, info);
-      }
-      packageResolutionCache.set(cacheKey, cache);
-      return fallback;
+      return cacheAndReturnFallback();
+    }
+    subjectIdOnly = true;
+  } else if (primary._tag === 'error') {
+    return cacheAndReturnFallback();
+  } else if (allMembers.length === 0) {
+    const subjectResult = await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
+    if (subjectResult._tag === 'error') {
+      return cacheAndReturnFallback();
     }
   }
 

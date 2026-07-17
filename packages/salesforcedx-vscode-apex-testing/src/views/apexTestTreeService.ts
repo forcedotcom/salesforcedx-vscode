@@ -57,9 +57,9 @@ class DiscoveryError extends Schema.TaggedError<DiscoveryError>()('DiscoveryErro
 }) {}
 
 /**
- * Maps the tooling-query error re-thrown out of resolvePackage2Members (the call boundary inside
- * populateTestItemsFromOrg). NOT a remap of the package-private TrySubjectIdError, which is caught
- * inside resolvePackage2Members and never crosses the boundary.
+ * Maps a tooling-query rejection surfaced from resolvePackage2Members (the call boundary inside
+ * populateTestItemsFromOrg). resolvePackage2Members handles the "try SubjectId" fallback internally
+ * via a discriminated return, so that control-flow signal never crosses the boundary.
  */
 class PackageResolutionError extends Schema.TaggedError<PackageResolutionError>()('PackageResolutionError', {
   message: Schema.String
