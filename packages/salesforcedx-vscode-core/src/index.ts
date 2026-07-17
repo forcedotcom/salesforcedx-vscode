@@ -46,7 +46,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     channelService,
     getUserId,
     SfCommandletExecutor,
-    WorkspaceContext,
     telemetryService,
     workspaceContextUtils,
     services: {
@@ -194,7 +193,6 @@ export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getUserId: typeof getUserId;
   SfCommandletExecutor: typeof SfCommandletExecutor;
-  WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
   services: {
