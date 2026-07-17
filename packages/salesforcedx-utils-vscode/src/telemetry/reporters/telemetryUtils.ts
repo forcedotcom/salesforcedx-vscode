@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { OrgIdentity } from './telemetryReporterConfig';
 import * as os from 'node:os';
 import { env, UIKind, version } from 'vscode';
 import { CommonProperties, InternalProperties } from './loggingProperties';
-import type { OrgIdentity } from './telemetryReporterConfig';
 
 export const getOrgIdentityProps = (orgIdentity?: OrgIdentity): Record<string, string> => {
   const { orgId = '', orgShape = '', devHubId = '', orgEdition = '' } = orgIdentity ?? {};
