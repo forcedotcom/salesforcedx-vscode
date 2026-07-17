@@ -14,7 +14,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
-import { SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
@@ -45,7 +44,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getUserId,
-    SfCommandletExecutor,
     telemetryService,
     workspaceContextUtils,
     services: {
@@ -192,7 +190,6 @@ const handleTheUnhandled = (): void => {
 export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getUserId: typeof getUserId;
-  SfCommandletExecutor: typeof SfCommandletExecutor;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
   services: {
