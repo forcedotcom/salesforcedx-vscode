@@ -132,18 +132,23 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
   });
 
   await test.step('dump o11y spans + org-identity attributes', async () => {
+    // The default-org ref that stamps org-identity is populated asynchronously (maybeUpdateDefaultOrgRef
+    // runs in a forkDaemon after the first connection), and only core's SDK ever connects to the org —
+    // lightning's command span never carries orgId. So wait for the orgId-bearing root span (a core span
+    // like workspaceOrgShape.getOrgShape) to flush, not merely for any span.
     const rows = await waitFor(
       () => readAllSpanRows(),
-      r => r.length > 0,
-      'no o11y spans flushed yet'
+      r => r.some(s => s.attributes?.orgId !== undefined),
+      'no orgId-enriched o11y span flushed yet'
     );
 
     const spanNames = [...new Set(rows.map(s => s.name))].toSorted();
     console.log('=== O11Y SPAN NAMES THIS SESSION ===');
     console.log(JSON.stringify(spanNames, null, 2));
 
-    // The org-identity attributes are stamped on every root span by spanTransformProcessor. Pull them
-    // off whichever span carries them (the command span if present, else any enriched root span).
+    // The org-identity attributes are stamped on every root span by spanTransformProcessor once the org
+    // ref is populated. Pull them off the span that actually carries orgId (pre-auth root spans — e.g.
+    // the activation span — only ever have webUserId/cliId/telemetryTag).
     const orgAttrKeys = [
       'orgId',
       'devHubOrgId',
@@ -155,7 +160,7 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
       'cliId',
       'webUserId'
     ];
-    const enriched = rows.find(s => orgAttrKeys.some(k => s.attributes?.[k] !== undefined));
+    const enriched = rows.find(s => s.attributes?.orgId !== undefined);
     const orgAttrs: Record<string, unknown> = Object.fromEntries(
       orgAttrKeys.map(k => [k, enriched?.attributes?.[k]] as const).filter(([, v]) => v !== undefined)
     );
