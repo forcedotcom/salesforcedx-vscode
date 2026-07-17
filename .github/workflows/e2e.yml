@@ -114,6 +114,13 @@ jobs:
     with:
       vscode_version: ${{ inputs.vscodeVersion }}
 
+  playwright-apex-debugger:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
+    uses: ./.github/workflows/apexDebuggerE2E.yml
+    secrets: inherit
+    with:
+      vscode_version: ${{ inputs.vscodeVersion }}
+
   playwright-visualforce:
     if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     uses: ./.github/workflows/visualforceE2E.yml
