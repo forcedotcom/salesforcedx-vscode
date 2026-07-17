@@ -8,10 +8,14 @@
 import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isError, isString } from 'effect/Predicate';
 
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
+
+/** Skyline-style Package2Member columns when querying by SubjectId (see sfCli.ts). */
+const SUBJECT_ID_COLUMNS = 'Id, Package2Id, SubjectId, SubjectKeyPrefix';
 
 const packageResolutionCache: Map<string, Map<string, ResolvedPackageInfo>> = new Map();
 
@@ -282,7 +286,6 @@ export const resolvePackage2Members = async (
     return { _tag: 'ok' };
   };
 
-  let subjectIdOnly = false;
   const tryInstalledSubscriberFallback = async (): Promise<Map<string, ResolvedPackageInfo>> => {
     if (classIdToNamespace?.size) {
       return resolveFromInstalledSubscriberPackages(connection, classIdToNamespace);
@@ -300,25 +303,24 @@ export const resolvePackage2Members = async (
     return fallback;
   };
 
+  // Query by MetadataComponentId; retry by SubjectId when that column is absent (trySubjectId)
+  // or when the primary query returned no rows. runMemberQuery already records unavailable orgs.
   const primary = await runMemberQuery('MetadataComponentId');
-  if (primary._tag === 'trySubjectId') {
-    // Skyline-style columns: SubjectId, SubjectKeyPrefix, Package2Id (see sfCli.ts)
-    const retry = await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
-    if (retry._tag === 'error') {
-      if (isPackage2UnavailableError(retry.error)) {
-        packageResolutionUnavailableOrgs.add(cacheKey);
-      }
-      return cacheAndReturnFallback();
-    }
-    subjectIdOnly = true;
-  } else if (primary._tag === 'error') {
+  const primaryOutcome = await Match.value(primary).pipe(
+    Match.tag('trySubjectId', () => runMemberQuery('SubjectId', SUBJECT_ID_COLUMNS)),
+    Match.tag('ok', () =>
+      allMembers.length === 0
+        ? runMemberQuery('SubjectId', SUBJECT_ID_COLUMNS)
+        : Promise.resolve<MemberQueryOutcome>({ _tag: 'ok' })
+    ),
+    Match.tag('error', errorOutcome => Promise.resolve<MemberQueryOutcome>(errorOutcome)),
+    Match.exhaustive
+  );
+  if (primaryOutcome._tag === 'error') {
     return cacheAndReturnFallback();
-  } else if (allMembers.length === 0) {
-    const subjectResult = await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
-    if (subjectResult._tag === 'error') {
-      return cacheAndReturnFallback();
-    }
   }
+  // Org has SubjectId but not MetadataComponentId when the primary query asked to retry.
+  const subjectIdOnly = primary._tag === 'trySubjectId';
 
   const result = new Map<string, ResolvedPackageInfo>();
   const existingCache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
