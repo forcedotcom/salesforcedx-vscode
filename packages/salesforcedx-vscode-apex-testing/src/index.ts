@@ -17,6 +17,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { CodeCoverageHandler, watchActiveEditorForCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
+import { apexTestRun } from './commands/apexTestRun';
 import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
@@ -25,12 +26,9 @@ import {
   apexTestLastClassRunCodeAction,
   apexTestLastMethodRunCodeAction,
   apexTestMethodRunCodeAction,
-  apexTestMethodRunCodeActionDelegate,
-  apexTestRun,
-  apexTestSuiteCreate,
-  apexTestSuiteEdit,
-  apexTestSuiteRun
-} from './commands';
+  apexTestMethodRunCodeActionDelegate
+} from './commands/apexTestRunCodeAction';
+import { apexTestSuiteCreate, apexTestSuiteEdit, apexTestSuiteRun } from './commands/apexTestSuite';
 import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
 import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
 import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
