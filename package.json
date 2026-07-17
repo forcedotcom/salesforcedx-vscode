@@ -145,6 +145,11 @@
     "vscode:package": "wireit",
     "vscode:package:modern": "wireit",
     "vscode:package:legacy": "wireit",
+    "vscode:package:prerelease": "wireit",
+    "vscode:package:modern:prerelease": "wireit",
+    "vscode:package:legacy:prerelease": "wireit",
+    "package:packages": "npm run vscode:package",
+    "package:packages:prerelease": "npm run vscode:package:prerelease",
     "run:web": "wireit",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
@@ -291,6 +296,15 @@
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy"
       ]
     },
+    "vscode:package:legacy:prerelease": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode-core:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-lwc:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-lightning:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy:prerelease"
+      ]
+    },
     "vscode:package:modern": {
       "dependencies": [
         "./packages/salesforcedx-vscode:vscode:package",
@@ -307,6 +321,22 @@
         "./packages/salesforcedx-vscode-metadata:vscode:package"
       ]
     },
+    "vscode:package:modern:prerelease": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-expanded:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-log:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-testing:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-visualforce:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-soql:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-org:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-services:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-org-browser:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-metadata:vscode:package:prerelease"
+      ]
+    },
     "vscode:package": {
       "command": "npm run vscode:package:legacy",
       "env": {
@@ -314,6 +344,15 @@
       },
       "dependencies": [
         "vscode:package:modern"
+      ]
+    },
+    "vscode:package:prerelease": {
+      "command": "npm run vscode:package:legacy:prerelease",
+      "env": {
+        "WIREIT_PARALLEL": "1"
+      },
+      "dependencies": [
+        "vscode:package:modern:prerelease"
       ]
     },
     "run:web": {

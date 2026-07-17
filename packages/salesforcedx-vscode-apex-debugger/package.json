@@ -59,7 +59,8 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "vscode:package:legacy:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -161,6 +162,15 @@
       "dependencies": [
         "vscode:bundle"
       ]
+    },
+    "vscode:package:legacy:prerelease": {
+      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "env": {
+        "VSCE_PRE_RELEASE": "true"
+      }
     }
   },
   "activationEvents": [

@@ -1,12 +1,12 @@
 # Nightly Prerelease Builds
 
-Automated nightly builds for VS Code extensions using shared CI infrastructure from `salesforcecli/github-workflows`.
+Automated nightly VS Code extension builds via `salesforcecli/github-workflows` shared CI.
 
 ## Usage
 
-### Automatic Nightly Builds
+### Automatic
 
-Runs daily at 4 AM UTC (scheduled) - publishes all 16 extensions as prereleases.
+Daily at 4 AM UTC: publishes all 16 extensions as prereleases.
 
 ### Manual Trigger
 
@@ -23,22 +23,24 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Architecture
 
-The `nightly.yml` workflow delegates to a shared reusable workflow:
-- **Shared workflow**: `salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main`
-- **Scripts**: Downloaded at runtime from github-workflows (not stored locally)
-- **Composite actions**: Referenced from github-workflows (check-ci-status, calculate-artifact-name, publish-vsix)
+`nightly.yml` delegates to shared reusable workflow:
+- **Workflow**: `salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main` (testing: `@ms/shared-ci-actions`)
+- **Scripts**: Downloaded at runtime (not stored locally)
+- **Actions**: check-ci-status, calculate-artifact-name, publish-vsix
+
+**TEMP**: Shared workflow ref temporarily `@ms/shared-ci-actions` for testing; reverts to `@main` post-testing.
 
 ## Configuration
 
-Required GitHub secrets (configured in repo settings):
-- `IDEE_GH_TOKEN` - GitHub token for version bumps/releases
-- `VSCE_PERSONAL_ACCESS_TOKEN` - VS Code Marketplace publishing
-- `IDEE_OVSX_PAT` - Open VSX Registry publishing
+Required secrets (repo settings):
+- `IDEE_GH_TOKEN` — GitHub token for version bumps/releases
+- `VSCE_PERSONAL_ACCESS_TOKEN` — VS Code Marketplace
+- `IDEE_OVSX_PAT` — Open VSX Registry
 
 ## Implementation Details
 
-For architecture and implementation details, see:
-- [github-workflows repo](https://github.com/salesforcecli/github-workflows)
-- [apex-language-support scripts README](https://github.com/forcedotcom/apex-language-support/tree/main/.github/scripts)
+See:
+- [github-workflows](https://github.com/salesforcecli/github-workflows)
+- [apex-language-support scripts](https://github.com/forcedotcom/apex-language-support/tree/main/.github/scripts)
 
-The salesforcedx-vscode repo is a **consumer** of the shared infrastructure - it calls the reusable workflow and doesn't maintain scripts locally.
+Repo is a **consumer** of shared infrastructure — calls reusable workflow, scripts maintained externally.

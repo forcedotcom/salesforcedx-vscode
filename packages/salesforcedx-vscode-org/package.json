@@ -57,7 +57,8 @@
     "test": "wireit",
     "test:desktop": "wireit",
     "check:circular-deps": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "vscode:package:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -190,6 +191,23 @@
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
     }
   },
   "activationEvents": [

@@ -62,7 +62,8 @@
     "vscode:package:legacy": "wireit",
     "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:package:legacy:prerelease": "wireit"
   },
   "serverPath": [
     "dist",
@@ -205,6 +206,15 @@
       "dependencies": [
         "vscode:bundle"
       ]
+    },
+    "vscode:package:legacy:prerelease": {
+      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "env": {
+        "VSCE_PRE_RELEASE": "true"
+      }
     }
   },
   "contributes": {
