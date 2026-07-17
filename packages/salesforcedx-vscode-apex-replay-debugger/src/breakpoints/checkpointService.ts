@@ -21,6 +21,9 @@ import { ActionScriptType, CHECKPOINT, FIELD_INTEGRITY_EXCEPTION, MAX_ALLOWED_CH
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
+import { CommandKey, getProgressLocation } from '../utils/notificationMode';
+
+const COMMAND: CommandKey = 'Update Checkpoints in Org';
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -562,7 +565,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
           writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
           await vscode.window.withProgress(
             {
-              location: vscode.ProgressLocation.Notification,
+              location: getProgressLocation(COMMAND),
               title: localizedProgressMessage,
               cancellable: false
             },

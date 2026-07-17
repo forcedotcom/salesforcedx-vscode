@@ -14,5 +14,14 @@
   "sf_toggle_checkpoint": "SFDX: Toggle Checkpoint",
   "run_tests_and_debug": "Debug Tests",
   "run_single_test_and_debug": "Debug Single Test",
-  "debug_test_success": "Debug Test(s) successfully ran"
+  "apexReplayDebugger.configuration.title": "Salesforce Apex Replay Debugger",
+  "extension_level_notifications_description": "Notification style for all Apex Replay Debugger commands. Overrides the global salesforcedx-vscode-services.notifications setting. Individual commands can be further overridden in salesforcedx-vscode-apex-replay-debugger.commandLevelNotifications.",
+  "command_level_notifications_description": "Notification style for each Apex Replay Debugger command. Overrides the global salesforcedx-vscode-services.notifications and extension-level salesforcedx-vscode-apex-replay-debugger.extensionLevelNotifications settings.",
+  "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
+  "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
+  "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
+  "notifications_apex_test_class_description": "Notification style when debugging an Apex test class (applies to both 'SFDX: Launch Apex Replay Debugger with Selected File' on a .cls file and the 'Debug Tests' codelens).",
+  "notifications_anonymous_apex_description": "Notification style when debugging Anonymous Apex (applies to 'SFDX: Launch Apex Replay Debugger with Selected File' on a .apex file, the 'Debug' codelens, and 'SFDX: Debug Anonymous Apex with Editor's Selected Text').",
+  "notifications_update_checkpoints_description": "Notification style for checkpoint upload operations (progress only; no success notification). Applies to both the 'SFDX: Update Checkpoints in Org' command and the checkpoint upload step when debugging Apex tests."
 }
