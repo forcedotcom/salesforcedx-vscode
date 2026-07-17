@@ -803,7 +803,6 @@ export default [
     files: [
       'packages/salesforcedx-apex-debugger/**/*.ts',
       'packages/salesforcedx-apex-replay-debugger/**/*.ts',
-      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-org/**/*.ts',
       'packages/salesforcedx-vscode-core/**/*.ts'
     ],
