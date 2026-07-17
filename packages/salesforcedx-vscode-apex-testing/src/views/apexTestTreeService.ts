@@ -424,7 +424,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
     /**
      * Build the org test tree (Namespace → Package → Class → Method) from Tooling API classes.
-     * The resolvePackage2Members boundary maps its re-thrown tooling-query error to PackageResolutionError.
+     * The resolvePackage2Members boundary maps any rejection to PackageResolutionError.
      * Yields cooperatively every BATCH_SIZE classes (Effect.yieldNow) so a large org tree doesn't block.
      */
     const populateTestItemsFromOrg = Effect.fn('ApexTestTreeService.populateTestItemsFromOrg')(function* (
@@ -886,9 +886,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const connection = yield* api.services.ConnectionService.getConnection();
       const orgInfo = yield* getDefaultOrgInfo();
       const classIds = Option.match(cls.id, { onNone: () => [], onSome: id => [id] });
-      const classIdToPackage = yield* Effect.promise(() =>
-        resolvePackage2Members(connection, classIds, buildClassIdToNamespace([cls]), orgInfo)
-      );
+      const classIdToPackage = yield* Effect.tryPromise({
+        try: () => resolvePackage2Members(connection, classIds, buildClassIdToNamespace([cls]), orgInfo),
+        catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
+      });
 
       const [currentClassItems, currentMethodItems, currentClassToParent] = yield* Effect.all([
         Ref.get(classItems),
@@ -1120,9 +1121,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           yield* clearAllSuiteChildren();
         }
       }).pipe(
-        // Broad by design: the inner pipeline's error channel is a plain `Error` (discoverTests +
-        // resolvePackage2Members re-throw untagged), so there is no tagged union to switch on. Incremental
-        // update is a non-fatal optimization — any failure logs and leaves the existing tree valid.
+        // Broad by design: the inner pipeline mixes error types (discoverTests fails with a plain `Error`,
+        // addClassToTree with PackageResolutionError), and incremental update is a non-fatal optimization —
+        // any failure logs and leaves the existing tree valid, so there's no need to switch per tag.
         Effect.catchAll(error =>
           Effect.logWarning('Incremental test-tree update failed (non-fatal)', {
             message: toUserFriendlyApexTestError(error)
