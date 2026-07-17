@@ -45,6 +45,8 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 **Desktop-only tests** (`.headless.spec.ts` file naming or `createDesktopTest` fixture) may poll fs directly for durable success signals (e.g., `waitForEsrFile` checks on-disk artifacts) instead of flaky UI toast assertions.
 
+**Desktop diagnostic tests (inspecting telemetry):** When testing telemetry output, create custom fixtures with `additionalExtensionDirs: ['salesforcedx-vscode-core']` + `userSettings: { 'telemetry.telemetryLevel': 'all', '…localTelemetryLogging': 'true' }` + real scratch org. Polls on-disk telemetry artifacts (O11y spans + AppInsights-shaped events) for integration testing. Example: `packages/salesforcedx-vscode-lightning/test/playwright/fixtures/telemetryFixtures.ts`.
+
 ## Web headless (`createHeadlessServer`)
 
 - Virtual `folderPath` mount: Node `fs` does not see project files; use `folderUri` (`file://…`) or `.vscode/vscode-extension-test-disk-root.txt` (disk root) when services must resolve `SfProject` — see JSDoc on `packages/playwright-vscode-ext/src/web/createHeadlessServer.ts`
