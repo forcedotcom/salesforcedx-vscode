@@ -5,8 +5,6 @@
 'use strict';
 
 import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import * as path from 'node:path';
-import * as url from 'node:url';
 import {
   BrowserMessageReader,
   BrowserMessageWriter,
@@ -42,7 +40,7 @@ import {
 } from 'vscode-languageserver-protocol';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic, DocumentLink, SymbolInformation } from 'vscode-languageserver-types';
-import { URI } from 'vscode-uri';
+import { resolveReference } from './documentLinks';
 import { format } from './modes/formatting';
 import { getLanguageModes, LanguageModes, Settings } from './modes/languageModes';
 
@@ -338,16 +336,7 @@ connection.onDocumentRangeFormatting(async formatParams => {
 connection.onDocumentLinks(documentLinkParam => {
   const document = documents.get(documentLinkParam.textDocument.uri);
   const documentContext: DocumentContext = {
-    resolveReference: (ref, base) => {
-      if (base) {
-        // eslint-disable-next-line no-param-reassign
-        ref = url.resolve(base, ref);
-      }
-      if (workspacePath && ref.at(0) === '/') {
-        return URI.file(path.join(workspacePath, ref)).toString();
-      }
-      return url.resolve(document.uri, ref);
-    }
+    resolveReference: (ref, base) => resolveReference(workspacePath, document.uri, ref, base)
   };
   const links: DocumentLink[] = [];
   languageModes.getAllModesInDocument(document).forEach(m => {
