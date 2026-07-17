@@ -95,6 +95,7 @@
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
+        "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
       "output": [
