@@ -58,7 +58,7 @@ if (!salesforceApexExtension) {
 }
 
 const registerCommands = async (extensionContext: vscode.ExtensionContext): Promise<vscode.Disposable> => {
-  const dialogStartingPathUri = await getDialogStartingPath(extensionContext);
+  const dialogStartingPathUri = await getRuntime().runPromise(getDialogStartingPath(extensionContext));
   const promptForLogCmd = vscode.commands.registerCommand('extension.replay-debugger.getLogFileName', async () => {
     const fileUris: URI[] | undefined = await vscode.window.showOpenDialog({
       canSelectFiles: true,

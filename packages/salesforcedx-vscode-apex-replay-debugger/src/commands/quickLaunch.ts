@@ -14,7 +14,7 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -49,7 +49,8 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   // W-18453221
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
-  if (workspaceUtils.hasRootWorkspace()) {
+  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  if (!isEmpty) {
     yield* Effect.promise(() =>
       testService.writeResultFiles(
         result,
