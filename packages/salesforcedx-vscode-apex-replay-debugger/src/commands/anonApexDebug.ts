@@ -5,13 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import {
-  hasRootWorkspace,
-  projectPaths,
-  createDirectory,
-  readFile,
-  writeFile
-} from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths, createDirectory, readFile, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import { format } from 'node:util';
@@ -57,8 +51,10 @@ type AnonApexContext =
   | { kind: 'code'; apexCode: string; selectionRange?: vscode.Range; documentUri: URI }
   | { kind: 'file'; filePath: string; documentUri: URI };
 
-const getAnonApexContext = (): AnonApexContext | undefined => {
-  if (!hasRootWorkspace()) return undefined;
+const getAnonApexContext = Effect.fn('ApexReplayDebugger.getAnonApexContext')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  if (isEmpty) return undefined;
   const editor = vscode.window.activeTextEditor;
   if (!editor) return undefined;
   const document = editor.document;
@@ -70,13 +66,17 @@ const getAnonApexContext = (): AnonApexContext | undefined => {
         ? new vscode.Range(editor.selection.start, editor.selection.end)
         : undefined,
       documentUri: URI.parse(document.uri.toString())
-    };
+    } satisfies AnonApexContext;
   }
-  return { kind: 'file', filePath: document.uri.fsPath, documentUri: URI.file(document.uri.fsPath) };
-};
+  return {
+    kind: 'file',
+    filePath: document.uri.fsPath,
+    documentUri: URI.file(document.uri.fsPath)
+  } satisfies AnonApexContext;
+});
 
 const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug')(function* () {
-  const ctx = getAnonApexContext();
+  const ctx = yield* getAnonApexContext();
   if (!ctx) return false;
 
   const code = ctx.kind === 'code' ? ctx.apexCode : yield* Effect.promise(() => readFile(ctx.filePath));
