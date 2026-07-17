@@ -48,6 +48,9 @@ export const SETTINGS_SEARCH_INPUT = [
 /** VS Code context menu container */
 export const CONTEXT_MENU = '.monaco-menu';
 
+/** Inline filename input rendered in the Explorer tree by "New File..."/"New Folder..." */
+export const EXPLORER_INLINE_INPUT = '.explorer-folders-view input.input';
+
 /**
  * Code lens interactive element — desktop (Electron) renders as `<a>` inside
  * `.codelens-decoration`; web (Chromium) renders as `<button>` directly.
