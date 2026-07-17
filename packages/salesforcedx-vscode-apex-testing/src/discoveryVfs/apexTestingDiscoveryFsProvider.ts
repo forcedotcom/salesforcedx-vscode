@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// vscode FileSystemProvider contract requires synchronous FileSystemError throws
+/* eslint-disable functional/no-throw-statements */
+
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
