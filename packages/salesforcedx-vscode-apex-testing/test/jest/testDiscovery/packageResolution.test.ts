@@ -70,33 +70,33 @@ describe('packageResolution', () => {
       expect(mockToolingQuery).not.toHaveBeenCalled();
     });
 
-    it('should return empty map for class IDs with no Package2Member', async () => {
-      mockToolingQuery
-        .mockResolvedValueOnce({ records: [] })
-        .mockResolvedValueOnce({ records: [] })
-        .mockResolvedValueOnce({ records: [] });
+    it('should query Package2Member by SubjectId and select SubscriberPackageId (not MetadataComponentId/Package2Id)', async () => {
+      mockToolingQuery.mockResolvedValueOnce({ records: [] }).mockResolvedValueOnce({ records: [] });
       const result = await resolvePackage2Members(mockConnection as Connection, [
         '01p000000000001AAA',
         '01p000000000002AAA'
       ]);
       expect(result.size).toBe(0);
-      expect(mockToolingQuery).toHaveBeenCalledTimes(3);
-      expect(mockToolingQuery.mock.calls[0][0]).toContain('MetadataComponentId');
-      expect(mockToolingQuery.mock.calls[1][0]).toContain('SubjectId');
-      expect(mockToolingQuery.mock.calls[2][0]).toContain('Package2');
+      const memberQuery = mockToolingQuery.mock.calls[0][0] as string;
+      expect(memberQuery).toContain('FROM Package2Member');
+      expect(memberQuery).toContain('WHERE SubjectId IN');
+      expect(memberQuery).toContain('SubscriberPackageId');
+      expect(memberQuery).not.toContain('MetadataComponentId');
+      expect(memberQuery).not.toContain('Package2Id');
     });
 
-    it('should resolve 2GP package info when Package2Member and Package2 exist', async () => {
+    it('should resolve 2GP package info via SubscriberPackageId join', async () => {
       mockToolingQuery
         .mockResolvedValueOnce({
-          records: [{ Id: 'm1', MetadataComponentId: '01p000000000001AAA', Package2Id: '0Ho000000000001AAA' }]
+          records: [{ Id: 'm1', SubjectId: '01p000000000001AAA', SubscriberPackageId: '033000000000001AAA' }]
         })
         .mockResolvedValueOnce({
           records: [
             {
               Id: '0Ho000000000001AAA',
               Name: 'My Package',
-              NamespacePrefix: 'myns'
+              NamespacePrefix: 'myns',
+              SubscriberPackageId: '033000000000001AAA'
             }
           ]
         });
@@ -108,6 +108,7 @@ describe('packageResolution', () => {
       expect(info?.packageName).toBe('My Package');
       expect(info?.namespacePrefix).toBe('myns');
       expect(mockToolingQuery).toHaveBeenCalledTimes(2);
+      expect(mockToolingQuery.mock.calls[1][0]).toContain('WHERE SubscriberPackageId IN');
     });
 
     it('should return empty map and not throw when Package2Member query fails', async () => {
@@ -119,7 +120,7 @@ describe('packageResolution', () => {
     it('should return empty map and not throw when Package2 query fails', async () => {
       mockToolingQuery
         .mockResolvedValueOnce({
-          records: [{ Id: 'm1', MetadataComponentId: '01p000000000001AAA', Package2Id: '0Ho000000000001AAA' }]
+          records: [{ Id: 'm1', SubjectId: '01p000000000001AAA', SubscriberPackageId: '033000000000001AAA' }]
         })
         .mockRejectedValueOnce(new Error('Package2 not found'));
       const result = await resolvePackage2Members(mockConnection as Connection, ['01p000000000001AAA']);
@@ -127,10 +128,7 @@ describe('packageResolution', () => {
     });
 
     it('should skip empty or invalid class IDs', async () => {
-      mockToolingQuery
-        .mockResolvedValueOnce({ records: [] })
-        .mockResolvedValueOnce({ records: [] })
-        .mockResolvedValueOnce({ records: [] });
+      mockToolingQuery.mockResolvedValueOnce({ records: [] }).mockResolvedValueOnce({ records: [] });
       const result = await resolvePackage2Members(mockConnection as Connection, ['', '01p000000000001AAA']);
       expect(result.size).toBe(0);
       expect(mockToolingQuery).toHaveBeenCalledWith(expect.stringContaining('01p000000000001AAA'));
@@ -140,10 +138,10 @@ describe('packageResolution', () => {
     it('should cache results for same org', async () => {
       mockToolingQuery
         .mockResolvedValueOnce({
-          records: [{ Id: 'm1', MetadataComponentId: '01pAAA', Package2Id: '0HoAAA' }]
+          records: [{ Id: 'm1', SubjectId: '01pAAA', SubscriberPackageId: '033AAA' }]
         })
         .mockResolvedValueOnce({
-          records: [{ Id: '0HoAAA', Name: 'Pkg', NamespacePrefix: null }]
+          records: [{ Id: '0HoAAA', Name: 'Pkg', NamespacePrefix: null, SubscriberPackageId: '033AAA' }]
         });
       const result1 = await resolvePackage2Members(mockConnection as Connection, ['01pAAA']);
       expect(result1.size).toBe(1);
@@ -153,41 +151,25 @@ describe('packageResolution', () => {
       expect(mockToolingQuery).toHaveBeenCalledTimes(2);
     });
 
-    it('should try SubjectId when MetadataComponentId fails with no such column (e.g. subscriber org)', async () => {
-      const classId = '01p000000000001AAA';
-      const noSuchColumnError = new Error(
-        "No such column 'MetadataComponentId' on entity 'Package2Member'. If you are attempting to use a custom field, be sure to append the '__c' after the custom field name."
-      );
-      mockToolingQuery
-        .mockRejectedValueOnce(noSuchColumnError)
-        .mockResolvedValueOnce({
-          records: [{ Id: 'm1', SubjectId: classId, Package2Id: '0Ho000000000001AAA' }]
-        })
-        .mockResolvedValueOnce({
-          records: [{ Id: '0Ho000000000001AAA', Name: 'My Unlocked Package', NamespacePrefix: null }]
-        });
-      const result = await resolvePackage2Members(mockConnection as Connection, [classId]);
-      expect(result.size).toBe(1);
-      const info = result.get(classId);
-      expect(info).toBeDefined();
-      expect(info?.package2Id).toBe('0Ho000000000001AAA');
-      expect(info?.packageName).toBe('My Unlocked Package');
-      expect(mockToolingQuery).toHaveBeenCalledTimes(3);
-      expect(mockToolingQuery.mock.calls[0][0]).toContain('MetadataComponentId');
-      expect(mockToolingQuery.mock.calls[1][0]).toContain('SubjectId');
-      expect(mockToolingQuery.mock.calls[2][0]).toContain('Package2');
-    });
-
-    it('should resolve package via fallback when direct query returns no rows (e.g. unlocked in subscriber org)', async () => {
+    it('should resolve package via fallback when direct query returns no rows', async () => {
       const classId = '01p000000000003AAA';
       mockToolingQuery
+        // direct member-by-SubjectId query: no rows
         .mockResolvedValueOnce({ records: [] })
-        .mockResolvedValueOnce({ records: [] })
+        // fallback: Package2 list
         .mockResolvedValueOnce({
-          records: [{ Id: '0Ho000000000002AAA', Name: 'Unlocked Package', NamespacePrefix: null }]
+          records: [
+            {
+              Id: '0Ho000000000002AAA',
+              Name: 'Unlocked Package',
+              NamespacePrefix: null,
+              SubscriberPackageId: '033000000000002AAA'
+            }
+          ]
         })
+        // fallback: Package2Member for that package by SubscriberPackageId
         .mockResolvedValueOnce({
-          records: [{ MetadataComponentId: classId, Package2Id: '0Ho000000000002AAA' }]
+          records: [{ Id: 'm1', SubjectId: classId, SubscriberPackageId: '033000000000002AAA' }]
         });
       const result = await resolvePackage2Members(mockConnection as Connection, [classId]);
       expect(result.size).toBe(1);
@@ -196,21 +178,17 @@ describe('packageResolution', () => {
       expect(info?.package2Id).toBe('0Ho000000000002AAA');
       expect(info?.packageName).toBe('Unlocked Package');
       expect(info?.namespacePrefix).toBeNull();
-      expect(mockToolingQuery).toHaveBeenCalledTimes(4);
-      expect(mockToolingQuery.mock.calls[0][0]).toContain('MetadataComponentId');
-      expect(mockToolingQuery.mock.calls[1][0]).toContain('SubjectId');
-      expect(mockToolingQuery.mock.calls[2][0]).toContain('Package2');
-      expect(mockToolingQuery.mock.calls[3][0]).toContain('Package2Member');
-      expect(mockToolingQuery.mock.calls[3][0]).toContain('Package2Id');
+      expect(mockToolingQuery).toHaveBeenCalledTimes(3);
+      expect(mockToolingQuery.mock.calls[1][0]).toContain('FROM Package2');
+      expect(mockToolingQuery.mock.calls[2][0]).toContain('FROM Package2Member');
+      expect(mockToolingQuery.mock.calls[2][0]).toContain('WHERE SubscriberPackageId =');
     });
 
     it('should resolve from InstalledSubscriberPackage when Package2Member fails and classIdToNamespace is provided', async () => {
       const classId = '01p000000000001AAA';
-      const noSuchColumnMetadata = new Error("No such column 'MetadataComponentId' on entity 'Package2Member'.");
-      const noSuchColumnPackage2Id = new Error("No such column 'Package2Id' on entity 'Package2Member'.");
       mockToolingQuery
-        .mockRejectedValueOnce(noSuchColumnMetadata)
-        .mockRejectedValueOnce(noSuchColumnPackage2Id)
+        // member-by-SubjectId query errors -> fall back to InstalledSubscriberPackage
+        .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
         .mockResolvedValueOnce({
           records: [
             {
@@ -238,15 +216,14 @@ describe('packageResolution', () => {
       expect(info?.packageName).toBe('Trigger Actions Framework');
       expect(info?.namespacePrefix).toBe('taf');
       expect(info?.package2Id).toBe('033xx000000001AAA');
-      expect(mockToolingQuery).toHaveBeenCalledTimes(3);
-      expect(mockToolingQuery.mock.calls[2][0]).toContain('InstalledSubscriberPackage');
+      expect(mockToolingQuery).toHaveBeenCalledTimes(2);
+      expect(mockToolingQuery.mock.calls[1][0]).toContain('InstalledSubscriberPackage');
     });
 
     it('should resolve no-namespace classes to single no-namespace package (Skyline resolveNoNamespaceInstalledItem)', async () => {
       const classId = '01p000000000001AAA';
       mockToolingQuery
-        .mockRejectedValueOnce(new Error("No such column 'MetadataComponentId' on entity 'Package2Member'."))
-        .mockRejectedValueOnce(new Error("No such column 'Package2Id' on entity 'Package2Member'."))
+        .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
         .mockResolvedValueOnce({
           records: [
             {
@@ -269,18 +246,17 @@ describe('packageResolution', () => {
       expect(info).toBeDefined();
       expect(info?.packageName).toBe('Trigger Actions Framework');
       expect(info?.containerOptions).toBe('Unlocked');
-      expect(mockToolingQuery).toHaveBeenCalledTimes(4);
-      expect(mockToolingQuery.mock.calls[2][0]).toContain('InstalledSubscriberPackage');
-      expect(mockToolingQuery.mock.calls[3][0]).toContain('ApexClass');
-      expect(mockToolingQuery.mock.calls[3][0]).toContain('ManageableState');
+      expect(mockToolingQuery).toHaveBeenCalledTimes(3);
+      expect(mockToolingQuery.mock.calls[1][0]).toContain('InstalledSubscriberPackage');
+      expect(mockToolingQuery.mock.calls[2][0]).toContain('ApexClass');
+      expect(mockToolingQuery.mock.calls[2][0]).toContain('ManageableState');
     });
 
     it('should only resolve no-namespace classes with installed ManageableState (null/empty excluded)', async () => {
       const installedId = '01p000000000001AAA';
       const unpackagedId = '01p000000000002AAA';
       mockToolingQuery
-        .mockRejectedValueOnce(new Error("No such column 'MetadataComponentId' on entity 'Package2Member'."))
-        .mockRejectedValueOnce(new Error("No such column 'Package2Id' on entity 'Package2Member'."))
+        .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
         .mockResolvedValueOnce({
           records: [
             {
@@ -315,11 +291,8 @@ describe('packageResolution', () => {
 
     it('when org is unavailable but cache has entries for requested ids, returns cached resolution', async () => {
       const classId = '01p000000000001AAA';
-      const noSuchColumnMetadata = new Error("No such column 'MetadataComponentId' on entity 'Package2Member'.");
-      const noSuchColumnPackage2Id = new Error("No such column 'Package2Id' on entity 'Package2Member'.");
       mockToolingQuery
-        .mockRejectedValueOnce(noSuchColumnMetadata)
-        .mockRejectedValueOnce(noSuchColumnPackage2Id)
+        .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
         .mockResolvedValueOnce({
           records: [
             {
@@ -342,7 +315,7 @@ describe('packageResolution', () => {
       const second = await resolvePackage2Members(mockConnection as Connection, [classId], classIdToNamespace);
       expect(second.size).toBe(1);
       expect(second.get(classId)?.packageName).toBe('Trigger Actions Framework');
-      expect(mockToolingQuery).toHaveBeenCalledTimes(4);
+      expect(mockToolingQuery).toHaveBeenCalledTimes(3);
     });
   });
 });

@@ -13,8 +13,13 @@ import { isError, isString } from 'effect/Predicate';
 
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
 
-/** Skyline-style Package2Member columns when querying by SubjectId (see sfCli.ts). */
-const SUBJECT_ID_COLUMNS = 'Id, Package2Id, SubjectId, SubjectKeyPrefix';
+/**
+ * Package2Member documented columns. Package2Member has no MetadataComponentId or Package2Id
+ * (undocumented; INVALID_FIELD on every org tested). SubjectId is the packaged component's Id;
+ * SubscriberPackageId (033) is the join key to Package2 (Package2.SubscriberPackageId is Unique).
+ * See https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_package2member.htm
+ */
+const MEMBER_COLUMNS = 'Id, SubjectId, SubjectKeyPrefix, SubscriberPackageId';
 
 const packageResolutionCache: Map<string, Map<string, ResolvedPackageInfo>> = new Map();
 
@@ -59,22 +64,14 @@ const isPackage2UnavailableError = (error: unknown): boolean => {
   );
 };
 
-/** True when the error is "no such column" for the given field (e.g. subscriber orgs where Package2Member has SubjectId but not MetadataComponentId). */
-const isNoSuchColumnForField = (error: unknown, field: string): boolean => {
-  const msg = isError(error) ? error.message : String(error);
-  const lower = msg.toLowerCase();
-  return lower.includes('no such column') && lower.includes(field.toLowerCase());
-};
-
 /**
  * Outcome of a Package2Member batch query.
  * - `ok`: query succeeded (members pushed into the shared accumulator).
- * - `trySubjectId`: MetadataComponentId column absent; caller should retry with SubjectId.
- * - `error`: query failed for another reason; caller falls back to InstalledSubscriberPackage.
+ * - `error`: query failed; caller falls back to InstalledSubscriberPackage.
  */
-type MemberQueryOutcome = { readonly _tag: 'ok' } | { readonly _tag: 'trySubjectId' } | { readonly _tag: 'error' };
+type MemberQueryOutcome = { readonly _tag: 'ok' } | { readonly _tag: 'error' };
 
-const getComponentId = (m: Package2MemberRecord): string | undefined => m.MetadataComponentId ?? m.SubjectId;
+const getComponentId = (m: Package2MemberRecord): string | undefined => m.SubjectId;
 
 /**
  * Resolves package info from InstalledSubscriberPackage (subscriber orgs).
@@ -253,15 +250,11 @@ export const resolvePackage2Members = async (
 
   const allMembers: Package2MemberRecord[] = [];
 
-  const runMemberQuery = async (
-    field: 'MetadataComponentId' | 'SubjectId',
-    columns?: string
-  ): Promise<MemberQueryOutcome> => {
-    const selectList = columns ?? `Id, ${field}, Package2Id`;
+  const runMemberQuery = async (): Promise<MemberQueryOutcome> => {
     for (let i = 0; i < validIds.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
       const batch = validIds.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
       const inClause = batch.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
-      const memberQuery = `SELECT ${selectList} FROM Package2Member WHERE ${field} IN (${inClause})`;
+      const memberQuery = `SELECT ${MEMBER_COLUMNS} FROM Package2Member WHERE SubjectId IN (${inClause})`;
 
       try {
         const memberResult = await connection.tooling.query<Package2MemberRecord>(memberQuery);
@@ -270,9 +263,6 @@ export const resolvePackage2Members = async (
           allMembers.push(...memberResult.records!);
         }
       } catch (error) {
-        if (field === 'MetadataComponentId' && isNoSuchColumnForField(error, 'MetadataComponentId')) {
-          return { _tag: 'trySubjectId' };
-        }
         if (isPackage2UnavailableError(error)) {
           packageResolutionUnavailableOrgs.add(cacheKey);
         }
@@ -299,43 +289,36 @@ export const resolvePackage2Members = async (
     return fallback;
   };
 
-  // Query by MetadataComponentId; retry by SubjectId when that column is absent (trySubjectId)
-  // or when the primary query returned no rows. runMemberQuery already records unavailable orgs.
-  const primary = await runMemberQuery('MetadataComponentId');
-  const primaryOutcome: MemberQueryOutcome =
-    primary._tag === 'error'
-      ? primary
-      : primary._tag === 'trySubjectId' || allMembers.length === 0
-        ? await runMemberQuery('SubjectId', SUBJECT_ID_COLUMNS)
-        : primary;
+  // Query Package2Member by SubjectId (the ApexClass Id). runMemberQuery records unavailable orgs.
+  const primaryOutcome = await runMemberQuery();
   if (primaryOutcome._tag === 'error') {
     return cacheAndReturnFallback();
   }
-  // Org has SubjectId but not MetadataComponentId when the primary query asked to retry.
-  const subjectIdOnly = primary._tag === 'trySubjectId';
 
   const result = new Map<string, ResolvedPackageInfo>();
   const existingCache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
 
   if (allMembers.length > 0) {
-    const package2Ids = [
-      ...new Set(allMembers.map(m => m.Package2Id).filter((id): id is string => isString(id) && id.length > 0))
+    // Package2Member -> Package2 joins on SubscriberPackageId (033); Package2 has no relationship
+    // to Package2Member, so resolve owning packages in a second query keyed by SubscriberPackageId.
+    const subscriberPackageIds = [
+      ...new Set(allMembers.map(m => m.SubscriberPackageId).filter((id): id is string => isString(id) && id.length > 0))
     ];
-    const package2ById = new Map<string, Package2>();
+    const package2BySubscriberId = new Map<string, Package2>();
 
-    for (let i = 0; i < package2Ids.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
-      const batch = package2Ids.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
+    for (let i = 0; i < subscriberPackageIds.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
+      const batch = subscriberPackageIds.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
       const inClause = batch.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
       // ContainerOptions indicates Unlocked vs Managed (see Skyline sfCli.ts)
-      const packageQuery = `SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2 WHERE Id IN (${inClause})`;
+      const packageQuery = `SELECT Id, Name, NamespacePrefix, ContainerOptions, SubscriberPackageId FROM Package2 WHERE SubscriberPackageId IN (${inClause})`;
 
       try {
         const packageResult = await connection.tooling.query<Package2>(packageQuery);
         const count = packageResult.records?.length ?? 0;
         if (count > 0) {
           for (const rec of packageResult.records!) {
-            if (rec.Id) {
-              package2ById.set(rec.Id, rec);
+            if (rec.SubscriberPackageId) {
+              package2BySubscriberId.set(rec.SubscriberPackageId, rec);
             }
           }
         }
@@ -346,8 +329,8 @@ export const resolvePackage2Members = async (
     }
 
     for (const member of allMembers) {
-      const pkgId = member.Package2Id;
-      const pkg = pkgId ? package2ById.get(pkgId) : undefined;
+      const subscriberPackageId = member.SubscriberPackageId;
+      const pkg = subscriberPackageId ? package2BySubscriberId.get(subscriberPackageId) : undefined;
       const componentId = getComponentId(member);
       if (!pkg || !componentId || pkg.Id == null || pkg.Name == null) {
         continue;
@@ -368,13 +351,7 @@ export const resolvePackage2Members = async (
   // Package2Member per package), query all packages and their members.
   const unresolvedIds = validIds.filter(id => !result.has(id));
   if (unresolvedIds.length > 0) {
-    const fallbackResult = await resolvePackage2MembersByPackage(
-      connection,
-      unresolvedIds,
-      existingCache,
-      subjectIdOnly,
-      cacheKey
-    );
+    const fallbackResult = await resolvePackage2MembersByPackage(connection, unresolvedIds, existingCache, cacheKey);
     if (fallbackResult && fallbackResult.size > 0) {
       for (const [id, info] of fallbackResult) {
         result.set(id, info);
@@ -388,10 +365,9 @@ export const resolvePackage2Members = async (
 
 /**
  * Fallback: resolve package membership by querying all Package2 in the org, then
- * Package2Member per package. Used when direct MetadataComponentId IN (...) returns
- * no rows (e.g. subscriber org with installed unlocked packages).
- * When subjectIdOnly is true (e.g. org has SubjectId but not MetadataComponentId),
- * queries only SubjectId and Package2Id from Package2Member.
+ * Package2Member per package (keyed by SubscriberPackageId). Used when the direct
+ * SubjectId IN (...) query returns no rows (e.g. org where members are only
+ * discoverable by enumerating packages first).
  * Merges into existingCache and returns a result map for the requested apexClassIds only.
  * Returns null if the Package2 list query fails.
  */
@@ -399,12 +375,11 @@ const resolvePackage2MembersByPackage = async (
   connection: Connection,
   apexClassIds: string[],
   existingCache: Map<string, ResolvedPackageInfo>,
-  subjectIdOnly: boolean,
   cacheKey: string
 ): Promise<Map<string, ResolvedPackageInfo> | null> => {
   let package2List: Package2[] = [];
   try {
-    const packageQuery = 'SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2';
+    const packageQuery = 'SELECT Id, Name, NamespacePrefix, ContainerOptions, SubscriberPackageId FROM Package2';
     const packageResult = await connection.tooling.query<Package2>(packageQuery);
     const count = packageResult.records?.length ?? 0;
     if (count > 0) {
@@ -424,15 +399,12 @@ const resolvePackage2MembersByPackage = async (
   const idSet = new Set(apexClassIds);
   const result = new Map<string, ResolvedPackageInfo>();
 
-  const memberSelect = subjectIdOnly
-    ? 'SubjectId, SubjectKeyPrefix, Package2Id'
-    : 'MetadataComponentId, SubjectId, Package2Id';
   for (const pkg of package2List) {
-    if (pkg.Id == null || pkg.Name == null) {
+    if (pkg.Id == null || pkg.Name == null || pkg.SubscriberPackageId == null) {
       continue;
     }
     try {
-      const memberQuery = `SELECT ${memberSelect} FROM Package2Member WHERE Package2Id = '${pkg.Id.replaceAll("'", "''")}'`;
+      const memberQuery = `SELECT ${MEMBER_COLUMNS} FROM Package2Member WHERE SubscriberPackageId = '${pkg.SubscriberPackageId.replaceAll("'", "''")}'`;
       const memberResult = await connection.tooling.query<Package2MemberRecord>(memberQuery);
       if (memberResult.records?.length) {
         const info: ResolvedPackageInfo = {
