@@ -95,12 +95,10 @@ Commands registered this way get automatic spans, which go to all the configured
 
 Desktop E2E tests can inspect both telemetry pipelines on-disk to verify event emission + attributes:
 
-- **O11y spans** (Effect pipeline) → `~/.sf/vscode-spans/*.jsonl` (JSONL format, auto-enabled)
-- **AppInsights events** (TelemetryFile) → `{workspace}/salesforcedx-vscode-core-telemetry.json` (comma-separated JSON objects)
+- **O11y spans** (Effect pipeline) → `~/.sf/vscode-spans/*.jsonl`
+- **AppInsights events** (TelemetryFile) → `{workspace}/salesforcedx-vscode-core-telemetry.json`
 
-Enable both: `createDesktopTest({ additionalExtensionDirs: ['salesforcedx-vscode-core'], userSettings: { 'telemetry.telemetryLevel': 'all', 'salesforcedx-vscode-core.advanced.localTelemetryLogging': 'true' } })` + real org (e.g. MINIMAL_ORG_ALIAS). Run command, reload window to flush TelemetryFile buffer, then assert on-disk artifacts for presence + expected attributes.
-
-See `.claude/skills/playwright-e2e/SKILL.md#telemetry-inspection-diagnostic-tests` and `packages/salesforcedx-vscode-lightning/test/playwright/specs/telemetryOutput.desktop.spec.ts` for example.
+Fixture setup + read/assert recipe: [playwright-e2e SKILL — Telemetry inspection](../.claude/skills/playwright-e2e/SKILL.md#telemetry-inspection-diagnostic-tests). Example: `packages/salesforcedx-vscode-lightning/test/playwright/specs/telemetryOutput.desktop.spec.ts`.
 
 ## See Also
 
@@ -108,4 +106,4 @@ See `.claude/skills/playwright-e2e/SKILL.md#telemetry-inspection-diagnostic-test
 - [Observability README](../packages/salesforcedx-vscode-services/src/observability/README.md) - OpenTelemetry with Effect documentation
 - [Extensions - Logging](./architecture/Extensions.md#logging) - console and outputChannel logging options
 - [contributing/telemetry.md](../contributing/telemetry.md) - telemetry implementation details for this repo
-- [Playwright E2E testing](../docs/Testing.md#end-to-end-testing) - E2E test guidelines
+- [Playwright E2E testing](./Testing.md#end-to-end-testing) - E2E test guidelines

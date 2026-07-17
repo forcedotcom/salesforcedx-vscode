@@ -7,17 +7,35 @@
 
 /*
  * DIAGNOSTIC spec: run a core-backed command from a package that depends on the CORE extension
- * (lightning), then dump what each telemetry pipeline emits.
+ * (lightning), then dump what the telemetry pipeline emits and — when local capture servers are
+ * running — verify the actual on-the-wire payloads.
  *
- * Two pipelines, two on-disk sinks (both class-based reporters — AppInsights, O11yReporter — are
- * INERT in dev/test mode; determineReporters.ts returns only TelemetryFile, and only when
- * localTelemetryLogging is on. So the observable AppInsights *shape* comes from TelemetryFile):
+ * The real telemetry is the services observability pipeline (Effect spans). ONE enriched span feeds
+ * multiple exporters (spansNode.ts): the file exporter, the O11y exporter, and the AppInsights
+ * exporter. What this spec observes:
  *
- *   1. O11y / services (Effect spans)  → ~/.sf/vscode-spans/*.jsonl  (enableFileTraces, on by default)
- *   2. AppInsights shape (TelemetryFile) → {workspace}/salesforcedx-vscode-core-telemetry.json
+ *   1. Span file (always on)       → ~/.sf/vscode-spans/*.jsonl  (enableFileTraces; synchronous, always captured)
+ *   2. AppInsights Breeze envelopes → POST http://localhost:3003/v2.1/track  → ~/.sf/vscode-appinsights/appinsights-*.jsonl
  *
- * The telemetry fixture flips telemetry.telemetryLevel back to 'all' + localTelemetryLogging 'true'
- * and launches against a minimal org so org-identity props (orgId, isScratch, orgEdition, …) populate.
+ * (2) requires the capture server to be running, else the async POST is dropped:
+ *   npm run spans:server -w salesforcedx-vscode-services   # AppInsights on :3003
+ * In dev/test the AppInsights transport auto-diverts to :3003 (appInsights.ts isLocalDivertMode force-enables
+ * telemetry — provably cannot reach Azure). Verified envelopes carry the command span
+ * (sf.lightning.generate.aura.component) with full org identity incl. orgEdition.
+ *
+ * O11y is NOT locally capturable when an org is present: the o11y-reporter uploader prefers
+ * getConnectionMethod().requestPost(path, body) — it POSTs THROUGH the org connection to the org's
+ * /services/data/vXX/connect/proxy/ui-telemetry, only falling back to O11Y_ENDPOINT when there is no
+ * connection. But its payload is provably the SAME enriched span: o11ySpanExporter builds
+ * { name: span.name, properties: convertAttributes(span.attributes) + identity } from the exact span
+ * dumped below. So the span dump IS the O11y payload; only the transport (org proxy) differs.
+ *
+ * The legacy class reporters (AppInsights/O11yReporter/TelemetryFile in utils-vscode) are INERT in
+ * dev/test (determineReporters returns only TelemetryFile, gated on an undeclared localTelemetryLogging
+ * setting) — best-effort dumped at the end, normally empty.
+ *
+ * The fixture flips telemetry.telemetryLevel back to 'all' and launches against a minimal org so
+ * org-identity props (orgId, isScratch, orgEdition, …) populate on the enriched root spans.
  */
 
 import { expect } from '@playwright/test';
@@ -123,6 +141,14 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 30_000 });
   });
 
+  await test.step('settle: let the AppInsights batch flush the command span while extension is live', async () => {
+    // The AppInsights network exporter batches on BatchSpanProcessor's default scheduledDelay (5s) and
+    // an immediate reload tears the extension host down before that fires, dropping the async POST to
+    // localhost:3003 (the SYNCHRONOUS file exporter still captures). Wait out ~2x the batch delay so
+    // the command span is exported to a live capture server. (Diagnostic only; CI runs with no listener.)
+    await page.waitForTimeout(10_000);
+  });
+
   await test.step('reload to flush buffered spans + class-telemetry (deactivationEvent)', async () => {
     // Reload ends the extension scopes: services flushes its BatchSpanProcessor buffer to
     // ~/.sf/vscode-spans/*.jsonl, and core's deactivate() calls sendExtensionDeactivationEvent() +
@@ -146,9 +172,8 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     console.log('=== O11Y SPAN NAMES THIS SESSION ===');
     console.log(JSON.stringify(spanNames, null, 2));
 
-    // The org-identity attributes are stamped on every root span by spanTransformProcessor once the org
-    // ref is populated. Pull them off the span that actually carries orgId (pre-auth root spans — e.g.
-    // the activation span — only ever have webUserId/cliId/telemetryTag).
+    // Org-identity is enriched ONLY onto ROOT spans by spanTransformProcessor (`!span.parentSpanContext`).
+    // Child spans carry no orgId. So target a span that actually has orgId — prefer the command span.
     const orgAttrKeys = [
       'orgId',
       'devHubOrgId',
@@ -160,27 +185,30 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
       'cliId',
       'webUserId'
     ];
-    const enriched = rows.find(s => s.attributes?.orgId !== undefined);
+    const commandSpan = rows.find(s => s.name === 'sf.lightning.generate.aura.component');
+    // Prefer the command span IF it carries orgId (it does once the default-org ref is populated), else
+    // fall back to any orgId-bearing root span (e.g. a core span like workspaceOrgShape.getOrgShape).
+    const enriched =
+      commandSpan?.attributes?.orgId !== undefined ? commandSpan : rows.find(s => s.attributes?.orgId !== undefined);
     const orgAttrs: Record<string, unknown> = Object.fromEntries(
       orgAttrKeys.map(k => [k, enriched?.attributes?.[k]] as const).filter(([, v]) => v !== undefined)
     );
     console.log('=== O11Y ORG-IDENTITY ATTRIBUTES (from span:', enriched?.name, ') ===');
     console.log(JSON.stringify(orgAttrs, null, 2));
 
-    // The FULL attribute set on this enriched span is exactly what BOTH downstream exporters send:
-    // the O11y exporter AND the AppInsights customEvents exporter (ApplicationInsightsNodeExporter)
-    // consume the same enriched span (see spansNode.ts). The common.* keys exist specifically for
-    // the AppInsights side. Only the transport differs — in dev/test AppInsights diverts to
-    // localhost:3003, so nothing lands on disk; this dump is the payload it would send.
+    // The FULL attribute set on this enriched span is exactly what the downstream exporters send. The
+    // O11y exporter AND the AppInsights exporter (ApplicationInsightsNodeExporter) both consume the
+    // same enriched span (see spansNode.ts); the common.* keys exist for the AppInsights side. In
+    // dev/test AppInsights diverts over HTTP to localhost:3003 — run `npm run spans:server
+    // -w salesforcedx-vscode-services` to capture the actual Breeze envelopes to ~/.sf/vscode-appinsights/.
     console.log('=== FULL ENRICHED SPAN ATTRIBUTES (what O11y AND AppInsights receive) ===');
     console.log(JSON.stringify(enriched?.attributes, null, 2));
 
-    const commandSpan = rows.find(s => s.name === 'sf.lightning.generate.aura.component');
     console.log('=== O11Y COMMAND SPAN (sf.lightning.generate.aura.component) ===');
     console.log(commandSpan ? JSON.stringify(commandSpan, null, 2) : 'not flushed to file this run');
 
     expect(enriched?.attributes?.telemetryTag, 'e2e spans should carry the telemetry-tag').toBe('e2e-test');
-    expect(orgAttrs.orgId, 'org-identity should populate from the minimal org').toBeDefined();
+    expect(orgAttrs.orgId, 'org-identity should populate on the enriched root span').toBeDefined();
   });
 
   await test.step('dump legacy class-reporter events (TelemetryFile), if any', async () => {
