@@ -128,6 +128,8 @@ type CreateDesktopTestOptions = {
   additionalExtensionDirs?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
+  /** VS Code display language (`--locale=`). Requires the matching language pack in `marketplaceExtensions` to affect `vscode.env.language`. */
+  locale?: string;
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
@@ -300,7 +302,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     additionalExtensionDirs = [],
     marketplaceExtensions = [],
     disableOtherExtensions = true,
-    userSettings
+    userSettings,
+    locale
   } = options;
 
   const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
@@ -415,6 +418,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         '--disable-gpu-sandbox',
         '--disable-workspace-trust',
         '--no-sandbox',
+        ...(locale ? [`--locale=${locale}`] : []),
         workspaceDir
       ];
 
@@ -496,6 +500,20 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           }
         }
       };
+
+      // Display-language warm-up: with a fresh user-data-dir, VS Code's first launch WRITES
+      // languagepacks.json (resolving to 'en'); only a subsequent launch resolves the installed
+      // pack (vscode.env.language === locale). So when a non-English locale is requested, run one
+      // throwaway launch first to populate the cache. (Verified: launch1→en, launch2→ja.)
+      if (locale && !locale.startsWith('en')) {
+        const warmup = await launchElectron();
+        try {
+          const warmupPage = await waitForWorkbenchWindow(warmup, WORKBENCH_TIMEOUT_MS);
+          const { WORKBENCH } = await import('../utils/locators.js');
+          await warmupPage.waitForSelector(WORKBENCH, { timeout: WORKBENCH_TIMEOUT_MS });
+        } catch {}
+        await killApp(warmup);
+      }
 
       const firstApp = await launchElectron();
       // Mutable holder so teardown always kills the latest-launched app (after any relaunch).
