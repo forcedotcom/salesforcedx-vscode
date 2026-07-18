@@ -38,7 +38,7 @@ export class LocalizationConfig {
     return LocalizationConfig.instance;
   }
 
-  public isLocaleSupported(locale: unknown): boolean {
+  public isLocaleSupported(locale: unknown): locale is Locale {
     return isLocale(locale);
   }
 
@@ -111,7 +111,7 @@ export class MessageBundleManager {
       throw new Error('No base messages registered');
     }
 
-    const localeConfig = config?.locale ?? DEFAULT_LOCALE;
+    const localeConfig: string = config?.locale ?? DEFAULT_LOCALE;
     const configManager = LocalizationConfig.getInstance();
 
     if (!configManager.isLocaleSupported(localeConfig)) {
@@ -128,16 +128,19 @@ export class LocalizationService {
   private _nls: Localization | null = null;
   public readonly messageBundleManager: MessageBundleManager;
   private readonly instanceName: string;
+  private readonly locale: Locale | undefined;
 
-  private constructor(instanceName: string) {
+  private constructor(instanceName: string, locale?: Locale) {
     this.instanceName = instanceName;
+    this.locale = locale;
     this.messageBundleManager = MessageBundleManager.getInstance(instanceName);
   }
 
-  public static getInstance(instanceName: string): LocalizationService {
+  /** First getInstance wins: later same-name calls ignore the locale arg (locale is session-constant). */
+  public static getInstance(instanceName: string, locale?: Locale): LocalizationService {
     const instance = LocalizationService.instances.get(instanceName);
     if (!instance) {
-      const newInstance = new LocalizationService(instanceName);
+      const newInstance = new LocalizationService(instanceName, locale);
       LocalizationService.instances.set(instanceName, newInstance);
       return newInstance;
     }
@@ -147,7 +150,7 @@ export class LocalizationService {
   public get nls(): Localization {
     if (!this._nls) {
       try {
-        const message = this.messageBundleManager.loadMessageBundle();
+        const message = this.messageBundleManager.loadMessageBundle(this.locale ? { locale: this.locale } : undefined);
         this._nls = new Localization(message);
       } catch {
         console.warn(

@@ -6,7 +6,8 @@
  */
 
 import { LOCALE_JA } from './constants';
-import { LocalizationService } from './i18n/advancedLocalization';
+import { parseNlsLocale } from './envLocale';
+import { LocalizationConfig, LocalizationService } from './i18n/advancedLocalization';
 import { MessageArgs } from './types/localization/messageArgs';
 import { MessageBundle } from './types/localization/messageBundle';
 
@@ -18,15 +19,23 @@ type CreateNlsOptions<T extends MessageBundle> = {
   instanceName: string;
   messages: T;
   jaMessages?: MessageBundle;
+  /** Display language from `vscode.env.language` (web host). Unsupported values fall back to env/base. */
+  locale?: string;
 };
 
 /** Creates a typed nls object for localization, registering base and optional Japanese translations */
 export const createNls = <const T extends MessageBundle>({
   instanceName,
   messages,
-  jaMessages
+  jaMessages,
+  locale
 }: CreateNlsOptions<T>): Nls<T> => {
-  const service = LocalizationService.getInstance(instanceName);
+  // Node (desktop host + spawned LSP) reads VSCODE_NLS_CONFIG; web collapses this branch and tree-shakes the env read.
+  const fromEnv = process.env.ESBUILD_PLATFORM !== 'web' ? parseNlsLocale(process.env.VSCODE_NLS_CONFIG) : undefined;
+  const config = LocalizationConfig.getInstance();
+  const validatedLocale = config.isLocaleSupported(locale) ? locale : undefined;
+  const resolved = validatedLocale ?? fromEnv;
+  const service = LocalizationService.getInstance(instanceName, resolved);
 
   service.messageBundleManager.registerMessageBundle(instanceName, {
     messages: { ...messages },
