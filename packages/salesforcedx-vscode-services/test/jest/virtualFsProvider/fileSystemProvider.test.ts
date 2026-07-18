@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { fs, resetFs, setFs } from '@salesforce/core/fs';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import type * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
-import * as fs from 'node:fs';
-import * as os from 'node:os';
-import * as path from 'node:path';
+import { createFsFromVolume, Volume } from 'memfs';
 import { URI } from 'vscode-uri';
 import * as servicesRuntime from '../../../src/servicesRuntime';
 import { FsProvider, isItReadOnlyLayer } from '../../../src/virtualFsProvider/fileSystemProvider';
@@ -20,13 +19,22 @@ const vscode = require('vscode');
 
 const registryAccess = new RegistryAccess();
 
-describe('FsProvider read-only checks', () => {
-  let workspaceDir: string;
+// POSIX workspace path so uri.path is drive-less and identical across platforms.
+// The provider addresses files by uri.path (memfs/web semantics), so on Windows a
+// URI.file(os.tmpdir()) path like /c:/... would resolve against the current drive
+// (D:\C:\...) and ENOENT. Back the provider with memfs (as the web build does).
+const workspaceDir = '/dx-project';
 
+describe('FsProvider read-only checks', () => {
   beforeAll(() => {
-    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fsp-'));
-    fs.writeFileSync(path.join(workspaceDir, 'MyClass.cls'), 'public class MyClass {}');
-    fs.writeFileSync(path.join(workspaceDir, 'foo.txt'), 'plain');
+    setFs(
+      createFsFromVolume(
+        Volume.fromJSON({
+          [`${workspaceDir}/MyClass.cls`]: 'public class MyClass {}',
+          [`${workspaceDir}/foo.txt`]: 'plain'
+        })
+      ) as unknown as typeof fs
+    );
     vscode.workspace.workspaceFolders = [
       {
         uri: { scheme: 'file', fsPath: workspaceDir, toString: (): string => `file://${workspaceDir}` },
@@ -36,8 +44,12 @@ describe('FsProvider read-only checks', () => {
     ] as unknown as typeof vscode.workspace.workspaceFolders;
   });
 
-  const clsUri = (): URI => URI.file(path.join(workspaceDir, 'MyClass.cls'));
-  const txtUri = (): URI => URI.file(path.join(workspaceDir, 'foo.txt'));
+  afterAll(() => {
+    resetFs();
+  });
+
+  const clsUri = (): URI => URI.file(`${workspaceDir}/MyClass.cls`);
+  const txtUri = (): URI => URI.file(`${workspaceDir}/foo.txt`);
 
   describe('runtime-ready (routed through shared runtime)', () => {
     let runtime: ManagedRuntime.ManagedRuntime<Layer.Layer.Success<typeof isItReadOnlyLayer>, never>;
@@ -95,7 +107,7 @@ describe('FsProvider read-only checks', () => {
       provider.readOnly = [registryAccess.getTypeByName('ApexClass')];
 
       await expect(
-        provider.rename(clsUri(), URI.file(path.join(workspaceDir, 'Renamed.cls')), { overwrite: true })
+        provider.rename(clsUri(), URI.file(`${workspaceDir}/Renamed.cls`), { overwrite: true })
       ).rejects.toMatchObject({ code: 'NoPermissions' });
       expect(getRuntimeSpy).toHaveBeenCalled();
     });
