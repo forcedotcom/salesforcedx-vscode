@@ -75,6 +75,10 @@ jobs:
           command: |
             cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish --skip-duplicate "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
       - name: Verify published versions landed on OpenVSX
+        env:
+          POLL_TIMEOUT: '5'
+          POLL_INTERVAL: '2'
+          PUBLISH_VERSION: '999.999.999'
         run: |
           TIMEOUT="${POLL_TIMEOUT:-600}"
           INTERVAL="${POLL_INTERVAL:-30}"
