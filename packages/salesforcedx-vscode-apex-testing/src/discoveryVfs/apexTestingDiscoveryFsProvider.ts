@@ -166,46 +166,38 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   private getOrCreateDirectory(uri: URI): DirectoryEntry {
-    const parts = pathParts(uri);
-    let current = this.root;
-    for (const part of parts) {
+    return pathParts(uri).reduce<DirectoryEntry>((current, part) => {
       const existing = current.entries.get(part);
       if (!existing) {
         const dir = createDirectoryEntry();
         current.entries.set(part, dir);
         current.mtime = now();
-        current = dir;
-        continue;
+        return dir;
       }
       if (existing.type !== vscode.FileType.Directory) {
         throw vscode.FileSystemError.FileNotADirectory(uri);
       }
-      current = existing;
-    }
-    return current;
+      return existing;
+    }, this.root);
   }
 
   private getEntry(uri: URI, createDirectories: boolean): Entry | undefined {
-    const parts = pathParts(uri);
-    let current: Entry = this.root;
-    for (const part of parts) {
-      if (current.type !== vscode.FileType.Directory) {
+    return pathParts(uri).reduce<Entry | undefined>((current, part) => {
+      if (current?.type !== vscode.FileType.Directory) {
         return undefined;
       }
       const next = current.entries.get(part);
-      if (!next) {
-        if (!createDirectories) {
-          return undefined;
-        }
-        const dir = createDirectoryEntry();
-        current.entries.set(part, dir);
-        current.mtime = now();
-        current = dir;
-        continue;
+      if (next) {
+        return next;
       }
-      current = next;
-    }
-    return current;
+      if (!createDirectories) {
+        return undefined;
+      }
+      const dir = createDirectoryEntry();
+      current.entries.set(part, dir);
+      current.mtime = now();
+      return dir;
+    }, this.root);
   }
 
   // eslint-disable-next-line class-methods-use-this
