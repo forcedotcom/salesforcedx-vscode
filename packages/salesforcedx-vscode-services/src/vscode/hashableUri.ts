@@ -7,7 +7,7 @@
 import * as Equal from 'effect/Equal';
 import { dual } from 'effect/Function';
 import * as Hash from 'effect/Hash';
-import { isString } from 'effect/Predicate';
+import { isRecord, isString } from 'effect/Predicate';
 import { URI } from 'vscode-uri';
 
 /**
@@ -26,7 +26,7 @@ export type HashableUri = {
 type UriChange = Parameters<URI['with']>[0];
 
 const hasObjectProp = <K extends string>(u: unknown, key: K): u is Record<K, object> =>
-  u !== null && typeof u === 'object' && key in u && typeof Object(u)[key] === 'object' && Object(u)[key] !== null;
+  isRecord(u) && key in u && isRecord(Object(u)[key]);
 
 /**
  * Structural cross-bundle check: any value with a `uri` field that looks like a URI AND carries

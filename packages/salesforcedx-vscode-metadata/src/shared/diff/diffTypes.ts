@@ -6,15 +6,15 @@
  */
 
 import * as Data from 'effect/Data';
-import { isString } from 'effect/Predicate';
+import { isRecord, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import type { HashableUri } from 'salesforcedx-vscode-services';
 
 /** Cross-bundle safe: HashableUri from services extension fails instanceof URI in metadata bundle. Use structural check. */
 const isHashableUri = (u: unknown): u is HashableUri => {
-  if (u === null || typeof u !== 'object' || !('uri' in u)) return false;
+  if (!isRecord(u) || !('uri' in u)) return false;
   const inner = Object(u).uri;
-  return inner !== null && typeof inner === 'object' && isString(inner.scheme);
+  return isRecord(inner) && isString(inner.scheme);
 };
 
 const HashableUriSchema = Schema.declare<HashableUri>(isHashableUri);
