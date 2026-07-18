@@ -100,9 +100,9 @@ export const validateMetadata = Effect.fn('ApexOas.Metadata.validate')(function*
     Effect.tap(responses => Effect.annotateCurrentSpan({ eligibleResponses: JSON.stringify(responses) }))
   );
 
-  const first = yield* Option.match(Arr.head(isEligibleResponses ?? []), {
+  const first = yield* Option.match(Arr.head(isEligibleResponses), {
     onNone: () => new ClassNotEligible({ message: nls.localize('validation_failed') }),
-    onSome: response => Effect.succeed(response)
+    onSome: Effect.succeed
   });
   if (!first.isApexOasEligible && !first.isEligible) {
     return yield* new ClassNotEligible({

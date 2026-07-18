@@ -40,6 +40,17 @@ const makeTraceFlagRow = (id: string, tracedEntityId: string): TraceFlagRow => (
   TracedEntityId: tracedEntityId
 });
 
+const buildConnectionServiceLayer = (connection: unknown): Layer.Layer<ConnectionService> =>
+  Layer.succeed(
+    ConnectionService,
+    ConnectionService.make({
+      getConnection: () => Effect.succeed(connection as Connection),
+      validateAccessTokenOrPromptReauth: () => Effect.void,
+      invalidateCachedConnections: () => Effect.void,
+      listAllAuthorizations: () => Effect.succeed([])
+    })
+  );
+
 const buildMockConnectionLayer = (opts: {
   traceFlagRowsBySequence: TraceFlagRow[][];
   toolingNameRowsBySoql: Map<string, IdName[]>;
@@ -59,19 +70,7 @@ const buildMockConnectionLayer = (opts: {
     const nameRows = opts.userNameRowsBySoql.get(soql) ?? [];
     return { records: nameRows, totalSize: nameRows.length };
   });
-  const layer = Layer.succeed(
-    ConnectionService,
-    ConnectionService.make({
-      getConnection: () =>
-        Effect.succeed({
-          tooling: { query: toolingSpy },
-          query: querySpy
-        } as unknown as Connection),
-      validateAccessTokenOrPromptReauth: () => Effect.void,
-      invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
-    })
-  );
+  const layer = buildConnectionServiceLayer({ tooling: { query: toolingSpy }, query: querySpy });
   return { layer, toolingSpy, querySpy };
 };
 
@@ -390,18 +389,7 @@ const buildGetOrCreateLayer = (opts: {
     totalSize: opts.debugLevelRows.length
   }));
   const createSpy: CreateSpy = jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-created' }));
-  const layer = Layer.succeed(
-    ConnectionService,
-    ConnectionService.make({
-      getConnection: () =>
-        Effect.succeed({
-          tooling: { query: querySpy, create: createSpy }
-        } as unknown as Connection),
-      validateAccessTokenOrPromptReauth: () => Effect.void,
-      invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
-    })
-  );
+  const layer = buildConnectionServiceLayer({ tooling: { query: querySpy, create: createSpy } });
   return { layer, querySpy, createSpy };
 };
 
@@ -453,18 +441,7 @@ const buildToolingMutationLayer = (opts: {
 }): { layer: Layer.Layer<ConnectionService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
   const createSpy: CreateSpy = opts.create ?? jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-new' }));
   const deleteSpy: DeleteSpy = opts.delete ?? jest.fn(async (_type, _id) => ({ success: true }));
-  const layer = Layer.succeed(
-    ConnectionService,
-    ConnectionService.make({
-      getConnection: () =>
-        Effect.succeed({
-          tooling: { create: createSpy, delete: deleteSpy }
-        } as unknown as Connection),
-      validateAccessTokenOrPromptReauth: () => Effect.void,
-      invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
-    })
-  );
+  const layer = buildConnectionServiceLayer({ tooling: { create: createSpy, delete: deleteSpy } });
   return { layer, createSpy, deleteSpy };
 };
 

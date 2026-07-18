@@ -259,7 +259,10 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           return new DebugLevelCreateError({ message: `Failed to query debug level: ${cause.message}` });
         }
       });
-      const existingId = Arr.head(existing.records).pipe(Option.flatMap(record => Option.fromNullable(record.Id)));
+      const existingId = Arr.head(existing.records).pipe(
+        Option.flatMap(record => Option.fromNullable(record.Id)),
+        Option.filter(id => id.length > 0)
+      );
       return yield* Option.match(existingId, {
         onNone: () =>
           createDebugLevel({

@@ -141,7 +141,7 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
   );
   return yield* Option.match(Arr.head(result.records), {
     onNone: () => new PackageInstallFailedError({ message: `Request ${requestId} not found` }),
-    onSome: record => Effect.succeed(record)
+    onSome: Effect.succeed
   });
 });
 
