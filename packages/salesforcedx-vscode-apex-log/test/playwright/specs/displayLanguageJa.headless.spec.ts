@@ -5,25 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   isDesktop,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists,
-  waitForQuickInputFirstOption,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { messages } from '../../../src/messages/i18n';
-import { messages as jaMessages } from '../../../src/messages/i18n.ja';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
+import { runCreateApexClassJaPromptAssertion } from './displayLanguageJaShared';
 
 // Web-only: proves vscode.env.language wiring. On web, env.language derives from
 // globalThis._VSCODE_NLS_LANGUAGE (workbench.web.main getNLSLanguage), which @vscode/test-web never sets.
@@ -48,26 +42,8 @@ import { test } from '../fixtures';
       await saveScreenshot(page, 'setup.after-workbench.png');
     });
 
-    await test.step('run Create Apex Class, InputBox shows the Japanese prompt', async () => {
-      await verifyCommandExists(page, packageNls.apex_generate_class_text, 120_000);
-      await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
-
-      await waitForQuickInputFirstOption(page);
-      await page.keyboard.press('Enter'); // accept default template
-
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-      await saveScreenshot(page, 'step.class-name-prompt.png');
-
-      // runtime nls.localize('apex_class_name_prompt') → JA bundle string
-      await expect(
-        quickInput.getByText(jaMessages.apex_class_name_prompt!),
-        'Apex class name prompt should render the Japanese translation'
-      ).toBeVisible({ timeout: 10_000 });
-      // and NOT the English default
-      await expect(quickInput.getByText(messages.apex_class_name_prompt)).toHaveCount(0);
-      await page.keyboard.press('Escape');
-    });
+    await test.step('run Create Apex Class, InputBox shows the Japanese prompt', () =>
+      runCreateApexClassJaPromptAssertion(page, packageNls.apex_generate_class_text));
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);
   }

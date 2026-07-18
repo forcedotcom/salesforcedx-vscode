@@ -111,6 +111,9 @@ export class MessageBundleManager {
       throw new Error('No base messages registered');
     }
 
+    // Widened to `string` deliberately: `isLocaleSupported` is a `locale is Locale` guard, so a `Locale`-typed
+    // value would narrow to `never` in the failure branch below. External/untrusted callers can still pass an
+    // unsupported string at runtime, so keep the runtime re-validation meaningful by not letting the type collapse.
     const localeConfig: string = config?.locale ?? DEFAULT_LOCALE;
     const configManager = LocalizationConfig.getInstance();
 

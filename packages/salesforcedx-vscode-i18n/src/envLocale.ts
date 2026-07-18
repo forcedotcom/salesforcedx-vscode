@@ -15,10 +15,7 @@ import { Locale } from './types/localization/config';
 export const parseNlsLocale = (raw?: string): Locale | undefined => {
   try {
     const parsed: unknown = JSON.parse(raw ?? '{}');
-    const value =
-      typeof parsed === 'object' && parsed !== undefined && parsed !== null && 'locale' in parsed
-        ? parsed.locale
-        : undefined;
+    const value = typeof parsed === 'object' && parsed !== null && 'locale' in parsed ? parsed.locale : undefined;
     const lowered = typeof value === 'string' ? value.toLowerCase() : undefined;
     return LocalizationConfig.getInstance().isLocaleSupported(lowered) ? lowered : undefined;
   } catch {
