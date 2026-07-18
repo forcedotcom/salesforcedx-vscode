@@ -26,6 +26,14 @@ const CLOSE_TIMEOUT_MS = 5000;
 /** Per-fixture timeout (ms) for the `page` fixture setup — independent of the test-level timeout. */
 const PAGE_FIXTURE_TIMEOUT_MS = isWindowsDesktop() ? 180_000 : 90_000;
 
+/**
+ * Per-fixture timeout (ms) for the `electronApp` fixture setup — independent of the test body's own
+ * `test.setTimeout`, which only takes effect once the body runs (after all fixtures resolve). Generous
+ * because a non-English `locale` triggers a throwaway warm-up launch (to populate languagepacks.json)
+ * BEFORE the real launch — two sequential cold Electron starts, unbounded by the ambient project timeout.
+ */
+const ELECTRON_APP_FIXTURE_TIMEOUT_MS = isWindowsDesktop() ? 300_000 : 180_000;
+
 /** Workbench-selector wait budget (ms) for a single `waitForWorkbenchWindow` attempt. */
 const WORKBENCH_TIMEOUT_MS = 60_000;
 
@@ -354,7 +362,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     },
 
     // Launch fresh Electron instance per test
-    electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
+    electronApp: [
+      async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
       // User data dir must live OUTSIDE the opened workspace folder. On VS Code 1.124 (Chromium 148)
       // placing it inside the workspace makes the Electron main process exit before the first window
       // opens ("Waiting for the debugger to disconnect"), so electronApp.firstWindow() throws
@@ -508,10 +517,14 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       if (locale && !locale.startsWith('en')) {
         const warmup = await launchElectron();
         try {
-          const warmupPage = await waitForWorkbenchWindow(warmup, WORKBENCH_TIMEOUT_MS);
-          const { WORKBENCH } = await import('../utils/locators.js');
-          await warmupPage.waitForSelector(WORKBENCH, { timeout: WORKBENCH_TIMEOUT_MS });
-        } catch {}
+          // waitForWorkbenchWindow already awaits the WORKBENCH selector internally — no extra wait needed.
+          await waitForWorkbenchWindow(warmup, WORKBENCH_TIMEOUT_MS);
+        } catch (error) {
+          // Log (do not fail) so a warm-up that never reached the workbench is distinguishable from a
+          // genuine UI-assertion failure: if the cache stays unpopulated, the real launch resolves 'en'
+          // and the test fails later with a confusing 'Japanese text not visible' assertion instead.
+          console.log(`[warmup] display-language warm-up did not reach workbench: ${String(error)}`);
+        }
         await killApp(warmup);
       }
 
@@ -544,6 +557,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         console.log('[teardown] done');
       }
     },
+      { scope: 'test', timeout: ELECTRON_APP_FIXTURE_TIMEOUT_MS }
+    ],
 
     // Build a ready workbench Page. firstWindow() is never retried on the same app instance
     // (a second call returns the same, possibly-closed Page). On win32 launch instability the
