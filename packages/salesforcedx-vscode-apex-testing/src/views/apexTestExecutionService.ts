@@ -480,35 +480,43 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
 
       yield* cacheSingleSelection(request, isDebug);
 
-      let testsToRun = gatherTests(request, ctx.controller.items, suiteItems);
+      const gatheredTests = gatherTests(request, ctx.controller.items, suiteItems);
 
       // Implicit full run (no explicit selection): restrict to in-workspace tests for the default profiles.
       const isImplicitFullRun = !request.include?.length;
       const inWorkspaceTag = ctx.inWorkspaceTag;
-      if (runScope === 'workspace-first' && isImplicitFullRun && inWorkspaceTag) {
-        testsToRun = testsToRun.filter(test => test.tags?.includes(inWorkspaceTag));
-      }
+      const workspaceScopedTests =
+        runScope === 'workspace-first' && isImplicitFullRun && inWorkspaceTag
+          ? gatheredTests.filter(test => test.tags?.includes(inWorkspaceTag))
+          : gatheredTests;
 
       // Stale profiles: expand all items to methods, keep only those with stale + matching location tag.
-      if (runScope === 'stale-workspace' || runScope === 'stale-org') {
-        const requiredLocationTag = runScope === 'stale-workspace' ? 'in-workspace' : 'org-only';
-        testsToRun = narrowToStaleMethods(testsToRun, methodItems, suiteToClasses, requiredLocationTag);
-      }
+      const staleScopedTests =
+        runScope === 'stale-workspace' || runScope === 'stale-org'
+          ? narrowToStaleMethods(
+              workspaceScopedTests,
+              methodItems,
+              suiteToClasses,
+              runScope === 'stale-workspace' ? 'in-workspace' : 'org-only'
+            )
+          : workspaceScopedTests;
 
       // Resolve any suite in testsToRun so we have class data (for empty-suite check and expansion).
-      yield* resolveUnloadedSuites(testsToRun, ctx);
+      yield* resolveUnloadedSuites(staleScopedTests, ctx);
 
       // Expand suites to their methods when running all tests (so multiple suites can run via method names).
-      if (!request.include || request.include.length === 0) {
-        const classItems = yield* ApexTestTreeService.getClassItems();
-        testsToRun = yield* expandSuitesToMethods(testsToRun, ctx, suiteToClasses, classItems);
-      }
+      const expandedTests = isImplicitFullRun
+        ? yield* Effect.gen(function* () {
+            const classItems = yield* ApexTestTreeService.getClassItems();
+            return yield* expandSuitesToMethods(staleScopedTests, ctx, suiteToClasses, classItems);
+          })
+        : staleScopedTests;
 
       // Suite expansion pulls methods from live class items and can reintroduce filter-hidden tests.
-      testsToRun = filterTestItemsByRequestExclude(testsToRun, request.exclude);
+      const nonExcludedTests = filterTestItemsByRequestExclude(expandedTests, request.exclude);
 
       // Check for empty test suites and surface a clear error.
-      const emptySuiteItems = testsToRun.filter(
+      const emptySuiteItems = nonExcludedTests.filter(
         test => isSuite(test.id) && (suiteToClasses.get(extractSuiteName(test.id) ?? '')?.size ?? 0) === 0
       );
       if (emptySuiteItems.length > 0) {
@@ -521,15 +529,16 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
             nls.localize('apex_test_suite_empty_message_notification', emptySuiteNames.join(', '))
           );
         });
-        testsToRun = testsToRun.filter(test => !emptySuiteItems.includes(test));
       }
 
-      if (testsToRun.length === 0) {
+      // Drop the empty suites flagged above (no-op when none were found).
+      const finalTests = nonExcludedTests.filter(test => !emptySuiteItems.includes(test));
+
+      if (finalTests.length === 0) {
         yield* Effect.sync(() => run.end());
         return;
       }
 
-      const finalTests = testsToRun;
       yield* Effect.sync(() => {
         for (const test of finalTests) {
           run.started(test);
