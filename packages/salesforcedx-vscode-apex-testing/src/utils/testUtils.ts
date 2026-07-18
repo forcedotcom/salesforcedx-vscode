@@ -57,29 +57,25 @@ export const getMethodLocationsFromSymbols = async (
   uri: URI,
   methodNames: string[]
 ): Promise<Map<string, vscode.Location> | undefined> => {
-  let documentSymbols: vscode.DocumentSymbol[] | undefined;
-  try {
-    // Ensure the document is accessible - try to open it if needed
-    let document = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === uri.toString());
-    if (!document) {
-      // Document might not be open, try to open it
-      try {
-        document = await vscode.workspace.openTextDocument(uri);
-      } catch {
-        // If we can't open the document, document symbols won't be available
-        return undefined;
-      }
+  // Ensure the document is accessible - try to open it if needed
+  const isDocumentOpen = vscode.workspace.textDocuments.some(doc => doc.uri.toString() === uri.toString());
+  if (!isDocumentOpen) {
+    // Document might not be open, try to open it
+    try {
+      await vscode.workspace.openTextDocument(uri);
+    } catch {
+      // If we can't open the document, document symbols won't be available
+      return undefined;
     }
-
-    const symbolResult = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
-      'vscode.executeDocumentSymbolProvider',
-      uri
-    );
-    documentSymbols = symbolResult;
-  } catch {
-    // If document symbols are not available, return undefined
-    return undefined;
   }
+
+  const documentSymbols = await vscode.commands
+    .executeCommand<vscode.DocumentSymbol[]>('vscode.executeDocumentSymbolProvider', uri)
+    // If document symbols are not available, return undefined
+    .then(
+      result => result,
+      () => undefined
+    );
 
   if (!documentSymbols || documentSymbols.length === 0) {
     return undefined;

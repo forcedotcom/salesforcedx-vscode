@@ -42,11 +42,10 @@ const streamToNormalizedUtf8Bytes = async (stream: NodeJS.ReadableStream): Promi
 
   const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
   const out = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const part of parts) {
+  parts.reduce((offset, part) => {
     out.set(part, offset);
-    offset += part.length;
-  }
+    return offset + part.length;
+  }, 0);
   return out;
 };
 
