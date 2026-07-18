@@ -125,6 +125,30 @@ const awaitProcExit = (proc: ChildProcess, { event, timeoutMs }: { event: 'close
     setTimeout(resolve, timeoutMs);
   });
 
+/**
+ * Poll `<userDataDir>/languagepacks.json` until it lists `locale`, or `timeoutMs` elapses.
+ * The main process resolves the display language from this file at startup; if it is missing it
+ * falls back to English. The shared process writes it ASYNCHRONOUSLY after the workbench loads, so a
+ * warm-up launch that is SIGKILL'd (macOS/Linux CI teardown) can die before the write lands, leaving
+ * the real launch to resolve 'en'. Windows tears down via graceful `app.close()`, which flushes the
+ * write — hence the JA desktop spec passed on windows-latest but failed on macos-latest. Awaiting the
+ * file here makes the cache deterministic regardless of how the warm-up is killed.
+ */
+const waitForLanguagePackCache = async (userDataDir: string, locale: string, timeoutMs: number): Promise<boolean> => {
+  const file = path.join(userDataDir, 'languagepacks.json');
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const packs = JSON.parse(await fs.readFile(file, 'utf8')) as Record<string, unknown>;
+      if (packs[locale]) return true;
+    } catch {
+      // not written yet (ENOENT) or mid-write (partial JSON) — retry until deadline
+    }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  return false;
+};
+
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
@@ -519,6 +543,12 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         try {
           // waitForWorkbenchWindow already awaits the WORKBENCH selector internally — no extra wait needed.
           await waitForWorkbenchWindow(warmup, WORKBENCH_TIMEOUT_MS);
+          // The shared process writes languagepacks.json asynchronously after the workbench loads. Await
+          // that write BEFORE killApp so the cache is populated regardless of kill mechanism (macOS/Linux
+          // CI SIGKILLs the process group, which can pre-empt the write; Windows closes gracefully).
+          if (!(await waitForLanguagePackCache(userDataDir, locale, WORKBENCH_TIMEOUT_MS))) {
+            console.log(`[warmup] languagepacks.json never listed locale '${locale}' before timeout`);
+          }
         } catch (error) {
           // Log (do not fail) so a warm-up that never reached the workbench is distinguishable from a
           // genuine UI-assertion failure: if the cache stays unpopulated, the real launch resolves 'en'
