@@ -8,6 +8,7 @@
 import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
 import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
+import * as Array from 'effect/Array';
 import * as Option from 'effect/Option';
 import { isError, isString } from 'effect/Predicate';
 
@@ -177,8 +178,7 @@ const getUnpackagedApexClassIds = async (connection: Connection, classIds: strin
     return out;
   }
   const batchSize = 200;
-  for (let i = 0; i < classIds.length; i += batchSize) {
-    const batch = classIds.slice(i, i + batchSize);
+  for (const batch of Array.chunksOf(classIds, batchSize)) {
     const inClause = batch.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
     const q = `SELECT Id, ManageableState FROM ApexClass WHERE Id IN (${inClause})`;
     try {
@@ -252,8 +252,7 @@ export const resolvePackage2Members = async (
 
   const runMemberQuery = async (field: 'MetadataComponentId' | 'SubjectId', columns?: string): Promise<void> => {
     const selectList = columns ?? `Id, ${field}, Package2Id`;
-    for (let i = 0; i < validIds.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
-      const batch = validIds.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
+    for (const batch of Array.chunksOf(validIds, PACKAGE2_MEMBER_BATCH_SIZE)) {
       const inClause = batch.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
       const memberQuery = `SELECT ${selectList} FROM Package2Member WHERE ${field} IN (${inClause})`;
 
@@ -275,7 +274,6 @@ export const resolvePackage2Members = async (
     }
   };
 
-  let subjectIdOnly = false;
   const tryInstalledSubscriberFallback = async (): Promise<Map<string, ResolvedPackageInfo>> => {
     if (classIdToNamespace?.size) {
       return resolveFromInstalledSubscriberPackages(connection, classIdToNamespace);
@@ -283,39 +281,50 @@ export const resolvePackage2Members = async (
     return new Map();
   };
 
-  try {
-    await runMemberQuery('MetadataComponentId');
-    if (allMembers.length === 0) {
-      await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
+  // Merge the subscriber fallback into the cache and return it (used when Package2Member is unavailable).
+  const cacheAndReturnFallback = async (): Promise<Map<string, ResolvedPackageInfo>> => {
+    const fallback = await tryInstalledSubscriberFallback();
+    const cache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
+    for (const [id, info] of fallback) {
+      cache.set(id, info);
     }
-  } catch (error) {
-    if (error instanceof TrySubjectIdError) {
-      try {
-        // Skyline-style columns: SubjectId, SubjectKeyPrefix, Package2Id (see sfCli.ts)
+    packageResolutionCache.set(cacheKey, cache);
+    return fallback;
+  };
+
+  type MemberQueryOutcome =
+    | { readonly _tag: 'resolved'; readonly subjectIdOnly: boolean }
+    | { readonly _tag: 'fallback'; readonly result: Map<string, ResolvedPackageInfo> };
+
+  const runInitialMemberQueries = async (): Promise<MemberQueryOutcome> => {
+    try {
+      await runMemberQuery('MetadataComponentId');
+      if (allMembers.length === 0) {
         await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
-        subjectIdOnly = true;
-      } catch (e2) {
-        if (isPackage2UnavailableError(e2)) {
-          packageResolutionUnavailableOrgs.add(cacheKey);
-        }
-        const fallback = await tryInstalledSubscriberFallback();
-        const cache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
-        for (const [id, info] of fallback) {
-          cache.set(id, info);
-        }
-        packageResolutionCache.set(cacheKey, cache);
-        return fallback;
       }
-    } else {
-      const fallback = await tryInstalledSubscriberFallback();
-      const cache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
-      for (const [id, info] of fallback) {
-        cache.set(id, info);
+      return { _tag: 'resolved', subjectIdOnly: false };
+    } catch (error) {
+      if (error instanceof TrySubjectIdError) {
+        try {
+          // Skyline-style columns: SubjectId, SubjectKeyPrefix, Package2Id (see sfCli.ts)
+          await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
+          return { _tag: 'resolved', subjectIdOnly: true };
+        } catch (e2) {
+          if (isPackage2UnavailableError(e2)) {
+            packageResolutionUnavailableOrgs.add(cacheKey);
+          }
+          return { _tag: 'fallback', result: await cacheAndReturnFallback() };
+        }
       }
-      packageResolutionCache.set(cacheKey, cache);
-      return fallback;
+      return { _tag: 'fallback', result: await cacheAndReturnFallback() };
     }
+  };
+
+  const memberQueryOutcome = await runInitialMemberQueries();
+  if (memberQueryOutcome._tag === 'fallback') {
+    return memberQueryOutcome.result;
   }
+  const subjectIdOnly = memberQueryOutcome.subjectIdOnly;
 
   const result = new Map<string, ResolvedPackageInfo>();
   const existingCache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
@@ -326,8 +335,7 @@ export const resolvePackage2Members = async (
     ];
     const package2ById = new Map<string, Package2>();
 
-    for (let i = 0; i < package2Ids.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
-      const batch = package2Ids.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
+    for (const batch of Array.chunksOf(package2Ids, PACKAGE2_MEMBER_BATCH_SIZE)) {
       const inClause = batch.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
       // ContainerOptions indicates Unlocked vs Managed (see Skyline sfCli.ts)
       const packageQuery = `SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2 WHERE Id IN (${inClause})`;
@@ -405,22 +413,22 @@ const resolvePackage2MembersByPackage = async (
   subjectIdOnly: boolean,
   cacheKey: string
 ): Promise<Map<string, ResolvedPackageInfo> | null> => {
-  let package2List: Package2[] = [];
-  try {
-    const packageQuery = 'SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2';
-    const packageResult = await connection.tooling.query<Package2>(packageQuery);
-    const count = packageResult.records?.length ?? 0;
-    if (count > 0) {
-      package2List = packageResult.records!;
+  // Query all Package2 in the org; null signals the query failed (caller returns null).
+  const queryPackage2List = async (): Promise<Package2[] | null> => {
+    try {
+      const packageQuery = 'SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2';
+      const packageResult = await connection.tooling.query<Package2>(packageQuery);
+      return packageResult.records?.length ? packageResult.records : [];
+    } catch (error) {
+      if (isPackage2UnavailableError(error)) {
+        packageResolutionUnavailableOrgs.add(cacheKey);
+      }
+      return null;
     }
-  } catch (error) {
-    if (isPackage2UnavailableError(error)) {
-      packageResolutionUnavailableOrgs.add(cacheKey);
-    }
-    return null;
-  }
+  };
 
-  if (package2List.length === 0) {
+  const package2List = await queryPackage2List();
+  if (package2List === null || package2List.length === 0) {
     return null;
   }
 
