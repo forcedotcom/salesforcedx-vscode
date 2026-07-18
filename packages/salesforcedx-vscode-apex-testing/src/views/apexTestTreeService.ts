@@ -21,7 +21,7 @@ import { URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { nls } from '../messages';
-import { resolvePackage2Members } from '../testDiscovery/packageResolution';
+import { PackageResolutionService } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -441,31 +441,16 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
       });
 
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const [connection, orgInfo] = yield* Effect.all(
-        [
-          api.services.ConnectionService.getConnection().pipe(
-            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
-          ),
-          getDefaultOrgInfo().pipe(
-            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
-          )
-        ],
-        { concurrency: 'unbounded' }
+      const orgInfo = yield* getDefaultOrgInfo().pipe(
+        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
       // No default org → no org-scoped tree to build.
       if (!orgInfo.orgId) return;
       const orgKey = orgInfo.orgId;
-      const classIdToPackage = yield* Effect.tryPromise({
-        try: () =>
-          resolvePackage2Members(
-            connection,
-            Array.getSomes(apexClasses.map(cls => cls.id)),
-            buildClassIdToNamespace(apexClasses),
-            orgInfo
-          ),
-        catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
-      });
+      const classIdToPackage = yield* PackageResolutionService.resolve(
+        Array.getSomes(apexClasses.map(cls => cls.id)),
+        buildClassIdToNamespace(apexClasses)
+      ).pipe(Effect.mapError(e => new PackageResolutionError({ message: getMessageFromError(e) })));
 
       const structure = buildNamespacePackageStructure(apexClasses, classIdToPackage);
       const currentClassItems = yield* Ref.get(classItems);
@@ -882,14 +867,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       classNameToUri: Map<string, URI>,
       orgKey: string
     ) {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const connection = yield* api.services.ConnectionService.getConnection();
-      const orgInfo = yield* getDefaultOrgInfo();
       const classIds = Option.match(cls.id, { onNone: () => [], onSome: id => [id] });
-      const classIdToPackage = yield* Effect.tryPromise({
-        try: () => resolvePackage2Members(connection, classIds, buildClassIdToNamespace([cls]), orgInfo),
-        catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
-      });
+      const classIdToPackage = yield* PackageResolutionService.resolve(classIds, buildClassIdToNamespace([cls])).pipe(
+        Effect.mapError(e => new PackageResolutionError({ message: getMessageFromError(e) }))
+      );
 
       const [currentClassItems, currentMethodItems, currentClassToParent] = yield* Effect.all([
         Ref.get(classItems),
