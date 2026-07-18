@@ -110,7 +110,9 @@ export const NodeSdkLayerFor = ({
         ? [
             new SpanTransformProcessor(
               new GatedSpanExporter(
-                () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId),
+                // localIngestionEndpoint (dev/test) diverts O11y events to the local span file server's
+                // /o11y route instead of uploading through the org connection — mirrors the AI divert.
+                () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint),
                 () => isProductionTelemetryExportEnabled(o11yEndpoint)
               ),
               undefined,

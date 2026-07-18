@@ -32,12 +32,13 @@ For *why* `userId`, `webUserId`, and the SOQL user ID coexist and how each maps 
 | Property Key | vscode-utils | services | Notes |
 |---|---|---|---|
 | `orgId` | `WorkspaceContextUtil.orgId` | `DefaultOrgRef.orgId` | Same concept, different source object |
-| `orgShape` | `WorkspaceContextUtil.orgShape` ('Scratch'/'Sandbox'/'Production'/'Undefined') | **NOT SET** | **MISMATCH** - services uses `isScratch`/`isSandbox` booleans instead |
+| `orgShape` | `WorkspaceContextUtil.orgShape` ('Scratch'/'Sandbox'/'Production'; omitted if empty) | **NOT SET** | **MISMATCH** - services uses `isScratch`/`isSandbox` booleans instead |
 | `isScratch` | **NOT SET** | `DefaultOrgRef.isScratch` as `'true'`/`'false'` | **MISMATCH** - vscode-utils uses `orgShape` enum |
 | `isSandbox` | **NOT SET** | `DefaultOrgRef.isSandbox` as `'true'`/`'false'` | **MISMATCH** - vscode-utils uses `orgShape` enum |
 | `tracksSource` | **NOT SET** | `DefaultOrgRef.tracksSource` as `'true'`/`'false'` | **MISMATCH** - missing in vscode-utils |
-| `devHubId` | `WorkspaceContextUtil.devHubId` | — | Key name differs (see below) |
+| `devHubId` | `WorkspaceContextUtil.devHubId` (omitted if empty) | — | Key name differs (see below) |
 | `devHubOrgId` | — | `DefaultOrgRef.devHubOrgId` | **MISMATCH** - different key name from vscode-utils `devHubId` |
+| `orgEdition` | `WorkspaceContextUtil.orgEdition` (omitted if empty) | `DefaultOrgRef.orgEdition` (via span attributes) | Same value |
 | `userId` | Constructor param (CLI telemetry ID or random hash) | `DefaultOrgRef.cliId` | Same value, different wiring |
 | `webUserId` | Constructor param + per-event override | `DefaultOrgRef.webUserId` | Same value |
 | `telemetryTag` | VS Code config `salesforcedx-vscode-core.telemetry-tag` | VS Code config `salesforcedx-vscode-core.telemetry-tag` | Same |

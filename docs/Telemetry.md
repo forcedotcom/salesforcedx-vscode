@@ -91,9 +91,19 @@ If using the New services extension, use `registerCommandWithLayer` from the ser
 
 Commands registered this way get automatic spans, which go to all the configured telemetry destinations (o11y, appInsights, local docker, etc). See [services-extension-consumption skill](../.claude/skills/services-extension-consumption/SKILL.md)
 
+## Testing Telemetry
+
+Desktop E2E tests can inspect both telemetry pipelines on-disk to verify event emission + attributes:
+
+- **O11y spans** (Effect pipeline) → `~/.sf/vscode-spans/*.jsonl`
+- **AppInsights events** (TelemetryFile) → `{workspace}/salesforcedx-vscode-core-telemetry.json`
+
+Fixture setup + read/assert recipe: [playwright-e2e SKILL — Telemetry inspection](../.claude/skills/playwright-e2e/SKILL.md#telemetry-inspection-diagnostic-tests). Example: `packages/salesforcedx-vscode-lightning/test/playwright/specs/telemetryOutput.desktop.spec.ts`.
+
 ## See Also
 
 - [services-extension-consumption](../.claude/skills/services-extension-consumption/SKILL.md) - Consuming salesforcedx-vscode-services API
 - [Observability README](../packages/salesforcedx-vscode-services/src/observability/README.md) - OpenTelemetry with Effect documentation
 - [Extensions - Logging](./architecture/Extensions.md#logging) - console and outputChannel logging options
 - [contributing/telemetry.md](../contributing/telemetry.md) - telemetry implementation details for this repo
+- [Playwright E2E testing](./Testing.md#end-to-end-testing) - E2E test guidelines

@@ -19,9 +19,13 @@ const SPANS_DIR = join(homedir(), '.sf', 'vscode-spans');
 // App Insights envelopes (what the Azure Monitor exporter would POST to /v2.1/track) land here,
 // kept separate from spans so the actual telemetry payload can be inspected on its own.
 const APP_INSIGHTS_DIR = join(homedir(), '.sf', 'vscode-appinsights');
+// O11y events (what O11ySpanExporter would upload through the org connection) land here in dev/test,
+// diverted to POST /o11y so the O11y payload can be inspected locally alongside App Insights.
+const O11Y_DIR = join(homedir(), '.sf', 'vscode-o11y');
 
 const filePaths = new Map<string, string>();
 const otlpFilePathHolder: { value: string | undefined } = { value: undefined };
+const o11yFilePathHolder: { value: string | undefined } = { value: undefined };
 const trackFilePathHolders: Record<'node' | 'web', { value: string | undefined }> = {
   node: { value: undefined },
   web: { value: undefined }
@@ -42,6 +46,14 @@ const getOtlpFilePath = (): string => {
     otlpFilePathHolder.value = join(SPANS_DIR, `otlp-${timestamp}.jsonl`);
   }
   return otlpFilePathHolder.value;
+};
+
+const getO11yFilePath = (): string => {
+  if (!o11yFilePathHolder.value) {
+    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+    o11yFilePathHolder.value = join(O11Y_DIR, `o11y-${timestamp}.jsonl`);
+  }
+  return o11yFilePathHolder.value;
 };
 
 // Node Breeze envelopes → appinsights-*.jsonl; web extension-telemetry events → appinsights-web-*.jsonl.
@@ -72,7 +84,7 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
     return;
   }
 
-  const validUrls = ['/spans', '/otlp-spans', '/v2.1/track'];
+  const validUrls = ['/spans', '/otlp-spans', '/v2.1/track', '/o11y'];
   if (req.method !== 'POST' || !validUrls.includes(req.url ?? '')) {
     send(res, 404, JSON.stringify({ error: `POST ${validUrls.join(', ')} only` }));
     return;
@@ -93,6 +105,11 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
 
       if (req.url === '/otlp-spans') {
         handleOtlpSpans(body, res);
+        return;
+      }
+
+      if (req.url === '/o11y') {
+        handleO11y(body, res);
         return;
       }
 
@@ -132,6 +149,26 @@ const handleOtlpSpans = (body: string, res: http.ServerResponse): void => {
 };
 
 /**
+ * Receives O11y events diverted in dev/test (POST /o11y from O11ySpanExporter's local divert). Each
+ * event is the payload O11ySpanExporter would upload through the org connection:
+ * { name, success, properties, measurements }. Writes one event per line to ~/.sf/vscode-o11y/.
+ */
+const handleO11y = (body: string, res: http.ServerResponse): void => {
+  const parsed = JSON.parse(body) as { extensionName?: string; events?: unknown[] };
+  const { events } = parsed;
+
+  if (!Array.isArray(events)) {
+    send(res, 400, JSON.stringify({ error: 'Expected { extensionName: string, events: object[] }' }));
+    return;
+  }
+
+  mkdirSync(O11Y_DIR, { recursive: true });
+  const content = events.map(e => JSON.stringify(e)).join('\n') + (events.length > 0 ? '\n' : '');
+  if (content.trim()) appendFileSync(getO11yFilePath(), content);
+  send(res, 200, JSON.stringify({ success: true }));
+};
+
+/**
  * Receives the App Insights telemetry both platforms would POST to Azure and writes it to
  * ~/.sf/vscode-appinsights/. Sorts the two shapes the local divert can produce:
  * Node sends gzipped newline-delimited Breeze envelopes (each has a `data.baseType`) → appinsights-*;
@@ -161,7 +198,8 @@ const server = http.createServer(handleRequest);
 const onListening = (): void => {
   console.log(`Span file server listening on http://localhost:${PORT}`);
   console.log(`Spans → ${SPANS_DIR}`);
-  console.log(`App Insights telemetry (POST /v2.1/track, Node + web) → ${APP_INSIGHTS_DIR}\n`);
+  console.log(`App Insights telemetry (POST /v2.1/track, Node + web) → ${APP_INSIGHTS_DIR}`);
+  console.log(`O11y events (POST /o11y, dev/test divert) → ${O11Y_DIR}\n`);
 };
 
 server.listen(PORT, onListening);
