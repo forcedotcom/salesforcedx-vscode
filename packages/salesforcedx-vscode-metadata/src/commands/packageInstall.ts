@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -138,11 +139,10 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
       times: 5
     })
   );
-  const record = result.records[0];
-  if (!record) {
-    return yield* new PackageInstallFailedError({ message: `Request ${requestId} not found` });
-  }
-  return record;
+  return yield* Option.match(Arr.head(result.records), {
+    onNone: () => new PackageInstallFailedError({ message: `Request ${requestId} not found` }),
+    onSome: record => Effect.succeed(record)
+  });
 });
 
 const extractErrors = (record: PackageInstallRequest): string => {
