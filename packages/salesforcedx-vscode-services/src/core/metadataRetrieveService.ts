@@ -18,6 +18,7 @@ import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { uriToPath } from '../vscode/paths';
@@ -120,6 +121,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     ) {
       const output = input.merge ? input.project.getDefaultPackage().fullPath : uriToPath(input.outputPath);
       yield* Effect.annotateCurrentSpan({ output });
+      const runtime = yield* Effect.runtime();
       const retrieveFiber = yield* Effect.tryPromise({
         try: async () => {
           const retrieveOperation = new MetadataApiRetrieve({
@@ -140,7 +142,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
             async (_, token) => {
               token.onCancellationRequested(async () => {
                 await retrieveOperation.cancel();
-                await Effect.runPromise(Fiber.interrupt(retrieveFiber));
+                await Runtime.runPromise(runtime)(Fiber.interrupt(retrieveFiber));
               });
               await retrieveOperation.start();
               return await retrieveOperation.pollStatus();
