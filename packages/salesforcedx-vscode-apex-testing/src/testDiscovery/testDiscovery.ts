@@ -23,6 +23,7 @@ import {
  * Docs: https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_discovery.htm
  */
 const minApiVersion = 65.0;
+const testLevelMinApiVersion = 68.0;
 
 export const discoverTests = (options: DiscoverTestsOptions = {}) =>
   Effect.gen(function* () {
@@ -31,13 +32,18 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
 
     const connectionApiVersion = parseFloat(connection.getApiVersion());
     // Ensure we use an API version that supports the Test Discovery API (>= 65.0)
-    const apiVersion = (
-      Number.isFinite(connectionApiVersion) ? Math.max(connectionApiVersion, minApiVersion) : minApiVersion
-    ).toFixed(1);
+    const effectiveApiVersion = Number.isFinite(connectionApiVersion)
+      ? Math.max(connectionApiVersion, minApiVersion)
+      : minApiVersion;
+    const apiVersion = effectiveApiVersion.toFixed(1);
     const basePath = `/services/data/v${apiVersion}/tooling/tests`;
     const qp = new URLSearchParams();
-    // Always show all methods (both consumers use this)
-    qp.set('showAllMethods', 'true');
+    // v68.0+ rejects `showAllMethods`; `testLevel=RunAllTestsInOrg` is Core's replacement default that keeps private-class visibility.
+    if (effectiveApiVersion >= testLevelMinApiVersion) {
+      qp.set('testLevel', 'RunAllTestsInOrg');
+    } else {
+      qp.set('showAllMethods', 'true');
+    }
     if (options?.namespacePrefix) {
       qp.set('namespacePrefix', options.namespacePrefix);
     }
