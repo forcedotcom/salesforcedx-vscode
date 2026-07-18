@@ -59,10 +59,14 @@ test.describe('Visualforce Templates', () => {
       const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.${extension}"]`);
       await editor.waitFor({ state: 'visible', timeout: 30_000 });
 
-      for (const file of [`${name}.${extension}`, `${name}.${extension}-meta.xml`]) {
-        const explorerFile = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${file}$`, 'i') });
-        await expect(explorerFile, `${file} should be visible in explorer`).toBeVisible({ timeout: 15_000 });
-      }
+      await Promise.all(
+        [`${name}.${extension}`, `${name}.${extension}-meta.xml`].map(file => {
+          const explorerFile = page
+            .locator('[role="treeitem"]')
+            .filter({ hasText: new RegExp(`${file.replaceAll('.', '\\.')}$`, 'i') });
+          return expect(explorerFile, `${file} should be visible in explorer`).toBeVisible({ timeout: 15_000 });
+        })
+      );
       await saveScreenshot(page, `vf-${name}-created.png`);
     });
   };
