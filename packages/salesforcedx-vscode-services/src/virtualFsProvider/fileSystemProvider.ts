@@ -46,7 +46,7 @@ const suffixFromPath = (uri: URI): string | undefined => {
 };
 
 /** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
-const isItReadOnlyEffect = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
+const checkIsReadOnly = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
   if (readOnlyTypes.length === 0) return false;
   const suffix = suffixFromPath(uri);
   if (!suffix) return false;
@@ -65,12 +65,15 @@ export const isItReadOnlyLayer = Layer.mergeAll(MetadataRegistryService.Default,
  * - runtime ready → reuse activation-built services (shared caches).
  * - runtime not ready (defensive: non-empty readOnly before publish) → build a throwaway graph.
  */
-const isItReadOnly = (readOnlyTypes: MetadataType[], uri: URI): boolean =>
-  readOnlyTypes.length === 0
-    ? false
-    : isServicesRuntimeReady()
-      ? Effect.runSync(getServicesRuntime()).runSync(isItReadOnlyEffect(readOnlyTypes, uri))
-      : isItReadOnlyEffect(readOnlyTypes, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync);
+const isItReadOnly = (readOnlyTypes: MetadataType[], uri: URI): boolean => {
+  if (readOnlyTypes.length === 0) return false;
+  return isServicesRuntimeReady()
+    ? getServicesRuntime().pipe(
+        Effect.map(runtime => runtime.runSync(checkIsReadOnly(readOnlyTypes, uri))),
+        Effect.runSync
+      )
+    : checkIsReadOnly(readOnlyTypes, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync);
+};
 
 export class FsProvider implements vscode.FileSystemProvider {
   public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = emitter.event;
