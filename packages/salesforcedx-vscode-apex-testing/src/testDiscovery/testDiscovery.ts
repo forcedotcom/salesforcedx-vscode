@@ -23,7 +23,6 @@ import {
  * Docs: https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_discovery.htm
  */
 const minApiVersion = 65.0;
-// v68.0+ removed `showAllMethods`; send `testLevel=RunAllTestsInOrg` instead (Core default) to keep private-class visibility.
 const testLevelMinApiVersion = 68.0;
 
 export const discoverTests = (options: DiscoverTestsOptions = {}) =>

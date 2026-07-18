@@ -128,7 +128,7 @@ describe('TestDiscovery', () => {
     );
   });
 
-  it('uses minimum API version 65.0 and always sets showAllMethods=true', async () => {
+  it('uses minimum API version 65.0 and sets showAllMethods=true below v68', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
     expect(mockConnection.request).toHaveBeenCalledTimes(1);
