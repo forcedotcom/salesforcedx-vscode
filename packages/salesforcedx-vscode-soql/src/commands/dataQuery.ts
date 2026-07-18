@@ -531,7 +531,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
     const joined = value.map(v => formatNestedDisplayValue(v, depthRemaining)).join(',');
     return joined.length > 50 ? `${joined.substring(0, 47)}...` : joined;
   }
-  if (typeof value === 'object' && isRecord(value)) {
+  if (isRecord(value)) {
     if (depthRemaining <= 0) {
       return '[Object]';
     }
