@@ -211,6 +211,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 }
 
+// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= below
 let providerInstance: ApexTestingDiscoveryFsProvider | undefined;
 
 export const getApexTestingDiscoveryFsProvider = (): ApexTestingDiscoveryFsProvider => {

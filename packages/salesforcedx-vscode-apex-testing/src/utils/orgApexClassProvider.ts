@@ -58,6 +58,7 @@ const createClassBodyCache = () =>
     lookup: lookupClassBody
   });
 
+// eslint-disable-next-line functional/no-let -- module-level lazy cache, assigned via ??= and reset to undefined for tests
 let classBodyCache: Cache.Cache<string, string> | undefined;
 
 const ensureCacheInitialized = (): Cache.Cache<string, string> => {
@@ -118,6 +119,7 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
   }
 }
 
+// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getOrgApexClassProvider
 let providerInstance: OrgApexClassProvider | undefined;
 
 /**
