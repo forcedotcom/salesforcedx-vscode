@@ -8,6 +8,7 @@ import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
+import { isRecord } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { stripAllRows } from '../editor/allRows';
@@ -159,9 +160,6 @@ export const generateTableOutput = (records: QueryResult<JsonMap>['records'], ti
 
   return createTable(tableRows, columns, title);
 };
-
-const isRecord = (record: unknown): record is Record<string, unknown> =>
-  Boolean(record) && typeof record === 'object' && !Array.isArray(record);
 
 /** Checks if a value is a Salesforce sub-query result (e.g. SELECT … FROM Contacts) */
 const isSubQueryResult = (value: unknown): value is { totalSize: number; done: boolean; records: unknown[] } => {
