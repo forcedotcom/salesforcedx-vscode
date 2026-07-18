@@ -79,10 +79,15 @@ jobs:
           TIMEOUT="${POLL_TIMEOUT:-600}"
           INTERVAL="${POLL_INTERVAL:-30}"
           deadline=$(( $(date +%s) + TIMEOUT ))
+          shopt -s nullglob
           pending=()
           for f in ./extensions/*.vsix; do
             pending+=("salesforce.$(basename "$f" "-$PUBLISH_VERSION.vsix")")
           done
+          if [ "${#pending[@]}" -eq 0 ]; then
+            echo "::error::no vsix files found in ./extensions — nothing to verify"
+            exit 1
+          fi
           while :; do
             still=()
             for id in "${pending[@]}"; do
