@@ -6,8 +6,10 @@
  */
 import type { ApexOASResource } from '../oas/schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as path from 'node:path';
 import type { ApexClassOASEligibleRequest, ApexOASEligiblePayload } from 'salesforcedx-vscode-apex';
 import type { URI } from 'vscode-uri';
@@ -98,10 +100,10 @@ export const validateMetadata = Effect.fn('ApexOas.Metadata.validate')(function*
     Effect.tap(responses => Effect.annotateCurrentSpan({ eligibleResponses: JSON.stringify(responses) }))
   );
 
-  const first = isEligibleResponses?.[0];
-  if (!first) {
-    return yield* new ClassNotEligible({ message: nls.localize('validation_failed') });
-  }
+  const first = yield* Option.match(Arr.head(isEligibleResponses ?? []), {
+    onNone: () => new ClassNotEligible({ message: nls.localize('validation_failed') }),
+    onSome: response => Effect.succeed(response)
+  });
   if (!first.isApexOasEligible && !first.isEligible) {
     return yield* new ClassNotEligible({
       message: nls.localize(
