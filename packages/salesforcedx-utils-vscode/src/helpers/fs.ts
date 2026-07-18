@@ -65,35 +65,6 @@ export const createDirectory = async (dirPath: string): Promise<void> => {
   }
 };
 
-/**
- * Reads a directory's contents
- * @param dirPath The path to the directory
- * @returns Array of file/directory names
- */
-export const readDirectory = async (dirPath: string): Promise<string[]> => {
-  try {
-    const uri = URI.file(dirPath);
-    const entries = await vscode.workspace.fs.readDirectory(uri);
-    return entries.map(([name]) => name);
-  } catch (error) {
-    throw new Error(`Failed to read directory ${dirPath}: ${isError(error) ? error.message : String(error)}`);
-  }
-};
-
-/**
- * Gets file stats
- * @param filePath The path to the file
- * @returns File stats including size, creation time, and modification time
- */
-export const stat = async (filePath: string): Promise<vscode.FileStat> => {
-  try {
-    const uri = URI.file(filePath);
-    return await vscode.workspace.fs.stat(uri);
-  } catch (error) {
-    throw new Error(`Failed to get file stats for ${filePath}: ${isError(error) ? error.message : String(error)}`);
-  }
-};
-
 export const safeDelete = async (
   filePath: string,
   options?: { recursive?: boolean; useTrash?: boolean }

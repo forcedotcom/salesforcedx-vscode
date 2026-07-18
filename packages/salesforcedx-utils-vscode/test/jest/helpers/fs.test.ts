@@ -6,15 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import {
-  readFile,
-  writeFile,
-  fileOrFolderExists,
-  createDirectory,
-  readDirectory,
-  stat,
-  safeDelete
-} from '../../../src/helpers/fs';
+import { readFile, writeFile, fileOrFolderExists, createDirectory, safeDelete } from '../../../src/helpers/fs';
 
 jest.mock('vscode');
 describe('file system utilities', () => {
@@ -123,41 +115,6 @@ describe('file system utilities', () => {
       (vscode.workspace.fs.createDirectory as jest.Mock).mockRejectedValue(mockError);
 
       await expect(createDirectory('/test/path')).rejects.toThrow('Failed to create directory /test/path: Test error');
-    });
-  });
-
-  describe('readDirectory', () => {
-    it('should read directory contents successfully', async () => {
-      const mockEntries: [string, vscode.FileType][] = [
-        ['file1.txt', vscode.FileType.File],
-        ['dir1', vscode.FileType.Directory]
-      ];
-      (vscode.workspace.fs.readDirectory as jest.Mock).mockResolvedValue(mockEntries);
-
-      const result = await readDirectory('/test/path');
-      expect(result).toEqual(['file1.txt', 'dir1']);
-    });
-
-    it('should throw error when read fails', async () => {
-      (vscode.workspace.fs.readDirectory as jest.Mock).mockRejectedValue(mockError);
-
-      await expect(readDirectory('/test/path')).rejects.toThrow('Failed to read directory /test/path: Test error');
-    });
-  });
-
-  describe('stat', () => {
-    it('should get file stats successfully', async () => {
-      const mockStats = { type: vscode.FileType.File, size: 100, ctime: 123, mtime: 456 };
-      (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue(mockStats);
-
-      const result = await stat('/test/path');
-      expect(result).toEqual(mockStats);
-    });
-
-    it('should throw error when stat fails', async () => {
-      (vscode.workspace.fs.stat as jest.Mock).mockRejectedValue(mockError);
-
-      await expect(stat('/test/path')).rejects.toThrow('Failed to get file stats for /test/path: Test error');
     });
   });
 
