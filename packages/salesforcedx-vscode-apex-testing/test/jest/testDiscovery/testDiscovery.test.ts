@@ -139,6 +139,34 @@ describe('TestDiscovery', () => {
     expect(firstCallArg.url).not.toContain('namespacePrefix=');
   });
 
+  it('omits showAllMethods and sets testLevel=RunAllTestsInOrg on v68.0', async () => {
+    (extensionProvider as any).__setMockConnection({ ...mockConnection, getApiVersion: () => '68.0' });
+    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
+    const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
+    expect(firstCallArg.url).toMatch(/^\/services\/data\/v68\.0\/tooling\/tests\?/);
+    expect(firstCallArg.url).toContain('testLevel=RunAllTestsInOrg');
+    expect(firstCallArg.url).not.toContain('showAllMethods');
+  });
+
+  it('keeps showAllMethods=true just under the gate on v67.9', async () => {
+    (extensionProvider as any).__setMockConnection({ ...mockConnection, getApiVersion: () => '67.9' });
+    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
+    const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
+    expect(firstCallArg.url).toContain('showAllMethods=true');
+    expect(firstCallArg.url).not.toContain('testLevel');
+  });
+
+  it('sets testLevel=RunAllTestsInOrg above the gate on v69.0 (>=, not ==68)', async () => {
+    (extensionProvider as any).__setMockConnection({ ...mockConnection, getApiVersion: () => '69.0' });
+    (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
+    await extensionProvider.getApexTestingRuntime().runPromise(discoverTests());
+    const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
+    expect(firstCallArg.url).toContain('testLevel=RunAllTestsInOrg');
+    expect(firstCallArg.url).not.toContain('showAllMethods');
+  });
+
   it('passes namespacePrefix when provided', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     await extensionProvider.getApexTestingRuntime().runPromise(discoverTests({ namespacePrefix: 'MyNS' }));
