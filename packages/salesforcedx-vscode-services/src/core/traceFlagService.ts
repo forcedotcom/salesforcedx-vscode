@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -217,14 +218,17 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           return new TraceFlagNotFoundError({ message: `Failed to query trace flag: ${cause.message}` });
         }
       });
-      if (result.totalSize === 0) return Option.none();
-      const item = yield* Schema.decodeUnknown(TraceFlagItemSchema)(result.records[0]).pipe(
-        Effect.mapError((parseError: ParseResult.ParseError) => {
-          const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
-          return new TraceFlagNotFoundError({ message: `Failed to decode trace flag: ${msg}` });
-        })
-      );
-      return Option.some(item);
+      return yield* Option.match(Arr.head(result.records), {
+        onNone: () => Effect.succeed(Option.none<TraceFlagItem>()),
+        onSome: record =>
+          Schema.decodeUnknown(TraceFlagItemSchema)(record).pipe(
+            Effect.mapError((parseError: ParseResult.ParseError) => {
+              const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
+              return new TraceFlagNotFoundError({ message: `Failed to decode trace flag: ${msg}` });
+            }),
+            Effect.map(Option.some)
+          )
+      });
     });
 
     const createDebugLevel = Effect.fn('TraceFlagService.createDebugLevel')(function* (
@@ -255,22 +259,24 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           return new DebugLevelCreateError({ message: `Failed to query debug level: ${cause.message}` });
         }
       });
-      if (existing.records.length > 0 && existing.records[0].Id) {
-        return existing.records[0].Id;
-      }
-      return yield* createDebugLevel({
-        DeveloperName: REPLAY_DEBUGGER_LEVELS,
-        MasterLabel: REPLAY_DEBUGGER_LEVELS,
-        ApexCode: APEX_CODE_DEBUG_LEVEL,
-        ApexProfiling: 'NONE',
-        Callout: 'NONE',
-        Database: 'NONE',
-        Nba: 'NONE',
-        System: 'NONE',
-        Validation: 'NONE',
-        Visualforce: VISUALFORCE_DEBUG_LEVEL,
-        Wave: 'NONE',
-        Workflow: 'NONE'
+      const existingId = Arr.head(existing.records).pipe(Option.flatMap(record => Option.fromNullable(record.Id)));
+      return yield* Option.match(existingId, {
+        onNone: () =>
+          createDebugLevel({
+            DeveloperName: REPLAY_DEBUGGER_LEVELS,
+            MasterLabel: REPLAY_DEBUGGER_LEVELS,
+            ApexCode: APEX_CODE_DEBUG_LEVEL,
+            ApexProfiling: 'NONE',
+            Callout: 'NONE',
+            Database: 'NONE',
+            Nba: 'NONE',
+            System: 'NONE',
+            Validation: 'NONE',
+            Visualforce: VISUALFORCE_DEBUG_LEVEL,
+            Wave: 'NONE',
+            Workflow: 'NONE'
+          }),
+        onSome: Effect.succeed
       });
     });
 
