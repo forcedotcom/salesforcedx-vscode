@@ -11,28 +11,6 @@ import { ConfigSource, ConfigUtil } from '../config/configUtil';
 import { nls } from '../messages/messages';
 import { telemetryService } from '../services/telemetry';
 
-/** Get the target org or alias, optionally showing warnings */
-export const getTargetOrgOrAlias = async (enableWarning: boolean): Promise<string | undefined> => {
-  try {
-    const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
-    if (!targetOrgOrAlias) {
-      displayMessage(nls.localize('error_no_target_org'), enableWarning, VSCodeWindowTypeEnum.Informational);
-      return undefined;
-    } else {
-      if (await ConfigUtil.isGlobalTargetOrg()) {
-        displayMessage(nls.localize('warning_using_global_username'), enableWarning, VSCodeWindowTypeEnum.Warning);
-      }
-    }
-
-    return targetOrgOrAlias;
-  } catch (err) {
-    if (isError(err)) {
-      telemetryService.sendException('get_target_org_alias', err.message);
-    }
-    return undefined;
-  }
-};
-
 /** Get the target Dev Hub or alias, optionally showing warnings */
 export const getTargetDevHubOrAlias = async (
   enableWarning: boolean,
