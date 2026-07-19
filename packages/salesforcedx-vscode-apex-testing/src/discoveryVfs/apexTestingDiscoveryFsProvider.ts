@@ -182,13 +182,17 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   private getEntry(uri: URI, createDirectories: boolean): Entry | undefined {
-    return pathParts(uri).reduce<Entry | undefined>((current, part) => {
-      if (current?.type !== vscode.FileType.Directory) {
+    const walk = (current: Entry, parts: readonly string[]): Entry | undefined => {
+      const [part, ...rest] = parts;
+      if (part === undefined) {
+        return current;
+      }
+      if (current.type !== vscode.FileType.Directory) {
         return undefined;
       }
       const next = current.entries.get(part);
       if (next) {
-        return next;
+        return walk(next, rest);
       }
       if (!createDirectories) {
         return undefined;
@@ -196,8 +200,9 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
       const dir = createDirectoryEntry();
       current.entries.set(part, dir);
       current.mtime = now();
-      return dir;
-    }, this.root);
+      return walk(dir, rest);
+    };
+    return walk(this.root, pathParts(uri));
   }
 
   // eslint-disable-next-line class-methods-use-this

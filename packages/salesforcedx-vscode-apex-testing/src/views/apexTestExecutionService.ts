@@ -506,10 +506,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
 
       // Expand suites to their methods when running all tests (so multiple suites can run via method names).
       const expandedTests = isImplicitFullRun
-        ? yield* Effect.gen(function* () {
-            const classItems = yield* ApexTestTreeService.getClassItems();
-            return yield* expandSuitesToMethods(staleScopedTests, ctx, suiteToClasses, classItems);
-          })
+        ? yield* ApexTestTreeService.getClassItems().pipe(
+            Effect.flatMap(classItems => expandSuitesToMethods(staleScopedTests, ctx, suiteToClasses, classItems))
+          )
         : staleScopedTests;
 
       // Suite expansion pulls methods from live class items and can reintroduce filter-hidden tests.

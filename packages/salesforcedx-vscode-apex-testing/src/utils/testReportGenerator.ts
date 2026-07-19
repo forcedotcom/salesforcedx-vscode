@@ -41,12 +41,13 @@ const streamToNormalizedUtf8Bytes = async (stream: NodeJS.ReadableStream): Promi
   }
 
   const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
-  const out = new Uint8Array(totalLength);
-  parts.reduce((offset, part) => {
-    out.set(part, offset);
-    return offset + part.length;
-  }, 0);
-  return out;
+  return parts.reduce(
+    (acc, part) => {
+      acc.out.set(part, acc.offset);
+      return { out: acc.out, offset: acc.offset + part.length };
+    },
+    { out: new Uint8Array(totalLength), offset: 0 }
+  ).out;
 };
 
 /** Builds the MarkdownTextFormatTransformer for the given result and settings */

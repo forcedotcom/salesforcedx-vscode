@@ -129,6 +129,20 @@ const findInCollection = (
   collection.forEach(item => items.push(item));
   return items.find(predicate);
 };
+/** Find a child matching the predicate, or create one via `create`, add it to the collection, and return it. */
+const findOrCreateChild = (
+  collection: vscode.TestItemCollection,
+  predicate: (item: vscode.TestItem) => boolean,
+  create: () => vscode.TestItem
+): vscode.TestItem => {
+  const existing = findInCollection(collection, predicate);
+  if (existing) {
+    return existing;
+  }
+  const created = create();
+  collection.add(created);
+  return created;
+};
 /** Add the stale tag to an item if absent (idempotent). */
 const addStaleTag = (item: vscode.TestItem, staleTag: vscode.TestTag): void => {
   const existingTags = item.tags ?? [];
@@ -920,28 +934,21 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           for (const [pkgKey, classEntriesList] of pkMap) {
             for (const { fullClassName: fcn, entries } of classEntriesList) {
               const nsId = createNamespaceId(nsKey);
-              const namespaceItem =
-                findInCollection(ctx.controller.items, item => item.id === nsId) ??
-                (() => {
-                  const created = ctx.controller.createTestItem(nsId, getNamespaceDisplayLabel(nsKey), undefined);
-                  ctx.controller.items.add(created);
-                  return created;
-                })();
+              const namespaceItem = findOrCreateChild(
+                ctx.controller.items,
+                item => item.id === nsId,
+                () => ctx.controller.createTestItem(nsId, getNamespaceDisplayLabel(nsKey), undefined)
+              );
 
               const classEntry = classEntriesList[0];
               const info = resolvePackageInfoForClassId(classEntry.entries[0].id, classIdToPackage);
               const packageLabel = info?.packageName ?? pkgKey;
               const pkgNodeId = `${nsKey}/${pkgKey}`;
-              const packageItem =
-                findInCollection(
-                  namespaceItem.children,
-                  item => item.id === pkgNodeId || item.label === packageLabel
-                ) ??
-                (() => {
-                  const created = ctx.controller.createTestItem(pkgNodeId, packageLabel, undefined);
-                  namespaceItem.children.add(created);
-                  return created;
-                })();
+              const packageItem = findOrCreateChild(
+                namespaceItem.children,
+                item => item.id === pkgNodeId || item.label === packageLabel,
+                () => ctx.controller.createTestItem(pkgNodeId, packageLabel, undefined)
+              );
 
               const classItem = createClassAndMethods(fcn, entries);
               packageItem.children.add(classItem);

@@ -62,10 +62,10 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
       partialResult: false
     };
     const { classes, partialResult } = yield* Effect.iterate(initialState, {
-      while: state => state.nextUrl !== undefined,
+      while: (state): state is typeof state & { nextUrl: string } => state.nextUrl !== undefined,
       body: state =>
         Effect.gen(function* () {
-          const urlToFetch = state.nextUrl!; // narrowed by `while`
+          const urlToFetch = state.nextUrl;
 
           const pageResult: Either.Either<ToolingTestsPage, Error> = yield* Effect.either(
             Effect.tryPromise({

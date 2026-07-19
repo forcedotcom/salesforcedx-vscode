@@ -72,10 +72,7 @@ export const getMethodLocationsFromSymbols = async (
   const documentSymbols = await vscode.commands
     .executeCommand<vscode.DocumentSymbol[]>('vscode.executeDocumentSymbolProvider', uri)
     // If document symbols are not available, return undefined
-    .then(
-      result => result,
-      () => undefined
-    );
+    .then(undefined, () => undefined);
 
   if (!documentSymbols || documentSymbols.length === 0) {
     return undefined;
