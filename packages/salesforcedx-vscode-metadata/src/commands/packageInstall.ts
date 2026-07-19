@@ -125,7 +125,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
 const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(function* (requestId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const conn = yield* api.services.ConnectionService.getConnection();
-  const result = yield* Effect.tryPromise({
+  return yield* Effect.tryPromise({
     try: () =>
       conn.tooling.query<PackageInstallRequest>(
         `SELECT Id, Status, Errors FROM PackageInstallRequest WHERE Id = '${requestId}'`
@@ -137,12 +137,14 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
         Schedule.either(Schedule.spaced(Duration.seconds(30)))
       ),
       times: 5
-    })
+    }),
+    Effect.flatMap(result =>
+      Option.match(Arr.head(result.records), {
+        onNone: () => new PackageInstallFailedError({ message: `Request ${requestId} not found` }),
+        onSome: Effect.succeed
+      })
+    )
   );
-  return yield* Option.match(Arr.head(result.records), {
-    onNone: () => new PackageInstallFailedError({ message: `Request ${requestId} not found` }),
-    onSome: Effect.succeed
-  });
 });
 
 const extractErrors = (record: PackageInstallRequest): string => {

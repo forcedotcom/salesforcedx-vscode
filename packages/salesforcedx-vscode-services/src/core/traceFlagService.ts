@@ -64,6 +64,19 @@ const calculateExpirationDate = (from: Date, duration = Duration.minutes(30)): D
 
 const idListToInClause = (ids: string[]) => ids.map(id => `'${id}'`).join(',');
 
+/** Decode `input` against `schema`, remapping any ParseError to a labeled TraceFlagNotFoundError. */
+const decodeOrFail =
+  <A, I>(schema: Schema.Schema<A, I>, label: string) =>
+  (input: unknown) =>
+    Schema.decodeUnknown(schema)(input).pipe(
+      Effect.mapError(
+        (parseError: ParseResult.ParseError) =>
+          new TraceFlagNotFoundError({
+            message: `Failed to decode ${label}: ${ParseResult.TreeFormatter.formatErrorSync(parseError)}`
+          })
+      )
+    );
+
 const getUserIdOrFail = Effect.gen(function* () {
   const ref = yield* getDefaultOrgRef();
   const { userId } = yield* SubscriptionRef.get(ref);
@@ -113,10 +126,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       const entitiesToResolve = [...new Set(traceFlagRecords.map(r => r.TracedEntityId).filter(isString))];
 
       if (entitiesToResolve.length === 0) {
-        return yield* Effect.all(
-          traceFlagRecords.map(r => Schema.decodeUnknown(TraceFlagItemSchema)(r)),
-          { concurrency: 'unbounded' }
-        );
+        return yield* Effect.all(traceFlagRecords.map(decodeOrFail(TraceFlagItemSchema, 'trace flag records')), {
+          concurrency: 'unbounded'
+        });
       }
       const queryIdName = (soql: string, tooling: boolean) =>
         Effect.tryPromise(() =>
@@ -170,14 +182,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
                 .getOption(rec.TracedEntityId)
                 .pipe(Effect.map(opt => ({ ...rec, TracedEntityName: Option.getOrUndefined(opt) })))
             : Effect.succeed(rec)
-          ).pipe(Effect.flatMap(r => Schema.decodeUnknown(TraceFlagItemSchema)(r)))
+          ).pipe(Effect.flatMap(decodeOrFail(TraceFlagItemSchema, 'trace flag records')))
         ),
         { concurrency: 'unbounded' }
-      ).pipe(
-        Effect.mapError((parseError: ParseResult.ParseError) => {
-          const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
-          return new TraceFlagNotFoundError({ message: `Failed to decode trace flag records: ${msg}` });
-        })
       );
     });
 
@@ -191,15 +198,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           return new TraceFlagNotFoundError({ message: `Failed to query debug levels: ${cause.message}` });
         }
       });
-      return yield* Effect.all(
-        result.records.map(r => Schema.decodeUnknown(DebugLevelItemSchema)(r)),
-        { concurrency: 'unbounded' }
-      ).pipe(
-        Effect.mapError((parseError: ParseResult.ParseError) => {
-          const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
-          return new TraceFlagNotFoundError({ message: `Failed to decode debug level records: ${msg}` });
-        })
-      );
+      return yield* Effect.all(result.records.map(decodeOrFail(DebugLevelItemSchema, 'debug level records')), {
+        concurrency: 'unbounded'
+      });
     });
 
     const getTraceFlagForUser = Effect.fn('TraceFlagService.getTraceFlagForUser')(function* (
@@ -211,22 +212,15 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
         FROM TraceFlag
         WHERE LogType='${logType}' AND TracedEntityId='${userId}'
         ORDER BY ExpirationDate DESC LIMIT 1`;
-      const result = yield* Effect.tryPromise({
+      return yield* Effect.tryPromise({
         try: () => conn.tooling.query<ToolingTraceFlagRecord>(query),
         catch: error => {
           const { cause } = unknownToErrorCause(error);
           return new TraceFlagNotFoundError({ message: `Failed to query trace flag: ${cause.message}` });
         }
-      });
-      return yield* Arr.head(result.records).pipe(
-        Effect.transposeMapOption(record =>
-          Schema.decodeUnknown(TraceFlagItemSchema)(record).pipe(
-            Effect.mapError((parseError: ParseResult.ParseError) => {
-              const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
-              return new TraceFlagNotFoundError({ message: `Failed to decode trace flag: ${msg}` });
-            })
-          )
-        )
+      }).pipe(
+        Effect.map(result => Arr.head(result.records)),
+        Effect.flatMap(Effect.transposeMapOption(decodeOrFail(TraceFlagItemSchema, 'trace flag')))
       );
     });
 
@@ -248,7 +242,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
     const getOrCreateDebugLevel = Effect.fn('TraceFlagService.getOrCreateDebugLevel')(function* () {
       const conn = yield* connectionService.getConnection();
-      const existing = yield* Effect.tryPromise({
+      return yield* Effect.tryPromise({
         try: () =>
           conn.tooling.query<{ Id: string }>(
             `SELECT Id FROM DebugLevel WHERE DeveloperName = '${REPLAY_DEBUGGER_LEVELS}' LIMIT 1`
@@ -257,27 +251,31 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           const { cause } = unknownToErrorCause(error);
           return new DebugLevelCreateError({ message: `Failed to query debug level: ${cause.message}` });
         }
-      });
-      const existingId = Arr.head(existing.records).pipe(
-        Option.flatMap(record => Option.fromNullable(record.Id)),
-        Option.filter(id => id.length > 0)
-      );
-      return yield* existingId.pipe(
-        Option.map(Effect.succeed),
-        Option.getOrElse(() =>
-          createDebugLevel({
-            DeveloperName: REPLAY_DEBUGGER_LEVELS,
-            MasterLabel: REPLAY_DEBUGGER_LEVELS,
-            ApexCode: APEX_CODE_DEBUG_LEVEL,
-            ApexProfiling: 'NONE',
-            Callout: 'NONE',
-            Database: 'NONE',
-            Nba: 'NONE',
-            System: 'NONE',
-            Validation: 'NONE',
-            Visualforce: VISUALFORCE_DEBUG_LEVEL,
-            Wave: 'NONE',
-            Workflow: 'NONE'
+      }).pipe(
+        Effect.map(existing =>
+          Arr.head(existing.records).pipe(
+            Option.flatMap(record => Option.fromNullable(record.Id)),
+            Option.filter(id => id.length > 0)
+          )
+        ),
+        Effect.flatMap(
+          Option.match({
+            onNone: () =>
+              createDebugLevel({
+                DeveloperName: REPLAY_DEBUGGER_LEVELS,
+                MasterLabel: REPLAY_DEBUGGER_LEVELS,
+                ApexCode: APEX_CODE_DEBUG_LEVEL,
+                ApexProfiling: 'NONE',
+                Callout: 'NONE',
+                Database: 'NONE',
+                Nba: 'NONE',
+                System: 'NONE',
+                Validation: 'NONE',
+                Visualforce: VISUALFORCE_DEBUG_LEVEL,
+                Wave: 'NONE',
+                Workflow: 'NONE'
+              }),
+            onSome: Effect.succeed
           })
         )
       );
@@ -410,34 +408,36 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       existingDebugLevelId?: string
     ) {
       const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
-      const existing = yield* getTraceFlagForUser(userId, logType);
-
-      return yield* Option.match(existing, {
-        onNone: () =>
-          Effect.gen(function* () {
-            const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
-            return { created: true, traceFlagId };
-          }),
-        onSome: traceFlag =>
-          Effect.gen(function* () {
-            if (traceFlag.expirationDate < new Date()) {
-              yield* deleteTraceFlag(traceFlag.id);
-              const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
-              return { created: true, traceFlagId };
-            }
-            const validExpiration =
-              traceFlag.expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
-                ? traceFlag.expirationDate
-                : calculateExpirationDate(new Date(), duration);
-            if (debugLevelId !== traceFlag.debugLevelId) {
-              yield* changeTraceFlagDebugLevel(traceFlag.id, debugLevelId);
-            }
-            if (validExpiration.getTime() !== traceFlag.expirationDate.getTime()) {
-              yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
-            }
-            return { created: false, traceFlagId: traceFlag.id };
+      return yield* getTraceFlagForUser(userId, logType).pipe(
+        Effect.flatMap(
+          Option.match({
+            onNone: () =>
+              Effect.gen(function* () {
+                const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
+                return { created: true, traceFlagId };
+              }),
+            onSome: traceFlag =>
+              Effect.gen(function* () {
+                if (traceFlag.expirationDate < new Date()) {
+                  yield* deleteTraceFlag(traceFlag.id);
+                  const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
+                  return { created: true, traceFlagId };
+                }
+                const validExpiration =
+                  traceFlag.expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
+                    ? traceFlag.expirationDate
+                    : calculateExpirationDate(new Date(), duration);
+                if (debugLevelId !== traceFlag.debugLevelId) {
+                  yield* changeTraceFlagDebugLevel(traceFlag.id, debugLevelId);
+                }
+                if (validExpiration.getTime() !== traceFlag.expirationDate.getTime()) {
+                  yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
+                }
+                return { created: false, traceFlagId: traceFlag.id };
+              })
           })
-      });
+        )
+      );
     });
 
     const cleanupExpired = Effect.fn('TraceFlagService.cleanupExpired')(() =>
