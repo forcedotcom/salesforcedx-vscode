@@ -218,17 +218,16 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           return new TraceFlagNotFoundError({ message: `Failed to query trace flag: ${cause.message}` });
         }
       });
-      return yield* Option.match(Arr.head(result.records), {
-        onNone: () => Effect.succeed(Option.none<TraceFlagItem>()),
-        onSome: record =>
+      return yield* Arr.head(result.records).pipe(
+        Effect.transposeMapOption(record =>
           Schema.decodeUnknown(TraceFlagItemSchema)(record).pipe(
             Effect.mapError((parseError: ParseResult.ParseError) => {
               const msg = ParseResult.TreeFormatter.formatErrorSync(parseError);
               return new TraceFlagNotFoundError({ message: `Failed to decode trace flag: ${msg}` });
-            }),
-            Effect.map(Option.some)
+            })
           )
-      });
+        )
+      );
     });
 
     const createDebugLevel = Effect.fn('TraceFlagService.createDebugLevel')(function* (
@@ -263,8 +262,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
         Option.flatMap(record => Option.fromNullable(record.Id)),
         Option.filter(id => id.length > 0)
       );
-      return yield* Option.match(existingId, {
-        onNone: () =>
+      return yield* existingId.pipe(
+        Option.map(Effect.succeed),
+        Option.getOrElse(() =>
           createDebugLevel({
             DeveloperName: REPLAY_DEBUGGER_LEVELS,
             MasterLabel: REPLAY_DEBUGGER_LEVELS,
@@ -278,9 +278,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
             Visualforce: VISUALFORCE_DEBUG_LEVEL,
             Wave: 'NONE',
             Workflow: 'NONE'
-          }),
-        onSome: Effect.succeed
-      });
+          })
+        )
+      );
     });
 
     const deleteDebugLevel = Effect.fn('TraceFlagService.deleteDebugLevel')(function* (debugLevelId: string) {
