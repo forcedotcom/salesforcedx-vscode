@@ -130,9 +130,11 @@ jest.mock('../../../src/utils/testUtils', () => {
   };
 });
 
-jest.mock('../../../src/testDiscovery/packageResolution', () => ({
-  resolvePackage2Members: jest.fn().mockResolvedValue(new Map())
-}));
+jest.mock('../../../src/testDiscovery/packageResolution', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
+  return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
+});
 
 const mockSaveDiscoveredClasses = jest.fn();
 
