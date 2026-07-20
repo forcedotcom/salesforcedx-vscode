@@ -1,3 +1,12 @@
+# [66.8.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/vscode-i18n-v66.7.1...vscode-i18n-v66.8.0) (2026-07-20)
+
+
+### Features
+
+* **i18n:** wire display-language into i18n so JA bundles resolve - W-23384515 ([#7803](https://github.com/forcedotcom/salesforcedx-vscode/issues/7803)) ([4396c7b](https://github.com/forcedotcom/salesforcedx-vscode/commit/4396c7b79e7e7c7920e8d857d7af8b51cdc5ee4f))
+
+
+
 ## [66.7.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/vscode-i18n-v66.7.0...vscode-i18n-v66.7.1) (2026-05-12)
 
 

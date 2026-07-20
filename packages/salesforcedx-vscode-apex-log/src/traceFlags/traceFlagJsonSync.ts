@@ -13,6 +13,7 @@ import * as Exit from 'effect/Exit';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -58,6 +59,10 @@ const toUserRecords = (searchRecords: { [field: string]: unknown }[]): UserRecor
 
 type ConnectionLike = { search: (sosl: string) => Promise<{ searchRecords: { [field: string]: unknown }[] }> };
 
+class UserSearchError extends Schema.TaggedError<UserSearchError>()('UserSearchError', {
+  message: Schema.String
+}) {}
+
 /** Run SOSL search and update picker items. Ignore failures so user can keep typing. */
 const searchUsersEffect = (
   term: string,
@@ -73,7 +78,7 @@ const searchUsersEffect = (
     const sosl = `FIND {${escaped}} IN NAME FIELDS RETURNING User(Id, FirstName, LastName, Username, UserType WHERE IsActive = true ORDER BY LastName, FirstName) LIMIT 50`;
     const { searchRecords } = yield* Effect.tryPromise({
       try: () => conn.search(sosl),
-      catch: () => new Error('search failed')
+      catch: () => new UserSearchError({ message: 'search failed' })
     });
     yield* Effect.sync(() => {
       picker.items = toUserQuickPickItems(toUserRecords(searchRecords), currentUserId);
@@ -81,7 +86,7 @@ const searchUsersEffect = (
     });
   }).pipe(
     // Ignore search failures so user can keep typing and retry
-    Effect.catchAll(() =>
+    Effect.catchTag('UserSearchError', () =>
       Effect.sync(() => {
         picker.busy = false;
       })

@@ -11,6 +11,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
+import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -156,8 +157,9 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
   );
 
   // Register the save handler
+  const runtime = yield* Effect.runtime();
   const disposable = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
-    await Effect.runPromise(Queue.offer(saveQueue, URI.parse(document.uri.toString())));
+    await Runtime.runPromise(runtime)(Queue.offer(saveQueue, URI.parse(document.uri.toString())));
   });
 
   yield* channelService.appendToChannel('Deploy on save service initialized');

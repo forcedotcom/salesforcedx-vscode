@@ -58,6 +58,21 @@ describe('TelemetryFile', () => {
     });
   });
 
+  it('should merge cached orgIdentity props into the telemetry event', () => {
+    const eventName = 'testEvent';
+    const properties = { key1: 'value1' };
+    telemetryFile.orgIdentity = { orgId: '00Ddummy', orgShape: 'Production', devHubId: '00Ddevhub' };
+
+    telemetryFile.sendTelemetryEvent(eventName, properties);
+
+    expect(writeToFileMock).toHaveBeenCalledWith(eventName, {
+      orgId: '00Ddummy',
+      orgShape: 'Production',
+      devHubId: '00Ddevhub',
+      ...properties
+    });
+  });
+
   it('should append the exception event to the telemetry file', () => {
     const exceptionName = 'testException';
     const exceptionMessage = 'Test exception message';
