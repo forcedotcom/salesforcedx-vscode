@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We added a new **SFDX: Edit Apex Test Suite** command. A single multi-select picker shows all your test classes with the current suite members pre-checked, so you can add and remove tests in one step. ([PR #7672](https://github.com/forcedotcom/salesforcedx-vscode/pull/7672))
+- We replaced the **SFDX: Add Tests to Apex Test Suite** command with a new **SFDX: Edit Apex Test Suite** command. A single multi-select picker shows all your test classes with the current suite members pre-checked, so you can add and remove tests in one step. ([PR #7672](https://github.com/forcedotcom/salesforcedx-vscode/pull/7672))
 
 #### salesforcedx-vscode-org-browser
 
@@ -18,7 +18,7 @@
 
 #### salesforcedx-vscode-org
 
-- We fixed a bug where the background "orgs expiring soon" check could steal focus and dismiss an open quick pick, such as the org picker. The warning now offers a **Show Output** button instead of revealing the panel unbidden. ([PR #7749](https://github.com/forcedotcom/salesforcedx-vscode/pull/7749))
+- We fixed a bug where the background "orgs expiring soon" check could steal focus and dismiss an open quick pick, such as the org picker. The warning now offers a **Show Output** button instead of automatically revealing the panel. ([PR #7749](https://github.com/forcedotcom/salesforcedx-vscode/pull/7749))
 
 #### salesforcedx-vscode-services
 
