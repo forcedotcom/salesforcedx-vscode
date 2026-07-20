@@ -113,14 +113,10 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Export API for other extensions to consume
   return {
-    getTestClassName: (uri: URI): Promise<string | undefined> => {
-      try {
-        return Promise.resolve(getTestClassName(uri));
-      } catch (error) {
-        console.debug('Failed to get test class name:', error);
-        return Promise.resolve(undefined);
-      }
-    }
+    getTestClassName: (uri: URI): Promise<string | undefined> =>
+      getApexTestingRuntime().runPromise(
+        Effect.try(() => getTestClassName(uri)).pipe(Effect.orElseSucceed(() => undefined))
+      )
   };
 });
 
