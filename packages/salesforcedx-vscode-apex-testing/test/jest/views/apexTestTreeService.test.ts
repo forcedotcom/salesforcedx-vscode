@@ -39,13 +39,15 @@ jest.mock('../../../src/services/extensionProvider', () => ({
 }));
 
 // Tree-mutation methods (incrementalUpdate/resolveSuiteChildren) read the org key inline via the Services
-// TargetOrgRef seam (see mockServicesApi below) and resolvePackage2Members / buildClassToUriIndex for
-// placement. Controllable per test; defaults give a valid org + empty package/URI maps so addClassToTree
+// TargetOrgRef seam (see mockServicesApi below) and PackageResolutionService.resolve / buildClassToUriIndex
+// for placement. Controllable per test; defaults give a valid org + empty package/URI maps so addClassToTree
 // exercises the namespace/package build path.
 let mockOrgInfo: { orgId?: string; username?: string } = { orgId: 'org123', username: 'user@example.com' };
-jest.mock('../../../src/testDiscovery/packageResolution', () => ({
-  resolvePackage2Members: () => Promise.resolve(new Map())
-}));
+jest.mock('../../../src/testDiscovery/packageResolution', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
+  return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
+});
 let mockClassNameToUri = new Map<string, URI>();
 jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
