@@ -10,7 +10,7 @@ Direct-in-gen: `yield*` instead of `Effect.run*`. In a vscode callback: capture 
 
 ## FORBIDDEN: Global Error in Effect Failure Channel / Catch Handler
 
-Enforced by Effect LS rules `globalErrorInEffectFailure` + `globalErrorInEffectCatch` (in `config/effect-diagnostics.json` `enforcedRules`; build fails on any hit). A `new Error(...)` in a failure channel (`Effect.fail`, `Effect.async<A, Error>`) or in a catch handler (`tryPromise`/`tryCatch` `catch`, `catchAll`, `Stream.fromAsyncIterable` error map) can't be discriminated by `catchTag`. Use a `Schema.TaggedError` with a `message` field (colocate module-local; export only when it crosses a package `.d.ts` boundary — see `ts4023-effect-errors`).
+Enforced by Effect LS rules `globalErrorInEffectFailure` + `globalErrorInEffectCatch` (in `config/effect-diagnostics.json` `enforcedRules`; build fails on any hit). A `new Error(...)` in an E-channel position — a failure channel or catch callback whose result flows to `E` (`Effect.fail`, `Effect.async<A, Error>`, `catchAll`, `Stream.fromAsyncIterable` error map), caught by `globalErrorInEffectFailure` — or in a `try*` catch handler (`tryPromise`/`try`/`tryMap`/`tryMapPromise` `catch`), caught by `globalErrorInEffectCatch`, can't be discriminated by `catchTag`. Use a `Schema.TaggedError` with a `message` field (colocate module-local; export only when it crosses a package `.d.ts` boundary — see `ts4023-effect-errors`).
 
 ## FORBIDDEN: throw Inside Effect.gen
 
