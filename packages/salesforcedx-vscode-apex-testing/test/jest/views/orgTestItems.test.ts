@@ -102,7 +102,7 @@ describe('getPackageLabelAndId', () => {
 
   it('returns unlocked package label with suffix', () => {
     const classIdToPackage = new Map<string, ResolvedPackageInfo>([
-      ['cls1', { package2Id: '0Ho1', packageName: 'MyPkg', namespacePrefix: null, containerOptions: 'Unlocked' }]
+      ['cls1', { package2Id: '0Ho1', packageName: 'MyPkg', containerOptions: Option.some('Unlocked') }]
     ]);
     const result = getPackageLabelAndId('local', 'myPkgKey', [makeClassEntry('cls1')] as any, classIdToPackage);
     expect(result.packageLabel).toBe('MyPkg (Unlocked)');
@@ -110,10 +110,7 @@ describe('getPackageLabelAndId', () => {
 
   it('returns managed package label with suffix', () => {
     const classIdToPackage = new Map<string, ResolvedPackageInfo>([
-      [
-        'cls1',
-        { package2Id: '0Ho2', packageName: 'CRM Analytics', namespacePrefix: 'wave', containerOptions: 'Managed' }
-      ]
+      ['cls1', { package2Id: '0Ho2', packageName: 'CRM Analytics', containerOptions: Option.some('Managed') }]
     ]);
     const result = getPackageLabelAndId('wave', 'pkgKey', [makeClassEntry('cls1')] as any, classIdToPackage);
     expect(result.packageLabel).toBe('CRM Analytics (Managed Package)');
@@ -121,7 +118,7 @@ describe('getPackageLabelAndId', () => {
 
   it('falls back to baseName with no suffix when containerOptions is absent', () => {
     const classIdToPackage = new Map<string, ResolvedPackageInfo>([
-      ['cls1', { package2Id: '0Ho3', packageName: 'SomePkg', namespacePrefix: null }]
+      ['cls1', { package2Id: '0Ho3', packageName: 'SomePkg', containerOptions: Option.none() }]
     ]);
     const result = getPackageLabelAndId('ns', 'key', [makeClassEntry('cls1')] as any, classIdToPackage);
     expect(result.packageLabel).toBe('SomePkg');

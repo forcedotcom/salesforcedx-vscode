@@ -9,6 +9,7 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { CodeCoverageService } from '../codecoverage/codeCoverageService';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
+import { PackageResolutionService } from '../testDiscovery/packageResolution';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { ApexTestExecutionService } from '../views/apexTestExecutionService';
 import { ApexTestTreeService } from '../views/apexTestTreeService';
@@ -18,6 +19,7 @@ const ApexTestingServicesLayer = Layer.mergeAll(
   ApexTestDiscoveryService.Default,
   ApexTestRunCacheService.Default,
   CodeCoverageService.Default,
+  PackageResolutionService.Default,
   ApexTestTreeService.Default,
   ApexTestExecutionService.Default
 );

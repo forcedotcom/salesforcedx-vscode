@@ -164,12 +164,12 @@ export const getPackageLabelAndId = (
   const firstClass = classEntriesList[0].entries[0];
   const info = resolvePackageInfoForClassId(firstClass.id, classIdToPackage);
   const baseName = info?.packageName ?? pkgKey;
-  const packageLabel =
-    info?.containerOptions === 'Unlocked'
-      ? `${baseName} (Unlocked)`
-      : info?.containerOptions === 'Managed'
-        ? nls.localize('test_explorer_managed_package_label', baseName)
-        : baseName;
+  const containerOptions = info ? info.containerOptions : Option.none();
+  const packageLabel = Option.match(containerOptions, {
+    onNone: () => baseName,
+    onSome: option =>
+      option === 'Unlocked' ? `${baseName} (Unlocked)` : nls.localize('test_explorer_managed_package_label', baseName)
+  });
   return { packageLabel, packageId: createPackageId(nsKey, pkgKey) };
 };
 

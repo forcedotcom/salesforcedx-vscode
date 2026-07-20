@@ -21,7 +21,7 @@ import { URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
 import { nls } from '../messages';
-import { resolvePackage2Members } from '../testDiscovery/packageResolution';
+import { PackageResolutionService } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -57,9 +57,9 @@ class DiscoveryError extends Schema.TaggedError<DiscoveryError>()('DiscoveryErro
 }) {}
 
 /**
- * Maps the tooling-query error re-thrown out of resolvePackage2Members (the call boundary inside
- * populateTestItemsFromOrg). NOT a remap of the package-private TrySubjectIdError, which is caught
- * inside resolvePackage2Members and never crosses the boundary.
+ * Maps a tooling-query rejection surfaced from resolvePackage2Members (the call boundary inside
+ * populateTestItemsFromOrg). resolvePackage2Members queries Package2Member by documented columns
+ * (SubjectId, SubjectKeyPrefix, SubscriberPackageId) and doesn't expose internal fallback logic.
  */
 class PackageResolutionError extends Schema.TaggedError<PackageResolutionError>()('PackageResolutionError', {
   message: Schema.String
@@ -448,7 +448,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
     /**
      * Build the org test tree (Namespace → Package → Class → Method) from Tooling API classes.
-     * The resolvePackage2Members boundary maps its re-thrown tooling-query error to PackageResolutionError.
+     * The resolvePackage2Members boundary maps any rejection to PackageResolutionError.
      * Yields cooperatively every BATCH_SIZE classes (Effect.yieldNow) so a large org tree doesn't block.
      */
     const populateTestItemsFromOrg = Effect.fn('ApexTestTreeService.populateTestItemsFromOrg')(function* (
@@ -465,31 +465,16 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         catch: e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) })
       });
 
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const [connection, orgInfo] = yield* Effect.all(
-        [
-          api.services.ConnectionService.getConnection().pipe(
-            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
-          ),
-          getDefaultOrgInfo().pipe(
-            Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
-          )
-        ],
-        { concurrency: 'unbounded' }
+      const orgInfo = yield* getDefaultOrgInfo().pipe(
+        Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
       );
       // No default org → no org-scoped tree to build.
       if (!orgInfo.orgId) return;
       const orgKey = orgInfo.orgId;
-      const classIdToPackage = yield* Effect.tryPromise({
-        try: () =>
-          resolvePackage2Members(
-            connection,
-            Array.getSomes(apexClasses.map(cls => cls.id)),
-            buildClassIdToNamespace(apexClasses),
-            orgInfo
-          ),
-        catch: e => new PackageResolutionError({ message: getMessageFromError(e) })
-      });
+      const classIdToPackage = yield* PackageResolutionService.resolve(
+        Array.getSomes(apexClasses.map(cls => cls.id)),
+        buildClassIdToNamespace(apexClasses)
+      ).pipe(Effect.mapError(e => new PackageResolutionError({ message: getMessageFromError(e) })));
 
       const structure = buildNamespacePackageStructure(apexClasses, classIdToPackage);
       const currentClassItems = yield* Ref.get(classItems);
@@ -905,12 +890,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       classNameToUri: Map<string, URI>,
       orgKey: string
     ) {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const connection = yield* api.services.ConnectionService.getConnection();
-      const orgInfo = yield* getDefaultOrgInfo();
       const classIds = Option.match(cls.id, { onNone: () => [], onSome: id => [id] });
-      const classIdToPackage = yield* Effect.promise(() =>
-        resolvePackage2Members(connection, classIds, buildClassIdToNamespace([cls]), orgInfo)
+      const classIdToPackage = yield* PackageResolutionService.resolve(classIds, buildClassIdToNamespace([cls])).pipe(
+        Effect.mapError(e => new PackageResolutionError({ message: getMessageFromError(e) }))
       );
 
       const [currentClassItems, currentMethodItems, currentClassToParent] = yield* Effect.all([
@@ -1130,9 +1112,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           yield* clearAllSuiteChildren();
         }
       }).pipe(
-        // Broad by design: the inner pipeline's error channel is a plain `Error` (discoverTests +
-        // resolvePackage2Members re-throw untagged), so there is no tagged union to switch on. Incremental
-        // update is a non-fatal optimization — any failure logs and leaves the existing tree valid.
+        // Broad by design: the inner pipeline mixes error types (discoverTests fails with a plain `Error`,
+        // addClassToTree with PackageResolutionError), and incremental update is a non-fatal optimization —
+        // any failure logs and leaves the existing tree valid, so there's no need to switch per tag.
         Effect.catchAll(error =>
           Effect.logWarning('Incremental test-tree update failed (non-fatal)', {
             message: toUserFriendlyApexTestError(error)
