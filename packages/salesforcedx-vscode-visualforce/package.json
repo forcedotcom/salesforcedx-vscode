@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.5.0",
+  "version": "67.6.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -96,6 +96,7 @@
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
+        "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
       "output": [

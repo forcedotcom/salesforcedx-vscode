@@ -1,3 +1,12 @@
+## [1.3.6](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.5...playwright-vscode-ext-v1.3.6) (2026-07-20)
+
+
+### Bug Fixes
+
+* **apex-testing:** correct Package2Member query + enable functional/no-throw-statements - W-23354493 ([#7797](https://github.com/forcedotcom/salesforcedx-vscode/issues/7797)) ([bc1267b](https://github.com/forcedotcom/salesforcedx-vscode/commit/bc1267b94848958d9f301cadbca992bf24291c00))
+
+
+
 ## [1.3.5](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.4...playwright-vscode-ext-v1.3.5) (2026-07-01)
 
 

@@ -803,7 +803,6 @@ export default [
     files: [
       'packages/salesforcedx-apex-debugger/**/*.ts',
       'packages/salesforcedx-apex-replay-debugger/**/*.ts',
-      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-org/**/*.ts',
       'packages/salesforcedx-vscode-core/**/*.ts'
     ],
@@ -819,7 +818,10 @@ export default [
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      'functional/no-let': 'error',
+      'functional/no-throw-statements': 'error',
       'functional/prefer-property-signatures': 'error',
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
       'prefer-arrow/prefer-arrow-functions': [
         'error',
         {

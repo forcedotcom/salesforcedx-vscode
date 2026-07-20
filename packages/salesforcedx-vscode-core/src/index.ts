@@ -14,7 +14,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
-import { SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
@@ -28,7 +27,7 @@ import { registerGetTelemetryServiceCommand } from './services/telemetry/telemet
 import { salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { setNodeExtraCaCerts, setSfLogLevel } from './util';
-import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
+import { getUserId } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
 /** Customer-facing commands */
@@ -45,9 +44,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getUserId,
-    getAuthFields,
-    SfCommandletExecutor,
-    WorkspaceContext,
     telemetryService,
     workspaceContextUtils,
     services: {
@@ -194,9 +190,6 @@ const handleTheUnhandled = (): void => {
 export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getUserId: typeof getUserId;
-  getAuthFields: typeof getAuthFields;
-  SfCommandletExecutor: typeof SfCommandletExecutor;
-  WorkspaceContext: typeof WorkspaceContext;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
   services: {
