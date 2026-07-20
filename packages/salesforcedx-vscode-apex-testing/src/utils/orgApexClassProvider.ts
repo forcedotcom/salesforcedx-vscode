@@ -58,6 +58,7 @@ const createClassBodyCache = () =>
     lookup: lookupClassBody
   });
 
+// eslint-disable-next-line functional/no-let -- module-level lazy cache, assigned via ??= and reset to undefined for tests
 let classBodyCache: Cache.Cache<string, string> | undefined;
 
 const ensureCacheInitialized = (): Cache.Cache<string, string> => {
@@ -81,14 +82,12 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
   // eslint-disable-next-line class-methods-use-this
   public async provideTextDocumentContent(uri: URI): Promise<string> {
     // Extract class name from path, removing .cls extension if present
-    let className = uri.path;
-    if (!className) {
+    const rawClassName = uri.path;
+    if (!rawClassName) {
       return '// Error: Class name not found in URI';
     }
     // Remove .cls extension if present (added for syntax highlighting)
-    if (className.endsWith('.cls')) {
-      className = className.slice(0, -4);
-    }
+    const className = rawClassName.endsWith('.cls') ? rawClassName.slice(0, -4) : rawClassName;
 
     // Ensure cache is initialized and get cached or fetch class body
     const cache = ensureCacheInitialized();
@@ -120,6 +119,7 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
   }
 }
 
+// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getOrgApexClassProvider
 let providerInstance: OrgApexClassProvider | undefined;
 
 /**

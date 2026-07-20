@@ -52,11 +52,12 @@ export const buildNamespacePackageStructure = (
   const structure = new Map<string, Map<string, ClassEntry[]>>();
 
   const ensureNamespace = (nsKey: string): Map<string, ClassEntry[]> => {
-    let pkMap = structure.get(nsKey);
-    if (!pkMap) {
-      pkMap = new Map();
-      structure.set(nsKey, pkMap);
+    const existing = structure.get(nsKey);
+    if (existing) {
+      return existing;
     }
+    const pkMap = new Map<string, ClassEntry[]>();
+    structure.set(nsKey, pkMap);
     return pkMap;
   };
 
@@ -67,9 +68,9 @@ export const buildNamespacePackageStructure = (
     entries: Array.NonEmptyArray<ToolingTestClass>
   ): void => {
     const pkMap = ensureNamespace(nsKey);
-    let list = pkMap.get(pkgKey);
-    if (!list) {
-      list = [];
+    const existing = pkMap.get(pkgKey);
+    const list = existing ?? [];
+    if (!existing) {
       pkMap.set(pkgKey, list);
     }
     list.push({ fullClassName, entries });

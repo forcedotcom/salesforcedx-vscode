@@ -457,6 +457,7 @@ const closeEditorTabByUri = Effect.fn('ApexTesting.closeEditorTabByUri')(functio
   yield* closeMatchingTabs(tabUri => Equal.equals(HashableUri.fromUri(tabUri), target));
 });
 
+// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getTestController
 let testControllerInst: ApexTestController | undefined;
 
 export const getTestController = (): ApexTestController => {
