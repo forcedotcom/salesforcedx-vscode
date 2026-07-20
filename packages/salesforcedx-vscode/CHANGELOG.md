@@ -22,7 +22,7 @@
 
 #### salesforcedx-vscode-services
 
-- We fixed the **Salesforce Extensions** services package failing to publish on Open VSX, which had left it stuck at an older version. ([PR #7756](https://github.com/forcedotcom/salesforcedx-vscode/pull/7756))
+- We fixed the **Salesforce Extensions** services package failing to publish on Open VSX Registry, which had left it stuck at an older version. ([PR #7756](https://github.com/forcedotcom/salesforcedx-vscode/pull/7756))
 
 #### salesforcedx-vscode-visualforce
 
