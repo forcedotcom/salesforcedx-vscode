@@ -8,6 +8,7 @@
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../../../src/core/connectionService';
@@ -39,6 +40,17 @@ const makeTraceFlagRow = (id: string, tracedEntityId: string): TraceFlagRow => (
   TracedEntityId: tracedEntityId
 });
 
+const buildConnectionServiceLayer = (connection: unknown): Layer.Layer<ConnectionService> =>
+  Layer.succeed(
+    ConnectionService,
+    ConnectionService.make({
+      getConnection: () => Effect.succeed(connection as Connection),
+      validateAccessTokenOrPromptReauth: () => Effect.void,
+      invalidateCachedConnections: () => Effect.void,
+      listAllAuthorizations: () => Effect.succeed([])
+    })
+  );
+
 const buildMockConnectionLayer = (opts: {
   traceFlagRowsBySequence: TraceFlagRow[][];
   toolingNameRowsBySoql: Map<string, IdName[]>;
@@ -58,19 +70,7 @@ const buildMockConnectionLayer = (opts: {
     const nameRows = opts.userNameRowsBySoql.get(soql) ?? [];
     return { records: nameRows, totalSize: nameRows.length };
   });
-  const layer = Layer.succeed(
-    ConnectionService,
-    ConnectionService.make({
-      getConnection: () =>
-        Effect.succeed({
-          tooling: { query: toolingSpy },
-          query: querySpy
-        } as unknown as Connection),
-      validateAccessTokenOrPromptReauth: () => Effect.void,
-      invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
-    })
-  );
+  const layer = buildConnectionServiceLayer({ tooling: { query: toolingSpy }, query: querySpy });
   return { layer, toolingSpy, querySpy };
 };
 
@@ -332,6 +332,106 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
   });
 });
 
+describe('TraceFlagService.getTraceFlagForUser', () => {
+  beforeEach(async () => {
+    await Effect.runPromise(clearDefaultOrgRef());
+  });
+
+  it('returns Option.none when no trace flag records exist', async () => {
+    const { layer } = buildMockConnectionLayer({
+      traceFlagRowsBySequence: [[]],
+      toolingNameRowsBySoql: new Map(),
+      userNameRowsBySoql: new Map()
+    });
+
+    const result = await runScoped(
+      Effect.gen(function* () {
+        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        const svc = yield* TraceFlagService;
+        return yield* svc.getTraceFlagForUser('005000000000001');
+      }),
+      layer
+    );
+
+    expect(Option.isNone(result)).toBe(true);
+  });
+
+  it('returns Option.some with the decoded item when a record exists', async () => {
+    const row = makeTraceFlagRow('7tf1', '005000000000001');
+    const { layer } = buildMockConnectionLayer({
+      traceFlagRowsBySequence: [[row]],
+      toolingNameRowsBySoql: new Map(),
+      userNameRowsBySoql: new Map()
+    });
+
+    const result = await runScoped(
+      Effect.gen(function* () {
+        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        const svc = yield* TraceFlagService;
+        return yield* svc.getTraceFlagForUser('005000000000001');
+      }),
+      layer
+    );
+
+    const item = Option.getOrElse(result, () => undefined);
+    expect(item?.id).toBe('7tf1');
+    expect(item?.debugLevelId).toBe('dl1');
+  });
+});
+
+type DebugLevelQuerySpy = jest.Mock<Promise<{ records: { Id?: string }[]; totalSize: number }>, [string]>;
+
+const buildGetOrCreateLayer = (opts: {
+  debugLevelRows: { Id?: string }[];
+}): { layer: Layer.Layer<ConnectionService>; querySpy: DebugLevelQuerySpy; createSpy: CreateSpy } => {
+  const querySpy: DebugLevelQuerySpy = jest.fn(async (_soql: string) => ({
+    records: opts.debugLevelRows,
+    totalSize: opts.debugLevelRows.length
+  }));
+  const createSpy: CreateSpy = jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-created' }));
+  const layer = buildConnectionServiceLayer({ tooling: { query: querySpy, create: createSpy } });
+  return { layer, querySpy, createSpy };
+};
+
+describe('TraceFlagService.getOrCreateDebugLevel', () => {
+  beforeEach(async () => {
+    await Effect.runPromise(clearDefaultOrgRef());
+  });
+
+  it('returns the existing debug level id without creating one', async () => {
+    const { layer, createSpy } = buildGetOrCreateLayer({ debugLevelRows: [{ Id: 'dl-existing' }] });
+
+    const id = await runScoped(
+      Effect.gen(function* () {
+        const svc = yield* TraceFlagService;
+        return yield* svc.getOrCreateDebugLevel();
+      }),
+      layer
+    );
+
+    expect(id).toBe('dl-existing');
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it('creates a new debug level when none exists and returns the created id', async () => {
+    const { layer, createSpy } = buildGetOrCreateLayer({ debugLevelRows: [] });
+
+    const id = await runScoped(
+      Effect.gen(function* () {
+        const svc = yield* TraceFlagService;
+        return yield* svc.getOrCreateDebugLevel();
+      }),
+      layer
+    );
+
+    expect(id).toBe('dl-created');
+    expect(createSpy).toHaveBeenCalledWith(
+      'DebugLevel',
+      expect.objectContaining({ DeveloperName: 'ReplayDebuggerLevels' })
+    );
+  });
+});
+
 type CreateSpy = jest.Mock<Promise<{ success: boolean; id?: string }>, [string, unknown]>;
 type DeleteSpy = jest.Mock<Promise<{ success: boolean }>, [string, string]>;
 
@@ -341,18 +441,7 @@ const buildToolingMutationLayer = (opts: {
 }): { layer: Layer.Layer<ConnectionService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
   const createSpy: CreateSpy = opts.create ?? jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-new' }));
   const deleteSpy: DeleteSpy = opts.delete ?? jest.fn(async (_type, _id) => ({ success: true }));
-  const layer = Layer.succeed(
-    ConnectionService,
-    ConnectionService.make({
-      getConnection: () =>
-        Effect.succeed({
-          tooling: { create: createSpy, delete: deleteSpy }
-        } as unknown as Connection),
-      validateAccessTokenOrPromptReauth: () => Effect.void,
-      invalidateCachedConnections: () => Effect.void,
-      listAllAuthorizations: () => Effect.succeed([])
-    })
-  );
+  const layer = buildConnectionServiceLayer({ tooling: { create: createSpy, delete: deleteSpy } });
   return { layer, createSpy, deleteSpy };
 };
 
