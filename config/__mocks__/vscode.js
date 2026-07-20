@@ -126,7 +126,8 @@ const vscode = {
   // Environment
   env: {
     machineId: '12345534',
-    appName: 'Visual Studio Code'
+    appName: 'Visual Studio Code',
+    language: 'en'
   },
 
   // Extensions

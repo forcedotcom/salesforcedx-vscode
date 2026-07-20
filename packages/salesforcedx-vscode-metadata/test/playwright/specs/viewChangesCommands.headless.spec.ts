@@ -24,7 +24,7 @@ import {
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import { nls } from '../../../src/messages';
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
@@ -53,14 +53,14 @@ test('View Changes Commands: each view changes command shows correct sections in
     await executeCommandWithCommandPalette(page, packageNls.view_all_changes_text);
     await page.screenshot({ path: 'test-results/02-after-command.png' });
 
-    const titleAllChanges = nls.localize('source_tracking_title_all_changes');
+    const titleAllChanges = messages.source_tracking_title_all_changes;
 
     // Wait for the output to appear - check for the title
     await waitForOutputChannelText(page, { expectedText: titleAllChanges });
     await page.screenshot({ path: 'test-results/03-after-wait-title.png' });
 
-    const sectionRemote = nls.localize('source_tracking_section_remote_changes');
-    const sectionLocal = nls.localize('source_tracking_section_local_changes');
+    const sectionRemote = messages.source_tracking_section_remote_changes;
+    const sectionLocal = messages.source_tracking_section_local_changes;
 
     // Verify both remote and local sections are present
     await waitForOutputChannelText(page, { expectedText: sectionRemote });
@@ -75,9 +75,9 @@ test('View Changes Commands: each view changes command shows correct sections in
     await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.view_local_changes_text);
 
-    const titleLocalChanges = nls.localize('source_tracking_title_local_changes');
-    const sectionLocal = nls.localize('source_tracking_section_local_changes');
-    const sectionRemote = nls.localize('source_tracking_section_remote_changes');
+    const titleLocalChanges = messages.source_tracking_title_local_changes;
+    const sectionLocal = messages.source_tracking_section_local_changes;
+    const sectionRemote = messages.source_tracking_section_remote_changes;
 
     // Wait for the local changes title to appear in output
     await waitForOutputChannelText(page, { expectedText: titleLocalChanges });
@@ -96,9 +96,9 @@ test('View Changes Commands: each view changes command shows correct sections in
     await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.view_remote_changes_text);
 
-    const titleRemoteChanges = nls.localize('source_tracking_title_remote_changes');
-    const sectionRemote = nls.localize('source_tracking_section_remote_changes');
-    const sectionLocal = nls.localize('source_tracking_section_local_changes');
+    const titleRemoteChanges = messages.source_tracking_title_remote_changes;
+    const sectionRemote = messages.source_tracking_section_remote_changes;
+    const sectionLocal = messages.source_tracking_section_local_changes;
 
     // Wait for the remote changes title to appear in output
     await waitForOutputChannelText(page, { expectedText: titleRemoteChanges });

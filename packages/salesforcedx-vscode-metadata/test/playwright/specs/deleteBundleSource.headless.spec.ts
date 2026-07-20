@@ -49,7 +49,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
-import { nls } from '../../../src/messages';
+import { messages } from '../../../src/messages/i18n';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
 /** Contributed by salesforcedx-vscode-lwc (loaded as an extra extension in the non-tracking desktop fixture). */
@@ -122,7 +122,7 @@ const createLwcBundle = async (page: Page, camelName: string): Promise<void> => 
       await selectOutputChannel(page, 'Salesforce Metadata');
       await clearOutputChannel(page);
 
-      await executeCommandWithCommandPalette(page, nls.localize('deploy_this_source_text'));
+      await executeCommandWithCommandPalette(page, messages.deploy_this_source_text);
       const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
       await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
       await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
@@ -135,14 +135,14 @@ const createLwcBundle = async (page: Page, camelName: string): Promise<void> => 
       await selectOutputChannel(page, 'Salesforce Metadata');
       await clearOutputChannel(page);
 
-      await executeCommandWithCommandPalette(page, nls.localize('delete_source_text'));
+      await executeCommandWithCommandPalette(page, messages.delete_source_text);
 
       const deleteConfirmation = page
         .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: nls.localize('delete_source_confirmation_message') })
+        .filter({ hasText: messages.delete_source_confirmation_message })
         .first();
       await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
-      await deleteConfirmation.getByRole('button', { name: nls.localize('confirm_delete_source_button_text') }).click();
+      await deleteConfirmation.getByRole('button', { name: messages.confirm_delete_source_button_text }).click();
 
       await waitForOutputChannelText(page, { expectedText: 'Deleting', timeout: 30_000 });
       await waitForOutputChannelText(page, { expectedText: 'Deleted Source', timeout: DEPLOY_TIMEOUT });
