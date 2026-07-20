@@ -26,14 +26,6 @@ const CLOSE_TIMEOUT_MS = 5000;
 /** Per-fixture timeout (ms) for the `page` fixture setup — independent of the test-level timeout. */
 const PAGE_FIXTURE_TIMEOUT_MS = isWindowsDesktop() ? 180_000 : 90_000;
 
-/**
- * Per-fixture timeout (ms) for the `electronApp` fixture setup — independent of the test body's own
- * `test.setTimeout`, which only takes effect once the body runs (after all fixtures resolve). Generous
- * because a non-English `locale` triggers a throwaway warm-up launch (to populate languagepacks.json)
- * BEFORE the real launch — two sequential cold Electron starts, unbounded by the ambient project timeout.
- */
-const ELECTRON_APP_FIXTURE_TIMEOUT_MS = isWindowsDesktop() ? 300_000 : 180_000;
-
 /** Workbench-selector wait budget (ms) for a single `waitForWorkbenchWindow` attempt. */
 const WORKBENCH_TIMEOUT_MS = 60_000;
 
@@ -125,30 +117,6 @@ const awaitProcExit = (proc: ChildProcess, { event, timeoutMs }: { event: 'close
     setTimeout(resolve, timeoutMs);
   });
 
-/**
- * Poll `<userDataDir>/languagepacks.json` until it lists `locale`, or `timeoutMs` elapses.
- * The main process resolves the display language from this file at startup; if it is missing it
- * falls back to English. The shared process writes it ASYNCHRONOUSLY after the workbench loads, so a
- * warm-up launch that is SIGKILL'd (macOS/Linux CI teardown) can die before the write lands, leaving
- * the real launch to resolve 'en'. Windows tears down via graceful `app.close()`, which flushes the
- * write — hence the JA desktop spec passed on windows-latest but failed on macos-latest. Awaiting the
- * file here makes the cache deterministic regardless of how the warm-up is killed.
- */
-const waitForLanguagePackCache = async (userDataDir: string, locale: string, timeoutMs: number): Promise<boolean> => {
-  const file = path.join(userDataDir, 'languagepacks.json');
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      const packs = JSON.parse(await fs.readFile(file, 'utf8')) as Record<string, unknown>;
-      if (packs[locale]) return true;
-    } catch {
-      // not written yet (ENOENT) or mid-write (partial JSON) — retry until deadline
-    }
-    await new Promise(resolve => setTimeout(resolve, 250));
-  }
-  return false;
-};
-
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
@@ -160,8 +128,6 @@ type CreateDesktopTestOptions = {
   additionalExtensionDirs?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
-  /** VS Code display language (`--locale=`). Requires the matching language pack in `marketplaceExtensions` to affect `vscode.env.language`. */
-  locale?: string;
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
@@ -334,8 +300,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     additionalExtensionDirs = [],
     marketplaceExtensions = [],
     disableOtherExtensions = true,
-    userSettings,
-    locale
+    userSettings
   } = options;
 
   const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
@@ -386,8 +351,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     },
 
     // Launch fresh Electron instance per test
-    electronApp: [
-      async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
+    electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
       // User data dir must live OUTSIDE the opened workspace folder. On VS Code 1.124 (Chromium 148)
       // placing it inside the workspace makes the Electron main process exit before the first window
       // opens ("Waiting for the debugger to disconnect"), so electronApp.firstWindow() throws
@@ -451,7 +415,6 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         '--disable-gpu-sandbox',
         '--disable-workspace-trust',
         '--no-sandbox',
-        ...(locale ? [`--locale=${locale}`] : []),
         workspaceDir
       ];
 
@@ -534,30 +497,6 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         }
       };
 
-      // Display-language warm-up: with a fresh user-data-dir, VS Code's first launch WRITES
-      // languagepacks.json (resolving to 'en'); only a subsequent launch resolves the installed
-      // pack (vscode.env.language === locale). So when a non-English locale is requested, run one
-      // throwaway launch first to populate the cache. (Verified: launch1→en, launch2→ja.)
-      if (locale && !locale.startsWith('en')) {
-        const warmup = await launchElectron();
-        try {
-          // waitForWorkbenchWindow already awaits the WORKBENCH selector internally — no extra wait needed.
-          await waitForWorkbenchWindow(warmup, WORKBENCH_TIMEOUT_MS);
-          // The shared process writes languagepacks.json asynchronously after the workbench loads. Await
-          // that write BEFORE killApp so the cache is populated regardless of kill mechanism (macOS/Linux
-          // CI SIGKILLs the process group, which can pre-empt the write; Windows closes gracefully).
-          if (!(await waitForLanguagePackCache(userDataDir, locale, WORKBENCH_TIMEOUT_MS))) {
-            console.log(`[warmup] languagepacks.json never listed locale '${locale}' before timeout`);
-          }
-        } catch (error) {
-          // Log (do not fail) so a warm-up that never reached the workbench is distinguishable from a
-          // genuine UI-assertion failure: if the cache stays unpopulated, the real launch resolves 'en'
-          // and the test fails later with a confusing 'Japanese text not visible' assertion instead.
-          console.log(`[warmup] display-language warm-up did not reach workbench: ${String(error)}`);
-        }
-        await killApp(warmup);
-      }
-
       const firstApp = await launchElectron();
       // Mutable holder so teardown always kills the latest-launched app (after any relaunch).
       const current: { app: ElectronApplication } = { app: firstApp };
@@ -587,8 +526,6 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         console.log('[teardown] done');
       }
     },
-      { scope: 'test', timeout: ELECTRON_APP_FIXTURE_TIMEOUT_MS }
-    ],
 
     // Build a ready workbench Page. firstWindow() is never retried on the same app instance
     // (a second call returns the same, possibly-closed Page). On win32 launch instability the
