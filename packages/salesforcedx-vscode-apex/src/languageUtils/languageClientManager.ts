@@ -7,6 +7,7 @@
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
+import { pipe } from 'effect/Function';
 import { isError, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
@@ -70,16 +71,19 @@ const removeApexDbEffect = Effect.fn('LanguageClientManager.removeApexDB')(funct
   if (info.isEmpty) {
     return;
   }
-  const toolsUri = Utils.joinPath(info.uri, '.sfdx', 'tools');
   // A failed listing (e.g. the tools dir doesn't exist yet) ⇒ nothing to clean.
-  const entries = yield* api.services.FsService.readDirectoryWithTypes(toolsUri).pipe(
-    Effect.catchTag('FsServiceError', () => Effect.succeed<ToolsEntry[]>([]))
-  );
   // safeDelete swallows per-folder failures, matching the old swallow-and-continue behavior.
-  yield* Effect.forEach(
-    toolsDirsToDelete(entries),
-    uri => api.services.FsService.safeDelete(uri, { recursive: true, useTrash: true }),
-    { concurrency: 'unbounded', discard: true }
+  yield* pipe(
+    Utils.joinPath(info.uri, '.sfdx', 'tools'),
+    api.services.FsService.readDirectoryWithTypes,
+    Effect.catchTag('FsServiceError', () => Effect.succeed<ToolsEntry[]>([])),
+    Effect.map(toolsDirsToDelete),
+    Effect.flatMap(uris =>
+      Effect.forEach(uris, uri => api.services.FsService.safeDelete(uri, { recursive: true, useTrash: true }), {
+        concurrency: 'unbounded',
+        discard: true
+      })
+    )
   );
 });
 
