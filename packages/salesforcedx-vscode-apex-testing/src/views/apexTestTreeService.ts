@@ -119,6 +119,30 @@ const BATCH_SIZE = 50;
 
 const STALE = 'stale';
 const isStale = (item: vscode.TestItem): boolean => !!item.tags?.some(t => t.id === STALE);
+
+/** Find an existing child in a TestItemCollection matching the predicate. */
+const findInCollection = (
+  collection: vscode.TestItemCollection,
+  predicate: (item: vscode.TestItem) => boolean
+): vscode.TestItem | undefined => {
+  const items: vscode.TestItem[] = [];
+  collection.forEach(item => items.push(item));
+  return items.find(predicate);
+};
+/** Find a child matching the predicate, or create one via `create`, add it to the collection, and return it. */
+const findOrCreateChild = (
+  collection: vscode.TestItemCollection,
+  predicate: (item: vscode.TestItem) => boolean,
+  create: () => vscode.TestItem
+): vscode.TestItem => {
+  const existing = findInCollection(collection, predicate);
+  if (existing) {
+    return existing;
+  }
+  const created = create();
+  collection.add(created);
+  return created;
+};
 /** Add the stale tag to an item if absent (idempotent). */
 const addStaleTag = (item: vscode.TestItem, staleTag: vscode.TestTag): void => {
   const existingTags = item.tags ?? [];
@@ -516,8 +540,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const connection = yield* api.services.ConnectionService.getConnection();
       const chunkSize = 200;
-      for (let start = 0; start < classIds.length; start += chunkSize) {
-        const chunkIds = classIds.slice(start, start + chunkSize);
+      for (const chunkIds of Array.chunksOf(classIds, chunkSize)) {
         const inClause = chunkIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
         const query = `SELECT Id, Name, NamespacePrefix, Body FROM ApexClass WHERE Id IN (${inClause})`;
         const queryResult = yield* Effect.promise(() =>
@@ -892,35 +915,22 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         for (const [nsKey, pkMap] of structure) {
           for (const [pkgKey, classEntriesList] of pkMap) {
             for (const { fullClassName: fcn, entries } of classEntriesList) {
-              let namespaceItem: vscode.TestItem | undefined;
-              ctx.controller.items.forEach(item => {
-                if (item.id === createNamespaceId(nsKey)) {
-                  namespaceItem = item;
-                }
-              });
-              if (!namespaceItem) {
-                namespaceItem = ctx.controller.createTestItem(
-                  createNamespaceId(nsKey),
-                  getNamespaceDisplayLabel(nsKey),
-                  undefined
-                );
-                ctx.controller.items.add(namespaceItem);
-              }
+              const nsId = createNamespaceId(nsKey);
+              const namespaceItem = findOrCreateChild(
+                ctx.controller.items,
+                item => item.id === nsId,
+                () => ctx.controller.createTestItem(nsId, getNamespaceDisplayLabel(nsKey), undefined)
+              );
 
               const classEntry = classEntriesList[0];
               const info = resolvePackageInfoForClassId(classEntry.entries[0].id, classIdToPackage);
               const packageLabel = info?.packageName ?? pkgKey;
               const pkgNodeId = `${nsKey}/${pkgKey}`;
-              let packageItem: vscode.TestItem | undefined;
-              namespaceItem.children.forEach(item => {
-                if (item.id === pkgNodeId || item.label === packageLabel) {
-                  packageItem = item;
-                }
-              });
-              if (!packageItem) {
-                packageItem = ctx.controller.createTestItem(pkgNodeId, packageLabel, undefined);
-                namespaceItem.children.add(packageItem);
-              }
+              const packageItem = findOrCreateChild(
+                namespaceItem.children,
+                item => item.id === pkgNodeId || item.label === packageLabel,
+                () => ctx.controller.createTestItem(pkgNodeId, packageLabel, undefined)
+              );
 
               const classItem = createClassAndMethods(fcn, entries);
               packageItem.children.add(classItem);

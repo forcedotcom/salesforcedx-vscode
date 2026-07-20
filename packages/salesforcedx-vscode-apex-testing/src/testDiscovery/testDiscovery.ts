@@ -53,63 +53,71 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
     }
     const baseUrl = qp.toString() ? `${basePath}?${qp.toString()}` : basePath;
 
-    const classes: ToolingTestClass[] = [];
-    let nextUrl: string | undefined = baseUrl;
-    let partialResult = false;
-
     // Request headers to fix pagination URL format
     const requestHeaders = {
       'X-Chatter-Entity-Encoding': 'false'
     };
 
-    while (nextUrl) {
-      const urlToFetch = nextUrl; // Capture for TypeScript narrowing
+    // Paginate through the Test Discovery API, accumulating decoded classes. A 431 (header too large)
+    // stops early with partialResult=true (mirrored by a single malformed record degrading to partial).
+    const initialState: { classes: ToolingTestClass[]; nextUrl: string | undefined; partialResult: boolean } = {
+      classes: [],
+      nextUrl: baseUrl,
+      partialResult: false
+    };
+    const { classes, partialResult } = yield* Effect.iterate(initialState, {
+      while: (state): state is typeof state & { nextUrl: string } => state.nextUrl !== undefined,
+      body: state =>
+        Effect.gen(function* () {
+          const urlToFetch = state.nextUrl;
 
-      const pageResult = yield* Effect.either(
-        Effect.tryPromise({
-          try: (): Promise<ToolingTestsPage> =>
-            connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
-          catch: (error): TestDiscoveryFetchError =>
-            new TestDiscoveryFetchError({
-              message: nls.localize(
-                'apex_test_discovery_fetch_failed_message',
-                isError(error) ? error.message : String(error)
-              )
+          const pageResult = yield* Effect.either(
+            Effect.tryPromise({
+              try: (): Promise<ToolingTestsPage> =>
+                connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
+              catch: (error): TestDiscoveryFetchError =>
+                new TestDiscoveryFetchError({
+                  message: nls.localize(
+                    'apex_test_discovery_fetch_failed_message',
+                    isError(error) ? error.message : String(error)
+                  )
+                })
             })
-        })
-      );
+          );
 
-      if (pageResult._tag === 'Left') {
-        const error = pageResult.left;
-        const errorMessage = error.message;
-        // Check if it's a 431 error (Request Header Fields Too Large)
-        if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
-          partialResult = true;
-          break;
-        }
-        // For other errors, rethrow
-        return yield* error;
-      }
+          if (pageResult._tag === 'Left') {
+            const error = pageResult.left;
+            const errorMessage = error.message;
+            // Check if it's a 431 error (Request Header Fields Too Large)
+            if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
+              return { ...state, nextUrl: undefined, partialResult: true };
+            }
+            // For other errors, rethrow
+            return yield* error;
+          }
 
-      if (pageResult._tag === 'Right') {
-        const page: ToolingTestsPage = pageResult.right;
-        if (page?.apexTestClasses?.length) {
+          const page: ToolingTestsPage = pageResult.right;
+          if (!page?.apexTestClasses?.length) {
+            return { ...state, nextUrl: page?.nextRecordsUrl ?? undefined };
+          }
           // Decode the wire `""` sentinel to Option.none() at the parse boundary. Decode per-record so a
           // single malformed record degrades to a partial result (mirroring the 431 path) instead of
           // aborting the entire discovery.
           const decodeRecord = Schema.decodeUnknown(ToolingTestClass);
           const results = yield* Effect.forEach(page.apexTestClasses, record => Effect.either(decodeRecord(record)));
-          classes.push(...Array.getRights(results));
           const failures = Array.getLefts(results);
           if (failures.length > 0) {
             yield* Effect.logWarning(
               `Skipped ${failures.length} malformed test discovery record(s): ${failures.map(e => e.message).join('; ')}`
             );
           }
-        }
-        nextUrl = page?.nextRecordsUrl ?? undefined;
-      }
-    }
+          return {
+            ...state,
+            classes: [...state.classes, ...Array.getRights(results)],
+            nextUrl: page?.nextRecordsUrl ?? undefined
+          };
+        })
+    });
 
     if (partialResult) {
       // Log warning about partial results
