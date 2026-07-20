@@ -305,6 +305,54 @@ describe('Advanced Localization Unit Tests', () => {
       expect(nls1).toBe(nls2); // Should be the same instance
     });
 
+    it('serves JA when constructed with locale ja', () => {
+      const service = LocalizationService.getInstance('test', 'ja');
+      service.messageBundleManager.registerMessageBundle('test', {
+        type: 'base',
+        messages: { welcome: 'Welcome' }
+      });
+      service.messageBundleManager.registerMessageBundle('test', {
+        type: 'locale',
+        locale: 'ja',
+        messages: { _locale: 'ja', welcome: 'いらっしゃいませ' }
+      });
+
+      expect(service.localize('welcome')).toBe('いらっしゃいませ');
+    });
+
+    it('serves base (en) when constructed without locale', () => {
+      const service = LocalizationService.getInstance('test');
+      service.messageBundleManager.registerMessageBundle('test', {
+        type: 'base',
+        messages: { welcome: 'Welcome' }
+      });
+      service.messageBundleManager.registerMessageBundle('test', {
+        type: 'locale',
+        locale: 'ja',
+        messages: { _locale: 'ja', welcome: 'いらっしゃいませ' }
+      });
+
+      expect(service.localize('welcome')).toBe('Welcome');
+    });
+
+    it('first getInstance wins: later locale arg is ignored', () => {
+      const first = LocalizationService.getInstance('test', 'ja');
+      const second = LocalizationService.getInstance('test', 'en');
+      expect(second).toBe(first);
+
+      first.messageBundleManager.registerMessageBundle('test', {
+        type: 'base',
+        messages: { welcome: 'Welcome' }
+      });
+      first.messageBundleManager.registerMessageBundle('test', {
+        type: 'locale',
+        locale: 'ja',
+        messages: { _locale: 'ja', welcome: 'いらっしゃいませ' }
+      });
+
+      expect(first.localize('welcome')).toBe('いらっしゃいませ');
+    });
+
     it('should refresh localization and reinitialize nls', () => {
       const service = LocalizationService.getInstance('test');
       const baseBundle: AdvancedMessageBundle = {
