@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
 import * as path from 'node:path';
@@ -16,7 +17,6 @@ import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../../s
 
 // Mock VS Code file utilities
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  fileOrFolderExists: jest.fn(),
   LocalizationService: {
     getInstance: jest.fn().mockReturnValue({
       messageBundleManager: {
@@ -57,6 +57,23 @@ jest.mock('vscode', () => ({
       public end: any
     ) {}
   }
+}));
+
+// Mock the services runtime: real getRuntime builds AllServicesLayer (unset in unit tests), so run
+// effects against a stub ExtensionProviderService whose FsService.fileOrFolderExists always yields true.
+jest.mock('../../../src/services/runtime', () => ({
+  getRuntime: () => ({
+    runPromise: (eff: any) =>
+      Effect.runPromise(
+        eff.pipe(
+          Effect.provideService(ExtensionProviderService, {
+            getServicesApi: Effect.succeed({
+              services: { FsService: { fileOrFolderExists: () => Effect.succeed(true) } }
+            })
+          })
+        )
+      )
+  })
 }));
 
 // Mock find-java-home module
@@ -103,7 +120,6 @@ describe('Java Requirements Test', () => {
   describe('Cross-platform tests', () => {
     it('Should allow valid java runtime path outside the project', async () => {
       getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
-      (fileOrFolderExists as jest.Mock).mockResolvedValue(true);
       execFileSpy.mockImplementation((...args) => {
         const cb = args.at(-1);
         cb('', '', 'java.version = 11.0.0');
