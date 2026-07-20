@@ -810,6 +810,33 @@ describe('ApexTestController', () => {
       expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
     });
 
+    it('keeps a refresh failure non-fatal: still shows success, never failed', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showSuccessfulExecution = jest.fn();
+      notificationService.showFailedExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').succeed({
+          getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
+        })
+      );
+      // refresh rejects — must be swallowed (logWarning), not flipped to failed-execution.
+      jest.spyOn(controller, 'refresh').mockRejectedValue(new Error('refresh boom'));
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
+      expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
+    });
+
     it('does not retrieve for local class items', async () => {
       const classTestItem = {
         id: 'class:LocalClass',

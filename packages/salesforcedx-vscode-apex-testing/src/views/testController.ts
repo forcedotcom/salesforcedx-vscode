@@ -268,46 +268,16 @@ export class ApexTestController {
       return;
     }
     const executionName = nls.localize('apex_test_retrieve_org_only_class_text');
-    try {
-      const result = await getApexTestingRuntime().runPromise(
-        Effect.gen(function* () {
-          const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          return yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
-            ignoreConflicts: true
-          });
-        })
-      );
-
-      if (isString(result)) {
-        await notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled'));
-        return;
-      }
-
-      const retrievedFileUri = getRetrievedFileUri(result);
-      if (retrievedFileUri) {
-        await getApexTestingRuntime().runPromise(
-          Effect.fn('ApexTesting.openRetrievedFile')(function* () {
-            const api = yield* (yield* ExtensionProviderService).getServicesApi;
-            yield* api.services.FsService.showTextDocument(retrievedFileUri, {
-              preview: false,
-              viewColumn: vscode.ViewColumn.Active,
-              preserveFocus: false
-            });
-            yield* closeEditorTabByUri(uri);
-          })()
-        );
-      }
-
-      try {
-        await this.refresh();
-      } catch (error: unknown) {
-        getApexTestingRuntime().runSync(Effect.logWarning('Failed to refresh Apex tests after retrieve', { error }));
-      }
-
-      notificationService.showSuccessfulExecution(executionName);
-    } catch {
-      notificationService.showFailedExecution(executionName);
-    }
+    await getApexTestingRuntime().runPromise(
+      retrieveOrgOnlyClass(uri, className, executionName, () => this.refresh()).pipe(
+        // Cancellation gets its own notification; every other retrieve/open failure defaults to the
+        // failed-execution notice (mirrors the old blanket catch, but never swallows silently).
+        Effect.catchTag('UserCancellationError', () =>
+          Effect.promise(() => notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled')))
+        ),
+        Effect.catchAll(() => Effect.sync(() => notificationService.showFailedExecution(executionName)))
+      )
+    );
   }
 
   /** Resolve-handler boundary for suite expansion: delegates to the tree service, mapping the tagged
@@ -386,6 +356,40 @@ const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Pr
     }
   }
 };
+
+// Retrieve an org-only Apex class into the workspace, open it, and refresh the tree. The refresh step
+// recovers in place (non-fatal logWarning) so a refresh failure never bubbles to the caller's failed-notify
+// branch. Retrieve/open failures propagate on the error channel for the boundary to map (cancellation →
+// canceled notification, everything else → showFailedExecution).
+const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassFromUri')(function* (
+  uri: URI,
+  className: string,
+  executionName: string,
+  refresh: () => Promise<void>
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const result = yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
+    ignoreConflicts: true
+  });
+
+  const retrievedFileUri = getRetrievedFileUri(result);
+  if (retrievedFileUri) {
+    yield* api.services.FsService.showTextDocument(retrievedFileUri, {
+      preview: false,
+      viewColumn: vscode.ViewColumn.Active,
+      preserveFocus: false
+    });
+    yield* closeEditorTabByUri(uri);
+  }
+
+  // Refresh failure stays non-fatal and must never reach the outer failed-notify branch.
+  yield* Effect.tryPromise(() => refresh()).pipe(
+    Effect.catchAll(error => Effect.logWarning('Failed to refresh Apex tests after retrieve', { error })),
+    Effect.orElseSucceed(() => undefined)
+  );
+
+  yield* Effect.sync(() => notificationService.showSuccessfulExecution(executionName));
+});
 
 const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
   if (!test.uri) {
