@@ -2,12 +2,12 @@
 
 Configurable success notifications for command execution feedback.
 
-Create via `createNotificationMode` from `@salesforce/effect-ext-utils`:
+Create via `createNotificationModeApi` from `@salesforce/effect-ext-utils`:
 
 ```typescript
-import { createNotificationMode, type ToastAction } from '@salesforce/effect-ext-utils';
+import { createNotificationModeApi, type ToastAction } from '@salesforce/effect-ext-utils';
 
-const notificationApi = createNotificationMode(
+const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<CommandKey, SuccessOnlyKey>(
   'my-extension-section',
   'my-extension.statusBar',
   'My Extension Status'
@@ -16,19 +16,19 @@ const notificationApi = createNotificationMode(
 
 ## showSuccessNotification
 
-Show a success notification based on command mode.
+Show success notification per command mode.
 
 ```typescript
-notificationApi.showSuccessNotification(commandKey, message, forceShow, actions);
+showSuccessNotification(commandKey, message, forceShow, actions);
 ```
 
 **Params:**
-- `command` — command key to look up mode setting
-- `message` — success message text (call `nls.localize()` outside Effect)
-- `forceShow?` — (default false) override `*SuccessOff` modes to always show
-- `actions?` — action buttons; appear in toast or when status bar item is clicked (default: [])
+- `command` — key to look up mode setting
+- `message` — success message (call `nls.localize()` outside Effect)
+- `forceShow?` — (default false) override `*SuccessOff` modes
+- `actions?` — buttons; appear in toast or on status bar click (default: [])
 
-**ToastAction type:**
+**ToastAction:**
 ```typescript
 type ToastAction = { label: string; run: () => void | Promise<void> };
 ```
@@ -42,44 +42,44 @@ type ToastAction = { label: string; run: () => void | Promise<void> };
 | `progressStatusBarSuccessStatusBar` | Status bar | Status bar |
 | `progressStatusBarSuccessOff` | No | Status bar |
 
-Use `forceShow: true` only when message has critical info (e.g. request ID, warning details). In status bar modes, clicking the notification opens a toast with the message and action buttons.
+Set `forceShow: true` only for critical info (e.g., request ID, warning details). In status bar modes, clicking notification opens toast with message and actions.
 
 ## getProgressLocation
 
 Get VS Code progress location for command.
 
 ```typescript
-const location = notificationApi.getProgressLocation(commandKey);
+const location = getProgressLocation(commandKey);
 ```
 
-**Returns:** `vscode.ProgressLocation.Notification` for toast modes, `.Window` for status-bar modes.
+**Returns:** `vscode.ProgressLocation.Notification` (toast modes) or `.Window` (status-bar modes).
 
 ## CommandNotificationMode
 
 ```typescript
 type CommandNotificationMode =
-  | 'progressToastSuccessToast'      // Progress: cancellable toast, Success: toast
-  | 'progressToastSuccessOff'        // Progress: cancellable toast, Success: hidden
-  | 'progressStatusBarSuccessStatusBar'  // Progress: status bar spinner, Success: status bar
-  | 'progressStatusBarSuccessOff';   // Progress: status bar spinner, Success: hidden
+  | 'progressToastSuccessToast'            // Progress: cancellable toast, Success: toast
+  | 'progressToastSuccessOff'              // Progress: cancellable toast, Success: hidden
+  | 'progressStatusBarSuccessStatusBar'    // Progress: status bar, Success: status bar
+  | 'progressStatusBarSuccessOff';         // Progress: status bar, Success: hidden
 ```
 
-Users configure per-command, per-extension, or globally via VS Code settings.
+Configure per-command, per-extension, or globally via VS Code settings.
 
 ## Example Usage
 
 ```typescript
-import { createNotificationMode, type ToastAction } from '@salesforce/effect-ext-utils';
+import { createNotificationModeApi, type ToastAction } from '@salesforce/effect-ext-utils';
 import { nls } from './messages';
 
-const notificationApi = createNotificationMode(
+const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<'deploy'>(
   'salesforcedx-vscode-metadata',
   'metadata.deploy.progress',
   'Metadata Deployment'
 );
 
 const deployCommand = Effect.fn('deploy')(function* () {
-  const location = notificationApi.getProgressLocation('deploy');
+  const location = getProgressLocation('deploy');
 
   yield* vscode.window.withProgress(
     { location, title: nls.localize('deploying') },
@@ -94,6 +94,6 @@ const deployCommand = Effect.fn('deploy')(function* () {
   const actions = [
     { label: nls.localize('view_details'), run: () => { /* show details */ } }
   ];
-  yield* Effect.sync(() => notificationApi.showSuccessNotification('deploy', message, !!requestId, actions));
+  yield* Effect.sync(() => showSuccessNotification('deploy', message, !!requestId, actions));
 });
 ```
