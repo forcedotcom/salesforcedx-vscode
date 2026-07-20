@@ -18,6 +18,10 @@ import {
   ToolingTestClass
 } from './schemas';
 
+export class TestDiscoveryFetchError extends Schema.TaggedError<TestDiscoveryFetchError>()('TestDiscoveryFetchError', {
+  message: Schema.String
+}) {}
+
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
  * Docs: https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_discovery.htm
@@ -61,12 +65,14 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
     while (nextUrl) {
       const urlToFetch = nextUrl; // Capture for TypeScript narrowing
 
-      const pageResult: Either.Either<ToolingTestsPage, Error> = yield* Effect.either(
+      const pageResult: Either.Either<ToolingTestsPage, TestDiscoveryFetchError> = yield* Effect.either(
         Effect.tryPromise({
           try: (): Promise<ToolingTestsPage> =>
             connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
-          catch: (error): Error =>
-            new Error(`Failed to fetch test discovery page: ${isError(error) ? error.message : String(error)}`)
+          catch: (error): TestDiscoveryFetchError =>
+            new TestDiscoveryFetchError({
+              message: `Failed to fetch test discovery page: ${isError(error) ? error.message : String(error)}`
+            })
         })
       );
 
@@ -79,7 +85,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
           break;
         }
         // For other errors, rethrow
-        return yield* Effect.fail(error);
+        return yield* error;
       }
 
       if (pageResult._tag === 'Right') {
