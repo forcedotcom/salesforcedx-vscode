@@ -8,15 +8,19 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import type * as Either from 'effect/Either';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import { nls } from '../messages';
 import {
   type DiscoverTestsOptions,
   type TestDiscoveryResult,
   type ToolingTestsPage,
   ToolingTestClass
 } from './schemas';
+
+export class TestDiscoveryFetchError extends Schema.TaggedError<TestDiscoveryFetchError>()('TestDiscoveryFetchError', {
+  message: Schema.String
+}) {}
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -67,24 +71,29 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
         Effect.gen(function* () {
           const urlToFetch = state.nextUrl;
 
-          const pageResult: Either.Either<ToolingTestsPage, Error> = yield* Effect.either(
+          const pageResult = yield* Effect.either(
             Effect.tryPromise({
               try: (): Promise<ToolingTestsPage> =>
                 connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
-              catch: (error): Error =>
-                new Error(`Failed to fetch test discovery page: ${isError(error) ? error.message : String(error)}`)
+              catch: (error): TestDiscoveryFetchError =>
+                new TestDiscoveryFetchError({
+                  message: nls.localize(
+                    'apex_test_discovery_fetch_failed_message',
+                    isError(error) ? error.message : String(error)
+                  )
+                })
             })
           );
 
           if (pageResult._tag === 'Left') {
             const error = pageResult.left;
-            const errorMessage = isError(error) ? error.message : String(error);
+            const errorMessage = error.message;
             // Check if it's a 431 error (Request Header Fields Too Large)
             if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
               return { ...state, nextUrl: undefined, partialResult: true };
             }
             // For other errors, rethrow
-            return yield* Effect.fail(error);
+            return yield* error;
           }
 
           const page: ToolingTestsPage = pageResult.right;

@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -124,7 +125,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
 const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(function* (requestId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const conn = yield* api.services.ConnectionService.getConnection();
-  const result = yield* Effect.tryPromise({
+  return yield* Effect.tryPromise({
     try: () =>
       conn.tooling.query<PackageInstallRequest>(
         `SELECT Id, Status, Errors FROM PackageInstallRequest WHERE Id = '${requestId}'`
@@ -136,13 +137,14 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
         Schedule.either(Schedule.spaced(Duration.seconds(30)))
       ),
       times: 5
-    })
+    }),
+    Effect.flatMap(result =>
+      Option.match(Arr.head(result.records), {
+        onNone: () => new PackageInstallFailedError({ message: `Request ${requestId} not found` }),
+        onSome: Effect.succeed
+      })
+    )
   );
-  const record = result.records[0];
-  if (!record) {
-    return yield* new PackageInstallFailedError({ message: `Request ${requestId} not found` });
-  }
-  return record;
 });
 
 const extractErrors = (record: PackageInstallRequest): string => {

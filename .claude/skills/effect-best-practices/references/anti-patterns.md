@@ -2,30 +2,15 @@
 
 These patterns are **never acceptable** in Effect-TS code. Each is listed with rationale and the correct alternative.
 
-## FORBIDDEN: Effect.runSync/runPromise Inside Services
+## FORBIDDEN: Effect.run* Inside Effect Context
 
-```typescript
-// FORBIDDEN
-export class UserService extends Effect.Service<UserService>()("UserService", {
-    effect: Effect.gen(function* () {
-        const findById = (id: UserId) => {
-            // Running effects synchronously breaks composition
-            const user = Effect.runSync(repo.findById(id))
-            return user
-        }
-        return { findById }
-    }),
-}) {}
-```
+Enforced by Effect LS rule `runEffectInsideEffect` (in `config/effect-diagnostics.json` `enforcedRules`; build fails on any hit). Breaks composition, loses error handling/tracing.
 
-**Why:** Breaks Effect's composition model, loses error handling, can't be tested, loses tracing.
+Direct-in-gen: `yield*` instead of `Effect.run*`. In a vscode callback: capture `const runtime = yield* Effect.runtime()` in the enclosing gen, then `Runtime.run*(runtime)(...)` — keep the original method (`runSync`/`runPromise`/`runFork`), never downgrade to fire-and-forget. Pattern ref: `packages/salesforcedx-vscode-services/src/core/lifecycleWarningListener.ts`.
 
-**Correct:**
-```typescript
-const findById = Effect.fn("UserService.findById")(function* (id: UserId) {
-    return yield* repo.findById(id)
-})
-```
+## FORBIDDEN: Global Error in Effect Failure Channel
+
+Enforced by Effect LS rule `globalErrorInEffectFailure` (in `config/effect-diagnostics.json` `enforcedRules`; build fails on any hit). A `new Error(...)` in a failure channel (`Effect.fail`, `Effect.async<A, Error>`, `tryPromise`/`tryCatch` `catch`, `Stream.fromAsyncIterable` error map) can't be discriminated by `catchTag`. Use a `Schema.TaggedError` with a `message` field (colocate module-local; export only when it crosses a package `.d.ts` boundary — see `ts4023-effect-errors`).
 
 ## FORBIDDEN: throw Inside Effect.gen
 

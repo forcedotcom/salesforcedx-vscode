@@ -52,7 +52,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
     const dbName =
       vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim() ?? 'default';
 
-    const db = yield* Effect.async<IDBDatabase, Error>(resume => {
+    const db = yield* Effect.async<IDBDatabase, VirtualFsProviderError>(resume => {
       const openRequest = indexedDB.open(dbName, DB_VERSION);
 
       openRequest.onupgradeneeded = (event): void => {
@@ -66,8 +66,15 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         resume(Effect.succeed(ensureOpenRequestEvent(event).target.result));
       };
 
-      openRequest.onerror = (event: unknown): void => {
-        resume(Effect.fail(new Error(`Failed to open IndexedDB database "${dbName}" with error: ${String(event)}`)));
+      openRequest.onerror = (): void => {
+        resume(
+          Effect.fail(
+            new VirtualFsProviderError({
+              ...unknownToErrorCause(openRequest.error),
+              message: `Failed to open IndexedDB database "${dbName}"`
+            })
+          )
+        );
       };
     });
 
