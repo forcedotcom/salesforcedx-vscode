@@ -9,6 +9,7 @@ import type { UserCancellationError } from './prompts/promptService';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 import { ErrorHandlerService } from './errorHandlerService';
 import { ExtensionContextService } from './extensionContextService';
@@ -29,9 +30,10 @@ export const registerCommandWithLayer =
       const contextService = yield* ExtensionContextService;
       const context = yield* contextService.getContext;
       const errorHandler = yield* ErrorHandlerService;
+      const runtime = yield* Effect.runtime();
       context.subscriptions.push(
         vscode.commands.registerCommand(command, (...args) =>
-          Effect.runFork(
+          Runtime.runFork(runtime)(
             f(...args).pipe(
               // root: true ensures proper trace root (not orphaned child of activation)
               Effect.withSpan(command, { attributes: { command, args }, root: true }),

@@ -12,6 +12,7 @@ import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
+import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
@@ -97,6 +98,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       const connection = yield* connectionService.getConnection();
       components.projectDirectory = (yield* projectService.getSfProject()).getPath();
 
+      const runtime = yield* Effect.runtime();
       const deployFiber = yield* Effect.fork(
         Effect.tryPromise({
           try: async () => {
@@ -113,7 +115,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
               async (_, token) => {
                 token.onCancellationRequested(async () => {
                   await deployOperation.cancel();
-                  await Effect.runPromise(Fiber.interrupt(deployFiber));
+                  await Runtime.runPromise(runtime)(Fiber.interrupt(deployFiber));
                 });
                 return await deployOperation.pollStatus();
               }

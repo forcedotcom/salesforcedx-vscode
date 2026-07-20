@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -23,8 +24,9 @@ export class ExtensionsService extends Effect.Service<ExtensionsService>()('Exte
   accessors: true,
   scoped: Effect.gen(function* () {
     const ref = yield* SubscriptionRef.make<ReadonlySet<string>>(snapshotInstalledIds());
+    const runtime = yield* Effect.runtime();
     const disposable = vscode.extensions.onDidChange(() => {
-      Effect.runSync(SubscriptionRef.set(ref, snapshotInstalledIds()));
+      Runtime.runSync(runtime)(SubscriptionRef.set(ref, snapshotInstalledIds()));
     });
     yield* Effect.addFinalizer(() =>
       Effect.sync(() => {
