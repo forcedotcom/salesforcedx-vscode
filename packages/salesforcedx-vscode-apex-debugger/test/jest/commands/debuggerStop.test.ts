@@ -11,10 +11,16 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { debuggerStop, DebuggerSessionQueryError } from '../../../src/commands/debuggerStop';
+import * as notificationMode from '../../../src/utils/notificationMode';
 
 jest.mock('@salesforce/core', () => ({
   AuthInfo: { create: jest.fn() },
   Connection: { create: jest.fn() }
+}));
+
+jest.mock('../../../src/utils/notificationMode', () => ({
+  getProgressLocation: jest.fn(() => 15 /* vscode.ProgressLocation.Notification */),
+  showSuccessNotification: jest.fn()
 }));
 
 type QueryResult = { records: { Id: string }[] };
@@ -67,13 +73,18 @@ const runFlipped = (conn: unknown) =>
 describe('debuggerStop', () => {
   beforeEach(() => {
     (vscode.window.showInformationMessage as jest.Mock) = jest.fn();
+    (notificationMode.showSuccessNotification as jest.Mock).mockClear();
   });
 
   it('shows "none found" and does NOT update when the query returns 0 records', async () => {
     const { conn, update } = makeConnection(() => Promise.resolve({ records: [] }));
     await run(conn);
     expect(update).not.toHaveBeenCalled();
-    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('No Apex Debugger session found.');
+    expect(notificationMode.showSuccessNotification).toHaveBeenCalledWith(
+      'SFDX: Stop Apex Debugger Session',
+      'No Apex Debugger session found.',
+      false
+    );
   });
 
   it('detaches the session and shows the success toast when the query returns a record', async () => {
@@ -82,7 +93,12 @@ describe('debuggerStop', () => {
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledTimes(1);
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000001', Status: 'Detach' });
-    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Apex Debugger session stopped.');
+    expect(notificationMode.showSuccessNotification).toHaveBeenCalledWith(
+      'SFDX: Stop Apex Debugger Session',
+      'Apex Debugger session stopped.',
+      false
+    );
+    expect(vscode.window.showInformationMessage).not.toHaveBeenCalledWith('Apex Debugger session stopped.');
   });
 
   it('surfaces a DebuggerSessionQueryError (not swallowed) when the query rejects', async () => {
@@ -110,6 +126,10 @@ describe('debuggerStop', () => {
     expect(Connection.create).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000002', Status: 'Detach' });
-    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Apex Debugger session stopped.');
+    expect(notificationMode.showSuccessNotification).toHaveBeenCalledWith(
+      'SFDX: Stop Apex Debugger Session',
+      'Apex Debugger session stopped.',
+      false
+    );
   });
 });
