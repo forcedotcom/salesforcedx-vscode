@@ -6,6 +6,11 @@ on:
     types: [released]
   #  Button for publishing main branch in case there is a failure on the release.
   workflow_dispatch:
+    inputs:
+      verify_only:
+        description: 'Skip re-publish; only download release + poll OpenVSX for the main version'
+        type: boolean
+        default: false
 
 jobs:
   prepare-environment-from-main:
@@ -64,10 +69,46 @@ jobs:
           gh release download v${{ env.PUBLISH_VERSION }} -D ./extensions
       - name: Display downloaded vsix files
         run: ls -R ./extensions
-      - uses: salesforcecli/github-workflows/.github/actions/retry@main
+      - if: ${{ !inputs.verify_only }}
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           command: |
             cmd=$(find ./extensions -type f -name "*.vsix" -print0 | xargs -0 -I {} printf 'npx ovsx publish --skip-duplicate "%s" -p "%s" && ' '{}' "${OVSX_PAT}" | sed 's/ && $//') && [ -n "$cmd" ] && eval "$cmd" && echo "SUCCESSFULLY published"
+      - name: Verify published versions landed on OpenVSX
+        run: |
+          TIMEOUT="${POLL_TIMEOUT:-600}"
+          INTERVAL="${POLL_INTERVAL:-30}"
+          deadline=$(( $(date +%s) + TIMEOUT ))
+          shopt -s nullglob
+          pending=()
+          for f in ./extensions/*.vsix; do
+            pending+=("salesforce.$(basename "$f" "-$PUBLISH_VERSION.vsix")")
+          done
+          if [ "${#pending[@]}" -eq 0 ]; then
+            echo "::error::no vsix files found in ./extensions — nothing to verify"
+            exit 1
+          fi
+          while :; do
+            still=()
+            for id in "${pending[@]}"; do
+              if npx ovsx get "$id" --metadata -v "$PUBLISH_VERSION" >/dev/null 2>&1; then
+                echo "confirmed $id@$PUBLISH_VERSION"
+              else
+                still+=("$id")
+              fi
+            done
+            pending=("${still[@]}")
+            [ "${#pending[@]}" -eq 0 ] && break
+            [ "$(date +%s)" -ge "$deadline" ] && break
+            sleep "$INTERVAL"
+          done
+          if [ "${#pending[@]}" -gt 0 ]; then
+            for id in "${pending[@]}"; do
+              echo "::error::$id@$PUBLISH_VERSION never landed on OpenVSX"
+            done
+            exit 1
+          fi
+          echo "All published versions landed on OpenVSX"
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
