@@ -3,6 +3,8 @@ name: Promote Nightly to Pre-release
 on:
   schedule:
     # Wednesdays at 7 AM UTC
+    # Rationale: Weekly promotion on Wed gives 7+ days of nightly testing
+    # before weekend/Monday releases, aligning with team review cycles
     - cron: '0 7 * * 3'
   workflow_dispatch:
     inputs:

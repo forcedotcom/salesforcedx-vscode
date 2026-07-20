@@ -32,10 +32,21 @@ gh workflow run nightly.yml -f dry-run=true
 
 ## Configuration
 
-Required secrets (repo settings):
+### Required Secrets (repo settings)
 - `IDEE_GH_TOKEN` — GitHub token for version bumps/releases
 - `VSCE_PERSONAL_ACCESS_TOKEN` — VS Code Marketplace
 - `IDEE_OVSX_PAT` — Open VSX Registry
+
+### Environment Variables
+- `VSCE_PRE_RELEASE=true` — Set by wireit in legacy extension packaging to pass `--pre-release` flag to vsce
+  - Used by: salesforcedx-vscode-core, lwc, lightning, apex-debugger, apex-oas
+  - Script: `scripts/vsce-bundled-extension.ts`
+
+### Package Scripts
+- `package:packages` — Stable packaging (calls `vscode:package`)
+- `package:packages:prerelease` — Prerelease packaging (calls `vscode:package:prerelease`)
+  - Modern extensions: adds `--pre-release` flag to vsce
+  - Legacy extensions: sets `VSCE_PRE_RELEASE=true` env var
 
 ## Implementation Details
 

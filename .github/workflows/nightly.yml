@@ -34,7 +34,42 @@ permissions:
   actions: read
 
 jobs:
+  validate-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required secrets
+        env:
+          DRY_RUN: ${{ github.event.inputs.dry-run || false }}
+          IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          VSCE_PAT: ${{ secrets.VSCE_PERSONAL_ACCESS_TOKEN }}
+          OVSX_PAT: ${{ secrets.IDEE_OVSX_PAT }}
+        run: |
+          MISSING_SECRETS=()
+
+          # IDEE_GH_TOKEN always required (for version bumps and tagging)
+          if [ -z "$IDEE_GH_TOKEN" ]; then
+            MISSING_SECRETS+=("IDEE_GH_TOKEN")
+          fi
+
+          # Publishing tokens only required when not in dry-run
+          if [ "$DRY_RUN" != "true" ]; then
+            if [ -z "$VSCE_PAT" ]; then
+              MISSING_SECRETS+=("VSCE_PERSONAL_ACCESS_TOKEN")
+            fi
+            if [ -z "$OVSX_PAT" ]; then
+              MISSING_SECRETS+=("IDEE_OVSX_PAT")
+            fi
+          fi
+
+          if [ ${#MISSING_SECRETS[@]} -gt 0 ]; then
+            echo "❌ Missing required secrets: ${MISSING_SECRETS[*]}"
+            exit 1
+          fi
+
+          echo "✅ All required secrets are configured"
+
   build-extension-list:
+    needs: validate-secrets
     runs-on: ubuntu-latest
     outputs:
       extensions: ${{ steps.list.outputs.extensions }}
@@ -58,7 +93,7 @@ jobs:
 
   nightly-release:
     needs: build-extension-list
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@ms/shared-ci-actions
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
     with:
       branch: ${{ github.event.inputs.branch || 'develop' }}
       extensions: ${{ needs.build-extension-list.outputs.extensions }}

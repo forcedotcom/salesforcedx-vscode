@@ -2,6 +2,10 @@
 
 ## Added
 
+#### CI/CD Infrastructure
+
+- Automated nightly prerelease builds now publish to VS Code Marketplace and Open VSX Registry daily at 4 AM UTC. Nightly builds use odd minor versions (e.g., 67.5.x-nightly.20260716) to distinguish from stable releases. ([PR #7790](https://github.com/forcedotcom/salesforcedx-vscode/pull/7790), Work Item W-23059455)
+
 #### salesforcedx-vscode-org
 
 - The **SFDX: Display Org Details** and **SFDX: Display Org Details for Default Org** commands now show a modal warning and require you to click **Continue** before sensitive org info is written to the output channel. Clicking **Cancel** aborts without showing anything. ([PR #7690](https://github.com/forcedotcom/salesforcedx-vscode/pull/7690))
