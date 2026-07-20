@@ -78,7 +78,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
 
       if (pageResult._tag === 'Left') {
         const error = pageResult.left;
-        const errorMessage = isError(error) ? error.message : String(error);
+        const errorMessage = error.message;
         // Check if it's a 431 error (Request Header Fields Too Large)
         if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
           partialResult = true;

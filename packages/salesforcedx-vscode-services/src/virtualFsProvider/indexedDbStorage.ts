@@ -66,11 +66,11 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         resume(Effect.succeed(ensureOpenRequestEvent(event).target.result));
       };
 
-      openRequest.onerror = (event: unknown): void => {
+      openRequest.onerror = (): void => {
         resume(
           Effect.fail(
             new VirtualFsProviderError({
-              ...unknownToErrorCause(event),
+              ...unknownToErrorCause(openRequest.error),
               message: `Failed to open IndexedDB database "${dbName}"`
             })
           )
