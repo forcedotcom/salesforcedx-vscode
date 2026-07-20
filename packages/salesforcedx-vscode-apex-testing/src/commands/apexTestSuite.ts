@@ -9,6 +9,7 @@ import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
@@ -20,6 +21,13 @@ import { clearAllSuiteChildren, getTestController } from '../views/testControlle
 import { runSelectedTests } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
+
+class SuiteMembershipDeleteError extends Schema.TaggedError<SuiteMembershipDeleteError>()(
+  'SuiteMembershipDeleteError',
+  {
+    message: Schema.String
+  }
+) {}
 
 const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(function* () {
   const result = yield* discoverTests();
@@ -235,7 +243,11 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
             Effect.flatMap(results => {
               const failures = results.filter(r => !r.success);
               if (failures.length > 0) {
-                return Effect.fail(new Error(`Failed to delete ${failures.length} membership(s)`));
+                return Effect.fail(
+                  new SuiteMembershipDeleteError({
+                    message: nls.localize('apex_test_suite_membership_delete_failed_message', failures.length)
+                  })
+                );
               }
               return Effect.succeed(results);
             })

@@ -9,6 +9,7 @@ import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import {
@@ -28,6 +29,10 @@ import {
   type WorkspaceDeleteFileParams,
   type WorkspaceDeleteFileResult
 } from './lspCustomRequests';
+
+class InvalidStatResultError extends Schema.TaggedError<InvalidStatResultError>()('InvalidStatResultError', {
+  message: Schema.String
+}) {}
 
 const errorMessage = (e: unknown): string => (isError(e) ? e.message : String(e));
 
@@ -89,7 +94,7 @@ export const registerWorkspaceReadFileHandler = (
     yield* logTo(log, `[stat] request uri=${uri.toString()}`);
     const fs = yield* getFs;
     const vstat = yield* fs.stat(uri.toString());
-    if (!isVscodeFileStat(vstat)) return yield* Effect.fail(new Error('Invalid stat result'));
+    if (!isVscodeFileStat(vstat)) return yield* new InvalidStatResultError({ message: 'Invalid stat result' });
     const stat = vscodeStatToFileStat(vstat);
     yield* logTo(log, `[stat] success uri=${uri.toString()} type=${stat.type} size=${stat.size}`);
     return { stat };
