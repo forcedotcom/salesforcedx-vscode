@@ -45,6 +45,9 @@ jest.mock('vscode', () => ({
   workspace: {
     getConfiguration: jest.fn()
   },
+  env: {
+    language: 'en'
+  },
   Position: class MockPosition {
     constructor(
       public line: number,
