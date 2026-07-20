@@ -105,8 +105,7 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
 
 export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
   const servicesApi = yield* getServicesApi;
-  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
-  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  // precondition: fails with FailedToResolveSfProjectError when there's no project
   yield* servicesApi.services.ProjectService.getSfProject();
   const inputs = yield* getQueryInputsForPlan();
   yield* executeQueryPlan(inputs);
@@ -114,8 +113,7 @@ export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
 
 export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
   const servicesApi = yield* getServicesApi;
-  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
-  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
+  // precondition: fails with FailedToResolveSfProjectError when there's no project
   yield* servicesApi.services.ProjectService.getSfProject();
   const inputs = yield* getDocumentQueryInputsForPlan();
   yield* executeQueryPlan(inputs);

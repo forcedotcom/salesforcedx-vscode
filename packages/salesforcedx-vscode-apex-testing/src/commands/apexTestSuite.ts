@@ -244,7 +244,9 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
               const failures = results.filter(r => !r.success);
               if (failures.length > 0) {
                 return Effect.fail(
-                  new SuiteMembershipDeleteError({ message: `Failed to delete ${failures.length} membership(s)` })
+                  new SuiteMembershipDeleteError({
+                    message: nls.localize('apex_test_suite_membership_delete_failed_message', failures.length)
+                  })
                 );
               }
               return Effect.succeed(results);

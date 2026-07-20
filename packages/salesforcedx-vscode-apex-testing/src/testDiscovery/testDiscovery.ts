@@ -10,6 +10,7 @@ import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import { nls } from '../messages';
 import {
   type DiscoverTestsOptions,
   type TestDiscoveryResult,
@@ -70,7 +71,10 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
             connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
           catch: (error): TestDiscoveryFetchError =>
             new TestDiscoveryFetchError({
-              message: `Failed to fetch test discovery page: ${isError(error) ? error.message : String(error)}`
+              message: nls.localize(
+                'apex_test_discovery_fetch_failed_message',
+                isError(error) ? error.message : String(error)
+              )
             })
         })
       );
