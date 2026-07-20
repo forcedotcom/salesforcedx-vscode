@@ -6,8 +6,10 @@
  */
 import type { ApexOASResource } from '../oas/schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import * as path from 'node:path';
 import type { ApexClassOASEligibleRequest, ApexOASEligiblePayload } from 'salesforcedx-vscode-apex';
 import type { URI } from 'vscode-uri';
@@ -41,8 +43,10 @@ const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): ApexOASReso
 const eligibilityDelegate = Effect.fn('ApexOas.Metadata.eligibilityDelegate')(function* (
   requests: ApexOASEligiblePayload
 ) {
-  const target = buildRequestTarget(requests);
-  yield* Effect.annotateCurrentSpan({ classNumbers: requests.payload.length, requestTarget: target });
+  yield* Effect.annotateCurrentSpan({
+    classNumbers: requests.payload.length,
+    requestTarget: buildRequestTarget(requests)
+  });
   return yield* ApexMetadataService.isOpenAPIEligible(requests).pipe(
     Effect.mapError(
       cause => new ApexLspRequestFailed({ message: nls.localize('cannot_get_apexoaseligibility_response'), cause })
@@ -93,38 +97,44 @@ const buildRequests = Effect.fn('ApexOas.Metadata.buildRequests')(function* (sou
  * @returns The metadata of the method, or fails with ClassNotEligible.
  */
 export const validateMetadata = Effect.fn('ApexOas.Metadata.validate')(function* (sourceUri: URI | URI[]) {
-  const requests = yield* buildRequests(sourceUri);
-  const isEligibleResponses = yield* eligibilityDelegate({ payload: requests }).pipe(
-    Effect.tap(responses => Effect.annotateCurrentSpan({ eligibleResponses: JSON.stringify(responses) }))
+  return yield* buildRequests(sourceUri).pipe(
+    Effect.map(requests => ({ payload: requests })),
+    Effect.flatMap(eligibilityDelegate),
+    Effect.tap(responses => Effect.annotateCurrentSpan({ eligibleResponses: JSON.stringify(responses) })),
+    Effect.map(Arr.head),
+    Effect.flatMap(
+      Option.match({
+        onNone: () => new ClassNotEligible({ message: nls.localize('validation_failed') }),
+        onSome: Effect.succeed
+      })
+    ),
+    Effect.filterOrFail(
+      first => first.isApexOasEligible || first.isEligible,
+      first =>
+        new ClassNotEligible({
+          message: nls.localize(
+            'apex_class_not_valid',
+            first.resourceUri?.fsPath ? path.basename(first.resourceUri.fsPath, '.cls') : 'unknown'
+          )
+        })
+    ),
+    Effect.filterOrFail(
+      first => (first.symbols ?? []).some(s => s.isApexOasEligible || s.isEligible),
+      first => {
+        const className = path.basename(first.resourceUri.fsPath, '.cls');
+        // Name the ineligible methods so the user knows which symbols to annotate/adjust, instead of a bare class name.
+        const ineligibleNames = (first.symbols ?? [])
+          .filter(s => !s.isApexOasEligible && !s.isEligible)
+          .map(s => s.docSymbol.name)
+          .join(', ');
+        return new ClassNotEligible({
+          message: ineligibleNames
+            ? nls.localize('apex_class_no_eligible_methods', className, ineligibleNames)
+            : nls.localize('apex_class_not_valid', className)
+        });
+      }
+    )
   );
-
-  const first = isEligibleResponses?.[0];
-  if (!first) {
-    return yield* new ClassNotEligible({ message: nls.localize('validation_failed') });
-  }
-  if (!first.isApexOasEligible && !first.isEligible) {
-    return yield* new ClassNotEligible({
-      message: nls.localize(
-        'apex_class_not_valid',
-        first.resourceUri?.fsPath ? path.basename(first.resourceUri.fsPath, '.cls') : 'unknown'
-      )
-    });
-  }
-  const eligibleSymbols = (first.symbols ?? []).filter(s => s.isApexOasEligible || s.isEligible);
-  if (eligibleSymbols.length === 0) {
-    const className = path.basename(first.resourceUri.fsPath, '.cls');
-    // Name the ineligible methods so the user knows which symbols to annotate/adjust, instead of a bare class name.
-    const ineligibleNames = (first.symbols ?? [])
-      .filter(s => !s.isApexOasEligible && !s.isEligible)
-      .map(s => s.docSymbol.name)
-      .join(', ');
-    return yield* new ClassNotEligible({
-      message: ineligibleNames
-        ? nls.localize('apex_class_no_eligible_methods', className, ineligibleNames)
-        : nls.localize('apex_class_not_valid', className)
-    });
-  }
-  return first;
 });
 
 export const gatherContext = Effect.fn('ApexOas.Metadata.gatherContext')(function* (sourceUri: URI | URI[]) {

@@ -6,7 +6,7 @@
  */
 
 import { test } from '../fixtures';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -14,17 +14,22 @@ import {
   waitForWorkspaceReady,
   verifyCommandExists,
   closeWelcomeTabs,
+  closeAllEditors,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
   saveScreenshot,
-  QUICK_INPUT_WIDGET,
+  activeQuickInputWidget,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 
-test.describe('Visualforce Templates (Desktop Only)', () => {
+// Single cross-platform source of truth for Visualforce template generation.
+// Runs on desktop (playwright.config.desktop.ts globs specs/) AND web (playwright.config.web.ts) —
+// the `../fixtures` index resolves `test` to the desktop or web fixture by VSCODE_DESKTOP.
+
+test.describe('Visualforce Templates', () => {
   test.beforeEach(async ({ page }) => {
     setupConsoleMonitoring(page);
     setupNetworkMonitoring(page);
@@ -34,12 +39,16 @@ test.describe('Visualforce Templates (Desktop Only)', () => {
     await waitForWorkspaceReady(page);
   });
 
-  const createVisualforceTemplate = async (page: any, command: string, name: string, expectedFiles: string[]) => {
+  // Generate a VF template via command palette → name → output-dir, then assert the generated file
+  // opens in an editor (opening `.page`/`.component` triggers `onLanguage:visualforce` activation)
+  // and both files land in the explorer. Shared memfs workspace across web tests → close editors first.
+  const createVisualforceTemplate = async (page: Page, command: string, name: string, extension: string) => {
     await test.step(`Create Visualforce ${name}`, async () => {
+      await closeAllEditors(page);
       await verifyCommandExists(page, command, 30_000);
       await executeCommandWithCommandPalette(page, command);
 
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      const quickInput = activeQuickInputWidget(page);
       await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
       await page.keyboard.type(name);
       await page.keyboard.press('Enter');
@@ -47,30 +56,29 @@ test.describe('Visualforce Templates (Desktop Only)', () => {
       await waitForQuickInputFirstOption(page);
       await page.keyboard.press('Enter');
 
-      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
+      const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.${extension}"]`);
+      await editor.waitFor({ state: 'visible', timeout: 30_000 });
 
-      for (const file of expectedFiles) {
-        const explorerFile = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${file}$`, 'i') });
-        await expect(explorerFile).toBeVisible();
-      }
+      await Promise.all(
+        [`${name}.${extension}`, `${name}.${extension}-meta.xml`].map(file => {
+          const explorerFile = page
+            .locator('[role="treeitem"]')
+            .filter({ hasText: new RegExp(`${file.replaceAll('.', '\\.')}$`, 'i') });
+          return expect(explorerFile, `${file} should be visible in explorer`).toBeVisible({ timeout: 15_000 });
+        })
+      );
       await saveScreenshot(page, `vf-${name}-created.png`);
     });
   };
 
   test('Create Visualforce Page', async ({ page }) => {
     const name = `VFPage${Date.now()}`;
-    await createVisualforceTemplate(page, packageNls.visualforce_generate_page_text, name, [
-      `${name}.page`,
-      `${name}.page-meta.xml`
-    ]);
+    await createVisualforceTemplate(page, packageNls.visualforce_generate_page_text, name, 'page');
   });
 
   test('Create Visualforce Component', async ({ page }) => {
     const name = `VFCmp${Date.now()}`;
-    await createVisualforceTemplate(page, packageNls.visualforce_generate_component_text, name, [
-      `${name}.component`,
-      `${name}.component-meta.xml`
-    ]);
+    await createVisualforceTemplate(page, packageNls.visualforce_generate_component_text, name, 'component');
   });
 
   test.afterEach(async ({ page }) => {

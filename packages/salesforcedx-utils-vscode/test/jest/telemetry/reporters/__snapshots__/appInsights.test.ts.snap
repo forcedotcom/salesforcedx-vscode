@@ -5,9 +5,7 @@ exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send orgId
   "exception": [anExtensionId/Dummy Exception: a dummy exception occurred],
   "measurements": undefined,
   "properties": {
-    "devHubId": "",
     "orgId": "000dummyOrgId",
-    "orgShape": "",
     "webUserId": "test-webUser",
   },
 }
@@ -18,9 +16,7 @@ exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send telem
   "measurements": {},
   "name": "anExtensionId/Dummy Telemetry Event",
   "properties": {
-    "devHubId": "",
     "orgId": "000dummyOrgId",
-    "orgShape": "",
     "webUserId": "test-webUser",
   },
 }

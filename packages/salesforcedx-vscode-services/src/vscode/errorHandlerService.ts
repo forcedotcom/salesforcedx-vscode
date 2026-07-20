@@ -7,17 +7,17 @@
 
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import { isError, isString } from 'effect/Predicate';
+import { isError, isRecord, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { ChannelService } from './channelService';
 
 /** Type guard for errors with actions array (e.g., SfError) */
 const hasActions = (e: unknown): e is { actions: string[] } =>
-  typeof e === 'object' && e !== null && 'actions' in e && Array.isArray(e.actions);
+  isRecord(e) && 'actions' in e && Array.isArray(e.actions);
 
 /** Type guard for errors with a cause property */
-const hasCause = (e: unknown): e is { cause: unknown } => typeof e === 'object' && e !== null && 'cause' in e;
+const hasCause = (e: unknown): e is { cause: unknown } => isRecord(e) && 'cause' in e;
 
 /** Recursively extract actions from error chain */
 const getActions = (error: unknown): string[] => {
@@ -31,7 +31,7 @@ const getActions = (error: unknown): string[] => {
 /** Get the base error message, preferring inner cause message */
 /** Deploy/retrieve partial failures already log details via formatDeployOutput/formatRetrieveOutput; avoid duplicating the summary in the channel. */
 const isMetadataCompletedWithErrorsSummaryError = (error: unknown): boolean => {
-  if (typeof error !== 'object' || error === null || !('_tag' in error)) return false;
+  if (!isRecord(error) || !('_tag' in error)) return false;
   const tag = Reflect.get(error, '_tag');
   return tag === 'DeployCompletedWithErrorsError' || tag === 'RetrieveCompletedWithErrorsError';
 };
@@ -41,7 +41,7 @@ const getBaseMessage = (error: unknown): string => {
     const innerCause = hasCause(error) ? error.cause : undefined;
     return isError(innerCause) ? getBaseMessage(innerCause) : error.message;
   }
-  if (typeof error === 'object' && error !== null && 'message' in error) {
+  if (isRecord(error) && 'message' in error) {
     const msg = Reflect.get(error, 'message');
     if (isString(msg)) return msg;
   }
