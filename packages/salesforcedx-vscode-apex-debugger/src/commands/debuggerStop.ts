@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AuthInfo, Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { SF_CONFIG_ISV_DEBUGGER_SID, SF_CONFIG_ISV_DEBUGGER_URL } from '@salesforce/salesforcedx-apex-debugger';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -53,7 +55,21 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   // with the migrated org commands and the old sfProjectPreconditionChecker gate).
   yield* api.services.ProjectService.getSfProject();
 
-  const conn = yield* api.services.ConnectionService.getConnection();
+  // ISV Debugger projects authenticate via org-isv-debugger-sid/url stored in project-local config,
+  // not a target-org — getConnection() would fail with NoTargetOrgConfiguredError for these projects.
+  const configAggregator = yield* api.services.ConfigService.getConfigAggregator();
+  const isvSid = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_SID);
+  const isvUrl = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_URL);
+
+  const conn = yield* isvSid && isvUrl
+    ? Effect.tryPromise({
+        try: () =>
+          AuthInfo.create({ accessTokenOptions: { accessToken: isvSid, loginUrl: isvUrl, instanceUrl: isvUrl } }).then(
+            authInfo => Connection.create({ authInfo })
+          ),
+        catch: e => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) })
+      })
+    : api.services.ConnectionService.getConnection();
 
   // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
   yield* Effect.tryPromise({
