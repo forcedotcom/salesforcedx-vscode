@@ -5,13 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { languageClientManager } from '../../../src/languageUtils';
-import { ClientStatus } from '../../../src/languageUtils/languageClientManager';
+import { ClientStatus, toolsDirsToDelete } from '../../../src/languageUtils/languageClientManager';
 import { nls } from '../../../src/messages';
 import type { RecordedSpan } from '../testUtils/recordingTracer';
+
+// Typed view of the private isRestarting flag, avoiding `as any` widening in each assertion.
+const restartFlag = languageClientManager as unknown as { isRestarting: boolean };
 
 // Spans emitted via getRuntime().runFork are recorded so restart telemetry (name + attributes) can be asserted.
 // Prefixed `mock*` so jest.mock's factory may reference it (jest hoists the factory above imports).
@@ -172,7 +177,7 @@ describe('Language Client Manager', () => {
       (vscode.workspace.getConfiguration as jest.Mock) = mockGetConfiguration;
 
       // Reset the isRestarting flag
-      (languageClientManager as any).isRestarting = false;
+      restartFlag.isRestarting = false;
 
       // Setup client and status bar
       languageClientManager.setClientInstance(mockClient);
@@ -185,7 +190,7 @@ describe('Language Client Manager', () => {
 
     it('should show information message if already restarting', async () => {
       // Set isRestarting to true
-      (languageClientManager as any).isRestarting = true;
+      restartFlag.isRestarting = true;
 
       // Call the method
       await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
@@ -248,6 +253,40 @@ describe('Language Client Manager', () => {
         type: 'reset'
       });
 
+      // Services extension resolves with a non-empty workspace so removeApexDB reaches the delete branch.
+      const workspaceUri = URI.parse('file:///workspace');
+      const toolsUri = Utils.joinPath(workspaceUri, '.sfdx', 'tools');
+      // FsService.readDirectoryWithTypes yields typed entries; safeDelete records the URIs it removes.
+      const safeDelete = jest.fn().mockImplementation(() => Effect.void);
+      (vscode.extensions.getExtension as jest.Mock).mockReturnValue({
+        isActive: true,
+        exports: {
+          services: {
+            WorkspaceService: {
+              getWorkspaceInfo: () =>
+                Effect.succeed({
+                  uri: workspaceUri,
+                  path: workspaceUri.path,
+                  fsPath: workspaceUri.fsPath,
+                  isEmpty: false,
+                  isVirtualFs: false,
+                  cwd: '/workspace'
+                })
+            },
+            FsService: {
+              // Two NNN dirs and a non-matching entry.
+              readDirectoryWithTypes: () =>
+                Effect.succeed([
+                  { uri: Utils.joinPath(toolsUri, '123'), type: vscode.FileType.Directory },
+                  { uri: Utils.joinPath(toolsUri, '456'), type: vscode.FileType.Directory },
+                  { uri: Utils.joinPath(toolsUri, 'notes'), type: vscode.FileType.File }
+                ]),
+              safeDelete
+            }
+          }
+        }
+      });
+
       // Mock createLanguageClient to resolve immediately
       jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
 
@@ -260,12 +299,47 @@ describe('Language Client Manager', () => {
       // Verify status bar was updated
       expect(mockStatusBar.restarting).toHaveBeenCalled();
 
+      // Only the NNN tools dirs are deleted (behavior preserved).
+      expect(safeDelete).toHaveBeenCalledTimes(2);
+      const deletedPaths = safeDelete.mock.calls.map(([uri]: [URI]) => uri.path).toSorted();
+      expect(deletedPaths).toEqual(['/workspace/.sfdx/tools/123', '/workspace/.sfdx/tools/456']);
+
       // Fast-forward timers and wait for promises to resolve
       jest.runAllTimers();
       await Promise.resolve();
 
       // Verify createLanguageClient was called
       expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
+    });
+
+    it('should complete restart without stranding isRestarting when services extension is unavailable', async () => {
+      // Mock showQuickPick to return the clean and restart option
+      (vscode.window.showQuickPick as jest.Mock).mockResolvedValueOnce({
+        label: nls.localize('apex_language_server_restart_dialog_clean_and_restart'),
+        type: 'reset'
+      });
+
+      // No services extension → getServicesApi fails ServicesExtensionNotFoundError.
+      (vscode.extensions.getExtension as jest.Mock).mockReturnValue(undefined);
+
+      // Mock createLanguageClient to resolve immediately
+      jest.spyOn(languageClientManager, 'createLanguageClient').mockResolvedValueOnce();
+
+      // Call the method — must resolve, not reject.
+      await expect(
+        languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette')
+      ).resolves.toBeUndefined();
+
+      // DB cleanup skipped since there's no services extension.
+      expect(vscode.workspace.fs.delete).not.toHaveBeenCalled();
+
+      // Fast-forward timers and drain the setTimeout callback's async chain (dispose → create → finally)
+      // without coupling to its internal await depth.
+      await jest.runAllTimersAsync();
+
+      // Restart still completed and the flag was reset (a follow-up restart won't short-circuit).
+      expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
+      expect(restartFlag.isRestarting).toBe(false);
     });
 
     it('should handle errors during client stop', async () => {
@@ -311,7 +385,7 @@ describe('Language Client Manager', () => {
       await languageClientManager.restartLanguageServerAndClient(mockExtensionContext, 'commandPalette');
 
       // Verify isRestarting was reset
-      expect((languageClientManager as any).isRestarting).toBe(false);
+      expect(restartFlag.isRestarting).toBe(false);
     });
 
     describe('Restart Behavior Setting', () => {
@@ -425,6 +499,28 @@ describe('Language Client Manager', () => {
         // Verify createLanguageClient was called
         expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('toolsDirsToDelete', () => {
+    const base = URI.parse('file:///workspace/.sfdx/tools');
+    const entry = (name: string, type: vscode.FileType) => ({ uri: Utils.joinPath(base, name), type });
+
+    it('keeps only NNN-named directories', () => {
+      const result = toolsDirsToDelete([
+        entry('123', vscode.FileType.Directory),
+        entry('456', vscode.FileType.Directory),
+        entry('notes', vscode.FileType.File),
+        entry('12', vscode.FileType.Directory),
+        entry('1234', vscode.FileType.Directory),
+        entry('789', vscode.FileType.File)
+      ]);
+      expect(result.map(uri => uri.path)).toEqual(['/workspace/.sfdx/tools/123', '/workspace/.sfdx/tools/456']);
+    });
+
+    it('returns empty for no matches', () => {
+      expect(toolsDirsToDelete([])).toEqual([]);
+      expect(toolsDirsToDelete([entry('abc', vscode.FileType.Directory)])).toEqual([]);
     });
   });
 });

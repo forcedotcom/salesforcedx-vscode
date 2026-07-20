@@ -4,17 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
-import { hasRootWorkspace } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import { pipe } from 'effect/Function';
 import { isError, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import { API, DEBUGGER_EXCEPTION_BREAKPOINTS, DEBUGGER_LINE_BREAKPOINTS, SET_JAVA_DOC_LINK } from '../constants';
 import * as languageServer from '../languageServer';
 import { nls } from '../messages';
 import { fireSpan } from '../services/fireSpan';
+import { getRuntime } from '../services/runtime';
 import { retrieveEnableSyncInitJobs } from '../settings';
 
 export enum ClientStatus {
@@ -53,6 +56,36 @@ class LanguageClientStatus {
 interface RestartQuickPickItem extends vscode.QuickPickItem {
   type: 'restart' | 'reset';
 }
+
+export type ToolsEntry = { readonly uri: URI; readonly type: vscode.FileType };
+
+/** Given `.sfdx/tools` entries, the NNN-named subdirectory URIs to delete. Pure; unit-tested directly. */
+export const toolsDirsToDelete = (entries: readonly ToolsEntry[]): URI[] =>
+  entries
+    .filter(({ uri, type }) => type === vscode.FileType.Directory && /^\d{3}$/.test(Utils.basename(uri)))
+    .map(({ uri }) => uri);
+
+const removeApexDbEffect = Effect.fn('LanguageClientManager.removeApexDB')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const info = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  if (info.isEmpty) {
+    return;
+  }
+  // A failed listing (e.g. the tools dir doesn't exist yet) ⇒ nothing to clean.
+  // safeDelete swallows per-folder failures, matching the old swallow-and-continue behavior.
+  yield* pipe(
+    Utils.joinPath(info.uri, '.sfdx', 'tools'),
+    api.services.FsService.readDirectoryWithTypes,
+    Effect.catchTag('FsServiceError', () => Effect.succeed<ToolsEntry[]>([])),
+    Effect.map(toolsDirsToDelete),
+    Effect.flatMap(uris =>
+      Effect.forEach(uris, uri => api.services.FsService.safeDelete(uri, { recursive: true, useTrash: true }), {
+        concurrency: 'unbounded',
+        discard: true
+      })
+    )
+  );
+});
 
 export class LanguageClientManager {
   private static instance: LanguageClientManager;
@@ -232,7 +265,15 @@ export class LanguageClientManager {
       }
 
       if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
-        await this.removeApexDB();
+        try {
+          await this.removeApexDB();
+        } catch (error) {
+          // Guards an unexpected defect thrown inside the effect gen body (not the typed errors,
+          // which are already caught via catchTags). Swallow so a failed DB cleanup can never
+          // strand this.isRestarting = true.
+          const errorMessage = isError(error) ? error.message : String(error);
+          console.log(`Error, failed to remove apex db: ${errorMessage}`);
+        }
       }
 
       // Clear any existing timeout
@@ -268,21 +309,18 @@ export class LanguageClientManager {
   }
 
   private async removeApexDB(): Promise<void> {
-    if (hasRootWorkspace() && vscode.workspace.workspaceFolders) {
-      const wsrf = vscode.workspace.workspaceFolders[0].uri;
-      const toolsUri = URI.parse(wsrf.toString()).with({ path: `${wsrf.path}/.sfdx/tools` });
-      try {
-        await Promise.all(
-          (await vscode.workspace.fs.readDirectory(toolsUri))
-            .filter(([name, type]) => type === vscode.FileType.Directory && /^\d{3}$/.test(name))
-            .map(([name]) => name)
-            .map(folder => URI.parse(toolsUri.toString()).with({ path: `${toolsUri.path}/${folder}` }))
-            .map(folderUri => vscode.workspace.fs.delete(folderUri, { recursive: true, useTrash: true }))
-        );
-      } catch (error) {
-        console.log(`Error, failed to delete folder:${error.message}`);
-      }
-    }
+    await getRuntime().runPromise(
+      removeApexDbEffect().pipe(
+        // No services extension ⇒ skip DB cleanup, exactly like the old hasRootWorkspace() guard returning false.
+        Effect.catchTags({
+          ServicesExtensionNotFoundError: () => Effect.void,
+          InvalidServicesApiError: () => Effect.void
+        }),
+        // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in jest)
+        // needn't supply ExtensionProviderService.
+        Effect.provideService(ExtensionProviderService, { getServicesApi })
+      )
+    );
   }
 
   public async createLanguageClient(

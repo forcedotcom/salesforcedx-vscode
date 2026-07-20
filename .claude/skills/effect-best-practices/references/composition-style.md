@@ -15,6 +15,10 @@ call site:
 2. **Make execution the terminal step**, not a wrapper around the expression.
 3. **Bail conditions and dispatch are separate** — guard clauses up top, the pipe
    handles real variance.
+4. **No single-use intermediate vars.** A value read once is a pipe step, not a
+   `const`. Plain value (not yet an Effect) → seed a standalone `pipe(value, …)`;
+   don't bury it as a nested call arg (`f(g(x))`) — that hides the step. Keep the
+   `const` only when the value is read ≥2×.
 
 Rest is application of these to specific combinators.
 
