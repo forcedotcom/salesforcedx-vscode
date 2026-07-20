@@ -89,7 +89,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
   }
 
   // Register commands eagerly so they're available even if LSP startup fails
-  const extensionScope = Effect.runSync(getExtensionScope());
+  const extensionScope = yield* getExtensionScope();
   yield* activateCommands().pipe(Scope.extend(extensionScope));
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
