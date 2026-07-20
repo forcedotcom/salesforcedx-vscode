@@ -33,6 +33,7 @@ const mergeAllServices = (layer: ReturnType<typeof buildAllServicesLayer>) =>
   Layer.merge(layer, ApexTestingServicesLayer);
 type AllServicesLayerType = ReturnType<typeof mergeAllServices>;
 
+// eslint-disable-next-line functional/no-let -- module-level mutable set once via setAllServicesLayer at activation
 let AllServicesLayer: AllServicesLayerType;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
@@ -48,5 +49,6 @@ type ApexTestingRuntime = ManagedRuntime.ManagedRuntime<
   Layer.Layer.Success<AllServicesLayerType>,
   Layer.Layer.Error<AllServicesLayerType>
 >;
+// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getApexTestingRuntime
 let _apexTestingRuntime: ApexTestingRuntime | undefined;
 export const getApexTestingRuntime = () => (_apexTestingRuntime ??= ManagedRuntime.make(AllServicesLayer));
