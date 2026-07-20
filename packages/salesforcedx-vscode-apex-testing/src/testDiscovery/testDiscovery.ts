@@ -8,7 +8,6 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import type * as Either from 'effect/Either';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import {
@@ -65,7 +64,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
     while (nextUrl) {
       const urlToFetch = nextUrl; // Capture for TypeScript narrowing
 
-      const pageResult: Either.Either<ToolingTestsPage, TestDiscoveryFetchError> = yield* Effect.either(
+      const pageResult = yield* Effect.either(
         Effect.tryPromise({
           try: (): Promise<ToolingTestsPage> =>
             connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
