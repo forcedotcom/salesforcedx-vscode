@@ -4,49 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { type Page } from '@playwright/test';
 import {
   clickCodeLens,
+  createAndOpenApexScript,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   openFileByName,
-  QUICK_INPUT_WIDGET,
   saveScreenshot,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
-  validateNoCriticalErrors,
-  waitForQuickInputFirstOption
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
 import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { continueDebugSession } from '../helpers/debugHelpers';
-
-/** Creates a named .apex script file via the command palette and returns with the file open. */
-const createAndOpenApexScript = async (page: Page, name: string, content: string): Promise<void> => {
-  await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.createAnonymousApexScript'] as string);
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
-  await page.keyboard.type(name);
-  await page.keyboard.press('Enter');
-  await waitForQuickInputFirstOption(page);
-  await page.keyboard.press('Enter');
-
-  await page
-    .locator('.tab')
-    .filter({ hasText: new RegExp(`${name}\\.apex`) })
-    .waitFor({ state: 'visible', timeout: 15_000 });
-  await openFileByName(page, `${name}.apex`);
-
-  // Populate the .apex file with test content
-  const editorArea = page.locator('.editor-instance .view-lines').first();
-  await editorArea.click({ force: true });
-  await page.keyboard.press('Control+a');
-  await page.keyboard.type(content);
-  await page.keyboard.press('Control+s');
-};
 
 const ANON_APEX_CONTENT = "System.debug('hello from anonymous apex');";
 const ANON_APEX_SCRIPT_NAME = 'DebugAnonApex';
@@ -62,7 +37,11 @@ test('Debug Anonymous Apex: Debug code lens, Launch with Selected File, and Debu
     await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     await ensureOutputPanelOpen(page);
-    await createAndOpenApexScript(page, ANON_APEX_SCRIPT_NAME, ANON_APEX_CONTENT);
+    await createAndOpenApexScript(page, {
+      commandLabel: apexLogNls['apexLog.command.createAnonymousApexScript'] as string,
+      name: ANON_APEX_SCRIPT_NAME,
+      content: ANON_APEX_CONTENT
+    });
     await saveScreenshot(page, 'setup.script-open.png');
   });
 

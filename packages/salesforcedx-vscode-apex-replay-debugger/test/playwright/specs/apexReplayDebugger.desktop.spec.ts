@@ -8,6 +8,7 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
+  createAndOpenApexScript,
   createApexClass,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
@@ -23,8 +24,7 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForOutputChannelText,
-  waitForQuickInputFirstOption
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
 import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
@@ -158,24 +158,11 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await selectOutputChannel(page, 'Salesforce Apex Log');
     await clearOutputChannel(page);
 
-    await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.createAnonymousApexScript'] as string);
-    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
-    await page.keyboard.type('TestScript');
-    await page.keyboard.press('Enter');
-    // Wait for directory QuickPick list rows (InputBox has none; QuickPick has 2 options)
-    await waitForQuickInputFirstOption(page);
-    await page.keyboard.press('Enter');
-
-    // Wait for TestScript.apex to be opened, then ensure it's the active editor
-    await page
-      .locator('.tab')
-      .filter({ hasText: /TestScript\.apex/ })
-      .waitFor({ state: 'visible', timeout: 15_000 });
-    await openFileByName(page, 'TestScript.apex');
-    // Click the editor to ensure it has focus (not the output panel) —
-    // editorLangId must be apex-anon for the executeDocument when clause
-    const editorArea = page.locator('.editor-instance .view-lines').first();
-    await editorArea.click({ force: true });
+    await createAndOpenApexScript(page, {
+      commandLabel: apexLogNls['apexLog.command.createAnonymousApexScript'] as string,
+      name: 'TestScript',
+      content: ''
+    });
 
     await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
 

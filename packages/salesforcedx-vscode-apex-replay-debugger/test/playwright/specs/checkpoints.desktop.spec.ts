@@ -8,6 +8,7 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
+  createAndOpenApexScript,
   createApexClass,
   EDITOR_WITH_URI,
   ensureOutputPanelOpen,
@@ -15,7 +16,6 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
-  QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
   saveScreenshot,
   selectOutputChannel,
@@ -25,7 +25,6 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForOutputChannelText,
-  waitForQuickInputFirstOption,
   WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 
@@ -136,23 +135,11 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
     await selectOutputChannel(page, 'Salesforce Apex Log');
     await clearOutputChannel(page);
 
-    await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.createAnonymousApexScript'] as string);
-    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
-    await page.keyboard.type('RunCheckpoint');
-    await page.keyboard.press('Enter');
-    // Name InputBox transitions to a directory QuickPick (2 options) — accept the first
-    await waitForQuickInputFirstOption(page);
-    await page.keyboard.press('Enter');
-
-    await page
-      .locator('.tab')
-      .filter({ hasText: /RunCheckpoint\.apex/ })
-      .waitFor({ state: 'visible', timeout: 15_000 });
-    await openFileByName(page, 'RunCheckpoint.apex');
-    const editorArea = page.locator('.editor-instance .view-lines').first();
-    await editorArea.click({ force: true });
-    await page.keyboard.press('Control+a');
-    await page.keyboard.type("new AccountService().createAccount('Acme', '123', 'ACME');");
+    await createAndOpenApexScript(page, {
+      commandLabel: apexLogNls['apexLog.command.createAnonymousApexScript'] as string,
+      name: 'RunCheckpoint',
+      content: "new AccountService().createAccount('Acme', '123', 'ACME');"
+    });
 
     await page.keyboard.press('F1');
     await selectQuickInputOptionByTyping(page, apexLogNls['apexLog.command.executeDocument'] as string);
