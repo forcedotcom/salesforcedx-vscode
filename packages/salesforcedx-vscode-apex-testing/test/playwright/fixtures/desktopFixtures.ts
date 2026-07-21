@@ -5,7 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createDesktopTest, LOGOUT_TEST_ORG_ALIAS, NON_TRACKING_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
+import {
+  createDesktopTest,
+  LOGOUT_TEST_ORG_ALIAS,
+  MINIMAL_ORG_ALIAS,
+  NON_TRACKING_ORG_ALIAS
+} from '@salesforce/playwright-vscode-ext';
+
+const sharedExtensionDirs = [
+  'salesforcedx-vscode-core',
+  'salesforcedx-vscode-org',
+  'salesforcedx-vscode-metadata',
+  'salesforcedx-vscode-apex-log',
+  'salesforcedx-vscode-apex'
+];
+
+const sharedUserSettings = {
+  'git.terminalAuthentication': false,
+  'git.autofetch': false,
+  // Render `showWarningMessage({ modal: true })` (e.g. the scratch-org logout confirm) as an
+  // in-DOM dialog so Playwright can click its button; native OS dialogs are not reachable.
+  'window.dialogStyle': 'custom'
+} as const;
 
 // Apex-testing specs never run Push/Pull or rely on source tracking, so they use a non-tracking
 // org. This avoids the "Override Conflicts and Deploy" modal that source-tracked orgs surface
@@ -13,21 +34,19 @@ import { createDesktopTest, LOGOUT_TEST_ORG_ALIAS, NON_TRACKING_ORG_ALIAS } from
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: NON_TRACKING_ORG_ALIAS,
-  additionalExtensionDirs: [
-    'salesforcedx-vscode-core',
-    'salesforcedx-vscode-org',
-    'salesforcedx-vscode-metadata',
-    'salesforcedx-vscode-apex-log',
-    'salesforcedx-vscode-apex'
-  ],
+  additionalExtensionDirs: sharedExtensionDirs,
   disableOtherExtensions: false,
-  userSettings: {
-    'git.terminalAuthentication': false,
-    'git.autofetch': false,
-    // Render `showWarningMessage({ modal: true })` (e.g. the scratch-org logout confirm) as an
-    // in-DOM dialog so Playwright can click its button; native OS dialogs are not reachable.
-    'window.dialogStyle': 'custom'
-  }
+  userSettings: sharedUserSettings
+});
+
+// Use for specs that need source-tracking commands (Push/Pull). The CI workflow recreates
+// this org before any retry, so tracking-state conflicts are not a concern there.
+export const trackingDesktopTest = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: MINIMAL_ORG_ALIAS,
+  additionalExtensionDirs: sharedExtensionDirs,
+  disableOtherExtensions: false,
+  userSettings: sharedUserSettings
 });
 
 // Same as `desktopTest` but defaults the workspace to the DEDICATED logout-test org. The clear-on-logout

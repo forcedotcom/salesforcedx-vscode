@@ -41,6 +41,7 @@ jobs:
     timeout-minutes: 60
     env:
       NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+      MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       # sf CLI hides authFields from `sf org create scratch --json` output by default; tests need them.
       SF_TEMP_SHOW_SECRETS: true
@@ -74,6 +75,7 @@ jobs:
         env:
           CI: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
           npm run test:web -w salesforcedx-vscode-apex-testing -- --reporter=html
@@ -116,6 +118,13 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
         working-directory: non-tracking-project
 
+      - name: Create minimal scratch org
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: non-tracking-project
+
       - name: Run Apex Testing E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
         id: parallel-run
@@ -123,6 +132,7 @@ jobs:
         env:
           CI: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
           npm run test:web -w salesforcedx-vscode-apex-testing -- --reporter=html
 
@@ -134,6 +144,8 @@ jobs:
         run: |
           sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: non-tracking-project
 
       - name: Retry failed tests (sequential)
@@ -142,6 +154,7 @@ jobs:
         env:
           CI: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
           npm run test:web -w salesforcedx-vscode-apex-testing -- --last-failed --reporter=html
@@ -174,6 +187,7 @@ jobs:
         continue-on-error: true
         run: |
           sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
 
   e2e-desktop:
     runs-on: ${{ matrix.os }}
@@ -188,6 +202,7 @@ jobs:
 
     env:
       NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+      MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
@@ -228,6 +243,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --reporter=html
 
@@ -269,6 +285,13 @@ jobs:
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
         working-directory: non-tracking-project
 
+      - name: Create minimal scratch org
+        if: steps.try-run.outcome == 'failure'
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
+        working-directory: non-tracking-project
+
       - name: Run Apex Testing E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
         id: parallel-run
@@ -277,6 +300,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --reporter=html
 
       - name: Recreate scratch org before retry
@@ -287,6 +311,8 @@ jobs:
         run: |
           sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: non-tracking-project
 
       - name: Retry failed tests (sequential)
@@ -296,6 +322,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --last-failed --reporter=html
 
@@ -328,3 +355,4 @@ jobs:
         shell: bash
         run: |
           sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

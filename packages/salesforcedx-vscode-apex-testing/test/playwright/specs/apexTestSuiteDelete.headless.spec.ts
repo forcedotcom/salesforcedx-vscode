@@ -17,14 +17,14 @@ import {
   selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  setupNonTrackingOrgAndAuth,
+  setupMinimalOrgAndAuth,
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   validateNoCriticalErrors,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { trackingTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import { expandTreeRow, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
 import { createApexTestSuiteViaPalette } from '../helpers/apexTestSuiteHelpers';
@@ -39,8 +39,8 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
   let testClassName: string;
   let testSuiteName: string;
 
-  await test.step('setup non-tracking org with an Apex test class', async () => {
-    await setupNonTrackingOrgAndAuth(page);
+  await test.step('setup tracking org with an Apex test class', async () => {
+    await setupMinimalOrgAndAuth(page);
 
     testClassName = `SuiteDelTestClass${Date.now()}`;
     const testClassContent = [
