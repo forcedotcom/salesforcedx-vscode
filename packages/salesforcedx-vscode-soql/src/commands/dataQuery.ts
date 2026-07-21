@@ -7,6 +7,7 @@
 import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isRecord } from 'effect/Predicate';
 import * as vscode from 'vscode';
@@ -63,7 +64,7 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   }
 });
 
-const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
+export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -71,9 +72,7 @@ const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string,
     yield* channelService.clearChannel;
   }
 
-  const vscChannel = yield* channelService.getChannel;
-
-  try {
+  yield* Effect.gen(function* () {
     const queryResult = yield* runSoqlQuery(query, queryApi === 'TOOLING');
     const truncated = queryResult.records.length > 0 && queryResult.totalSize > queryResult.records.length;
     const statusMessage = truncated
@@ -86,18 +85,13 @@ const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string,
         )
       : nls.localize('data_query_complete', queryResult.totalSize);
     yield* Effect.all(
-      [
-        displayTableResults(queryResult),
-        channelService.appendToChannel(statusMessage),
-        saveResultsToCSV(queryResult),
-        Effect.sync(() => vscChannel.show())
-      ],
+      [displayTableResults(queryResult), channelService.appendToChannel(statusMessage), saveResultsToCSV(queryResult)],
       { concurrency: 'unbounded' }
     );
-  } catch (error) {
-    yield* channelService.appendToChannel(formatErrorMessage(error));
-    vscChannel.show();
-  }
+  }).pipe(
+    Effect.catchAllCause(cause => channelService.appendToChannel(formatErrorMessage(Cause.squash(cause)))),
+    Effect.ensuring(channelService.showChannel)
+  );
 });
 
 export const dataQuery = Effect.fn('sf.data.query')(function* () {
