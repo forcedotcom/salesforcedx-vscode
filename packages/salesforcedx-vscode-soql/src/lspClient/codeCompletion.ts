@@ -11,6 +11,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SoqlItemContext } from '@salesforce/soql-language-server';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import type { SObject, SObjectField } from 'salesforcedx-vscode-services';
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
@@ -52,8 +53,7 @@ const filterByContext = async (items: ProtocolCompletionItem[]): Promise<Protoco
   return filteredItems;
 };
 
-const getLabelString = (item: ProtocolCompletionItem): string =>
-  typeof item.label === 'string' ? item.label : item.label.label;
+const getLabelString = (item: ProtocolCompletionItem): string => (isString(item.label) ? item.label : item.label.label);
 
 const expandPlaceholders = async (items: ProtocolCompletionItem[]): Promise<ProtocolCompletionItem[]> => {
   const expandedItems = [...items];

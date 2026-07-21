@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
@@ -44,7 +45,7 @@ const lookupClassBody = (className: string) =>
     return apexClass.Body;
   }).pipe(
     Effect.catchAll((error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = isError(error) ? error.message : String(error);
       return Effect.succeed(`// Error retrieving class '${className}' from org: ${errorMessage}`);
     })
   );
@@ -57,6 +58,7 @@ const createClassBodyCache = () =>
     lookup: lookupClassBody
   });
 
+// eslint-disable-next-line functional/no-let -- module-level lazy cache, assigned via ??= and reset to undefined for tests
 let classBodyCache: Cache.Cache<string, string> | undefined;
 
 const ensureCacheInitialized = (): Cache.Cache<string, string> => {
@@ -80,14 +82,12 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
   // eslint-disable-next-line class-methods-use-this
   public async provideTextDocumentContent(uri: URI): Promise<string> {
     // Extract class name from path, removing .cls extension if present
-    let className = uri.path;
-    if (!className) {
+    const rawClassName = uri.path;
+    if (!rawClassName) {
       return '// Error: Class name not found in URI';
     }
     // Remove .cls extension if present (added for syntax highlighting)
-    if (className.endsWith('.cls')) {
-      className = className.slice(0, -4);
-    }
+    const className = rawClassName.endsWith('.cls') ? rawClassName.slice(0, -4) : rawClassName;
 
     // Ensure cache is initialized and get cached or fetch class body
     const cache = ensureCacheInitialized();
@@ -119,6 +119,7 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
   }
 }
 
+// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getOrgApexClassProvider
 let providerInstance: OrgApexClassProvider | undefined;
 
 /**
@@ -159,7 +160,7 @@ export const openOrgApexClass = async (className: string, position?: vscode.Posi
       }
     }).pipe(
       Effect.catchAll((error: unknown) => {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = isError(error) ? error.message : String(error);
         return Effect.sync(
           () =>
             void vscode.window.showErrorMessage(

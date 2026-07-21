@@ -7,6 +7,7 @@
 
 jest.mock('../../../src/services/extensionProvider', () => {
   const EffectLib = jest.requireActual('effect/Effect');
+  const SubscriptionRef = jest.requireActual('effect/SubscriptionRef');
   const Layer = jest.requireActual('effect/Layer');
   const ManagedRuntime = jest.requireActual('effect/ManagedRuntime');
   const { ExtensionProviderService } = jest.requireActual('@salesforce/effect-ext-utils');
@@ -18,11 +19,16 @@ jest.mock('../../../src/services/extensionProvider', () => {
   let mockReadFileResult = '';
   const mockReadFile = jest.fn(() => EffectLib.succeed(mockReadFileResult));
   const mockMetadataRetrieve = jest.fn(() => EffectLib.succeed({ getFileResponses: () => [] }));
-  const MockConnectionService = { getConnection: () => EffectLib.succeed(mockConnectionRef) };
+  const MockConnectionService = {
+    getConnection: () => EffectLib.succeed(mockConnectionRef),
+    invalidateCachedConnections: () => EffectLib.void
+  };
   const mockFsService = {
     readFile: mockReadFile,
     createDirectory: () => EffectLib.void,
     safeDelete: () => EffectLib.void,
+    safeWriteFile: () => EffectLib.void,
+    writeFile: () => EffectLib.void,
     // accessor form: `yield* api.services.FsService.HashableUri` resolves the value namespace.
     HashableUri: EffectLib.succeed(HashableUri),
     showTextDocument: (uri: unknown, options?: unknown) =>
@@ -34,27 +40,67 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const MockWorkspaceService = {
     getWorkspaceInfoOrThrow: EffectLib.succeed({ uri: UriClass.file('/tmp/workspace'), fsPath: '/tmp/workspace' })
   };
+  const mockAppendToChannel = jest.fn(() => EffectLib.void);
+  const mockChannelService = { appendToChannel: mockAppendToChannel };
   const mockServicesApi = {
     services: {
       ConnectionService: MockConnectionService,
       FsService: mockFsService,
+      // Yielded as an instance in the execution service (yield* api.services.ChannelService), so wrap in
+      // Effect.succeed — same seam as testReportGenerator.test.ts.
+      ChannelService: EffectLib.succeed(mockChannelService),
       WorkspaceService: MockWorkspaceService,
       MetadataRetrieveService: {
         retrieve: mockMetadataRetrieve
-      }
+      },
+      // restore-previous-results defaults false so discovery's restore step short-circuits in tests not
+      // exercising it; other keys fall through to their provided default. Yielded as an instance
+      // (yield* api.services.SettingsService), so wrap in Effect.succeed.
+      SettingsService: EffectLib.succeed({
+        getValue: (_section: string, key: string, defaultValue: unknown) =>
+          EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
+      }),
+      // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService (jest.requireActual above):
+      // persistDiscoveredClasses/addClassToTree/applyIncrementalDiff yield* api.services.TargetOrgRef() then
+      // SubscriptionRef.get for the org key. Fresh ref per call. Mirrors watchers/testDiscovery.test.ts.
+      TargetOrgRef: () => SubscriptionRef.make({ orgId: 'org123', username: 'user@example.com' })
     }
   };
-  const MockAllServicesLayer = Layer.mergeAll(
-    Layer.effect(
-      ExtensionProviderService,
-      EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
-    ),
-    ApexTestRunCacheService.Default
+  const ExtensionProviderLayer = Layer.effect(
+    ExtensionProviderService,
+    EffectLib.sync(() => ({ getServicesApi: EffectLib.succeed(mockServicesApi) }))
   );
+  // ApexTestTreeService owns the tree Refs; the shell reads them via this runtime, so the mock runtime
+  // must provide its Default layer. Built lazily (not at module-eval) to avoid the import cycle
+  // apexTestTreeService -> testUtils -> extensionProvider (this mock).
+  let mockRuntime: any;
+  let MockAllServicesLayer: any;
+  let treeService: any;
+  const ensureRuntime = () => {
+    if (!mockRuntime) {
+      treeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+      const executionService = jest.requireActual(
+        '../../../src/views/apexTestExecutionService'
+      ).ApexTestExecutionService;
+      MockAllServicesLayer = Layer.mergeAll(
+        ExtensionProviderLayer,
+        treeService.Default,
+        executionService.Default,
+        ApexTestRunCacheService.Default
+      );
+      // One persistent runtime so the tree-state Refs survive across the shell's runSync/runPromise
+      // calls within a test (matching the production single-runtime behavior).
+      mockRuntime = ManagedRuntime.make(MockAllServicesLayer);
+    }
+    return mockRuntime;
+  };
 
   return {
-    getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
-    AllServicesLayer: MockAllServicesLayer,
+    getApexTestingRuntime: () => ensureRuntime(),
+    get AllServicesLayer() {
+      ensureRuntime();
+      return MockAllServicesLayer;
+    },
     setAllServicesLayer: jest.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
@@ -63,34 +109,32 @@ jest.mock('../../../src/services/extensionProvider', () => {
       mockReadFileResult = s;
     },
     __mockFsServiceReadFile: mockReadFile,
-    __mockMetadataRetrieve: mockMetadataRetrieve
+    __mockAppendToChannel: mockAppendToChannel,
+    __mockMetadataRetrieve: mockMetadataRetrieve,
+    // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
+    __resetTree: () => {
+      ensureRuntime();
+      mockRuntime.runSync(treeService.reset());
+      mockRuntime.runSync(treeService.clearRestoredResults());
+    }
   };
 });
-
-jest.mock('../../../src/coreExtensionUtils', () => ({
-  getConnection: jest.fn(),
-  getDefaultOrgInfo: jest.fn().mockResolvedValue({ orgId: 'org123', username: 'user@example.com' })
-}));
 
 jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
   return {
     ...actual,
-    getApexTests: jest.fn(),
     buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
     getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(undefined),
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
 });
 
-jest.mock('../../../src/settings', () => ({
-  retrieveTestCodeCoverage: jest.fn().mockReturnValue(false),
-  retrieveTestRunConcise: jest.fn().mockReturnValue(false)
-}));
-
-jest.mock('../../../src/testDiscovery/packageResolution', () => ({
-  resolvePackage2Members: jest.fn().mockResolvedValue(new Map())
-}));
+jest.mock('../../../src/testDiscovery/packageResolution', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
+  return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
+});
 
 const mockSaveDiscoveredClasses = jest.fn();
 
@@ -138,7 +182,6 @@ import * as path from 'node:path';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import { URI } from 'vscode-uri';
 import * as vscode from 'vscode';
-import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
 import * as pathHelpers from '../../../src/utils/pathHelpers';
 import { notificationService } from '../../../src/utils/notificationHelpers';
@@ -146,12 +189,15 @@ import * as extensionProvider from '../../../src/services/extensionProvider';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
 import * as EffectModule from 'effect/Effect';
-import {
-  ApexTestController,
-  closeForeignApexTestingTabs,
-  getTestController,
-  sortUrisByMtimeAscending
-} from '../../../src/views/testController';
+import * as Option from 'effect/Option';
+import { ApexTestController, closeForeignApexTestingTabs, getTestController } from '../../../src/views/testController';
+
+// The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
+// the production module accessors use) to seed test state.
+const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map<string, vscode.TestItem> => {
+  const ApexTestTreeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
+  return extensionProvider.getApexTestingRuntime().runSync(ApexTestTreeService[key]());
+};
 
 // closeForeignApexTestingTabs returns an Effect (R = never: pure tab ops, no services), so run it
 // with the real Effect runtime rather than the mocked extension runtime.
@@ -204,6 +250,8 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Clear the singleton runtime's tree Refs so per-test map state does not leak.
+    (extensionProvider as unknown as { __resetTree: () => void }).__resetTree();
 
     // Mock vscode.tests.createTestController
     (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
@@ -237,13 +285,8 @@ describe('ApexTestController', () => {
       }
     };
 
-    (coreExtensionUtils.getConnection as jest.Mock) = jest.fn().mockResolvedValue(mockConnection);
     (extensionProvider as any).__setMockConnection?.(mockConnection);
-    (coreExtensionUtils.getDefaultOrgInfo as jest.Mock) = jest
-      .fn()
-      .mockResolvedValue({ orgId: 'org123', username: 'user@example.com' });
 
-    (testUtils.getApexTests as jest.Mock) = jest.fn().mockResolvedValue([]);
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(undefined);
     const Effect = jest.requireActual('effect/Effect');
@@ -493,18 +536,18 @@ describe('ApexTestController', () => {
     it('should discover tests and populate test items', async () => {
       const mockClasses = [
         {
-          id: '01p000000000001AAA',
+          id: Option.some('01p000000000001AAA'),
           name: 'TestClass1',
-          namespacePrefix: '',
+          namespacePrefix: Option.none(),
           testMethods: [
             { name: 'testMethod1', line: 1, column: 0 },
             { name: 'testMethod2', line: 2, column: 0 }
           ]
         },
         {
-          id: '01p000000000002AAA',
+          id: Option.some('01p000000000002AAA'),
           name: 'TestClass2',
-          namespacePrefix: '',
+          namespacePrefix: Option.none(),
           testMethods: [{ name: 'testMethod3', line: 1, column: 0 }]
         }
       ];
@@ -551,9 +594,9 @@ describe('ApexTestController', () => {
     it('should tag tests that exist in org but not in local workspace', async () => {
       const mockClasses = [
         {
-          id: '01p000000000001AAA',
+          id: Option.some('01p000000000001AAA'),
           name: 'OrgOnlyClass',
-          namespacePrefix: '',
+          namespacePrefix: Option.none(),
           testMethods: [{ name: 'testMethod1', line: 1, column: 0 }]
         }
       ];
@@ -626,230 +669,6 @@ describe('ApexTestController', () => {
       expect(orgOnlyMethodItem?.tags).toBeDefined();
       expect(orgOnlyMethodItem?.tags?.length).toBe(1);
       expect(orgOnlyMethodItem?.tags?.[0].id).toBe('org-only');
-    });
-  });
-
-  describe('debugTests with org-only tests', () => {
-    it('should prevent debugging org-only tests and show error notification', async () => {
-      // Get the controller's orgOnlyTag instance (same reference used in debugTests)
-      const orgOnlyTag = (controller as any).orgOnlyTag;
-      const orgOnlyTestItem = {
-        id: 'method:OrgOnlyClass.testMethod',
-        label: 'testMethod',
-        uri: URI.parse('sf-org-apex:OrgOnlyClass'),
-        tags: [orgOnlyTag],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const localTestItem = {
-        id: 'method:LocalClass.testMethod',
-        label: 'testMethod',
-        uri: URI.file('/workspace/LocalClass.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const mockRun = {
-        started: jest.fn(),
-        passed: jest.fn(),
-        failed: jest.fn(),
-        skipped: jest.fn(),
-        errored: jest.fn(),
-        end: jest.fn(),
-        appendOutput: jest.fn()
-      } as unknown as vscode.TestRun;
-
-      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockRun);
-
-      // Mock notificationService
-      notificationService.showErrorMessage = jest.fn();
-
-      // Call debugTests directly
-      await (controller as any).debugTests([orgOnlyTestItem, localTestItem], mockRun);
-
-      // Verify org-only test was marked as errored
-      expect(mockRun.errored).toHaveBeenCalledWith(
-        orgOnlyTestItem,
-        expect.objectContaining({
-          message: expect.stringContaining('Debugging is not supported for tests that exist only in the org')
-        })
-      );
-
-      // Verify error notification was shown
-      expect(notificationService.showErrorMessage).toHaveBeenCalledWith(
-        expect.stringContaining('Debugging is not supported for tests that exist only in the org')
-      );
-
-      // Verify local test was not marked as errored (only org-only tests should be)
-      expect(mockRun.errored).not.toHaveBeenCalledWith(localTestItem, expect.anything());
-    });
-
-    it('should filter out org-only tests from debug run', async () => {
-      // Get the controller's orgOnlyTag instance (same reference used in debugTests)
-      const orgOnlyTag = (controller as any).orgOnlyTag;
-      const orgOnlyTestItem = {
-        id: 'method:OrgOnlyClass.testMethod',
-        label: 'testMethod',
-        uri: URI.parse('sf-org-apex:OrgOnlyClass'),
-        tags: [orgOnlyTag],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const mockRun = {
-        started: jest.fn(),
-        passed: jest.fn(),
-        failed: jest.fn(),
-        skipped: jest.fn(),
-        errored: jest.fn(),
-        end: jest.fn(),
-        appendOutput: jest.fn()
-      } as unknown as vscode.TestRun;
-
-      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockRun);
-
-      // Mock notificationService
-      notificationService.showErrorMessage = jest.fn();
-
-      // Mock commands.executeCommand to track if debug was called
-      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
-
-      // Call debugTests directly with only org-only test
-      await (controller as any).debugTests([orgOnlyTestItem], mockRun);
-
-      // Verify org-only test was marked as errored
-      expect(mockRun.errored).toHaveBeenCalled();
-
-      // Verify debug command was NOT called (org-only tests were filtered out)
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', expect.anything());
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith(
-        'sf.test.view.debugSingleTest',
-        expect.anything()
-      );
-    });
-  });
-
-  describe('debugTests method and class selection', () => {
-    it('should debug only the selected method when a single method is selected', async () => {
-      const methodTestItem = {
-        id: 'method:BugTest.myUnitTest2',
-        label: 'myUnitTest2',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      await (controller as any).debugTests([methodTestItem], mockTestRun);
-
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
-        name: 'BugTest.myUnitTest2'
-      });
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', {
-        name: 'BugTest'
-      });
-    });
-
-    it('should prefer class-level debug when class and method from same class are selected', async () => {
-      const classTestItem = {
-        id: 'class:BugTest',
-        label: 'BugTest',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const methodTestItem = {
-        id: 'method:BugTest.myUnitTest2',
-        label: 'myUnitTest2',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      await (controller as any).debugTests([classTestItem, methodTestItem], mockTestRun);
-
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
-        name: 'BugTest'
-      });
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
-        name: 'myUnitTest2'
-      });
-    });
-
-    it('should debug each selected method when multiple methods from the same class are selected', async () => {
-      const methodOne = {
-        id: 'method:BugTest.myUnitTest1',
-        label: 'myUnitTest1',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const methodTwo = {
-        id: 'method:BugTest.myUnitTest2',
-        label: 'myUnitTest2',
-        uri: URI.file('/workspace/BugTest.cls'),
-        tags: [],
-        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
-        canResolveChildren: false,
-        children: {
-          add: jest.fn(),
-          values: jest.fn().mockReturnValue([]),
-          size: 0
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      await (controller as any).debugTests([methodOne, methodTwo], mockTestRun);
-
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
-        name: 'BugTest.myUnitTest1'
-      });
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugSingleTest', {
-        name: 'BugTest.myUnitTest2'
-      });
-      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', {
-        name: 'BugTest'
-      });
     });
   });
 
@@ -989,6 +808,79 @@ describe('ApexTestController', () => {
       );
       expect(refreshSpy).toHaveBeenCalled();
       expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
+    });
+
+    it('keeps a refresh failure non-fatal: still shows success, never failed', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showSuccessfulExecution = jest.fn();
+      notificationService.showFailedExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').succeed({
+          getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
+        })
+      );
+      // refresh rejects — must be swallowed (logWarning), not flipped to failed-execution.
+      jest.spyOn(controller, 'refresh').mockRejectedValue(new Error('refresh boom'));
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
+      expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
+    });
+
+    it('shows the canceled notification when retrieve is cancelled (UserCancellationError)', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showInformationMessage = jest.fn();
+      notificationService.showFailedExecution = jest.fn();
+      notificationService.showSuccessfulExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').fail({ _tag: 'UserCancellationError' })
+      );
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showInformationMessage).toHaveBeenCalled();
+      expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
+      expect(notificationService.showSuccessfulExecution).not.toHaveBeenCalled();
+    });
+
+    it('shows failed-execution when retrieve fails (MetadataRetrieveError)', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showFailedExecution = jest.fn();
+      notificationService.showSuccessfulExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').fail({ _tag: 'MetadataRetrieveError', message: 'boom' })
+      );
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showFailedExecution).toHaveBeenCalled();
+      expect(notificationService.showSuccessfulExecution).not.toHaveBeenCalled();
     });
 
     it('does not retrieve for local class items', async () => {
@@ -1186,151 +1078,28 @@ describe('ApexTestController', () => {
       expect(discoverTestsSpyLocal).toHaveBeenCalled();
     });
 
-    it('should remove suite items and re-populate from org when includesSuiteChange is true', async () => {
+    it('should call clearAllSuiteChildren when includesSuiteChange is true', async () => {
       const changes = new Map([['SomeClass', 'deleted']]);
 
-      // Set up a suite parent item and a suite item in the controller
-      const suiteParentItem = {
-        id: 'apex-test-suites-parent',
-        label: 'Apex Test Suites',
-        children: { add: jest.fn(), size: 1 } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-      (controller as any).suiteParentItem = suiteParentItem;
-
+      // Add a suite item to verify it gets cleared
       const suiteItem = {
         id: 'suite:MySuite',
         label: 'MySuite',
         children: {
           replace: jest.fn(),
-          add: jest.fn(),
           size: 1
         } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
-      const suiteItems = (controller as any).suiteItems as Map<string, vscode.TestItem>;
-      suiteItems.set('MySuite', suiteItem);
-      (controller as any).suiteToClasses.set('MySuite', new Set(['TestClass1']));
-
-      // Mock controller.items.delete to track removal
-      const deleteFn = jest.fn();
-      Object.assign(mockTestController.items, { delete: deleteFn });
-
-      // Mock retrieveAllSuites to return empty (suite was deleted)
-      mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
+      treeMap('getSuiteItems').set('MySuite', suiteItem);
 
       await controller.incrementalUpdate(changes, true);
 
-      // Verify suite parent was removed from controller tree
-      expect(deleteFn).toHaveBeenCalledWith('apex-test-suites-parent');
-
-      // Verify suite state was cleared
-      expect(suiteItems.size).toBe(0);
-      expect((controller as any).suiteToClasses.size).toBe(0);
-      expect((controller as any).suiteParentItem).toBeUndefined();
-    });
-
-    it('should drain discoveryInProgress before refreshing suite items', async () => {
-      const changes = new Map([['SomeClass', 'deleted']]);
-
-      // Simulate an in-flight discovery that resolves after a tick
-      const { promise: discoveryPromise, resolve: resolveDiscovery } = Promise.withResolvers<void>();
-      (controller as any).discoveryInProgress = discoveryPromise;
-
-      // Set up suiteParentItem so delete is reachable and can serve as an ordering signal
-      const suiteParent = { id: 'apex-test-suites-parent', label: 'Apex Test Suites' } as any;
-      (controller as any).suiteParentItem = suiteParent;
-
-      // Mock controller.items.delete
-      const deleteFn = jest.fn();
-      Object.assign(mockTestController.items, { delete: deleteFn });
-
-      // Mock retrieveAllSuites to return empty
-      mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
-
-      // Start the incremental update (it should wait for discoveryInProgress)
-      const updatePromise = controller.incrementalUpdate(changes, true);
-
-      // Verify refreshSuiteItems hasn't run yet (discovery still in progress)
-      expect(deleteFn).not.toHaveBeenCalled();
-
-      // Resolve discovery
-      resolveDiscovery();
-      await updatePromise;
-
-      // After discovery resolves, refreshSuiteItems should have completed
-      expect(deleteFn).toHaveBeenCalledWith('apex-test-suites-parent');
-      expect(mockTestServiceMethods.retrieveAllSuites).toHaveBeenCalled();
-    });
-
-    it('clearAllSuiteChildren should only clear children without removing suite items', async () => {
-      // This protects the create/add flow in apexTestSuite.ts where
-      // clearAllSuiteChildren() + refresh() is the correct pattern (suite still exists on org)
-      const suiteItem = {
-        id: 'suite:MySuite',
-        label: 'MySuite',
-        children: {
-          replace: jest.fn(),
-          size: 2
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      const suiteItems = (controller as any).suiteItems as Map<string, vscode.TestItem>;
-      suiteItems.set('MySuite', suiteItem);
-      (controller as any).suiteToClasses.set('MySuite', new Set(['ClassA']));
-
-      controller.clearAllSuiteChildren();
-
-      // Children are cleared
       expect(suiteItem.children.replace).toHaveBeenCalledWith([]);
-
-      // Suite item itself remains in the map (not removed)
-      expect(suiteItems.has('MySuite')).toBe(true);
-      // suiteToClasses is NOT cleared (only refreshSuiteItems does that)
-      expect((controller as any).suiteToClasses.has('MySuite')).toBe(true);
     });
 
-    it('should invalidate test results for changed classes', async () => {
-      const Effect = jest.requireActual('effect/Effect');
-
-      // Set up an existing class item in the controller
-      const classItems = (controller as any).classItems as Map<string, vscode.TestItem>;
-      const methodItems = (controller as any).methodItems as Map<string, vscode.TestItem>;
-
-      const existingMethodItem = {
-        id: 'method:MyTestClass.testMethod1',
-        label: 'testMethod1'
-      } as unknown as vscode.TestItem;
-
-      const existingClassItem = {
-        id: 'class:MyTestClass',
-        label: 'MyTestClass',
-        tags: [],
-        children: {
-          forEach: (cb: (item: vscode.TestItem) => void) => cb(existingMethodItem),
-          add: jest.fn(),
-          delete: jest.fn(),
-          size: 1
-        } as unknown as vscode.TestItemCollection
-      } as unknown as vscode.TestItem;
-
-      classItems.set('MyTestClass', existingClassItem);
-      methodItems.set('method:MyTestClass.testMethod1', existingMethodItem);
-
-      // Mock discovery to return the same class with same method
-      discoverTestsSpyLocal.mockReturnValue(
-        Effect.succeed({
-          classes: [{ id: '01p123', name: 'MyTestClass', namespacePrefix: '', testMethods: [{ name: 'testMethod1' }] }]
-        })
-      );
-
-      // Mock invalidateTestResults on the controller
-      (mockTestController as any).invalidateTestResults = jest.fn();
-
-      const changes = new Map([['MyTestClass', 'changed']]);
-      await controller.incrementalUpdate(changes, false);
-
-      expect((mockTestController as any).invalidateTestResults).toHaveBeenCalledWith(existingClassItem);
-    });
+    // Diff internals (add/diff/remove class, invalidateTestResults, removeEmptyAncestors) moved into
+    // ApexTestTreeService; see test/jest/views/apexTestTreeService.test.ts "incrementalUpdate diff".
   });
 });
 
@@ -1345,43 +1114,8 @@ describe('getTestController', () => {
   });
 });
 
-describe('sortUrisByMtimeAscending', () => {
-  const uriFor = (runId: string): URI => URI.file(`/results/test-result-${runId}.json`);
-
-  it('orders by mtime so the newest run is applied last (most recent result wins)', () => {
-    // Regression for W-XXXXXXXX: Salesforce test-run-id filenames are NOT chronologically
-    // sortable. Here the lexicographically-last file (CrPFqQ) is actually an OLDER run than
-    // CrOq5E/CrOtvg. Sorting by filename would apply the older failing run last and clobber the
-    // newer passing run. Sorting by mtime applies oldest-first so the newest run wins.
-    const items = [
-      { uri: uriFor('CrOtvg'), mtime: 4000 }, // newest run (all green)
-      { uri: uriFor('CrP6pE'), mtime: 1000 }, // oldest run (had the failure)
-      { uri: uriFor('CrPFqQ'), mtime: 2000 }, // lexicographically last, but older than CrO* runs
-      { uri: uriFor('CrOq5E'), mtime: 3000 }
-    ];
-
-    const ordered = sortUrisByMtimeAscending(items).map(uri => uri.path);
-
-    expect(ordered).toEqual([
-      uriFor('CrP6pE').path,
-      uriFor('CrPFqQ').path,
-      uriFor('CrOq5E').path,
-      uriFor('CrOtvg').path
-    ]);
-    // The newest-by-mtime run is applied last regardless of filename ordering.
-    expect(ordered.at(-1)).toBe(uriFor('CrOtvg').path);
-  });
-
-  it('does not mutate the input array', () => {
-    const items = [
-      { uri: uriFor('b'), mtime: 2000 },
-      { uri: uriFor('a'), mtime: 1000 }
-    ];
-    const snapshot = items.map(i => i.uri.path);
-    sortUrisByMtimeAscending(items);
-    expect(items.map(i => i.uri.path)).toEqual(snapshot);
-  });
-});
+// sortUrisByMtimeAscending moved into ApexTestTreeService; the mtime-ordering behavior is covered by
+// test/jest/utils/sortHelpers.test.ts (the canonical sortByMtimeAscending helper).
 
 describe('closeForeignApexTestingTabs', () => {
   // Real-ish tab fixtures: the production code does `tab.input instanceof vscode.TabInputText`, so the

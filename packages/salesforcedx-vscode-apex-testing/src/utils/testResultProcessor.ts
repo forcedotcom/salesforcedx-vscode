@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { HumanReporter, TestResult } from '@salesforce/apex-node';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { nls } from '../messages';
@@ -27,17 +28,14 @@ export const parseStackTrace = (
     if (fileMatch) {
       const fullClassName = fileMatch[1]; // e.g., "namespace.MyTestClass" or "MyTestClass"
 
-      // Try to find the class item by matching the full class name (with namespace)
-      let classItem = Array.from(classItems.values()).find(item => item.label === fullClassName);
-
-      // If not found, try matching just the last part (class name without namespace)
-      // This handles cases where the classItems map only has the class name without namespace
-      if (!classItem && fullClassName.includes('.')) {
-        const classNameWithoutNamespace = fullClassName.split('.').pop();
-        if (classNameWithoutNamespace) {
-          classItem = Array.from(classItems.values()).find(item => item.label === classNameWithoutNamespace);
-        }
-      }
+      const items = Array.from(classItems.values());
+      // Try to find the class item by matching the full class name (with namespace);
+      // if not found, fall back to matching just the last part (class name without namespace).
+      // This handles cases where the classItems map only has the class name without namespace.
+      const classNameWithoutNamespace = fullClassName.includes('.') ? fullClassName.split('.').pop() : undefined;
+      const classItem =
+        items.find(item => item.label === fullClassName) ??
+        (classNameWithoutNamespace ? items.find(item => item.label === classNameWithoutNamespace) : undefined);
 
       if (classItem?.uri) {
         return new vscode.Location(classItem.uri, new vscode.Range(lineNumber, 0, lineNumber, 0));
@@ -103,12 +101,6 @@ export const updateTestRunResults = (params: {
   // Track results per class for proper aggregation
   const classResults = new Map<string, { passed: number; failed: number; skipped: number; duration: number }>();
 
-  // Track results for parent items (suites, classes)
-  let totalPassed = 0;
-  let totalFailed = 0;
-  let totalSkipped = 0;
-  let totalDuration = 0;
-
   // Update results from TestResult
   for (const testResult of result.tests) {
     const { name, namespacePrefix } = testResult.apexClass;
@@ -128,8 +120,6 @@ export const updateTestRunResults = (params: {
 
       if (outcomeStr === PASS_RESULT) {
         run.passed(testItem, runTime);
-        totalPassed++;
-        totalDuration += runTime;
         classResult.passed++;
         classResult.duration += runTime;
       } else if (outcomeStr === FAIL_RESULT) {
@@ -153,21 +143,31 @@ export const updateTestRunResults = (params: {
         }
 
         run.failed(testItem, message, runTime);
-        totalFailed++;
-        totalDuration += runTime;
         classResult.failed++;
         classResult.duration += runTime;
       } else if (outcomeStr === SKIP_RESULT) {
         run.skipped(testItem);
-        totalSkipped++;
         classResult.skipped++;
       }
     } else {
       // Test result doesn't match any known test item
       // This can happen if the test was run as part of a suite but isn't in our tree
-      console.debug(`Test result for ${fullTestName} doesn't match any test item. Available items: ${testMap.size}`);
+      Effect.runSync(
+        Effect.logDebug(`Test result for ${fullTestName} doesn't match any test item`, { availableItems: testMap.size })
+      );
     }
   }
+
+  // Aggregate totals across all classes for parent items (suites, classes)
+  const totals = Array.from(classResults.values()).reduce(
+    (acc, classResult) => ({
+      passed: acc.passed + classResult.passed,
+      failed: acc.failed + classResult.failed,
+      skipped: acc.skipped + classResult.skipped,
+      duration: acc.duration + classResult.duration
+    }),
+    { passed: 0, failed: 0, skipped: 0, duration: 0 }
+  );
 
   // Helper to recursively update all class items under a suite
   const updateClassItemsUnderSuite = (suiteItem: vscode.TestItem): void => {
@@ -210,44 +210,41 @@ export const updateTestRunResults = (params: {
   for (const test of testsToRun) {
     if (isSuite(test.id)) {
       // For suites, aggregate results only for classes that belong to THIS suite
-      let suitePassed = 0;
-      let suiteFailed = 0;
-      let suiteSkipped = 0;
-      let suiteDuration = 0;
+      const suiteChildren: vscode.TestItem[] = [];
+      test.children.forEach(child => suiteChildren.push(child));
 
-      test.children.forEach(child => {
-        // Try matching by label directly (e.g., "Class1")
-        let childResult = classResults.get(child.label);
+      const suiteTotals = suiteChildren.reduce(
+        (acc, child) => {
+          // Try matching by label directly (e.g., "Class1"); if not found, try matching with
+          // namespace prefix (className ends with .child.label, e.g. "namespace.Class1" -> "Class1").
+          const childResult =
+            classResults.get(child.label) ??
+            Array.from(classResults).find(
+              ([className]) => className === child.label || className.endsWith(`.${child.label}`)
+            )?.[1];
 
-        // If not found, try matching with namespace prefix (e.g., "namespace.Class1")
-        if (!childResult) {
-          for (const [className, classResult] of classResults) {
-            // Check if the className ends with the child label (handles namespace.Class1 -> Class1)
-            if (className === child.label || className.endsWith(`.${child.label}`)) {
-              childResult = classResult;
-              break;
-            }
-          }
-        }
-
-        if (childResult) {
-          suitePassed += childResult.passed;
-          suiteFailed += childResult.failed;
-          suiteSkipped += childResult.skipped;
-          suiteDuration += childResult.duration;
-        }
-      });
+          return childResult
+            ? {
+                passed: acc.passed + childResult.passed,
+                failed: acc.failed + childResult.failed,
+                skipped: acc.skipped + childResult.skipped,
+                duration: acc.duration + childResult.duration
+              }
+            : acc;
+        },
+        { passed: 0, failed: 0, skipped: 0, duration: 0 }
+      );
 
       // Mark the suite based on its own aggregate results
-      if (suiteFailed > 0) {
+      if (suiteTotals.failed > 0) {
         run.failed(
           test,
-          new vscode.TestMessage(nls.localize('apex_test_aggregate_failed_message', String(suiteFailed))),
-          suiteDuration
+          new vscode.TestMessage(nls.localize('apex_test_aggregate_failed_message', String(suiteTotals.failed))),
+          suiteTotals.duration
         );
-      } else if (suitePassed > 0) {
-        run.passed(test, suiteDuration);
-      } else if (suiteSkipped > 0) {
+      } else if (suiteTotals.passed > 0) {
+        run.passed(test, suiteTotals.duration);
+      } else if (suiteTotals.skipped > 0) {
         run.skipped(test);
       }
       // Recursively update class items under the suite
@@ -271,15 +268,15 @@ export const updateTestRunResults = (params: {
         }
       } else {
         // Fallback to total results if class-specific results aren't available
-        if (totalFailed > 0) {
+        if (totals.failed > 0) {
           run.failed(
             test,
-            new vscode.TestMessage(nls.localize('apex_test_aggregate_failed_message', String(totalFailed))),
-            totalDuration
+            new vscode.TestMessage(nls.localize('apex_test_aggregate_failed_message', String(totals.failed))),
+            totals.duration
           );
-        } else if (totalPassed > 0) {
-          run.passed(test, totalDuration);
-        } else if (totalSkipped > 0) {
+        } else if (totals.passed > 0) {
+          run.passed(test, totals.duration);
+        } else if (totals.skipped > 0) {
           run.skipped(test);
         }
       }

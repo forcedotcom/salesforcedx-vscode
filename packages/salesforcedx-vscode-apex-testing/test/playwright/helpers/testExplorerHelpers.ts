@@ -114,6 +114,40 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
 };
 
 /**
+ * Expands the "Apex Test Suites" section and the named suite within it.
+ */
+export const expandApexTestSuite = async (panel: Locator, suiteName: string): Promise<void> => {
+  await expandTreeRow(panel, messages.apex_test_suites_parent_text);
+  await panel
+    .locator(TEST_EXPLORER_TREE_ITEM)
+    .filter({ hasText: suiteName })
+    .waitFor({ state: 'visible', timeout: 15_000 });
+  await expandTreeRow(panel, suiteName);
+};
+
+/**
+ * Returns the text content of all immediate children of the named suite in the tree.
+ * Uses the flat DOM list structure: children are subsequent rows with a deeper aria-level.
+ */
+export const getSuiteChildrenText = async (panel: Locator, suiteName: string): Promise<string[]> =>
+  panel.evaluate(
+    (panelEl, args) => {
+      const items = Array.from(panelEl.querySelectorAll(args.treeItemSel));
+      const suiteIdx = items.findIndex(el => el.textContent?.includes(args.suiteName));
+      if (suiteIdx === -1) return [];
+      const suiteLevel = parseInt(items[suiteIdx].getAttribute('aria-level') ?? '0', 10);
+      const children: string[] = [];
+      for (let i = suiteIdx + 1; i < items.length; i++) {
+        const level = parseInt(items[i].getAttribute('aria-level') ?? '0', 10);
+        if (level <= suiteLevel) break;
+        children.push(items[i].textContent?.trim() ?? '');
+      }
+      return children;
+    },
+    { suiteName, treeItemSel: TEST_EXPLORER_TREE_ITEM }
+  );
+
+/**
  * Test Explorer tree row by display name. The Test Explorer renders rows as ARIA treeitems
  * whose accessible name embeds the display label, so getByRole('treeitem', { name: ... })
  * matches a class or method node by substring.

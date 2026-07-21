@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isError, isString } from 'effect/Predicate';
 import { Connection, MessageType } from 'vscode-languageserver';
 import { LogMessageNotification } from 'vscode-languageserver-protocol';
 
@@ -13,10 +14,10 @@ import { LogMessageNotification } from 'vscode-languageserver-protocol';
 const formatMessage = (...args: unknown[]): string =>
   args
     .map(arg => {
-      if (typeof arg === 'string') {
+      if (isString(arg)) {
         return arg;
       }
-      if (arg instanceof Error) {
+      if (isError(arg)) {
         return `${arg.message}${arg.stack ? `\n${arg.stack}` : ''}`;
       }
       try {

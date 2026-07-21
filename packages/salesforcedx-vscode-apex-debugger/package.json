@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.3.0",
+  "version": "67.6.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,7 +28,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.31.5",
+    "@salesforce/core": "^8.32.2",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
@@ -40,8 +40,10 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*"
+    "salesforcedx-vscode-core": "*",
+    "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
@@ -59,7 +61,10 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:e2e": "wireit"
   },
   "wireit": {
     "compile": {
@@ -88,13 +93,43 @@
     "test:compile": {
       "command": "tsc -p test/tsconfig.json",
       "dependencies": [
-        "compile"
+        "compile",
+        "../playwright-vscode-ext:compile"
       ],
       "files": [
         "test/**/*.ts",
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "test:desktop": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "E2E_FROM_VSIX": {
+          "external": true
+        },
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-services:vscode:package",
+        "../salesforcedx-vscode-services:spans:server",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json"
+      ],
+      "output": []
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:desktop"
+      ]
     },
     "vscode:bundle:build": {
       "command": "node ./esbuild.config.mjs",
@@ -110,7 +145,8 @@
       ],
       "output": [
         "dist/index.js",
-        "dist/index.js.map"
+        "dist/index.js.map",
+        "dist/node-metafile.json"
       ]
     },
     "vscode:bundle": {

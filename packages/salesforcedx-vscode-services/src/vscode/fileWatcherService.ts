@@ -25,8 +25,11 @@ export const FileWatcherLayer = Layer.scopedDiscard(
           watcher.onDidCreate(uri => emit.single({ type: 'create', uri }));
           watcher.onDidChange(uri => emit.single({ type: 'change', uri }));
           watcher.onDidDelete(uri => emit.single({ type: 'delete', uri }));
-        }).pipe(Stream.runForEach(event => PubSub.publish(pubsub, event).pipe(Effect.catchAll(() => Effect.void)))),
-      watcher => Effect.sync(() => watcher.dispose()).pipe(Effect.withSpan('disposing file watcher'))
+        }).pipe(Stream.runForEach(event => PubSub.publish(pubsub, event))),
+      watcher =>
+        Effect.sync(() => {
+          watcher.dispose();
+        }).pipe(Effect.withSpan('disposing file watcher'))
     ).pipe(Effect.forkScoped);
 
     yield* channel.appendToChannel('FileWatcherService started successfully');

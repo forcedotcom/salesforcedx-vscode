@@ -8,6 +8,7 @@
 import * as Context from 'effect/Context';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 // Import from the npm package (symlinked in workspace) - wireit ensures it's compiled first
 export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
@@ -37,7 +38,7 @@ export const getServicesApi = Effect.sync(() =>
       ? Effect.sync(() => ext.exports)
       : Effect.tryPromise({
           try: () => ext.activate(),
-          catch: e => new InvalidServicesApiError(e instanceof Error ? { cause: e } : { cause: new Error(String(e)) })
+          catch: e => new InvalidServicesApiError(isError(e) ? { cause: e } : { cause: new Error(String(e)) })
         })
   )
 );

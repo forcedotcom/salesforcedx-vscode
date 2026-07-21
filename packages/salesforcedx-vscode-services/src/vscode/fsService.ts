@@ -7,6 +7,7 @@
 
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
@@ -18,9 +19,11 @@ import { toUri } from './uriUtils';
 
 export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly cause: Error;
+  readonly message: string;
   readonly function: string;
   readonly filePath: string;
 }> {}
+
 /**
  * Convert path string or URI to URI, handling both file:// and other schemes like memfs://
  * @param filePath - Either a URI object, URI string (e.g., "memfs:/dx-project/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
@@ -57,7 +60,7 @@ const safeWriteFile = Effect.fn('fsService.safeWriteFile')(function* (filePath: 
       new FsServiceError({
         ...unknownToErrorCause(e),
         function: 'safeWriteFile',
-        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+        filePath: isString(filePath) ? filePath : filePath.toString()
       })
   });
 });
@@ -77,7 +80,7 @@ const writeFile = Effect.fn('fsService.writeFile')(function* (filePath: string |
       new FsServiceError({
         ...unknownToErrorCause(e),
         function: 'writeFile',
-        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+        filePath: isString(filePath) ? filePath : filePath.toString()
       })
   });
 });
@@ -94,7 +97,7 @@ const fileOrFolderExists = Effect.fn('fsService.fileOrFolderExists')(function* (
       new FsServiceError({
         ...unknownToErrorCause(e),
         function: 'fileOrFolderExists',
-        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+        filePath: isString(filePath) ? filePath : filePath.toString()
       })
   }).pipe(Effect.catchAll(() => Effect.succeed(false)));
 });
@@ -110,7 +113,7 @@ const showTextDocument = Effect.fn('fsService.showTextDocument')(function* (
       new FsServiceError({
         ...unknownToErrorCause(e),
         function: 'showTextDocument',
-        filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+        filePath: isString(filePath) ? filePath : filePath.toString()
       })
   });
 });
@@ -140,7 +143,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             new FsServiceError({
               ...unknownToErrorCause(e),
               function: 'findFiles',
-              filePath: typeof include === 'string' ? include : include.pattern
+              filePath: isString(include) ? include : include.pattern
             })
         }),
       /** Write file to filesystem, creating directories if they don't exist */
@@ -188,7 +191,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             new FsServiceError({
               ...unknownToErrorCause(e),
               function: 'readDirectory',
-              filePath: typeof dirPath === 'string' ? dirPath : uriToPath(dirPath)
+              filePath: isString(dirPath) ? dirPath : uriToPath(dirPath)
             })
         });
         return entries.map(([name]) => Utils.joinPath(uri, name));
@@ -202,7 +205,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             new FsServiceError({
               ...unknownToErrorCause(e),
               function: 'readDirectoryWithTypes',
-              filePath: typeof dirPath === 'string' ? dirPath : uriToPath(dirPath)
+              filePath: isString(dirPath) ? dirPath : uriToPath(dirPath)
             })
         });
         return entries.map(([name, type]) => ({ uri: Utils.joinPath(uri, name), type }));
@@ -222,7 +225,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             new FsServiceError({
               ...unknownToErrorCause(e),
               function: 'safeDelete',
-              filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+              filePath: isString(filePath) ? filePath : filePath.toString()
             })
         }).pipe(Effect.catchAll(() => Effect.succeed(undefined))),
       rename: (oldPath: string, newPath: string) =>
@@ -251,4 +254,4 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
     };
   })
 }) {}
-const UriOrStringToString = (uri: URI | string) => (typeof uri === 'string' ? uri : uri.toString());
+const UriOrStringToString = (uri: URI | string) => (isString(uri) ? uri : uri.toString());

@@ -51,7 +51,8 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     testClassName = `ExplorerTestClass${Date.now()}`;
     const testClassContent = [
       '@isTest',
-      `public class ${testClassName} {`,
+      // private (no `public`): exercises private-class visibility in discovery — the load-bearing behavior gated on API version (W-23428145).
+      `private class ${testClassName} {`,
       '\t@isTest',
       '\tstatic void shouldDiscoverThisTest() {',
       "\t\tSystem.assertEquals(1, 1, 'Discovery test should pass');",
@@ -109,6 +110,13 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
   await test.step('run all tests on a class via Test Explorer tree-item action', async () => {
     const classRow = findTestExplorerItem(page, testClassName);
     await classRow.waitFor({ state: 'visible', timeout: 30_000 });
+
+    // Gate the Explorer run-path completion sentinel (net-new in 4.2; emitted by ApexTestExecutionService
+    // on the run path only). Clear the channel first so the assertion can't match a prior run's output.
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+
     await clickTreeItemAction(classRow, 'Run Test');
     await saveScreenshot(page, 'step.class-run-action-clicked.png');
 
@@ -117,6 +125,10 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     // Test Results panel re-renders Pass Rate after the new run completes.
     await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
     await expect(page.getByText(testClassName).first()).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
+
+    // Explorer run path must emit the completion sentinel to the Apex Testing channel.
+    await selectOutputChannel(page, 'Apex Testing');
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.class-run-done.png');
   });
 
@@ -126,12 +138,24 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await classRow.locator('.monaco-tl-twistie').click({ force: true });
     const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
+
+    // Gate on the completion sentinel only. The Explorer run path (ApexTestExecutionService) writes the
+    // HumanReporter detail — including the dotted "Class.method" line — to the TestRun output
+    // (run.appendOutput, Test Results panel), NOT to the Apex Testing channel; only "Ended SFDX: Run Apex
+    // Tests" reaches the channel. So the dotted string never appears in the channel on this path (unlike the
+    // command path used by Re-Run Last Method below). Clear the channel first so the sentinel can't match the
+    // prior class run, then verify the specific method ran via its durable "Passed" tree-item decoration.
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+
     await clickTreeItemAction(methodRow, 'Run Test');
     await saveScreenshot(page, 'step.method-run-action-clicked.png');
 
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
-    await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
-    await expect(page.getByText(`${testClassName}.shouldDiscoverThisTest`).first()).toBeVisible({
+    await selectOutputChannel(page, 'Apex Testing');
+    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
+    await expect(findTestExplorerItem(page, 'shouldDiscoverThisTest')).toHaveAttribute('aria-label', /Passed/i, {
       timeout: TEST_RUN_TIMEOUT
     });
     await saveScreenshot(page, 'step.method-run-done.png');

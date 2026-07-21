@@ -7,9 +7,11 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { isError, isString } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -78,7 +80,7 @@ const verifyPackageAvailable = Effect.fn('packageInstall.verifyPackageAvailable'
   const conn = yield* api.services.ConnectionService.getConnection();
   const result = yield* Effect.tryPromise({
     try: () => conn.tooling.query<{ Id: string }>(`SELECT Id FROM SubscriberPackageVersion WHERE Id ='${packageId}'`),
-    catch: e => new PackageInstallFailedError({ message: e instanceof Error ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
   });
   if (result.records.length === 0) {
     return yield* new PackageInstallFailedError({
@@ -109,7 +111,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
   };
   const result = yield* Effect.tryPromise({
     try: () => conn.tooling.create('PackageInstallRequest', body),
-    catch: e => new PackageInstallFailedError({ message: e instanceof Error ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
   });
   const single = Array.isArray(result) ? result[0] : result;
   if (!single?.success) {
@@ -123,30 +125,31 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
 const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(function* (requestId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const conn = yield* api.services.ConnectionService.getConnection();
-  const result = yield* Effect.tryPromise({
+  return yield* Effect.tryPromise({
     try: () =>
       conn.tooling.query<PackageInstallRequest>(
         `SELECT Id, Status, Errors FROM PackageInstallRequest WHERE Id = '${requestId}'`
       ),
-    catch: e => new PackageInstallFailedError({ message: e instanceof Error ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
   }).pipe(
     Effect.retry({
       schedule: Schedule.exponential(Duration.seconds(1), 2.0).pipe(
         Schedule.either(Schedule.spaced(Duration.seconds(30)))
       ),
       times: 5
-    })
+    }),
+    Effect.flatMap(result =>
+      Option.match(Arr.head(result.records), {
+        onNone: () => new PackageInstallFailedError({ message: `Request ${requestId} not found` }),
+        onSome: Effect.succeed
+      })
+    )
   );
-  const record = result.records[0];
-  if (!record) {
-    return yield* new PackageInstallFailedError({ message: `Request ${requestId} not found` });
-  }
-  return record;
 });
 
 const extractErrors = (record: PackageInstallRequest): string => {
   const list = record.Errors?.errors ?? [];
-  const messages = list.map(e => e.message).filter(m => typeof m === 'string' && m.length > 0);
+  const messages = list.map(e => e.message).filter(m => isString(m) && m.length > 0);
   const detail = messages.length === 0 ? 'Unknown error' : messages.join('; ');
   return nls.localize('package_install_failed_message', detail);
 };

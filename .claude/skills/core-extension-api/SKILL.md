@@ -36,15 +36,15 @@ See [external-consumers](../external-consumers/SKILL.md) for full list and searc
 
 ```
 channelService, getUserId, getAuthFields, isCLIInstalled,
-SfCommandlet, SfCommandletExecutor, WorkspaceContext,
-telemetryService, workspaceContextUtils, sharedAuthState
+SfCommandletExecutor, WorkspaceContext,
+telemetryService, workspaceContextUtils
 ```
 
 ### `services` (class constructors with static methods)
 
 ```
 RegistryAccess, ChannelService (.getInstance(name)),
-SalesforceProjectConfig, TelemetryService (.getInstance(name)),
+TelemetryService (.getInstance(name)),
 WorkspaceContext (.getInstance()), CommandEventDispatcher (.getInstance())
 ```
 

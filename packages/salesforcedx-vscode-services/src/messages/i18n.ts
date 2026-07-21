@@ -41,7 +41,12 @@ export const messages = {
     'Failed to load templates manifest from extension assets. The extension bundle may be incomplete. (%s)',
   template_service_manifest_parse_failed: 'Failed to parse templates manifest from extension assets.',
   template_service_file_copy_failed: 'Failed to copy template file "%s" to memfs. (%s)',
-  template_service_source_api_version_not_defined: 'sourceApiVersion is not defined'
+  template_service_source_api_version_not_defined: 'sourceApiVersion is not defined',
+  error_access_token_expired: 'Access token expired or invalid.',
+  error_access_token_expired_detail:
+    'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.  See the output channel for more details on the auth error',
+  error_access_token_expired_login_button: 'Login',
+  error_access_token_refresh_failed: 'Unable to refresh your access token.  Please login again.'
 } as const;
 
 export type MessageKey = keyof typeof messages;

@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isRecord, isString } from 'effect/Predicate';
 import type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
@@ -29,6 +30,8 @@ const XML_CHAR_MAP: Record<string, string> = {
 
 const escapeXml = (data: string): string => data.replaceAll(/[<>&'"]/g, char => XML_CHAR_MAP[char] ?? char);
 
+// Builds SOAP request body with explicit DebuggingHeader categories: Apex_code=Finest, Visualforce=Finer,
+// Apex_profiling=Info. Apex_profiling emits the CUMULATIVE_LIMIT_USAGE block (e.g. "Number of SOQL queries:").
 const buildSoapBody = (accessToken: string, apexCode: string): string => {
   const escaped = escapeXml(apexCode);
   return `<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -39,7 +42,11 @@ xmlns:apex="http://soap.sforce.com/2006/08/apex">
         <cmd:SessionHeader>
             <cmd:sessionId>${accessToken}</cmd:sessionId>
         </cmd:SessionHeader>
-        <apex:DebuggingHeader><apex:debugLevel>DEBUGONLY</apex:debugLevel></apex:DebuggingHeader>
+        <apex:DebuggingHeader>
+            <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
+            <apex:categories><apex:category>Visualforce</apex:category><apex:level>Finer</apex:level></apex:categories>
+            <apex:categories><apex:category>Apex_profiling</apex:category><apex:level>Info</apex:level></apex:categories>
+        </apex:DebuggingHeader>
     </env:Header>
     <env:Body>
         <executeAnonymous xmlns="http://soap.sforce.com/2006/08/apex">
@@ -85,8 +92,7 @@ type ParseSoapResult =
   | { success: true; result: ExecuteAnonymousResult; logBody: string }
   | { success: false; error: string };
 
-const hasSoapEnvelope = (obj: unknown): obj is SoapResponseShape =>
-  obj !== null && typeof obj === 'object' && 'soapenv:Envelope' in obj;
+const hasSoapEnvelope = (obj: unknown): obj is SoapResponseShape => isRecord(obj) && 'soapenv:Envelope' in obj;
 
 export const parseSoapResponse = (raw: unknown): ParseSoapResult => {
   const envelope = hasSoapEnvelope(raw) ? raw['soapenv:Envelope'] : undefined;
@@ -96,7 +102,7 @@ export const parseSoapResponse = (raw: unknown): ParseSoapResult => {
   if (!execResponse) {
     return { success: false, error: 'Invalid SOAP response: missing executeAnonymousResponse.result' };
   }
-  const logBody = (typeof header?.DebuggingInfo?.debugLog === 'string' && header.DebuggingInfo.debugLog) || '';
+  const logBody = (isString(header?.DebuggingInfo?.debugLog) && header.DebuggingInfo.debugLog) || '';
   const result: ExecuteAnonymousResult = {
     compiled: execResponse.compiled === 'true',
     success: execResponse.success === 'true',

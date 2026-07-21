@@ -6,13 +6,13 @@
   "launch_snippet_name": "Launch Apex Replay Debugger",
   "launch_from_last_log_file": "SFDX: Launch Apex Replay Debugger with Last Log File",
   "launch_apex_replay_debugger_with_selected_file": "SFDX: Launch Apex Replay Debugger with Selected File",
-  "anon_apex_execute_selection_text": "SFDX: Execute Anonymous Apex with Currently Selected Text",
-  "apex_debug_document_text": "SFDX: Debug Anonymous Apex",
+  "apex_debug_document_text": "SFDX: Debug Anonymous Apex with Editor's Selected Text",
   "logfile_text": "Path to an Apex Debug Log file (*.log) in the workspace folder.",
   "stop_on_entry_text": "Stop the debugger after launching. If false, the debugger will run until it hits a breakpoint.",
   "trace_text": "Produce diagnostic output. You can set this to true, false, or one or more selectors separated with commas. Selectors include 'all' (very detailed output; the equivalent of true), 'protocol', 'logfile', 'launch', 'breakpoints'.",
   "sf_update_checkpoints_in_org": "SFDX: Update Checkpoints in Org",
   "sf_toggle_checkpoint": "SFDX: Toggle Checkpoint",
   "run_tests_and_debug": "Debug Tests",
-  "run_single_test_and_debug": "Debug Single Test"
+  "run_single_test_and_debug": "Debug Single Test",
+  "debug_test_success": "Debug Test(s) successfully ran"
 }

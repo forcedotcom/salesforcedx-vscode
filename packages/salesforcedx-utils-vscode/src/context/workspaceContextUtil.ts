@@ -5,23 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
-import * as util from 'node:util';
+import { Connection, StateAggregator } from '@salesforce/core';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { ConfigUtil } from '../config/configUtil';
-import {
-  addKnownBadConnection,
-  clearKnownBadConnection,
-  clearSharedLoginPrompt,
-  getSharedLoginPrompt,
-  isKnownBadConnection,
-  setSharedLoginPrompt
-} from '../helpers/authUtils';
 import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
 import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 import { TelemetryService } from '../services/telemetry';
-import { getSalesforceVSCodeOrgExtension } from './orgExtensionUtils';
 
 export type OrgUserInfo = {
   username?: string;
@@ -29,8 +23,18 @@ export type OrgUserInfo = {
 };
 
 export type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
-type ConnectionDetails = { connection: Connection; lastTokenValidationTimestamp?: number };
 export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
+
+/**
+ * Delegates to the services extension's ConnectionService.getConnection, which validates the token
+ * (prompting + dispatching sf.org.login.web on an expired session-ID flow) before returning. The reauth
+ * coordination (one-modal-per-connection dedup) lives in ConnectionService.
+ */
+const getValidatedConnection = Effect.fn('WorkspaceContextUtil.getConnection')(function* () {
+  const api = yield* getServicesApi;
+  const prebuilt = Layer.succeedContext(api.services.prebuiltServicesDependencies);
+  return yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(prebuilt));
+});
 
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
@@ -39,7 +43,6 @@ export class WorkspaceContextUtil {
   protected static instance?: WorkspaceContextUtil;
 
   protected cliConfigWatcher: vscode.FileSystemWatcher;
-  protected sessionConnections: Map<string, ConnectionDetails>;
   protected onOrgChangeEmitter: vscode.EventEmitter<OrgUserInfo>;
   protected _username?: string;
   protected _alias?: string;
@@ -51,7 +54,6 @@ export class WorkspaceContextUtil {
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
-    this.sessionConnections = new Map<string, ConnectionDetails>();
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
@@ -74,101 +76,15 @@ export class WorkspaceContextUtil {
     return this.instance;
   }
 
-  private static appendAccessTokenErrorToOrgManagement = async (text: string): Promise<void> => {
-    const orgExtension = await getSalesforceVSCodeOrgExtension();
-
-    if (orgExtension) {
-      try {
-        orgExtension.exports.channelService.appendLine(text);
-        orgExtension.exports.channelService.showChannelOutput();
-      } catch {
-        // Do not fall back to ChannelService here: a second copy of utils can create a duplicate Org Management channel.
-      }
-    }
-
-    console.error('Error refreshing access token: ', text);
-  };
-
+  /**
+   * @deprecated Consume ConnectionService from the Services extension directly. This thin facade delegates
+   * to it (connection cache + access-token reauth) and is kept for backward compatibility with 2PP consumers.
+   */
   public async getConnection(): Promise<Connection> {
     if (!this._username) {
       throw new Error(nls.localize('error_no_target_org'));
     }
-
-    if (!this.sessionConnections.has(this._username)) {
-      const connection = await Connection.create({
-        authInfo: await AuthInfo.create({ username: this._username })
-      });
-      this.sessionConnections.set(this._username, { connection });
-    }
-
-    // it was either present or we just created it.
-    const connectionDetails = this.sessionConnections.get(this._username)!;
-
-    // if we won't be able to refresh the connection because it's access-token only
-    // validate that it still works and provide a good error message if it's not
-    if (connectionDetails.connection.getAuthInfo().isAccessTokenFlow()) {
-      try {
-        if (
-          connectionDetails.lastTokenValidationTimestamp === undefined ||
-          Date.now() - connectionDetails.lastTokenValidationTimestamp > 1000 * 60 * 5 // 5 minutes
-        ) {
-          await connectionDetails.connection.identity();
-          clearKnownBadConnection(this._username);
-          this.sessionConnections.set(this._username, {
-            connection: connectionDetails.connection,
-            lastTokenValidationTimestamp: Date.now()
-          });
-          return connectionDetails.connection;
-        }
-      } catch (e) {
-        await WorkspaceContextUtil.appendAccessTokenErrorToOrgManagement(
-          `Error refreshing access token: ${util.inspect(e, { depth: null, showHidden: true })}`
-        );
-
-        this.sessionConnections.delete(this._username);
-
-        // Check if there's already an active login prompt for this user (shared across all extensions)
-        const existingPrompt = await getSharedLoginPrompt(this._username);
-
-        // we only want to display one message per username across ALL extensions, even though many consumers are requesting connections.
-        const isKnownBad = isKnownBadConnection(this._username);
-        if (!isKnownBad && !existingPrompt) {
-          // Capture username for use in async closure
-          const username = this._username;
-
-          // Create and execute the login prompt with cleanup
-          const loginPromise = (async () => {
-            try {
-              const loginButton = nls.localize('error_access_token_expired_login_button');
-              const selection = await vscode.window.showErrorMessage(
-                nls.localize('error_access_token_expired'),
-                {
-                  modal: true,
-                  detail: nls.localize('error_access_token_expired_detail')
-                },
-                loginButton
-              );
-              if (selection === loginButton) {
-                await vscode.commands.executeCommand(
-                  'sf.org.login.web',
-                  connectionDetails.connection.instanceUrl,
-                  this._alias ?? username
-                );
-              }
-            } finally {
-              clearSharedLoginPrompt(username);
-              // Mark as known bad after dialog closes to prevent showing again
-              addKnownBadConnection(username);
-            }
-          })();
-
-          setSharedLoginPrompt(username, loginPromise);
-          await loginPromise;
-        }
-        throw new Error('Unable to refresh your access token.  Please login again.');
-      }
-    }
-    return connectionDetails.connection;
+    return Effect.runPromise(getValidatedConnection());
   }
 
   protected async handleCliConfigChange() {
@@ -192,7 +108,7 @@ export class WorkspaceContextUtil {
         this._orgEdition = authFields?.orgEdition;
       } catch (error: unknown) {
         this._orgId = '';
-        if (error instanceof Error) {
+        if (isError(error)) {
           console.log('There was an problem getting the orgId of the default org: ', error);
           TelemetryService.getInstance().sendException(
             WORKSPACE_CONTEXT_ORG_ID_ERROR,
