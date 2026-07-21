@@ -6,20 +6,27 @@ Automated nightly VS Code extension builds via `salesforcecli/github-workflows` 
 
 ### Automatic
 
-Daily at 4 AM UTC: publishes all 16 extensions as prereleases.
+Daily 4 AM UTC: publishes all extensions as prereleases. New extensions auto-included via dynamic discovery.
 
 ### Manual Trigger
 
 ```bash
-# Publish all extensions (default)
+# Publish all (dynamically discovered)
 gh workflow run nightly.yml
 
-# Publish specific extensions
+# Publish specific extensions only
 gh workflow run nightly.yml -f extensions="salesforcedx-vscode-apex,salesforcedx-vscode-core"
 
-# Dry-run mode (no actual publish)
+# Dry-run (no publish)
 gh workflow run nightly.yml -f dry-run=true
 ```
+
+## Extension Discovery
+
+`build-extension-list` job runs `scripts/list-vscode-extensions.js` — scans `packages/` for VS Code extensions:
+- Filters: `engines.vscode`, `publisher`, `categories` present; name starts `salesforcedx-vscode-`
+- Returns comma-separated list (sorted for consistency)
+- New extensions included automatically without workflow changes
 
 ## Architecture
 
@@ -47,6 +54,12 @@ gh workflow run nightly.yml -f dry-run=true
 - `package:packages:prerelease` — Prerelease packaging (calls `vscode:package:prerelease`)
   - Modern extensions: adds `--pre-release` flag to vsce
   - Legacy extensions: sets `VSCE_PRE_RELEASE=true` env var
+
+## Packaging Workflows
+
+`package.yml` (reusable workflow) respects `pre-release` input:
+- `pre-release=true` → `npm run vscode:package:prerelease`
+- `pre-release=false` (default) → `npm run vscode:package`
 
 ## Implementation Details
 

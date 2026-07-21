@@ -86,7 +86,12 @@ jobs:
 
       # Package all VS Code extensions
       - name: Package packages
-        run: npm run vscode:package
+        run: |
+          if [ "${{ inputs.pre-release }}" = "true" ]; then
+            npm run vscode:package:prerelease
+          else
+            npm run vscode:package
+          fi
 
       - name: Generate MD5 checksums
         id: md5-checksums

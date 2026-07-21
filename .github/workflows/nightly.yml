@@ -11,7 +11,7 @@ on:
       extensions:
         description: |
           Comma-separated extension names (e.g., "salesforcedx-vscode-apex,salesforcedx-vscode-core")
-          Leave empty to publish ALL 16 extensions
+          Leave empty to publish all extensions (dynamically discovered via scripts/list-vscode-extensions.js)
         required: false
         default: ''
         type: string
@@ -74,6 +74,13 @@ jobs:
     outputs:
       extensions: ${{ steps.list.outputs.extensions }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || 'develop' }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - name: Build extension list
         id: list
         env:
@@ -82,8 +89,10 @@ jobs:
         run: |
           # For scheduled runs or empty input, publish all extensions
           if [ "$EVENT_NAME" = "schedule" ] || [ -z "$INPUT_EXTENSIONS" ]; then
-            EXTENSIONS="salesforcedx-vscode-core,salesforcedx-vscode-services,salesforcedx-vscode-apex,salesforcedx-vscode-apex-debugger,salesforcedx-vscode-apex-replay-debugger,salesforcedx-vscode-apex-log,salesforcedx-vscode-apex-oas,salesforcedx-vscode-apex-testing,salesforcedx-vscode-lightning,salesforcedx-vscode-lwc,salesforcedx-vscode-visualforce,salesforcedx-vscode-soql,salesforcedx-vscode-metadata,salesforcedx-vscode-org,salesforcedx-vscode-org-browser,salesforcedx-vscode-expanded"
-            echo "Publishing all 16 extensions"
+            # Dynamically discover all publishable VS Code extensions
+            EXTENSIONS=$(node scripts/list-vscode-extensions.js)
+            EXTENSION_COUNT=$(echo "$EXTENSIONS" | tr ',' '\n' | wc -l)
+            echo "Publishing all $EXTENSION_COUNT extensions: $EXTENSIONS"
           else
             # Sanitize input: only allow alphanumeric, dash, underscore, and comma
             SANITIZED=$(echo "$INPUT_EXTENSIONS" | tr -cd 'a-zA-Z0-9,-_')

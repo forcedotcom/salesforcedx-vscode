@@ -103,6 +103,12 @@ jobs:
           EXTENSIONS=$(node scripts/parse-extension-names.js ./extensions)
           echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
           echo "Publishing extensions: $EXTENSIONS"
+      - name: Upload VSIXs for validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-vsix-files
+          path: ./extensions/*.vsix
+          retention-days: 1
 
   ctc-open:
     needs: [prepare-environment-from-main]
@@ -123,14 +129,14 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-      - name: Download VSIXs from release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
+      - name: Download VSIXs from artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-vsix-files
+          path: ./extensions
+      - name: Display VSIX files
         run: |
-          mkdir ./extensions
-          gh release download v$RELEASE_VERSION -D ./extensions
-          echo "Downloaded VSIX files:"
+          echo "VSIX files for validation:"
           ls -lh ./extensions/*.vsix
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./extensions
