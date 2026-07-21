@@ -89,12 +89,6 @@ export class ApplicationInsightsNodeExporter implements SpanExporter {
       Effect.all(validSpans.map(span => sendSpan(span, otelLogger))).pipe(
         Effect.map(() => {
           resultCallback({ code: ExportResultCode.SUCCESS });
-        }),
-        Effect.catchAll(error => {
-          console.error('ApplicationInsightsNodeExporter export failed:', error);
-          return Effect.sync(() => {
-            resultCallback({ code: ExportResultCode.FAILED });
-          });
         })
       )
     );
@@ -111,10 +105,7 @@ const sendSpan = Effect.fn('sendSpan')(function* (
 ) {
   const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
 
-  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(
-    Effect.flatMap(SubscriptionRef.get),
-    Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined }))
-  );
+  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get));
 
   const isError = span.status?.code === SpanStatusCode.ERROR;
 

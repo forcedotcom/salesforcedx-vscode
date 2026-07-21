@@ -67,15 +67,6 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
         Stream.runDrain,
         Effect.map(() => {
           resultCallback({ code: ExportResultCode.SUCCESS });
-        }),
-        Effect.catchAll(error => {
-          console.error('ApplicationInsightsWebExporter export failed:', error);
-          return Effect.sync(() => {
-            resultCallback({
-              code: ExportResultCode.FAILED,
-              error: unknownToErrorCause(error).cause
-            });
-          });
         })
       )
     );
@@ -97,10 +88,7 @@ const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan) {
     parentID: span.parentSpanContext?.spanId
   };
 
-  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(
-    Effect.flatMap(SubscriptionRef.get),
-    Effect.catchAll(() => Effect.succeed({ userId: undefined, webUserId: undefined }))
-  );
+  const { userId, webUserId } = yield* getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get));
 
   const props = {
     ...convertAttributes(span.resource.attributes),

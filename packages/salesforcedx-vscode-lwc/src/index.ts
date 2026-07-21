@@ -140,7 +140,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {
-    yield* Effect.promise(() => import('./testSupport/index.js')).pipe(
+    yield* Effect.tryPromise(() => import('./testSupport/index.js')).pipe(
       // Lazy load test support to avoid bundling jest-editor-support in web mode
       Effect.tap(testSupport =>
         testSupport.shouldActivateLwcTestSupport(workspaceType)
