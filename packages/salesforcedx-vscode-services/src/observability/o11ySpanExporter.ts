@@ -9,7 +9,7 @@ import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isError, isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
@@ -191,7 +191,7 @@ export class O11ySpanExporter implements SpanExporter {
       console.error('O11ySpanExporter local divert failed:', error);
       resultCallback({
         code: ExportResultCode.FAILED,
-        error: error instanceof Error ? error : new Error(String(error))
+        error: isError(error) ? error : new Error(String(error))
       });
     }
   }
