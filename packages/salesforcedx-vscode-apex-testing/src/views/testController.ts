@@ -24,13 +24,6 @@ import { ApexTestTreeService, type DiscoveryContext, type TreeMutationContext } 
 
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
 
-/** Apex test class name for the given file URI, if it is a known test class. Reads the live class-items
- * map from ApexTestTreeService (single source of truth). */
-export const getTestClassNameEffect = (uri: URI) =>
-  ApexTestTreeService.getClassItems().pipe(
-    Effect.map(classItems => [...classItems].find(([, item]) => item.uri?.toString() === uri.toString())?.[0])
-  );
-
 /** Clear all suite children so they re-query from the org (delegates to the tree service). */
 export const clearAllSuiteChildren = (): void =>
   getApexTestingRuntime().runSync(ApexTestTreeService.clearAllSuiteChildren());

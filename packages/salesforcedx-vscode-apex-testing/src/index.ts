@@ -37,7 +37,7 @@ import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetri
 import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
-import { disposeTestController, getTestClassNameEffect, getTestController } from './views/testController';
+import { disposeTestController, getTestController } from './views/testController';
 import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';
 import { initializeTestDiscovery } from './watchers/testDiscovery';
 import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
@@ -110,17 +110,6 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   yield* Effect.forkIn(watchActiveEditorForCoverage(statusBarToggle), yield* getExtensionScope());
 
   yield* Effect.log('Salesforce Apex Testing extension is now active!');
-
-  // Export API for other extensions to consume
-  return {
-    getTestClassName: (uri: URI): Promise<string | undefined> =>
-      getApexTestingRuntime().runPromise(
-        getTestClassNameEffect(uri).pipe(
-          Effect.tapError(error => Effect.logDebug('Failed to get test class name', { error })),
-          Effect.orElseSucceed(() => undefined)
-        )
-      )
-  };
 });
 
 export const activate = (context: vscode.ExtensionContext) => {
@@ -132,9 +121,7 @@ export const activate = (context: vscode.ExtensionContext) => {
       Scope.extend(extensionScope),
       Effect.catchAll(error => {
         console.error('[Apex Testing] Activation failed:', error);
-        return Effect.succeed({
-          getTestClassName: (_uri: URI) => Promise.resolve(undefined)
-        });
+        return Effect.void;
       })
     )
   );
@@ -221,8 +208,4 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
 export const deactivate = () => {
   void getApexTestingRuntime().runPromise(closeExtensionScope());
   disposeTestController();
-};
-
-export type ApexTestingVSCodeApi = {
-  getTestClassName: (uri: URI) => Promise<string | undefined>;
 };
