@@ -54,6 +54,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
+    "memfs": "^4.38.1",
     "svgtofont": "^6.5.2"
   },
   "scripts": {
