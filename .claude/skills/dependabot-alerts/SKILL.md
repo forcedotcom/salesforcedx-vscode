@@ -16,7 +16,7 @@ Triage open Dependabot **security alerts** into GUS work items. Output is **work
 
 ## Input
 
-- Bare invocation → list open alerts: `gh api repos/forcedotcom/salesforcedx-vscode/dependabot/alerts --jq '[.[] | select(.state=="open")]'`
+- Bare invocation → list open alerts: `gh api repos/forcedotcom/salesforcedx-vscode/dependabot/alerts --paginate --jq '[.[] | select(.state=="open")]' | jq -s add`. **`--paginate` is required** — the API defaults to 30/page and silently returns only page 1 without it (e.g. 33 open alerts, not the ~14 page 1 shows).
 - User-specified package / GHSA / CVE → act on that alert only.
 
 (Repo is a monorepo, workspaces `packages/*`. npm 11.)
