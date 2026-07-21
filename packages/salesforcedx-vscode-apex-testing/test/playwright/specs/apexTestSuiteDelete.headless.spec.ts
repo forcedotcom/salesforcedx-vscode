@@ -91,6 +91,18 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await saveScreenshot(page, 'step.suite-visible-in-sidebar.png');
   });
 
+  await test.step('pull source from org to get test suite file locally', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
+    await executeCommandWithCommandPalette(page, 'SFDX: Pull Source from Default Org and Ignore Conflicts');
+    await waitForOutputChannelText(page, {
+      expectedText: 'Retrieved Source',
+      timeout: 120_000
+    });
+    await saveScreenshot(page, 'step.pull-source-done.png');
+  });
+
   await test.step('open the .testSuite-meta.xml file and delete from project and org', async () => {
     // Open the test suite file via Go to File
     await openFileByName(page, `${testSuiteName}.testSuite-meta.xml`);
