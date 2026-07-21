@@ -80,16 +80,29 @@ jobs:
     outputs:
       extensions: ${{ steps.list.outputs.extensions }}
     steps:
-      - name: Build extension list
-        id: list
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Download VSIXs from release
         env:
-          RELEASE_TAG: ${{ needs.prepare-environment-from-main.outputs.RELEASE_TAG }}
+          RELEASE_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # All 16 extensions in this repo
-          EXTENSIONS="salesforcedx-vscode-core,salesforcedx-vscode-services,salesforcedx-vscode-apex,salesforcedx-vscode-apex-debugger,salesforcedx-vscode-apex-replay-debugger,salesforcedx-vscode-apex-log,salesforcedx-vscode-apex-oas,salesforcedx-vscode-apex-testing,salesforcedx-vscode-lightning,salesforcedx-vscode-lwc,salesforcedx-vscode-visualforce,salesforcedx-vscode-soql,salesforcedx-vscode-metadata,salesforcedx-vscode-org,salesforcedx-vscode-org-browser,salesforcedx-vscode-expanded"
+          mkdir ./extensions
+          gh release download v$RELEASE_VERSION -D ./extensions
+          echo "Downloaded VSIX files:"
+          ls -lh ./extensions/*.vsix
+      - name: Build extension list
+        id: list
+        run: |
+          # Dynamically discover extensions from downloaded VSIXs
+          EXTENSIONS=$(node scripts/parse-extension-names.js ./extensions)
           echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
-          echo "Publishing all 16 extensions"
+          echo "Publishing extensions: $EXTENSIONS"
 
   ctc-open:
     needs: [prepare-environment-from-main]
@@ -108,6 +121,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Install dependencies
+        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - name: Download VSIXs from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -142,7 +157,7 @@ jobs:
 
   ctcCloseFail:
     needs: [ctc-open, publish]
-    if: always() && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
+    if: always() && needs.ctc-open.result != 'skipped' && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:

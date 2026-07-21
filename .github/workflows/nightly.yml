@@ -85,7 +85,17 @@ jobs:
             EXTENSIONS="salesforcedx-vscode-core,salesforcedx-vscode-services,salesforcedx-vscode-apex,salesforcedx-vscode-apex-debugger,salesforcedx-vscode-apex-replay-debugger,salesforcedx-vscode-apex-log,salesforcedx-vscode-apex-oas,salesforcedx-vscode-apex-testing,salesforcedx-vscode-lightning,salesforcedx-vscode-lwc,salesforcedx-vscode-visualforce,salesforcedx-vscode-soql,salesforcedx-vscode-metadata,salesforcedx-vscode-org,salesforcedx-vscode-org-browser,salesforcedx-vscode-expanded"
             echo "Publishing all 16 extensions"
           else
-            EXTENSIONS="$INPUT_EXTENSIONS"
+            # Sanitize input: only allow alphanumeric, dash, underscore, and comma
+            SANITIZED=$(echo "$INPUT_EXTENSIONS" | tr -cd 'a-zA-Z0-9,-_')
+
+            if [ "$SANITIZED" != "$INPUT_EXTENSIONS" ]; then
+              echo "❌ Invalid characters in extensions input. Only alphanumeric, dash, underscore, and comma allowed."
+              echo "Original: $INPUT_EXTENSIONS"
+              echo "Sanitized would be: $SANITIZED"
+              exit 1
+            fi
+
+            EXTENSIONS="$SANITIZED"
             echo "Publishing specified extensions: $EXTENSIONS"
           fi
 

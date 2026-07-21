@@ -135,7 +135,12 @@ jobs:
               else
                 echo "," >> "$CHECKSUMS_JSON_FILE"
               fi
-              echo "  {\"file\":\"$RELATIVE_PATH\",\"md5\":\"$MD5_HASH\",\"size\":\"$FILE_SIZE\"}" >> "$CHECKSUMS_JSON_FILE"
+              # Use jq to safely construct JSON with proper escaping
+              jq -n \
+                --arg file "$RELATIVE_PATH" \
+                --arg md5 "$MD5_HASH" \
+                --arg size "$FILE_SIZE" \
+                '{file: $file, md5: $md5, size: $size}' | sed 's/^/  /' >> "$CHECKSUMS_JSON_FILE"
               
               echo "Generated MD5 for: $RELATIVE_PATH"
               echo "  MD5: $MD5_HASH"
