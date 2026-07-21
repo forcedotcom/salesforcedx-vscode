@@ -13,9 +13,8 @@ import type * as vscode from 'vscode';
 let channelServiceRef: ChannelService | undefined;
 
 /** Wire the legacy ChannelService wrapper to the Effect layer's OutputChannel. Call once at activation. */
-export const setCoreChannel = (channel: vscode.OutputChannel): ChannelService => {
+export const setCoreChannel = (channel: vscode.OutputChannel): void => {
   channelServiceRef = new ChannelService(channel);
-  return channelServiceRef;
 };
 
 /** Legacy channel wrapper (appendLine/showChannelOutput/...). Throws if accessed before activation wires it. */
