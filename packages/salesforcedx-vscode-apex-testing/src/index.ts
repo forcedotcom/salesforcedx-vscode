@@ -115,7 +115,10 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   return {
     getTestClassName: (uri: URI): Promise<string | undefined> =>
       getApexTestingRuntime().runPromise(
-        Effect.try(() => getTestClassName(uri)).pipe(Effect.orElseSucceed(() => undefined))
+        Effect.try(() => getTestClassName(uri)).pipe(
+          Effect.tapError(error => Effect.logDebug('Failed to get test class name', { error })),
+          Effect.orElseSucceed(() => undefined)
+        )
       )
   };
 });

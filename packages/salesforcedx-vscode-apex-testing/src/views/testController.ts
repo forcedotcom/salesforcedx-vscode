@@ -270,12 +270,20 @@ export class ApexTestController {
     const executionName = nls.localize('apex_test_retrieve_org_only_class_text');
     await getApexTestingRuntime().runPromise(
       retrieveOrgOnlyClass(uri, className, executionName, () => this.refresh()).pipe(
-        // Cancellation gets its own notification; every other retrieve/open failure defaults to the
-        // failed-execution notice (mirrors the old blanket catch, but never swallows silently).
+        // Cancellation gets its own informational notification (fire-and-forget → Effect.sync, no response awaited).
         Effect.catchTag('UserCancellationError', () =>
-          Effect.promise(() => notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled')))
+          Effect.sync(
+            () => void notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled'))
+          )
         ),
-        Effect.catchAll(() => Effect.sync(() => notificationService.showFailedExecution(executionName)))
+        // Every other retrieve/open failure: log the specific error (preserve diagnostics), then the
+        // failed-execution notice. catchTags keyed to the inferred failure tags — never a blanket swallow.
+        Effect.catchTags({
+          MetadataRetrieveError: error => notifyRetrieveFailure(error, executionName),
+          ServicesExtensionNotFoundError: error => notifyRetrieveFailure(error, executionName),
+          InvalidServicesApiError: error => notifyRetrieveFailure(error, executionName),
+          FsServiceError: error => notifyRetrieveFailure(error, executionName)
+        })
       )
     );
   }
@@ -326,6 +334,12 @@ export class ApexTestController {
 }
 
 // Module-level utility functions extracted from ApexTestController
+
+// Log the specific retrieve/open failure (preserve diagnostics) then show the generic failed-execution notice.
+const notifyRetrieveFailure = (error: unknown, executionName: string) =>
+  Effect.logWarning('Failed to retrieve org-only Apex class', { error }).pipe(
+    Effect.andThen(Effect.sync(() => notificationService.showFailedExecution(executionName)))
+  );
 
 const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Promise<void> => {
   if (!classItem.uri) {
