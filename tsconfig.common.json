@@ -10,6 +10,7 @@
     "module": "node16",
     "moduleResolution": "Node16",
     "esModuleInterop": false,
+    "ignoreDeprecations": "6.0",
     "resolveJsonModule": true,
     "sourceMap": true,
     "types": ["jest", "node"],
