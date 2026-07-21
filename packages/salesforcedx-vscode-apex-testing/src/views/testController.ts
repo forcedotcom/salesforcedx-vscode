@@ -8,6 +8,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
+import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -374,27 +375,28 @@ const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassF
   refresh: () => Promise<void>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const result = yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
+  yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
     ignoreConflicts: true
-  });
-
-  const retrievedFileUri = getRetrievedFileUri(result);
-  if (retrievedFileUri) {
-    yield* api.services.FsService.showTextDocument(retrievedFileUri, {
-      preview: false,
-      viewColumn: vscode.ViewColumn.Active,
-      preserveFocus: false
-    });
-    yield* closeEditorTabByUri(uri);
-  }
-
-  // Refresh failure stays non-fatal and must never reach the outer failed-notify branch.
-  yield* Effect.tryPromise(() => refresh()).pipe(
-    Effect.catchAll(error => Effect.logWarning('Failed to refresh Apex tests after retrieve', { error })),
-    Effect.orElseSucceed(() => undefined)
+  }).pipe(
+    Effect.map(getRetrievedFileUri),
+    Effect.flatMap(
+      Effect.transposeMapOption(retrievedFileUri =>
+        api.services.FsService.showTextDocument(retrievedFileUri, {
+          preview: false,
+          viewColumn: vscode.ViewColumn.Active,
+          preserveFocus: false
+        }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
+      )
+    ),
+    // Refresh failure stays non-fatal and must never reach the outer failed-notify branch.
+    Effect.tap(() =>
+      Effect.tryPromise(() => refresh()).pipe(
+        Effect.tapError(error => Effect.logWarning('Failed to refresh Apex tests after retrieve', { error })),
+        Effect.ignore
+      )
+    ),
+    Effect.tap(() => Effect.sync(() => notificationService.showSuccessfulExecution(executionName)))
   );
-
-  yield* Effect.sync(() => notificationService.showSuccessfulExecution(executionName));
 });
 
 const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
@@ -433,10 +435,10 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
   return classPath.slice(0, -4).replaceAll('/', '.');
 };
 
-const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
-  const filePath = result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath;
-  return filePath ? URI.file(filePath) : undefined;
-};
+const getRetrievedFileUri = (result: RetrieveResult): Option.Option<URI> =>
+  Option.fromNullable(
+    result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath
+  ).pipe(Option.map(URI.file));
 
 // Batch-close text-input tabs matching predicate. No-op on web (tabGroups absent).
 const closeMatchingTabs = Effect.fn('ApexTesting.closeMatchingTabs')(function* (predicate: (uri: URI) => boolean) {
