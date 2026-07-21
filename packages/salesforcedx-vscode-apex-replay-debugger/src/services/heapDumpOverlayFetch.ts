@@ -16,6 +16,7 @@ import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
+import { isError } from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 
@@ -40,7 +41,7 @@ const runOverlayQuery = Effect.fn('heapDumpOverlayFetch.runOverlayQuery')(functi
     catch: error =>
       new HeapDumpOverlayFetchError({
         cause: error,
-        message: `Failed to fetch heap dump overlay results: ${error instanceof Error ? error.message : String(error)}`
+        message: `Failed to fetch heap dump overlay results: ${isError(error) ? error.message : String(error)}`
       })
   });
   const byId = new Map(result.records.map(record => [record.Id, record]));

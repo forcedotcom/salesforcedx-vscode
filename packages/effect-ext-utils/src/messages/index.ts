@@ -6,7 +6,13 @@
  */
 
 import { createNls } from '@salesforce/vscode-i18n';
+import * as vscode from 'vscode';
 import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
-export const nls = createNls({ instanceName: 'effect-ext-utils', messages: enMessages, jaMessages });
+export const nls = createNls({
+  instanceName: 'effect-ext-utils',
+  messages: enMessages,
+  jaMessages,
+  locale: vscode.env.language
+});

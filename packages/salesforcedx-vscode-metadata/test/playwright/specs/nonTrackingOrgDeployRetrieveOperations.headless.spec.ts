@@ -29,7 +29,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
-import { nls } from '../../../src/messages';
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
@@ -74,7 +74,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       // Check for deploy error notifications
       const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
       const deployErrorPattern = new RegExp(
-        `${nls.localize('deploy_completed_with_errors_message')}|${nls.localize('deploy_failed', '.*')}`,
+        `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replace('%s', '.*')}`,
         'i'
       );
       const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
@@ -109,12 +109,12 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
       const deleteConfirmation = page
         .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: nls.localize('delete_source_confirmation_message') })
+        .filter({ hasText: messages.delete_source_confirmation_message })
         .first();
       await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
 
       const deleteButton = deleteConfirmation.getByRole('button', {
-        name: nls.localize('confirm_delete_source_button_text')
+        name: messages.confirm_delete_source_button_text
       });
       await deleteButton.click();
 

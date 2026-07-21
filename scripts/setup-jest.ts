@@ -138,6 +138,7 @@ const getMockVSCode = () => {
     env: {
       machineId: '12345534',
       appName: 'Visual Studio Code',
+      language: 'en',
       createTelemetryLogger: jest.fn().mockReturnValue({
         logUsage: jest.fn(),
         logError: jest.fn(),
@@ -345,6 +346,9 @@ const getMockVSCode = () => {
     FileType: {
       File: 1,
       Directory: 2
+    },
+    FilePermission: {
+      Readonly: 1
     },
     FileChangeType: {
       Changed: 1,

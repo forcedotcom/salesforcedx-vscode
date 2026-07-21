@@ -107,10 +107,10 @@
     "shx": "0.4.0",
     "stream-http": "3.2.0",
     "timers-browserify": "2.0.12",
-    "ts-jest": "^29.4.1",
+    "ts-jest": "29.4.11",
     "ts-node": "10.9.2",
     "tsx": "4.22.4",
-    "typescript": "5.9.3",
+    "typescript": "6.0.3",
     "typescript-eslint": "^8.62.0",
     "util": "0.12.5",
     "wireit": "^0.14.12",
@@ -351,10 +351,11 @@
       "output": []
     },
     "check:package-lock": {
-      "command": "ts-node scripts/package-lock.validation.ts",
+      "command": "ts-node --project scripts/tsconfig.json scripts/package-lock.validation.ts",
       "files": [
         "package-lock.json",
-        "scripts/package-lock.validation.ts"
+        "scripts/package-lock.validation.ts",
+        "scripts/tsconfig.json"
       ],
       "output": []
     },
@@ -367,7 +368,7 @@
       "output": []
     },
     "check:actions": {
-      "command": "ts-node scripts/validateActions.ts",
+      "command": "ts-node --project scripts/tsconfig.json scripts/validateActions.ts",
       "files": [
         "scripts/validateActions.ts",
         "scripts/tsconfig.json",
