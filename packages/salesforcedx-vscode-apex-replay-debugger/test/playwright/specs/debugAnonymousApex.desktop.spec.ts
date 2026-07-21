@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
 import {
   clickCodeLens,
   ensureOutputPanelOpen,
@@ -17,30 +17,13 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForQuickInputFirstOption,
-  WORKBENCH
+  waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
 
 import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-
-/** Continue debug session (dismiss hover, Escape, then F5). Repeats until session ends. */
-const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void> => {
-  const toolbar = page.locator('.debug-toolbar');
-  for (let i = 0; i < maxContinues; i++) {
-    await toolbar.waitFor({ state: 'visible', timeout: 15_000 });
-    await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
-    await page.keyboard.press('Escape');
-    await page.keyboard.press('F5');
-    const sessionEnded = await expect(toolbar)
-      .not.toBeVisible({ timeout: 30_000 })
-      .then(() => true)
-      .catch(() => false);
-    if (sessionEnded) break;
-  }
-  await expect(toolbar).not.toBeVisible({ timeout: 45_000 });
-};
+import { continueDebugSession } from '../helpers/debugHelpers';
 
 /** Creates a named .apex script file via the command palette and returns with the file open. */
 const createAndOpenApexScript = async (page: Page, name: string, content: string): Promise<void> => {
