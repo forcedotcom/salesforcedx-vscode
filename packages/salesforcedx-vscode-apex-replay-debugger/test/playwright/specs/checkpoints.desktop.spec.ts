@@ -165,7 +165,7 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     // Replay pauses on entry first (debug toolbar appears), then continue through the heap-dump line.
     await expect(page.locator('.debug-toolbar')).toBeVisible({ timeout: 30_000 });
-    await continueDebugSession(page);
+    await continueDebugSession(page, 3);
 
     // Regression guard: the Apex Replay Debugger output/Debug Console must NOT contain the
     // heap-dump error wrap-up text. Its presence means the host fetch failed or the

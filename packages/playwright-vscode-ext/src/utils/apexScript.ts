@@ -21,7 +21,7 @@ export const createAndOpenApexScript = async (
   opts: {
     commandLabel: string;
     name: string;
-    content: string;
+    content?: string;
   }
 ): Promise<void> => {
   await executeCommandWithCommandPalette(page, opts.commandLabel);
@@ -31,16 +31,19 @@ export const createAndOpenApexScript = async (
   await waitForQuickInputFirstOption(page);
   await page.keyboard.press('Enter');
 
+  const escapedName = opts.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await page
     .locator('.tab')
-    .filter({ hasText: new RegExp(`${opts.name}\\.apex`) })
+    .filter({ hasText: new RegExp(`${escapedName}\\.apex`) })
     .waitFor({ state: 'visible', timeout: 15_000 });
   await openFileByName(page, `${opts.name}.apex`);
 
-  // Populate the .apex file with content
-  const editorArea = page.locator('.editor-instance .view-lines').first();
-  await editorArea.click({ force: true });
-  await page.keyboard.press('Control+a');
-  await page.keyboard.type(opts.content);
-  await page.keyboard.press('Control+s');
+  if (opts.content) {
+    // Populate the .apex file with content
+    const editorArea = page.locator('.editor-instance .view-lines').first();
+    await editorArea.click({ force: true });
+    await page.keyboard.press('Control+a');
+    await page.keyboard.type(opts.content);
+    await page.keyboard.press('Control+s');
+  }
 };
