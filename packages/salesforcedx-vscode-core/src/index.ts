@@ -12,7 +12,7 @@ import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { setCoreChannel, getCoreChannelService } from './channels';
+import { setCoreChannel } from './channels';
 import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
@@ -43,9 +43,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   await getRuntime().runPromise(activateEffect(extensionContext));
 
-  // Built after activateEffect wires the channel via setCoreChannel (getCoreChannelService throws pre-wire).
   const api: SalesforceVSCodeCoreApi = {
-    channelService: getCoreChannelService(),
     getUserId,
     telemetryService,
     workspaceContextUtils,
@@ -195,7 +193,6 @@ const handleTheUnhandled = (): void => {
 };
 
 export type SalesforceVSCodeCoreApi = {
-  channelService: ReturnType<typeof getCoreChannelService>;
   getUserId: typeof getUserId;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
