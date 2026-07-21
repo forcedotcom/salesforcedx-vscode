@@ -13,7 +13,11 @@ type ProgressOnlyCommandKey = 'Update Checkpoints in Org';
 
 export type CommandKey = ProgressAndSuccessCommandKey | ProgressOnlyCommandKey;
 
-export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<CommandKey, never>(
+export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<
+  ProgressAndSuccessCommandKey,
+  never,
+  ProgressOnlyCommandKey
+>(
   'salesforcedx-vscode-apex-replay-debugger',
   'sf-apex-replay-debugger-notifications',
   'Salesforce: Apex Replay Debugger Notifications'

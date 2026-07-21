@@ -336,42 +336,42 @@
             "SFDX: Remove Trace Flag for Current User": {
               "type": "string",
               "enum": [
-                "toast",
-                "statusBar",
-                "off"
+                "successToast",
+                "successStatusBar",
+                "successOff"
               ],
               "enumDescriptions": [
-                "%notifications.toast.description%",
-                "%notifications.statusBar.description%",
-                "%notifications.off.description%"
+                "%notifications.successToast.description%",
+                "%notifications.successStatusBar.description%",
+                "%notifications.successOff.description%"
               ],
               "description": "%notifications_remove_trace_flag_current_user_description%"
             },
             "SFDX: Remove Trace Flag": {
               "type": "string",
               "enum": [
-                "toast",
-                "statusBar",
-                "off"
+                "successToast",
+                "successStatusBar",
+                "successOff"
               ],
               "enumDescriptions": [
-                "%notifications.toast.description%",
-                "%notifications.statusBar.description%",
-                "%notifications.off.description%"
+                "%notifications.successToast.description%",
+                "%notifications.successStatusBar.description%",
+                "%notifications.successOff.description%"
               ],
               "description": "%notifications_remove_trace_flag_description%"
             },
             "SFDX: Remove Debug Level": {
               "type": "string",
               "enum": [
-                "toast",
-                "statusBar",
-                "off"
+                "successToast",
+                "successStatusBar",
+                "successOff"
               ],
               "enumDescriptions": [
-                "%notifications.toast.description%",
-                "%notifications.statusBar.description%",
-                "%notifications.off.description%"
+                "%notifications.successToast.description%",
+                "%notifications.successStatusBar.description%",
+                "%notifications.successOff.description%"
               ],
               "description": "%notifications_remove_debug_level_description%"
             }

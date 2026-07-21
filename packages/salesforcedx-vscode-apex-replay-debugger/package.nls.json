@@ -17,6 +17,8 @@
   "apexReplayDebugger.configuration.title": "Salesforce Apex Replay Debugger",
   "extension_level_notifications_description": "Notification style for all Apex Replay Debugger commands. Overrides the global salesforcedx-vscode-services.notifications setting. Individual commands can be further overridden in salesforcedx-vscode-apex-replay-debugger.commandLevelNotifications.",
   "command_level_notifications_description": "Notification style for each Apex Replay Debugger command. Overrides the global salesforcedx-vscode-services.notifications and extension-level salesforcedx-vscode-apex-replay-debugger.extensionLevelNotifications settings.",
+  "notifications.progressToast.description": "Show progress as a toast notification.",
+  "notifications.progressStatusBar.description": "Show progress spinner in the status bar.",
   "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
   "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
   "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",

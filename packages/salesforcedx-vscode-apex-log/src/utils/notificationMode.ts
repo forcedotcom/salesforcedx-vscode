@@ -16,7 +16,7 @@ export type SuccessOnlyCommandKey =
   | 'SFDX: Remove Trace Flag'
   | 'SFDX: Remove Debug Level';
 
-export const { showSuccessNotification, getProgressLocation, showSuccessOnlyNotification } = createNotificationModeApi<
+export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<
   ProgressAndSuccessCommandKey,
   SuccessOnlyCommandKey
 >('salesforcedx-vscode-apex-log', 'sf-apex-log-notifications', 'Salesforce: Apex Log Notifications');

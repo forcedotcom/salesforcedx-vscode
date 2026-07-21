@@ -502,14 +502,14 @@
             "Save Query Results": {
               "type": "string",
               "enum": [
-                "toast",
-                "statusBar",
-                "off"
+                "successToast",
+                "successStatusBar",
+                "successOff"
               ],
               "enumDescriptions": [
-                "%notifications.saveToast.description%",
-                "%notifications.saveStatusBar.description%",
-                "%notifications.saveOff.description%"
+                "%notifications.successToast.description%",
+                "%notifications.successStatusBar.description%",
+                "%notifications.successOff.description%"
               ],
               "description": "%notifications_save_query_results_description%"
             }

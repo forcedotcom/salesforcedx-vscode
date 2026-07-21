@@ -256,16 +256,12 @@
             "SFDX: Create and Set Up Project for ISV Debugging": {
               "type": "string",
               "enum": [
-                "progressToastSuccessToast",
-                "progressToastSuccessOff",
-                "progressStatusBarSuccessStatusBar",
-                "progressStatusBarSuccessOff"
+                "progressToast",
+                "progressStatusBar"
               ],
               "enumDescriptions": [
-                "%notifications.progressToastSuccessToast.description%",
-                "%notifications.progressToastSuccessOff.description%",
-                "%notifications.progressStatusBarSuccessStatusBar.description%",
-                "%notifications.progressStatusBarSuccessOff.description%"
+                "%notifications.progressToast.description%",
+                "%notifications.progressStatusBar.description%"
               ],
               "description": "%notifications_isv_debugger_setup_description%"
             },

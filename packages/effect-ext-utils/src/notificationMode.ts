@@ -65,25 +65,7 @@ const EXTENSION_LEVEL_KEY = 'extensionLevelNotifications';
 const GLOBAL_SECTION = 'salesforcedx-vscode-services';
 const GLOBAL_KEY = 'notifications';
 
-export type CombinedNotificationModeApi<
-  ProgressAndSuccessKey extends string,
-  SuccessOnlyKey extends string
-> = ProgressAndSuccessNotificationModeApi<ProgressAndSuccessKey> & SuccessOnlyNotificationModeApi<SuccessOnlyKey>;
-
-/**
- * Creates both notification APIs bound to the same extension settings section and status bar item.
- * Use this when an extension has commands of both types to avoid repeating the three config arguments.
- */
-export const createNotificationModeApi = <ProgressAndSuccessKey extends string, SuccessOnlyKey extends string>(
-  extensionSection: string,
-  statusBarId: string,
-  statusBarName: string
-): CombinedNotificationModeApi<ProgressAndSuccessKey, SuccessOnlyKey> => ({
-  ...createProgressAndSuccessNotificationMode<ProgressAndSuccessKey>(extensionSection, statusBarId, statusBarName),
-  ...createSuccessOnlyNotificationMode<SuccessOnlyKey>(extensionSection, statusBarId, statusBarName)
-});
-
-// ─── Progress and Success Mode ───────────────────────────────────────────────
+// ─── User-facing setting value types ─────────────────────────────────────────
 
 /**
  * Notification mode for commands that have both a progress phase and a success notification.
@@ -99,7 +81,84 @@ export type ProgressAndSuccessMode =
   | 'progressStatusBarSuccessStatusBar'
   | 'progressStatusBarSuccessOff';
 
-export type ProgressAndSuccessNotificationModeApi<CommandKey extends string> = {
+/**
+ * Notification mode for commands that have a progress phase but no success notification.
+ * Two options — the success half is irrelevant.
+ *
+ * - `progressToast`: Show progress as a toast notification.
+ * - `progressStatusBar`: Show progress spinner in the status bar.
+ */
+export type ProgressOnlyMode = 'progressToast' | 'progressStatusBar';
+
+/**
+ * Notification mode for commands that produce only a success notification (no progress phase).
+ *
+ * - `successToast`: Show the success notification as a toast.
+ * - `successStatusBar`: Show the success message in the status bar.
+ * - `successOff`: Suppress the success notification.
+ */
+export type SuccessOnlyMode = 'successToast' | 'successStatusBar' | 'successOff';
+
+// ─── Internal normalization ───────────────────────────────────────────────────
+
+/**
+ * Normalizes any user-facing mode string to an internal `ProgressAndSuccessMode`.
+ * The three mode type value sets are disjoint, so the raw string alone identifies the mode type —
+ * no runtime key-type tagging needed.
+ */
+const normalizeToInternal = (raw: string | undefined): ProgressAndSuccessMode | undefined => {
+  switch (raw) {
+    // ProgressAndSuccessMode — pass through
+    case 'progressToastSuccessToast':
+    case 'progressToastSuccessOff':
+    case 'progressStatusBarSuccessStatusBar':
+    case 'progressStatusBarSuccessOff':
+      return raw;
+    // ProgressOnlyMode — map to equivalent with success suppressed
+    case 'progressToast':
+      return 'progressToastSuccessOff';
+    case 'progressStatusBar':
+      return 'progressStatusBarSuccessOff';
+    // SuccessOnlyMode — map to equivalent with progress as toast (location irrelevant)
+    case 'successToast':
+      return 'progressToastSuccessToast';
+    case 'successStatusBar':
+      return 'progressStatusBarSuccessStatusBar';
+    case 'successOff':
+      return 'progressToastSuccessOff';
+    default:
+      return undefined;
+  }
+};
+
+const getInternalMode = (
+  extensionSection: string,
+  commandLevelSection: string,
+  command: string
+): ProgressAndSuccessMode => {
+  // Command-level: raw value may be any of the three mode types; normalizeToInternal handles all
+  const raw = vscode.workspace.getConfiguration(commandLevelSection).inspect<string>(command);
+  const cmdExplicit = raw?.workspaceFolderValue ?? raw?.workspaceValue ?? raw?.globalValue;
+  const fromCmd = normalizeToInternal(cmdExplicit);
+  if (fromCmd) return fromCmd;
+
+  // Extension-level (always stores ProgressAndSuccessMode)
+  const extCfg = vscode.workspace
+    .getConfiguration(extensionSection)
+    .inspect<ProgressAndSuccessMode>(EXTENSION_LEVEL_KEY);
+  const extExplicit = extCfg?.workspaceFolderValue ?? extCfg?.workspaceValue ?? extCfg?.globalValue;
+  if (extExplicit) return extExplicit;
+
+  // Global fallback (also ProgressAndSuccessMode)
+  return (
+    vscode.workspace.getConfiguration(GLOBAL_SECTION).get<ProgressAndSuccessMode>(GLOBAL_KEY) ??
+    'progressToastSuccessToast'
+  );
+};
+
+// ─── API type ─────────────────────────────────────────────────────────────────
+
+type NotificationModeApi<CommandKey extends string> = {
   /** Show a success notification for `command`.
    * `forceShow` overrides `*SuccessOff` modes: toast-progress modes show a toast,
    * status-bar-progress modes show in the status bar. Use only when the message
@@ -109,40 +168,48 @@ export type ProgressAndSuccessNotificationModeApi<CommandKey extends string> = {
   getProgressLocation: (command: CommandKey) => vscode.ProgressLocation;
 };
 
-const inspectExplicit = (section: string, key: string): ProgressAndSuccessMode | undefined => {
-  const i = vscode.workspace.getConfiguration(section).inspect<ProgressAndSuccessMode>(key);
-  return i?.workspaceFolderValue ?? i?.workspaceValue ?? i?.globalValue;
+/**
+ * The combined API returned by `createNotificationModeApi`.
+ *
+ * - `showSuccessNotification` accepts PAS + SuccessOnly keys (not ProgressOnly — no success phase).
+ * - `getProgressLocation` accepts PAS + ProgressOnly keys (not SuccessOnly — no progress phase).
+ */
+export type CombinedNotificationModeApi<
+  ProgressAndSuccessKey extends string = never,
+  SuccessOnlyKey extends string = never,
+  ProgressOnlyKey extends string = never
+> = {
+  showSuccessNotification: NotificationModeApi<ProgressAndSuccessKey | SuccessOnlyKey>['showSuccessNotification'];
+  getProgressLocation: NotificationModeApi<ProgressAndSuccessKey | ProgressOnlyKey>['getProgressLocation'];
 };
 
+// ─── Factory ──────────────────────────────────────────────────────────────────
+
 /**
- * Creates a notification mode API bound to a specific extension's settings sections.
+ * Creates the notification API bound to an extension's settings section and status bar item.
  *
- * @param extensionSection - VS Code config section for the extension (e.g. 'salesforcedx-vscode-metadata')
- * @param statusBarId - Unique VS Code status bar item ID
- * @param statusBarName - Human-readable status bar item name
+ * Three type parameters control which keys map to which user-facing setting shape:
+ * - `ProgressAndSuccessKey` — 4-option setting; `showSuccessNotification` + `getProgressLocation`
+ * - `SuccessOnlyKey`        — 3-option setting (`successToast | successStatusBar | successOff`); `showSuccessNotification` only
+ * - `ProgressOnlyKey`       — 2-option setting (`progressToast | progressStatusBar`); `getProgressLocation` only
+ *
+ * All three mode value sets are disjoint, so the factory auto-detects the mode type from the
+ * raw stored setting string — no runtime key arrays needed.
  */
-export const createProgressAndSuccessNotificationMode = <CommandKey extends string>(
+export const createNotificationModeApi = <
+  ProgressAndSuccessKey extends string = never,
+  SuccessOnlyKey extends string = never,
+  ProgressOnlyKey extends string = never
+>(
   extensionSection: string,
   statusBarId: string,
   statusBarName: string
-): ProgressAndSuccessNotificationModeApi<CommandKey> => {
+): CombinedNotificationModeApi<ProgressAndSuccessKey, SuccessOnlyKey, ProgressOnlyKey> => {
   const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
 
-  const getProgressAndSuccessMode = (command: CommandKey): ProgressAndSuccessMode =>
-    inspectExplicit(commandLevelSection, command) ??
-    inspectExplicit(extensionSection, EXTENSION_LEVEL_KEY) ??
-    vscode.workspace
-      .getConfiguration(GLOBAL_SECTION)
-      .get<ProgressAndSuccessMode>(GLOBAL_KEY, 'progressToastSuccessToast');
-
   return {
-    showSuccessNotification: (
-      command: CommandKey,
-      message: string,
-      forceShow = false,
-      actions: ToastAction[] = []
-    ): void => {
-      const mode = getProgressAndSuccessMode(command);
+    showSuccessNotification: (command, message, forceShow = false, actions: ToastAction[] = []): void => {
+      const mode = getInternalMode(extensionSection, commandLevelSection, command);
       const effectiveMode =
         forceShow && mode === 'progressToastSuccessOff'
           ? 'progressToastSuccessToast'
@@ -158,74 +225,11 @@ export const createProgressAndSuccessNotificationMode = <CommandKey extends stri
         });
       }
     },
-    getProgressLocation: (command: CommandKey): vscode.ProgressLocation => {
-      const mode = getProgressAndSuccessMode(command);
+    getProgressLocation: (command): vscode.ProgressLocation => {
+      const mode = getInternalMode(extensionSection, commandLevelSection, command);
       return mode === 'progressToastSuccessToast' || mode === 'progressToastSuccessOff'
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
-    }
-  };
-};
-
-// ─── Success Only Mode ───────────────────────────────────────────────────────
-
-/**
- * Notification mode for commands that produce only a success notification (no progress phase).
- *
- * - `toast`: Show the success notification as a toast.
- * - `statusBar`: Show the success message in the status bar.
- * - `off`: Suppress the success notification.
- */
-export type SuccessOnlyMode = 'toast' | 'statusBar' | 'off';
-
-export type SuccessOnlyNotificationModeApi<CommandKey extends string> = {
-  showSuccessOnlyNotification: (command: CommandKey, message: string, actions?: ToastAction[]) => void;
-};
-
-const progressAndSuccessModeToSuccessOnlyMode = (mode: ProgressAndSuccessMode): SuccessOnlyMode => {
-  if (mode === 'progressToastSuccessToast') return 'toast';
-  if (mode === 'progressStatusBarSuccessStatusBar') return 'statusBar';
-  return 'off';
-};
-
-/**
- * Creates a success-only notification API for commands that have no progress phase.
- * Falls back through extension-level and global `ProgressAndSuccessMode` settings via mapping:
- * `progressToastSuccessToast` → `toast`, `progressStatusBarSuccessStatusBar` → `statusBar`,
- * `progressToast/StatusBarSuccessOff` → `off`.
- */
-export const createSuccessOnlyNotificationMode = <CommandKey extends string>(
-  extensionSection: string,
-  statusBarId: string,
-  statusBarName: string
-): SuccessOnlyNotificationModeApi<CommandKey> => {
-  const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
-
-  const getMode = (command: CommandKey): SuccessOnlyMode => {
-    const cmdLevel = vscode.workspace.getConfiguration(commandLevelSection).inspect<SuccessOnlyMode>(command);
-    const cmdExplicit = cmdLevel?.workspaceFolderValue ?? cmdLevel?.workspaceValue ?? cmdLevel?.globalValue;
-    if (cmdExplicit) return cmdExplicit;
-
-    const extLevel = inspectExplicit(extensionSection, EXTENSION_LEVEL_KEY);
-    if (extLevel) return progressAndSuccessModeToSuccessOnlyMode(extLevel);
-
-    const globalMode = vscode.workspace.getConfiguration(GLOBAL_SECTION).get<ProgressAndSuccessMode>(GLOBAL_KEY);
-    if (globalMode) return progressAndSuccessModeToSuccessOnlyMode(globalMode);
-
-    return 'toast';
-  };
-
-  return {
-    showSuccessOnlyNotification: (command: CommandKey, message: string, actions: ToastAction[] = []): void => {
-      const mode = getMode(command);
-      if (mode === 'statusBar') {
-        showTransientStatusBarMessage(statusBarId, statusBarName, message, actions);
-      } else if (mode === 'toast') {
-        const labels = actions.map(a => a.label);
-        void vscode.window.showInformationMessage(message, ...labels).then(selection => {
-          if (selection) void actions.find(a => a.label === selection)?.run();
-        });
-      }
     }
   };
 };
