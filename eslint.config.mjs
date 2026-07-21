@@ -39,6 +39,8 @@ const noHrtime = {
   message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
 };
 const noInstanceofError = {
+  // keys on the bare identifier `Error`: assumes the global; won't match `ns.Error`
+  // (MemberExpression) and would also fire on a locally-named `Error` — accepted for a nudge.
   selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
   message: "Use isError(x) from 'effect/Predicate' instead of x instanceof Error."
 };
