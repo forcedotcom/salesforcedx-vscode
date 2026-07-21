@@ -37,7 +37,7 @@ import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetri
 import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { apexTestingDiagnostics } from './utils/diagnostics';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
-import { disposeTestController, getTestClassName, getTestController } from './views/testController';
+import { disposeTestController, getTestClassNameEffect, getTestController } from './views/testController';
 import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';
 import { initializeTestDiscovery } from './watchers/testDiscovery';
 import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
@@ -115,7 +115,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
   return {
     getTestClassName: (uri: URI): Promise<string | undefined> =>
       getApexTestingRuntime().runPromise(
-        Effect.try(() => getTestClassName(uri)).pipe(
+        getTestClassNameEffect(uri).pipe(
           Effect.tapError(error => Effect.logDebug('Failed to get test class name', { error })),
           Effect.orElseSucceed(() => undefined)
         )
