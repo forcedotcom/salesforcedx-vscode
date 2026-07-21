@@ -810,6 +810,79 @@ describe('ApexTestController', () => {
       expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
     });
 
+    it('keeps a refresh failure non-fatal: still shows success, never failed', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showSuccessfulExecution = jest.fn();
+      notificationService.showFailedExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').succeed({
+          getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
+        })
+      );
+      // refresh rejects — must be swallowed (logWarning), not flipped to failed-execution.
+      jest.spyOn(controller, 'refresh').mockRejectedValue(new Error('refresh boom'));
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
+      expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
+    });
+
+    it('shows the canceled notification when retrieve is cancelled (UserCancellationError)', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showInformationMessage = jest.fn();
+      notificationService.showFailedExecution = jest.fn();
+      notificationService.showSuccessfulExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').fail({ _tag: 'UserCancellationError' })
+      );
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showInformationMessage).toHaveBeenCalled();
+      expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
+      expect(notificationService.showSuccessfulExecution).not.toHaveBeenCalled();
+    });
+
+    it('shows failed-execution when retrieve fails (MetadataRetrieveError)', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showFailedExecution = jest.fn();
+      notificationService.showSuccessfulExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').fail({ _tag: 'MetadataRetrieveError', message: 'boom' })
+      );
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showFailedExecution).toHaveBeenCalled();
+      expect(notificationService.showSuccessfulExecution).not.toHaveBeenCalled();
+    });
+
     it('does not retrieve for local class items', async () => {
       const classTestItem = {
         id: 'class:LocalClass',

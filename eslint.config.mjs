@@ -862,6 +862,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'functional/no-let': 'error',
       'functional/no-throw-statements': 'error',
+      'functional/no-try-statements': 'error',
       'functional/prefer-property-signatures': 'error',
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
       'prefer-arrow/prefer-arrow-functions': [
