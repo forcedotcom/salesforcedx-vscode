@@ -8,7 +8,8 @@
 // From https://github.com/redhat-developer/vscode-java
 // Original version licensed under the Eclipse Public License (EPL)
 
-import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as cp from 'node:child_process';
 import { homedir } from 'node:os';
@@ -16,6 +17,7 @@ import * as path from 'node:path';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
+import { getRuntime } from './services/runtime';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -28,6 +30,28 @@ type RequirementsData = {
   java_home: string;
   java_memory: number | null;
 };
+
+const checkFileOrFolderExists = Effect.fn('requirements.fileOrFolderExists')(function* (p: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.FsService.fileOrFolderExists(p);
+});
+
+// Thin Promise wrapper so the 3 call sites stay `await fileOrFolderExists(x)`. Swallows the two
+// getServicesApi tags → false (services is a hard extension dep, so unreachable in practice) but logs
+// a warning so a genuine outage is distinguishable from a legitimately-missing path; error channel
+// resolves to never, keeping the old no-throw contract (a throw in checkJavaRuntime's Promise executor
+// would hang instead of reject).
+const fileOrFolderExists = (p: string): Promise<boolean> =>
+  getRuntime().runPromise(
+    checkFileOrFolderExists(p).pipe(
+      Effect.catchTags({
+        ServicesExtensionNotFoundError: e =>
+          Effect.logWarning('services extension unavailable for fileOrFolderExists', e).pipe(Effect.as(false)),
+        InvalidServicesApiError: e =>
+          Effect.logWarning('invalid services API for fileOrFolderExists', e).pipe(Effect.as(false))
+      })
+    )
+  );
 
 /**
  * Resolves the requirements needed to run the extension.

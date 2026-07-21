@@ -51,7 +51,8 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     testClassName = `ExplorerTestClass${Date.now()}`;
     const testClassContent = [
       '@isTest',
-      `public class ${testClassName} {`,
+      // private (no `public`): exercises private-class visibility in discovery — the load-bearing behavior gated on API version (W-23428145).
+      `private class ${testClassName} {`,
       '\t@isTest',
       '\tstatic void shouldDiscoverThisTest() {',
       "\t\tSystem.assertEquals(1, 1, 'Discovery test should pass');",

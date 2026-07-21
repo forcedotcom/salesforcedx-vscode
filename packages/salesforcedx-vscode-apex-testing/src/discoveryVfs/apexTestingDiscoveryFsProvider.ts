@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// vscode FileSystemProvider contract requires synchronous FileSystemError throws
+/* eslint-disable functional/no-throw-statements */
+
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
@@ -166,46 +169,43 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   private getOrCreateDirectory(uri: URI): DirectoryEntry {
-    const parts = pathParts(uri);
-    let current = this.root;
-    for (const part of parts) {
+    return pathParts(uri).reduce<DirectoryEntry>((current, part) => {
       const existing = current.entries.get(part);
       if (!existing) {
         const dir = createDirectoryEntry();
         current.entries.set(part, dir);
         current.mtime = now();
-        current = dir;
-        continue;
+        return dir;
       }
       if (existing.type !== vscode.FileType.Directory) {
         throw vscode.FileSystemError.FileNotADirectory(uri);
       }
-      current = existing;
-    }
-    return current;
+      return existing;
+    }, this.root);
   }
 
   private getEntry(uri: URI, createDirectories: boolean): Entry | undefined {
-    const parts = pathParts(uri);
-    let current: Entry = this.root;
-    for (const part of parts) {
+    const walk = (current: Entry, parts: readonly string[]): Entry | undefined => {
+      const [part, ...rest] = parts;
+      if (part === undefined) {
+        return current;
+      }
       if (current.type !== vscode.FileType.Directory) {
         return undefined;
       }
       const next = current.entries.get(part);
-      if (!next) {
-        if (!createDirectories) {
-          return undefined;
-        }
-        const dir = createDirectoryEntry();
-        current.entries.set(part, dir);
-        current.mtime = now();
-        current = dir;
-        continue;
+      if (next) {
+        return walk(next, rest);
       }
-      current = next;
-    }
-    return current;
+      if (!createDirectories) {
+        return undefined;
+      }
+      const dir = createDirectoryEntry();
+      current.entries.set(part, dir);
+      current.mtime = now();
+      return walk(dir, rest);
+    };
+    return walk(this.root, pathParts(uri));
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -219,6 +219,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 }
 
+// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= below
 let providerInstance: ApexTestingDiscoveryFsProvider | undefined;
 
 export const getApexTestingDiscoveryFsProvider = (): ApexTestingDiscoveryFsProvider => {

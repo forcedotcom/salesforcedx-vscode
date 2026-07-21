@@ -52,11 +52,12 @@ export const buildNamespacePackageStructure = (
   const structure = new Map<string, Map<string, ClassEntry[]>>();
 
   const ensureNamespace = (nsKey: string): Map<string, ClassEntry[]> => {
-    let pkMap = structure.get(nsKey);
-    if (!pkMap) {
-      pkMap = new Map();
-      structure.set(nsKey, pkMap);
+    const existing = structure.get(nsKey);
+    if (existing) {
+      return existing;
     }
+    const pkMap = new Map<string, ClassEntry[]>();
+    structure.set(nsKey, pkMap);
     return pkMap;
   };
 
@@ -67,9 +68,9 @@ export const buildNamespacePackageStructure = (
     entries: Array.NonEmptyArray<ToolingTestClass>
   ): void => {
     const pkMap = ensureNamespace(nsKey);
-    let list = pkMap.get(pkgKey);
-    if (!list) {
-      list = [];
+    const existing = pkMap.get(pkgKey);
+    const list = existing ?? [];
+    if (!existing) {
       pkMap.set(pkgKey, list);
     }
     list.push({ fullClassName, entries });
@@ -163,12 +164,12 @@ export const getPackageLabelAndId = (
   const firstClass = classEntriesList[0].entries[0];
   const info = resolvePackageInfoForClassId(firstClass.id, classIdToPackage);
   const baseName = info?.packageName ?? pkgKey;
-  const packageLabel =
-    info?.containerOptions === 'Unlocked'
-      ? `${baseName} (Unlocked)`
-      : info?.containerOptions === 'Managed'
-        ? nls.localize('test_explorer_managed_package_label', baseName)
-        : baseName;
+  const containerOptions = info ? info.containerOptions : Option.none();
+  const packageLabel = Option.match(containerOptions, {
+    onNone: () => baseName,
+    onSome: option =>
+      option === 'Unlocked' ? `${baseName} (Unlocked)` : nls.localize('test_explorer_managed_package_label', baseName)
+  });
   return { packageLabel, packageId: createPackageId(nsKey, pkgKey) };
 };
 

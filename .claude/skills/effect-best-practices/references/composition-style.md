@@ -15,6 +15,10 @@ call site:
 2. **Make execution the terminal step**, not a wrapper around the expression.
 3. **Bail conditions and dispatch are separate** — guard clauses up top, the pipe
    handles real variance.
+4. **No single-use intermediate vars.** A value read once is a pipe step, not a
+   `const`. Plain value (not yet an Effect) → seed a standalone `pipe(value, …)`;
+   don't bury it as a nested call arg (`f(g(x))`) — that hides the step. Keep the
+   `const` only when the value is read ≥2×.
 
 Rest is application of these to specific combinators.
 
@@ -214,6 +218,47 @@ export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayRe
 });
 ```
 
+## Flatten nested pipes into sibling steps
+
+A callback that itself calls `.pipe(...)` is a pipe inside a pipe — an indent that
+makes the reader hold the outer combinator in mind while parsing the inner chain.
+Prefer combinators as **siblings in one chain**. Two moves:
+
+**1. Pure step feeding an effectful one → split `Effect.map` + `Effect.flatMap`.**
+`x => pure(x).pipe(effectfulStep)` → pure part (array head, field pluck, `??`) its
+own `Effect.map`; effectful part the next sibling, point-free. A data-last overload
+(`(f) => (A) => Effect<B>`, e.g. `Effect.transposeMapOption`) is what makes the
+`flatMap` arg point-free — no `x => …x` wrapper, no inner `.pipe`.
+
+```typescript
+// AVOID — flatMap callback opens a nested .pipe to head-then-decode
+Effect.flatMap(result => Arr.head(result.records).pipe(Effect.transposeMapOption(decode)))
+// PREFERRED — pure head as its own map, effectful decode as a sibling flatMap
+Effect.map(result => Arr.head(result.records)),
+Effect.flatMap(Effect.transposeMapOption(decode))
+```
+
+**2. Inner `.pipe(...)` that repeats verbatim at N≥2 sites → extract a parameterized
+point-free helper**, varying bits as params. Call sites become the bare name;
+nesting and duplication both go — and it closes gaps where one copy forgot a step
+(e.g. `mapError`).
+
+```typescript
+const decodeOrFail = <A, I>(schema: Schema.Schema<A, I>, label: string) => (input: unknown) =>
+  Schema.decodeUnknown(schema)(input).pipe(
+    Effect.mapError((e: ParseResult.ParseError) =>
+      new TraceFlagNotFoundError({ message: `Failed to decode ${label}: ${ParseResult.TreeFormatter.formatErrorSync(e)}` }))
+  );
+// call sites: records.map(decodeOrFail(Schema, 'trace flag records'))
+```
+
+**Threshold is reuse (N≥2), not nesting.** Single-use inner pipes and payloads stay
+**inline** in their one pipe — extracting a single-use `const`/helper to "flatten"
+just relocates it and adds indirection. Goal: one large pipe, no intermediate vars,
+not a scatter of single-use helpers above it. And don't touch genuine multi-step
+composition — a `Stream` inside `mapConcatEffect`, a branch with its own chain.
+Target only nesting that **exists to sequence steps** or **repeats verbatim**.
+
 ## Quick reference
 
 | Situation | Do | Don't |
@@ -230,3 +275,8 @@ export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayRe
 | Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
 | Point-free pipe seed | `.pipe(...)` on an existing Effect/Tag; standalone `pipe(value, ...)` only when the seed isn't an Effect yet | standalone `pipe(someEffect, ...)` when `someEffect.pipe(...)` works |
 | Throwing step inside a point-free pipe (parse, FFI) | lift with `Effect.try`/`Effect.tryPromise` | bare `JSON.parse(...)`/throwing call as a pipe step |
+| Callback does `pure(x).pipe(step)` | split: pure part as `Effect.map`, effectful part as sibling `Effect.flatMap` (point-free) | one `flatMap` whose callback opens a nested `.pipe` |
+| Same `decode.pipe(mapError)` at N≥2 sites | extract parameterized point-free helper (`decodeOrFail(schema, label)`), call bare | copy the transform+error-remap into each site |
+| Single-use inner pipe / payload | inline it in the one pipe (goal: one large pipe, no intermediate vars) | extract a single-use `const`/helper just to shorten the pipe |
+| Nested pipe that only sequences steps | flatten to sibling steps | leave nesting that adds no branching |
+| Nested pipe with real branching or its own `Stream`/sub-chain | keep nested — it's genuine composition | flatten mechanically and lose the structure |
