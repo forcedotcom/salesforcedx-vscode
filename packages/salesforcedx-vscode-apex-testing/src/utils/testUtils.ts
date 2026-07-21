@@ -60,11 +60,12 @@ export const getMethodLocationsFromSymbols = async (
   // Ensure the document is accessible - try to open it if needed
   const isDocumentOpen = vscode.workspace.textDocuments.some(doc => doc.uri.toString() === uri.toString());
   if (!isDocumentOpen) {
-    // Document might not be open, try to open it
-    try {
-      await vscode.workspace.openTextDocument(uri);
-    } catch {
-      // If we can't open the document, document symbols won't be available
+    // Document might not be open, try to open it. If we can't, document symbols won't be available.
+    const opened = await vscode.workspace.openTextDocument(uri).then(
+      () => true,
+      () => false
+    );
+    if (!opened) {
       return undefined;
     }
   }

@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as http from 'node:http';
 
 const PORT = 3002;
@@ -70,7 +71,7 @@ const extractJsonObjects = (str: string): string[] => {
 const parseBody = (body: string) =>
   Effect.try({
     try: () => JSON.parse(body),
-    catch: error => (error instanceof Error ? error : new Error(String(error)))
+    catch: error => (isError(error) ? error : new Error(String(error)))
   }).pipe(
     Effect.flatMap(parsed => {
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
@@ -88,7 +89,7 @@ const decodeBase64Env = (base64Env: string) =>
       const asString = decoded.toString('utf-8');
       return extractJsonObjects(asString);
     },
-    catch: error => (error instanceof Error ? error : new Error(String(error)))
+    catch: error => (isError(error) ? error : new Error(String(error)))
   });
 
 const logRequest = (method: string | undefined, url: string | undefined, headers: http.IncomingHttpHeaders): void => {

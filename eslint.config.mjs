@@ -34,6 +34,17 @@ const localPlugin = { processors: localProcessors, rules: localRules };
 
 const currentYear = new Date().getFullYear();
 
+const noHrtime = {
+  selector: "MemberExpression[object.name='process'][property.name='hrtime']",
+  message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
+};
+const noInstanceofError = {
+  // keys on the bare identifier `Error`: assumes the global; won't match `ns.Error`
+  // (MemberExpression) and would also fire on a locally-named `Error` — accepted for a nudge.
+  selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
+  message: "Use isError(x) from 'effect/Predicate' instead of x instanceof Error."
+};
+
 export default [
   {
     ignores: [
@@ -499,13 +510,7 @@ export default [
       'no-invalid-this': 'off',
       'no-new-wrappers': 'error',
       'no-param-reassign': 'error',
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: "MemberExpression[object.name='process'][property.name='hrtime']",
-          message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
-        }
-      ],
+      'no-restricted-syntax': ['error', noHrtime],
       'no-shadow': 'off',
       'no-self-assign': 'error',
       'no-self-compare': 'error',
@@ -542,6 +547,43 @@ export default [
       ],
       'use-isnan': 'error',
       'valid-typeof': 'off'
+    }
+  },
+  {
+    // Opt-in: steer `x instanceof Error` to isError(x) from effect/Predicate.
+    // Scoped to effect-enabled packages only — non-effect packages can't import
+    // effect/Predicate, so applying it there would point at an unimportable API.
+    files: [
+      'packages/effect-ext-utils/**/*.ts',
+      'packages/salesforcedx-lightning-lsp-common/**/*.ts',
+      'packages/salesforcedx-utils-vscode/**/*.ts',
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-apex-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
+      'packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
+      'packages/salesforcedx-vscode-core/**/*.ts',
+      'packages/salesforcedx-vscode-lightning/**/*.ts',
+      'packages/salesforcedx-vscode-lwc/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-org/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/**/*.ts',
+      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-services-types/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/salesforcedx-vscode-visualforce/**/*.ts'
+    ],
+    ignores: [
+      'packages/**/test/**/*.ts',
+      'packages/**/__tests__/**/*.ts',
+      'packages/**/*.spec.ts',
+      'packages/**/*.test.ts',
+      'packages/**/playwright*.ts'
+    ],
+    rules: {
+      // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError]
     }
   },
   {
@@ -820,6 +862,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'functional/no-let': 'error',
       'functional/no-throw-statements': 'error',
+      'functional/no-try-statements': 'error',
       'functional/prefer-property-signatures': 'error',
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
       'prefer-arrow/prefer-arrow-functions': [
