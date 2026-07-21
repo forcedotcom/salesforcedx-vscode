@@ -7,7 +7,7 @@
 import { isError, isString } from 'effect/Predicate';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import { getCoreChannelService } from '../channels';
 import { nls } from '../messages';
 
 type XMLExtensionApi = {
@@ -98,14 +98,14 @@ export class MetadataXmlSupport {
       const updatedVmArgs = ensureMinXmlHeap(vmArgsInspect?.globalValue);
       if (updatedVmArgs !== undefined) {
         await config.update('server.vmargs', updatedVmArgs, vscode.ConfigurationTarget.Global);
-        channelService.appendLine(nls.localize('metadata_xml_vmargs_configured'));
+        getCoreChannelService().appendLine(nls.localize('metadata_xml_vmargs_configured'));
       }
 
-      channelService.appendLine(nls.localize('metadata_xml_redhat_extension_setup_success'));
+      getCoreChannelService().appendLine(nls.localize('metadata_xml_redhat_extension_setup_success'));
     } catch (error) {
-      channelService.appendLine(nls.localize('metadata_xml_fail_redhat_extension'));
+      getCoreChannelService().appendLine(nls.localize('metadata_xml_fail_redhat_extension'));
       const errorMsg = isError(error) ? error.message : String(error);
-      channelService.appendLine(errorMsg);
+      getCoreChannelService().appendLine(errorMsg);
     }
   }
 
@@ -116,14 +116,14 @@ export class MetadataXmlSupport {
     const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
 
     if (!redHatExtension) {
-      channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
+      getCoreChannelService().appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
       return;
     }
 
     const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
     if (!isString(pluginVersionNumber)) {
-      channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
+      getCoreChannelService().appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
       return;
     }
 
@@ -142,9 +142,9 @@ export class MetadataXmlSupport {
 
       await this.setupRedhatXml(catalogs, fileAssociations, redHatExtension);
     } else if (minor === 15) {
-      channelService.appendLine(nls.localize('metadata_xml_redhat_extension_regression'));
+      getCoreChannelService().appendLine(nls.localize('metadata_xml_redhat_extension_regression'));
     } else {
-      channelService.appendLine(nls.localize('metadata_xml_deprecated_redhat_extension'));
+      getCoreChannelService().appendLine(nls.localize('metadata_xml_deprecated_redhat_extension'));
     }
   }
 }

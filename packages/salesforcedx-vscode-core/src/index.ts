@@ -12,7 +12,7 @@ import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { channelService } from './channels';
+import { setCoreChannel, getCoreChannelService } from './channels';
 import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocumentation } from './commands';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
@@ -41,8 +41,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   // Initialize services layer first so getRuntime() can use it.
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
 
+  await getRuntime().runPromise(activateEffect(extensionContext));
+
+  // Built after activateEffect wires the channel via setCoreChannel (getCoreChannelService throws pre-wire).
   const api: SalesforceVSCodeCoreApi = {
-    channelService,
+    channelService: getCoreChannelService(),
     getUserId,
     telemetryService,
     workspaceContextUtils,
@@ -55,8 +58,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     }
   };
 
-  await getRuntime().runPromise(activateEffect(extensionContext));
-
   return api;
 };
 
@@ -64,6 +65,13 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   extensionContext: vscode.ExtensionContext
 ) {
   yield* ensureCurrentWorkingDirIsProjectPath();
+
+  // Wire the legacy wrapper to the Effect channel so only one 'Salesforce CLI' channel exists.
+  // ensureCurrentWorkingDirIsProjectPath already resolved getServicesApi, so this reuses that dependency.
+  const servicesApi = yield* getServicesApi;
+  const coreChannel = yield* (yield* servicesApi.services.ChannelService).getChannel;
+  setCoreChannel(coreChannel);
+  extensionContext.subscriptions.push(coreChannel);
 
   setNodeExtraCaCerts();
   setSfLogLevel();
@@ -80,7 +88,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   }
 
   // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
-  const servicesApi = yield* getServicesApi;
   const salesforceProjectOpened = yield* servicesApi.services.ProjectService.isSalesforceProject();
 
   // Set Code Builder context
@@ -188,7 +195,7 @@ const handleTheUnhandled = (): void => {
 };
 
 export type SalesforceVSCodeCoreApi = {
-  channelService: typeof channelService;
+  channelService: ReturnType<typeof getCoreChannelService>;
   getUserId: typeof getUserId;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
