@@ -62,7 +62,7 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
     "test:compile": "wireit",
-    "vscode:package:legacy:prerelease": "wireit"
+    "vscode:package:legacy:prerelease": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
     "test:e2e": "wireit"
