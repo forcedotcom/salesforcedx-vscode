@@ -18,6 +18,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   setupNonTrackingOrgAndAuth,
+  TAB,
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   validateNoCriticalErrors,
@@ -91,16 +92,45 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await saveScreenshot(page, 'step.suite-visible-in-sidebar.png');
   });
 
-  await test.step('pull source from org to get test suite file locally', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await clearOutputChannel(page);
-    await executeCommandWithCommandPalette(page, 'SFDX: Pull Source from Default Org and Ignore Conflicts');
-    await waitForOutputChannelText(page, {
-      expectedText: 'Retrieved Source',
-      timeout: 120_000
+  await test.step('retrieve test suite from org via Org Browser', async () => {
+    // Test suites are created only in the org — use Org Browser to retrieve locally.
+    const activityBarItem = page.locator('.activitybar a[aria-label*="Salesforce Org Browser"]');
+    await expect(activityBarItem).toBeVisible({ timeout: 15_000 });
+    await activityBarItem.click();
+
+    const sidebar = page.locator('.sidebar');
+    // Wait for metadata types to load (at least 5 visible)
+    await expect(sidebar.getByRole('treeitem', { level: 1 }).nth(4)).toBeVisible({ timeout: 60_000 });
+    await saveScreenshot(page, 'step.org-browser-open.png');
+
+    // Find and expand the ApexTestSuite type
+    const apexTestSuiteType = sidebar.getByRole('treeitem', {
+      level: 1,
+      name: new RegExp('^ApexTestSuite(,|$)')
     });
-    await saveScreenshot(page, 'step.pull-source-done.png');
+    await apexTestSuiteType.click();
+    const twistie = apexTestSuiteType.locator('.monaco-tl-twistie');
+    await expect(twistie).not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
+    await saveScreenshot(page, 'step.apex-test-suite-type-expanded.png');
+
+    // Find the specific suite and retrieve it
+    const suiteItem = sidebar.getByRole('treeitem', {
+      name: new RegExp(`^${testSuiteName}(,|$)`)
+    });
+    await expect(suiteItem).toBeVisible({ timeout: 15_000 });
+    await suiteItem.hover();
+    const retrieveButton = suiteItem.locator('.action-label[aria-label="Retrieve Metadata"]').first();
+    await expect(retrieveButton).toBeVisible({ timeout: 5000 });
+    await retrieveButton.click({ force: true });
+    await saveScreenshot(page, 'step.retrieve-triggered.png');
+
+    // Wait for the retrieved file to open in the editor as the completion signal
+    await page
+      .locator(TAB)
+      .filter({ hasText: `${testSuiteName}.testSuite-meta.xml` })
+      .first()
+      .waitFor({ state: 'visible', timeout: 120_000 });
+    await saveScreenshot(page, 'step.retrieve-done.png');
   });
 
   await test.step('open the .testSuite-meta.xml file and delete from project and org', async () => {
