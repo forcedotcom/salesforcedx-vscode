@@ -354,7 +354,8 @@
       "command": "ts-node --project scripts/tsconfig.json scripts/package-lock.validation.ts",
       "files": [
         "package-lock.json",
-        "scripts/package-lock.validation.ts"
+        "scripts/package-lock.validation.ts",
+        "scripts/tsconfig.json"
       ],
       "output": []
     },
