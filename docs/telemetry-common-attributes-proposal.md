@@ -31,12 +31,12 @@ Note: `orgShape` is **not** emitted in this pipeline. The O11y span exporter (`o
 ### `salesforcedx-utils-vscode` (class-based, event properties)
 
 | Existing Attribute | Values | Emitted By | Present in O11y? |
-|--------------------|--------|------------|-----------------|
-| `orgShape` | `"Scratch"` / `"Sandbox"` / `"Production"` / `""` | `appInsights.ts` `getBaseProps()` | **Yes** (also in `o11yReporter.ts`) |
+| ---- | ---- | ---- | ---- |
+| `orgShape` | `"Scratch"` / `"Sandbox"` / `"Production"` (omitted if empty) | Multiple reporters | **Yes** |
 
-Both `appInsights.ts` and `o11yReporter.ts` read `orgShape` from `WorkspaceContextUtil.getInstance().orgShape` and include it as an event property.
+Both `appInsights.ts` and `o11yReporter.ts` read from `WorkspaceContextUtil.getInstance().orgShape`; `appInsights.ts` and `telemetryFile.ts` additionally read from cached `orgIdentity` (bridge-pulled). Empty values are omitted from event properties.
 
-**Logic**: `orgShape === "Production"` directly identifies prod orgs.
+**Logic**: When present, `orgShape === "Production"` directly identifies prod orgs.
 
 ### Assessment
 

@@ -4,68 +4,57 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'node:path';
-import * as vscode from 'vscode';
-
-// Mock vscode.extensions.getExtension before importing bootstrapCmd
-jest.spyOn(vscode.extensions, 'getExtension').mockReturnValue({
-  exports: {
-    SfCommandletExecutor: class MockSfCommandletExecutor {
-      // Mock implementation
-    },
-    SfCommandlet: class MockSfCommandlet {
-      // Mock implementation
-    },
-    channelService: {
-      appendLine: jest.fn(),
-      streamCommandOutput: jest.fn(),
-      showChannelOutput: jest.fn()
-    }
-  },
-  isActive: true
-} as unknown as vscode.Extension<any>);
-
 import {
-  INSTALLED_PACKAGES,
-  IsvDebugBootstrapExecutor,
-  ISVDEBUGGER,
-  PACKAGE_XML
+  parseOrgNamespaceQueryResultJson,
+  parsePackageInstalledListJson
 } from '../../../../src/commands/isvdebugging/bootstrapCmd';
 
-describe('isvdebugging unit test', () => {
-  const TOOLS_FOLDER = 'tools';
-  let relativeToolsFolderStub: jest.SpyInstance;
+describe('isvDebugBootstrap pure helpers', () => {
+  describe('parseOrgNamespaceQueryResultJson', () => {
+    it('returns the NamespacePrefix from the first record', () => {
+      const json = JSON.stringify({ result: { records: [{ NamespacePrefix: 'acme' }] } });
+      expect(parseOrgNamespaceQueryResultJson(json)).toBe('acme');
+    });
 
-  let isvDebugBootstrapExecutorInst: IsvDebugBootstrapExecutor;
+    it('returns empty string when NamespacePrefix is null', () => {
+      const json = JSON.stringify({ result: { records: [{ NamespacePrefix: null }] } });
+      expect(parseOrgNamespaceQueryResultJson(json)).toBe('');
+    });
 
-  beforeEach(() => {
-    relativeToolsFolderStub = jest.spyOn(projectPaths, 'relativeToolsFolder').mockReturnValue(TOOLS_FOLDER);
+    it('returns empty string when there are no records', () => {
+      const json = JSON.stringify({ result: { records: [] } });
+      expect(parseOrgNamespaceQueryResultJson(json)).toBe('');
+    });
   });
 
-  it('should be defined', () => {
-    isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst).toBeDefined();
-  });
+  describe('parsePackageInstalledListJson', () => {
+    it('maps subscriber-package fields into installed-package descriptors', () => {
+      const json = JSON.stringify({
+        result: [
+          {
+            SubscriberPackageId: '033000000000001',
+            SubscriberPackageName: 'salesforce.fth',
+            SubscriberPackageNamespace: 'sfth',
+            SubscriberPackageVersionId: '04t000000000001',
+            SubscriberPackageVersionName: 'v1',
+            SubscriberPackageVersionNumber: '1.0.0.1'
+          }
+        ]
+      });
+      expect(parsePackageInstalledListJson(json)).toEqual([
+        {
+          id: '033000000000001',
+          name: 'salesforce.fth',
+          namespace: 'sfth',
+          versionId: '04t000000000001',
+          versionName: 'v1',
+          versionNumber: '1.0.0.1'
+        }
+      ]);
+    });
 
-  it('should test readonly relativeMetadataTempPath property', () => {
-    isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeMetadataTempPath).toEqual(path.join(TOOLS_FOLDER, ISVDEBUGGER));
-    expect(relativeToolsFolderStub).toBeCalled();
-  });
-
-  it('should test readonly relativeApexPackageXmlPath property', () => {
-    isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeApexPackageXmlPath).toEqual(
-      path.join(isvDebugBootstrapExecutorInst.relativeMetadataTempPath, PACKAGE_XML)
-    );
-  });
-
-  it('should test readonly relativeInstalledPackagesPath property', () => {
-    isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-    expect(isvDebugBootstrapExecutorInst.relativeInstalledPackagesPath).toEqual(
-      path.join(TOOLS_FOLDER, INSTALLED_PACKAGES)
-    );
-    expect(relativeToolsFolderStub).toBeCalled();
+    it('returns an empty array when no packages are installed', () => {
+      expect(parsePackageInstalledListJson(JSON.stringify({ result: [] }))).toEqual([]);
+    });
   });
 });

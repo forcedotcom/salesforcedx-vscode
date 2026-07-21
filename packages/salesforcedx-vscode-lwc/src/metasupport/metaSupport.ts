@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
@@ -36,7 +37,7 @@ export const activateMetaSupport = Effect.fn('activateMetaSupport')(function* (e
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
-  if (typeof pluginVersionNumber !== 'string') {
+  if (!isString(pluginVersionNumber)) {
     yield* channelService.appendToChannel(nls.localize('lightning_lwc_no_redhat_extension_found'));
     return;
   }

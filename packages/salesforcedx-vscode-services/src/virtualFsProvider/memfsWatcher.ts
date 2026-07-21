@@ -17,6 +17,7 @@ import { sampleProjectName } from '../constants';
 import { ChannelService } from '../vscode/channelService';
 import { fsPrefix } from './constants';
 import { IndexedDBStorageService } from './indexedDbStorage';
+import { VirtualFsProviderError } from './virtualFsProviderError';
 
 // we need an emitter to send events to the fileSystemProvider using the vscode API
 export const emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
@@ -59,7 +60,7 @@ export const startWatch = Effect.fn('startWatch')(
     // this watches files in the project/workspace only, not the global sfdx folders, tmp, home, etc.
     yield* Stream.fromAsyncIterable(
       fs.promises.watch(projectPath, { recursive: true }),
-      e => new Error(String(e))
+      e => new VirtualFsProviderError({ message: String(e) })
     ).pipe(
       // if there are "change" events AND non-change events for the same file, drop the change events.  We prefer the "rename" (create) event.
       Stream.changesWith((a, b) => a.eventType === 'change' && b.eventType !== 'change' && a.filename === b.filename),
@@ -76,7 +77,7 @@ export const startWatch = Effect.fn('startWatch')(
 
     yield* channelService.appendToChannel('File watcher started successfully');
   },
-  Effect.tapError((error: Error) =>
+  Effect.tapError((error: VirtualFsProviderError) =>
     Effect.flatMap(ChannelService, channel => channel.appendToChannel(`Error starting watcher: ${error.message}`))
   )
 );

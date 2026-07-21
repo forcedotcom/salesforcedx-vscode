@@ -8,12 +8,14 @@
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import { ApexTestDiscoveryService } from '../../../src/discoveryVfs/apexTestDiscoveryService';
 import { ApexTestingDiscoveryFsProviderTag } from '../../../src/discoveryVfs/apexTestDiscoveryFsProviderTag';
 import {
   getApexTestingClassUri,
   getOrgClassesDirUri,
-  getOrgDiscoveryUri
+  getOrgDiscoveryUri,
+  getOrgsRootUri
 } from '../../../src/discoveryVfs/apexTestingDiscoveryFs';
 import { ApexTestingDiscoveryFsProvider } from '../../../src/discoveryVfs/apexTestingDiscoveryFsProvider';
 import type { ToolingTestClass } from '../../../src/testDiscovery/schemas';
@@ -24,9 +26,9 @@ const decoder = new TextDecoder();
 const throwsWithCode = (fn: () => unknown, code: string) => expect(fn).toThrow(expect.objectContaining({ code }));
 
 const classOf = (name: string, methods: string[]): ToolingTestClass => ({
-  id: `id-${name}`,
+  id: Option.some(`id-${name}`),
   name,
-  namespacePrefix: '',
+  namespacePrefix: Option.none(),
   testMethods: methods.map(m => ({ name: m }))
 });
 
@@ -126,6 +128,30 @@ describe('ApexTestDiscoveryService', () => {
     expect(readClassBody(provider, 'org123', 'NewTest').length).toBeGreaterThan(0);
     // clearOrg ran before the re-save, so the prior class is gone.
     throwsWithCode(() => provider.readFile(getApexTestingClassUri('org123', 'OldTest')), 'FileNotFound');
+  });
+
+  it('clearAll purges every orgs discovered classes, and is a no-op on an empty store', async () => {
+    const { provider, serviceLayer } = buildLayer();
+
+    await run(
+      serviceLayer,
+      Effect.gen(function* () {
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgA', [classOf('AcctTest', ['a'])], new Map());
+        yield* ApexTestDiscoveryService.saveDiscoveredClasses('orgB', [classOf('OppTest', ['b'])], new Map());
+        yield* ApexTestDiscoveryService.clearAll();
+      })
+    );
+
+    // Both orgs' class dirs are gone after dropping the whole orgs root (their missing ancestor /orgs
+    // surfaces as FileNotADirectory).
+    throwsWithCode(() => provider.readDirectory(getOrgClassesDirUri('orgA')), 'FileNotADirectory');
+    throwsWithCode(() => provider.readDirectory(getOrgClassesDirUri('orgB')), 'FileNotADirectory');
+    // The orgs root itself is gone.
+    throwsWithCode(() => provider.readDirectory(getOrgsRootUri()), 'FileNotADirectory');
+
+    // Clearing again (now empty) is a no-op, not an error.
+    const exit = await runExit(serviceLayer, ApexTestDiscoveryService.clearAll());
+    expect(Exit.isSuccess(exit)).toBe(true);
   });
 
   it('keeps orgs isolated', async () => {

@@ -1,0 +1,111 @@
+name: Apex Consumer NUTs
+
+# Regression net for packages/salesforcedx-apex (@salesforce/apex-node): build this
+# branch's library, pack it, then run consuming CLI plugins' NUTs against it.
+on:
+  push:
+    branches-ignore: [main, develop]
+    paths:
+      - 'packages/salesforcedx-apex/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}-apexConsumerNuts
+  cancel-in-progress: true
+
+jobs:
+  nuts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: [plugin-apex, plugin-flow]
+    # Disable wireit's GitHub Actions cache backend for the whole job. Both the
+    # monorepo build and the consumer's `yarn compile` shell out to wireit; when
+    # the Actions cache service returns a non-429/503 error (e.g. an Azure edge
+    # HTTP 400 outage page) wireit throws fatally instead of degrading, failing
+    # the build. `none` skips the cache entirely — these one-shot CI builds don't
+    # benefit from it anyway.
+    env:
+      WIREIT_CACHE: none
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install and build apex library
+        run: |
+          npm ci
+          npm run compile -w packages/salesforcedx-apex
+          # Stamp this commit's SHA into the built output so the consumer can
+          # prove it resolved THIS branch's tarball (see "Verify" step below).
+          # out/src is the package's `files` allowlist, so the marker is packed.
+          echo "$GITHUB_SHA" > packages/salesforcedx-apex/out/src/BRANCH_BUILD_SHA.txt
+
+      - name: Pack apex library tarball
+        run: |
+          # npm pack -w writes the tarball to the root cwd (not the package dir)
+          TGZ=$(npm pack -w packages/salesforcedx-apex --silent)
+          echo "TGZ=$(pwd)/$TGZ" >> "$GITHUB_ENV"
+
+      - name: Install Salesforce CLI
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: npm install -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'nightly' }}
+          retry_wait_seconds: 30
+
+      - name: Checkout consumer plugin
+        uses: actions/checkout@v4
+        with:
+          repository: salesforcecli/${{ matrix.plugin }}
+          path: consumer
+
+      - name: Install consumer with branch-built apex-node
+        working-directory: consumer
+        run: |
+          yarn install --network-timeout 600000
+          yarn add "file:$TGZ"
+          npx yarn-deduplicate
+          yarn install --network-timeout 600000
+          # compile only (not `build`): NUTs run the compiled command lib via
+          # testkit execCmd. `build` also runs the plugin's wireit `lint`, whose
+          # eslint walks up from this nested consumer dir into the monorepo root
+          # eslint.config.mjs and fails on the unbuilt eslint-local-rules import.
+          yarn compile
+
+      - name: Verify consumer resolved the branch-built apex-node
+        working-directory: consumer
+        run: |
+          # Resolve apex-node's real entry (package.json is not in its `exports`
+          # map, so require.resolve on the bare specifier is the only safe way in),
+          # then read the SHA marker packed next to out/src/index.js.
+          ENTRY=$(node -p "require.resolve('@salesforce/apex-node')")
+          MARKER="$(dirname "$ENTRY")/BRANCH_BUILD_SHA.txt"
+          if [ ! -f "$MARKER" ]; then
+            echo "::error::apex-node has no BRANCH_BUILD_SHA.txt — consumer is running the PUBLISHED library, not this branch"
+            echo "resolved entry: $ENTRY"
+            exit 1
+          fi
+          GOT=$(cat "$MARKER")
+          if [ "$GOT" != "$GITHUB_SHA" ]; then
+            echo "::error::apex-node SHA marker mismatch — got '$GOT', expected '$GITHUB_SHA'"
+            exit 1
+          fi
+          echo "Confirmed: consumer resolved branch apex-node @ $GOT"
+
+      - name: Run consumer NUTs
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          retry_on: error
+          command: cd consumer && yarn test:nuts
+        env:
+          TESTKIT_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+          SF_DISABLE_TELEMETRY: true

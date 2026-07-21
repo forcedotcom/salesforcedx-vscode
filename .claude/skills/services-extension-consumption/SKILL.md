@@ -68,7 +68,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 };
 ```
 
-Legacy inline pattern (still present in `metadata`, `org`, `org-browser`, `lightning`, `visualforce`, `soql`, `apex-log`, `apex-testing`): a local `buildAllServicesLayer` factory wraps `Layer.unwrapEffect(...)` in `services/extensionProvider.ts`. Migrate to the shared helper when touching these — drop the factory, import `buildAllServicesLayer` from `@salesforce/effect-ext-utils`, pass the fallback name at the call site.
+Legacy inline pattern (still present in `metadata`, `org`, `org-browser`, `lightning`, `visualforce`, `soql`, `apex-log`): a local `buildAllServicesLayer` factory wraps `Layer.unwrapEffect(...)` in `services/extensionProvider.ts`. Migrate to the shared helper when touching these — drop the factory, import `buildAllServicesLayer` from `@salesforce/effect-ext-utils`, pass the fallback name at the call site.
 
 ## Runtime vs provide
 
@@ -155,7 +155,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [ConnectionService](references/connection-service.md) - Org connections
 - [ProjectService](references/project-service.md) - Project resolution, packageDirectories
 - [SettingsService](references/settings-service.md) - Settings read/write
-- [FsService](references/fs-service.md) - File ops (web-compatible) and uri/path conversion
+- [FsService](references/fs-service.md) - File ops (web-compatible), uri/path conversion, `HashableUri` (value-based URI equality for HashSet/HashMap keys)
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
 - [TerminalService](references/terminal-service.md) - Run shell commands (desktop-only)
@@ -281,6 +281,40 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* api.services.ChannelService.appendToChannel('Extension activation complete.');
 });
 ```
+
+## Testing
+
+Mock services via `Layer.succeed` and combine with `Layer.mergeAll`. For static accessors (e.g., `api.services.WorkspaceService.getWorkspaceInfo()`), wire both the provider and service:
+
+```typescript
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+
+// Mock both ExtensionProviderService and WorkspaceService
+const mockWorkspaceLayer = Layer.mergeAll(
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({
+      services: { WorkspaceService } // Accessor sees real class
+    } as unknown as SalesforceVSCodeServicesApi)
+  }),
+  Layer.succeed(
+    WorkspaceService,
+    new WorkspaceService({
+      getWorkspaceInfo: () => Effect.succeed({ path: '/mock', fsPath: '/mock', isEmpty: false, isVirtualFs: false, cwd: '/mock' }),
+      getWorkspaceInfoOrThrow: () => Effect.succeed(/* ... */)
+    } as unknown as WorkspaceService)
+  )
+);
+
+// Use in test
+const result = await Effect.runPromise(
+  myEffect().pipe(Effect.provide(mockWorkspaceLayer))
+);
+```
+
+For direct service mocking (no accessor), use `Layer.succeed(Service, mockImpl)` alone.
 
 ## Common Patterns
 

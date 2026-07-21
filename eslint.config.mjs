@@ -34,13 +34,22 @@ const localPlugin = { processors: localProcessors, rules: localRules };
 
 const currentYear = new Date().getFullYear();
 
+const noHrtime = {
+  selector: "MemberExpression[object.name='process'][property.name='hrtime']",
+  message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
+};
+const noInstanceofError = {
+  // keys on the bare identifier `Error`: assumes the global; won't match `ns.Error`
+  // (MemberExpression) and would also fire on a locally-named `Error` — accepted for a nudge.
+  selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
+  message: "Use isError(x) from 'effect/Predicate' instead of x instanceof Error."
+};
+
 export default [
   {
     ignores: [
       '**/out/**',
       '**/dist/**',
-      // salesforcedx-apex emits to lib/ (deep-import compat) instead of out/; don't lint build output
-      'packages/salesforcedx-apex/lib/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',
@@ -199,9 +208,11 @@ export default [
       'unicorn/no-useless-fallback-in-spread': 'error',
       'unicorn/no-useless-iterator-to-array': 'error',
       'unicorn/no-useless-length-check': 'error',
+      'unicorn/no-useless-logical-operand': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
       'unicorn/no-useless-spread': 'error',
       'unicorn/no-useless-switch-case': 'error',
+      'unicorn/no-xor-as-exponentiation': 'error',
       'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-array-find': 'error',
       'unicorn/prefer-array-flat': 'error',
@@ -230,6 +241,7 @@ export default [
       'unicorn/prefer-simple-condition-first': 'error',
       'unicorn/prefer-structured-clone': 'error',
       'unicorn/prefer-ternary': ['error'],
+      'unicorn/prefer-url-can-parse': 'error',
       'unicorn/prefer-while-loop-condition': 'error',
       'unicorn/filename-case': [
         'error',
@@ -463,6 +475,13 @@ export default [
       'no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: '@effect/platform',
+              message:
+                'Import from a submodule (e.g. @effect/platform/FetchHttpClient) instead of the barrel. The barrel pulls in HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake — it bloats bundles ~5.5MB and trips ClamAV scanners, silently breaking OpenVSX publish. See docs/Build.md.'
+            }
+          ],
           patterns: [
             {
               group: ['node:fs', 'fs-extra'],
@@ -491,13 +510,7 @@ export default [
       'no-invalid-this': 'off',
       'no-new-wrappers': 'error',
       'no-param-reassign': 'error',
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: "MemberExpression[object.name='process'][property.name='hrtime']",
-          message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
-        }
-      ],
+      'no-restricted-syntax': ['error', noHrtime],
       'no-shadow': 'off',
       'no-self-assign': 'error',
       'no-self-compare': 'error',
@@ -534,6 +547,43 @@ export default [
       ],
       'use-isnan': 'error',
       'valid-typeof': 'off'
+    }
+  },
+  {
+    // Opt-in: steer `x instanceof Error` to isError(x) from effect/Predicate.
+    // Scoped to effect-enabled packages only — non-effect packages can't import
+    // effect/Predicate, so applying it there would point at an unimportable API.
+    files: [
+      'packages/effect-ext-utils/**/*.ts',
+      'packages/salesforcedx-lightning-lsp-common/**/*.ts',
+      'packages/salesforcedx-utils-vscode/**/*.ts',
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-apex-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
+      'packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts',
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
+      'packages/salesforcedx-vscode-core/**/*.ts',
+      'packages/salesforcedx-vscode-lightning/**/*.ts',
+      'packages/salesforcedx-vscode-lwc/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-org/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/**/*.ts',
+      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-services-types/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/salesforcedx-vscode-visualforce/**/*.ts'
+    ],
+    ignores: [
+      'packages/**/test/**/*.ts',
+      'packages/**/__tests__/**/*.ts',
+      'packages/**/*.spec.ts',
+      'packages/**/*.test.ts',
+      'packages/**/playwright*.ts'
+    ],
+    rules: {
+      // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError]
     }
   },
   {
@@ -626,7 +676,6 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
       'packages/salesforcedx-apex-replay-debugger/**',
-      'packages/salesforcedx-apex/**',
       'packages/salesforcedx-vscode-soql/**',
       'packages/soql-model/**'
     ],
@@ -636,28 +685,42 @@ export default [
   },
   {
     // history-preserving import of forcedotcom/salesforcedx-apex: the upstream
-    // published library predates the monorepo's stricter style rules. Relax the
-    // upstream-style rules for its src (test/** is already relaxed above) to avoid
-    // restyling imported, history-tracked code. Matches the legacy-package blocks.
+    // published library predates the monorepo's stricter style rules. Single
+    // exemption block for the whole package src (test/** relaxed separately above).
+    // Surface shrinks as later refactors (methods->functions, Effect) land.
     files: ['packages/salesforcedx-apex/**/*.ts'],
     rules: {
+      // upstream style: avoid restyling imported, history-tracked code
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',
-      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
       '@typescript-eslint/no-shadow': 'off',
       'no-param-reassign': 'off',
       'no-restricted-imports': 'off',
       'unicorn/no-array-sort': 'off',
-      'unicorn/prefer-single-call': 'off'
+      'unicorn/prefer-single-call': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      'header/header': 'off',
+      'barrel-files/avoid-barrel-files': 'off',
+      'prefer-arrow/prefer-arrow-functions': 'off',
+      // unfixed type-safety debt: to be resolved by later refactors, not upstream style
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/no-restricted-types': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-misused-promises': 'off'
     }
   },
   {
     // Override header rules
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**/*.ts',
-      'packages/salesforcedx-visualforce-language-server/**/*.ts',
-      // history-preserving import; do not rewrite upstream Copyright (c) 2020 headers
-      'packages/salesforcedx-apex/**/*.ts'
+      'packages/salesforcedx-visualforce-language-server/**/*.ts'
     ],
     rules: {
       'header/header': 'off'
@@ -732,16 +795,29 @@ export default [
     }
   },
   {
+    // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
+    files: ['packages/effect-ext-utils/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // class-methods-use-this for packages not yet using Effect
+    // (apex-oas omitted: covered by the Effect-services block above, which sets both rules)
     files: [
-      'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
       'packages/soql-common/**/*.ts',
       'packages/soql-model/**/*.ts'
     ],
     rules: {
-      'class-methods-use-this': 'error'
+      'class-methods-use-this': 'error',
+      'local/no-explicit-effect-return-type': 'error',
+      'local/no-effect-service-accessor-calls': 'error',
+      'local/no-successive-annotate-current-span': 'error'
     }
   },
   {
@@ -769,13 +845,34 @@ export default [
     files: [
       'packages/salesforcedx-apex-debugger/**/*.ts',
       'packages/salesforcedx-apex-replay-debugger/**/*.ts',
-      'packages/salesforcedx-apex/**/*.ts',
-      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-org/**/*.ts',
       'packages/salesforcedx-vscode-core/**/*.ts'
     ],
     rules: {
       'barrel-files/avoid-barrel-files': 'off'
+    }
+  },
+  {
+    // no-explicit-any (W-23354483), consistent-type-definitions type (W-23354484),
+    // and prefer-property-signatures (W-23354485) enforced for apex-testing src.
+    // Scoped to src/** so the later test-files block keeps them off for tests.
+    files: ['packages/salesforcedx-vscode-apex-testing/src/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      'functional/no-let': 'error',
+      'functional/no-throw-statements': 'error',
+      'functional/no-try-statements': 'error',
+      'functional/prefer-property-signatures': 'error',
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
+      'prefer-arrow/prefer-arrow-functions': [
+        'error',
+        {
+          disallowPrototype: true,
+          singleReturnOnly: false,
+          classPropertiesAllowed: false
+        }
+      ]
     }
   },
   {

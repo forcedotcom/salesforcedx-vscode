@@ -16,8 +16,8 @@ ALWAYS operate inside the parent's current working directory. NEVER edit absolut
 
 ## Scope
 
-- **In scope**: .claude/skills/, .claude/agents/, .cursor/rules/, docs/, contributing/, packages/\*\*/README.md
-- **Excluded**: **/\*.plan.md, **/plan.md
+- **In scope**: .claude/skills/, .claude/agents/, .cursor/rules/, docs/, contributing/, packages/\*\*/README.md; **comments in changed src** (\*.ts/\*.tsx) per Responsibility 1 (`**/*.ts` trigger also covers code comments). Only touch comments on/adjacent to changed lines; never edit src logic.
+- **Excluded**: .claude/plans/\*\* (plans are named `W-*.md`, not just `*.plan.md` — never rewrite them), **/\*.plan.md, **/plan.md
 
 ## Responsibilities (priority order)
 
@@ -25,7 +25,7 @@ ALWAYS operate inside the parent's current working directory. NEVER edit absolut
    - Command IDs, API changes, new features, removed exports
    - package.json scripts/commands, esbuild config, scripts/
    - .vscodeignore, .vscode (launch/tasks/extensions), tsconfig, .esbuild-web-extra-settings.json, .github workflows
-   - **Comments**: check lines immediately above code changes; ensure they match new logic. Don't add new comments, just correct existing. Comments explain what code does, not what it used to do or what changed — delete "replaces the former X", "previously Y", "no longer Z" framing. Keep terse; cut comments that restate obvious code (Effect/types self-evident).
+   - **Comments**: check lines immediately above code changes; ensure they match new logic. Don't add new comments, just correct existing. Comments explain what code does, not what it used to do or what changed — delete "replaces the former X", "previously Y", "no longer Z" framing. Keep terse; cut comments that restate obvious code (Effect/types self-evident). Cut per-item narration on a list/merge/composition (e.g. one line per arg of `Layer.mergeAll`/`Effect.all`) that just restates what each referenced symbol does at its own definition — a what-it-does explanation belongs in a JSDoc (`/** */`) block on the symbol's own definition so editor hover surfaces it, not as a line comment at every use site.
 2. **Broken links** in docs
 3. **Duplication** — replace with cross-links
 

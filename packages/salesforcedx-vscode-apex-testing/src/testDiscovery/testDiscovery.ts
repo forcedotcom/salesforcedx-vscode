@@ -5,16 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import type * as Either from 'effect/Either';
+import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import { nls } from '../messages';
+import {
+  type DiscoverTestsOptions,
+  type TestDiscoveryResult,
+  type ToolingTestsPage,
+  ToolingTestClass
+} from './schemas';
+
+export class TestDiscoveryFetchError extends Schema.TaggedError<TestDiscoveryFetchError>()('TestDiscoveryFetchError', {
+  message: Schema.String
+}) {}
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
  * Docs: https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_discovery.htm
  */
 const minApiVersion = 65.0;
+const testLevelMinApiVersion = 68.0;
 
 export const discoverTests = (options: DiscoverTestsOptions = {}) =>
   Effect.gen(function* () {
@@ -23,59 +36,88 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
 
     const connectionApiVersion = parseFloat(connection.getApiVersion());
     // Ensure we use an API version that supports the Test Discovery API (>= 65.0)
-    const apiVersion = (
-      Number.isFinite(connectionApiVersion) ? Math.max(connectionApiVersion, minApiVersion) : minApiVersion
-    ).toFixed(1);
+    const effectiveApiVersion = Number.isFinite(connectionApiVersion)
+      ? Math.max(connectionApiVersion, minApiVersion)
+      : minApiVersion;
+    const apiVersion = effectiveApiVersion.toFixed(1);
     const basePath = `/services/data/v${apiVersion}/tooling/tests`;
     const qp = new URLSearchParams();
-    // Always show all methods (both consumers use this)
-    qp.set('showAllMethods', 'true');
+    // v68.0+ rejects `showAllMethods`; `testLevel=RunAllTestsInOrg` is Core's replacement default that keeps private-class visibility.
+    if (effectiveApiVersion >= testLevelMinApiVersion) {
+      qp.set('testLevel', 'RunAllTestsInOrg');
+    } else {
+      qp.set('showAllMethods', 'true');
+    }
     if (options?.namespacePrefix) {
       qp.set('namespacePrefix', options.namespacePrefix);
     }
     const baseUrl = qp.toString() ? `${basePath}?${qp.toString()}` : basePath;
-
-    const classes: ToolingTestClass[] = [];
-    let nextUrl: string | undefined = baseUrl;
-    let partialResult = false;
 
     // Request headers to fix pagination URL format
     const requestHeaders = {
       'X-Chatter-Entity-Encoding': 'false'
     };
 
-    while (nextUrl) {
-      const urlToFetch = nextUrl; // Capture for TypeScript narrowing
+    // Paginate through the Test Discovery API, accumulating decoded classes. A 431 (header too large)
+    // stops early with partialResult=true (mirrored by a single malformed record degrading to partial).
+    const initialState: { classes: ToolingTestClass[]; nextUrl: string | undefined; partialResult: boolean } = {
+      classes: [],
+      nextUrl: baseUrl,
+      partialResult: false
+    };
+    const { classes, partialResult } = yield* Effect.iterate(initialState, {
+      while: (state): state is typeof state & { nextUrl: string } => state.nextUrl !== undefined,
+      body: state =>
+        Effect.gen(function* () {
+          const urlToFetch = state.nextUrl;
 
-      const pageResult: Either.Either<ToolingTestsPage, Error> = yield* Effect.either(
-        Effect.tryPromise({
-          try: (): Promise<ToolingTestsPage> =>
-            connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
-          catch: (error): Error =>
-            new Error(`Failed to fetch test discovery page: ${error instanceof Error ? error.message : String(error)}`)
+          const pageResult = yield* Effect.either(
+            Effect.tryPromise({
+              try: (): Promise<ToolingTestsPage> =>
+                connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
+              catch: (error): TestDiscoveryFetchError =>
+                new TestDiscoveryFetchError({
+                  message: nls.localize(
+                    'apex_test_discovery_fetch_failed_message',
+                    isError(error) ? error.message : String(error)
+                  )
+                })
+            })
+          );
+
+          if (pageResult._tag === 'Left') {
+            const error = pageResult.left;
+            const errorMessage = error.message;
+            // Check if it's a 431 error (Request Header Fields Too Large)
+            if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
+              return { ...state, nextUrl: undefined, partialResult: true };
+            }
+            // For other errors, rethrow
+            return yield* error;
+          }
+
+          const page: ToolingTestsPage = pageResult.right;
+          if (!page?.apexTestClasses?.length) {
+            return { ...state, nextUrl: page?.nextRecordsUrl ?? undefined };
+          }
+          // Decode the wire `""` sentinel to Option.none() at the parse boundary. Decode per-record so a
+          // single malformed record degrades to a partial result (mirroring the 431 path) instead of
+          // aborting the entire discovery.
+          const decodeRecord = Schema.decodeUnknown(ToolingTestClass);
+          const results = yield* Effect.forEach(page.apexTestClasses, record => Effect.either(decodeRecord(record)));
+          const failures = Array.getLefts(results);
+          if (failures.length > 0) {
+            yield* Effect.logWarning(
+              `Skipped ${failures.length} malformed test discovery record(s): ${failures.map(e => e.message).join('; ')}`
+            );
+          }
+          return {
+            ...state,
+            classes: [...state.classes, ...Array.getRights(results)],
+            nextUrl: page?.nextRecordsUrl ?? undefined
+          };
         })
-      );
-
-      if (pageResult._tag === 'Left') {
-        const error = pageResult.left;
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        // Check if it's a 431 error (Request Header Fields Too Large)
-        if (errorMessage.includes('431') || errorMessage.includes('Request Header Fields Too Large')) {
-          partialResult = true;
-          break;
-        }
-        // For other errors, rethrow
-        return yield* Effect.fail(error);
-      }
-
-      if (pageResult._tag === 'Right') {
-        const page: ToolingTestsPage = pageResult.right;
-        if (page?.apexTestClasses?.length) {
-          classes.push(...page.apexTestClasses);
-        }
-        nextUrl = page?.nextRecordsUrl ?? undefined;
-      }
-    }
+    });
 
     if (partialResult) {
       // Log warning about partial results

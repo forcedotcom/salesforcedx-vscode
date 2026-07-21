@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { createMinimalOrg } from '../orgs/minimalScratchOrgSetup';
-import { createNonTrackingOrg } from '../orgs/nonTrackingScratchOrgSetup';
+import { createLogoutTestOrg, createNonTrackingOrg } from '../orgs/nonTrackingScratchOrgSetup';
 import { executeCommandWithCommandPalette, verifyCommandExists } from '../pages/commands';
 import {
   focusOnFilesExplorer,
@@ -462,6 +462,17 @@ export const setupMinimalOrgAndAuth = async (page: Page, checkWelcomeTabs = true
  */
 export const setupNonTrackingOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
   const [createResult] = await Promise.all([createNonTrackingOrg(), waitForVSCodeWorkbench(page)]);
+  await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
+};
+
+/**
+ * Like `setupNonTrackingOrgAndAuth` but uses the dedicated `LOGOUT_TEST_ORG_ALIAS` org. Use for tests
+ * that LOG OUT of / delete their default org so they destroy a dedicated org (re-created on the next run)
+ * instead of the shared `nonTrackingTestOrg`. The fixture must set `orgAlias: LOGOUT_TEST_ORG_ALIAS` so
+ * this org is the workspace default and deploy commands enable.
+ */
+export const setupLogoutTestOrgAndAuth = async (page: Page, checkWelcomeTabs = true): Promise<void> => {
+  const [createResult] = await Promise.all([createLogoutTestOrg(), waitForVSCodeWorkbench(page)]);
   await finishOrgAndAuthSetup(page, createResult, checkWelcomeTabs);
 };
 

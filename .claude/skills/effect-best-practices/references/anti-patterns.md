@@ -2,30 +2,15 @@
 
 These patterns are **never acceptable** in Effect-TS code. Each is listed with rationale and the correct alternative.
 
-## FORBIDDEN: Effect.runSync/runPromise Inside Services
+## FORBIDDEN: Effect.run* Inside Effect Context
 
-```typescript
-// FORBIDDEN
-export class UserService extends Effect.Service<UserService>()("UserService", {
-    effect: Effect.gen(function* () {
-        const findById = (id: UserId) => {
-            // Running effects synchronously breaks composition
-            const user = Effect.runSync(repo.findById(id))
-            return user
-        }
-        return { findById }
-    }),
-}) {}
-```
+Enforced by Effect LS rule `runEffectInsideEffect` (in `config/effect-diagnostics.json` `enforcedRules`; build fails on any hit). Breaks composition, loses error handling/tracing.
 
-**Why:** Breaks Effect's composition model, loses error handling, can't be tested, loses tracing.
+Direct-in-gen: `yield*` instead of `Effect.run*`. In a vscode callback: capture `const runtime = yield* Effect.runtime()` in the enclosing gen, then `Runtime.run*(runtime)(...)` — keep the original method (`runSync`/`runPromise`/`runFork`), never downgrade to fire-and-forget. Pattern ref: `packages/salesforcedx-vscode-services/src/core/lifecycleWarningListener.ts`.
 
-**Correct:**
-```typescript
-const findById = Effect.fn("UserService.findById")(function* (id: UserId) {
-    return yield* repo.findById(id)
-})
-```
+## FORBIDDEN: Global Error in Effect Failure Channel / Catch Handler
+
+Enforced by Effect LS rules `globalErrorInEffectFailure` + `globalErrorInEffectCatch` (in `config/effect-diagnostics.json` `enforcedRules`; build fails on any hit). A `new Error(...)` in an E-channel position — a failure channel or catch callback whose result flows to `E` (`Effect.fail`, `Effect.async<A, Error>`, `catchAll`, `Stream.fromAsyncIterable` error map), caught by `globalErrorInEffectFailure` — or in a `try*` catch handler (`tryPromise`/`try`/`tryMap`/`tryMapPromise` `catch`), caught by `globalErrorInEffectCatch`, can't be discriminated by `catchTag`. Use a `Schema.TaggedError` with a `message` field (colocate module-local; export only when it crosses a package `.d.ts` boundary — see `ts4023-effect-errors`).
 
 ## FORBIDDEN: throw Inside Effect.gen
 
@@ -136,7 +121,7 @@ export class UserService extends Effect.Service<UserService>()("UserService", {
 **Correct:**
 ```typescript
 const findById = Effect.fn("UserService.findById")(
-    function* (id: UserId): Effect.Effect<User, UserNotFoundError> {
+    function* (id: UserId) {
         // ...
     }
 )

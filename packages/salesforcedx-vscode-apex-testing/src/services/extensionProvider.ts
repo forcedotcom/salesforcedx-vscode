@@ -9,35 +9,35 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { CodeCoverageService } from '../codecoverage/codeCoverageService';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
+import { PackageResolutionService } from '../testDiscovery/packageResolution';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
+import { ApexTestExecutionService } from '../views/apexTestExecutionService';
+import { ApexTestTreeService } from '../views/apexTestTreeService';
 
 /** Layer of apex-testing-specific services merged on top of the shared all-services layer. */
-// ApexTestDiscoveryService.Default carries ApexTestingDiscoveryFsProviderLive via its dependencies.
-// ApexTestRunCacheService.Default tracks last executed test class/method for rerun commands.
-// CodeCoverageService.Default owns coverage Ref state + the coverage-data pipeline (colorizer).
 const ApexTestingServicesLayer = Layer.mergeAll(
   ApexTestDiscoveryService.Default,
   ApexTestRunCacheService.Default,
-  CodeCoverageService.Default
+  CodeCoverageService.Default,
+  PackageResolutionService.Default,
+  ApexTestTreeService.Default,
+  ApexTestExecutionService.Default
 );
 
 /**
  * Layer that provides all services from the SalesforceVSCodeServicesApi plus apex-testing-specific
  * services. Built via the shared buildAllServicesLayer(context, fallbackDisplayName) at activation,
- * then merged with the apex-testing services.
+ * then merged with the apex-testing services. Type derived from the `Layer.merge` to keep the union in sync.
  */
-type AllServicesLayerType = Layer.Layer<
-  | Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>
-  | ApexTestDiscoveryService
-  | ApexTestRunCacheService
-  | CodeCoverageService,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
->;
+const mergeAllServices = (layer: ReturnType<typeof buildAllServicesLayer>) =>
+  Layer.merge(layer, ApexTestingServicesLayer);
+type AllServicesLayerType = ReturnType<typeof mergeAllServices>;
 
+// eslint-disable-next-line functional/no-let -- module-level mutable set once via setAllServicesLayer at activation
 let AllServicesLayer: AllServicesLayerType;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
-  AllServicesLayer = Layer.merge(layer, ApexTestingServicesLayer);
+  AllServicesLayer = mergeAllServices(layer);
 };
 
 /**
@@ -49,5 +49,6 @@ type ApexTestingRuntime = ManagedRuntime.ManagedRuntime<
   Layer.Layer.Success<AllServicesLayerType>,
   Layer.Layer.Error<AllServicesLayerType>
 >;
+// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getApexTestingRuntime
 let _apexTestingRuntime: ApexTestingRuntime | undefined;
 export const getApexTestingRuntime = () => (_apexTestingRuntime ??= ManagedRuntime.make(AllServicesLayer));

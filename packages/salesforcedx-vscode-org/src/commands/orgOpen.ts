@@ -14,6 +14,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
+import { decodeTaggedCliResponse } from '../util/cliJson';
 
 /**
  * Raised when `sf org open --url-only --json` stdout cannot be decoded into either result shape.
@@ -23,8 +24,8 @@ export class OrgOpenParseError extends Schema.TaggedError<OrgOpenParseError>()('
   message: Schema.String
 }) {}
 
-const OrgOpenSuccess = Schema.Struct({
-  _tag: Schema.Literal('OrgOpenSuccess'),
+const OrgOpenSuccess = Schema.TaggedStruct('OrgOpenSuccess', {
+  status: Schema.Literal(0),
   result: Schema.Struct({
     orgId: Schema.String,
     url: Schema.String,
@@ -32,10 +33,9 @@ const OrgOpenSuccess = Schema.Struct({
   })
 });
 
-/** sf prints `{ status: 1, message }` on failure; preserve the old channel-message behavior. */
-const OrgOpenFailure = Schema.Struct({
-  _tag: Schema.Literal('OrgOpenFailure'),
-  status: Schema.Literal(1),
+/** sf failure shape: `{ status: <non-zero>, message }`; surface the message to the channel. */
+const OrgOpenFailure = Schema.TaggedStruct('OrgOpenFailure', {
+  status: Schema.Number,
   message: Schema.String
 });
 
@@ -45,24 +45,14 @@ type OrgOpenSuccess = Schema.Schema.Type<typeof OrgOpenSuccess>;
 type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
 
 /**
- * Decodes the sf CLI JSON from stdout. The CLI emits `{ result }` (success) or `{ status, message }`
- * (failure) — neither carries a `_tag`. `RawObject` parses stdout to a plain object so the `'result' in raw`
- * test can inject the discriminant before the tagged-union decode; all downstream dispatch is on `_tag` via
- * Match. Malformed/unexpected shape maps to a tagged error rather than escaping as a defect.
+ * Decodes the sf CLI JSON from stdout. The CLI emits `{ status: 0, result }` (success) or
+ * `{ status: <non-zero>, message }` (failure) — neither carries a `_tag`. The shared helper injects the
+ * discriminant from `status` (0 = success) before the tagged-union decode; downstream dispatch is on `_tag`
+ * via Match. Malformed/unexpected shape maps to a tagged error rather than escaping as a defect.
  */
-const RawObject = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }));
-/**
- * The sf CLI can prepend non-JSON lines to stdout even with `--json` (e.g. the scratch-org expiration warning,
- * seen on macOS CI). Slice from the first `{` to the last `}` to isolate the JSON payload before decoding
- * (parity with the old OrgOpenContainerResultParser). No braces → slice yields '' → OrgOpenParseError, not a defect.
- */
-const sanitizeJson = (stdout: string) => stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
-const decodeOrgOpenResponse = (stdout: string) =>
-  Schema.decodeUnknown(RawObject)(sanitizeJson(stdout)).pipe(
-    Effect.map(raw => ({ ...raw, _tag: 'result' in raw ? 'OrgOpenSuccess' : 'OrgOpenFailure' })),
-    Effect.flatMap(tagged => Schema.decodeUnknown(OrgOpenResponse)(tagged)),
-    Effect.mapError(error => new OrgOpenParseError({ message: `Failed to parse org open response: ${error.message}` }))
-  );
+const decodeOrgOpenResponse = decodeTaggedCliResponse(OrgOpenResponse, raw =>
+  raw.status === 0 ? 'OrgOpenSuccess' : 'OrgOpenFailure'
+)(() => new OrgOpenParseError({ message: 'Failed to parse org open response' }));
 
 /**
  * Effect command for `sf.org.open`: open the default org in the browser.
@@ -107,7 +97,7 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
     yield* channel.showChannel;
   });
 
-  // failure branch: sf prints `{ status: 1, message }` — surface the message to the channel
+  // failure branch: sf prints `{ status: <non-zero>, message }` — surface the message to the channel
   const handleOrgOpenFailure = Effect.fn('orgOpenCommand.handleFailure')(function* ({ message }: OrgOpenFailure) {
     yield* channel.appendToChannel(message);
     yield* channel.showChannel;

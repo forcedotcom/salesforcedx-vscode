@@ -37,7 +37,7 @@ const isDevOrTestMode = (): boolean =>
 const isLocalDivertMode = (): boolean =>
   process.env.ESBUILD_PLATFORM === 'web' ? process.env.ESBUILD_WEB_LOCAL === '1' : isDevOrTestMode();
 
-export const isTelemetryExtensionConfigurationEnabled = (): boolean => {
+const isTelemetryExtensionConfigurationEnabled = (): boolean => {
   // Node dev/test: always emit; everything is diverted to a local endpoint, never Azure.
   if (isLocalDivertMode()) {
     return true;
@@ -61,3 +61,8 @@ export const isTelemetryExtensionConfigurationEnabled = (): boolean => {
     ? workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.allowDevMode', false)
     : true;
 };
+
+/** Per-export telemetry gate; checked fresh each batch → honors mid-session toggle.
+    o11yEndpoint localhost bypasses the setting (dev sink). */
+export const isProductionTelemetryExportEnabled = (o11yEndpoint?: string): boolean =>
+  Boolean(o11yEndpoint?.includes('localhost')) || isTelemetryExtensionConfigurationEnabled();

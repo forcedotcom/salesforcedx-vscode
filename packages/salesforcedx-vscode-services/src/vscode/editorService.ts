@@ -7,6 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
+import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -19,11 +20,16 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
   accessors: true,
   scoped: Effect.gen(function* () {
     const editorPubSub = yield* PubSub.sliding<vscode.TextEditor | undefined>(10_000);
+    const runtime = yield* Effect.runtime();
     const disposable = vscode.window.onDidChangeActiveTextEditor(editor => {
-      Effect.runSync(PubSub.publish(editorPubSub, editor));
+      Runtime.runSync(runtime)(PubSub.publish(editorPubSub, editor));
     });
-    Effect.runSync(PubSub.publish(editorPubSub, vscode.window.activeTextEditor));
-    yield* Effect.addFinalizer(() => Effect.sync(() => disposable?.dispose()));
+    yield* PubSub.publish(editorPubSub, vscode.window.activeTextEditor);
+    yield* Effect.addFinalizer(() =>
+      Effect.sync(() => {
+        disposable?.dispose();
+      })
+    );
 
     /** Get URI from active editor, fails with NoActiveEditorError if none */
     const getActiveEditorUri = Effect.fn('EditorService.getActiveEditorUri')(function* () {

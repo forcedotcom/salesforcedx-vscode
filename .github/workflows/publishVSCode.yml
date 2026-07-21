@@ -78,6 +78,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - name: downloadExtensionsFromRelease
         run: |
           mkdir ./extensions
@@ -90,7 +91,6 @@ jobs:
           NAMES=$(node scripts/parse-extension-names.js ./extensions)
           echo "names=$NAMES" >> "$GITHUB_OUTPUT"
           echo "Published extensions: $NAMES"
-      - uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
       - name: Validate VSIX OPC Part URIs
         run: node scripts/validate-vsix-opc.mjs ./extensions
       - uses: salesforcecli/github-workflows/.github/actions/retry@main

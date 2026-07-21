@@ -61,7 +61,6 @@ const userSettings = {
 // them up.
 const baseTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-core'],
   disableOtherExtensions: false,
   userSettings
 });
@@ -72,7 +71,6 @@ const baseTest = createDesktopTest({
 // the default `--disable-extensions` would block the marketplace ext from loading.
 const snippetBaseTest = createDesktopTest({
   fixturesDir: __dirname,
-  additionalExtensionDirs: ['salesforcedx-vscode-core'],
   marketplaceExtensions: ['salesforce.apex-language-server-extension'],
   disableOtherExtensions: false,
   userSettings

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.3.0",
+  "version": "67.6.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,17 +28,17 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^8.31.0",
+    "@salesforce/core": "^8.32.2",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/source-deploy-retrieve": "^12.32.5",
-    "@salesforce/templates": "^66.10.3",
+    "@salesforce/source-deploy-retrieve": "^12.37.0",
+    "@salesforce/templates": "^66.11.1",
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
-    "applicationinsights": "1.0.7",
+    "applicationinsights": "1.8.10",
     "effect": "^3.21.2",
     "fast-xml-parser": "^5.7.1",
     "glob": "^11.1.0",
@@ -67,7 +67,7 @@
     "packageUpdates": {
       "main": "dist/src/index.js",
       "dependencies": {
-        "applicationinsights": "1.0.7",
+        "applicationinsights": "1.8.10",
         "@salesforce/o11y-reporter": "^1.8.5"
       },
       "devDependencies": {}

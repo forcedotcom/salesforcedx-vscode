@@ -8,6 +8,8 @@
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import {
@@ -28,7 +30,11 @@ import {
   type WorkspaceDeleteFileResult
 } from './lspCustomRequests';
 
-const errorMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+class InvalidStatResultError extends Schema.TaggedError<InvalidStatResultError>()('InvalidStatResultError', {
+  message: Schema.String
+}) {}
+
+const errorMessage = (e: unknown): string => (isError(e) ? e.message : String(e));
 
 const isVscodeFileStat = (x: unknown): x is vscode.FileStat =>
   typeof x === 'object' && x !== null && 'type' in x && 'ctime' in x && 'mtime' in x && 'size' in x;
@@ -88,7 +94,7 @@ export const registerWorkspaceReadFileHandler = (
     yield* logTo(log, `[stat] request uri=${uri.toString()}`);
     const fs = yield* getFs;
     const vstat = yield* fs.stat(uri.toString());
-    if (!isVscodeFileStat(vstat)) return yield* Effect.fail(new Error('Invalid stat result'));
+    if (!isVscodeFileStat(vstat)) return yield* new InvalidStatResultError({ message: 'Invalid stat result' });
     const stat = vscodeStatToFileStat(vstat);
     yield* logTo(log, `[stat] success uri=${uri.toString()} type=${stat.type} size=${stat.size}`);
     return { stat };
@@ -174,7 +180,7 @@ export const registerWorkspaceReadFileHandler = (
       Effect.catchAll(e =>
         Effect.sync(() => {
           const message = errorMessage(e);
-          const stack = e instanceof Error ? e.stack : undefined;
+          const stack = isError(e) ? e.stack : undefined;
           log.appendLine(`[findFiles] error: ${message}`);
           if (stack) log.appendLine(`[findFiles] stack: ${stack}`);
           return { uris: undefined };

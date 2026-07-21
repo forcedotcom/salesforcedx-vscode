@@ -6,6 +6,10 @@ export const nodeConfig = {
   bundle: true,
   format: 'cjs',
   platform: 'node',
+  // Resolve effect's ESM build so unused submodules (e.g. fast-check via Schema) tree-shake out.
+  // Global on purpose: alters resolution for EVERY dep, not just effect. Validated across all node
+  // consumers by a full vscode:bundle + desktop e2e. Do not re-scope to per-package opt-in or delete.
+  conditions: ['import', 'module', 'default'],
   target: 'es2023',
   keepNames: true,
   minify,

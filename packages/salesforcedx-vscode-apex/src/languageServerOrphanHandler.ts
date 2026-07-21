@@ -12,6 +12,7 @@ import {
   type Row
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -112,7 +113,7 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
     catch: e =>
       new ProcessTerminationError({
         pid: processInfo.pid,
-        message: e instanceof Error ? e.message : 'unknown'
+        message: isError(e) ? e.message : 'unknown'
       })
   }).pipe(
     Effect.retry(Schedule.exponential('2 seconds').pipe(Schedule.intersect(Schedule.recurs(2)))),

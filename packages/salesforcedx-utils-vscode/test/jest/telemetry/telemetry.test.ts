@@ -7,9 +7,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
-import { workspace } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';
+import { AppInsights } from '../../../src/telemetry/reporters/appInsights';
+import { LogStream } from '../../../src/telemetry/reporters/logStream';
+import { O11yReporter } from '../../../src/telemetry/reporters/o11yReporter';
+import { TelemetryFile } from '../../../src/telemetry/reporters/telemetryFile';
 
 describe('Telemetry', () => {
   describe('Telemetry Service Provider', () => {
@@ -351,6 +355,43 @@ describe('Telemetry', () => {
             customMetric: 42
           })
         );
+      });
+    });
+
+    describe('updateReporters caches org identity', () => {
+      const orgIdentity = {
+        orgId: '00Dxx',
+        orgShape: 'Scratch' as const,
+        devHubId: '00Dhub',
+        orgEdition: 'Developer Edition'
+      };
+      // Object.create(prototype) so `instanceof` matches without running heavy constructors.
+      const appInsights = Object.assign(Object.create(AppInsights.prototype), { userId: '', webUserId: '' });
+      const o11y = Object.assign(Object.create(O11yReporter.prototype), { userId: '', webUserId: '' });
+      const telemetryFile = Object.create(TelemetryFile.prototype);
+      const logStream = Object.create(LogStream.prototype);
+      const extensionContext = {
+        extension: { packageJSON: { name: 'salesforcedx-vscode-core', version: '1.0.0' } }
+      } as unknown as ExtensionContext;
+
+      beforeEach(() => {
+        (instance as any).reporters = [appInsights, o11y, telemetryFile, logStream];
+        (instance as any).extensionContext = extensionContext;
+        jest.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
+        jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
+          cliId: 'cli',
+          webUserId: 'sha',
+          ...orgIdentity
+        });
+      });
+
+      it('sets orgIdentity on every reporter class', async () => {
+        await instance.updateReporters(extensionContext);
+
+        expect(appInsights.orgIdentity).toEqual(orgIdentity);
+        expect(o11y.orgIdentity).toEqual(orgIdentity);
+        expect(telemetryFile.orgIdentity).toEqual(orgIdentity);
+        expect(logStream.orgIdentity).toEqual(orgIdentity);
       });
     });
 

@@ -8,17 +8,16 @@
 import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { window } from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import * as settings from '../settings';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
-import { runApexTests } from './apexTestRunUtils';
+import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
 
 /** Prompt the user to pick a test target (suite, class, or all). Fails with UserCancellationError on dismiss. */
 const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
@@ -46,7 +45,7 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
               .map(
                 (cls): ApexTestQuickPickItem => ({
                   label: cls.name,
-                  description: cls.namespacePrefix ?? '',
+                  description: Option.getOrUndefined(cls.namespacePrefix),
                   type: 'Class' as const,
                   fullClassName: getFullClassName(cls)
                 })
@@ -96,21 +95,21 @@ export const apexTestRun = Effect.fn('apexTestRun')(function* () {
  * UserCancellationError rather than resolving to undefined.
  * Used by the run-tests command palette and the suite-run command. */
 export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const channelService = yield* api.services.ChannelService;
-  const executionName = nls.localize('apex_test_run_text');
-  // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
-  const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
+  const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
-  const { payload, outputDir } = yield* Effect.all(
-    {
-      payload: api.services.ConnectionService.getConnection().pipe(
-        Effect.flatMap(connection => Effect.promise(() => buildTestPayload(new TestService(connection), selection)))
-      ),
-      outputDir: getTestResultsFolder()
-    },
-    { concurrency: 'unbounded' }
+  if (selection.type === 'Suite') {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const connection = yield* api.services.ConnectionService.getConnection();
+    const members = yield* Effect.tryPromise(() => new TestService(connection).getTestsInSuite(selection.label));
+    if (members.length === 0) {
+      void window.showErrorMessage(nls.localize('apex_test_suite_empty_message_notification', selection.label));
+      return yield* new api.services.UserCancellationError();
+    }
+  }
+
+  const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
+    (testService, cc) => buildTestPayload(testService, selection, cc),
+    getTestResultsFolder()
   );
 
   if (selection.type === 'Class' && selection.fullClassName) {
@@ -120,28 +119,29 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
   return yield* runApexTests({
     payload,
     outputDir,
-    codeCoverage: settings.retrieveTestCodeCoverage(),
-    concise: settings.retrieveTestRunConcise(),
+    codeCoverage,
+    concise,
     telemetryTrigger: 'quickPick'
   }).pipe(
     Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
     promptService.withCancellableProgress(executionName),
     // Terminal notify on the success value (undefined = soft failure: timeout/no summary).
     // Cancellation stays on the failure channel, so this tap never fires a bogus toast.
+    Effect.tap(() => channelService.showChannel),
     Effect.tap(result =>
-      Effect.sync(() => {
-        OUTPUT_CHANNEL.show();
+      Effect.sync(() =>
         (result === undefined ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
           executionName
-        );
-      })
+        )
+      )
     )
   );
 });
 
 const buildTestPayload = async (
   testService: TestService,
-  data: ApexTestQuickPickItem
+  data: ApexTestQuickPickItem,
+  codeCoverage: boolean
 ): Promise<AsyncTestConfiguration> => {
   const testLevel = TestLevel.RunSpecifiedTests;
   switch (data.type) {
@@ -152,17 +152,10 @@ const buildTestPayload = async (
         data.fullClassName,
         undefined,
         undefined,
-        !settings.retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
+        !codeCoverage // the setting enables code coverage, so we need to pass false to disable it
       );
     case 'Suite':
-      return await testService.buildAsyncPayload(
-        testLevel,
-        undefined,
-        undefined,
-        data.label,
-        undefined,
-        !settings.retrieveTestCodeCoverage()
-      );
+      return await testService.buildAsyncPayload(testLevel, undefined, undefined, data.label, undefined, !codeCoverage);
     case 'AllLocal':
       return { testLevel: TestLevel.RunLocalTests };
     case 'All':

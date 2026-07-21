@@ -41,6 +41,11 @@ const isAbsent = (error: unknown): boolean =>
 /** Internal sentinel: the target entry is absent, so a delete is a no-op (recovered to Effect.void). */
 class AbsentEntry extends Schema.TaggedError<AbsentEntry>()('AbsentEntry', {}) {}
 
+/**
+ * Persists discovered apex test classes to the per-org discovery virtual filesystem and prunes it:
+ * saveDiscoveredClasses writes class files under the org dir, clearOrg removes one org's dir, and
+ * pruneForeignOrgClasses drops every org dir except the current one.
+ */
 export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoveryService>()('ApexTestDiscoveryService', {
   accessors: true,
   dependencies: [ApexTestingDiscoveryFsProviderLive],
@@ -66,6 +71,11 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
     // feature may persist under it) intact.
     const clearOrg = Effect.fn('ApexTestDiscoveryService.clearOrg')(function* (orgKey: string) {
       yield* deleteDir(getOrgClassesDirUri(orgKey), orgKey);
+    });
+
+    // On logout there is no current org to scope to, so drop the entire orgs root. Absent-safe.
+    const clearAll = Effect.fn('ApexTestDiscoveryService.clearAll')(function* () {
+      yield* deleteDir(getOrgsRootUri(), 'all');
     });
 
     // On a default-org change, drop every OTHER org's discovered classes so the in-memory VFS holds only
@@ -107,6 +117,6 @@ export class ApexTestDiscoveryService extends Effect.Service<ApexTestDiscoverySe
       yield* Effect.log('persisted discovered classes', { orgKey, count: classes.length });
     });
 
-    return { saveDiscoveredClasses, clearOrg, pruneForeignOrgClasses };
+    return { saveDiscoveredClasses, clearOrg, clearAll, pruneForeignOrgClasses };
   })
 }) {}

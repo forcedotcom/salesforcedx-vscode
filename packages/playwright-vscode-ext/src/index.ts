@@ -47,6 +47,7 @@ export {
   goToLineCol,
   setupMinimalOrgAndAuth,
   setupNonTrackingOrgAndAuth,
+  setupLogoutTestOrgAndAuth,
   createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
@@ -64,6 +65,7 @@ export {
   NOTIFICATION_LIST_ITEM,
   SETTINGS_SEARCH_INPUT,
   CONTEXT_MENU,
+  EXPLORER_INLINE_INPUT,
   CODELENS_ITEM
 } from './utils/locators';
 
@@ -71,7 +73,14 @@ export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSI
 
 export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
-export { createNonTrackingOrg, NON_TRACKING_ORG_ALIAS, HUB_ORG_ALIAS } from './orgs/nonTrackingScratchOrgSetup';
+export { createThrowawayOrg, THROWAWAY_ORG_ALIAS } from './orgs/logoutThrowawayOrgSetup';
+export {
+  createNonTrackingOrg,
+  createLogoutTestOrg,
+  NON_TRACKING_ORG_ALIAS,
+  LOGOUT_TEST_ORG_ALIAS,
+  HUB_ORG_ALIAS
+} from './orgs/nonTrackingScratchOrgSetup';
 export { getTargetDevHub } from './orgs/devHub';
 export { execAsync, env } from './orgs/shared';
 

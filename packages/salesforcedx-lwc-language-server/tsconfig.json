@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "outDir": "./out",
+    "rootDir": ".",
     "esModuleInterop": true, // is needed because the code uses a default import from a CommonJS comment-parser module
     "strictNullChecks": true,
     "skipLibCheck": true
