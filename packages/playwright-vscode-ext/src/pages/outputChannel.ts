@@ -230,6 +230,25 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
   }).toPass({ timeout });
 };
 
+/** Counts how many output-channel dropdown options match a name (by text or value). Used to assert no duplicate channels. */
+export const countOutputChannelOptions = async (page: Page, channelName: string): Promise<number> => {
+  await ensureOutputPanelOpen(page);
+  const panel = outputPanel(page);
+  const dropdown = panel.locator('select.monaco-select-box');
+  await dropdown.waitFor({ state: 'attached', timeout: 5000 });
+  const options = dropdown.locator('option');
+  const optionCount = await options.count();
+  const matches = await Promise.all(
+    Array.from({ length: optionCount }, async (_, i) => {
+      const option = options.nth(i);
+      const text = await option.textContent();
+      const value = await option.getAttribute('value');
+      return text?.trim() === channelName || value === channelName;
+    })
+  );
+  return matches.filter(Boolean).length;
+};
+
 /** Checks if the output channel contains specific text */
 export const outputChannelContains = async (
   page: Page,
