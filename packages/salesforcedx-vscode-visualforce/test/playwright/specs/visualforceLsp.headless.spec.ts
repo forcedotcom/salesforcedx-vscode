@@ -11,6 +11,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeExplorerContextMenuCommand,
+  EXPLORER_INLINE_INPUT,
   saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -33,8 +34,13 @@ import { test } from '../fixtures';
 const seedAndOpenPage = async (page: Page, name: string): Promise<void> => {
   await executeExplorerContextMenuCommand(page, /force-app/, /New File\.\.\./);
 
-  // Inline input box in the Explorer tree: type the filename and confirm.
-  await page.keyboard.type(`${name}.page`);
+  // Inline input box in the Explorer tree: fill the filename on the element and confirm.
+  // `fill()` targets the located input directly, so the filename lands regardless of focus timing —
+  // `page.keyboard.type` would race the tree→input focus handoff and drop/truncate keystrokes, so
+  // no `.page` editor opens (30s waitFor timeout). fill() also avoids pressSequentially CI timeouts.
+  const input = page.locator(EXPLORER_INLINE_INPUT);
+  await input.waitFor({ state: 'visible', timeout: 10_000 });
+  await input.fill(`${name}.page`, { force: true });
   await page.keyboard.press('Enter');
 
   const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.page"]`);
@@ -92,6 +98,53 @@ test.describe('Visualforce LSP', () => {
       const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.page"]`);
       await expect(editor.locator('.view-lines')).toContainText('apex:pageMessage', { timeout: 10_000 });
       await saveScreenshot(page, 'vf-lsp-autocompletion.inserted.png');
+    });
+  });
+
+  test('provides hover for mixed-case apex tags in .page files', async ({ page }) => {
+    test.setTimeout(3 * 60 * 1000);
+
+    const name = `LspHoverPage${Date.now()}`;
+
+    await test.step('seed and open a .page file', async () => {
+      await seedAndOpenPage(page, name);
+    });
+
+    await test.step('type page content with mixed-case apex tags', async () => {
+      await page.keyboard.type('<apex:pageBlock></apex:pageBlock>\n<apex:outputField/>');
+    });
+
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.page"]`);
+
+    // Cold-LSP race: the first hover can land before the LS is ready and never re-triggers. Poll:
+    // clear any open hover, move the pointer off the token so the next hover() is a genuine pointer
+    // transition that re-drives the provider, then assert the card shows the original-case tag.
+    const assertHover = async (tagName: string): Promise<void> => {
+      const tagToken = editor
+        .locator('.view-lines span')
+        .filter({ hasText: new RegExp(`^${tagName}$`) })
+        .first();
+      await tagToken.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(async () => {
+        await page.keyboard.press('Escape');
+        const editorBox = await editor.boundingBox();
+        await page.mouse.move((editorBox?.x ?? 0) + 10, (editorBox?.y ?? 0) + (editorBox?.height ?? 0) - 10);
+        await tagToken.hover();
+        await expect(
+          page.locator('.monaco-hover:not(.hidden)').filter({ hasText: tagName }),
+          `Visualforce LSP hover card should show ${tagName}`
+        ).toBeVisible({ timeout: 3000 });
+      }).toPass({ timeout: 45_000 });
+    };
+
+    await test.step('hover apex:pageBlock and verify the hover card', async () => {
+      await assertHover('apex:pageBlock');
+      await saveScreenshot(page, 'vf-lsp-hover.pageBlock.png');
+    });
+
+    await test.step('hover apex:outputField and verify the hover card', async () => {
+      await assertHover('apex:outputField');
+      await saveScreenshot(page, 'vf-lsp-hover.outputField.png');
     });
   });
 

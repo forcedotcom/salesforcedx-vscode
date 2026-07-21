@@ -6,7 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isRecord, isString } from 'effect/Predicate';
 import type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
@@ -92,8 +92,7 @@ type ParseSoapResult =
   | { success: true; result: ExecuteAnonymousResult; logBody: string }
   | { success: false; error: string };
 
-const hasSoapEnvelope = (obj: unknown): obj is SoapResponseShape =>
-  obj !== null && typeof obj === 'object' && 'soapenv:Envelope' in obj;
+const hasSoapEnvelope = (obj: unknown): obj is SoapResponseShape => isRecord(obj) && 'soapenv:Envelope' in obj;
 
 export const parseSoapResponse = (raw: unknown): ParseSoapResult => {
   const envelope = hasSoapEnvelope(raw) ? raw['soapenv:Envelope'] : undefined;

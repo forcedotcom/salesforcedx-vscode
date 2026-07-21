@@ -18,7 +18,9 @@ export const SettingsWatcherLayer = Layer.scopedDiscard(
 
     yield* Stream.async<vscode.ConfigurationChangeEvent>(emit => {
       const disposable = vscode.workspace.onDidChangeConfiguration(event => emit.single(event));
-      return Effect.sync(() => disposable.dispose()).pipe(Effect.withSpan('disposing configuration change watcher'));
+      return Effect.sync(() => {
+        disposable.dispose();
+      }).pipe(Effect.withSpan('disposing configuration change watcher'));
     }).pipe(
       Stream.runForEach(event => PubSub.publish(pubsub, event)),
       Effect.forkScoped

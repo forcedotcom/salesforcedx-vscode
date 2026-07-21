@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
-import { fileExtensionsMatch } from '@salesforce/salesforcedx-utils-vscode';
 import { basename } from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { anonApexDebug } from './anonApexDebug';
 
@@ -44,9 +43,9 @@ export const launchApexReplayDebuggerWithCurrentFile = async () => {
   void vscode.window.showErrorMessage(nls.localize('launch_apex_replay_debugger_unsupported_file'));
 };
 
-const isLogFile = (sourceUri: URI): boolean => fileExtensionsMatch(sourceUri, 'log');
+const isLogFile = (sourceUri: URI): boolean => Utils.extname(sourceUri).toLowerCase() === '.log';
 
-const isAnonymousApexFile = (sourceUri: URI): boolean => fileExtensionsMatch(sourceUri, 'apex');
+const isAnonymousApexFile = (sourceUri: URI): boolean => Utils.extname(sourceUri).toLowerCase() === '.apex';
 
 const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
   await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile', {

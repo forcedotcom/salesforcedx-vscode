@@ -12,25 +12,16 @@ export { ConfigUtil } from './config/configUtil';
 export { SFDX_CORE_CONFIGURATION_NAME, TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from './constants';
 export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
+export { shapeFrom, type OrgShapeInfo } from './context/workspaceOrgShape';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
-export {
-  createDirectory,
-  fileOrFolderExists,
-  readDirectory,
-  readFile,
-  safeDelete,
-  stat,
-  writeFile
-} from './helpers/fs';
+export { createDirectory, fileOrFolderExists, readFile, safeDelete, writeFile } from './helpers/fs';
 export { fileExtensionsMatch, projectPaths } from './helpers/paths';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
-export { getTargetOrgOrAlias, getTargetDevHubOrAlias } from './util/authInfo';
+export { getTargetDevHubOrAlias } from './util/authInfo';
 export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
-export { CliCommandExecutor } from './cli/commandExecutor';
 
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
-export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';
