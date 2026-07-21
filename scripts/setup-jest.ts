@@ -347,6 +347,9 @@ const getMockVSCode = () => {
       File: 1,
       Directory: 2
     },
+    FilePermission: {
+      Readonly: 1
+    },
     FileChangeType: {
       Changed: 1,
       Created: 2,
