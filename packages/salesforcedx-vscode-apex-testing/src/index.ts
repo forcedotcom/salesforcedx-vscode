@@ -116,15 +116,7 @@ export const activate = (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   const extensionScope = getApexTestingRuntime().runSync(getExtensionScope());
 
-  return getApexTestingRuntime().runPromise(
-    activateEffect(context).pipe(
-      Scope.extend(extensionScope),
-      Effect.catchAll(error => {
-        console.error('[Apex Testing] Activation failed:', error);
-        return Effect.void;
-      })
-    )
-  );
+  return getApexTestingRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
 const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: StatusBarToggle } => {
