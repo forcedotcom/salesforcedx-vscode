@@ -35,10 +35,12 @@ See [external-consumers](../external-consumers/SKILL.md) for full list and searc
 ### Top-level (instances/functions)
 
 ```
-channelService, getUserId, getAuthFields, isCLIInstalled,
+getUserId, getAuthFields, isCLIInstalled,
 SfCommandletExecutor, WorkspaceContext,
 telemetryService, workspaceContextUtils
 ```
+
+**Note**: the top-level `channelService` field was removed (W-23348840). Consumers must use `services.ChannelService`.
 
 ### `services` (class constructors with static methods)
 

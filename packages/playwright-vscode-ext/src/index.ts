@@ -130,6 +130,7 @@ export {
   clearOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
+  countOutputChannelOptions,
   captureOutputChannelDetails
 } from './pages/outputChannel';
 
