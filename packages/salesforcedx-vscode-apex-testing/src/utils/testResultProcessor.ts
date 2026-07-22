@@ -71,26 +71,19 @@ export const updateTestRunResults = (params: {
     );
   }
 
-  // Build a map of test names to test items from all available items
-  // This ensures we can match results even if the suite wasn't expanded
-  const testMap = new Map<string, vscode.TestItem>();
+  // Recursively collect all method items under suites/classes as [testName, item] pairs
+  const collectMethods = (item: vscode.TestItem): (readonly [string, vscode.TestItem])[] =>
+    isMethod(item.id)
+      ? [[getTestName(item), item] as const]
+      : [...item.children].flatMap(([, child]) => collectMethods(child));
 
-  // Add all method items keyed by stripped name (Class.Method) for result matching
-  methodItems.forEach(methodItem => testMap.set(getTestName(methodItem), methodItem));
-
-  // Also add items from testsToRun (for methods that might not be in methodItems yet)
-  // Recursively collect all method items under suites/classes to ensure results propagate
-  const collectMethods = (item: vscode.TestItem): void => {
-    if (isMethod(item.id)) {
-      const testName = getTestName(item);
-      testMap.set(testName, item);
-    } else {
-      // Recursively traverse children to find all method items
-      item.children.forEach(child => collectMethods(child));
-    }
-  };
-
-  testsToRun.forEach(collectMethods);
+  // Build a map of test names to test items from all available items so we can match results even
+  // if the suite wasn't expanded. testsToRun entries come last so they win over methodItems on
+  // duplicate keys (preserving the original insertion order's precedence).
+  const testMap = new Map<string, vscode.TestItem>([
+    ...[...methodItems.values()].map(methodItem => [getTestName(methodItem), methodItem] as const),
+    ...testsToRun.flatMap(collectMethods)
+  ]);
 
   // Track results per class for proper aggregation
   const classResults = new Map<string, { passed: number; failed: number; skipped: number; duration: number }>();
@@ -163,14 +156,14 @@ export const updateTestRunResults = (params: {
     { passed: 0, failed: 0, skipped: 0, duration: 0 }
   );
 
-  // Helper to recursively update all class items under a suite
+  // Helper to update all class items under a suite with their aggregate results
   const updateClassItemsUnderSuite = (suiteItem: vscode.TestItem): void => {
-    suiteItem.children.forEach(classItem => {
-      const className = classItem.label;
-      const classResult = classResults.get(className);
-
-      if (classResult) {
-        // Update the class item with aggregate results
+    [...suiteItem.children]
+      .flatMap(([, classItem]) => {
+        const classResult = classResults.get(classItem.label);
+        return classResult ? [[classItem, classResult] as const] : [];
+      })
+      .forEach(([classItem, classResult]) => {
         if (classResult.failed > 0) {
           run.failed(
             classItem,
@@ -182,21 +175,7 @@ export const updateTestRunResults = (params: {
         } else if (classResult.skipped > 0) {
           run.skipped(classItem);
         }
-      }
-
-      // Recursively update any nested items
-      classItem.children.forEach(child => {
-        if (isMethod(child.id)) {
-          const testName = getTestName(child);
-          const testItem = testMap.get(testName);
-          // Results should already be applied, but ensure they're in the tree
-          if (testItem && testItem !== child) {
-            // If the method item in the map is different, we may need to update the child
-            // VS Code should handle this, but we ensure the child is updated
-          }
-        }
       });
-    });
   };
 
   // Update parent items (suites, classes) that were originally selected

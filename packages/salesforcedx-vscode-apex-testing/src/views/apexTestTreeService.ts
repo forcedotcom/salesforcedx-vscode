@@ -288,22 +288,18 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Ref.get(suiteToClasses)
       ]);
       yield* Effect.sync(() => {
-        currentMethods.forEach((methodItem, methodId) => {
-          if (!staleMethodIds || staleMethodIds.has(methodId)) {
-            addStaleTag(methodItem, staleTag);
-          }
-        });
-        currentClasses.forEach((classItem, className) => {
-          if (classHasStaleMethod(currentMethods, className)) {
-            addStaleTag(classItem, staleTag);
-          }
-        });
-        currentSuites.forEach((suiteItem, suiteName) => {
-          const classNames = currentSuiteToClasses.get(suiteName);
-          if (classNames && suiteHasStaleClass(currentClasses, classNames)) {
-            addStaleTag(suiteItem, staleTag);
-          }
-        });
+        [...currentMethods]
+          .filter(([methodId]) => !staleMethodIds || staleMethodIds.has(methodId))
+          .forEach(([, methodItem]) => addStaleTag(methodItem, staleTag));
+        [...currentClasses]
+          .filter(([className]) => classHasStaleMethod(currentMethods, className))
+          .forEach(([, classItem]) => addStaleTag(classItem, staleTag));
+        [...currentSuites]
+          .filter(([suiteName]) => {
+            const classNames = currentSuiteToClasses.get(suiteName);
+            return !!classNames && suiteHasStaleClass(currentClasses, classNames);
+          })
+          .forEach(([, suiteItem]) => addStaleTag(suiteItem, staleTag));
       });
     });
 
@@ -343,26 +339,26 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
 
       yield* Effect.sync(() => {
         // Clear stale tags from methods that ran.
-        HashSet.forEach(runMethodIds, methodId => {
-          const methodItem = currentMethods.get(methodId);
-          if (methodItem) {
-            removeStaleTag(methodItem);
-          }
-        });
+        HashSet.toValues(runMethodIds)
+          .flatMap(methodId => {
+            const methodItem = currentMethods.get(methodId);
+            return methodItem ? [methodItem] : [];
+          })
+          .forEach(removeStaleTag);
         // Clear the stale tag from parent classes once no member method remains stale.
-        HashSet.forEach(affectedClasses, className => {
-          const classItem = currentClasses.get(className);
-          if (classItem && !classHasStaleMethod(currentMethods, className)) {
-            removeStaleTag(classItem);
-          }
-        });
+        HashSet.toValues(affectedClasses)
+          .flatMap(className => {
+            const classItem = currentClasses.get(className);
+            return classItem && !classHasStaleMethod(currentMethods, className) ? [classItem] : [];
+          })
+          .forEach(removeStaleTag);
         // Clear the stale tag from suites once no member class remains stale.
-        currentSuites.forEach((suiteItem, suiteName) => {
-          const classNames = currentSuiteToClasses.get(suiteName);
-          if (classNames && !suiteHasStaleClass(currentClasses, classNames)) {
-            removeStaleTag(suiteItem);
-          }
-        });
+        [...currentSuites]
+          .filter(([suiteName]) => {
+            const classNames = currentSuiteToClasses.get(suiteName);
+            return !!classNames && !suiteHasStaleClass(currentClasses, classNames);
+          })
+          .forEach(([, suiteItem]) => removeStaleTag(suiteItem));
       });
     });
 
@@ -374,12 +370,11 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       testResultUri: URI
     ) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const methodIds = new Set<string>();
       const resultText = yield* api.services.FsService.readFile(testResultUri).pipe(
         Effect.catchTag('FsServiceError', () => Effect.void)
       );
       if (resultText === undefined) {
-        return methodIds;
+        return new Set<string>();
       }
       // Recover a corrupt/truncated file to "no ids" (matches the doc + legacy try/catch) so a bad file
       // never becomes an uncaught defect that aborts the restore path.
@@ -387,17 +382,11 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         () => JSON.parse(resultText) as TestResult
       ).pipe(Effect.orElseSucceed(() => undefined));
-      if (resultContent === undefined) {
-        return methodIds;
-      }
-      (resultContent.tests ?? []).forEach(test => {
-        const className = test.apexClass?.fullName;
-        const methodName = test.methodName;
-        if (className && methodName) {
-          methodIds.add(`${className}.${methodName}`);
-        }
-      });
-      return methodIds;
+      return new Set(
+        (resultContent?.tests ?? []).flatMap(test =>
+          test.apexClass?.fullName && test.methodName ? [`${test.apexClass.fullName}.${test.methodName}`] : []
+        )
+      );
     });
 
     /**
@@ -967,11 +956,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         const symbolLocations = yield* Effect.promise(() =>
           getMethodLocationsFromSymbols(localUri, [...discoveredMethodNames])
         );
-        if (symbolLocations) {
-          symbolLocations.forEach((location, name) => {
-            methodPositions.set(name, { line: location.range.start.line, column: location.range.start.character });
-          });
-        }
+        symbolLocations.forEach((location, name) => {
+          methodPositions.set(name, { line: location.range.start.line, column: location.range.start.character });
+        });
       }
       const currentMethodItems = yield* Ref.get(methodItems);
       yield* Effect.sync(() => {
@@ -984,12 +971,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           }
         });
 
-        const existingMethodsByName = new Map<string, vscode.TestItem>();
-        classItem.children.forEach(child => {
-          if (isMethod(child.id)) {
-            existingMethodsByName.set(child.label, child);
-          }
-        });
+        const existingMethodsByName = new Map<string, vscode.TestItem>(
+          [...classItem.children].flatMap(([, child]) => (isMethod(child.id) ? [[child.label, child] as const] : []))
+        );
 
         // Remove methods no longer in discovery
         existingMethodsByName.forEach((methodItem, methodName) => {

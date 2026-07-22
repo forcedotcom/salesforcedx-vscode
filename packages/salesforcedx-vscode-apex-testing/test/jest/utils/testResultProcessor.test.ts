@@ -81,7 +81,8 @@ describe('testResultProcessor', () => {
         values: jest.fn().mockReturnValue(childrenArray),
         keys: jest.fn(),
         entries: jest.fn(),
-        [Symbol.iterator]: jest.fn().mockReturnValue(childrenArray[Symbol.iterator]())
+        // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts); yield a fresh iterator per call
+        [Symbol.iterator]: () => childrenArray.map(child => [child.id, child] as const)[Symbol.iterator]()
       } as unknown as vscode.TestItemCollection
     };
     return item as vscode.TestItem;

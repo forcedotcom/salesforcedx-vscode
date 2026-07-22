@@ -7,6 +7,7 @@
 
 import { TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -47,12 +48,13 @@ export const findMethodInSymbols = (
 
 /**
  * Get method locations from document symbols for a given URI and method names.
- * Returns a map of method names to their locations, or undefined if symbols are not available.
+ * Returns a map of method names to their locations; empty when symbols are unavailable
+ * or no method matched (callers fall back to Tooling API positions).
  */
 export const getMethodLocationsFromSymbols = async (
   uri: URI,
   methodNames: string[]
-): Promise<Map<string, vscode.Location> | undefined> => {
+): Promise<Map<string, vscode.Location>> => {
   // Ensure the document is accessible - try to open it if needed
   const isDocumentOpen = vscode.workspace.textDocuments.some(doc => doc.uri.toString() === uri.toString());
   if (!isDocumentOpen) {
@@ -62,32 +64,22 @@ export const getMethodLocationsFromSymbols = async (
       () => false
     );
     if (!opened) {
-      return undefined;
+      return new Map<string, vscode.Location>();
     }
   }
 
   const documentSymbols = await vscode.commands
     .executeCommand<vscode.DocumentSymbol[]>('vscode.executeDocumentSymbolProvider', uri)
-    // If document symbols are not available, return undefined
+    // If document symbols are not available, treat as no locations found
     .then(undefined, () => undefined);
 
-  if (!documentSymbols || documentSymbols.length === 0) {
-    return undefined;
-  }
-
-  const methodLocationMap = new Map<string, vscode.Location>();
-  methodNames.forEach(methodName => {
-    if (!methodLocationMap.has(methodName)) {
-      const methodLocation = findMethodInSymbols(documentSymbols, methodName, uri);
-      if (methodLocation) {
-        methodLocationMap.set(methodName, methodLocation);
-      }
-    }
-  });
-
-  // If we found at least one method, return the map (even if some methods weren't found)
-  // This allows partial success rather than complete failure
-  return methodLocationMap.size > 0 ? methodLocationMap : undefined;
+  // Returns method names mapped to their locations; unfound methods and missing symbols
+  // yield an empty map (callers fall back to Tooling API positions)
+  return new Map<string, vscode.Location>(
+    Array.dedupe(methodNames)
+      .map(methodName => [methodName, findMethodInSymbols(documentSymbols ?? [], methodName, uri)] as const)
+      .filter((entry): entry is [string, vscode.Location] => entry[1] !== undefined)
+  );
 };
 
 /** Build an index of class baseName -> file URI using ComponentSet (works on web and desktop) */
@@ -114,7 +106,7 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
       const index = new Map<string, URI>();
 
       yield* Effect.forEach(
-        Array.from(componentSet.getSourceComponents()),
+        Array.fromIterable(componentSet.getSourceComponents()),
         component =>
           Effect.gen(function* () {
             // component.content is the .cls file path
