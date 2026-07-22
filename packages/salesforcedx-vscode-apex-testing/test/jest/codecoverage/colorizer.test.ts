@@ -24,9 +24,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
     '../../../src/codecoverage/codeCoverageService'
   );
   // require (not import) so this resolves the same mocked vscode the tests spy on (vscode.workspace.fs)
-
   const vscodeMock = require('vscode');
-
   const { Utils: UtilsActual } = require('vscode-uri');
 
   const mockSettingsService = {

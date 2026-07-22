@@ -356,7 +356,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           }
           return Effect.void;
         },
-        { concurrency: 1 }
+        { concurrency: 1, discard: true }
       );
 
       // Loop B: class-level debug dispatch; on failure mark every selected test covered by the class errored.
@@ -374,7 +374,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
                 run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', err.message)))
               )
           ),
-        { concurrency: 1 }
+        { concurrency: 1, discard: true }
       );
 
       // Loop C: method-level debug dispatch, skipping classes already debugged at class level (Loop B).
@@ -401,9 +401,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
                         )
                       )
                   ),
-                { concurrency: 1 }
+                { concurrency: 1, discard: true }
               ),
-        { concurrency: 1 }
+        { concurrency: 1, discard: true }
       );
     });
 
@@ -666,7 +666,7 @@ const resolveUnloadedSuites = Effect.fn('ApexTestExecutionService.resolveUnloade
       isSuite(test.id) && extractSuiteName(test.id) && test.children.size === 0
         ? resolveSuiteChildrenBestEffort(ctx, test)
         : Effect.void,
-    { concurrency: 1 }
+    { concurrency: 1, discard: true }
   );
 });
 

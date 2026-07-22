@@ -267,7 +267,6 @@ describe('testResultProcessor', () => {
       });
 
       expect(run.failed).toHaveBeenCalled();
-
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
       expect(failedCall[0]).toBe(methodItem);
       // Check that TestMessage was created (it's a mock constructor)
@@ -313,7 +312,6 @@ describe('testResultProcessor', () => {
       });
 
       expect(run.failed).toHaveBeenCalled();
-
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
 
       const message = failedCall[1] as vscode.TestMessage;

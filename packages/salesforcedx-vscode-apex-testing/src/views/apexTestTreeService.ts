@@ -559,7 +559,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
               );
             });
           }),
-        { concurrency: 1 }
+        { concurrency: 1, discard: true }
       );
 
       classes.forEach(cls => {
@@ -674,7 +674,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
             try: () => ctx.updateTestResults(uri),
             catch: e => new RestoreResultsError({ uri: uri.toString(), message: getMessageFromError(e) })
           }),
-        { concurrency: 1 }
+        { concurrency: 1, discard: true }
       );
 
       // Only mark pre-session methods as stale
@@ -1086,7 +1086,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
               yield* removeClassFromTree(ctx, fullName);
             }
           }),
-        { concurrency: 1 }
+        { concurrency: 1, discard: true }
       );
     });
 
@@ -1105,7 +1105,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         yield* Effect.forEach(
           [...changes].filter(([, changeType]) => changeType === 'deleted'),
           ([fullName]) => removeClassFromTree(ctx, fullName),
-          { concurrency: 1 }
+          { concurrency: 1, discard: true }
         );
 
         // If any created/changed entries remain, call discovery API and apply diff

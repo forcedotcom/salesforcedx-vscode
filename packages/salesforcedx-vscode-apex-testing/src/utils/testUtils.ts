@@ -31,16 +31,19 @@ export const findMethodInSymbols = (
   symbols: vscode.DocumentSymbol[],
   methodName: string,
   uri: URI
-): vscode.Location | undefined =>
-  symbols.reduce<vscode.Location | undefined>((found, symbol) => {
-    if (found) return found;
-    // Extract the base method name from the symbol (remove return type and parameters)
-    if (symbol.kind === vscode.SymbolKind.Method && extractMethodName(symbol.name) === methodName) {
-      return new vscode.Location(uri, symbol.range);
-    }
-    // Recursively search in children (nested classes)
-    return symbol.children?.length > 0 ? findMethodInSymbols(symbol.children, methodName, uri) : undefined;
-  }, undefined);
+): vscode.Location | undefined => {
+  // Extract the base method name from the symbol (remove return type and parameters)
+  const methodSymbol = symbols.find(
+    symbol => symbol.kind === vscode.SymbolKind.Method && extractMethodName(symbol.name) === methodName
+  );
+  if (methodSymbol) {
+    return new vscode.Location(uri, methodSymbol.range);
+  }
+  // Recursively search in children (nested classes)
+  return symbols
+    .map(symbol => (symbol.children?.length > 0 ? findMethodInSymbols(symbol.children, methodName, uri) : undefined))
+    .find(location => location !== undefined);
+};
 
 /**
  * Get method locations from document symbols for a given URI and method names.
@@ -126,7 +129,7 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
               }
             }
           }),
-        { concurrency: 1 }
+        { concurrency: 1, discard: true }
       );
 
       return index;
