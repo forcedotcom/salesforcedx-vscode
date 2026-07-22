@@ -26,7 +26,7 @@ import { ConnectionService } from './connectionService';
 import { ProjectService } from './projectService';
 
 /** Re-export for consumers that don't depend on @salesforce/templates */
-export { TemplateType, type CreateOutput } from '@salesforce/templates';
+export { TemplateType, type CreateOutput, type ProjectOptions } from '@salesforce/templates';
 
 /**
  * Project options where `ns` and `loginurl` may be omitted by callers; the

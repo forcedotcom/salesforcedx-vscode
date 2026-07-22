@@ -155,6 +155,7 @@ export {
   TemplateService,
   type CreateOutput,
   type CreateParams,
+  type ProjectOptions,
   type TemplateOptionsFor,
   type TemplateType
 } from './core/templateService';

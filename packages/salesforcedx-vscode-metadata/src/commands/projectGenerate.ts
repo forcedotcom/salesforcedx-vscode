@@ -6,9 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ProjectOptions } from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
+import { type ProjectOptions } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
