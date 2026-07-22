@@ -22,8 +22,6 @@ import { SettingsChangePubSub } from './settingsChangePubSub';
 
 /** Watches settings changes and triggers appropriate effects */
 export const watchSettingsService = Effect.fn('watchSettingsService')(function* () {
-  console.log('watchSettingsService starting');
-
   const [settingsChangePubSub, channelService] = yield* Effect.all([SettingsChangePubSub, ChannelService], {
     concurrency: 'unbounded'
   });
@@ -45,7 +43,6 @@ export const watchSettingsService = Effect.fn('watchSettingsService')(function* 
     Stream.tap(() => channelService.appendToChannel(`ConfigChanged: ${RETRIEVE_ON_LOAD_KEY}`)),
     Stream.runForEach(() => retrieveOnLoadEffect())
   );
-  console.log('watchSettingsService started');
 });
 
 const authSettings = [INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY].map(
