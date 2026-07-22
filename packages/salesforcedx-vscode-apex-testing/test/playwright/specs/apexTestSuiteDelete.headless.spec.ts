@@ -12,7 +12,7 @@ import {
   ensureOutputPanelOpen,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
-  openFileByName,
+  openFileFromExplorerTree,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -104,8 +104,13 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
   });
 
   await test.step('open the .testSuite-meta.xml file and delete from project and org', async () => {
-    // Open the test suite file via Go to File
-    await openFileByName(page, `${testSuiteName}.testSuite-meta.xml`);
+    // Open the test suite file via the Explorer tree (Quick Open can't find newly-pulled files on web)
+    await openFileFromExplorerTree(page, `${testSuiteName}.testSuite-meta.xml`, [
+      'force-app',
+      'main',
+      'default',
+      'testSuites'
+    ]);
     await saveScreenshot(page, 'step.suite-file-opened.png');
 
     // Run "SFDX: Delete from Project and Org" via command palette
