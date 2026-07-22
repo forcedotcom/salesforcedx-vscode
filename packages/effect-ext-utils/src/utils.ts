@@ -6,6 +6,11 @@
  */
 
 import { isError, isString } from 'effect/Predicate';
+import type { URI } from 'vscode-uri';
+
+// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
+export const code2ProtocolConverter = (value: URI): string =>
+  process.platform.startsWith('win32') ? value.toString().replace('%3A', ':') : value.toString();
 
 export const getJsonCandidate = (str: string): string | undefined => {
   const firstCurly = str.indexOf('{');
