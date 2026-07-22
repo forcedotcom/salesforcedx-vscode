@@ -12,7 +12,6 @@ import {
   isMetadataFile,
   extractMetadataType,
   extractFieldInfo,
-  findParentMetadataType,
   findParentMetadataTypeWithLayers
 } from '../../../src/metadataSupport/metadataHoverProvider';
 
@@ -351,68 +350,6 @@ describe('MetadataHoverProvider', () => {
         metadataType: 'Flow',
         intermediateLayers: ['decisions', 'rules', 'conditions']
       });
-    });
-  });
-
-  describe('findParentMetadataType', () => {
-    it('should find parent metadata type from current line', () => {
-      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
-      const content = `<?xml version="1.0" encoding="UTF-8"?>
-<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
-    <label>Test Object</label>
-    <enableActivities>true</enableActivities>
-</CustomObject>`;
-
-      const document = createMockDocument('TestObject__c.object-meta.xml', content);
-
-      const result = findParentMetadataType(document, 3, mockDocService);
-
-      expect(result).toBe('CustomObject');
-    });
-
-    it('should find parent metadata type from multiple lines above', () => {
-      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
-      const content = `<?xml version="1.0" encoding="UTF-8"?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>59.0</apiVersion>
-    <description>Test description</description>
-
-    <status>Active</status>
-</ApexClass>`;
-
-      const document = createMockDocument('TestClass.cls-meta.xml', content);
-
-      const result = findParentMetadataType(document, 5, mockDocService);
-
-      expect(result).toBe('ApexClass');
-    });
-
-    it('should handle namespaced parent elements', () => {
-      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
-      const content = `<?xml version="1.0" encoding="UTF-8"?>
-<tns:Flow xmlns:tns="http://soap.sforce.com/2006/04/metadata">
-    <tns:status>Active</tns:status>
-</tns:Flow>`;
-
-      const document = createMockDocument('TestFlow.flow-meta.xml', content);
-
-      const result = findParentMetadataType(document, 2, mockDocService);
-
-      expect(result).toBe('Flow');
-    });
-
-    it('should return null when no parent metadata type found', () => {
-      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
-      const content = `<?xml version="1.0" encoding="UTF-8"?>
-<root>
-    <someField>value</someField>
-</root>`;
-
-      const document = createMockDocument('test.xml', content);
-
-      const result = findParentMetadataType(document, 2, mockDocService);
-
-      expect(result).toBeNull();
     });
   });
 
