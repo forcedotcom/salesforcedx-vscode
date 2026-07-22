@@ -8,18 +8,13 @@
 import { Global } from '@salesforce/core/global';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
-import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
 
-export const ORGS = 'orgs';
-export const METADATA = 'metadata';
 export const TOOLS = 'tools';
 export const TEST_RESULTS = 'testresults';
 export const APEX = 'apex';
 export const DEBUG = 'debug';
 export const LOGS = 'logs';
-export const APEX_DB = 'apex.db';
-export const LWC = 'lwc';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
 export const fileExtensionsMatch = (sourceUri: URI, targetExtension: string): boolean => {
@@ -30,30 +25,9 @@ export const fileExtensionsMatch = (sourceUri: URI, targetExtension: string): bo
 const stateFolder = (): string =>
   workspaceUtils.hasRootWorkspace() ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER) : '';
 
-const metadataFolder = (): string => {
-  const username = WorkspaceContextUtil.getInstance().username;
-  const pathToMetadataFolder = path.join(projectPaths.stateFolder(), ORGS, String(username), METADATA);
-  return pathToMetadataFolder;
-};
-
 const apexTestResultsFolder = (): string => {
   const pathToApexTestResultsFolder = path.join(toolsFolder(), TEST_RESULTS, APEX);
   return pathToApexTestResultsFolder;
-};
-
-const apexLanguageServerDatabase = (): string => {
-  const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
-  return pathToApexLangServerDb;
-};
-
-const lwcTestResultsFolder = (): string => {
-  const pathToLwcTestResultsFolder = path.join(testResultsFolder(), LWC);
-  return pathToLwcTestResultsFolder;
-};
-
-const testResultsFolder = (): string => {
-  const pathToTestResultsFolder = path.join(toolsFolder(), TEST_RESULTS);
-  return pathToTestResultsFolder;
 };
 
 const debugLogsFolder = (): string => {
@@ -73,12 +47,7 @@ const toolsFolder = (): string => {
 
 export const projectPaths = {
   stateFolder,
-  metadataFolder,
-  testResultsFolder,
   apexTestResultsFolder,
-  apexLanguageServerDatabase,
   debugLogsFolder,
-  salesforceProjectConfig,
-  toolsFolder,
-  lwcTestResultsFolder
+  salesforceProjectConfig
 };
