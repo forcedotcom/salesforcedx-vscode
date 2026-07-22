@@ -4,9 +4,33 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { extractJson, stripAnsiInJson } from '../../src/utils';
+import { URI } from 'vscode-uri';
+import { code2ProtocolConverter, extractJson, stripAnsiInJson } from '../../src/utils';
+
+const setPlatform = (platform: NodeJS.Platform) => Object.defineProperty(process, 'platform', { value: platform });
 
 describe('utils tests', () => {
+  describe('code2ProtocolConverter', () => {
+    const originalPlatform = process.platform;
+
+    afterEach(() => setPlatform(originalPlatform));
+
+    it('should return the plain string on non-win32 platforms', () => {
+      setPlatform('darwin');
+      const uri = URI.file('/Users/me/project/foo.cls');
+      expect(code2ProtocolConverter(uri)).toBe(uri.toString());
+    });
+
+    it('should replace %3A with : on win32 platforms', () => {
+      setPlatform('win32');
+      const uri = URI.file('c:\\Users\\me\\foo.cls');
+      const result = code2ProtocolConverter(uri);
+      expect(uri.toString()).toContain('%3A');
+      expect(result).not.toContain('%3A');
+      expect(result).toContain(':');
+    });
+  });
+
   describe('extractJson unit tests', () => {
     const initialValue = {
       how: 'does',

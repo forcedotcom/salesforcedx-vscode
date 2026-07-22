@@ -8,9 +8,9 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import type { Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
