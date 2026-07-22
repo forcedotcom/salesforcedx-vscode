@@ -160,7 +160,9 @@ jobs:
         run: |
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30 > org.json
           INSTANCE_URL="$(sf org display -o "$MINIMAL_ORG_ALIAS" --json | jq -r '.result.instanceUrl')"
-          ACCESS_TOKEN="$(sf org display -o "$MINIMAL_ORG_ALIAS" --json | jq -r '.result.accessToken')"
+          # `org display` redacts accessToken as of recent sf CLI versions, so read the real token
+          # from the dedicated command — otherwise the container's start-time org login fails.
+          ACCESS_TOKEN="$(sf org auth show-access-token -o "$MINIMAL_ORG_ALIAS" --json | jq -r '.result.accessToken')"
           echo "INSTANCE_URL=$INSTANCE_URL" >> "$GITHUB_ENV"
           echo "::add-mask::$ACCESS_TOKEN"
           echo "SF_ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"

@@ -382,7 +382,11 @@ if (runSf(['org', 'display', '-o', ORG_ALIAS], { stdio: 'ignore' }) === 0) {
 
 const orgJson = JSON.parse(captureSf(['org', 'display', '-o', ORG_ALIAS, '--json']));
 const instanceUrl: string = orgJson.result.instanceUrl;
-const accessToken: string = orgJson.result.accessToken;
+// `org display` redacts accessToken as of recent sf CLI versions (returns a "[REDACTED] Use 'sf org
+// auth show-access-token' ..." placeholder), so read the real token from the dedicated command —
+// otherwise the container boots with a bogus token and its start-time org login fails.
+const accessToken: string = JSON.parse(captureSf(['org', 'auth', 'show-access-token', '-o', ORG_ALIAS, '--json']))
+  .result.accessToken;
 
 /* --- run container --------------------------------------------------------- */
 log(`Starting container ${CONTAINER_NAME}`);
