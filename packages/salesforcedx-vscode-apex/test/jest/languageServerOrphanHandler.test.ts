@@ -16,13 +16,6 @@ import * as vscode from 'vscode';
 import { UBER_JAR_NAME } from '../../src/constants';
 import { nls } from '../../src/messages';
 
-jest.mock('../../src/channels', () => ({
-  channelService: {
-    showChannelOutput: jest.fn(),
-    appendLine: jest.fn()
-  }
-}));
-
 const ORPHAN_LIST = `1234 1 java -jar ${UBER_JAR_NAME}`;
 const HEALTHY_LIST = `1234 5678 java -jar ${UBER_JAR_NAME}`;
 
@@ -87,7 +80,13 @@ const makeApi = (responses: { match: string; result: ExecResult }[], settingsStu
   services: {
     TerminalService: Effect.succeed({ simpleExec: makeSimpleExec(responses) }),
     PromptService: Effect.succeed(makePromptService()),
-    SettingsService: Effect.succeed(makeSettingsService(settingsStub ?? makeSettingsStub()))
+    SettingsService: Effect.succeed(makeSettingsService(settingsStub ?? makeSettingsStub())),
+    ChannelService: Effect.succeed({
+      showChannel: Effect.void,
+      appendToChannel: (_message: string) => Effect.void,
+      getChannel: Effect.succeed(undefined),
+      clearChannel: Effect.void
+    })
   }
 });
 

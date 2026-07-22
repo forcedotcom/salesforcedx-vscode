@@ -15,31 +15,6 @@ import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../../src/requirements';
 
-// Mock VS Code file utilities
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  LocalizationService: {
-    getInstance: jest.fn().mockReturnValue({
-      messageBundleManager: {
-        registerMessageBundle: jest.fn()
-      },
-      localize: jest.fn((key: string, ...args: any[]) => {
-        // Return specific error messages for the tests
-        switch (key) {
-          case 'java_runtime_local_text':
-            return `Local Java runtime (${args[0]}) is unsupported. Set the salesforcedx-vscode-apex.java.home VS Code setting to a runtime outside of the current project. For more information, go to [Set Your Java Version](${args[1]}).`;
-          case 'java_version_check_command_failed':
-            return `Running java command ${args[0]} failed with error: ${args[1]}`;
-          case 'wrong_java_version_text':
-            return `We detected an unsupported Java version. Java versions 11 or higher are supported. We recommend [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](${args[0]}).`;
-          default:
-            return key; // fallback to returning the key
-        }
-      })
-    })
-  },
-  LOCALE_JA: 'ja'
-}));
-
 // Mock vscode workspace
 jest.mock('vscode', () => ({
   workspace: {

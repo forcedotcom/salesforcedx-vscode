@@ -137,7 +137,8 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
   const membershipByClassId = new Map(memberships.records.map(r => [r.ApexClassId, r.Id]));
 
   // Query ApexClass IDs for all classes to match against membership records
-  const classNames = allClasses.map(cls => `'${(cls.fullClassName ?? cls.label).replaceAll("'", "''")}'`).join(',');
+  // Use cls.label (= ApexClass.Name, without namespace) not fullClassName — the Name column never contains the namespace prefix
+  const classNames = allClasses.map(cls => `'${cls.label.replaceAll("'", "''")}'`).join(',');
   const classIdResult = yield* Effect.tryPromise(() =>
     connection.tooling.query<{ Id: string; Name: string; NamespacePrefix?: string | null }>(
       `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Name IN (${classNames})`

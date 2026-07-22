@@ -130,6 +130,7 @@ export {
   clearOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
+  countOutputChannelOptions,
   captureOutputChannelDetails
 } from './pages/outputChannel';
 
@@ -171,6 +172,9 @@ export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureType
 
 // Web
 export { createHeadlessServer, setupSignalHandlers } from './web/createHeadlessServer';
+
+// Apex helpers
+export { createAndOpenApexScript } from './utils/apexScript';
 
 // Config factories
 export { createWebConfig } from './config/createWebConfig';

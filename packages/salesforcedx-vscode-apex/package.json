@@ -31,7 +31,6 @@
     "@salesforce/apex-node": "*",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "find-java-home": "1.2.2",
@@ -72,7 +71,6 @@
         "../salesforcedx-apex:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
