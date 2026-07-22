@@ -192,6 +192,20 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     // Durable signal: poll the CLI until the default org is no longer authorized.
     await expectOrgLoggedOut(DEFAULT_LOGOUT_ORG_ALIAS);
   });
+
+  await test.step('UNSET DEFAULT: command clears the default org and status bar reflects it', async () => {
+    // Re-set MINIMAL_ORG_ALIAS as default so we can unset it
+    await clickOrgPickerStatusBar(page, 'No Default Org Set');
+    await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
+    await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
+    await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
+
+    // Execute the unset command
+    await executeCommandWithCommandPalette(page, packageNls.config_unset_org_text);
+
+    // Status bar should reflect no default org
+    await expectOrgPickerStatusBar(page, 'No Default Org Set');
+  });
 });
 
 /** Poll the CLI until the alias is no longer authorized (durable, non-racy removal signal). */

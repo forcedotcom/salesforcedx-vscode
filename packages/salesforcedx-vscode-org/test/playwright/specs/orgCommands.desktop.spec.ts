@@ -32,4 +32,8 @@ test('org extension: SFDX org commands appear in palette when project is open', 
   await test.step('Set a Default Org', async () => {
     await verifyCommandExists(page, packageNls.config_set_org_text, 60_000);
   });
+
+  await test.step('Unset a Default Org', async () => {
+    await verifyCommandExists(page, packageNls.config_unset_org_text, 60_000);
+  });
 });
