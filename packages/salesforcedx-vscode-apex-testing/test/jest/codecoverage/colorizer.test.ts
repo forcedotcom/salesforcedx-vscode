@@ -24,9 +24,9 @@ jest.mock('../../../src/services/extensionProvider', () => {
     '../../../src/codecoverage/codeCoverageService'
   );
   // require (not import) so this resolves the same mocked vscode the tests spy on (vscode.workspace.fs)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+
   const vscodeMock = require('vscode');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+
   const { Utils: UtilsActual } = require('vscode-uri');
 
   const mockSettingsService = {
@@ -189,7 +189,7 @@ describe('CodeCoverageService', () => {
   let runtime: ReturnType<typeof getApexTestingRuntime>;
   // R channel is broader than CodeCoverageService because getCoverageData also yields
   // ExtensionProviderService and SettingsService — both are provided by TestLayer at runtime.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const run = <A, E>(effect: Effect.Effect<A, E, any>) => runtime.runPromise(effect);
 
   beforeEach(() => {

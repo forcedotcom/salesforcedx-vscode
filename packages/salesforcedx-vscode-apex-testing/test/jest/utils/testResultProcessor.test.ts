@@ -267,7 +267,7 @@ describe('testResultProcessor', () => {
       });
 
       expect(run.failed).toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
       expect(failedCall[0]).toBe(methodItem);
       // Check that TestMessage was created (it's a mock constructor)
@@ -313,7 +313,7 @@ describe('testResultProcessor', () => {
       });
 
       expect(run.failed).toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
 
       const message = failedCall[1] as vscode.TestMessage;
@@ -569,7 +569,6 @@ describe('testResultProcessor', () => {
 
       updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
 
       const message = failedCall[1] as vscode.TestMessage;

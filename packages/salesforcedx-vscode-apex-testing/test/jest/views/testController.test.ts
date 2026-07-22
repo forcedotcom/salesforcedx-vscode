@@ -625,17 +625,12 @@ describe('ApexTestController', () => {
           createdItemsMap.set(id, item);
           // Return a proxy that allows setting tags and preserves uri
           return new Proxy(item, {
-            set(target, prop, value) {
+            set: (target, prop, value) => {
               target[prop] = value;
               return true;
             },
-            get(target, prop) {
-              // Ensure uri is always returned correctly
-              if (prop === 'uri') {
-                return target.uri;
-              }
-              return target[prop];
-            }
+            // Ensure uri is always returned correctly
+            get: (target, prop) => (prop === 'uri' ? target.uri : target[prop])
           }) as unknown as vscode.TestItem;
         }
       );
