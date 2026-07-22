@@ -18,7 +18,6 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { continueDebugSession } from '../helpers/debugHelpers';
@@ -38,7 +37,6 @@ test('Debug Anonymous Apex: Debug code lens, Launch with Selected File, and Debu
     await ensureSecondarySideBarHidden(page);
     await ensureOutputPanelOpen(page);
     await createAndOpenApexScript(page, {
-      commandLabel: apexLogNls['apexLog.command.createAnonymousApexScript'] as string,
       name: ANON_APEX_SCRIPT_NAME,
       content: ANON_APEX_CONTENT
     });

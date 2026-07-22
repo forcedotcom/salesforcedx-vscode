@@ -19,12 +19,11 @@ import { QUICK_INPUT_WIDGET } from './locators';
 export const createAndOpenApexScript = async (
   page: Page,
   opts: {
-    commandLabel: string;
     name: string;
     content?: string;
   }
 ): Promise<void> => {
-  await executeCommandWithCommandPalette(page, opts.commandLabel);
+  await executeCommandWithCommandPalette(page, 'SFDX: Create Anonymous Apex Script');
   await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
   await page.keyboard.type(opts.name);
   await page.keyboard.press('Enter');

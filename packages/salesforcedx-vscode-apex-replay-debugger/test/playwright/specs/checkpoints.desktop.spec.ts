@@ -136,7 +136,6 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
     await clearOutputChannel(page);
 
     await createAndOpenApexScript(page, {
-      commandLabel: apexLogNls['apexLog.command.createAnonymousApexScript'] as string,
       name: 'RunCheckpoint',
       content: "new AccountService().createAccount('Acme', '123', 'ACME');"
     });

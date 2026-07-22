@@ -159,7 +159,6 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await clearOutputChannel(page);
 
     await createAndOpenApexScript(page, {
-      commandLabel: apexLogNls['apexLog.command.createAnonymousApexScript'] as string,
       name: 'TestScript'
     });
 

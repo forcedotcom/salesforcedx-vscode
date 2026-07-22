@@ -84,7 +84,6 @@ test('Apex Replay Debugger: nested related-object VARIABLES expand (no [object O
     await clearOutputChannel(page);
 
     await createAndOpenApexScript(page, {
-      commandLabel: apexLogNls['apexLog.command.createAnonymousApexScript'] as string,
       name: 'RunNested',
       content: 'NestedRelExample.build();'
     });
