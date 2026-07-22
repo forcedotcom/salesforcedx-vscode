@@ -7,6 +7,7 @@
 import * as Equal from 'effect/Equal';
 import { dual } from 'effect/Function';
 import * as Hash from 'effect/Hash';
+import { isRecord, isString } from 'effect/Predicate';
 import { URI } from 'vscode-uri';
 
 /**
@@ -25,7 +26,7 @@ export type HashableUri = {
 type UriChange = Parameters<URI['with']>[0];
 
 const hasObjectProp = <K extends string>(u: unknown, key: K): u is Record<K, object> =>
-  u !== null && typeof u === 'object' && key in u && typeof Object(u)[key] === 'object' && Object(u)[key] !== null;
+  isRecord(u) && key in u && isRecord(Object(u)[key]);
 
 /**
  * Structural cross-bundle check: any value with a `uri` field that looks like a URI AND carries
@@ -33,7 +34,7 @@ const hasObjectProp = <K extends string>(u: unknown, key: K): u is Record<K, obj
  * a plain `{uri}` literal would not satisfy `Hash.hash` requirements, so we must reject it here.
  */
 const isHashableUriShape = (u: unknown): u is HashableUri =>
-  hasObjectProp(u, 'uri') && typeof Object(u.uri).scheme === 'string' && typeof Object(u)[Equal.symbol] === 'function';
+  hasObjectProp(u, 'uri') && isString(Object(u.uri).scheme) && typeof Object(u)[Equal.symbol] === 'function';
 
 const fromUri = (uri: URI): HashableUri => {
   // Normalize Windows drive letters to lowercase — VS Code URIs may have /C:/ or /c:/

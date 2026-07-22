@@ -7,6 +7,7 @@
 import { Context } from '@opentelemetry/api';
 import { Span, BatchSpanProcessor, SpanExporter, BufferConfig } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
+import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
@@ -14,14 +15,17 @@ import { getDefaultOrgRef } from '../core/defaultOrgRef';
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(exporter: SpanExporter, options?: BufferConfig) {
+  private readonly shouldEnrich: () => boolean;
+
+  constructor(exporter: SpanExporter, options?: BufferConfig, shouldEnrich: () => boolean = () => true) {
     super(exporter, options);
+    this.shouldEnrich = shouldEnrich;
   }
 
   public onStart(span: Span, parentContext: Context): void {
-    // for top level spans, add additional attributes
-    if (!span.parentSpanContext) {
+    // for top level spans, add additional attributes — skipped when the exporter gate is disabled
+    // (the enrichment would be computed per-span then discarded by the gated exporter)
+    if (!span.parentSpanContext && this.shouldEnrich()) {
       const resourceAttrs = span.resource.attributes;
       const extensionName = resourceAttrs['extension.name'];
       const extensionVersion = resourceAttrs['extension.version'];
@@ -54,10 +58,8 @@ const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unkno
         orgEdition
       }): TelemetryAttribute[] => [
         // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
-        ...(typeof extensionName === 'string' ? [['common.extname', extensionName] satisfies TelemetryAttribute] : []),
-        ...(typeof extensionVersion === 'string'
-          ? [['common.extversion', extensionVersion] satisfies TelemetryAttribute]
-          : []),
+        ...(isString(extensionName) ? [['common.extname', extensionName] satisfies TelemetryAttribute] : []),
+        ...(isString(extensionVersion) ? [['common.extversion', extensionVersion] satisfies TelemetryAttribute] : []),
         ['orgId', orgId],
         ['devHubOrgId', devHubOrgId],
         ['isSandbox', optionalBooleanToString(isSandbox)],
@@ -99,7 +101,7 @@ const getPermanentAttributes = () => {
 
 const memoized = Effect.runSync(Effect.cachedFunction(getPermanentAttributes));
 
-const isNotUndefined = (item: [string, string | undefined]): item is [string, string] => typeof item[1] === 'string';
+const isNotUndefined = (item: [string, string | undefined]): item is [string, string] => isString(item[1]);
 
 const getCPUs = (): string => {
   const cpus = os?.cpus() ?? [];

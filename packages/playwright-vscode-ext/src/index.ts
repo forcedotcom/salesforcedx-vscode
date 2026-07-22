@@ -65,6 +65,7 @@ export {
   NOTIFICATION_LIST_ITEM,
   SETTINGS_SEARCH_INPUT,
   CONTEXT_MENU,
+  EXPLORER_INLINE_INPUT,
   CODELENS_ITEM
 } from './utils/locators';
 
@@ -129,6 +130,7 @@ export {
   clearOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
+  countOutputChannelOptions,
   captureOutputChannelDetails
 } from './pages/outputChannel';
 
@@ -171,6 +173,9 @@ export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureType
 
 // Web
 export { createHeadlessServer, setupSignalHandlers } from './web/createHeadlessServer';
+
+// Apex helpers
+export { createAndOpenApexScript } from './utils/apexScript';
 
 // Config factories
 export { createWebConfig } from './config/createWebConfig';

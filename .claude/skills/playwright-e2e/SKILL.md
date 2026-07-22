@@ -82,6 +82,21 @@ Available local + CI/GHA.
 
 See `.claude/skills/span-file-export/SKILL.md` for enable/OTLP vs file.
 
+## Telemetry inspection (diagnostic tests)
+
+Desktop tests can inspect both telemetry pipelines on-disk for diagnostic/integration testing:
+
+1. **O11y spans** — produced by services Effect pipeline; written to `~/.sf/vscode-spans/*.jsonl` (auto-enabled)
+2. **AppInsights events** — produced by class-based TelemetryFile reporter when `localTelemetryLogging` is enabled; written to `{workspace}/salesforcedx-vscode-core-telemetry.json` (AppInsights shape, real client inert in dev/test)
+
+**Fixture setup:** Enable both pipelines by passing `additionalExtensionDirs: ['salesforcedx-vscode-core']` (for core extension + TelemetryFile reporter) and `userSettings: { 'telemetry.telemetryLevel': 'all', 'salesforcedx-vscode-core.advanced.localTelemetryLogging': 'true' }` to `createDesktopTest`. Launch against a real scratch org (e.g., `orgAlias: MINIMAL_ORG_ALIAS`) so org-identity attributes populate in both pipelines.
+
+**Reading artifacts:**
+- Spans: parse `~/.sf/vscode-spans/*.jsonl` line-by-line with `JSON.parse`
+- AppInsights events: file contains comma-separated pretty JSON objects; wrap in `[]` and strip trailing comma to parse: `JSON.parse(`[${raw.trim().replace(/,\s*$/, '')}]`)`
+
+**Pattern:** Run command, capture artifacts, reload window to flush TelemetryFile buffer (fires deactivationEvent), then assert event/span presence + attributes. See `packages/salesforcedx-vscode-lightning/test/playwright/specs/telemetryOutput.desktop.spec.ts` for example.
+
 ## Checking for Scratch Orgs
 
 If you aren't sure if orgs are set up locally,

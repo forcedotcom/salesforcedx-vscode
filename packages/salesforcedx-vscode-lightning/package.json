@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.4.0",
+  "version": "67.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -38,7 +38,7 @@
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
-    "applicationinsights": "1.0.7",
+    "applicationinsights": "1.8.10",
     "effect": "^3.21.2",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1",
@@ -86,7 +86,7 @@
         "acorn": "^6.0.0",
         "acorn-loose": "^6.0.0",
         "acorn-walk": "^6.0.0",
-        "applicationinsights": "1.0.7",
+        "applicationinsights": "1.8.10",
         "vscode-html-languageservice": "^5.5.1"
       },
       "devDependencies": {},

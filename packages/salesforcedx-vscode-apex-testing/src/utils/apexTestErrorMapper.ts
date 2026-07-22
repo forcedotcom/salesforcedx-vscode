@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isError, isRecord, isString } from 'effect/Predicate';
 import { nls } from '../messages';
 
 /** Common Salesforce API / connection error patterns that should be mapped to user-friendly messages */
@@ -39,17 +40,17 @@ const ORG_UNREACHABLE_PATTERNS = ['http response contains html content', 'status
 
 const getMessageFromObject = (obj: object): string | undefined => {
   const m: unknown = Object.getOwnPropertyDescriptor(obj, 'message')?.value;
-  return typeof m === 'string' ? m : undefined;
+  return isString(m) ? m : undefined;
 };
 
 const getRawMessage = (error: unknown): string => {
-  if (error instanceof Error) {
+  if (isError(error)) {
     return error.message;
   }
-  if (typeof error === 'string') {
+  if (isString(error)) {
     return error;
   }
-  if (error && typeof error === 'object') {
+  if (isRecord(error)) {
     const msg = getMessageFromObject(error);
     if (msg !== undefined) {
       return msg;
@@ -58,14 +59,14 @@ const getRawMessage = (error: unknown): string => {
     const body: unknown = Object.getOwnPropertyDescriptor(error, 'body')?.value;
     if (Array.isArray(body) && body.length > 0) {
       const first: unknown = body[0];
-      if (first !== null && typeof first === 'object') {
+      if (isRecord(first)) {
         const firstMsg = getMessageFromObject(first);
         if (firstMsg !== undefined) {
           return firstMsg;
         }
       }
     }
-    if (body !== null && typeof body === 'object' && !Array.isArray(body)) {
+    if (isRecord(body)) {
       const bodyMsg = getMessageFromObject(body);
       if (bodyMsg !== undefined) {
         return bodyMsg;

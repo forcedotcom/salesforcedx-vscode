@@ -16,6 +16,7 @@
  * local server unreachable.
  */
 import { ExportResultCode, type ExportResult } from '@opentelemetry/core';
+import { isError } from 'effect/Predicate';
 
 /** Matches the private sender shape the Azure exporters call (trace: `sender`, log: `_sender`). */
 export type LocalEnvelopeSender = {
@@ -29,14 +30,16 @@ export const makeLocalEnvelopeSender = (localEndpoint: string): LocalEnvelopeSen
     exportEnvelopes: async (envelopes: unknown[]): Promise<ExportResult> => {
       // eslint-disable-next-line functional/no-try-statements -- network boundary
       try {
-        await fetch(trackUrl, {
+        const res = await fetch(trackUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-json-stream' },
           body: envelopes.map(e => JSON.stringify(e)).join('\n')
         });
-        return { code: ExportResultCode.SUCCESS };
+        return res.ok
+          ? { code: ExportResultCode.SUCCESS }
+          : { code: ExportResultCode.FAILED, error: new Error(`local /v2.1/track responded ${res.status}`) };
       } catch (error) {
-        return { code: ExportResultCode.FAILED, error: error instanceof Error ? error : new Error(String(error)) };
+        return { code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(String(error)) };
       }
     },
     shutdown: () => Promise.resolve()

@@ -5,11 +5,14 @@
     "packages/salesforcedx-aura-language-server/src/tern-server/**",
     "packages/salesforcedx-visualforce-markup-language-server/src/beautify/**",
     "packages/*/**/__tests__/fixtures/**",
+    "packages/salesforcedx-vscode-apex/test/jest/testUtils/recordingTracer.ts",
     ".github/actions/*/lib/**",
     "scripts/validation-utils.js",
     "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/model.ts",
     "packages/salesforcedx-vscode-soql/src/soql-model/model/model.ts",
-    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/error/errorModel.ts"
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/error/errorModel.ts",
+    "packages/salesforcedx-apex/src/utils/fileSystemHandler.ts",
+    "packages/salesforcedx-vscode-org/src/util/orgDisplay.ts"
   ],
   "tags": ["-ExportTaggedError"],
   "workspaces": {

@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ResolvedPackageInfo } from '../../../src/testDiscovery/schemas';
+import type { ResolvedPackageInfo, ToolingTestClass } from '../../../src/testDiscovery/schemas';
+import * as Option from 'effect/Option';
 import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } from '../../../src/constants';
 import {
+  buildNamespacePackageStructure,
   getNamespaceDisplayLabel,
   getPackageKeysOrdered,
   getPackageLabelAndId,
@@ -16,8 +18,14 @@ import {
 
 const makeClassEntry = (id?: string) => ({
   fullClassName: 'TestClass',
-  entries: [{ id, name: 'TestClass', namespacePrefix: '' }] as any
+  entries: [{ id: Option.fromNullable(id), name: 'TestClass', namespacePrefix: Option.none() }] as any
 });
+
+const domainClass = (
+  name: string,
+  namespacePrefix: Option.Option<string>,
+  id: Option.Option<string> = Option.none()
+): ToolingTestClass => ({ id, name, namespacePrefix, testMethods: [{ name: 'testOne' }] });
 
 describe('sortNamespaceKeys', () => {
   it('places local namespace first when it is the only key', () => {
@@ -94,7 +102,7 @@ describe('getPackageLabelAndId', () => {
 
   it('returns unlocked package label with suffix', () => {
     const classIdToPackage = new Map<string, ResolvedPackageInfo>([
-      ['cls1', { package2Id: '0Ho1', packageName: 'MyPkg', namespacePrefix: null, containerOptions: 'Unlocked' }]
+      ['cls1', { package2Id: '0Ho1', packageName: 'MyPkg', containerOptions: Option.some('Unlocked') }]
     ]);
     const result = getPackageLabelAndId('local', 'myPkgKey', [makeClassEntry('cls1')] as any, classIdToPackage);
     expect(result.packageLabel).toBe('MyPkg (Unlocked)');
@@ -102,10 +110,7 @@ describe('getPackageLabelAndId', () => {
 
   it('returns managed package label with suffix', () => {
     const classIdToPackage = new Map<string, ResolvedPackageInfo>([
-      [
-        'cls1',
-        { package2Id: '0Ho2', packageName: 'CRM Analytics', namespacePrefix: 'wave', containerOptions: 'Managed' }
-      ]
+      ['cls1', { package2Id: '0Ho2', packageName: 'CRM Analytics', containerOptions: Option.some('Managed') }]
     ]);
     const result = getPackageLabelAndId('wave', 'pkgKey', [makeClassEntry('cls1')] as any, classIdToPackage);
     expect(result.packageLabel).toBe('CRM Analytics (Managed Package)');
@@ -113,7 +118,7 @@ describe('getPackageLabelAndId', () => {
 
   it('falls back to baseName with no suffix when containerOptions is absent', () => {
     const classIdToPackage = new Map<string, ResolvedPackageInfo>([
-      ['cls1', { package2Id: '0Ho3', packageName: 'SomePkg', namespacePrefix: null }]
+      ['cls1', { package2Id: '0Ho3', packageName: 'SomePkg', containerOptions: Option.none() }]
     ]);
     const result = getPackageLabelAndId('ns', 'key', [makeClassEntry('cls1')] as any, classIdToPackage);
     expect(result.packageLabel).toBe('SomePkg');
@@ -122,6 +127,20 @@ describe('getPackageLabelAndId', () => {
   it('falls back to pkgKey when class has no ID', () => {
     const result = getPackageLabelAndId('ns', 'fallbackKey', [makeClassEntry(undefined)] as any, new Map());
     expect(result.packageLabel).toBe('fallbackKey');
+  });
+});
+
+describe('buildNamespacePackageStructure', () => {
+  it('groups a Flow class under its FlowTesting namespace key and an Apex default-ns class under LOCAL_NAMESPACE_KEY', () => {
+    const flowClass = domainClass('FlowTest', Option.some('FlowTesting'));
+    const apexClass = domainClass('ApexTest', Option.none());
+    const structure = buildNamespacePackageStructure([flowClass, apexClass], new Map());
+
+    expect([...structure.keys()].toSorted()).toEqual(['FlowTesting', LOCAL_NAMESPACE_KEY].toSorted());
+    const flowGroup = structure.get('FlowTesting');
+    const localGroup = structure.get(LOCAL_NAMESPACE_KEY);
+    expect(flowGroup && [...flowGroup.values()].flat().map(e => e.fullClassName)).toEqual(['FlowTesting.FlowTest']);
+    expect(localGroup && [...localGroup.values()].flat().map(e => e.fullClassName)).toEqual(['ApexTest']);
   });
 });
 

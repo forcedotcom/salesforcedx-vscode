@@ -93,5 +93,10 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   '.code-builder-environment-ready', // CB env-ready marker write to unmounted /projects
   'MCP server', // Agentforce MCP client can't connect to its backend in a bare container
   'Failed to list toolsets', // paired MCP toolset enumeration failure
-  'Failed to connect with SSE transport' // MCP SSE/HTTP transport fallback failure (405)
+  'Failed to connect with SSE transport', // MCP SSE/HTTP transport fallback failure (405)
+  // VS Code 1.129+ bundled vscode.mermaid-markdown-features uses the chatParticipantPrivate
+  // proposed API without it being enabled; the extension logs this on boot. Unrelated to our
+  // extensions — https://github.com/forcedotcom/salesforcedx-vscode/pull/7774
+  'chatParticipantPrivate',
+  'renderMermaidDiagram' // bundled vscode.mermaid-markdown-features tool not contributed w/o chat proposed API (same cause as above)
 ] as const;

@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isError, isString } from 'effect/Predicate';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import { getCoreChannelService } from '../channels';
 import { nls } from '../messages';
 
 type XMLExtensionApi = {
@@ -79,6 +80,7 @@ export class MetadataXmlSupport {
     inputFileAssociations: Parameters<XMLExtensionApi['addXMLFileAssociations']>[0],
     redHatExtension: vscode.Extension<XMLExtensionApi>
   ): Promise<void> {
+    const channel = getCoreChannelService();
     try {
       if (!redHatExtension.isActive) {
         await redHatExtension.activate();
@@ -97,14 +99,14 @@ export class MetadataXmlSupport {
       const updatedVmArgs = ensureMinXmlHeap(vmArgsInspect?.globalValue);
       if (updatedVmArgs !== undefined) {
         await config.update('server.vmargs', updatedVmArgs, vscode.ConfigurationTarget.Global);
-        channelService.appendLine(nls.localize('metadata_xml_vmargs_configured'));
+        channel.appendLine(nls.localize('metadata_xml_vmargs_configured'));
       }
 
-      channelService.appendLine(nls.localize('metadata_xml_redhat_extension_setup_success'));
+      channel.appendLine(nls.localize('metadata_xml_redhat_extension_setup_success'));
     } catch (error) {
-      channelService.appendLine(nls.localize('metadata_xml_fail_redhat_extension'));
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      channelService.appendLine(errorMsg);
+      channel.appendLine(nls.localize('metadata_xml_fail_redhat_extension'));
+      const errorMsg = isError(error) ? error.message : String(error);
+      channel.appendLine(errorMsg);
     }
   }
 
@@ -112,17 +114,18 @@ export class MetadataXmlSupport {
    * Initialize metadata XML support by configuring RedHat XML extension
    */
   public async initializeMetadataSupport(extensionContext: vscode.ExtensionContext): Promise<void> {
+    const channel = getCoreChannelService();
     const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
 
     if (!redHatExtension) {
-      channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
+      channel.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
       return;
     }
 
     const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
-    if (typeof pluginVersionNumber !== 'string') {
-      channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
+    if (!isString(pluginVersionNumber)) {
+      channel.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
       return;
     }
 
@@ -141,9 +144,9 @@ export class MetadataXmlSupport {
 
       await this.setupRedhatXml(catalogs, fileAssociations, redHatExtension);
     } else if (minor === 15) {
-      channelService.appendLine(nls.localize('metadata_xml_redhat_extension_regression'));
+      channel.appendLine(nls.localize('metadata_xml_redhat_extension_regression'));
     } else {
-      channelService.appendLine(nls.localize('metadata_xml_deprecated_redhat_extension'));
+      channel.appendLine(nls.localize('metadata_xml_deprecated_redhat_extension'));
     }
   }
 }

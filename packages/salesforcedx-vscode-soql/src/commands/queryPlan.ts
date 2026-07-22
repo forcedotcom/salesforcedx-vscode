@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Column, createTable, getServicesApi, Row } from '@salesforce/effect-ext-utils';
+import * as Cause from 'effect/Cause';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -82,9 +83,7 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
     yield* channelService.clearChannel;
   }
 
-  const vscChannel = yield* channelService.getChannel;
-
-  try {
+  yield* Effect.gen(function* () {
     const connection = yield* servicesApi.services.ConnectionService.getConnection();
     yield* channelService.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')));
 
@@ -96,27 +95,24 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
     );
     yield* channelService.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);
     yield* channelService.appendToChannel(nls.localize('query_plan_complete'));
-  } catch (error) {
-    yield* channelService.appendToChannel(formatErrorMessage(error));
-  } finally {
-    vscChannel.show();
-  }
+  }).pipe(
+    Effect.catchAllCause(cause => channelService.appendToChannel(formatErrorMessage(Cause.squash(cause)))),
+    Effect.ensuring(channelService.showChannel)
+  );
 });
 
 export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
   const servicesApi = yield* getServicesApi;
-  yield* servicesApi.services.ProjectService.isSalesforceProject().pipe(
-    Effect.flatMap(isProject => (isProject ? Effect.void : Effect.fail(new Error('No Salesforce project found'))))
-  );
+  // precondition: fails with FailedToResolveSfProjectError when there's no project
+  yield* servicesApi.services.ProjectService.getSfProject();
   const inputs = yield* getQueryInputsForPlan();
   yield* executeQueryPlan(inputs);
 });
 
 export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
   const servicesApi = yield* getServicesApi;
-  yield* servicesApi.services.ProjectService.isSalesforceProject().pipe(
-    Effect.flatMap(isProject => (isProject ? Effect.void : Effect.fail(new Error('No Salesforce project found'))))
-  );
+  // precondition: fails with FailedToResolveSfProjectError when there's no project
+  yield* servicesApi.services.ProjectService.getSfProject();
   const inputs = yield* getDocumentQueryInputsForPlan();
   yield* executeQueryPlan(inputs);
 });

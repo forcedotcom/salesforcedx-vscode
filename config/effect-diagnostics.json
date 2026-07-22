@@ -1,0 +1,11 @@
+{
+  "$comment": "Effect LS diagnostics ratchet. scripts/effect-diagnostics.mjs fails the build only on findings whose rule name is listed in enforcedRules (any severity). Sibling WIs append a rule name here after fixing all its sites. Empty list = nothing enforced (exit 0).",
+  "enforcedRules": [
+    "lazyPromiseInEffectSync",
+    "runEffectInsideEffect",
+    "globalErrorInEffectFailure",
+    "globalErrorInEffectCatch",
+    "catchUnfailableEffect",
+    "tryCatchInEffectGen"
+  ]
+}

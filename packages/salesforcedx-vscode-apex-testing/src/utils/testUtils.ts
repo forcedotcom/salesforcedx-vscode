@@ -5,50 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
-import { discoverTests } from '../testDiscovery/testDiscovery';
-import { ApexTestMethod } from '../views/lspConverter';
-import { getFullClassName } from './toolingTestClassHelpers';
 
-/**
- * Checks if a ToolingTestClass has a non-empty namespace prefix
- */
-const hasNamespace = (cls: ToolingTestClass): boolean => (cls.namespacePrefix?.trim() ?? '') !== '';
-
-/**
- * Fetch tests from the Tooling API Test Discovery endpoint
- */
-const fetchFromApi = async (options?: {
-  namespacePrefix?: string;
-}): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
-  const start = Date.now();
-  // Effect.withSpan handles telemetry automatically
-  const result = await getApexTestingRuntime().runPromise(discoverTests({ namespacePrefix: options?.namespacePrefix }));
-  const tests = await convertApiToApexTestMethods(result.classes ?? []);
-  const durationMs = Date.now() - start;
-  return { tests, durationMs };
-};
-
-/**
- * Returns Apex tests using the Tooling API Test Discovery endpoint.
- * Also emits timing metrics and telemetry.
- */
-export const getApexTests = async (): Promise<ApexTestMethod[]> => {
-  // Always use API discovery
-  const selected = await fetchFromApi();
-  return selected.tests;
-};
-
-/**
- * Recursively search for a method in document symbols.
- * Returns the location of the method if found, undefined otherwise.
- */
 /**
  * Extract the method name from a symbol name that may include return type and parentheses.
  * Examples:
@@ -94,29 +57,23 @@ export const getMethodLocationsFromSymbols = async (
   uri: URI,
   methodNames: string[]
 ): Promise<Map<string, vscode.Location> | undefined> => {
-  let documentSymbols: vscode.DocumentSymbol[] | undefined;
-  try {
-    // Ensure the document is accessible - try to open it if needed
-    let document = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === uri.toString());
-    if (!document) {
-      // Document might not be open, try to open it
-      try {
-        document = await vscode.workspace.openTextDocument(uri);
-      } catch {
-        // If we can't open the document, document symbols won't be available
-        return undefined;
-      }
-    }
-
-    const symbolResult = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
-      'vscode.executeDocumentSymbolProvider',
-      uri
+  // Ensure the document is accessible - try to open it if needed
+  const isDocumentOpen = vscode.workspace.textDocuments.some(doc => doc.uri.toString() === uri.toString());
+  if (!isDocumentOpen) {
+    // Document might not be open, try to open it. If we can't, document symbols won't be available.
+    const opened = await vscode.workspace.openTextDocument(uri).then(
+      () => true,
+      () => false
     );
-    documentSymbols = symbolResult;
-  } catch {
-    // If document symbols are not available, return undefined
-    return undefined;
+    if (!opened) {
+      return undefined;
+    }
   }
+
+  const documentSymbols = await vscode.commands
+    .executeCommand<vscode.DocumentSymbol[]>('vscode.executeDocumentSymbolProvider', uri)
+    // If document symbols are not available, return undefined
+    .then(undefined, () => undefined);
 
   if (!documentSymbols || documentSymbols.length === 0) {
     return undefined;
@@ -135,67 +92,6 @@ export const getMethodLocationsFromSymbols = async (
   // If we found at least one method, return the map (even if some methods weren't found)
   // This allows partial success rather than complete failure
   return methodLocationMap.size > 0 ? methodLocationMap : undefined;
-};
-
-/**
- * Convert API test discovery results to ApexTestMethod format with file locations.
- * Uses document symbols from the Language Server to get precise method positions.
- * Falls back to (0,0) if document symbols are not available.
- */
-const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise<ApexTestMethod[]> => {
-  // Extract class names from discovery results to drive file lookup
-  const nonNamespaceClassesWithTestMethods = classes
-    .filter(cls => cls.testMethods?.length > 0)
-    .filter(cls => !hasNamespace(cls));
-  const classNameToUri = await buildClassToUriIndex(nonNamespaceClassesWithTestMethods.map(cls => cls.name));
-  const apiByClassName = Map.groupBy(nonNamespaceClassesWithTestMethods, cls => cls.name);
-
-  const tests: ApexTestMethod[] = [];
-  for (const [className, uri] of classNameToUri) {
-    const apiEntries = apiByClassName.get(className);
-    if (!apiEntries) continue;
-
-    // Collect all method names for this class
-    const methodNames = new Set<string>();
-    for (const entry of apiEntries) {
-      for (const testMethod of entry.testMethods ?? []) {
-        methodNames.add(testMethod.name);
-      }
-    }
-
-    // Get method locations from document symbols only
-    const methodLocationMap = await getMethodLocationsFromSymbols(uri, Array.from(methodNames));
-    const symbolsFound = methodLocationMap?.size ?? 0;
-    const totalMethods = methodNames.size;
-
-    // Log only if document symbols failed completely
-    if (symbolsFound === 0 && totalMethods > 0) {
-      console.log(`[TEST LOCATION] ${className}: Document symbols failed - found 0 of ${totalMethods} methods`);
-    }
-
-    // Use (0,0) as default for methods not found in document symbols
-    const defaultLocation = new vscode.Location(
-      uri,
-      new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0))
-    );
-
-    const emitted = new Set<string>();
-    for (const entry of apiEntries) {
-      const definingType = getFullClassName(entry);
-      for (const testMethod of entry.testMethods ?? []) {
-        if (emitted.has(testMethod.name)) continue;
-        const location = methodLocationMap?.get(testMethod.name) ?? defaultLocation;
-
-        tests.push({
-          methodName: testMethod.name,
-          definingType,
-          location
-        });
-        emitted.add(testMethod.name);
-      }
-    }
-  }
-  return tests;
 };
 
 /** Build an index of class baseName -> file URI using ComponentSet (works on web and desktop) */
@@ -238,10 +134,9 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
       return index;
     }).pipe(
       Effect.withSpan('buildClassToUriIndex', { attributes: { classCount: classNames.length } }),
-      Effect.catchAll(error => {
-        console.error('[Apex Testing] Error building class to URI index:', error);
-        return Effect.succeed(new Map<string, URI>());
-      })
+      Effect.catchAll(error =>
+        Effect.logError('Error building class to URI index', { error }).pipe(Effect.as(new Map<string, URI>()))
+      )
     )
   );
 };

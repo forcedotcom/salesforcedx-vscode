@@ -8,8 +8,9 @@ import type { SdkLayerConfig } from './sdkLayerConfig';
 import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
-import { isTelemetryExtensionConfigurationEnabled } from './appInsights';
+import { isProductionTelemetryExportEnabled } from './appInsights';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
+import { GatedSpanExporter } from './gatedSpanExporter';
 import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
@@ -30,11 +31,28 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
     },
     spanProcessor: [
       ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor(new ConsoleSpanExporter())] : []),
-      ...(isTelemetryExtensionConfigurationEnabled()
-        ? [new SpanTransformProcessor(new ApplicationInsightsWebExporter())]
-        : []),
-      ...(o11yEndpoint && (o11yEndpoint.includes('localhost') || isTelemetryExtensionConfigurationEnabled())
-        ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId))]
+      // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export (mid-session toggle)
+      new SpanTransformProcessor(
+        new GatedSpanExporter(
+          () => new ApplicationInsightsWebExporter(),
+          () => isProductionTelemetryExportEnabled()
+        ),
+        undefined,
+        // skip per-span attribute enrichment when the gate is disabled (attrs would be discarded)
+        () => isProductionTelemetryExportEnabled()
+      ),
+      // O11y processor present whenever an endpoint is configured; gate (localhost bypass + telemetry setting) lives in the wrapper
+      ...(o11yEndpoint
+        ? [
+            new SpanTransformProcessor(
+              new GatedSpanExporter(
+                () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId),
+                () => isProductionTelemetryExportEnabled(o11yEndpoint)
+              ),
+              undefined,
+              () => isProductionTelemetryExportEnabled(o11yEndpoint)
+            )
+          ]
         : []),
       ...(getLocalTracesEnabled() ? [new SpanTransformProcessor(new OTLPTraceExporter())] : []),
       ...(getFileTracesEnabled() ? [new SpanTransformProcessor(new OtlpFileSpanExporterWeb())] : [])

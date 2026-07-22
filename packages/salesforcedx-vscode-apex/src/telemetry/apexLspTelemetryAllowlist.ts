@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isString } from 'effect/Predicate';
+
 /**
  * 1:1 with Jorje `new TelemetryData("…")` feature names in apex-jorje-lsp (main sources, not tests).
  * When Jorje adds or renames a feature, update {@link JORJE_LSP_TELEMETRY_FEATURES_FROM_SOURCE} and
@@ -118,5 +120,5 @@ export const ALLOWED_APEX_LSP_TELEMETRY_FEATURES: ReadonlySet<string> = new Set(
 
 export const isApexLspTelemetryAllowed = (properties: Record<string, string> | undefined): boolean => {
   const feature = properties?.Feature;
-  return typeof feature === 'string' && ALLOWED_APEX_LSP_TELEMETRY_FEATURES.has(feature);
+  return isString(feature) && ALLOWED_APEX_LSP_TELEMETRY_FEATURES.has(feature);
 };

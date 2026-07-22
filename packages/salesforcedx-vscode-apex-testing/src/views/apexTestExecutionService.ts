@@ -12,8 +12,8 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
+import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
-import * as settings from '../settings';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
@@ -33,27 +33,25 @@ import {
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
 import { readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
-import { ApexTestTreeService } from './apexTestTreeService';
+import { ApexTestTreeService, type TreeMutationContext } from './apexTestTreeService';
 
 const TEST_RESULT_JSON_FILE = 'test-result.json';
 
 /** How the run profile constrains an implicit "run all" (no explicit test selection). */
 export type ApexTestRunScope = 'workspace-first' | 'all-org' | 'stale-workspace' | 'stale-org';
 
-/** Per-invocation runtime data (params, not service deps). Tree maps come from ApexTestTreeService accessors. */
+/** Per-invocation runtime data (params, not service deps). Tree maps + suiteToClasses come from
+ * ApexTestTreeService accessors; suite resolution delegates to ApexTestTreeService.resolveSuiteChildren.
+ * Connection/TestService are no longer threaded in: methods acquire the connection on demand via
+ * ConnectionService.getConnection() (cached) + `new TestService(conn)`. */
 export type ExecutionContext = {
   controller: vscode.TestController;
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
-  ensureInitialized: () => Promise<void>;
-  getTestService: () => TestService;
-  resolveSuiteChildren: (suiteItem: vscode.TestItem) => Promise<void>;
-  getSuiteToClasses: () => Map<string, Set<string>>;
 };
 
 /** Params for executeTests (run the resolved tests, write + claim the result, push into the live run). */
 type ExecuteTestsParams = {
-  ctx: ExecutionContext;
   testNames: string[];
   outputDir: URI;
   codeCoverage: boolean;
@@ -126,26 +124,26 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       testResultUri: URI
     ) {
       const resultContent = yield* readTestResult(testResultUri);
-      const [methodItems, classItems] = yield* Effect.all([
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const settings = yield* api.services.SettingsService;
+      const [methodItems, classItems, codeCoverage, concise] = yield* Effect.all([
         ApexTestTreeService.getMethodItems(),
-        ApexTestTreeService.getClassItems()
+        ApexTestTreeService.getClassItems(),
+        settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false),
+        settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)
       ]);
-      yield* Effect.sync(() => {
-        const run = ctx.controller.createTestRun(new vscode.TestRunRequest());
-        try {
-          updateTestRunResults({
-            result: resultContent,
-            run,
-            testsToRun: [],
-            methodItems,
-            classItems,
-            codeCoverage: settings.retrieveTestCodeCoverage(),
-            concise: settings.retrieveTestRunConcise()
-          });
-        } finally {
-          run.end();
-        }
-      });
+      const run = yield* Effect.sync(() => ctx.controller.createTestRun(new vscode.TestRunRequest()));
+      yield* Effect.sync(() =>
+        updateTestRunResults({
+          result: resultContent,
+          run,
+          testsToRun: [],
+          methodItems,
+          classItems,
+          codeCoverage: codeCoverage ?? false,
+          concise: concise ?? false
+        })
+      ).pipe(Effect.ensuring(Effect.sync(() => run.end())));
     });
 
     /**
@@ -184,7 +182,6 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
      * sentinel on success so e2e can gate run completion (run path only; debug emits no sentinel).
      */
     const executeTests = Effect.fn('ApexTestExecutionService.executeTests')(function* ({
-      ctx,
       testNames,
       outputDir,
       codeCoverage,
@@ -193,12 +190,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       testsToRun,
       runAllTestsInOrg
     }: ExecuteTestsParams) {
-      yield* Effect.tryPromise({
-        try: () => ctx.ensureInitialized(),
-        catch: e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) })
-      });
-
-      const testService = ctx.getTestService();
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const connection = yield* api.services.ConnectionService.getConnection().pipe(
+        Effect.mapError(e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) }))
+      );
+      const testService = new TestService(connection);
       const { payload, hasSuite, hasClass } = runAllTestsInOrg
         ? {
             payload: { testLevel: TestLevel.RunAllTestsInOrg, skipCodeCoverage: !codeCoverage },
@@ -238,7 +234,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       // Run-All group to "older results"; see W-… history in the shell). Non-fatal: a write failure logs
       // and the run continues (report + result push still happen), matching the legacy console.error path.
       yield* writeTestResultJsonFile(result, outputDir, codeCoverage).pipe(
-        Effect.catchAll(error => Effect.logError('Failed to write JSON test result file', { error }))
+        Effect.catchTag('FsServiceError', error => Effect.logError('Failed to write JSON test result file', { error }))
       );
       const writtenResultFilename = result.summary?.testRunId
         ? `test-result-${result.summary.testRunId}.json`
@@ -246,8 +242,16 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       yield* Ref.set(lastProcessedResultFile, Option.some(Utils.joinPath(outputDir, writtenResultFilename)));
 
       // Generate and open the report (non-fatal: log + continue on failure).
-      const outputFormat = settings.retrieveOutputFormat();
-      const sortOrder = settings.retrieveTestSortOrder();
+      const reportSettings = yield* api.services.SettingsService;
+      const outputFormat =
+        (yield* reportSettings.getValue<'markdown' | 'text'>(APEX_TESTING_SECTION, 'outputFormat', 'markdown')) ??
+        'markdown';
+      const sortOrder =
+        (yield* reportSettings.getValue<'runtime' | 'coverage' | 'severity'>(
+          APEX_TESTING_SECTION,
+          'testSortOrder',
+          'runtime'
+        )) ?? 'runtime';
       yield* writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder).pipe(
         Effect.tap(() => Effect.annotateCurrentSpan({ outputFormat, trigger: 'testExplorer' })),
         Effect.withSpan('apexTestReportGenerated'),
@@ -258,7 +262,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
 
       // Clear stale indicators and apply active tags BEFORE updating results: VS Code snapshots
       // item.description when run.passed() is called.
-      yield* ApexTestTreeService.clearStaleTags(testsToRun, ctx.getSuiteToClasses());
+      yield* ApexTestTreeService.clearStaleTags(testsToRun);
 
       const [methodItems, classItems] = yield* Effect.all([
         ApexTestTreeService.getMethodItems(),
@@ -284,7 +288,6 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       }
       // Sentinel (run path only): e2e gates run completion on `Ended SFDX: Run Apex Tests`. Uses the
       // ambient 'Apex Testing' ChannelService (api.services), same channel the run-command files emit to.
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const channelService = yield* api.services.ChannelService;
       yield* channelService.appendToChannel(`Ended ${executionName}`);
     });
@@ -319,7 +322,8 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         const methodsToDebug = new Map<string, Set<string>>();
 
         for (const test of testsToDebug) {
-          try {
+          // .catch keeps the per-item recovery without a try statement (the lint rule bans `try`, not `.catch`).
+          const debugItem = async (): Promise<void> => {
             if (isMethod(test.id)) {
               const testName = getTestName(test);
               const className = extractClassName(test.id);
@@ -335,29 +339,30 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
             } else if (isSuite(test.id)) {
               run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')));
             }
-          } catch (error) {
+          };
+          await debugItem().catch(error => {
             const friendlyMessage = toUserFriendlyApexTestError(error);
             run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
-          }
+          });
         }
 
         for (const className of classIdsToDebug) {
-          try {
-            await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
-          } catch (error) {
-            const friendlyMessage = toUserFriendlyApexTestError(error);
-            for (const test of testsToDebug) {
-              if (
-                (isClass(test.id) && getTestName(test) === className) ||
-                (isMethod(test.id) && extractClassName(test.id) === className)
-              ) {
-                run.errored(
-                  test,
-                  new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage))
-                );
+          await Promise.resolve(vscode.commands.executeCommand('sf.test.view.debugTests', { name: className })).catch(
+            error => {
+              const friendlyMessage = toUserFriendlyApexTestError(error);
+              for (const test of testsToDebug) {
+                if (
+                  (isClass(test.id) && getTestName(test) === className) ||
+                  (isMethod(test.id) && extractClassName(test.id) === className)
+                ) {
+                  run.errored(
+                    test,
+                    new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage))
+                  );
+                }
               }
             }
-          }
+          );
         }
 
         for (const [className, methods] of methodsToDebug) {
@@ -366,9 +371,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
             continue;
           }
           for (const methodName of methods) {
-            try {
-              await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: methodName });
-            } catch (error) {
+            await Promise.resolve(
+              vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: methodName })
+            ).catch(error => {
               const friendlyMessage = toUserFriendlyApexTestError(error);
               for (const test of testsToDebug) {
                 if (isMethod(test.id) && extractClassName(test.id) === className && getTestName(test) === methodName) {
@@ -378,7 +383,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
                   );
                 }
               }
-            }
+            });
           }
         }
       });
@@ -434,11 +439,13 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         } else {
           const testNames = finalTests.map(test => getTestName(test));
           const tmpFolder = yield* getTempFolder();
-          const codeCoverage = settings.retrieveTestCodeCoverage();
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          const settings = yield* api.services.SettingsService;
+          const codeCoverage =
+            (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
           const runAllTestsInOrg =
             runScope === 'all-org' && isImplicitFullRun && (!request.exclude || request.exclude.length === 0);
           yield* executeTests({
-            ctx,
             testNames,
             outputDir: tmpFolder,
             codeCoverage,
@@ -465,40 +472,48 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
     ) {
       const suiteItems = yield* ApexTestTreeService.getSuiteItems();
       const methodItems = yield* ApexTestTreeService.getMethodItems();
-      const suiteToClasses = ctx.getSuiteToClasses();
+      // Live Ref-backed Map: resolveSuiteChildren mutates it in place, so this snapshot stays current.
+      const suiteToClasses = yield* ApexTestTreeService.getSuiteToClasses();
       const run = yield* Effect.sync(() => ctx.controller.createTestRun(request));
 
       yield* cacheSingleSelection(request, isDebug);
 
-      let testsToRun = gatherTests(request, ctx.controller.items, suiteItems);
+      const gatheredTests = gatherTests(request, ctx.controller.items, suiteItems);
 
       // Implicit full run (no explicit selection): restrict to in-workspace tests for the default profiles.
       const isImplicitFullRun = !request.include?.length;
       const inWorkspaceTag = ctx.inWorkspaceTag;
-      if (runScope === 'workspace-first' && isImplicitFullRun && inWorkspaceTag) {
-        testsToRun = testsToRun.filter(test => test.tags?.includes(inWorkspaceTag));
-      }
+      const workspaceScopedTests =
+        runScope === 'workspace-first' && isImplicitFullRun && inWorkspaceTag
+          ? gatheredTests.filter(test => test.tags?.includes(inWorkspaceTag))
+          : gatheredTests;
 
       // Stale profiles: expand all items to methods, keep only those with stale + matching location tag.
-      if (runScope === 'stale-workspace' || runScope === 'stale-org') {
-        const requiredLocationTag = runScope === 'stale-workspace' ? 'in-workspace' : 'org-only';
-        testsToRun = narrowToStaleMethods(testsToRun, methodItems, suiteToClasses, requiredLocationTag);
-      }
+      const staleScopedTests =
+        runScope === 'stale-workspace' || runScope === 'stale-org'
+          ? narrowToStaleMethods(
+              workspaceScopedTests,
+              methodItems,
+              suiteToClasses,
+              runScope === 'stale-workspace' ? 'in-workspace' : 'org-only'
+            )
+          : workspaceScopedTests;
 
       // Resolve any suite in testsToRun so we have class data (for empty-suite check and expansion).
-      yield* resolveUnloadedSuites(testsToRun, ctx);
+      yield* resolveUnloadedSuites(staleScopedTests, ctx);
 
       // Expand suites to their methods when running all tests (so multiple suites can run via method names).
-      if (!request.include || request.include.length === 0) {
-        const classItems = yield* ApexTestTreeService.getClassItems();
-        testsToRun = yield* expandSuitesToMethods(testsToRun, ctx, suiteToClasses, classItems);
-      }
+      const expandedTests = isImplicitFullRun
+        ? yield* ApexTestTreeService.getClassItems().pipe(
+            Effect.flatMap(classItems => expandSuitesToMethods(staleScopedTests, ctx, suiteToClasses, classItems))
+          )
+        : staleScopedTests;
 
       // Suite expansion pulls methods from live class items and can reintroduce filter-hidden tests.
-      testsToRun = filterTestItemsByRequestExclude(testsToRun, request.exclude);
+      const nonExcludedTests = filterTestItemsByRequestExclude(expandedTests, request.exclude);
 
       // Check for empty test suites and surface a clear error.
-      const emptySuiteItems = testsToRun.filter(
+      const emptySuiteItems = nonExcludedTests.filter(
         test => isSuite(test.id) && (suiteToClasses.get(extractSuiteName(test.id) ?? '')?.size ?? 0) === 0
       );
       if (emptySuiteItems.length > 0) {
@@ -511,15 +526,16 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
             nls.localize('apex_test_suite_empty_message_notification', emptySuiteNames.join(', '))
           );
         });
-        testsToRun = testsToRun.filter(test => !emptySuiteItems.includes(test));
       }
 
-      if (testsToRun.length === 0) {
+      // Drop the empty suites flagged above (no-op when none were found).
+      const finalTests = nonExcludedTests.filter(test => !emptySuiteItems.includes(test));
+
+      if (finalTests.length === 0) {
         yield* Effect.sync(() => run.end());
         return;
       }
 
-      const finalTests = testsToRun;
       yield* Effect.sync(() => {
         for (const test of finalTests) {
           run.started(test);
@@ -609,48 +625,70 @@ const narrowToStaleMethods = (
   return staleMethods;
 };
 
+/** TreeMutationContext for suite resolution (controller + tags; no staleTag needed). */
+const toTreeMutationContext = (ctx: ExecutionContext): TreeMutationContext => ({
+  controller: ctx.controller,
+  orgOnlyTag: ctx.orgOnlyTag,
+  inWorkspaceTag: ctx.inWorkspaceTag,
+  staleTag: undefined
+});
+
+/** Resolve one suite via the tree service, logging (non-fatal) any ResolveSuiteChildrenError so a failed
+ * suite passes through unresolved rather than failing the whole run (the empty-suite check handles it). */
+const resolveSuiteChildrenBestEffort = Effect.fn('ApexTestExecutionService.resolveSuiteChildrenBestEffort')(function* (
+  ctx: ExecutionContext,
+  test: vscode.TestItem
+) {
+  yield* ApexTestTreeService.resolveSuiteChildren(toTreeMutationContext(ctx), test).pipe(
+    Effect.catchTag('ResolveSuiteChildrenError', error =>
+      Effect.logWarning('Failed to resolve suite children (non-fatal)', { error })
+    )
+  );
+});
+
 /** Resolve any suite in the list whose children haven't been loaded yet (needed for empty-suite + expansion). */
-const resolveUnloadedSuites = (testsToRun: vscode.TestItem[], ctx: ExecutionContext) =>
-  Effect.promise(async () => {
-    for (const test of testsToRun) {
-      if (isSuite(test.id) && extractSuiteName(test.id) && test.children.size === 0) {
-        await ctx.resolveSuiteChildren(test);
-      }
+const resolveUnloadedSuites = Effect.fn('ApexTestExecutionService.resolveUnloadedSuites')(function* (
+  testsToRun: vscode.TestItem[],
+  ctx: ExecutionContext
+) {
+  for (const test of testsToRun) {
+    if (isSuite(test.id) && extractSuiteName(test.id) && test.children.size === 0) {
+      yield* resolveSuiteChildrenBestEffort(ctx, test);
     }
-  });
+  }
+});
 
 /**
  * Expand suites to their member methods (implicit full run only) so multiple suites can run via method
  * names. Non-suite items and unresolvable suites pass through unchanged.
  */
-const expandSuitesToMethods = (
+const expandSuitesToMethods = Effect.fn('ApexTestExecutionService.expandSuitesToMethods')(function* (
   testsToRun: vscode.TestItem[],
   ctx: ExecutionContext,
   suiteToClasses: Map<string, Set<string>>,
   classItems: Map<string, vscode.TestItem>
-) =>
-  Effect.promise(async () => {
-    const expanded: vscode.TestItem[] = [];
-    for (const test of testsToRun) {
-      const suiteName = isSuite(test.id) ? extractSuiteName(test.id) : undefined;
-      if (!suiteName) {
-        expanded.push(test);
-        continue;
-      }
-      if (test.children.size === 0) {
-        await ctx.resolveSuiteChildren(test);
-      }
-      const classNames = suiteToClasses.get(suiteName);
-      if (classNames && classNames.size > 0) {
-        for (const className of classNames) {
-          const classItem = classItems.get(className);
-          if (classItem) {
-            expanded.push(...Array.from(classItem.children, ([, item]) => item));
-          }
-        }
-      } else {
-        expanded.push(test);
-      }
+) {
+  const expanded: vscode.TestItem[] = [];
+  for (const test of testsToRun) {
+    const suiteName = isSuite(test.id) ? extractSuiteName(test.id) : undefined;
+    if (!suiteName) {
+      expanded.push(test);
+      continue;
     }
-    return expanded;
-  });
+    if (test.children.size === 0) {
+      yield* resolveSuiteChildrenBestEffort(ctx, test);
+    }
+    const classNames = suiteToClasses.get(suiteName);
+    if (classNames && classNames.size > 0) {
+      for (const className of classNames) {
+        const classItem = classItems.get(className);
+        if (classItem) {
+          expanded.push(...Array.from(classItem.children, ([, item]) => item));
+        }
+      }
+    } else {
+      expanded.push(test);
+    }
+  }
+  return expanded;
+});

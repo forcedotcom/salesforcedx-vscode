@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.4.0",
+  "version": "67.6.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.32.5",
+    "@salesforce/source-deploy-retrieve": "^12.37.2",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -96,6 +96,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
       "output": [
@@ -112,6 +113,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
       "output": [
@@ -310,7 +312,7 @@
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sf.apex.test.suite.add",
+          "command": "sf.apex.test.suite.edit",
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
@@ -349,8 +351,8 @@
         "title": "%apex_test_suite_create_text%"
       },
       {
-        "command": "sf.apex.test.suite.add",
-        "title": "%apex_test_suite_add_text%"
+        "command": "sf.apex.test.suite.edit",
+        "title": "%apex_test_suite_edit_text%"
       },
       {
         "command": "sf.apex.test.last.class.run",

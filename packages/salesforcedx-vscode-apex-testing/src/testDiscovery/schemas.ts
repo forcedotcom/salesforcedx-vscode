@@ -6,20 +6,29 @@
  */
 /* eslint-disable jsdoc/check-indentation */
 
-type ToolingTestMethod = {
-  name: string;
-  line?: number;
-  column?: number;
-};
+import * as Schema from 'effect/Schema';
 
-// Single authoritative shape for test classes (matches Tooling REST response)
-export type ToolingTestClass = {
-  id: string; // may be "" for some flow tests
-  name: string;
-  // For Apex tests this is "" (default) or a namespace; for flow tests it follows "FlowTesting[.Namespace]"
-  namespacePrefix: string;
-  testMethods: ToolingTestMethod[];
-};
+const ToolingTestMethod = Schema.Struct({
+  name: Schema.String,
+  line: Schema.optional(Schema.Number),
+  column: Schema.optional(Schema.Number)
+});
+
+/**
+ * Normalized domain test class. `OptionFromNonEmptyTrimmedString` maps the wire `""` sentinel ⇄
+ * `Option<string>` at the parse boundary. `id` absent (some flow tests) = `Option.none`; `namespacePrefix`
+ * none = default Apex namespace, `Option.some('FlowTesting[.Namespace]')` = flow test.
+ */
+export const ToolingTestClass = Schema.Struct({
+  id: Schema.OptionFromNonEmptyTrimmedString,
+  name: Schema.String,
+  namespacePrefix: Schema.OptionFromNonEmptyTrimmedString,
+  testMethods: Schema.Array(ToolingTestMethod)
+});
+export type ToolingTestClass = Schema.Schema.Type<typeof ToolingTestClass>;
+
+/** Raw Tooling REST shape (pre-decode): `id`/`namespacePrefix` are plain strings, possibly `""`. */
+type ToolingTestClassWire = Schema.Schema.Encoded<typeof ToolingTestClass>;
 
 export type TestDiscoveryResult = {
   classes: ToolingTestClass[];
@@ -27,7 +36,7 @@ export type TestDiscoveryResult = {
 
 // Tooling REST /tooling/tests response types
 export type ToolingTestsPage = {
-  apexTestClasses: ToolingTestClass[]; // [] if none
+  apexTestClasses: ToolingTestClassWire[]; // [] if none
   size: number;
   nextRecordsUrl: string | null;
   testSetSignature: string;
@@ -46,19 +55,57 @@ export type DiscoverTestsOptions = {
   namespacePrefix?: string;
 };
 
-// Package resolution: use WSDL-generated types from @salesforce/types (forcedotcom/wsdl)
-import type { Package2Member } from '@salesforce/types/tooling';
+/** Package2.ContainerOptions discriminates Unlocked vs Managed packages (see Skyline sfCli.ts). */
+export const ContainerOption = Schema.Literal('Unlocked', 'Managed');
+export type ContainerOption = Schema.Schema.Type<typeof ContainerOption>;
 
-/** Package2Member query result; wsdl type omits MetadataComponentId and Package2Id for some API versions. */
-export type Package2MemberRecord = Package2Member & {
-  MetadataComponentId?: string;
-  Package2Id?: string;
-};
+/**
+ * Resolved owning-package info for an ApexClass. `containerOptions` none = 1GP/unknown; some drives the
+ * "(Unlocked)"/managed label suffix. namespacePrefix intentionally absent: the tree reads namespace from the
+ * discovered ToolingTestClass, never from here.
+ */
+export const ResolvedPackageInfo = Schema.Struct({
+  package2Id: Schema.String,
+  packageName: Schema.String,
+  containerOptions: Schema.Option(ContainerOption)
+});
+export type ResolvedPackageInfo = Schema.Schema.Type<typeof ResolvedPackageInfo>;
 
-export type ResolvedPackageInfo = {
-  package2Id: string;
-  packageName: string;
-  namespacePrefix: string | null;
-  /** When present, e.g. 'Unlocked' or 'Managed' (from Package2.ContainerOptions) */
-  containerOptions?: string;
-};
+/**
+ * Package2 Tooling row (decode boundary). Id/Name/SubscriberPackageId required so decoded rows need no
+ * null-guards; ContainerOptions maps null/absent ⇄ Option and rejects values outside the literal union.
+ */
+export const Package2Row = Schema.Struct({
+  Id: Schema.String,
+  Name: Schema.String,
+  SubscriberPackageId: Schema.String,
+  ContainerOptions: Schema.optionalWith(ContainerOption, { as: 'Option', nullable: true })
+});
+export type Package2Row = Schema.Schema.Type<typeof Package2Row>;
+
+/** Package2Member Tooling row (decode boundary). SubjectId = packaged component Id; SubscriberPackageId = join key. */
+export const Package2MemberRow = Schema.Struct({
+  SubjectId: Schema.String,
+  SubscriberPackageId: Schema.String
+});
+export type Package2MemberRow = Schema.Schema.Type<typeof Package2MemberRow>;
+
+/**
+ * InstalledSubscriberPackage Tooling row (subscriber-org fallback). NamespacePrefix stays a raw optional
+ * string here (accepts `''`); the resolver trims-then-Options it so empty ⇄ no-namespace like `null`/absent.
+ */
+export const InstalledSubscriberPackageRow = Schema.Struct({
+  SubscriberPackageId: Schema.String,
+  SubscriberPackage: Schema.Struct({
+    Name: Schema.String,
+    NamespacePrefix: Schema.optionalWith(Schema.String, { as: 'Option', nullable: true })
+  })
+});
+export type InstalledSubscriberPackageRow = Schema.Schema.Type<typeof InstalledSubscriberPackageRow>;
+
+/** ApexClass ManageableState row (unpackaged detection for the single no-namespace package). */
+export const ApexClassManageableStateRow = Schema.Struct({
+  Id: Schema.String,
+  ManageableState: Schema.optionalWith(Schema.String, { as: 'Option', nullable: true })
+});
+export type ApexClassManageableStateRow = Schema.Schema.Type<typeof ApexClassManageableStateRow>;

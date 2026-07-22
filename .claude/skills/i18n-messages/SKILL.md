@@ -46,17 +46,17 @@ From `salesforcedx-vscode-org` (`src/messages/i18n.ts`, `package.nls.json`):
 | Surface | Example | Cap | Punctuation |
 |---|---|---|---|
 | Command title (`package.nls.json` `*_text`) | `SFDX: Create a Default Scratch Org...` | Title Case, `SFDX:` prefix | none (`...` ok for further input) |
-| QuickPick/InputBox placeholder | `i18n.ts:72` `Select scratch orgs and sandboxes to delete` | sentence | none |
-| Confirm prompt | `i18n.ts:73` `Permanently delete %d org(s)? This cannot be undone.` | sentence | terminal `.`/`?` |
-| Notification (`show*Message`) | `i18n.ts:100` `... orgs expire in the next %d days. ...` | sentence | terminal `.` |
-| Button/action label | `i18n.ts:74,75` `Delete`, `Logout` | Title Case | none |
-| Tree/status-bar label+tooltip | `i18n.ts:103` `Open Default Org in Browser` | Title Case | none |
+| QuickPick/InputBox placeholder | `i18n.ts:67` `Select scratch orgs and sandboxes to delete` | sentence | none |
+| Confirm prompt | `i18n.ts:68` `Permanently delete %d org(s)? This cannot be undone.` | sentence | terminal `.`/`?` |
+| Notification (`show*Message`) | `i18n.ts:92` `... orgs expire in the next %d days. ...` | sentence | terminal `.` |
+| Button/action label | `i18n.ts:69,70` `Delete`, `Logout` | Title Case | none |
+| Tree/status-bar label+tooltip | `i18n.ts:96` `Open Default Org in Browser` | Title Case | none |
 | Log/channel line | — | sentence | `.` |
 | Validation error | — | sentence | terminal `.` |
 
 ## No severity prefix
 
-Don't prefix new strings with `Error:`/`Warning:` — the `show*Message` API supplies severity. `i18n.ts:100` (`Warning: One or more...`) is a legacy anti-pattern; don't copy it, and don't edit it (out of scope). See `vscode-window-messages`.
+Don't prefix new strings with `Error:`/`Warning:` — the `show*Message` API supplies severity. `i18n.ts:92` (`Warning: One or more...`) is a legacy anti-pattern; don't copy it, and don't edit it (out of scope). See `vscode-window-messages`.
 
 ## Cross-ref
 

@@ -14,21 +14,14 @@ export const normalizeTextChunkToLf = (
   rawText: string,
   state: NewlineNormalizationState
 ): { normalizedText: string; state: NewlineNormalizationState } => {
-  let text = rawText;
-  let prefix = '';
+  const prefix = state.hasTrailingCarriageReturn ? '\n' : '';
+  // A trailing '\r' carried from the previous chunk pairs with a leading '\n' here → drop the '\n' (CRLF already emitted as one '\n' via prefix).
+  const withoutCarriedNewline =
+    state.hasTrailingCarriageReturn && rawText.startsWith('\n') ? rawText.slice(1) : rawText;
+  const hasTrailingCarriageReturn = withoutCarriedNewline.endsWith('\r');
+  const text = hasTrailingCarriageReturn ? withoutCarriedNewline.slice(0, -1) : withoutCarriedNewline;
 
-  if (state.hasTrailingCarriageReturn) {
-    prefix = '\n';
-    state.hasTrailingCarriageReturn = false;
-    if (text.startsWith('\n')) {
-      text = text.slice(1);
-    }
-  }
-
-  if (text.endsWith('\r')) {
-    state.hasTrailingCarriageReturn = true;
-    text = text.slice(0, -1);
-  }
+  state.hasTrailingCarriageReturn = hasTrailingCarriageReturn;
 
   const normalizedText = `${prefix}${text}`.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
   return { normalizedText, state };
