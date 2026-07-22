@@ -211,8 +211,7 @@ export const createClassAndMethodsFactory = (
     }
     classItems.set(fullClassName, classItem);
 
-    const methodNames = new Set(classEntries.flatMap(entry => (entry.testMethods ?? []).map(m => m.name)));
-    methodNames.forEach(methodName => {
+    Array.dedupe(classEntries.flatMap(entry => (entry.testMethods ?? []).map(m => m.name))).forEach(methodName => {
       const methodId = `${fullClassName}.${methodName}`;
       const line = classEntries[0].testMethods?.find(m => m.name === methodName)?.line ?? 0;
       const column = classEntries[0].testMethods?.find(m => m.name === methodName)?.column ?? 0;
