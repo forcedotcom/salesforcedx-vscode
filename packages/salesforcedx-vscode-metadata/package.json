@@ -38,7 +38,6 @@
     "@salesforce/source-tracking": "^7.8.16",
     "@salesforce/types": "^1.8.0",
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/templates": "^66.12.0",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
