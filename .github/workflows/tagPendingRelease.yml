@@ -29,13 +29,13 @@ jobs:
           fi
 
           # Extract full issue URLs for this repo
-          ISSUE_NUMS=$(echo "$PR_BODY" | grep -oP "github\.com/${REPO}/issues/\K[0-9]+" | sort -u | tr '\n' ' ')
+          ISSUE_NUMS=$(echo "$PR_BODY" | grep -oP "github\.com/${REPO}/issues/\K[0-9]+" | sort -u | xargs)
 
           # Extract full discussion URLs for this repo
-          DISC_NUMS=$(echo "$PR_BODY" | grep -oP "github\.com/${REPO}/discussions/\K[0-9]+" | sort -u | tr '\n' ' ')
+          DISC_NUMS=$(echo "$PR_BODY" | grep -oP "github\.com/${REPO}/discussions/\K[0-9]+" | sort -u | xargs)
 
-          # Extract short references: bare #NNN and keyword-prefixed forms
-          SHORT_REFS=$(echo "$PR_BODY" | grep -oiP '(?:closes|close|fixes|fix|resolves|resolve)?\s*#\K[0-9]+' | sort -u | tr '\n' ' ')
+          # Extract keyword-prefixed short references (Closes #NNN, Fixes #NNN, etc.)
+          SHORT_REFS=$(echo "$PR_BODY" | grep -oiP '(?:closes|close|fixes|fix|resolves|resolve)\s*#\K[0-9]+' | sort -u | xargs)
 
           # Determine unresolved numbers (short refs that aren't already classified)
           UNRESOLVED=""
@@ -59,7 +59,7 @@ jobs:
               UNRESOLVED="$UNRESOLVED $NUM"
             fi
           done
-          UNRESOLVED=$(echo "$UNRESOLVED" | xargs -n1 2>/dev/null | sort -u | tr '\n' ' ')
+          UNRESOLVED=$(echo "$UNRESOLVED" | xargs -n1 2>/dev/null | sort -u | xargs)
 
           echo "Parsed issue numbers: ${ISSUE_NUMS:-none}"
           echo "Parsed discussion numbers: ${DISC_NUMS:-none}"
@@ -70,19 +70,17 @@ jobs:
           echo "unresolved=${UNRESOLVED}" >> "$GITHUB_OUTPUT"
 
       - name: Label issues
+        if: steps.parse.outputs.issues != '' || steps.parse.outputs.unresolved != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBERS: ${{ steps.parse.outputs.issues }}
           UNRESOLVED: ${{ steps.parse.outputs.unresolved }}
         run: |
-          LABELED_ISSUES=""
-
           # Label known issues
           for ISSUE in $ISSUE_NUMBERS; do
             gh issue edit "$ISSUE" --add-label "pending release" \
               && echo "Labeled issue #${ISSUE}" \
               || echo "::warning::Failed to label issue #$ISSUE"
-            LABELED_ISSUES="$LABELED_ISSUES $ISSUE"
           done
 
           # Attempt to label unresolved refs as issues
@@ -92,13 +90,12 @@ jobs:
               gh issue edit "$NUM" --add-label "pending release" \
                 && echo "Labeled issue #${NUM}" \
                 || echo "::warning::Failed to label issue #$NUM"
-              LABELED_ISSUES="$LABELED_ISSUES $NUM"
             else
               REMAINING="$REMAINING $NUM"
             fi
           done
 
-          echo "remaining_for_discussions=$(echo $REMAINING | xargs)" >> "$GITHUB_OUTPUT"
+          echo "remaining_for_discussions=$(echo "$REMAINING" | xargs)" >> "$GITHUB_OUTPUT"
         id: label_issues
 
       - name: Fetch pending release label node ID

@@ -28,7 +28,7 @@ parse_body() {
   DISC_NUMS=$(echo "$PR_BODY" | REPO="$REPO" perl -ne 'my $r = quotemeta($ENV{REPO}); while (/github\.com\/$r\/discussions\/(\d+)/g) { print "$1\n" }' | sort -u | tr '\n' ' ' || true)
 
   local SHORT_REFS
-  SHORT_REFS=$(echo "$PR_BODY" | perl -ne 'while (/(?:closes|close|fixes|fix|resolves|resolve)?\s*#(\d+)/gi) { print "$1\n" }' | sort -u | tr '\n' ' ' || true)
+  SHORT_REFS=$(echo "$PR_BODY" | perl -ne 'while (/(?:closes|close|fixes|fix|resolves|resolve)\s*#(\d+)/gi) { print "$1\n" }' | sort -u | tr '\n' ' ' || true)
 
   local UNRESOLVED=""
   for NUM in $SHORT_REFS; do
@@ -95,12 +95,12 @@ assert_eq "Full discussion URL" "issues=
 discussions=456
 unresolved=" "$RESULT"
 
-# --- Test 3: Bare short ref ---
+# --- Test 3: Bare short ref (no keyword — not matched) ---
 BODY="#789"
 RESULT=$(parse_body "$BODY" "$REPO")
-assert_eq "Bare short ref" "issues=
+assert_eq "Bare short ref not matched without keyword" "issues=
 discussions=
-unresolved=789" "$RESULT"
+unresolved=" "$RESULT"
 
 # --- Test 4: Keyword-prefixed short refs ---
 BODY="Closes #100
