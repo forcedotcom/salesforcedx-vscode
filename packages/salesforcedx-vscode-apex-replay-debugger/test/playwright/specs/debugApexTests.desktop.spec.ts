@@ -19,31 +19,13 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForOutputChannelText,
-  WORKBENCH
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
 import apexTestingNls from 'salesforcedx-vscode-apex-testing/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import { test } from '../fixtures';
-
-/** Continue debug session (dismiss hover, Escape, then F5). Repeats until session ends. */
-const continueDebugSession = async (page: Page, maxContinues = 2): Promise<void> => {
-  const toolbar = page.locator('.debug-toolbar');
-  for (let i = 0; i < maxContinues; i++) {
-    await toolbar.waitFor({ state: 'visible', timeout: 15_000 });
-    // Click editor area to dismiss search-bar hover that can cover debug toolbar and block F5
-    await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
-    await page.keyboard.press('Escape');
-    await page.keyboard.press('F5');
-    const sessionEnded = await expect(toolbar)
-      .not.toBeVisible({ timeout: 30_000 })
-      .then(() => true)
-      .catch(() => false);
-    if (sessionEnded) break;
-  }
-  await expect(toolbar).not.toBeVisible({ timeout: 45_000 });
-};
+import { continueDebugSession } from '../helpers/debugHelpers';
 
 /**
  * Clicks a Test Explorer tree row's "Debug Test" action button using the retry/force-click pattern.
