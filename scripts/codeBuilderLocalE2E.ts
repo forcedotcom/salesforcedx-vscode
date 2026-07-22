@@ -31,7 +31,7 @@
  */
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, rmSync, cpSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, cpSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -317,6 +317,10 @@ if (opts.runId) {
   log('Building VSIX from your working tree (npm run vscode:package)');
   run('npm', ['run', 'vscode:package'], { cwd: REPO_ROOT });
   // vscode:package drops a .vsix in each package dir; gather them the way CI's Build All does.
+  // Some packages (core, lwc, lightning, apex-debugger, apex-oas) also build a legacy VSIX pinned
+  // to an older version (e.g. 67.0.0) alongside the modern one. Collecting both would unpack two
+  // override dirs per extension and fail the verify gate ("found 2 override dirs"), so keep only
+  // each package's own-version (modern) VSIX and skip the legacy dupe.
   const packagesDir = join(REPO_ROOT, 'packages');
   for (const pkg of readdirSync(packagesDir)) {
     const pkgDir = join(packagesDir, pkg);
@@ -326,7 +330,16 @@ if (opts.runId) {
     } catch {
       continue;
     }
-    for (const f of entries.filter(e => e.endsWith('.vsix'))) {
+    let modernVsix: string | null = null;
+    try {
+      // vsce names the VSIX "<name>-<version>.vsix" from package.json (not the dir name), so read
+      // both from there to match the modern build exactly.
+      const { name, version } = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf-8'));
+      modernVsix = `${name}-${version}.vsix`;
+    } catch {
+      // no package.json (not an extension dir) — the filter below yields nothing anyway
+    }
+    for (const f of entries.filter(e => e === modernVsix)) {
       cpSync(join(pkgDir, f), join(vsixDir, f));
     }
   }

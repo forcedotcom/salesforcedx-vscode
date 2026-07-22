@@ -54,7 +54,7 @@ npm run test:container:local -- --run-id <buildAllRunId>  # test the exact CI ar
 npm run test:container:local -- --debug   # headed + Playwright inspector
 ```
 
-It wraps [`scripts/codeBuilderLocalE2E.ts`](../../scripts/codeBuilderLocalE2E.ts), the local twin of the CI workflow — same pull → swap → restart → version-gate → run pipeline, reusing the same `codeBuilderSwapExtensions.ts` / `codeBuilderVerifyExtensions.ts` the workflow calls.
+It wraps [`scripts/codeBuilderLocalE2E.ts`](../../scripts/codeBuilderLocalE2E.ts), the local twin of the CI workflow — same pull → swap → restart → version-gate → run pipeline, reusing the same `codeBuilderSwapExtensions.ts` / `codeBuilderVerifyExtensions.ts` the workflow calls. When building locally it collects each package's own-version (modern) VSIX and skips the legacy VSIX some packages also build (e.g. the older 67.0.0 pinned alongside the modern one for core/lwc/lightning/apex-debugger/apex-oas), so the verify gate sees exactly one override dir per extension.
 
 **Default is build-from-working-tree**, so you iterate on extension code and re-run to test your live edits. Use `--run-id` only to reproduce a specific CI failure against the shipping bytes.
 
