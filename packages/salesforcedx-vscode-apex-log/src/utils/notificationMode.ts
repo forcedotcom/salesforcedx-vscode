@@ -7,10 +7,16 @@
 
 import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
 
-export type ProgressAndSuccessCommandKey = 'SOQL Text Editor Run Query' | 'SOQL Builder Run Query';
-export type SuccessOnlyCommandKey = 'Save Query Results';
+export type ProgressAndSuccessCommandKey =
+  | 'SFDX: Execute Anonymous Apex with Currently Open Editor'
+  | "SFDX: Execute Anonymous Apex with Editor's Selected Text";
+
+export type SuccessOnlyCommandKey =
+  | 'SFDX: Remove Trace Flag for Current User'
+  | 'SFDX: Remove Trace Flag'
+  | 'SFDX: Remove Debug Level';
 
 export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<
   ProgressAndSuccessCommandKey,
   SuccessOnlyCommandKey
->('salesforcedx-vscode-soql', 'sf-soql-notifications', 'Salesforce: SOQL Notifications');
+>('salesforcedx-vscode-apex-log', 'sf-apex-log-notifications', 'Salesforce: Apex Log Notifications');

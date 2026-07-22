@@ -7,10 +7,18 @@
 
 import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
 
-export type ProgressAndSuccessCommandKey = 'SOQL Text Editor Run Query' | 'SOQL Builder Run Query';
-export type SuccessOnlyCommandKey = 'Save Query Results';
+type ProgressAndSuccessCommandKey = 'Debug Apex Test Class' | 'Debug Anonymous Apex';
+
+type ProgressOnlyCommandKey = 'Update Checkpoints in Org';
+
+export type CommandKey = ProgressAndSuccessCommandKey | ProgressOnlyCommandKey;
 
 export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<
   ProgressAndSuccessCommandKey,
-  SuccessOnlyCommandKey
->('salesforcedx-vscode-soql', 'sf-soql-notifications', 'Salesforce: SOQL Notifications');
+  never,
+  ProgressOnlyCommandKey
+>(
+  'salesforcedx-vscode-apex-replay-debugger',
+  'sf-apex-replay-debugger-notifications',
+  'Salesforce: Apex Replay Debugger Notifications'
+);

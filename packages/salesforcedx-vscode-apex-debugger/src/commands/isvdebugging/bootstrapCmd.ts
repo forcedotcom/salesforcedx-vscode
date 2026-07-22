@@ -18,6 +18,9 @@ import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instr
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
+import { CommandKey, getProgressLocation } from '../../utils/notificationMode';
+
+const COMMAND: CommandKey = 'SFDX: Create and Set Up Project for ISV Debugging';
 
 type InstalledPackageInfo = {
   id: string;
@@ -217,7 +220,10 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
 
   // Drive the whole bootstrap under a cancellable progress notification (each step reports its label). Cancel
   // interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child process.
-  yield* promptService.withCancellableProgressReporting(nls.localize('isv_debug_bootstrap_progress_title'))(progress =>
+  yield* promptService.withCancellableProgressReporting(
+    nls.localize('isv_debug_bootstrap_progress_title'),
+    getProgressLocation(COMMAND)
+  )(progress =>
     Effect.gen(function* () {
       const report = (message: string) => Effect.sync(() => progress.report({ message }));
 

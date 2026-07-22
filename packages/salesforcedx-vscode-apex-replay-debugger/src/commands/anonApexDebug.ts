@@ -13,6 +13,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
+import { CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
 
 export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
 
@@ -95,9 +96,11 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
   return yield* Effect.promise(() => launchReplayDebugger(logBody ?? undefined));
 });
 
+const COMMAND: CommandKey = 'Debug Anonymous Apex';
+
 export const anonApexDebug = async (): Promise<void> => {
   const success = await vscode.window.withProgress(
-    { location: vscode.ProgressLocation.Notification, title: nls.localize('apex_execute_text'), cancellable: false },
+    { location: getProgressLocation(COMMAND), title: nls.localize('apex_execute_text'), cancellable: false },
     () =>
       getRuntime()
         .runPromise(executeAnonApexDebug())
@@ -106,6 +109,6 @@ export const anonApexDebug = async (): Promise<void> => {
         })
   );
   if (success) {
-    void vscode.window.showInformationMessage(nls.localize('apex_execute_debug_success'));
+    void showSuccessNotification(COMMAND, nls.localize('apex_execute_debug_success'), false);
   }
 };

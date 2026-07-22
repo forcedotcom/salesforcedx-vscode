@@ -233,6 +233,57 @@
       "type": "object",
       "title": "%configuration_title%",
       "properties": {
+        "salesforcedx-vscode-apex-debugger.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-apex-debugger.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "SFDX: Create and Set Up Project for ISV Debugging": {
+              "type": "string",
+              "enum": [
+                "progressToast",
+                "progressStatusBar"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToast.description%",
+                "%notifications.progressStatusBar.description%"
+              ],
+              "description": "%notifications_isv_debugger_setup_description%"
+            },
+            "SFDX: Stop Apex Debugger Session": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_debugger_stop_description%"
+            }
+          },
+          "additionalProperties": false
+        },
         "salesforcedx-vscode-apex-debugger.connectionTimeoutMs": {
           "type": "number",
           "default": 20000,

@@ -22,8 +22,11 @@ import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpoin
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
 import { getRuntime } from '../services/runtime';
+import { CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
 import { retrieveTestCodeCoverage } from '../utils/settings';
 import { launchFromLogFile } from './launchFromLogFile';
+
+const COMMAND: CommandKey = 'Debug Apex Test Class';
 
 const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass: string, testName?: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -82,7 +85,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
 export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const success = await vscode.window.withProgress(
     {
-      location: vscode.ProgressLocation.Notification,
+      location: getProgressLocation(COMMAND),
       title: `Running ${nls.localize('debug_test_exec_name')}`,
       cancellable: false
     },
@@ -94,6 +97,6 @@ export const setupAndDebugTests = async (className: string, methodName?: string)
         })
   );
   if (success) {
-    void vscode.window.showInformationMessage(nls.localize('debug_test_success'));
+    void showSuccessNotification(COMMAND, nls.localize('debug_test_success'), false);
   }
 };

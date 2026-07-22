@@ -12,10 +12,18 @@ import * as vscode from 'vscode';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
+import {
+  type ProgressAndSuccessCommandKey,
+  getProgressLocation,
+  showSuccessNotification
+} from '../utils/notificationMode';
 
 type EditorContext = Effect.Effect.Success<ReturnType<EditorService['getActiveEditorContext']>>;
 
-const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(function* (context: EditorContext) {
+const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(function* (
+  context: EditorContext,
+  command: ProgressAndSuccessCommandKey
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ExecuteAnonymousService.clearDiagnostics(context.documentUri);
   const { result, logBody, logId } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(context.text);
@@ -47,26 +55,25 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
   );
   const logUri = yield* saveExecResult(context.text, result, logBody, logId);
   yield* Effect.sync(() => {
-    void vscode.window
-      .showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
-      .then(selected => {
-        if (selected === nls.localize('open_log')) {
-          void getRuntime().runPromise(api.services.FsService.showTextDocument(logUri));
-        }
-      });
+    showSuccessNotification(command, nls.localize('exec_anon_success'), false, [
+      {
+        label: nls.localize('open_log'),
+        run: () => void getRuntime().runPromise(api.services.FsService.showTextDocument(logUri))
+      }
+    ]);
   });
   return result;
 });
 
-const runWithProgress = (context: EditorContext) =>
+const runWithProgress = (context: EditorContext, command: ProgressAndSuccessCommandKey) =>
   Effect.promise(() =>
     vscode.window.withProgress(
       {
-        location: vscode.ProgressLocation.Notification,
+        location: getProgressLocation(command),
         title: nls.localize('exec_anon_progress_title'),
         cancellable: false
       },
-      () => getRuntime().runPromise(executeAnonymous(context))
+      () => getRuntime().runPromise(executeAnonymous(context, command))
     )
   );
 
@@ -76,5 +83,8 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
   yield* Effect.annotateCurrentSpan({ selectionOnly });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const context = yield* api.services.EditorService.getActiveEditorContext(selectionOnly);
-  return yield* runWithProgress(context);
+  const command: ProgressAndSuccessCommandKey = selectionOnly
+    ? "SFDX: Execute Anonymous Apex with Editor's Selected Text"
+    : 'SFDX: Execute Anonymous Apex with Currently Open Editor';
+  return yield* runWithProgress(context, command);
 });

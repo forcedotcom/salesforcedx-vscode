@@ -12,8 +12,8 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
 
 /**
  * Raised when the `ApexDebuggerSession` tooling query fails. Previously the executor swallowed this in a
@@ -46,6 +46,8 @@ export class DebuggerSessionUpdateError extends Schema.TaggedError<DebuggerSessi
  * check needed. A single progress notification wraps the whole command; query/update failures surface as
  * tagged errors (rendered by ErrorHandlerService) rather than being swallowed.
  */
+const COMMAND: CommandKey = 'SFDX: Stop Apex Debugger Session';
+
 export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
@@ -78,15 +80,23 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   }).pipe(
     Effect.flatMap(({ records }) =>
       Option.match(Array.head(records), {
-        onNone: () => Effect.succeed(nls.localize('debugger_stop_none_found_text')),
+        onNone: () =>
+          Effect.sync(
+            () => void showSuccessNotification(COMMAND, nls.localize('debugger_stop_none_found_text'), false)
+          ),
         onSome: ({ Id }) =>
           Effect.tryPromise({
             try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
             catch: e => new DebuggerSessionUpdateError({ message: isError(e) ? e.message : String(e) })
-          }).pipe(Effect.as(nls.localize('debugger_stop_success_text')))
+          }).pipe(
+            Effect.tap(() =>
+              Effect.sync(
+                () => void showSuccessNotification(COMMAND, nls.localize('debugger_stop_success_text'), false)
+              )
+            )
+          )
       })
     ),
-    Effect.tap(message => Effect.sync(() => void vscode.window.showInformationMessage(message))),
-    promptService.withProgress(nls.localize('debugger_stop_text'))
+    promptService.withProgress(nls.localize('debugger_stop_text'), getProgressLocation(COMMAND))
   );
 });
