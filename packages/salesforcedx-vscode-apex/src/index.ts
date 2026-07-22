@@ -44,6 +44,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow();
 
+  // Eagerly resolve the 'Apex' output channel so it appears in the Output dropdown at activation
+  // (Cache-backed ChannelService creates it lazily; the orphan handler only writes when orphans exist).
+  const channel = yield* (yield* api.services.ChannelService).getChannel;
+  context.subscriptions.push(channel);
+
   // start the language server and client
   const languageServerStatusBarItem = new ApexLSPStatusBarItem();
   languageClientManager.setStatusBarInstance(languageServerStatusBarItem);
