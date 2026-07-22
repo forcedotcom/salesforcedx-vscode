@@ -7,11 +7,11 @@
 
 import { expect } from '@playwright/test';
 import {
-  clickModalDialogButton,
   clearOutputChannel,
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
   executeCommandWithCommandPalette,
+  NOTIFICATION_LIST_ITEM,
   openFileByName,
   saveScreenshot,
   selectOutputChannel,
@@ -115,17 +115,13 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await executeCommandWithCommandPalette(page, 'SFDX: Delete from Project and Org');
     await saveScreenshot(page, 'step.delete-command-executed.png');
 
-    // Confirm the deletion dialog — try primary label, fall back to alternate label
-    try {
-      await clickModalDialogButton(page, 'Delete Source', 10_000);
-    } catch {
-      // Some versions use a different button label; try the alternate
-      try {
-        await clickModalDialogButton(page, 'Continue', 5000);
-      } catch (fallbackError) {
-        console.warn('Neither "Delete Source" nor "Continue" dialog button found:', fallbackError);
-      }
-    }
+    // The delete confirmation surfaces as a notification toast with a "Delete Source" button
+    const deleteConfirmation = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /Deleting source files deletes the files from your computer/ })
+      .first();
+    await expect(deleteConfirmation).toBeVisible({ timeout: 15_000 });
+    await deleteConfirmation.getByRole('button', { name: 'Delete Source' }).click();
     await saveScreenshot(page, 'step.delete-confirmed.png');
   });
 
