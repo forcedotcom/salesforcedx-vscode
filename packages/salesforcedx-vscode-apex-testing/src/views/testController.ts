@@ -356,12 +356,12 @@ const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Pr
   if (!locationMap) {
     return;
   }
-  for (const [methodName, location] of locationMap) {
+  locationMap.forEach((location, methodName) => {
     const item = unresolved.get(methodName);
     if (item) {
       item.range = location.range;
     }
-  }
+  });
 };
 
 // Retrieve an org-only Apex class into the workspace, open it, and refresh the tree. The refresh step
