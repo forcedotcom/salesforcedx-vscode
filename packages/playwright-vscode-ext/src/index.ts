@@ -65,6 +65,7 @@ export {
   NOTIFICATION_LIST_ITEM,
   SETTINGS_SEARCH_INPUT,
   CONTEXT_MENU,
+  EXPLORER_INLINE_INPUT,
   CODELENS_ITEM
 } from './utils/locators';
 
@@ -72,6 +73,7 @@ export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSI
 
 export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
+export { createThrowawayOrg, THROWAWAY_ORG_ALIAS } from './orgs/logoutThrowawayOrgSetup';
 export {
   createNonTrackingOrg,
   createLogoutTestOrg,
@@ -128,6 +130,7 @@ export {
   clearOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
+  countOutputChannelOptions,
   captureOutputChannelDetails
 } from './pages/outputChannel';
 
@@ -169,6 +172,9 @@ export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureType
 
 // Web
 export { createHeadlessServer, setupSignalHandlers } from './web/createHeadlessServer';
+
+// Apex helpers
+export { createAndOpenApexScript } from './utils/apexScript';
 
 // Config factories
 export { createWebConfig } from './config/createWebConfig';

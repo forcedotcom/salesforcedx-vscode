@@ -27,8 +27,8 @@ export const messages = {
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
   apex_test_run_text: 'SFDX: Run Apex Tests',
-  apex_test_suite_add_text: 'SFDX: Add Tests to Apex Test Suite',
   apex_test_suite_create_text: 'SFDX: Create Apex Test Suite',
+  apex_test_suite_edit_text: 'SFDX: Edit Apex Test Suite',
   retrieving_tests_message: 'Retrieving tests…',
   apex_test_suite_run_text: 'SFDX: Run Apex Test Suite',
   apex_test_class_run_text: 'SFDX: Run Apex Test Class',
@@ -60,11 +60,10 @@ export const messages = {
     'The following test suite(s) are empty and cannot be run: %s. Add test classes to the suite before running.',
   apex_test_suite_empty_message:
     'This test suite is empty and cannot be run. Add test classes to the suite before running.',
+  apex_test_suite_no_suites_message: 'No Apex test suites found.',
+  apex_test_suite_membership_delete_failed_message: 'Failed to delete %d membership(s)',
+  apex_test_discovery_fetch_failed_message: 'Failed to fetch test discovery page: %s',
   apex_test_resolve_suite_children_failed_message: 'Failed to resolve suite children for suite: %s. Error: %s',
-  apex_test_connection_failed_message: 'Failed to get connection',
-  apex_test_service_not_initialized_message: 'TestService not initialized. Call ensureInitialized() first.',
-  apex_test_connection_not_initialized_message: 'Connection not initialized. Call ensureInitialized() first.',
-  apex_test_populate_suite_items_failed_message: 'Failed to populate suite items: %s',
   apex_test_debug_failed_message: 'Debug failed: %s',
   apex_test_discovery_partial_warning:
     'Test discovery encountered URL length limits. Some tests may not be visible. Try refreshing or filtering by namespace.',
@@ -111,7 +110,7 @@ export const messages = {
   apex_test_aggregate_failed_message: '%s test(s) failed',
   apex_test_failed_no_details_message: 'Test failed',
   apex_test_results_restored_message:
-    'Test results restored from %s previous run(s), most recent: %s. Re-enable via setting: salesforcedx-vscode-apex-testing.restore-previous-results',
+    'Test results restored from %d previous run(s), most recent: %s. Re-enable via setting: salesforcedx-vscode-apex-testing.restore-previous-results',
   apex_test_results_restored_disable_action: "Don't Restore Again"
 } as const;
 

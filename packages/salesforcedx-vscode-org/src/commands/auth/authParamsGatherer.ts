@@ -6,11 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { runGatherer } from '../../parameterGatherers/runGatherer';
 import { validateAliasInput } from '../../util/orgAlias';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
@@ -33,6 +31,20 @@ const inputAlias = async (): Promise<string | undefined> =>
     ignoreFocusOut: true,
     validateInput: validateAliasInput
   });
+
+/**
+ * Shared alias InputBox for the web/dev-hub/access-token login commands. Empty string is a valid
+ * "use default alias" answer, so only undefined (Esc) cancels — cannot use
+ * considerUndefinedAsCancellation, which also cancels on empty. validateAliasInput blocks shell
+ * metacharacters so the returned value is safe to interpolate into the CLI command.
+ */
+export const promptForAlias = Effect.fn('AuthParamsGatherer.promptForAlias')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const value = yield* Effect.promise(inputAlias).pipe(
+    Effect.flatMap(v => (v === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(v)))
+  );
+  return value || DEFAULT_ALIAS;
+});
 
 const inputAccessToken = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
@@ -107,7 +119,6 @@ export const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function*
   readonly instanceUrl: string | undefined;
   readonly reauthAliasOrUsername: string | undefined;
 }) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const skipAlias = params.instanceUrl !== undefined;
 
   // allow passing in the instance url programmatically instead of via quick pick
@@ -119,21 +130,9 @@ export const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function*
     ? reauthLabel && reauthLabel.length > 0
       ? reauthLabel
       : `reauth-${DEFAULT_ALIAS}`
-    : yield* Effect.promise(() =>
-        vscode.window.showInputBox({
-          prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-          placeHolder: DEFAULT_ALIAS,
-          ignoreFocusOut: true,
-          validateInput: validateAliasInput
-        })
-      ).pipe(
-        // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels
-        Effect.flatMap(value =>
-          value === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(value)
-        )
-      );
+    : yield* promptForAlias();
   return {
-    alias: alias || DEFAULT_ALIAS,
+    alias,
     loginUrl: instanceUrl ?? PRODUCTION_URL
   };
 });
@@ -146,11 +145,7 @@ export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gath
     Effect.flatMap(promptService.considerUndefinedAsCancellation)
   );
 
-  // empty string is a valid "use default alias" answer, so only undefined (Esc) cancels.
-  // NB: cannot use considerUndefinedAsCancellation here — it also cancels on empty/whitespace strings.
-  const alias = yield* Effect.promise(inputAlias).pipe(
-    Effect.flatMap(value => (value === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(value)))
-  );
+  const alias = yield* promptForAlias();
 
   const accessToken = yield* Effect.promise(inputAccessToken).pipe(
     Effect.flatMap(promptService.considerUndefinedAsCancellation)
@@ -158,35 +153,10 @@ export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gath
 
   return {
     accessToken,
-    alias: alias || DEFAULT_ALIAS,
+    alias,
     instanceUrl
   };
 });
-
-const gatherScratchOrgLogout = Effect.fn('ScratchOrgLogoutParamsGatherer.gather')(function* (params: {
-  readonly username: string;
-  readonly alias: string | undefined;
-}) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-
-  yield* promptService.confirmOrThrow({
-    message: nls.localize('org_logout_scratch_prompt', params.alias ?? params.username),
-    confirmLabel: nls.localize('org_logout_scratch_logout')
-  });
-  return params.username;
-});
-
-export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string> {
-  constructor(
-    public readonly username: string,
-    public readonly alias?: string
-  ) {}
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    return runGatherer(gatherScratchOrgLogout({ username: this.username, alias: this.alias }));
-  }
-}
 
 const getProjectLoginUrl = Effect.fn('AuthParamsGatherer.getProjectLoginUrl')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

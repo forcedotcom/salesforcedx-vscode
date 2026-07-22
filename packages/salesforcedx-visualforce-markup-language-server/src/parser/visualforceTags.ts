@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { collectValuesDefault, IHTMLTagProvider, IValueSets, TagSpecification } from './htmlTags';
+import { AttributeEntry, getValuesDefault, IHTMLTagProvider, IValueSets, TagEntry, TagSpecification } from './htmlTags';
 
 class VisualforceTagSpecification extends TagSpecification {
   public readonly label: string;
@@ -26,30 +26,20 @@ export function getVisualforceTagProvider(): IHTMLTagProvider {
   return {
     getId: () => 'visualforce',
     isApplicable: languageId => languageId === 'visualforce',
-    collectTags: (collector: (tag: string, label: string) => void) => {
-      for (const tag in VISUALFORCE_TAGS) {
-        if (VISUALFORCE_TAGS.hasOwnProperty(tag)) {
-          collector(VISUALFORCE_TAGS[tag].label, VISUALFORCE_TAGS[tag].documentation);
-        }
-      }
+    getTags: (): TagEntry[] =>
+      Object.keys(VISUALFORCE_TAGS).map(tag => ({
+        tag: VISUALFORCE_TAGS[tag].label,
+        label: VISUALFORCE_TAGS[tag].documentation
+      })),
+    getAttributes: (tag: string): AttributeEntry[] => {
+      const attributes = tag && VISUALFORCE_TAGS[tag] ? VISUALFORCE_TAGS[tag].attributes : undefined;
+      return (attributes ?? []).map(attr => {
+        const segments = attr.split(':');
+        return { attribute: segments[0], type: segments[1] };
+      });
     },
-    collectAttributes: (tag: string, collector: (attribute: string, type: string) => void) => {
-      if (tag) {
-        const tags = VISUALFORCE_TAGS[tag];
-        if (tags) {
-          const attributes = tags.attributes;
-          if (attributes) {
-            attributes.forEach(attr => {
-              const segments = attr.split(':');
-              collector(segments[0], segments[1]);
-            });
-          }
-        }
-      }
-    },
-    collectValues: (tag: string, attribute: string, collector: (value: string) => void) => {
-      collectValuesDefault(tag, attribute, collector, VISUALFORCE_TAGS, [], valueSets);
-    }
+    getValues: (tag: string, attribute: string): string[] =>
+      getValuesDefault(tag, attribute, VISUALFORCE_TAGS, [], valueSets)
   };
 }
 

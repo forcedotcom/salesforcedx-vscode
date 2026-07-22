@@ -5,44 +5,68 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Package2MemberRecord, ResolvedPackageInfo } from './schemas';
 import type { Connection } from '@salesforce/core';
-import type { InstalledSubscriberPackage, Package2 } from '@salesforce/types/tooling';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+import * as Array from 'effect/Array';
+import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
+import * as HashSet from 'effect/HashSet';
+import * as Match from 'effect/Match';
+import * as Option from 'effect/Option';
+import { isError, isString } from 'effect/Predicate';
+import * as Ref from 'effect/Ref';
+import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import {
+  ApexClassManageableStateRow,
+  type ContainerOption,
+  InstalledSubscriberPackageRow,
+  Package2MemberRow,
+  Package2Row,
+  type ResolvedPackageInfo
+} from './schemas';
 
 const PACKAGE2_MEMBER_BATCH_SIZE = 200;
 
-const packageResolutionCache: Map<string, Map<string, ResolvedPackageInfo>> = new Map();
-
-/** Org keys where Package2/Package2Member are not available (e.g. subscriber orgs). Skip resolution. */
-const packageResolutionUnavailableOrgs = new Set<string>();
-
-/** Optional org info from defaultOrgRef (Services); when provided, avoids file read to get orgId. */
-type PackageResolutionOrgInfo = { orgId?: string; username?: string };
+/** Bounded parallelism for chunked Tooling queries. First failing chunk interrupts siblings and short-circuits. */
+const BATCH_CONCURRENCY = 5;
 
 /**
- * Returns a cache key for the current org from defaultOrgRef (Services) org info.
+ * Package2Member documented columns. Package2Member has no MetadataComponentId or Package2Id
+ * (undocumented; INVALID_FIELD on every org tested). SubjectId is the packaged component's Id;
+ * SubscriberPackageId (033) is the join key to Package2 (Package2.SubscriberPackageId is Unique).
+ * See https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_package2member.htm
  */
-export const getPackageResolutionCacheKey = (orgInfo: PackageResolutionOrgInfo): string =>
-  orgInfo.orgId ?? orgInfo.username ?? 'unknown';
+const MEMBER_COLUMNS = 'Id, SubjectId, SubjectKeyPrefix, SubscriberPackageId';
 
 /**
- * Returns true if package resolution (Package2/Package2Member) is not available for this org
- * (e.g. subscriber org where those objects or columns are not queryable).
- * Call after resolvePackage2Members so the org may have been marked unavailable on failure.
+ * ManageableState values that indicate the class is unpackaged (not from an installed package).
+ * We remove from the no-namespace package only when we have positive evidence of unpackaged.
+ * Any other value (installed, installedEditable, released, beta, etc.) keeps the class in the package.
  */
-export const isPackageResolutionUnavailable = (orgInfo: PackageResolutionOrgInfo): boolean =>
-  packageResolutionUnavailableOrgs.has(getPackageResolutionCacheKey(orgInfo));
+const UNPACKAGED_STATES = new Set(['', 'unmanaged']);
 
-/** Resets cache and unavailable-org set. For testing only. */
-export const resetPackageResolutionState = (): void => {
-  packageResolutionCache.clear();
-  packageResolutionUnavailableOrgs.clear();
+/** Org lacks Package2/Package2Member (e.g. subscriber org) — the `isPackage2UnavailableError` heuristic matched. */
+class Package2UnavailableError extends Schema.TaggedError<Package2UnavailableError>()('Package2UnavailableError', {
+  message: Schema.String
+}) {}
+
+/** Any other Tooling query failure (permission, network, etc.). */
+class Package2QueryError extends Schema.TaggedError<Package2QueryError>()('Package2QueryError', {
+  message: Schema.String
+}) {}
+
+/** In-memory resolution state, held per runtime in the service (replaces the former module-level Map/Set). */
+type ResolutionState = {
+  /** orgKey → (ApexClass Id → resolved package). Accumulates across calls. */
+  readonly byOrg: HashMap.HashMap<string, HashMap.HashMap<string, ResolvedPackageInfo>>;
+  /** orgKeys where Package2/Package2Member are not queryable; short-circuits future resolution. */
+  readonly unavailable: HashSet.HashSet<string>;
 };
 
 /** Returns true if the error indicates Package2Member (or Package2) is not available in this org. */
 const isPackage2UnavailableError = (error: unknown): boolean => {
-  const msg = error instanceof Error ? error.message : String(error);
-  const lower = msg.toLowerCase();
+  const lower = (isError(error) ? error.message : String(error)).toLowerCase();
   return (
     lower.includes('package2member') ||
     lower.includes('package2') ||
@@ -54,410 +78,349 @@ const isPackage2UnavailableError = (error: unknown): boolean => {
   );
 };
 
-/** True when the error is "no such column" for the given field (e.g. subscriber orgs where Package2Member has SubjectId but not MetadataComponentId). */
-const isNoSuchColumnForField = (error: unknown, field: string): boolean => {
-  const msg = error instanceof Error ? error.message : String(error);
-  const lower = msg.toLowerCase();
-  return lower.includes('no such column') && lower.includes(field.toLowerCase());
-};
-
-/** Thrown when MetadataComponentId is not available so caller should try SubjectId. */
-class TrySubjectIdError extends Error {
-  constructor() {
-    super('TrySubjectId');
-    this.name = 'TrySubjectIdError';
-  }
-}
-
-const getComponentId = (m: Package2MemberRecord): string | undefined => m.MetadataComponentId ?? m.SubjectId;
-
-/**
- * Resolves package info from InstalledSubscriberPackage (subscriber orgs).
- * - Classes with a namespace: match by SubscriberPackage.NamespacePrefix.
- * - Classes with no namespace: when there is exactly one installed package with no namespace
- * (e.g. Trigger Actions Framework), assign those classes to it. Uses ApexClass.ManageableState
- * when available so only "installed"/"installedEditable" classes are assigned (Skyline's
- * resolveNoNamespaceInstalledItem logic).
- * See: https://github.com/mitchspano/Skyline/blob/main/extension/src/modules/s/metadataExplorer/packageResolver.ts
- */
-const resolveFromInstalledSubscriberPackages = async (
-  connection: Connection,
-  classIdToNamespace: Map<string, string>
-): Promise<Map<string, ResolvedPackageInfo>> => {
-  const result = new Map<string, ResolvedPackageInfo>();
-  if (classIdToNamespace.size === 0) {
-    return result;
-  }
-  const packageQuery =
-    'SELECT Id, SubscriberPackageId, SubscriberPackage.NamespacePrefix, SubscriberPackage.Name FROM InstalledSubscriberPackage ORDER BY SubscriberPackage.NamespacePrefix';
-  try {
-    const packageResult = await connection.tooling.query<InstalledSubscriberPackage>(packageQuery);
-    const records = packageResult.records ?? [];
-
-    const byNamespace = new Map<string, InstalledSubscriberPackage>();
-    const noNamespacePackages: InstalledSubscriberPackage[] = [];
-    for (const rec of records) {
-      const ns = (rec.SubscriberPackage?.NamespacePrefix ?? '').trim();
-      if (ns !== '') {
-        byNamespace.set(ns, rec);
-      } else {
-        noNamespacePackages.push(rec);
-      }
-    }
-    const noNsClassIdsAssigned: string[] = [];
-    for (const [classId, namespacePrefix] of classIdToNamespace) {
-      const ns = (namespacePrefix ?? '').trim();
-      if (ns !== '') {
-        const pkg = byNamespace.get(ns);
-        if (pkg?.SubscriberPackage?.Name != null && pkg.SubscriberPackageId) {
-          result.set(classId, {
-            package2Id: pkg.SubscriberPackageId,
-            packageName: pkg.SubscriberPackage.Name,
-            namespacePrefix: pkg.SubscriberPackage.NamespacePrefix ?? null
-          });
-        }
-        continue;
-      }
-
-      if (noNamespacePackages.length !== 1) {
-        continue;
-      }
-
-      const singleNoNsPkg = noNamespacePackages[0];
-      const subPkg = singleNoNsPkg?.SubscriberPackage;
-      if (!subPkg?.Name || !singleNoNsPkg.SubscriberPackageId) {
-        continue;
-      }
-
-      noNsClassIdsAssigned.push(classId);
-      result.set(classId, {
-        package2Id: singleNoNsPkg.SubscriberPackageId,
-        packageName: subPkg.Name,
-        namespacePrefix: subPkg.NamespacePrefix ?? null,
-        containerOptions: 'Unlocked'
-      });
-    }
-
-    if (noNamespacePackages.length === 1 && noNsClassIdsAssigned.length > 0) {
-      const unpackagedClassIds = await getUnpackagedApexClassIds(connection, noNsClassIdsAssigned);
-      for (const classId of noNsClassIdsAssigned) {
-        if (unpackagedClassIds.has(normalizeId(classId))) {
-          result.delete(classId);
-        }
-      }
-    }
-  } catch {
-    // InstalledSubscriberPackage not available or query failed; skip subscriber resolution
-  }
-  return result;
-};
-
 /** Normalize Salesforce Id to 15-char form so 15-char (e.g. discovery) and 18-char (e.g. Tooling query) match. */
 const normalizeId = (id: string): string => (id.length >= 15 ? id.substring(0, 15) : id);
 
-/**
- * ManageableState values that indicate the class is unpackaged (not from an installed package).
- * We remove from the no-namespace package only when we have positive evidence of unpackaged.
- * Any other value (installed, installedEditable, released, beta, etc.) keeps the class in the package.
- */
-const UNPACKAGED_STATES = new Set(['', 'unmanaged']);
+const escapeId = (id: string): string => id.replaceAll("'", "''");
+const inClause = (ids: readonly string[]): string => ids.map(id => `'${escapeId(id)}'`).join(',');
+
+const toResolvedFromPackage2 = (pkg: Package2Row): ResolvedPackageInfo => ({
+  package2Id: pkg.Id,
+  packageName: pkg.Name,
+  containerOptions: pkg.ContainerOptions
+});
+
+/** ManageableState absent/empty/'unmanaged' ⇒ unpackaged (keep the class out of the single no-namespace package). */
+const isUnpackagedState = (state: Option.Option<string>): boolean =>
+  UNPACKAGED_STATES.has(
+    Option.getOrElse(state, () => '')
+      .trim()
+      .toLowerCase()
+  );
+
+/** Trim + drop empty so `''`/whitespace namespace behaves like `null`/absent (no-namespace bucket). */
+const trimmedNamespace = (ns: Option.Option<string>): Option.Option<string> =>
+  ns.pipe(
+    Option.map(s => s.trim()),
+    Option.filter(s => s !== '')
+  );
+
+/** Shared accessors: reach ConnectionService / TargetOrgRef ambiently through the Services extension. */
+const getServicesApi = Effect.flatMap(ExtensionProviderService, ext => ext.getServicesApi);
+const getConnection = Effect.flatMap(getServicesApi, api => api.services.ConnectionService.getConnection());
+const getOrgKey = getServicesApi.pipe(
+  Effect.flatMap(api => api.services.TargetOrgRef()),
+  Effect.flatMap(SubscriptionRef.get),
+  Effect.map(info => info.orgId ?? info.username ?? 'unknown')
+);
 
 /**
- * Returns the set of ApexClass Ids that have ManageableState indicating unpackaged
- * (null, empty, or 'unmanaged'). We use "remove when unpackaged" so that any other
- * ManageableState value (installed, released, beta, etc.) keeps the class in the
- * single no-namespace package. Ids are normalized to 15-char so discovery (15-char)
- * and Tooling query (18-char) match. On query failure, returns empty set so we don't
- * remove any (keep all in package).
+ * Run a Tooling SOQL query and decode each row against `schema`, dropping rows that don't decode
+ * (filterMap) rather than failing the whole query. Query rejections classify into the unavailable
+ * heuristic vs a generic query error so the caller can mark the org and/or fall back.
  */
-const getUnpackagedApexClassIds = async (connection: Connection, classIds: string[]): Promise<Set<string>> => {
-  const out = new Set<string>();
-  if (classIds.length === 0) {
-    return out;
-  }
-  const batchSize = 200;
-  for (let i = 0; i < classIds.length; i += batchSize) {
-    const batch = classIds.slice(i, i + batchSize);
-    const inClause = batch.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
-    const q = `SELECT Id, ManageableState FROM ApexClass WHERE Id IN (${inClause})`;
-    try {
-      const res = await connection.tooling.query<{ Id: string; ManageableState?: string }>(q);
-      for (const rec of res.records ?? []) {
-        if (!rec.Id) continue;
-        const state = (rec.ManageableState ?? '').trim().toLowerCase();
-        if (UNPACKAGED_STATES.has(state)) {
-          out.add(normalizeId(rec.Id));
-        }
-      }
-    } catch {
-      return new Set();
-    }
-  }
-  return out;
-};
+const queryDecoded = <A, I>(schema: Schema.Schema<A, I>, connection: Connection, soql: string) =>
+  Effect.tryPromise({
+    try: () => connection.tooling.query(soql),
+    catch: error =>
+      isPackage2UnavailableError(error)
+        ? new Package2UnavailableError({ message: getMessageFromError(error) })
+        : new Package2QueryError({ message: getMessageFromError(error) })
+  }).pipe(
+    Effect.map(result => result.records ?? []),
+    Effect.map(rows => Array.filterMap(rows, row => Schema.decodeUnknownOption(schema)(row)))
+  );
 
-/**
- * Resolves ApexClass IDs to their owning Package2 (2GP) via Tooling API.
- * Package2 and Package2Member exist only in dev hub/packaging orgs, not in subscriber orgs
- * where packages are installed. If those objects are unavailable, returns empty map and skips
- * further queries for that org.
- * When optional classIdToNamespace is provided and Package2Member resolution fails, tries
- * InstalledSubscriberPackage (subscriber org) and matches by namespace to get package names.
- * Returns a map from ApexClass Id to package info. Classes not in any Package2Member are omitted
- * (caller treats them as unpackaged or 1GP based on namespace from discovery).
- */
-export const resolvePackage2Members = async (
+/** Query `ids` in IN-clause chunks (bounded concurrency), decode, and flatten to one row list. */
+const batchedQuery = <A, I>(
+  schema: Schema.Schema<A, I>,
   connection: Connection,
-  apexClassIds: string[],
-  classIdToNamespace?: Map<string, string>,
-  orgInfo?: PackageResolutionOrgInfo
-): Promise<Map<string, ResolvedPackageInfo>> => {
-  const validIds = apexClassIds.filter(id => typeof id === 'string' && id.length > 0);
-  if (validIds.length === 0) {
-    return new Map();
-  }
-
-  const cacheKey = orgInfo ? getPackageResolutionCacheKey(orgInfo) : 'unknown';
-
-  if (packageResolutionUnavailableOrgs.has(cacheKey)) {
-    const cachedForUnavailable = packageResolutionCache.get(cacheKey);
-    if (cachedForUnavailable?.size) {
-      const filteredFromCache = new Map<string, ResolvedPackageInfo>();
-      for (const id of validIds) {
-        const info = cachedForUnavailable.get(id);
-        if (info) {
-          filteredFromCache.set(id, info);
-        }
-      }
-      return filteredFromCache;
+  ids: readonly string[],
+  toSoql: (chunk: readonly string[]) => string
+) =>
+  Effect.forEach(
+    Array.chunksOf(ids, PACKAGE2_MEMBER_BATCH_SIZE),
+    chunk => queryDecoded(schema, connection, toSoql(chunk)),
+    {
+      concurrency: BATCH_CONCURRENCY
     }
-    return new Map();
-  }
+  ).pipe(Effect.map(Array.flatten));
 
-  const cached = packageResolutionCache.get(cacheKey);
-  const allCached = validIds.every(id => cached?.has(id));
-  if (cached && allCached) {
-    const filteredFromCache = new Map<string, ResolvedPackageInfo>();
-    for (const id of validIds) {
-      const info = cached.get(id);
-      if (info) {
-        filteredFromCache.set(id, info);
-      }
-    }
-    return filteredFromCache;
-  }
-
-  const allMembers: Package2MemberRecord[] = [];
-
-  const runMemberQuery = async (field: 'MetadataComponentId' | 'SubjectId', columns?: string): Promise<void> => {
-    const selectList = columns ?? `Id, ${field}, Package2Id`;
-    for (let i = 0; i < validIds.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
-      const batch = validIds.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
-      const inClause = batch.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
-      const memberQuery = `SELECT ${selectList} FROM Package2Member WHERE ${field} IN (${inClause})`;
-
-      try {
-        const memberResult = await connection.tooling.query<Package2MemberRecord>(memberQuery);
-        const count = memberResult.records?.length ?? 0;
-        if (count > 0) {
-          allMembers.push(...memberResult.records!);
-        }
-      } catch (error) {
-        if (field === 'MetadataComponentId' && isNoSuchColumnForField(error, 'MetadataComponentId')) {
-          throw new TrySubjectIdError();
-        }
-        if (isPackage2UnavailableError(error)) {
-          packageResolutionUnavailableOrgs.add(cacheKey);
-        }
-        throw error;
-      }
-    }
-  };
-
-  let subjectIdOnly = false;
-  const tryInstalledSubscriberFallback = async (): Promise<Map<string, ResolvedPackageInfo>> => {
-    if (classIdToNamespace?.size) {
-      return resolveFromInstalledSubscriberPackages(connection, classIdToNamespace);
-    }
-    return new Map();
-  };
-
-  try {
-    await runMemberQuery('MetadataComponentId');
-    if (allMembers.length === 0) {
-      await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
-    }
-  } catch (error) {
-    if (error instanceof TrySubjectIdError) {
-      try {
-        // Skyline-style columns: SubjectId, SubjectKeyPrefix, Package2Id (see sfCli.ts)
-        await runMemberQuery('SubjectId', 'Id, Package2Id, SubjectId, SubjectKeyPrefix');
-        subjectIdOnly = true;
-      } catch (e2) {
-        if (isPackage2UnavailableError(e2)) {
-          packageResolutionUnavailableOrgs.add(cacheKey);
-        }
-        const fallback = await tryInstalledSubscriberFallback();
-        const cache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
-        for (const [id, info] of fallback) {
-          cache.set(id, info);
-        }
-        packageResolutionCache.set(cacheKey, cache);
-        return fallback;
-      }
-    } else {
-      const fallback = await tryInstalledSubscriberFallback();
-      const cache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
-      for (const [id, info] of fallback) {
-        cache.set(id, info);
-      }
-      packageResolutionCache.set(cacheKey, cache);
-      return fallback;
-    }
-  }
-
-  const result = new Map<string, ResolvedPackageInfo>();
-  const existingCache = packageResolutionCache.get(cacheKey) ?? new Map<string, ResolvedPackageInfo>();
-
-  if (allMembers.length > 0) {
-    const package2Ids = [
-      ...new Set(
-        allMembers.map(m => m.Package2Id).filter((id): id is string => typeof id === 'string' && id.length > 0)
-      )
-    ];
-    const package2ById = new Map<string, Package2>();
-
-    for (let i = 0; i < package2Ids.length; i += PACKAGE2_MEMBER_BATCH_SIZE) {
-      const batch = package2Ids.slice(i, i + PACKAGE2_MEMBER_BATCH_SIZE);
-      const inClause = batch.map(id => `'${id.replaceAll("'", "''")}'`).join(',');
-      // ContainerOptions indicates Unlocked vs Managed (see Skyline sfCli.ts)
-      const packageQuery = `SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2 WHERE Id IN (${inClause})`;
-
-      try {
-        const packageResult = await connection.tooling.query<Package2>(packageQuery);
-        const count = packageResult.records?.length ?? 0;
-        if (count > 0) {
-          for (const rec of packageResult.records!) {
-            if (rec.Id) {
-              package2ById.set(rec.Id, rec);
-            }
-          }
-        }
-      } catch {
-        packageResolutionCache.set(cacheKey, existingCache);
-        return result;
-      }
-    }
-
-    for (const member of allMembers) {
-      const pkgId = member.Package2Id;
-      const pkg = pkgId ? package2ById.get(pkgId) : undefined;
-      const componentId = getComponentId(member);
-      if (!pkg || !componentId || pkg.Id == null || pkg.Name == null) {
-        continue;
-      }
-      const info: ResolvedPackageInfo = {
-        package2Id: pkg.Id,
-        packageName: pkg.Name,
-        namespacePrefix: pkg.NamespacePrefix ?? null,
-        containerOptions: pkg.ContainerOptions
-      };
-      result.set(componentId, info);
-      existingCache.set(componentId, info);
-    }
-  }
-
-  // Fallback: if some class ids are still unresolved (e.g. subscriber org where
-  // unlocked package members are only discoverable by querying Package2 then
-  // Package2Member per package), query all packages and their members.
-  const unresolvedIds = validIds.filter(id => !result.has(id));
-  if (unresolvedIds.length > 0) {
-    const fallbackResult = await resolvePackage2MembersByPackage(
+/**
+ * Returns ApexClass Ids (15-char) whose ManageableState indicates unpackaged. On any query failure the
+ * result is empty (keep all in package). Used to prune the single no-namespace subscriber package.
+ */
+const getUnpackagedApexClassIds = Effect.fn('PackageResolutionService.getUnpackagedApexClassIds')(
+  (connection: Connection, classIds: readonly string[]) =>
+    batchedQuery(
+      ApexClassManageableStateRow,
       connection,
-      unresolvedIds,
-      existingCache,
-      subjectIdOnly,
-      cacheKey
-    );
-    if (fallbackResult && fallbackResult.size > 0) {
-      for (const [id, info] of fallbackResult) {
-        result.set(id, info);
-      }
-    }
-  }
-
-  packageResolutionCache.set(cacheKey, existingCache);
-  return result;
-};
+      classIds,
+      chunk => `SELECT Id, ManageableState FROM ApexClass WHERE Id IN (${inClause(chunk)})`
+    ).pipe(
+      Effect.map(Array.filter(row => isUnpackagedState(row.ManageableState))),
+      Effect.map(rows => HashSet.fromIterable(rows.map(row => normalizeId(row.Id)))),
+      Effect.catchAll(() => Effect.succeed(HashSet.empty<string>()))
+    )
+);
 
 /**
- * Fallback: resolve package membership by querying all Package2 in the org, then
- * Package2Member per package. Used when direct MetadataComponentId IN (...) returns
- * no rows (e.g. subscriber org with installed unlocked packages).
- * When subjectIdOnly is true (e.g. org has SubjectId but not MetadataComponentId),
- * queries only SubjectId and Package2Id from Package2Member.
- * Merges into existingCache and returns a result map for the requested apexClassIds only.
- * Returns null if the Package2 list query fails.
+ * Resolves package info from InstalledSubscriberPackage (subscriber orgs).
+ * Namespaced classes: match by SubscriberPackage.NamespacePrefix.
+ * No-namespace classes: when exactly one installed package has no namespace (e.g. Trigger Actions
+ * Framework), assign those classes to it, then drop any that ManageableState proves unpackaged
+ * (Skyline's resolveNoNamespaceInstalledItem logic). Any query failure recovers to an empty result.
+ * See: https://github.com/mitchspano/Skyline/blob/main/extension/src/modules/s/metadataExplorer/packageResolver.ts
  */
-const resolvePackage2MembersByPackage = async (
+const resolveFromInstalledSubscriberPackages = Effect.fn(
+  'PackageResolutionService.resolveFromInstalledSubscriberPackages'
+)(function* (connection: Connection, classIdToNamespace: ReadonlyMap<string, Option.Option<string>>) {
+  if (classIdToNamespace.size === 0) {
+    return HashMap.empty<string, ResolvedPackageInfo>();
+  }
+  const rows = yield* queryDecoded(
+    InstalledSubscriberPackageRow,
+    connection,
+    'SELECT Id, SubscriberPackageId, SubscriberPackage.NamespacePrefix, SubscriberPackage.Name FROM InstalledSubscriberPackage ORDER BY SubscriberPackage.NamespacePrefix'
+  ).pipe(Effect.catchAll(() => Effect.succeed(Array.empty<InstalledSubscriberPackageRow>())));
+
+  const byNamespace = HashMap.fromIterable(
+    Array.filterMap(rows, row =>
+      trimmedNamespace(row.SubscriberPackage.NamespacePrefix).pipe(Option.map(ns => [ns, row] as const))
+    )
+  );
+  const noNamespacePackages = rows.filter(row =>
+    Option.isNone(trimmedNamespace(row.SubscriberPackage.NamespacePrefix))
+  );
+
+  const entries = [...classIdToNamespace.entries()];
+
+  // Namespaced classes: package2Id is the SubscriberPackageId (033); no ContainerOptions from this object.
+  const namespaced = Array.filterMap(entries, ([classId, ns]) =>
+    Option.flatMap(ns, prefix => HashMap.get(byNamespace, prefix)).pipe(
+      Option.map(
+        row =>
+          [
+            classId,
+            {
+              package2Id: row.SubscriberPackageId,
+              packageName: row.SubscriberPackage.Name,
+              containerOptions: Option.none<ContainerOption>()
+            }
+          ] as const
+      )
+    )
+  );
+
+  // No-namespace classes only resolve when EXACTLY one no-namespace package exists; head gives none otherwise.
+  const singleNoNsPackage = noNamespacePackages.length === 1 ? Array.head(noNamespacePackages) : Option.none();
+  const noNsClassIds = Option.isSome(singleNoNsPackage)
+    ? Array.filterMap(entries, ([classId, ns]) => (Option.isNone(ns) ? Option.some(classId) : Option.none()))
+    : [];
+  const unpackaged =
+    noNsClassIds.length > 0 ? yield* getUnpackagedApexClassIds(connection, noNsClassIds) : HashSet.empty<string>();
+  const noNsResolved = Option.match(singleNoNsPackage, {
+    onNone: () => Array.empty<readonly [string, ResolvedPackageInfo]>(),
+    onSome: pkg =>
+      Array.filterMap(noNsClassIds, classId =>
+        HashSet.has(unpackaged, normalizeId(classId))
+          ? Option.none()
+          : Option.some([
+              classId,
+              {
+                package2Id: pkg.SubscriberPackageId,
+                packageName: pkg.SubscriberPackage.Name,
+                containerOptions: Option.some<ContainerOption>('Unlocked')
+              }
+            ] as const)
+      )
+  });
+
+  return HashMap.fromIterable([...namespaced, ...noNsResolved]);
+});
+
+/**
+ * Primary path: query Package2Member by SubjectId (the ApexClass Id), then resolve owning packages in a
+ * second query keyed by SubscriberPackageId (033) — Package2 has no relationship back to Package2Member.
+ * Fails with Package2UnavailableError / Package2QueryError so the caller can mark the org and fall back.
+ */
+const resolveByMembers = Effect.fn('PackageResolutionService.resolveByMembers')(function* (
   connection: Connection,
-  apexClassIds: string[],
-  existingCache: Map<string, ResolvedPackageInfo>,
-  subjectIdOnly: boolean,
-  cacheKey: string
-): Promise<Map<string, ResolvedPackageInfo> | null> => {
-  let package2List: Package2[] = [];
-  try {
-    const packageQuery = 'SELECT Id, Name, NamespacePrefix, ContainerOptions FROM Package2';
-    const packageResult = await connection.tooling.query<Package2>(packageQuery);
-    const count = packageResult.records?.length ?? 0;
-    if (count > 0) {
-      package2List = packageResult.records!;
-    }
-  } catch (error) {
-    if (isPackage2UnavailableError(error)) {
-      packageResolutionUnavailableOrgs.add(cacheKey);
-    }
-    return null;
+  validIds: readonly string[]
+) {
+  const members = yield* batchedQuery(
+    Package2MemberRow,
+    connection,
+    validIds,
+    chunk => `SELECT ${MEMBER_COLUMNS} FROM Package2Member WHERE SubjectId IN (${inClause(chunk)})`
+  );
+  if (members.length === 0) {
+    return HashMap.empty<string, ResolvedPackageInfo>();
   }
+  const subscriberPackageIds = Array.dedupe(members.map(m => m.SubscriberPackageId));
+  const packages = yield* batchedQuery(
+    Package2Row,
+    connection,
+    subscriberPackageIds,
+    // ContainerOptions indicates Unlocked vs Managed (see Skyline sfCli.ts)
+    chunk =>
+      `SELECT Id, Name, ContainerOptions, SubscriberPackageId FROM Package2 WHERE SubscriberPackageId IN (${inClause(chunk)})`
+  );
+  const packageBySubscriberId = HashMap.fromIterable(packages.map(pkg => [pkg.SubscriberPackageId, pkg] as const));
 
-  if (package2List.length === 0) {
-    return null;
+  return HashMap.fromIterable(
+    Array.filterMap(members, member =>
+      HashMap.get(packageBySubscriberId, member.SubscriberPackageId).pipe(
+        Option.map(pkg => [member.SubjectId, toResolvedFromPackage2(pkg)] as const)
+      )
+    )
+  );
+});
+
+/**
+ * Fallback: enumerate all Package2 in the org, then query Package2Member per package by SubscriberPackageId.
+ * Used when the direct SubjectId IN (...) query leaves ids unresolved (e.g. members only discoverable by
+ * enumerating packages first). The Package2 list failure propagates (caller marks/handles); a per-package
+ * member failure just skips that package.
+ */
+const resolveByPackageEnumeration = Effect.fn('PackageResolutionService.resolveByPackageEnumeration')(function* (
+  connection: Connection,
+  requestedIds: readonly string[]
+) {
+  const packages = yield* queryDecoded(
+    Package2Row,
+    connection,
+    'SELECT Id, Name, ContainerOptions, SubscriberPackageId FROM Package2'
+  );
+  if (packages.length === 0) {
+    return HashMap.empty<string, ResolvedPackageInfo>();
   }
+  const requested = HashSet.fromIterable(requestedIds);
+  const perPackage = yield* Effect.forEach(
+    packages,
+    pkg =>
+      queryDecoded(
+        Package2MemberRow,
+        connection,
+        `SELECT ${MEMBER_COLUMNS} FROM Package2Member WHERE SubscriberPackageId = '${escapeId(pkg.SubscriberPackageId)}'`
+      ).pipe(
+        Effect.map(members =>
+          Array.filterMap(members, member =>
+            HashSet.has(requested, member.SubjectId)
+              ? Option.some([member.SubjectId, toResolvedFromPackage2(pkg)] as const)
+              : Option.none()
+          )
+        ),
+        Effect.catchAll(() => Effect.succeed(Array.empty<readonly [string, ResolvedPackageInfo]>()))
+      ),
+    { concurrency: BATCH_CONCURRENCY }
+  );
+  return HashMap.fromIterable(Array.flatten(perPackage));
+});
 
-  const idSet = new Set(apexClassIds);
-  const result = new Map<string, ResolvedPackageInfo>();
+/**
+ * Resolves ApexClass IDs to their owning Package2 (2GP) via Tooling API. Package2/Package2Member exist
+ * only in dev hub/packaging orgs; on subscriber orgs (or when those objects are unavailable) resolution
+ * falls back to InstalledSubscriberPackage matched by namespace. Results and org-unavailability are cached
+ * per org for the runtime lifetime. Classes not resolvable are omitted (caller treats them as unpackaged
+ * or 1GP based on namespace from discovery).
+ */
+export class PackageResolutionService extends Effect.Service<PackageResolutionService>()('PackageResolutionService', {
+  accessors: true,
+  dependencies: [],
+  effect: Effect.gen(function* () {
+    const stateRef = yield* Ref.make<ResolutionState>({ byOrg: HashMap.empty(), unavailable: HashSet.empty() });
 
-  const memberSelect = subjectIdOnly
-    ? 'SubjectId, SubjectKeyPrefix, Package2Id'
-    : 'MetadataComponentId, SubjectId, Package2Id';
-  for (const pkg of package2List) {
-    if (pkg.Id == null || pkg.Name == null) {
-      continue;
-    }
-    try {
-      const memberQuery = `SELECT ${memberSelect} FROM Package2Member WHERE Package2Id = '${pkg.Id.replaceAll("'", "''")}'`;
-      const memberResult = await connection.tooling.query<Package2MemberRecord>(memberQuery);
-      if (memberResult.records?.length) {
-        const info: ResolvedPackageInfo = {
-          package2Id: pkg.Id,
-          packageName: pkg.Name,
-          namespacePrefix: pkg.NamespacePrefix ?? null,
-          containerOptions: pkg.ContainerOptions
-        };
-        for (const member of memberResult.records) {
-          const mid = getComponentId(member);
-          if (!mid) continue;
-          existingCache.set(mid, info);
-          if (idSet.has(mid)) {
-            result.set(mid, info);
-          }
-        }
+    const markUnavailable = (orgKey: string) =>
+      Ref.update(stateRef, state => ({ ...state, unavailable: HashSet.add(state.unavailable, orgKey) }));
+
+    // Only the "org lacks Package2" heuristic marks the org unavailable; generic query errors don't.
+    const markIfUnavailable = (orgKey: string) => (error: Package2UnavailableError | Package2QueryError) =>
+      Match.value(error).pipe(
+        Match.tag('Package2UnavailableError', () => markUnavailable(orgKey)),
+        Match.orElse(() => Effect.void)
+      );
+
+    // Project the org's cache down to just the requested ids as a plain Map (the tree consumers' shape).
+    const projectCache = (
+      orgCache: Option.Option<HashMap.HashMap<string, ResolvedPackageInfo>>,
+      ids: readonly string[]
+    ) =>
+      new Map(
+        Option.match(orgCache, {
+          onNone: () => [],
+          onSome: cache =>
+            Array.filterMap(ids, id => HashMap.get(cache, id).pipe(Option.map(info => [id, info] as const)))
+        })
+      );
+
+    // On primary success, resolve any still-missing ids by enumerating packages; failures there stay best-effort.
+    const augmentUnresolved = Effect.fn('PackageResolutionService.augmentUnresolved')(function* (
+      connection: Connection,
+      orgKey: string,
+      validIds: readonly string[],
+      resolved: HashMap.HashMap<string, ResolvedPackageInfo>
+    ) {
+      const unresolved = validIds.filter(id => !HashMap.has(resolved, id));
+      if (unresolved.length === 0) {
+        return resolved;
       }
-    } catch {
-      // Per-package failure (e.g. permission); skip this package and continue
-    }
-  }
+      const extra = yield* resolveByPackageEnumeration(connection, unresolved).pipe(
+        Effect.tapError(markIfUnavailable(orgKey)),
+        Effect.catchAll(() => Effect.succeed(HashMap.empty<string, ResolvedPackageInfo>()))
+      );
+      return HashMap.union(resolved, extra);
+    });
 
-  return result;
-};
+    const resolve = Effect.fn('PackageResolutionService.resolve')(function* (
+      apexClassIds: readonly string[],
+      classIdToNamespace: ReadonlyMap<string, Option.Option<string>> = new Map()
+    ) {
+      const validIds = apexClassIds.filter(id => isString(id) && id.length > 0);
+      if (validIds.length === 0) {
+        return new Map<string, ResolvedPackageInfo>();
+      }
+
+      const orgKey = yield* getOrgKey;
+      const state = yield* Ref.get(stateRef);
+      const orgCache = HashMap.get(state.byOrg, orgKey);
+
+      // Known-unavailable org: serve whatever is cached, never re-query.
+      if (HashSet.has(state.unavailable, orgKey)) {
+        return projectCache(orgCache, validIds);
+      }
+      // Full cache hit for every requested id.
+      if (Option.exists(orgCache, cache => validIds.every(id => HashMap.has(cache, id)))) {
+        return projectCache(orgCache, validIds);
+      }
+
+      const connection = yield* getConnection;
+
+      const resolved = yield* resolveByMembers(connection, validIds).pipe(
+        Effect.flatMap(members => augmentUnresolved(connection, orgKey, validIds, members)),
+        Effect.tapError(markIfUnavailable(orgKey)),
+        Effect.catchTags({
+          Package2UnavailableError: () => resolveFromInstalledSubscriberPackages(connection, classIdToNamespace),
+          Package2QueryError: () => resolveFromInstalledSubscriberPackages(connection, classIdToNamespace)
+        })
+      );
+
+      yield* Ref.update(stateRef, current => ({
+        ...current,
+        byOrg: HashMap.set(
+          current.byOrg,
+          orgKey,
+          HashMap.union(
+            Option.getOrElse(HashMap.get(current.byOrg, orgKey), () => HashMap.empty<string, ResolvedPackageInfo>()),
+            resolved
+          )
+        )
+      }));
+
+      // Scope the returned map to the requested ids (resolved may also carry sibling ids from the subscriber fallback).
+      return projectCache(Option.some(resolved), validIds);
+    });
+
+    return { resolve };
+  })
+}) {}

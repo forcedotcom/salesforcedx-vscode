@@ -45,6 +45,8 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 **Desktop-only tests** (`.headless.spec.ts` file naming or `createDesktopTest` fixture) may poll fs directly for durable success signals (e.g., `waitForEsrFile` checks on-disk artifacts) instead of flaky UI toast assertions.
 
+**Desktop diagnostic tests (inspecting telemetry):** Custom fixtures poll on-disk telemetry artifacts (O11y spans + AppInsights-shaped events) for integration testing. Setup + read recipe: [SKILL — Telemetry inspection](../SKILL.md#telemetry-inspection-diagnostic-tests). Fixture example: `packages/salesforcedx-vscode-lightning/test/playwright/fixtures/telemetryFixtures.ts`.
+
 ## Web headless (`createHeadlessServer`)
 
 - Virtual `folderPath` mount: Node `fs` does not see project files; use `folderUri` (`file://…`) or `.vscode/vscode-extension-test-disk-root.txt` (disk root) when services must resolve `SfProject` — see JSDoc on `packages/playwright-vscode-ext/src/web/createHeadlessServer.ts`
@@ -57,10 +59,23 @@ VS Code API (tree views, editors, output panels) only contains visible DOM lines
 
 - Don't rely on `scrollTo` - target element won't exist
 - `scrollIntoViewIfNeeded` probably won't help
+- **Tree item count:** Use `aria-setsize` (VS Code's tree model count) instead of `.count()` (DOM nodes). Reads full child count regardless of viewport. Pattern: `getByRole('treeitem', { level: 1 }).first().getAttribute('aria-setsize')`. See `OrgBrowserPage` helpers: `getRootTypeCount()`, `waitForRootTypeCount(expected)`, `getStableRootTypeCount()` (tolerates scroll/unmount race)
 
-## Dialog Styles and macOS
+## Modal Dialog Buttons
 
 Desktop fixture sets `window.menuStyle: "custom"` (context menus stay in DOM on macOS; use shared context-menu helpers) and `window.dialogStyle: "custom"` when spec needs to click modal dialog buttons (routes `showWarningMessage`, etc. through VS Code's DOM renderer for Playwright automation).
+
+**Dismiss async modals deterministically:** a `confirmOrThrow`/`showWarningMessage` modal that renders only after a network round-trip (e.g. the org-display sensitive-info prompt appears after an org SOQL query) must be dismissed with `clickModalDialogButton(page, buttonLabel, timeoutMs)`, NOT a blind `page.keyboard.press('Escape')`. Escape races the render: if it lands before the modal appears, the modal opens afterward and lingers, blocking the next command palette. `clickModalDialogButton` waits for the modal, then clicks. (Escape is still fine for dismissing quick-input pickers — those are already open when you press it.)
+
+```typescript
+// Good: waits for the async modal, then dismisses it
+await selectOrgInPicker(page, alias);
+await clickModalDialogButton(page, 'Cancel', 30_000);
+
+// Bad: Escape races the modal render — the modal may open after and linger
+await selectOrgInPicker(page, alias);
+await page.keyboard.press('Escape');
+```
 
 ## Selectors and Assertions
 
@@ -110,6 +125,22 @@ Prefer `package.nls.json` for command titles instead of hardcoded strings.
 - Pattern: `import packageNls from '../../../package.nls.json'` (adjust path for package root)
 - Use for `executeCommandWithCommandPalette`, `executeExplorerContextMenuCommand`, `executeEditorContextMenuCommand`, `verifyCommandExists`, and `waitForOutputChannelText` expectedText (e.g. `Ended ${packageNls.deploy_this_source_text}`)
 
+## Commands with Editor Selection
+
+Selection-guarded commands (e.g., debug/execute from selection) require editor focus + selection. Preserve both with `preserveSelection: true`:
+
+```typescript
+// Setup selection first (ensure editor has focus)
+await page.keyboard.press('Control+a');
+
+// Open palette — preserve selection
+await executeCommandWithCommandPalette(page, commandTitle, undefined, {
+  preserveSelection: true
+});
+```
+
+Without it: palette open blurs editor, clears selection, hides selection-guarded commands.
+
 ## Clicking Code Lenses
 
 Use `clickCodeLens(page, text, opts?)` for code lens actions.
@@ -118,6 +149,18 @@ Use `clickCodeLens(page, text, opts?)` for code lens actions.
 - **Apex callers** — pass longer timeout (e.g. `{ timeout: 180_000 }`) to account for Apex Language Server indexing
 - Helper returns on first lens with visible text matching (whitespace-tolerant exact match)
 - Limitation: can't disambiguate multiple lenses with identical labels in same file — caller must scope the search (e.g. navigate to specific line first)
+
+## Output Panel and Debug Sessions
+
+Debug sessions that open extension-specific output channels can hang or behave unexpectedly if a non-debug output panel is already visible. Before launching debug sessions, close the panel with `hidePanel(page)`.
+
+```typescript
+// Before debug session startup
+await hidePanel(page);
+await clickCodeLens(page, 'Debug'); // or run debug command
+```
+
+Use `ensureOutputPanelOpen(page)` to prepare output during setup; close before each debug trigger to prevent interference.
 
 ## Notifications and Toast Messages
 

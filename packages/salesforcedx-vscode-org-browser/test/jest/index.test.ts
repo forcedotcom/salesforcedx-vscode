@@ -119,6 +119,7 @@ const MockConfigServiceLayer = Layer.succeed(
     getConfigAggregator: () => Effect.sync(() => mockConfigAggregator),
     invalidateConfigAggregator: () => Effect.void,
     getTargetDevHub: () => Effect.succeed(undefined),
+    getTargetOrg: () => Effect.succeed(undefined),
     isCurrentTargetOrg: () => Effect.succeed(false),
     isCurrentTargetDevHub: () => Effect.succeed(false),
     unsetTargetOrg: () => Effect.void,
@@ -172,6 +173,7 @@ const MockConnectionServiceLayer = Layer.succeed(
   ConnectionService,
   new ConnectionService({
     getConnection: () => Effect.sync(() => mockConnection),
+    validateAccessTokenOrPromptReauth: () => Effect.void,
     invalidateCachedConnections: () => Effect.void,
     listAllAuthorizations: () => Effect.succeed([])
   } as const)

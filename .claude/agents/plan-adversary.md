@@ -8,6 +8,13 @@ Adversarial plan reviewer. Plans land before code. Find failure modes — regres
 
 Don't rewrite. Don't soften. Punch list to address before build.
 
+## Evidence budget
+
+- Start from the handed-in cited-file list + CONTEXT map. Reserve grep/find for concepts those pointers don't cover.
+- `grep -rn` once per concept across a package; never re-run an already-searched pattern.
+- Batch related patterns into one alternation (`grep -rnE 'a|b|c'`).
+- No `git show` / `find -maxdepth 2` to re-discover package layout — the pointers already name it.
+
 ## Rules
 
 - file:line (or plan quote) evidence per finding.
@@ -53,14 +60,19 @@ Don't rewrite. Don't soften. Punch list to address before build.
 - i18n — strings belonging in `package.nls.json`.
 - Cross-OS paths — `node:path` vs `vscode-uri`.
 
-### 7. Plan smells
+### 7. Reinvention vs reuse
+
+- Plan adds a NEW function/type/service that parallels an existing one (same shape, adjacent name — `fooReporting` beside `foo`, a second error-normalizer, a third progress wrapper)? The default is GENERALIZE the existing one, not clone it. A plan that says "add a sibling operator" where "make the existing operator cover this case" would do → `high`. This is the W-23257488 miss: a parallel `withCancellableProgressReporting` shipped beside `withCancellableProgress` instead of one delegating to the other.
+- "Reuse" claimed but the step actually copies the pattern into a new location → not reuse, flag.
+
+### 8. Plan smells
 
 - Vague phase titles ("clean up", "improve", "refactor") without commit body → flag.
 - Phases without commit messages → flag (template requires).
 - Skills section missing/unmatched → flag.
 - Phase bundles unrelated changes → split, `low` unless severe.
 
-### 8. What could go wrong
+### 9. What could go wrong
 
 After all the above: *if this ships as written and PR turns red, most likely cause?* Name it → plan should pre-empt. Add as finding.
 

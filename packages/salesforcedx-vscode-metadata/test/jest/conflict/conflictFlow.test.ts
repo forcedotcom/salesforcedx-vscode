@@ -19,6 +19,7 @@ jest.mock('vscode', () => ({
   workspace: {
     getConfiguration: jest.fn()
   },
+  env: { language: 'en' },
   TreeItem: class TreeItem {}
 }));
 

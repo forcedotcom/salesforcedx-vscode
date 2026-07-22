@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isError } from 'effect/Predicate';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -14,7 +15,7 @@ export const readFile = async (filePath: string): Promise<string> => {
     const data = await vscode.workspace.fs.readFile(uri);
     return Buffer.from(data).toString('utf8');
   } catch (error) {
-    throw new Error(`Failed to read file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Failed to read file ${filePath}: ${isError(error) ? error.message : String(error)}`);
   }
 };
 
@@ -32,7 +33,7 @@ export const writeFile = async (filePath: string, content: string): Promise<void
     const uint8Array = encoder.encode(content);
     await vscode.workspace.fs.writeFile(URI.file(filePath), uint8Array);
   } catch (error) {
-    throw new Error(`Failed to write file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Failed to write file ${filePath}: ${isError(error) ? error.message : String(error)}`);
   }
 };
 
@@ -60,38 +61,7 @@ export const createDirectory = async (dirPath: string): Promise<void> => {
     const uri = URI.file(dirPath);
     await vscode.workspace.fs.createDirectory(uri);
   } catch (error) {
-    throw new Error(`Failed to create directory ${dirPath}: ${error instanceof Error ? error.message : String(error)}`);
-  }
-};
-
-/**
- * Reads a directory's contents
- * @param dirPath The path to the directory
- * @returns Array of file/directory names
- */
-export const readDirectory = async (dirPath: string): Promise<string[]> => {
-  try {
-    const uri = URI.file(dirPath);
-    const entries = await vscode.workspace.fs.readDirectory(uri);
-    return entries.map(([name]) => name);
-  } catch (error) {
-    throw new Error(`Failed to read directory ${dirPath}: ${error instanceof Error ? error.message : String(error)}`);
-  }
-};
-
-/**
- * Gets file stats
- * @param filePath The path to the file
- * @returns File stats including size, creation time, and modification time
- */
-export const stat = async (filePath: string): Promise<vscode.FileStat> => {
-  try {
-    const uri = URI.file(filePath);
-    return await vscode.workspace.fs.stat(uri);
-  } catch (error) {
-    throw new Error(
-      `Failed to get file stats for ${filePath}: ${error instanceof Error ? error.message : String(error)}`
-    );
+    throw new Error(`Failed to create directory ${dirPath}: ${isError(error) ? error.message : String(error)}`);
   }
 };
 

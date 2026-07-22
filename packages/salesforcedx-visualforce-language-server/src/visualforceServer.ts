@@ -5,15 +5,18 @@
 'use strict';
 
 import { DocumentContext } from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import * as path from 'node:path';
-import * as url from 'node:url';
+import {
+  BrowserMessageReader,
+  BrowserMessageWriter,
+  createConnection as createBrowserConnection
+} from 'vscode-languageserver/browser';
 import {
   ColorPresentationParams,
   CompletionItem,
   CompletionList,
   CompletionParams,
   Connection,
-  createConnection,
+  createConnection as createNodeConnection,
   Disposable,
   DocumentColorParams,
   DocumentRangeFormattingRequest,
@@ -37,7 +40,7 @@ import {
 } from 'vscode-languageserver-protocol';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic, DocumentLink, SymbolInformation } from 'vscode-languageserver-types';
-import { URI } from 'vscode-uri';
+import { resolveReference } from './documentLinks';
 import { format } from './modes/formatting';
 import { getLanguageModes, LanguageModes, Settings } from './modes/languageModes';
 
@@ -47,8 +50,12 @@ const TagCloseRequest = {
   type: new RequestType<TextDocumentPositionParams, string, any>('html/tag')
 } as const;
 
-// Create a connection for the server
-const connection: Connection = createConnection();
+// Create a connection for the server. Web runs in a web worker (BrowserMessageReader/Writer over globalThis);
+// node uses the default IPC/stdio transport. Branch is build-time via esbuild `define ESBUILD_PLATFORM`.
+const connection: Connection =
+  process.env.ESBUILD_PLATFORM === 'web'
+    ? createBrowserConnection(new BrowserMessageReader(globalThis), new BrowserMessageWriter(globalThis))
+    : createNodeConnection();
 
 console.log = connection.console.log.bind(connection.console);
 console.error = connection.console.error.bind(connection.console);
@@ -98,12 +105,12 @@ const getDocumentSettings = (textDocument: TextDocument, needsDocumentSettings: 
 
 // After the server has started the client sends an initialize request. The server receives
 // in the passed params the rootPath of the workspace plus the client capabilities
-connection.onInitialize((params: InitializeParams): InitializeResult => {
+connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
   const initializationOptions = params.initializationOptions;
 
   workspacePath = params.rootPath;
 
-  languageModes = getLanguageModes(
+  languageModes = await getLanguageModes(
     initializationOptions ? initializationOptions.embeddedLanguages : { css: true, javascript: true }
   );
   documents.onDidClose(e => {
@@ -329,16 +336,7 @@ connection.onDocumentRangeFormatting(async formatParams => {
 connection.onDocumentLinks(documentLinkParam => {
   const document = documents.get(documentLinkParam.textDocument.uri);
   const documentContext: DocumentContext = {
-    resolveReference: (ref, base) => {
-      if (base) {
-        // eslint-disable-next-line no-param-reassign
-        ref = url.resolve(base, ref);
-      }
-      if (workspacePath && ref.at(0) === '/') {
-        return URI.file(path.join(workspacePath, ref)).toString();
-      }
-      return url.resolve(document.uri, ref);
-    }
+    resolveReference: (ref, base) => resolveReference(workspacePath, document.uri, ref, base)
   };
   const links: DocumentLink[] = [];
   languageModes.getAllModesInDocument(document).forEach(m => {

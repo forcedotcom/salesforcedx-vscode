@@ -15,9 +15,10 @@ import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vsco
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from './channels';
-import { orgListCleanCommand, orgLoginWebCommand, orgLoginWebDevHub, orgLogoutAll, orgLogoutDefault } from './commands';
+import { getOrgChannelService, setOrgChannel } from './channels';
+import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
+import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
 import { orgCreateCommand } from './commands/orgCreate';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from './commands/orgDelete';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from './commands/orgDisplay';
@@ -27,20 +28,15 @@ import {
   ORG_DISPLAY_USERNAME_COMMAND,
   ORG_LOGIN_ACCESS_TOKEN_COMMAND,
   ORG_LOGIN_WEB_COMMAND,
+  ORG_LOGIN_WEB_DEV_HUB,
+  ORG_LOGOUT_ALL_COMMAND,
+  ORG_LOGOUT_DEFAULT_COMMAND,
   ORG_OPEN_COMMAND
 } from './constants';
 import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { nls } from './messages';
 import { createOrgPicker, setDefaultOrg } from './orgPicker/orgList';
 import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
-
-/** Register all org/auth commands */
-const registerCommands = (): vscode.Disposable =>
-  vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
-    vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
-    vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault)
-  );
 
 /** Initialize org picker and org status bar */
 const initializeStatusBarItems = Effect.gen(function* () {
@@ -63,7 +59,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 
   const api: SalesforceVSCodeOrgApi = {
-    channelService
+    channelService: getOrgChannelService()
   };
   return api;
 };
@@ -71,11 +67,13 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  // Register output channel
-  extensionContext.subscriptions.push(OUTPUT_CHANNEL, registerCommands());
-
   // Register Effect-based commands with AllServicesLayer for proper tracing
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  // Wire the legacy wrapper to the Effect channel so only one 'Salesforce Org Management' channel exists.
+  const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
+  setOrgChannel(orgChannel);
+  extensionContext.subscriptions.push(orgChannel);
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
@@ -83,6 +81,9 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   yield* registerCommand('sf.org.list.clean', orgListCleanCommand);
   yield* registerCommand(ORG_OPEN_COMMAND, orgOpenCommand);
   yield* registerCommand(ORG_LOGIN_WEB_COMMAND, orgLoginWebCommand);
+  yield* registerCommand(ORG_LOGIN_WEB_DEV_HUB, orgLoginWebDevHubCommand);
+  yield* registerCommand(ORG_LOGOUT_ALL_COMMAND, orgLogoutAllCommand);
+  yield* registerCommand(ORG_LOGOUT_DEFAULT_COMMAND, orgLogoutDefaultCommand);
   yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
   yield* registerCommand(ORG_LOGIN_ACCESS_TOKEN_COMMAND, orgLoginAccessTokenCommand);
   yield* registerCommand(ORG_DISPLAY_USERNAME_COMMAND, orgDisplayUsernameCommand);

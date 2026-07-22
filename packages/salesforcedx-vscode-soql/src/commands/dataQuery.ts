@@ -7,7 +7,9 @@
 import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import { isRecord } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { stripAllRows } from '../editor/allRows';
@@ -62,7 +64,7 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   }
 });
 
-const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
+export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -70,9 +72,7 @@ const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string,
     yield* channelService.clearChannel;
   }
 
-  const vscChannel = yield* channelService.getChannel;
-
-  try {
+  yield* Effect.gen(function* () {
     const queryResult = yield* runSoqlQuery(query, queryApi === 'TOOLING');
     const truncated = queryResult.records.length > 0 && queryResult.totalSize > queryResult.records.length;
     const statusMessage = truncated
@@ -84,19 +84,26 @@ const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string,
           queryResult.records.length
         )
       : nls.localize('data_query_complete', queryResult.totalSize);
+    // showChannel runs concurrently, not after: saveResultsToCSV awaits a
+    // showInformationMessage prompt that never resolves without user action,
+    // so gating show behind this Effect.all (e.g. via ensuring) never reveals
+    // the panel.
     yield* Effect.all(
       [
         displayTableResults(queryResult),
         channelService.appendToChannel(statusMessage),
         saveResultsToCSV(queryResult),
-        Effect.sync(() => vscChannel.show())
+        channelService.showChannel
       ],
       { concurrency: 'unbounded' }
     );
-  } catch (error) {
-    yield* channelService.appendToChannel(formatErrorMessage(error));
-    vscChannel.show();
-  }
+  }).pipe(
+    Effect.catchAllCause(cause =>
+      channelService
+        .appendToChannel(formatErrorMessage(Cause.squash(cause)))
+        .pipe(Effect.andThen(channelService.showChannel))
+    )
+  );
 });
 
 export const dataQuery = Effect.fn('sf.data.query')(function* () {
@@ -159,9 +166,6 @@ export const generateTableOutput = (records: QueryResult<JsonMap>['records'], ti
 
   return createTable(tableRows, columns, title);
 };
-
-const isRecord = (record: unknown): record is Record<string, unknown> =>
-  Boolean(record) && typeof record === 'object' && !Array.isArray(record);
 
 /** Checks if a value is a Salesforce sub-query result (e.g. SELECT … FROM Contacts) */
 const isSubQueryResult = (value: unknown): value is { totalSize: number; done: boolean; records: unknown[] } => {
@@ -533,7 +537,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
     const joined = value.map(v => formatNestedDisplayValue(v, depthRemaining)).join(',');
     return joined.length > 50 ? `${joined.substring(0, 47)}...` : joined;
   }
-  if (typeof value === 'object' && isRecord(value)) {
+  if (isRecord(value)) {
     if (depthRemaining <= 0) {
       return '[Object]';
     }

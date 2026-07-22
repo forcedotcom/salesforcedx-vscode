@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { telemetryService } from '../../telemetry';
 import { getLwcTestController } from '../testExplorer/lwcTestController';
@@ -31,7 +32,7 @@ export const lwcTestDebugActiveTextEditorTest = () => getLwcTestController().run
 export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
-  if (typeof sfDebugSessionId === 'string') {
+  if (isString(sfDebugSessionId)) {
     debugSessionStartTimes.set(sfDebugSessionId, globalThis.performance.now());
   }
 };
@@ -43,7 +44,7 @@ export const handleDidStartDebugSession = (session: vscode.DebugSession) => {
 export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => {
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
-  const startTime = typeof sfDebugSessionId === 'string' ? debugSessionStartTimes.get(sfDebugSessionId) : undefined;
+  const startTime = isString(sfDebugSessionId) ? debugSessionStartTimes.get(sfDebugSessionId) : undefined;
   if (typeof startTime === 'number') {
     telemetryService.sendEventData(
       LWC_TEST_DEBUG_LOG_NAME,

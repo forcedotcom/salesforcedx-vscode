@@ -1,3 +1,85 @@
+# 67.6.0 - July 22, 2026
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- We replaced the **SFDX: Add Tests to Apex Test Suite** command with a new **SFDX: Edit Apex Test Suite** command. A single multi-select picker shows all your test classes with the current suite members pre-checked, so you can add and remove tests in one step. ([PR #7672](https://github.com/forcedotcom/salesforcedx-vscode/pull/7672))
+
+#### salesforcedx-vscode-org-browser
+
+- The Org Browser now has independent **show local** and **show org** toolbar toggles for filtering metadata types, plus a text filter in the type/component quick pick. ([PR #7679](https://github.com/forcedotcom/salesforcedx-vscode/pull/7679))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-testing
+
+- We fixed a bug where discovering Apex tests failed with a 400 error against orgs on API version 68.0 or later. ([PR #7805](https://github.com/forcedotcom/salesforcedx-vscode/pull/7805))
+
+#### salesforcedx-vscode-org
+
+- We fixed a bug where the background "orgs expiring soon" check could steal focus and dismiss an open quick pick, such as the org picker. The warning now offers a **Show Output** button instead of automatically revealing the panel. ([PR #7749](https://github.com/forcedotcom/salesforcedx-vscode/pull/7749))
+
+#### salesforcedx-vscode-services
+
+- We fixed the **Salesforce Extensions** services package failing to publish on Open VSX Registry, which had left it stuck at an older version. ([PR #7756](https://github.com/forcedotcom/salesforcedx-vscode/pull/7756))
+
+#### salesforcedx-vscode-visualforce
+
+- We fixed a bug where hovering over mixed-case Visualforce tags such as `apex:pageBlock` and `apex:outputField` showed no hover information. ([PR #7781](https://github.com/forcedotcom/salesforcedx-vscode/pull/7781))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #7777](https://github.com/forcedotcom/salesforcedx-vscode/pull/7777), [PR #7806](https://github.com/forcedotcom/salesforcedx-vscode/pull/7806), [PR #7778](https://github.com/forcedotcom/salesforcedx-vscode/pull/7778), [PR #7753](https://github.com/forcedotcom/salesforcedx-vscode/pull/7753), [PR #7746](https://github.com/forcedotcom/salesforcedx-vscode/pull/7746))
+
+# 67.5.0 - July 15, 2026
+
+## Added
+
+#### salesforcedx-vscode-org
+
+- The **SFDX: Display Org Details** and **SFDX: Display Org Details for Default Org** commands now show a modal warning and require you to click **Continue** before sensitive org info is written to the output channel. Clicking **Cancel** aborts without showing anything. ([PR #7690](https://github.com/forcedotcom/salesforcedx-vscode/pull/7690))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We removed the broken **SFDX: Execute Anonymous Apex with Currently Selected Text** command and renamed **SFDX: Debug Anonymous Apex** to **SFDX: Debug Anonymous Apex with Editor's Selected Text**. The debug command now also works on highlighted text in Anonymous Apex (`.apex`) files, matching the execute command. ([PR #7680](https://github.com/forcedotcom/salesforcedx-vscode/pull/7680))
+
+#### salesforcedx-apex
+
+- We fixed a bug where debugging Anonymous Apex failed because of incorrect log-level handling. You can now debug Anonymous Apex from the **Debug** code lens, **SFDX: Launch Apex Replay Debugger with Selected File**, and **SFDX: Debug Anonymous Apex with Editor's Selected Text**. ([PR #7683](https://github.com/forcedotcom/salesforcedx-vscode/pull/7683))
+
+#### salesforcedx-vscode-org
+
+- We fixed a bug where the dev hub was missing from the org table in **SFDX: Display Org Details**. ([PR #7738](https://github.com/forcedotcom/salesforcedx-vscode/pull/7738))
+
+# 67.4.0 - July 8, 2026
+
+## Fixed
+
+#### salesforcedx-vscode-apex-testing
+
+- We fixed a bug where the **Apex Tests** view kept showing tests from a disconnected org after you logged out or deleted the default org. The test tree now clears automatically without requiring a window reload. ([PR #7605](https://github.com/forcedotcom/salesforcedx-vscode/pull/7605))
+
+- We fixed a bug where org-only Apex test files stayed open in stale virtual editors after logout. Those editors now close and their cached contents are purged when the org is lost. ([PR #7611](https://github.com/forcedotcom/salesforcedx-vscode/pull/7611))
+
+- We fixed a bug where the **Re-Run Last Class** and **Re-Run Last Method** commands never appeared after running tests from the Command Palette or the **Testing** sidebar. The last run is now cached from those entry points too. ([PR #7627](https://github.com/forcedotcom/salesforcedx-vscode/pull/7627))
+
+#### salesforcedx-vscode-metadata
+
+- We fixed a bug where refreshing SObject definitions failed with a generic "An error has occurred" toast. The notification now shows the underlying cause of the failure. ([PR #7658](https://github.com/forcedotcom/salesforcedx-vscode/pull/7658), [ISSUE #7632](https://github.com/forcedotcom/salesforcedx-vscode/issues/7632))
+
+- We fixed a bug where the in-manifest deploy and retrieve commands did not appear for manifest files with custom names such as `sfdxPackage.xml`. Any file matching `*Package.xml` now gets these commands, even outside a `manifest/` directory. ([PR #7616](https://github.com/forcedotcom/salesforcedx-vscode/pull/7616))
+
+#### salesforcedx-vscode-services
+
+- We fixed a bug where the trace flag status bar kept showing an expiration date after the trace flag tracking the current user was removed. The status bar now changes back to **No Tracing** when that happens. ([PR #7670](https://github.com/forcedotcom/salesforcedx-vscode/pull/7670))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #7667](https://github.com/forcedotcom/salesforcedx-vscode/pull/7667), [PR #7673](https://github.com/forcedotcom/salesforcedx-vscode/pull/7673), [PR #7675](https://github.com/forcedotcom/salesforcedx-vscode/pull/7675))
+
 # 67.3.0 - July 1, 2026
 
 ## Added
