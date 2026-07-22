@@ -184,6 +184,24 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   await expect(panel).toBeVisible({ timeout: 10_000 });
 };
 
+/** Returns the `value` attributes of dropdown options whose text or value matches channelName. */
+const matchingChannelOptionValues = async (
+  dropdown: ReturnType<Page['locator']>,
+  channelName: string
+): Promise<string[]> => {
+  const options = dropdown.locator('option');
+  const optionCount = await options.count();
+  const matches = await Promise.all(
+    Array.from({ length: optionCount }, async (_, i) => {
+      const option = options.nth(i);
+      const text = await option.textContent();
+      const value = await option.getAttribute('value');
+      return text?.trim() === channelName || value === channelName ? (value ?? text?.trim()) : undefined;
+    })
+  );
+  return matches.filter((v): v is string => v !== undefined);
+};
+
 /** Selects a specific output channel from the dropdown */
 export const selectOutputChannel = async (page: Page, channelName: string, timeout = 30_000): Promise<void> => {
   // VS Code uses a monaco-select-box with custom UI in the output panel toolbar
@@ -205,18 +223,7 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
       return;
     }
     // Get all options to find the one matching the channel name
-    const options = dropdown.locator('option');
-    const optionCount = await options.count();
-    let targetValue: string | undefined;
-    for (let i = 0; i < optionCount; i++) {
-      const option = options.nth(i);
-      const text = await option.textContent();
-      const value = await option.getAttribute('value');
-      if (text?.trim() === channelName || value === channelName) {
-        targetValue = value ?? text?.trim();
-        break;
-      }
-    }
+    const [targetValue] = await matchingChannelOptionValues(dropdown, channelName);
     if (!targetValue) {
       throw new Error(`Channel "${channelName}" not found in dropdown options`);
     }
@@ -228,6 +235,15 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
     // Verify the selection took effect - wait a bit longer for the UI to update
     await expect(dropdown).toHaveValue(targetValue, { timeout: 5000 });
   }).toPass({ timeout });
+};
+
+/** Counts how many output-channel dropdown options match a name (by text or value). Used to assert no duplicate channels. */
+export const countOutputChannelOptions = async (page: Page, channelName: string): Promise<number> => {
+  await ensureOutputPanelOpen(page);
+  const panel = outputPanel(page);
+  const dropdown = panel.locator('select.monaco-select-box');
+  await dropdown.waitFor({ state: 'attached', timeout: 5000 });
+  return (await matchingChannelOptionValues(dropdown, channelName)).length;
 };
 
 /** Checks if the output channel contains specific text */

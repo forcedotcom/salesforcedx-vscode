@@ -38,6 +38,8 @@ yield* Effect.gen(function* () {
 })
 ```
 
+`try/catch` inside `Effect.gen` is equally forbidden — enforced by LS rule `tryCatchInEffectGen` (config-enforced). Catches thrown JS; misses failures/defects in the Effect error channel. Correct: `catchTag`/`catchTags` for typed E; `catchAllCause` + `Cause.squash` when defects must be caught too (e.g. rejected `Effect.promise`); `Effect.try`/`tryPromise` to wrap throwing sync/async at the boundary.
+
 ## FORBIDDEN: catchAll Losing Type Information
 
 ```typescript
