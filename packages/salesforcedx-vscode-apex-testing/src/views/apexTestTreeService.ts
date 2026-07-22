@@ -91,6 +91,7 @@ class ResolveSuiteChildrenError extends Schema.TaggedError<ResolveSuiteChildrenE
  */
 export type TreeMutationContext = {
   controller: vscode.TestController;
+  suiteTag: vscode.TestTag | undefined;
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
   staleTag: vscode.TestTag | undefined;
@@ -405,7 +406,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
      * retrieveAllSuites failure is logged and recovered to "no suites" (the legacy behavior: log + return
      * early), so a suites outage never fails the whole discovery run.
      */
-    const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(function* (ctx: DiscoveryContext) {
+    const populateSuiteItems = Effect.fn('ApexTestTreeService.populateSuiteItems')(function* (ctx: {
+      controller: vscode.TestController;
+      suiteTag: vscode.TestTag | undefined;
+    }) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const connection = yield* api.services.ConnectionService.getConnection().pipe(
         Effect.mapError(e => new DiscoveryError({ message: toUserFriendlyApexTestError(e) }))
@@ -1109,7 +1113,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         }
 
         if (includesSuiteChange) {
-          yield* clearAllSuiteChildren();
+          yield* refreshSuiteItems(ctx);
         }
       }).pipe(
         // Broad by design: the inner pipeline mixes error types (discoverTests fails with a plain `Error`,
@@ -1185,6 +1189,19 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
           suiteItem.children.add(classItem);
         }
       });
+    });
+
+    /**
+     * Full suite refresh: delete the suite parent from the controller, reset state Refs, then re-query
+     * the org to repopulate. Called from incrementalUpdate when a test suite is created/changed/deleted.
+     */
+    const refreshSuiteItems = Effect.fn('ApexTestTreeService.refreshSuiteItems')(function* (ctx: TreeMutationContext) {
+      yield* Effect.sync(() => {
+        ctx.controller.items.delete('apex-test-suites-parent');
+      });
+      yield* Ref.set(suiteItems, new Map());
+      yield* Ref.set(suiteToClasses, new Map());
+      yield* populateSuiteItems(ctx);
     });
 
     /** Clear every suite item's children so they re-query from the org on next expand. */
