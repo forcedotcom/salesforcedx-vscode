@@ -14,7 +14,7 @@
   "org_logout_default_text": "SFDX: Log Out from Default Org",
   "org_open_default_scratch_org_text": "SFDX: Open Default Org",
   "org_select_text": "Select an org to set as default",
-  "config_unset_org_text": "SFDX: デフォルト組織の設定解除",
+  "config_unset_org_text": "SFDX: Unset a Default Org",
   "status_bar_open_org_tooltip": "Open Default Org in Browser",
   "status_bar_org_picker_tooltip": "Change your default org"
 }

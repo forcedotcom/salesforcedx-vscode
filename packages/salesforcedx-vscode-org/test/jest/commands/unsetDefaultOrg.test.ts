@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as vscode from 'vscode';
 import { unsetDefaultOrgCommand } from '../../../src/commands/unsetDefaultOrg';
+import { nls } from '../../../src/messages';
 
 describe('unsetDefaultOrgCommand', () => {
   let unsetTargetOrgMock: jest.Mock;
@@ -43,7 +44,7 @@ describe('unsetDefaultOrgCommand', () => {
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(unsetTargetOrgMock).toHaveBeenCalledTimes(1);
     expect(showInformationMessageMock).toHaveBeenCalledTimes(1);
-    expect(showInformationMessageMock).toHaveBeenCalledWith('Successfully unset the default org.');
+    expect(showInformationMessageMock).toHaveBeenCalledWith(nls.localize('unset_default_org_success'));
   });
 
   it('propagates failure when unsetTargetOrg fails', async () => {

@@ -12,7 +12,7 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { orgDesktopTest as test } from '../fixtures/desktopFixtures';
+import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
 
 test('org extension: SFDX org commands appear in palette when project is open', async ({ page }) => {
   test.setTimeout(120_000);

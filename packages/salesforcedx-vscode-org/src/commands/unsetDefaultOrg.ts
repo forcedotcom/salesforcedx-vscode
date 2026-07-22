@@ -6,8 +6,8 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 /**
@@ -18,5 +18,7 @@ import { nls } from '../messages';
 export const unsetDefaultOrgCommand = Effect.fn('unsetDefaultOrgCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ConfigService.unsetTargetOrg();
-  yield* Effect.sync(() => void notificationService.showInformationMessage(nls.localize('unset_default_org_success')));
+  yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('unset_default_org_success'))).pipe(
+    Effect.ignore
+  );
 });
