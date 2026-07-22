@@ -31,23 +31,16 @@ export const findMethodInSymbols = (
   symbols: vscode.DocumentSymbol[],
   methodName: string,
   uri: URI
-): vscode.Location | undefined => {
-  for (const symbol of symbols) {
-    if (symbol.kind === vscode.SymbolKind.Method) {
-      // Extract the base method name from the symbol (remove return type and parameters)
-      const symbolMethodName = extractMethodName(symbol.name);
-      if (symbolMethodName === methodName) {
-        return new vscode.Location(uri, symbol.range);
-      }
+): vscode.Location | undefined =>
+  symbols.reduce<vscode.Location | undefined>((found, symbol) => {
+    if (found) return found;
+    // Extract the base method name from the symbol (remove return type and parameters)
+    if (symbol.kind === vscode.SymbolKind.Method && extractMethodName(symbol.name) === methodName) {
+      return new vscode.Location(uri, symbol.range);
     }
     // Recursively search in children (nested classes)
-    if (symbol.children?.length > 0) {
-      const found = findMethodInSymbols(symbol.children, methodName, uri);
-      if (found) return found;
-    }
-  }
-  return undefined;
-};
+    return symbol.children?.length > 0 ? findMethodInSymbols(symbol.children, methodName, uri) : undefined;
+  }, undefined);
 
 /**
  * Get method locations from document symbols for a given URI and method names.
@@ -80,14 +73,14 @@ export const getMethodLocationsFromSymbols = async (
   }
 
   const methodLocationMap = new Map<string, vscode.Location>();
-  for (const methodName of methodNames) {
+  methodNames.forEach(methodName => {
     if (!methodLocationMap.has(methodName)) {
       const methodLocation = findMethodInSymbols(documentSymbols, methodName, uri);
       if (methodLocation) {
         methodLocationMap.set(methodName, methodLocation);
       }
     }
-  }
+  });
 
   // If we found at least one method, return the map (even if some methods weren't found)
   // This allows partial success rather than complete failure
@@ -117,19 +110,24 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
       const classNameSet = new Set(classNames);
       const index = new Map<string, URI>();
 
-      for (const component of componentSet.getSourceComponents()) {
-        // component.content is the .cls file path
-        if (component.content && classNameSet.has(component.name)) {
-          // Prefer shorter paths (files closer to workspace root)
-          const existingUri = index.get(component.name);
-          if (
-            !existingUri ||
-            component.content.length < (yield* api.services.FsService.uriToPath(existingUri)).length
-          ) {
-            index.set(component.name, URI.file(component.content));
-          }
-        }
-      }
+      yield* Effect.forEach(
+        Array.from(componentSet.getSourceComponents()),
+        component =>
+          Effect.gen(function* () {
+            // component.content is the .cls file path
+            if (component.content && classNameSet.has(component.name)) {
+              // Prefer shorter paths (files closer to workspace root)
+              const existingUri = index.get(component.name);
+              if (
+                !existingUri ||
+                component.content.length < (yield* api.services.FsService.uriToPath(existingUri)).length
+              ) {
+                index.set(component.name, URI.file(component.content));
+              }
+            }
+          }),
+        { concurrency: 1 }
+      );
 
       return index;
     }).pipe(

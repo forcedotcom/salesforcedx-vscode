@@ -63,9 +63,7 @@ export const updateTestRunResults = (params: {
     // Split by lines and add each line separately with \r\n to ensure newlines are preserved
     // This is important for table formatting in VS Code's Test Results panel
     const lines = humanOutput.split('\n');
-    for (const line of lines) {
-      run.appendOutput(`${line}\r\n`);
-    }
+    lines.forEach(line => run.appendOutput(`${line}\r\n`));
   } else {
     // Fallback if HumanReporter returns empty - at least show summary
     run.appendOutput(
@@ -78,9 +76,7 @@ export const updateTestRunResults = (params: {
   const testMap = new Map<string, vscode.TestItem>();
 
   // Add all method items keyed by stripped name (Class.Method) for result matching
-  for (const [, methodItem] of methodItems) {
-    testMap.set(getTestName(methodItem), methodItem);
-  }
+  methodItems.forEach(methodItem => testMap.set(getTestName(methodItem), methodItem));
 
   // Also add items from testsToRun (for methods that might not be in methodItems yet)
   // Recursively collect all method items under suites/classes to ensure results propagate
@@ -94,15 +90,13 @@ export const updateTestRunResults = (params: {
     }
   };
 
-  for (const test of testsToRun) {
-    collectMethods(test);
-  }
+  testsToRun.forEach(collectMethods);
 
   // Track results per class for proper aggregation
   const classResults = new Map<string, { passed: number; failed: number; skipped: number; duration: number }>();
 
   // Update results from TestResult
-  for (const testResult of result.tests) {
+  result.tests.forEach(testResult => {
     const { name, namespacePrefix } = testResult.apexClass;
     const apexClassName = namespacePrefix ? `${namespacePrefix}.${name}` : name;
     const fullTestName = `${apexClassName}.${testResult.methodName}`;
@@ -156,7 +150,7 @@ export const updateTestRunResults = (params: {
         Effect.logDebug(`Test result for ${fullTestName} doesn't match any test item`, { availableItems: testMap.size })
       );
     }
-  }
+  });
 
   // Aggregate totals across all classes for parent items (suites, classes)
   const totals = Array.from(classResults.values()).reduce(
@@ -207,7 +201,7 @@ export const updateTestRunResults = (params: {
 
   // Update parent items (suites, classes) that were originally selected
   // This ensures the checkmark appears on the suite/class, not just the methods
-  for (const test of testsToRun) {
+  testsToRun.forEach(test => {
     if (isSuite(test.id)) {
       // For suites, aggregate results only for classes that belong to THIS suite
       const suiteChildren: vscode.TestItem[] = [];
@@ -281,5 +275,5 @@ export const updateTestRunResults = (params: {
         }
       }
     }
-  }
+  });
 };
