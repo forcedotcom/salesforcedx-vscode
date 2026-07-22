@@ -129,7 +129,7 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await waitForOutputChannelText(page, {
-      expectedText: 'Ended SFDX: Delete from Project and Org',
+      expectedText: 'Deleted Source',
       timeout: 120_000
     });
     await saveScreenshot(page, 'step.delete-completed.png');
