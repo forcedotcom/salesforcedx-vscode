@@ -26,6 +26,7 @@ ALWAYS operate inside the parent's current working directory. NEVER edit absolut
    - package.json scripts/commands, esbuild config, scripts/
    - .vscodeignore, .vscode (launch/tasks/extensions), tsconfig, .esbuild-web-extra-settings.json, .github workflows
    - **Comments**: check lines immediately above code changes; ensure they match new logic. Don't add new comments, just correct existing. Comments explain what code does, not what it used to do or what changed — delete "replaces the former X", "previously Y", "no longer Z" framing. Keep terse; cut comments that restate obvious code (Effect/types self-evident). Cut per-item narration on a list/merge/composition (e.g. one line per arg of `Layer.mergeAll`/`Effect.all`) that just restates what each referenced symbol does at its own definition — a what-it-does explanation belongs in a JSDoc (`/** */`) block on the symbol's own definition so editor hover surfaces it, not as a line comment at every use site.
+   - **Shorten verbose NEW comments**: newly-added `//` block ≥3 contiguous lines reading as prose/justification (rationale/history/investigation), not a what-it-does label → compress to a 1-2 line label; keep rationale via JSDoc (as above) or commit/PR body. Compressing/relocating diff commentary is shortening, not adding — never add commentary absent from the diff; net volume must not increase.
 2. **Broken links** in docs
 3. **Duplication** — replace with cross-links
 
