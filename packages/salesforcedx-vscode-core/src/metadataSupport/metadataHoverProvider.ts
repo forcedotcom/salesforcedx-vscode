@@ -101,47 +101,6 @@ export const extractMetadataType = (
 };
 
 /**
- * Find the parent metadata type by scanning upward from current line
- */
-export const findParentMetadataType = (
-  document: vscode.TextDocument,
-  startLine: number,
-  documentationService: MetadataDocumentationService
-): string | null => {
-  for (let i = startLine; i >= 0; i--) {
-    const line = document.lineAt(i).text;
-    const xmlElementRegex = /<([\w:]+)(\s|>)/g;
-    let match;
-
-    while ((match = xmlElementRegex.exec(line)) !== null) {
-      const elementName = match[1];
-      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-      // Check if this is a valid Salesforce metadata type
-      if (documentationService.isValidMetadataType(cleanElementName)) {
-        return cleanElementName;
-      }
-    }
-
-    // Also check for multi-line elements (when closing > is on next line)
-    const multiLineElementRegex = /<([\w:]+)$/g;
-    let multiLineMatch;
-
-    while ((multiLineMatch = multiLineElementRegex.exec(line)) !== null) {
-      const elementName = multiLineMatch[1];
-      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-      // Check if this is a valid Salesforce metadata type
-      if (documentationService.isValidMetadataType(cleanElementName)) {
-        return cleanElementName;
-      }
-    }
-  }
-
-  return null;
-};
-
-/**
  * Find the parent metadata type and all intermediate layers by scanning upward from current line
  */
 export const findParentMetadataTypeWithLayers = (
