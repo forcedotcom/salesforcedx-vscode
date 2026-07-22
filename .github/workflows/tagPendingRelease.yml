@@ -1,0 +1,162 @@
+name: Tag Linked Issues/Discussions Pending Release
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: write
+  discussions: write
+
+jobs:
+  tag-pending-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse PR body for linked issues and discussions
+        id: parse
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ -z "$PR_BODY" ]]; then
+            echo "No PR body found, nothing to do."
+            echo "issues=" >> "$GITHUB_OUTPUT"
+            echo "discussions=" >> "$GITHUB_OUTPUT"
+            echo "unresolved=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Extract full issue URLs for this repo
+          ISSUE_NUMS=$(echo "$PR_BODY" | grep -oP "github\.com/${REPO}/issues/\K[0-9]+" | sort -u | tr '\n' ' ')
+
+          # Extract full discussion URLs for this repo
+          DISC_NUMS=$(echo "$PR_BODY" | grep -oP "github\.com/${REPO}/discussions/\K[0-9]+" | sort -u | tr '\n' ' ')
+
+          # Extract short references: bare #NNN and keyword-prefixed forms
+          SHORT_REFS=$(echo "$PR_BODY" | grep -oiP '(?:closes|close|fixes|fix|resolves|resolve)?\s*#\K[0-9]+' | sort -u | tr '\n' ' ')
+
+          # Determine unresolved numbers (short refs that aren't already classified)
+          UNRESOLVED=""
+          for NUM in $SHORT_REFS; do
+            ALREADY_KNOWN=false
+            for I in $ISSUE_NUMS; do
+              if [[ "$NUM" == "$I" ]]; then
+                ALREADY_KNOWN=true
+                break
+              fi
+            done
+            if [[ "$ALREADY_KNOWN" == "false" ]]; then
+              for D in $DISC_NUMS; do
+                if [[ "$NUM" == "$D" ]]; then
+                  ALREADY_KNOWN=true
+                  break
+                fi
+              done
+            fi
+            if [[ "$ALREADY_KNOWN" == "false" ]]; then
+              UNRESOLVED="$UNRESOLVED $NUM"
+            fi
+          done
+          UNRESOLVED=$(echo "$UNRESOLVED" | xargs -n1 2>/dev/null | sort -u | tr '\n' ' ')
+
+          echo "Parsed issue numbers: ${ISSUE_NUMS:-none}"
+          echo "Parsed discussion numbers: ${DISC_NUMS:-none}"
+          echo "Unresolved short refs: ${UNRESOLVED:-none}"
+
+          echo "issues=${ISSUE_NUMS}" >> "$GITHUB_OUTPUT"
+          echo "discussions=${DISC_NUMS}" >> "$GITHUB_OUTPUT"
+          echo "unresolved=${UNRESOLVED}" >> "$GITHUB_OUTPUT"
+
+      - name: Label issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBERS: ${{ steps.parse.outputs.issues }}
+          UNRESOLVED: ${{ steps.parse.outputs.unresolved }}
+        run: |
+          LABELED_ISSUES=""
+
+          # Label known issues
+          for ISSUE in $ISSUE_NUMBERS; do
+            gh issue edit "$ISSUE" --add-label "pending release" \
+              && echo "Labeled issue #${ISSUE}" \
+              || echo "::warning::Failed to label issue #$ISSUE"
+            LABELED_ISSUES="$LABELED_ISSUES $ISSUE"
+          done
+
+          # Attempt to label unresolved refs as issues
+          REMAINING=""
+          for NUM in $UNRESOLVED; do
+            if gh issue view "$NUM" --json number --jq '.number' > /dev/null 2>&1; then
+              gh issue edit "$NUM" --add-label "pending release" \
+                && echo "Labeled issue #${NUM}" \
+                || echo "::warning::Failed to label issue #$NUM"
+              LABELED_ISSUES="$LABELED_ISSUES $NUM"
+            else
+              REMAINING="$REMAINING $NUM"
+            fi
+          done
+
+          echo "remaining_for_discussions=$(echo $REMAINING | xargs)" >> "$GITHUB_OUTPUT"
+        id: label_issues
+
+      - name: Fetch pending release label node ID
+        id: fetch_label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          LABEL_ID=$(gh api graphql -f query='
+            query($owner: String!, $repo: String!) {
+              repository(owner: $owner, name: $repo) {
+                label(name: "pending release") {
+                  id
+                }
+              }
+            }' -f owner="$REPO_OWNER" -f repo="$REPO_NAME" --jq '.data.repository.label.id' 2>/dev/null || echo "")
+
+          if [[ -z "$LABEL_ID" ]]; then
+            echo "::warning::Label 'pending release' not found in repository, skipping discussion labeling"
+            echo "label_id=" >> "$GITHUB_OUTPUT"
+          else
+            echo "label_id=${LABEL_ID}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Label discussions
+        if: steps.fetch_label.outputs.label_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LABEL_ID: ${{ steps.fetch_label.outputs.label_id }}
+          DISCUSSION_NUMBERS: ${{ steps.parse.outputs.discussions }}
+          REMAINING: ${{ steps.label_issues.outputs.remaining_for_discussions }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          ALL_DISC_NUMS="$DISCUSSION_NUMBERS $REMAINING"
+
+          for DISC_NUM in $ALL_DISC_NUMS; do
+            [[ -z "$DISC_NUM" ]] && continue
+
+            DISC_ID=$(gh api graphql -f query='
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  discussion(number: $number) {
+                    id
+                  }
+                }
+              }' -f owner="$REPO_OWNER" -f repo="$REPO_NAME" -F number="$DISC_NUM" \
+              --jq '.data.repository.discussion.id' 2>/dev/null || echo "")
+
+            if [[ -z "$DISC_ID" ]]; then
+              echo "::warning::Discussion #$DISC_NUM not found or inaccessible, skipping"
+              continue
+            fi
+
+            jq -n --arg labelableId "$DISC_ID" --arg labelId "$LABEL_ID" \
+              '{query: "mutation($labelableId: ID!, $labelIds: [ID!]!) { addLabelsToLabelable(input: {labelableId: $labelableId, labelIds: $labelIds}) { labelable { __typename } } }", variables: {labelableId: $labelableId, labelIds: [$labelId]}}' \
+              | gh api graphql --input - > /dev/null 2>&1 \
+              && echo "Labeled discussion #${DISC_NUM}" \
+              || echo "::warning::Failed to label discussion #$DISC_NUM"
+          done
