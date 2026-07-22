@@ -67,6 +67,11 @@ const parseProcessList = (stdout: string): ProcessDetail[] =>
       .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME))
   );
 
+const getChannel = Effect.fn('apex.orphan.getChannel')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ChannelService;
+});
+
 /** Find Apex Language Server processes whose parent no longer exists. */
 const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -216,7 +221,7 @@ const showOrphansInChannel = Effect.fn('apex.orphan.showOrphansInChannel')(funct
 
   const tableString = createTable(rows, columns);
 
-  const channel = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
+  const channel = yield* getChannel();
   yield* channel.showChannel;
   yield* channel.appendToChannel(nls.localize('orphan_process_advice'));
   yield* channel.appendToChannel('');
@@ -240,7 +245,7 @@ const requestsTermination = (choice: string): boolean => choice === nls.localize
 const showProcesses = (choice: string): boolean => choice === nls.localize('terminate_show_processes');
 
 const showProcessTerminated = Effect.fn('apex.orphan.showProcessTerminated')(function* (processDetail: ProcessDetail) {
-  const channel = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
+  const channel = yield* getChannel();
   yield* channel.appendToChannel(nls.localize('terminated_orphaned_process', processDetail.pid));
 });
 
@@ -248,6 +253,6 @@ const showTerminationFailed = Effect.fn('apex.orphan.showTerminationFailed')(fun
   processInfo: ProcessDetail,
   message: string
 ) {
-  const channel = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
+  const channel = yield* getChannel();
   yield* channel.appendToChannel(nls.localize('terminate_failed', processInfo.pid, message));
 });
