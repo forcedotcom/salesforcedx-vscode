@@ -8,3 +8,4 @@
 export { orgListCleanCommand } from './orgList';
 export { orgLoginWebCommand } from './auth/orgLoginWeb';
 export { orgLogoutAllCommand, orgLogoutDefaultCommand } from './auth/orgLogout';
+export { unsetDefaultOrgCommand } from './unsetDefaultOrg';

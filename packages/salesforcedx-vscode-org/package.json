@@ -261,6 +261,10 @@
         {
           "command": "sf.set.default.org",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.unset.default.org",
+          "when": "sf:project_opened && sf:has_target_org"
         }
       ]
     },
@@ -316,6 +320,10 @@
       {
         "command": "sf.set.default.org",
         "title": "%config_set_org_text%"
+      },
+      {
+        "command": "sf.unset.default.org",
+        "title": "%config_unset_org_text%"
       }
     ]
   }

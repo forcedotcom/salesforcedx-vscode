@@ -102,5 +102,6 @@ For additional information, please review the authorization section of https://d
   pending_org_expiration_output_channel_message:
     'Warning: The following orgs expire in the next %d days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
   status_bar_open_org_tooltip: 'Open Default Org in Browser',
-  status_bar_org_picker_tooltip: 'Change Default Org'
+  status_bar_org_picker_tooltip: 'Change Default Org',
+  unset_default_org_success: 'Successfully unset the default org.'
 } as const;

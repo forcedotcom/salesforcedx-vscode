@@ -16,7 +16,13 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { getOrgChannelService, setOrgChannel } from './channels';
-import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
+import {
+  orgListCleanCommand,
+  orgLoginWebCommand,
+  orgLogoutAllCommand,
+  orgLogoutDefaultCommand,
+  unsetDefaultOrgCommand
+} from './commands';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
 import { orgLoginWebDevHubCommand } from './commands/auth/orgLoginWebDevHub';
 import { orgCreateCommand } from './commands/orgCreate';
@@ -31,7 +37,8 @@ import {
   ORG_LOGIN_WEB_DEV_HUB,
   ORG_LOGOUT_ALL_COMMAND,
   ORG_LOGOUT_DEFAULT_COMMAND,
-  ORG_OPEN_COMMAND
+  ORG_OPEN_COMMAND,
+  UNSET_DEFAULT_ORG_COMMAND
 } from './constants';
 import { AllServicesLayer, getOrgRuntime, setAllServicesLayer } from './extensionProvider';
 import { nls } from './messages';
@@ -87,6 +94,7 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
   yield* registerCommand(ORG_DISPLAY_DEFAULT_COMMAND, orgDisplayDefaultCommand);
   yield* registerCommand(ORG_LOGIN_ACCESS_TOKEN_COMMAND, orgLoginAccessTokenCommand);
   yield* registerCommand(ORG_DISPLAY_USERNAME_COMMAND, orgDisplayUsernameCommand);
+  yield* registerCommand(UNSET_DEFAULT_ORG_COMMAND, unsetDefaultOrgCommand);
 
   // Initialize org picker and status bar
   yield* initializeStatusBarItems;

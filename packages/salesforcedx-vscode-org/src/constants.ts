@@ -14,3 +14,4 @@ export const ORG_DISPLAY_DEFAULT_COMMAND = 'sf.org.display.default';
 export const ORG_LOGIN_ACCESS_TOKEN_COMMAND = 'sf.org.login.access.token';
 export const ORG_DISPLAY_USERNAME_COMMAND = 'sf.org.display.username';
 export const ORG_LOGIN_WEB_DEV_HUB = 'sf.org.login.web.dev.hub';
+export const UNSET_DEFAULT_ORG_COMMAND = 'sf.unset.default.org';
