@@ -28,7 +28,7 @@ const sharedUserSettings = {
   'window.dialogStyle': 'custom'
 } as const;
 
-// Apex-testing specs never run Push/Pull or rely on source tracking, so they use a non-tracking
+// Apex-testing specs that never run Push/Pull or rely on source tracking can use a non-tracking
 // org. This avoids the "Override Conflicts and Deploy" modal that source-tracked orgs surface
 // on rerun when remote tracking state diverges from local.
 export const desktopTest = createDesktopTest({
