@@ -596,6 +596,20 @@ class LwcTestController {
       // remaining short/long (8.3) path divergence back to the discovery URI that keys the items.
       const testUri = this.resolveDiscoveryUri(URI.file(normalizeJestFsPath(fileResult.name)));
       const fileItem = this.fileItems.get(createFileId(testUri));
+
+      // When assertionResults is empty and there's a runtime error message, mark file and all its children as errored
+      if (fileResult.assertionResults.length === 0 && fileResult.message && fileItem) {
+        // Strip ANSI escape codes from Jest's error message
+        const cleanMessage = fileResult.message.replaceAll(/\x1b\[[0-9;]*m/g, '');
+        const errorMessage = new vscode.TestMessage(cleanMessage);
+        run.errored(fileItem, errorMessage);
+        // Mark all child test items as errored since the suite failed to run
+        fileItem.children.forEach(child => {
+          run.errored(child, errorMessage);
+        });
+        continue;
+      }
+
       for (const assertion of fileResult.assertionResults) {
         const id = createCaseId(testUri, assertion.title, assertion.ancestorTitles);
         const caseItem = this.caseItems.get(id);
