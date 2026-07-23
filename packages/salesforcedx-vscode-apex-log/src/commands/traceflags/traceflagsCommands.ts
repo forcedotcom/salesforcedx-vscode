@@ -49,13 +49,12 @@ export const openTraceFlagsCommand = Effect.fn('ApexLog.Command.openTraceFlags')
   yield* api.services.FsService.showTextDocument(uri);
 });
 
-type PickDebugLevelResult = { kind: 'picked'; id: string } | { kind: 'noLevels' } | { kind: 'cancelled' };
-
-const pickDebugLevelId = async (debugLevels: DebugLevelItem[]): Promise<PickDebugLevelResult> => {
-  if (debugLevels.length === 0) return { kind: 'noLevels' };
-  const picked = await pickDebugLevel(debugLevels);
-  return picked ? { kind: 'picked', id: picked.debugLevelId } : { kind: 'cancelled' };
-};
+/** Pick a debug level id, or undefined when the org has none (proceed with org default). Fails with UserCancellationError on dismiss. */
+const pickDebugLevelIdOrDefault = Effect.fn('ApexLog.pickDebugLevelIdOrDefault')(function* (
+  debugLevels: DebugLevelItem[]
+) {
+  return debugLevels.length === 0 ? undefined : yield* pickDebugLevel(debugLevels);
+});
 
 /** Create/extends trace flag for current user using defaultDurationMinutes from config, refreshes virtual doc. */
 export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.createTraceFlagForCurrentUser')(
@@ -65,15 +64,9 @@ export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.c
     const { api, orgId, userId } = ctx.value;
     const traceFlagService = yield* api.services.TraceFlagService;
     const debugLevels = yield* traceFlagService.getDebugLevels();
-    const debugLevelResult = yield* Effect.promise(() => pickDebugLevelId(debugLevels));
-    if (debugLevelResult.kind === 'cancelled') return;
+    const debugLevelId = yield* pickDebugLevelIdOrDefault(debugLevels);
     const minutes = yield* readDefaultDurationMinutes();
-    yield* traceFlagService.ensureTraceFlag(
-      userId!,
-      Duration.minutes(minutes),
-      'DEVELOPER_LOG',
-      debugLevelResult.kind === 'picked' ? debugLevelResult.id : undefined
-    );
+    yield* traceFlagService.ensureTraceFlag(userId!, Duration.minutes(minutes), 'DEVELOPER_LOG', debugLevelId);
     yield* refreshTraceFlagsView(orgId);
   }
 );
@@ -100,20 +93,15 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   const ctx = yield* requireOrgContext({ requireUserId: true });
   if (Option.isNone(ctx)) return;
   const { api, orgId, userId: currentUserId } = ctx.value;
+  const promptService = yield* api.services.PromptService;
   const picked = yield* pickOrgUser(currentUserId!);
   yield* Effect.annotateCurrentSpan('createTraceFlagForUser', { attributes: { userId: picked?.userId ?? 'none' } });
-  if (!picked) return;
+  const user = yield* promptService.considerUndefinedAsCancellation(picked);
   const traceFlagService = yield* api.services.TraceFlagService;
   const debugLevels = yield* traceFlagService.getDebugLevels();
-  const debugLevelResult = yield* Effect.promise(() => pickDebugLevelId(debugLevels));
-  if (debugLevelResult.kind === 'cancelled') return;
+  const debugLevelId = yield* pickDebugLevelIdOrDefault(debugLevels);
   const minutes = yield* readDefaultDurationMinutes();
-  yield* traceFlagService.ensureTraceFlag(
-    picked.userId,
-    Duration.minutes(minutes),
-    'USER_DEBUG',
-    debugLevelResult.kind === 'picked' ? debugLevelResult.id : undefined
-  );
+  yield* traceFlagService.ensureTraceFlag(user.userId, Duration.minutes(minutes), 'USER_DEBUG', debugLevelId);
   yield* refreshTraceFlagsView(orgId);
 });
 
@@ -135,14 +123,14 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
+  const promptService = yield* api.services.PromptService;
 
   const masterLabel = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('trace_flag_create_log_level_master_label'),
       title: nls.localize('trace_flag_create_log_level_title')
     })
-  );
-  if (!masterLabel?.trim()) return;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
   const defaultDevName = sanitizeDeveloperName(masterLabel.trim());
   const developerName = yield* Effect.promise(() =>
@@ -151,8 +139,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
       value: defaultDevName,
       title: nls.localize('trace_flag_create_log_level_title')
     })
-  );
-  if (!developerName?.trim()) return;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
   const useDefaultsPick = yield* Effect.promise(() =>
     vscode.window.showQuickPick(
@@ -165,25 +152,18 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
         title: nls.localize('trace_flag_create_log_level_title')
       }
     )
-  );
-  if (useDefaultsPick === undefined) return;
-  const useDefaults = useDefaultsPick.value;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
-  const levelsOrUndef = useDefaults
+  const levels = useDefaultsPick.value
     ? Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map(c => [c.key, c.default]))
-    : yield* Effect.gen(function* () {
-        const picked = yield* Effect.all(
-          DEBUG_LEVEL_CATEGORIES.map(cat =>
-            Effect.promise(() => pickLogLevel(cat, cat.default)).pipe(
-              Effect.flatMap(p => (p === undefined ? Effect.fail(undefined) : Effect.succeed(p)))
-            )
-          ),
-          { concurrency: 1 }
-        );
-        return Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]!]));
-      }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
-  if (!levelsOrUndef) return;
-  const levels = levelsOrUndef;
+    : yield* Effect.all(
+        DEBUG_LEVEL_CATEGORIES.map(cat =>
+          Effect.promise(() => pickLogLevel(cat, cat.default)).pipe(
+            Effect.flatMap(promptService.considerUndefinedAsCancellation)
+          )
+        ),
+        { concurrency: 1 }
+      ).pipe(Effect.map(picked => Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]]))));
 
   const payload = {
     MasterLabel: masterLabel.trim(),
@@ -241,9 +221,8 @@ export const changeDebugLevelCommand = Effect.fn('ApexLog.Command.changeDebugLev
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
   const debugLevels = yield* traceFlagService.getDebugLevels();
-  const pickedLevel = yield* Effect.promise(() => pickDebugLevel(debugLevels));
-  if (!pickedLevel) return;
-  yield* traceFlagService.changeTraceFlagDebugLevel(traceFlagId, pickedLevel.debugLevelId);
+  const debugLevelId = yield* pickDebugLevel(debugLevels);
+  yield* traceFlagService.changeTraceFlagDebugLevel(traceFlagId, debugLevelId);
   yield* refreshTraceFlagsView(orgId);
 });
 

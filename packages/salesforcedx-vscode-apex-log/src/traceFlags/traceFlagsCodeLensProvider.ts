@@ -168,11 +168,10 @@ export const registerTraceFlagsCodeLensProvider = Effect.fn(
 )(function* (context: ExtensionContext) {
   const provider = {
     provideCodeLenses: (document: TextDocument, token: CancellationToken) =>
-      getRuntime().runPromise(
-        provideTraceFlagsCodeLens(document, token).pipe(
-          Effect.tapError(e => Effect.logError(String(e))),
-          Effect.catchAll(() => Effect.succeed<CodeLens[]>([]))
-        )
+      provideTraceFlagsCodeLens(document, token).pipe(
+        Effect.tapError(e => Effect.logError(String(e))),
+        Effect.catchAll(() => Effect.succeed<CodeLens[]>([])),
+        getRuntime().runPromise
       )
   };
   context.subscriptions.push(languages.registerCodeLensProvider(TRACE_FLAGS_DOCUMENT_SELECTOR, provider));
