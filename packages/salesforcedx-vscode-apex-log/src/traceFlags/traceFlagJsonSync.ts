@@ -21,8 +21,8 @@ import { nls } from '../messages';
 import { TraceFlagsContentProviderService } from './traceFlagsContentProvider';
 
 export const readDefaultDurationMinutes = Effect.fn('ApexLog.readDefaultDurationMinutes')(function* () {
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-log');
-  const val = config.get<number>('traceFlagsDefaultDurationMinutes', 30);
+  const settings = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.SettingsService;
+  const val = (yield* settings.getValue('salesforcedx-vscode-apex-log', 'traceFlagsDefaultDurationMinutes', 30)) ?? 30;
   return val > 0 ? val : 30;
 });
 

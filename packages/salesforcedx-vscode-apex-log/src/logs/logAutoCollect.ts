@@ -100,8 +100,10 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
   );
 });
 
-const getPollIntervalSeconds = (): number =>
-  vscode.workspace.getConfiguration('salesforcedx-vscode-apex-log').get<number>('logPollIntervalSeconds', 30);
+const getPollIntervalSeconds = Effect.fn('ApexLog.getPollIntervalSeconds')(function* () {
+  const settings = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.SettingsService;
+  return (yield* settings.getValue('salesforcedx-vscode-apex-log', 'logPollIntervalSeconds', 30)) ?? 30;
+});
 
 /** Polling stream that auto-collects Apex logs when trace flags are active. Writes to collectorRef for status bar display. */
 export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(function* () {
@@ -112,13 +114,16 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const targetOrgRef = yield* api.services.TargetOrgRef();
 
   const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
-  const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollIntervalSeconds()));
+  const pollIntervalSeconds = yield* getPollIntervalSeconds();
+  const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(pollIntervalSeconds));
 
   // watch the setting to update poll freq
   yield* Effect.fork(
     Stream.fromPubSub(settingsChangePubSub).pipe(
       Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')),
-      Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollIntervalSeconds())))
+      Stream.runForEach(() =>
+        getPollIntervalSeconds().pipe(Effect.flatMap(s => SubscriptionRef.set(pollIntervalRef, Duration.seconds(s))))
+      )
     )
   );
 
@@ -155,7 +160,7 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
     Stream.mergeAll([dynamicPollStream, refreshStream, orgChangeStream], { concurrency: 'unbounded' }).pipe(
       // if the polling interval === the debounce, events don't make it through the stream
       // 1s is fine except when the polling interval is very low
-      Stream.debounce(calculateDebounce(getPollIntervalSeconds())),
+      Stream.debounce(calculateDebounce(pollIntervalSeconds)),
       Stream.runForEach(() => collectNewLogs(knownIdsRef, collectorRef))
     )
   );
