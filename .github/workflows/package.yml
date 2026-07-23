@@ -68,7 +68,7 @@ jobs:
       artifact-name: ${{ steps.calc-artifact-name.outputs.artifact-name }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch || github.head_ref || github.ref }}
 
@@ -164,14 +164,14 @@ jobs:
 
       - name: Calculate artifact name
         id: calc-artifact-name
-        uses: salesforcecli/github-workflows/.github/actions/calculate-artifact-name@ms/shared-ci-actions
+        uses: salesforcecli/github-workflows/.github/actions/calculate-artifact-name@main
         with:
           artifact-name: ${{ inputs.artifact-name }}
           dry-run: ${{ inputs.dry-run }}
 
       - name: Upload VSIX artifacts
         id: upload
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.calc-artifact-name.outputs.artifact-name }}
           path: |

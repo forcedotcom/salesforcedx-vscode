@@ -35,6 +35,6 @@ jobs:
       min-tag-age-days: ${{ inputs.min-tag-age-days || '7' }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
       exclude-web-vsix: 'false'
-      extension-name: 'salesforcedx-vscode-suite'
+      extension-name: 'salesforcedx-vscode'
       dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit

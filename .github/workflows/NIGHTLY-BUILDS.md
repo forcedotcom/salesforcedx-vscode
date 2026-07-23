@@ -31,11 +31,9 @@ gh workflow run nightly.yml -f dry-run=true
 ## Architecture
 
 `nightly.yml` delegates to shared reusable workflow:
-- **Workflow**: `salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main` (testing: `@ms/shared-ci-actions`)
+- **Workflow**: `salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main`
 - **Scripts**: Downloaded at runtime (not stored locally)
 - **Actions**: check-ci-status, calculate-artifact-name, publish-vsix
-
-**TEMP**: Shared workflow ref temporarily `@ms/shared-ci-actions` for testing; reverts to `@main` post-testing.
 
 ## Configuration
 

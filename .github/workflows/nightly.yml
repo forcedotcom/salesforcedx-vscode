@@ -95,7 +95,7 @@ jobs:
             echo "Publishing all $EXTENSION_COUNT extensions: $EXTENSIONS"
           else
             # Sanitize input: only allow alphanumeric, dash, underscore, and comma
-            SANITIZED=$(echo "$INPUT_EXTENSIONS" | tr -cd 'a-zA-Z0-9,-_')
+            SANITIZED=$(echo "$INPUT_EXTENSIONS" | tr -cd 'a-zA-Z0-9,_-')
 
             if [ "$SANITIZED" != "$INPUT_EXTENSIONS" ]; then
               echo "❌ Invalid characters in extensions input. Only alphanumeric, dash, underscore, and comma allowed."
