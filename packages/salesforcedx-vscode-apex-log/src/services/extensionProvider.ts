@@ -23,7 +23,7 @@ const apexLogServicesLayer = Layer.mergeAll(
   TraceFlagsContentProviderService.Default,
   Layer.sync(CurrentTraceFlags, getOrCreateTraceFlagRefreshSubscriptionRef),
   Layer.sync(LogCollectorStateRef, getOrCreateLogCollectorStateRef),
-  Layer.sync(KnownLogIdsRef, () => Ref.unsafeMake(HashSet.empty<string>()))
+  Layer.effect(KnownLogIdsRef, Ref.make(HashSet.empty<string>()))
 );
 
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>

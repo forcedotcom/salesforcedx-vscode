@@ -104,7 +104,8 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
 });
 
 const getPollIntervalSeconds = Effect.fn('ApexLog.getPollIntervalSeconds')(function* () {
-  const settings = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.SettingsService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const settings = yield* api.services.SettingsService;
   return (yield* settings.getValue('salesforcedx-vscode-apex-log', 'logPollIntervalSeconds', 30)) ?? 30;
 });
 
