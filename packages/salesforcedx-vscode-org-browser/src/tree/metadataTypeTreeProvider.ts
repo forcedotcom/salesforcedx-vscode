@@ -6,6 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
@@ -165,84 +166,83 @@ export const applyViewModeChildFilter = (
   );
 };
 
+/** Resolve MetadataDescribeService through the extension's services API. */
+const getMetadataDescribeService = ExtensionProviderService.pipe(
+  Effect.flatMap(svc => svc.getServicesApi),
+  Effect.flatMap(api => api.services.MetadataDescribeService)
+);
+
+/** For folder types, list the folders themselves (e.g. ReportFolder, EmailTemplateFolder); otherwise the type. */
+const typeToListName = (typeNode: OrgBrowserTreeItem): string =>
+  typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
+
+const typeNodeToItem = (typeNode: OrgBrowserTreeItem): OrgBrowserTreeItem =>
+  new OrgBrowserTreeItem({ kind: typeNode.kind, xmlName: typeNode.xmlName, label: typeNode.xmlName });
+
+/** ≥1 component's fullName matches the active component filter. */
+const hasMatchingComponent =
+  (provider: MetadataTypeTreeProvider) =>
+  (components: MetadataListResultItem[]): boolean =>
+    components.some(
+      c => c.fullName && matchesPattern(c.fullName, provider.componentFilter!, provider.componentIsRegex)
+    );
+
 /**
  * Types with ≥1 component matching filter. Live-fetches components.
  * AND logic: type:component returns types with matching components only.
  */
-const filterTypesWithMatchingComponents = <E, R>(
+const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatchingComponents')(function* (
   typeNodes: OrgBrowserTreeItem[],
-  provider: MetadataTypeTreeProvider,
-  metadataDescribeService: {
-    listMetadata: (type: string) => Effect.Effect<MetadataListResultItem[], E, R>;
-  }
-) =>
-  Effect.gen(function* () {
-    const componentFilter = provider.componentFilter!;
-    const componentIsRegex = provider.componentIsRegex;
-    const typesWithMatchingComponents = yield* Effect.all(
-      typeNodes.map(typeNode =>
-        Effect.gen(function* () {
-          // For folder types, we need to list the folders themselves (e.g., ReportFolder, EmailTemplateFolder)
-          const typeToList = typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
-          // List components for this type
-          const components = yield* metadataDescribeService.listMetadata(typeToList);
-          const hasMatch = components.some(
-            c => c.fullName && matchesPattern(c.fullName, componentFilter, componentIsRegex)
-          );
-          return { typeNode, hasMatch };
-        })
-      ),
-      { concurrency: 10 }
-    );
-    return typesWithMatchingComponents
-      .filter(t => t.hasMatch)
-      .map(
-        t =>
-          new OrgBrowserTreeItem({
-            kind: t.typeNode.kind,
-            xmlName: t.typeNode.xmlName,
-            label: t.typeNode.xmlName
-          })
-      );
-  });
+  provider: MetadataTypeTreeProvider
+) {
+  const metadataDescribeService = yield* getMetadataDescribeService;
+  return yield* Effect.all(
+    typeNodes.map(typeNode =>
+      metadataDescribeService.listMetadata(typeToListName(typeNode)).pipe(
+        Effect.map(hasMatchingComponent(provider)),
+        Effect.map(hasMatch => (hasMatch ? Option.some(typeNodeToItem(typeNode)) : Option.none<OrgBrowserTreeItem>()))
+      )
+    ),
+    { concurrency: 10 }
+  ).pipe(Effect.map(Arr.getSomes));
+});
 
 /**
  * Cached components matching filter. Excludes uncached types (strict—can't confirm match).
  * Used when >25 types matched to avoid excessive API calls.
  */
-const filterTypesWithCachedComponents = <E, R>(
+const filterTypesWithCachedComponents = Effect.fn('filterTypesWithCachedComponents')(function* (
   typeNodes: OrgBrowserTreeItem[],
-  provider: MetadataTypeTreeProvider,
-  metadataDescribeService: {
-    listMetadataCached: (type: string) => Effect.Effect<Option.Option<MetadataListResultItem[]>, E, R>;
-  }
-) =>
-  Effect.gen(function* () {
-    const componentFilter = provider.componentFilter!;
-    const componentIsRegex = provider.componentIsRegex;
-    const results = yield* Effect.all(
-      typeNodes.map(typeNode =>
-        Effect.gen(function* () {
-          const typeToList = typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
-          const cached = yield* metadataDescribeService.listMetadataCached(typeToList);
-          // Not cached → excluded (strict: can't confirm match)
-          if (Option.isNone(cached)) return null;
-          // Cached → check for matching components
-          const hasMatch = cached.value.some(
-            c => c.fullName && matchesPattern(c.fullName, componentFilter, componentIsRegex)
-          );
-          if (!hasMatch) return null;
-          return new OrgBrowserTreeItem({
-            kind: typeNode.kind,
-            xmlName: typeNode.xmlName,
-            label: typeNode.xmlName
-          });
-        })
-      ),
-      { concurrency: 'unbounded' } // no API calls, just cache reads
-    );
-    return results.filter((n): n is OrgBrowserTreeItem => n !== null);
-  });
+  provider: MetadataTypeTreeProvider
+) {
+  const metadataDescribeService = yield* getMetadataDescribeService;
+  return yield* Effect.all(
+    typeNodes.map(typeNode =>
+      metadataDescribeService.listMetadataCached(typeToListName(typeNode)).pipe(
+        // None → not cached → excluded (strict); Some → keep the type only if a component matches
+        Effect.map(
+          Option.flatMap(components =>
+            hasMatchingComponent(provider)(components) ? Option.some(typeNodeToItem(typeNode)) : Option.none()
+          )
+        )
+      )
+    ),
+    { concurrency: 'unbounded' } // no API calls, just cache reads
+  ).pipe(Effect.map(Arr.getSomes));
+});
+
+/** If a component filter is active, narrow types to those with matching components; else pass through. */
+const applyComponentFilter = Effect.fn('applyComponentFilter')(function* (
+  typeFilteredNodes: OrgBrowserTreeItem[],
+  provider: MetadataTypeTreeProvider
+) {
+  if (!provider.componentFilter || provider.componentFilter === '') return typeFilteredNodes;
+  return typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch
+    ? // Under threshold or user approved: full fetch
+      yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider)
+    : // Over threshold: cache-only (strict — unfetched types hidden)
+      yield* filterTypesWithCachedComponents(typeFilteredNodes, provider);
+});
 
 const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider: MetadataTypeTreeProvider) =>
   Effect.gen(function* () {
@@ -263,64 +263,25 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       const types = yield* metadataDescribeService.describe();
       const allNodes = types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
 
-      const result = yield* (() => {
-        // Both ON = show everything
-        if (provider.showLocal && provider.showOrg) {
-          return Effect.gen(function* () {
-            const typeFilteredNodes = allNodes.filter(node => passesTypeFilter(node, provider));
-            // If component filter is active, pre-filter types that have no matching components
-            if (provider.componentFilter && provider.componentFilter !== '') {
-              if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
-                // Under threshold or user approved: full fetch
-                return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
-              }
-              // Over threshold: cache-only (strict — unfetched types hidden)
-              return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
-            }
-            // No component filter: return all type-filtered nodes
-            return typeFilteredNodes;
-          });
-        }
-        // localOnly mode: show only types that have local source files
-        if (provider.showLocal && !provider.showOrg) {
-          return Effect.gen(function* () {
-            const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-            const localTypeNames = new Set<string>(
-              Array.from(projectComponentSet.getSourceComponents(), comp => comp.type.name)
-            );
-            const typeFilteredNodes = allNodes.filter(
-              node => localTypeNames.has(node.xmlName) && passesTypeFilter(node, provider)
-            );
-            // If component filter is active, pre-filter types that have no matching components
-            if (provider.componentFilter && provider.componentFilter !== '') {
-              if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
-                // Under threshold or user approved: full fetch
-                return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
-              }
-              // Over threshold: cache-only (strict — unfetched types hidden)
-              return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
-            }
-            // No component filter: return all type-filtered nodes
-            return typeFilteredNodes;
-          });
-        }
-        // orgOnly mode: show all types (all types exist in the org by definition)
-        // Child-level shows all org components (inclusive of those also in local)
-        return Effect.gen(function* () {
-          const typeFilteredNodes = allNodes.filter(node => passesTypeFilter(node, provider));
-          // If component filter is active, pre-filter types that have no matching components
-          if (provider.componentFilter && provider.componentFilter !== '') {
-            if (typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch) {
-              // Under threshold or user approved: full fetch
-              return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider, metadataDescribeService);
-            }
-            // Over threshold: cache-only (strict — unfetched types hidden)
-            return yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, metadataDescribeService);
-          }
-          // Return type-filtered nodes
-          return typeFilteredNodes;
-        });
-      })();
+      // localOnly (showLocal && !showOrg): keep only types with local source files.
+      // Both-ON and orgOnly: every type passes (all types exist in the org by definition,
+      // and org-side is inclusive of local). Absent gate → all types pass.
+      const localTypeGate = provider.showOrg
+        ? Option.none<ReadonlySet<string>>()
+        : Option.some(
+            new Set(
+              Array.from(
+                (yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories()).getSourceComponents(),
+                comp => comp.type.name
+              )
+            )
+          );
+      const typeFilteredNodes = allNodes.filter(
+        node =>
+          Option.match(localTypeGate, { onNone: () => true, onSome: names => names.has(node.xmlName) }) &&
+          passesTypeFilter(node, provider)
+      );
+      const result = yield* applyComponentFilter(typeFilteredNodes, provider);
 
       yield* Effect.promise(() =>
         vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', result.length === 0)
