@@ -223,7 +223,7 @@ export const openFileFromExplorerTree = async (
   // fine: the leaf file will still be reachable once any ancestor compact row is expanded.
   for (const folderName of parentFolders) {
     const folderItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(folderName)}\\b`) }).first();
-    if (!(await folderItem.isVisible({ timeout: 500 }).catch(() => false))) continue;
+    if (!(await folderItem.isVisible({ timeout: 5000 }).catch(() => false))) continue;
     const expanded = (await folderItem.getAttribute('aria-expanded').catch(() => null)) === 'true';
     if (expanded) continue;
     await folderItem.scrollIntoViewIfNeeded().catch(() => {});
