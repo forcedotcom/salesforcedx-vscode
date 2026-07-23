@@ -105,11 +105,8 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
 
   await test.step('open the .testSuite-meta.xml file and delete from project and org', async () => {
     // Open the test suite file via the Explorer tree (Quick Open can't find newly-pulled files on web).
-    // VS Code uses compact-folder mode by default, so force-app/main/default merges into one row.
-    await openFileFromExplorerTree(page, `${testSuiteName}.testSuite-meta.xml`, [
-      'force-app / main / default',
-      'testSuites'
-    ]);
+    // With compact folders enabled, expanding 'force-app' makes main/default/testSuites accessible.
+    await openFileFromExplorerTree(page, `${testSuiteName}.testSuite-meta.xml`, ['force-app', 'testSuites']);
     await saveScreenshot(page, 'step.suite-file-opened.png');
 
     // Run "SFDX: Delete from Project and Org" via command palette
