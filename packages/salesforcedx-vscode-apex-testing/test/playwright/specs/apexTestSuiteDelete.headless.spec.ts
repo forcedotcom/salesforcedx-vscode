@@ -142,6 +142,8 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
   });
 
   await test.step('verify suite disappears from Testing sidebar without manual refresh', async () => {
+    // Re-focus the Test Explorer — the delete flow leaves focus on the Output panel.
+    await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
     const panel = page.locator(TEST_EXPLORER_PANEL);
     await panel.waitFor({ state: 'visible', timeout: 10_000 });
 
