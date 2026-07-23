@@ -28,7 +28,10 @@ const run = (folderUri?: string): Promise<{ fsPath: string; uri: string }> => {
   return Effect.runPromise(getProjectRoot().pipe(Effect.provide(layer)));
 };
 
-describe('getProjectRoot', () => {
+// web-only code; URI.fsPath yields backslashes on Windows where this never runs
+const describeSkipWindows = process.platform === 'win32' ? describe.skip : describe;
+
+describeSkipWindows('getProjectRoot', () => {
   it('falls back to /dx-project when no workspace folder is open', async () => {
     expect(await run()).toEqual({ fsPath: '/dx-project', uri: 'memfs:/dx-project' });
   });
