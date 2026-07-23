@@ -6,6 +6,7 @@
     "globalErrorInEffectFailure",
     "globalErrorInEffectCatch",
     "catchUnfailableEffect",
-    "tryCatchInEffectGen"
+    "tryCatchInEffectGen",
+    "unknownInEffectCatch"
   ]
 }
