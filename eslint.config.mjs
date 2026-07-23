@@ -800,6 +800,8 @@ export default [
   {
     // Enforce effect deep-imports (no barrel) on vscode-org + vscode-soql to keep esbuild tree-shaking (W-23443764).
     // Only this rule — those packages aren't ready for the full functional/* set above.
+    // NOTE: soql-builder-ui/**/*.ts is globally ignored (see ignores above), so these webview LWC files
+    // are NOT enforced here — their effect imports were deep-imported manually and stay unenforced.
     files: ['packages/salesforcedx-vscode-org/**/*.ts', 'packages/salesforcedx-vscode-soql/**/*.ts'],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }]
