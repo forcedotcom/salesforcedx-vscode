@@ -26,3 +26,8 @@ export class TestTempFolderError extends Schema.TaggedError<TestTempFolderError>
 export class TestExecutionError extends Schema.TaggedError<TestExecutionError>()('TestExecutionError', {
   message: Schema.String
 }) {}
+
+/** A replay-debugger dispatch command (sf.test.view.debugTests / debugSingleTest) rejected. */
+export class DebugDispatchError extends Schema.TaggedError<DebugDispatchError>()('DebugDispatchError', {
+  message: Schema.String
+}) {}

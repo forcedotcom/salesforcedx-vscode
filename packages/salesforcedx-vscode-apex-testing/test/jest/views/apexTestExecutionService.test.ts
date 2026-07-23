@@ -327,6 +327,44 @@ describe('ApexTestExecutionService', () => {
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls], run));
       expect(appendToChannel).not.toHaveBeenCalled();
     });
+
+    it('errors the item with the failed-debug message when the debug command rejects', async () => {
+      const cls = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
+      const { run, errored } = fakeRun();
+      (vscode.commands.executeCommand as jest.Mock).mockReset();
+      (vscode.commands.executeCommand as jest.Mock).mockRejectedValue(new Error('dispatch boom'));
+      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls], run));
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', { name: 'A' });
+      expect(errored.map(e => e.test)).toContain(cls);
+      expect((errored[0].message as unknown as { message: string }).message).toContain('Debug failed:');
+    });
+
+    it('skips method-level debug dispatch for a class already selected at class level', async () => {
+      const cls = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
+      const method = fakeItem('method:A.testA', 'testA', { tags: [inWorkspaceTag] });
+      const { run } = fakeRun();
+      (vscode.commands.executeCommand as jest.Mock).mockReset();
+      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls, method], run));
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', { name: 'A' });
+      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith(
+        'sf.test.view.debugSingleTest',
+        expect.anything()
+      );
+    });
+
+    it('errors a suite item with the not-supported message and does not dispatch it', async () => {
+      const suite = fakeItem('suite:S', 'S', { tags: [inWorkspaceTag] });
+      const { run, errored } = fakeRun();
+      (vscode.commands.executeCommand as jest.Mock).mockReset();
+      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [suite], run));
+      expect(errored.map(e => e.test)).toContain(suite);
+      expect((errored[0].message as unknown as { message: string }).message).toContain(
+        'Test suites cannot be debugged'
+      );
+      expect(vscode.commands.executeCommand).not.toHaveBeenCalled();
+    });
   });
 
   describe('runTests', () => {

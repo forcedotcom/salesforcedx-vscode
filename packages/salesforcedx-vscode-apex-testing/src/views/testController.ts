@@ -338,30 +338,28 @@ const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Pr
   if (!classItem.uri) {
     return;
   }
-  const unresolved = new Map<string, vscode.TestItem>();
-  classItem.children.forEach(child => {
-    if (!isMethod(child.id)) {
-      return;
-    }
-    const start = child.range?.start;
-    const unresolvedRange = !start || (start.line === 0 && start.character === 0);
-    if (unresolvedRange) {
-      unresolved.set(child.label, child);
-    }
-  });
+  const unresolved = new Map<string, vscode.TestItem>(
+    [...classItem.children].flatMap(([, child]) => {
+      if (!isMethod(child.id)) {
+        return [];
+      }
+      const start = child.range?.start;
+      const unresolvedRange = !start || (start.line === 0 && start.character === 0);
+      return unresolvedRange ? [[child.label, child] as const] : [];
+    })
+  );
   if (unresolved.size === 0) {
     return;
   }
-  const locationMap = await getMethodLocationsFromSymbols(classItem.uri, [...unresolved.keys()]);
-  if (!locationMap) {
-    return;
-  }
-  for (const [methodName, location] of locationMap) {
-    const item = unresolved.get(methodName);
-    if (item) {
-      item.range = location.range;
-    }
-  }
+  const locations = await getMethodLocationsFromSymbols(classItem.uri, [...unresolved.keys()]);
+  [...unresolved]
+    .flatMap(([methodName, item]) => {
+      const location = locations.get(methodName);
+      return location ? [[item, location.range] as const] : [];
+    })
+    .forEach(([item, range]) => {
+      item.range = range;
+    });
 };
 
 // Retrieve an org-only Apex class into the workspace, open it, and refresh the tree. The refresh step

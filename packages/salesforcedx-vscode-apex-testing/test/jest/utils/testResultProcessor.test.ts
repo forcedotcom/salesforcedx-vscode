@@ -81,7 +81,8 @@ describe('testResultProcessor', () => {
         values: jest.fn().mockReturnValue(childrenArray),
         keys: jest.fn(),
         entries: jest.fn(),
-        [Symbol.iterator]: jest.fn().mockReturnValue(childrenArray[Symbol.iterator]())
+        // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts); yield a fresh iterator per call
+        [Symbol.iterator]: () => childrenArray.map(child => [child.id, child] as const)[Symbol.iterator]()
       } as unknown as vscode.TestItemCollection
     };
     return item as vscode.TestItem;
@@ -267,7 +268,6 @@ describe('testResultProcessor', () => {
       });
 
       expect(run.failed).toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
       expect(failedCall[0]).toBe(methodItem);
       // Check that TestMessage was created (it's a mock constructor)
@@ -313,7 +313,6 @@ describe('testResultProcessor', () => {
       });
 
       expect(run.failed).toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
 
       const message = failedCall[1] as vscode.TestMessage;
@@ -569,7 +568,6 @@ describe('testResultProcessor', () => {
 
       updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
 
       const message = failedCall[1] as vscode.TestMessage;

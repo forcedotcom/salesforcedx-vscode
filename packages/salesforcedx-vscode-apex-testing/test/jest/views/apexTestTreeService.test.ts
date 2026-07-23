@@ -54,7 +54,7 @@ jest.mock('../../../src/utils/testUtils', () => {
   return {
     ...actual,
     buildClassToUriIndex: () => Promise.resolve(mockClassNameToUri),
-    getMethodLocationsFromSymbols: () => Promise.resolve(undefined)
+    getMethodLocationsFromSymbols: () => Promise.resolve(new Map())
   };
 });
 const mockSaveDiscoveredClasses = jest.fn();
@@ -146,7 +146,9 @@ const richTestItem = (id: string, label = id, uri?: URI): vscode.TestItem => {
     forEach: (cb: (item: vscode.TestItem) => void) => kids.forEach(cb),
     get size() {
       return kids.size;
-    }
+    },
+    // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts)
+    [Symbol.iterator]: () => kids.entries()
   } as unknown as vscode.TestItemCollection;
   return { id, label, uri, tags: undefined, children } as unknown as vscode.TestItem;
 };

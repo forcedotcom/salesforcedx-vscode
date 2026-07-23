@@ -181,9 +181,7 @@ const collectExcludedDescendantIds = (excludeRoots: readonly vscode.TestItem[]):
     ids.add(item.id);
     item.children.forEach(visit);
   };
-  for (const root of excludeRoots) {
-    visit(root);
-  }
+  excludeRoots.forEach(visit);
   return ids;
 };
 
@@ -247,9 +245,7 @@ export const gatherTests = (
   };
 
   if (request.include) {
-    for (const test of request.include) {
-      include(test);
-    }
+    request.include.forEach(include);
   } else {
     controllerItems.forEach(test => include(test));
   }
