@@ -798,6 +798,14 @@ export default [
     }
   },
   {
+    // Enforce effect deep-imports (no barrel) on vscode-org + vscode-soql to keep esbuild tree-shaking (W-23443764).
+    // Only this rule — those packages aren't ready for the full functional/* set above.
+    files: ['packages/salesforcedx-vscode-org/**/*.ts', 'packages/salesforcedx-vscode-soql/**/*.ts'],
+    rules: {
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }]
+    }
+  },
+  {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
     files: ['packages/effect-ext-utils/**/*.ts'],
     rules: {
