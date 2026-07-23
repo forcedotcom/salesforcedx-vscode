@@ -8,6 +8,7 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
+  clickModalDialogButton,
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
@@ -100,14 +101,11 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
   await test.step('override confirmation for a single file', async () => {
     await orgBrowserPage.clickRetrieveButton(brokerItem);
 
-    const overwrite = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
-      .first();
-    await expect(overwrite).toBeVisible();
-    await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i);
+    const dialog = page.locator('.monaco-dialog-box');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i);
 
-    await overwrite.getByRole('button', { name: /^Yes$/ }).click();
+    await clickModalDialogButton(page, 'Yes');
 
     const retrieving = page
       .locator(NOTIFICATION_LIST_ITEM)
@@ -121,14 +119,11 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
     const typeLocator = await orgBrowserPage.findMetadataType('CustomTab');
     await orgBrowserPage.clickRetrieveButton(typeLocator);
 
-    const overwrite = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
-      .first();
-    await expect(overwrite).toBeVisible();
-    await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i);
+    const dialog = page.locator('.monaco-dialog-box');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i);
 
-    await overwrite.getByRole('button', { name: /^Yes$/ }).click();
+    await clickModalDialogButton(page, 'Yes');
 
     const retrieving = page
       .locator(NOTIFICATION_LIST_ITEM)
