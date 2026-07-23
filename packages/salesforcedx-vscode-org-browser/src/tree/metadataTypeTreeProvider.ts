@@ -7,6 +7,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -116,15 +117,24 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
   const svcProvider = yield* ExtensionProviderService;
   const api = yield* svcProvider.getServicesApi;
   const metadataDescribeService = yield* api.services.MetadataDescribeService;
-  if (!node) return yield* metadataDescribeService.invalidateDescribe();
-  if (node.kind === 'type') return yield* metadataDescribeService.invalidateListMetadata(node.xmlName);
-  if (node.kind === 'folderType') return yield* metadataDescribeService.invalidateListMetadata(`${node.xmlName}Folder`);
-  if (node.kind === 'folder' && node.xmlName && node.folderName)
-    return yield* metadataDescribeService.invalidateListMetadata(`${node.xmlName}Folder`, node.folderName);
-  if (node.kind === 'customObject' && node.componentName) {
-    const objectName = node.namespace ? `${node.namespace}__${node.componentName}` : node.componentName;
-    return yield* metadataDescribeService.invalidateSObjectDescribe(objectName);
-  }
+  return yield* Match.value(node).pipe(
+    Match.when(Match.undefined, () => metadataDescribeService.invalidateDescribe()),
+    Match.when({ kind: 'type' }, n => metadataDescribeService.invalidateListMetadata(n.xmlName)),
+    Match.when({ kind: 'folderType' }, n => metadataDescribeService.invalidateListMetadata(`${n.xmlName}Folder`)),
+    Match.when(
+      (n): n is OrgBrowserTreeItem & { xmlName: string; folderName: string } =>
+        n.kind === 'folder' && Boolean(n.xmlName) && Boolean(n.folderName),
+      n => metadataDescribeService.invalidateListMetadata(`${n.xmlName}Folder`, n.folderName)
+    ),
+    Match.when(
+      (n): n is OrgBrowserTreeItem & { componentName: string } => n.kind === 'customObject' && Boolean(n.componentName),
+      n =>
+        metadataDescribeService.invalidateSObjectDescribe(
+          n.namespace ? `${n.namespace}__${n.componentName}` : n.componentName
+        )
+    ),
+    Match.orElse(() => Effect.void)
+  );
 });
 
 export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
@@ -317,60 +327,77 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       );
       return result;
     }
-    if (element.kind === 'customObject') {
-      // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
-      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      const objectName = element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!;
-      const result = yield* metadataDescribeService.describeCustomObject(objectName);
-      return yield* Effect.all(
-        result.fields
-          // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-          .filter(f => f.custom)
-          .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-          .map(createCustomFieldNode(projectComponentSet)(element)),
-        { concurrency: 'unbounded' }
-      );
-    }
-    if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
-      return yield* metadataDescribeService
-        .listMetadata(`${element.xmlName}Folder`)
-        .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element))));
-    }
-    if (element.kind === 'type') {
-      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      const children = yield* metadataDescribeService.listMetadata(element.xmlName).pipe(
-        Effect.flatMap(components =>
-          Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
-            Stream.map(c => listMetadataToComponent(projectComponentSet)(element)(c)),
-            Stream.runCollect,
-            Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
+    return yield* Match.value(element).pipe(
+      Match.when({ kind: 'customObject' }, el =>
+        // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
+        api.services.ComponentSetService.getComponentSetFromProjectDirectories().pipe(
+          Effect.flatMap(projectComponentSet =>
+            metadataDescribeService
+              .describeCustomObject(el.namespace ? `${el.namespace}__${el.componentName!}` : el.componentName!)
+              .pipe(
+                Effect.flatMap(result =>
+                  Effect.all(
+                    result.fields
+                      // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
+                      .filter(f => f.custom)
+                      .toSorted((a, b) => (a.name < b.name ? -1 : 1))
+                      .map(createCustomFieldNode(projectComponentSet)(el)),
+                    { concurrency: 'unbounded' }
+                  )
+                )
+              )
           )
         )
-      );
-      return children;
-    }
-    if (element.kind === 'folder') {
-      const { xmlName, folderName } = element;
-      if (!xmlName || !folderName) return yield* Effect.succeed([]);
-      const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-      // Metadata API bug: listMetadata({type: 'ReportFolder', folder: X}) ignores
-      // the folder param and returns ALL report folders in the org regardless of X.
-      // To avoid infinite nesting we call listMetadata(xmlName, folderName) instead
-      // (e.g. type:'Report', folder:'unfiled$public') which correctly returns only
-      // the components inside that specific folder.
-      return yield* metadataDescribeService.listMetadata(xmlName, folderName).pipe(
-        Effect.flatMap(components =>
-          Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
-            Stream.map(c => listMetadataToFolderItem(projectComponentSet)(element)(c)),
-            Stream.runCollect,
-            Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
+      ),
+      Match.when(
+        (el: OrgBrowserTreeItem) => el.kind === 'folderType' || (el.kind === 'type' && isFolderType(el.xmlName)),
+        el =>
+          metadataDescribeService
+            .listMetadata(`${el.xmlName}Folder`)
+            .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(el))))
+      ),
+      Match.when({ kind: 'type' }, el =>
+        api.services.ComponentSetService.getComponentSetFromProjectDirectories().pipe(
+          Effect.flatMap(projectComponentSet =>
+            metadataDescribeService.listMetadata(el.xmlName).pipe(
+              Effect.flatMap(components =>
+                Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
+                  Stream.map(c => listMetadataToComponent(projectComponentSet)(el)(c)),
+                  Stream.runCollect,
+                  Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
+                )
+              )
+            )
           )
         )
-      );
-    }
-    if (element.kind === 'component') return yield* Effect.succeed([]);
-
-    return yield* Effect.die(new Error(`Unsupported node kind: ${JSON.stringify(element)}`));
+      ),
+      Match.when(
+        (el): el is OrgBrowserTreeItem & { xmlName: string; folderName: string } =>
+          el.kind === 'folder' && Boolean(el.xmlName) && Boolean(el.folderName),
+        el =>
+          // Metadata API bug: listMetadata({type: 'ReportFolder', folder: X}) ignores
+          // the folder param and returns ALL report folders in the org regardless of X.
+          // To avoid infinite nesting we call listMetadata(xmlName, folderName) instead
+          // (e.g. type:'Report', folder:'unfiled$public') which correctly returns only
+          // the components inside that specific folder.
+          api.services.ComponentSetService.getComponentSetFromProjectDirectories().pipe(
+            Effect.flatMap(projectComponentSet =>
+              metadataDescribeService.listMetadata(el.xmlName, el.folderName).pipe(
+                Effect.flatMap(components =>
+                  Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
+                    Stream.map(c => listMetadataToFolderItem(projectComponentSet)(el)(c)),
+                    Stream.runCollect,
+                    Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
+                  )
+                )
+              )
+            )
+          )
+      ),
+      Match.when({ kind: 'folder' }, () => Effect.succeed<OrgBrowserTreeItem[]>([])),
+      Match.when({ kind: 'component' }, () => Effect.succeed<OrgBrowserTreeItem[]>([])),
+      Match.orElse(el => Effect.die(new Error(`Unsupported node kind: ${JSON.stringify(el)}`)))
+    );
   }).pipe(Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName } }));
 
 const listMetadataToComponent =
