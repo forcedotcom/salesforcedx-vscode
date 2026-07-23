@@ -10,11 +10,9 @@ import {
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
-import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
-import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import {
   DEFAULT_ALIAS,
@@ -49,14 +47,6 @@ describe('AuthParamsGatherer', () => {
       buildLayer(confirm) as ReturnType<typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer>
     );
   };
-
-  const failureTag = (exit: Exit.Exit<unknown, unknown>): string | undefined =>
-    Exit.isFailure(exit)
-      ? Option.match(Cause.failureOption(exit.cause), {
-          onNone: () => undefined,
-          onSome: error => (error as { _tag?: string })._tag
-        })
-      : undefined;
 
   beforeEach(() => {
     useLayer();
@@ -131,7 +121,8 @@ describe('AuthParamsGatherer', () => {
 
       const exit = await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
-      expect(failureTag(exit)).toBe('UserCancellationError');
+      expect(Exit.isFailure(exit)).toBe(true);
+      if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     });
 
     it('cancels with UserCancellationError when alias prompt is dismissed (undefined)', async () => {
@@ -139,7 +130,8 @@ describe('AuthParamsGatherer', () => {
 
       const exit = await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
-      expect(failureTag(exit)).toBe('UserCancellationError');
+      expect(Exit.isFailure(exit)).toBe(true);
+      if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     });
 
     it('wires validateInput on the instance-url and alias prompts', async () => {
