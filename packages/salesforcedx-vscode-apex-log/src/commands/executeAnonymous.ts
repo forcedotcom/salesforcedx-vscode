@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { type EditorService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { ExecAnonCompileError } from '../errors/commandErrors';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
@@ -19,24 +20,23 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.services.ExecuteAnonymousService.clearDiagnostics(context.documentUri);
   const { result, logBody, logId } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(context.text);
-  // Compile error: skip log save, show compileProblem in error notification
+  // Compile error: skip log save, fail with a tagged error so the standard command error handler shows the notification
   if (!result.compiled) {
     yield* api.services.ExecuteAnonymousService.reportExecResult(
       result,
       context.documentUri,
       context.selectionRange?.startLine
     );
-    yield* Effect.sync(() => {
-      void vscode.window.showErrorMessage(
-        nls.localize(
+    return yield* Effect.fail(
+      new ExecAnonCompileError({
+        message: nls.localize(
           'exec_anon_compile_error',
           String(result.line ?? 1),
           String(result.column ?? 1),
           result.compileProblem ?? nls.localize('exec_anon_compile_unknown')
         )
-      );
-    });
-    return undefined;
+      })
+    );
   }
 
   yield* api.services.ExecuteAnonymousService.reportExecResult(
@@ -48,37 +48,27 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
   return yield* saveExecResult(context.text, result, logBody, logId);
 });
 
-const runWithProgress = (context: EditorContext) =>
-  Effect.promise(() =>
-    vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: nls.localize('exec_anon_progress_title'),
-        cancellable: false
-      },
-      () => getRuntime().runPromise(executeAnonymous(context))
-    )
-  );
-
 export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymous')(function* (
   selectionOnly: boolean
 ) {
   yield* Effect.annotateCurrentSpan({ selectionOnly });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const context = yield* api.services.EditorService.getActiveEditorContext(selectionOnly);
+  const promptService = yield* api.services.PromptService;
   // progress dismisses once execution+save resolve; success toast + open-log handled after so the spinner doesn't linger on user interaction
-  const logUri = yield* runWithProgress(context);
-  if (logUri === undefined) {
-    return;
-  }
-  yield* Effect.sync(
-    () =>
-      void vscode.window
-        .showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
-        .then(selected =>
-          selected === nls.localize('open_log')
-            ? getRuntime().runPromise(api.services.FsService.showTextDocument(logUri))
-            : undefined
-        )
+  yield* api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(
+    Effect.flatMap(executeAnonymous),
+    promptService.withProgress(nls.localize('exec_anon_progress_title')),
+    Effect.tap(logUri =>
+      Effect.sync(
+        () =>
+          void vscode.window
+            .showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
+            .then(selected =>
+              selected === nls.localize('open_log')
+                ? getRuntime().runPromise(api.services.FsService.showTextDocument(logUri))
+                : undefined
+            )
+      )
+    )
   );
 });

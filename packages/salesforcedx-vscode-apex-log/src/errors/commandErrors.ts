@@ -15,3 +15,7 @@ export class OpenLogsFolderError extends Schema.TaggedError<OpenLogsFolderError>
   message: Schema.String,
   cause: Schema.optional(Schema.instanceOf(Error))
 }) {}
+
+export class ExecAnonCompileError extends Schema.TaggedError<ExecAnonCompileError>()('ExecAnonCompileError', {
+  message: Schema.String
+}) {}
