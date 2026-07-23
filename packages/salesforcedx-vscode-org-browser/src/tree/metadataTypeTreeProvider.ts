@@ -15,7 +15,13 @@ import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from '../utils/wildcardPattern';
 import { createCustomFieldNode } from './customField';
-import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
+import {
+  isCustomObjectNode,
+  isFolderListingNode,
+  isFolderNode,
+  isFolderType,
+  OrgBrowserTreeItem
+} from './orgBrowserNode';
 import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
 
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserTreeItem> {
@@ -121,17 +127,11 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
     Match.when(Match.undefined, () => metadataDescribeService.invalidateDescribe()),
     Match.when({ kind: 'type' }, n => metadataDescribeService.invalidateListMetadata(n.xmlName)),
     Match.when({ kind: 'folderType' }, n => metadataDescribeService.invalidateListMetadata(`${n.xmlName}Folder`)),
-    Match.when(
-      (n): n is OrgBrowserTreeItem & { xmlName: string; folderName: string } =>
-        n.kind === 'folder' && Boolean(n.xmlName) && Boolean(n.folderName),
-      n => metadataDescribeService.invalidateListMetadata(`${n.xmlName}Folder`, n.folderName)
-    ),
-    Match.when(
-      (n): n is OrgBrowserTreeItem & { componentName: string } => n.kind === 'customObject' && Boolean(n.componentName),
-      n =>
-        metadataDescribeService.invalidateSObjectDescribe(
-          n.namespace ? `${n.namespace}__${n.componentName}` : n.componentName
-        )
+    Match.when(isFolderNode, n => metadataDescribeService.invalidateListMetadata(`${n.xmlName}Folder`, n.folderName)),
+    Match.when(isCustomObjectNode, n =>
+      metadataDescribeService.invalidateSObjectDescribe(
+        n.namespace ? `${n.namespace}__${n.componentName}` : n.componentName
+      )
     ),
     Match.orElse(() => Effect.void)
   );
@@ -345,12 +345,10 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           );
         })
       ),
-      Match.when(
-        (el: OrgBrowserTreeItem) => el.kind === 'folderType' || (el.kind === 'type' && isFolderType(el.xmlName)),
-        el =>
-          metadataDescribeService
-            .listMetadata(`${el.xmlName}Folder`)
-            .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(el))))
+      Match.when(isFolderListingNode, el =>
+        metadataDescribeService
+          .listMetadata(`${el.xmlName}Folder`)
+          .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(el))))
       ),
       Match.when({ kind: 'type' }, el =>
         Effect.gen(function* () {
@@ -363,24 +361,21 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           );
         })
       ),
-      Match.when(
-        (el): el is OrgBrowserTreeItem & { xmlName: string; folderName: string } =>
-          el.kind === 'folder' && Boolean(el.xmlName) && Boolean(el.folderName),
-        el =>
-          // Metadata API bug: listMetadata({type: 'ReportFolder', folder: X}) ignores
-          // the folder param and returns ALL report folders in the org regardless of X.
-          // To avoid infinite nesting we call listMetadata(xmlName, folderName) instead
-          // (e.g. type:'Report', folder:'unfiled$public') which correctly returns only
-          // the components inside that specific folder.
-          Effect.gen(function* () {
-            const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-            const components = yield* metadataDescribeService.listMetadata(el.xmlName, el.folderName);
-            return yield* Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
-              Stream.map(c => listMetadataToFolderItem(projectComponentSet)(el)(c)),
-              Stream.runCollect,
-              Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
-            );
-          })
+      Match.when(isFolderNode, el =>
+        // Metadata API bug: listMetadata({type: 'ReportFolder', folder: X}) ignores
+        // the folder param and returns ALL report folders in the org regardless of X.
+        // To avoid infinite nesting we call listMetadata(xmlName, folderName) instead
+        // (e.g. type:'Report', folder:'unfiled$public') which correctly returns only
+        // the components inside that specific folder.
+        Effect.gen(function* () {
+          const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+          const components = yield* metadataDescribeService.listMetadata(el.xmlName, el.folderName);
+          return yield* Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
+            Stream.map(c => listMetadataToFolderItem(projectComponentSet)(el)(c)),
+            Stream.runCollect,
+            Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
+          );
+        })
       ),
       Match.when({ kind: 'folder' }, () => Effect.succeed<OrgBrowserTreeItem[]>([])),
       Match.when({ kind: 'component' }, () => Effect.succeed<OrgBrowserTreeItem[]>([])),
