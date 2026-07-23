@@ -36,7 +36,7 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
         )
       );
     });
-    return result;
+    return undefined;
   }
 
   yield* api.services.ExecuteAnonymousService.reportExecResult(
@@ -45,15 +45,7 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
     context.selectionRange?.startLine,
     logBody
   );
-  const logUri = yield* saveExecResult(context.text, result, logBody, logId);
-  yield* Effect.promise(() =>
-    vscode.window.showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
-  ).pipe(
-    Effect.flatMap(selected =>
-      selected === nls.localize('open_log') ? api.services.FsService.showTextDocument(logUri) : Effect.void
-    )
-  );
-  return result;
+  return yield* saveExecResult(context.text, result, logBody, logId);
 });
 
 const runWithProgress = (context: EditorContext) =>
@@ -74,5 +66,19 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
   yield* Effect.annotateCurrentSpan({ selectionOnly });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const context = yield* api.services.EditorService.getActiveEditorContext(selectionOnly);
-  return yield* runWithProgress(context);
+  // progress dismisses once execution+save resolve; success toast + open-log handled after so the spinner doesn't linger on user interaction
+  const logUri = yield* runWithProgress(context);
+  if (logUri === undefined) {
+    return;
+  }
+  yield* Effect.sync(
+    () =>
+      void vscode.window
+        .showInformationMessage(nls.localize('exec_anon_success'), nls.localize('open_log'))
+        .then(selected =>
+          selected === nls.localize('open_log')
+            ? getRuntime().runPromise(api.services.FsService.showTextDocument(logUri))
+            : undefined
+        )
+  );
 });
