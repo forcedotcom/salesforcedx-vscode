@@ -6,7 +6,6 @@
  */
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { WorkspaceContextUtil } from '../../../../src';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 
 const vscodeMocked = jest.mocked(vscode);
@@ -14,22 +13,12 @@ const vscodeMocked = jest.mocked(vscode);
 describe('LogStream', () => {
   const fakeExtensionId = 'myExtension';
   const fakeLogFilePath = '/path/to/logs';
-  const mockWorkspaceContextUtil = {
-    onOrgChange: jest.fn(),
-    getConnection: jest.fn(),
-    orgId: ''
-  };
-  let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
   let logStream: LogStream;
   let writeFileSpy: jest.SpyInstance;
 
   const expectedUri = Utils.joinPath(URI.file(fakeLogFilePath), `${fakeExtensionId}.txt`);
 
   beforeEach(() => {
-    workspaceContextUtilGetInstanceSpy = jest
-      .spyOn(WorkspaceContextUtil, 'getInstance')
-      .mockReturnValue(mockWorkspaceContextUtil as any);
-
     writeFileSpy = jest.spyOn(vscodeMocked.workspace.fs, 'writeFile');
     writeFileSpy.mockResolvedValue(undefined);
   });
@@ -52,8 +41,6 @@ describe('LogStream', () => {
     // Verify the Buffer content
     const firstCallData = writeFileSpy.mock.calls[0][1].toString();
     expect(firstCallData).toMatchSnapshot();
-
-    expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
   });
 
   it('should write the exception event to the file', async () => {
@@ -74,6 +61,5 @@ describe('LogStream', () => {
     // Verify the Buffer content
     const firstCallData = writeFileSpy.mock.calls[0][1].toString();
     expect(firstCallData).toMatchSnapshot();
-    expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
   });
 });
