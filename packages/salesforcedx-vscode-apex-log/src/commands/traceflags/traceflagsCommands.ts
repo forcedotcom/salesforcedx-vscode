@@ -93,14 +93,15 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   const ctx = yield* requireOrgContext({ requireUserId: true });
   if (Option.isNone(ctx)) return;
   const { api, orgId, userId: currentUserId } = ctx.value;
+  const promptService = yield* api.services.PromptService;
   const picked = yield* pickOrgUser(currentUserId!);
   yield* Effect.annotateCurrentSpan('createTraceFlagForUser', { attributes: { userId: picked?.userId ?? 'none' } });
-  if (!picked) return;
+  const user = yield* promptService.considerUndefinedAsCancellation(picked);
   const traceFlagService = yield* api.services.TraceFlagService;
   const debugLevels = yield* traceFlagService.getDebugLevels();
   const debugLevelId = yield* pickDebugLevelIdOrDefault(debugLevels);
   const minutes = yield* readDefaultDurationMinutes();
-  yield* traceFlagService.ensureTraceFlag(picked.userId, Duration.minutes(minutes), 'USER_DEBUG', debugLevelId);
+  yield* traceFlagService.ensureTraceFlag(user.userId, Duration.minutes(minutes), 'USER_DEBUG', debugLevelId);
   yield* refreshTraceFlagsView(orgId);
 });
 
