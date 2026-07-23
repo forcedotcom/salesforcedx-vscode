@@ -5,52 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ExtensionPackageJsonSchema,
-  ExtensionProviderService,
-  type ExtensionPackageJson,
-  getServicesApi
-} from '@salesforce/effect-ext-utils';
-import * as Effect from 'effect/Effect';
+import { buildAllServicesLayer as buildBaseServicesLayer } from '@salesforce/effect-ext-utils';
+import * as HashSet from 'effect/HashSet';
 import * as Layer from 'effect/Layer';
-import * as Schema from 'effect/Schema';
+import * as Ref from 'effect/Ref';
 import type { ExtensionContext } from 'vscode';
 import { TraceFlagsContentProviderService } from '../traceFlags/traceFlagsContentProvider';
 import {
   getOrCreateLogCollectorStateRef,
   getOrCreateTraceFlagRefreshSubscriptionRef,
+  KnownLogIdsRef,
   LogCollectorStateRef,
   CurrentTraceFlags
 } from './apexLogState';
 
-const ExtensionProviderServiceLive = Layer.effect(
-  ExtensionProviderService,
-  Effect.sync(() => ({ getServicesApi }))
+const apexLogServicesLayer = Layer.mergeAll(
+  TraceFlagsContentProviderService.Default,
+  Layer.sync(CurrentTraceFlags, getOrCreateTraceFlagRefreshSubscriptionRef),
+  Layer.sync(LogCollectorStateRef, getOrCreateLogCollectorStateRef),
+  Layer.effect(KnownLogIdsRef, Ref.make(HashSet.empty<string>()))
 );
 
-export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
-    Effect.gen(function* () {
-      const traceFlagRefreshSubscriptionRef = yield* Effect.sync(getOrCreateTraceFlagRefreshSubscriptionRef);
-      const logCollectorStateRef = yield* Effect.sync(getOrCreateLogCollectorStateRef);
-      const extensionProvider = yield* ExtensionProviderService;
-      const api = yield* extensionProvider.getServicesApi;
-      const emptyPjson: ExtensionPackageJson = {};
-      const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
-        Effect.catchAll(() => Effect.succeed(emptyPjson))
-      );
-      const channelLayer = api.services.ChannelServiceLayer(pjson.displayName ?? 'Salesforce Apex Log');
-      const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
-      return Layer.mergeAll(
-        Layer.succeedContext(api.services.prebuiltServicesDependencies),
-        ExtensionProviderServiceLive,
-        TraceFlagsContentProviderService.Default,
-        Layer.succeed(CurrentTraceFlags, traceFlagRefreshSubscriptionRef),
-        Layer.succeed(LogCollectorStateRef, logCollectorStateRef),
-        api.services.ExtensionContextServiceLayer(context),
-        api.services.SdkLayerFor(context),
-        channelLayer,
-        errorHandlerWithChannel
-      );
-    }).pipe(Effect.provide(ExtensionProviderServiceLive))
-  );
+export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
+  Layer.merge(buildBaseServicesLayer(context, fallbackDisplayName), apexLogServicesLayer);
