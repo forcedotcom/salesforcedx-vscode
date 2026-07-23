@@ -142,8 +142,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
       prompt: nls.localize('trace_flag_create_log_level_master_label'),
       title: nls.localize('trace_flag_create_log_level_title')
     })
-  );
-  if (!masterLabel?.trim()) return;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
   const defaultDevName = sanitizeDeveloperName(masterLabel.trim());
   const developerName = yield* Effect.promise(() =>
@@ -152,8 +151,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
       value: defaultDevName,
       title: nls.localize('trace_flag_create_log_level_title')
     })
-  );
-  if (!developerName?.trim()) return;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
   const useDefaultsPick = yield* Effect.promise(() =>
     vscode.window.showQuickPick(
@@ -166,25 +164,18 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
         title: nls.localize('trace_flag_create_log_level_title')
       }
     )
-  );
-  if (useDefaultsPick === undefined) return;
-  const useDefaults = useDefaultsPick.value;
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
-  const levelsOrUndef = useDefaults
+  const levels = useDefaultsPick.value
     ? Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map(c => [c.key, c.default]))
-    : yield* Effect.gen(function* () {
-        const picked = yield* Effect.all(
-          DEBUG_LEVEL_CATEGORIES.map(cat =>
-            Effect.promise(() => pickLogLevel(cat, cat.default)).pipe(
-              Effect.flatMap(promptService.considerUndefinedAsCancellation)
-            )
-          ),
-          { concurrency: 1 }
-        );
-        return Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]!]));
-      }).pipe(Effect.catchTag('UserCancellationError', () => Effect.void));
-  if (!levelsOrUndef) return;
-  const levels = levelsOrUndef;
+    : yield* Effect.all(
+        DEBUG_LEVEL_CATEGORIES.map(cat =>
+          Effect.promise(() => pickLogLevel(cat, cat.default)).pipe(
+            Effect.flatMap(promptService.considerUndefinedAsCancellation)
+          )
+        ),
+        { concurrency: 1 }
+      ).pipe(Effect.map(picked => Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]]))));
 
   const payload = {
     MasterLabel: masterLabel.trim(),
