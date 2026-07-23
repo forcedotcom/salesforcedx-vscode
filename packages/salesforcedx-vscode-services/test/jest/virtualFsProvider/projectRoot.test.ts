@@ -5,52 +5,47 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
 import { getProjectRoot } from '../../../src/virtualFsProvider/projectRoot';
+import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
-const vscode = require('vscode');
-
-const setFolders = (uris: string[]): void => {
-  vscode.workspace.workspaceFolders = uris.map((u, index) => ({ uri: URI.parse(u), name: `f${index}`, index }));
+const run = (folderUri?: string): Promise<{ fsPath: string; uri: string }> => {
+  const uri = folderUri === undefined ? URI.parse('') : URI.parse(folderUri);
+  const info = {
+    uri,
+    path: uri.toString(),
+    fsPath: uri.fsPath,
+    isEmpty: folderUri === undefined,
+    isVirtualFs: uri.scheme !== 'file',
+    cwd: '/'
+  };
+  const layer = Layer.succeed(
+    WorkspaceService,
+    new WorkspaceService({ getWorkspaceInfo: () => Effect.succeed(info) } as unknown as WorkspaceService)
+  );
+  return Effect.runPromise(getProjectRoot().pipe(Effect.provide(layer)));
 };
 
 describe('getProjectRoot', () => {
-  afterEach(() => {
-    vscode.workspace.workspaceFolders = [];
+  it('falls back to /dx-project when no workspace folder is open', async () => {
+    expect(await run()).toEqual({ fsPath: '/dx-project', uri: 'memfs:/dx-project' });
   });
 
-  it('falls back to /dx-project when no workspace folder is open', () => {
-    vscode.workspace.workspaceFolders = [];
-    expect(getProjectRoot()).toEqual({ nodePath: '/dx-project', uri: 'memfs:/dx-project' });
+  it('derives from the host-opened memfs folder (the CBW per-org path)', async () => {
+    expect(await run('memfs:/org-alpha')).toEqual({ fsPath: '/org-alpha', uri: 'memfs:/org-alpha' });
   });
 
-  it('falls back to /dx-project when workspaceFolders is undefined', () => {
-    vscode.workspace.workspaceFolders = undefined;
-    expect(getProjectRoot()).toEqual({ nodePath: '/dx-project', uri: 'memfs:/dx-project' });
+  it('strips a trailing slash so consumers never build a double slash', async () => {
+    expect(await run('memfs:/org-alpha/')).toEqual({ fsPath: '/org-alpha', uri: 'memfs:/org-alpha' });
   });
 
-  it('derives from the host-opened memfs folder (the CBW per-org path)', () => {
-    setFolders(['memfs:/org-alpha']);
-    expect(getProjectRoot()).toEqual({ nodePath: '/org-alpha', uri: 'memfs:/org-alpha' });
+  it('falls back for a non-memfs folder (e.g. file: scheme)', async () => {
+    expect(await run('file:///Users/me/project')).toEqual({ fsPath: '/dx-project', uri: 'memfs:/dx-project' });
   });
 
-  it('uses only the first folder in a multi-root window', () => {
-    setFolders(['memfs:/org-alpha', 'memfs:/org-beta']);
-    expect(getProjectRoot().nodePath).toBe('/org-alpha');
-  });
-
-  it('strips a trailing slash so consumers never build a double slash', () => {
-    setFolders(['memfs:/org-alpha/']);
-    expect(getProjectRoot()).toEqual({ nodePath: '/org-alpha', uri: 'memfs:/org-alpha' });
-  });
-
-  it('falls back for a non-memfs first folder (e.g. file: scheme)', () => {
-    setFolders(['file:///Users/me/project']);
-    expect(getProjectRoot()).toEqual({ nodePath: '/dx-project', uri: 'memfs:/dx-project' });
-  });
-
-  it('falls back when the memfs folder path is empty/root', () => {
-    setFolders(['memfs:/']);
-    expect(getProjectRoot()).toEqual({ nodePath: '/dx-project', uri: 'memfs:/dx-project' });
+  it('falls back when the memfs folder path is empty/root', async () => {
+    expect(await run('memfs:/')).toEqual({ fsPath: '/dx-project', uri: 'memfs:/dx-project' });
   });
 });

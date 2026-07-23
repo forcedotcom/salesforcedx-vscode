@@ -27,8 +27,8 @@ const updateIDB = (storage: IndexedDBStorageService) =>
       return;
     }
 
-    const { nodePath, uri: rootUri } = getProjectRoot();
-    const fullPath = `${nodePath}/${event.filename}`;
+    const { fsPath, uri: rootUri } = yield* getProjectRoot();
+    const fullPath = `${fsPath}/${event.filename}`;
     const uri = URI.parse(`${rootUri}/${event.filename}`);
 
     if (event.eventType === 'rename') {
@@ -51,7 +51,7 @@ export const startWatch = Effect.fn('startWatch')(
     const channelService = yield* ChannelService;
     const updater = updateIDB(yield* IndexedDBStorageService);
 
-    const projectPath = getProjectRoot().nodePath;
+    const projectPath = (yield* getProjectRoot()).fsPath;
     yield* channelService.appendToChannel(`Starting file watcher for ${projectPath}`);
     // Ensure the directory exists before watching
     fs.mkdirSync(projectPath, { recursive: true });

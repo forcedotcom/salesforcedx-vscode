@@ -93,7 +93,7 @@ const createVSCodeFiles = (fsp: FsProvider, sampleProjectPath: string): void => 
 
 /** Creates the files for an empty sfdx project */
 export const projectFiles = Effect.fn('projectFiles')(function* (fsp: FsProvider) {
-  const sampleProjectPath = getProjectRoot().uri;
+  const sampleProjectPath = (yield* getProjectRoot()).uri;
   // Check if project already exists, if not create it
   const projectExists = fsp.exists(URI.parse(`${sampleProjectPath}/sfdx-project.json`));
   yield* Effect.annotateCurrentSpan({
