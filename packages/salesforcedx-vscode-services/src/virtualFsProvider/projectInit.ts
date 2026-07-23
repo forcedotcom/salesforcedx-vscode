@@ -8,17 +8,15 @@ import * as Effect from 'effect/Effect';
 import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import { URI } from 'vscode-uri';
-import { sampleProjectName } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
-import { fsPrefix } from './constants';
 import { FsProvider } from './fsTypes';
+import { getProjectRoot } from './projectRoot';
 import { TEMPLATES, metadataDirs } from './templates/templates';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
-const sampleProjectPath = `${fsPrefix}:/${sampleProjectName}`;
 const home = os.homedir();
 
-const getDirsToCreate = (): string[] => [
+const getDirsToCreate = (sampleProjectPath: string): string[] => [
   `${home}/.sfdx`,
   `${home}/.sf`,
   `${sampleProjectPath}/.vscode`,
@@ -30,7 +28,7 @@ const getDirsToCreate = (): string[] => [
   ...metadataDirs.map(dir => `${sampleProjectPath}/force-app/main/default/${dir}`)
 ];
 
-const createConfigFiles = (fsp: FsProvider): void => {
+const createConfigFiles = (fsp: FsProvider, sampleProjectPath: string): void => {
   Object.entries(TEMPLATES).forEach(([name, content]) => {
     const uri = URI.parse(`${sampleProjectPath}/${name}`);
     fsp.writeFile(uri, new Uint8Array(Buffer.from(content.join('\n'))), {
@@ -41,9 +39,12 @@ const createConfigFiles = (fsp: FsProvider): void => {
 };
 
 /** Creates the project directory structure and files */
-const createProjectStructure = Effect.fn('projectInit: createProjectStructure')(function* (fsp: FsProvider) {
+const createProjectStructure = Effect.fn('projectInit: createProjectStructure')(function* (
+  fsp: FsProvider,
+  sampleProjectPath: string
+) {
   yield* Effect.annotateCurrentSpan({ sampleProjectPath });
-  const dirsToCreate = getDirsToCreate();
+  const dirsToCreate = getDirsToCreate(sampleProjectPath);
   yield* Effect.annotateCurrentSpan({ dirsToCreate });
 
   yield* Effect.tryPromise({
@@ -57,12 +58,18 @@ const createProjectStructure = Effect.fn('projectInit: createProjectStructure')(
     catch: (error: unknown) => new VirtualFsProviderError(unknownToErrorCause(error))
   });
 
-  yield* Effect.all([Effect.sync(() => createConfigFiles(fsp)), Effect.sync(() => createVSCodeFiles(fsp))], {
-    concurrency: 'unbounded'
-  });
+  yield* Effect.all(
+    [
+      Effect.sync(() => createConfigFiles(fsp, sampleProjectPath)),
+      Effect.sync(() => createVSCodeFiles(fsp, sampleProjectPath))
+    ],
+    {
+      concurrency: 'unbounded'
+    }
+  );
 });
 
-const createVSCodeFiles = (fsp: FsProvider): void => {
+const createVSCodeFiles = (fsp: FsProvider, sampleProjectPath: string): void => {
   // Create .vscode directory and config files
   fsp.writeFile(
     URI.parse(`${sampleProjectPath}/.vscode/tasks.json`),
@@ -86,6 +93,7 @@ const createVSCodeFiles = (fsp: FsProvider): void => {
 
 /** Creates the files for an empty sfdx project */
 export const projectFiles = Effect.fn('projectFiles')(function* (fsp: FsProvider) {
+  const sampleProjectPath = getProjectRoot().uri;
   // Check if project already exists, if not create it
   const projectExists = fsp.exists(URI.parse(`${sampleProjectPath}/sfdx-project.json`));
   yield* Effect.annotateCurrentSpan({
@@ -94,6 +102,6 @@ export const projectFiles = Effect.fn('projectFiles')(function* (fsp: FsProvider
   });
 
   if (!projectExists) {
-    yield* createProjectStructure(fsp);
+    yield* createProjectStructure(fsp, sampleProjectPath);
   }
 });

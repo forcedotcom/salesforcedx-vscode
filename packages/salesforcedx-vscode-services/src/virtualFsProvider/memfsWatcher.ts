@@ -13,10 +13,9 @@ import * as Stream from 'effect/Stream';
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { sampleProjectName } from '../constants';
 import { ChannelService } from '../vscode/channelService';
-import { fsPrefix } from './constants';
 import { IndexedDBStorageService } from './indexedDbStorage';
+import { getProjectRoot } from './projectRoot';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
 // we need an emitter to send events to the fileSystemProvider using the vscode API
@@ -28,8 +27,9 @@ const updateIDB = (storage: IndexedDBStorageService) =>
       return;
     }
 
-    const fullPath = `/${sampleProjectName}/${event.filename}`;
-    const uri = URI.parse(`${fsPrefix}:/${sampleProjectName}/${event.filename}`);
+    const { nodePath, uri: rootUri } = getProjectRoot();
+    const fullPath = `${nodePath}/${event.filename}`;
+    const uri = URI.parse(`${rootUri}/${event.filename}`);
 
     if (event.eventType === 'rename') {
       if (fs.existsSync(fullPath)) {
@@ -51,9 +51,8 @@ export const startWatch = Effect.fn('startWatch')(
     const channelService = yield* ChannelService;
     const updater = updateIDB(yield* IndexedDBStorageService);
 
-    yield* channelService.appendToChannel(`Starting file watcher for /${sampleProjectName}`);
-
-    const projectPath = `/${sampleProjectName}`;
+    const projectPath = getProjectRoot().nodePath;
+    yield* channelService.appendToChannel(`Starting file watcher for ${projectPath}`);
     // Ensure the directory exists before watching
     fs.mkdirSync(projectPath, { recursive: true });
 
