@@ -728,12 +728,15 @@ export default [
   },
   {
     // Effect-specific rules for new Effect services-based packages
+    // apex-testing is folded in here (8.13 / W-23354498): the same functional set now applies to its src,
+    // and no-loop-statements (below) is enforced across the package.
     files: [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
@@ -806,13 +809,8 @@ export default [
   },
   {
     // class-methods-use-this for packages not yet using Effect
-    // (apex-oas omitted: covered by the Effect-services block above, which sets both rules)
-    files: [
-      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
-      'packages/salesforcedx-vscode-soql/**/*.ts',
-      'packages/soql-common/**/*.ts',
-      'packages/soql-model/**/*.ts'
-    ],
+    // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
+    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
@@ -850,29 +848,6 @@ export default [
     ],
     rules: {
       'barrel-files/avoid-barrel-files': 'off'
-    }
-  },
-  {
-    // no-explicit-any (W-23354483), consistent-type-definitions type (W-23354484),
-    // and prefer-property-signatures (W-23354485) enforced for apex-testing src.
-    // Scoped to src/** so the later test-files block keeps them off for tests.
-    files: ['packages/salesforcedx-vscode-apex-testing/src/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-      'functional/no-let': 'error',
-      'functional/no-throw-statements': 'error',
-      'functional/no-try-statements': 'error',
-      'functional/prefer-property-signatures': 'error',
-      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
-      'prefer-arrow/prefer-arrow-functions': [
-        'error',
-        {
-          disallowPrototype: true,
-          singleReturnOnly: false,
-          classPropertiesAllowed: false
-        }
-      ]
     }
   },
   {
