@@ -76,7 +76,14 @@ jobs:
           echo "Merging main to develop and prepending changelog"
           git checkout develop
           git pull origin develop
-          git merge main --no-edit
+
+          # Merge with -X ours to keep develop's CHANGELOG (full history)
+          # Main has only the new release notes after rebase
+          if ! git merge main --no-edit -X ours; then
+            echo "::error::Merge conflict occurred. Aborting merge."
+            git merge --abort
+            exit 1
+          fi
 
           # Prepend release changelog to develop's full history
           node scripts/prepend-release-changelog.js origin/release/v${{env.RELEASE_VERSION}}

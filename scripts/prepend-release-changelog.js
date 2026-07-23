@@ -30,6 +30,15 @@ function getReleaseBranch() {
     console.error('Example: node scripts/prepend-release-changelog.js release/v67.4.0');
     process.exit(1);
   }
+
+  // Validate branch name to prevent command injection
+  // Only allow alphanumeric, forward slash, hyphen, underscore, and dot
+  if (!/^[a-zA-Z0-9/_.-]+$/.test(releaseBranch)) {
+    console.error('❌ Error: Invalid branch name. Only alphanumeric characters, /, -, _, and . are allowed.');
+    console.error(`Received: ${releaseBranch}`);
+    process.exit(1);
+  }
+
   return releaseBranch;
 }
 
@@ -72,18 +81,39 @@ function prependChangelog(releaseChangelog) {
   }
 
   // Read existing changelog from develop
-  if (!fs.existsSync(CHANGELOG_PATH)) {
-    console.error(`❌ Error: CHANGELOG not found at ${CHANGELOG_PATH}`);
+  let developChangelog;
+  try {
+    if (!fs.existsSync(CHANGELOG_PATH)) {
+      console.error(`❌ Error: CHANGELOG not found at ${CHANGELOG_PATH}`);
+      process.exit(1);
+    }
+
+    developChangelog = fs.readFileSync(CHANGELOG_PATH, 'utf8');
+  } catch (error) {
+    console.error(`❌ Error reading CHANGELOG from ${CHANGELOG_PATH}:`, error.message);
+    console.error('   This could be a permissions issue or I/O error.');
     process.exit(1);
   }
-
-  const developChangelog = fs.readFileSync(CHANGELOG_PATH, 'utf8');
 
   // Prepend release notes to develop changelog
   const combinedChangelog = releaseChangelog.trim() + '\n\n' + developChangelog;
 
   // Write back to file
-  fs.writeFileSync(CHANGELOG_PATH, combinedChangelog, 'utf8');
+  try {
+    fs.writeFileSync(CHANGELOG_PATH, combinedChangelog, 'utf8');
+  } catch (error) {
+    console.error(`❌ Error writing CHANGELOG to ${CHANGELOG_PATH}:`, error.message);
+    if (error.code === 'ENOSPC') {
+      console.error('   Disk is full. Free up space and try again.');
+    } else if (error.code === 'EACCES') {
+      console.error('   Permission denied. Check file permissions.');
+    } else {
+      console.error('   This could be a disk space, permissions, or I/O error.');
+    }
+    console.error('   The merge was completed but the changelog was not updated.');
+    console.error('   Manual intervention required to prepend the changelog.');
+    process.exit(1);
+  }
 
   console.log('✅ Successfully prepended release notes to develop CHANGELOG');
   console.log(`   Total lines: ${combinedChangelog.split('\n').length}`);

@@ -45,9 +45,12 @@ The changelog is auto-generated on the release branch as part of the Create Rele
 Commit: `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ = release version.
 
 **Changelog Strategy:** 
-- **Release branch**: Contains only the new release notes (small, marketplace-ready)
-- **Develop branch**: Maintains full historical changelog
-- **On merge**: The PreRelease workflow automatically prepends the new release notes to develop's full history after merging to main (see [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js))
+- **Release branch**: New release notes only (marketplace-ready)
+- **Develop branch**: Full historical changelog
+- **On merge**: Merge Release Branch workflow:
+  1. Merges main→develop with `-X ours` to preserve develop's history
+  2. Prepends new notes via [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js)
+  3. Aborts on merge conflict (prevents changelog loss)
 
 The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
@@ -66,12 +69,29 @@ The PreRelease job will verify if the version of the branch to be merged is newe
 
 ### Potential Errors
 
+**Push conflict on main merge:**
 If you get `error: failed to push some refs to 'https://github.com/forcedotcom/salesforcedx-vscode'` on the merge step
 
-1. check out the merge branch locally
+1. Check out the merge branch locally
 2. `git merge` main into it
-3. push
-4. run `PreRelease` workflow again
+3. Push
+4. Run `PreRelease` workflow again
+
+**Merge conflict during develop merge:**
+Workflow detects conflicts during main→develop, aborts safely, reports error.
+
+1. Check workflow logs
+2. Resolve conflict on develop
+3. Re-run Merge Release Branch workflow
+
+**Changelog prepend fails (I/O error):**
+[scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js) detects & reports:
+
+- **Disk full (ENOSPC)**: Free space, re-run workflow
+- **Permission denied (EACCES)**: Check permissions, re-run workflow
+- **Other I/O errors**: Check logs; merge succeeded, changelog needs manual prepend
+
+If prepend fails, develop is already merged. Manual fix: prepend release notes from release branch to `packages/salesforcedx-vscode/CHANGELOG.md` on develop, push.
 
 ## Publishing Main
 
@@ -124,6 +144,16 @@ After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SK
 ## Troubleshooting
 
 - 401 errors on publish? You probably need to update the VSCE PAT. https://salesforce.quip.com/E8GWA5TuI8jp
+
+## Release Workflow Security
+
+Merge & changelog workflows apply security best practices:
+
+- **Input validation**: [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js) rejects branch names not matching `/^[a-zA-Z0-9/_.-]+$/` (prevents command injection)
+- **Error handling**: Merge conflicts abort (prevents partial/corrupt changelog)
+- **Merge strategy**: `-X ours` preserves develop's full history during merge-back
+
+Safeguards run automatically—no intervention needed unless errors occur.
 
 ## Post-Publishing the .vsix
 
