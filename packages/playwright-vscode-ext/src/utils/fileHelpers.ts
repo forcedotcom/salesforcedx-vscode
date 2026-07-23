@@ -232,8 +232,8 @@ export const openFileFromExplorerTree = async (
     await folderItem.evaluate(el => el.scrollIntoView({ block: 'start' })).catch(() => {});
     const expanded = (await folderItem.getAttribute('aria-expanded').catch(() => null)) === 'true';
     if (expanded) continue;
-    // Double-click reliably expands in VS Code's Explorer; single click only selects.
-    await folderItem.dblclick({ timeout: 5000 }).catch(() => {});
+    // Single click expands a folder; double-click expands then immediately collapses (two toggles).
+    await folderItem.click({ timeout: 5000 }).catch(() => {});
     await expect(folderItem)
       .toHaveAttribute('aria-expanded', 'true', { timeout: 5000 })
       .catch(() => {});
