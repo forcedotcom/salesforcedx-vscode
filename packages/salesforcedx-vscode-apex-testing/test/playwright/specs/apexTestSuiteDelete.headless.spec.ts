@@ -11,6 +11,7 @@ import {
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
   executeCommandWithCommandPalette,
+  focusOnFilesExplorer,
   NOTIFICATION_LIST_ITEM,
   openFileFromExplorerTree,
   saveScreenshot,
@@ -104,6 +105,10 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
   });
 
   await test.step('open the .testSuite-meta.xml file and delete from project and org', async () => {
+    // Focus the Explorer first so we can screenshot the tree state before navigating.
+    await focusOnFilesExplorer(page);
+    await saveScreenshot(page, 'step.explorer-before-open.png');
+
     // Open the test suite file via the Explorer tree (Quick Open can't find newly-pulled files on web).
     // VS Code uses compact-folder mode by default, so force-app/main/default merges into one row.
     await openFileFromExplorerTree(page, `${testSuiteName}.testSuite-meta.xml`, [
