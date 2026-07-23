@@ -38,7 +38,7 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 **For cross-platform (web + desktop) tests, use UI interactions:**
 
-- **File opening:** `@salesforce/playwright-vscode-ext` exports two helpers. `openFileByName` (Quick Open / "Go to File…") works cross-platform but requires files to have been opened already (web limitation). `openFileFromExplorerTree` opens via Files Explorer tree; desktop-only, handles compact folders transparently and scrolls files into view before interaction.
+- **File opening:** `@salesforce/playwright-vscode-ext` exports two helpers. `openFileByName` (Quick Open / "Go to File…") works cross-platform but requires files to have been opened already (web limitation). `openFileFromExplorerTree` opens via Files Explorer tree; works on both web (when workspace is mounted) and desktop, handles compact folders transparently and scrolls files into view before interaction.
 - `Control+Home`, `Control+s` - navigate and save
 - `page.keyboard.type()` - edit content; call `disableMonacoAutoClosing(page)` first to prevent auto-bracket/quote duplication (vs clipboard + parallel races)
 - Monaco editor selectors - interact with editor
