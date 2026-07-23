@@ -135,6 +135,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
+  const promptService = yield* api.services.PromptService;
 
   const masterLabel = yield* Effect.promise(() =>
     vscode.window.showInputBox({
@@ -175,13 +176,13 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
         const picked = yield* Effect.all(
           DEBUG_LEVEL_CATEGORIES.map(cat =>
             Effect.promise(() => pickLogLevel(cat, cat.default)).pipe(
-              Effect.flatMap(p => (p === undefined ? Effect.fail(undefined) : Effect.succeed(p)))
+              Effect.flatMap(promptService.considerUndefinedAsCancellation)
             )
           ),
           { concurrency: 1 }
         );
         return Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]!]));
-      }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+      }).pipe(Effect.catchTag('UserCancellationError', () => Effect.void));
   if (!levelsOrUndef) return;
   const levels = levelsOrUndef;
 

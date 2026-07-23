@@ -7,7 +7,6 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { OpenLogsFolderError } from '../errors/commandErrors';
 import { getDebugLogsDir } from '../logs/logStorage';
@@ -18,10 +17,6 @@ export const openLogsFolderCommand = Effect.fn('ApexLog.Command.openLogsFolder')
   yield* api.services.FsService.createDirectory(dir);
   yield* Effect.tryPromise({
     try: () => vscode.commands.executeCommand('revealInExplorer', dir),
-    catch: (e: unknown) =>
-      new OpenLogsFolderError({
-        message: 'Failed to reveal logs folder in explorer',
-        cause: isError(e) ? e : new Error(String(e))
-      })
+    catch: (cause: unknown) => new OpenLogsFolderError({ message: 'Failed to reveal logs folder in explorer', cause })
   });
 });
