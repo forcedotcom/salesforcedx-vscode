@@ -32,6 +32,7 @@ jobs:
       - name: Lint
         run: npm run lint
   validate-actions:
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +44,7 @@ jobs:
       - name: Validate GitHub Actions
         run: npm run check:actions
   check-knip:
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
