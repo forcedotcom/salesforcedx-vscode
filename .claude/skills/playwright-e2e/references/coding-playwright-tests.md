@@ -38,7 +38,7 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 **For cross-platform (web + desktop) tests, use UI interactions:**
 
-- **File opening:** `@salesforce/playwright-vscode-ext` exports two helpers. `openFileByName` (Quick Open / "Go to File…") works cross-platform but requires files to have been opened already (web limitation). `openFileFromExplorerTree` opens via Files Explorer tree; desktop-only, handles compact folders and virtual scrolling transparently (no caller work needed).
+- **File opening:** `@salesforce/playwright-vscode-ext` exports two helpers. `openFileByName` (Quick Open / "Go to File…") works cross-platform but requires files to have been opened already (web limitation). `openFileFromExplorerTree` opens via Files Explorer tree; desktop-only, handles compact folders transparently and scrolls files into view before interaction.
 - `Control+Home`, `Control+s` - navigate and save
 - `page.keyboard.type()` - edit content; call `disableMonacoAutoClosing(page)` first to prevent auto-bracket/quote duplication (vs clipboard + parallel races)
 - Monaco editor selectors - interact with editor
@@ -57,7 +57,7 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 
 VS Code API (tree views, editors, output panels) only contains visible DOM lines (rest not present until scrolled into view).
 
-- **File opening in Explorer:** Use `openFileFromExplorerTree` (@salesforce/playwright-vscode-ext); it handles virtual scrolling and compact folders transparently. Waits for DOM attachment, scrolls into view before interaction.
+- **File opening in Explorer:** Use `openFileFromExplorerTree` (@salesforce/playwright-vscode-ext); handles compact folders transparently, waits for DOM attachment, then scrolls items into view before interaction.
 - Don't rely on `scrollTo` - target element won't exist
 - `scrollIntoViewIfNeeded` probably won't help
 - **Tree item count:** Use `aria-setsize` (VS Code's tree model count) instead of `.count()` (DOM nodes). Reads full child count regardless of viewport. Pattern: `getByRole('treeitem', { level: 1 }).first().getAttribute('aria-setsize')`. See `OrgBrowserPage` helpers: `getRootTypeCount()`, `waitForRootTypeCount(expected)`, `getStableRootTypeCount()` (tolerates scroll/unmount race)

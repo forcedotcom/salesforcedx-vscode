@@ -200,10 +200,8 @@ export const deployCurrentSourceToOrg = async (
  * Open returns "No matching results" for files that haven't been opened yet.
  *
  * Intermediate folders are auto-expanded when needed. Compact folders (VS Code's default) are
- * handled transparently. Virtual scrolling (VS Code's list virtualization) is also handled: each
- * folder is scrolled to the top of the viewport before expanding, ensuring children render in
- * the visible area after expansion. If the user has disabled compact folders, pass `parentFolders`
- * to expand each segment individually.
+ * handled transparently. If the user has disabled compact folders, pass `parentFolders` to
+ * expand each segment individually.
  *
  * @param page Playwright page
  * @param fileName File name to open (must be unique within the Explorer — pass `parentFolders` to disambiguate when needed).
@@ -225,11 +223,6 @@ export const openFileFromExplorerTree = async (
   for (const folderName of parentFolders) {
     const folderItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(folderName)}\\b`) }).first();
     if (!(await folderItem.isVisible({ timeout: 5000 }).catch(() => false))) continue;
-    // Scroll the folder to the top of the viewport before expanding. When a folder is near the
-    // bottom, expanding it pushes its children below the viewport — VS Code's virtual list then
-    // never creates DOM nodes for those children. Pinning it to the top ensures the children
-    // appear in the visible area immediately after expansion.
-    await folderItem.evaluate(el => el.scrollIntoView({ block: 'start' })).catch(() => {});
     const expanded = (await folderItem.getAttribute('aria-expanded').catch(() => null)) === 'true';
     if (expanded) continue;
     // Single click expands a folder; double-click expands then immediately collapses (two toggles).
