@@ -6,7 +6,7 @@
  *
  */
 
-import { Layer } from 'effect';
+import * as Layer from 'effect/Layer';
 import { JsonMap } from '@salesforce/ts-types';
 import { getVscode } from '../globals';
 import { MessageService, IMessageService } from './iMessageService';
