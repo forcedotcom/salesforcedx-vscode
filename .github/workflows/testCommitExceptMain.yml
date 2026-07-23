@@ -11,7 +11,7 @@ on:
       - 'CONTEXT.md'
       - 'CONTEXT-MAP.md'
       - '**/CONTEXT.md'
-      - '**/docs/**'
+      - '**/docs/**/*.md'
       - '**/README*'
       - 'SECURITY*'
       - 'CODE_OF_CONDUCT*'

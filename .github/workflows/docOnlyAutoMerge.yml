@@ -41,7 +41,7 @@ jobs:
           set -euo pipefail
           # Paginate the full file list; --json files (gh pr view) caps at 100 and
           # would false-"doc-only" a truncated large PR.
-          files=$(gh api --paginate "repos/${REPO}/pulls/${PR}/files" -q '.[].path')
+          files=$(gh api --paginate "repos/${REPO}/pulls/${PR}/files" -q '.[].filename')
           if [ -z "$files" ]; then
             echo "no files in PR — skip"; echo "match=false" >>"$GITHUB_OUTPUT"; exit 0
           fi
@@ -105,18 +105,21 @@ jobs:
           # rows present before treating "no running rows" as settled.
           expected='["SAST","Credential Scanning Analysis"]'
           for _ in $(seq 1 40); do # ~10 min @ 15s
+            # statusCheckRollup is null right after PR-open (no checks registered yet);
+            # normalize to [] inside jq so it doesn't crash — empty → not-present → keep polling.
             rollup=$(gh pr view "$PR" --repo "$REPO" --json statusCheckRollup -q '.statusCheckRollup')
             read -r failure present running < <(echo "$rollup" | jq -r --argjson exp "$expected" '
-              def outcome: (.conclusion // .state // "PENDING") | ascii_upcase;
+              (. // []) as $rows
+              | def outcome: (.conclusion // .state // "PENDING") | ascii_upcase;
               def name: (.name // .context // "");
               def isRunning:
                 ((.status // "") | ascii_upcase) as $s
                 | ($s == "IN_PROGRESS" or $s == "QUEUED" or $s == "PENDING" or $s == "WAITING" or $s == "REQUESTED")
                   or (outcome == "PENDING" or outcome == "EXPECTED");
-              (any(.[]; outcome as $o | ($o == "FAILURE" or $o == "CANCELLED" or $o == "TIMED_OUT" or $o == "ERROR" or $o == "ACTION_REQUIRED" or $o == "STARTUP_FAILURE"))) as $f
-              | ([.[] | name]) as $names
+              (any($rows[]; outcome as $o | ($o == "FAILURE" or $o == "CANCELLED" or $o == "TIMED_OUT" or $o == "ERROR" or $o == "ACTION_REQUIRED" or $o == "STARTUP_FAILURE"))) as $f
+              | ([$rows[] | name]) as $names
               | (all($exp[]; . as $e | $names | index($e) != null)) as $p
-              | (any(.[]; isRunning)) as $r
+              | (any($rows[]; isRunning)) as $r
               | "\($f) \($p) \($r)"')
             echo "poll: failure=$failure present=$present running=$running"
             if [ "$failure" = "true" ]; then
@@ -132,7 +135,12 @@ jobs:
 
       - name: Squash-merge (admin bypass)
         if: steps.checks.outputs.ok == 'true'
+        env:
+          # The head SHA this run validated. --match-head-commit refuses the merge if a
+          # new commit landed after the gates ran (TOCTOU: gate a doc-only head, then a
+          # code commit is pushed before merge).
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          echo "auto-merging doc-only PR #${PR} by ${AUTHOR}"
-          gh pr merge "$PR" --repo "$REPO" --squash --admin
+          echo "auto-merging doc-only PR #${PR} by ${AUTHOR} at ${HEAD_SHA}"
+          gh pr merge "$PR" --repo "$REPO" --squash --admin --match-head-commit "$HEAD_SHA"
