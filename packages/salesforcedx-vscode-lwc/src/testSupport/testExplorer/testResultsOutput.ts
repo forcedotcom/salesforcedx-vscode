@@ -75,8 +75,14 @@ export const appendTestResultsOutput = (
     run.appendOutput(toCrlf(`${fileBadge(fileResult)}  ${formatPrettyPath(relPath)}${durationSuffix}`));
 
     const fileItem = lookup.findFileItem(testUri);
-    const tree = buildDescribeTree(fileResult.assertionResults);
-    renderDescribeNode(run, testUri, tree, 1, fileItem, lookup);
+
+    // When assertionResults is empty but message exists, show the runtime error
+    if (fileResult.assertionResults.length === 0 && fileResult.message) {
+      run.appendOutput(toCrlf(`  ${fileResult.message}`), undefined, fileItem);
+    } else {
+      const tree = buildDescribeTree(fileResult.assertionResults);
+      renderDescribeNode(run, testUri, tree, 1, fileItem, lookup);
+    }
     run.appendOutput('\r\n');
   }
 
