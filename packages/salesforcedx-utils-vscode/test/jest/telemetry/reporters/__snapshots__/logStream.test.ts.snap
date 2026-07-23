@@ -1,7 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`LogStream should emit cached orgIdentity props on the exception event 1`] = `
+"telemetry/myException {"properties":{"orgId":"org-123","orgShape":"Scratch","devHubId":"devhub-456"},"measurements":{"count":1}}
+"
+`;
+
+exports[`LogStream should emit cached orgIdentity props on the telemetry event 1`] = `
+"telemetry/myEvent {"properties":{"key":"value","orgId":"org-123","orgShape":"Scratch","devHubId":"devhub-456"},"measurements":{"count":1}}
+"
+`;
+
 exports[`LogStream should write the exception event to the file 1`] = `
-"telemetry/myException {"properties":{"orgId":""},"measurements":{"count":1}}
+"telemetry/myException {"properties":{},"measurements":{"count":1}}
 "
 `;
 

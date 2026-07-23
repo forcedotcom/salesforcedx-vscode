@@ -62,4 +62,24 @@ describe('LogStream', () => {
     const firstCallData = writeFileSpy.mock.calls[0][1].toString();
     expect(firstCallData).toMatchSnapshot();
   });
+
+  it('should emit cached orgIdentity props on the telemetry event', async () => {
+    logStream = new LogStream(fakeExtensionId, fakeLogFilePath);
+    logStream.orgIdentity = { orgId: 'org-123', orgShape: 'Scratch', devHubId: 'devhub-456' };
+
+    logStream.sendTelemetryEvent('myEvent', { key: 'value' }, { count: 1 });
+    await logStream.dispose();
+
+    expect(writeFileSpy.mock.calls[0][1].toString()).toMatchSnapshot();
+  });
+
+  it('should emit cached orgIdentity props on the exception event', async () => {
+    logStream = new LogStream(fakeExtensionId, fakeLogFilePath);
+    logStream.orgIdentity = { orgId: 'org-123', orgShape: 'Scratch', devHubId: 'devhub-456' };
+
+    logStream.sendExceptionEvent('myException', 'An exception occurred', { count: 1 });
+    await logStream.dispose();
+
+    expect(writeFileSpy.mock.calls[0][1].toString()).toMatchSnapshot();
+  });
 });
