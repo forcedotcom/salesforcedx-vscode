@@ -330,24 +330,20 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     return yield* Match.value(element).pipe(
       Match.when({ kind: 'customObject' }, el =>
         // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
-        api.services.ComponentSetService.getComponentSetFromProjectDirectories().pipe(
-          Effect.flatMap(projectComponentSet =>
-            metadataDescribeService
-              .describeCustomObject(el.namespace ? `${el.namespace}__${el.componentName!}` : el.componentName!)
-              .pipe(
-                Effect.flatMap(result =>
-                  Effect.all(
-                    result.fields
-                      // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-                      .filter(f => f.custom)
-                      .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-                      .map(createCustomFieldNode(projectComponentSet)(el)),
-                    { concurrency: 'unbounded' }
-                  )
-                )
-              )
-          )
-        )
+        Effect.gen(function* () {
+          const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+          const result = yield* metadataDescribeService.describeCustomObject(
+            el.namespace ? `${el.namespace}__${el.componentName!}` : el.componentName!
+          );
+          return yield* Effect.all(
+            result.fields
+              // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
+              .filter(f => f.custom)
+              .toSorted((a, b) => (a.name < b.name ? -1 : 1))
+              .map(createCustomFieldNode(projectComponentSet)(el)),
+            { concurrency: 'unbounded' }
+          );
+        })
       ),
       Match.when(
         (el: OrgBrowserTreeItem) => el.kind === 'folderType' || (el.kind === 'type' && isFolderType(el.xmlName)),
@@ -357,19 +353,15 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
             .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(el))))
       ),
       Match.when({ kind: 'type' }, el =>
-        api.services.ComponentSetService.getComponentSetFromProjectDirectories().pipe(
-          Effect.flatMap(projectComponentSet =>
-            metadataDescribeService.listMetadata(el.xmlName).pipe(
-              Effect.flatMap(components =>
-                Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
-                  Stream.map(c => listMetadataToComponent(projectComponentSet)(el)(c)),
-                  Stream.runCollect,
-                  Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
-                )
-              )
-            )
-          )
-        )
+        Effect.gen(function* () {
+          const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+          const components = yield* metadataDescribeService.listMetadata(el.xmlName);
+          return yield* Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
+            Stream.map(c => listMetadataToComponent(projectComponentSet)(el)(c)),
+            Stream.runCollect,
+            Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
+          );
+        })
       ),
       Match.when(
         (el): el is OrgBrowserTreeItem & { xmlName: string; folderName: string } =>
@@ -380,19 +372,15 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
           // To avoid infinite nesting we call listMetadata(xmlName, folderName) instead
           // (e.g. type:'Report', folder:'unfiled$public') which correctly returns only
           // the components inside that specific folder.
-          api.services.ComponentSetService.getComponentSetFromProjectDirectories().pipe(
-            Effect.flatMap(projectComponentSet =>
-              metadataDescribeService.listMetadata(el.xmlName, el.folderName).pipe(
-                Effect.flatMap(components =>
-                  Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
-                    Stream.map(c => listMetadataToFolderItem(projectComponentSet)(el)(c)),
-                    Stream.runCollect,
-                    Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
-                  )
-                )
-              )
-            )
-          )
+          Effect.gen(function* () {
+            const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
+            const components = yield* metadataDescribeService.listMetadata(el.xmlName, el.folderName);
+            return yield* Stream.fromIterable(components.filter(globalMetadataFilter)).pipe(
+              Stream.map(c => listMetadataToFolderItem(projectComponentSet)(el)(c)),
+              Stream.runCollect,
+              Effect.map(chunk => applyViewModeChildFilter(Array.from(chunk), provider))
+            );
+          })
       ),
       Match.when({ kind: 'folder' }, () => Effect.succeed<OrgBrowserTreeItem[]>([])),
       Match.when({ kind: 'component' }, () => Effect.succeed<OrgBrowserTreeItem[]>([])),
