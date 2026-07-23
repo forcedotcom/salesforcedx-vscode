@@ -125,7 +125,7 @@ jest.mock('../../../src/utils/testUtils', () => {
   return {
     ...actual,
     buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
-    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(undefined),
+    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(new Map()),
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
 });
@@ -288,7 +288,7 @@ describe('ApexTestController', () => {
     (extensionProvider as any).__setMockConnection?.(mockConnection);
 
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
-    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     const Effect = jest.requireActual('effect/Effect');
     discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
 
@@ -625,17 +625,12 @@ describe('ApexTestController', () => {
           createdItemsMap.set(id, item);
           // Return a proxy that allows setting tags and preserves uri
           return new Proxy(item, {
-            set(target, prop, value) {
+            set: (target, prop, value) => {
               target[prop] = value;
               return true;
             },
-            get(target, prop) {
-              // Ensure uri is always returned correctly
-              if (prop === 'uri') {
-                return target.uri;
-              }
-              return target[prop];
-            }
+            // Ensure uri is always returned correctly
+            get: (target, prop) => (prop === 'uri' ? target.uri : target[prop])
           }) as unknown as vscode.TestItem;
         }
       );
@@ -914,7 +909,9 @@ describe('ApexTestController', () => {
         label: 'OrgOnlyClass',
         uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
         children: {
-          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem)
+          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem),
+          // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts)
+          [Symbol.iterator]: () => [[methodItem.id, methodItem] as const][Symbol.iterator]()
         }
       } as unknown as vscode.TestItem;
 
