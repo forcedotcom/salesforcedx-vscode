@@ -181,7 +181,7 @@ export const readTestRunIdFile = async (apexTestDir: URI): Promise<string | unde
       const fileUri = Utils.joinPath(apexTestDir, 'test-run-id.txt');
       const content = yield* api.services.FsService.readFile(fileUri);
       return content.trim();
-    }).pipe(Effect.catchAll(() => Effect.succeed(undefined)))
+    }).pipe(Effect.orElseSucceed(() => undefined))
   );
 
 /**

@@ -81,9 +81,7 @@ export class WorkspaceContext {
         }
       }
       if (orgShape === 'Scratch') {
-        const devHubId = await getRuntime().runPromise(
-          getDevHubId().pipe(Effect.catchAll(() => Effect.succeed(undefined)))
-        );
+        const devHubId = await getRuntime().runPromise(getDevHubId().pipe(Effect.orElseSucceed(() => undefined)));
         WorkspaceContextUtil.getInstance().devHubId = devHubId;
       }
     }
