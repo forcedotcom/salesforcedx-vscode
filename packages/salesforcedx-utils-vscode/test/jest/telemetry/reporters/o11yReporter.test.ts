@@ -8,7 +8,6 @@
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
 import { workspace } from 'vscode';
-import type { OrgShape } from '../../../../src/context/workspaceContextUtil';
 import { O11yReporter } from '../../../../src/telemetry/reporters/o11yReporter';
 
 // getConnection is a module thunk resolving the services api lazily; mocking the api is the only way to reach it.
@@ -67,7 +66,7 @@ describe('O11yReporter', () => {
     o11yReporter = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId, 'test-webUser');
     o11yReporter.orgIdentity = {
       orgId: dummyOrgId,
-      orgShape: 'ScratchOrg' as unknown as OrgShape,
+      orgShape: 'Scratch',
       devHubId: '00Dxx0000001gPHFAU'
     };
   });
@@ -155,7 +154,7 @@ describe('O11yReporter', () => {
         properties: expect.objectContaining({
           foo: 'bar',
           orgId: '00Dxx0000001gPFEAY',
-          orgShape: 'ScratchOrg',
+          orgShape: 'Scratch',
           devHubId: '00Dxx0000001gPHFAU',
           telemetryTag: 'testTelemetryTag'
         }),
@@ -188,7 +187,7 @@ describe('O11yReporter', () => {
       expect(callArg.properties).toEqual(
         expect.objectContaining({
           orgId: '00Dxx0000001gPFEAY',
-          orgShape: 'ScratchOrg',
+          orgShape: 'Scratch',
           devHubId: '00Dxx0000001gPHFAU',
           telemetryTag: 'testTelemetryTag'
         })
