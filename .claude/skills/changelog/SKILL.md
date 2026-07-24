@@ -7,7 +7,7 @@ description: Polish the automated CHANGELOG for a release branch. Removes GUS re
 
 Improve the automated changelog generated on release branches (`release/vM.m.P`).
 
-Scope: the all-extensions release changelog at `packages/salesforcedx-vscode/CHANGELOG.md`. Root `CHANGELOG.md` is a pointer only — do not edit. Per-package `CHANGELOG.md` files (e.g. `packages/salesforcedx-vscode-i18n/CHANGELOG.md`) are scoped to their own package and out of scope here.
+Scope: the all-extensions release changelog at `packages/salesforcedx-vscode/CHANGELOG.md`. Root `CHANGELOG.md` contains full historical changelog (automatically updated by prepend script on merge) — do not edit manually. Per-package `CHANGELOG.md` files (e.g. `packages/salesforcedx-vscode-i18n/CHANGELOG.md`) are scoped to their own package and out of scope here.
 
 ## When to use
 

@@ -45,14 +45,14 @@ The changelog is auto-generated on the release branch as part of the Create Rele
 Commit: `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ = release version.
 
 **Changelog Strategy:** 
-- **Release branch**: New release notes only (marketplace-ready)
-- **Develop branch**: Full historical changelog
+- **Release branch**: New release notes only in `packages/salesforcedx-vscode/CHANGELOG.md` (marketplace-ready)
+- **Root CHANGELOG.md**: Full historical changelog (all releases)
 - **On merge**: Merge Release Branch workflow:
-  1. Merges main→develop with `-X ours` to preserve develop's history
-  2. Prepends new notes via [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js)
+  1. Merges main→develop (regular merge, no special strategy needed since CHANGELOGs are in different locations)
+  2. Prepends package CHANGELOG to root via [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js)
   3. Aborts on merge conflict (prevents changelog loss)
 
-The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
+The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `packages/salesforcedx-vscode/CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
 For format, polish rules, and conventions, see [.claude/skills/changelog/SKILL.md](../.claude/skills/changelog/SKILL.md).
 
@@ -78,7 +78,7 @@ If you get `error: failed to push some refs to 'https://github.com/forcedotcom/s
 4. Run `PreRelease` workflow again
 
 **Merge conflict during develop merge:**
-Workflow detects conflicts during main→develop, aborts safely, reports error.
+Workflow detects conflicts during main→develop merge, aborts safely, reports error. Conflicts are rare since CHANGELOGs live in different locations (root vs. package).
 
 1. Check workflow logs
 2. Resolve conflict on develop
@@ -91,7 +91,7 @@ Workflow detects conflicts during main→develop, aborts safely, reports error.
 - **Permission denied (EACCES)**: Check permissions, re-run workflow
 - **Other I/O errors**: Check logs; merge succeeded, changelog needs manual prepend
 
-If prepend fails, develop is already merged. Manual fix: prepend release notes from release branch to `packages/salesforcedx-vscode/CHANGELOG.md` on develop, push.
+If prepend fails, develop is already merged. Manual fix: prepend release notes from `packages/salesforcedx-vscode/CHANGELOG.md` (on release branch or develop) to root `CHANGELOG.md` on develop, push.
 
 ## Publishing Main
 
@@ -149,9 +149,10 @@ After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SK
 
 Merge & changelog workflows apply security best practices:
 
-- **Input validation**: [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js) rejects branch names not matching `/^[a-zA-Z0-9/_.-]+$/` (prevents command injection)
-- **Error handling**: Merge conflicts abort (prevents partial/corrupt changelog)
-- **Merge strategy**: `-X ours` preserves develop's full history during merge-back
+- **Input validation**: [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js) validates changelog structure and version format
+- **Error handling**: Merge conflicts abort (prevents partial/corrupt changelog); I/O errors are detected and reported
+- **Idempotent operation**: Script skips prepending if version already exists in root CHANGELOG
+- **Separate locations**: Package CHANGELOG lives at `packages/salesforcedx-vscode/CHANGELOG.md`, root at `CHANGELOG.md` (prevents merge conflicts)
 
 Safeguards run automatically—no intervention needed unless errors occur.
 

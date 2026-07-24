@@ -5,7 +5,11 @@
  *
  * This script fetches all release notes from GitHub and reconstructs the full
  * changelog that was lost due to weekly truncation. Run this once to restore
- * the complete history.
+ * the complete history to the root CHANGELOG.md.
+ *
+ * Note: With the new changelog strategy, root CHANGELOG.md contains full history
+ * and is automatically updated via prepend-release-changelog.js. This script is
+ * preserved for reference and historical restoration if needed.
  *
  * Prerequisites:
  * - gh CLI must be installed and authenticated
@@ -19,7 +23,10 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const CHANGELOG_PATH = path.join(process.cwd(), 'packages', 'salesforcedx-vscode', 'CHANGELOG.md');
+// Note: Update this path based on which changelog you want to restore
+// Root CHANGELOG.md = full history (default)
+// packages/salesforcedx-vscode/CHANGELOG.md = current release notes only
+const CHANGELOG_PATH = path.join(process.cwd(), 'CHANGELOG.md');
 const REPO = 'forcedotcom/salesforcedx-vscode';
 
 // Check for dry-run flag
