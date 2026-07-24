@@ -5,56 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ExtensionPackageJsonSchema,
-  ExtensionProviderService,
-  type ExtensionPackageJson,
-  getServicesApi
-} from '@salesforce/effect-ext-utils';
-import * as Effect from 'effect/Effect';
+import { buildAllServicesLayer as buildSharedServicesLayer } from '@salesforce/effect-ext-utils';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
-import * as Schema from 'effect/Schema';
 import type { ExtensionContext } from 'vscode';
 import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
 
-const ExtensionProviderServiceLive = Layer.effect(
-  ExtensionProviderService,
-  Effect.sync(() => ({
-    getServicesApi
-  }))
-);
-
 /**
- * Factory for a Layer that provides all services from the SalesforceVSCodeServicesApi.
- * Pass the ExtensionContext to include a working ExtensionContextServiceLayer.
- * When context is not provided, ExtensionContextService.Default is used (fails if getContext is called).
+ * Factory for a Layer that provides all shared services plus the org-browser-specific
+ * OrgBrowserRetrieveService (which needs only ExtensionProviderService, present in the shared build).
  */
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
-    Effect.gen(function* () {
-      const extensionProvider = yield* ExtensionProviderService;
-      const api = yield* extensionProvider.getServicesApi;
-      const emptyPjson: ExtensionPackageJson = {};
-      const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
-        Effect.catchAll(() => Effect.succeed(emptyPjson))
-      );
-      const displayName = pjson.displayName ?? 'Salesforce Org Browser';
-      // ErrorHandlerService depends on ChannelService, provide the extension's channel
-      const channelLayer = api.services.ChannelServiceLayer(displayName);
-      const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
-      // Merge all the service layers from the API
-      return Layer.mergeAll(
-        Layer.succeedContext(api.services.prebuiltServicesDependencies),
-        ExtensionProviderServiceLive,
-        api.services.ExtensionContextServiceLayer(context),
-        api.services.SdkLayerFor(context),
-        channelLayer,
-        errorHandlerWithChannel,
-        OrgBrowserRetrieveService.Default
-      );
-    }).pipe(Effect.provide(ExtensionProviderServiceLive))
-  );
+  Layer.merge(buildSharedServicesLayer(context, 'Salesforce Org Browser'), OrgBrowserRetrieveService.Default);
 
 // eslint-disable-next-line functional/no-let
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;

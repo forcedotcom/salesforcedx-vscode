@@ -36,19 +36,19 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
       `${['Retrieved files: '].concat(fileResponses!.map(f => `  - ${f.filePath} : ${f.type}`)).join('\n')}`
     );
   } else {
-    return yield* Effect.fail(new NoFilesRetrievedError({ message: 'No files retrieved' }));
+    return yield* new NoFilesRetrievedError({ message: 'No files retrieved' });
   }
 
   if (openInEditor) {
     const fsService = yield* api.services.FsService;
     yield* Option.match(findFirstSuccessfulFile(result), {
-      onNone: () => Effect.succeed(undefined),
+      onNone: () => Effect.void,
       onSome: filePath =>
         fsService
           .showTextDocument(
             URI.from({ scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file', path: filePath })
           )
-          .pipe(Effect.catchAll(e => Effect.log(`Could not open file: ${String(e)}`)))
+          .pipe(Effect.catchTag('FsServiceError', e => Effect.log(`Could not open file: ${String(e)}`)))
     });
   }
 
