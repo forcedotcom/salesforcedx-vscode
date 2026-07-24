@@ -136,7 +136,7 @@ jobs:
         run: |
           npm run test:web -w salesforcedx-vscode-apex-testing -- --reporter=html
 
-      - name: Recreate scratch org before retry
+      - name: Recreate non-tracking scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
           'failure'
         continue-on-error: true
@@ -144,6 +144,14 @@ jobs:
         run: |
           sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+        working-directory: non-tracking-project
+
+      - name: Recreate source-tracking scratch org before retry
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
           sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: non-tracking-project
@@ -303,7 +311,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --reporter=html
 
-      - name: Recreate scratch org before retry
+      - name: Recreate non-tracking scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
           'failure'
         continue-on-error: true
@@ -311,6 +319,14 @@ jobs:
         run: |
           sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+        working-directory: non-tracking-project
+
+      - name: Recreate source-tracking scratch org before retry
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
+        continue-on-error: true
+        shell: bash
+        run: |
           sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: non-tracking-project
