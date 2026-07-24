@@ -119,12 +119,11 @@ class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvid
     const orgId = extractOrgIdFromUri(uri);
     if (!orgId) return JSON.stringify({ error: 'Invalid trace flags URI: orgId missing' });
 
-    return getRuntime().runPromise(
-      fetchTraceFlagsContent().pipe(
-        Effect.catchAll((e: unknown) =>
-          Effect.succeed(JSON.stringify({ error: `Failed to fetch trace flags: ${String(e)}` }, undefined, 2))
-        )
-      )
+    return fetchTraceFlagsContent().pipe(
+      Effect.catchAll((e: unknown) =>
+        Effect.succeed(JSON.stringify({ error: `Failed to fetch trace flags: ${String(e)}` }, undefined, 2))
+      ),
+      getRuntime().runPromise
     );
   }
 

@@ -28,20 +28,20 @@ export const logGetCommand = Effect.fn('ApexLog.Command.logGet')(function* () {
     return yield* Effect.fail(new LogGetNoLogsError({ message: nls.localize('log_get_no_logs') }));
   }
   const selected = yield* selectLog(logs);
-  if (!selected) return;
   const body = yield* logService.getLogBody(selected.id);
   yield* saveAndOpenLog(selected.id, body);
 });
 
-const selectLog = (logs: ApexLogListItem[]) =>
-  Effect.async<{ id: string } | undefined, never>(resume => {
-    const items = logs.map(log => ({
-      label: `$(file-text) ${log.LogUser?.Name ?? 'Unknown'} - ${log.Operation ?? 'Api'}`,
-      description: formatLogSize(log.LogLength),
-      detail: log.StartTime ? new Date(log.StartTime).toLocaleString() : undefined,
-      id: log.Id
-    }));
-    void vscode.window
-      .showQuickPick(items, { placeHolder: nls.localize('log_get_pick_log') })
-      .then(picked => resume(Effect.succeed(picked ? { id: picked.id } : undefined)));
-  });
+/** QuickPick over the given logs; resolves to the picked item. Fails with UserCancellationError when dismissed. */
+const selectLog = Effect.fn('ApexLog.selectLog')(function* (logs: ApexLogListItem[]) {
+  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+  const items = logs.map(log => ({
+    label: `$(file-text) ${log.LogUser?.Name ?? 'Unknown'} - ${log.Operation ?? 'Api'}`,
+    description: formatLogSize(log.LogLength),
+    detail: log.StartTime ? new Date(log.StartTime).toLocaleString() : undefined,
+    id: log.Id
+  }));
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick(items, { placeHolder: nls.localize('log_get_pick_log') })
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+});

@@ -205,14 +205,16 @@ export class TelemetryService implements TelemetryServiceInterface {
       };
 
       if (enableO11y) {
-        if (!o11yUploadEndpoint) {
+        // O11Y_ENDPOINT overrides package.json endpoint (mirrors sdkLayerConfig OTEL path)
+        const resolvedO11yEndpoint = process.env.O11Y_ENDPOINT ?? o11yUploadEndpoint;
+        if (!resolvedO11yEndpoint) {
           console.log('o11yUploadEndpoint is not defined. Skipping O11y initialization.');
           return;
         }
 
         await initializeO11yReporter(
           reporterConfig.extName,
-          o11yUploadEndpoint,
+          resolvedO11yEndpoint,
           userId,
           version,
           webUserId,

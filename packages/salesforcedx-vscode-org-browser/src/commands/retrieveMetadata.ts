@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
-import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
@@ -20,7 +19,7 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
 ) {
   const members = yield* getRetrieveMembers(node, treeProvider);
   if (members.length === 0) {
-    return Effect.void;
+    return yield* Effect.void;
   }
 
   yield* Effect.annotateCurrentSpan({ memberCount: members.length });
@@ -30,20 +29,19 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
 
   yield* confirmOverwrite(projectComponentSet, members);
 
-  // Run the retrieve operation
-  const result = yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1);
-
-  // Handle post-retrieve UI updates
-  yield* Effect.promise(async () => {
-    if (node.kind === 'component' || node.kind === 'customObject') {
-      node.iconPath = getIconPath(true);
-      treeProvider.fireChangeEvent(node);
-    } else {
-      await treeProvider.refreshType(node);
-    }
-  });
-
-  return result;
+  return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1).pipe(
+    Effect.tap(() =>
+      Match.value(node.kind).pipe(
+        Match.whenOr('component', 'customObject', () =>
+          Effect.sync(() => {
+            node.iconPath = getIconPath(true);
+            treeProvider.fireChangeEvent(node);
+          })
+        ),
+        Match.orElse(() => Effect.promise(() => treeProvider.refreshType(node)))
+      )
+    )
+  );
 });
 
 const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataTypeTreeProvider) =>
@@ -88,14 +86,9 @@ const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (
   const overwriteCount = getOverwriteCount(projectComponentSet, members);
   if (overwriteCount === 0) return;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const yesButton = nls.localize('yes_button');
   const typeName = members[0]?.type ?? 'Unknown';
-  const answer = yield* Effect.promise(() =>
-    vscode.window.showWarningMessage(
-      nls.localize('confirm_overwrite', String(overwriteCount), typeName),
-      yesButton,
-      nls.localize('no_button')
-    )
-  );
-  if (answer !== yesButton) return yield* new api.services.UserCancellationError();
+  yield* (yield* api.services.PromptService).confirmOrThrow({
+    message: nls.localize('confirm_overwrite', String(overwriteCount), typeName),
+    confirmLabel: nls.localize('yes_button')
+  });
 });

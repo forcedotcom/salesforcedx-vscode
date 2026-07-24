@@ -17,14 +17,6 @@ const PORT_CONFLICT_PATTERNS = [
 export const isAuthPortConflictError = (errorOutput: string): boolean =>
   PORT_CONFLICT_PATTERNS.some(pattern => pattern.test(errorOutput));
 
-export const extractPortConflictCliMessage = (errorOutput: string): string | undefined => {
-  const trimmedOutput = errorOutput.trim();
-  const portInUseErrorMatch = trimmedOutput.match(
-    /Error \(PortInUseError\):[\s\S]*?OAuthLocalPort in the sfdx-project\.json file\./i
-  );
-  return portInUseErrorMatch?.[0].trim();
-};
-
 export const getPortKillInstructions = (platform = process.platform): string =>
   platform === 'win32'
     ? `${nls.localize('org_login_web_port_conflict_steps_label')}\n1. ${nls.localize(

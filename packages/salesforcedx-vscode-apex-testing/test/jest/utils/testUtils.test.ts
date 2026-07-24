@@ -118,18 +118,18 @@ describe('testUtils', () => {
       });
     });
 
-    it('should return undefined when document symbols are not available', async () => {
+    it('should return an empty map when document symbols are not available', async () => {
       jest.spyOn(vscode.commands, 'executeCommand').mockRejectedValue(new Error('Symbols not available'));
 
       const result = await getMethodLocationsFromSymbols(mockUri, ['testMethod']);
-      expect(result).toBeUndefined();
+      expect(result.size).toBe(0);
     });
 
-    it('should return undefined when executeCommand returns undefined', async () => {
+    it('should return an empty map when executeCommand returns undefined', async () => {
       jest.spyOn(vscode.commands, 'executeCommand').mockResolvedValue(undefined);
 
       const result = await getMethodLocationsFromSymbols(mockUri, ['testMethod']);
-      expect(result).toBeUndefined();
+      expect(result.size).toBe(0);
     });
 
     it('should return a map of method locations when symbols are available', async () => {

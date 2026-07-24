@@ -236,7 +236,7 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
 
   const applyEffect = Effect.all(
     [
-      toAdd.length > 0 ? Effect.promise(() => testService.buildSuite(suitename, toAdd)) : Effect.succeed(undefined),
+      toAdd.length > 0 ? Effect.promise(() => testService.buildSuite(suitename, toAdd)) : Effect.void,
       toRemove.length > 0
         ? Effect.tryPromise(() =>
             Promise.all(toRemove.map(id => connection.tooling.delete('TestSuiteMembership', id)))
@@ -253,7 +253,7 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
               return Effect.succeed(results);
             })
           )
-        : Effect.succeed(undefined)
+        : Effect.void
     ],
     { concurrency: 'unbounded' }
   );

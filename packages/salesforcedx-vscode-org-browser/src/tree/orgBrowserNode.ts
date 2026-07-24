@@ -71,6 +71,20 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
 export const getIconPath = (filePresent: boolean): vscode.ThemeIcon =>
   filePresent ? new vscode.ThemeIcon('pass-filled') : new vscode.ThemeIcon('circle-large-outline');
 
+/** folder node with the fields needed to list its components */
+export const isFolderNode = (
+  n: OrgBrowserTreeItem
+): n is OrgBrowserTreeItem & { xmlName: string; folderName: string } =>
+  n.kind === 'folder' && Boolean(n.xmlName) && Boolean(n.folderName);
+
+/** customObject node with the componentName needed to describe it */
+export const isCustomObjectNode = (n: OrgBrowserTreeItem): n is OrgBrowserTreeItem & { componentName: string } =>
+  n.kind === 'customObject' && Boolean(n.componentName);
+
+/** node whose children are folders (a folderType, or a type that happens to be a folder type) */
+export const isFolderListingNode = (n: OrgBrowserTreeItem): boolean =>
+  n.kind === 'folderType' || (n.kind === 'type' && isFolderType(n.xmlName));
+
 const calculateId = (inputs: OrgBrowserTreeItemInputs): string => {
   // top-level types
   if (inputs.kind === 'type' || inputs.kind === 'folderType') {
