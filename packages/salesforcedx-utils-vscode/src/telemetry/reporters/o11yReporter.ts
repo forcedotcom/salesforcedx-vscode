@@ -25,16 +25,13 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-const getConnection = (): Promise<Connection> =>
-  Effect.runPromise(
-    getServicesApi.pipe(
-      Effect.flatMap(api =>
-        api.services.ConnectionService.getConnection().pipe(
-          Effect.provide(Layer.succeedContext(api.services.prebuiltServicesDependencies))
-        )
-      )
-    )
-  );
+const getConnectionEffect = Effect.fn('O11yReporter.getConnection')(function* () {
+  const api = yield* getServicesApi;
+  const prebuilt = Layer.succeedContext(api.services.prebuiltServicesDependencies);
+  return yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(prebuilt));
+});
+
+const getConnection = (): Promise<Connection> => Effect.runPromise(getConnectionEffect());
 
 export class O11yReporter
   extends Disposable
@@ -99,6 +96,16 @@ export class O11yReporter
     return isInternalHost() ? { ...commonProperties, ...getInternalProperties() } : commonProperties;
   }
 
+  // org identity fields read off cached this.orgIdentity, empty-string sentinel preserves existing prop shape
+  private getOrgIdentityFields(): { orgId: string; orgShape: string; devHubId: string; orgEdition: string } {
+    return {
+      orgId: this.orgIdentity?.orgId ?? '',
+      orgShape: this.orgIdentity?.orgShape ?? '',
+      devHubId: this.orgIdentity?.devHubId ?? '',
+      orgEdition: this.orgIdentity?.orgEdition ?? ''
+    };
+  }
+
   private async sendPftEvent({
     orgId,
     devHubId,
@@ -131,10 +138,7 @@ export class O11yReporter
     measurements?: { [key: string]: number }
   ): void {
     if (this.userOptIn && eventName) {
-      const orgId = this.orgIdentity?.orgId ?? '';
-      const orgShape = this.orgIdentity?.orgShape ?? '';
-      const devHubId = this.orgIdentity?.devHubId ?? '';
-      const orgEdition = this.orgIdentity?.orgEdition ?? '';
+      const { orgId, orgShape, devHubId, orgEdition } = this.getOrgIdentityFields();
 
       // Add webUserId field to customDimensions
       let props = properties
@@ -173,10 +177,7 @@ export class O11yReporter
       error.message = exceptionMessage;
       error.stack = 'DEPRECATED';
 
-      const orgId = this.orgIdentity?.orgId ?? '';
-      const orgShape = this.orgIdentity?.orgShape ?? '';
-      const devHubId = this.orgIdentity?.devHubId ?? '';
-      const orgEdition = this.orgIdentity?.orgEdition ?? '';
+      const { orgId, orgShape, devHubId, orgEdition } = this.getOrgIdentityFields();
 
       // Add webUserId field to customDimensions
       const baseProps = { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) };
