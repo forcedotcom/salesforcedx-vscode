@@ -72,7 +72,9 @@ export class O11yReporter
   }
 
   public async initialize(extensionName: string): Promise<void> {
-    await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, getConnection);
+    // when O11Y_ENDPOINT is set, omit getConnection so uploader skips org proxy and POSTs directly to endpoint
+    const connectionMethod = process.env.O11Y_ENDPOINT ? undefined : getConnection;
+    await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, connectionMethod);
 
     // Enable automatic batching with 30-second periodic flush
     this.batchingCleanup = this.o11yService.enableAutoBatching({
