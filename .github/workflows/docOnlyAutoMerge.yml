@@ -97,6 +97,10 @@ jobs:
       - name: Gate — security scans present and settled
         id: checks
         if: steps.prstate.outputs.ok == 'true'
+        env:
+          # Own run id — this job's check run is in the rollup and is in_progress for as
+          # long as it polls, so counting it as "running" would never settle (deadlock).
+          SELF_RUN: ${{ github.run_id }}
         run: |
           set -euo pipefail
           # Required-check workflows are paths-ignore'd on doc-only PRs → their
@@ -104,12 +108,14 @@ jobs:
           # empty-rollup race (poll passes before scans queue): require BOTH scan
           # rows present before treating "no running rows" as settled.
           expected='["SAST","Credential Scanning Analysis"]'
-          for _ in $(seq 1 40); do # ~10 min @ 15s
+          for _ in $(seq 1 20); do # ~5 min @ 15s; scans normally post within ~1 min
             # statusCheckRollup is null right after PR-open (no checks registered yet);
             # normalize to [] inside jq so it doesn't crash — empty → not-present → keep polling.
             rollup=$(gh pr view "$PR" --repo "$REPO" --json statusCheckRollup -q '.statusCheckRollup')
-            read -r failure present running < <(echo "$rollup" | jq -r --argjson exp "$expected" '
-              (. // []) as $rows
+            read -r failure present running < <(echo "$rollup" | jq -r --argjson exp "$expected" --arg self "$SELF_RUN" '
+              # Drop this run own rows by detailsUrl (.../actions/runs/<id>/job/<id>).
+              # StatusContext rows have no detailsUrl → "" → kept.
+              [ (. // [])[] | select(((.detailsUrl // "") | contains("/actions/runs/" + $self + "/")) | not) ] as $rows
               | def outcome: (.conclusion // .state // "PENDING") | ascii_upcase;
               def name: (.name // .context // "");
               def isRunning:
@@ -130,8 +136,10 @@ jobs:
             fi
             sleep 15
           done
-          echo "timed out waiting for security scans to settle — fail safe, no merge"
-          exit 1
+          # A scan that never posts (AST service miss) is not a security signal — leave the
+          # PR for a human to merge instead of a permanently red check on a doc-only PR.
+          echo "scans never settled within the window — no auto-merge, merge manually"
+          echo "ok=false" >>"$GITHUB_OUTPUT"
 
       - name: Squash-merge (admin bypass)
         if: steps.checks.outputs.ok == 'true'
