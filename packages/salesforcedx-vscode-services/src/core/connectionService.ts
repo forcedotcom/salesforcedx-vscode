@@ -488,7 +488,7 @@ const buildDevHubId = Effect.fn('getDevHubId')(function* (devHubUsername?: strin
   if (!devHubUsername) {
     return undefined;
   }
-  // only successes are memoized; a failed lookup (e.g. devhub not yet authenticated) must be retried on the next call
+  // a failed lookup (e.g. devhub not yet authenticated) is swallowed to undefined and memoized like any success — not retried this session
   const authInfo = yield* createAuthInfoFromUsername(devHubUsername).pipe(Effect.orElseSucceed(() => undefined));
   return authInfo?.getFields().orgId;
 });
