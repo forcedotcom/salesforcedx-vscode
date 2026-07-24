@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -18,16 +19,20 @@ import { LAST_OPENED_LOG_FOLDER_KEY } from '../../../src/debuggerConstants';
 jest.mock('vscode');
 
 /**
- * The source calls the static accessor `api.services.WorkspaceService.getWorkspaceInfo()`, which reads
- * `WorkspaceService` from context. Provide the real class through the api plus a mock service instance so
- * the accessor resolves and the effect's requirements are satisfied.
+ * The source calls the static accessors `api.services.WorkspaceService.getWorkspaceInfo()` and
+ * `api.services.FsService.fileOrFolderExists()`, which read their services from context. Provide the real
+ * classes through the api plus service instances so the accessors resolve and the effect's requirements are
+ * satisfied. FsService uses the real implementation — it calls the mocked `vscode.workspace.fs.stat`.
  */
 const provideWorkspace = (isEmpty: boolean) => {
   const info = { path: '/mock', fsPath: '/mock', isEmpty, isVirtualFs: false, cwd: '/mock' } as const;
   return Layer.mergeAll(
     Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed({ services: { WorkspaceService } } as unknown as SalesforceVSCodeServicesApi)
+      getServicesApi: Effect.succeed({
+        services: { WorkspaceService, FsService }
+      } as unknown as SalesforceVSCodeServicesApi)
     }),
+    FsService.Default,
     Layer.succeed(
       WorkspaceService,
       new WorkspaceService({
