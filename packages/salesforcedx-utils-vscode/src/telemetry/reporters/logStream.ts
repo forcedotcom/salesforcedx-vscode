@@ -10,7 +10,7 @@ import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
 import { Disposable, workspace } from 'vscode';
 import { URI } from 'vscode-uri';
-import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
+import { getOrgIdentityProps } from './telemetryUtils';
 
 /**
  * Represents a telemetry reporter that logs telemetry events to a file.
@@ -47,11 +47,9 @@ export class LogStream extends Disposable implements TelemetryReporter {
     properties?: { [key: string]: string },
     measurements?: { [key: string]: number }
   ): void {
-    const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
-
     void this.appendToFile(
       `telemetry/${eventName} ${JSON.stringify({
-        properties: { ...properties, ...(orgId ? { orgId } : {}) },
+        properties: { ...properties, ...getOrgIdentityProps(this.orgIdentity) },
         measurements
       })}\n`
     );
@@ -62,13 +60,11 @@ export class LogStream extends Disposable implements TelemetryReporter {
     exceptionMessage: string,
     measurements?: { [key: string]: number }
   ): void {
-    const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
-    const properties = { orgId };
     console.log(`LogStream.sendExceptionEvent - exceptionMessage: ${exceptionMessage}`);
 
     void this.appendToFile(
       `telemetry/${exceptionName} ${JSON.stringify({
-        properties,
+        properties: getOrgIdentityProps(this.orgIdentity),
         measurements
       })}\n`
     );
