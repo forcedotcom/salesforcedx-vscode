@@ -6,10 +6,13 @@
  */
 
 import type { OrgIdentity, TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
+import type { Connection } from '@salesforce/core';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import { O11yService } from '@salesforce/o11y-reporter';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { Disposable, env, workspace } from 'vscode';
-import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
@@ -22,7 +25,13 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-const getConnection = async () => WorkspaceContextUtil.getInstance().getConnection();
+const getConnectionEffect = Effect.fn('O11yReporter.getConnection')(function* () {
+  const api = yield* getServicesApi;
+  const prebuilt = Layer.succeedContext(api.services.prebuiltServicesDependencies);
+  return yield* api.services.ConnectionService.getConnection().pipe(Effect.provide(prebuilt));
+});
+
+const getConnection = (): Promise<Connection> => Effect.runPromise(getConnectionEffect());
 
 export class O11yReporter
   extends Disposable
@@ -63,7 +72,9 @@ export class O11yReporter
   }
 
   public async initialize(extensionName: string): Promise<void> {
-    await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, getConnection);
+    // when O11Y_ENDPOINT is set, omit getConnection so uploader skips org proxy and POSTs directly to endpoint
+    const connectionMethod = process.env.O11Y_ENDPOINT ? undefined : getConnection;
+    await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint, connectionMethod);
 
     // Enable automatic batching with 30-second periodic flush
     this.batchingCleanup = this.o11yService.enableAutoBatching({
@@ -85,6 +96,16 @@ export class O11yReporter
       ...getCommonProperties(this.extensionId, this.extensionVersion)
     };
     return isInternalHost() ? { ...commonProperties, ...getInternalProperties() } : commonProperties;
+  }
+
+  // org identity fields read off cached this.orgIdentity, empty-string sentinel preserves existing prop shape
+  private getOrgIdentityFields(): { orgId: string; orgShape: string; devHubId: string; orgEdition: string } {
+    return {
+      orgId: this.orgIdentity?.orgId ?? '',
+      orgShape: this.orgIdentity?.orgShape ?? '',
+      devHubId: this.orgIdentity?.devHubId ?? '',
+      orgEdition: this.orgIdentity?.orgEdition ?? ''
+    };
   }
 
   private async sendPftEvent({
@@ -119,10 +140,7 @@ export class O11yReporter
     measurements?: { [key: string]: number }
   ): void {
     if (this.userOptIn && eventName) {
-      const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
-      const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
-      const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
-      const orgEdition = WorkspaceContextUtil.getInstance().orgEdition ?? '';
+      const { orgId, orgShape, devHubId, orgEdition } = this.getOrgIdentityFields();
 
       // Add webUserId field to customDimensions
       let props = properties
@@ -161,10 +179,7 @@ export class O11yReporter
       error.message = exceptionMessage;
       error.stack = 'DEPRECATED';
 
-      const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
-      const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
-      const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
-      const orgEdition = WorkspaceContextUtil.getInstance().orgEdition ?? '';
+      const { orgId, orgShape, devHubId, orgEdition } = this.getOrgIdentityFields();
 
       // Add webUserId field to customDimensions
       const baseProps = { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) };
