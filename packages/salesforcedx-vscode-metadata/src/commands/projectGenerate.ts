@@ -24,112 +24,65 @@ type ProjectGenerateArgs = {
   readonly manifest?: boolean;
 };
 
-type TemplateCategory = 'direct' | 'internal' | 'external';
-
-type TemplateCategoryItem = vscode.QuickPickItem & {
-  readonly category: TemplateCategory;
-  readonly projectTemplate?: ProjectTemplate;
+type ProjectTemplateItem = vscode.QuickPickItem & {
+  readonly projectTemplate: ProjectTemplate;
 };
 
-const templateCategoryItems: readonly TemplateCategoryItem[] = [
+const templateItems: readonly (ProjectTemplateItem | vscode.QuickPickItem)[] = [
   {
     label: nls.localize('project_generate_standard_template_display_text'),
-    description: nls.localize('project_generate_standard_template'),
-    category: 'direct',
     projectTemplate: 'standard'
   },
   {
     label: nls.localize('project_generate_empty_template_display_text'),
-    description: nls.localize('project_generate_empty_template'),
-    category: 'direct',
     projectTemplate: 'empty'
   },
   {
     label: nls.localize('project_generate_analytics_template_display_text'),
-    description: nls.localize('project_generate_analytics_template'),
-    category: 'direct',
     projectTemplate: 'analytics'
   },
   {
-    label: nls.localize('project_generate_internal_app_template_display_text'),
-    description: nls.localize('project_generate_internal_app_template'),
-    category: 'internal'
-  },
-  {
-    label: nls.localize('project_generate_external_app_template_display_text'),
-    description: nls.localize('project_generate_external_app_template'),
-    category: 'external'
-  },
-  {
     label: nls.localize('project_generate_agent_template_display_text'),
-    description: nls.localize('project_generate_agent_template'),
-    category: 'direct',
     projectTemplate: 'agent'
+  },
+  { label: nls.localize('project_generate_separator_internal_apps'), kind: vscode.QuickPickItemKind.Separator },
+  {
+    label: nls.localize('project_generate_react_internal_app_display_text'),
+    detail: nls.localize('project_generate_react_b2e_template'),
+    projectTemplate: 'reactinternalapp'
+  },
+  {
+    label: nls.localize('project_generate_angular_internal_app_display_text'),
+    detail: nls.localize('project_generate_angular_b2e_template'),
+    projectTemplate: 'angularinternalapp'
+  },
+  { label: nls.localize('project_generate_separator_external_apps'), kind: vscode.QuickPickItemKind.Separator },
+  {
+    label: nls.localize('project_generate_react_external_app_display_text'),
+    detail: nls.localize('project_generate_react_b2x_template'),
+    projectTemplate: 'reactexternalapp'
+  },
+  {
+    label: nls.localize('project_generate_angular_external_app_display_text'),
+    detail: nls.localize('project_generate_angular_b2x_template'),
+    projectTemplate: 'angularexternalapp'
   }
 ];
 
-type FrameworkItem = vscode.QuickPickItem & {
-  readonly projectTemplate: ProjectTemplate;
-};
-
-const frameworkItems: Record<'internal' | 'external', readonly FrameworkItem[]> = {
-  internal: [
-    {
-      label: nls.localize('project_generate_react_framework_display_text'),
-      description: nls.localize('project_generate_react_b2e_template'),
-      projectTemplate: 'reactinternalapp'
-    },
-    {
-      label: nls.localize('project_generate_angular_framework_display_text'),
-      description: nls.localize('project_generate_angular_b2e_template'),
-      projectTemplate: 'angularinternalapp'
-    }
-  ],
-  external: [
-    {
-      label: nls.localize('project_generate_react_framework_display_text'),
-      description: nls.localize('project_generate_react_b2x_template'),
-      projectTemplate: 'reactexternalapp'
-    },
-    {
-      label: nls.localize('project_generate_angular_framework_display_text'),
-      description: nls.localize('project_generate_angular_b2x_template'),
-      projectTemplate: 'angularexternalapp'
-    }
-  ]
-};
+const isProjectTemplateItem = (item: vscode.QuickPickItem): item is ProjectTemplateItem => 'projectTemplate' in item;
 
 const promptForTemplate = Effect.fn('projectGenerate.promptForTemplate')(function* (initialTemplate?: ProjectTemplate) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-
-  if (initialTemplate !== undefined) {
-    return yield* Effect.succeed(initialTemplate).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
-  }
-
-  // Step 1: Pick template category
-  const categorySelection = yield* Effect.promise(() =>
-    vscode.window.showQuickPick(templateCategoryItems, {
-      placeHolder: nls.localize('project_generate_type_placeholder')
-    })
+  return yield* (
+    initialTemplate !== undefined
+      ? Effect.succeed(initialTemplate)
+      : Effect.promise(() => vscode.window.showQuickPick(templateItems)).pipe(
+          Effect.map(selection =>
+            selection && isProjectTemplateItem(selection) ? selection.projectTemplate : undefined
+          )
+        )
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
-
-  // If it's a direct template (standard, empty, analytics, agent), return immediately
-  if (categorySelection.category === 'direct') {
-    return yield* Effect.succeed(categorySelection.projectTemplate).pipe(
-      Effect.flatMap(promptService.considerUndefinedAsCancellation)
-    );
-  }
-
-  // Step 2: Pick framework (React or Angular)
-  const items = frameworkItems[categorySelection.category];
-  const frameworkSelection = yield* Effect.promise(() =>
-    vscode.window.showQuickPick(items, {
-      placeHolder: nls.localize('project_generate_framework_placeholder')
-    })
-  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
-
-  return frameworkSelection.projectTemplate;
 });
 
 const promptForProjectName = Effect.fn('projectGenerate.promptForProjectName')(function* (initialProjectName?: string) {
