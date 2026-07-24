@@ -28,7 +28,9 @@ type ProjectTemplateItem = vscode.QuickPickItem & {
   readonly projectTemplate: ProjectTemplate;
 };
 
-const templateItems: readonly (ProjectTemplateItem | vscode.QuickPickItem)[] = [
+type SeparatorItem = vscode.QuickPickItem & { readonly kind: vscode.QuickPickItemKind.Separator };
+
+const templateItems: readonly (ProjectTemplateItem | SeparatorItem)[] = [
   {
     label: nls.localize('project_generate_standard_template_display_text'),
     projectTemplate: 'standard'
