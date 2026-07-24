@@ -7,7 +7,6 @@
 
 export { ChannelService } from './commands/channelService';
 export { notificationService } from './commands/notificationService';
-export { ProgressNotification } from './commands/progressNotification';
 export { ConfigUtil } from './config/configUtil';
 export { SFDX_CORE_CONFIGURATION_NAME, TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from './constants';
 export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
