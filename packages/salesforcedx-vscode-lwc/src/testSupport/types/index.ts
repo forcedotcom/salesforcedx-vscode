@@ -106,17 +106,14 @@ export type LwcJestTestResults = {
  */
 type LwcJestTestResultStatus = 'passed' | 'failed' | 'pending' | 'skipped' | 'todo' | 'disabled';
 
-/**
- * Jest Test File Result
- * @property {string} message - Optional runtime error message when test suite fails to run before assertions can be collected
- */
+/** Jest Test File Result */
 export type LwcJestTestFileResult = {
   status: 'passed' | 'failed';
   startTime: number;
   endTime: number;
   name: string;
   assertionResults: LwcJestTestAssertionResult[];
-  message?: string; // Runtime error message when test suite fails to run
+  message?: string; // Runtime error message when test suite fails to run before assertions can be collected
 };
 
 /**
