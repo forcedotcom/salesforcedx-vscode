@@ -8,4 +8,10 @@
 import { createDesktopTest, DREAMHOUSE_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
 
 // all tests use dreamhouse org
-export const test = createDesktopTest({ fixturesDir: __dirname, orgAlias: DREAMHOUSE_ORG_ALIAS });
+// window.dialogStyle: custom routes showWarningMessage({ modal: true }) (overwrite confirmation)
+// through VS Code's DOM (.monaco-dialog-box) instead of Electron's native dialog, which Playwright can't reach
+export const test = createDesktopTest({
+  fixturesDir: __dirname,
+  orgAlias: DREAMHOUSE_ORG_ALIAS,
+  userSettings: { 'window.dialogStyle': 'custom' }
+});
