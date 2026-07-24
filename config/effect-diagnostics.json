@@ -8,6 +8,7 @@
     "catchUnfailableEffect",
     "tryCatchInEffectGen",
     "unknownInEffectCatch",
-    "effectSucceedWithVoid"
+    "effectSucceedWithVoid",
+    "unnecessaryFailYieldableError"
   ]
 }

@@ -25,7 +25,7 @@ export const logGetCommand = Effect.fn('ApexLog.Command.logGet')(function* () {
   const logService = yield* api.services.ApexLogService;
   const logs = yield* logService.listLogs();
   if (logs.length === 0) {
-    return yield* Effect.fail(new LogGetNoLogsError({ message: nls.localize('log_get_no_logs') }));
+    return yield* new LogGetNoLogsError({ message: nls.localize('log_get_no_logs') });
   }
   const selected = yield* selectLog(logs);
   const body = yield* logService.getLogBody(selected.id);
