@@ -141,7 +141,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       if (!options.overwrite && this.exists(uri)) {
         return Effect.fail(vscode.FileSystemError.FileExists(uri));
       }
-      return Effect.succeed(undefined);
+      return Effect.void;
     }).pipe(
       // Write file to filesystem
       Effect.flatMap(() =>

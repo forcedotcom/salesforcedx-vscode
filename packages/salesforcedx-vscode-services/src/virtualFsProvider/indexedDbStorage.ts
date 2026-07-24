@@ -137,7 +137,10 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
       );
 
     const deleteFile = (path: string) =>
-      withStore('readwrite', store => store.delete(path)).pipe(Effect.withSpan('deleteFile', { attributes: { path } }));
+      withStore('readwrite', store => store.delete(path)).pipe(
+        Effect.asVoid,
+        Effect.withSpan('deleteFile', { attributes: { path } })
+      );
 
     const loadFile = (path: string) =>
       withStore<SerializedEntryWithPath | undefined>('readonly', store => store.get(path)).pipe(
@@ -151,6 +154,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
             fs.mkdirSync(entry.path, { recursive: true });
           }
         }),
+        Effect.asVoid,
         Effect.withSpan('loadFile', { attributes: { path } })
       );
     return {
@@ -172,8 +176,8 @@ const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> 
   new IndexedDBStorageService({
     loadState: () => Effect.succeed([]),
     saveFile: () => Effect.succeed('foo'),
-    deleteFile: () => Effect.succeed(undefined),
-    loadFile: () => Effect.succeed(undefined)
+    deleteFile: () => Effect.void,
+    loadFile: () => Effect.void
   })
 );
 

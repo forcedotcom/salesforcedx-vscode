@@ -483,15 +483,15 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
 });
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
-const buildDevHubId = (devHubUsername?: string) =>
-  (devHubUsername
-    ? createAuthInfoFromUsername(devHubUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
-    : Effect.succeed(undefined)
-  ).pipe(
-    // only successes are memoized; a failed lookup (e.g. devhub not yet authenticated) must be retried on the next call
-    Effect.catchAll(() => Effect.succeed(undefined)),
-    Effect.withSpan('getDevHubId', { attributes: { devHubUsername } })
-  );
+const buildDevHubId = Effect.fn('getDevHubId')(function* (devHubUsername?: string) {
+  yield* Effect.annotateCurrentSpan({ devHubUsername });
+  if (!devHubUsername) {
+    return undefined;
+  }
+  // a failed lookup (e.g. devhub not yet authenticated) is swallowed to undefined and memoized like any success — not retried this session
+  const authInfo = yield* createAuthInfoFromUsername(devHubUsername).pipe(Effect.orElseSucceed(() => undefined));
+  return authInfo?.getFields().orgId;
+});
 
 // memoized per distinct devHubUsername at module scope so AuthInfo.create (and the getDevHubId span) runs once per devhub per session
 const getDevHubId = Effect.runSync(Effect.cachedFunction(buildDevHubId));

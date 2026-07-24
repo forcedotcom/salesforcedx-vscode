@@ -49,10 +49,12 @@ const fetchCliIdFromCli = () => {
 };
 
 const cliIdEffect =
-  process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed<CliId | undefined>(undefined) : fetchCliIdFromCli();
+  process.env.ESBUILD_PLATFORM === 'web'
+    ? Effect.succeed(Option.none<CliId>())
+    : fetchCliIdFromCli().pipe(Effect.map(Option.fromNullable));
 
 // memo wrapper built once at module scope; the inner sf telemetry effect runs at most once per session and is shared across all getCliId() calls
 const cachedCliId = Effect.runSync(Effect.cached(cliIdEffect));
 
 /** Get the CLI ID from sf telemetry. Memoized at module scope so the CLI runs once per session. Returns Option.none() on web or when CLI unavailable. */
-export const getCliId = () => cachedCliId.pipe(Effect.map(Option.fromNullable));
+export const getCliId = () => cachedCliId;

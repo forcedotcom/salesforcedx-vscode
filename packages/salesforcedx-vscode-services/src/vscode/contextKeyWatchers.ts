@@ -41,12 +41,12 @@ const readSfdxProject = Effect.fn('readSfdxProject')(function* () {
   const bytes = yield* Effect.tryPromise({
     try: () => Promise.resolve(vscode.workspace.fs.readFile(uri)),
     catch: () => undefined
-  }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+  }).pipe(Effect.catchAll(() => Effect.void));
   if (!bytes) return undefined;
   return yield* Effect.try({
     try: (): { sourceBehaviorOptions?: readonly string[] } => JSON.parse(Buffer.from(bytes).toString('utf8')),
     catch: () => undefined
-  }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+  }).pipe(Effect.catchAll(() => Effect.void));
 });
 
 const isEsrDecomposed = Effect.fn('isEsrDecomposed')(function* () {
