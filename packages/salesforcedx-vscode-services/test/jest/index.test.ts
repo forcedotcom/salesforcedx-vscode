@@ -91,8 +91,8 @@ jest.mock('../../src/virtualFsProvider/indexedDbStorage', () => {
   const mockStorage = {
     loadState: () => E.Effect.succeed(undefined),
     saveFile: () => E.Effect.succeed(undefined),
-    deleteFile: () => E.Effect.succeed(undefined),
-    loadFile: () => E.Effect.succeed(undefined)
+    deleteFile: () => E.Effect.void,
+    loadFile: () => E.Effect.void
   };
 
   return {

@@ -35,9 +35,7 @@ const appendToChannel = (message: string) =>
 const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const metadataDescribeService = yield* api.services.MetadataDescribeService;
-  return yield* metadataDescribeService
-    .describeCustomObject(sobjectName)
-    .pipe(Effect.catchAll(() => Effect.succeed<DescribeSObjectResult | undefined>(undefined)));
+  return yield* metadataDescribeService.describeCustomObject(sobjectName).pipe(Effect.orElseSucceed(() => undefined));
 });
 
 // TODO: This should be exported from soql-builder-ui

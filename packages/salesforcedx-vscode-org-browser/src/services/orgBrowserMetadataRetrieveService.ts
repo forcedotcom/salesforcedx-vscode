@@ -42,7 +42,7 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
   if (openInEditor) {
     const fsService = yield* api.services.FsService;
     yield* Option.match(findFirstSuccessfulFile(result), {
-      onNone: () => Effect.succeed(undefined),
+      onNone: () => Effect.void,
       onSome: filePath =>
         fsService
           .showTextDocument(
