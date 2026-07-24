@@ -9,6 +9,7 @@ import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { not } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -32,7 +33,7 @@ class SuiteMembershipDeleteError extends Schema.TaggedError<SuiteMembershipDelet
 const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(function* () {
   const result = yield* discoverTests();
   return result.classes
-    .filter(cls => !isFlowTest(cls))
+    .filter(not(isFlowTest))
     .map(
       (cls): ApexTestQuickPickItem => ({
         label: cls.name,

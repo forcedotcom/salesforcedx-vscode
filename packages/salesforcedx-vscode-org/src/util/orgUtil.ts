@@ -11,7 +11,7 @@ import { ICONS } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isNotUndefined, isString } from 'effect/Predicate';
+import { isError, isNotUndefined, isString, not } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -98,7 +98,7 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
         : Effect.void
     ),
     // Filter out the expired orgs.
-    Stream.filter(o => !orgIsExpired(o)),
+    Stream.filter(not(orgIsExpired)),
     Stream.filter(orgExpiresSoon),
     // TODO: type guards or some Schema based check instead of !
     Stream.map(o => {
