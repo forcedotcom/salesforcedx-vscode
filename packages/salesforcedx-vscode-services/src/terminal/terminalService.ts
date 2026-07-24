@@ -60,7 +60,7 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       // annotate which env keys were set (keys only — never values, to avoid leaking secrets)
       if (mergedEnv) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
       if (process.env.ESBUILD_PLATFORM === 'web') {
-        return yield* Effect.fail(new TerminalServiceError({ message: 'Not available on web', command }));
+        return yield* new TerminalServiceError({ message: 'Not available on web', command });
       }
       const result = yield* Effect.tryPromise({
         // signal is the runtime AbortSignal; threading it into exec lets a fiber interrupt kill the child
