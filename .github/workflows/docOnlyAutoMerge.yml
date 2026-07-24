@@ -12,6 +12,17 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
     branches: [develop]
+    # Don't start a runner on code-only PRs. paths is OR ("any changed file
+    # matches"), so a docs+code PR still triggers — the file-set gate below is
+    # what rejects those. `**` matches `/`, so `docs/**.md` (not docs/**/*.md)
+    # is needed to catch docs/foo.md as well as docs/a/b.md.
+    paths:
+      - CONTEXT.md
+      - CONTEXT-MAP.md
+      - '**/CONTEXT.md'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
 
 # Same-repo branch (team members push to origin, not forks) → org secrets available.
 # NOT pull_request_target — avoids running untrusted head with secrets.
