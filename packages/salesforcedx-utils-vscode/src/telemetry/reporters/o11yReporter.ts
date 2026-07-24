@@ -6,10 +6,13 @@
  */
 
 import type { OrgIdentity, TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
+import type { Connection } from '@salesforce/core';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import { O11yService } from '@salesforce/o11y-reporter';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { Disposable, env, workspace } from 'vscode';
-import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
@@ -22,7 +25,16 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-const getConnection = async () => WorkspaceContextUtil.getInstance().getConnection();
+const getConnection = (): Promise<Connection> =>
+  Effect.runPromise(
+    getServicesApi.pipe(
+      Effect.flatMap(api =>
+        api.services.ConnectionService.getConnection().pipe(
+          Effect.provide(Layer.succeedContext(api.services.prebuiltServicesDependencies))
+        )
+      )
+    )
+  );
 
 export class O11yReporter
   extends Disposable
@@ -119,10 +131,10 @@ export class O11yReporter
     measurements?: { [key: string]: number }
   ): void {
     if (this.userOptIn && eventName) {
-      const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
-      const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
-      const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
-      const orgEdition = WorkspaceContextUtil.getInstance().orgEdition ?? '';
+      const orgId = this.orgIdentity?.orgId ?? '';
+      const orgShape = this.orgIdentity?.orgShape ?? '';
+      const devHubId = this.orgIdentity?.devHubId ?? '';
+      const orgEdition = this.orgIdentity?.orgEdition ?? '';
 
       // Add webUserId field to customDimensions
       let props = properties
@@ -161,10 +173,10 @@ export class O11yReporter
       error.message = exceptionMessage;
       error.stack = 'DEPRECATED';
 
-      const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
-      const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
-      const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
-      const orgEdition = WorkspaceContextUtil.getInstance().orgEdition ?? '';
+      const orgId = this.orgIdentity?.orgId ?? '';
+      const orgShape = this.orgIdentity?.orgShape ?? '';
+      const devHubId = this.orgIdentity?.devHubId ?? '';
+      const orgEdition = this.orgIdentity?.orgEdition ?? '';
 
       // Add webUserId field to customDimensions
       const baseProps = { orgId, orgShape, devHubId, ...(orgEdition ? { orgEdition } : {}) };
