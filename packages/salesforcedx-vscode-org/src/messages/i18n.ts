@@ -18,7 +18,7 @@ export const messages = {
   channel_name: 'Salesforce Org Management',
   default_org_expired:
     'Your default org has expired. Some of the command palette commands may no longer work. Switch your default org and try again.',
-  error_invalid_org_alias: 'Alias can only contain underscores, spaces and alphanumeric characters.',
+  error_invalid_org_alias: 'Alias can only contain underscores, hyphens, spaces and alphanumeric characters.',
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',

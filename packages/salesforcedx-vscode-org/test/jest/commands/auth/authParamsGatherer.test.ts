@@ -148,10 +148,11 @@ describe('AuthParamsGatherer', () => {
       expect(validateUrl?.('https://x.com; touch /tmp/pwned')).toBe(nls.localize('auth_invalid_url'));
       expect(validateUrl?.('https://my.salesforce.com')).toBeUndefined();
 
-      // second prompt = alias: rejects shell metachars, accepts alphanumeric and empty (use default)
+      // second prompt = alias: rejects shell metachars, accepts alphanumeric, hyphens, and empty (use default)
       const validateAlias = spy.mock.calls[1][0]?.validateInput?.bind(undefined);
       expect(validateAlias?.('bad;alias')).toBe(nls.localize('error_invalid_org_alias'));
       expect(validateAlias?.('GoodAlias')).toBeUndefined();
+      expect(validateAlias?.('my-scratch-org')).toBeUndefined();
       expect(validateAlias?.('')).toBeUndefined();
     });
   });

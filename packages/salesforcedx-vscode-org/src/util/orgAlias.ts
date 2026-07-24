@@ -11,6 +11,14 @@ import { nls } from '../messages';
 export const isAlphaNumSpaceString = (value: string | undefined): boolean =>
   value !== undefined && /^\w+( *\w*)*$/.test(value);
 
+/**
+ * Org alias validator: underscores, hyphens, spaces, and alphanumerics only. Hyphens are common in org
+ * aliases (issues/7794) and carry no shell-injection risk since the alias is always double-quoted before
+ * interpolation into the CLI command; all other metachars stay rejected.
+ */
+export const isValidOrgAlias = (value: string | undefined): boolean =>
+  value !== undefined && /^[\w-]+( *[\w-]*)*$/.test(value);
+
 /** showInputBox validateInput for an org alias: empty = use default. */
 export const validateAliasInput = (value: string): string | undefined =>
-  isAlphaNumSpaceString(value) || value === '' ? undefined : nls.localize('error_invalid_org_alias');
+  isValidOrgAlias(value) || value === '' ? undefined : nls.localize('error_invalid_org_alias');
