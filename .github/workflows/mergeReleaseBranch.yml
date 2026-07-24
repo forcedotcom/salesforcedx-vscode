@@ -77,20 +77,23 @@ jobs:
           git checkout develop
           git pull origin develop
 
-          # Merge with -X ours to keep develop's CHANGELOG (full history)
-          # Main has only the new release notes after rebase
-          if ! git merge main --no-edit -X ours; then
+          # Regular merge (no special strategy needed - CHANGELOGs are in different locations)
+          if ! git merge main --no-edit; then
             echo "::error::Merge conflict occurred. Aborting merge."
             git merge --abort
             exit 1
           fi
 
-          # Prepend release changelog to develop's full history
-          node scripts/prepend-release-changelog.js origin/release/v${{env.RELEASE_VERSION}}
+          # Prepend package CHANGELOG to root CHANGELOG (idempotent)
+          node scripts/prepend-release-changelog.js
 
-          # Commit the changelog update
-          git add packages/salesforcedx-vscode/CHANGELOG.md
-          git commit -m "chore: prepend v${{env.RELEASE_VERSION}} changelog to develop" \
-            -m "Co-Authored-By: GitHub Actions <noreply@github.com>"
+          # Commit the changelog update (only if the script made changes)
+          if ! git diff --quiet CHANGELOG.md; then
+            git add CHANGELOG.md
+            git commit -m "chore: prepend v${{env.RELEASE_VERSION}} to root changelog" \
+              -m "Co-Authored-By: GitHub Actions <noreply@github.com>"
+          else
+            echo "No changelog changes to commit (version already present)"
+          fi
 
           git push origin develop

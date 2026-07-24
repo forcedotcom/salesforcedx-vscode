@@ -1,108 +1,103 @@
 #!/usr/bin/env node
 
 /**
- * Prepends the release branch CHANGELOG to develop's CHANGELOG.
+ * Prepends the release CHANGELOG from packages/salesforcedx-vscode/ to root CHANGELOG.md.
  *
- * This script is run after merging a release branch to main, and before merging main back to develop.
- * It takes the new release notes from the release branch and prepends them to develop's full history.
+ * This script is run after merging a release branch to develop. It takes the new release notes
+ * from packages/salesforcedx-vscode/CHANGELOG.md and prepends them to the root CHANGELOG.md
+ * (full cumulative history). Idempotent: skips if the version is already present in root.
  *
  * Usage:
- *   node scripts/prepend-release-changelog.js <release-branch-name>
+ *   node scripts/prepend-release-changelog.js
  *
- * Example:
- *   node scripts/prepend-release-changelog.js release/v67.4.0
+ * The script reads the package CHANGELOG and prepends to root if the version isn't already there.
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const CHANGELOG_PATH = path.join(process.cwd(), 'packages', 'salesforcedx-vscode', 'CHANGELOG.md');
+const ROOT_CHANGELOG_PATH = path.join(process.cwd(), 'CHANGELOG.md');
+const PACKAGE_CHANGELOG_PATH = path.join(process.cwd(), 'packages', 'salesforcedx-vscode', 'CHANGELOG.md');
 
 /**
- * Get the release branch name from command line args
+ * Extract version from first line of changelog (e.g., "# 67.6.0 - July 22, 2026")
  */
-function getReleaseBranch() {
-  const releaseBranch = process.argv[2];
-  if (!releaseBranch) {
-    console.error('❌ Error: Release branch name required');
-    console.error('Usage: node scripts/prepend-release-changelog.js <release-branch>');
-    console.error('Example: node scripts/prepend-release-changelog.js release/v67.4.0');
-    process.exit(1);
-  }
-
-  // Validate branch name to prevent command injection
-  // Only allow alphanumeric, forward slash, hyphen, underscore, and dot
-  if (!/^[a-zA-Z0-9/_.-]+$/.test(releaseBranch)) {
-    console.error('❌ Error: Invalid branch name. Only alphanumeric characters, /, -, _, and . are allowed.');
-    console.error(`Received: ${releaseBranch}`);
-    process.exit(1);
-  }
-
-  return releaseBranch;
+function extractVersion(changelogText) {
+  const firstLine = changelogText.split('\n')[0];
+  const match = firstLine.match(/^#\s+(\d+\.\d+\.\d+)/);
+  return match ? match[1] : null;
 }
 
 /**
- * Fetch the changelog from the release branch
+ * Read the package CHANGELOG (current release notes only)
  */
-function fetchReleaseChangelog(releaseBranch) {
-  console.log(`📥 Fetching CHANGELOG from ${releaseBranch}...`);
+function readPackageChangelog() {
+  console.log(`📥 Reading package CHANGELOG from ${PACKAGE_CHANGELOG_PATH}...`);
 
   try {
-    const releaseChangelog = execSync(`git show ${releaseBranch}:packages/salesforcedx-vscode/CHANGELOG.md`, {
-      encoding: 'utf8',
-      maxBuffer: 10 * 1024 * 1024
-    });
-
-    if (!releaseChangelog || !releaseChangelog.trim()) {
-      console.error(`❌ Error: No CHANGELOG found in ${releaseBranch}`);
+    if (!fs.existsSync(PACKAGE_CHANGELOG_PATH)) {
+      console.error(`❌ Error: Package CHANGELOG not found at ${PACKAGE_CHANGELOG_PATH}`);
       process.exit(1);
     }
 
-    console.log(`✅ Fetched ${releaseChangelog.split('\n').length} lines from release branch`);
-    return releaseChangelog;
+    const packageChangelog = fs.readFileSync(PACKAGE_CHANGELOG_PATH, 'utf8');
+
+    if (!packageChangelog || !packageChangelog.trim()) {
+      console.error(`❌ Error: Package CHANGELOG is empty`);
+      process.exit(1);
+    }
+
+    const version = extractVersion(packageChangelog);
+    if (!version) {
+      console.error(`❌ Error: Could not extract version from package CHANGELOG`);
+      console.error(`   First line: ${packageChangelog.split('\n')[0]}`);
+      process.exit(1);
+    }
+
+    console.log(`✅ Read package CHANGELOG (version ${version}, ${packageChangelog.split('\n').length} lines)`);
+    return { content: packageChangelog, version };
   } catch (error) {
-    console.error(`❌ Error fetching changelog from ${releaseBranch}:`, error.message);
+    console.error(`❌ Error reading package CHANGELOG:`, error.message);
     process.exit(1);
   }
 }
 
 /**
- * Prepend release changelog to develop's changelog
+ * Prepend package changelog to root changelog (idempotent)
  */
-function prependChangelog(releaseChangelog) {
-  console.log('📝 Prepending release notes to develop CHANGELOG...');
+function prependToRootChangelog(packageChangelog, version) {
+  console.log(`📝 Prepending v${version} to root CHANGELOG...`);
 
-  // Check if we're on develop
-  const currentBranch = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
-  if (currentBranch !== 'develop') {
-    console.error(`❌ Error: Must be on develop branch (currently on ${currentBranch})`);
-    process.exit(1);
-  }
-
-  // Read existing changelog from develop
-  let developChangelog;
+  // Read existing root changelog
+  let rootChangelog;
   try {
-    if (!fs.existsSync(CHANGELOG_PATH)) {
-      console.error(`❌ Error: CHANGELOG not found at ${CHANGELOG_PATH}`);
-      process.exit(1);
+    if (!fs.existsSync(ROOT_CHANGELOG_PATH)) {
+      console.log('⚠️  Root CHANGELOG does not exist, creating new one');
+      rootChangelog = '';
+    } else {
+      rootChangelog = fs.readFileSync(ROOT_CHANGELOG_PATH, 'utf8');
     }
-
-    developChangelog = fs.readFileSync(CHANGELOG_PATH, 'utf8');
   } catch (error) {
-    console.error(`❌ Error reading CHANGELOG from ${CHANGELOG_PATH}:`, error.message);
-    console.error('   This could be a permissions issue or I/O error.');
+    console.error(`❌ Error reading root CHANGELOG from ${ROOT_CHANGELOG_PATH}:`, error.message);
     process.exit(1);
   }
 
-  // Prepend release notes to develop changelog
-  const combinedChangelog = releaseChangelog.trim() + '\n\n' + developChangelog;
+  // Check if this version is already in the root changelog (idempotent)
+  const versionHeader = `# ${version}`;
+  if (rootChangelog.includes(versionHeader)) {
+    console.log(`✅ Version ${version} already exists in root CHANGELOG (skipping, idempotent)`);
+    return false;
+  }
+
+  // Prepend package changelog to root
+  const combinedChangelog = packageChangelog.trim() + '\n\n' + rootChangelog;
 
   // Write back to file
   try {
-    fs.writeFileSync(CHANGELOG_PATH, combinedChangelog, 'utf8');
+    fs.writeFileSync(ROOT_CHANGELOG_PATH, combinedChangelog, 'utf8');
   } catch (error) {
-    console.error(`❌ Error writing CHANGELOG to ${CHANGELOG_PATH}:`, error.message);
+    console.error(`❌ Error writing root CHANGELOG to ${ROOT_CHANGELOG_PATH}:`, error.message);
     if (error.code === 'ENOSPC') {
       console.error('   Disk is full. Free up space and try again.');
     } else if (error.code === 'EACCES') {
@@ -110,27 +105,30 @@ function prependChangelog(releaseChangelog) {
     } else {
       console.error('   This could be a disk space, permissions, or I/O error.');
     }
-    console.error('   The merge was completed but the changelog was not updated.');
-    console.error('   Manual intervention required to prepend the changelog.');
     process.exit(1);
   }
 
-  console.log('✅ Successfully prepended release notes to develop CHANGELOG');
+  console.log('✅ Successfully prepended release notes to root CHANGELOG');
   console.log(`   Total lines: ${combinedChangelog.split('\n').length}`);
+  return true;
 }
 
 /**
  * Main execution
  */
 function main() {
-  console.log('🔧 Prepending release CHANGELOG to develop...\n');
+  console.log('🔧 Prepending package CHANGELOG to root CHANGELOG...\n');
 
-  const releaseBranch = getReleaseBranch();
-  const releaseChangelog = fetchReleaseChangelog(releaseBranch);
-  prependChangelog(releaseChangelog);
+  const { content, version } = readPackageChangelog();
+  const updated = prependToRootChangelog(content, version);
 
-  console.log('\n✅ Done! CHANGELOG.md updated on develop branch.');
-  console.log('   Next: Review the changes and commit if satisfied.');
+  if (updated) {
+    console.log('\n✅ Done! Root CHANGELOG.md updated with v' + version);
+    console.log('   Package CHANGELOG: ' + PACKAGE_CHANGELOG_PATH);
+    console.log('   Root CHANGELOG: ' + ROOT_CHANGELOG_PATH);
+  } else {
+    console.log('\n✅ Done! No changes needed (version already present).');
+  }
 }
 
 if (require.main === module) {
