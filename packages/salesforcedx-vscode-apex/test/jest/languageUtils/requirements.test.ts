@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService, ServicesExtensionNotFoundError } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
 import * as path from 'node:path';
@@ -14,36 +15,13 @@ import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../../src/requirements';
 
-// Mock VS Code file utilities
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  fileOrFolderExists: jest.fn(),
-  LocalizationService: {
-    getInstance: jest.fn().mockReturnValue({
-      messageBundleManager: {
-        registerMessageBundle: jest.fn()
-      },
-      localize: jest.fn((key: string, ...args: any[]) => {
-        // Return specific error messages for the tests
-        switch (key) {
-          case 'java_runtime_local_text':
-            return `Local Java runtime (${args[0]}) is unsupported. Set the salesforcedx-vscode-apex.java.home VS Code setting to a runtime outside of the current project. For more information, go to [Set Your Java Version](${args[1]}).`;
-          case 'java_version_check_command_failed':
-            return `Running java command ${args[0]} failed with error: ${args[1]}`;
-          case 'wrong_java_version_text':
-            return `We detected an unsupported Java version. Java versions 11 or higher are supported. We recommend [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) to run the extensions. For more information, see [Set Your Java Version](${args[0]}).`;
-          default:
-            return key; // fallback to returning the key
-        }
-      })
-    })
-  },
-  LOCALE_JA: 'ja'
-}));
-
 // Mock vscode workspace
 jest.mock('vscode', () => ({
   workspace: {
     getConfiguration: jest.fn()
+  },
+  env: {
+    language: 'en'
   },
   Position: class MockPosition {
     constructor(
@@ -57,6 +35,31 @@ jest.mock('vscode', () => ({
       public end: any
     ) {}
   }
+}));
+
+// jest.fns so individual tests can reconfigure the false / error branches via mockReturnValue.
+const mockFileOrFolderExists = jest.fn((_p: string) => Effect.succeed(true));
+const succeedApi = (): ExtensionProviderService['getServicesApi'] =>
+  Effect.succeed({
+    services: { FsService: { fileOrFolderExists: mockFileOrFolderExists } }
+  }) as unknown as ExtensionProviderService['getServicesApi'];
+const mockGetServicesApi = jest.fn(succeedApi);
+
+// Mock the services runtime: real getRuntime builds AllServicesLayer (unset in unit tests), so run
+// effects against a stub ExtensionProviderService whose getServicesApi / FsService are jest.fns.
+jest.mock('../../../src/services/runtime', () => ({
+  getRuntime: () => ({
+    runPromise: (eff: Effect.Effect<boolean, never, ExtensionProviderService>): Promise<boolean> =>
+      Effect.runPromise(
+        eff.pipe(
+          Effect.provideService(ExtensionProviderService, {
+            get getServicesApi() {
+              return mockGetServicesApi();
+            }
+          } as unknown as ExtensionProviderService)
+        )
+      )
+  })
 }));
 
 // Mock find-java-home module
@@ -82,6 +85,8 @@ describe('Java Requirements Test', () => {
   let execFileSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    mockFileOrFolderExists.mockReturnValue(Effect.succeed(true));
+    mockGetServicesApi.mockImplementation(succeedApi);
     getConfigMock = jest.fn();
     jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
       get: getConfigMock,
@@ -103,13 +108,40 @@ describe('Java Requirements Test', () => {
   describe('Cross-platform tests', () => {
     it('Should allow valid java runtime path outside the project', async () => {
       getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
-      (fileOrFolderExists as jest.Mock).mockResolvedValue(true);
       execFileSpy.mockImplementation((...args) => {
         const cb = args.at(-1);
         cb('', '', 'java.version = 11.0.0');
       });
       const requirements = await resolveRequirements();
       expect(requirements.java_home).toContain(jdk);
+    });
+
+    it('Should reject when the configured java home path does not exist', async () => {
+      getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
+      mockFileOrFolderExists.mockReturnValue(Effect.succeed(false));
+      try {
+        await resolveRequirements();
+        fail('Should have thrown when the java home path does not exist');
+      } catch (err) {
+        expect(err).toEqual(
+          nls.localize('source_missing_text', nls.localize('source_java_home_setting_text'), SET_JAVA_DOC_LINK)
+        );
+      }
+    });
+
+    it('Should treat a services-extension failure as a missing path (catchTags → false)', async () => {
+      getConfigMock.mockImplementation((key: string) => (key === JAVA_HOME_KEY ? runtimePath : undefined));
+      mockGetServicesApi.mockReturnValue(
+        Effect.fail(new ServicesExtensionNotFoundError()) as unknown as ExtensionProviderService['getServicesApi']
+      );
+      try {
+        await resolveRequirements();
+        fail('Should have rejected when the services extension is unavailable');
+      } catch (err) {
+        expect(err).toEqual(
+          nls.localize('source_missing_text', nls.localize('source_java_home_setting_text'), SET_JAVA_DOC_LINK)
+        );
+      }
     });
 
     it('Should not support Java 8', async () => {

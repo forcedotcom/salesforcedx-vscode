@@ -16,7 +16,7 @@ import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
-import { TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
+import { DebugDispatchError, TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
@@ -132,22 +132,18 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false),
         settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)
       ]);
-      yield* Effect.sync(() => {
-        const run = ctx.controller.createTestRun(new vscode.TestRunRequest());
-        try {
-          updateTestRunResults({
-            result: resultContent,
-            run,
-            testsToRun: [],
-            methodItems,
-            classItems,
-            codeCoverage: codeCoverage ?? false,
-            concise: concise ?? false
-          });
-        } finally {
-          run.end();
-        }
-      });
+      const run = yield* Effect.sync(() => ctx.controller.createTestRun(new vscode.TestRunRequest()));
+      yield* Effect.sync(() =>
+        updateTestRunResults({
+          result: resultContent,
+          run,
+          testsToRun: [],
+          methodItems,
+          classItems,
+          codeCoverage: codeCoverage ?? false,
+          concise: concise ?? false
+        })
+      ).pipe(Effect.ensuring(Effect.sync(() => run.end())));
     });
 
     /**
@@ -310,9 +306,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       if (orgOnlyTests.length > 0) {
         const errorMessage = nls.localize('apex_test_debug_org_only_warning_message');
         yield* Effect.sync(() => {
-          for (const test of orgOnlyTests) {
-            run.errored(test, new vscode.TestMessage(errorMessage));
-          }
+          orgOnlyTests.forEach(test => run.errored(test, new vscode.TestMessage(errorMessage)));
           void vscode.window.showErrorMessage(errorMessage);
         });
       }
@@ -321,74 +315,96 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         return;
       }
 
-      yield* Effect.promise(async () => {
-        const classIdsToDebug = new Set<string>();
-        const methodsToDebug = new Map<string, Set<string>>();
+      // Accumulators built by Loop A and consumed by Loops B/C. concurrency:1 on every Effect.forEach keeps
+      // the replay debugger serviced one session at a time and makes the mutable-collection writes safe.
+      const classIdsToDebug = new Set<string>();
+      const methodsToDebug = new Map<string, Set<string>>();
 
-        for (const test of testsToDebug) {
-          try {
-            if (isMethod(test.id)) {
-              const testName = getTestName(test);
-              const className = extractClassName(test.id);
-              if (className) {
-                const existingMethods = methodsToDebug.get(className) ?? new Set<string>();
-                existingMethods.add(testName);
-                methodsToDebug.set(className, existingMethods);
-              } else {
-                await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: testName });
-              }
-            } else if (isClass(test.id)) {
-              classIdsToDebug.add(getTestName(test));
-            } else if (isSuite(test.id)) {
-              run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')));
-            }
-          } catch (error) {
-            const friendlyMessage = toUserFriendlyApexTestError(error);
-            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage)));
-          }
-        }
+      // Dispatch one replay-debugger command; map rejection to the E channel (never the raw value) then
+      // recover in place so the failure never escapes the debug path.
+      const dispatchDebug = (command: string, name: string, recover: (err: DebugDispatchError) => void) =>
+        Effect.tryPromise({
+          try: () => vscode.commands.executeCommand(command, { name }),
+          catch: error => new DebugDispatchError({ message: toUserFriendlyApexTestError(error) })
+        }).pipe(Effect.catchTag('DebugDispatchError', err => Effect.sync(() => recover(err))));
 
-        for (const className of classIdsToDebug) {
-          try {
-            await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
-          } catch (error) {
-            const friendlyMessage = toUserFriendlyApexTestError(error);
-            for (const test of testsToDebug) {
-              if (
-                (isClass(test.id) && getTestName(test) === className) ||
-                (isMethod(test.id) && extractClassName(test.id) === className)
-              ) {
-                run.errored(
-                  test,
-                  new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage))
+      // Loop A: partition selections into class-level and method-level debug; className-less methods and
+      // suites are handled inline (dispatch / not-supported error).
+      yield* Effect.forEach(
+        testsToDebug,
+        test => {
+          if (isMethod(test.id)) {
+            const testName = getTestName(test);
+            const className = extractClassName(test.id);
+            return className
+              ? Effect.sync(() => {
+                  const existingMethods = methodsToDebug.get(className) ?? new Set<string>();
+                  existingMethods.add(testName);
+                  methodsToDebug.set(className, existingMethods);
+                })
+              : dispatchDebug('sf.test.view.debugSingleTest', testName, err =>
+                  run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', err.message)))
                 );
-              }
-            }
           }
-        }
+          if (isClass(test.id)) {
+            return Effect.sync(() => void classIdsToDebug.add(getTestName(test)));
+          }
+          if (isSuite(test.id)) {
+            return Effect.sync(() =>
+              run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')))
+            );
+          }
+          return Effect.void;
+        },
+        { concurrency: 1, discard: true }
+      );
 
-        for (const [className, methods] of methodsToDebug) {
-          // If class-level debug is explicitly selected, skip method-level debug for the same class.
-          if (classIdsToDebug.has(className)) {
-            continue;
-          }
-          for (const methodName of methods) {
-            try {
-              await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: methodName });
-            } catch (error) {
-              const friendlyMessage = toUserFriendlyApexTestError(error);
-              for (const test of testsToDebug) {
-                if (isMethod(test.id) && extractClassName(test.id) === className && getTestName(test) === methodName) {
-                  run.errored(
-                    test,
-                    new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', friendlyMessage))
-                  );
-                }
-              }
-            }
-          }
-        }
-      });
+      // Loop B: class-level debug dispatch; on failure mark every selected test covered by the class errored.
+      yield* Effect.forEach(
+        [...classIdsToDebug],
+        className =>
+          dispatchDebug('sf.test.view.debugTests', className, err =>
+            testsToDebug
+              .filter(
+                test =>
+                  (isClass(test.id) && getTestName(test) === className) ||
+                  (isMethod(test.id) && extractClassName(test.id) === className)
+              )
+              .forEach(test =>
+                run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', err.message)))
+              )
+          ),
+        { concurrency: 1, discard: true }
+      );
+
+      // Loop C: method-level debug dispatch, skipping classes already debugged at class level (Loop B).
+      yield* Effect.forEach(
+        [...methodsToDebug],
+        ([className, methods]) =>
+          classIdsToDebug.has(className)
+            ? Effect.void
+            : Effect.forEach(
+                [...methods],
+                methodName =>
+                  dispatchDebug('sf.test.view.debugSingleTest', methodName, err =>
+                    testsToDebug
+                      .filter(
+                        test =>
+                          isMethod(test.id) &&
+                          extractClassName(test.id) === className &&
+                          getTestName(test) === methodName
+                      )
+                      .forEach(test =>
+                        run.errored(
+                          test,
+                          new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', err.message))
+                        )
+                      )
+                  ),
+                { concurrency: 1, discard: true }
+              ),
+        { concurrency: 1, discard: true }
+      );
     });
 
     /**
@@ -521,9 +537,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       if (emptySuiteItems.length > 0) {
         const emptySuiteNames = emptySuiteItems.map(test => extractSuiteName(test.id)).filter((n): n is string => !!n);
         yield* Effect.sync(() => {
-          for (const suiteItem of emptySuiteItems) {
-            run.errored(suiteItem, new vscode.TestMessage(nls.localize('apex_test_suite_empty_message')));
-          }
+          emptySuiteItems.forEach(suiteItem =>
+            run.errored(suiteItem, new vscode.TestMessage(nls.localize('apex_test_suite_empty_message')))
+          );
           void vscode.window.showErrorMessage(
             nls.localize('apex_test_suite_empty_message_notification', emptySuiteNames.join(', '))
           );
@@ -539,9 +555,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       }
 
       yield* Effect.sync(() => {
-        for (const test of finalTests) {
-          run.started(test);
-        }
+        finalTests.forEach(test => run.started(test));
       });
 
       yield* runTestPipeline({ ctx, request, token, isDebug, runScope, isImplicitFullRun, finalTests, run }).pipe(
@@ -576,9 +590,7 @@ const toTempFolderError = () => new TestTempFolderError({ message: nls.localize(
 
 const erroredAll = (run: vscode.TestRun, tests: vscode.TestItem[], message: string) =>
   Effect.sync(() => {
-    for (const test of tests) {
-      run.errored(test, new vscode.TestMessage(message));
-    }
+    tests.forEach(test => run.errored(test, new vscode.TestMessage(message)));
   });
 
 /** Class names a selected item covers: itself for a class, its member classes for a suite, none for a method. */
@@ -607,24 +619,19 @@ const narrowToStaleMethods = (
 ): vscode.TestItem[] => {
   const isStaleAndMatchesLocation = (item: vscode.TestItem): boolean =>
     !!(item.tags?.some(t => t.id === 'stale') && item.tags?.some(t => t.id === requiredLocationTag));
-  const staleMethods: vscode.TestItem[] = [];
-  for (const test of testsToRun) {
-    if (isMethod(test.id)) {
-      if (isStaleAndMatchesLocation(test)) {
-        staleMethods.push(test);
-      }
-    } else {
-      for (const className of coveredClassNames(test, suiteToClasses)) {
-        const classPrefix = `${className}.`;
-        for (const [methodId, methodItem] of methodItems) {
-          if (methodId.startsWith(classPrefix) && isStaleAndMatchesLocation(methodItem)) {
-            staleMethods.push(methodItem);
-          }
-        }
-      }
-    }
-  }
-  return staleMethods;
+  const methodEntries = [...methodItems];
+  return testsToRun.flatMap(test =>
+    isMethod(test.id)
+      ? isStaleAndMatchesLocation(test)
+        ? [test]
+        : []
+      : coveredClassNames(test, suiteToClasses).flatMap(className => {
+          const classPrefix = `${className}.`;
+          return methodEntries.flatMap(([methodId, methodItem]) =>
+            methodId.startsWith(classPrefix) && isStaleAndMatchesLocation(methodItem) ? [methodItem] : []
+          );
+        })
+  );
 };
 
 /** TreeMutationContext for suite resolution (controller + tags; no staleTag needed). */
@@ -653,11 +660,14 @@ const resolveUnloadedSuites = Effect.fn('ApexTestExecutionService.resolveUnloade
   testsToRun: vscode.TestItem[],
   ctx: ExecutionContext
 ) {
-  for (const test of testsToRun) {
-    if (isSuite(test.id) && extractSuiteName(test.id) && test.children.size === 0) {
-      yield* resolveSuiteChildrenBestEffort(ctx, test);
-    }
-  }
+  yield* Effect.forEach(
+    testsToRun,
+    test =>
+      isSuite(test.id) && extractSuiteName(test.id) && test.children.size === 0
+        ? resolveSuiteChildrenBestEffort(ctx, test)
+        : Effect.void,
+    { concurrency: 1, discard: true }
+  );
 });
 
 /**
@@ -670,27 +680,26 @@ const expandSuitesToMethods = Effect.fn('ApexTestExecutionService.expandSuitesTo
   suiteToClasses: Map<string, Set<string>>,
   classItems: Map<string, vscode.TestItem>
 ) {
-  const expanded: vscode.TestItem[] = [];
-  for (const test of testsToRun) {
-    const suiteName = isSuite(test.id) ? extractSuiteName(test.id) : undefined;
-    if (!suiteName) {
-      expanded.push(test);
-      continue;
-    }
-    if (test.children.size === 0) {
-      yield* resolveSuiteChildrenBestEffort(ctx, test);
-    }
-    const classNames = suiteToClasses.get(suiteName);
-    if (classNames && classNames.size > 0) {
-      for (const className of classNames) {
-        const classItem = classItems.get(className);
-        if (classItem) {
-          expanded.push(...Array.from(classItem.children, ([, item]) => item));
+  const expandedNested = yield* Effect.forEach(
+    testsToRun,
+    test =>
+      Effect.gen(function* () {
+        const suiteName = isSuite(test.id) ? extractSuiteName(test.id) : undefined;
+        if (!suiteName) {
+          return [test];
         }
-      }
-    } else {
-      expanded.push(test);
-    }
-  }
-  return expanded;
+        if (test.children.size === 0) {
+          yield* resolveSuiteChildrenBestEffort(ctx, test);
+        }
+        const classNames = suiteToClasses.get(suiteName);
+        return classNames && classNames.size > 0
+          ? [...classNames].flatMap(className => {
+              const classItem = classItems.get(className);
+              return classItem ? Array.from(classItem.children, ([, item]) => item) : [];
+            })
+          : [test];
+      }),
+    { concurrency: 1 }
+  );
+  return expandedNested.flat();
 });

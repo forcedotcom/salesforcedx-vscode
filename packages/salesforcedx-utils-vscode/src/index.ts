@@ -24,4 +24,3 @@ export { hasRootWorkspace, workspaceUtils } from './workspaces/workspaceUtils';
 
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
-export { code2ProtocolConverter } from './languageClients/conversion';

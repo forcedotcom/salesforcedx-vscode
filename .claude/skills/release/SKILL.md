@@ -152,17 +152,17 @@ User should reload VS Code and run a few commands to validate.
 
 ## Step 9 — Confirm manual testing is complete
 
-### 9a — Create the Quip testing document
+### 9a — Create the Slack testing doc
 
-Quip cannot be accessed programmatically from this skill, so the user must create the document. Tell the user:
+The user creates the testing doc from the team's Slack template: https://salesforce.enterprise.slack.com/docs/T092Z56AE/F0B7RLRUSRG
 
-> Create a new Quip testing document from the team's release-testing template and name it **Release Testing v\<version\>** (e.g. `Release Testing v66.13.0`), where `<version>` matches the GH release tag.
+> Create a new doc from the Slack template and name it **Release Testing v\<version\>** (e.g. `Release Testing v66.13.0`), where `<version>` matches the GH release tag.
 
 Use the version captured from `gh release view v<version>` in Step 7 (or `detect-state.ts` `version` field) so the title matches the published tag exactly. Wait for the user to confirm the doc is created and shared with the team before continuing.
 
 ### 9b — Run smoke checks
 
-Tell the user: "Let me know when you've finished manually testing the installed vsixes (logged in the Quip doc) and you're ready to publish to the Microsoft Marketplace and Open VSX."
+Tell the user: "Let me know when you've finished manually testing the installed vsixes (logged in the Slack doc) and you're ready to publish to the Microsoft Marketplace and Open VSX."
 
 Suggested smoke checks the user may run before confirming:
 

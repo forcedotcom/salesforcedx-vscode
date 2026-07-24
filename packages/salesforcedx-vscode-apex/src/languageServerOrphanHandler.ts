@@ -16,7 +16,6 @@ import { isError } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { channelService } from './channels';
 import { UBER_JAR_NAME } from './constants';
 import { nls } from './messages';
 
@@ -68,6 +67,11 @@ const parseProcessList = (stdout: string): ProcessDetail[] =>
       .filter(processInfo => processInfo.command.includes(UBER_JAR_NAME))
   );
 
+const getChannel = Effect.fn('apex.orphan.getChannel')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ChannelService;
+});
+
 /** Find Apex Language Server processes whose parent no longer exists. */
 const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -118,14 +122,12 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
   }).pipe(
     Effect.retry(Schedule.exponential('2 seconds').pipe(Schedule.intersect(Schedule.recurs(2)))),
     Effect.withSpan('apex.orphan.killOne.succeeded', { attributes: { pid: processInfo.pid } }),
-    Effect.tap(() => {
-      showProcessTerminated(processInfo);
-      return Effect.void;
-    }),
-    Effect.catchTag('ProcessTerminationError', error => {
-      showTerminationFailed(processInfo, error.message);
-      return annotateRootSpan('orphanKillError', error.message);
-    })
+    Effect.tap(() => showProcessTerminated(processInfo)),
+    Effect.catchTag('ProcessTerminationError', error =>
+      showTerminationFailed(processInfo, error.message).pipe(
+        Effect.andThen(annotateRootSpan('orphanKillError', error.message))
+      )
+    )
   );
 });
 
@@ -178,7 +180,7 @@ const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProces
     return yield* terminationConfirmation(orphanedCount);
   }
   if (showProcesses(choice)) {
-    showOrphansInChannel(orphanedProcesses);
+    yield* showOrphansInChannel(orphanedProcesses);
     return 'continue';
   }
   return false;
@@ -200,7 +202,9 @@ const getResolutionForOrphanProcesses = Effect.fn('apex.orphan.getResolution')(f
   );
 });
 
-const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {
+const showOrphansInChannel = Effect.fn('apex.orphan.showOrphansInChannel')(function* (
+  orphanedProcesses: ProcessDetail[]
+) {
   const columns: Column[] = [
     { key: 'pid', label: nls.localize('process_id') },
     { key: 'ppid', label: nls.localize('parent_process_id') },
@@ -217,11 +221,12 @@ const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {
 
   const tableString = createTable(rows, columns);
 
-  channelService.showChannelOutput();
-  channelService.appendLine(nls.localize('orphan_process_advice'));
-  channelService.appendLine('');
-  channelService.appendLine(tableString);
-};
+  const channel = yield* getChannel();
+  yield* channel.showChannel;
+  yield* channel.appendToChannel(nls.localize('orphan_process_advice'));
+  yield* channel.appendToChannel('');
+  yield* channel.appendToChannel(tableString);
+});
 
 const terminationConfirmation = Effect.fn('apex.orphan.terminationConfirmation')(function* (orphanedCount: number) {
   const choice = yield* Effect.promise(() =>
@@ -239,10 +244,15 @@ const requestsTermination = (choice: string): boolean => choice === nls.localize
 
 const showProcesses = (choice: string): boolean => choice === nls.localize('terminate_show_processes');
 
-const showProcessTerminated = (processDetail: ProcessDetail): void => {
-  channelService.appendLine(nls.localize('terminated_orphaned_process', processDetail.pid));
-};
+const showProcessTerminated = Effect.fn('apex.orphan.showProcessTerminated')(function* (processDetail: ProcessDetail) {
+  const channel = yield* getChannel();
+  yield* channel.appendToChannel(nls.localize('terminated_orphaned_process', processDetail.pid));
+});
 
-const showTerminationFailed = (processInfo: ProcessDetail, message: string): void => {
-  channelService.appendLine(nls.localize('terminate_failed', processInfo.pid, message));
-};
+const showTerminationFailed = Effect.fn('apex.orphan.showTerminationFailed')(function* (
+  processInfo: ProcessDetail,
+  message: string
+) {
+  const channel = yield* getChannel();
+  yield* channel.appendToChannel(nls.localize('terminate_failed', processInfo.pid, message));
+});

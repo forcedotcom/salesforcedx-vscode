@@ -125,7 +125,7 @@ jest.mock('../../../src/utils/testUtils', () => {
   return {
     ...actual,
     buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
-    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(undefined),
+    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(new Map()),
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
 });
@@ -288,7 +288,7 @@ describe('ApexTestController', () => {
     (extensionProvider as any).__setMockConnection?.(mockConnection);
 
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
-    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     const Effect = jest.requireActual('effect/Effect');
     discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
 
@@ -625,17 +625,12 @@ describe('ApexTestController', () => {
           createdItemsMap.set(id, item);
           // Return a proxy that allows setting tags and preserves uri
           return new Proxy(item, {
-            set(target, prop, value) {
+            set: (target, prop, value) => {
               target[prop] = value;
               return true;
             },
-            get(target, prop) {
-              // Ensure uri is always returned correctly
-              if (prop === 'uri') {
-                return target.uri;
-              }
-              return target[prop];
-            }
+            // Ensure uri is always returned correctly
+            get: (target, prop) => (prop === 'uri' ? target.uri : target[prop])
           }) as unknown as vscode.TestItem;
         }
       );
@@ -810,6 +805,79 @@ describe('ApexTestController', () => {
       expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
     });
 
+    it('keeps a refresh failure non-fatal: still shows success, never failed', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showSuccessfulExecution = jest.fn();
+      notificationService.showFailedExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').succeed({
+          getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
+        })
+      );
+      // refresh rejects — must be swallowed (logWarning), not flipped to failed-execution.
+      jest.spyOn(controller, 'refresh').mockRejectedValue(new Error('refresh boom'));
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
+      expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
+    });
+
+    it('shows the canceled notification when retrieve is cancelled (UserCancellationError)', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showInformationMessage = jest.fn();
+      notificationService.showFailedExecution = jest.fn();
+      notificationService.showSuccessfulExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').fail({ _tag: 'UserCancellationError' })
+      );
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showInformationMessage).toHaveBeenCalled();
+      expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
+      expect(notificationService.showSuccessfulExecution).not.toHaveBeenCalled();
+    });
+
+    it('shows failed-execution when retrieve fails (MetadataRetrieveError)', async () => {
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+      } as unknown as vscode.TestItem;
+
+      notificationService.showFailedExecution = jest.fn();
+      notificationService.showSuccessfulExecution = jest.fn();
+      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
+      (
+        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
+      ).__mockMetadataRetrieve.mockReturnValueOnce(
+        jest.requireActual('effect/Effect').fail({ _tag: 'MetadataRetrieveError', message: 'boom' })
+      );
+
+      await controller.retrieveOrgOnlyClass(classTestItem);
+
+      expect(notificationService.showFailedExecution).toHaveBeenCalled();
+      expect(notificationService.showSuccessfulExecution).not.toHaveBeenCalled();
+    });
+
     it('does not retrieve for local class items', async () => {
       const classTestItem = {
         id: 'class:LocalClass',
@@ -841,7 +909,9 @@ describe('ApexTestController', () => {
         label: 'OrgOnlyClass',
         uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
         children: {
-          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem)
+          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem),
+          // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts)
+          [Symbol.iterator]: () => [[methodItem.id, methodItem] as const][Symbol.iterator]()
         }
       } as unknown as vscode.TestItem;
 

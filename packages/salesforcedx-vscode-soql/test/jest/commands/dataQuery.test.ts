@@ -24,8 +24,12 @@ jest.mock('@salesforce/effect-ext-utils', () => jest.requireActual('@salesforce/
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
 import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
+import { FsService } from 'salesforcedx-vscode-services/out/src/vscode/fsService';
 import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
+import { WorkspaceService } from 'salesforcedx-vscode-services/out/src/vscode/workspaceService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import {
   convertToCSV,
   escapeCSVField,
@@ -34,6 +38,7 @@ import {
   generateTableOutput,
   displayTableResults,
   convertQueryResultToCSV,
+  executeDataQuery,
   runSoqlQuery
 } from '../../../src/commands/dataQuery';
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
@@ -966,6 +971,75 @@ describe('DataQuery Pure Functions', () => {
 
       const result = formatFieldValueForDisplay(obj);
       expect(result).toBe('Test, computed value');
+    });
+  });
+
+  describe('executeDataQuery', () => {
+    beforeEach(() => {
+      (vscode.window.showInformationMessage as jest.Mock).mockResolvedValue(undefined);
+    });
+
+    const makeProvider = (query: jest.Mock) => {
+      const show = jest.fn();
+      const appendToChannel = jest.fn((_msg: string) => Effect.void);
+      const channel = {
+        appendToChannel,
+        clearChannel: Effect.void,
+        getChannel: Effect.succeed({ show }),
+        showChannel: Effect.sync(() => show())
+      };
+      const provider = {
+        getServicesApi: Effect.succeed({
+          services: {
+            ConnectionService: { getConnection: () => Effect.succeed({ query, tooling: { query } }) },
+            ChannelService: Effect.succeed(channel),
+            WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/ws') }) },
+            FsService: { writeFile: () => Effect.void, showTextDocument: () => Effect.void },
+            PromptService: Effect.succeed({
+              withProgress:
+                () =>
+                <A, E, R>(self: Effect.Effect<A, E, R>) =>
+                  self
+            } as unknown as PromptService)
+          }
+        } as unknown as SalesforceVSCodeServicesApi)
+      };
+      return { provider, show, appendToChannel };
+    };
+
+    const noopPromptService = {
+      withProgress:
+        () =>
+        <A, E, R>(self: Effect.Effect<A, E, R>) =>
+          self
+    } as unknown as PromptService;
+
+    const run = (query: jest.Mock) => {
+      const { provider, show, appendToChannel } = makeProvider(query);
+      return Effect.runPromise(
+        executeDataQuery('SELECT Id FROM Account', 'REST').pipe(
+          Effect.provideService(ExtensionProviderService, provider),
+          Effect.provideService(ChannelService, {} as unknown as ChannelService),
+          Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+          Effect.provideService(FsService, {} as unknown as FsService),
+          Effect.provideService(WorkspaceService, {} as unknown as WorkspaceService),
+          Effect.provideService(PromptService, noopPromptService)
+        )
+      ).then(() => ({ show, appendToChannel }));
+    };
+
+    it('routes a query rejection through catchAllCause: appends formatted error and shows channel once', async () => {
+      const query = jest.fn().mockRejectedValue(new Error('boom'));
+      const { show, appendToChannel } = await run(query);
+      expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_error_message', 'boom'));
+      expect(show).toHaveBeenCalledTimes(1);
+    });
+
+    it('appends completion message and shows channel once on success', async () => {
+      const query = jest.fn().mockResolvedValue({ records: [{ Id: '001' }], totalSize: 1, done: true });
+      const { show, appendToChannel } = await run(query);
+      expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_complete', 1));
+      expect(show).toHaveBeenCalledTimes(1);
     });
   });
 });

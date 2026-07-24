@@ -24,6 +24,13 @@ export { sfProjectPreconditionChecker } from './preconditionCheckers';
 export { createNotificationModeApi } from './notificationMode';
 export type { ProgressAndSuccessMode, ProgressOnlyMode, SuccessOnlyMode, ToastAction } from './notificationMode';
 
-export { extractJson, getJsonCandidate, identifyJsonTypeInString, stripAnsi, getMessageFromError } from './utils';
+export {
+  code2ProtocolConverter,
+  extractJson,
+  getJsonCandidate,
+  identifyJsonTypeInString,
+  stripAnsi,
+  getMessageFromError
+} from './utils';
 
 export { annotateRootSpan } from './annotateRootSpan';

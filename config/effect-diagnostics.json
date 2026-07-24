@@ -4,6 +4,9 @@
     "lazyPromiseInEffectSync",
     "runEffectInsideEffect",
     "globalErrorInEffectFailure",
-    "globalErrorInEffectCatch"
+    "globalErrorInEffectCatch",
+    "catchUnfailableEffect",
+    "tryCatchInEffectGen",
+    "unknownInEffectCatch"
   ]
 }

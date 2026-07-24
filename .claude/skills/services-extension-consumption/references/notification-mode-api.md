@@ -90,18 +90,19 @@ const { showSuccessNotification, getProgressLocation } = createNotificationModeA
 );
 
 const deployCommand = Effect.fn('deploy')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.services.PromptService;
   const location = getProgressLocation('deploy');
 
-  yield* vscode.window.withProgress(
-    { location, title: nls.localize('deploying') },
-    async () => { /* deploy */ }
-  );
-
-  const requestId = yield* fetchDeployStatus();
-  yield* Effect.sync(() => 
-    showSuccessNotification('deploy', message, !!requestId, [
-      { label: nls.localize('view_details'), run: () => { /* show */ } }
-    ])
+  const requestId = yield* api.services.DeployService.deploy().pipe(
+    promptService.withProgress(nls.localize('deploying'), location),
+    Effect.tap(id =>
+      Effect.sync(() =>
+        showSuccessNotification('deploy', message, !!id, [
+          { label: nls.localize('view_details'), run: () => { /* show */ } }
+        ])
+      )
+    )
   );
 });
 ```

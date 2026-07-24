@@ -8,6 +8,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
+import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -23,14 +24,6 @@ import { ApexTestExecutionService, type ApexTestRunScope, type ExecutionContext 
 import { ApexTestTreeService, type DiscoveryContext, type TreeMutationContext } from './apexTestTreeService';
 
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
-
-/** Apex test class name for the given file URI, if it is a known test class. Reads the live class-items
- * map from ApexTestTreeService (single source of truth) via a synchronous Ref read. */
-export const getTestClassName = (uri: URI): string | undefined => {
-  const uriStr = uri.toString();
-  const classItems = getApexTestingRuntime().runSync(ApexTestTreeService.getClassItems());
-  return [...classItems].find(([, item]) => item.uri?.toString() === uriStr)?.[0];
-};
 
 /** Clear all suite children so they re-query from the org (delegates to the tree service). */
 export const clearAllSuiteChildren = (): void =>
@@ -268,46 +261,24 @@ export class ApexTestController {
       return;
     }
     const executionName = nls.localize('apex_test_retrieve_org_only_class_text');
-    try {
-      const result = await getApexTestingRuntime().runPromise(
-        Effect.gen(function* () {
-          const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          return yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
-            ignoreConflicts: true
-          });
+    await getApexTestingRuntime().runPromise(
+      retrieveOrgOnlyClass(uri, className, executionName, () => this.refresh()).pipe(
+        // Cancellation gets its own informational notification (fire-and-forget → Effect.sync, no response awaited).
+        Effect.catchTag('UserCancellationError', () =>
+          Effect.sync(
+            () => void notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled'))
+          )
+        ),
+        // Every other retrieve/open failure: log the specific error (preserve diagnostics), then the
+        // failed-execution notice. catchTags keyed to the inferred failure tags — never a blanket swallow.
+        Effect.catchTags({
+          MetadataRetrieveError: error => notifyRetrieveFailure(error, executionName),
+          ServicesExtensionNotFoundError: error => notifyRetrieveFailure(error, executionName),
+          InvalidServicesApiError: error => notifyRetrieveFailure(error, executionName),
+          FsServiceError: error => notifyRetrieveFailure(error, executionName)
         })
-      );
-
-      if (isString(result)) {
-        await notificationService.showInformationMessage(nls.localize('apex_test_retrieve_canceled'));
-        return;
-      }
-
-      const retrievedFileUri = getRetrievedFileUri(result);
-      if (retrievedFileUri) {
-        await getApexTestingRuntime().runPromise(
-          Effect.fn('ApexTesting.openRetrievedFile')(function* () {
-            const api = yield* (yield* ExtensionProviderService).getServicesApi;
-            yield* api.services.FsService.showTextDocument(retrievedFileUri, {
-              preview: false,
-              viewColumn: vscode.ViewColumn.Active,
-              preserveFocus: false
-            });
-            yield* closeEditorTabByUri(uri);
-          })()
-        );
-      }
-
-      try {
-        await this.refresh();
-      } catch (error: unknown) {
-        getApexTestingRuntime().runSync(Effect.logWarning('Failed to refresh Apex tests after retrieve', { error }));
-      }
-
-      notificationService.showSuccessfulExecution(executionName);
-    } catch {
-      notificationService.showFailedExecution(executionName);
-    }
+      )
+    );
   }
 
   /** Resolve-handler boundary for suite expansion: delegates to the tree service, mapping the tagged
@@ -357,35 +328,74 @@ export class ApexTestController {
 
 // Module-level utility functions extracted from ApexTestController
 
+// Log the specific retrieve/open failure (preserve diagnostics) then show the generic failed-execution notice.
+const notifyRetrieveFailure = (error: unknown, executionName: string) =>
+  Effect.logWarning('Failed to retrieve org-only Apex class', { error }).pipe(
+    Effect.andThen(Effect.sync(() => notificationService.showFailedExecution(executionName)))
+  );
+
 const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Promise<void> => {
   if (!classItem.uri) {
     return;
   }
-  const unresolved = new Map<string, vscode.TestItem>();
-  classItem.children.forEach(child => {
-    if (!isMethod(child.id)) {
-      return;
-    }
-    const start = child.range?.start;
-    const unresolvedRange = !start || (start.line === 0 && start.character === 0);
-    if (unresolvedRange) {
-      unresolved.set(child.label, child);
-    }
-  });
+  const unresolved = new Map<string, vscode.TestItem>(
+    [...classItem.children].flatMap(([, child]) => {
+      if (!isMethod(child.id)) {
+        return [];
+      }
+      const start = child.range?.start;
+      const unresolvedRange = !start || (start.line === 0 && start.character === 0);
+      return unresolvedRange ? [[child.label, child] as const] : [];
+    })
+  );
   if (unresolved.size === 0) {
     return;
   }
-  const locationMap = await getMethodLocationsFromSymbols(classItem.uri, [...unresolved.keys()]);
-  if (!locationMap) {
-    return;
-  }
-  for (const [methodName, location] of locationMap) {
-    const item = unresolved.get(methodName);
-    if (item) {
-      item.range = location.range;
-    }
-  }
+  const locations = await getMethodLocationsFromSymbols(classItem.uri, [...unresolved.keys()]);
+  [...unresolved]
+    .flatMap(([methodName, item]) => {
+      const location = locations.get(methodName);
+      return location ? [[item, location.range] as const] : [];
+    })
+    .forEach(([item, range]) => {
+      item.range = range;
+    });
 };
+
+// Retrieve an org-only Apex class into the workspace, open it, and refresh the tree. The refresh step
+// recovers in place (non-fatal logWarning) so a refresh failure never bubbles to the caller's failed-notify
+// branch. Retrieve/open failures propagate on the error channel for the boundary to map (cancellation →
+// canceled notification, everything else → showFailedExecution).
+const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassFromUri')(function* (
+  uri: URI,
+  className: string,
+  executionName: string,
+  refresh: () => Promise<void>
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
+    ignoreConflicts: true
+  }).pipe(
+    Effect.map(getRetrievedFileUri),
+    Effect.flatMap(
+      Effect.transposeMapOption(retrievedFileUri =>
+        api.services.FsService.showTextDocument(retrievedFileUri, {
+          preview: false,
+          viewColumn: vscode.ViewColumn.Active,
+          preserveFocus: false
+        }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
+      )
+    ),
+    // Refresh failure stays non-fatal and must never reach the outer failed-notify branch.
+    Effect.tap(() =>
+      Effect.tryPromise(() => refresh()).pipe(
+        Effect.tapError(error => Effect.logWarning('Failed to refresh Apex tests after retrieve', { error })),
+        Effect.ignore
+      )
+    ),
+    Effect.tap(() => Effect.sync(() => notificationService.showSuccessfulExecution(executionName)))
+  );
+});
 
 const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
   if (!test.uri) {
@@ -423,10 +433,10 @@ const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
   return classPath.slice(0, -4).replaceAll('/', '.');
 };
 
-const getRetrievedFileUri = (result: RetrieveResult): URI | undefined => {
-  const filePath = result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath;
-  return filePath ? URI.file(filePath) : undefined;
-};
+const getRetrievedFileUri = (result: RetrieveResult): Option.Option<URI> =>
+  Option.fromNullable(
+    result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath
+  ).pipe(Option.map(URI.file));
 
 // Batch-close text-input tabs matching predicate. No-op on web (tabGroups absent).
 const closeMatchingTabs = Effect.fn('ApexTesting.closeMatchingTabs')(function* (predicate: (uri: URI) => boolean) {

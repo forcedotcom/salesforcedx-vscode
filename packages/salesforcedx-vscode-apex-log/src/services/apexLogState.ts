@@ -7,6 +7,8 @@
 
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
+import * as Ref from 'effect/Ref';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 
@@ -23,6 +25,9 @@ export const CurrentTraceFlags = Context.GenericTag<SubscriptionRef.Subscription
 );
 export const LogCollectorStateRef =
   Context.GenericTag<SubscriptionRef.SubscriptionRef<LogCollectorState>>('LogCollectorStateRef');
+
+// tracks log Ids already collected by the activation-run auto-collect stream; commands never touch it
+export const KnownLogIdsRef = Context.GenericTag<Ref.Ref<HashSet.HashSet<string>>>('KnownLogIdsRef');
 
 /** Module-level singletons. Commands run in separate Effect.runFork; layer memoization is per-run, so we'd get distinct PubSub/Ref per run. These ensure status bar (activation run) and commands (command run) share the same instances. */
 // eslint-disable-next-line functional/no-let -- singleton for cross-run sharing
