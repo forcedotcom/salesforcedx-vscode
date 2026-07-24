@@ -32,9 +32,10 @@ ALWAYS operate inside the parent's current working directory. NEVER edit absolut
 ## Workflow
 
 1. `git diff HEAD` (or session context) to identify recent changes
-2. Cross-reference docs: docs/, .claude/skills/, .claude/agents/, .cursor/rules/, contributing/, packages/\*\*/README.md
-3. Fix issues directly (edit files)
-4. Report what was fixed (for transparency)
+2. Comment audit: for each changed \*.ts/\*.tsx hunk, re-read the comment lines on/adjacent to it; fix stale ones per Responsibility 1
+3. Cross-reference docs: docs/, .claude/skills/, .claude/agents/, .cursor/rules/, contributing/, packages/\*\*/README.md
+4. Fix issues directly (edit files)
+5. Report what was fixed, AND explicitly state comment-audit result even if clean (e.g. "comments checked, none stale") — do not report doc status only
 
 ## Style
 
