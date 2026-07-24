@@ -23,16 +23,18 @@
  * telemetry — provably cannot reach Azure). Verified envelopes carry the command span
  * (sf.lightning.generate.aura.component) with full org identity incl. orgEdition.
  *
- * O11y is NOT locally capturable when an org is present: the o11y-reporter uploader prefers
- * getConnectionMethod().requestPost(path, body) — it POSTs THROUGH the org connection to the org's
- * /services/data/vXX/connect/proxy/ui-telemetry, only falling back to O11Y_ENDPOINT when there is no
- * connection. But its payload is provably the SAME enriched span: o11ySpanExporter builds
+ * O11y default transport POSTs THROUGH the org connection (getConnectionMethod().requestPost →
+ * /services/data/vXX/connect/proxy/ui-telemetry), so with an org present it is not seen at O11Y_ENDPOINT.
+ * But its payload is provably the SAME enriched span: o11ySpanExporter builds
  * { name: span.name, properties: convertAttributes(span.attributes) + identity } from the exact span
  * dumped below. So the span dump IS the O11y payload; only the transport (org proxy) differs.
+ * Escape hatch: set O11Y_ENDPOINT to force both paths (OTEL exporter + legacy O11yReporter) to POST
+ * directly to that endpoint, skipping the org proxy — see the o11y:debug server on :3002.
  *
  * The legacy class reporters (AppInsights/O11yReporter/TelemetryFile in utils-vscode) are INERT in
  * dev/test (determineReporters returns only TelemetryFile, gated on an undeclared localTelemetryLogging
- * setting) — best-effort dumped at the end, normally empty.
+ * setting) — best-effort dumped at the end, normally empty. Exception: O11Y_ENDPOINT forces the legacy
+ * O11yReporter live in dev/test.
  *
  * The fixture flips telemetry.telemetryLevel back to 'all' and launches against a minimal org so
  * org-identity props (orgId, isScratch, orgEdition, …) populate on the enriched root spans.

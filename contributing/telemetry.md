@@ -57,6 +57,16 @@ To observe telemetry export in action:
 2. **Full OTEL span tracing**: Enable `salesforcedx-vscode-salesforcedx.enableConsoleTraces` in VS Code settings to see all application spans
 3. **Complete setup guide**: See [Local Debugging](../packages/salesforcedx-vscode-services/src/observability/README.md#local-debugging) in the observability docs
 
+## Debugging Legacy Telemetry (O11Y_ENDPOINT)
+
+Set `O11Y_ENDPOINT` to force legacy O11yReporter live in dev/test (normally inactive). The uploader bypasses org proxy and POSTs directly to the endpoint.
+
+```bash
+export O11Y_ENDPOINT=http://localhost:3002
+```
+
+Run `npm run o11y:debug` in another terminal. See [O11y Debug Server](../packages/salesforcedx-vscode-services/src/observability/README.md#o11y-debug-server) for full setup.
+
 ## Configuring OTEL Connection String
 
 To route spans to a specific Azure App Insights instance, configure your extension's `package.json`:

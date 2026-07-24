@@ -6,9 +6,27 @@
  */
 
 import { O11yService } from '@salesforce/o11y-reporter';
+import * as Effect from 'effect/Effect';
 import { workspace } from 'vscode';
-import { WorkspaceContextUtil } from '../../../../src/context/workspaceContextUtil';
 import { O11yReporter } from '../../../../src/telemetry/reporters/o11yReporter';
+
+// getConnection is a module thunk resolving the services api lazily; mocking the api is the only way to reach it.
+const mockGetConnectionSvc = jest.fn();
+
+jest.mock('@salesforce/effect-ext-utils', () => {
+  const E = require('effect/Effect');
+  const Ctx = require('effect/Context');
+  return {
+    getServicesApi: E.succeed({
+      services: {
+        prebuiltServicesDependencies: Ctx.empty(),
+        ConnectionService: {
+          getConnection: (...args: unknown[]) => mockGetConnectionSvc(...args)
+        }
+      }
+    })
+  };
+});
 
 describe('O11yReporter', () => {
   const fakeExtensionId = 'anExtensionId';
@@ -24,13 +42,6 @@ describe('O11yReporter', () => {
   let o11yReporter: O11yReporter;
 
   beforeEach(() => {
-    // Mock WorkspaceContextUtil
-    jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
-      orgId: dummyOrgId,
-      orgShape: 'ScratchOrg',
-      devHubId: '00Dxx0000001gPHFAU'
-    } as any);
-
     // Mock O11yService
     sendMock = jest.fn();
     uploadMock = jest.fn();
@@ -53,6 +64,11 @@ describe('O11yReporter', () => {
     } as any);
 
     o11yReporter = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId, 'test-webUser');
+    o11yReporter.orgIdentity = {
+      orgId: dummyOrgId,
+      orgShape: 'Scratch',
+      devHubId: '00Dxx0000001gPHFAU'
+    };
   });
 
   afterEach(() => {
@@ -61,14 +77,6 @@ describe('O11yReporter', () => {
 
   describe('initialize', () => {
     it('should call o11yService.initialize with extensionName, endpoint, and getConnection', async () => {
-      const getConnectionMock = jest.fn().mockResolvedValue({ instanceUrl: 'https://test.salesforce.com' });
-      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
-        orgId: dummyOrgId,
-        orgShape: 'ScratchOrg',
-        devHubId: '00Dxx0000001gPHFAU',
-        getConnection: getConnectionMock
-      } as any);
-
       const initializeMock = jest.fn().mockResolvedValue(undefined);
       jest.spyOn(O11yService, 'getInstance').mockReturnValue({
         logEvent: sendMock,
@@ -94,6 +102,37 @@ describe('O11yReporter', () => {
         expect.objectContaining({ flushInterval: 30_000, enableShutdownHook: true })
       );
     });
+
+    it('getConnection thunk re-resolves current org per call', async () => {
+      const initializeMock = jest.fn().mockResolvedValue(undefined);
+      jest.spyOn(O11yService, 'getInstance').mockReturnValue({
+        logEvent: sendMock,
+        upload: uploadMock,
+        forceFlush: forceFlushMock,
+        enableAutoBatching: enableAutoBatchingMock,
+        initialize: initializeMock
+      } as any);
+
+      const reporter = new O11yReporter(
+        fakeExtensionId,
+        fakeExtensionVersion,
+        fakeEndpoint,
+        fakeUserId,
+        'test-webUser'
+      );
+
+      await reporter.initialize('test-extension');
+
+      const mockConn = { instanceUrl: 'https://test.salesforce.com' };
+      mockGetConnectionSvc.mockReturnValue(Effect.succeed(mockConn));
+
+      const thunk = initializeMock.mock.calls[0][2] as () => Promise<unknown>;
+      await thunk();
+      await thunk();
+
+      // guards DESIGN CONSTRAINT: thunk hits services per call, never captures a resolved Connection at init
+      expect(mockGetConnectionSvc).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('sendTelemetryEvent', () => {
@@ -115,7 +154,7 @@ describe('O11yReporter', () => {
         properties: expect.objectContaining({
           foo: 'bar',
           orgId: '00Dxx0000001gPFEAY',
-          orgShape: 'ScratchOrg',
+          orgShape: 'Scratch',
           devHubId: '00Dxx0000001gPHFAU',
           telemetryTag: 'testTelemetryTag'
         }),
@@ -148,7 +187,7 @@ describe('O11yReporter', () => {
       expect(callArg.properties).toEqual(
         expect.objectContaining({
           orgId: '00Dxx0000001gPFEAY',
-          orgShape: 'ScratchOrg',
+          orgShape: 'Scratch',
           devHubId: '00Dxx0000001gPHFAU',
           telemetryTag: 'testTelemetryTag'
         })
