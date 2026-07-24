@@ -6,7 +6,9 @@
  *
  */
 
-import { Effect, Match, SubscriptionRef } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { MessageService } from './message/iMessageService';
 import { MessageType, SObjectMetadata, SoqlEditorEvent } from './message/soqlEditorEvent';
 

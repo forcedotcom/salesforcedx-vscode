@@ -6,7 +6,7 @@
  *
  */
 
-import { Context } from 'effect';
+import * as Context from 'effect/Context';
 import { JsonMap } from '@salesforce/ts-types';
 import { SoqlEditorEvent } from './soqlEditorEvent';
 

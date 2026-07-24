@@ -11,7 +11,10 @@ import { JsonMap } from '@salesforce/ts-types';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { messages } from 'querybuilder/messages';
-import { Effect, Layer, ManagedRuntime, Stream } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Stream from 'effect/Stream';
 import { ToolingSDK } from '../services/toolingSDK';
 import { ToolingModelService, toolingModelTemplate } from '../services/toolingModelService';
 import { MessageService, IMessageService } from '../services/message/iMessageService';

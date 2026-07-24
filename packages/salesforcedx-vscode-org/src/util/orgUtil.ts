@@ -8,11 +8,13 @@
 import { AuthFields, AuthInfo, AuthRemover, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ICONS } from '@salesforce/vscode-services';
-import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
+import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isError, isNotUndefined, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';

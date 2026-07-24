@@ -7,7 +7,7 @@
 import { OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ICONS, type DefaultOrgInfoSchema } from '@salesforce/vscode-services';
-import { Duration } from 'effect';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
