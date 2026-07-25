@@ -68,6 +68,7 @@ type Opts = {
   simpleExec: jest.Mock;
   appendToChannel: jest.Mock;
   show: jest.Mock;
+  withProgress?: jest.Mock;
 };
 
 const buildServices = (opts: Opts) => ({
@@ -76,6 +77,14 @@ const buildServices = (opts: Opts) => ({
       opts.isProject === false ? Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const }) : Effect.succeed({})
   },
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
+  PromptService: Effect.succeed({
+    withCancellableProgress:
+      <A, E>(_message: string) =>
+      (effect: Effect.Effect<A, E>) => {
+        opts.withProgress?.(_message);
+        return effect;
+      }
+  }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>
       Effect.sync(() => {
@@ -123,6 +132,15 @@ describe('orgDisplayDefaultCommand', () => {
     expect(appendToChannel.mock.calls[0][0]).toContain('Dev Hub Id');
     expect(appendToChannel.mock.calls[0][0]).toContain('me@scratch.org');
     expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('wraps the sf round-trip in a cancellable progress notification', async () => {
+    const withProgress = jest.fn();
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show, withProgress });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(withProgress).toHaveBeenCalledWith('Getting org details');
   });
 
   it('omits --target-org (sf resolves its own default) when no default-org username is tracked', async () => {

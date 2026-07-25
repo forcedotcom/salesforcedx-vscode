@@ -5,7 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
+import {
+  Column,
+  createTable,
+  ExtensionProviderService,
+  identifyJsonTypeInString,
+  Row
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
@@ -110,9 +116,6 @@ const formatOrgInfoAsTable = (orgInfo: OrgDisplayResult): string => {
   return createTable(rows, columns, 'Org Description');
 };
 
-/** True when a string holds something `sanitizeJson` can slice a JSON object out of (see `cliJson.ts`). */
-const hasJsonObject = (text: string): boolean => text.includes('{') && text.lastIndexOf('}') > text.indexOf('{');
-
 /**
  * Runs an `sf org display --json` variant and reports it to the org channel: the org table on
  * success, the CLI's message on failure.
@@ -121,33 +124,33 @@ const hasJsonObject = (text: string): boolean => text.includes('{') && text.last
  * message already carries the CLI's JSON error payload (`execErrorMessage` folds stdout in). Recover
  * that message into the same decode pipeline so the `OrgDisplayFailure` branch is reachable
  * (`decodeTaggedCliResponse` slices from the first `{`, dropping the `Command failed: ...` prefix).
- * A failure whose message carries no JSON at all is infrastructure (sf not on PATH, spawn/permission
- * error), so it stays a `TerminalServiceError` for ErrorHandlerService instead of degrading into an
- * `OrgDisplayParseError` that would hide the real diagnostic.
+ * A failure whose message carries no JSON object is infrastructure (sf not on PATH,
+ * spawn/permission error), so it stays a `TerminalServiceError` for ErrorHandlerService instead of
+ * degrading into an `OrgDisplayParseError` that would hide the real diagnostic.
  */
 const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (command: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const terminalService = yield* api.services.TerminalService;
-  // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
-  const stdout = yield* terminalService
-    .simpleExec({ command, parse: identity })
-    .pipe(
-      Effect.catchTag('TerminalServiceError', error =>
-        hasJsonObject(error.message) ? Effect.succeed(error.message) : error
-      )
-    );
-
-  const response = yield* decodeOrgDisplayResponse(stdout);
-
   const channel = yield* api.services.ChannelService;
-  yield* channel.appendToChannel(
-    Match.type<OrgDisplayResponse>().pipe(
-      Match.tag('OrgDisplaySuccess', ({ result }) => formatOrgInfoAsTable(result)),
-      Match.tag('OrgDisplayFailure', ({ message }) => message),
-      Match.exhaustive
-    )(response)
+  const promptService = yield* api.services.PromptService;
+
+  // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
+  return yield* (yield* api.services.TerminalService).simpleExec({ command, parse: identity }).pipe(
+    Effect.catchTag('TerminalServiceError', error =>
+      identifyJsonTypeInString(error.message) === 'object' ? Effect.succeed(error.message) : error
+    ),
+    // the sf round-trip is the slow part; Cancel interrupts it with UserCancellationError
+    promptService.withCancellableProgress(nls.localize('org_display_progress')),
+    Effect.flatMap(decodeOrgDisplayResponse),
+    Effect.map(
+      Match.type<OrgDisplayResponse>().pipe(
+        Match.tag('OrgDisplaySuccess', ({ result }) => formatOrgInfoAsTable(result)),
+        Match.tag('OrgDisplayFailure', ({ message }) => message),
+        Match.exhaustive
+      )
+    ),
+    Effect.flatMap(channel.appendToChannel),
+    Effect.tap(channel.showChannel)
   );
-  yield* channel.showChannel;
 });
 
 /**

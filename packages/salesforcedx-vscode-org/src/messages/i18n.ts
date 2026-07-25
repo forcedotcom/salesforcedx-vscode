@@ -33,6 +33,7 @@ export const messages = {
     'The default org is not a scratch org or sandbox and cannot be deleted with this command.',
   org_delete_username_text: 'SFDX: Delete Org...',
   org_delete_default_progress: 'Deleting default org',
+  org_display_progress: 'Getting org details',
   org_display_result_parsing_error: 'An unexpected error occurred while processing the org display response.',
   org_expired: 'Expired',
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
