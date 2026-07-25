@@ -31,6 +31,7 @@ import {
   UiOperatorValue,
   WhereImpl
 } from '@salesforce/soql-model';
+import { not } from 'effect/Predicate';
 import { SELECT_COUNT, ToolingModelJson } from './model';
 
 export const convertSoqlToUiModel = (soql: string): ToolingModelJson => {
@@ -47,7 +48,7 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
   const fields =
     queryModel.select && (queryModel.select as SelectExprs).selectExpressions
       ? (queryModel.select as SelectExprs).selectExpressions
-        .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+        .filter(not(SoqlModelUtils.containsUnmodeledSyntax))
         .map(expr => {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           if (expr.field.fieldName) {
@@ -80,7 +81,7 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
 
   const orderBy = queryModel.orderBy
     ? queryModel.orderBy.orderByExpressions
-      .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+      .filter(not(SoqlModelUtils.containsUnmodeledSyntax))
       .map(expression => {
         return {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

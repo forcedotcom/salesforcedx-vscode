@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { mapInput, not } from 'effect/Predicate';
 import { EOL } from 'node:os';
 import { FieldDeclaration, SObjectDefinition } from './types/general';
 
@@ -38,7 +39,7 @@ const convertType = (fieldType: string): string => {
 /** Returns the d.ts file content for a single SObject definition */
 export const generateTypeText = (definition: SObjectDefinition): string =>
   Array.from(definition.fields)
-    .filter(decl => !isCollectionType(decl.type))
+    .filter(not(mapInput(isCollectionType, (decl: FieldDeclaration) => decl.type)))
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
     .toSorted((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
