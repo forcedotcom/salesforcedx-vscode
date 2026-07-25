@@ -83,7 +83,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         delete config.logFile;
       } catch (error) {
         console.error('Failed to read log file:', error);
-        throw new Error(`Failed to read log file: ${error}`);
+        // errorToString keeps the single-line message; interpolating the runPromise rejection would
+        // paste Effect's multi-line pretty-printed cause (with stack) into the modal dialog.
+        throw new Error(`Failed to read log file: ${errorToString(error)}`);
       }
     } else if (config.logFile === '${command:AskForLogFileName}') {
       // User needs to select a file
@@ -100,7 +102,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         }
       } catch (error) {
         console.error('Failed to read selected log file:', error);
-        throw new Error(`Failed to read selected log file: ${error}`);
+        throw new Error(`Failed to read selected log file: ${errorToString(error)}`);
       }
     }
 
