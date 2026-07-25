@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
+import { not } from 'effect/Predicate';
 import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import { URI } from 'vscode-uri';
@@ -52,7 +53,7 @@ const createProjectStructure = Effect.fn('projectInit: createProjectStructure')(
       Promise.all(
         dirsToCreate
           .map(dir => URI.parse(dir))
-          .filter(uri => !fsp.exists(uri))
+          .filter(not(fsp.exists))
           .map(uri => fsp.createDirectory(uri))
       ),
     catch: (error: unknown) => new VirtualFsProviderError(unknownToErrorCause(error))

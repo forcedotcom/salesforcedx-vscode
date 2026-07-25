@@ -366,6 +366,28 @@ To skip the initial snapshot (e.g. avoid a spurious refresh on activation), use 
 The DON'T column above names each forbidden pattern. `references/anti-patterns.md`
 has the complete list — each with rationale and the correct alternative.
 
+## Point-free Predicates in Filters
+
+Use `Predicate.not()` for filter negations; combines point-free and readability.
+
+```typescript
+import { not } from 'effect/Predicate';
+
+// CORRECT — point-free negation
+arr.filter(not(isFlowTest))
+
+// AVOID — arrow wrapper around negation
+arr.filter(x => !isFlowTest(x))
+```
+
+Works with any predicate — built-in (`isString`, `isError`, `isNotUndefined`) or
+custom. Only the wrapped predicate can be receiver-sensitive: `not(obj.method)`
+detaches the receiver, so verify the impl uses no `this` first (see
+[composition-style](./references/composition-style.md#point-free-terminal-step-safe-only-when-impl-doesnt-use-this)).
+
+Keep `!` where the predicate isn't element-level (`!isCollectionType(decl.type)`)
+unless a named element predicate already exists or is worth adding.
+
 ## Imports: Prefer Deep Imports from @effect/platform
 
 Barrel imports from `@effect/platform` bundle HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake. This bloats web/desktop bundles by ~5.5MB per output and can trigger security scanner false positives (e.g., ClamAV signatures).
