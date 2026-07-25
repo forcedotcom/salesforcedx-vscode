@@ -53,7 +53,6 @@ const createProjectStructure = Effect.fn('projectInit: createProjectStructure')(
       Promise.all(
         dirsToCreate
           .map(dir => URI.parse(dir))
-          // point-free is safe: FsProvider.exists reads module-level memfs, no `this`
           .filter(not(fsp.exists))
           .map(uri => fsp.createDirectory(uri))
       ),
