@@ -12,6 +12,7 @@ import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import { isNotNullable, isNullable } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { normalize } from 'node:path';
@@ -96,7 +97,7 @@ const readVsCodeTestWebDiskRootMarker = Effect.promise(async (): Promise<string 
   // Jest may stub `readFile` as a no-op returning undefined; `Promise.resolve` normalizes non-Thenables.
   return await Promise.resolve(fs.readFile(markerUri)).then(
     buf => {
-      if (buf == null) {
+      if (isNullable(buf)) {
         return undefined;
       }
       const text = Buffer.from(buf).toString('utf8').trim();
@@ -126,7 +127,7 @@ const workspaceRootSalesforceManifestExistsViaVscodeFs = Effect.promise(async ()
     return false;
   }
   return await Promise.resolve(fs.stat(uri)).then(
-    s => s != null && typeof s === 'object' && 'type' in s && s.type === vscode.FileType.File,
+    s => isNotNullable(s) && typeof s === 'object' && 'type' in s && s.type === vscode.FileType.File,
     () => false
   );
 }).pipe(Effect.withSpan('workspaceRootSalesforceManifestExistsViaVscodeFs'));

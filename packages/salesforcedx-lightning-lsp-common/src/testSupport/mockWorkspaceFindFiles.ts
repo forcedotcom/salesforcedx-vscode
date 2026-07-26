@@ -9,7 +9,7 @@
  * Mock LSP client for workspace/findFiles. Simulates the client (e.g. VS Code) so the server
  * discovers files via the request instead of a server-side cache. Shared by Aura and LWC tests.
  */
-import { isError } from 'effect/Predicate';
+import { isError, isNullable } from 'effect/Predicate';
 import { Minimatch } from 'minimatch';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -75,7 +75,7 @@ export const createMockWorkspaceFindFilesConnection = (
     }
     const baseFolderUri = params?.baseFolderUri;
     const pattern = params?.pattern;
-    if (baseFolderUri == null || pattern == null) {
+    if (isNullable(baseFolderUri) || isNullable(pattern)) {
       return Promise.resolve({ error: 'Missing baseFolderUri or pattern' });
     }
     try {

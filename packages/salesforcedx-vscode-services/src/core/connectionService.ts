@@ -12,7 +12,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
-import { isString } from 'effect/Predicate';
+import { isNotNullable, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -309,7 +309,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
               (yield* configService.getConfigAggregator().pipe(
                 Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
                 Effect.filterOrFail(
-                  targetOrg => targetOrg != null,
+                  isNotNullable,
                   () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
                 )
               ));
