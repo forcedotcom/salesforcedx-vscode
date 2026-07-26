@@ -17,7 +17,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 ```
 
 - The PostToolUse `verify-on-edit.sh` hook auto-runs `--file <edited>` on every `.ts` Edit/Write and surfaces output as `followup_message`. Address what it reports.
-- **Address warnings AND messages, not just errors.** Common findings: `effectFnOpportunity` (gen→fn), `unnecessaryFailYieldableError` (yield error directly), `effectSucceedWithVoid` (`Effect.succeed(undefined)` → `Effect.void`), `globalErrorInEffectCatch`/`Failure` (use tagged error, not `new Error`; both config-enforced — see `references/anti-patterns.md`); `tryCatchInEffectGen` (config-enforced; try/catch in `Effect.gen` → `catchAllCause`+`Cause.squash`/`catchTag`).
+- **Address warnings AND messages, not just errors.** Common findings: `effectFnOpportunity` (gen→fn), `unnecessaryFailYieldableError` (yield error directly), `effectSucceedWithVoid` (`Effect.succeed(undefined)` → `Effect.void`), `globalErrorInEffectCatch`/`Failure` (use tagged error, not `new Error`; both config-enforced — see `references/anti-patterns.md`); `tryCatchInEffectGen` (config-enforced; try/catch in `Effect.gen` → `catchAllCause`+`Cause.squash`/`catchTag`); `effectFnIife` (config-enforced; immediately-invoked `Effect.fn` → `Effect.gen` + piped `Effect.withSpan`).
 - After a batch of edits, run `--project tsconfig.json` for the affected package to catch cross-file issues.
 - `effect-language-service quickfixes` shows proposed code changes.
 
@@ -255,6 +255,16 @@ const findByIdBad = (id: UserId) =>
   Effect.fn('UserService.findById')(function* () {
     yield* repo.findById(id); // id from closure
   });
+
+// WRONG - Effect.fn invoked immediately (config-enforced effectFnIife). Effect.fn builds a reusable
+// function; for one-shot use write Effect.gen and keep the span with a piped withSpan.
+const opened = Effect.fn('FsService.open')(function* () {
+  yield* fs.showTextDocument(uri);
+})();
+// CORRECT
+const openedOk = Effect.gen(function* () {
+  yield* fs.showTextDocument(uri);
+}).pipe(Effect.withSpan('FsService.open'));
 
 // Naming: Don't append Effect. For commands use FooCommand; for helpers/lifecycle use domain names.
 // WRONG: logGetEffect, executeAnonymousDocumentEffect, activateEffect

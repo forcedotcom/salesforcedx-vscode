@@ -52,6 +52,30 @@ const reporter = process.env.ESBUILD_PLATFORM === 'web' ? webReporter : nodeRepo
 
 Test files set/delete/save-restore the env var as jest plumbing; that is allowed via an `off` override in `eslint.config.mjs`, not the rule.
 
+### no-effect-fn-wrapper
+
+Enforces that an arrow function wrapping an `Effect.fn` call hoists its params into the generator, where they become typed arguments instead of closure captures. The wrapper arrow then disappears.
+
+**Bad:**
+
+```typescript
+// params on wrapper arrow, generator has none (closure capture)
+const findById = (id: UserId) =>
+  Effect.fn('UserService.findById')(function* () {
+    yield* repo.findById(id); // id from closure
+  });
+```
+
+**Good:**
+
+```typescript
+const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
+  yield* repo.findById(id);
+});
+```
+
+Note: Immediately-invoked `Effect.fn` calls (e.g. `Effect.fn('x')(function* (){})()`) are flagged by the Effect Language Service rule `effectFnIife` (config-enforced in `config/effect-diagnostics.json`), not this rule. Use `Effect.gen(...).pipe(Effect.withSpan(...))` for one-shot effects.
+
 ### no-successive-annotate-current-span
 
 Enforces that back-to-back `Effect.annotateCurrentSpan` calls are merged into a single call. Each call opens and annotates the current span independently, so two or more adjacent calls do redundant work that a single object-argument call expresses more cheaply. The rule detects two forms: consecutive `yield* Effect.annotateCurrentSpan(...)` statements inside a generator, and consecutive `Effect.tap(x => Effect.annotateCurrentSpan(...))` arguments inside one `.pipe(...)` chain. Any intervening statement or non-annotate `.tap` breaks the run, so only genuinely successive calls are flagged. Array forms (`Effect.all`/`forEach`) and `andThen` chains are out of scope.
