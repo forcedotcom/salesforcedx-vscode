@@ -14,10 +14,9 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpointService';
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
@@ -51,12 +50,9 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
   const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
   if (!isEmpty) {
+    const dirPath = (yield* api.services.ProjectService.getApexTestResultsFolder()).fsPath;
     yield* Effect.promise(() =>
-      testService.writeResultFiles(
-        result,
-        { dirPath: projectPaths.apexTestResultsFolder(), resultFormats: [ResultFormat.json] },
-        retrieveTestCodeCoverage()
-      )
+      testService.writeResultFiles(result, { dirPath, resultFormats: [ResultFormat.json] }, retrieveTestCodeCoverage())
     );
   }
 
@@ -74,8 +70,9 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
 
   const logId = testResult.apexLogId!;
   const logService = new LogService(connection);
-  yield* Effect.promise(() => logService.getLogs({ logId, outputDir: projectPaths.debugLogsFolder() }));
-  yield* Effect.promise(() => launchFromLogFile(path.join(projectPaths.debugLogsFolder(), `${logId}.log`), false));
+  const debugLogsFolder = yield* api.services.ProjectService.getDebugLogsFolder();
+  yield* Effect.promise(() => logService.getLogs({ logId, outputDir: debugLogsFolder.fsPath }));
+  yield* Effect.promise(() => launchFromLogFile(Utils.joinPath(debugLogsFolder, `${logId}.log`).fsPath, false));
   return true;
 });
 
