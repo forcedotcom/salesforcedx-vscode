@@ -88,10 +88,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
   const salesforceProjectOpened = yield* servicesApi.services.ProjectService.isSalesforceProject();
 
-  // Set Code Builder context
-  const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
-  void vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled);
-
   if (salesforceProjectOpened) {
     yield* Effect.promise(() => initializeProject(extensionContext));
   }
