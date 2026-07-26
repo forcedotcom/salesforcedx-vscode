@@ -11,7 +11,7 @@ import { ICONS } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isNotNullable, isNotUndefined, isString, not } from 'effect/Predicate';
+import { isError, isNotUndefined, isString, not } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -431,17 +431,16 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
 
   // Check if this org is the default DevHub (by property value or resolved username)
   const matchesDevHubProperty =
-    isNotNullable(defaultConfig.defaultDevHubProperty) &&
-    possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
+    isNotUndefined(defaultConfig.defaultDevHubProperty) && possibleDefaults.has(defaultConfig.defaultDevHubProperty);
   const matchesDevHubUsername =
-    isNotNullable(defaultConfig.defaultDevHubUsername) && orgAuth.username === defaultConfig.defaultDevHubUsername;
+    isNotUndefined(defaultConfig.defaultDevHubUsername) && orgAuth.username === defaultConfig.defaultDevHubUsername;
   const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty || matchesDevHubUsername);
 
   // Check if this org is the default org (by property value or resolved username).
   const matchesOrgProperty =
-    isNotNullable(defaultConfig.defaultOrgProperty) && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
+    isNotUndefined(defaultConfig.defaultOrgProperty) && possibleDefaults.has(defaultConfig.defaultOrgProperty);
   const matchesOrgUsername =
-    isNotNullable(defaultConfig.defaultOrgUsername) && orgAuth.username === defaultConfig.defaultOrgUsername;
+    isNotUndefined(defaultConfig.defaultOrgUsername) && orgAuth.username === defaultConfig.defaultOrgUsername;
   const isDefaultOrg = matchesOrgProperty || matchesOrgUsername;
 
   if (isDefaultDevHub && isDefaultOrg) {
