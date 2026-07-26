@@ -67,7 +67,7 @@
     "@salesforce/ts-types": "^2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "jest-environment-jsdom": "^29.0.0",
+    "jest-environment-jsdom": "^30.4.1",
     "rollup": "^4.0.0",
     "salesforcedx-vscode-services": "*"
   },
