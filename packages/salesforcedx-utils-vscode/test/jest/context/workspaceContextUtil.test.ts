@@ -307,7 +307,7 @@ describe('WorkspaceContextUtil', () => {
       // Act/Assert
       await expect(async () => {
         await workspaceContextUtil.getConnection();
-      }).rejects.toThrowError(message);
+      }).rejects.toThrow(message);
     });
   });
 });
