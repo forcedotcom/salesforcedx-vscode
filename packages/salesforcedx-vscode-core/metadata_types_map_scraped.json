@@ -27803,6 +27803,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "Indicates whether the prompt template can be overridden when part of a managed package.",
+        "Field Name": "overridable",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "The Salesforce record type that the prompt template is associated with.",
         "Field Name": "relatedEntity",
         "Field Type": "string"
@@ -27845,6 +27850,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "Defines the strategy for managing attached files when context limits are exceeded.",
+        "Field Name": "fileDroppingStrategy",
+        "Field Type": "string"
+      },
+      {
         "Description": "Reference to the policies for the prompt template version.",
         "Field Name": "generationTemplateConfigs",
         "Field Type": "GenAiPromptTemplateGenerationConfig[]"
@@ -27855,9 +27865,24 @@
         "Field Type": "GenAiPromptTemplateInput[]"
       },
       {
+        "Description": "Indicates whether citations are included in generated responses.",
+        "Field Name": "isCitationEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Defines the expected JSON schema structure for the generated output.",
+        "Field Name": "outputSchema",
+        "Field Type": "string"
+      },
+      {
         "Description": "The model associated with the prompt template version.",
         "Field Name": "primaryModel",
         "Field Type": "string"
+      },
+      {
+        "Description": "Defines the response format. Values are: HTML JSON MarkDown",
+        "Field Name": "responseFormat",
+        "Field Type": "GenAiPromptTemplateResponseFormat (enumeration of type string)"
       },
       {
         "Description": "Required. Indicates the status of the prompt template in Prompt Builder. Valid values are: Published—Published version of a prompt template. The active version of the prompt template must be published.Published prompt templates can't be edited with UI or Metadata API. Draft—Draft version of a prompt template.",
@@ -27938,6 +27963,16 @@
       {
         "Description": "Required. The URI definition of the data provider, such as flow://ns__CallToActionFlow.",
         "Field Name": "definition",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Description of the data provider.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. A user-friendly name for GenAiPromptTemplateDataProvider, which is defined when the GenAiPromptTemplateDataProvider is created.",
+        "Field Name": "label",
         "Field Type": "string"
       },
       {
@@ -33041,7 +33076,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Email address from which emails are sent.You can't update this field via Metadata API. Instead, you can edit the Email Address field on the Emails page of the site's Administration workspace.",
+        "Description": "Required. Email address from which emails are sent.You can add the sender email address via the emailSenderAddress field only when you deploy Network for the first time to create a new Experience Cloud site. You must verify that email address before you can use it as the sender email address. You can't update this field via Metadata API. If you attempt to update this field via Metadata API, your changes are ignored and Salesforce doesn’t show an error. To update the email address in this field, go to the site’s Administration workspace, select Emails, and then edit the Email Address field.",
         "Field Name": "emailSenderAddress",
         "Field Type": "string"
       },
@@ -33216,6 +33251,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "The secondary sender email address that’s pending verification. Salesforce doesn’t send emails from this address until it’s verified. Available in API version 67.0 and later.",
+        "Field Name": "pendingSecondaryEmailAddress",
+        "Field Type": "string"
+      },
+      {
         "Description": "The email template used when a user registers without a password. Instead of a password,they use an identity verification method, such as a verification code or link, which the user completes to finalize the registration or login process.Lightning email templates aren’t packageable. We recommend using a Classic email template.",
         "Field Name": "pwdlessRegEmailTemplate",
         "Field Type": "string"
@@ -33244,6 +33284,11 @@
         "Description": "The points members accrue when they perform certain defined actions.",
         "Field Name": "reputationPointsRules",
         "Field Type": "ReputationPointsRules"
+      },
+      {
+        "Description": "Indicates whether email messages that contain sensitive data are sent from a secondary sender email address (true), instead of via email relay (false). The default value is false. Available in API version 67.0 and later.",
+        "Field Name": "secondaryEmailSenderEnabled",
+        "Field Type": "boolean"
       },
       {
         "Description": "The email template used to communicate with users when their self-registration request, using micro-batching failed. Available in API version 54.0 and later.",
@@ -38963,7 +39008,7 @@
         "Field Type": "ReportColumn[]"
       },
       {
-        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 66.0 and later.",
+        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 67.0 and later.",
         "Field Name": "crossFilters",
         "Field Type": "ReportCrossFilter[]"
       },
@@ -53179,7 +53224,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Used in Real-Time Event Monitoring only. Indicates the name of the event the policy monitors. This field is available in API 45.0 and later. Valid values are: ApiEvent—Tracks these user-initiated read-only API calls: query(), queryMore(), and count(). Captures API requests through SOAP API and Bulk API for the Enterprise and Partner WSDLs. Tooling API calls and API calls originating from a Salesforce mobile app aren’t captured. ApiAnomalyEventStore—Tracks anomalies in how users make API calls. ApiAnomalyEventStore is an object that stores the event data of ApiAnomalyEvent. This object is available in API version 50.0 and later. BulkApiResultEventStore—Tracks when a user downloads the results of a Bulk API request. BulkApiResultEventStore is a big object that stores the event data of BulkApiResultEvent. This object is available in API version 50.0 and later. CredentialStuffingEventStore—Tracks when a user successfully logs into Salesforce during an identified credential stuffing attack. Credential stuffing refers to large-scale automated login requests using stolen user credentials.This value is available in API version 49.0 and later. FileEventStore (beta)—Tracks when a user downloads, previews, or uploads a file. FileEventStore is a big object that stores the event data of FileEvent. This object is available in API version 57.0 and later. GuestUserAnomalyEventStore—Tracks data access anomalies that are caused by guest user permission misconfiguration. This object is available in API version 60.0 and later. ListViewEvent—Tracks when users access data with list views using Lightning Experience, Salesforce Classic, or the API. It doesn’t track list views of Setup entities. LoginAsEvent—Tracks the login activity of admins who log in to Salesforce as other users. This object is available in API version 46.0 and later. LoginEvent—LoginEvent tracks the login activity of users who log in to Salesforce. PermissionSetEventStore —Tracks changes to permission sets and permission set groups. ReportAnomalyEventStore— This value is available in API version 49.0 and later. ReportEvent—Tracks when reports are run in your org. SessionHijackingEventStore—Tracks when unauthorized users gain ownership of a Salesforce user’s session with a stolen session identifier. To detect such an event, Salesforce evaluates how significantly a user’s current browser fingerprint diverges from the previously known fingerprint using a probabilistically inferred significance of change. Available in API version 49.0 and later.",
+        "Description": "Used in Real-Time Event Monitoring only. Indicates the name of the event the policy monitors. This field is available in API 45.0 and later. Valid values are: AdminSetupEvent ApiAnomalyEventStore—Tracks anomalies in how users make API calls. ApiAnomalyEventStore is an object that stores the event data of ApiAnomalyEvent. This object is available in API version 50.0 and later. ApiEvent—Tracks these user-initiated read-only API calls: query(), queryMore(), and count(). Captures API requests through SOAP API and Bulk API for the Enterprise and Partner WSDLs. Tooling API calls and API calls originating from a Salesforce mobile app aren’t captured. BulkApiResultEventStore—Tracks when a user downloads the results of a Bulk API request. BulkApiResultEventStore is a big object that stores the event data of BulkApiResultEvent. This object is available in API version 50.0 and later. CredentialStuffingEventStore—Tracks when a user successfully logs into Salesforce during an identified credential stuffing attack. Credential stuffing refers to large-scale automated login requests using stolen user credentials.This value is available in API version 49.0 and later. FileEventStore —Tracks when a user downloads, previews, or uploads a file. FileEventStore is a big object that stores the event data of FileEvent. This object is available in API version 57.0 and later. GuestUserAnomalyEventStore—Tracks data access anomalies that are caused by guest user permission misconfiguration. This object is available in API version 60.0 and later. ListViewEvent—Tracks when users access data with list views using Lightning Experience, Salesforce Classic, or the API. It doesn’t track list views of Setup entities. LoginAnomalyEventStore LoginAsEvent—Tracks the login activity of admins who log in to Salesforce as other users. This object is available in API version 46.0 and later. LoginEvent—LoginEvent tracks the login activity of users who log in to Salesforce. PermissionSetEventStore —Tracks changes to permission sets and permission set groups. ReportAnomalyEventStore— This value is available in API version 49.0 and later. ReportEvent—Tracks when reports are run in your org. SessionHijackingEventStore—Tracks when unauthorized users gain ownership of a Salesforce user’s session with a stolen session identifier. To detect such an event, Salesforce evaluates how significantly a user’s current browser fingerprint diverges from the previously known fingerprint using a probabilistically inferred significance of change. Available in API version 49.0 and later. UniversalAnomalyEventStore",
         "Field Name": "eventName",
         "Field Type": "TransactionSecurityEventName (enumeration of type string)"
       },
