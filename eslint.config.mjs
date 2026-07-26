@@ -44,6 +44,11 @@ const noInstanceofError = {
   selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
   message: "Use isError(x) from 'effect/Predicate' instead of x instanceof Error."
 };
+const noNullCompare = {
+  // loose `== null` / `!= null` only (the regex is anchored, so `===`/`!==` don't match)
+  selector: "BinaryExpression[operator=/^[=!]=$/]:matches([left.raw='null'], [right.raw='null'])",
+  message: "Use isNullable(x) / isNotNullable(x) from 'effect/Predicate' instead of x == null / x != null."
+};
 
 export default [
   {
@@ -550,7 +555,7 @@ export default [
     }
   },
   {
-    // Opt-in: steer `x instanceof Error` to isError(x) from effect/Predicate.
+    // Opt-in: steer `x instanceof Error` to isError(x) and `x == null` to isNullable(x), both from effect/Predicate.
     // Scoped to effect-enabled packages only — non-effect packages can't import
     // effect/Predicate, so applying it there would point at an unimportable API.
     files: [
@@ -583,7 +588,7 @@ export default [
     ],
     rules: {
       // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
-      'no-restricted-syntax': ['error', noHrtime, noInstanceofError]
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
     }
   },
   {
