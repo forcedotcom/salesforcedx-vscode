@@ -100,19 +100,19 @@ describe('CliCommandExecution Unit Tests.', () => {
       testChildProcess.pid = undefined;
       expect(() => {
         new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
-      }).toThrowError(NO_PID_ERROR);
+      }).toThrow(NO_PID_ERROR);
     });
     it('Should fail to create if child has no stdout.', () => {
       testChildProcess.stdout = undefined;
       expect(() => {
         new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
-      }).toThrowError(NO_STDOUT_ERROR);
+      }).toThrow(NO_STDOUT_ERROR);
     });
     it('Should fail to create if child has no stderr.', () => {
       testChildProcess.stderr = undefined;
       expect(() => {
         new CliCommandExecution(testCommand, testChildProcess, testCancelationToken);
-      }).toThrowError(NO_STDERR_ERROR);
+      }).toThrow(NO_STDERR_ERROR);
     });
   });
 

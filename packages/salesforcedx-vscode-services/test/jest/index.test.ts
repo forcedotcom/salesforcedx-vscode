@@ -172,8 +172,12 @@ jest.mock('node:os', () => ({
   }
 }));
 
-// Mock node:fs module
+// Mock node:fs module.
+// jest 30 resolves 'node:fs' and 'fs' to the same module registry entry, so this factory
+// also serves unrelated consumers that require('fs') (e.g. got). Spread the real module so
+// only the members below are replaced.
 jest.mock('node:fs', () => ({
+  ...jest.requireActual('node:fs'),
   watch: jest.fn(() => ({
     close: jest.fn()
   })),

@@ -19,7 +19,7 @@ describe('salesforceCoreSettings', () => {
       const defaultValue = salesforceCoreSettingsInstance.getEnableAllExceptionCatcher();
       expect(salesforceCoreSettingsInstance).toBeInstanceOf(SalesforceCoreSettings);
       expect(getConfigValueSpy).toHaveBeenCalled();
-      expect(getConfigValueSpy).toBeCalledWith(ALL_EXCEPTION_CATCHER_ENABLED, false);
+      expect(getConfigValueSpy).toHaveBeenCalledWith(ALL_EXCEPTION_CATCHER_ENABLED, false);
       expect(defaultValue).toBe(false);
     });
   });

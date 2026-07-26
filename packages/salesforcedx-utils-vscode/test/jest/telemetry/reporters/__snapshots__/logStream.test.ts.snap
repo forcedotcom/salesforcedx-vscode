@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`LogStream should emit cached orgIdentity props on the exception event 1`] = `
 "telemetry/myException {"properties":{"orgId":"org-123","orgShape":"Scratch","devHubId":"devhub-456"},"measurements":{"count":1}}
