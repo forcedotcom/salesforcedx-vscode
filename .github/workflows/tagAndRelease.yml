@@ -113,7 +113,11 @@ jobs:
           fi
 
           # Prepend package CHANGELOG to root CHANGELOG (idempotent)
-          node scripts/prepend-release-changelog.js
+          if ! node scripts/prepend-release-changelog.js; then
+            echo "::error::Failed to prepend changelog. Merge was pushed but changelog update failed."
+            echo "::error::Manual intervention required: run 'node scripts/prepend-release-changelog.js' and commit."
+            exit 1
+          fi
 
           # Commit the changelog update (only if the script made changes)
           if ! git diff --quiet CHANGELOG.md; then

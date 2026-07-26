@@ -83,27 +83,23 @@ function prependToRootChangelog(packageChangelog, version) {
   // Read existing root changelog
   let rootChangelog;
   try {
-    if (!fs.existsSync(ROOT_CHANGELOG_PATH)) {
-      console.error(`❌ Error: Root CHANGELOG does not exist at ${ROOT_CHANGELOG_PATH}`);
-      console.error('   This file should contain the full historical changelog.');
-      console.error('   If this is intentional, create the file first to bootstrap the changelog.');
-      process.exit(1);
-    }
     rootChangelog = fs.readFileSync(ROOT_CHANGELOG_PATH, 'utf8');
 
-    // Sanity check: root CHANGELOG should have substantial content (at least 100 lines)
-    // If it's nearly empty, something is wrong
+    // Sanity check: root CHANGELOG should have substantial content
+    // A healthy changelog with 10+ releases should have 50+ lines
     const lineCount = rootChangelog.split('\n').length;
-    if (lineCount < 10) {
+    if (lineCount < 50) {
       console.error(`❌ Error: Root CHANGELOG has only ${lineCount} lines`);
-      console.error('   Expected changelog should have 100+ lines of historical releases.');
+      console.error('   Expected changelog should have 50+ lines (typically 100+ for mature repos).');
       console.error('   This suggests the file was accidentally truncated or deleted.');
+      console.error('   If this is a new repo, this check can be adjusted.');
       process.exit(1);
     }
   } catch (error) {
     if (error.code === 'ENOENT') {
       console.error(`❌ Error: Root CHANGELOG does not exist at ${ROOT_CHANGELOG_PATH}`);
       console.error('   This file should contain the full historical changelog.');
+      console.error('   Create this file before running the prepend script.');
       process.exit(1);
     }
     console.error(`❌ Error reading root CHANGELOG from ${ROOT_CHANGELOG_PATH}:`, error.message);
@@ -112,7 +108,6 @@ function prependToRootChangelog(packageChangelog, version) {
 
   // Check if this version is already in the root changelog (idempotent)
   // Use line-anchored check to avoid false positives from body text
-  const versionHeader = `# ${version}`;
   const versionRegex = new RegExp(`^# ${version.replace(/\./g, '\\.')}(?:\\s|$)`, 'm');
   if (versionRegex.test(rootChangelog)) {
     console.log(`✅ Version ${version} already exists in root CHANGELOG (skipping, idempotent)`);
