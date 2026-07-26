@@ -6,7 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { projectPaths, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -21,14 +21,14 @@ export const getDialogStartingPath = Effect.fn('ApexReplayDebugger.getDialogStar
   // If the user has already selected a document through getLogFileName then
   // use that path if it still exists.
   const pathToLastOpenedLogFolder = getLastOpenedLogFolder(extContext);
-  if (pathToLastOpenedLogFolder && (yield* Effect.promise(() => fileOrFolderExists(pathToLastOpenedLogFolder)))) {
+  if (pathToLastOpenedLogFolder && (yield* api.services.FsService.fileOrFolderExists(pathToLastOpenedLogFolder))) {
     return getUriFor(pathToLastOpenedLogFolder);
   }
   // If lastOpenedLogFolder isn't defined or doesn't exist then use the
   // same directory that the SFDX download logs command would download to
   // if it exists.
   const pathToWorkspaceLogsFolder = projectPaths.debugLogsFolder();
-  if (yield* Effect.promise(() => fileOrFolderExists(pathToWorkspaceLogsFolder))) {
+  if (yield* api.services.FsService.fileOrFolderExists(pathToWorkspaceLogsFolder)) {
     return getUriFor(pathToWorkspaceLogsFolder);
   }
   // If all else fails, fallback to the .sfdx directory in the workspace
