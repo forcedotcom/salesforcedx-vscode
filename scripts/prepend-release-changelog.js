@@ -17,8 +17,19 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const ROOT_CHANGELOG_PATH = path.join(process.cwd(), 'CHANGELOG.md');
-const PACKAGE_CHANGELOG_PATH = path.join(process.cwd(), 'packages', 'salesforcedx-vscode', 'CHANGELOG.md');
+// Validate we're at repo root
+function getRepoRoot() {
+  try {
+    return execSync('git rev-parse --show-toplevel', { encoding: 'utf8' }).trim();
+  } catch (error) {
+    console.error('❌ Error: Not in a git repository');
+    process.exit(1);
+  }
+}
+
+const REPO_ROOT = getRepoRoot();
+const ROOT_CHANGELOG_PATH = path.join(REPO_ROOT, 'CHANGELOG.md');
+const PACKAGE_CHANGELOG_PATH = path.join(REPO_ROOT, 'packages', 'salesforcedx-vscode', 'CHANGELOG.md');
 
 /**
  * Extract version from first line of changelog (e.g., "# 67.6.0 - July 22, 2026")
@@ -73,19 +84,37 @@ function prependToRootChangelog(packageChangelog, version) {
   let rootChangelog;
   try {
     if (!fs.existsSync(ROOT_CHANGELOG_PATH)) {
-      console.log('⚠️  Root CHANGELOG does not exist, creating new one');
-      rootChangelog = '';
-    } else {
-      rootChangelog = fs.readFileSync(ROOT_CHANGELOG_PATH, 'utf8');
+      console.error(`❌ Error: Root CHANGELOG does not exist at ${ROOT_CHANGELOG_PATH}`);
+      console.error('   This file should contain the full historical changelog.');
+      console.error('   If this is intentional, create the file first to bootstrap the changelog.');
+      process.exit(1);
+    }
+    rootChangelog = fs.readFileSync(ROOT_CHANGELOG_PATH, 'utf8');
+
+    // Sanity check: root CHANGELOG should have substantial content (at least 100 lines)
+    // If it's nearly empty, something is wrong
+    const lineCount = rootChangelog.split('\n').length;
+    if (lineCount < 10) {
+      console.error(`❌ Error: Root CHANGELOG has only ${lineCount} lines`);
+      console.error('   Expected changelog should have 100+ lines of historical releases.');
+      console.error('   This suggests the file was accidentally truncated or deleted.');
+      process.exit(1);
     }
   } catch (error) {
+    if (error.code === 'ENOENT') {
+      console.error(`❌ Error: Root CHANGELOG does not exist at ${ROOT_CHANGELOG_PATH}`);
+      console.error('   This file should contain the full historical changelog.');
+      process.exit(1);
+    }
     console.error(`❌ Error reading root CHANGELOG from ${ROOT_CHANGELOG_PATH}:`, error.message);
     process.exit(1);
   }
 
   // Check if this version is already in the root changelog (idempotent)
+  // Use line-anchored check to avoid false positives from body text
   const versionHeader = `# ${version}`;
-  if (rootChangelog.includes(versionHeader)) {
+  const versionRegex = new RegExp(`^# ${version.replace(/\./g, '\\.')}(?:\\s|$)`, 'm');
+  if (versionRegex.test(rootChangelog)) {
     console.log(`✅ Version ${version} already exists in root CHANGELOG (skipping, idempotent)`);
     return false;
   }
@@ -126,8 +155,10 @@ function main() {
     console.log('\n✅ Done! Root CHANGELOG.md updated with v' + version);
     console.log('   Package CHANGELOG: ' + PACKAGE_CHANGELOG_PATH);
     console.log('   Root CHANGELOG: ' + ROOT_CHANGELOG_PATH);
+    process.exit(0);
   } else {
     console.log('\n✅ Done! No changes needed (version already present).');
+    process.exit(0);
   }
 }
 

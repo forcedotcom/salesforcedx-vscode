@@ -49,8 +49,10 @@ Commit: `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ = release ver
 - **Root CHANGELOG.md**: Full historical changelog (all releases)
 - **On merge**: Merge Release Branch workflow:
   1. Merges main→develop (regular merge, no special strategy needed since CHANGELOGs are in different locations)
-  2. Prepends package CHANGELOG to root via [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js)
-  3. Aborts on merge conflict (prevents changelog loss)
+  2. Pushes merge commit to develop
+  3. Prepends package CHANGELOG to root via [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js)
+  4. Commits and pushes changelog update
+- **Abort triggers**: Merge conflict aborts before push; script failure after push reports error but leaves merge intact
 
 The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `packages/salesforcedx-vscode/CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
@@ -78,20 +80,24 @@ If you get `error: failed to push some refs to 'https://github.com/forcedotcom/s
 4. Run `PreRelease` workflow again
 
 **Merge conflict during develop merge:**
-Workflow detects conflicts during main→develop merge, aborts safely, reports error. Conflicts are rare since CHANGELOGs live in different locations (root vs. package).
+Workflow detects conflicts during main→develop merge, aborts before pushing. Conflicts are rare since CHANGELOGs live in different locations (root vs. package).
 
-1. Check workflow logs
-2. Resolve conflict on develop
+1. Check workflow logs for conflicting files
+2. Manually resolve conflicts on develop
 3. Re-run Merge Release Branch workflow
 
-**Changelog prepend fails (I/O error):**
-[scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js) detects & reports:
+**Changelog prepend fails:**
+[scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js) validates structure before updating and reports errors:
 
-- **Disk full (ENOSPC)**: Free space, re-run workflow
-- **Permission denied (EACCES)**: Check permissions, re-run workflow
-- **Other I/O errors**: Check logs; merge succeeded, changelog needs manual prepend
+- **Missing package CHANGELOG** (ENOENT): File not found; check release branch was merged
+- **Empty package CHANGELOG**: File exists but has no content; check release branch
+- **Invalid version format**: First line doesn't match `# X.Y.Z - Date` pattern
+- **Missing root CHANGELOG**: Should never happen; root contains full history
+- **Root CHANGELOG too short** (<10 lines): Suggests truncation/deletion
+- **Disk full** (ENOSPC): Free space, re-run workflow
+- **Permission denied** (EACCES): Check file permissions, re-run workflow
 
-If prepend fails, develop is already merged. Manual fix: prepend release notes from `packages/salesforcedx-vscode/CHANGELOG.md` (on release branch or develop) to root `CHANGELOG.md` on develop, push.
+If prepend fails, develop has already merged and pushed. Manual fix: run `node scripts/prepend-release-changelog.js` from repo root, commit, and push.
 
 ## Publishing Main
 
@@ -147,14 +153,19 @@ After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SK
 
 ## Release Workflow Security
 
-Merge & changelog workflows apply security best practices:
+Merge & changelog workflows apply best practices:
 
-- **Input validation**: [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js) validates changelog structure and version format
-- **Error handling**: Merge conflicts abort (prevents partial/corrupt changelog); I/O errors are detected and reported
-- **Idempotent operation**: Script skips prepending if version already exists in root CHANGELOG
-- **Separate locations**: Package CHANGELOG lives at `packages/salesforcedx-vscode/CHANGELOG.md`, root at `CHANGELOG.md` (prevents merge conflicts)
+- **Input validation**: [scripts/prepend-release-changelog.js](../scripts/prepend-release-changelog.js) validates:
+  - Runs from repo root (via `git rev-parse --show-toplevel`)
+  - Package CHANGELOG exists and is non-empty
+  - Version format matches `# X.Y.Z - Date` pattern (anchored line-start check)
+  - Root CHANGELOG exists with substantial history (≥10 lines)
+- **Error handling**: Merge conflicts abort before push; script failures report specific error codes (ENOSPC, EACCES) with recovery steps
+- **Idempotent operation**: Script skips prepending if version header already exists in root CHANGELOG (regex line-anchored match)
+- **Push-then-script**: mergeReleaseBranch.yml pushes merge commit before running script, preventing develop from diverging if script fails
+- **Separate locations**: Package CHANGELOG at `packages/salesforcedx-vscode/CHANGELOG.md`, root at `CHANGELOG.md` (avoids merge conflicts)
 
-Safeguards run automatically—no intervention needed unless errors occur.
+Safeguards run automatically—no intervention unless errors occur.
 
 ## Post-Publishing the .vsix
 
