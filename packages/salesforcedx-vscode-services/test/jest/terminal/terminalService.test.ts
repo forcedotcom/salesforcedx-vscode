@@ -96,19 +96,23 @@ describe('TerminalService.simpleExec', () => {
       withExec(capturingExec(capture))
     );
 
-    // non-sf command: caller env passes through with no SF_JSON_TO_STDOUT/FORCE_COLOR injected. (The
+    // non-sf command: caller env passes through with no SF_JSON_TO_STDOUT/FORCE_COLOR/SFDX_TOOL injected. (The
     // `{ ...process.env, ...env }` merge lives in resolveExecOptions, covered in childProcess.test.ts.)
     expect(capture.options?.env).toEqual({ FOO: 'bar' });
   });
 
-  it('auto-injects SF_JSON_TO_STDOUT + FORCE_COLOR for sf commands', async () => {
+  it('auto-injects SF_JSON_TO_STDOUT + FORCE_COLOR + SFDX_TOOL for sf commands', async () => {
     const capture: { options?: ExecOptions } = {};
     await run(
       TerminalService.pipe(Effect.flatMap(terminal => terminal.simpleExec({ command: 'sf org open', parse: s => s }))),
       withExec(capturingExec(capture))
     );
 
-    expect(capture.options?.env).toEqual({ SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' });
+    expect(capture.options?.env).toEqual({
+      SF_JSON_TO_STDOUT: 'true',
+      FORCE_COLOR: '0',
+      SFDX_TOOL: 'salesforce-vscode-extensions'
+    });
   });
 
   it('lets a caller env override the auto-injected sf env', async () => {
@@ -122,8 +126,13 @@ describe('TerminalService.simpleExec', () => {
       withExec(capturingExec(capture))
     );
 
-    // caller FORCE_COLOR wins over the injected '0'; injected SF_JSON_TO_STDOUT and caller EXTRA both present
-    expect(capture.options?.env).toEqual({ SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '1', EXTRA: 'x' });
+    // caller FORCE_COLOR wins over the injected '0'; injected SF_JSON_TO_STDOUT/SFDX_TOOL and caller EXTRA all present
+    expect(capture.options?.env).toEqual({
+      SF_JSON_TO_STDOUT: 'true',
+      FORCE_COLOR: '1',
+      SFDX_TOOL: 'salesforce-vscode-extensions',
+      EXTRA: 'x'
+    });
   });
 
   it('does not inject sf env for non-sf commands without a caller env', async () => {

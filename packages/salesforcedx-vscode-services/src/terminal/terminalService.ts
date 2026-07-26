@@ -37,8 +37,9 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
      * `env` overrides/augments the child's environment (merged over `process.env` in childProcess).
      * `cwd` sets the child's working directory (omitted → node uses the extension-host process.cwd()); needed for
      * cwd-dependent flows like project-local `config set`/`project generate`/relative-manifest retrieves.
-     * `sf ` commands get `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` injected automatically (a caller `env` of the
-     * same key still wins) so every sf consumer gets clean, color-free JSON stdout without repeating the flags. */
+     * `sf ` commands get `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` + `SFDX_TOOL` injected automatically (a caller
+     * `env` of the same key still wins) so every sf consumer gets clean, color-free JSON stdout, attributed to these
+     * extensions, without repeating the flags. */
     const simpleExec = Effect.fn('TerminalService.simpleExec')(function* <A>({
       command,
       parse,
@@ -53,8 +54,12 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       cwd?: string;
     }) {
       // FORCE_COLOR=0 strips the ANSI escapes sf wraps JSON in (else JSON.parse breaks); SF_JSON_TO_STDOUT keeps
-      // the payload on stdout. Caller env merges on top so an explicit override still wins.
-      const sfEnv = command.startsWith('sf ') ? { SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0' } : undefined;
+      // the payload on stdout; SFDX_TOOL is read by @salesforce/plugin-telemetry to attribute the invocation to
+      // these extensions (same literal as TELEMETRY_HEADER, which the legacy cliCommandExecutor sets).
+      // Caller env merges on top so an explicit override still wins.
+      const sfEnv = command.startsWith('sf ')
+        ? { SF_JSON_TO_STDOUT: 'true', FORCE_COLOR: '0', SFDX_TOOL: 'salesforce-vscode-extensions' }
+        : undefined;
       const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
       yield* Effect.annotateCurrentSpan('command', command);
       // annotate which env keys were set (keys only — never values, to avoid leaking secrets)
