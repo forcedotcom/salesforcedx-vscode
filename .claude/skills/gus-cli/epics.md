@@ -55,7 +55,7 @@ PROD=a1aB000000005G3IAI; RT=0129000000006gDAAQ; ASSIGN=005B0000000GIODIA4
 create() { # $1=Subject  $2=Details (>=20 chars)
   sf data create record -s ADM_Work__c -o gus \
     -v "Subject__c='$1' Details__c='$2' Story_Points__c=2 Product_Tag__c=$PROD RecordTypeId=$RT Epic__c=$EPIC Scrum_Team__c=$TEAM Assignee__c=$ASSIGN" \
-    --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['result']['id'] if d.get('status')==0 else 'ERR')"
+    --json 2>/dev/null | jq -r 'if .status == 0 then .result.id else "ERR" end'
 }
 create "1.0 [ai-auto] First task" "Description, at least twenty chars."
 create "1.1 [ai-auto] Second task" "Another, also twenty-plus chars."

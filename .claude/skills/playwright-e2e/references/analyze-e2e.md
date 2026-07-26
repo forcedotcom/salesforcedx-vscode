@@ -62,14 +62,10 @@ ls -lt .e2e-artifacts/*/*/playwright-test-results-*/spans/*.jsonl
 Read spans compact JSON:
 
 ```bash
-python3 - <<'PY'
-import glob, json
-for path in glob.glob('.e2e-artifacts/*/*/playwright-test-results-*/spans/*.jsonl'):
-    print(f'### {path}')
-    with open(path, encoding='utf-8') as f:
-        for line in f:
-            print(json.dumps(json.loads(line), separators=(',', ':')))
-PY
+for f in .e2e-artifacts/*/*/playwright-test-results-*/spans/*.jsonl; do
+  echo "### $f"
+  jq -c '.' "$f"
+done
 ```
 
 ## Run ID
