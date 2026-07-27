@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 
 const singleTest = new Set(['Run Test', 'Debug Test']);
@@ -14,7 +15,7 @@ const allTests = new Set(['Run All Tests', 'Debug All Tests']);
 // namespaceFromOrg represents the namespace that came from auth files (ie, when the org is created/auth'd)
 export const rewriteNamespaceLens =
   (namespaceFromOrg?: string) => (namespaceFromProject?: string) => (lens: vscode.CodeLens) => {
-    if (namespaceFromOrg !== undefined || !lens.command?.title || namespaceFromProject === undefined) {
+    if (isNotUndefined(namespaceFromOrg) || !lens.command?.title || isUndefined(namespaceFromProject)) {
       // if the org is a namespaces, we preserve the namespace from the LS.
       // if the project has no namespace, we want to use what the LS provides (its use of the namespace is the cause of https://github.com/forcedotcom/salesforcedx-vscode/issues/6458 )
       return lens;

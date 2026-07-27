@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
@@ -176,12 +177,12 @@ export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestam
     Stream.runCollect,
     Effect.map(chunk => Chunk.toReadonlyArray(chunk).toSorted(byFileTimestampDesc)),
     // Group by component key; first entry wins because rows are sorted newest-first.
-    Effect.map(sortedArray => Object.groupBy(sortedArray, (x: TimestampRow) => x.key)),
+    Effect.map(sortedArray => Arr.groupBy(sortedArray, (x: TimestampRow) => x.key)),
     // Delete stale files in the background — best-effort, must not block the caller.
     Effect.tap(bk => Effect.forkDaemon(Effect.forEach(getStaleUris(bk, allJsonUris), uri => fs.safeDelete(uri.uri))))
   );
 
-  return new Map(Object.entries(byKey).map(([key, rows]) => [key, rows![0].lastModifiedDate]));
+  return new Map(Object.entries(byKey).map(([key, rows]) => [key, rows[0].lastModifiedDate]));
 });
 
 /** Load every stored result file, flatten components into rows sorted newest-first,

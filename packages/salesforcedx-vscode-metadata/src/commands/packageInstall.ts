@@ -11,7 +11,7 @@ import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isString } from 'effect/Predicate';
+import { isError, isString, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -55,7 +55,7 @@ const gatherInstallationKey = Effect.fn('packageInstall.gatherInstallationKey')(
     })
   );
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  if (result === undefined) {
+  if (isUndefined(result)) {
     return yield* new api.services.UserCancellationError();
   }
   return result.length === 0 ? Option.none<string>() : Option.some(result);

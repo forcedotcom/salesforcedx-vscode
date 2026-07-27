@@ -8,6 +8,7 @@
 import type { ResolvedPackageInfo, ToolingTestClass } from '../testDiscovery/schemas';
 import * as Array from 'effect/Array';
 import * as Option from 'effect/Option';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } from '../constants';
@@ -126,7 +127,7 @@ export const getPackageKeysOrdered = (nsKey: string, packageKeys: string[]): str
  * so getPackageLabelAndId's classEntriesList[0].entries[0] is safe.
  */
 export const isNonEmptyClassEntriesList = (list: ClassEntry[] | undefined): list is Array.NonEmptyArray<ClassEntry> =>
-  list !== undefined && Array.isNonEmptyArray(list) && Array.isNonEmptyArray(list[0].entries);
+  isNotUndefined(list) && Array.isNonEmptyArray(list) && Array.isNonEmptyArray(list[0].entries);
 
 /**
  * Resolves package info for an Option-wrapped class id against the id→package map.

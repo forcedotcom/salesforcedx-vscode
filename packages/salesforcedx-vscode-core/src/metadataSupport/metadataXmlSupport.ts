@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isError, isString } from 'effect/Predicate';
+import { isError, isNotUndefined, isString } from 'effect/Predicate';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getCoreChannelService } from '../channels';
@@ -97,7 +97,7 @@ export class MetadataXmlSupport {
       // current User-level value is absent or below the minimum heap threshold.
       const vmArgsInspect = config.inspect<string>('server.vmargs');
       const updatedVmArgs = ensureMinXmlHeap(vmArgsInspect?.globalValue);
-      if (updatedVmArgs !== undefined) {
+      if (isNotUndefined(updatedVmArgs)) {
         await config.update('server.vmargs', updatedVmArgs, vscode.ConfigurationTarget.Global);
         channel.appendLine(nls.localize('metadata_xml_vmargs_configured'));
       }

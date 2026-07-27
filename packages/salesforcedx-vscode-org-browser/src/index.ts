@@ -9,7 +9,7 @@ import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined, isString } from 'effect/Predicate';
+import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
@@ -118,7 +118,7 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
 
   // Reconstruct filter value with regex delimiters if needed
   picker.value = previousTypeFilter
-    ? previousComponentFilter !== undefined
+    ? isNotUndefined(previousComponentFilter)
       ? previousTypeIsRegex
         ? `/${previousTypeFilter}/:${previousComponentIsRegex ? `/${previousComponentFilter}/` : previousComponentFilter}`
         : `${previousTypeFilter}:${previousComponentIsRegex ? `/${previousComponentFilter}/` : previousComponentFilter}`
@@ -165,7 +165,7 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
             vscode.commands.executeCommand(
               'setContext',
               'sf:orgBrowser.textFilterActive',
-              typeFilter !== undefined || componentFilter !== undefined
+              isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
             )
           )
         ],
@@ -197,7 +197,7 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
             vscode.commands.executeCommand(
               'setContext',
               'sf:orgBrowser.textFilterActive',
-              previousTypeFilter !== undefined || previousComponentFilter !== undefined
+              isNotUndefined(previousTypeFilter) || isNotUndefined(previousComponentFilter)
             )
           );
         }
@@ -219,7 +219,7 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
             vscode.commands.executeCommand(
               'setContext',
               'sf:orgBrowser.textFilterActive',
-              typeFilter !== undefined || componentFilter !== undefined
+              isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
             )
           );
         })
@@ -262,7 +262,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   // --- Filter state: persistence, migration, and initial context keys ---
   // Legacy migration: convert old viewMode to boolean flags
   const legacyViewMode = context.workspaceState.get<string>('orgBrowser.viewMode');
-  if (legacyViewMode !== undefined) {
+  if (isNotUndefined(legacyViewMode)) {
     const migratedShowLocal = legacyViewMode !== 'orgOnly';
     const migratedShowOrg = legacyViewMode !== 'localOnly';
     yield* Effect.all(
@@ -285,7 +285,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   treeProvider.setShowLocal(showLocal);
   treeProvider.setShowOrg(showOrg);
-  if (typeFilter !== undefined || componentFilter !== undefined) {
+  if (isNotUndefined(typeFilter) || isNotUndefined(componentFilter)) {
     treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
   }
 
@@ -298,7 +298,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         vscode.commands.executeCommand(
           'setContext',
           'sf:orgBrowser.textFilterActive',
-          typeFilter !== undefined || componentFilter !== undefined
+          isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
         )
       ),
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', false))
@@ -399,7 +399,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   // Auto-open walkthrough on first run
   const lastVersion = context.globalState.get<string>('orgBrowser.walkthroughVersion');
-  if (lastVersion === undefined) {
+  if (isUndefined(lastVersion)) {
     const ver = context.extension.packageJSON?.version;
     const currentVersion = isString(ver) ? ver : '0.0.0';
     yield* Effect.promise(() => context.globalState.update('orgBrowser.walkthroughVersion', currentVersion));

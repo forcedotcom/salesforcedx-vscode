@@ -12,7 +12,7 @@ import { code2ProtocolConverter, ExtensionProviderService } from '@salesforce/ef
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import { isError, isNotUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
@@ -692,7 +692,7 @@ export const sfToggleCheckpoint = () => {
   const uri = checkpointUtils.fetchActiveEditorUri();
   const lineNumber = checkpointUtils.fetchActiveSelectionLineNumber();
 
-  if (uri && lineNumber !== undefined) {
+  if (uri && isNotUndefined(lineNumber)) {
     // While selection could be passed directly into the location instead of creating
     // a new range, it ends up creating a weird secondary icon on the line with the
     // breakpoint which is due to the start/end characters being non-zero.

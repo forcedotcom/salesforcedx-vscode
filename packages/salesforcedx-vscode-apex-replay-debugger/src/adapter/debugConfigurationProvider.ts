@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
@@ -54,10 +54,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
     config.logFile = config.logFile ?? '${command:AskForLogFileName}';
-    if (config.stopOnEntry === undefined) {
+    if (isUndefined(config.stopOnEntry)) {
       config.stopOnEntry = true;
     }
-    if (config.trace === undefined) {
+    if (isUndefined(config.trace)) {
       config.trace = true;
     }
 

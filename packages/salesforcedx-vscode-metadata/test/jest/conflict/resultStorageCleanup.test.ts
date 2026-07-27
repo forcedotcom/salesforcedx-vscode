@@ -29,7 +29,7 @@ describe('getStaleUris', () => {
     const byKey = {
       'ApexClass:Foo': [{ sourceUri: u1 }],
       'ApexClass:Bar': [{ sourceUri: u2 }]
-    };
+    } as const;
     const stale = getStaleUris(byKey, all);
     expect(HashSet.size(stale)).toBe(0);
   });
@@ -40,7 +40,7 @@ describe('getStaleUris', () => {
     const byKey = {
       'ApexClass:Foo': [{ sourceUri: u2 }, { sourceUri: u1 }],
       'ApexClass:Bar': [{ sourceUri: u2 }]
-    };
+    } as const;
     const stale = getStaleUris(byKey, all);
     expect(HashSet.has(stale, u1)).toBe(true);
     expect(HashSet.has(stale, u2)).toBe(false);
@@ -52,7 +52,7 @@ describe('getStaleUris', () => {
     const byKey = {
       'ApexClass:Foo': [{ sourceUri: u1 }, { sourceUri: u2 }],
       'ApexClass:Bar': [{ sourceUri: u2 }, { sourceUri: u1 }]
-    };
+    } as const;
     const stale = getStaleUris(byKey, all);
     expect(HashSet.size(stale)).toBe(0);
   });
@@ -62,7 +62,7 @@ describe('getStaleUris', () => {
     const byKey = {
       'ApexClass:Foo': [{ sourceUri: u3 }],
       'ApexClass:Bar': [{ sourceUri: u2 }]
-    };
+    } as const;
     const stale = getStaleUris(byKey, all);
     expect(HashSet.has(stale, u1)).toBe(true);
     expect(HashSet.has(stale, u2)).toBe(false);

@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
-import { isString } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
@@ -26,11 +26,14 @@ const isAfterTraceFlagStart =
   (startDateByUser: Map<string, Date>) =>
   (log: { LogUserId?: string; StartTime?: Date | string }): boolean => {
     const uid = log.LogUserId;
-    const st =
-      log.StartTime === undefined ? undefined : log.StartTime instanceof Date ? log.StartTime : new Date(log.StartTime);
+    const st = isUndefined(log.StartTime)
+      ? undefined
+      : log.StartTime instanceof Date
+        ? log.StartTime
+        : new Date(log.StartTime);
     if (!uid || !st) return true;
     const userStart = startDateByUser.get(uid);
-    return userStart === undefined || st >= userStart;
+    return isUndefined(userStart) || st >= userStart;
   };
 
 const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {

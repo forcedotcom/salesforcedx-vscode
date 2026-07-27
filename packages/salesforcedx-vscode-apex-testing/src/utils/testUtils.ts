@@ -9,6 +9,7 @@ import { TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getApexTestingRuntime } from '../services/extensionProvider';
@@ -43,7 +44,7 @@ export const findMethodInSymbols = (
   // Recursively search in children (nested classes)
   return symbols
     .map(symbol => (symbol.children?.length > 0 ? findMethodInSymbols(symbol.children, methodName, uri) : undefined))
-    .find(location => location !== undefined);
+    .find(isNotUndefined);
 };
 
 /**
@@ -78,7 +79,7 @@ export const getMethodLocationsFromSymbols = async (
   return new Map<string, vscode.Location>(
     Array.dedupe(methodNames)
       .map(methodName => [methodName, findMethodInSymbols(documentSymbols ?? [], methodName, uri)] as const)
-      .filter((entry): entry is [string, vscode.Location] => entry[1] !== undefined)
+      .filter((entry): entry is [string, vscode.Location] => isNotUndefined(entry[1]))
   );
 };
 

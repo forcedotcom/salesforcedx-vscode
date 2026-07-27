@@ -9,6 +9,7 @@ import type { ConflictTreeState } from './conflictTreeProvider';
 import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 
@@ -58,7 +59,7 @@ export const handleConflictsModal = Effect.fn('handleConflictsModal')(function* 
     treeProviderFire();
     return 'continue' satisfies ConflictModalResult;
   }
-  if (choice === undefined) {
+  if (isUndefined(choice)) {
     return yield* new api.services.UserCancellationError();
   }
 

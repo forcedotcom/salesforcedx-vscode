@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNotUndefined } from 'effect/Predicate';
 import { basename, extname, join, ParsedPath, parse as parsePath, relative, resolve, sep } from 'node:path';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -104,7 +105,7 @@ export const getSfdxResource = (dirName: string, resourceName: string): string =
 export const memoize = <T>(fn: () => T): (() => T) => {
   let cache: T | undefined;
   return (): T => {
-    if (cache !== undefined) {
+    if (isNotUndefined(cache)) {
       return cache;
     }
     cache = fn();

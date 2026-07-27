@@ -49,7 +49,7 @@ export const buildClassPrompt = (classDetail: ApexOASClassDetail): string =>
     ...(classDetail.annotations.length > 0
       ? [`The class is annotated with ${getAnnotationsWithParameters(classDetail.annotations)}`]
       : []),
-    ...(classDetail.comment !== undefined
+    ...(isNotUndefined(classDetail.comment)
       ? [
           `The documentation of the class is ${classDetail.comment
             .replaceAll(/\/\*\*|\*\//g, '') // remove opening and closing comment markers

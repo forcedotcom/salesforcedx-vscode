@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { CommandExecution } from '@salesforce/salesforcedx-utils';
+import { isNotNullable, isNotUndefined } from 'effect/Predicate';
 import { Observable } from 'rxjs';
 import * as vscode from 'vscode';
 import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
@@ -75,9 +76,9 @@ class NotificationService {
     observable.subscribe(async data => {
       // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
       const exitCode = Array.isArray(data) ? data[0] : data;
-      if (exitCode !== undefined && exitCode !== null && String(exitCode) === '0') {
+      if (isNotNullable(exitCode) && String(exitCode) === '0') {
         await this.showSuccessfulExecution(executionName, channelService);
-      } else if (exitCode !== undefined && exitCode !== null && String(exitCode) !== '0') {
+      } else if (isNotNullable(exitCode) && String(exitCode) !== '0') {
         this.showFailedExecution(executionName, channelService);
       }
     });
@@ -124,7 +125,7 @@ class NotificationService {
     observable: Observable<Error | undefined>
   ) {
     observable.subscribe(data => {
-      if (data !== undefined) {
+      if (isNotUndefined(data)) {
         this.showErrorMessage(nls.localize('notification_unsuccessful_execution_text', executionName));
         channelService?.showChannelOutput();
       }

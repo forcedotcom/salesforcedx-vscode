@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import { isUndefined } from 'effect/Predicate';
 import type { RequestStatusValue } from 'salesforcedx-vscode-services';
 
 /** Retrieve finished but the org reported failures (file responses and/or retrieve status). */
@@ -39,7 +40,7 @@ export const retrieveHasErrors = Effect.fn('retrieveHasErrors')(function* (resul
     return true;
   }
   const resp = result.response;
-  if (resp === undefined) {
+  if (isUndefined(resp)) {
     return false;
   }
   if (!resp.success) {

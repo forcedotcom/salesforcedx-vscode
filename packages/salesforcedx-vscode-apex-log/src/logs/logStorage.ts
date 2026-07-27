@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import type { ExecuteAnonymousResult } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
 
@@ -41,7 +42,7 @@ export const getExecAnonLogIds = Effect.fn('LogStorage.getExecAnonLogIds')(funct
       })
     )
   );
-  return new Set(idResults.filter((id): id is string => id !== undefined));
+  return new Set(idResults.filter(isNotUndefined));
 });
 
 /** Write log body to {logId}.log, return the file URI. */
@@ -81,7 +82,7 @@ export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(function* (
   const resultWithExecutedAt: ResultWithExecutedAt = {
     ...result,
     executedAt: new Date().toISOString(),
-    ...(logId !== undefined && { logId })
+    ...(isNotUndefined(logId) && { logId })
   };
   yield* Effect.all(
     [

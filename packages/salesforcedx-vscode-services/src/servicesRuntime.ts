@@ -9,6 +9,7 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { isNotUndefined } from 'effect/Predicate';
 import { globalLayers } from './servicesLayers';
 
 // DERIVED from layer; cannot drift. Error = Layer.Error (graph build failures).
@@ -34,7 +35,7 @@ export const setServicesRuntime = (runtime: ServicesRuntime): void => {
  * Predicate for imperative boundaries. False → skip runtime-dependent work; post-activation autobatch
  * handles it once true.
  */
-export const isServicesRuntimeReady = (): boolean => servicesRuntime !== undefined;
+export const isServicesRuntimeReady = (): boolean => isNotUndefined(servicesRuntime);
 
 /**
  * Yields shared runtime or fails `ServicesRuntimeNotReady`. MUST NOT retry: runtime published after graph

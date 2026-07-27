@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import { ExtensionMode, workspace } from 'vscode';
 import { getExtensionContext } from '../vscode/extensionContext';
 
@@ -57,7 +58,7 @@ const isTelemetryExtensionConfigurationEnabled = (): boolean => {
   // Block dev mode telemetry by default to prevent polluting production data
   // Can be overridden with salesforcedx-vscode-core.telemetry.allowDevMode setting
   const extensionMode = getExtensionMode();
-  return extensionMode !== undefined && extensionMode !== ExtensionMode.Production
+  return isNotUndefined(extensionMode) && extensionMode !== ExtensionMode.Production
     ? workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.allowDevMode', false)
     : true;
 };

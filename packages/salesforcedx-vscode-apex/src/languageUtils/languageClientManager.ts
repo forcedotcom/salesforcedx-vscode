@@ -8,7 +8,7 @@ import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import { isError, isString } from 'effect/Predicate';
+import { isError, isNotUndefined, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { ApexLanguageClient } from '../apexLanguageClient';
@@ -253,7 +253,7 @@ export class LanguageClientManager {
     const statusBarInstance = this.getStatusBarInstance() ?? new ApexLSPStatusBarItem();
     this.setStatusBarInstance(statusBarInstance);
 
-    if (alc !== undefined) {
+    if (isNotUndefined(alc)) {
       statusBarInstance.restarting();
       try {
         await alc.stop();

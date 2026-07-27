@@ -10,7 +10,7 @@ import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { and, not } from 'effect/Predicate';
+import { and, isUndefined, not } from 'effect/Predicate';
 import { window } from 'vscode';
 import { nls } from '../messages';
 import { discoverTests } from '../testDiscovery/testDiscovery';
@@ -133,7 +133,7 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     Effect.tap(() => channelService.showChannel),
     Effect.tap(result =>
       Effect.sync(() =>
-        (result === undefined ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
+        (isUndefined(result) ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
           executionName
         )
       )

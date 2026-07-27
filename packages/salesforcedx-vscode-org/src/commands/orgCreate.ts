@@ -11,6 +11,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -20,10 +21,10 @@ import { isValidOrgAlias } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 const isInteger = (value: string | undefined): boolean =>
-  value !== undefined && !/\D/.test(value) && Number.isSafeInteger(Number.parseInt(value, 10));
+  isNotUndefined(value) && !/\D/.test(value) && Number.isSafeInteger(Number.parseInt(value, 10));
 
 const isIntegerInRange = (value: string | undefined, range: [number, number]): boolean =>
-  value !== undefined &&
+  isNotUndefined(value) &&
   isInteger(value) &&
   Number.parseInt(value, 10) >= range[0] &&
   Number.parseInt(value, 10) <= range[1];
@@ -146,7 +147,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
     { concurrency: 'unbounded' }
   );
   // no devhub → show the same "no dev hub" warning and cancel.
-  if (devHub === undefined) {
+  if (isUndefined(devHub)) {
     yield* Effect.promise(() => getTargetDevHubOrAlias(true)).pipe(Effect.ignore);
     return yield* new api.services.UserCancellationError({});
   }

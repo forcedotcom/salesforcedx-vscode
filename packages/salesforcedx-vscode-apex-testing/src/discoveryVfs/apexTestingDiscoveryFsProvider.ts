@@ -8,6 +8,7 @@
 // vscode FileSystemProvider contract requires synchronous FileSystemError throws
 /* eslint-disable functional/no-throw-statements */
 
+import { isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
@@ -187,7 +188,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   private getEntry(uri: URI, createDirectories: boolean): Entry | undefined {
     const walk = (current: Entry, parts: readonly string[]): Entry | undefined => {
       const [part, ...rest] = parts;
-      if (part === undefined) {
+      if (isUndefined(part)) {
         return current;
       }
       if (current.type !== vscode.FileType.Directory) {

@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNotUndefined } from 'effect/Predicate';
 import { nls } from '../messages';
 
 /** Org alias must be underscores, spaces, and alphanumerics only — rejects shell metachars, keeping CLI alias args injection-safe. */
 export const isAlphaNumSpaceString = (value: string | undefined): boolean =>
-  value !== undefined && /^\w+( *\w*)*$/.test(value);
+  isNotUndefined(value) && /^\w+( *\w*)*$/.test(value);
 
 /**
  * Org alias validator: underscores, hyphens, spaces, and alphanumerics only. Hyphens are common in org
@@ -17,7 +18,7 @@ export const isAlphaNumSpaceString = (value: string | undefined): boolean =>
  * interpolation into the CLI command; all other metachars stay rejected.
  */
 export const isValidOrgAlias = (value: string | undefined): boolean =>
-  value !== undefined && /^[\w-]+( *[\w-]*)*$/.test(value);
+  isNotUndefined(value) && /^[\w-]+( *[\w-]*)*$/.test(value);
 
 /** showInputBox validateInput for an org alias: empty = use default. */
 export const validateAliasInput = (value: string): string | undefined =>
