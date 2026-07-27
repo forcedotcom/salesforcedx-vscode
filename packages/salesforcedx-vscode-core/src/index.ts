@@ -26,7 +26,6 @@ import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
@@ -71,8 +70,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   setCoreChannel(coreChannel);
   extensionContext.subscriptions.push(coreChannel);
 
-  setNodeExtraCaCerts();
-  setSfLogLevel();
   yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
   void showTelemetryMessage(extensionContext);
 
