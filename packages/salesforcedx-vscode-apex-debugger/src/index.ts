@@ -36,6 +36,7 @@ import { nls } from './messages';
 import { AllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { getTelemetryService } from './utils/coreExtensionUtils';
+import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
 
@@ -249,7 +250,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
       commands,
       fileWatchers,
       debugHandlers,
-      vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
+      vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider()),
+      notificationModeDisposable
     );
   });
 

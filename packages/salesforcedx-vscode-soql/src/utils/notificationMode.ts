@@ -10,7 +10,7 @@ import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
 export type ProgressAndSuccessCommandKey = 'SOQL Text Editor Run Query' | 'SOQL Builder Run Query';
 export type SuccessOnlyCommandKey = 'Save Query Results';
 
-export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<
+export const { showSuccessNotification, getProgressLocation, disposable } = createNotificationModeApi<
   ProgressAndSuccessCommandKey,
   SuccessOnlyCommandKey
 >('salesforcedx-vscode-soql', 'sf-soql-notifications', 'Salesforce: SOQL Notifications');

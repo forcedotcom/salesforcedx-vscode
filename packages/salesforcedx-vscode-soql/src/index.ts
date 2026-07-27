@@ -23,6 +23,7 @@ import {
   getSoqlRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
+import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-soql';
 
@@ -42,7 +43,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
 
   yield* Effect.sync(() => {
-    context.subscriptions.push(SOQLEditorProvider.register(context));
+    context.subscriptions.push(SOQLEditorProvider.register(context), notificationModeDisposable);
     QueryDataViewService.register(context);
     registerSoqlCodeLensProvider(context);
   });

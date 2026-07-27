@@ -19,7 +19,7 @@ export type CommandKey =
   | 'Deploy on Save'
   | 'SFDX: Install Package';
 
-export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<CommandKey>(
+export const { showSuccessNotification, getProgressLocation, disposable } = createNotificationModeApi<CommandKey>(
   'salesforcedx-vscode-metadata',
   'sf-metadata-notifications',
   'Salesforce: Metadata Notifications'

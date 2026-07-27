@@ -42,10 +42,12 @@ import {
   setAllServicesLayer
 } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
+import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
+  context.subscriptions.push(notificationModeDisposable);
   await getMetadataRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 

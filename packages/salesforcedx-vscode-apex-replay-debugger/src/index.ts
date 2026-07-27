@@ -45,6 +45,7 @@ import {
 import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
+import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 export enum VSCodeWindowTypeEnum {
   Error = 1,
@@ -213,7 +214,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     checkpointsView,
     breakpointsSub,
     debugTests,
-    debugTest
+    debugTest,
+    notificationModeDisposable
   );
 
   // Telemetry

@@ -13,7 +13,7 @@ type ProgressOnlyCommandKey = 'SFDX: Create and Set Up Project for ISV Debugging
 
 export type CommandKey = ProgressAndSuccessCommandKey | ProgressOnlyCommandKey;
 
-export const { getProgressLocation, showSuccessNotification } = createNotificationModeApi<
+export const { getProgressLocation, showSuccessNotification, disposable } = createNotificationModeApi<
   ProgressAndSuccessCommandKey,
   never,
   ProgressOnlyCommandKey

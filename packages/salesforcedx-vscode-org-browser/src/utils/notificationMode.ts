@@ -9,7 +9,7 @@ import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
 
 export type CommandKey = 'Retrieve Metadata';
 
-export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<CommandKey>(
+export const { showSuccessNotification, getProgressLocation, disposable } = createNotificationModeApi<CommandKey>(
   'salesforcedx-vscode-org-browser',
   'sf-org-browser-notifications',
   'Salesforce: Org Browser Notifications'

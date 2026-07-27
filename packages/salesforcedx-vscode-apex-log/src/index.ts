@@ -43,10 +43,12 @@ import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
 import { SCHEME as TRACE_FLAGS_SCHEME, TraceFlagsContentProviderService } from './traceFlags/traceFlagsContentProvider';
+import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context, 'Salesforce Apex Log'));
+  context.subscriptions.push(notificationModeDisposable);
   await getRuntime().runPromise(activation(context).pipe(Scope.extend(extensionScope)));
 };
 

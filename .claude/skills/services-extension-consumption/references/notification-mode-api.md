@@ -7,14 +7,17 @@ Create via `createNotificationModeApi` from `@salesforce/effect-ext-utils`:
 ```typescript
 import { createNotificationModeApi, type ToastAction } from '@salesforce/effect-ext-utils';
 
-const { showSuccessNotification, getProgressLocation } = createNotificationModeApi(
+const { showSuccessNotification, getProgressLocation, disposable } = createNotificationModeApi(
   'my-extension-section',
   'my-extension.statusBar',
   'My Extension Status'
 );
+
+// Push disposable to context.subscriptions in activate() for cleanup on deactivation
+context.subscriptions.push(disposable);
 ```
 
-3 args: `extensionSection`, `statusBarId`, `statusBarName`. Type parameters control which command keys map to which notification shapes.
+3 args: `extensionSection`, `statusBarId`, `statusBarName`. Type params control which command keys map to which notification shapes.
 
 ## showSuccessNotification
 
@@ -59,6 +62,16 @@ const location = getProgressLocation(commandKey);
 
 **Returns:** `vscode.ProgressLocation.Notification` (toast modes) or `.Window` (status bar modes).
 
+## disposable
+
+Lifecycle manager for status bar item + command registration.
+
+```typescript
+context.subscriptions.push(disposable);
+```
+
+Push to `context.subscriptions` in extension's `activate()` to dispose on deactivation/reload.
+
 ## Mode types
 
 **ProgressAndSuccessMode** (4 options — both progress & success phases):
@@ -83,18 +96,21 @@ All 3 mode value sets are disjoint; factory auto-detects from raw string. Config
 ```typescript
 import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
 
-const { showSuccessNotification, getProgressLocation } = createNotificationModeApi(
+const api = createNotificationModeApi(
   'salesforcedx-vscode-metadata',
   'metadata.deploy.progress',
   'Metadata Deployment'
 );
+context.subscriptions.push(api.disposable);
+
+const { showSuccessNotification, getProgressLocation } = api;
 
 const deployCommand = Effect.fn('deploy')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const extensionApi = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* extensionApi.services.PromptService;
   const location = getProgressLocation('deploy');
 
-  const requestId = yield* api.services.DeployService.deploy().pipe(
+  const requestId = yield* extensionApi.services.DeployService.deploy().pipe(
     promptService.withProgress(nls.localize('deploying'), location),
     Effect.tap(id =>
       Effect.sync(() =>

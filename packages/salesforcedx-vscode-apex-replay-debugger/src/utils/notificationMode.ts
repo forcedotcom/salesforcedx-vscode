@@ -13,7 +13,7 @@ type ProgressOnlyCommandKey = 'Update Checkpoints in Org';
 
 export type CommandKey = ProgressAndSuccessCommandKey | ProgressOnlyCommandKey;
 
-export const { showSuccessNotification, getProgressLocation } = createNotificationModeApi<
+export const { showSuccessNotification, getProgressLocation, disposable } = createNotificationModeApi<
   ProgressAndSuccessCommandKey,
   never,
   ProgressOnlyCommandKey

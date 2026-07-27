@@ -29,6 +29,7 @@ import {
 } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
+import { disposable as notificationModeDisposable } from './utils/notificationMode';
 import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from './utils/wildcardPattern';
 
 /**
@@ -245,6 +246,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
+  yield* Effect.sync(() => context.subscriptions.push(notificationModeDisposable));
 
   // get a connection to initiate the ref
   yield* api.services.ConnectionService.getConnection();

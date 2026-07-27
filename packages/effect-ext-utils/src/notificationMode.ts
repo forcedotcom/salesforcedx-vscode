@@ -14,6 +14,7 @@ export type ToastAction = { label: string; run: () => void | Promise<void> };
 
 type TransientState = {
   item: vscode.StatusBarItem;
+  commandDisposable: vscode.Disposable;
   timeout: ReturnType<typeof setTimeout> | undefined;
   pendingToast: { message: string; actions: ToastAction[] } | undefined;
 };
@@ -28,7 +29,7 @@ const getTransientStatusBar = (statusBarId: string, statusBarName: string): vsco
   item.name = statusBarName;
 
   const commandId = `${statusBarId}.showToast`;
-  vscode.commands.registerCommand(commandId, async () => {
+  const commandDisposable = vscode.commands.registerCommand(commandId, async () => {
     const state = transientItems.get(statusBarId);
     if (!state?.pendingToast) return;
     const { message, actions } = state.pendingToast;
@@ -38,7 +39,7 @@ const getTransientStatusBar = (statusBarId: string, statusBarName: string): vsco
   });
 
   item.command = commandId;
-  transientItems.set(statusBarId, { item, timeout: undefined, pendingToast: undefined });
+  transientItems.set(statusBarId, { item, commandDisposable, timeout: undefined, pendingToast: undefined });
   return item;
 };
 
@@ -173,6 +174,7 @@ type NotificationModeApi<CommandKey extends string> = {
  *
  * - `showSuccessNotification` accepts PAS + SuccessOnly keys (not ProgressOnly — no success phase).
  * - `getProgressLocation` accepts PAS + ProgressOnly keys (not SuccessOnly — no progress phase).
+ * - `disposable` must be pushed to `context.subscriptions` in the extension's `activate` function to dispose the status bar item and command registration on deactivation/reload.
  */
 export type CombinedNotificationModeApi<
   ProgressAndSuccessKey extends string = never,
@@ -181,6 +183,7 @@ export type CombinedNotificationModeApi<
 > = {
   showSuccessNotification: NotificationModeApi<ProgressAndSuccessKey | SuccessOnlyKey>['showSuccessNotification'];
   getProgressLocation: NotificationModeApi<ProgressAndSuccessKey | ProgressOnlyKey>['getProgressLocation'];
+  disposable: vscode.Disposable;
 };
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
@@ -230,6 +233,16 @@ export const createNotificationModeApi = <
       return mode === 'progressToastSuccessToast' || mode === 'progressToastSuccessOff'
         ? vscode.ProgressLocation.Notification
         : vscode.ProgressLocation.Window;
+    },
+    disposable: {
+      dispose: () => {
+        const state = transientItems.get(statusBarId);
+        if (state) {
+          state.commandDisposable.dispose();
+          state.item.dispose();
+          transientItems.delete(statusBarId);
+        }
+      }
     }
   };
 };

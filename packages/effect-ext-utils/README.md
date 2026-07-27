@@ -39,11 +39,14 @@ Signature mirrors `Effect.annotateCurrentSpan` — both `(key, value)` and recor
 ```typescript
 import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
 
-const { showSuccessNotification, getProgressLocation } = createNotificationModeApi(
+const { showSuccessNotification, getProgressLocation, disposable } = createNotificationModeApi(
   'my-extension-section',
   'my-extension.statusBar',
   'My Extension Status'
 );
+
+// Push disposable to context.subscriptions in activate() to clean up on deactivation
+context.subscriptions.push(disposable);
 
 // Get progress location for commands with a progress phase
 const location = getProgressLocation('progressCommandKey');
@@ -65,6 +68,7 @@ Creates a notification API that auto-detects the command type (progress+success,
 Returns API with:
 - `showSuccessNotification(command, message, forceShow?, actions?)` — accepts progress+success and success-only command keys
 - `getProgressLocation(command)` — accepts progress+success and progress-only command keys
+- `disposable` — manages status bar item and command registration lifecycle; push to `context.subscriptions` in `activate()` to dispose on deactivation/reload
 
 Mode values (auto-detected from settings):
 - **Progress+Success**: `progressToastSuccessToast`, `progressToastSuccessOff`, `progressStatusBarSuccessStatusBar`, `progressStatusBarSuccessOff`
