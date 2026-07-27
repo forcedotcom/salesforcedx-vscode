@@ -3,11 +3,23 @@ description: Restore the Playwright browser registry, install chromium (browsers
 runs:
   using: composite
   steps:
+    - name: Resolve registry dir and cache key
+      id: vars
+      shell: bash
+      run: |
+        case "$RUNNER_OS" in
+          Windows) dir='~\AppData\Local\ms-playwright' ;;
+          macOS) dir='~/Library/Caches/ms-playwright' ;;
+          *) dir='~/.cache/ms-playwright' ;;
+        esac
+        version=$(node -p "require('playwright-core/package.json').version")
+        echo "path=$dir" >> "$GITHUB_OUTPUT"
+        echo "key=playwright-$RUNNER_OS-$RUNNER_ARCH-$version" >> "$GITHUB_OUTPUT"
     - uses: actions/cache/restore@v4
       id: restore
       with:
-        path: ${{ runner.os == 'Windows' && '~\AppData\Local\ms-playwright' || runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
-        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+        path: ${{ steps.vars.outputs.path }}
+        key: ${{ steps.vars.outputs.key }}
     - name: Install OS deps (cache hit)
       if: steps.restore.outputs.cache-hit == 'true'
       uses: salesforcecli/github-workflows/.github/actions/retry@main
@@ -25,5 +37,5 @@ runs:
     - uses: actions/cache/save@v4
       if: steps.restore.outputs.cache-hit != 'true'
       with:
-        path: ${{ runner.os == 'Windows' && '~\AppData\Local\ms-playwright' || runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
-        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+        path: ${{ steps.vars.outputs.path }}
+        key: ${{ steps.vars.outputs.key }}
