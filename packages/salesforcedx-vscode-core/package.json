@@ -265,24 +265,6 @@
           "default": false,
           "description": "%enable_sobject_refresh_on_startup_description%"
         },
-        "salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS": {
-          "type": "string",
-          "default": null,
-          "description": "%node_extra_ca_certs_description%"
-        },
-        "salesforcedx-vscode-core.SF_LOG_LEVEL": {
-          "type": "string",
-          "enum": [
-            "trace",
-            "debug",
-            "info",
-            "warn",
-            "error",
-            "fatal"
-          ],
-          "default": "fatal",
-          "description": "%sf_log_level_description%"
-        },
         "salesforcedx-vscode-core.telemetry-tag": {
           "type": "string",
           "default": null,
