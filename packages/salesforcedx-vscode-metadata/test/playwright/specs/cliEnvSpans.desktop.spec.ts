@@ -21,17 +21,16 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   isDesktop,
+  readAllSpanRows,
   saveScreenshot,
   upsertSettings,
   verifyCommandExists,
+  waitForSpanRows,
   waitForVSCodeWorkbench,
-  NOTIFICATION_LIST_ITEM
+  NOTIFICATION_LIST_ITEM,
+  type SpanRow
 } from '@salesforce/playwright-vscode-ext';
-import * as Data from 'effect/Data';
-import * as Duration from 'effect/Duration';
-import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
-import * as Schedule from 'effect/Schedule';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -39,30 +38,8 @@ import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 import { desktopTest as test } from '../fixtures';
 
-const SPANS_DIR = path.join(os.homedir(), '.sf', 'vscode-spans');
-
 // every key an `sf ` exec should carry once telemetry is off (the fixture sets telemetry.telemetryLevel: 'off')
 const GATHERED_ENV_KEYS = ['SF_LOG_LEVEL', 'SF_DISABLE_TELEMETRY', 'SF_JSON_TO_STDOUT', 'FORCE_COLOR', 'SFDX_TOOL'];
-
-type SpanRow = { kind?: string; name?: string; startTimeUnixNano?: string; attributes?: Record<string, unknown> };
-
-// Each extension bundles its own services SDK and writes its OWN timestamped jsonl, so read the union of
-// all of them rather than guessing a single newest file.
-const readAllSpanRows = async (): Promise<SpanRow[]> => {
-  const entries = await fs.readdir(SPANS_DIR).catch(() => [] as string[]);
-  const perFile = await Promise.all(
-    entries
-      .filter(name => name.endsWith('.jsonl'))
-      .map(async file => {
-        const contents = await fs.readFile(path.join(SPANS_DIR, file), 'utf-8').catch(() => '');
-        return contents
-          .split('\n')
-          .filter(Boolean)
-          .map(line => JSON.parse(line) as SpanRow);
-      })
-  );
-  return perFile.flat();
-};
 
 /** simpleExec spans for one command, restricted to this window by start time (startTimeUnixNano is epoch
  * nanos). The spans dir is shared with earlier runs AND with parallel workers, so assert "some in-window
@@ -83,22 +60,6 @@ const envKeysOf = (row: SpanRow): readonly string[] => {
   const keys = row.attributes?.envKeys;
   return isString(keys) ? (JSON.parse(keys) as string[]) : Array.isArray(keys) ? keys.map(String) : [];
 };
-
-class SpansNotReadyError extends Data.TaggedError('SpansNotReadyError')<{ readonly message: string }> {}
-
-/** Poll `read` until `predicate` holds. BatchSpanProcessor buffers, so the rows appear a flush interval
- * after the command finishes. */
-const waitForRows = (read: () => Promise<SpanRow[]>, predicate: (rows: SpanRow[]) => boolean, message: string) =>
-  Effect.runPromise(
-    Effect.tryPromise({
-      try: async () => {
-        const rows = await read();
-        if (!predicate(rows)) throw new SpansNotReadyError({ message });
-        return rows;
-      },
-      catch: () => new SpansNotReadyError({ message })
-    }).pipe(Effect.retry(Schedule.spaced(Duration.seconds(1))), Effect.timeout(Duration.seconds(90)))
-  );
 
 const nowNanos = (): bigint => BigInt(Date.now()) * 1_000_000n;
 
@@ -125,13 +86,13 @@ const nowNanos = (): bigint => BigInt(Date.now()) * 1_000_000n;
   });
 
   const firstRunSfRows = await test.step('the sf child gets the gathered env; the non-sf child gets none', async () => {
-    const sfRows = await waitForRows(
+    const sfRows = await waitForSpanRows(
       simpleExecRowsSince(firstRun, 'sf --version'),
       rows => rows.some(row => GATHERED_ENV_KEYS.every(key => envKeysOf(row).includes(key))),
       `an sf --version simpleExec span whose envKeys include ${GATHERED_ENV_KEYS.join(', ')}`
     );
 
-    const javaRows = await waitForRows(
+    const javaRows = await waitForSpanRows(
       simpleExecRowsSince(firstRun, 'java --version'),
       rows => rows.length > 0,
       'a java --version simpleExec span'
@@ -170,13 +131,18 @@ const nowNanos = (): bigint => BigInt(Date.now()) * 1_000_000n;
     await saveScreenshot(page, 'cliEnvSpans.02-setting-written.png');
   });
 
-  await test.step('the next command picks the new setting up with no reload', async () => {
-    const secondRun = nowNanos();
-    await executeCommandWithCommandPalette(page, packageNls.project_info_text);
-    await waitForRows(
-      simpleExecRowsSince(secondRun, 'sf --version'),
-      rows => rows.some(row => envKeysOf(row).includes('NODE_EXTRA_CA_CERTS')),
-      'an sf --version simpleExec span whose envKeys include NODE_EXTRA_CA_CERTS'
-    );
-  });
+  // key presence can only prove pickup when it was absent before: an ambient NODE_EXTRA_CA_CERTS already
+  // puts the key on every span (the setting falls back to it), which would make this assertion vacuous. The
+  // value can't be asserted instead — simpleExec annotates env keys only, never values.
+  if (!ambientCaCerts) {
+    await test.step('the next command picks the new setting up with no reload', async () => {
+      const secondRun = nowNanos();
+      await executeCommandWithCommandPalette(page, packageNls.project_info_text);
+      await waitForSpanRows(
+        simpleExecRowsSince(secondRun, 'sf --version'),
+        rows => rows.some(row => envKeysOf(row).includes('NODE_EXTRA_CA_CERTS')),
+        'an sf --version simpleExec span whose envKeys include NODE_EXTRA_CA_CERTS'
+      );
+    });
+  }
 });

@@ -13,7 +13,8 @@ import {
   INSTANCE_URL_KEY,
   ACCESS_TOKEN_KEY,
   API_VERSION_KEY,
-  RETRIEVE_ON_LOAD_KEY
+  RETRIEVE_ON_LOAD_KEY,
+  SFDX_CORE_SECTION
 } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 
@@ -209,7 +210,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     });
 
     const getInternalDev = Effect.fn('SettingsService.getInternalDev')(function* () {
-      return (yield* getValue<boolean>('salesforcedx-vscode-core', 'internal-development', false)) ?? false;
+      return (yield* getValue<boolean>(SFDX_CORE_SECTION, 'internal-development', false)) ?? false;
     });
 
     return {

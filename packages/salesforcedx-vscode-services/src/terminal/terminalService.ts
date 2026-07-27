@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Cause from 'effect/Cause';
+import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isError, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { SFDX_CORE_SECTION } from '../constants';
@@ -30,6 +33,10 @@ const execErrorMessage = (e: unknown): string => {
   return trimmedStdout && !e.message.includes(trimmedStdout) ? `${e.message}\n${trimmedStdout}` : e.message;
 };
 
+/** Nothing about assembling the CLI env may fail a CLI command: log the cause at debug and fall back. */
+const safeDefault = <A>(fallback: A) =>
+  Effect.catchAllCause((cause: Cause.Cause<unknown>) => Effect.logDebug(cause).pipe(Effect.as(fallback)));
+
 export class TerminalService extends Effect.Service<TerminalService>()('TerminalService', {
   accessors: false,
   dependencies: [ChildProcess.Default, ConfigService.Default, SettingsService.Default],
@@ -42,45 +49,38 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
      * with no window reload. NODE_EXTRA_CA_CERTS falls back to the ambient env var and is omitted entirely
      * when neither is set (its manifest default is null, and an empty value breaks node's TLS bootstrap).
      * A settings read must never fail a CLI command, so any failure folds to "no extra env". */
-    const sfCliSettingsEnv = Effect.fn('TerminalService.sfCliSettingsEnv')(
-      function* () {
-        // the default arg handles an unset value; the `??` only narrows getValue's `T | undefined` return
-        const logLevel =
-          (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'SF_LOG_LEVEL', 'fatal')) ?? 'fatal';
-        const caCerts =
-          (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'NODE_EXTRA_CA_CERTS')) ??
-          process.env.NODE_EXTRA_CA_CERTS;
-        const result: Record<string, string> = {
-          SF_LOG_LEVEL: logLevel,
-          ...(caCerts ? { NODE_EXTRA_CA_CERTS: caCerts } : {})
-        };
-        return result;
-      },
-      Effect.catchAllCause(cause => Effect.logDebug(cause).pipe(Effect.as<Record<string, string>>({})))
-    );
+    const sfCliSettingsEnv = Effect.fn('TerminalService.sfCliSettingsEnv')(function* () {
+      // the default arg handles an unset value; the `??` only narrows getValue's `T | undefined` return
+      const logLevel = (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'SF_LOG_LEVEL', 'fatal')) ?? 'fatal';
+      const caCerts =
+        (yield* settingsService.getValue<string>(SFDX_CORE_SECTION, 'NODE_EXTRA_CA_CERTS')) ??
+        Option.getOrUndefined(yield* Config.string('NODE_EXTRA_CA_CERTS').pipe(Config.option));
+      const result: Record<string, string> = {
+        SF_LOG_LEVEL: logLevel,
+        ...(caCerts ? { NODE_EXTRA_CA_CERTS: caCerts } : {})
+      };
+      return result;
+    }, safeDefault<Record<string, string>>({}));
 
     /** VS Code's telemetry switches: the editor-wide `telemetry.telemetryLevel` and the Salesforce-specific
-     * `salesforcedx-vscode-core.telemetry.enabled`. Either one off means off (mirrors the extension-side
-     * check in utils-vscode's TelemetryService). A settings read must never fail a CLI command. */
-    const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(
-      function* () {
-        const level = yield* settingsService.getValue<string>('telemetry', 'telemetryLevel', 'all');
-        const coreEnabled = yield* settingsService.getValue<boolean>(SFDX_CORE_SECTION, 'telemetry.enabled', true);
-        return level === 'off' || coreEnabled === false;
-      },
-      Effect.catchAllCause(cause => Effect.logDebug(cause).pipe(Effect.as(false)))
-    );
+     * `salesforcedx-vscode-core.telemetry.enabled`. Either one off means off. A settings read must never fail
+     * a CLI command.
+     * Duplicated by necessity: vscode-services cannot depend on utils-vscode, so keep this in sync with
+     * utils-vscode/src/services/telemetry.ts `isTelemetryExtensionConfigurationEnabled` (same two settings,
+     * negated spelling). */
+    const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(function* () {
+      const level = yield* settingsService.getValue<string>('telemetry', 'telemetryLevel', 'all');
+      const coreEnabled = yield* settingsService.getValue<boolean>(SFDX_CORE_SECTION, 'telemetry.enabled', true);
+      return level === 'off' || coreEnabled === false;
+    }, safeDefault(false));
 
     /** Whether to hand the CLI an SF_DISABLE_TELEMETRY opt-out. VS Code's own switches win outright, which
      * also skips the sf-config read; otherwise the CLI's `disable-telemetry` config decides. A telemetry
      * opt-out lookup (no workspace open, aggregator create/reload defect) must never fail a CLI command, so
      * any failure folds to "telemetry allowed" — same as the legacy isCLITelemetryAllowed catch. */
-    const isTelemetryDisabled = Effect.fn('TerminalService.isTelemetryDisabled')(
-      function* () {
-        return (yield* isVscodeTelemetryOff()) ? true : yield* configService.isCliTelemetryDisabled();
-      },
-      Effect.catchAllCause(cause => Effect.logDebug(cause).pipe(Effect.as(false)))
-    );
+    const isTelemetryDisabled = Effect.fn('TerminalService.isTelemetryDisabled')(function* () {
+      return (yield* isVscodeTelemetryOff()) ? true : yield* configService.isCliTelemetryDisabled();
+    }, safeDefault(false));
 
     /** Execute a shell command and parse its stdout. Desktop-only; fails with TerminalServiceError on web. stdout is trimmed before parsing.
      * `timeout` (default 30s) bounds the child process; pass a larger Duration for long-running commands (e.g. org delete).
