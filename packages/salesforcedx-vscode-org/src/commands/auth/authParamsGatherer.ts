@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { validateAliasInput } from '../../util/orgAlias';
@@ -41,7 +42,7 @@ const inputAlias = async (): Promise<string | undefined> =>
 export const promptForAlias = Effect.fn('AuthParamsGatherer.promptForAlias')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const value = yield* Effect.promise(inputAlias).pipe(
-    Effect.flatMap(v => (v === undefined ? new api.services.UserCancellationError({}) : Effect.succeed(v)))
+    Effect.flatMap(v => (isUndefined(v) ? new api.services.UserCancellationError({}) : Effect.succeed(v)))
   );
   return value || DEFAULT_ALIAS;
 });
@@ -119,7 +120,7 @@ export const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function*
   readonly instanceUrl: string | undefined;
   readonly reauthAliasOrUsername: string | undefined;
 }) {
-  const skipAlias = params.instanceUrl !== undefined;
+  const skipAlias = isNotUndefined(params.instanceUrl);
 
   // allow passing in the instance url programmatically instead of via quick pick
   const instanceUrl = params.instanceUrl ?? (yield* pickInstanceUrl());
