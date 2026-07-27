@@ -295,6 +295,9 @@ export class TelemetryService implements TelemetryServiceInterface {
     return await this.cliAllowsTelemetryPromise;
   }
 
+  /** Duplicated by necessity in vscode-services (salesforcedx-vscode-services/src/terminal/terminalService.ts
+   * `isVscodeTelemetryOff`, which gates SF_DISABLE_TELEMETRY for `sf ` execs) because that package cannot depend
+   * on utils-vscode — keep the two settings checked here in sync with it. */
   public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
       workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
