@@ -94,7 +94,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-core -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-core -- --reporter=html,github
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -143,7 +143,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-core -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-core -- --reporter=html,github
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -153,7 +153,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-core -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-core -- --last-failed --reporter=html,github
 
       - name: Copy span files to test-results
         if: always()

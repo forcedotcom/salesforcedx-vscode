@@ -75,7 +75,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html,github
 
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
@@ -97,7 +97,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html,github
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
@@ -105,7 +105,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc -- --last-failed --reporter=html,github
 
       - name: Copy span files to test-results
         if: always()
@@ -174,7 +174,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html headless
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html,github headless
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -195,14 +195,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html headless
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html,github headless
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html headless
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html,github headless
 
       - name: Copy span files to test-results
         if: always()
@@ -271,7 +271,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html,github lwcRunTests
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -292,14 +292,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html,github lwcRunTests
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html,github lwcRunTests
 
       - name: Copy span files to test-results
         if: always()
@@ -368,7 +368,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html,github lwcDebugTests
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -389,14 +389,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html,github lwcDebugTests
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html,github lwcDebugTests
 
       - name: Copy span files to test-results
         if: always()
