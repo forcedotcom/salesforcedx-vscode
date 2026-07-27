@@ -1,0 +1,29 @@
+name: Cache Playwright Browsers
+description: Restore the Playwright browser registry, install chromium (browsers + OS deps on miss, OS deps only on hit), save after install
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache/restore@v4
+      id: restore
+      with:
+        path: ${{ runner.os == 'Windows' && '~\AppData\Local\ms-playwright' || runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
+        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+    - name: Install OS deps (cache hit)
+      if: steps.restore.outputs.cache-hit == 'true'
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        max_attempts: 3
+        command: npx playwright install-deps chromium
+        retry_wait_seconds: 60
+    - name: Install browsers and OS deps (cache miss)
+      if: steps.restore.outputs.cache-hit != 'true'
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        max_attempts: 3
+        command: npx playwright install chromium --with-deps
+        retry_wait_seconds: 60
+    - uses: actions/cache/save@v4
+      if: steps.restore.outputs.cache-hit != 'true'
+      with:
+        path: ${{ runner.os == 'Windows' && '~\AppData\Local\ms-playwright' || runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
+        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
