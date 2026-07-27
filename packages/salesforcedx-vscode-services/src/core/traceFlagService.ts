@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as ParseResult from 'effect/ParseResult';
-import { isNotUndefined, isString } from 'effect/Predicate';
+import { isString } from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -138,7 +138,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
         ).pipe(Effect.map(r => r.records));
 
       // Identify cache misses; group by prefix for batched SOQL.
-      const missesByPrefix = Object.groupBy(
+      const missesByPrefix = Arr.groupBy(
         (yield* Effect.all(
           entitiesToResolve.map(id => idNameCache.contains(id).pipe(Effect.map(hit => [id, hit] as const))),
           { concurrency: 'unbounded' }
@@ -147,9 +147,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       );
 
       // Query only the misses, per prefix; populate cache as rows arrive.
-      yield* Stream.fromIterable(
-        Object.entries(missesByPrefix).filter((entry): entry is [string, string[]] => isNotUndefined(entry[1]))
-      ).pipe(
+      yield* Stream.fromIterable(Object.entries(missesByPrefix)).pipe(
         Stream.mapConcatEffect(([prefix, ids]) =>
           Match.value(prefix).pipe(
             Match.when('005', () =>

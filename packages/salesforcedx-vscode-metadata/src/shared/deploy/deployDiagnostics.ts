@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { FileResponseFailure } from '@salesforce/source-deploy-retrieve';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
@@ -81,14 +82,14 @@ export const applyDeployDiagnostics = Effect.fn('applyDeployDiagnostics')(functi
     { concurrency: 'unbounded' }
   );
 
-  const byUri = Object.groupBy(entries, ([uri]) => uri.toString());
+  const byUri = Arr.groupBy(entries, ([uri]) => uri.toString());
   const toEntry = (uri: URI, diags: vscode.Diagnostic[]): [URI, vscode.Diagnostic[]] => [uri, diags];
   const diagnosticMap = new Map<URI, vscode.Diagnostic[]>(
     Object.values(byUri).map(pairs => {
-      const [uri] = pairs![0];
+      const [uri] = pairs[0];
       return toEntry(
         uri,
-        pairs!.map(([, d]) => d)
+        pairs.map(([, d]) => d)
       );
     })
   );
