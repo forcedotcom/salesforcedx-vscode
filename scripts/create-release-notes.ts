@@ -55,7 +55,7 @@ function getPreviousRemoteReleaseBranch(): string {
 /**
  * Confirms the release branch is in the correct format
  */
-function validateReleaseBranch(releaseBranch): void {
+function validateReleaseBranch(releaseBranch: string): void {
   if (!(releaseBranch && constants.RELEASE_REGEX.exec(releaseBranch))) {
     console.log(`Invalid release '${releaseBranch}'. Expected format [xx.yy.z].`);
     process.exit(1);

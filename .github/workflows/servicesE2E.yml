@@ -79,7 +79,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-services -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-services
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -127,7 +127,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-services -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-services
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -136,7 +136,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-services -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-services -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -152,6 +152,7 @@ jobs:
           name: playwright-report-web
           path: packages/salesforcedx-vscode-services/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -160,6 +161,7 @@ jobs:
           name: playwright-test-results-web
           path: packages/salesforcedx-vscode-services/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'

@@ -82,7 +82,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-apex-testing
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -138,7 +138,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-apex-testing
 
       - name: Recreate non-tracking scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -169,7 +169,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-apex-testing -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-apex-testing -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -185,6 +185,7 @@ jobs:
           name: playwright-report-apex-testing-web
           path: packages/salesforcedx-vscode-apex-testing/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -193,6 +194,7 @@ jobs:
           name: playwright-test-results-apex-testing-web
           path: packages/salesforcedx-vscode-apex-testing/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'
@@ -257,7 +259,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -313,7 +315,7 @@ jobs:
           VSCODE_DESKTOP: 1
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing
 
       - name: Recreate non-tracking scratch org before retry
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -344,7 +346,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex-testing -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -360,6 +362,7 @@ jobs:
           name: playwright-report-apex-testing-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex-testing/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -368,6 +371,7 @@ jobs:
           name: playwright-test-results-apex-testing-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex-testing/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'

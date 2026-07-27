@@ -91,7 +91,7 @@ jobs:
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-debugger -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-apex-debugger
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -140,7 +140,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-debugger -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-apex-debugger
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -150,7 +150,7 @@ jobs:
           VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-apex-debugger -- --last-failed --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-apex-debugger -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -166,6 +166,7 @@ jobs:
           name: playwright-report-apex-debugger-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex-debugger/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -174,6 +175,7 @@ jobs:
           name: playwright-test-results-apex-debugger-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex-debugger/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'
