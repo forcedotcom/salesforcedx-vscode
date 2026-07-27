@@ -7,17 +7,8 @@
 
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-
-/** Promise + resolver pair so the test can await the fire-and-forget fiber instead of guessing a delay. */
-const createDeferred = () => {
-  const parts = {} as { resolve: () => void; promise: Promise<void> };
-  parts.promise = new Promise<void>(resolve => {
-    parts.resolve = resolve;
-  });
-  return parts;
-};
 
 /**
  * Load the bridge from a fresh module graph with a mock AllServicesLayer already set.
@@ -26,7 +17,8 @@ const createDeferred = () => {
  */
 const loadBridgeWithMockLayer = () => {
   const calls: string[] = [];
-  const shown = createDeferred();
+  // Resolver so the test awaits the fire-and-forget fiber instead of guessing a delay.
+  const { promise: shown, resolve: channelShown } = Promise.withResolvers<void>();
   const loaded = {} as { appendAndShowChannelOutput: (message: string) => void };
 
   jest.isolateModules(() => {
@@ -37,11 +29,19 @@ const loadBridgeWithMockLayer = () => {
     const { setAllServicesLayer } =
       require('../../../src/services/extensionProvider') as typeof import('../../../src/services/extensionProvider');
 
+    const channel = {
+      appendLine: jest.fn(),
+      clear: jest.fn(),
+      show: jest.fn((preserveFocus?: boolean) => {
+        calls.push(`show:${preserveFocus}`);
+        channelShown();
+      })
+    } as unknown as vscode.OutputChannel;
+
     const channelService = new ChannelService({
-      getChannel: Effect.sync(() => ({ appendLine: jest.fn(), clear: jest.fn() }) as unknown as vscode.OutputChannel),
+      getChannel: Effect.sync(() => channel),
       showChannel: Effect.sync(() => {
-        calls.push('show');
-        shown.resolve();
+        calls.push('showChannel');
       }),
       clearChannel: Effect.void,
       appendToChannel: (message: string) =>
@@ -68,21 +68,23 @@ const loadBridgeWithMockLayer = () => {
 };
 
 describe('appendAndShowChannelOutput', () => {
-  it('does not throw when no AllServicesLayer has been set', () => {
+  it('creates no channel and does not throw when no AllServicesLayer has been set', () => {
     jest.isolateModules(() => {
       const { appendAndShowChannelOutput } = require('../../../src/channels') as typeof import('../../../src/channels');
       // Channel output is fire-and-forget: pre-activation (or in unit tests) there is no layer/runtime,
-      // and writeToDebuggerOutputWindow's callers must not see that as an exception.
+      // and writeToDebuggerOutputWindow's callers must not see that as an exception or a stray channel.
       expect(() => appendAndShowChannelOutput('hello')).not.toThrow();
+      expect(vscode.window.createOutputChannel).not.toHaveBeenCalled();
     });
   });
 
-  it('appends the message to the services channel, then reveals it', async () => {
+  it('appends the message to the services channel, then reveals it without stealing focus', async () => {
     const { appendAndShowChannelOutput, calls, shown } = loadBridgeWithMockLayer();
 
     appendAndShowChannelOutput('checkpoint failed');
-    await shown.promise;
+    await shown;
 
-    expect(calls).toEqual(['append:checkpoint failed', 'show']);
+    // show(true) keeps keyboard focus in the editor, matching the legacy showChannelOutput()
+    expect(calls).toEqual(['append:checkpoint failed', 'show:true']);
   });
 });
