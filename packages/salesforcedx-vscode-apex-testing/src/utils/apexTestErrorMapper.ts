@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError, isRecord, isString } from 'effect/Predicate';
+import { isError, isNotUndefined, isRecord, isString } from 'effect/Predicate';
 import { nls } from '../messages';
 
 /** Common Salesforce API / connection error patterns that should be mapped to user-friendly messages */
@@ -52,7 +52,7 @@ const getRawMessage = (error: unknown): string => {
   }
   if (isRecord(error)) {
     const msg = getMessageFromObject(error);
-    if (msg !== undefined) {
+    if (isNotUndefined(msg)) {
       return msg;
     }
     // Salesforce API often returns { body: [{ errorCode, message }] }
@@ -61,14 +61,14 @@ const getRawMessage = (error: unknown): string => {
       const first: unknown = body[0];
       if (isRecord(first)) {
         const firstMsg = getMessageFromObject(first);
-        if (firstMsg !== undefined) {
+        if (isNotUndefined(firstMsg)) {
           return firstMsg;
         }
       }
     }
     if (isRecord(body)) {
       const bodyMsg = getMessageFromObject(body);
-      if (bodyMsg !== undefined) {
+      if (isNotUndefined(bodyMsg)) {
         return bodyMsg;
       }
     }

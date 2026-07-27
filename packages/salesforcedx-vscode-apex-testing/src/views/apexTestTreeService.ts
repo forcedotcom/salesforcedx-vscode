@@ -374,6 +374,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const resultText = yield* api.services.FsService.readFile(testResultUri).pipe(
         Effect.catchTag('FsServiceError', () => Effect.void)
       );
+      // `void` (from Effect.void) is not narrowed by Predicate.isUndefined, so compare directly
       if (resultText === undefined) {
         return new Set<string>();
       }

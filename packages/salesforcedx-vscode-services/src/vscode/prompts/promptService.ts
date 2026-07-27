@@ -10,7 +10,7 @@ import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as Exit from 'effect/Exit';
-import { isString } from 'effect/Predicate';
+import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -48,7 +48,7 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           params.uris,
           uri => fsService.fileOrFolderExists(uri).pipe(Effect.map(exists => (exists ? uri : undefined))),
           { concurrency: 'unbounded' }
-        ).pipe(Effect.map(matches => matches.find(match => match !== undefined)));
+        ).pipe(Effect.map(matches => matches.find(isNotUndefined)));
         if (!firstExistingUri) return;
 
         const placeholder = yield* fsService.uriToPath(firstExistingUri);
@@ -85,7 +85,7 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
     const considerUndefinedAsCancellation: <T>(
       value: T | undefined
     ) => Effect.Effect<T, UserCancellationError, never> = value =>
-      value === undefined || (isString(value) && value.trim().length === 0)
+      isUndefined(value) || (isString(value) && value.trim().length === 0)
         ? Effect.fail(new UserCancellationError())
         : Effect.succeed(value);
 
@@ -95,7 +95,7 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
     const considerEmptySelectionAsCancellation: <T>(
       value: readonly T[] | undefined
     ) => Effect.Effect<readonly T[], UserCancellationError, never> = value =>
-      value === undefined || value.length === 0 ? Effect.fail(new UserCancellationError()) : Effect.succeed(value);
+      isUndefined(value) || value.length === 0 ? Effect.fail(new UserCancellationError()) : Effect.succeed(value);
 
     /** BFS search for all directories named `folderName` under `rootUri`. Swallows read errors on any subtree. */
     const findFoldersByName = (rootUri: URI, folderName: string) => {

@@ -7,14 +7,16 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { FileResponseFailure } from '@salesforce/source-deploy-retrieve';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
 
 const deployErrorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
 
 const fixupError = (error: string | undefined): string =>
-  error !== undefined ? error.replace(/\(\d+:\d+\)/, '').trim() : 'Unknown error occurred.';
+  isNotUndefined(error) ? error.replace(/\(\d+:\d+\)/, '').trim() : 'Unknown error occurred.';
 
 const getRange = (lineNumber = 1, columnNumber = 1): vscode.Range => {
   const pos = new vscode.Position(lineNumber > 0 ? lineNumber - 1 : 0, columnNumber > 0 ? columnNumber - 1 : 0);
@@ -80,14 +82,14 @@ export const applyDeployDiagnostics = Effect.fn('applyDeployDiagnostics')(functi
     { concurrency: 'unbounded' }
   );
 
-  const byUri = Object.groupBy(entries, ([uri]) => uri.toString());
+  const byUri = Arr.groupBy(entries, ([uri]) => uri.toString());
   const toEntry = (uri: URI, diags: vscode.Diagnostic[]): [URI, vscode.Diagnostic[]] => [uri, diags];
   const diagnosticMap = new Map<URI, vscode.Diagnostic[]>(
     Object.values(byUri).map(pairs => {
-      const [uri] = pairs![0];
+      const [uri] = pairs[0];
       return toEntry(
         uri,
-        pairs!.map(([, d]) => d)
+        pairs.map(([, d]) => d)
       );
     })
   );

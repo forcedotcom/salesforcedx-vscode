@@ -7,7 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
@@ -30,7 +30,7 @@ export const activateMetaSupport = Effect.fn('activateMetaSupport')(function* (e
 
   // redHatExtension API reference: https://github.com/redhat-developer/vscode-xml/pull/292
   const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
-  if (redHatExtension === undefined) {
+  if (isUndefined(redHatExtension)) {
     yield* channelService.appendToChannel(nls.localize('lightning_lwc_no_redhat_extension_found'));
     return;
   }

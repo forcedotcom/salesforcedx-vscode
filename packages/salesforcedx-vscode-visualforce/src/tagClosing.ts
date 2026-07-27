@@ -4,6 +4,7 @@
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { isNotUndefined } from 'effect/Predicate';
 import {
   Disposable,
   Position,
@@ -53,7 +54,7 @@ export const activateTagClosing = (
     if (document !== activeDocument || changes.length === 0) {
       return;
     }
-    if (timeout !== undefined) {
+    if (isNotUndefined(timeout)) {
       clearTimeout(timeout);
     }
     // assertion: we previously checked that changes is not zero-length
