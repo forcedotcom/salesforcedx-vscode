@@ -2,85 +2,35 @@
 
 ## Added
 
-#### salesforcedx-vscode
-
-- Maintain full changelog history while publishing truncated version - W-21787149 ([PR #7659](https://github.com/forcedotcom/salesforcedx-vscode/pull/7659))
-
-#### salesforcedx-vscode-apex-replay-debugger
-
-- Steer instanceof Error to effect/Predicate isError - W-23416944 ([PR #7822](https://github.com/forcedotcom/salesforcedx-vscode/pull/7822))
-
 #### salesforcedx-vscode-core
 
-- Wire display-language into i18n so JA bundles resolve - W-23384515 ([PR #7803](https://github.com/forcedotcom/salesforcedx-vscode/pull/7803))
+- We added support for Japanese localization. If your VS Code display language is set to Japanese, you'll now see Japanese translations in the Salesforce extensions. ([PR #7803](https://github.com/forcedotcom/salesforcedx-vscode/pull/7803))
 
 #### salesforcedx-vscode-metadata
 
-- Add Angular framework Quick Pick to project generate - W-23573133 ([PR #7864](https://github.com/forcedotcom/salesforcedx-vscode/pull/7864))
-
-#### salesforcedx-vscode-services
-
-- Inject SFDX_TOOL env var for sf commands in TerminalService - W-23476812 ([PR #7883](https://github.com/forcedotcom/salesforcedx-vscode/pull/7883))
-
-- Steer instanceof Error to effect/Predicate isError - W-23416944 ([PR #7822](https://github.com/forcedotcom/salesforcedx-vscode/pull/7822))
+- When you run **SFDX: Create Project**, you can now select **Angular** as a framework option for Experience Cloud sites. ([PR #7864](https://github.com/forcedotcom/salesforcedx-vscode/pull/7864))
 
 ## Fixed
 
-#### salesforcedx-lightning-lsp-common
-
-- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
-
-#### salesforcedx-visualforce-markup-language-server
-
-- Reload suite tree on suite deletion - W-23275541 ([PR #7661](https://github.com/forcedotcom/salesforcedx-vscode/pull/7661))
-
 #### salesforcedx-vscode-apex-debugger
 
-- SFDX: Stop Apex Debugger Session uses the ISV Debugger SID and URL to determine the org when in an ISV Debugger project - W-23516769 ([PR #7815](https://github.com/forcedotcom/salesforcedx-vscode/pull/7815))
-
-#### salesforcedx-vscode-apex-log
-
-- Yield yieldable errors directly + enforce unnecessaryFailYieldableError - W-23429471 ([PR #7862](https://github.com/forcedotcom/salesforcedx-vscode/pull/7862))
-
-- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
+- We fixed a bug where **SFDX: Stop Apex Debugger Session** showed a "No target org configured" error instead of stopping the current ISV Debugger session. ([PR #7815](https://github.com/forcedotcom/salesforcedx-vscode/pull/7815))
 
 #### salesforcedx-vscode-apex-testing
 
-- Reload suite tree on suite deletion - W-23275541 ([PR #7661](https://github.com/forcedotcom/salesforcedx-vscode/pull/7661))
+- When you delete an Apex test suite with **SFDX: Delete Apex Test Suite**, the suite now correctly disappears from the **Testing** sidebar. ([PR #7661](https://github.com/forcedotcom/salesforcedx-vscode/pull/7661))
 
-- Replace Effect.fn IIFEs with Effect.gen + enforce effectFnIife - W-23429473 ([PR #7876](https://github.com/forcedotcom/salesforcedx-vscode/pull/7876))
-
-- SFDX: Edit Apex Test Suite correctly renders the list of classes in the current suite when the classes have namespaces - W-23531661 ([PR #7831](https://github.com/forcedotcom/salesforcedx-vscode/pull/7831))
-
-- Correct Package2Member query + enable functional/no-throw-statements - W-23354493 ([PR #7797](https://github.com/forcedotcom/salesforcedx-vscode/pull/7797))
-
-- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
+- We fixed a bug in **SFDX: Edit Apex Test Suite** where test classes with namespaces weren't being correctly selected when editing an existing suite. ([PR #7831](https://github.com/forcedotcom/salesforcedx-vscode/pull/7831))
 
 #### salesforcedx-vscode-lwc
 
-- Remove redundant @property JSDoc from LwcJestTestFileResult - W-23559837 ([PR #7856](https://github.com/forcedotcom/salesforcedx-vscode/pull/7856))
-
-- Display Jest runtime errors instead of "no output" message ([PR #7845](https://github.com/forcedotcom/salesforcedx-vscode/pull/7845))
-
-#### salesforcedx-vscode-metadata
-
-- Replace Effect.fn IIFEs with Effect.gen + enforce effectFnIife - W-23429473 ([PR #7876](https://github.com/forcedotcom/salesforcedx-vscode/pull/7876))
+- When Jest fails to run tests due to module resolution errors or syntax errors, the **Test Results** panel now displays the actual error message instead of "test case did not report any output". ([PR #7845](https://github.com/forcedotcom/salesforcedx-vscode/pull/7845), [ISSUE #7788](https://github.com/forcedotcom/salesforcedx-vscode/issues/7788))
 
 #### salesforcedx-vscode-org
 
-- Allow hyphens in org alias validation - W-23491095 ([PR #7866](https://github.com/forcedotcom/salesforcedx-vscode/pull/7866))
+- You can now use hyphens in org aliases when authorizing orgs or creating scratch orgs (for example, `my-scratch-org`). ([PR #7866](https://github.com/forcedotcom/salesforcedx-vscode/pull/7866), [ISSUE #7794](https://github.com/forcedotcom/salesforcedx-vscode/issues/7794))
 
-#### salesforcedx-vscode-services
+## Under the Hood
 
-- Collapse single-yield Effect.gen + enforce unnecessaryEffectGen - W-23429474 ([PR #7893](https://github.com/forcedotcom/salesforcedx-vscode/pull/7893))
-
-- Yield yieldable errors directly + enforce unnecessaryFailYieldableError - W-23429471 ([PR #7862](https://github.com/forcedotcom/salesforcedx-vscode/pull/7862))
-
-- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
-
-#### salesforcedx-vscode-soql
-
-- Flatten chained pipe + enforce unnecessaryPipeChain - W-23429475 ([PR #7898](https://github.com/forcedotcom/salesforcedx-vscode/pull/7898))
-
-- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
+- We made some under the hood changes. ([PR #7659](https://github.com/forcedotcom/salesforcedx-vscode/pull/7659), [PR #7797](https://github.com/forcedotcom/salesforcedx-vscode/pull/7797), [PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810), [PR #7822](https://github.com/forcedotcom/salesforcedx-vscode/pull/7822), [PR #7856](https://github.com/forcedotcom/salesforcedx-vscode/pull/7856), [PR #7862](https://github.com/forcedotcom/salesforcedx-vscode/pull/7862), [PR #7876](https://github.com/forcedotcom/salesforcedx-vscode/pull/7876), [PR #7883](https://github.com/forcedotcom/salesforcedx-vscode/pull/7883), [PR #7893](https://github.com/forcedotcom/salesforcedx-vscode/pull/7893), [PR #7898](https://github.com/forcedotcom/salesforcedx-vscode/pull/7898))
 
