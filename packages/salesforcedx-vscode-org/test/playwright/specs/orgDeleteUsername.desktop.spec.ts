@@ -6,6 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 import {
   activeQuickInputWidget,
   closeWelcomeTabs,
@@ -40,7 +41,7 @@ test('org delete username: deletes a dedicated scratch org and refreshes the pic
   // waitForOrgGone (120s) + workbench startup + two picker opens + modal. 15 min leaves headroom on slow CI.
   test.setTimeout(900_000);
 
-  const alias = `TempDeleteOrg_${Date.now()}_${testInfo.workerIndex}_${Math.random().toString(36).slice(2)}`;
+  const alias = `TempDeleteOrg_${Date.now()}_${testInfo.workerIndex}_${randomUUID().slice(0, 8)}`;
 
   try {
     await test.step('create the dedicated scratch org via CLI', async () => {
