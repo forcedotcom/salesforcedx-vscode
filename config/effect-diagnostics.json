@@ -10,6 +10,7 @@
     "unknownInEffectCatch",
     "effectSucceedWithVoid",
     "unnecessaryFailYieldableError",
-    "effectFnIife"
+    "effectFnIife",
+    "unnecessaryEffectGen"
   ]
 }

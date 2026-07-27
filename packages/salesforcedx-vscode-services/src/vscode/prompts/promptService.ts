@@ -147,17 +147,15 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       const candidateUris = [
         params.defaultUri,
         ...(params.folderName
-          ? yield* Effect.gen(function* () {
-              return yield* projectService.getSfProject().pipe(
-                Effect.map(project => project.getPackageDirectories()),
-                Stream.fromIterableEffect,
-                Stream.mapEffect(pkg => findFoldersByName(toUri(pkg.fullPath), params.folderName!)),
-                Stream.mapConcat(uris => uris),
-                Stream.filter(u => !Equal.equals(HashableUri.fromUri(u), HashableUri.fromUri(params.defaultUri))),
-                Stream.runCollect,
-                Effect.map(Chunk.toReadonlyArray)
-              );
-            })
+          ? yield* projectService.getSfProject().pipe(
+              Effect.map(project => project.getPackageDirectories()),
+              Stream.fromIterableEffect,
+              Stream.mapEffect(pkg => findFoldersByName(toUri(pkg.fullPath), params.folderName!)),
+              Stream.mapConcat(uris => uris),
+              Stream.filter(u => !Equal.equals(HashableUri.fromUri(u), HashableUri.fromUri(params.defaultUri))),
+              Stream.runCollect,
+              Effect.map(Chunk.toReadonlyArray)
+            )
           : [])
       ];
 

@@ -17,7 +17,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 ```
 
 - The PostToolUse `verify-on-edit.sh` hook auto-runs `--file <edited>` on every `.ts` Edit/Write and surfaces output as `followup_message`. Address what it reports.
-- **Address warnings AND messages, not just errors.** Common findings: `effectFnOpportunity` (gen→fn), `unnecessaryFailYieldableError` (yield error directly), `effectSucceedWithVoid` (`Effect.succeed(undefined)` → `Effect.void`), `globalErrorInEffectCatch`/`Failure` (use tagged error, not `new Error`; both config-enforced — see `references/anti-patterns.md`); `tryCatchInEffectGen` (config-enforced; try/catch in `Effect.gen` → `catchAllCause`+`Cause.squash`/`catchTag`); `effectFnIife` (config-enforced; immediately-invoked `Effect.fn` → `Effect.gen` + piped `Effect.withSpan`).
+- **Address warnings AND messages, not just errors.** `references/diagnostics-findings.md` maps each common finding to its fix; `config/effect-diagnostics.json` `enforcedRules` is the build gate.
 - After a batch of edits, run `--project tsconfig.json` for the affected package to catch cross-file issues.
 - `effect-language-service quickfixes` shows proposed code changes.
 
@@ -482,4 +482,5 @@ For detailed patterns, consult these reference files in the `references/` direct
 - `rpc-cluster-patterns.md` - RpcGroup, Workflow, Activity patterns
 - `effect-atom-patterns.md` - Atom, families, React hooks, Result handling
 - `anti-patterns.md` - Complete list of forbidden patterns
+- `diagnostics-findings.md` - Effect LS finding → fix, per rule
 - `observability-patterns.md` - Logging, metrics, config patterns
