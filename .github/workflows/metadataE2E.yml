@@ -84,7 +84,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -154,7 +154,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: hub
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -166,7 +166,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -258,7 +258,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -341,7 +341,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -353,7 +353,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -422,7 +422,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web:conflicts -w salesforcedx-vscode-metadata
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -462,7 +462,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web:conflicts -w salesforcedx-vscode-metadata
 
       - name: Retry failed conflicts tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -471,7 +471,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -557,7 +557,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -611,7 +611,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata
 
       - name: Retry failed conflicts tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -622,7 +622,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
