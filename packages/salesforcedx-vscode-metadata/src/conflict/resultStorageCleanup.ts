@@ -6,6 +6,7 @@
  */
 
 import * as HashSet from 'effect/HashSet';
+import { isNotUndefined } from 'effect/Predicate';
 import type { HashableUri } from 'salesforcedx-vscode-services';
 
 /** Returns the subset of allJsonUris that are stale — i.e., no component from that file
@@ -16,7 +17,7 @@ export const getStaleUris = (
 ): HashSet.HashSet<HashableUri> => {
   const winningUris = HashSet.fromIterable(
     Object.values(byKey)
-      .filter((rows): rows is readonly { readonly sourceUri: HashableUri }[] => rows !== undefined)
+      .filter((rows): rows is readonly { readonly sourceUri: HashableUri }[] => isNotUndefined(rows))
       .map(rows => rows[0].sourceUri)
   );
   return HashSet.difference(allJsonUris, winningUris);

@@ -8,13 +8,14 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { FileResponseFailure } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
 
 const deployErrorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
 
 const fixupError = (error: string | undefined): string =>
-  error !== undefined ? error.replace(/\(\d+:\d+\)/, '').trim() : 'Unknown error occurred.';
+  isNotUndefined(error) ? error.replace(/\(\d+:\d+\)/, '').trim() : 'Unknown error occurred.';
 
 const getRange = (lineNumber = 1, columnNumber = 1): vscode.Range => {
   const pos = new vscode.Position(lineNumber > 0 ? lineNumber - 1 : 0, columnNumber > 0 ? columnNumber - 1 : 0);
