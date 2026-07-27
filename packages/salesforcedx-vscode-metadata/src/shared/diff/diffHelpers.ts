@@ -18,9 +18,9 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { type CommandKey, getProgressLocation } from '../../utils/notificationMode';
 import { MissingDefaultOrgError } from './diffErrors';
+import { createDiffFilePair, type DiffFilePair } from './diffTypes';
 
 const COMMAND: CommandKey = 'SFDX: Diff Source Against Org';
-import { createDiffFilePair, type DiffFilePair } from './diffTypes';
 
 export const sourceComponentToPaths = (component: SourceComponent) =>
   [component.content, component.xml, ...component.walkContent()].filter(isString);
