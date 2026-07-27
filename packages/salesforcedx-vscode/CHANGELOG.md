@@ -1,34 +1,86 @@
-# 67.6.0 - July 22, 2026
+# 67.7.1 - July 29, 2026
 
 ## Added
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-vscode
 
-- We replaced the **SFDX: Add Tests to Apex Test Suite** command with a new **SFDX: Edit Apex Test Suite** command. A single multi-select picker shows all your test classes with the current suite members pre-checked, so you can add and remove tests in one step. ([PR #7672](https://github.com/forcedotcom/salesforcedx-vscode/pull/7672))
+- Maintain full changelog history while publishing truncated version - W-21787149 ([PR #7659](https://github.com/forcedotcom/salesforcedx-vscode/pull/7659))
 
-#### salesforcedx-vscode-org-browser
+#### salesforcedx-vscode-apex-replay-debugger
 
-- The Org Browser now has independent **show local** and **show org** toolbar toggles for filtering metadata types, plus a text filter in the type/component quick pick. ([PR #7679](https://github.com/forcedotcom/salesforcedx-vscode/pull/7679))
+- Steer instanceof Error to effect/Predicate isError - W-23416944 ([PR #7822](https://github.com/forcedotcom/salesforcedx-vscode/pull/7822))
 
-## Fixed
+#### salesforcedx-vscode-core
 
-#### salesforcedx-vscode-apex-testing
+- Wire display-language into i18n so JA bundles resolve - W-23384515 ([PR #7803](https://github.com/forcedotcom/salesforcedx-vscode/pull/7803))
 
-- We fixed a bug where discovering Apex tests failed with a 400 error against orgs on API version 68.0 or later. ([PR #7805](https://github.com/forcedotcom/salesforcedx-vscode/pull/7805))
+#### salesforcedx-vscode-metadata
 
-#### salesforcedx-vscode-org
-
-- We fixed a bug where the background "orgs expiring soon" check could steal focus and dismiss an open quick pick, such as the org picker. The warning now offers a **Show Output** button instead of automatically revealing the panel. ([PR #7749](https://github.com/forcedotcom/salesforcedx-vscode/pull/7749))
+- Add Angular framework Quick Pick to project generate - W-23573133 ([PR #7864](https://github.com/forcedotcom/salesforcedx-vscode/pull/7864))
 
 #### salesforcedx-vscode-services
 
-- We fixed the **Salesforce Extensions** services package failing to publish on Open VSX Registry, which had left it stuck at an older version. ([PR #7756](https://github.com/forcedotcom/salesforcedx-vscode/pull/7756))
+- Inject SFDX_TOOL env var for sf commands in TerminalService - W-23476812 ([PR #7883](https://github.com/forcedotcom/salesforcedx-vscode/pull/7883))
 
-#### salesforcedx-vscode-visualforce
+- Steer instanceof Error to effect/Predicate isError - W-23416944 ([PR #7822](https://github.com/forcedotcom/salesforcedx-vscode/pull/7822))
 
-- We fixed a bug where hovering over mixed-case Visualforce tags such as `apex:pageBlock` and `apex:outputField` showed no hover information. ([PR #7781](https://github.com/forcedotcom/salesforcedx-vscode/pull/7781))
+## Fixed
 
-## Under the Hood
+#### salesforcedx-lightning-lsp-common
 
-- We made some under the hood changes. ([PR #7777](https://github.com/forcedotcom/salesforcedx-vscode/pull/7777), [PR #7806](https://github.com/forcedotcom/salesforcedx-vscode/pull/7806), [PR #7778](https://github.com/forcedotcom/salesforcedx-vscode/pull/7778), [PR #7753](https://github.com/forcedotcom/salesforcedx-vscode/pull/7753), [PR #7746](https://github.com/forcedotcom/salesforcedx-vscode/pull/7746))
+- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
+
+#### salesforcedx-visualforce-markup-language-server
+
+- Reload suite tree on suite deletion - W-23275541 ([PR #7661](https://github.com/forcedotcom/salesforcedx-vscode/pull/7661))
+
+#### salesforcedx-vscode-apex-debugger
+
+- SFDX: Stop Apex Debugger Session uses the ISV Debugger SID and URL to determine the org when in an ISV Debugger project - W-23516769 ([PR #7815](https://github.com/forcedotcom/salesforcedx-vscode/pull/7815))
+
+#### salesforcedx-vscode-apex-log
+
+- Yield yieldable errors directly + enforce unnecessaryFailYieldableError - W-23429471 ([PR #7862](https://github.com/forcedotcom/salesforcedx-vscode/pull/7862))
+
+- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
+
+#### salesforcedx-vscode-apex-testing
+
+- Reload suite tree on suite deletion - W-23275541 ([PR #7661](https://github.com/forcedotcom/salesforcedx-vscode/pull/7661))
+
+- Replace Effect.fn IIFEs with Effect.gen + enforce effectFnIife - W-23429473 ([PR #7876](https://github.com/forcedotcom/salesforcedx-vscode/pull/7876))
+
+- SFDX: Edit Apex Test Suite correctly renders the list of classes in the current suite when the classes have namespaces - W-23531661 ([PR #7831](https://github.com/forcedotcom/salesforcedx-vscode/pull/7831))
+
+- Correct Package2Member query + enable functional/no-throw-statements - W-23354493 ([PR #7797](https://github.com/forcedotcom/salesforcedx-vscode/pull/7797))
+
+- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
+
+#### salesforcedx-vscode-lwc
+
+- Remove redundant @property JSDoc from LwcJestTestFileResult - W-23559837 ([PR #7856](https://github.com/forcedotcom/salesforcedx-vscode/pull/7856))
+
+- Display Jest runtime errors instead of "no output" message ([PR #7845](https://github.com/forcedotcom/salesforcedx-vscode/pull/7845))
+
+#### salesforcedx-vscode-metadata
+
+- Replace Effect.fn IIFEs with Effect.gen + enforce effectFnIife - W-23429473 ([PR #7876](https://github.com/forcedotcom/salesforcedx-vscode/pull/7876))
+
+#### salesforcedx-vscode-org
+
+- Allow hyphens in org alias validation - W-23491095 ([PR #7866](https://github.com/forcedotcom/salesforcedx-vscode/pull/7866))
+
+#### salesforcedx-vscode-services
+
+- Collapse single-yield Effect.gen + enforce unnecessaryEffectGen - W-23429474 ([PR #7893](https://github.com/forcedotcom/salesforcedx-vscode/pull/7893))
+
+- Yield yieldable errors directly + enforce unnecessaryFailYieldableError - W-23429471 ([PR #7862](https://github.com/forcedotcom/salesforcedx-vscode/pull/7862))
+
+- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
+
+#### salesforcedx-vscode-soql
+
+- Flatten chained pipe + enforce unnecessaryPipeChain - W-23429475 ([PR #7898](https://github.com/forcedotcom/salesforcedx-vscode/pull/7898))
+
+- Fix + enforce globalErrorInEffectFailure - W-23429468 ([PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810))
 
