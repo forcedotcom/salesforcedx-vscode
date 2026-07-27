@@ -77,6 +77,10 @@ export const invalidateSfProjectCache = (cacheKey: string) =>
   globalSfProjectCache.invalidate(cacheKey).pipe(Effect.tap(() => Effect.sync(() => SfProject.clearInstances())));
 
 const TOOLS_DIR = 'tools';
+const TESTRESULTS_DIR = 'testresults';
+const APEX_DIR = 'apex';
+const DEBUG_DIR = 'debug';
+const LOGS_DIR = 'logs';
 const SOBJECTS_DIR = 'sobjects';
 const STANDARDOBJECTS_DIR = 'standardObjects';
 const CUSTOMOBJECTS_DIR = 'customObjects';
@@ -208,9 +212,21 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
           });
     });
 
-    const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
+    const getStateFolder = Effect.fn('ProjectService.getStateFolder')(function* () {
       const { uri } = yield* workspaceService.getWorkspaceInfoOrThrow();
-      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER, TOOLS_DIR);
+      return Utils.joinPath(uri, Global.SFDX_STATE_FOLDER);
+    });
+
+    const getToolsFolder = Effect.fn('ProjectService.getToolsFolder')(function* () {
+      return Utils.joinPath(yield* getStateFolder(), TOOLS_DIR);
+    });
+
+    const getDebugLogsFolder = Effect.fn('ProjectService.getDebugLogsFolder')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), DEBUG_DIR, LOGS_DIR);
+    });
+
+    const getApexTestResultsFolder = Effect.fn('ProjectService.getApexTestResultsFolder')(function* () {
+      return Utils.joinPath(yield* getToolsFolder(), TESTRESULTS_DIR, APEX_DIR);
     });
 
     const getSoqlMetadataPath = Effect.fn('ProjectService.getSoqlMetadataPath')(function* () {
@@ -253,7 +269,10 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
       getFauxClassesPath,
       getFauxStandardObjectsPath,
       getFauxCustomObjectsPath,
-      getTypingsPath
+      getTypingsPath,
+      getStateFolder,
+      getDebugLogsFolder,
+      getApexTestResultsFolder
     };
   })
 }) {}

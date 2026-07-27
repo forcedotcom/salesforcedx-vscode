@@ -263,7 +263,7 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 
 | Situation | Do | Don't |
 | --- | --- | --- |
-| Build any multi-op effect | one flat `.pipe(...)` chain | nested `f(g(h(x)))` calls |
+| Build any multi-op effect | one flat `.pipe(...)` chain — merged steps as siblings, dropping any the merge makes dead; config-enforced by `unnecessaryPipeChain`, which fires wherever a pipe's subject is itself a pipe — method or function form, callbacks included; only a nested pipe over a *different* subject stays judgment | `x.pipe(a).pipe(b)`, `pipe(pipe(x, a), b)`; nested `f(g(h(x)))` calls |
 | Run a built effect | `effect.pipe(..., runtime.runPromise)` as last step | wrap whole expr in `runPromise(effect.pipe(...))` |
 | Point-free terminal step | bare `Effect.runPromise` always; methods only when closure-based (e.g. `ManagedRuntime.runPromise`) | point-free any `this`-bound method |
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |

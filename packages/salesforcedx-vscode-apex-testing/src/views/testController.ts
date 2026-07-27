@@ -118,6 +118,7 @@ export class ApexTestController {
   private buildTreeMutationContext(): TreeMutationContext {
     return {
       controller: this.controller,
+      suiteTag: this.suiteTag,
       orgOnlyTag: this.orgOnlyTag,
       inWorkspaceTag: this.inWorkspaceTag,
       staleTag: this.staleTag
