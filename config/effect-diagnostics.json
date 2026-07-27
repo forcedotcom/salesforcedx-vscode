@@ -12,6 +12,7 @@
     "unnecessaryFailYieldableError",
     "effectFnIife",
     "unnecessaryEffectGen",
-    "unnecessaryPipeChain"
+    "unnecessaryPipeChain",
+    "returnEffectInGen"
   ]
 }

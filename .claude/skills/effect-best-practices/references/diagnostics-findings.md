@@ -11,4 +11,5 @@ Repo's chosen fix per rule — the LS message and quickfix say what's wrong, thi
 | `effectFnIife` | immediately-invoked `Effect.fn` | `Effect.gen` + piped `Effect.withSpan` |
 | `unnecessaryEffectGen` | `Effect.gen` whose whole body is one `yield* X` | `X`; `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void. `Effect.fn` never matches — keep its span |
 | `unnecessaryPipeChain` | a pipe whose subject is itself a pipe, anywhere incl. inside a callback: `x.pipe(a).pipe(b)` or `pipe(pipe(x, a), b)` | 1 `pipe` with sibling steps: `x.pipe(a, b)`; drop steps the merge makes dead |
+| `returnEffectInGen` | generator `return`s an Effect without `yield*` → `Effect<Effect<…>>` | `return yield* X` |
 | `effectFnOpportunity` | `Effect.gen` where a named `Effect.fn` fits | `Effect.fn('Span')(function* …)` |
