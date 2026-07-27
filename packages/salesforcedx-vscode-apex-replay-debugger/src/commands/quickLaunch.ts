@@ -26,6 +26,10 @@ import { launchFromLogFile } from './launchFromLogFile';
 
 const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass: string, testName?: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  // ProjectService's folders (test results, debug logs) need an open workspace, so there's nothing to do
+  // without one
+  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  if (isEmpty) return false;
   const connection = yield* api.services.ConnectionService.getConnection();
 
   if (!(yield* Effect.promise(() => ensureTraceFlagsForCurrentUser()))) return false;
@@ -48,13 +52,10 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   // W-18453221
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
-  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
-  if (!isEmpty) {
-    const dirPath = (yield* api.services.ProjectService.getApexTestResultsFolder()).fsPath;
-    yield* Effect.promise(() =>
-      testService.writeResultFiles(result, { dirPath, resultFormats: [ResultFormat.json] }, retrieveTestCodeCoverage())
-    );
-  }
+  const dirPath = (yield* api.services.ProjectService.getApexTestResultsFolder()).fsPath;
+  yield* Effect.promise(() =>
+    testService.writeResultFiles(result, { dirPath, resultFormats: [ResultFormat.json] }, retrieveTestCodeCoverage())
+  );
 
   const tests: ApexTestResultData[] = result.tests;
   if (tests.length === 0) {

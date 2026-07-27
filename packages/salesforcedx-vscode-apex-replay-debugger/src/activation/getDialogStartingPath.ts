@@ -11,13 +11,6 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { LAST_OPENED_LOG_FOLDER_KEY } from '../debuggerConstants';
 
-/**
- * The workspace folders are re-read on every ProjectService call, so they can go away between the
- * `isEmpty` check above and these calls (this runs during activation).  A missing workspace means "no
- * starting path", not a failed activation.
- */
-const noPathWhenWorkspaceClosed = Effect.catchTag('NoWorkspaceOpenError', () => Effect.succeed(undefined));
-
 export const getDialogStartingPath = Effect.fn('ApexReplayDebugger.getDialogStartingPath')(function* (
   extContext: vscode.ExtensionContext
 ) {
@@ -33,12 +26,19 @@ export const getDialogStartingPath = Effect.fn('ApexReplayDebugger.getDialogStar
   // If lastOpenedLogFolder isn't defined or doesn't exist then use the
   // same directory that the SFDX download logs command would download to
   // if it exists.
-  const logsFolder = yield* api.services.ProjectService.getDebugLogsFolder().pipe(noPathWhenWorkspaceClosed);
+  // The workspace folders are re-read on every ProjectService call, so they can go away between the isEmpty
+  // check above and these calls (this runs during activation). A closed workspace means "no starting path",
+  // not a failed activation.
+  const logsFolder = yield* api.services.ProjectService.getDebugLogsFolder().pipe(
+    Effect.catchTag('NoWorkspaceOpenError', () => Effect.succeed(undefined))
+  );
   if (logsFolder && (yield* api.services.FsService.fileOrFolderExists(logsFolder))) {
     return logsFolder;
   }
   // If all else fails, fallback to the .sfdx directory in the workspace
-  return yield* api.services.ProjectService.getStateFolder().pipe(noPathWhenWorkspaceClosed);
+  return yield* api.services.ProjectService.getStateFolder().pipe(
+    Effect.catchTag('NoWorkspaceOpenError', () => Effect.succeed(undefined))
+  );
 });
 
 const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | undefined => {
