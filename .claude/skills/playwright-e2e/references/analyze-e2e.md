@@ -31,7 +31,9 @@ Organized by branch and run ID.
 
 ## Annotations first (before downloading)
 
-Playwright runs with the `github` reporter on GHA — config `packages/playwright-vscode-ext/src/config/createReporter.ts`, and e2e workflows that override it on the CLI pass `--reporter=html,github` (a bare `--reporter=html` would discard it) → failure message + file + line are already in the job log and as run annotations. Read those first; download artifacts only for traces/videos/spans/html report.
+Playwright runs with the `github` reporter on GHA — config `packages/playwright-vscode-ext/src/config/createReporter.ts` → failure message + file + line are already in the job log and as run annotations. Read those first; download artifacts only for traces/videos/spans/html report.
+
+Workflows must not pass `--reporter=` at all: a CLI list replaces the config list wholesale, and any list without a stdio reporter (`line`) makes playwright inject `dot`, whose newline-less `·`/`F` prefixes the `::error` commands (`F::error file=…`) so GitHub drops every failure annotation.
 
 Annotations only, all failed checks of a commit (paginate — PR head commits routinely have >30 check runs, so an unpaginated call silently misses the failing one):
 
