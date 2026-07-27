@@ -13,6 +13,11 @@
     "effectFnIife",
     "unnecessaryEffectGen",
     "unnecessaryPipeChain",
-    "returnEffectInGen"
+    "returnEffectInGen",
+    "floatingEffect",
+    "globalRandom",
+    "globalRandomInEffect",
+    "globalFetchInEffect",
+    "globalTimersInEffect"
   ]
 }
