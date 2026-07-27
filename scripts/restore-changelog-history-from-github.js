@@ -68,7 +68,7 @@ function fetchReleases() {
           { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
         );
         return JSON.parse(viewOutput);
-      } catch (error) {
+      } catch {
         console.warn(`⚠️  Could not fetch body for ${release.tagName}, using metadata only`);
         return { ...release, body: '' };
       }

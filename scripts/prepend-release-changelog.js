@@ -21,7 +21,7 @@ const path = require('path');
 function getRepoRoot() {
   try {
     return execSync('git rev-parse --show-toplevel', { encoding: 'utf8' }).trim();
-  } catch (error) {
+  } catch {
     console.error('❌ Error: Not in a git repository');
     process.exit(1);
   }
@@ -69,7 +69,7 @@ function readPackageChangelog() {
     console.log(`✅ Read package CHANGELOG (version ${version}, ${packageChangelog.split('\n').length} lines)`);
     return { content: packageChangelog, version };
   } catch (error) {
-    console.error(`❌ Error reading package CHANGELOG:`, error.message);
+    console.error('❌ Error reading package CHANGELOG:', error.message);
     process.exit(1);
   }
 }
@@ -87,7 +87,6 @@ function prependToRootChangelog(packageChangelog, version) {
   } catch (error) {
     if (error.code === 'ENOENT') {
       console.error(`❌ Error: Root CHANGELOG does not exist at ${ROOT_CHANGELOG_PATH}`);
-      console.error('   Expected path: ${ROOT_CHANGELOG_PATH}');
       process.exit(1);
     }
     console.error(`❌ Error reading root CHANGELOG from ${ROOT_CHANGELOG_PATH}:`, error.message);
