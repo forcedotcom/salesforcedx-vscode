@@ -142,7 +142,7 @@ Use these `chore:` subjects for polish commits on the release branch:
 
 ## Reference: how the changelog is generated
 
-These rules describe the auto-generator behavior in `scripts/create-release-notes.ts` + `scripts/change-log-generator-utils.js`. They are background context for understanding what arrives in the auto-generated commit; you don't typically interact with them during a polish pass.
+These rules describe the auto-generator behavior in `scripts/create-release-notes.ts` + `scripts/create-release-notes-utils.ts`. They are background context for understanding what arrives in the auto-generated commit; you don't typically interact with them during a polish pass.
 
 ### Generation
 
