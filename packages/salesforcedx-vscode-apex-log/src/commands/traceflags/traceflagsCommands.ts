@@ -89,10 +89,7 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
     yield* traceFlagService.deleteTraceFlag(existing.value.id);
     yield* refreshTraceFlagsView(orgId);
     yield* Effect.sync(() =>
-      showSuccessNotification(
-        'SFDX: Remove Trace Flag for Current User',
-        nls.localize('trace_flag_deleted_for_current_user')
-      )
+      showSuccessNotification('SFDX: Remove Trace Flag for Current User', nls.localize('trace_flag_deleted'))
     );
   }
 );
