@@ -87,7 +87,9 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
   }
 
   const result = yield* deployComponentSet({ componentSet, command: COMMAND });
-  showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text')));
+  yield* Effect.sync(() =>
+    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text')))
+  );
   return result;
 });
 
