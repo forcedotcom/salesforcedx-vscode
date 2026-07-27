@@ -6,16 +6,18 @@
  */
 
 import { Connection, StateAggregator } from '@salesforce/core';
+import { Global } from '@salesforce/core/global';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { ConfigUtil } from '../config/configUtil';
-import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
 import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 import { TelemetryService } from '../services/telemetry';
+import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 export type OrgUserInfo = {
   username?: string;
@@ -57,7 +59,11 @@ export class WorkspaceContextUtil {
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
-    const cliConfigPath = projectPaths.salesforceProjectConfig();
+    const cliConfigPath = Utils.joinPath(
+      URI.file(workspaceUtils.getRootWorkspacePath()),
+      Global.SFDX_STATE_FOLDER,
+      'sfdx-config.json'
+    ).fsPath;
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(() => this.handleCliConfigChange());
     this.cliConfigWatcher.onDidCreate(() => this.handleCliConfigChange());

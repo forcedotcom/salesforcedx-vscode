@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
-import * as isvContext from '../../src/context/isvContext';
 import { activateEffect } from '../../src/index';
 import * as coreExtensionUtils from '../../src/utils/coreExtensionUtils';
 
@@ -18,51 +17,36 @@ jest.mock('../../src/utils/coreExtensionUtils', () => ({
   getTelemetryService: jest.fn()
 }));
 
-// stub api.services.TerminalService: yielding it gives an object whose `simpleExec` (for `sf --version`)
-// succeeds when the CLI is installed and fails with TerminalServiceError when absent — the activation's
-// own catchTag folds that failure into the false branch. Matches the accessors:false resolve-then-call pattern.
-const extensionProviderLayer = (isCliInstalled: boolean) =>
+const registerCommandWithLayer = jest.fn();
+
+const extensionProviderLayer = () =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
-        // activation registers sf.debugger.stop via registerCommandWithLayer; stub it to a no-op Effect
-        registerCommandWithLayer: () => () => Effect.void,
-        TerminalService: Effect.succeed({
-          // catchTag in the activation matches on `_tag`, so a tagged failure object is enough (the real
-          // TerminalServiceError is a type-only export of the services barrel).
-          simpleExec: () =>
-            isCliInstalled
-              ? Effect.succeed(true)
-              : Effect.fail({ _tag: 'TerminalServiceError', message: 'command not found: sf', command: 'sf --version' })
-        })
+        registerCommandWithLayer: () => registerCommandWithLayer
       }
     })
   } as unknown as ExtensionProviderService);
 
 const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
 
-const runActivate = (isCliInstalled: boolean) =>
+const runActivate = () =>
   Effect.runPromise(
-    activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer(isCliInstalled))) as Effect.Effect<
+    activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer())) as Effect.Effect<
       void,
       unknown,
       never
     >
   );
 
-describe('activateEffect ISV setup gate', () => {
-  let registerSpy: jest.SpyInstance;
-  let setupSpy: jest.SpyInstance;
-  let warnSpy: jest.SpyInstance;
+describe('activateEffect', () => {
+  let initializeService: jest.Mock;
 
   beforeEach(() => {
-    registerSpy = jest.spyOn(isvContext, 'registerIsvAuthWatcher').mockImplementation(() => undefined);
-    setupSpy = jest.spyOn(isvContext, 'setupGlobalDefaultUserIsvAuth').mockResolvedValue(undefined);
+    registerCommandWithLayer.mockReturnValue(Effect.void);
+    initializeService = jest.fn(() => Promise.resolve());
     // resetMocks:true wipes the jest.mock factory impl each test — re-arm the telemetry stub
-    (coreExtensionUtils.getTelemetryService as jest.Mock).mockResolvedValue({
-      initializeService: jest.fn(() => Promise.resolve())
-    });
-    warnSpy = (vscode.window.showWarningMessage as jest.Mock).mockClear();
+    (coreExtensionUtils.getTelemetryService as jest.Mock).mockResolvedValue({ initializeService });
     // registerCommands/registerDebugHandlers touch vscode.debug (absent from the shared mock) and
     // Disposable.from; stub just enough for the Effect.sync registration block to run.
     (vscode as unknown as { debug: Record<string, jest.Mock> }).debug = {
@@ -78,26 +62,16 @@ describe('activateEffect ISV setup gate', () => {
     });
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
+  it('registers the Effect-based commands', async () => {
+    await runActivate();
+
+    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debugger.stop', expect.anything());
+    expect(registerCommandWithLayer).toHaveBeenCalledWith('sf.debug.isv.bootstrap', expect.anything());
   });
 
-  it('runs ISV setup when the CLI is installed', async () => {
-    await runActivate(true);
-    expect(registerSpy).toHaveBeenCalledWith(extensionContext);
-    expect(setupSpy).toHaveBeenCalled();
-    expect(warnSpy).not.toHaveBeenCalled();
-  });
+  it('initializes telemetry', async () => {
+    await runActivate();
 
-  it('skips ISV setup when the CLI is not installed', async () => {
-    await runActivate(false);
-    expect(registerSpy).not.toHaveBeenCalled();
-    expect(setupSpy).not.toHaveBeenCalled();
-  });
-
-  it('catches a rejecting setup (warning shown, fiber succeeds)', async () => {
-    setupSpy.mockRejectedValue(new Error('boom'));
-    await expect(runActivate(true)).resolves.not.toThrow();
-    expect(warnSpy).toHaveBeenCalled();
+    expect(initializeService).toHaveBeenCalledWith(extensionContext);
   });
 });

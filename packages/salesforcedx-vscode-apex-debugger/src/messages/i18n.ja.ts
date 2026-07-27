@@ -25,8 +25,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   never_break_text: '中断しない',
   language_client_not_ready:
     '言語サーバからブレークポイントの情報を取得できませんでした。言語サーバが起動していません。',
-  isv_debug_config_environment_error:
-    '環境を設定している際に VS Code の Salesforce 拡張機能で問題が発生しました。一部の機能が動作しない可能性があります。詳細については、[ヘルプ] > [開発者ツールの切り替え] を参照するか、~/.sfdx/sfdx.log 内のSalesforce CLI のログを確認してください。',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
   parameter_gatherer_paste_forceide_url: '設定から forceide:// の URL をペースト',
   parameter_gatherer_paste_forceide_url_placeholder: '設定の forceide:// URL',

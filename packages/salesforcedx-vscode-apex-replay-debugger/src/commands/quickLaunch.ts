@@ -14,10 +14,9 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpointService';
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
@@ -27,6 +26,10 @@ import { launchFromLogFile } from './launchFromLogFile';
 
 const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass: string, testName?: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  // ProjectService's folders (test results, debug logs) need an open workspace, so there's nothing to do
+  // without one
+  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  if (isEmpty) return false;
   const connection = yield* api.services.ConnectionService.getConnection();
 
   if (!(yield* Effect.promise(() => ensureTraceFlagsForCurrentUser()))) return false;
@@ -49,16 +52,10 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   // W-18453221
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
-  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
-  if (!isEmpty) {
-    yield* Effect.promise(() =>
-      testService.writeResultFiles(
-        result,
-        { dirPath: projectPaths.apexTestResultsFolder(), resultFormats: [ResultFormat.json] },
-        retrieveTestCodeCoverage()
-      )
-    );
-  }
+  const dirPath = (yield* api.services.ProjectService.getApexTestResultsFolder()).fsPath;
+  yield* Effect.promise(() =>
+    testService.writeResultFiles(result, { dirPath, resultFormats: [ResultFormat.json] }, retrieveTestCodeCoverage())
+  );
 
   const tests: ApexTestResultData[] = result.tests;
   if (tests.length === 0) {
@@ -74,8 +71,9 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
 
   const logId = testResult.apexLogId!;
   const logService = new LogService(connection);
-  yield* Effect.promise(() => logService.getLogs({ logId, outputDir: projectPaths.debugLogsFolder() }));
-  yield* Effect.promise(() => launchFromLogFile(path.join(projectPaths.debugLogsFolder(), `${logId}.log`), false));
+  const debugLogsFolder = yield* api.services.ProjectService.getDebugLogsFolder();
+  yield* Effect.promise(() => logService.getLogs({ logId, outputDir: debugLogsFolder.fsPath }));
+  yield* Effect.promise(() => launchFromLogFile(Utils.joinPath(debugLogsFolder, `${logId}.log`).fsPath, false));
   return true;
 });
 

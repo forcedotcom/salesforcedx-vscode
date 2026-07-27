@@ -5,12 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import { format } from 'node:util';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
 
@@ -26,25 +24,17 @@ export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
   return `${localUTCDate.getFullYear()}${month2Digit}${date2Digit}${hour2Digit}${mins2Digit}${sec2Digit}`;
 };
 
-const getLogFilePath = (): string => {
-  const outputDir = projectPaths.debugLogsFolder();
-  const now = new Date();
-  const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
-  return path.join(outputDir, `${localDateFormatted}.log`);
-};
-
 /** safeWriteFile creates the parent directory, so no separate createDirectory call is needed. */
-const saveLogFile = Effect.fn('ApexReplayDebugger.saveLogFile')(function* (logFilePath: string, logs?: string) {
-  if (!logFilePath || !logs) return false;
+const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger')(function* (
+  logFilePath: URI,
+  logs?: string
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  if (!logs) return false;
   yield* api.services.FsService.safeWriteFile(logFilePath, logs);
-  return true;
-});
-
-const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger')(function* (logs?: string) {
-  const logFilePath = getLogFilePath();
-  if (!logFilePath || !logs || !(yield* saveLogFile(logFilePath, logs))) return false;
-  yield* Effect.promise(() => vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath));
+  yield* Effect.promise(() =>
+    vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath.fsPath)
+  );
   return true;
 });
 
@@ -93,7 +83,11 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
 
   if (!result.compiled || !result.success) return false;
 
-  return yield* launchReplayDebugger(logBody ?? undefined);
+  const logFilePath = Utils.joinPath(
+    yield* api.services.ProjectService.getDebugLogsFolder(),
+    `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
+  );
+  return yield* launchReplayDebugger(logFilePath, logBody ?? undefined);
 });
 
 export const anonApexDebug = async (): Promise<void> => {

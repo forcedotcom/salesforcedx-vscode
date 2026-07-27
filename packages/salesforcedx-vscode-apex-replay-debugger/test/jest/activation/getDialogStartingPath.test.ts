@@ -6,9 +6,9 @@
  */
 
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
+import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import { NoWorkspaceOpenError, WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
@@ -18,41 +18,55 @@ import { LAST_OPENED_LOG_FOLDER_KEY } from '../../../src/debuggerConstants';
 
 jest.mock('vscode');
 
+const debugLogsFolder = URI.file('/mock/.sfdx/tools/debug/logs');
+const stateFolder = URI.file('/mock/.sfdx');
+
 /**
- * The source calls the static accessors `api.services.WorkspaceService.getWorkspaceInfo()` and
- * `api.services.FsService.fileOrFolderExists()`, which read their services from context. Provide the real
- * classes through the api plus service instances so the accessors resolve and the effect's requirements are
- * satisfied. FsService uses the real implementation — it calls the mocked `vscode.workspace.fs.stat`.
+ * The source calls the static accessors `api.services.<Service>.<method>()`, which read the service from
+ * context. Provide the real classes through the api plus service instances so the accessors resolve and the
+ * effect's requirements are satisfied. `FsService.Default` is the real service; it drives
+ * `vscode.workspace.fs.stat`, which is mocked below.
  */
-const provideWorkspace = (isEmpty: boolean) => {
+const provideWorkspace = (isEmpty: boolean, workspaceClosedAfterCheck = false) => {
   const info = { path: '/mock', fsPath: '/mock', isEmpty, isVirtualFs: false, cwd: '/mock' } as const;
+  // ProjectService re-reads the workspace folders, so it can fail after the isEmpty check passed
+  const folderOrClosed = (folder: URI) =>
+    workspaceClosedAfterCheck
+      ? Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }))
+      : Effect.succeed(folder);
   return Layer.mergeAll(
     Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed({
-        services: { WorkspaceService, FsService }
+        services: { WorkspaceService, ProjectService, FsService }
       } as unknown as SalesforceVSCodeServicesApi)
     }),
-    FsService.Default,
     Layer.succeed(
       WorkspaceService,
       new WorkspaceService({
         getWorkspaceInfo: () => Effect.succeed(info),
         getWorkspaceInfoOrThrow: () => Effect.succeed(info)
       } as unknown as WorkspaceService)
-    )
+    ),
+    Layer.succeed(
+      ProjectService,
+      new ProjectService({
+        getDebugLogsFolder: () => folderOrClosed(debugLogsFolder),
+        getStateFolder: () => folderOrClosed(stateFolder)
+      } as unknown as ProjectService)
+    ),
+    FsService.Default
   );
 };
 
-const run = (extContext: vscode.ExtensionContext, isEmpty: boolean) =>
-  Effect.runPromise(getDialogStartingPath(extContext).pipe(Effect.provide(provideWorkspace(isEmpty))));
+const run = (extContext: vscode.ExtensionContext, isEmpty: boolean, workspaceClosedAfterCheck = false) =>
+  Effect.runPromise(
+    getDialogStartingPath(extContext).pipe(Effect.provide(provideWorkspace(isEmpty, workspaceClosedAfterCheck)))
+  );
 
 describe('getDialogStartingPath', () => {
   const testPath = '/here/is/a/fake/path/to/';
   let mockGet: jest.Mock;
   let mockExtensionContext: any;
-  let vsCodeUriMock: jest.SpyInstance;
-  let debugLogsFolderMock: jest.SpyInstance;
-  let stateFolderMock: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,9 +74,6 @@ describe('getDialogStartingPath', () => {
     mockExtensionContext = {
       workspaceState: { get: mockGet }
     };
-    vsCodeUriMock = jest.spyOn(URI, 'file');
-    debugLogsFolderMock = jest.spyOn(projectPaths, 'debugLogsFolder');
-    stateFolderMock = jest.spyOn(projectPaths, 'stateFolder');
 
     // Mock VSCode workspace.fs.stat to return directory type (exists)
     (vscode.workspace.fs.stat as jest.Mock).mockResolvedValue({ type: vscode.FileType.Directory });
@@ -70,7 +81,7 @@ describe('getDialogStartingPath', () => {
 
   it('Should return last opened log folder if present', async () => {
     mockGet.mockReturnValue(testPath);
-    vsCodeUriMock.mockReturnValue({ path: testPath } as URI);
+    const vsCodeUriMock = jest.spyOn(URI, 'file').mockReturnValue({ path: testPath } as URI);
 
     const dialogStartingPathUri = await run(mockExtensionContext, false);
 
@@ -82,38 +93,32 @@ describe('getDialogStartingPath', () => {
 
   it('Should return project log folder when last opened log folder not present', async () => {
     mockGet.mockReturnValue(undefined);
-    const fakePathToDebugLogsFolder = 'path/to/debug/logs';
-    debugLogsFolderMock.mockReturnValue(fakePathToDebugLogsFolder);
-    vsCodeUriMock.mockReturnValue({
-      path: fakePathToDebugLogsFolder
-    } as URI);
 
     const dialogStartingPathUri = await run(mockExtensionContext, false);
 
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(vscode.workspace.fs.stat).toHaveBeenCalled();
-    expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
-    expect((dialogStartingPathUri as URI).path).toEqual(fakePathToDebugLogsFolder);
+    expect((dialogStartingPathUri as URI).path).toEqual(debugLogsFolder.path);
   });
 
   it('Should return state folder as fallback when project log folder not present', async () => {
     mockGet.mockReturnValue(undefined);
-    const fakePathToDebugLogsFolder = 'path/to/debug/logs';
-    debugLogsFolderMock.mockReturnValue(fakePathToDebugLogsFolder);
     // Mock that the debug logs folder doesn't exist
     (vscode.workspace.fs.stat as jest.Mock).mockRejectedValueOnce(new Error('Not found'));
-    const fakePathToStateFolder = 'path/to/state';
-    stateFolderMock.mockReturnValue(fakePathToStateFolder);
-    vsCodeUriMock.mockReturnValue({
-      path: fakePathToStateFolder
-    } as URI);
 
     const dialogStartingPathUri = await run(mockExtensionContext, false);
 
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
     expect(vscode.workspace.fs.stat).toHaveBeenCalled();
-    expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToStateFolder);
-    expect((dialogStartingPathUri as URI).path).toEqual(fakePathToStateFolder);
+    expect((dialogStartingPathUri as URI).path).toEqual(stateFolder.path);
+  });
+
+  it('Should return undefined when the workspace closes after the isEmpty check', async () => {
+    mockGet.mockReturnValue(undefined);
+
+    const dialogStartingPathUri = await run(mockExtensionContext, false, true);
+
+    expect(dialogStartingPathUri as URI).toBeUndefined();
   });
 
   it('Should return undefined when not in a project workspace', async () => {
