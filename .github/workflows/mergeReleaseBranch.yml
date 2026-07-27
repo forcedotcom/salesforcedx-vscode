@@ -84,14 +84,10 @@ jobs:
             exit 1
           fi
 
-          # Push merge commit immediately to avoid leaving develop diverged if script fails
-          git push origin develop
-
           # Prepend package CHANGELOG to root CHANGELOG (idempotent)
-          # If this fails, the merge is already pushed, so we fail the workflow but don't leave develop diverged
           if ! node scripts/prepend-release-changelog.js; then
-            echo "::error::Failed to prepend changelog. Merge was pushed but changelog update failed."
-            echo "::error::Manual intervention required: run 'node scripts/prepend-release-changelog.js' and commit."
+            echo "::error::Failed to prepend changelog."
+            echo "::error::Manual intervention required: resolve locally and push."
             exit 1
           fi
 
@@ -100,7 +96,9 @@ jobs:
             git add CHANGELOG.md
             git commit -m "chore: prepend v${{env.RELEASE_VERSION}} to root changelog" \
               -m "Co-Authored-By: GitHub Actions <noreply@github.com>"
-            git push origin develop
           else
             echo "No changelog changes to commit (version already present)"
           fi
+
+          # Push both merge and changelog commits together atomically
+          git push origin develop

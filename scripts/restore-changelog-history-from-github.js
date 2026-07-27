@@ -165,11 +165,6 @@ function main() {
     process.exit(1);
   }
 
-  // Backup current changelog
-  const backupPath = `${CHANGELOG_PATH}.backup-${Date.now()}`;
-  fs.copyFileSync(CHANGELOG_PATH, backupPath);
-  console.log(`✅ Backed up current CHANGELOG to ${path.basename(backupPath)}\n`);
-
   // Fetch releases
   const releases = fetchReleases();
 
@@ -189,6 +184,11 @@ function main() {
     console.log(`\n... (${newChangelog.length} total characters)`);
     console.log('\n✅ Dry run complete. Run without --dry-run to apply changes.');
   } else {
+    // Backup current changelog before writing
+    const backupPath = `${CHANGELOG_PATH}.backup-${Date.now()}`;
+    fs.copyFileSync(CHANGELOG_PATH, backupPath);
+    console.log(`✅ Backed up current CHANGELOG to ${path.basename(backupPath)}`);
+
     // Write new changelog
     fs.writeFileSync(CHANGELOG_PATH, newChangelog, 'utf8');
     console.log(`\n✅ Full changelog history restored!`);

@@ -2541,17 +2541,9 @@ We’re excited that we’ve made it easier for you to give Einstein for Develop
 
 # 60.13.1 - May 16, 2024
 
-# 60.13.0 - May 15, 2024
-
 ## Fixed
 
-#### docs
-
-- We made updates to the troubleshooting guidelines for Einstein for Developers. ([PR #5587](https://github.com/forcedotcom/salesforcedx-vscode/pull/5587))
-
-#### salesforcedx-vscode-core
-
-- We got rid of the annoying `"Warning: Ignoring extra certs from null, load failed: error:80000002:system library::No such file or directory"` warning when the `Salesforcedx-vscode-core: NODE_EXTRA_CA_CERTS` setting is missing. ([PR #5575](https://github.com/forcedotcom/salesforcedx-vscode/pull/5575))
+- We fixed an issue that caused a security vulnerability. ([GitHub Security Advisory](https://github.com/forcedotcom/salesforcedx-vscode/security/advisories/GHSA-2g9g-w67j-j4m3))
 
 # 60.13.0 - May 15, 2024
 
@@ -2712,13 +2704,9 @@ If you run Salesforce CLI commands in the terminal, use the newer sf commands. S
 
 # 60.3.2 - March 5, 2024
 
-# 60.3.1 - March 4, 2024
+## Fixed
 
-## Added
-
-#### docs
-
-- Alongside this release, the Einstein for Developers extension release includes a host of new features that we hope you'll test drive. See the Einstein for Developers [change log](https://marketplace.visualstudio.com/items/salesforce.salesforcedx-einstein-gpt/changelog) for more details.
+- We fixed an issue with Apex language server startup on Windows that would occur when special characters are present in a project's path. ([PR #5472](https://github.com/forcedotcom/salesforcedx-vscode/pull/5472))
 
 # 60.3.1 - March 4, 2024
 
