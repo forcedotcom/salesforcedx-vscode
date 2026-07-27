@@ -270,7 +270,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
   if (isCliInstalled) {
     yield* Effect.log('Setting up ISV Debugger environment variables');
     // register watcher for ISV authentication and setup default user for CLI
-    // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
     yield* Effect.tryPromise({
       try: async () => {
