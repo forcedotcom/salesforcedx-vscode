@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, OrgConfigProperties } from '@salesforce/core';
+import { Config, OrgConfigProperties, SfConfigProperties } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
@@ -86,9 +86,19 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
     });
 
     /** Reads a string config property from the current aggregator, or undefined if unset */
-    const readConfigString = Effect.fn('ConfigService.readConfigString')(function* (prop: OrgConfigProperties) {
+    const readConfigString = Effect.fn('ConfigService.readConfigString')(function* (
+      prop: OrgConfigProperties | SfConfigProperties
+    ) {
       const agg = yield* getConfigAggregator();
       return agg.getPropertyValue<string>(prop) ?? undefined;
+    });
+
+    /** Returns true when the CLI is configured to opt out of telemetry (`sf config set disable-telemetry`). */
+    const isCliTelemetryDisabled = Effect.fn('ConfigService.isCliTelemetryDisabled')(function* () {
+      const value = yield* readConfigString(SfConfigProperties.DISABLE_TELEMETRY);
+      // the CLI writes disable-telemetry as the string 'true', but the aggregator hands back whatever is on
+      // disk and a hand-edited config can hold a real boolean — String() accepts both spellings
+      return String(value) === 'true';
     });
 
     /** Returns the current target-org value (alias or username), or undefined if not set */
@@ -154,6 +164,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       invalidateConfigAggregator,
       getTargetOrg,
       getTargetDevHub,
+      isCliTelemetryDisabled,
       isCurrentTargetOrg,
       isCurrentTargetDevHub,
       setTargetOrg,
