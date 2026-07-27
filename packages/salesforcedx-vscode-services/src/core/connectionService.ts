@@ -12,7 +12,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
-import { isString } from 'effect/Predicate';
+import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -324,7 +324,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
           });
 
       // update the org ref in the background — ONLY for the default org (no explicit username)
-      if (username === undefined) {
+      if (isUndefined(username)) {
         yield* maybeUpdateDefaultOrgRef(conn).pipe(
           Effect.provide(AliasService.Default),
           Effect.tapError(e => Effect.logWarning(String(e))),
@@ -397,7 +397,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const orgIdChanged = existingOrgInfo.orgId !== orgId;
   const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
-      orgIdChanged || existingOrgInfo.username === undefined || existingOrgInfo.userId === undefined
+      orgIdChanged || isUndefined(existingOrgInfo.username) || isUndefined(existingOrgInfo.userId)
         ? orgId
           ? getUserFromUserSobject(orgId, conn).pipe(
               Effect.map(identity => identity ?? { username: undefined, userId: undefined })
@@ -457,7 +457,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       username,
       ...(isString(cliId) ? { cliId } : {}),
       ...(isString(orgEdition) ? { orgEdition } : {})
-    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
+    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
   );
 
   const updated = Object.fromEntries(

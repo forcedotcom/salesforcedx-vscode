@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
 import {
@@ -27,7 +28,7 @@ export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettin
 }) {}
 
 const isNonEmptyString = (key: string) => (value: string | undefined) =>
-  value === undefined || value.length === 0
+  isUndefined(value) || value.length === 0
     ? Effect.fail(
         new SettingsError({
           cause: new Error(`Value for ${key} is empty`),
@@ -50,7 +51,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       return yield* Effect.try({
         try: () => {
           const config = vscode.workspace.getConfiguration(section);
-          return defaultValue !== undefined ? config.get<T>(key, defaultValue) : config.get<T>(key);
+          return isNotUndefined(defaultValue) ? config.get<T>(key, defaultValue) : config.get<T>(key);
         },
         catch: error => {
           const { cause } = unknownToErrorCause(error);

@@ -6,12 +6,13 @@
  */
 import { type Attributes, type HrTime } from '@opentelemetry/api';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { isNotNullable, isNotUndefined, isUndefined } from 'effect/Predicate';
 
 /** Check if a span is a top-level span (has no parent) */
-const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
+const isTopLevelSpan = (span: ReadableSpan): boolean => isUndefined(span.parentSpanContext);
 
 /** Check if a span has a command attribute */
-const isCommandSpan = (span: ReadableSpan): boolean => span.attributes['command'] !== undefined;
+const isCommandSpan = (span: ReadableSpan): boolean => isNotUndefined(span.attributes['command']);
 
 /** Check if a span should be excluded from production telemetry */
 const isTelemetryIgnored = (span: ReadableSpan): boolean => span.attributes['telemetryIgnore'] === true;
@@ -24,7 +25,7 @@ export const isSpanValidForProductionTelemetry = (span: ReadableSpan): boolean =
 export const convertAttributes = (attributes: Attributes): Attributes =>
   Object.fromEntries(
     Object.entries(attributes)
-      .filter(([, value]) => value !== undefined && value !== null)
+      .filter(([, value]) => isNotNullable(value))
       .filter(([key]) => key !== 'extension.name' && key !== 'extension.version')
       .map(([key, value]) => [key, String(value)])
   );
@@ -48,7 +49,7 @@ const hrTimeToNano = (hrTime: HrTime): string => (BigInt(hrTime[0]) * 1_000_000_
 export const serializeSpanOtlp = (span: ReadableSpan, env?: { hostname?: string; processId?: string }): string => {
   const resourceAttrs: Record<string, unknown> = { ...span.resource.attributes };
   const sessionId = span.attributes['common.vscodesessionid'];
-  if (sessionId !== undefined) resourceAttrs['captureSessionId'] = String(sessionId);
+  if (isNotUndefined(sessionId)) resourceAttrs['captureSessionId'] = String(sessionId);
   if (env?.hostname) resourceAttrs['hostname'] = env.hostname;
   if (env?.processId) resourceAttrs['processId'] = env.processId;
 

@@ -7,7 +7,7 @@
 import { Context } from '@opentelemetry/api';
 import { Span, BatchSpanProcessor, SpanExporter, BufferConfig } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isNotUndefined, isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
@@ -33,7 +33,7 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
         Effect.all([getAdditionalAttributes(extensionName, extensionVersion), memoized('everySpanIsTheSame')]) // it seems to want a key
       )
         .flat()
-        .filter(isNotUndefined)
+        .filter(hasDefinedValue)
         .map(([k, v]) => span.setAttribute(k, v));
     }
     super.onStart(span, parentContext);
@@ -101,7 +101,7 @@ const getPermanentAttributes = () => {
 
 const memoized = Effect.runSync(Effect.cachedFunction(getPermanentAttributes));
 
-const isNotUndefined = (item: [string, string | undefined]): item is [string, string] => isString(item[1]);
+const hasDefinedValue = (item: [string, string | undefined]): item is [string, string] => isString(item[1]);
 
 const getCPUs = (): string => {
   const cpus = os?.cpus() ?? [];
@@ -109,4 +109,4 @@ const getCPUs = (): string => {
 };
 
 const optionalBooleanToString = (value: boolean | undefined): string | undefined =>
-  value !== undefined ? (value ? 'true' : 'false') : undefined;
+  isNotUndefined(value) ? (value ? 'true' : 'false') : undefined;
