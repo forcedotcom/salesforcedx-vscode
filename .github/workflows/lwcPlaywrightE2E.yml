@@ -84,11 +84,7 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: Run LWC Playwright web tests (parallel)
         if: steps.try-run.outcome == 'failure'
@@ -183,11 +179,7 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: Run LWC Playwright desktop tests (parallel)
         if: steps.try-run.outcome == 'failure'
@@ -280,11 +272,7 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: Run LWC run-tests desktop (parallel)
         if: steps.try-run.outcome == 'failure'
@@ -377,11 +365,7 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: Run LWC debug-tests desktop (parallel)
         if: steps.try-run.outcome == 'failure'

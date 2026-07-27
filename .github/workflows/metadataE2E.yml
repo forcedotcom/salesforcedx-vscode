@@ -115,11 +115,7 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: create scratch org and set up dreamhouse
         if: steps.try-run.outcome == 'failure'
@@ -278,11 +274,7 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: Clone dreamhouse
         if: steps.try-run.outcome == 'failure'
@@ -433,11 +425,7 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'
@@ -566,11 +554,7 @@ jobs:
 
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: Generate minimal project
         if: steps.try-run.outcome == 'failure'

@@ -93,11 +93,7 @@ jobs:
       # Only install Playwright on cache miss. apex LSP specs do not exercise an org, so no CLI/scratch-org setup is required.
       - name: Install Playwright browsers and OS deps
         if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
+        uses: ./.github/actions/cache-playwright-browsers
 
       - name: Run Apex LSP E2E tests (parallel)
         if: steps.try-run.outcome == 'failure'
