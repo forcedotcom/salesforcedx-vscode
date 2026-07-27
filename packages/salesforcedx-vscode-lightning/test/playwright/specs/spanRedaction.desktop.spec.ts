@@ -32,10 +32,11 @@ import {
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
+  readJsonlFiles,
+  parseJsonlLines,
   EDITOR_WITH_URI,
   QUICK_INPUT_WIDGET
 } from '@salesforce/playwright-vscode-ext';
-import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
@@ -47,34 +48,6 @@ const REDACTED = '<REDACTED ACCESS TOKEN>';
 
 type SpanRow = { kind?: string; name?: string; attributes?: Record<string, unknown> };
 type Envelope = { data?: { baseData?: { properties?: Record<string, unknown> } } };
-
-/**
- * Contents of this session's JSONL files in `dir`. Both extensions bundle their own SDK, so each
- * writes its own timestamped file — read them all. Files untouched since the test started belong to
- * earlier runs and are excluded, so the '<REDACTED …>' assertions can only be satisfied by spans this
- * session produced.
- */
-const readSessionFiles = async (dir: string, since: number): Promise<string[]> => {
-  const entries = await fs.readdir(dir).catch(() => [] as string[]);
-  const contents = await Promise.all(
-    entries
-      .filter(name => name.endsWith('.jsonl'))
-      .map(async name => {
-        const file = path.join(dir, name);
-        const stat = await fs.stat(file).catch(() => undefined);
-        return stat && stat.mtimeMs >= since ? fs.readFile(file, 'utf-8').catch(() => '') : '';
-      })
-  );
-  return contents.filter(Boolean);
-};
-
-const parseLines = <T>(contents: string[]): T[] =>
-  contents.flatMap(text =>
-    text
-      .split('\n')
-      .filter(Boolean)
-      .map(line => JSON.parse(line) as T)
-  );
 
 test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsights files', async ({ page }) => {
   test.setTimeout(360_000);
@@ -117,8 +90,8 @@ test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsig
     await expect
       .poll(
         async () => {
-          const files = await readSessionFiles(SPANS_DIR, since);
-          return parseLines<SpanRow>(files).some(
+          const files = await readJsonlFiles(SPANS_DIR, since);
+          return parseJsonlLines<SpanRow>(files).some(
             row => row.kind === 'span' && row.attributes?.telemetryTag === REDACTED
           );
         },
@@ -126,7 +99,7 @@ test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsig
       )
       .toBe(true);
 
-    const raw = (await readSessionFiles(SPANS_DIR, since)).join('\n');
+    const raw = (await readJsonlFiles(SPANS_DIR, since)).join('\n');
     expect(raw, 'raw planted token leaked into the span file').not.toContain(PLANTED_TOKEN_TAIL);
   });
 
@@ -134,8 +107,8 @@ test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsig
     await expect
       .poll(
         async () => {
-          const files = await readSessionFiles(APPINSIGHTS_DIR, since);
-          return parseLines<Envelope>(files).some(
+          const files = await readJsonlFiles(APPINSIGHTS_DIR, since);
+          return parseJsonlLines<Envelope>(files).some(
             envelope => envelope.data?.baseData?.properties?.telemetryTag === REDACTED
           );
         },
@@ -146,7 +119,7 @@ test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsig
       )
       .toBe(true);
 
-    const raw = (await readSessionFiles(APPINSIGHTS_DIR, since)).join('\n');
+    const raw = (await readJsonlFiles(APPINSIGHTS_DIR, since)).join('\n');
     expect(raw, 'raw planted token leaked into the AppInsights envelopes').not.toContain(PLANTED_TOKEN_TAIL);
   });
 
