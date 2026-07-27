@@ -182,6 +182,7 @@ jobs:
           name: playwright-report-web
           path: packages/salesforcedx-vscode-metadata/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -190,6 +191,7 @@ jobs:
           name: playwright-test-results-web
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'
@@ -367,6 +369,7 @@ jobs:
           name: playwright-report-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-metadata/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -375,6 +378,7 @@ jobs:
           name: playwright-test-results-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'
@@ -483,6 +487,7 @@ jobs:
           name: playwright-report-conflicts-web
           path: packages/salesforcedx-vscode-metadata/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -491,6 +496,7 @@ jobs:
           name: playwright-test-results-conflicts-web
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'
@@ -632,6 +638,7 @@ jobs:
           name: playwright-report-conflicts-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-metadata/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -640,6 +647,7 @@ jobs:
           name: playwright-test-results-conflicts-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'
