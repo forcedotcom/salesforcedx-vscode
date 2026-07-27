@@ -18,7 +18,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 
 - The PostToolUse `verify-on-edit.sh` hook auto-runs `--file <edited>` on every `.ts` Edit/Write and surfaces output as `followup_message`. Address what it reports.
 - **Address warnings AND messages, not just errors.** `references/diagnostics-findings.md` maps each common finding to its fix; `config/effect-diagnostics.json` `enforcedRules` is the build gate.
-- Some rules ship `off` upstream and report nothing until pinned to `error` in `tsconfig.common.json` `diagnosticSeverity` — a name in `enforcedRules` only gates if the rule reports. Both edits needed to enforce one.
+- Enforcing a rule takes two edits, not just an `enforcedRules` entry — see `references/diagnostics-findings.md`.
 - After a batch of edits, run `--project tsconfig.json` for the affected package to catch cross-file issues.
 - `effect-language-service quickfixes` shows proposed code changes.
 

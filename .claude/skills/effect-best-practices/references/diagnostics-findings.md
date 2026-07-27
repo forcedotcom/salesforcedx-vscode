@@ -2,7 +2,7 @@
 
 Repo's chosen fix per rule — the LS message and quickfix say what's wrong, this says what we do about it. Which rules gate the build is not tracked here: `config/effect-diagnostics.json` `enforcedRules` is the only list (`npm run check:effect-diagnostics` fails on any rule in it, any severity). Fix unlisted findings too — each becomes enforced by a later WI.
 
-Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json`) — an `off` rule reports nothing, so a name in `enforcedRules` gates nothing until `tsconfig.common.json` `diagnosticSeverity` pins it to `error`. The `global*`/`floatingEffect` rows below are pinned there.
+Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json`) — an `off` rule reports nothing, so a name in `enforcedRules` gates nothing until `tsconfig.common.json` `diagnosticSeverity` pins it to `error`. Pinned there today: `floatingEffect`, `globalRandom`, `globalRandomInEffect`, `globalFetchInEffect`, `globalTimersInEffect`.
 
 | Rule | Finding | Fix |
 | --- | --- | --- |
@@ -16,6 +16,6 @@ Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json
 | `returnEffectInGen` | generator `return`s an Effect without `yield*` → `Effect<Effect<…>>` | `return yield* X` |
 | `effectFnOpportunity` | `Effect.gen` where a named `Effect.fn` fits | `Effect.fn('Span')(function* …)` |
 | `floatingEffect` | Effect expression statement never run | `yield*` it, or bind it |
-| `globalRandom` / `globalRandomInEffect` | `Math.random()` (anywhere / inside Effect) | `Random.next`, `Random.nextInt` |
+| `globalRandom` / `globalRandomInEffect` | `Math.random()` (outside Effect / inside Effect) | `Random.next`, `Random.nextInt` |
 | `globalFetchInEffect` | global `fetch(...)` inside Effect | `@effect/platform` `HttpClient` |
 | `globalTimersInEffect` | `setTimeout`/`setInterval` inside Effect | `Effect.sleep`, `Effect.repeat`/`Effect.schedule` |
