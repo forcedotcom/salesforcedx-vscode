@@ -166,6 +166,7 @@ jobs:
           name: playwright-report
           path: packages/salesforcedx-vscode-org-browser/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'
@@ -315,6 +316,7 @@ jobs:
           name: playwright-report-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-org-browser/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -323,6 +325,7 @@ jobs:
           name: playwright-test-results-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-org-browser/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'

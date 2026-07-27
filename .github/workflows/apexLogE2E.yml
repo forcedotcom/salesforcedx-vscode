@@ -143,6 +143,7 @@ jobs:
           name: playwright-report-apex-log-web
           path: packages/salesforcedx-vscode-apex-log/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -151,6 +152,7 @@ jobs:
           name: playwright-test-results-apex-log-web
           path: packages/salesforcedx-vscode-apex-log/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'
@@ -274,6 +276,7 @@ jobs:
           name: playwright-report-apex-log-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex-log/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -282,6 +285,7 @@ jobs:
           name: playwright-test-results-apex-log-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex-log/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'

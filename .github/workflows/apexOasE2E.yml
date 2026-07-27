@@ -178,6 +178,7 @@ jobs:
           name: playwright-report-apex-oas-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex-oas/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -186,6 +187,7 @@ jobs:
           name: playwright-test-results-apex-oas-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex-oas/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'

@@ -130,6 +130,7 @@ jobs:
           name: playwright-report-apex-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -138,4 +139,5 @@ jobs:
           name: playwright-test-results-apex-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-apex/test-results
           if-no-files-found: ignore
+          retention-days: 14
 

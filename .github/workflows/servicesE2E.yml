@@ -152,6 +152,7 @@ jobs:
           name: playwright-report-web
           path: packages/salesforcedx-vscode-services/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -160,6 +161,7 @@ jobs:
           name: playwright-test-results-web
           path: packages/salesforcedx-vscode-services/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'

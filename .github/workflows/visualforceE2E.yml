@@ -124,6 +124,7 @@ jobs:
           name: playwright-report-visualforce-web
           path: packages/salesforcedx-vscode-visualforce/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -132,6 +133,7 @@ jobs:
           name: playwright-test-results-visualforce-web
           path: packages/salesforcedx-vscode-visualforce/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
   # ─── Desktop ──────────────────────────────────────────────────────────────────────────────
 
@@ -232,6 +234,7 @@ jobs:
           name: playwright-report-visualforce-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-visualforce/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -240,3 +243,4 @@ jobs:
           name: playwright-test-results-visualforce-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-visualforce/test-results
           if-no-files-found: ignore
+          retention-days: 14

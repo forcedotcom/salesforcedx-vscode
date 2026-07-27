@@ -172,6 +172,7 @@ jobs:
           name: playwright-report-${{ matrix.package }}-desktop-${{ matrix.os }}
           path: packages/${{ matrix.package }}/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -180,6 +181,7 @@ jobs:
           name: playwright-test-results-${{ matrix.package }}-desktop-${{ matrix.os }}
           path: packages/${{ matrix.package }}/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'
