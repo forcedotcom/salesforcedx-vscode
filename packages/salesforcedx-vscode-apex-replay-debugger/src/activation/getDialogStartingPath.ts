@@ -30,15 +30,13 @@ export const getDialogStartingPath = Effect.fn('ApexReplayDebugger.getDialogStar
   // check above and these calls (this runs during activation). A closed workspace means "no starting path",
   // not a failed activation.
   const logsFolder = yield* api.services.ProjectService.getDebugLogsFolder().pipe(
-    Effect.catchTag('NoWorkspaceOpenError', () => Effect.succeed(undefined))
+    Effect.orElseSucceed(() => undefined)
   );
   if (logsFolder && (yield* api.services.FsService.fileOrFolderExists(logsFolder))) {
     return logsFolder;
   }
   // If all else fails, fallback to the .sfdx directory in the workspace
-  return yield* api.services.ProjectService.getStateFolder().pipe(
-    Effect.catchTag('NoWorkspaceOpenError', () => Effect.succeed(undefined))
-  );
+  return yield* api.services.ProjectService.getStateFolder().pipe(Effect.orElseSucceed(() => undefined));
 });
 
 const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | undefined => {
