@@ -12,6 +12,9 @@ runs until a runner (`runPromise`/`runSync`/`yield*`). 3 consequences shape ever
 call site:
 
 1. **Build the whole thing as one flat `.pipe` chain**, ops top-to-bottom.
+   Chained `.pipe` on one expression (`x.pipe(a).pipe(b)`) is config-enforced by
+   `unnecessaryPipeChain`; it matches only that shape, so pipes nested inside a
+   callback stay judgment (see "Flatten nested pipes into sibling steps").
 2. **Make execution the terminal step**, not a wrapper around the expression.
 3. **Bail conditions and dispatch are separate** — guard clauses up top, the pipe
    handles real variance.
@@ -263,7 +266,7 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 
 | Situation | Do | Don't |
 | --- | --- | --- |
-| Build any multi-op effect | one flat `.pipe(...)` chain | nested `f(g(h(x)))` calls |
+| Build any multi-op effect | one flat `.pipe(...)` chain — merged steps as siblings, dropping any the merge makes dead; config-enforced by `unnecessaryPipeChain` (chained `.pipe` on one expression only) | `x.pipe(a).pipe(b)`; nested `f(g(h(x)))` calls |
 | Run a built effect | `effect.pipe(..., runtime.runPromise)` as last step | wrap whole expr in `runPromise(effect.pipe(...))` |
 | Point-free terminal step | bare `Effect.runPromise` always; methods only when closure-based (e.g. `ManagedRuntime.runPromise`) | point-free any `this`-bound method |
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |
