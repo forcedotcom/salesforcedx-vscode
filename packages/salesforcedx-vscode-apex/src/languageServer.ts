@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Scope from 'effect/Scope';
 import type * as Tracer from 'effect/Tracer';
@@ -193,7 +194,7 @@ export const createLanguageServer = async (
 };
 
 const buildClientOptions = async (outputChannel?: vscode.OutputChannel): Promise<ApexLanguageClientOptions> => {
-  const soqlExtensionInstalled = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql') !== undefined;
+  const soqlExtensionInstalled = isNotUndefined(vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql'));
   const lspParityCapabilities = vscode.workspace
     .getConfiguration()
     .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);

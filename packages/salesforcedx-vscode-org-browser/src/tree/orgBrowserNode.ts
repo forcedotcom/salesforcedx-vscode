@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 
 type OrgBrowserTreeItemKind =
@@ -58,7 +59,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     this.filePresent = inputs.filePresent;
 
     // not defined intentionally results in no icon.
-    if (inputs.filePresent !== undefined) {
+    if (isNotUndefined(inputs.filePresent)) {
       this.iconPath = getIconPath(inputs.filePresent);
     }
 
