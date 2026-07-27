@@ -193,16 +193,16 @@ export const deployCurrentSourceToOrg = async (
 };
 
 /**
- * Open a file by clicking its entry in the Files Explorer tree. Desktop only; web headless has no workspace folder.
+ * Open a file by clicking its entry in the Files Explorer tree. Works on both desktop and web
+ * when a workspace folder is mounted.
  *
  * Use this when {@link openFileByName} (Quick Open) won't work — notably on VS Code Web where
  * the `vscode-test-web` file system provider doesn't implement `provideFileSearch`, so Quick
  * Open returns "No matching results" for files that haven't been opened yet.
  *
  * Intermediate folders are auto-expanded when needed. Compact folders (VS Code's default) are
- * handled transparently because the file's treeitem is reachable as soon as any ancestor row
- * is expanded. If the user has disabled compact folders, pass `parentFolders` so we can expand
- * each segment individually.
+ * handled transparently. If the user has disabled compact folders, pass `parentFolders` to
+ * expand each segment individually.
  *
  * @param page Playwright page
  * @param fileName File name to open (must be unique within the Explorer — pass `parentFolders` to disambiguate when needed).
@@ -223,20 +223,22 @@ export const openFileFromExplorerTree = async (
   // fine: the leaf file will still be reachable once any ancestor compact row is expanded.
   for (const folderName of parentFolders) {
     const folderItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(folderName)}\\b`) }).first();
-    if (!(await folderItem.isVisible({ timeout: 500 }).catch(() => false))) continue;
+    if (!(await folderItem.isVisible({ timeout: 5000 }).catch(() => false))) continue;
     const expanded = (await folderItem.getAttribute('aria-expanded').catch(() => null)) === 'true';
     if (expanded) continue;
-    await folderItem.scrollIntoViewIfNeeded().catch(() => {});
-    // Double-click reliably expands in VS Code's Explorer; single click only selects.
-    await folderItem.dblclick({ timeout: 5000 }).catch(() => {});
+    // Single click expands a folder; double-click expands then immediately collapses (two toggles).
+    await folderItem.click({ timeout: 5000 }).catch(() => {});
     await expect(folderItem)
       .toHaveAttribute('aria-expanded', 'true', { timeout: 5000 })
       .catch(() => {});
   }
 
   const fileItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(fileName)}$`) }).first();
-  await fileItem.waitFor({ state: 'visible', timeout: 15_000 });
+  // Wait for the item to be in the DOM first (virtual scrolling: item may be attached but off-screen).
+  // Then scroll it into view before waiting for visibility.
+  await fileItem.waitFor({ state: 'attached', timeout: 15_000 });
   await fileItem.scrollIntoViewIfNeeded().catch(() => {});
+  await fileItem.waitFor({ state: 'visible', timeout: 5000 });
   // Double-click to ensure the file opens as a non-preview tab and gains focus; single click
   // sometimes opens in preview mode that subsequent Explorer clicks replace.
   await fileItem.dblclick({ timeout: 5000 });

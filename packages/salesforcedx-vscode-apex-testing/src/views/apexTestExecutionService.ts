@@ -634,9 +634,10 @@ const narrowToStaleMethods = (
   );
 };
 
-/** TreeMutationContext for suite resolution (controller + tags; no staleTag needed). */
+/** TreeMutationContext for suite resolution (controller + tags; no staleTag/suiteTag needed). */
 const toTreeMutationContext = (ctx: ExecutionContext): TreeMutationContext => ({
   controller: ctx.controller,
+  suiteTag: undefined,
   orgOnlyTag: ctx.orgOnlyTag,
   inWorkspaceTag: ctx.inWorkspaceTag,
   staleTag: undefined

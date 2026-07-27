@@ -73,8 +73,9 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
   await test.step('redeploy class with trivial change to mark methods stale', async () => {
     // Redeploying an existing ApexClass produces SDR `Changed` (sdrGuards.ts:38-48 →
     // metadataDeployService.ts publishes; apexMetadataChangeWatcher consumes), which
-    // routes through applyIncrementalDiff (testController.ts:653-659) and tags every
-    // method on that class with @stale. No window reload required.
+    // routes through ApexTestTreeService.incrementalUpdate → applyIncrementalDiff
+    // (apexTestTreeService.ts:1043+) and tags every method on that class with @stale.
+    // No window reload required.
     await openFileByName(page, `${testClassName}.cls`);
     await ensureSecondarySideBarHidden(page);
     await editOpenFile(page, 'touched');
@@ -92,9 +93,9 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
   await test.step('verify filtering by @stale shows the redeployed class', async () => {
     // Don't call Test: Refresh Tests — that wipes the tree (testController.refresh
     // → clearTestItems) and the staleTag set by applyIncrementalDiff is lost.
-    // applyIncrementalDiff sets staleTag on methods (testController.ts:653-660); the
-    // class is rendered as an ancestor of those tagged methods. Polled because the
-    // metadata watcher debounces ~1s before applying the diff.
+    // applyIncrementalDiff sets staleTag on methods (apexTestTreeService.ts:1066+);
+    // the class is rendered as an ancestor of those tagged methods. Polled because
+    // the metadata watcher debounces ~1s before applying the diff.
     const panel = page.locator(TEST_EXPLORER_PANEL);
     const testClassItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(testClassName, 'i') });
     await expect(async () => {

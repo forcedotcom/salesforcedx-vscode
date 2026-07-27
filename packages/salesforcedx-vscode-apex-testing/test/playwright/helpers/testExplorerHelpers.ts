@@ -40,7 +40,7 @@ export const STALE_AUTOCOMPLETE_OPTION = `${APEX_TEST_CONTROLLER_ID}:stale`;
  * 400ms settle window matches the working pattern from prior test history (CI runs with
  * this pattern reliably reach the expanded state — see [run](https://github.com/forcedotcom/salesforcedx-vscode/actions/runs/26587894571)).
  */
-const expandTreeRow = async (panel: Locator, rowLabel: string): Promise<void> => {
+export const expandTreeRow = async (panel: Locator, rowLabel: string): Promise<void> => {
   const row = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: rowLabel });
   await row.waitFor({ state: 'visible', timeout: 15_000 });
   const twistie = row.locator('.monaco-tl-twistie');

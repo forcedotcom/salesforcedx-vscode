@@ -208,6 +208,7 @@ const runClose = (orgKey: string | undefined): Promise<void> =>
 const mockTestController = {
   items: {
     add: jest.fn(),
+    delete: jest.fn(),
     replace: jest.fn(),
     values: jest.fn().mockReturnValue([])
   } as unknown as vscode.TestItemCollection,
@@ -1075,24 +1076,22 @@ describe('ApexTestController', () => {
       expect(discoverTestsSpyLocal).toHaveBeenCalled();
     });
 
-    it('should call clearAllSuiteChildren when includesSuiteChange is true', async () => {
+    it('should refresh suite items when includesSuiteChange is true', async () => {
       const changes = new Map([['SomeClass', 'deleted']]);
 
-      // Add a suite item to verify it gets cleared
       const suiteItem = {
         id: 'suite:MySuite',
         label: 'MySuite',
-        children: {
-          replace: jest.fn(),
-          size: 1
-        } as unknown as vscode.TestItemCollection
+        children: { replace: jest.fn(), size: 1 } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
       treeMap('getSuiteItems').set('MySuite', suiteItem);
 
       await controller.incrementalUpdate(changes, true);
 
-      expect(suiteItem.children.replace).toHaveBeenCalledWith([]);
+      // Suite parent deleted from controller and suiteItems Ref cleared (populateSuiteItems re-adds nothing
+      // because retrieveAllSuites returns [] from the mock).
+      expect(mockTestController.items.delete).toHaveBeenCalledWith('apex-test-suites-parent');
     });
 
     // Diff internals (add/diff/remove class, invalidateTestResults, removeEmptyAncestors) moved into
