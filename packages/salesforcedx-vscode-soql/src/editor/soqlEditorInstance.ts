@@ -120,7 +120,7 @@ export class SOQLEditorInstance {
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const targetOrgRef = yield* api.services.TargetOrgRef();
-        yield* targetOrgRef.changes.pipe(Stream.as(undefined)).pipe(
+        yield* targetOrgRef.changes.pipe(
           Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
           Stream.changes,
           Stream.runForEach(isOrgSet => (isOrgSet ? onConnectionChanged() : onNoDefaultOrg()))
