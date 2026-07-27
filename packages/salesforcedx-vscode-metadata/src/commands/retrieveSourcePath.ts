@@ -13,8 +13,7 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
-import { type CommandKey } from '../utils/notificationMode';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 const COMMAND: CommandKey = messages.retrieve_this_source_text;
@@ -61,8 +60,12 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
       retryOperation: retrieveComponentSet({ componentSet: err.componentSet, ignoreConflicts: true, command: COMMAND })
     })
   ),
-  withConfigurableSuccessNotification(
-    COMMAND,
-    nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text'))
+  Effect.tap(() =>
+    Effect.sync(() =>
+      showSuccessNotification(
+        COMMAND,
+        nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text'))
+      )
+    )
   )
 );

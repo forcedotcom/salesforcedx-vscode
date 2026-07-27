@@ -12,8 +12,7 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
-import { type CommandKey } from '../utils/notificationMode';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 import { ManifestSelectionRequiredError } from './manifestErrors';
 
@@ -43,8 +42,9 @@ export const deployManifestCommand = Effect.fn('deployManifestCommand')(
       retryOperation: deployComponentSet({ componentSet: err.componentSet, command: COMMAND })
     })
   ),
-  withConfigurableSuccessNotification(
-    COMMAND,
-    nls.localize('command_succeeded_text', nls.localize('deploy_in_manifest_text'))
+  Effect.tap(() =>
+    Effect.sync(() =>
+      showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_in_manifest_text')))
+    )
   )
 );

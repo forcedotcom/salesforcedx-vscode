@@ -15,8 +15,7 @@ import { messages } from '../messages/i18n';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
-import { type CommandKey } from '../utils/notificationMode';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
+import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 const COMMAND: CommandKey = messages.delete_source_text;
@@ -78,9 +77,10 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
       )
     );
   },
-  withConfigurableSuccessNotification(
-    COMMAND,
-    nls.localize('command_succeeded_text', nls.localize('delete_source_text'))
+  Effect.tap(() =>
+    Effect.sync(() =>
+      showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('delete_source_text')))
+    )
   ),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.sync(() => {

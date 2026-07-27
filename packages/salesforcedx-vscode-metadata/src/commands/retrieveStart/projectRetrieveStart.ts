@@ -13,7 +13,6 @@ import { messages } from '../../messages/i18n';
 import { formatRetrieveOutput } from '../../shared/retrieve/formatRetrieveOutput';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
 import { type CommandKey, showSuccessNotification } from '../../utils/notificationMode';
-import { withConfigurableSuccessNotification } from '../../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../../utils/withPreparationProgress';
 
 const COMMAND: CommandKey = messages.project_retrieve_start_default_org_text;
@@ -82,13 +81,17 @@ const retrieveEffect = Effect.fn('retrieveEffect')(
 /** Retrieve remote changes from the default org */
 export const projectRetrieveStartCommand = (ignoreConflicts: boolean) =>
   retrieveEffect(ignoreConflicts).pipe(
-    withConfigurableSuccessNotification(
-      COMMAND,
-      nls.localize(
-        'command_succeeded_text',
-        ignoreConflicts
-          ? nls.localize('project_retrieve_start_ignore_conflicts_default_org_text')
-          : nls.localize('project_retrieve_start_default_org_text')
+    Effect.tap(() =>
+      Effect.sync(() =>
+        showSuccessNotification(
+          COMMAND,
+          nls.localize(
+            'command_succeeded_text',
+            ignoreConflicts
+              ? nls.localize('project_retrieve_start_ignore_conflicts_default_org_text')
+              : nls.localize('project_retrieve_start_default_org_text')
+          )
+        )
       )
     ),
     Effect.catchTag('EmptyComponentSetError', () =>

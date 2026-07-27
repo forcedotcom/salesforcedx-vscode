@@ -12,7 +12,6 @@ import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
-import { withConfigurableSuccessNotification } from '../utils/withConfigurableSuccessNotification';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
 const COMMAND: CommandKey = messages.project_deploy_start_default_org_text;
@@ -36,13 +35,17 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
         retryOperation: deployEffect(true)
       })
     ),
-    withConfigurableSuccessNotification(
-      COMMAND,
-      nls.localize(
-        'command_succeeded_text',
-        ignoreConflicts
-          ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
-          : nls.localize('project_deploy_start_default_org_text')
+    Effect.tap(() =>
+      Effect.sync(() =>
+        showSuccessNotification(
+          COMMAND,
+          nls.localize(
+            'command_succeeded_text',
+            ignoreConflicts
+              ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
+              : nls.localize('project_deploy_start_default_org_text')
+          )
+        )
       )
     ),
     Effect.catchTag('EmptyComponentSetError', () =>
