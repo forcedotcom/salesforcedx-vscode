@@ -120,7 +120,7 @@ jobs:
 
   ctcCloseFail:
     needs: [ctc-open, publish]
-    if: always() && needs.ctc-open.result != 'skipped' && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
+    if: always() && needs.ctc-open.result == 'success' && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result == 'success' && needs.publish.result != 'success')
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:

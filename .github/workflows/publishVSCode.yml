@@ -93,7 +93,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir ./extensions
-          gh release download v$RELEASE_VERSION -D ./extensions
+          gh release download v$RELEASE_VERSION -D ./extensions || {
+            echo "::error::Failed to download release v$RELEASE_VERSION"
+            exit 1
+          }
+
+          # Validate: ≥1 VSIX file present
+          if ! ls ./extensions/*.vsix 1> /dev/null 2>&1; then
+            echo "::error::No VSIX files found in release v$RELEASE_VERSION"
+            exit 1
+          fi
+
           echo "Downloaded VSIX files:"
           ls -lh ./extensions/*.vsix
       - name: Build extension list
@@ -163,7 +173,7 @@ jobs:
 
   ctcCloseFail:
     needs: [ctc-open, publish]
-    if: always() && needs.ctc-open.result != 'skipped' && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result != 'success' || needs.publish.result != 'success')
+    if: always() && needs.ctc-open.result == 'success' && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result == 'success' && needs.publish.result != 'success')
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:

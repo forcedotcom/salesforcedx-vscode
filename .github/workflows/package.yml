@@ -6,7 +6,7 @@ on:
       node-version:
         description: 'Node.js version to use'
         required: false
-        default: '22.x'
+        default: 'lts/*'
         type: string
       branch:
         description: 'Branch to package from'
@@ -37,7 +37,7 @@ on:
       node-version:
         description: 'Node.js version to use'
         required: false
-        default: '22.x'
+        default: 'lts/*'
         type: string
       branch:
         description: 'Branch to package from'
@@ -72,10 +72,10 @@ jobs:
         with:
           ref: ${{ inputs.branch || github.head_ref || github.ref }}
 
-      - name: Setup Node.js ${{ inputs.node-version || '22.x' }}
+      - name: Setup Node.js ${{ inputs.node-version || vars.NODE_VERSION || 'lts/*' }}
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ inputs.node-version || '22.x' }}
+          node-version: ${{ inputs.node-version || vars.NODE_VERSION || 'lts/*' }}
 
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
@@ -124,8 +124,8 @@ jobs:
               # Get relative path for display
               RELATIVE_PATH=$(echo "$vsix_file" | sed 's|^packages/||')
               
-              # Get file size
-              FILE_SIZE=$(stat -c%s "$vsix_file" 2>/dev/null || stat -f%z "$vsix_file" 2>/dev/null || echo "0")
+              # Get file size (GitHub Actions ubuntu-latest uses GNU stat)
+              FILE_SIZE=$(stat -c%s "$vsix_file" || echo "0")
               
               # Create individual .md5 file alongside VSIX file
               MD5_FILE="${vsix_file}.md5"
@@ -141,11 +141,15 @@ jobs:
                 echo "," >> "$CHECKSUMS_JSON_FILE"
               fi
               # Use jq to safely construct JSON with proper escaping
-              jq -n \
+              JSON_ENTRY=$(jq -n \
                 --arg file "$RELATIVE_PATH" \
                 --arg md5 "$MD5_HASH" \
                 --arg size "$FILE_SIZE" \
-                '{file: $file, md5: $md5, size: $size}' | sed 's/^/  /' >> "$CHECKSUMS_JSON_FILE"
+                '{file: $file, md5: $md5, size: $size}') || {
+                echo "::error::Failed to generate JSON for $RELATIVE_PATH"
+                exit 1
+              }
+              echo "$JSON_ENTRY" | sed 's/^/  /' >> "$CHECKSUMS_JSON_FILE"
               
               echo "Generated MD5 for: $RELATIVE_PATH"
               echo "  MD5: $MD5_HASH"
@@ -179,7 +183,7 @@ jobs:
             packages/**/*.vsix.md5
             packages/checksums.md5
             packages/checksums.json
-          retention-days: 5
+          retention-days: 30
 
       - name: List VSIX files
         run: |

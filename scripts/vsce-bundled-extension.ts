@@ -159,6 +159,7 @@ for (const vsixFile of existingVsixFiles) {
 logger(`Execute vsce from ${cwd}`);
 const preReleaseFlag = process.env.VSCE_PRE_RELEASE === 'true' ? '--pre-release' : '';
 const vsceCommand = `vsce package --allow-package-all-secrets ${preReleaseFlag}`.trim();
+// Safe to log: only public flags, no tokens/secrets in this command
 logger(`Running: ${vsceCommand}`);
 execSync(vsceCommand, { stdio: 'inherit', cwd });
 

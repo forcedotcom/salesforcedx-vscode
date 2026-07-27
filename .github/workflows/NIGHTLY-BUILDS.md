@@ -24,9 +24,9 @@ gh workflow run nightly.yml -f dry-run=true
 ## Extension Discovery
 
 `build-extension-list` job runs `scripts/list-vscode-extensions.js` — scans `packages/` for VS Code extensions:
-- Filters: `engines.vscode`, `publisher`, `categories` present; name starts `salesforcedx-vscode-`
-- Returns comma-separated list (sorted for consistency)
-- New extensions included automatically without workflow changes
+- Filters: `engines.vscode`, `publisher`, `categories`; name starts `salesforcedx-vscode` (includes main bundle extension)
+- Returns comma-separated list (sorted)
+- Auto-included without workflow changes
 
 ## Architecture
 

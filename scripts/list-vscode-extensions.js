@@ -31,16 +31,16 @@ for (const dir of packageDirs) {
   try {
     const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
-    // Publishable VS Code extensions have "engines.vscode", "publisher", and "categories"
-    // Only include extensions with names starting with "salesforcedx-vscode-"
-    // This filters out language servers, scoped packages (@salesforce/*), and internal packages
+    // Publishable VS Code extensions have "engines.vscode", "publisher", "categories"
+    // Includes main bundle (salesforcedx-vscode) + individual extensions (salesforcedx-vscode-*)
+    // Filters out language servers, scoped packages, internal packages
     if (
       pkg.engines &&
       pkg.engines.vscode &&
       pkg.publisher &&
       pkg.categories &&
       pkg.categories.length > 0 &&
-      pkg.name.startsWith('salesforcedx-vscode-')
+      pkg.name.startsWith('salesforcedx-vscode')
     ) {
       extensions.push(pkg.name);
     }
@@ -54,7 +54,11 @@ if (extensions.length === 0) {
   process.exit(1);
 }
 
-// Sort for consistent output
-extensions.sort();
+// Sort with main bundle (salesforcedx-vscode) first, then alphabetical
+extensions.sort((a, b) => {
+  if (a === 'salesforcedx-vscode') return -1;
+  if (b === 'salesforcedx-vscode') return 1;
+  return a.localeCompare(b);
+});
 
 process.stdout.write(extensions.join(','));

@@ -94,13 +94,13 @@ jobs:
             EXTENSION_COUNT=$(echo "$EXTENSIONS" | tr ',' '\n' | wc -l)
             echo "Publishing all $EXTENSION_COUNT extensions: $EXTENSIONS"
           else
-            # Sanitize input: only allow alphanumeric, dash, underscore, and comma
+            # Sanitize: allow alphanumeric, dash, underscore, comma only (prevent command injection)
             SANITIZED=$(echo "$INPUT_EXTENSIONS" | tr -cd 'a-zA-Z0-9,_-')
 
             if [ "$SANITIZED" != "$INPUT_EXTENSIONS" ]; then
               echo "❌ Invalid characters in extensions input. Only alphanumeric, dash, underscore, and comma allowed."
-              echo "Original: $INPUT_EXTENSIONS"
-              echo "Sanitized would be: $SANITIZED"
+              printf 'Original: %s\n' "$INPUT_EXTENSIONS"
+              printf 'Sanitized: %s\n' "$SANITIZED"
               exit 1
             fi
 

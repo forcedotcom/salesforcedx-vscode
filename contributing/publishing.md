@@ -59,6 +59,14 @@ If you get `error: failed to push some refs to 'https://github.com/forcedotcom/s
 3. push
 4. run `PreRelease` workflow again
 
+## Nightly Builds & Pre-release Promotion
+
+**Nightly builds:** `nightly.yml` publishes all extensions to pre-release channels daily (4 AM UTC) + on-demand. Auto-discovers extensions via [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js).
+
+**Pre-release promotion:** `promote-prerelease.yml` (Wednesdays 7 AM UTC) promotes nightly builds to pre-release channels when stability criteria met: nightly tag ≥7 days old + all CI checks passed on tag's commit. Allows safe rollback window before general release.
+
+**Artifact retention:** Nightly builds retain artifacts 30 days (vs. 5 days for PR builds) to support promotion workflows accessing build artifacts for stability verification.
+
 ## Publishing Main
 
 Merge to `main` triggers [testBuildAndRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/testBuildAndRelease.yml):
@@ -68,8 +76,9 @@ Merge to `main` triggers [testBuildAndRelease](https://github.com/forcedotcom/sa
 - Create git tag + GitHub release
 
 Then triggers `publishVSCode.yml`:
-- Upload VSIX files as artifact for validation
-- Validate VSIX OPC Part URIs (via artifact, not re-download)
+- Download VSIX files; validate ≥1 present, exit if missing
+- Upload as artifact for validation
+- Validate VSIX OPC Part URIs (via artifact)
 - Send approval notification
 
 Before approving marketplace publish, download VSIX files, install locally, verify functionality.
@@ -240,6 +249,6 @@ from Atlassian on the flow. These steps are manual because you might encounter m
       - `bugs`: `https://github.com/forcedotcom/salesforcedx-vscode/issues`
       - `repository`: `https://github.com/forcedotcom/salesforcedx-vscode`
    3. Add required scripts — modern packages use wireit (see [Build](../docs/Build.md) and [vsce-direct-use](../docs/adr/0017-vsce-package-directly.md)); legacy need `vscode:prepublish`, `vscode:package:legacy`. All need `vscode:sha256`, `vscode:publish`.
-   4. Ensure `package.json` has `engines.vscode`, `publisher`, `categories` — nightly builds auto-discover extensions with these fields via [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js) (no manual workflow updates).
+   4. Ensure `package.json` has `engines.vscode`, `publisher`, `categories` — nightly builds auto-discover via [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js) (main bundle first, then alphabetical; no workflow updates needed).
 
 [publish_vscode_ext]: https://code.visualstudio.com/docs/extensions/publish-extension

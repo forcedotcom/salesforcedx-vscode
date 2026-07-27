@@ -121,11 +121,17 @@ You'll need a `.vscodeignore` file (to keep unwanted code out of the package).
 
 - downside: managing that ignore file. An alternative might be to ignore `*` and the unignore
 
-**Legacy:** `ts-node scripts/vsce-bundled-extension.ts`; uses `packaging` stanza to mutate package.json (main, dependencies, devDependencies) at package time. Runs sequentially (`WIREIT_PARALLEL=1`) due to chdir usage. Example: [core](../packages/salesforcedx-vscode-core/package.json).
+**Legacy:** `ts-node scripts/vsce-bundled-extension.ts`; uses `packaging` stanza to mutate package.json (main, dependencies, devDependencies) at package time. Runs sequentially (`WIREIT_PARALLEL=1`) due to chdir usage. Logs vsce commands (only public flags, no tokens/secrets); Example: [core](../packages/salesforcedx-vscode-core/package.json).
 
 Prefer the modern approach: parallel execution, no package-time mutation, simplicity.
 
 This will generate vsix. Use those for manual QA and for your end-to-end tests to prevent "works on my machine" but some bundling/packaging configuration messes it up.
+
+## Checksums & Artifacts
+
+**Checksum generation:** `.github/workflows/package.yml` generates MD5 checksums for vsix files and publishes them to GitHub releases (via `SHA256.md` and `SHA256` files). JSON construction uses `jq` with proper error handling — if `jq` fails, workflow exits with error rather than silently continuing.
+
+**Artifact retention:** Nightly builds retain artifacts for 30 days (vs. 5 days for PR builds). Raises retention to allow prerelease promotion workflows to access the build artifacts for stability verification.
 
 ## Publish
 
