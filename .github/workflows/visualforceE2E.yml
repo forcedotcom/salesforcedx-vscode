@@ -77,7 +77,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-visualforce -- --reporter=html,github
+          npm run test:web -w salesforcedx-vscode-visualforce
 
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
@@ -99,7 +99,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-visualforce -- --reporter=html,github
+          npm run test:web -w salesforcedx-vscode-visualforce
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -108,7 +108,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-visualforce -- --last-failed --reporter=html,github
+          npm run test:web -w salesforcedx-vscode-visualforce -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -182,7 +182,7 @@ jobs:
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-visualforce -- --reporter=html,github
+          npm run test:desktop -w salesforcedx-vscode-visualforce
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - uses: ./.github/actions/cache-vscode-desktop
@@ -206,7 +206,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-visualforce -- --reporter=html,github
+          npm run test:desktop -w salesforcedx-vscode-visualforce
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -216,7 +216,7 @@ jobs:
           VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-visualforce -- --last-failed --reporter=html,github
+          npm run test:desktop -w salesforcedx-vscode-visualforce -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

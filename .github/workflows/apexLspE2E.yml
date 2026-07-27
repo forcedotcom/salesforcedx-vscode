@@ -88,7 +88,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex -- --reporter=html,github
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex
 
       # Only install Playwright on cache miss. apex LSP specs do not exercise an org, so no CLI/scratch-org setup is required.
       - name: Install Playwright browsers and OS deps
@@ -106,7 +106,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex -- --reporter=html,github
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -114,7 +114,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex -- --last-failed --reporter=html,github
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

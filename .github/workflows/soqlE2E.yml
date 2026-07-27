@@ -80,7 +80,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-soql -- --reporter=html,github
+          npm run test:web -w salesforcedx-vscode-soql
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -128,7 +128,7 @@ jobs:
           CI: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:web -w salesforcedx-vscode-soql -- --reporter=html,github
+          npm run test:web -w salesforcedx-vscode-soql
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -138,7 +138,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-soql -- --last-failed --reporter=html,github
+          npm run test:web -w salesforcedx-vscode-soql -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -220,7 +220,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-soql -- --reporter=html,github
+          npm run test:desktop -w salesforcedx-vscode-soql
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -269,7 +269,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:desktop -w salesforcedx-vscode-soql -- --reporter=html,github
+          npm run test:desktop -w salesforcedx-vscode-soql
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -280,7 +280,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-soql -- --last-failed --reporter=html,github
+          npm run test:desktop -w salesforcedx-vscode-soql -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
