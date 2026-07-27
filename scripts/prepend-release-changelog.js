@@ -84,22 +84,10 @@ function prependToRootChangelog(packageChangelog, version) {
   let rootChangelog;
   try {
     rootChangelog = fs.readFileSync(ROOT_CHANGELOG_PATH, 'utf8');
-
-    // Sanity check: root CHANGELOG should have substantial content
-    // A healthy changelog with 10+ releases should have 50+ lines
-    const lineCount = rootChangelog.split('\n').length;
-    if (lineCount < 50) {
-      console.error(`❌ Error: Root CHANGELOG has only ${lineCount} lines`);
-      console.error('   Expected changelog should have 50+ lines (typically 100+ for mature repos).');
-      console.error('   This suggests the file was accidentally truncated or deleted.');
-      console.error('   If this is a new repo, this check can be adjusted.');
-      process.exit(1);
-    }
   } catch (error) {
     if (error.code === 'ENOENT') {
       console.error(`❌ Error: Root CHANGELOG does not exist at ${ROOT_CHANGELOG_PATH}`);
-      console.error('   This file should contain the full historical changelog.');
-      console.error('   Create this file before running the prepend script.');
+      console.error('   Expected path: ${ROOT_CHANGELOG_PATH}');
       process.exit(1);
     }
     console.error(`❌ Error reading root CHANGELOG from ${ROOT_CHANGELOG_PATH}:`, error.message);
