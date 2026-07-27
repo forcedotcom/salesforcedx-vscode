@@ -86,6 +86,8 @@ jobs:
   mergeDevelop:
     needs: [githubRelease]
     runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
     outputs:
       status: ${{ steps.complete.outputs.status }}
     steps:
@@ -97,11 +99,35 @@ jobs:
       - uses: ./.github/actions/gitConfig
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
-      - run: |
+      - name: 'Merge main to develop and prepend changelog'
+        run: |
           git fetch --unshallow
           git checkout develop
           git pull
-          git merge main --commit --no-edit
+
+          # Regular merge
+          if ! git merge main --commit --no-edit; then
+            echo "::error::Merge conflict occurred. Aborting merge."
+            git merge --abort
+            exit 1
+          fi
+
+          # Prepend package CHANGELOG to root CHANGELOG (idempotent)
+          if ! node scripts/prepend-release-changelog.js; then
+            echo "::error::Failed to prepend changelog."
+            echo "::error::Manual intervention required: resolve locally, run 'node scripts/prepend-release-changelog.js', and push."
+            exit 1
+          fi
+
+          # Commit the changelog update (only if the script made changes)
+          if ! git diff --quiet CHANGELOG.md; then
+            git add CHANGELOG.md
+            git commit -m "chore: prepend v${{env.RELEASE_VERSION}} to root changelog" \
+              -m "Co-Authored-By: GitHub Actions <noreply@github.com>"
+          else
+            echo "No changelog changes to commit (version already present)"
+          fi
+
           git push origin develop
       - id: complete
         run: |
