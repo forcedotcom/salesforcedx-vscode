@@ -32,7 +32,6 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { nls } from '../../../src/messages';
 import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
 
 // `channel_name` from salesforcedx-vscode-org/src/messages/i18n.ts (orgDisplay writes its table here).
@@ -51,8 +50,8 @@ const DEFAULT_LOGOUT_ORG_ALIAS = 'logoutDefaultThrowawayOrg';
 // plus the cancel mappings: Esc (UserCancellationError -> CANCEL) and multi-pick "pick nothing" ([] -> CANCEL),
 // and a REAL logout against a dedicated throwaway org (removeAuth actually runs, asserted via the CLI).
 // The fixture sets a SCRATCH org (MINIMAL_ORG_ALIAS) as default, satisfying sf:project_opened +
-// sf:has_target_org + sf:default_org_deletable. The display/delete confirm modals are cancelled so the
-// fixture org is never deleted; only the throwaway org is actually logged out.
+// sf:has_target_org + sf:default_org_deletable. The delete confirm modal is cancelled so the fixture
+// org is never deleted; only the throwaway org is actually logged out.
 test('org pickers: display, delete, logout pick + confirm + cancel flows', async ({ page }) => {
   test.setTimeout(180_000);
 
@@ -74,27 +73,15 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
     await verifyCommandExists(page, packageNls.org_login_web_authorize_org_text, 60_000);
   });
 
-  await test.step('DISPLAY: selectOrgForDisplay lists the org, pick it, confirm modal, assert output table', async () => {
+  await test.step('DISPLAY: selectOrgForDisplay lists the org, pick it, assert output table', async () => {
     await executeCommandWithCommandPalette(page, packageNls.org_display_username_text);
     // selectOrgForDisplay (single-pick) lists the seeded scratch org.
     await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
     await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
-    // sensitive-info modal now gates the table; confirm it (Continue) so the table is written.
-    await clickModalDialogButton(page, nls.localize('org_display_continue_label'), 10_000);
-    // orgDisplay renders a table containing the org's Username row to the output channel.
+    // orgDisplay shells out to `sf org display --target-org <picked> --json` and renders a table
+    // containing the org's Username row to the output channel.
     await selectOutputChannel(page, ORG_OUTPUT_CHANNEL);
-    await waitForOutputChannelText(page, { expectedText: 'Username' });
-  });
-
-  await test.step('DISPLAY cancel modal: Cancel on the sensitive-info modal maps to CANCEL (no error toast, no table)', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.org_display_username_text);
-    await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
-    await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
-    // The modal appears only after an org SOQL round-trip; wait for it, then click Cancel (a blind Esc
-    // races the modal render — if it lands before the modal appears, the modal lingers and blocks the
-    // next command palette). Cancel -> UserCancellationError -> CANCEL, no org info shown.
-    await clickModalDialogButton(page, 'Cancel', 30_000);
-    await expectNoErrorNotification(page);
+    await waitForOutputChannelText(page, { expectedText: 'Username', timeout: 60_000 });
   });
 
   await test.step('DISPLAY cancel: Esc on the picker maps to CANCEL (no error toast)', async () => {

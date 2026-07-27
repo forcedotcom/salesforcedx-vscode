@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getJsonCandidate } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 
@@ -15,10 +16,10 @@ type CliRawObject = Schema.Schema.Type<typeof CliRawObject>;
 
 /**
  * sf can prepend non-JSON lines to stdout even with `--json` + SF_JSON_TO_STDOUT (e.g. the scratch-org
- * expiration warning seen on macOS CI). Slice from the first `{` to the last `}` to isolate the JSON payload
- * before decoding. No braces → slice yields '' → the caller's tagged error, not a defect.
+ * expiration warning seen on macOS CI). `getJsonCandidate` slices out the JSON payload (first `{` to
+ * last `}`) before decoding. No candidate → '' → the caller's tagged error, not a defect.
  */
-const sanitizeJson = (stdout: string) => stdout.substring(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1);
+const sanitizeJson = (stdout: string) => getJsonCandidate(stdout) ?? '';
 
 /**
  * Shared decode pipeline for sf-CLI JSON responses that lack a `_tag`. Parses stdout to a plain object,

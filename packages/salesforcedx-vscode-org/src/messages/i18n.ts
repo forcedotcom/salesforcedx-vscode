@@ -33,12 +33,8 @@ export const messages = {
     'The default org is not a scratch org or sandbox and cannot be deleted with this command.',
   org_delete_username_text: 'SFDX: Delete Org...',
   org_delete_default_progress: 'Deleting default org',
-  org_display_access_warning:
-    'This command will expose sensitive information that allows for subsequent activity using your current authenticated session.',
-  org_display_access_warning_detail: `Sharing this information is equivalent to logging someone in under the current credential, resulting in unintended access and escalation of privilege.
-
-For additional information, please review the authorization section of https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm.`,
-  org_display_continue_label: 'Continue',
+  org_display_progress: 'Getting org details',
+  org_display_result_parsing_error: 'An unexpected error occurred while processing the org display response.',
   org_expired: 'Expired',
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   org_list_clean_failed_to_remove_org: 'Failed to remove org %s: %s',

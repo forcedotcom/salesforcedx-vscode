@@ -5,68 +5,85 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from '../../../src/commands/orgDisplay';
-import { OrgInfo } from '../../../src/types/orgInfo';
-import * as orgDisplayUtil from '../../../src/util/orgDisplay';
 
-// Both commands compose the org-info Effects from util/orgDisplay; mock the module so the tests
-// assert command-level orchestration (precondition, channel writes, cancellation). The real
-// SOQL/Org.create path is covered by the e2e spec.
+// Both commands shell out to `sf org display --json` via TerminalService.simpleExec (mirrors
+// orgCreate/orgOpen); the picker is mocked so the tests assert command construction, table
+// rendering from the CLI JSON, and the failure/parse branches.
 const gatherOrgForDisplay = jest.fn();
 jest.mock('../../../src/parameterGatherers/selectOrgForDisplay', () => ({
   gatherOrgForDisplay: () => gatherOrgForDisplay()
 }));
-jest.mock('../../../src/util/orgDisplay');
-const orgInfoFromConnection = orgDisplayUtil.orgInfoFromConnection as unknown as jest.Mock;
-const getOrgInfoEffect = orgDisplayUtil.getOrgInfoEffect as unknown as jest.Mock;
 
-const ORG_INFO: OrgInfo = {
-  username: 'me@scratch.org',
-  devHubId: '',
+class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
+  message: Schema.optional(Schema.String)
+}) {}
+
+/** Same tag as the real services error, so the command's catchTag recovers it. */
+class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
+  message: Schema.String,
+  command: Schema.String
+}) {}
+
+const SCRATCH_RESULT = {
   id: '00Dxx',
-  createdBy: '',
-  createdDate: '',
-  expirationDate: '',
-  status: 'Connected',
-  edition: 'Enterprise',
-  orgName: 'Test Org',
-  accessToken: 'tok',
-  instanceUrl: 'https://test.salesforce.com',
-  clientId: 'cid',
-  apiVersion: '',
-  aliases: [],
-  connectionStatus: 'Connected',
-  password: ''
+  devHubId: 'devhub@example.com',
+  apiVersion: '67.0',
+  accessToken: "[REDACTED] Use 'sf org auth show-access-token' to view",
+  instanceUrl: 'https://scratch.my.salesforce.com',
+  username: 'me@scratch.org',
+  clientId: 'PlatformCLI',
+  status: 'Active',
+  expirationDate: '2026-07-27',
+  createdBy: 'devhub@example.com',
+  edition: 'Developer',
+  orgName: 'Company',
+  createdDate: '2026-07-20T19:51:33.000+0000',
+  alias: 'minimalTestOrg'
 };
 
-const FAKE_CONN = { fake: 'connection' } as unknown as Connection;
-
-const UserCancellationError = class extends Error {
-  public readonly _tag = 'UserCancellationError';
+const NON_SCRATCH_RESULT = {
+  id: '00D6A',
+  apiVersion: '67.0',
+  accessToken: "[REDACTED] Use 'sf org auth show-access-token' to view",
+  instanceUrl: 'https://hub.my.salesforce.com',
+  username: 'hub@example.com',
+  clientId: 'PlatformCLI',
+  connectedStatus: 'Connected',
+  alias: 'hub'
 };
 
-type CommandOpts = {
-  isProject: boolean;
-  getConnection: Effect.Effect<Connection, unknown>;
+const stdoutFor = (result: Record<string, unknown>) => JSON.stringify({ status: 0, result });
+
+type OrgSnapshot = { orgId?: string; username?: string };
+
+type Opts = {
+  isProject?: boolean;
+  orgInfo?: OrgSnapshot;
+  simpleExec: jest.Mock;
   appendToChannel: jest.Mock;
   show: jest.Mock;
-  /** whether the modal sensitive-info confirm is accepted (default true); false → UserCancellationError */
-  confirm?: boolean;
+  withProgress?: jest.Mock;
 };
 
-const buildServices = (opts: CommandOpts) => ({
+const buildServices = (opts: Opts) => ({
   ProjectService: {
     getSfProject: () =>
-      opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
+      opts.isProject === false ? Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const }) : Effect.succeed({})
   },
-  ConnectionService: { getConnection: () => opts.getConnection },
+  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   PromptService: Effect.succeed({
-    confirmOrThrow: () =>
-      opts.confirm === false ? Effect.fail(new UserCancellationError()) : Effect.succeed(undefined)
+    withCancellableProgress:
+      <A, E>(_message: string) =>
+      (effect: Effect.Effect<A, E>) => {
+        opts.withProgress?.(_message);
+        return effect;
+      }
   }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>
@@ -76,14 +93,11 @@ const buildServices = (opts: CommandOpts) => ({
     showChannel: Effect.sync(() => {
       opts.show();
     })
-  })
+  }),
+  TargetOrgRef: () => SubscriptionRef.make(opts.orgInfo ?? { username: 'me@scratch.org' })
 });
 
-// The real command Effects require more than ExtensionProviderService in their R channel (the
-// org-info/picker helpers add Alias/Channel/Connection/Project services); those are satisfied at
-// runtime by the jest-mocked modules, so widen the command's R to ExtensionProviderService for the
-// type-only provide and erase the remaining R via the final cast.
-const runCommand = (command: typeof orgDisplayDefaultCommand | typeof orgDisplayUsernameCommand, opts: CommandOpts) =>
+const run = (command: typeof orgDisplayDefaultCommand | typeof orgDisplayUsernameCommand, opts: Opts) =>
   Effect.runPromiseExit(
     (command() as Effect.Effect<void, unknown, ExtensionProviderService>).pipe(
       Effect.provideService(ExtensionProviderService, {
@@ -93,152 +107,195 @@ const runCommand = (command: typeof orgDisplayDefaultCommand | typeof orgDisplay
   );
 
 describe('orgDisplayDefaultCommand', () => {
+  let simpleExec: jest.Mock;
+  let appendToChannel: jest.Mock;
+  let show: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    orgInfoFromConnection.mockImplementation(() => Effect.succeed(ORG_INFO));
+    simpleExec = jest.fn(() => Effect.succeed(stdoutFor(SCRATCH_RESULT)));
+    appendToChannel = jest.fn();
+    show = jest.fn();
   });
 
-  it('derives org info from the default connection, appends the table after confirm, shows the channel', async () => {
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
-    const exit = await runCommand(orgDisplayDefaultCommand, {
-      isProject: true,
-      getConnection: Effect.succeed(FAKE_CONN),
-      appendToChannel,
-      show
-    });
+  it('runs `sf org display --target-org "<default>" --json` and writes the table to the channel', async () => {
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    // table is now the first channel write (no leading warning line); a stable, unconditional row
-    // proves orgInfo flowed into formatOrgInfoAsTable
+    expect(simpleExec).toHaveBeenCalledWith({
+      command: 'sf org display --target-org "me@scratch.org" --json',
+      parse: expect.any(Function)
+    });
+    // 'Connected Status' is an unconditional row of formatOrgInfoAsTable; the scratch-org values
+    // prove the CLI JSON flowed into the table
     expect(appendToChannel.mock.calls[0][0]).toContain('Connected Status');
+    expect(appendToChannel.mock.calls[0][0]).toContain('Dev Hub Id');
+    expect(appendToChannel.mock.calls[0][0]).toContain('me@scratch.org');
     expect(show).toHaveBeenCalledTimes(1);
   });
 
-  it('aborts with UserCancellationError when the sensitive-info modal is declined: no append, no show', async () => {
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
-    const exit = await runCommand(orgDisplayDefaultCommand, {
-      isProject: true,
-      getConnection: Effect.succeed(FAKE_CONN),
-      appendToChannel,
-      show,
-      confirm: false
-    });
+  it('wraps the sf round-trip in a cancellable progress notification', async () => {
+    const withProgress = jest.fn();
 
-    expect(Exit.isFailure(exit)).toBe(true);
-    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
-    expect(appendToChannel).not.toHaveBeenCalled();
-    expect(show).not.toHaveBeenCalled();
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show, withProgress });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(withProgress).toHaveBeenCalledWith('Getting org details');
   });
 
-  it('short-circuits on no project: no getConnection, no append', async () => {
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
-    const getConnection = Effect.succeed(FAKE_CONN);
-    const exit = await runCommand(orgDisplayDefaultCommand, { isProject: false, getConnection, appendToChannel, show });
+  it('omits --target-org (sf resolves its own default) when no default-org username is tracked', async () => {
+    const exit = await run(orgDisplayDefaultCommand, { orgInfo: {}, simpleExec, appendToChannel, show });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenCalledWith(expect.objectContaining({ command: 'sf org display --json' }));
+  });
+
+  it('renders the non-scratch table (connectedStatus, no scratch block)', async () => {
+    simpleExec = jest.fn(() => Effect.succeed(stdoutFor(NON_SCRATCH_RESULT)));
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    const table = appendToChannel.mock.calls[0][0];
+    expect(table).toContain('Connected');
+    expect(table).not.toContain('Dev Hub Id');
+    expect(table).not.toContain('Expiration Date');
+  });
+
+  it('fails (getSfProject) without exec when not in a project', async () => {
+    const exit = await run(orgDisplayDefaultCommand, { isProject: false, simpleExec, appendToChannel, show });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
-    expect(orgInfoFromConnection).not.toHaveBeenCalled();
+    expect(simpleExec).not.toHaveBeenCalled();
+    expect(appendToChannel).not.toHaveBeenCalled();
+  });
+
+  it('appends the failure message when sf returns a non-zero status (proves Match.tag dispatch)', async () => {
+    simpleExec = jest.fn(() => Effect.succeed(JSON.stringify({ status: 68, message: 'No default environment found' })));
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('No default environment found');
+    expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('recovers a non-zero exit (TerminalServiceError) and appends the CLI message from its payload', async () => {
+    // sf exits non-zero on failure, so simpleExec fails; its message carries the JSON error payload,
+    // which decodeTaggedCliResponse slices out of the `Command failed: ...` prefix.
+    const command = 'sf org display --target-org "me@scratch.org" --json';
+    simpleExec = jest.fn(() =>
+      Effect.fail(
+        new TerminalServiceError({
+          command,
+          message: `Command failed: ${command}\n${JSON.stringify({ status: 2, message: 'No authorization information found' })}`
+        })
+      )
+    );
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('No authorization information found');
+    expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('propagates a TerminalServiceError whose message carries no JSON (sf missing/spawn failure)', async () => {
+    // infra failure, not a CLI-reported one: there is nothing to decode, so the typed error must reach
+    // ErrorHandlerService with its real diagnostic instead of becoming an opaque OrgDisplayParseError.
+    simpleExec = jest.fn(() =>
+      Effect.fail(new TerminalServiceError({ command: 'sf org display --json', message: 'sh: sf: command not found' }))
+    );
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) {
+      expect(JSON.stringify(exit.cause)).toContain('TerminalServiceError');
+      expect(JSON.stringify(exit.cause)).not.toContain('OrgDisplayParseError');
+    }
     expect(appendToChannel).not.toHaveBeenCalled();
     expect(show).not.toHaveBeenCalled();
   });
 
-  it('fails typed on no target org: getConnection fails, no append', async () => {
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
-    const exit = await runCommand(orgDisplayDefaultCommand, {
-      isProject: true,
-      getConnection: Effect.fail({ _tag: 'NoTargetOrgConfiguredError' as const }),
-      appendToChannel,
-      show
-    });
+  it('renders the table when stdout is prefixed with a CLI warning line', async () => {
+    // sf can prepend non-JSON warning lines even with --json + SF_JSON_TO_STDOUT (seen on macOS CI).
+    simpleExec = jest.fn(() =>
+      Effect.succeed(`Warning: The following orgs expire in the next 5 days:\n${stdoutFor(SCRATCH_RESULT)}`)
+    );
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel.mock.calls[0][0]).toContain('Dev Hub Id');
+  });
+
+  it('fails with OrgDisplayParseError on malformed stdout and writes nothing', async () => {
+    simpleExec = jest.fn(() => Effect.succeed('not json at all'));
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isFailure(exit)).toBe(true);
-    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('NoTargetOrgConfiguredError');
-    expect(orgInfoFromConnection).not.toHaveBeenCalled();
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgDisplayParseError');
     expect(appendToChannel).not.toHaveBeenCalled();
     expect(show).not.toHaveBeenCalled();
   });
 });
 
 describe('orgDisplayUsernameCommand', () => {
+  let simpleExec: jest.Mock;
+  let appendToChannel: jest.Mock;
+  let show: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    getOrgInfoEffect.mockImplementation(() => Effect.succeed(ORG_INFO));
+    simpleExec = jest.fn(() => Effect.succeed(stdoutFor(SCRATCH_RESULT)));
+    appendToChannel = jest.fn();
+    show = jest.fn();
+    gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
   });
 
-  it('picks an org, fetches org info, writes the table after confirm, and shows the channel', async () => {
-    gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
-
-    const exit = await runCommand(orgDisplayUsernameCommand, {
-      isProject: true,
-      getConnection: Effect.succeed(FAKE_CONN),
-      appendToChannel,
-      show
-    });
+  it('runs `sf org display --target-org "<picked>" --json` for the picked org and writes the table', async () => {
+    const exit = await run(orgDisplayUsernameCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(getOrgInfoEffect).toHaveBeenCalledWith('me@scratch.org');
-    // table is the first (and only) channel write, containing the Username row
+    expect(simpleExec).toHaveBeenCalledWith({
+      command: 'sf org display --target-org "me@scratch.org" --json',
+      parse: expect.any(Function)
+    });
     expect(appendToChannel.mock.calls[0][0]).toContain('Username');
     expect(show).toHaveBeenCalledTimes(1);
   });
 
-  it('aborts with UserCancellationError when the sensitive-info modal is declined: no append, no show', async () => {
-    gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
+  it('quotes the picked username so a value with spaces survives /bin/sh -c word splitting', async () => {
+    gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'my org@example.com' }));
 
-    const exit = await runCommand(orgDisplayUsernameCommand, {
-      isProject: true,
-      getConnection: Effect.succeed(FAKE_CONN),
-      appendToChannel,
-      show,
-      confirm: false
-    });
+    const exit = await run(orgDisplayUsernameCommand, { simpleExec, appendToChannel, show });
 
-    expect(Exit.isFailure(exit)).toBe(true);
-    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
-    expect(appendToChannel).not.toHaveBeenCalled();
-    expect(show).not.toHaveBeenCalled();
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenCalledWith(
+      expect.objectContaining({ command: 'sf org display --target-org "my org@example.com" --json' })
+    );
   });
 
-  it('propagates UserCancellationError (no channel writes) when the picker is cancelled', async () => {
-    gatherOrgForDisplay.mockReturnValue(Effect.fail(new UserCancellationError()));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
+  it('propagates UserCancellationError (no exec, no channel writes) when the picker is cancelled', async () => {
+    gatherOrgForDisplay.mockReturnValue(Effect.fail(new UserCancellationError({})));
 
-    const exit = await runCommand(orgDisplayUsernameCommand, {
-      isProject: true,
-      getConnection: Effect.succeed(FAKE_CONN),
-      appendToChannel,
-      show
-    });
+    const exit = await run(orgDisplayUsernameCommand, { simpleExec, appendToChannel, show });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
-    expect(getOrgInfoEffect).not.toHaveBeenCalled();
+    expect(simpleExec).not.toHaveBeenCalled();
     expect(appendToChannel).not.toHaveBeenCalled();
   });
 
   it('fails the precondition (getSfProject) and never pickers when there is no project', async () => {
-    gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
-    const appendToChannel = jest.fn();
-    const show = jest.fn();
-
-    const exit = await runCommand(orgDisplayUsernameCommand, {
-      isProject: false,
-      getConnection: Effect.succeed(FAKE_CONN),
-      appendToChannel,
-      show
-    });
+    const exit = await run(orgDisplayUsernameCommand, { isProject: false, simpleExec, appendToChannel, show });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
     expect(gatherOrgForDisplay).not.toHaveBeenCalled();
+    expect(simpleExec).not.toHaveBeenCalled();
   });
 });
