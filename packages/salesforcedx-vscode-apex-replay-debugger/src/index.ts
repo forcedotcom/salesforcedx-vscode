@@ -30,7 +30,7 @@ import {
   sfCreateCheckpoints,
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
-import { channelService } from './channels';
+import { appendAndShowChannelOutput } from './channels';
 import { anonApexDebug } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
@@ -263,8 +263,7 @@ export const writeToDebuggerOutputWindow = (
   showVSCodeWindow?: boolean,
   vsCodeWindowType?: VSCodeWindowTypeEnum
 ) => {
-  channelService.appendLine(output);
-  channelService.showChannelOutput();
+  appendAndShowChannelOutput(output);
   if (showVSCodeWindow && vsCodeWindowType) {
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
