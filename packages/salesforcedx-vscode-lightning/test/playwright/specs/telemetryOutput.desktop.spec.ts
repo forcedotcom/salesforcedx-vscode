@@ -164,9 +164,13 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
     // runs in a forkDaemon after the first connection), and only core's SDK ever connects to the org —
     // lightning's command span never carries orgId. So wait for the orgId-bearing root span (a core span
     // like workspaceOrgShape.getOrgShape) to flush, not merely for any span.
+    // Also require telemetryTag 'e2e-test': the union covers every *.jsonl in SPANS_DIR, including
+    // spanRedaction.desktop.spec.ts's spans, which plant a different tag on purpose.
+    const isThisSpec = (s: SpanRow): boolean =>
+      s.attributes?.orgId !== undefined && s.attributes?.telemetryTag === 'e2e-test';
     const rows = await waitFor(
       () => readAllSpanRows(),
-      r => r.some(s => s.attributes?.orgId !== undefined),
+      r => r.some(isThisSpec),
       'no orgId-enriched o11y span flushed yet'
     );
 
@@ -187,11 +191,12 @@ test('telemetry output: o11y spans + AppInsights-shape events from a core-depend
       'cliId',
       'webUserId'
     ];
-    const commandSpan = rows.find(s => s.name === 'sf.lightning.generate.aura.component');
+    const commandSpan = rows.find(
+      s => s.name === 'sf.lightning.generate.aura.component' && s.attributes?.telemetryTag === 'e2e-test'
+    );
     // Prefer the command span IF it carries orgId (it does once the default-org ref is populated), else
-    // fall back to any orgId-bearing root span (e.g. a core span like workspaceOrgShape.getOrgShape).
-    const enriched =
-      commandSpan?.attributes?.orgId !== undefined ? commandSpan : rows.find(s => s.attributes?.orgId !== undefined);
+    // fall back to any orgId-bearing root span of THIS spec (e.g. core's workspaceOrgShape.getOrgShape).
+    const enriched = commandSpan?.attributes?.orgId !== undefined ? commandSpan : rows.find(isThisSpec);
     const orgAttrs: Record<string, unknown> = Object.fromEntries(
       orgAttrKeys.map(k => [k, enriched?.attributes?.[k]] as const).filter(([, v]) => v !== undefined)
     );

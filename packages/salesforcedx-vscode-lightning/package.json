@@ -176,7 +176,8 @@
         "vscode:package:legacy",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-core:vscode:package:legacy",
-        "../playwright-vscode-ext:compile"
+        "../playwright-vscode-ext:compile",
+        "../salesforcedx-vscode-services:spans:server"
       ],
       "files": [
         "test/playwright/**/*.ts",
