@@ -31,16 +31,14 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
       context.documentUri,
       context.selectionRange?.startLine
     );
-    return yield* Effect.fail(
-      new ExecAnonCompileError({
-        message: nls.localize(
-          'exec_anon_compile_error',
-          String(result.line ?? 1),
-          String(result.column ?? 1),
-          result.compileProblem ?? nls.localize('exec_anon_compile_unknown')
-        )
-      })
-    );
+    return yield* new ExecAnonCompileError({
+      message: nls.localize(
+        'exec_anon_compile_error',
+        String(result.line ?? 1),
+        String(result.column ?? 1),
+        result.compileProblem ?? nls.localize('exec_anon_compile_unknown')
+      )
+    });
   }
 
   yield* api.services.ExecuteAnonymousService.reportExecResult(

@@ -12,6 +12,17 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
     branches: [develop]
+    # Don't start a runner on code-only PRs. paths is OR ("any changed file
+    # matches"), so a docs+code PR still triggers — the file-set gate below is
+    # what rejects those. `**` matches `/`, so `docs/**.md` (not docs/**/*.md)
+    # is needed to catch docs/foo.md as well as docs/a/b.md.
+    paths:
+      - CONTEXT.md
+      - CONTEXT-MAP.md
+      - '**/CONTEXT.md'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
 
 # Same-repo branch (team members push to origin, not forks) → org secrets available.
 # NOT pull_request_target — avoids running untrusted head with secrets.
@@ -29,6 +40,8 @@ concurrency:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
+    # Bound the scan-wait job well under the 6h default so a hung poll can't hold a runner.
+    timeout-minutes: 40
     env:
       GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
       REPO: ${{ github.repository }}
@@ -97,6 +110,10 @@ jobs:
       - name: Gate — security scans present and settled
         id: checks
         if: steps.prstate.outputs.ok == 'true'
+        env:
+          # Own run id — this job's check run is in the rollup and is in_progress for as
+          # long as it polls, so counting it as "running" would never settle (deadlock).
+          SELF_RUN: ${{ github.run_id }}
         run: |
           set -euo pipefail
           # Required-check workflows are paths-ignore'd on doc-only PRs → their
@@ -104,12 +121,17 @@ jobs:
           # empty-rollup race (poll passes before scans queue): require BOTH scan
           # rows present before treating "no running rows" as settled.
           expected='["SAST","Credential Scanning Analysis"]'
-          for _ in $(seq 1 40); do # ~10 min @ 15s
+          # SAST usually posts ~1 min after Credential Scanning but can lag badly — on
+          # #7867 it arrived 36 min after the credential scan. Wait 30 min for the scans
+          # to show up and settle; past that, merge anyway (see below).
+          for _ in $(seq 1 60); do # 30 min @ 30s
             # statusCheckRollup is null right after PR-open (no checks registered yet);
             # normalize to [] inside jq so it doesn't crash — empty → not-present → keep polling.
             rollup=$(gh pr view "$PR" --repo "$REPO" --json statusCheckRollup -q '.statusCheckRollup')
-            read -r failure present running < <(echo "$rollup" | jq -r --argjson exp "$expected" '
-              (. // []) as $rows
+            read -r failure present running < <(echo "$rollup" | jq -r --argjson exp "$expected" --arg self "$SELF_RUN" '
+              # Drop this run own rows by detailsUrl (.../actions/runs/<id>/job/<id>).
+              # StatusContext rows have no detailsUrl → "" → kept.
+              [ (. // [])[] | select(((.detailsUrl // "") | contains("/actions/runs/" + $self + "/")) | not) ] as $rows
               | def outcome: (.conclusion // .state // "PENDING") | ascii_upcase;
               def name: (.name // .context // "");
               def isRunning:
@@ -128,10 +150,12 @@ jobs:
             if [ "$present" = "true" ] && [ "$running" = "false" ]; then
               echo "scans present and settled"; echo "ok=true" >>"$GITHUB_OUTPUT"; exit 0
             fi
-            sleep 15
+            sleep 30
           done
-          echo "timed out waiting for security scans to settle — fail safe, no merge"
-          exit 1
+          # 30 min with no scan failure observed: a scan that never posts is an AST-service
+          # miss, not a security signal, and these are markdown-only diffs. Merge anyway.
+          echo "scans did not settle within 30 min and none failed — merging anyway"
+          echo "ok=true" >>"$GITHUB_OUTPUT"
 
       - name: Squash-merge (admin bypass)
         if: steps.checks.outputs.ok == 'true'

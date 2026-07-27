@@ -263,7 +263,7 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 
 | Situation | Do | Don't |
 | --- | --- | --- |
-| Build any multi-op effect | one flat `.pipe(...)` chain | nested `f(g(h(x)))` calls |
+| Build any multi-op effect | one flat `.pipe(...)` chain — merged steps as siblings, dropping any the merge makes dead; config-enforced by `unnecessaryPipeChain`, which fires wherever a pipe's subject is itself a pipe — method or function form, callbacks included; only a nested pipe over a *different* subject stays judgment | `x.pipe(a).pipe(b)`, `pipe(pipe(x, a), b)`; nested `f(g(h(x)))` calls |
 | Run a built effect | `effect.pipe(..., runtime.runPromise)` as last step | wrap whole expr in `runPromise(effect.pipe(...))` |
 | Point-free terminal step | bare `Effect.runPromise` always; methods only when closure-based (e.g. `ManagedRuntime.runPromise`) | point-free any `this`-bound method |
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |
@@ -273,6 +273,7 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
 | Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
+| `Effect.gen` body is only `yield* X` | `X` itself — or `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void; config-enforced by `unnecessaryEffectGen`, which matches `Effect.gen` only (an `Effect.fn` wrapper keeps its span) | `Effect.gen` wrapper around one `yield*` |
 | Point-free pipe seed | `.pipe(...)` on an existing Effect/Tag; standalone `pipe(value, ...)` only when the seed isn't an Effect yet | standalone `pipe(someEffect, ...)` when `someEffect.pipe(...)` works |
 | Throwing step inside a point-free pipe (parse, FFI) | lift with `Effect.try`/`Effect.tryPromise` | bare `JSON.parse(...)`/throwing call as a pipe step |
 | Callback does `pure(x).pipe(step)` | split: pure part as `Effect.map`, effectful part as sibling `Effect.flatMap` (point-free) | one `flatMap` whose callback opens a nested `.pipe` |

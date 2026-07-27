@@ -8,6 +8,7 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
+  countOutputChannelOptions,
   createAndOpenApexScript,
   createApexClass,
   EDITOR_WITH_URI,
@@ -99,6 +100,10 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
   await test.step('update checkpoints in org', async () => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Replay Debugger');
+    // Dedupe guard: debugger output goes through the single services-owned channel, so activation
+    // must not add a second channel with the same name (W-23465461).
+    const channelCount = await countOutputChannelOptions(page, 'Apex Replay Debugger');
+    expect(channelCount, "expected exactly one 'Apex Replay Debugger' output channel").toBe(1);
     await clearOutputChannel(page);
 
     await executeCommandWithCommandPalette(page, packageNls.sf_update_checkpoints_in_org as string);

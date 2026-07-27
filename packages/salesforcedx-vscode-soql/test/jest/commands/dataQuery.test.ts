@@ -979,6 +979,13 @@ describe('DataQuery Pure Functions', () => {
       (vscode.window.showInformationMessage as jest.Mock).mockResolvedValue(undefined);
     });
 
+    const noopPromptService = {
+      withProgress:
+        () =>
+        <A, E, R>(self: Effect.Effect<A, E, R>) =>
+          self
+    } as unknown as PromptService;
+
     const makeProvider = (query: jest.Mock) => {
       const show = jest.fn();
       const appendToChannel = jest.fn((_msg: string) => Effect.void);
@@ -995,24 +1002,12 @@ describe('DataQuery Pure Functions', () => {
             ChannelService: Effect.succeed(channel),
             WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/ws') }) },
             FsService: { writeFile: () => Effect.void, showTextDocument: () => Effect.void },
-            PromptService: Effect.succeed({
-              withProgress:
-                () =>
-                <A, E, R>(self: Effect.Effect<A, E, R>) =>
-                  self
-            } as unknown as PromptService)
+            PromptService: Effect.succeed(noopPromptService)
           }
         } as unknown as SalesforceVSCodeServicesApi)
       };
       return { provider, show, appendToChannel };
     };
-
-    const noopPromptService = {
-      withProgress:
-        () =>
-        <A, E, R>(self: Effect.Effect<A, E, R>) =>
-          self
-    } as unknown as PromptService;
 
     const run = (query: jest.Mock) => {
       const { provider, show, appendToChannel } = makeProvider(query);

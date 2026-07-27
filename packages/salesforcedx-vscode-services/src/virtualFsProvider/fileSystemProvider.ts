@@ -14,7 +14,7 @@ import { fs } from '@salesforce/core/fs';
 import type { MetadataType } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { isError, isString } from 'effect/Predicate';
+import { isError, isNullable, isString } from 'effect/Predicate';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
@@ -141,7 +141,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       if (!options.overwrite && this.exists(uri)) {
         return Effect.fail(vscode.FileSystemError.FileExists(uri));
       }
-      return Effect.succeed(undefined);
+      return Effect.void;
     }).pipe(
       // Write file to filesystem
       Effect.flatMap(() =>
@@ -198,7 +198,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       (typeof include === 'object' && 'baseUri' in include ? include.baseUri : undefined) ??
       vscode.workspace.workspaceFolders?.[0]?.uri;
     if (!baseUri) return [];
-    const excludeArr = exclude == null ? undefined : isString(exclude) ? [exclude] : [exclude.pattern];
+    const excludeArr = isNullable(exclude) ? undefined : isString(exclude) ? [exclude] : [exclude.pattern];
     // Only runs on web (memfs); node:fs.glob returns AsyncIterator but we never hit that path
     // this is fixed in higher memfs versions, but there's other conflicts there (would break sfdx-core support for node 20)
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- web-only, memfs returns Promise<string[]>

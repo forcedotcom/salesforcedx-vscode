@@ -282,6 +282,10 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   // set sf:internal_dev context so internal commands are visible in explorer menus when enabled
   const internalDev = yield* SettingsService.getInternalDev();
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
+  // set sf:code_builder_enabled context so Code Builder-only commands are visible on web
+  yield* Effect.promise(() =>
+    vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', process.env.CODE_BUILDER === 'true')
+  );
 });
 
 /**

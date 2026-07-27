@@ -36,9 +36,7 @@ const appendToChannel = (message: string) =>
 const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const metadataDescribeService = yield* api.services.MetadataDescribeService;
-  return yield* metadataDescribeService
-    .describeCustomObject(sobjectName)
-    .pipe(Effect.catchAll(() => Effect.succeed<DescribeSObjectResult | undefined>(undefined)));
+  return yield* metadataDescribeService.describeCustomObject(sobjectName).pipe(Effect.orElseSucceed(() => undefined));
 });
 
 // TODO: This should be exported from soql-builder-ui
@@ -153,7 +151,7 @@ export class SOQLEditorInstance {
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const targetOrgRef = yield* api.services.TargetOrgRef();
-        yield* targetOrgRef.changes.pipe(Stream.as(undefined)).pipe(
+        yield* targetOrgRef.changes.pipe(
           Stream.mapEffect(() => Effect.promise(() => isDefaultOrgSet())),
           Stream.changes,
           Stream.runForEach(isOrgSet => (isOrgSet ? onConnectionChanged() : onNoDefaultOrg()))

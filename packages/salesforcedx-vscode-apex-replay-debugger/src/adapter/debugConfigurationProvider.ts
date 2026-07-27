@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { errorToString, readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
@@ -75,21 +76,23 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     if (config.logFile && config.logFile !== '${command:AskForLogFileName}') {
       // Direct file path provided
       try {
-        config.logFileContents = await readFile(config.logFile);
+        config.logFileContents = await getRuntime().runPromise(readLogFile(config.logFile));
         config.logFilePath = config.logFile;
         config.logFileName = getBasename(config.logFile);
         // Remove logFile since we're now using logFileContents
         delete config.logFile;
       } catch (error) {
         console.error('Failed to read log file:', error);
-        throw new Error(`Failed to read log file: ${error}`);
+        // errorToString keeps the single-line message; interpolating the runPromise rejection would
+        // paste Effect's multi-line pretty-printed cause (with stack) into the modal dialog.
+        throw new Error(`Failed to read log file: ${errorToString(error)}`);
       }
     } else if (config.logFile === '${command:AskForLogFileName}') {
       // User needs to select a file
       try {
         const logFilePath = await vscode.commands.executeCommand('extension.replay-debugger.getLogFileName');
         if (logFilePath && isString(logFilePath)) {
-          config.logFileContents = await readFile(logFilePath);
+          config.logFileContents = await getRuntime().runPromise(readLogFile(logFilePath));
           config.logFilePath = logFilePath;
           config.logFileName = getBasename(logFilePath);
           // Remove logFile since we're now using logFileContents
@@ -99,7 +102,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         }
       } catch (error) {
         console.error('Failed to read selected log file:', error);
-        throw new Error(`Failed to read selected log file: ${error}`);
+        throw new Error(`Failed to read selected log file: ${errorToString(error)}`);
       }
     }
 
@@ -133,6 +136,15 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
   }
 }
+
+/**
+ * Reads a log file through FsService so desktop and web (virtual fs) both work.
+ * Fails with FsServiceError; the promise-based callers keep their own error handling.
+ */
+const readLogFile = Effect.fn('ApexReplayDebugger.readLogFile')(function* (filePath: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.FsService.readFile(filePath);
+});
 
 /**
  * Resolves the target-org connection and batch-fetches overlay results for every heap dump in the log.

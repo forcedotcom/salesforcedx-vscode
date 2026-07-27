@@ -7,6 +7,11 @@
     "globalErrorInEffectCatch",
     "catchUnfailableEffect",
     "tryCatchInEffectGen",
-    "unknownInEffectCatch"
+    "unknownInEffectCatch",
+    "effectSucceedWithVoid",
+    "unnecessaryFailYieldableError",
+    "effectFnIife",
+    "unnecessaryEffectGen",
+    "unnecessaryPipeChain"
   ]
 }

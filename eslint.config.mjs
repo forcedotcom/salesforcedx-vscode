@@ -44,6 +44,12 @@ const noInstanceofError = {
   selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
   message: "Use isError(x) from 'effect/Predicate' instead of x instanceof Error."
 };
+const noNullCompare = {
+  // loose `== null` / `!= null` only (the regex is anchored, so `===`/`!==` don't match)
+  selector: "BinaryExpression[operator=/^[=!]=$/]:matches([left.raw='null'], [right.raw='null'])",
+  message:
+    "Do not use x == null / x != null. Use the 'effect/Predicate' guard matching the declared type: T | undefined -> isUndefined / isNotUndefined; T | null -> isNull / isNotNull; T | null | undefined -> isNullable / isNotNullable."
+};
 
 export default [
   {
@@ -550,7 +556,8 @@ export default [
     }
   },
   {
-    // Opt-in: steer `x instanceof Error` to isError(x) from effect/Predicate.
+    // Opt-in: steer `x instanceof Error` to isError(x) and `x == null` to the matching
+    // isUndefined/isNull/isNullable guard, all from effect/Predicate.
     // Scoped to effect-enabled packages only — non-effect packages can't import
     // effect/Predicate, so applying it there would point at an unimportable API.
     files: [
@@ -583,7 +590,7 @@ export default [
     ],
     rules: {
       // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
-      'no-restricted-syntax': ['error', noHrtime, noInstanceofError]
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
     }
   },
   {
@@ -795,6 +802,16 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // Enforce effect deep-imports (no barrel) on vscode-org + vscode-soql to keep esbuild tree-shaking (W-23443764).
+    // Only this rule — those packages aren't ready for the full functional/* set above.
+    // NOTE: soql-builder-ui/**/*.ts is globally ignored (see ignores above), so these webview LWC files
+    // are NOT enforced here — their effect imports were deep-imported manually and stay unenforced.
+    files: ['packages/salesforcedx-vscode-org/**/*.ts', 'packages/salesforcedx-vscode-soql/**/*.ts'],
+    rules: {
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }]
     }
   },
   {

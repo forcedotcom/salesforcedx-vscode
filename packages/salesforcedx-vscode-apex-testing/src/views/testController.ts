@@ -118,6 +118,7 @@ export class ApexTestController {
   private buildTreeMutationContext(): TreeMutationContext {
     return {
       controller: this.controller,
+      suiteTag: this.suiteTag,
       orgOnlyTag: this.orgOnlyTag,
       inWorkspaceTag: this.inWorkspaceTag,
       staleTag: this.staleTag
@@ -403,13 +404,13 @@ const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
   }
   const testUri = test.uri;
   const editor = await getApexTestingRuntime().runPromise(
-    Effect.fn('ApexTesting.openOrgOnlyTest')(function* () {
+    Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       return yield* api.services.FsService.showTextDocument(testUri, {
         preview: false,
         viewColumn: vscode.ViewColumn.Active
       });
-    })()
+    }).pipe(Effect.withSpan('ApexTesting.openOrgOnlyTest'))
   );
   if (isMethod(test.id) && test.range) {
     editor.selection = new vscode.Selection(test.range.start, test.range.start);

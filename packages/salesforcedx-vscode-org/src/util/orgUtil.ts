@@ -8,11 +8,13 @@
 import { AuthFields, AuthInfo, AuthRemover, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ICONS } from '@salesforce/vscode-services';
-import { Effect, Stream, SubscriptionRef } from 'effect';
 import * as Chunk from 'effect/Chunk';
+import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isNotUndefined, isString } from 'effect/Predicate';
+import { isError, isNotUndefined, isString, not } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';
@@ -96,7 +98,7 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
         : Effect.void
     ),
     // Filter out the expired orgs.
-    Stream.filter(o => !orgIsExpired(o)),
+    Stream.filter(not(orgIsExpired)),
     Stream.filter(orgExpiresSoon),
     // TODO: type guards or some Schema based check instead of !
     Stream.map(o => {
@@ -347,7 +349,7 @@ type DefaultOrgConfig = {
  * Returns the resolved username for a given alias, or the input if it is already a username.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
-export const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
+const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAlias')(function* (
   aliasOrUsername: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -360,7 +362,7 @@ export const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsername
  * Returns a map of username → aliases[]. Used to supplement stale StateAggregator data in the org picker.
  * Uses AliasService (reads alias.json via FsService, bypassing StateAggregator cache).
  */
-export const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
+const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const aliasService = yield* api.services.AliasService;
   const orgs = yield* aliasService.getAllAliases();
@@ -429,16 +431,16 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
 
   // Check if this org is the default DevHub (by property value or resolved username)
   const matchesDevHubProperty =
-    defaultConfig.defaultDevHubProperty != null && possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
+    isNotUndefined(defaultConfig.defaultDevHubProperty) && possibleDefaults.has(defaultConfig.defaultDevHubProperty);
   const matchesDevHubUsername =
-    defaultConfig.defaultDevHubUsername != null && orgAuth.username === defaultConfig.defaultDevHubUsername;
+    isNotUndefined(defaultConfig.defaultDevHubUsername) && orgAuth.username === defaultConfig.defaultDevHubUsername;
   const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty || matchesDevHubUsername);
 
   // Check if this org is the default org (by property value or resolved username).
   const matchesOrgProperty =
-    defaultConfig.defaultOrgProperty != null && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
+    isNotUndefined(defaultConfig.defaultOrgProperty) && possibleDefaults.has(defaultConfig.defaultOrgProperty);
   const matchesOrgUsername =
-    defaultConfig.defaultOrgUsername != null && orgAuth.username === defaultConfig.defaultOrgUsername;
+    isNotUndefined(defaultConfig.defaultOrgUsername) && orgAuth.username === defaultConfig.defaultOrgUsername;
   const isDefaultOrg = matchesOrgProperty || matchesOrgUsername;
 
   if (isDefaultDevHub && isDefaultOrg) {

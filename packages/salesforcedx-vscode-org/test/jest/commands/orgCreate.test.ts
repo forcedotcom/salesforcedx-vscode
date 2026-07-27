@@ -33,6 +33,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
 
 // imported after mocks so the command picks up the mocked utils module
 import { orgCreateCommand } from '../../../src/commands/orgCreate';
+import { nls } from '../../../src/messages';
 
 class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
   message: Schema.optional(Schema.String)
@@ -172,6 +173,19 @@ describe('orgCreateCommand', () => {
           'sf org create scratch --definition-file "/repo/config/project-scratch-def.json" --alias "myproject" --duration-days 7 --set-default --json'
       })
     );
+  });
+
+  it('wires alias validateInput that accepts hyphens/alphanumerics and rejects shell metachars', async () => {
+    showInputBox.mockResolvedValueOnce('my-scratch-org').mockResolvedValueOnce('7');
+
+    await run({ devHub: 'devhub@org', simpleExec, appendToChannel, show });
+
+    // first prompt = alias
+    const aliasOptions = showInputBox.mock.calls[0][0] as vscode.InputBoxOptions | undefined;
+    const validateAlias = aliasOptions?.validateInput?.bind(undefined);
+    expect(validateAlias?.('my-scratch-org')).toBeUndefined();
+    expect(validateAlias?.('GoodAlias')).toBeUndefined();
+    expect(validateAlias?.('bad;alias')).toBe(nls.localize('error_invalid_org_alias'));
   });
 
   it('cancels (no exec) when the def-file picker is dismissed', async () => {

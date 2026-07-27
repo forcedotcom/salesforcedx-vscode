@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { decodeTaggedCliResponse } from '../util/cliJson';
-import { isAlphaNumSpaceString } from '../util/orgAlias';
+import { isValidOrgAlias } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 
 const isInteger = (value: string | undefined): boolean =>
@@ -105,12 +105,12 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
   // clears it (validation then rejects it); Esc → undefined → considerUndefinedAsCancellation.
   const { uri } = yield* api.services.WorkspaceService.getWorkspaceInfo();
   const folderName = Utils.basename(uri).replaceAll(/\W/g, '');
-  const defaultAlias = isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
+  const defaultAlias = isValidOrgAlias(folderName) ? folderName : DEFAULT_ALIAS;
   const alias = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       value: defaultAlias,
-      validateInput: value => (isAlphaNumSpaceString(value) ? undefined : nls.localize('error_invalid_org_alias'))
+      validateInput: value => (isValidOrgAlias(value) ? undefined : nls.localize('error_invalid_org_alias'))
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
@@ -156,7 +156,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const promptService = yield* api.services.PromptService;
   const terminalService = yield* api.services.TerminalService;
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, aborting the sf child.
-  // quote alias: validateInput (isAlphaNumSpaceString) permits embedded spaces, and childProcess.exec runs
+  // quote alias: validateInput (isValidOrgAlias) permits embedded spaces, and childProcess.exec runs
   // via /bin/sh -c, so an unquoted `--alias my org` would word-split. days is digits-only (no quoting needed).
   const command = `sf org create scratch --definition-file "${defFilePath}" --alias "${alias}" --duration-days ${days} --set-default --json`;
   const stdout = yield* terminalService

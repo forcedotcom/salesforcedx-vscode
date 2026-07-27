@@ -1,3 +1,12 @@
+## [65.12.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.12.0...eslint-plugin-vscode-extensions-v65.12.1) (2026-07-26)
+
+
+### Bug Fixes
+
+* **effect:** replace Effect.fn IIFEs with Effect.gen + enforce effectFnIife - W-23429473 ([#7876](https://github.com/forcedotcom/salesforcedx-vscode/issues/7876)) ([1aaa19f](https://github.com/forcedotcom/salesforcedx-vscode/commit/1aaa19faaf969513c7f3754984860dfa2d034c9e))
+
+
+
 # [65.12.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.11.0...eslint-plugin-vscode-extensions-v65.12.0) (2026-06-24)
 
 

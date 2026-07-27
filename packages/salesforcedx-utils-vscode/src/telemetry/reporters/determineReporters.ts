@@ -30,14 +30,17 @@ const clearO11yInitializationPromise = (extName: string) => {
 export const determineReporters = (config: TelemetryReporterConfig) => {
   const { extName, version, aiKey, userId, reporterName, isDevMode, webUserId } = config;
 
-  if (isDevMode) {
-    return isLocalLogging(extName) ? [new TelemetryFile(extName)] : [];
-  }
-  return [
-    ...getO11yReporter(extName),
-    ...getAppInsightsReporter(reporterName, version, aiKey, userId, webUserId),
-    ...getLogStreamReporter(extName)
-  ];
+  // dev/test: O11Y_ENDPOINT forces O11yReporter live (normally inert without it)
+  return isDevMode
+    ? [
+        ...(process.env.O11Y_ENDPOINT ? getO11yReporter(extName) : []),
+        ...(isLocalLogging(extName) ? [new TelemetryFile(extName)] : [])
+      ]
+    : [
+        ...getO11yReporter(extName),
+        ...getAppInsightsReporter(reporterName, version, aiKey, userId, webUserId),
+        ...getLogStreamReporter(extName)
+      ];
 };
 
 const getAppInsightsReporter = (

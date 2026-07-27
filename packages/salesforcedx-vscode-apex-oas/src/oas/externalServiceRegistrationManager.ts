@@ -353,9 +353,9 @@ export const generateEsrMD = Effect.fn('ApexOas.Esr.generateEsrMD')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = api.services.FsService;
   const exists = yield* fsService.fileOrFolderExists(ctx.newPath);
-  const existingContent = yield* (exists ? fsService.readFile(ctx.newPath) : Effect.succeed(undefined)).pipe(
-    Effect.catchTag('FsServiceError', toEsrWriteFailed)
-  );
+  const existingContent = exists
+    ? yield* fsService.readFile(ctx.newPath).pipe(Effect.catchTag('FsServiceError', toEsrWriteFailed))
+    : undefined;
   //Step 1: Build the content of the ESR Xml file
   const updatedContent = yield* buildESRXml(ctx, existingContent).pipe(
     Effect.catchTag('FsServiceError', toEsrWriteFailed)

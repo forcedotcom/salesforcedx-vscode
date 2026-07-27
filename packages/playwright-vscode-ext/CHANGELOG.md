@@ -1,3 +1,12 @@
+## [1.3.7](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.6...playwright-vscode-ext-v1.3.7) (2026-07-27)
+
+
+### Bug Fixes
+
+* **apex-testing:** reload suite tree on suite deletion - W-23275541 ([#7661](https://github.com/forcedotcom/salesforcedx-vscode/issues/7661)) ([cebc0d8](https://github.com/forcedotcom/salesforcedx-vscode/commit/cebc0d80bac946491f747b5153483cc3da613e94))
+
+
+
 ## [1.3.6](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.5...playwright-vscode-ext-v1.3.6) (2026-07-20)
 
 

@@ -147,7 +147,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
         deployOutcome.response?.status === RequestStatus.Canceled ||
         deployOutcome.response?.status === RequestStatus.Canceling
       ) {
-        return yield* Effect.fail(new UserCancellationError());
+        return yield* new UserCancellationError();
       }
 
       if (

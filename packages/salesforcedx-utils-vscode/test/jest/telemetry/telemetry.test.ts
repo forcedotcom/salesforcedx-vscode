@@ -332,8 +332,8 @@ describe('Telemetry', () => {
             commandName: 'test_command',
             testProp: 'value'
           }),
-          // No executionTime measurement when startTime is undefined
-          expect.not.objectContaining({ executionTime: expect.any(Number) })
+          // No measurements object at all when startTime is undefined and none were passed
+          undefined
         );
       });
 

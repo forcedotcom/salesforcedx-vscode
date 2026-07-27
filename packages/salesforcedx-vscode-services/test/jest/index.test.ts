@@ -25,8 +25,10 @@ jest.mock('@salesforce/core', () => ({
 
 import { activate, deactivate } from '../../src/index';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
 import { SettingsService } from '../../src/vscode/settingsService';
+import { WorkspaceService } from '../../src/vscode/workspaceService';
 
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
@@ -91,8 +93,8 @@ jest.mock('../../src/virtualFsProvider/indexedDbStorage', () => {
   const mockStorage = {
     loadState: () => E.Effect.succeed(undefined),
     saveFile: () => E.Effect.succeed(undefined),
-    deleteFile: () => E.Effect.succeed(undefined),
-    loadFile: () => E.Effect.succeed(undefined)
+    deleteFile: () => E.Effect.void,
+    loadFile: () => E.Effect.void
   };
 
   return {
@@ -170,8 +172,12 @@ jest.mock('node:os', () => ({
   }
 }));
 
-// Mock node:fs module
+// Mock node:fs module.
+// jest 30 resolves 'node:fs' and 'fs' to the same module registry entry, so this factory
+// also serves unrelated consumers that require('fs') (e.g. got). Spread the real module so
+// only the members below are replaced.
 jest.mock('node:fs', () => ({
+  ...jest.requireActual('node:fs'),
   watch: jest.fn(() => ({
     close: jest.fn()
   })),
@@ -279,7 +285,9 @@ describe('Extension', () => {
     // Test that projectFiles works correctly with proper mocking
     // The function should succeed when dependencies are properly mocked
     await expect(
-      Effect.runPromise(Effect.provide(projectFiles(mockFsProvider), SettingsService.Default))
+      Effect.runPromise(
+        Effect.provide(projectFiles(mockFsProvider), Layer.mergeAll(SettingsService.Default, WorkspaceService.Default))
+      )
     ).resolves.toBeUndefined();
   });
 });

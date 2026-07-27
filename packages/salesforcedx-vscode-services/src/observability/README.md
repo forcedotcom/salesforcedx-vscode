@@ -291,9 +291,11 @@ To enable any VS Code setting:
 }
 ```
 
-**Option 2** (Node only): Set `O11Y_ENDPOINT` environment variable (takes precedence over package.json, but only works on Node platform, not Web)
+**Option 2** (Node only): Set `O11Y_ENDPOINT` environment variable (takes precedence over package.json)
 
-> **Note**: The `O11Y_ENDPOINT` environment variable only works on Node, not Web. For Web compatibility, use Option 1.
+> **Note**: On Node, `O11Y_ENDPOINT` applies to both OTEL (sdkLayerConfig) and legacy O11yReporter (utils-vscode). When set:
+> - Dev/Test mode: Legacy O11yReporter forced live (normally inactive); bypasses org proxy
+> - Web platform uses Option 1 only
 
 ### Debug Settings
 
@@ -393,9 +395,9 @@ npm run o11y:debug
 
 This starts a debug server on port 3002 that:
 
-- Receives O11y events from extensions
+- Receives O11y events from extensions (OTEL span exports and legacy O11yReporter events)
 - Decodes base64-encoded event data
-- Displays events in a human-readable format
+- Displays events in human-readable JSON format
 - Shows request headers and metadata
 
 **To use it**:
@@ -411,7 +413,7 @@ This starts a debug server on port 3002 that:
      }
      ```
 
-   - Or set the `O11Y_ENDPOINT` environment variable (Node only):
+   - Or set `O11Y_ENDPOINT` env var (Node only; applies to both OTEL and legacy O11yReporter; forces legacy O11yReporter live in dev/test and bypasses org proxy):
 
      ```bash
      export O11Y_ENDPOINT=http://localhost:3002
