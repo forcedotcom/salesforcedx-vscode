@@ -172,6 +172,7 @@ const makeMutationContext = (overrides: Partial<TreeMutationContext> = {}) => {
   } as unknown as vscode.TestController;
   const ctx: TreeMutationContext = {
     controller,
+    suiteTag: undefined,
     orgOnlyTag: undefined,
     inWorkspaceTag: undefined,
     staleTag: { id: 'stale' } as vscode.TestTag,
@@ -496,17 +497,24 @@ describe('ApexTestTreeService', () => {
       );
     });
 
-    it('clears all suite children when includesSuiteChange is true', async () => {
-      const { ctx } = makeMutationContext();
+    it('removes the suite parent and clears state when includesSuiteChange is true', async () => {
+      // Default activeTestService returns no suites, so populateSuiteItems re-adds nothing.
+      const { ctx, topItems } = makeMutationContext();
+      const suiteParent = richTestItem('apex-test-suites-parent', 'Apex Test Suites');
       const suiteItem = richTestItem('suite:MySuite', 'MySuite');
       suiteItem.children.add(richTestItem('suiteClass:MySuite:A', 'A'));
+      suiteParent.children.add(suiteItem);
+      topItems.set('apex-test-suites-parent', suiteParent);
 
       await run(
         Effect.gen(function* () {
           const suiteItems = yield* ApexTestTreeService.getSuiteItems();
           suiteItems.set('MySuite', suiteItem);
           yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['X', 'deleted']]), true);
-          expect(suiteItem.children.size).toBe(0);
+          // Suite parent removed from controller and suiteItems Ref cleared.
+          expect(topItems.has('apex-test-suites-parent')).toBe(false);
+          const updatedSuiteItems = yield* ApexTestTreeService.getSuiteItems();
+          expect(updatedSuiteItems.size).toBe(0);
         })
       );
     });

@@ -74,9 +74,7 @@ const runPackage = ({ name, tsconfig }) => {
     : {
         name,
         failed: true,
-        detail:
-          rawError ||
-          (result.error ? `${result.error.code ?? result.error.message}` : `exit ${result.status}`)
+        detail: rawError || (result.error ? `${result.error.code ?? result.error.message}` : `exit ${result.status}`)
       };
 };
 
@@ -108,7 +106,9 @@ violations.forEach(d =>
   )
 );
 
-console.log(`${enforcedRules.length} rules enforced${enforcedRules.length > 0 ? ` (${enforcedRules.join(', ')})` : ''}`);
+console.log(
+  `${enforcedRules.length} rules enforced${enforcedRules.length > 0 ? ` (${enforcedRules.join(', ')})` : ''}`
+);
 console.log(
   `${discoveredPackages.length} packages checked, ${skipped.length} skipped, ${failed.length} failed, ${violations.length} enforced violation(s)`
 );
