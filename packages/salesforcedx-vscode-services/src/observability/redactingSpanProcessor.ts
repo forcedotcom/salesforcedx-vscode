@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { AttributeValue, Attributes, SpanStatus } from '@opentelemetry/api';
-import type { Span, SpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { NoopSpanProcessor, type Span } from '@opentelemetry/sdk-trace-base';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import { redactSecrets } from './redactSecrets';
 
@@ -51,7 +51,8 @@ const redactStatusMessage = (span: { status: SpanStatus }): void => {
  * Mutates the span in place: exporters read the same span object, and cloning would drop the
  * SpanImpl identity the SDK relies on.
  */
-export class RedactingSpanProcessor implements SpanProcessor {
+// extends NoopSpanProcessor for its no-op onStart/onEnd/forceFlush/shutdown: only onEnding matters here
+export class RedactingSpanProcessor extends NoopSpanProcessor {
   // eslint-disable-next-line class-methods-use-this -- SpanProcessor interface method, no instance state
   public onEnding(span: Span): void {
     redactAttributes(span.attributes);
@@ -62,21 +63,5 @@ export class RedactingSpanProcessor implements SpanProcessor {
       .map(event => event.attributes)
       .filter(isNotUndefined)
       .forEach(redactAttributes);
-  }
-
-  // eslint-disable-next-line class-methods-use-this -- SpanProcessor interface requires onStart
-  public onStart(): void {}
-
-  // eslint-disable-next-line class-methods-use-this -- SpanProcessor interface requires onEnd
-  public onEnd(): void {}
-
-  // eslint-disable-next-line class-methods-use-this -- SpanProcessor interface requires forceFlush
-  public forceFlush(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  // eslint-disable-next-line class-methods-use-this -- SpanProcessor interface requires shutdown
-  public shutdown(): Promise<void> {
-    return Promise.resolve();
   }
 }

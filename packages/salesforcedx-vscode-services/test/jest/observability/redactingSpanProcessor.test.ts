@@ -131,11 +131,4 @@ describe('RedactingSpanProcessor', () => {
     expect(span.attributes.command).toBe('sf.lightning.generate.aura.component');
     expect(span.attributes.tags).toBe(seenArrays[0]);
   });
-
-  it('forceFlush and shutdown resolve', async () => {
-    const redactor = new RedactingSpanProcessor();
-
-    await expect(redactor.forceFlush()).resolves.toBeUndefined();
-    await expect(redactor.shutdown()).resolves.toBeUndefined();
-  });
 });
