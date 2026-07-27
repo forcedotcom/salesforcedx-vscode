@@ -30,7 +30,7 @@ import {
   sfCreateCheckpoints,
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
-import { appendAndShowChannelOutput } from './channels';
+import { appendAndShowChannelOutput, getDebuggerOutputChannel } from './channels';
 import { anonApexDebug } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
@@ -183,6 +183,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     'apex-replay',
     new DebugConfigurationProvider()
   );
+  // Resolve the services channel eagerly: it is created on first resolution, so without this
+  // 'Apex Replay Debugger' is missing from the Output dropdown until the first debugger write.
+  const debuggerChannel = yield* getDebuggerOutputChannel;
   const checkpointsView = vscode.window.registerTreeDataProvider('sf.view.checkpoint', checkpointService);
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
 
@@ -203,6 +206,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   });
 
   extensionContext.subscriptions.push(
+    debuggerChannel,
     commands,
     debugHandlers,
     debugConfigProvider,

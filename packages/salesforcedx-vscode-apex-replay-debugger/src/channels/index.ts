@@ -8,22 +8,32 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { getRuntime } from '../services/runtime';
 
-const appendAndShow = Effect.fn('channels.appendAndShowChannelOutput')(function* (message: string) {
+const getChannelService = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  return yield* api.services.ChannelService;
+});
+
+/**
+ * Resolves the debugger output channel. Resolving is what creates it, so activation has to yield on
+ * this for `Apex Replay Debugger` to be in the Output dropdown before any output is written.
+ */
+export const getDebuggerOutputChannel = Effect.flatMap(getChannelService, channelService => channelService.getChannel);
+
+const appendAndShow = Effect.fn('channels.appendAndShowChannelOutput')(function* (message: string) {
+  const channelService = yield* getChannelService;
   yield* channelService.appendToChannel(message);
-  yield* channelService.showChannel;
+  const channel = yield* channelService.getChannel;
+  // show(true) = preserveFocus, as the legacy showChannelOutput() did: revealing the channel on every
+  // debugger write must not pull keyboard focus out of the editor.
+  yield* Effect.sync(() => channel.show(true));
 });
 
 /**
  * Fire-and-forget append to the services ChannelService, revealing the channel.
- * Guarded so channel output can never throw into its caller when the services runtime is not yet
- * available (e.g. before activation, or in unit tests where no layer has been set).
+ * Failures (services runtime not available pre-activation, or in unit tests where no layer has been
+ * set) never reach the caller: `runFork` reports them on the forked fiber instead of throwing, so
+ * channel output stays best-effort for the sync `void` callers of `writeToDebuggerOutputWindow`.
  */
 export const appendAndShowChannelOutput = (message: string): void => {
-  try {
-    getRuntime().runFork(Effect.ignoreLogged(appendAndShow(message)));
-  } catch {
-    /* runtime not ready — drop the output */
-  }
+  getRuntime().runFork(Effect.ignoreLogged(appendAndShow(message)));
 };
