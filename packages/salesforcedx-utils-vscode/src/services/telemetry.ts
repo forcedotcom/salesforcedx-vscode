@@ -14,7 +14,7 @@ import {
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { ChannelService } from '../commands/channelService';
@@ -162,7 +162,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   private warnDegradedSession(cliId: string | undefined): void {
-    if (cliId === undefined) {
+    if (isUndefined(cliId)) {
       ChannelService.getInstance(this.extensionName).appendLine('telemetry seed missing — degraded session');
     }
   }
@@ -279,7 +279,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.reporters
       .filter(r => r instanceof O11yReporter)
       // don't overwrite PFT if already set
-      .filter(r => r.productFeatureId === undefined)
+      .filter(r => isUndefined(r.productFeatureId))
       .forEach(r => (r.productFeatureId = thisExtensionPftId ?? coreEtensionPftId));
   }
 
@@ -288,7 +288,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
-    if (this.cliAllowsTelemetryPromise !== undefined) {
+    if (isNotUndefined(this.cliAllowsTelemetryPromise)) {
       return this.cliAllowsTelemetryPromise;
     }
     this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();

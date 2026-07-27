@@ -102,8 +102,7 @@ yield* channelService.showChannel;
 return result;
 ```
 
-Wrap synchronous side effects in `Effect.sync` inside the tap. The `return yield*`
-the whole pipe — don't bind to a local just to return it.
+Wrap synchronous side effects in `Effect.sync` inside the tap.
 
 ### Watch success-value vs failure-channel distinction
 
@@ -263,12 +262,12 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 
 | Situation | Do | Don't |
 | --- | --- | --- |
-| Build any multi-op effect | one flat `.pipe(...)` chain | nested `f(g(h(x)))` calls |
+| Build any multi-op effect | one flat `.pipe(...)` chain — merged steps as siblings, dropping any the merge makes dead; config-enforced by `unnecessaryPipeChain`, which fires wherever a pipe's subject is itself a pipe — method or function form, callbacks included; only a nested pipe over a *different* subject stays judgment | `x.pipe(a).pipe(b)`, `pipe(pipe(x, a), b)`; nested `f(g(h(x)))` calls |
 | Run a built effect | `effect.pipe(..., runtime.runPromise)` as last step | wrap whole expr in `runPromise(effect.pipe(...))` |
 | Point-free terminal step | bare `Effect.runPromise` always; methods only when closure-based (e.g. `ManagedRuntime.runPromise`) | point-free any `this`-bound method |
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |
 | Sync side effect inside a tap | wrap in `Effect.sync(() => ...)` | — |
-| Return the run's value | `return yield* effect.pipe(...)` | bind to a local just to `return` it |
+| Return the run's value | `return yield* effect.pipe(...)`; config-enforced by `returnEffectInGen` for a raw `return effect` (missing `yield*`). Binding the *yielded* value and returning it stays judgment (return expression isn't an Effect, so no rule fires); returning a local that still holds an un-run Effect does fire | bind to a local just to `return` it |
 | 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)` | nested ternary |
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |

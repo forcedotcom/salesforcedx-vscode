@@ -15,7 +15,6 @@ export { shapeFrom, type OrgShapeInfo } from './context/workspaceOrgShape';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export { createDirectory, fileOrFolderExists, readFile, safeDelete, writeFile } from './helpers/fs';
-export { fileExtensionsMatch, projectPaths } from './helpers/paths';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
 export { getTargetDevHubOrAlias } from './util/authInfo';

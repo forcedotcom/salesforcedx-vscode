@@ -34,7 +34,7 @@ const TOOLS = 'tools';
 
 /** `.sfdx/tools`, relative to a project root. bootstrap is the only consumer of this shape (the retrieve CLI
  * flags below want it project-relative, not the absolute workspace-anchored ProjectService.getToolsFolder),
- * so it lives here rather than in projectPaths. */
+ * so it lives here. */
 const relativeToolsFolder = () => path.join(Global.STATE_FOLDER, TOOLS);
 
 /** `sf project retrieve start` (org-wide ApexClass/ApexTrigger + per-package source) routinely runs several

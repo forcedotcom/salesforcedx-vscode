@@ -6,6 +6,7 @@
  */
 
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger';
+import { isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { getActiveApexExtension } from '../context/apexExtension';
 import { nls } from '../messages';
@@ -47,13 +48,13 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
-    if (config.userIdFilter === undefined) {
+    if (isUndefined(config.userIdFilter)) {
       config.userIdFilter = [];
     }
-    if (config.requestTypeFilter === undefined) {
+    if (isUndefined(config.requestTypeFilter)) {
       config.requestTypeFilter = [];
     }
-    if (config.entryPointFilter === undefined) {
+    if (isUndefined(config.entryPointFilter)) {
       config.entryPointFilter = '';
     }
     config.salesforceProject = config.salesforceProject ?? (folder ? folder.uri.fsPath : '${workspaceRoot}');

@@ -88,7 +88,10 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
       getFauxClassesPath: () => Effect.succeed(URI.file('/test/faux')),
       getFauxStandardObjectsPath: () => Effect.succeed(URI.file('/test/faux/std')),
       getFauxCustomObjectsPath: () => Effect.succeed(URI.file('/test/faux/custom')),
-      getTypingsPath: () => Effect.succeed(URI.file('/test/.sfdx/typings'))
+      getTypingsPath: () => Effect.succeed(URI.file('/test/.sfdx/typings')),
+      getStateFolder: () => Effect.succeed(URI.file('/test/.sfdx')),
+      getDebugLogsFolder: () => Effect.succeed(URI.file('/test/.sfdx/tools/debug/logs')),
+      getApexTestResultsFolder: () => Effect.succeed(URI.file('/test/.sfdx/tools/testresults/apex'))
     })
   );
 };

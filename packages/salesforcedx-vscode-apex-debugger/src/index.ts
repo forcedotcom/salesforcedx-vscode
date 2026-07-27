@@ -27,14 +27,11 @@ import {
 } from '@salesforce/salesforcedx-apex-debugger';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { debuggerStop } from './commands/debuggerStop';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
-import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
-import { IsvAuthSetupError } from './errors';
 import { nls } from './messages';
 import { AllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
@@ -261,33 +258,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.debugger.stop', debuggerStop);
   yield* registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
-  const terminalService = yield* api.services.TerminalService;
-  // `sf` CLI present? (`sf --version` exits 0). CLI-absence is a normal outcome here, so the
-  // TerminalServiceError is intentionally caught into `false` — skip ISV setup, don't fail activation.
-  const isCliInstalled = yield* terminalService
-    .simpleExec({ command: 'sf --version', parse: () => true })
-    .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed(false)));
-  if (isCliInstalled) {
-    yield* Effect.log('Setting up ISV Debugger environment variables');
-    // register watcher for ISV authentication and setup default user for CLI
-    // (VS Code does not seem to allow sharing npm modules between extensions)
-    yield* Effect.tryPromise({
-      try: async () => {
-        registerIsvAuthWatcher(extensionContext);
-        await setupGlobalDefaultUserIsvAuth();
-      },
-      catch: e => new IsvAuthSetupError({ message: isError(e) ? e.message : String(e) })
-    }).pipe(
-      // ISV setup failure is non-fatal to activation: surface a warning + log, don't fail the fiber
-      Effect.catchTag('IsvAuthSetupError', e =>
-        Effect.log(e.message).pipe(
-          Effect.zipRight(
-            Effect.sync(() => vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error')))
-          )
-        )
-      )
-    );
-  }
 
   // Telemetry
   const telemetryService = yield* Effect.promise(() => getTelemetryService());

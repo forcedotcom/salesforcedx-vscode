@@ -11,6 +11,8 @@
     "effectSucceedWithVoid",
     "unnecessaryFailYieldableError",
     "effectFnIife",
-    "unnecessaryEffectGen"
+    "unnecessaryEffectGen",
+    "unnecessaryPipeChain",
+    "returnEffectInGen"
   ]
 }

@@ -6,6 +6,7 @@
  */
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import { nls } from '../messages';
 
 export const configListCommand = Effect.fn('configListCommand')(function* () {
@@ -20,7 +21,7 @@ export const configListCommand = Effect.fn('configListCommand')(function* () {
       ? createTable(
           configInfo.map(c => ({
             name: c.key,
-            value: c.value !== undefined ? String(c.value) : '',
+            value: isNotUndefined(c.value) ? String(c.value) : '',
             location: c.location ?? ''
           })),
           [

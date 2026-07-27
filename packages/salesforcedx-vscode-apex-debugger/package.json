@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.6.0",
+  "version": "67.7.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -31,7 +31,6 @@
     "@salesforce/core": "^8.32.2",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-debugger": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "@vscode/debugprotocol": "1.68.0",
     "effect": "^3.21.2",
@@ -74,7 +73,6 @@
         "../salesforcedx-vscode-core:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-apex-debugger:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
