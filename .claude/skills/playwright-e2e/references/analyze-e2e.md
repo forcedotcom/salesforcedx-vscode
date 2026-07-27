@@ -27,6 +27,8 @@ Organized by branch and run ID.
 - `gh run download <run-id> -D <directory>` - Download artifacts
 - `gh run view <run-id> --web` - Open in browser
 
+E2E artifacts expire 14 days after the run (see `retention-days` in the workflows) — nothing to download from older runs.
+
 ## Artifact location (mandatory)
 
 **Always use `.e2e-artifacts/` as the root** — gitignored. Never use a variant name (e.g. `.e2e-artifacts-win/`).

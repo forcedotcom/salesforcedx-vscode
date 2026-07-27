@@ -32,6 +32,8 @@ export const meta = {
 
 log('Flakiness review started — expect 30–60 minutes. Use /workflows to watch progress.')
 
+// CI artifacts expire 14 days after a run (retention-days in the E2E workflows); a
+//   longer lookback has no artifact evidence for the older part — unavailable, not "not flaky"
 const DAYS = (args && args.days) || 7
 const EDE_EPIC_ID = 'a3QEE000002AZ8D2AW'
 const REPO = 'forcedotcom/salesforcedx-vscode'
@@ -334,6 +336,8 @@ For each run with conclusion=="failure" OR hadRetries==true, download the playwr
 # carry a non-numeric suffix (e.g. <run-id>-extra) — keep the numeric run id.
 gh run download <run-id> --repo ${REPO} -D ${ARTIFACTS_ROOT}/develop/<run-id> --pattern "playwright-report*" 2>/dev/null || true
 \`\`\`
+
+Artifacts expire 14 days after the run (retention-days in the E2E workflows) and the download failure is swallowed, so runs older than that yield no report: mark them "artifacts expired — evidence unavailable", never "no flakiness".
 
 Each \`playwright-report*/index.html\` embeds a base64-encoded zip whose \`report.json\` holds per-test results: \`files[].tests[]{title, path, outcome, results[]}\`. \`outcome\` is one of expected|flaky|unexpected|skipped (\`flaky\` = passed only after retries = retry-masked). Decode + aggregate with bash + jq (no python):
 

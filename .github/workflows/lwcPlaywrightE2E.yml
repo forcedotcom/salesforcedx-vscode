@@ -121,6 +121,7 @@ jobs:
           name: playwright-report-lwc-web
           path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -129,6 +130,7 @@ jobs:
           name: playwright-test-results-lwc-web
           path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
   # ─── Desktop: LSP / headless specs ───────────────────────────────────────────────────────
 
@@ -218,6 +220,7 @@ jobs:
           name: playwright-report-lwc-desktop-lsp-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -226,6 +229,7 @@ jobs:
           name: playwright-test-results-lwc-desktop-lsp-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
   # ─── Desktop: Run Tests ───────────────────────────────────────────────────────────────────
 
@@ -315,6 +319,7 @@ jobs:
           name: playwright-report-lwc-desktop-run-tests-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -323,6 +328,7 @@ jobs:
           name: playwright-test-results-lwc-desktop-run-tests-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
   # ─── Desktop: Debug Tests ─────────────────────────────────────────────────────────────────
 
@@ -412,6 +418,7 @@ jobs:
           name: playwright-report-lwc-desktop-debug-tests-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -420,3 +427,4 @@ jobs:
           name: playwright-test-results-lwc-desktop-debug-tests-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
+          retention-days: 14
