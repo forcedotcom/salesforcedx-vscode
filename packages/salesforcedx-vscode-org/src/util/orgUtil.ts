@@ -431,16 +431,16 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
 
   // Check if this org is the default DevHub (by property value or resolved username)
   const matchesDevHubProperty =
-    defaultConfig.defaultDevHubProperty != null && possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
+    isNotUndefined(defaultConfig.defaultDevHubProperty) && possibleDefaults.has(defaultConfig.defaultDevHubProperty);
   const matchesDevHubUsername =
-    defaultConfig.defaultDevHubUsername != null && orgAuth.username === defaultConfig.defaultDevHubUsername;
+    isNotUndefined(defaultConfig.defaultDevHubUsername) && orgAuth.username === defaultConfig.defaultDevHubUsername;
   const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty || matchesDevHubUsername);
 
   // Check if this org is the default org (by property value or resolved username).
   const matchesOrgProperty =
-    defaultConfig.defaultOrgProperty != null && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
+    isNotUndefined(defaultConfig.defaultOrgProperty) && possibleDefaults.has(defaultConfig.defaultOrgProperty);
   const matchesOrgUsername =
-    defaultConfig.defaultOrgUsername != null && orgAuth.username === defaultConfig.defaultOrgUsername;
+    isNotUndefined(defaultConfig.defaultOrgUsername) && orgAuth.username === defaultConfig.defaultOrgUsername;
   const isDefaultOrg = matchesOrgProperty || matchesOrgUsername;
 
   if (isDefaultDevHub && isDefaultOrg) {

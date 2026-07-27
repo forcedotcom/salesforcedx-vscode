@@ -376,6 +376,39 @@ To skip the initial snapshot (e.g. avoid a spurious refresh on activation), use 
 The DON'T column above names each forbidden pattern. `references/anti-patterns.md`
 has the complete list — each with rationale and the correct alternative.
 
+## Emptiness Guards: match the declared type
+
+`== null` / `!= null` are banned in effect packages (`noNullCompare` in `eslint.config.mjs`).
+Pick the `effect/Predicate` guard by what the declared type actually admits — one guard per
+union shape, no exceptions:
+
+| declared type          | guard                      |
+| ---------------------- | -------------------------- |
+| `T \| undefined`       | `isUndefined` / `isNotUndefined` |
+| `T \| null`            | `isNull` / `isNotNull`     |
+| `T \| null \| undefined` | `isNullable` / `isNotNullable` |
+
+```typescript
+import { isNotNull, isNotUndefined, isNullable, isUndefined } from 'effect/Predicate';
+
+// T | undefined — the common case (Optional<T>, optional props, ?? sources)
+if (isUndefined(maybeValue)) return;
+Effect.filterOrFail(isNotUndefined, () => new NotFoundError({ message: '...' }));
+
+// T | null — e.g. RegExp.exec, JSON payload fields
+const match = scriptRegex.exec(html);
+if (isNotNull(match)) { … }
+
+// T | null | undefined — e.g. `exclude?: vscode.GlobPattern | null` (optional AND nullable)
+const arr = isNullable(exclude) ? undefined : [exclude];
+```
+
+Runtime semantics: `isUndefined` is `x === undefined`, `isNull` is `x === null`, `isNullable`
+is either (`node_modules/effect/src/Predicate.ts:611,649,925`). A wider guard than the type
+needs still compiles — it just implies a case the type can't produce, so it reads as a lie
+about the value. Note `typeof x === 'object' && x !== null` object-narrowing stays as-is;
+that's a structural check, not an emptiness check.
+
 ## Point-free Predicates in Filters
 
 Use `Predicate.not()` for filter negations; combines point-free and readability.
@@ -390,7 +423,7 @@ arr.filter(not(isFlowTest))
 arr.filter(x => !isFlowTest(x))
 ```
 
-Works with any predicate — built-in (`isString`, `isError`, `isNotUndefined`) or
+Works with any predicate — built-in (`isString`, `isError`, `isNotUndefined`, `isNotNullable`) or
 custom. Only the wrapped predicate can be receiver-sensitive: `not(obj.method)`
 detaches the receiver, so verify the impl uses no `this` first (see
 [composition-style](./references/composition-style.md#point-free-terminal-step-safe-only-when-impl-doesnt-use-this)).
