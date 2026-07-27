@@ -309,7 +309,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
               (yield* configService.getConfigAggregator().pipe(
                 Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
                 Effect.filterOrFail(
-                  targetOrg => targetOrg != null,
+                  isNotUndefined,
                   () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
                 )
               ));
