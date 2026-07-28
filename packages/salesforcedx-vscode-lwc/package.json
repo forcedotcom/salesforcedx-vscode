@@ -136,7 +136,8 @@
       "files": [
         "playwright.config.web.ts",
         "test/playwright/**/*.ts",
-        "package*.json"
+        "package*.json",
+        "../../.github/**"
       ],
       "output": []
     },
@@ -180,7 +181,8 @@
       "files": [
         "playwright.config.desktop.ts",
         "test/playwright/**/*.ts",
-        "package*.json"
+        "package*.json",
+        "../../.github/**"
       ],
       "output": []
     },
