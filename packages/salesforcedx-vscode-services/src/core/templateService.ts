@@ -94,7 +94,9 @@ class MissingProjectSourceApiVersionError extends Schema.TaggedError<MissingProj
   { message: Schema.String }
 ) {}
 
-const TemplateManifestSchema = Schema.parseJson(Schema.Array(Schema.String));
+const StringArraySchema = Schema.Array(Schema.String);
+
+const TemplateManifestSchema = Schema.parseJson(StringArraySchema);
 
 const getExtensionUri = Effect.fn('getExtensionUri')(function* () {
   const ext = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services');
