@@ -1,5 +1,5 @@
 import { existsSync, lstatSync } from 'node:fs';
-import { isAbsolute, resolve } from 'node:path';
+import { isAbsolute, resolve, win32 } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
@@ -54,17 +54,23 @@ const defaultRunAsync = ({ command, args = [], cwd }) =>
 const decodeShellWord = word =>
   word.replace(/^\$HOME(?=\/|$)/, process.env.HOME ?? '$HOME').replace(/^~(?=\/|$)/, process.env.HOME ?? '~');
 
-const resolveCommandDirectory = (cwd, value) => (isAbsolute(value) ? value : resolve(cwd, value));
+const resolveCommandDirectory = (cwd, value) =>
+  isAbsolute(value) || win32.isAbsolute(value) ? value : resolve(cwd, value);
 
 const shellSegments = command => {
   const parsed = [...command].reduce(
-    (state, character) => {
+    (state, character, index, characters) => {
       if (state.escaped) {
         return character === '\n'
           ? { ...state, escaped: false }
           : { ...state, escaped: false, word: `${state.word}${character}` };
       }
-      if (character === '\\' && state.quote !== "'") return { ...state, escaped: true };
+      if (character === '\\' && state.quote !== "'") {
+        const escapedCharacter = characters[index + 1];
+        return state.quote === '"' && escapedCharacter && !['$', '`', '"', '\\', '\n'].includes(escapedCharacter)
+          ? { ...state, word: `${state.word}${character}` }
+          : { ...state, escaped: true };
+      }
       if (state.quote) {
         return character === state.quote
           ? { ...state, quote: undefined }

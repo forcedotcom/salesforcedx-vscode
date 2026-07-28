@@ -123,6 +123,13 @@ test('checks quoted git -C paths', async () =>
     assert.equal(calls[0].args[1], repository);
   }));
 
+test('preserves Windows separators in quoted git -C paths', () => {
+  const repository = String.raw`C:\Users\runner\repo with spaces`;
+  const { calls, run } = fakeRun([{ ok: true, output: repository }]);
+  assert.match(commandDenial({ command: `git -C "${repository}" push`, cwd: repository, run }), /node_modules missing/);
+  assert.equal(calls[0].args[1], repository);
+});
+
 test('does not split shell metacharacters inside quoted paths', async () =>
   temporaryDirectory(root => {
     const repository = resolve(root, 'repo;name');
