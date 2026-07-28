@@ -124,13 +124,12 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(pollIntervalSeconds));
 
   // watch the setting to update poll freq
-  yield* Effect.fork(
-    Stream.fromPubSub(settingsChangePubSub).pipe(
-      Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')),
-      Stream.runForEach(() =>
-        getPollIntervalSeconds().pipe(Effect.flatMap(s => SubscriptionRef.set(pollIntervalRef, Duration.seconds(s))))
-      )
-    )
+  yield* Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')),
+    Stream.runForEach(() =>
+      getPollIntervalSeconds().pipe(Effect.flatMap(s => SubscriptionRef.set(pollIntervalRef, Duration.seconds(s))))
+    ),
+    Effect.fork
   );
 
   // when the org changes, clear the knownIds
@@ -146,7 +145,11 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const dynamicPollStream = pollIntervalRef.changes.pipe(
     Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
     Stream.flatMap(
-      interval => Stream.fromSchedule(Schedule.spaced(interval)).pipe(Stream.filter(() => vscode.window.state.active)),
+      interval =>
+        Schedule.spaced(interval).pipe(
+          Stream.fromSchedule,
+          Stream.filter(() => vscode.window.state.active)
+        ),
       // With switch: true: When the interval changes, the previous schedule stream is interrupted and a new one starts.
       // So changing the poll interval immediately replaces the old schedule with the new one instead of stacking them.
       { switch: true }
