@@ -20,7 +20,7 @@ const writeAndGetError = async (): Promise<FsServiceError | undefined> => {
     Effect.flatMap(FsService, fs => fs.writeFile('/out/foo.json', 'x')).pipe(Effect.provide(FsService.Default))
   );
   if (!Exit.isFailure(exit)) return undefined;
-  return Option.getOrUndefined(Cause.failureOption(exit.cause)) as FsServiceError | undefined;
+  return exit.cause.pipe(Cause.failureOption, Option.getOrUndefined) as FsServiceError | undefined;
 };
 
 describe('FsServiceError.message', () => {

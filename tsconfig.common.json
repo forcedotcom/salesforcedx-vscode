@@ -22,6 +22,20 @@
     "useUnknownInCatchVariables": false,
     "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true,
-    "plugins": [{ "name": "@effect/language-service" }, { "name": "@salesforce/vscode-i18n/tsPlugin" }]
+    // Rules listed in diagnosticSeverity are enabled/pinned at "error" — most default to "off" upstream, so they report nothing until pinned. The build gate is config/effect-diagnostics.json enforcedRules.
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnosticSeverity": {
+          "floatingEffect": "error",
+          "globalRandom": "error",
+          "globalRandomInEffect": "error",
+          "globalFetchInEffect": "error",
+          "globalTimersInEffect": "error",
+          "missedPipeableOpportunity": "error"
+        }
+      },
+      { "name": "@salesforce/vscode-i18n/tsPlugin" }
+    ]
   }
 }

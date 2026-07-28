@@ -1,5 +1,5 @@
 {
-  "$comment": "Effect LS diagnostics ratchet. scripts/effect-diagnostics.mjs fails the build only on findings whose rule name is listed in enforcedRules (any severity). Sibling WIs append a rule name here after fixing all its sites. Empty list = nothing enforced (exit 0).",
+  "$comment": "Effect LS diagnostics ratchet. scripts/effect-diagnostics.mjs fails the build only on findings whose rule name is listed in enforcedRules (any severity). Sibling WIs append a rule name here after fixing all its sites. A rule whose upstream default (@effect/language-service/schema.json) is 'off' reports nothing, so it also needs an 'error' entry in the tsconfig.common.json diagnosticSeverity block or the name here is a silent no-op. Empty list = nothing enforced (exit 0).",
   "enforcedRules": [
     "lazyPromiseInEffectSync",
     "runEffectInsideEffect",
@@ -12,6 +12,13 @@
     "unnecessaryFailYieldableError",
     "effectFnIife",
     "unnecessaryEffectGen",
-    "unnecessaryPipeChain"
+    "unnecessaryPipeChain",
+    "returnEffectInGen",
+    "floatingEffect",
+    "globalRandom",
+    "globalRandomInEffect",
+    "globalFetchInEffect",
+    "globalTimersInEffect",
+    "missedPipeableOpportunity"
   ]
 }
