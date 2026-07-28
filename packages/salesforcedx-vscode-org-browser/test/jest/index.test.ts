@@ -120,6 +120,7 @@ const MockConfigServiceLayer = Layer.succeed(
     invalidateConfigAggregator: () => Effect.void,
     getTargetDevHub: () => Effect.succeed(undefined),
     getTargetOrg: () => Effect.succeed(undefined),
+    isCliTelemetryDisabled: () => Effect.succeed(false),
     isCurrentTargetOrg: () => Effect.succeed(false),
     isCurrentTargetDevHub: () => Effect.succeed(false),
     unsetTargetOrg: () => Effect.void,
