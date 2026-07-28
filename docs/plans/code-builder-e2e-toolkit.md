@@ -80,7 +80,7 @@ a content check can prove *the bytes under test are the bytes intended*.
 - **NG3 — The package does not select/dedup VSIXes.** Swap takes an **explicit list**. The
   modern-vs-legacy (67.x) dedup is the consumer's job.
 - **NG4 — No forced Effect buy-in.** The core is consumable without Effect. This repo, being
-  Effect-native, wraps it; adopters not on Effect can still use every brick (see §12).
+  Effect-native, wraps it; adopters not on Effect can still use every brick (see §14).
 - **NG5 — No second team shipping target yet.** This monorepo is the **first and only**
   consumer. "Other Salesforce teams" is an honored **design constraint**, not a delivery
   milestone.
@@ -124,7 +124,7 @@ a content check can prove *the bytes under test are the bytes intended*.
 │   Verify    ── (handle, Manifest) ──► assertion          (pure)         │
 │         └────────────── Digest core (shared internal) ──────────────┘   │
 │                                                                         │
-│   Runner seam (plain injected fn; Effect adapter available) ── §12      │
+│   Runner seam (plain injected fn; Effect adapter available) ── §14      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -173,7 +173,7 @@ flowchart TB
 
 ### 3.2 The two spine objects
 
-Everything threads through two typed objects (both **Effect Schema** — §4, §12):
+Everything threads through two typed objects (both **Effect Schema** — §4, §14):
 
 - **`ContainerHandle`** — returned by `run`, accepted by every other verb.
   `{ name, imageRef, publishedUrl, publishedPort, bootEnv }`. Downstream bricks never
@@ -579,7 +579,7 @@ the mount-over-first-boot-generate decoupling.
 
 ## 8. Incremental Delivery Plan
 
-Each milestone is independently useful and independently testable (§12).
+Each milestone is independently useful and independently testable (§14).
 
 | # | Milestone | Independently delivers | Depends on |
 |---|---|---|---|
@@ -625,7 +625,7 @@ Lives in the repo, **not** the package (§2 NG2/NG3):
   the package.
 - **Orchestrator** — `scripts/codeBuilderLocalE2E.ts` recomposed as a thin sequence of package
   calls: `resolveOrgBootEnv → pull → run(bootEnv, mount) → seedWorkspace → swap → restart →
-  verify → run specs → teardown`. This *is* also the real-docker integration test (§12).
+  verify → run specs → teardown`. This *is* also the real-docker integration test (§14).
 - **CI workflow** — `codeBuilderE2E.yml` recomposed on the package; stays `workflow_call` /
   `workflow_dispatch` until reliably green, then slots into `e2e.yml`'s fan-out (already
   threads the build runId). The redaction fix already landed here (PR #7846) migrates into
@@ -635,7 +635,232 @@ Lives in the repo, **not** the package (§2 NG2/NG3):
 
 ---
 
-## 10. Reusability Guide (second Salesforce team)
+## 10. CI Integration & Scheduling (when / where to run)
+
+### 10.1 Cadence decision — nightly + release, **not** per-PR
+
+The Code Builder suite is **deliberately not run on every PR.** One pass pulls a multi-GB
+image, creates a scratch org, boots a container, swaps + restarts, and drives a browser — far
+heavier and slower than a unit test, and its value (catch CB-runtime-specific breakage against
+the shipping bytes) is a *pre-release* signal, not a per-commit one. It runs exactly where the
+other e2e suites already run:
+
+| Trigger | Runs CB e2e? | Why |
+|---|---|---|
+| PR / push to a branch | **No** | Too heavy; CB breakage is not per-commit. Desktop unit + lint gate PRs. |
+| **Nightly Build Develop** | **Yes** | Catch drift against a rolling `:latest` CB image + latest develop bytes, daily. |
+| **Test, Build, and Release** | **Yes** | Gate the release — the VSIX about to ship is exercised on the real image. |
+| **Beta Release branch** | **Yes** | Same gate for the beta channel. |
+| `workflow_dispatch` | **Yes (manual)** | On-demand repro / debugging a specific `runId`. |
+
+This is the *same* trigger set the existing `e2e.yml` fan-out already uses — so "run it when
+we run the other e2e tests" means literally **adding CB as a leaf of `e2e.yml`**.
+
+### 10.2 Where it wires up — a leaf of `e2e.yml`
+
+`e2e.yml` is the hub: it triggers on `workflow_run` completion of *Nightly Build Develop*,
+*Test, Build, and Release*, and *Create and Test Beta Release Branch*, and calls each suite as
+a `workflow_call` leaf, threading the build **`runId`** (the run that produced the VSIXes).
+`codeBuilderE2E.yml` is **already `workflow_call`-shaped** (takes `runId`, `artifactName`,
+`image_tag`); wiring is one job block mirroring the existing leaves:
+
+```yaml
+# add to e2e.yml jobs:
+  playwright-code-builder:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
+    uses: ./.github/workflows/codeBuilderE2E.yml
+    secrets: inherit
+    with:
+      runId: ${{ inputs.runId || github.event.workflow_run.id }}
+```
+
+```mermaid
+flowchart TD
+    NB["Nightly Build Develop"] -->|workflow_run: completed| E2E
+    TBR["Test, Build, and Release"] -->|workflow_run: completed| E2E
+    BETA["Beta Release Branch"] -->|workflow_run: completed| E2E
+    WD["workflow_dispatch (manual, runId)"] --> E2E
+    PR["PR / branch push"] -.->|NOT wired| E2E
+
+    E2E["e2e.yml (fan-out hub)<br/>threads build runId"]
+    E2E --> D1["coreE2E (desktop 3-OS)"]
+    E2E --> D2["apex / lwc / org / … desktop leaves"]
+    E2E ==>|NEW leaf| CB["codeBuilderE2E.yml<br/>(Linux-only, container)"]
+
+    classDef new fill:#fff3cd,stroke:#d9a441,color:#123,stroke-width:2px;
+    classDef no fill:#fdecea,stroke:#d9534f,color:#123,stroke-dasharray:4 3;
+    class CB new;
+    class PR no;
+```
+
+### 10.3 How it runs — one Linux job, not a 3-OS matrix
+
+Desktop leaves (e.g. `coreE2E.yml`) fan out across `[macos-latest, ubuntu-latest,
+windows-latest]` because the Electron host differs per OS. **CB does not:** the code-server
+runtime inside the Linux container is identical regardless of host OS, and containers are
+Linux — so CB is a **single `ubuntu-latest` job** (as #7718 already declares). Testing it on 3
+host OSes would burn 3× the minutes to exercise the exact same runtime.
+
+### 10.4 Promotion & failure policy (decisions)
+
+- **Promotion gate:** keep `codeBuilderE2E.yml` on `workflow_dispatch` / `workflow_call` only
+  until it is **reliably green across ~2 weeks of nightlies**; *then* add the `e2e.yml` leaf
+  above. Don't gate the release on a flaky new suite.
+- **Advisory → blocking, everywhere (decision):** wire CB **advisory** (non-blocking:
+  `continue-on-error` at the leaf / required=false status) on **both** nightly and release
+  paths at first, so a CB-image hiccup or a rolling-`:latest` shift can't block a release —
+  or a nightly — while confidence builds. Once the suite proves stable, flip it to
+  **blocking everywhere** (nightly *and* release) in one step. We deliberately do **not**
+  split the policy by trigger: same suite, same bar, promoted together.
+- **Avoiding advisory-rot:** the known risk of an advisory check is that it goes red and
+  nobody looks. We accept that risk without a dedicated notifier — **the team already
+  monitors nightly CI runs**, so a red CB nightly is seen through the normal nightly-watching
+  workflow. No Slack hook or auto-filed bug is added (§10.5).
+- **Rolling `:latest` is intentional (C4):** the image tag is rolling on **every** trigger,
+  including release — we want to test against **whatever CB is live**, not a pinned snapshot.
+  A nightly/release red can therefore mean "CB image changed under us," not "our code broke";
+  the provenance banner (§4.5 manifest) + fail-loud version gate distinguish the two. We do
+  **not** pin or record the image digest: **artifacts are timestamped**, so a stale/for-a-
+  different-image result is identifiable by its timestamp alone.
+
+### 10.5 What we explicitly are NOT adding
+
+To keep the surface honest, these were considered and **rejected** for this plan:
+
+- **No per-trigger blocking split** (e.g. block nightly, advisory release) — one policy,
+  promoted together (§10.4).
+- **No image-digest pinning or recording** — rolling `:latest` everywhere; timestamps flag
+  staleness (§10.4, 2a).
+- **No dedicated failure notifier** (Slack / auto-bug) — nightly CI is already monitored
+  (§10.4, 2b).
+- **No 3-OS matrix** — one Linux job; the container runtime is host-OS-independent (§10.3).
+
+---
+
+## 11. Migrating the Desktop Spec Library to the Container
+
+### 11.1 Goal & the gap
+
+Today the monorepo has **34 `*.desktop.spec.ts`** specs across 8 packages (apex,
+apex-debugger, apex-replay-debugger, lightning, lwc, metadata, org, org-browser), run on the
+Windows/Linux/macOS desktop matrix. The container path has **2** specs (core: `configList`,
+`seededWorkspace`, from #7718 — a proof of concept, hence the core-only
+`test:container -w salesforcedx-vscode-core` line in today's `codeBuilderE2E.yml`).
+
+**Goal — parity, strictly additive:**
+
+- **Parity:** every desktop spec gets a **container twin**, *except* specs that are
+  genuinely desktop-only (§11.3). "Done" = the coverage ledger (§11.5) has **no un-triaged
+  rows** — every desktop spec is either ported or excluded-with-a-reason.
+- **Strictly additive:** the desktop suite is **unchanged** — it stays the cross-OS baseline
+  (its unique value is Windows/macOS **Electron** behavior the container cannot exercise).
+  Container specs are **copies added on top**, never a *move*. We never thin desktop because
+  a behavior is now covered on CB.
+
+```mermaid
+flowchart LR
+    subgraph NOW["Today"]
+        DSK["34 desktop specs<br/>win / linux / osx matrix"]
+        CON0["2 container specs<br/>(core only — #7718 POC)"]
+    end
+    subgraph GOAL["Target"]
+        DSK2["desktop specs<br/>(UNCHANGED, still 3-OS baseline)"]
+        CON1["container twins<br/>parity: one per non-excluded desktop spec"]
+    end
+    DSK -->|unchanged| DSK2
+    DSK ==>|"copy (additive) + triage"| CON1
+    CON0 --> CON1
+```
+
+### 11.2 What makes this cheap — already-decoupled page objects
+
+The migration is viable **because ADR 0022 kept the `playwright-vscode-ext` page
+objects/helpers on a plain Playwright `Page`** (no `_electron` coupling). The container
+fixture (`createContainerTest`) and the desktop fixture drive the *same* page objects — so a
+spec's **body** (the interactions + assertions) is largely target-agnostic; only **fixture
+setup** and **environment assumptions** differ. Keeping helpers Electron-free is a hard
+constraint the migration must preserve (a single `_electron` import in a shared helper breaks
+the container path).
+
+### 11.3 Triage — three buckets, and the load-bearing exclusion list
+
+The container runs the **full installed extension set** (no `--disable-extensions`
+isolation) **outside an MDE**, in a browser-served code-server. Under the parity goal, every
+desktop spec lands in exactly one bucket:
+
+| Bucket | Examples | Action |
+|---|---|---|
+| **Ports cleanly** | palette commands, editor/LSP interactions, deploy/retrieve against an org, test-runner surfaces | Copy → `*.container.spec.ts`; adjust fixture + workspace seeding only. |
+| **Ports with changes** | specs needing metadata (use the mounted fixture project vs. desktop's create-mid-spec), specs asserting notifications (prefer on-disk artifacts) | Port + adapt the environment assumption. |
+| **Excluded (desktop-only)** | multi-window / `_electron` APIs, OS-native file dialogs, system-clipboard flows, `--disable-extensions` single-extension isolation, OS-path assertions | **No container twin** — record the reason in the ledger. |
+
+Because the target is **parity**, the **exclusion list is load-bearing**: it is the
+*documented boundary* of what desktop proves that the container deliberately cannot. A spec
+without a twin is only acceptable if it has an exclusion reason. That keeps parity honest —
+"no un-triaged rows" — instead of aspirational.
+
+**Cross-package interaction is a first-class goal, not a side effect.** Because the container
+runs the **full** extension set in one workspace, the union of all packages' container specs
+running together exercises **cross-package/cross-extension interactions** — activation order,
+shared-command collisions, one extension's contribution affecting another — that neither the
+desktop `--disable-extensions` isolation nor per-package test runs can catch. This is unique
+coverage the container provides *by construction* (§11.5 runs them all in one boot to realize
+it), and is an explicit reason the parity target is worth its cost (ADR 0022 consequence:
+cross-extension interference is in scope).
+
+### 11.4 Authoring model — per-spec choice (decision)
+
+**The authoring model is decided per spec during triage, not globally.** Two shapes, chosen
+by whether the spec body is genuinely target-agnostic:
+
+- **Shared body, target-selected fixture** — *preferred when the body ports cleanly.* Factor
+  the spec body into a shared function; a thin `*.desktop.spec.ts` and `*.container.spec.ts`
+  each invoke it with their own fixture. One source of truth for behavior; target differences
+  live in the fixture/capability layer. Mirrors the existing web/desktop split
+  (`createWebConfig` / `createDesktopTest`).
+- **Duplicate spec** — *used when the body genuinely diverges* (e.g. metadata created
+  mid-spec on desktop vs. the mounted fixture on container, or a materially different
+  assertion style). A standalone `*.container.spec.ts`, accepting the two-files-to-sync cost.
+
+**Rejected: one runtime-branched file** (`if (target === 'container')` through the body) — it
+tangles two environments' assumptions in one place. Critically, forcing a *shared body* onto
+a spec whose steps truly diverge collapses back into this rejected shape wearing the shared
+body's clothes — which is exactly why the choice is **per-spec**: use the shared body only
+where it stays branch-free; otherwise duplicate. The fixture/capability layer (workspace
+shape, org presence, "skip on container") absorbs *incidental* differences; *structural*
+divergence is a signal to duplicate, not to branch.
+
+### 11.5 Rollout — parallel with the bricks, one boot, parity-tracked
+
+- **Author in parallel with M1–M6, against the #7718 pipeline (decision).** Spec authoring is
+  **not** blocked on the package refactor. The #7718 pipeline already stands up a working
+  swapped container today, and a spec doesn't care *which* orchestrator swapped/verified the
+  extensions — it just needs a running, swapped container. So container twins are written now,
+  against #7718, and **re-pointed at the package orchestrator when M6 lands** (a config/runner
+  change, not a spec rewrite). Bonus: by the time M6 arrives, a real spec corpus exists to
+  validate it against.
+- **Order:** **core first** (already has 2), then highest-value packages (apex, org,
+  metadata), then the rest. Each package's migration is its own follow-up story under the epic.
+- **One container job, all packages, single boot (decision).** The final `codeBuilderE2E.yml`
+  runs the **union of every package's container specs against a single booted image**, in
+  sequence — **not** a per-package fan-out (which would pay 8× image pull + boot for no
+  isolation benefit, since the container runs the full extension set regardless). Single-boot
+  is also what *realizes* the cross-package-interaction coverage (§11.3): all extensions live
+  in one workspace at once. The core-only `-w salesforcedx-vscode-core` line is a #7718 POC
+  artifact and is replaced by an all-packages container run.
+- **Parity ledger.** Track every desktop spec → container status (`ported` / `adapted` /
+  `excluded: <reason>`). "Done" = no un-triaged rows. The ledger is the authoritative answer
+  to "what's covered on CB," and its exclusion rows are the §11.3 load-bearing boundary.
+
+> **Scope note:** this section is roadmap-level. Per-spec triage (which of the 34 land in
+> which bucket), the shared-body refactors, and the all-packages CI wiring are **follow-up
+> implementation stories** under the epic — distinct from the framework-package bricks
+> (§5–§7). Authoring starts **now** against #7718 (above); only the final re-point and the
+> all-packages CI job depend on M6.
+
+---
+
+## 12. Reusability Guide (second Salesforce team)
 
 A second team on the same CB image adopts the package by writing **only** the §9 thin layer,
 parameterized to them:
@@ -653,7 +878,7 @@ coder.json, boot-env keys, digest reconciliation) is **inside the package**. No 
 
 ---
 
-## 11. Migration from #7718
+## 13. Migration from #7718
 
 | #7718 asset | Fate |
 |---|---|
@@ -670,7 +895,7 @@ coder.json, boot-env keys, digest reconciliation) is **inside the package**. No 
 
 ---
 
-## 12. Testing Strategy (docker seam)
+## 14. Testing Strategy (docker seam)
 
 **Layered (both), per Q12:**
 
@@ -722,7 +947,7 @@ flowchart LR
 
 ---
 
-## 13. Risks & Open Questions
+## 15. Risks & Open Questions
 
 - **R1 — Digest brittleness.** `main`-file hashing assumes a stable, resolvable single entry.
   Multi-file bundles or a build that splits `main` would need the resolver extended. Mitigated
@@ -730,7 +955,7 @@ flowchart LR
 - **R2 — Image-contract drift.** Override-dir path, runtime-symlink location, `start.sh`
   relink rule, coder.json path are all CB-owned (ADR 0022, C3). The unconditional wipe removes
   the semver-precedence dependency, and verify fails loud on layout change — but a path move
-  still breaks us. Integration suite (§12) is the early-warning.
+  still breaks us. Integration suite (§14) is the early-warning.
 - **R3 — Copy-out performance.** Verify copies every override dir out to hash on host. For a
   large extension set this is slower than in-container hashing; accepted for portability (Q5).
   Revisit only if it dominates run time.
@@ -740,6 +965,21 @@ flowchart LR
 - **R5 — Package boundary creep.** Pressure to pull VSIX sourcing/dedup into the package
   (NG2/NG3) will recur. Hold the line: the explicit-list contract is what keeps the package
   generic.
+- **R6 — Parity maintenance cost.** Parity (§11.1) means the container spec set grows with the
+  desktop set *forever* — a new desktop spec now implies a triage decision (twin or
+  exclusion). Mitigated by the ledger (a missing twin is visible), but it is ongoing cost, not
+  one-time. A CI check that flags a new `*.desktop.spec.ts` with no ledger row would keep it
+  from silently drifting. *(OQ — worth building?)*
+- **R7 — Cross-package flakiness in one boot.** Running all packages' specs in a single booted
+  container (§11.5) is where cross-package coverage comes from — but it also means one
+  extension's misbehavior (activation hang, error toast) can destabilize *another* package's
+  specs, and serial execution makes the job long. Accepted as the cost of the interaction
+  coverage; mitigate with per-spec isolation hygiene (no shared mutable workspace state) and
+  the allow-listed non-critical-noise patterns (ADR 0022).
+- **R8 — Advisory-rot during the un-proven window.** Policy (b) runs CB advisory until proven
+  (§10.4). If the team's nightly monitoring lapses, a red CB can sit unnoticed and the
+  eventual flip-to-blocking surfaces a backlog. Accepted per Q2b (no dedicated notifier);
+  revisit if the un-proven window drags.
 - **OQ1 — Package location & publish.** Internal monorepo package vs. independently published
   to npm. First consumer is in-repo; publishing is only needed when a real second team arrives
   (NG5). Recommend **in-repo package now, publish-ready structure**, defer actual publish.
@@ -748,7 +988,7 @@ flowchart LR
 
 ---
 
-## 14. Appendix
+## 16. Appendix
 
 - **ADR 0022** — desktop-build-over-browser, runtime extension-swap, the false-green
   consequence, workspace-seeding-by-mount. This plan implements 0022's recommended-but-not-yet-
