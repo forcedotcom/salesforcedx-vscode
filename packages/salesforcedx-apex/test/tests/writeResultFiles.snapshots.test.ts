@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { createWriteStream, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import {
@@ -25,7 +26,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
   let tempDir: string;
 
   beforeEach(async function () {
-    tempDir = join(tmpdir(), `apex-snapshot-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+    tempDir = join(tmpdir(), `apex-snapshot-test-${Date.now()}-${randomUUID()}`);
     await mkdir(tempDir, { recursive: true });
   });
 

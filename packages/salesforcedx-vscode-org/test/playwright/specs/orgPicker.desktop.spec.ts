@@ -6,6 +6,7 @@
  */
 
 import { expect } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 import {
   activeQuickInputTextField,
   activeQuickInputWidget,
@@ -78,7 +79,7 @@ test('org picker: set default org, create scratch org, switch default org', asyn
   // Create a default scratch org via the picker's 3 prompts (def file, alias, days). Alias is
   // dynamic and captured for reuse; include the worker index + a random suffix so parallel workers
   // can never collide on the same timestamp.
-  const scratchAlias = `TempScratchOrg_${Date.now()}_${testInfo.workerIndex}_${Math.random().toString(36).slice(2)}`;
+  const scratchAlias = `TempScratchOrg_${Date.now()}_${testInfo.workerIndex}_${randomUUID().slice(0, 8)}`;
   await test.step('create a default scratch org', async () => {
     await clickOrgPickerStatusBar(page, devHubAlias);
     await selectQuickInputOptionByTyping(page, packageNls.org_create_default_scratch_org_text);

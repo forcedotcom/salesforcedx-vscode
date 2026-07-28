@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as os from 'node:os';
+import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -75,7 +76,7 @@ describe('utils', () => {
     });
 
     it('should read json files', async () => {
-      const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
+      const testFile = join(os.tmpdir(), `test-${Date.now()}-${randomUUID()}.json`);
       setContent(testFile, JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } }));
       const settings = await utils.readJsonSync(testFile, fileSystemAccessor);
 
@@ -84,7 +85,7 @@ describe('utils', () => {
     });
 
     it('should read json files with comments', async () => {
-      const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
+      const testFile = join(os.tmpdir(), `test-${Date.now()}-${randomUUID()}.json`);
       const jsonWithComments = {
         compilerOptions: {
           paths: {

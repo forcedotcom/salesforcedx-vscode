@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
@@ -16,9 +17,7 @@ import * as path from 'node:path';
  * the desktop config runs `fullyParallel`, so an unscoped fixed username would let one test's stale
  * org be seen by a sibling worker's `listAllAuthorizations` and race its assertions.
  */
-const STALE_SCRATCH_ORG_USERNAME = `stale-expired-e2e-${process.env.TEST_WORKER_INDEX ?? '0'}-${Math.random()
-  .toString(36)
-  .slice(2)}@example.com`;
+const STALE_SCRATCH_ORG_USERNAME = `stale-expired-e2e-${process.env.TEST_WORKER_INDEX ?? '0'}-${randomUUID().slice(0, 8)}@example.com`;
 
 /**
  * Write a synthetic scratch-org auth file (plaintext, `AuthInfo.create` reads it) into the CLI auth

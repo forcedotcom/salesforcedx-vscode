@@ -16,6 +16,7 @@ import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPag
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { randomUUID } from 'node:crypto';
 
 type HelperProject = (name: string, content: string) => Promise<void>;
 
@@ -77,7 +78,7 @@ export const trackingConflictTest = createDesktopTest({
   }
 }).extend<{ helperProject: HelperProject; statusBarPage: SourceTrackingStatusBarPage }>({
   helperProject: async ({}: any, use: any) => {
-    const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${Math.random()}`);
+    const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${randomUUID()}`);
 
     // Create sfdx-project.json
     await fs.mkdir(dir, { recursive: true });
@@ -116,7 +117,7 @@ export const nonTrackingConflictTest = createDesktopTest({
   }
 }).extend<{ helperProject: HelperProject }>({
   helperProject: async ({}: any, use: any) => {
-    const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${Math.random()}`);
+    const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${randomUUID()}`);
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(
       path.join(dir, 'sfdx-project.json'),
