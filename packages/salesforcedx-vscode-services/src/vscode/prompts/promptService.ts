@@ -236,8 +236,9 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
                     Deferred.fail(cancelDeferred, new UserCancellationError({ message: 'User cancelled progress' }))
                   )
               );
-              const exit = await Runtime.runPromise(runtime)(
-                Effect.exit(Effect.raceFirst(build(progress, token), Deferred.await(cancelDeferred)))
+              const exit = await Effect.raceFirst(build(progress, token), Deferred.await(cancelDeferred)).pipe(
+                Effect.exit,
+                Runtime.runPromise(runtime)
               );
               resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
             });

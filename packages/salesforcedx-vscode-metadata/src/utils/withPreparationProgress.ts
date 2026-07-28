@@ -112,7 +112,7 @@ export const withPreparationProgress =
                 return cs;
               });
 
-              const exit = await Runtime.runPromise(runtime)(Effect.exit(pipeline));
+              const exit = await pipeline.pipe(Effect.exit, Runtime.runPromise(runtime));
               resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
             }
           );

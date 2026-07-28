@@ -138,7 +138,7 @@ describe('buildTimestampIndexFromDir', () => {
     expect(DateTime.toEpochMillis(stored!)).toBe(new Date('2024-02-01T00:00:00.000Z').getTime());
 
     // Older file should have been deleted; newer file kept
-    const deleted = Effect.runSync(Ref.get(deletedRef));
+    const deleted = Ref.get(deletedRef).pipe(Effect.runSync);
     expect(deleted).toContain(older.toString());
     expect(deleted).not.toContain(newer.toString());
   });
@@ -161,7 +161,7 @@ describe('buildTimestampIndexFromDir', () => {
     await runWithMocks(buildTimestampIndexFromDir(DIR), makeMockFs(files, deletedRef));
 
     // ClassB only exists in older file, so older file must be kept
-    const deleted = Effect.runSync(Ref.get(deletedRef));
+    const deleted = Ref.get(deletedRef).pipe(Effect.runSync);
     expect(deleted).not.toContain(older.toString());
     expect(deleted).not.toContain(newer.toString());
   });
@@ -183,7 +183,7 @@ describe('buildTimestampIndexFromDir', () => {
     expect(index.get('CustomObject:Account__c')).toBeDefined();
 
     // Malformed file has no rows → stale → deleted
-    const deleted = Effect.runSync(Ref.get(deletedRef));
+    const deleted = Ref.get(deletedRef).pipe(Effect.runSync);
     expect(deleted).toContain(bad.toString());
     expect(deleted).not.toContain(good.toString());
   });
@@ -218,7 +218,7 @@ describe('buildTimestampIndexFromDir', () => {
 
     expect(index.size).toBe(1);
     expect(readCalls).not.toContain(txtFile.toString());
-    const deleted = Effect.runSync(Ref.get(deletedRef));
+    const deleted = Ref.get(deletedRef).pipe(Effect.runSync);
     expect(deleted).not.toContain(txtFile.toString());
   });
 

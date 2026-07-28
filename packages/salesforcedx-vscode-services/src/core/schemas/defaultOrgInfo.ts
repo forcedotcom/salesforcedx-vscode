@@ -8,8 +8,10 @@
 import * as Schema from 'effect/Schema';
 import { CliId } from '../../observability/cliTelemetry';
 
+const StringArray = Schema.Array(Schema.String);
+
 export const DefaultOrgInfoSchema = Schema.Struct({
-  aliases: Schema.optional(Schema.Array(Schema.String)),
+  aliases: Schema.optional(StringArray),
   orgId: Schema.optional(Schema.String),
   devHubOrgId: Schema.optional(Schema.String),
   username: Schema.optional(Schema.String),

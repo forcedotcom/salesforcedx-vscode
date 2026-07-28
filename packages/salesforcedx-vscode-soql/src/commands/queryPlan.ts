@@ -96,7 +96,7 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
     yield* channelService.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);
     yield* channelService.appendToChannel(nls.localize('query_plan_complete'));
   }).pipe(
-    Effect.catchAllCause(cause => channelService.appendToChannel(formatErrorMessage(Cause.squash(cause)))),
+    Effect.catchAllCause(cause => cause.pipe(Cause.squash, formatErrorMessage, channelService.appendToChannel)),
     Effect.ensuring(channelService.showChannel)
   );
 });

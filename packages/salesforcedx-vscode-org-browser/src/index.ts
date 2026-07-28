@@ -208,23 +208,22 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
   );
 
   // Live filtering: update tree as user types
-  yield* Effect.fork(
-    Stream.fromQueue(queue).pipe(
-      Stream.debounce(Duration.millis(150)),
-      Stream.runForEach(value =>
-        Effect.gen(function* () {
-          const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
-          treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
-          yield* Effect.promise(() =>
-            vscode.commands.executeCommand(
-              'setContext',
-              'sf:orgBrowser.textFilterActive',
-              isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
-            )
-          );
-        })
-      )
-    )
+  yield* Stream.fromQueue(queue).pipe(
+    Stream.debounce(Duration.millis(150)),
+    Stream.runForEach(value =>
+      Effect.gen(function* () {
+        const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
+        treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
+        yield* Effect.promise(() =>
+          vscode.commands.executeCommand(
+            'setContext',
+            'sf:orgBrowser.textFilterActive',
+            isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
+          )
+        );
+      })
+    ),
+    Effect.fork
   );
 
   picker.show();

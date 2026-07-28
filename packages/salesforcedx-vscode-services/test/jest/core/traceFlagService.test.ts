@@ -90,8 +90,10 @@ const runScoped = <A, E>(
   prog: Effect.Effect<A, E, TraceFlagService | Scope.Scope>,
   layer: Layer.Layer<ConnectionService>
 ) =>
-  Effect.runPromise(
-    Effect.scoped(prog).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
+  prog.pipe(
+    Effect.scoped,
+    Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)),
+    Effect.runPromise
   );
 
 describe('TraceFlagService.getTraceFlags id->name cache', () => {
@@ -486,26 +488,26 @@ describe('TraceFlagService.createDebugLevel', () => {
       create: jest.fn(async (_type, _payload) => ({ success: true }))
     });
 
-    const exit = await Effect.runPromiseExit(
-      Effect.scoped(
-        Effect.gen(function* () {
-          const svc = yield* TraceFlagService;
-          return yield* svc.createDebugLevel({
-            DeveloperName: 'X',
-            MasterLabel: 'X',
-            ApexCode: 'NONE',
-            ApexProfiling: 'NONE',
-            Callout: 'NONE',
-            Database: 'NONE',
-            Nba: 'NONE',
-            System: 'NONE',
-            Validation: 'NONE',
-            Visualforce: 'NONE',
-            Wave: 'NONE',
-            Workflow: 'NONE'
-          });
-        })
-      ).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
+    const exit = await Effect.gen(function* () {
+      const svc = yield* TraceFlagService;
+      return yield* svc.createDebugLevel({
+        DeveloperName: 'X',
+        MasterLabel: 'X',
+        ApexCode: 'NONE',
+        ApexProfiling: 'NONE',
+        Callout: 'NONE',
+        Database: 'NONE',
+        Nba: 'NONE',
+        System: 'NONE',
+        Validation: 'NONE',
+        Visualforce: 'NONE',
+        Wave: 'NONE',
+        Workflow: 'NONE'
+      });
+    }).pipe(
+      Effect.scoped,
+      Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)),
+      Effect.runPromiseExit
     );
 
     expect(exit._tag).toBe('Failure');
@@ -518,26 +520,26 @@ describe('TraceFlagService.createDebugLevel', () => {
       })
     });
 
-    const exit = await Effect.runPromiseExit(
-      Effect.scoped(
-        Effect.gen(function* () {
-          const svc = yield* TraceFlagService;
-          return yield* svc.createDebugLevel({
-            DeveloperName: 'X',
-            MasterLabel: 'X',
-            ApexCode: 'NONE',
-            ApexProfiling: 'NONE',
-            Callout: 'NONE',
-            Database: 'NONE',
-            Nba: 'NONE',
-            System: 'NONE',
-            Validation: 'NONE',
-            Visualforce: 'NONE',
-            Wave: 'NONE',
-            Workflow: 'NONE'
-          });
-        })
-      ).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
+    const exit = await Effect.gen(function* () {
+      const svc = yield* TraceFlagService;
+      return yield* svc.createDebugLevel({
+        DeveloperName: 'X',
+        MasterLabel: 'X',
+        ApexCode: 'NONE',
+        ApexProfiling: 'NONE',
+        Callout: 'NONE',
+        Database: 'NONE',
+        Nba: 'NONE',
+        System: 'NONE',
+        Validation: 'NONE',
+        Visualforce: 'NONE',
+        Wave: 'NONE',
+        Workflow: 'NONE'
+      });
+    }).pipe(
+      Effect.scoped,
+      Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)),
+      Effect.runPromiseExit
     );
 
     expect(exit._tag).toBe('Failure');
@@ -570,13 +572,13 @@ describe('TraceFlagService.deleteDebugLevel', () => {
       })
     });
 
-    const exit = await Effect.runPromiseExit(
-      Effect.scoped(
-        Effect.gen(function* () {
-          const svc = yield* TraceFlagService;
-          yield* svc.deleteDebugLevel('dl-9');
-        })
-      ).pipe(Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)))
+    const exit = await Effect.gen(function* () {
+      const svc = yield* TraceFlagService;
+      yield* svc.deleteDebugLevel('dl-9');
+    }).pipe(
+      Effect.scoped,
+      Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)),
+      Effect.runPromiseExit
     );
 
     expect(exit._tag).toBe('Failure');

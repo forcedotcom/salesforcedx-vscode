@@ -143,7 +143,9 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
     Stream.filterEffect(api.services.ProjectService.isInPackageDirectories),
     Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
     Stream.runForEach(chunk =>
-      deployQueuedFiles(Chunk.toReadonlyArray(chunk)).pipe(
+      chunk.pipe(
+        Chunk.toReadonlyArray,
+        deployQueuedFiles,
         Effect.catchAll(error => handleDeployError(error)),
         Effect.catchAll(() => Effect.void)
       )

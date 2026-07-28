@@ -184,7 +184,7 @@ const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> 
 // Expose a single, memoized layer instance to ensure one shared IndexedDB connection only if web.  Otherwise, use a dummy layer.
 export const IndexedDBStorageServiceShared =
   process.env.ESBUILD_PLATFORM === 'web'
-    ? Layer.unwrapEffect(Layer.memoize(IndexedDBStorageService.Default))
+    ? IndexedDBStorageService.Default.pipe(Layer.memoize, Layer.unwrapEffect)
     : IndexedDBStorageServicesNoop;
 
 const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {

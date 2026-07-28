@@ -31,11 +31,11 @@ export const traceFlagCleanupScheduler = Effect.fn('traceFlagCleanupScheduler')(
     )
   );
 
-  yield* Effect.fork(
-    Stream.fromSchedule(Schedule.fixed(Duration.minutes(5))).pipe(
-      Stream.filter(() => vscode.window.state.active),
-      Stream.runForEach(() => cleanup)
-    )
+  yield* Schedule.fixed(Duration.minutes(5)).pipe(
+    Stream.fromSchedule,
+    Stream.filter(() => vscode.window.state.active),
+    Stream.runForEach(() => cleanup),
+    Effect.fork
   );
   yield* Effect.sleep(Duration.infinity);
 });

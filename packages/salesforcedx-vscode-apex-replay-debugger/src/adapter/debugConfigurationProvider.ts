@@ -154,15 +154,16 @@ const readLogFile = Effect.fn('ApexReplayDebugger.readLogFile')(function* (fileP
 const resolveHeapDumpResults = (logFileContents: string): Promise<HeapDumpResult[]> => {
   // Org/connection resolution failures keep the localized org-info label; a HeapDumpOverlayFetchError
   // is a batch-request failure, so it surfaces its own message rather than being mislabeled as org-info.
-  const orgInfoError = (error: unknown): HeapDumpResult[] => [
-    { heapDumpId: '', error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}` }
-  ];
+  const orgInfoError = (error: unknown): Effect.Effect<HeapDumpResult[]> =>
+    Effect.succeed([
+      { heapDumpId: '', error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}` }
+    ]);
   return fetchHeapDumpOverlayResults(logFileContents).pipe(
     Effect.catchTag('HeapDumpOverlayFetchError', error =>
       Effect.succeed<HeapDumpResult[]>([{ heapDumpId: '', error: errorToString(error) }])
     ),
     // Everything else (org/connection resolution failures) keeps the localized org-info label.
-    Effect.catchAll(error => Effect.succeed(orgInfoError(error))),
+    Effect.catchAll(orgInfoError),
     getRuntime().runPromise
   );
 };

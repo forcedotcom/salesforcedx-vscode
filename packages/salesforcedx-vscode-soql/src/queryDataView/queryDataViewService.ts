@@ -181,7 +181,7 @@ export class QueryDataViewService {
         Stream.runDrain
       )
     );
-    this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(messageFiber)) });
+    this.subscriptions.push({ dispose: () => Fiber.interrupt(messageFiber).pipe(Effect.runFork) });
 
     return this.currentPanel.webview;
   }

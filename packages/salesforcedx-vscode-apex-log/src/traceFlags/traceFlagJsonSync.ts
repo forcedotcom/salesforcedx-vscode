@@ -135,12 +135,11 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
   picker.onDidAccept(() => accept(picker.activeItems[0]));
   picker.onDidHide(() => accept(undefined));
 
-  yield* Effect.fork(
-    Stream.fromQueue(queue).pipe(
-      Stream.debounce(Duration.millis(SOSL_DEBOUNCE_MS)),
-      Stream.filter(s => s.length >= SOSL_MIN_CHARS),
-      Stream.runForEach(term => searchUsersEffect(term, picker, conn, currentUserId))
-    )
+  yield* Stream.fromQueue(queue).pipe(
+    Stream.debounce(Duration.millis(SOSL_DEBOUNCE_MS)),
+    Stream.filter(s => s.length >= SOSL_MIN_CHARS),
+    Stream.runForEach(term => searchUsersEffect(term, picker, conn, currentUserId)),
+    Effect.fork
   );
   picker.show();
 

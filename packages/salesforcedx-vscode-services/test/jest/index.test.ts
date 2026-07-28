@@ -285,8 +285,9 @@ describe('Extension', () => {
     // Test that projectFiles works correctly with proper mocking
     // The function should succeed when dependencies are properly mocked
     await expect(
-      Effect.runPromise(
-        Effect.provide(projectFiles(mockFsProvider), Layer.mergeAll(SettingsService.Default, WorkspaceService.Default))
+      projectFiles(mockFsProvider).pipe(
+        Effect.provide(Layer.mergeAll(SettingsService.Default, WorkspaceService.Default)),
+        Effect.runPromise
       )
     ).resolves.toBeUndefined();
   });

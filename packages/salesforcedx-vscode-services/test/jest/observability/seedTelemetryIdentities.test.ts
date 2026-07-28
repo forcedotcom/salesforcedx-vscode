@@ -56,7 +56,7 @@ describe('seedTelemetryIdentities', () => {
     await Effect.runPromise(seedTelemetryIdentities().pipe(Effect.provide(layer)));
 
     const ref = await Effect.runPromise(getDefaultOrgRef());
-    const info = await Effect.runPromise(SubscriptionRef.get(ref));
+    const info = await SubscriptionRef.get(ref).pipe(Effect.runPromise);
     expect(info.cliId).toBe(PERSISTED_CLI_ID);
     expect(info.webUserId).toBe(UNAUTHENTICATED_USER);
     expect(update).toHaveBeenCalledWith('telemetryWebUserId', UNAUTHENTICATED_USER);
@@ -109,7 +109,7 @@ describe('seedTelemetryIdentities', () => {
 
     expect(update).not.toHaveBeenCalledWith('telemetryWebUserId', expect.anything());
     const ref = await Effect.runPromise(getDefaultOrgRef());
-    const info = await Effect.runPromise(SubscriptionRef.get(ref));
+    const info = await SubscriptionRef.get(ref).pipe(Effect.runPromise);
     expect(info.webUserId).toBe('sha256-existing');
   });
 });

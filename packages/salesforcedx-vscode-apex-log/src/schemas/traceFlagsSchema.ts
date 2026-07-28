@@ -54,40 +54,41 @@ const DebugLevelItemStruct = Schema.Struct({
   )
 });
 
+const DebugLevelItemArray = Schema.Array(DebugLevelItemStruct);
+
 const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /** Build trace-flags JSON schemas from the shared TraceFlagItemStruct (provided by services API at runtime, or directly in build scripts). The struct already carries debugLevelName from the TraceFlag→DebugLevel relationship join. */
 export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, never>) => {
+  /** Shared by every logType group below — one array schema, annotated per group. */
+  const ItemArray = Schema.Array(itemStruct);
+
   const TraceFlagsByLogTypeSchema = Schema.Struct({
     DEVELOPER_LOG: Schema.optional(
-      Schema.Array(itemStruct).pipe(
+      ItemArray.pipe(
         Schema.annotations({
           description: 'Standard debug logs for users. Captures Apex execution, database operations, and system events.'
         })
       )
     ),
     USER_DEBUG: Schema.optional(
-      Schema.Array(itemStruct).pipe(
+      ItemArray.pipe(
         Schema.annotations({
           description: 'User debug statements (System.debug). Captures output from Debug.log() and similar.'
         })
       )
     ),
     CLASS_TRACING: Schema.optional(
-      Schema.Array(itemStruct).pipe(
+      ItemArray.pipe(
         Schema.annotations({
           description: 'Apex class execution traces. Used for profiling and debugging specific classes.'
         })
       )
     ),
     TRIGGERS: Schema.optional(
-      Schema.Array(itemStruct).pipe(
-        Schema.annotations({ description: 'Apex trigger execution traces. TracedEntityId prefix 01q.' })
-      )
+      ItemArray.pipe(Schema.annotations({ description: 'Apex trigger execution traces. TracedEntityId prefix 01q.' }))
     ),
-    OTHER: Schema.optional(
-      Schema.Array(itemStruct).pipe(Schema.annotations({ description: 'Other trace flag types.' }))
-    )
+    OTHER: Schema.optional(ItemArray.pipe(Schema.annotations({ description: 'Other trace flag types.' })))
   });
 
   /** Schema for trace flags virtual doc - used for decode/encode and JSON Schema generation. traceFlags grouped by logType, active only. defaultDurationMinutes now in workspace config. */
@@ -95,9 +96,7 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
     defaultDebugLevels: Schema.optional(Schema.Record({ key: Schema.String, value: DebugLevelSchema })),
     traceFlags: Schema.optional(TraceFlagsByLogTypeSchema),
     debugLevels: Schema.optional(
-      Schema.Array(DebugLevelItemStruct).pipe(
-        Schema.annotations({ description: 'All DebugLevel records from the org.' })
-      )
+      DebugLevelItemArray.pipe(Schema.annotations({ description: 'All DebugLevel records from the org.' }))
     )
   }).pipe(Schema.annotations({ jsonSchema: { title: 'Trace Flags Configuration' } }));
 

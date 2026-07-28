@@ -117,7 +117,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
               async (_, token) => {
                 token.onCancellationRequested(async () => {
                   await deployOperation.cancel();
-                  await Runtime.runPromise(runtime)(Fiber.interrupt(deployFiber));
+                  await Fiber.interrupt(deployFiber).pipe(Runtime.runPromise(runtime));
                 });
                 return await deployOperation.pollStatus();
               }

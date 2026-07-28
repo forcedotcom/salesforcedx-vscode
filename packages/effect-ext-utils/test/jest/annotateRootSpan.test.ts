@@ -78,7 +78,7 @@ describe('annotateRootSpan', () => {
   });
 
   it('no-ops without throwing when there is no current span', async () => {
-    await expect(Effect.runPromise(annotateRootSpan('marker', 'value-c'))).resolves.toBeUndefined();
+    await expect(annotateRootSpan('marker', 'value-c').pipe(Effect.runPromise)).resolves.toBeUndefined();
   });
 
   it('no-ops when the chain dead-ends at an ExternalSpan', async () => {

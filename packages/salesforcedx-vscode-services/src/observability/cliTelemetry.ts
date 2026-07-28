@@ -54,7 +54,7 @@ const cliIdEffect =
     : fetchCliIdFromCli().pipe(Effect.map(Option.fromNullable));
 
 // memo wrapper built once at module scope; the inner sf telemetry effect runs at most once per session and is shared across all getCliId() calls
-const cachedCliId = Effect.runSync(Effect.cached(cliIdEffect));
+const cachedCliId = cliIdEffect.pipe(Effect.cached, Effect.runSync);
 
 /** Get the CLI ID from sf telemetry. Memoized at module scope so the CLI runs once per session. Returns Option.none() on web or when CLI unavailable. */
 export const getCliId = () => cachedCliId;

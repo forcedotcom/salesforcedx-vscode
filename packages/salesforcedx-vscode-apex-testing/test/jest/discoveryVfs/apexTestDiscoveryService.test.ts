@@ -48,7 +48,7 @@ const run = <A, E>(
 const runExit = <A, E>(
   serviceLayer: Layer.Layer<ApexTestDiscoveryService>,
   effect: Effect.Effect<A, E, ApexTestDiscoveryService>
-) => Effect.runPromise(Effect.exit(Effect.provide(effect, serviceLayer)));
+) => effect.pipe(Effect.provide(serviceLayer), Effect.exit, Effect.runPromise);
 
 const readClassBody = (provider: ApexTestingDiscoveryFsProvider, orgKey: string, fullClassName: string): string =>
   decoder.decode(provider.readFile(getApexTestingClassUri(orgKey, fullClassName)));

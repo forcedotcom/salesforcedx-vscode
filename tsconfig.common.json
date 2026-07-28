@@ -31,7 +31,8 @@
           "globalRandom": "error",
           "globalRandomInEffect": "error",
           "globalFetchInEffect": "error",
-          "globalTimersInEffect": "error"
+          "globalTimersInEffect": "error",
+          "missedPipeableOpportunity": "error"
         }
       },
       { "name": "@salesforce/vscode-i18n/tsPlugin" }
