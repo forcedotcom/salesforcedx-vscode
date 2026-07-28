@@ -33,7 +33,7 @@
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.37.2",
-    "@salesforce/templates": "^66.13.0",
+    "@salesforce/templates": "^66.13.3",
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
