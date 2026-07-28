@@ -80,7 +80,7 @@ a content check can prove *the bytes under test are the bytes intended*.
 - **NG3 — The package does not select/dedup VSIXes.** Swap takes an **explicit list**. The
   modern-vs-legacy (67.x) dedup is the consumer's job.
 - **NG4 — No forced Effect buy-in.** The core is consumable without Effect. This repo, being
-  Effect-native, wraps it; adopters not on Effect can still use every brick (see §14).
+  Effect-native, wraps it; adopters not on Effect can still use every brick (see §15).
 - **NG5 — No second team shipping target yet.** This monorepo is the **first and only**
   consumer. "Other Salesforce teams" is an honored **design constraint**, not a delivery
   milestone.
@@ -124,7 +124,7 @@ a content check can prove *the bytes under test are the bytes intended*.
 │   Verify    ── (handle, Manifest) ──► assertion          (pure)         │
 │         └────────────── Digest core (shared internal) ──────────────┘   │
 │                                                                         │
-│   Runner seam (plain injected fn; Effect adapter available) ── §14      │
+│   Runner seam (plain injected fn; Effect adapter available) ── §15      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -173,7 +173,7 @@ flowchart TB
 
 ### 3.2 The two spine objects
 
-Everything threads through two typed objects (both **Effect Schema** — §4, §14):
+Everything threads through two typed objects (both **Effect Schema** — §4, §15):
 
 - **`ContainerHandle`** — returned by `run`, accepted by every other verb.
   `{ name, imageRef, publishedUrl, publishedPort, bootEnv }`. Downstream bricks never
@@ -579,7 +579,7 @@ the mount-over-first-boot-generate decoupling.
 
 ## 8. Incremental Delivery Plan
 
-Each milestone is independently useful and independently testable (§14).
+Each milestone is independently useful and independently testable (§15).
 
 | # | Milestone | Independently delivers | Depends on |
 |---|---|---|---|
@@ -625,7 +625,7 @@ Lives in the repo, **not** the package (§2 NG2/NG3):
   the package.
 - **Orchestrator** — `scripts/codeBuilderLocalE2E.ts` recomposed as a thin sequence of package
   calls: `resolveOrgBootEnv → pull → run(bootEnv, mount) → seedWorkspace → swap → restart →
-  verify → run specs → teardown`. This *is* also the real-docker integration test (§14).
+  verify → run specs → teardown`. This *is* also the real-docker integration test (§15).
 - **CI workflow** — `codeBuilderE2E.yml` recomposed on the package; stays `workflow_call` /
   `workflow_dispatch` until reliably green, then slots into `e2e.yml`'s fan-out (already
   threads the build runId). The redaction fix already landed here (PR #7846) migrates into
@@ -860,7 +860,145 @@ divergence is a signal to duplicate, not to branch.
 
 ---
 
-## 12. Reusability Guide (second Salesforce team)
+## 12. Spec Migration Playbook (desktop → container, mechanics)
+
+Where §11 is the *policy* (parity, additive, per-spec, one boot), this section is the
+*mechanics*: exactly what changes when you turn a `*.desktop.spec.ts` into a
+`*.container.spec.ts`, grounded in the two specs #7718 already shipped
+(`configList.container.spec.ts`, `seededWorkspace.container.spec.ts`) and the shared
+`playwright-vscode-ext` factories.
+
+### 12.1 The one-line insight
+
+**The spec body barely changes; the fixture and the environment setup do.** Both targets
+drive the *same* plain-`Page` page objects (ADR 0022), and the workbench-ready helper already
+self-branches — `waitForVSCodeWorkbench(page)` takes its **web** path (navigate to `/`, wait
+for `.monaco-workbench`) when `VSCODE_DESKTOP` is unset, which is exactly the container case
+(`createContainerTest` deliberately does **not** set `VSCODE_DESKTOP`). So the interaction
+verbs (`executeCommandWithCommandPalette`, `verifyCommandExists`, `waitForOutputChannelText`,
+`openFileFromExplorerTree`, …) are **identical across targets**. What differs is three things,
+covered below: the **fixture import**, the **org/workspace setup**, and a set of **environment
+adjustments**.
+
+### 12.2 The four concrete file-level changes
+
+| # | Desktop | Container | Note |
+|---|---|---|---|
+| 1 | `import { <someDesktopTest> } from '../fixtures/desktopFixtures'` | `import { containerTest as test } from '../../fixtures/containerFixtures'` | `containerFixtures.ts` is a one-liner: `export const containerTest = createContainerTest()`. |
+| 2 | in-spec org setup: `createMinimalOrg()` + `upsertScratchOrgAuthFieldsToSettings(page, …)` | **nothing** — the org is the container's CLI default, auth'd at boot from `SF_ACCESS_TOKEN`/`INSTANCE_URL` (§7.2) | This is the biggest simplification and the biggest semantic shift (§12.4). |
+| 3 | workspace via `createDesktopTest({ orgAlias, additionalExtensionDirs, userSettings, disableOtherExtensions })` | workspace is the **bind-mounted fixture project** + full installed extension set; no per-spec extension list | `additionalExtensionDirs` / `disableOtherExtensions` have **no container analog** — everything is installed (§12.5). |
+| 4 | file lives at `specs/<name>.desktop.spec.ts`, config `playwright.config.ts` | file lives at `specs/container/<name>.container.spec.ts`, config `playwright.config.container.ts` (`createContainerConfig({ testDir: './specs/container' })`) | Separate testDir keeps `test:container` from picking up desktop specs. |
+
+### 12.3 Side-by-side (a palette-command spec — the "ports cleanly" case)
+
+```mermaid
+flowchart LR
+    subgraph D["DESKTOP spec"]
+        D1["import desktopFixtures test"]
+        D2["createMinimalOrg()"]
+        D3["upsertScratchOrgAuthFieldsToSettings"]
+        D4["waitForVSCodeWorkbench<br/>(desktop: wait selector)"]
+        D5["verifyCommandExists / execute<br/>+ assert output"]
+        D1-->D2-->D3-->D4-->D5
+    end
+    subgraph C["CONTAINER twin"]
+        C1["import containerFixtures test"]
+        C4["waitForVSCodeWorkbench<br/>(web: goto / then wait)"]
+        C4b["clearAllNotifications<br/>(boot toasts)"]
+        C5["verifyCommandExists / execute<br/>+ assert output (SAME verbs)"]
+        C1-->C4-->C4b-->C5
+    end
+    D2 -.->|"dropped: org is<br/>boot-auth'd default"| C1
+    D5 ==>|"body reused verbatim"| C5
+```
+
+The shared step (`D5`→`C5`) is the spec's actual value and moves **unchanged**. The org-setup
+steps (`D2`,`D3`) simply **disappear** on the container side.
+
+### 12.4 The org model shift (read this before porting an org-dependent spec)
+
+Desktop and container obtain "the org" differently, and it changes what a spec can assert:
+
+- **Desktop:** the spec *creates/sets* the org — `createMinimalOrg()` then writes
+  `.sfdx/config.json target-org` (via `orgAlias` or `upsertScratchOrgAuthFieldsToSettings`).
+  The spec controls org identity and can assert a **specific** `target-org`.
+- **Container:** the org is the **CLI global default**, logged in at container start from the
+  injected token. There is **no workspace `.sfdx/config.json`**. So a container spec asserts
+  org-*backed behavior* (a config table renders, a deploy succeeds), **not** a specific
+  target-org value — exactly what `configList.container.spec.ts` does (it checks the config
+  table *header*, noting in-comment that org comes from the container default, not a
+  workspace config).
+
+**Porting rule:** if a desktop assertion is "the default org is exactly X," it must become
+"org-backed operation Y works" on the container, or the spec is an **adapt**, not a clean
+port (§11.3 bucket 2).
+
+### 12.5 Environment adjustments (the container-specific preamble)
+
+Container specs share a small preamble the desktop ones don't need, all visible in the two
+#7718 specs:
+
+- **Clear boot noise:** `clearAllNotifications(page)` — the first container boot stacks
+  telemetry / what's-new toasts that can cover the output toolbar. Desktop launches clean.
+- **Longer first-shell-out budgets:** a cold container pays `sf` startup + telemetry init on
+  the first CLI command, so output-channel waits use **30s**, not the 10s that fits an
+  already-warm desktop CLI. Bump timeouts on the first shell-out per spec.
+- **Full extension set is always present:** no `--disable-extensions`, no
+  `additionalExtensionDirs`. A command from any package is available — but so is
+  cross-extension noise; rely on the allow-listed `nonCriticalErrorPatterns` /
+  `nonCriticalNetworkPatterns` and keep `validateNoCriticalErrors(test, …)` at the end.
+- **Metadata comes from the mount, not mid-spec creation:** where a desktop spec calls
+  `createApexClass` to get something to act on, the container opens the **fixture project**
+  already mounted (`seededWorkspace` opens `PagedResult.cls` from the Explorer). Grow the
+  fixture project (`test/playwright/fixtures/container-workspace/`) to cover what specs need.
+
+### 12.6 Per-spec procedure (the checklist)
+
+For each desktop spec being ported:
+
+```mermaid
+flowchart TD
+    S["pick desktop spec"] --> T{"triage bucket?<br/>(§11.3)"}
+    T -->|"excluded"| X["record exclusion reason<br/>in ledger — no twin"]
+    T -->|"ports cleanly / adapts"| A{"body target-agnostic?<br/>(§11.4)"}
+    A -->|"yes"| SB["shared body:<br/>extract fn, thin desktop + container wrappers"]
+    A -->|"no (diverges)"| DUP["duplicate:<br/>standalone *.container.spec.ts"]
+    SB --> CP["swap fixture import → containerTest"]
+    DUP --> CP
+    CP --> ORG["remove in-spec org create/set<br/>(§12.4); adapt org-identity asserts"]
+    ORG --> ENV["add container preamble:<br/>clearAllNotifications + 30s first-shell-out (§12.5)"]
+    ENV --> META["metadata needs → grow the mounted fixture project"]
+    META --> RUN["run vs #7718 pipeline now (§11.5);<br/>re-point at M6 orchestrator later"]
+    RUN --> LEDGER["mark ledger: ported / adapted"]
+```
+
+### 12.7 What must NOT drift (invariants the migration relies on)
+
+- **Page objects stay Electron-free.** A single `_electron` import in a shared helper breaks
+  the container path (ADR 0022). Any helper a ported spec needs must take a plain `Page`.
+- **No `VSCODE_DESKTOP` in the container fixture.** Setting it would flip
+  `waitForVSCodeWorkbench` to the desktop (no-navigate) branch and the page would never load
+  the workbench. The container fixture's *not* setting it is load-bearing.
+- **Container config keeps `workers: 1`, `fullyParallel: false`.** One shared container = one
+  editor session; parallel workers would fight over the same workbench. (Desktop can run
+  parallel; container cannot — `createContainerConfig` defaults enforce this.)
+- **Don't reintroduce clipboard-based content setting.** The shared skill guidance (type /
+  write-file / command) applies doubly in a browser-served editor.
+
+### 12.8 Effort shape (what to expect)
+
+The three #7718-proven categories, by effort:
+
+| Category | Change vs desktop | Effort |
+|---|---|---|
+| Palette / command-visibility / LSP (no org identity) | fixture import + preamble only | **Low** — near-verbatim body. |
+| Org-backed operation (deploy, config, test-run) | above + drop org-setup + adapt identity asserts (§12.4) | **Medium.** |
+| Metadata-driven (open/edit/act on a class) | above + grow the mounted fixture project | **Medium** — one-time fixture growth, then cheap. |
+| `_electron` / OS-dialog / clipboard / single-extension-isolation / OS-path | — | **Excluded** (§11.3), no twin. |
+
+---
+
+## 13. Reusability Guide (second Salesforce team)
 
 A second team on the same CB image adopts the package by writing **only** the §9 thin layer,
 parameterized to them:
@@ -878,7 +1016,7 @@ coder.json, boot-env keys, digest reconciliation) is **inside the package**. No 
 
 ---
 
-## 13. Migration from #7718
+## 14. Migration from #7718
 
 | #7718 asset | Fate |
 |---|---|
@@ -895,7 +1033,7 @@ coder.json, boot-env keys, digest reconciliation) is **inside the package**. No 
 
 ---
 
-## 14. Testing Strategy (docker seam)
+## 15. Testing Strategy (docker seam)
 
 **Layered (both), per Q12:**
 
@@ -947,7 +1085,7 @@ flowchart LR
 
 ---
 
-## 15. Risks & Open Questions
+## 16. Risks & Open Questions
 
 - **R1 — Digest brittleness.** `main`-file hashing assumes a stable, resolvable single entry.
   Multi-file bundles or a build that splits `main` would need the resolver extended. Mitigated
@@ -955,7 +1093,7 @@ flowchart LR
 - **R2 — Image-contract drift.** Override-dir path, runtime-symlink location, `start.sh`
   relink rule, coder.json path are all CB-owned (ADR 0022, C3). The unconditional wipe removes
   the semver-precedence dependency, and verify fails loud on layout change — but a path move
-  still breaks us. Integration suite (§14) is the early-warning.
+  still breaks us. Integration suite (§15) is the early-warning.
 - **R3 — Copy-out performance.** Verify copies every override dir out to hash on host. For a
   large extension set this is slower than in-container hashing; accepted for portability (Q5).
   Revisit only if it dominates run time.
@@ -988,7 +1126,7 @@ flowchart LR
 
 ---
 
-## 16. Appendix
+## 17. Appendix
 
 - **ADR 0022** — desktop-build-over-browser, runtime extension-swap, the false-green
   consequence, workspace-seeding-by-mount. This plan implements 0022's recommended-but-not-yet-
