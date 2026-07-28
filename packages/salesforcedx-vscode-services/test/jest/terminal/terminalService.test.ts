@@ -96,7 +96,7 @@ describe('TerminalService.simpleExec', () => {
     }
     expect(capturedSignal.aborted).toBe(false);
 
-    await Effect.runPromise(Fiber.interrupt(fiber));
+    await Fiber.interrupt(fiber).pipe(Effect.runPromise);
     expect(capturedSignal.aborted).toBe(true);
   });
 

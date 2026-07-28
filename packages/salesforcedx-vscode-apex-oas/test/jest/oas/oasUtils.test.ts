@@ -684,7 +684,7 @@ describe('cleanupGeneratedDoc', () => {
 
   it('should fail for invalid JSON object', async () => {
     const doc = 'invalid json';
-    await expect(Effect.runPromise(cleanupGeneratedDoc(doc))).rejects.toBeDefined();
+    await expect(cleanupGeneratedDoc(doc).pipe(Effect.runPromise)).rejects.toBeDefined();
   });
 
   it('should strip markdown code fences with json language identifier', async () => {

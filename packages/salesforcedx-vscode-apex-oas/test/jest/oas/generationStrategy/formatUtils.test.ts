@@ -198,7 +198,9 @@ describe('getMethodTypeFromAnnotation', () => {
       ]
     ]);
 
-    await expect(Effect.runPromise(getMethodTypeFromAnnotation(methodName, methodsContextMap))).rejects.toBeDefined();
+    await expect(
+      getMethodTypeFromAnnotation(methodName, methodsContextMap).pipe(Effect.runPromise)
+    ).rejects.toBeDefined();
   });
 });
 
