@@ -140,6 +140,20 @@ const editor = yield * api.services.FsService.showTextDocument(filePath, options
 // Returns: vscode.TextEditor
 ```
 
+### Org-data writes (`sf-org-data`)
+
+Privileged writers for the read-only `sf-org-data` VFS. The provider rejects `workspace.fs.writeFile` on its readonly scheme, so these are the ONLY write handle. Reads/opens still use the normal methods above (they route by scheme); only writes need these. URIs MUST be built with `api.services.orgMetadataUri` / `orgDataUri` / `orgDataOwnerRoot` — never bare paths. A non-`sf-org-data` URI or unregistered scheme fails with `FsServiceError`.
+
+Most consumers never write — they read/open via `OrgMetadataResolver` (see the skill's Org Metadata VFS section). Only a VFS *owner* populating a tree needs these.
+
+```typescript
+const target = api.services.orgDataUri({ orgKey, owner: 'metadata-preview', segments: [xmlName, fileName] });
+yield * api.services.FsService.writeOrgData(target, content);         // create/overwrite file
+yield * api.services.FsService.createOrgDataDir(dirUri);              // mkdir
+yield * api.services.FsService.deleteOrgData(target, { recursive: false });
+yield * api.services.FsService.clearOrgData({ orgKey, owner });       // owner omitted → whole org dir; missing-target is a no-op
+```
+
 ### toUri
 
 Convert path to URI:
@@ -208,3 +222,4 @@ yield * api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
 - `safeDelete` never fails (returns `undefined` on error)
 - `readJSON` validates against schema
 - `HashableUri` gives URIs value-based `Hash`/`Equal` — use for `HashSet`/`HashMap` keys or URI comparison; never deep-import it from `salesforcedx-vscode-services/src/...`
+- `writeOrgData`/`createOrgDataDir`/`deleteOrgData`/`clearOrgData` — sole write path for the read-only `sf-org-data` VFS; build URIs via `orgMetadataUri`/`orgDataUri`, never bare paths; most consumers read via `OrgMetadataResolver` and never call these

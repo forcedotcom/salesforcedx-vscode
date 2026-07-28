@@ -248,6 +248,7 @@ Services owns a read-only virtual filesystem of org-derived metadata. Consume it
 - build it: `api.services.orgMetadataUri({ orgKey, xmlName, fullName })` — never hand-concat paths
 - entries hold the UNION of org + workspace presence: `PresenceState { inOrg, inWorkspace, workspaceUri?, ephemeralContent? }`
 - provider is READ-ONLY; edit via the `file:` URI (`getUriForFile`/`download`), never the `sf-org-data:` URI
+- populating a VFS owner (rare) → `FsService` org-data writers (`writeOrgData` etc.), see [fs-service](references/fs-service.md); most consumers only read
 
 `OrgMetadataResolver` accessors (all take/return `vscode-uri` `URI`, run in Effect):
 
