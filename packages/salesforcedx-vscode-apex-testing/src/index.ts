@@ -29,9 +29,6 @@ import {
   apexTestMethodRunCodeActionDelegate
 } from './commands/apexTestRunCodeAction';
 import { apexTestSuiteCreate, apexTestSuiteEdit, apexTestSuiteRun } from './commands/apexTestSuite';
-import { ApexTestingDecorationProvider } from './discoveryVfs/apexTestingDecorationProvider';
-import { APEX_TESTING_SCHEME } from './discoveryVfs/apexTestingDiscoveryFs';
-import { getApexTestingDiscoveryFsProvider } from './discoveryVfs/apexTestingDiscoveryFsProvider';
 import { nls } from './messages';
 import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
 import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
@@ -74,17 +71,10 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
     );
     context.subscriptions.push(providerRegistration);
 
-    const discoveryFsRegistration = vscode.workspace.registerFileSystemProvider(
-      APEX_TESTING_SCHEME,
-      getApexTestingDiscoveryFsProvider(),
-      { isCaseSensitive: true, isReadonly: true }
+    registerOrgOnlyRetrieveCodeLensProvider(
+      context,
+      api.services.orgDataDocumentSelector({ owner: 'apex-testing', language: 'apex' })
     );
-    context.subscriptions.push(discoveryFsRegistration);
-
-    const decorationRegistration = vscode.window.registerFileDecorationProvider(new ApexTestingDecorationProvider());
-    context.subscriptions.push(decorationRegistration);
-
-    registerOrgOnlyRetrieveCodeLensProvider(context);
   }
 
   // Register Effect-pipeline commands via the runtime so spans/tracing/error-handling and
@@ -149,7 +139,7 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
     async (target?: vscode.TestItem | URI) => {
       if (!target) {
         const activeUri = vscode.window.activeTextEditor?.document.uri;
-        if (activeUri?.scheme === APEX_TESTING_SCHEME) {
+        if (activeUri) {
           await getTestController().retrieveOrgOnlyClassFromUri(URI.revive(activeUri));
         }
         return;

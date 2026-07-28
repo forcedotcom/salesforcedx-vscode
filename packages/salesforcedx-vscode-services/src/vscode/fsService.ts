@@ -7,12 +7,16 @@
 
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as S from 'effect/Schema';
+import { minimatch } from 'minimatch';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
-import { fsProviderRef } from '../virtualFsProvider/fsProviderRef';
+import { OrgDataFsProvider } from '../orgVfs/orgDataFsProvider';
+import { ORG_DATA_SCHEME, orgDataOwnerRoot, orgRoot, type OrgDataOwner } from '../orgVfs/orgDataUris';
+import { FileSystemProviderRegistry } from '../virtualFsProvider/fileSystemProviderRegistry';
 import { HashableUri } from './hashableUri';
 import { uriToPath } from './paths';
 import { toUri } from './uriUtils';
@@ -118,37 +122,145 @@ const showTextDocument = Effect.fn('fsService.showTextDocument')(function* (
   });
 });
 
+const fsError = (functionName: string, filePath: string, error: unknown) =>
+  new FsServiceError({
+    ...unknownToErrorCause(error),
+    function: functionName,
+    filePath
+  });
+
+const resolveFindFilesBase = (include: vscode.GlobPattern): URI | undefined =>
+  (typeof include === 'object' && 'baseUri' in include ? include.baseUri : undefined) ??
+  vscode.workspace.workspaceFolders?.[0]?.uri;
+
+const walkFiles = async (
+  baseUri: URI,
+  include: vscode.GlobPattern,
+  exclude: vscode.GlobPattern | null | undefined,
+  maxResults: number | undefined,
+  token: vscode.CancellationToken | undefined
+): Promise<URI[]> => {
+  const includePattern = isString(include) ? include : include.pattern;
+  const excludePattern = isString(exclude) ? exclude : exclude?.pattern;
+  const results: URI[] = [];
+  const visit = async (directory: URI, relativeDirectory: string): Promise<void> => {
+    if (token?.isCancellationRequested || results.length >= (maxResults ?? Number.POSITIVE_INFINITY)) return;
+    const entries = await vscode.workspace.fs.readDirectory(directory);
+    await entries.reduce<Promise<void>>(async (previous, [name, type]) => {
+      await previous;
+      if (token?.isCancellationRequested || results.length >= (maxResults ?? Number.POSITIVE_INFINITY)) return;
+      const relativePath = relativeDirectory ? `${relativeDirectory}/${name}` : name;
+      const uri = Utils.joinPath(directory, name);
+      if (type === vscode.FileType.Directory) {
+        await visit(uri, relativePath);
+      } else if (
+        minimatch(relativePath, includePattern) &&
+        (!excludePattern || !minimatch(relativePath, excludePattern))
+      ) {
+        results.push(uri);
+      }
+    }, Promise.resolve());
+  };
+  await visit(baseUri, '');
+  return results;
+};
+
 export class FsService extends Effect.Service<FsService>()('FsService', {
   accessors: true,
   dependencies: [],
   effect: Effect.gen(function* () {
+    const providerRegistry = Option.getOrUndefined(yield* Effect.serviceOption(FileSystemProviderRegistry));
+
+    const getOrgDataProvider = Effect.fn('fsService.getOrgDataProvider')(function* (uri: URI, functionName: string) {
+      const registration = providerRegistry?.get(uri.scheme);
+      if (uri.scheme === ORG_DATA_SCHEME && registration?.provider instanceof OrgDataFsProvider) {
+        return registration.provider;
+      }
+      return yield* fsError(
+        functionName,
+        uri.toString(),
+        new Error(`No org-data provider registered for ${uri.scheme}`)
+      );
+    });
+
+    // Resolve the org-data provider for `uri`, then run one of its synchronous mutating methods,
+    // wrapping any throw as a tagged FsServiceError. Shared by the writeOrgData/createOrgDataDir/
+    // deleteOrgData/clearOrgData accessors so they stay one-liners.
+    const onOrgDataProvider = <A>(functionName: string, uri: URI, run: (provider: OrgDataFsProvider) => A) =>
+      getOrgDataProvider(uri, functionName).pipe(
+        Effect.flatMap(provider =>
+          Effect.try({ try: () => run(provider), catch: e => fsError(functionName, uri.toString(), e) })
+        )
+      );
+
+    const findFiles = Effect.fn('fsService.findFiles')(function* (
+      include: vscode.GlobPattern,
+      exclude?: vscode.GlobPattern | null,
+      maxResults?: number,
+      token?: vscode.CancellationToken
+    ) {
+      const baseUri = resolveFindFilesBase(include);
+      const filePath = isString(include) ? include : include.pattern;
+      if (!baseUri) {
+        return yield* fsError(
+          'findFiles',
+          filePath,
+          new Error('Cannot find files without a workspace folder or RelativePattern base URI')
+        );
+      }
+      if (baseUri.scheme === 'file') {
+        return yield* Effect.tryPromise({
+          try: () => vscode.workspace.findFiles(include, exclude ?? undefined, maxResults, token),
+          catch: e => fsError('findFiles', filePath, e)
+        });
+      }
+      const registration = providerRegistry?.get(baseUri.scheme);
+      if (baseUri.scheme === 'memfs' && registration?.findFiles) {
+        return yield* Effect.tryPromise({
+          try: () => registration.findFiles?.(include, exclude, maxResults) ?? Promise.resolve([]),
+          catch: e => fsError('findFiles', filePath, e)
+        });
+      }
+      if (baseUri.scheme === ORG_DATA_SCHEME && registration) {
+        return yield* Effect.tryPromise({
+          try: () => walkFiles(baseUri, include, exclude, maxResults, token),
+          catch: e => fsError('findFiles', filePath, e)
+        });
+      }
+      return yield* fsError('findFiles', filePath, new Error(`findFiles does not support scheme ${baseUri.scheme}`));
+    });
+
     return {
       readFile,
       toUri: (filePath: string | URI) => Effect.succeed(toUri(filePath)),
       HashableUri,
       uriToPath: (uri: URI) => Effect.succeed(uriToPath(uri)),
       /** Find files by glob. baseUri optional via RelativePattern; defaults to workspace folders. */
-      findFiles: (
-        include: vscode.GlobPattern,
-        exclude?: vscode.GlobPattern | null,
-        maxResults?: number,
-        token?: vscode.CancellationToken
-      ) =>
-        Effect.tryPromise({
-          try: () =>
-            process.env.ESBUILD_PLATFORM === 'web'
-              ? (fsProviderRef.current?.findFiles(include, exclude ?? undefined, maxResults) ?? Promise.resolve([]))
-              : vscode.workspace.findFiles(include, exclude ?? undefined, maxResults, token),
-          catch: e =>
-            new FsServiceError({
-              ...unknownToErrorCause(e),
-              function: 'findFiles',
-              filePath: isString(include) ? include : include.pattern
-            })
-        }),
+      findFiles,
       /** Write file to filesystem, creating directories if they don't exist */
       safeWriteFile,
       writeFile,
+      writeOrgData: (filePath: URI, content: string) =>
+        onOrgDataProvider('writeOrgData', filePath, provider =>
+          provider.writeFileInternal(filePath, encoder.encode(content), { create: true, overwrite: true })
+        ),
+      createOrgDataDir: (dirPath: URI) =>
+        onOrgDataProvider('createOrgDataDir', dirPath, provider => provider.createDirectoryInternal(dirPath)),
+      deleteOrgData: (filePath: URI, options: { recursive: boolean } = { recursive: false }) =>
+        onOrgDataProvider('deleteOrgData', filePath, provider => provider.deleteInternal(filePath, options)),
+      clearOrgData: ({ orgKey, owner }: { orgKey: string; owner?: OrgDataOwner }) => {
+        const target = owner ? orgDataOwnerRoot({ orgKey, owner }) : orgRoot(orgKey);
+        return onOrgDataProvider('clearOrgData', target, provider =>
+          provider.deleteInternal(target, { recursive: true })
+        ).pipe(
+          Effect.catchAll(error =>
+            error.cause instanceof vscode.FileSystemError &&
+            (error.cause.code === 'FileNotFound' || error.cause.code === 'FileNotADirectory')
+              ? Effect.void
+              : Effect.fail(error)
+          )
+        );
+      },
       fileOrFolderExists,
       /** Open the file at the given path in an editor tab. Options passed to vscode.window.showTextDocument (e.g. preview, viewColumn). */
       showTextDocument,

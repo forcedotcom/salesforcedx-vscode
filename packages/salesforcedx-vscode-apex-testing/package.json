@@ -264,8 +264,7 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onFileSystem:memfs",
-    "onFileSystem:apex-testing"
+    "onFileSystem:memfs"
   ],
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
@@ -321,7 +320,7 @@
         },
         {
           "command": "sf.apex.test.orgOnlyClass.retrieve",
-          "when": "resourceScheme == apex-testing && editorLangId == apex"
+          "when": "sf:orgDataOwner == apex-testing && editorLangId == apex"
         },
         {
           "command": "sf.apex.test.refresh",

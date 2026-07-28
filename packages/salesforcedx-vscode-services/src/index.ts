@@ -42,17 +42,32 @@ import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
-import { globalLayers } from './servicesLayers';
+import { OrgDataDecorationProvider } from './orgVfs/orgDataDecorationProvider';
+import { OrgDataFsProvider } from './orgVfs/orgDataFsProvider';
+import { watchOrgDataLifecycle } from './orgVfs/orgDataLifecycle';
+import {
+  ORG_DATA_SCHEME,
+  orgDataDocumentSelector,
+  orgDataOwnerRoot,
+  orgDataSegments,
+  orgDataUri,
+  orgRoot
+} from './orgVfs/orgDataUris';
+import { makeGlobalLayers } from './servicesLayers';
 import { disposeServicesRuntime, setServicesRuntime } from './servicesRuntime';
 import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
+import {
+  makeFileSystemProviderRegistry,
+  type FileSystemProviderRegistry as FileSystemProviderRegistryType
+} from './virtualFsProvider/fileSystemProviderRegistry';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { watchEsrDecomposedContext, watchMuleDxApiInactiveContext } from './vscode/contextKeyWatchers';
-import { watchApexTestContext, watchPackageDirectoriesContext } from './vscode/editorContext';
+import { watchApexTestContext, watchOrgDataOwnerContext, watchPackageDirectoriesContext } from './vscode/editorContext';
 import { EditorService } from './vscode/editorService';
 import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
 import { watchLwcAuraExtensionActivation } from './vscode/extensionActivator';
@@ -69,6 +84,7 @@ import { runWebAuthEffect } from './vscode/runWebAuth';
 import { SettingsChangePubSub } from './vscode/settingsChangePubSub';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherLayer } from './vscode/settingsWatcherService';
+import { closeMatchingTabs } from './vscode/tabs';
 import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
@@ -86,6 +102,7 @@ export type SalesforceVSCodeServicesApi = {
       | ErrorHandlerService
       | ExecuteAnonymousService
       | FileChangePubSub
+      | FileSystemProviderRegistryType
       | FsService
       | MediaService
       | MetadataChangeNotificationService
@@ -124,6 +141,12 @@ export type SalesforceVSCodeServicesApi = {
     ExtensionContextService: typeof ExtensionContextService;
     ExtensionContextServiceLayer: typeof ExtensionContextServiceLayer;
     FileChangePubSub: typeof FileChangePubSub;
+    closeMatchingTabs: typeof closeMatchingTabs;
+    orgDataDocumentSelector: typeof orgDataDocumentSelector;
+    orgDataOwnerRoot: typeof orgDataOwnerRoot;
+    orgDataSegments: typeof orgDataSegments;
+    orgDataUri: typeof orgDataUri;
+    orgRoot: typeof orgRoot;
     FsService: typeof FsService;
     getErrorMessage: typeof getErrorMessage;
     MediaService: typeof MediaService;
@@ -257,6 +280,10 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       Effect.forkIn(watchPackageDirectoriesContext(), scope),
       // watch active editor changes to update apex test context
       Effect.forkIn(watchApexTestContext(), scope),
+      // publish the owner of the active org-data virtual document
+      Effect.forkIn(watchOrgDataOwnerContext(), scope),
+      // close stale org-data tabs before purging their backing entries
+      Effect.forkIn(watchOrgDataLifecycle(), scope),
       // watch active editor to activate LWC/Aura extensions on demand
       Effect.forkIn(watchLwcAuraExtensionActivation(), scope),
       // own sf:muleDxApiInactive context (was set once in apex-oas, now reactive)
@@ -297,6 +324,17 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   setExtensionContext(context);
   const extensionScope = Effect.runSync(getExtensionScope());
 
+  const providerRegistry = makeFileSystemProviderRegistry();
+  const orgDataProvider = new OrgDataFsProvider();
+  providerRegistry.register(ORG_DATA_SCHEME, { provider: orgDataProvider });
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider(ORG_DATA_SCHEME, orgDataProvider, {
+      isCaseSensitive: true,
+      isReadonly: true
+    }),
+    vscode.window.registerFileDecorationProvider(new OrgDataDecorationProvider())
+  );
+
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // load auth from local environment.  development only.
     if (process.env.ESBUILD_WEB_CONFIG) {
@@ -304,7 +342,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     }
     // first, before all other things, get the FS running.
     await Effect.runPromise(
-      fileSystemSetup(context).pipe(
+      fileSystemSetup(context, providerRegistry).pipe(
         Effect.provide(
           Layer.mergeAll(
             SettingsService.Default,
@@ -332,11 +370,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ErrorHandlerService.Default
   ).pipe(Layer.provideMerge(ChannelService.Default));
 
-  const requirements = Layer.mergeAll(internalLayers).pipe(Layer.provideMerge(globalLayers));
+  const requirements = Layer.mergeAll(internalLayers).pipe(Layer.provideMerge(makeGlobalLayers(providerRegistry)));
 
   // Build the layer with extensionScope - scoped services live until extension deactivates
   const builtContext = await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope));
-
   // Publish a runtime over the built context for imperative VS Code boundaries (e.g. the O11y span
   // exporter) that can't yield* into it directly — reuses these shared instances (one connection +
   // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
@@ -374,6 +411,12 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ExtensionContextService,
       ExtensionContextServiceLayer,
       FileChangePubSub,
+      closeMatchingTabs,
+      orgDataDocumentSelector,
+      orgDataOwnerRoot,
+      orgDataSegments,
+      orgDataUri,
+      orgRoot,
       FsService,
       getErrorMessage,
       MediaService,

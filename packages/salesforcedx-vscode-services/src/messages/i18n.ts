@@ -46,7 +46,10 @@ export const messages = {
   error_access_token_expired_detail:
     'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.  See the output channel for more details on the auth error',
   error_access_token_expired_login_button: 'Login',
-  error_access_token_refresh_failed: 'Unable to refresh your access token.  Please login again.'
+  error_access_token_refresh_failed: 'Unable to refresh your access token.  Please login again.',
+  org_data_vfs_readonly_prefix_text: 'Org virtual files are read-only',
+  org_data_vfs_org_badge_text: 'ORG',
+  org_data_vfs_org_file_tooltip_text: 'Org virtual file (read-only)'
 } as const;
 
 export type MessageKey = keyof typeof messages;

@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { FileSystemProviderRegistry } from './fileSystemProviderRegistry';
+import * as Context from 'effect/Context';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -16,7 +18,6 @@ import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fileSystemProvider';
-import { fsProviderRef } from './fsProviderRef';
 import { IndexedDBStorageService } from './indexedDbStorage';
 import { startWatch } from './memfsWatcher';
 import { projectFiles } from './projectInit';
@@ -39,9 +40,15 @@ const waitForWorkspaceFolders = () =>
   );
 
 /** Sets up the virtual file system for the extension */
-export const fileSystemSetup = Effect.fn('fileSystemSetup')(function* (context: vscode.ExtensionContext) {
+export const fileSystemSetup = Effect.fn('fileSystemSetup')(function* (
+  context: vscode.ExtensionContext,
+  providerRegistry: Context.Tag.Service<FileSystemProviderRegistry>
+) {
   const fsProvider = new FsProvider();
-  fsProviderRef.current = fsProvider;
+  providerRegistry.register(fsPrefix, {
+    provider: fsProvider,
+    findFiles: fsProvider.findFiles.bind(fsProvider)
+  });
 
   // Load state from IndexedDB first
   yield* (yield* IndexedDBStorageService).loadState();

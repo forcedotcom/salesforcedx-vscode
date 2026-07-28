@@ -37,7 +37,7 @@ import {
   openTestExplorerAndDiscover
 } from '../helpers/testExplorerHelpers';
 
-const APEX_TESTING_EDITOR = `${EDITOR_WITH_URI}[data-uri^="apex-testing:"]`;
+const APEX_TESTING_EDITOR = `${EDITOR_WITH_URI}[data-uri^="sf-org-data:"]`;
 
 // `SFDX: Log Out from Default Org` — title from salesforcedx-vscode-org package.nls (`org_logout_default_text`).
 const LOGOUT_COMMAND = 'SFDX: Log Out from Default Org';
@@ -92,9 +92,9 @@ public class ${className} {
       await saveScreenshot(page, 'step.class-discovered.png');
     });
 
-    await test.step('open the class apex-testing: virtual doc', async () => {
+    await test.step('open the class sf-org-data: virtual doc', async () => {
       // Close editors (a leftover active one blocks test-item nav), expand the class, double-click the
-      // leaf method (only a leaf with a range triggers "go to test", which opens the apex-testing: doc).
+      // leaf method (only a leaf with a range triggers "go to test", which opens the sf-org-data: doc).
       await closeAllEditors(page);
       await classItem.locator('.monaco-tl-twistie').click({ force: true });
       const methodItem = findTestExplorerItem(page, 'clearsOnLogout');
@@ -117,7 +117,7 @@ public class ${className} {
       await saveScreenshot(page, 'step.tree-cleared.png');
     });
 
-    await test.step('the apex-testing: virtual editor closes on the org -> no-org transition', async () => {
+    await test.step('the sf-org-data: virtual editor closes on the org -> no-org transition', async () => {
       // no-org reactor closes the stale-org tab alongside clearing the tree.
       await expect(page.locator(APEX_TESTING_EDITOR)).toBeHidden({ timeout: 60_000 });
       await saveScreenshot(page, 'step.virtual-doc-closed.png');

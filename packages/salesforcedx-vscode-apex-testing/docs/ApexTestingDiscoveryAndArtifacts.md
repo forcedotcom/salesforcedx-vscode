@@ -48,9 +48,10 @@ This note documents how Apex Testing currently handles test discovery data and t
 ## VFS For Discovered Classes
 
 - Test run artifact persistence (`.sfdx/tools/testresults/apex`) unchanged.
-- `apex-testing:` VFS serves per-org discovered Apex class `.cls` bodies (virtual files, write-only):
-  - On discovery refresh, `ApexTestDiscoveryService.saveDiscoveredClasses(orgKey, classes, bodies)` writes per-class `.cls` files to `apex-testing:/orgs/<orgKey>/classes/<namespace>/<className>.cls`.
-  - Enables org-only TestItems to open class source for inspection (read-only in editor).
-  - `clearOrg(orgKey)` removes the org directory on org removal.
+- `sf-org-data:` VFS scheme (managed by services) serves per-org discovered Apex class `.cls` bodies (virtual files, read-only in editor):
+  - `ApexTestDiscoveryService.saveDiscoveredClasses(orgKey, classes, bodies)` writes per-class `.cls` files via FsService to the `sf-org-data:` scheme at path `sf-org-data:/orgs/<orgKey>/apex-testing/classes/<namespace>/<className>.cls`.
+  - Canonical URI bijection in `apexTestingClassUri` (encode) and `apexTestingClassName` (decode) ensures layout consistency.
+  - Enables org-only TestItems to open class source for inspection.
   - Index persistence removed (dead code; test tree always rebuilt from live Tooling API queries).
-- Metadata XML files (e.g. `-meta.xml` in source-formatted projects) are **not** part of the `apex-testing:` VFS.
+- Metadata XML files (e.g. `-meta.xml` in source-formatted projects) are **not** part of the org-data VFS.
+- Org-data cleanup (removal on org change/logout) managed by services lifecycle watchers.

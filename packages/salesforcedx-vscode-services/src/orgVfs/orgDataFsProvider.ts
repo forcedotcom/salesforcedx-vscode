@@ -9,7 +9,7 @@
 /* eslint-disable functional/no-throw-statements */
 
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { nls } from '../messages';
 
 type Entry = FileEntry | DirectoryEntry;
@@ -53,20 +53,19 @@ const toStat = (entry: Entry): vscode.FileStat => ({
 
 const pathParts = (uri: URI): string[] => uri.path.split('/').filter(Boolean);
 
-export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider {
+export class OrgDataFsProvider implements vscode.FileSystemProvider {
   private readonly root = createDirectoryEntry();
   private readonly changeEmitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   public readonly onDidChangeFile = this.changeEmitter.event;
-  private readonly readOnlyErrorMessage = nls.localize('apex_testing_vfs_readonly_prefix_text');
+  private readonly readOnlyErrorMessage = nls.localize('org_data_vfs_readonly_prefix_text');
 
   // eslint-disable-next-line class-methods-use-this
   public watch(_uri: URI, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
-    // No-op watcher - this file system is programmatically updated, not watched
     return new vscode.Disposable(() => undefined);
   }
 
   public stat(uri: URI): vscode.FileStat {
-    const entry = this.getEntry(uri, false);
+    const entry = this.getEntry(uri);
     if (!entry) {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
@@ -74,7 +73,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   public readDirectory(uri: URI): [string, vscode.FileType][] {
-    const entry = this.getEntry(uri, false);
+    const entry = this.getEntry(uri);
     if (entry?.type !== vscode.FileType.Directory) {
       throw vscode.FileSystemError.FileNotADirectory(uri);
     }
@@ -86,7 +85,7 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
   }
 
   public readFile(uri: URI): Uint8Array {
-    const entry = this.getEntry(uri, false);
+    const entry = this.getEntry(uri);
     if (entry?.type !== vscode.FileType.File) {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
@@ -107,15 +106,13 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     );
   }
 
-  // Internal API used by discovery persistence to update in-memory VFS state.
   public createDirectoryInternal(uri: URI): void {
     this.getOrCreateDirectory(uri);
     this.changeEmitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }
 
-  // Internal API used by discovery persistence to update in-memory VFS state.
   public writeFileInternal(uri: URI, content: Uint8Array, options: { create: boolean; overwrite: boolean }): void {
-    const parent = this.getParentDirectory(uri, false);
+    const parent = this.getParentDirectory(uri);
     const name = this.basename(uri);
     const existing = parent.entries.get(name);
     if (existing?.type === vscode.FileType.Directory) {
@@ -137,15 +134,13 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     this.changeEmitter.fire([{ type: existing ? vscode.FileChangeType.Changed : vscode.FileChangeType.Created, uri }]);
   }
 
-  // Internal API used by discovery persistence to update in-memory VFS state.
   public deleteInternal(uri: URI, options: { recursive: boolean }): void {
-    const parent = this.getParentDirectory(uri, false);
+    const parent = this.getParentDirectory(uri);
     const name = this.basename(uri);
     const existing = parent.entries.get(name);
     if (!existing) {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
-
     if (existing.type === vscode.FileType.Directory && !options.recursive && existing.entries.size > 0) {
       throw vscode.FileSystemError.NoPermissions(`${uri.toString()} is not empty`);
     }
@@ -154,14 +149,13 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     this.changeEmitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
   }
 
-  private getParentDirectory(uri: URI, create: boolean): DirectoryEntry {
+  private getParentDirectory(uri: URI): DirectoryEntry {
     const parts = pathParts(uri);
-    const parentUri = uri.with({ path: `/${parts.slice(0, -1).join('/')}` });
-    return create ? this.getOrCreateDirectory(parentUri) : this.getDirectory(parentUri);
+    return this.getDirectory(uri.with({ path: `/${parts.slice(0, -1).join('/')}` }));
   }
 
   private getDirectory(uri: URI): DirectoryEntry {
-    const entry = this.getEntry(uri, false);
+    const entry = this.getEntry(uri);
     if (entry?.type !== vscode.FileType.Directory) {
       throw vscode.FileSystemError.FileNotADirectory(uri);
     }
@@ -172,10 +166,10 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     return pathParts(uri).reduce<DirectoryEntry>((current, part) => {
       const existing = current.entries.get(part);
       if (!existing) {
-        const dir = createDirectoryEntry();
-        current.entries.set(part, dir);
+        const directory = createDirectoryEntry();
+        current.entries.set(part, directory);
         current.mtime = now();
-        return dir;
+        return directory;
       }
       if (existing.type !== vscode.FileType.Directory) {
         throw vscode.FileSystemError.FileNotADirectory(uri);
@@ -184,45 +178,19 @@ export class ApexTestingDiscoveryFsProvider implements vscode.FileSystemProvider
     }, this.root);
   }
 
-  private getEntry(uri: URI, createDirectories: boolean): Entry | undefined {
-    const walk = (current: Entry, parts: readonly string[]): Entry | undefined => {
-      const [part, ...rest] = parts;
-      if (part === undefined) {
-        return current;
-      }
-      if (current.type !== vscode.FileType.Directory) {
-        return undefined;
-      }
-      const next = current.entries.get(part);
-      if (next) {
-        return walk(next, rest);
-      }
-      if (!createDirectories) {
-        return undefined;
-      }
-      const dir = createDirectoryEntry();
-      current.entries.set(part, dir);
-      current.mtime = now();
-      return walk(dir, rest);
-    };
-    return walk(this.root, pathParts(uri));
+  private getEntry(uri: URI): Entry | undefined {
+    return pathParts(uri).reduce<Entry | undefined>(
+      (current, part) => (current?.type === vscode.FileType.Directory ? current.entries.get(part) : undefined),
+      this.root
+    );
   }
 
   // eslint-disable-next-line class-methods-use-this
   private basename(uri: URI): string {
-    const parts = pathParts(uri);
-    const name = parts.at(-1);
+    const name = pathParts(uri).at(-1);
     if (!name) {
       throw vscode.FileSystemError.NoPermissions(`Cannot write to root of ${uri.scheme}`);
     }
     return name;
   }
 }
-
-// eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= below
-let providerInstance: ApexTestingDiscoveryFsProvider | undefined;
-
-export const getApexTestingDiscoveryFsProvider = (): ApexTestingDiscoveryFsProvider => {
-  providerInstance ??= new ApexTestingDiscoveryFsProvider();
-  return providerInstance;
-};

@@ -14,6 +14,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const { ApexTestRunCacheService } = jest.requireActual('../../../src/testRunCache/apexTestRunCacheService');
   const { URI: UriClass } = jest.requireActual('vscode-uri');
   const { HashableUri } = jest.requireActual('salesforcedx-vscode-services/src/vscode/hashableUri');
+  const { orgDataSegments, orgDataUri } = jest.requireActual('salesforcedx-vscode-services/src/orgVfs/orgDataUris');
 
   let mockConnectionRef: any;
   let mockReadFileResult = '';
@@ -46,6 +47,10 @@ jest.mock('../../../src/services/extensionProvider', () => {
     services: {
       ConnectionService: MockConnectionService,
       FsService: mockFsService,
+      orgDataSegments,
+      orgDataUri,
+      // closeEditorTabByUri (retrieve flow) delegates to api.services.closeMatchingTabs; no tabs to reap in tests.
+      closeMatchingTabs: () => EffectLib.void,
       // Yielded as an instance in the execution service (yield* api.services.ChannelService), so wrap in
       // Effect.succeed — same seam as testReportGenerator.test.ts.
       ChannelService: EffectLib.succeed(mockChannelService),
@@ -188,9 +193,8 @@ import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
-import * as EffectModule from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { ApexTestController, closeForeignApexTestingTabs, getTestController } from '../../../src/views/testController';
+import { ApexTestController, getTestController } from '../../../src/views/testController';
 
 // The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
 // the production module accessors use) to seed test state.
@@ -198,11 +202,6 @@ const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map
   const ApexTestTreeService = jest.requireActual('../../../src/views/apexTestTreeService').ApexTestTreeService;
   return extensionProvider.getApexTestingRuntime().runSync(ApexTestTreeService[key]());
 };
-
-// closeForeignApexTestingTabs returns an Effect (R = never: pure tab ops, no services), so run it
-// with the real Effect runtime rather than the mocked extension runtime.
-const runClose = (orgKey: string | undefined): Promise<void> =>
-  EffectModule.runPromise(closeForeignApexTestingTabs(orgKey));
 
 // Mock vscode.tests API
 const mockTestController = {
@@ -648,7 +647,7 @@ describe('ApexTestController', () => {
       const actualUri = createdItemsMap.get('class:OrgOnlyClass')?.uri;
       expect(actualUri).toBeDefined();
       if (actualUri) {
-        expect(actualUri.toString()).toContain('apex-testing:/');
+        expect(actualUri.toString()).toContain('sf-org-data:/');
       }
       expect(orgOnlyClassItem?.tags).toBeDefined();
       expect(orgOnlyClassItem?.tags?.length).toBe(1);
@@ -660,7 +659,7 @@ describe('ApexTestController', () => {
       const actualMethodUri = createdItemsMap.get('method:OrgOnlyClass.testMethod1')?.uri;
       expect(actualMethodUri).toBeDefined();
       if (actualMethodUri) {
-        expect(actualMethodUri.toString()).toContain('apex-testing:/');
+        expect(actualMethodUri.toString()).toContain('sf-org-data:/');
       }
       expect(orgOnlyMethodItem?.tags).toBeDefined();
       expect(orgOnlyMethodItem?.tags?.length).toBe(1);
@@ -774,7 +773,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls')
       } as unknown as vscode.TestItem;
 
       notificationService.showSuccessfulExecution = jest.fn();
@@ -810,7 +809,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls')
       } as unknown as vscode.TestItem;
 
       notificationService.showSuccessfulExecution = jest.fn();
@@ -837,7 +836,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls')
       } as unknown as vscode.TestItem;
 
       notificationService.showInformationMessage = jest.fn();
@@ -861,7 +860,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls')
+        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls')
       } as unknown as vscode.TestItem;
 
       notificationService.showFailedExecution = jest.fn();
@@ -901,14 +900,14 @@ describe('ApexTestController', () => {
       const methodItem = {
         id: 'method:OrgOnlyClass.testMethod1',
         label: 'testMethod1',
-        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
+        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls'),
         range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0))
       } as unknown as vscode.TestItem;
 
       const classItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
+        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls'),
         children: {
           forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem),
           // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts)
@@ -921,7 +920,7 @@ describe('ApexTestController', () => {
           [
             'testMethod1',
             new vscode.Location(
-              URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
+              URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls'),
               new vscode.Range(new vscode.Position(9, 2), new vscode.Position(9, 2))
             )
           ]
@@ -1112,52 +1111,3 @@ describe('getTestController', () => {
 
 // sortUrisByMtimeAscending moved into ApexTestTreeService; the mtime-ordering behavior is covered by
 // test/jest/utils/sortHelpers.test.ts (the canonical sortByMtimeAscending helper).
-
-describe('closeForeignApexTestingTabs', () => {
-  // Real-ish tab fixtures: the production code does `tab.input instanceof vscode.TabInputText`, so the
-  // fixtures must be actual instances of the mock's TabInputText, carrying a real URI of a given scheme.
-  const tabFor = (uri: URI): vscode.Tab =>
-    ({ input: new (vscode as unknown as { TabInputText: new (u: URI) => unknown }).TabInputText(uri) }) as vscode.Tab;
-
-  const setTabGroups = (tabs: vscode.Tab[]): jest.Mock => {
-    const close = jest.fn().mockResolvedValue(undefined);
-    (vscode.window as unknown as { tabGroups: unknown }).tabGroups = { all: [{ tabs }], close };
-    return close;
-  };
-
-  // org keys are sanitized to lower-case in the VFS path, so org123 -> /orgs/org123/...
-  const orgATab = tabFor(URI.parse('apex-testing:/orgs/org123/classes/MyTest.cls'));
-  const orgBTab = tabFor(URI.parse('apex-testing:/orgs/org456/classes/OtherTest.cls'));
-  const fileTab = tabFor(URI.file('/workspace/MyTest.cls'));
-
-  afterEach(() => {
-    delete (vscode.window as unknown as { tabGroups?: unknown }).tabGroups;
-  });
-
-  it('on org change, closes only OTHER orgs apex-testing: tabs and leaves the current org + other schemes', async () => {
-    const close = setTabGroups([orgATab, orgBTab, fileTab]);
-
-    // current org is org123 => org456's tab is foreign and closes; org123's tab + the file tab stay.
-    await runClose('org123');
-
-    expect(close).toHaveBeenCalledTimes(1);
-    expect(close).toHaveBeenCalledWith([orgBTab], true);
-  });
-
-  it('on logout (undefined org), closes every apex-testing: org tab and leaves other schemes', async () => {
-    const close = setTabGroups([orgATab, orgBTab, fileTab]);
-
-    await runClose(undefined);
-
-    expect(close).toHaveBeenCalledTimes(1);
-    expect(close).toHaveBeenCalledWith([orgATab, orgBTab], true);
-  });
-
-  it('is a no-op when only the current orgs tab is open', async () => {
-    const close = setTabGroups([orgATab, fileTab]);
-
-    await runClose('org123');
-
-    expect(close).not.toHaveBeenCalled();
-  });
-});
