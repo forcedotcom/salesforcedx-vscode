@@ -3,9 +3,11 @@
 **Status:** DESIGN — awaiting user review
 **Date:** 2026-07-28
 **Author:** Peter Hale (with Claude)
+**Work item:** W-23613533 (`1 Services-owned org-data VFS: canonical presence/resolution layer`)
 **Epic:** IDEx - Org Browser: Actions (`a3QEE000002V05p2AC`)
-**Depends on:** W-23596477 (story 0 — `sf-org-data` scheme/provider/lifecycle, already landed)
-**Base branch for stacking:** `ph/W-23596477-org-data-vfs-services`
+**Depends on:** W-23596477 (story 0 — `sf-org-data` scheme/provider/lifecycle; **open draft PR #7912,
+not yet merged** — lives on this branch, not on `develop`)
+**Base branch for stacking:** `ph/W-23596477-org-data-vfs-services` (the story-0 branch)
 **Findings log (the reasoning behind every decision here):**
 `docs/superpowers/specs/2026-07-28-org-metadata-vfs-findings.md`
 
@@ -33,13 +35,34 @@ That symmetric two-consumer proof is the success criterion.
 
 ## 2. Background (one paragraph — see findings doc for depth)
 
-Story 0 shipped a services-owned, read-only, in-memory `sf-org-data` VFS
+Story 0 built a services-owned, read-only, in-memory `sf-org-data` VFS
 (`OrgDataFsProvider`) with owner-sharded paths `sf-org-data:/orgs/<orgId>/<owner>/<segments>` and an
 editor-read-only / service-writable split. It has one populator today: apex-testing eagerly writes
 discovered `.cls` bodies into an `apex-testing` owner. The Org Browser reads metadata **live** from the
 org (`MetadataDescribeService`) and never touches the VFS; it computes local presence
 (`filePresent`) per node and discards it. This design turns the VFS into the shared consumption
 surface story 0 was built to enable.
+
+### 2.1 Relationship to story 0 — this is a NEW LAYER, not a rewrite
+
+Story 0 is **not merged**: it is open **draft PR #7912** on this branch (`develop` has neither the
+services `orgVfs/` nor the relocation). This design **stacks on top of it and reuses it**; the
+boundary:
+
+| | Story 0 (PR #7912, W-23596477) — the foundation | This design (new WI) — the layer on top |
+|---|---|---|
+| **Nature** | *Refactor*: move org-data VFS ownership apex-testing → services | *Feature*: shared presence/resolution over that VFS |
+| **Provider, URI layout, lifecycle reactor, `FsService` org-data API, registry, tab-reaper, decoration/owner attribution** | **Delivers these** | **Reuses verbatim** |
+| **apex-testing** | Becomes a *consumer* but **still eager-writes** class bodies (now via `FsService.writeOrgData`, not its own provider) | Converts that eager-write → lazy presence + `readFile`; collapses the `apex-testing` owner (§4.3) |
+| **`org-metadata` owner + `OrgMetadataResolver`** | Does not exist | **Adds these** |
+
+**The single overlap:** this design's final slice (§8.4) *deletes* the eager-write path story 0 just
+relocated the API for. That is intended and sequenced — the `apex-testing` owner stays functional until
+slice 4, because story-0's shipped code still writes to it. So the parts that *look* like a rewrite are
+apex-testing's eager-write / `sf-org-apex` code that story 0 merely **lifted-and-shifted** (it did not
+invent them); deleting relocated code is cheap and does not discard the foundation. **Starting over
+from `develop` would mean re-implementing and re-testing the ~471-line provider foundation this design
+reuses — strictly more work, not less.**
 
 ## 3. The model (settled)
 
