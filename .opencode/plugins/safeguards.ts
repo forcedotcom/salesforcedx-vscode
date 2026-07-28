@@ -3,8 +3,8 @@ import {
   editedPaths,
   formatCompletionFailure,
   formatEditFailure,
-  verifyCompletion,
-  verifyEdit
+  verifyCompletionAsync,
+  verifyEditAsync
 } from '../../scripts/ai-safeguards.mjs';
 
 const createSafeguards = ({ client, worktree }, verify = {}) => {
@@ -12,8 +12,8 @@ const createSafeguards = ({ client, worktree }, verify = {}) => {
   const verifying = new Set();
   const continuationIssued = new Set();
   const editVersions = new Map();
-  const runEditVerification = verify.edit ?? verifyEdit;
-  const runCompletionVerification = verify.completion ?? verifyCompletion;
+  const runEditVerification = verify.edit ?? verifyEditAsync;
+  const runCompletionVerification = verify.completion ?? verifyCompletionAsync;
 
   return {
     'tool.execute.before': async (input, output) => {
@@ -30,7 +30,7 @@ const createSafeguards = ({ client, worktree }, verify = {}) => {
       dirty.add(input.sessionID);
       editVersions.set(input.sessionID, (editVersions.get(input.sessionID) ?? 0) + 1);
       continuationIssued.delete(input.sessionID);
-      const message = formatEditFailure(runEditVerification({ root: worktree, files }));
+      const message = formatEditFailure(await runEditVerification({ root: worktree, files }));
       if (message) output.output = `${output.output}\n\n${message}`;
     },
     event: async ({ event }) => {

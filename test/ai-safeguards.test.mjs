@@ -9,7 +9,9 @@ import {
   commandDenial,
   editedPaths,
   verifyCompletion,
-  verifyEdit
+  verifyCompletionAsync,
+  verifyEdit,
+  verifyEditAsync
 } from '../scripts/ai-safeguards.mjs';
 import safeguardsPlugin from '../.opencode/plugins/safeguards.ts';
 
@@ -48,6 +50,45 @@ test('denies dynamically assembled Git safeguards', () => {
 test('allows literal shell characters in single-quoted Git arguments', () => {
   assert.equal(commandDenial({ command: "git commit -m 'cost $5 `literal`'", cwd: '/tmp' }), undefined);
 });
+
+test('inspects nested shell and eval Git commands', async () =>
+  temporaryDirectory(root => {
+    const commands = [
+      "bash -c 'git commit --no-verify'",
+      "bash -lc 'git commit --no-verify'",
+      "bash -c 'git push'",
+      'sh -c "git push"',
+      "eval 'git push'",
+      'eval "bash -c \'git commit --no-verify\'"'
+    ];
+    commands.forEach(command => {
+      const { run } = fakeRun([{ ok: true, output: root }]);
+      assert.ok(commandDenial({ command, cwd: root, run }));
+    });
+  }));
+
+test('allows commands that only print Git text', () => {
+  assert.equal(commandDenial({ command: 'echo git --no-verify', cwd: '/tmp' }), undefined);
+  assert.equal(commandDenial({ command: "printf '%s' git push", cwd: '/tmp' }), undefined);
+});
+
+test('supports known executable wrappers', async () =>
+  temporaryDirectory(root => {
+    [
+      'command git push',
+      'command -p git push',
+      'env FOO=bar git push',
+      'sudo -u root git push',
+      'command env git push',
+      'sudo env git push',
+      'sudo command git push',
+      "env bash -lc 'git push'"
+    ].forEach(command => {
+      const { run } = fakeRun([{ ok: true, output: root }]);
+      assert.match(commandDenial({ command, cwd: root, run }), /node_modules missing/);
+    });
+    assert.match(commandDenial({ command: 'env -S "git push"', cwd: root }), /shell expansion/);
+  }));
 
 test('denies push when repository dependencies are absent', async () =>
   temporaryDirectory(root => {
@@ -151,6 +192,21 @@ test('completion verification runs checks in order', () => {
   assert.deepEqual(
     calls.filter(call => call.command === 'npm').map(call => call.args[1]),
     ['compile', 'lint', 'test', 'vscode:bundle', 'check:knip']
+  );
+});
+
+test('async verification awaits nonblocking runners in order', async () => {
+  const calls = [];
+  const run = async input => {
+    calls.push(input);
+    await new Promise(resolveRun => setTimeout(resolveRun, 0));
+    return { ok: true, output: '' };
+  };
+  assert.equal((await verifyEditAsync({ root: '/tmp', files: [], run })).ok, true);
+  assert.equal((await verifyCompletionAsync({ root: '/tmp', run })).ok, true);
+  assert.deepEqual(
+    calls.filter(call => call.command === 'npm').map(call => call.args[1]),
+    ['compile', 'compile', 'lint', 'test', 'vscode:bundle', 'check:knip']
   );
 });
 

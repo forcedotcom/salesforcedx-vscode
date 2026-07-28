@@ -1,6 +1,6 @@
 import { existsSync, lstatSync } from 'node:fs';
 import { isAbsolute, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
 const VALUE_OPTIONS = new Set(['-C', '-c', '--config-env', '--exec-path', '--git-dir', '--work-tree', '--namespace']);
@@ -10,6 +10,22 @@ const DYNAMIC_GIT_REASON =
   'Git commands assembled with shell expansion are blocked because safeguards cannot verify the resulting command. Use literal Git arguments.';
 const ATTACHED_DIRECTORY_REASON =
   'git push with --git-dir or --work-tree is blocked because safeguards cannot verify the target repository. Use git -C <repo> push.';
+const SHELL_EXECUTORS = new Set(['bash', 'sh', 'zsh']);
+const WRAPPERS = new Set(['command', 'env', 'sudo']);
+const SUDO_VALUE_OPTIONS = new Set([
+  '-C',
+  '-g',
+  '-h',
+  '-p',
+  '-R',
+  '-T',
+  '-u',
+  '--chdir',
+  '--group',
+  '--host',
+  '--prompt',
+  '--user'
+]);
 
 const cleanOutput = (value, limit) => value.replace(CONTROL_CHARS, '').slice(0, limit);
 
@@ -24,6 +40,16 @@ const defaultRun = ({ command, args = [], cwd }) => {
     output: `${result.stdout ?? ''}${result.stderr ?? ''}`
   };
 };
+
+const defaultRunAsync = ({ command, args = [], cwd }) =>
+  new Promise(resolveRun => {
+    const child = spawn(command, args, { cwd, env: process.env });
+    const output = [];
+    child.stdout?.on('data', data => output.push(data));
+    child.stderr?.on('data', data => output.push(data));
+    child.on('error', error => resolveRun({ ok: false, output: String(error) }));
+    child.on('close', code => resolveRun({ ok: code === 0, output: Buffer.concat(output).toString() }));
+  });
 
 const decodeShellWord = word =>
   word.replace(/^\$HOME(?=\/|$)/, process.env.HOME ?? '$HOME').replace(/^~(?=\/|$)/, process.env.HOME ?? '~');
@@ -109,6 +135,63 @@ const gitCommand = words => {
   );
 };
 
+const unwrapCommand = tokens => {
+  const start = tokens.findIndex(token => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(token.value));
+  const command = tokens.slice(start < 0 ? tokens.length : start);
+  if (!command.length) return { command: [] };
+  if (command[0].dynamic) return { reason: DYNAMIC_GIT_REASON };
+  if (!WRAPPERS.has(command[0].value)) return { command };
+  const wrapped = command.slice(1).reduce(
+    (state, token) => {
+      if (state.done) return state;
+      if (state.reason) return state;
+      if (state.awaiting) return { ...state, awaiting: false };
+      if (state.wrapper === 'env' && /^[A-Za-z_][A-Za-z0-9_]*=/.test(token.value)) return state;
+      if (state.wrapper === 'env' && (token.value === '-S' || token.value === '--split-string')) {
+        return { ...state, reason: DYNAMIC_GIT_REASON };
+      }
+      if (state.wrapper === 'sudo' && SUDO_VALUE_OPTIONS.has(token.value)) return { ...state, awaiting: true };
+      if (token.value.startsWith('-')) return state;
+      return { ...state, command: command.slice(command.indexOf(token)), done: true };
+    },
+    { awaiting: false, command: [], done: false, reason: undefined, wrapper: command[0].value }
+  );
+  if (wrapped.reason) return { reason: wrapped.reason };
+  return wrapped.command.length ? unwrapCommand(wrapped.command) : { command: [] };
+};
+
+const inspectCommand = (command, cwd, inspect) =>
+  shellSegments(command).reduce(
+    (state, tokens) => {
+      if (state.reason) return state;
+      const unwrapped = unwrapCommand(tokens);
+      if (unwrapped.reason) return { ...state, reason: unwrapped.reason };
+      const words = unwrapped.command;
+      const executable = words[0]?.value;
+      if (!executable) return state;
+      if (executable === 'cd') {
+        const directory = decodeShellWord(words[1]?.value ?? '');
+        return directory ? { ...state, cwd: resolveCommandDirectory(state.cwd, directory) } : state;
+      }
+      if (SHELL_EXECUTORS.has(executable)) {
+        const commandIndex = words.findIndex(token => /^-[^-]*c/.test(token.value));
+        const nested = words[commandIndex + 1];
+        return commandIndex >= 0 && nested ? inspectCommand(nested.value, state.cwd, inspect) : state;
+      }
+      if (executable === 'eval') {
+        const nested = words
+          .slice(1)
+          .map(token => token.value)
+          .join(' ');
+        return /(?:^|[;&|]\s*)(?:bash|sh|zsh)(?:\s|$)/.test(nested)
+          ? { ...state, reason: DYNAMIC_GIT_REASON }
+          : inspectCommand(nested, state.cwd, inspect);
+      }
+      return executable === 'git' ? { ...state, reason: inspect(words, state.cwd) } : state;
+    },
+    { cwd, reason: undefined }
+  );
+
 const hasDependencies = root => {
   const path = resolve(root, 'node_modules');
   return existsSync(path) && (lstatSync(path).isDirectory() || lstatSync(path).isSymbolicLink());
@@ -124,37 +207,26 @@ const gitRoot = (directory, run) => {
 };
 
 const noVerifyDenial = command =>
-  shellSegments(command).reduce((reason, words) => {
-    if (reason) return reason;
-    const commandStart = words.findIndex(word => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word.value));
-    const executable = words[commandStart];
-    if (executable?.dynamic) return DYNAMIC_GIT_REASON;
-    if (!words.some(word => word.value === 'git')) return reason;
-    if (words.some(word => word.dynamic)) return DYNAMIC_GIT_REASON;
-    return words.some(word => word.value === '--no-verify') ? NO_VERIFY_REASON : undefined;
-  }, undefined);
+  inspectCommand(command, process.cwd(), words =>
+    words.some(word => word.dynamic)
+      ? DYNAMIC_GIT_REASON
+      : words.some(word => word.value === '--no-verify')
+        ? NO_VERIFY_REASON
+        : undefined
+  ).reason;
 
 const missingDependenciesDenial = ({ command, cwd, run = defaultRun }) => {
-  const initial = { directory: cwd, reason: undefined };
-  const result = shellSegments(command).reduce((state, tokens) => {
-    if (state.reason) return state;
-    const words = tokens.map(token => token.value);
-    const start = words.findIndex(word => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word));
-    const commandWords = words.slice(start < 0 ? words.length : start);
-    const cd = commandWords[0] === 'cd' ? decodeShellWord(commandWords[1] ?? '') : undefined;
-    if (cd) return { ...state, directory: resolveCommandDirectory(state.directory, cd) };
-    const git = gitCommand(commandWords);
-    if (git?.subcommand !== 'push') return state;
-    if (git.attachedDirectory) return { ...state, reason: ATTACHED_DIRECTORY_REASON };
-    const directory = git.directory ? resolveCommandDirectory(state.directory, git.directory) : state.directory;
-    const root = gitRoot(directory, run);
+  const result = inspectCommand(command, cwd, (tokens, directory) => {
+    if (tokens.some(token => token.dynamic)) return DYNAMIC_GIT_REASON;
+    const git = gitCommand(tokens);
+    if (git?.subcommand !== 'push') return undefined;
+    if (git.attachedDirectory) return ATTACHED_DIRECTORY_REASON;
+    const target = git.directory ? resolveCommandDirectory(directory, git.directory) : directory;
+    const root = gitRoot(target, run);
     return !root || hasDependencies(root)
-      ? state
-      : {
-          ...state,
-          reason: `node_modules missing at ${root} — local lint/compile hooks can't run, so a push would ship unverified code. Run 'npm install' at the repo root, then push.`
-        };
-  }, initial);
+      ? undefined
+      : `node_modules missing at ${root} — local lint/compile hooks can't run, so a push would ship unverified code. Run 'npm install' at the repo root, then push.`;
+  });
   return result.reason;
 };
 
@@ -176,6 +248,11 @@ const runStep = ({ root, step, command, args = [], run, limit }) => {
   return result.ok ? { ok: true, step } : failure(step, result.output, limit);
 };
 
+const runStepAsync = async ({ root, step, command, args = [], run, limit }) => {
+  const result = await run({ command, args, cwd: root });
+  return result.ok ? { ok: true, step } : failure(step, result.output, limit);
+};
+
 const effectDiagnostics = ({ root, file, run, requireExecutable = false }) => {
   const executable = resolve(root, 'node_modules/.bin/effect-language-service');
   if (!existsSync(executable)) {
@@ -188,6 +265,21 @@ const effectDiagnostics = ({ root, file, run, requireExecutable = false }) => {
     args: ['diagnostics', '--file', file],
     cwd: root
   });
+  const summary = /^Checked .* files? out of.*$/m.exec(result.output)?.[0] ?? '';
+  const findings = /[1-9][0-9]* (?:warning|message)/.test(summary);
+  return result.ok && !findings
+    ? { ok: true, step: `effect LS (${file})` }
+    : failure(`effect LS (${file})`, result.output, 1500);
+};
+
+const effectDiagnosticsAsync = async ({ root, file, run, requireExecutable = false }) => {
+  const executable = resolve(root, 'node_modules/.bin/effect-language-service');
+  if (!existsSync(executable)) {
+    return requireExecutable
+      ? failure('effect LS', `${executable} not found — run npm install`)
+      : { ok: true, step: `effect LS (${file})` };
+  }
+  const result = await run({ command: executable, args: ['diagnostics', '--file', file], cwd: root });
   const summary = /^Checked .* files? out of.*$/m.exec(result.output)?.[0] ?? '';
   const findings = /[1-9][0-9]* (?:warning|message)/.test(summary);
   return result.ok && !findings
@@ -215,6 +307,25 @@ export const verifyEdit = ({ root, files, run = defaultRun }) => {
   );
 };
 
+export const verifyEditAsync = async ({ root, files, run = defaultRunAsync }) => {
+  const compile = await runStepAsync({
+    root,
+    step: 'compile',
+    command: 'npm',
+    args: ['run', 'compile'],
+    run
+  });
+  if (!compile.ok) return compile;
+  const typescriptFiles = [...new Set(files)]
+    .map(file => (isAbsolute(file) ? file : resolve(root, file)))
+    .filter(file => file.endsWith('.ts') && existsSync(file));
+  for (const file of typescriptFiles) {
+    const result = await effectDiagnosticsAsync({ root, file, run });
+    if (!result.ok) return result;
+  }
+  return { ok: true, step: 'edit verification' };
+};
+
 const changedTypescriptFiles = ({ root, run }) => {
   const changed = run({
     command: 'git',
@@ -226,6 +337,19 @@ const changedTypescriptFiles = ({ root, run }) => {
     args: ['ls-files', '--others', '--exclude-standard'],
     cwd: root
   });
+  return [
+    ...new Set([
+      ...(changed.ok ? changed.output.split('\n') : []),
+      ...(untracked.ok ? untracked.output.split('\n') : [])
+    ])
+  ].filter(file => file.endsWith('.ts') && existsSync(resolve(root, file)));
+};
+
+const changedTypescriptFilesAsync = async ({ root, run }) => {
+  const [changed, untracked] = await Promise.all([
+    run({ command: 'git', args: ['diff', '--name-only', 'HEAD'], cwd: root }),
+    run({ command: 'git', args: ['ls-files', '--others', '--exclude-standard'], cwd: root })
+  ]);
   return [
     ...new Set([
       ...(changed.ok ? changed.output.split('\n') : []),
@@ -246,6 +370,24 @@ export const verifyCompletion = ({ root, run = defaultRun }) => {
     () => runStep({ root, step: 'knip', command: 'npm', args: ['run', 'check:knip'], run })
   ];
   return steps.reduce((result, step) => (result.ok ? step() : result), { ok: true, step: 'completion verification' });
+};
+
+export const verifyCompletionAsync = async ({ root, run = defaultRunAsync }) => {
+  const steps = [
+    () => runStepAsync({ root, step: 'compile', command: 'npm', args: ['run', 'compile'], run }),
+    () => runStepAsync({ root, step: 'lint', command: 'npm', args: ['run', 'lint'], run }),
+    ...(await changedTypescriptFilesAsync({ root, run })).map(
+      file => () => effectDiagnosticsAsync({ root, file, run, requireExecutable: true })
+    ),
+    () => runStepAsync({ root, step: 'test', command: 'npm', args: ['run', 'test'], run }),
+    () => runStepAsync({ root, step: 'vscode:bundle', command: 'npm', args: ['run', 'vscode:bundle'], run }),
+    () => runStepAsync({ root, step: 'knip', command: 'npm', args: ['run', 'check:knip'], run })
+  ];
+  for (const step of steps) {
+    const result = await step();
+    if (!result.ok) return result;
+  }
+  return { ok: true, step: 'completion verification' };
 };
 
 export const editedPaths = (tool, args) => {
