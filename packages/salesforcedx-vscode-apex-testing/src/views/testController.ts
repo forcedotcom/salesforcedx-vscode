@@ -5,18 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
-import * as Option from 'effect/Option';
-import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { apexTestingClassName } from '../discoveryVfs/apexTestingClassUri';
+import { apexClassName } from '../discoveryVfs/apexClassUri';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { notificationService } from '../utils/notificationHelpers';
-import { getOrgApexClassProvider } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { isClass, isMethod, isSuite } from '../utils/testItemUtils';
 import { getMethodLocationsFromSymbols } from '../utils/testUtils';
@@ -85,13 +81,13 @@ export class ApexTestController {
 
   /** Drop the connection/caches, empty the tree, and re-arm result restoration for the next discovery. */
   private async resetState(): Promise<void> {
-    getOrgApexClassProvider().clearAllCache();
     this.clearTestItems();
     await getApexTestingRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         // Drop the shared cached connection so the next getConnection() reloads AuthInfo from disk.
         yield* api.services.ConnectionService.invalidateCachedConnections();
+        yield* (yield* api.services.OrgMetadataResolver).invalidate();
         yield* ApexTestTreeService.clearRestoredResults();
       })
     );
@@ -263,7 +259,7 @@ export class ApexTestController {
     }
     const executionName = nls.localize('apex_test_retrieve_org_only_class_text');
     await getApexTestingRuntime().runPromise(
-      retrieveOrgOnlyClass(uri, className, executionName, () => this.refresh()).pipe(
+      retrieveOrgOnlyClass(uri, executionName, () => this.refresh()).pipe(
         // Cancellation gets its own informational notification (fire-and-forget → Effect.sync, no response awaited).
         Effect.catchTag('UserCancellationError', () =>
           Effect.sync(
@@ -369,23 +365,18 @@ const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Pr
 // canceled notification, everything else → showFailedExecution).
 const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassFromUri')(function* (
   uri: URI,
-  className: string,
   executionName: string,
   refresh: () => Promise<void>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.MetadataRetrieveService.retrieve([{ type: 'ApexClass', fullName: className }], {
-    ignoreConflicts: true
-  }).pipe(
-    Effect.map(getRetrievedFileUri),
-    Effect.flatMap(
-      Effect.transposeMapOption(retrievedFileUri =>
-        api.services.FsService.showTextDocument(retrievedFileUri, {
-          preview: false,
-          viewColumn: vscode.ViewColumn.Active,
-          preserveFocus: false
-        }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
-      )
+  const resolver = yield* api.services.OrgMetadataResolver;
+  yield* resolver.download(uri).pipe(
+    Effect.flatMap(retrievedFileUri =>
+      api.services.FsService.showTextDocument(retrievedFileUri, {
+        preview: false,
+        viewColumn: vscode.ViewColumn.Active,
+        preserveFocus: false
+      }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
     ),
     // Refresh failure stays non-fatal and must never reach the outer failed-notify branch.
     Effect.tap(() =>
@@ -420,13 +411,8 @@ const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
 
 const getClassNameFromOrgDataUri = Effect.fn('ApexTesting.getClassNameFromOrgDataUri')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return apexTestingClassName(api, uri);
+  return apexClassName(api, uri);
 });
-
-const getRetrievedFileUri = (result: RetrieveResult): Option.Option<URI> =>
-  Option.fromNullable(
-    result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath
-  ).pipe(Option.map(URI.file));
 
 const closeEditorTabByUri = Effect.fn('ApexTesting.closeEditorTabByUri')(function* (uri: URI) {
   // Compare via FsService.HashableUri (structural Equal) rather than hand-rolled toString().

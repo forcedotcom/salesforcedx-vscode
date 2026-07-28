@@ -53,6 +53,10 @@ import {
   orgDataUri,
   orgRoot
 } from './orgVfs/orgDataUris';
+import { OrgMetadataChangePubSub } from './orgVfs/orgMetadataChangePubSub';
+import { registerOrgMetadataCodeLensProvider } from './orgVfs/orgMetadataCodeLensProvider';
+import { OrgMetadataResolver, orgMetadataUri } from './orgVfs/orgMetadataResolver';
+import { watchOrgMetadataResolver } from './orgVfs/orgMetadataWatcher';
 import { makeGlobalLayers } from './servicesLayers';
 import { disposeServicesRuntime, setServicesRuntime } from './servicesRuntime';
 import { TerminalService } from './terminal/terminalService';
@@ -112,6 +116,8 @@ export type SalesforceVSCodeServicesApi = {
       | PromptService
       | MetadataRegistryService
       | MetadataRetrieveService
+      | OrgMetadataChangePubSub
+      | OrgMetadataResolver
       | ProjectService
       | Resource.Resource
       | SettingsChangePubSub
@@ -157,6 +163,9 @@ export type SalesforceVSCodeServicesApi = {
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
+    OrgMetadataChangePubSub: typeof OrgMetadataChangePubSub;
+    OrgMetadataResolver: typeof OrgMetadataResolver;
+    orgMetadataUri: typeof orgMetadataUri;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: typeof SdkLayerFor;
@@ -250,7 +259,8 @@ export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated after FS setup */
 const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
-  _context: vscode.ExtensionContext
+  _context: vscode.ExtensionContext,
+  orgDataProvider: OrgDataFsProvider
 ) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
   // seed populates defaultOrgRef.cliId + webUserId before connectionService and core can read it
@@ -284,6 +294,11 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       Effect.forkIn(watchOrgDataOwnerContext(), scope),
       // close stale org-data tabs before purging their backing entries
       Effect.forkIn(watchOrgDataLifecycle(), scope),
+      // invalidate canonical metadata presence when the org or workspace changes
+      Effect.forkIn(
+        watchOrgMetadataResolver(uri => orgDataProvider.notifyOwnerChanged(uri)),
+        scope
+      ),
       // watch active editor to activate LWC/Aura extensions on demand
       Effect.forkIn(watchLwcAuraExtensionActivation(), scope),
       // own sf:muleDxApiInactive context (was set once in apex-oas, now reactive)
@@ -379,9 +394,23 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
   // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
   // fails fast until this is set, so it never blocks activation waiting on it.
-  setServicesRuntime(ManagedRuntime.make(Layer.succeedContext(builtContext)));
+  const servicesRuntime = ManagedRuntime.make(Layer.succeedContext(builtContext));
+  setServicesRuntime(servicesRuntime);
+  context.subscriptions.push(
+    orgDataProvider.registerOwnerHandler('org-metadata', {
+      stat: uri => servicesRuntime.runPromise(OrgMetadataResolver.stat(uri)),
+      readDirectory: uri => servicesRuntime.runPromise(OrgMetadataResolver.readDirectory(uri)),
+      readFile: uri => servicesRuntime.runPromise(OrgMetadataResolver.readFile(uri))
+    })
+  );
+  registerOrgMetadataCodeLensProvider(
+    context,
+    uri => servicesRuntime.runPromise(OrgMetadataResolver.download(uri)),
+    uri => servicesRuntime.runPromise(OrgMetadataResolver.isInWorkspace(uri)),
+    uri => servicesRuntime.runPromise(closeMatchingTabs(tabUri => tabUri.toString() === uri.toString()))
+  );
 
-  await activationEffect(context).pipe(
+  await activationEffect(context, orgDataProvider).pipe(
     Effect.provide(builtContext),
     Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))),
     Effect.runPromise
@@ -426,6 +455,9 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
+      OrgMetadataChangePubSub,
+      OrgMetadataResolver,
+      orgMetadataUri,
       ProjectService,
       getSdkLayerConfigFromContext,
       SdkLayerFor,
@@ -491,6 +523,13 @@ export {
 } from './core/metadataDeployService';
 export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
+export { type OrgMetadataChangePubSub } from './orgVfs/orgMetadataChangePubSub';
+export {
+  OrgMetadataResolutionError,
+  OrgMetadataResolver,
+  orgMetadataUri,
+  type PresenceState
+} from './orgVfs/orgMetadataResolver';
 export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';

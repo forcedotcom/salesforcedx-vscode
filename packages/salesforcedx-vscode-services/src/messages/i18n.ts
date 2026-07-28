@@ -49,7 +49,9 @@ export const messages = {
   error_access_token_refresh_failed: 'Unable to refresh your access token.  Please login again.',
   org_data_vfs_readonly_prefix_text: 'Org virtual files are read-only',
   org_data_vfs_org_badge_text: 'ORG',
-  org_data_vfs_org_file_tooltip_text: 'Org virtual file (read-only)'
+  org_data_vfs_org_file_tooltip_text: 'Org virtual file (read-only)',
+  org_metadata_download_text: 'Download into workspace',
+  org_metadata_download_failed_message: 'Failed to download metadata into the workspace: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

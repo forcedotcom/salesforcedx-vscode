@@ -72,6 +72,7 @@ import { OrgBrowserRetrieveService } from '../../src/services/orgBrowserMetadata
 import type { Connection } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import { URI } from 'vscode-uri';
+import { OrgMetadataChangePubSub } from 'salesforcedx-vscode-services/src/orgVfs/orgMetadataChangePubSub';
 
 // 1. Full OutputChannel mock
 const mockAppendLine = jest.fn();
@@ -233,6 +234,7 @@ const mockServicesApi = {
     MetadataDeployService: {} as typeof MetadataDeployService,
     MetadataRegistryService: {} as typeof MetadataRegistryService,
     MetadataRetrieveService: {} as typeof MetadataRetrieveService,
+    OrgMetadataChangePubSub,
     ProjectService: {} as typeof ProjectService,
     registerCommandWithLayer: () => () => Effect.void,
     SdkLayerFor: {} as typeof SdkLayerFor,
@@ -271,6 +273,7 @@ describe.skip('Extension', () => {
             MockErrorHandlerServiceLayer,
             MockProjectServiceLayer,
             MockMetadataRetrieveServiceLayer,
+            OrgMetadataChangePubSub.Default,
             MockMetadataRegistryServiceLayer,
             MockSourceTrackingServiceLayer,
             MockOrgBrowserRetrieveServiceLayer

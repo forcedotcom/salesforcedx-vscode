@@ -60,9 +60,9 @@ describe('FsService.findFiles dispatch', () => {
 
   it('walks org-data recursively, applies excludes, and honors maxResults', async () => {
     const { provider, run } = makeHarness();
-    const base = URI.parse('sf-org-data:/orgs/00d/apex-testing');
-    const classes = URI.parse('sf-org-data:/orgs/00d/apex-testing/classes');
-    const namespace = URI.parse('sf-org-data:/orgs/00d/apex-testing/classes/ns');
+    const base = URI.parse('sf-org-data:/orgs/00d/metadata-preview');
+    const classes = URI.parse('sf-org-data:/orgs/00d/metadata-preview/classes');
+    const namespace = URI.parse('sf-org-data:/orgs/00d/metadata-preview/classes/ns');
     provider.createDirectoryInternal(namespace);
     provider.writeFileInternal(URI.parse(`${classes.toString()}/First.cls`), new Uint8Array(), {
       create: true,
@@ -88,7 +88,7 @@ describe('FsService.findFiles dispatch', () => {
 
   it('stops an org-data walk when cancelled', async () => {
     const { provider, run } = makeHarness();
-    const base = URI.parse('sf-org-data:/orgs/00d/apex-testing');
+    const base = URI.parse('sf-org-data:/orgs/00d/metadata-preview');
     provider.createDirectoryInternal(base);
     const readDirectory = jest.spyOn(vscode.workspace.fs, 'readDirectory');
     const token = { isCancellationRequested: true } as vscode.CancellationToken;

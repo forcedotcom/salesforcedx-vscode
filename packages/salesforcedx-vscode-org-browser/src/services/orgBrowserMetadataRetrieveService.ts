@@ -5,13 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 
 /** @ExportTaggedError See docs on TS4023 errors for more information about why this is needed*/
 export class NoFilesRetrievedError extends Schema.TaggedError<NoFilesRetrievedError>()('NoFilesRetrievedError', {
@@ -41,23 +39,25 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
 
   if (openInEditor) {
     const fsService = yield* api.services.FsService;
-    yield* Option.match(findFirstSuccessfulFile(result), {
-      onNone: () => Effect.void,
-      onSome: filePath =>
-        fsService
-          .showTextDocument(
-            URI.from({ scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file', path: filePath })
-          )
-          .pipe(Effect.catchTag('FsServiceError', e => Effect.log(`Could not open file: ${String(e)}`)))
-    });
+    const member = members[0];
+    const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+    if (member && orgId) {
+      const resolver = yield* api.services.OrgMetadataResolver;
+      const canonicalUri = api.services.orgMetadataUri({
+        orgKey: orgId,
+        xmlName: member.type,
+        fullName: member.fullName
+      });
+      yield* resolver.invalidate();
+      const targetUri = yield* resolver.getUriForFile(canonicalUri);
+      yield* fsService
+        .showTextDocument(targetUri)
+        .pipe(Effect.catchTag('FsServiceError', e => Effect.log(`Could not open file: ${String(e)}`)));
+    }
   }
 
   return result;
 });
-
-const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
-  // for unknown reasons, the filePath is sometimes prefixed with a backslash
-  Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '/'));
 
 export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieveService>()(
   'OrgBrowserRetrieveService',

@@ -16,39 +16,58 @@ import { OrgDataFsProvider } from '../../../src/orgVfs/orgDataFsProvider';
 };
 
 describe('OrgDataFsProvider', () => {
-  it('writes and reads files through its privileged API', () => {
+  it('writes and reads files through its privileged API', async () => {
     const provider = new OrgDataFsProvider();
-    const directory = URI.parse('sf-org-data:/orgs/00d/apex-testing/classes');
-    const file = URI.parse('sf-org-data:/orgs/00d/apex-testing/classes/MyTest.cls');
+    const directory = URI.parse('sf-org-data:/orgs/00d/metadata-preview/classes');
+    const file = URI.parse('sf-org-data:/orgs/00d/metadata-preview/classes/MyTest.cls');
     const content = new TextEncoder().encode('@isTest class MyTest {}');
 
     provider.createDirectoryInternal(directory);
     provider.writeFileInternal(file, content, { create: true, overwrite: true });
 
-    expect(new TextDecoder().decode(provider.readFile(file))).toBe('@isTest class MyTest {}');
-    expect(provider.stat(file)).toMatchObject({ type: vscode.FileType.File, size: content.length });
+    expect(new TextDecoder().decode(await provider.readFile(file))).toBe('@isTest class MyTest {}');
+    expect(await provider.stat(file)).toMatchObject({ type: vscode.FileType.File, size: content.length });
   });
 
-  it('isolates owner subtrees when deleting recursively', () => {
+  it('isolates owner subtrees when deleting recursively', async () => {
     const provider = new OrgDataFsProvider();
-    const apexRoot = URI.parse('sf-org-data:/orgs/00d/apex-testing');
-    const metadataRoot = URI.parse('sf-org-data:/orgs/00d/metadata-preview');
+    const apexRoot = URI.parse('sf-org-data:/orgs/00d/metadata-preview');
+    const metadataRoot = URI.parse('sf-org-data:/orgs/00d/org-metadata');
     provider.createDirectoryInternal(apexRoot);
     provider.createDirectoryInternal(metadataRoot);
 
     provider.deleteInternal(apexRoot, { recursive: true });
 
     expect(() => provider.stat(apexRoot)).toThrow();
-    expect(provider.stat(metadataRoot).type).toBe(vscode.FileType.Directory);
+    expect((await provider.stat(metadataRoot)).type).toBe(vscode.FileType.Directory);
   });
 
   it('rejects public mutating operations', () => {
     const provider = new OrgDataFsProvider();
-    const uri = URI.parse('sf-org-data:/orgs/00d/apex-testing');
+    const uri = URI.parse('sf-org-data:/orgs/00d/metadata-preview');
 
     expect(() => provider.createDirectory(uri)).toThrow();
     expect(() => provider.writeFile(uri, new Uint8Array(), { create: true, overwrite: true })).toThrow();
     expect(() => provider.delete(uri, { recursive: true })).toThrow();
     expect(() => provider.rename(uri, uri, { overwrite: true })).toThrow();
+  });
+
+  it('delegates reads for a contributed owner without affecting in-memory owners', async () => {
+    const provider = new OrgDataFsProvider();
+    const metadataRoot = URI.parse('sf-org-data:/orgs/00d/org-metadata');
+    const handler = {
+      stat: jest.fn(async () => ({ type: vscode.FileType.Directory, ctime: 0, mtime: 0, size: 0 })),
+      readDirectory: jest.fn(async () => [['ApexClass', vscode.FileType.Directory] as [string, vscode.FileType]]),
+      readFile: jest.fn(async () => new TextEncoder().encode('remote source'))
+    };
+    provider.registerOwnerHandler('org-metadata', handler);
+
+    await expect(provider.stat(metadataRoot)).resolves.toMatchObject({ type: vscode.FileType.Directory });
+    await expect(provider.readDirectory(metadataRoot)).resolves.toEqual([['ApexClass', vscode.FileType.Directory]]);
+    await expect(provider.readFile(URI.parse(`${metadataRoot.toString()}/ApexClass/Example`))).resolves.toEqual(
+      new TextEncoder().encode('remote source')
+    );
+    expect(handler.stat).toHaveBeenCalledWith(metadataRoot);
+    expect(handler.readDirectory).toHaveBeenCalledWith(metadataRoot);
   });
 });

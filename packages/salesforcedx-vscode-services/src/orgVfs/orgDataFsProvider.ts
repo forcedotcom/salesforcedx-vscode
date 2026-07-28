@@ -11,6 +11,7 @@
 import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
 import { nls } from '../messages';
+import { orgDataOwner, type OrgDataOwner } from './orgDataUris';
 
 type Entry = FileEntry | DirectoryEntry;
 
@@ -53,8 +54,15 @@ const toStat = (entry: Entry): vscode.FileStat => ({
 
 const pathParts = (uri: URI): string[] => uri.path.split('/').filter(Boolean);
 
+export type OrgDataOwnerHandler = {
+  stat: (uri: URI) => Thenable<vscode.FileStat>;
+  readDirectory: (uri: URI) => Thenable<[string, vscode.FileType][]>;
+  readFile?: (uri: URI) => Thenable<Uint8Array>;
+};
+
 export class OrgDataFsProvider implements vscode.FileSystemProvider {
   private readonly root = createDirectoryEntry();
+  private readonly ownerHandlers = new Map<OrgDataOwner, OrgDataOwnerHandler>();
   private readonly changeEmitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   public readonly onDidChangeFile = this.changeEmitter.event;
   private readonly readOnlyErrorMessage = nls.localize('org_data_vfs_readonly_prefix_text');
@@ -64,7 +72,11 @@ export class OrgDataFsProvider implements vscode.FileSystemProvider {
     return new vscode.Disposable(() => undefined);
   }
 
-  public stat(uri: URI): vscode.FileStat {
+  public stat(uri: URI): vscode.FileStat | Thenable<vscode.FileStat> {
+    const handler = this.getOwnerHandler(uri);
+    if (handler) {
+      return handler.stat(uri);
+    }
     const entry = this.getEntry(uri);
     if (!entry) {
       throw vscode.FileSystemError.FileNotFound(uri);
@@ -72,7 +84,11 @@ export class OrgDataFsProvider implements vscode.FileSystemProvider {
     return toStat(entry);
   }
 
-  public readDirectory(uri: URI): [string, vscode.FileType][] {
+  public readDirectory(uri: URI): [string, vscode.FileType][] | Thenable<[string, vscode.FileType][]> {
+    const handler = this.getOwnerHandler(uri);
+    if (handler) {
+      return handler.readDirectory(uri);
+    }
     const entry = this.getEntry(uri);
     if (entry?.type !== vscode.FileType.Directory) {
       throw vscode.FileSystemError.FileNotADirectory(uri);
@@ -84,7 +100,11 @@ export class OrgDataFsProvider implements vscode.FileSystemProvider {
     throw vscode.FileSystemError.NoPermissions(`${this.readOnlyErrorMessage}: ${uri.toString()}`);
   }
 
-  public readFile(uri: URI): Uint8Array {
+  public readFile(uri: URI): Uint8Array | Thenable<Uint8Array> {
+    const handler = this.getOwnerHandler(uri);
+    if (handler?.readFile) {
+      return handler.readFile(uri);
+    }
     const entry = this.getEntry(uri);
     if (entry?.type !== vscode.FileType.File) {
       throw vscode.FileSystemError.FileNotFound(uri);
@@ -108,6 +128,19 @@ export class OrgDataFsProvider implements vscode.FileSystemProvider {
 
   public createDirectoryInternal(uri: URI): void {
     this.getOrCreateDirectory(uri);
+    this.changeEmitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+  }
+
+  public registerOwnerHandler(owner: OrgDataOwner, handler: OrgDataOwnerHandler): vscode.Disposable {
+    this.ownerHandlers.set(owner, handler);
+    return new vscode.Disposable(() => {
+      if (this.ownerHandlers.get(owner) === handler) {
+        this.ownerHandlers.delete(owner);
+      }
+    });
+  }
+
+  public notifyOwnerChanged(uri: URI): void {
     this.changeEmitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }
 
@@ -183,6 +216,11 @@ export class OrgDataFsProvider implements vscode.FileSystemProvider {
       (current, part) => (current?.type === vscode.FileType.Directory ? current.entries.get(part) : undefined),
       this.root
     );
+  }
+
+  private getOwnerHandler(uri: URI): OrgDataOwnerHandler | undefined {
+    const owner = orgDataOwner(uri);
+    return owner ? this.ownerHandlers.get(owner) : undefined;
   }
 
   // eslint-disable-next-line class-methods-use-this

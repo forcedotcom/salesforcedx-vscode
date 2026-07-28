@@ -28,7 +28,7 @@ import {
 // executes the desktop-only body.
 import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
-import { messages } from '../../../src/messages/i18n';
+import { messages as servicesMessages } from 'salesforcedx-vscode-services/src/messages/i18n';
 import {
   TEST_EXPLORER_TREE_ITEM,
   findTestExplorerItem,
@@ -36,11 +36,10 @@ import {
 } from '../helpers/testExplorerHelpers';
 
 // "Org-only" = the class exists in the org but NOT in local source. The retrieve flow
-// (testController.ts retrieveOrgOnlyClassFromUri -> MetadataRetrieveService.retrieve ->
-// getRetrievedFileUri) only fires on the `sf-org-data:` virtual doc, which requires the
+// (`OrgMetadataResolver.download`) only fires on the canonical `sf-org-data:` virtual doc, which requires the
 // Apex language client (no "browser" bundle). Desktop only — `workspaceDir` (real disk) is
 // also needed to make the class org-only and to assert the retrieved `.cls` lands on disk.
-const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_text;
+const RETRIEVE_CODELENS = servicesMessages.org_metadata_download_text;
 
 (isDesktop() ? test : test.skip.bind(test))(
   'Org-only Apex class: retrieve via code lens opens the on-disk .cls',
@@ -106,16 +105,13 @@ public class ${className} {
       await clickCodeLens(page, RETRIEVE_CODELENS, { timeout: 180_000 });
       await saveScreenshot(page, 'step.retrieve-codelens-clicked.png');
 
-      // SDR writes the retrieved class back to local source independent of `getRetrievedFileUri`,
-      // so this only confirms the retrieve ran. The editor-open assertion below is what validates
-      // `getRetrievedFileUri` returned a real URI end-to-end.
+      // SDR writes the retrieved class back to local source, so this confirms the shared download ran.
       await expect(async () => {
         await fs.access(localClsPath);
       }).toPass({ timeout: TEST_RUN_TIMEOUT });
       await saveScreenshot(page, 'step.retrieved-cls-on-disk.png');
 
-      // The retrieved on-disk class opens in the editor (showTextDocument with the URI from
-      // getRetrievedFileUri) — passes only if getRetrievedFileUri returned a valid URI.
+      // The retrieved on-disk class opens in the editor using the resolver's workspace URI.
       await expect(page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`).first()).toBeVisible({
         timeout: 60_000
       });

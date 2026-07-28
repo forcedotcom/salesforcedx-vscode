@@ -11,7 +11,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   retrieving_tests_message: 'テストを取得しています…',
   apex_test_suites_parent_text: 'Apex テストスイート',
   apex_test_suite_edit_text: 'SFDX: Apex テストスイートを編集',
-  apex_discovery_vfs_class_body_placeholder: '// ソースを取得できません: %s',
   colorizer_coverage_apply_failed_message: 'コードカバレッジを適用できませんでした。%s',
   apex_test_suite_name_input_prompt: '希望する Apex テストスイート名を入力してください:',
   apex_test_aggregate_failed_message: '%s 件のテストが失敗しました',

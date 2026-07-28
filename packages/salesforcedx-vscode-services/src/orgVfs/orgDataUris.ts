@@ -11,7 +11,7 @@ import { URI, Utils } from 'vscode-uri';
 export const ORG_DATA_SCHEME = 'sf-org-data';
 const ORGS_ROOT = 'orgs';
 
-export type OrgDataOwner = 'apex-testing' | 'metadata-preview';
+export type OrgDataOwner = 'metadata-preview' | 'org-metadata';
 
 const sanitizeOrgKey = (orgKey: string): string => encodeURIComponent(orgKey.trim().toLowerCase());
 const sanitizePathPart = (part: string): string => encodeURIComponent(part.trim());
@@ -41,7 +41,7 @@ export const orgDataSegments = (uri: URI, owner: OrgDataOwner): readonly string[
 export const orgDataOwner = (uri: URI): OrgDataOwner | undefined => {
   if (uri.scheme !== ORG_DATA_SCHEME) return undefined;
   const [, orgs, orgKey, owner] = uri.path.split('/');
-  return orgs === ORGS_ROOT && orgKey && (owner === 'apex-testing' || owner === 'metadata-preview') ? owner : undefined;
+  return orgs === ORGS_ROOT && orgKey && (owner === 'metadata-preview' || owner === 'org-metadata') ? owner : undefined;
 };
 
 export const orgDataDocumentSelector = ({

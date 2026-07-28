@@ -30,12 +30,11 @@ import {
 } from './commands/apexTestRunCodeAction';
 import { apexTestSuiteCreate, apexTestSuiteEdit, apexTestSuiteRun } from './commands/apexTestSuite';
 import { nls } from './messages';
-import { registerOrgOnlyRetrieveCodeLensProvider } from './retrieve/orgOnlyRetrieveCodeLensProvider';
 import { getApexTestingRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { apexTestingDiagnostics } from './utils/diagnostics';
-import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
 import { setupApexMetadataChangeWatcher } from './watchers/apexMetadataChangeWatcher';
+import { setupApexWorkspacePresenceWatcher } from './watchers/apexWorkspacePresenceWatcher';
 import { initializeTestDiscovery } from './watchers/testDiscovery';
 import { setupTestResultsFileWatcher } from './watchers/testResultsFileWatcher';
 
@@ -58,22 +57,10 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
       [
         Effect.forkIn(setupTestResultsFileWatcher(testController), scope),
         Effect.forkIn(setupApexMetadataChangeWatcher(testController), scope),
+        Effect.forkIn(setupApexWorkspacePresenceWatcher(testController), scope),
         Effect.forkIn(initializeTestDiscovery(testController), scope)
       ],
       { concurrency: 'unbounded' }
-    );
-
-    // Register virtual document provider for org-only Apex classes
-    const orgApexClassProvider = getOrgApexClassProvider();
-    const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
-      'sf-org-apex',
-      orgApexClassProvider
-    );
-    context.subscriptions.push(providerRegistration);
-
-    registerOrgOnlyRetrieveCodeLensProvider(
-      context,
-      api.services.orgDataDocumentSelector({ owner: 'apex-testing', language: 'apex' })
     );
   }
 

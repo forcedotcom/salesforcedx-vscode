@@ -21,8 +21,8 @@
 
 ### discovery VFS
 
-- `sf-org-data:` scheme (managed by services); `/orgs/<orgKey>/apex-testing/classes/<FullName>.cls`
-- read-only virtual editor backing org-only classes
+- canonical `sf-org-data:/orgs/<orgKey>/org-metadata/ApexClass/<FullName>` entries managed by services
+- shared resolver prefers workspace source and lazily reads org-only class bodies
 
 ### delegate command
 

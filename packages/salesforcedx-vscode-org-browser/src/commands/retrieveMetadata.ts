@@ -6,9 +6,10 @@
  */
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
+import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
@@ -23,11 +24,8 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
   }
 
   yield* Effect.annotateCurrentSpan({ memberCount: members.length });
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-
-  yield* confirmOverwrite(projectComponentSet, members);
+  yield* confirmOverwrite(members);
 
   return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1).pipe(
     Effect.tap(() =>
@@ -63,29 +61,25 @@ const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataType
     Match.orElse(() => Effect.succeed([]))
   );
 
-/** ComponentSet.has() returns false for CustomFields in monolithic format; use getComponentFilenamesByNameAndType */
-const isMemberPresentInProject = (projectComponentSet: ComponentSet, m: MetadataMember): boolean => {
-  if (projectComponentSet.has(m)) return true;
-  if (m.type === 'CustomField') {
-    const fieldPaths = projectComponentSet.getComponentFilenamesByNameAndType({
-      fullName: m.fullName,
-      type: 'CustomField'
-    });
-    return fieldPaths.length > 0;
-  }
-  return false;
-};
-
-const getOverwriteCount = (projectComponentSet: ComponentSet, members: MetadataMember[]): number =>
-  members.reduce((n, m) => n + (isMemberPresentInProject(projectComponentSet, m) ? 1 : 0), 0);
-
-const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (
-  projectComponentSet: ComponentSet,
-  members: MetadataMember[]
-) {
-  const overwriteCount = getOverwriteCount(projectComponentSet, members);
-  if (overwriteCount === 0) return;
+const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (members: MetadataMember[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+  if (!orgId) return;
+  const resolver = yield* api.services.OrgMetadataResolver;
+  const present = yield* Effect.forEach(
+    members,
+    member =>
+      resolver.isInWorkspace(
+        api.services.orgMetadataUri({
+          orgKey: orgId,
+          xmlName: member.type,
+          fullName: member.fullName
+        })
+      ),
+    { concurrency: 'unbounded' }
+  );
+  const overwriteCount = present.filter(Boolean).length;
+  if (overwriteCount === 0) return;
   const typeName = members[0]?.type ?? 'Unknown';
   yield* (yield* api.services.PromptService).confirmOrThrow({
     message: nls.localize('confirm_overwrite', String(overwriteCount), typeName),

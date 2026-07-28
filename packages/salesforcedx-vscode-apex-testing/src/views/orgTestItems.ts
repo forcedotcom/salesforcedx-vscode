@@ -179,10 +179,14 @@ type CreateClassAndMethodsContext = {
   controller: vscode.TestController;
   classItems: Map<string, vscode.TestItem>;
   methodItems: Map<string, vscode.TestItem>;
-  classNameToUri: Map<string, URI>;
-  orgOnlyClassUri: (fullClassName: string) => URI;
+  classResolutions: ReadonlyMap<string, ApexClassResolution>;
   orgOnlyTag: vscode.TestTag | undefined;
   inWorkspaceTag: vscode.TestTag | undefined;
+};
+
+export type ApexClassResolution = {
+  readonly uri: URI;
+  readonly inWorkspace: boolean;
 };
 
 /**
@@ -193,13 +197,13 @@ type CreateClassAndMethodsContext = {
 export const createClassAndMethodsFactory = (
   ctx: CreateClassAndMethodsContext
 ): ((fullClassName: string, classEntries: Array.NonEmptyArray<ToolingTestClass>) => vscode.TestItem) => {
-  const { controller, classItems, methodItems, classNameToUri, orgOnlyClassUri, orgOnlyTag, inWorkspaceTag } = ctx;
+  const { controller, classItems, methodItems, classResolutions, orgOnlyTag, inWorkspaceTag } = ctx;
 
   return (fullClassName: string, classEntries: Array.NonEmptyArray<ToolingTestClass>): vscode.TestItem => {
     const baseClassName = classEntries[0].name;
-    const localUri = classNameToUri.get(baseClassName);
-    const uri = localUri ?? orgOnlyClassUri(fullClassName);
-    const isOrgOnly = !localUri;
+    const resolution = classResolutions.get(fullClassName);
+    const uri = resolution?.uri;
+    const isOrgOnly = !resolution?.inWorkspace;
 
     const classItem = controller.createTestItem(createClassId(fullClassName), baseClassName, uri);
     classItem.canResolveChildren = true;

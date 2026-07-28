@@ -4,28 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField } from './types';
 
-export const createCustomFieldNode = (projectComponentSet: ComponentSet) => (element: OrgBrowserTreeItem) =>
-  Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
-    return yield* Effect.sync(() => {
+export const createCustomFieldNode =
+  <E, R>(isInWorkspace: (fullName: string) => Effect.Effect<boolean, E, R>) =>
+  (element: OrgBrowserTreeItem) =>
+    Effect.fn('createCustomFieldNode')(function* (field: CustomObjectField) {
       const fieldFullName = `${element.componentName}.${removeNamespacePrefix(element)(field).name}`;
-      const filePaths = projectComponentSet.getComponentFilenamesByNameAndType({
-        fullName: fieldFullName,
-        type: 'CustomField'
-      });
+      const filePresent = yield* isInWorkspace(fieldFullName);
       return new OrgBrowserTreeItem({
         kind: 'component',
         xmlName: 'CustomField',
         componentName: `${element.componentName}.${field.name}`,
         label: getFieldLabel(removeNamespacePrefix(element)(field)),
-        filePresent: filePaths.length > 0
+        filePresent
       });
     });
-  });
 
 /** build out the label for a CustomField */
 const getFieldLabel = (f: CustomObjectField): string => {

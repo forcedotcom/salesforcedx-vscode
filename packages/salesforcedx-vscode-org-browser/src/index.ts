@@ -258,6 +258,14 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const treeProvider = new MetadataTypeTreeProvider();
   // Register the tree provider
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
+  const orgMetadataChanges = yield* api.services.OrgMetadataChangePubSub;
+  const extensionScope = yield* getExtensionScope();
+  yield* Effect.forkIn(
+    Stream.fromPubSub(orgMetadataChanges).pipe(
+      Stream.runForEach(() => Effect.sync(() => treeProvider.fireChangeEvent()))
+    ),
+    extensionScope
+  );
 
   // --- Filter state: persistence, migration, and initial context keys ---
   // Legacy migration: convert old viewMode to boolean flags

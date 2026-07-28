@@ -74,10 +74,7 @@ export const messages = {
     'The requested resource was not found. The org may be unavailable or the test run may have expired.',
   apex_test_error_api_message: 'The org returned an error: %s',
   apex_test_retrieve_org_only_class_text: 'SFDX: Retrieve Org-Only Apex Test Class',
-  apex_test_retrieve_org_only_class_codelens_text: 'Org-Only: Download',
   apex_test_retrieve_canceled: 'Retrieve canceled',
-  apex_discovery_vfs_class_body_placeholder: '// Source unavailable for %s',
-  apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',
   apex_test_report_open_action: 'Open Report',
@@ -87,8 +84,6 @@ export const messages = {
     'Tip: For the best experience viewing the markdown file, open it and run "Markdown: Open Preview" from the Command Palette.\n\n',
   apex_test_successful_execution_message: '%s successfully ran',
   apex_test_failed_execution_message: '%s failed to run',
-  apex_class_source_hidden:
-    "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected.",
   test_explorer_local_namespace_label: '(Local Namespace)',
   test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
   test_explorer_1gp_package_label: '%s (1GP)',

@@ -15,11 +15,35 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const { URI: UriClass } = jest.requireActual('vscode-uri');
   const { HashableUri } = jest.requireActual('salesforcedx-vscode-services/src/vscode/hashableUri');
   const { orgDataSegments, orgDataUri } = jest.requireActual('salesforcedx-vscode-services/src/orgVfs/orgDataUris');
+  const { orgMetadataUri } = jest.requireActual('salesforcedx-vscode-services/src/orgVfs/orgMetadataResolver');
 
   let mockConnectionRef: any;
+  let mockClassNameToUri = new Map<string, unknown>();
   let mockReadFileResult = '';
   const mockReadFile = jest.fn(() => EffectLib.succeed(mockReadFileResult));
-  const mockMetadataRetrieve = jest.fn(() => EffectLib.succeed({ getFileResponses: () => [] }));
+  const mockMetadataRetrieve: jest.Mock = jest.fn(() => EffectLib.succeed({ getFileResponses: () => [] }));
+  const mockOrgMetadataResolver = {
+    getPresence: (uri: { path: string }) => {
+      const fullName = decodeURIComponent(uri.path.split('/').at(-1) ?? '');
+      const workspaceUri = mockClassNameToUri.get(fullName);
+      return EffectLib.succeed({
+        inOrg: true,
+        inWorkspace: workspaceUri !== undefined,
+        workspaceUri
+      });
+    },
+    invalidate: () => EffectLib.void,
+    download: (uri: { path: string }) => {
+      const fullName = decodeURIComponent(uri.path.split('/').at(-1) ?? '');
+      return EffectLib.flatMap(
+        mockMetadataRetrieve([{ type: 'ApexClass', fullName }], { ignoreConflicts: true }),
+        (result: { getFileResponses: () => { filePath?: string }[] }) => {
+          const filePath = result.getFileResponses().find(response => response.filePath)?.filePath;
+          return filePath ? EffectLib.succeed(UriClass.file(filePath)) : EffectLib.succeed(uri);
+        }
+      );
+    }
+  };
   const MockConnectionService = {
     getConnection: () => EffectLib.succeed(mockConnectionRef),
     invalidateCachedConnections: () => EffectLib.void
@@ -49,6 +73,8 @@ jest.mock('../../../src/services/extensionProvider', () => {
       FsService: mockFsService,
       orgDataSegments,
       orgDataUri,
+      orgMetadataUri,
+      OrgMetadataResolver: EffectLib.succeed(mockOrgMetadataResolver),
       // closeEditorTabByUri (retrieve flow) delegates to api.services.closeMatchingTabs; no tabs to reap in tests.
       closeMatchingTabs: () => EffectLib.void,
       // Yielded as an instance in the execution service (yield* api.services.ChannelService), so wrap in
@@ -116,6 +142,9 @@ jest.mock('../../../src/services/extensionProvider', () => {
     __mockFsServiceReadFile: mockReadFile,
     __mockAppendToChannel: mockAppendToChannel,
     __mockMetadataRetrieve: mockMetadataRetrieve,
+    __setMockClassNameToUri: (entries: Map<string, unknown>) => {
+      mockClassNameToUri = entries;
+    },
     // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
     __resetTree: () => {
       ensureRuntime();
@@ -129,7 +158,6 @@ jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
   return {
     ...actual,
-    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
     getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(new Map()),
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
@@ -139,22 +167,6 @@ jest.mock('../../../src/testDiscovery/packageResolution', () => {
   const EffectLib = jest.requireActual('effect/Effect');
   // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
   return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
-});
-
-const mockSaveDiscoveredClasses = jest.fn();
-
-jest.mock('../../../src/discoveryVfs/apexTestDiscoveryService', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  return {
-    // saveDiscoveredClasses is consumed via `yield* ApexTestDiscoveryService.saveDiscoveredClasses(...)`,
-    // so the mock records the call and returns an Effect the persist program can run on any runtime.
-    ApexTestDiscoveryService: {
-      saveDiscoveredClasses: (...args: unknown[]) => {
-        mockSaveDiscoveredClasses(...args);
-        return EffectLib.void;
-      }
-    }
-  };
 });
 
 // Mock TestService before imports
@@ -191,7 +203,6 @@ import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
 import * as pathHelpers from '../../../src/utils/pathHelpers';
 import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as extensionProvider from '../../../src/services/extensionProvider';
-import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
 import * as Option from 'effect/Option';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
@@ -245,7 +256,6 @@ const mockTestRun = {
 describe('ApexTestController', () => {
   let controller: ApexTestController;
   let mockConnection: any;
-  let createOrgApexClassUriSpy: jest.SpyInstance;
   let discoverTestsSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -287,7 +297,9 @@ describe('ApexTestController', () => {
 
     (extensionProvider as any).__setMockConnection?.(mockConnection);
 
-    (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
+    (
+      extensionProvider as unknown as { __setMockClassNameToUri: (entries: Map<string, URI>) => void }
+    ).__setMockClassNameToUri(new Map());
     (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     const Effect = jest.requireActual('effect/Effect');
     discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
@@ -298,9 +310,6 @@ describe('ApexTestController', () => {
     jest.clearAllMocks();
     mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
     mockTestServiceMethods.getTestsInSuite.mockResolvedValue([]);
-    // Restore buildClassToUriIndex default after clearing
-    (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
-
     // Ensure vscode.Uri.parse has its default implementation (from setup-jest.ts)
     // It should already have it, but let's make sure it's working
     if (!(vscode.Uri.parse as jest.Mock).getMockImplementation()) {
@@ -329,20 +338,7 @@ describe('ApexTestController', () => {
       });
     }
 
-    // Set up spies for orgApexClassProvider functions
-    createOrgApexClassUriSpy = jest
-      .spyOn(orgApexClassProvider, 'createOrgApexClassUri')
-      .mockImplementation((className: string) => {
-        const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
-        return URI.parse(`sf-org-apex:${baseClassName}`);
-      });
-
     controller = new ApexTestController();
-  });
-
-  afterEach(() => {
-    // Restore spies
-    createOrgApexClassUriSpy.mockRestore();
   });
 
   describe('constructor', () => {
@@ -492,7 +488,7 @@ describe('ApexTestController', () => {
         id: 'method:OrgOnly.testOne',
         label: 'testOne',
         tags: [orgOnlyTag],
-        uri: URI.parse('sf-org-apex:OrgOnly'),
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnly'),
         range: undefined,
         canResolveChildren: false,
         children: {
@@ -554,7 +550,9 @@ describe('ApexTestController', () => {
 
       const Effect = jest.requireActual('effect/Effect');
       discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: mockClasses }));
-      (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(
+      (
+        extensionProvider as unknown as { __setMockClassNameToUri: (entries: Map<string, URI>) => void }
+      ).__setMockClassNameToUri(
         new Map([
           ['TestClass1', URI.file('/workspace/TestClass1.cls')],
           ['TestClass2', URI.file('/workspace/TestClass2.cls')]
@@ -577,7 +575,6 @@ describe('ApexTestController', () => {
       await controller.discoverTests();
 
       expect(discoverTestsSpy).toHaveBeenCalled();
-      expect(mockSaveDiscoveredClasses).toHaveBeenCalledWith('org123', mockClasses, expect.any(Map));
       expect(mockTestController.createTestItem).toHaveBeenCalled();
       expect(mockTestController.items.add).toHaveBeenCalled();
     });
@@ -603,9 +600,7 @@ describe('ApexTestController', () => {
 
       const Effect = jest.requireActual('effect/Effect');
       discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: mockClasses }));
-      // OrgOnlyClass does not exist locally, so buildClassToUriIndex returns empty map
-      (testUtils.buildClassToUriIndex as jest.Mock).mockReset();
-      (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
+      // OrgOnlyClass does not exist locally, so the resolver reports no workspace URI.
       const createdItemsMap = new Map<string, any>();
       (mockTestController.createTestItem as jest.Mock).mockImplementation(
         (id: string, label: string, uri?: URI): vscode.TestItem => {
@@ -676,7 +671,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-apex:OrgOnlyClass'),
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass'),
         tags: [{ id: 'org-only' } as vscode.TestTag],
         canResolveChildren: false,
         children: {
@@ -688,7 +683,7 @@ describe('ApexTestController', () => {
 
       const mockDocument = {
         getText: jest.fn().mockReturnValue('public class OrgOnlyClass {}'),
-        uri: URI.parse('sf-org-apex:OrgOnlyClass')
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass')
       };
 
       const mockEditor = {
@@ -705,7 +700,7 @@ describe('ApexTestController', () => {
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
       const showDocCall = (vscode.window.showTextDocument as jest.Mock).mock.calls[0][0];
       expect(showDocCall).toBeDefined();
-      expect(showDocCall.toString()).toContain('sf-org-apex');
+      expect(showDocCall.toString()).toContain('sf-org-data:/orgs/org123/org-metadata/ApexClass');
       expect(showDocCall.toString()).toContain('OrgOnlyClass');
     });
 
@@ -717,7 +712,7 @@ describe('ApexTestController', () => {
       const methodTestItem = {
         id: 'method:OrgOnlyClass.testMethod',
         label: 'testMethod',
-        uri: URI.parse('sf-org-apex:OrgOnlyClass'),
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass'),
         tags: [{ id: 'org-only' } as vscode.TestTag],
         range: new vscode.Range(new vscode.Position(5, 10), new vscode.Position(5, 10)),
         canResolveChildren: false,
@@ -730,7 +725,7 @@ describe('ApexTestController', () => {
 
       const mockDocument = {
         getText: jest.fn().mockReturnValue('public class OrgOnlyClass {}'),
-        uri: URI.parse('sf-org-apex:OrgOnlyClass')
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass')
       };
 
       const mockEditor = {
@@ -773,7 +768,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls')
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass')
       } as unknown as vscode.TestItem;
 
       notificationService.showSuccessfulExecution = jest.fn();
@@ -809,7 +804,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls')
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass')
       } as unknown as vscode.TestItem;
 
       notificationService.showSuccessfulExecution = jest.fn();
@@ -836,7 +831,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls')
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass')
       } as unknown as vscode.TestItem;
 
       notificationService.showInformationMessage = jest.fn();
@@ -860,7 +855,7 @@ describe('ApexTestController', () => {
       const classTestItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls')
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass')
       } as unknown as vscode.TestItem;
 
       notificationService.showFailedExecution = jest.fn();
@@ -900,14 +895,14 @@ describe('ApexTestController', () => {
       const methodItem = {
         id: 'method:OrgOnlyClass.testMethod1',
         label: 'testMethod1',
-        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls'),
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass'),
         range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0))
       } as unknown as vscode.TestItem;
 
       const classItem = {
         id: 'class:OrgOnlyClass',
         label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls'),
+        uri: URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass'),
         children: {
           forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem),
           // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts)
@@ -920,7 +915,7 @@ describe('ApexTestController', () => {
           [
             'testMethod1',
             new vscode.Location(
-              URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/OrgOnlyClass.cls'),
+              URI.parse('sf-org-data:/orgs/org123/org-metadata/ApexClass/OrgOnlyClass'),
               new vscode.Range(new vscode.Position(9, 2), new vscode.Position(9, 2))
             )
           ]

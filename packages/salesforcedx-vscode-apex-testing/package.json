@@ -320,7 +320,7 @@
         },
         {
           "command": "sf.apex.test.orgOnlyClass.retrieve",
-          "when": "sf:orgDataOwner == apex-testing && editorLangId == apex"
+          "when": "false"
         },
         {
           "command": "sf.apex.test.refresh",
