@@ -99,9 +99,12 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: 
     );
   }).pipe(
     Effect.catchAllCause(cause =>
-      channelService
-        .appendToChannel(formatErrorMessage(Cause.squash(cause)))
-        .pipe(Effect.andThen(channelService.showChannel))
+      cause.pipe(
+        Cause.squash,
+        formatErrorMessage,
+        channelService.appendToChannel,
+        Effect.andThen(channelService.showChannel)
+      )
     )
   );
 });

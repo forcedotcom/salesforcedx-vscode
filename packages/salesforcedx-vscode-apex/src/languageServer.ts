@@ -143,7 +143,7 @@ const protocol2CodeConverter = (value: string) => URI.parse(value);
 // One long-lived ROOT span per client lifetime. `apexLSPLog` is high-volume; per ADR-0002 we write
 // attrs onto this single span, not N top-level spans. Held in a Ref<Option> (Effect primitive for
 // shared mutable state) with its child scope so a restart can flush the prior span before the next.
-const clientSpanRef = Effect.runSync(Ref.make(Option.none<{ scope: Scope.CloseableScope; span: Tracer.Span }>()));
+const clientSpanRef = Option.none<{ scope: Scope.CloseableScope; span: Tracer.Span }>().pipe(Ref.make, Effect.runSync);
 
 // Runs on first activation AND every restart: close the prior child scope (flushes prior span) before
 // forking the next — exactly ONE live client span (ADR-0002). Forked from the extension scope so

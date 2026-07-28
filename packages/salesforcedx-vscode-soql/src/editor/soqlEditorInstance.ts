@@ -113,7 +113,7 @@ export class SOQLEditorInstance {
         Stream.runDrain
       )
     );
-    this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(messageFiber)) });
+    this.subscriptions.push({ dispose: () => Fiber.interrupt(messageFiber).pipe(Effect.runFork) });
 
     const { onConnectionChanged, onNoDefaultOrg } = this;
     const connectionFiber = getSoqlRuntime().runFork(
@@ -127,7 +127,7 @@ export class SOQLEditorInstance {
         );
       })
     );
-    this.subscriptions.push({ dispose: () => Effect.runFork(Fiber.interrupt(connectionFiber)) });
+    this.subscriptions.push({ dispose: () => Fiber.interrupt(connectionFiber).pipe(Effect.runFork) });
 
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }

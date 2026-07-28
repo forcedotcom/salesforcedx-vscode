@@ -190,7 +190,7 @@ const resolveFromInstalledSubscriberPackages = Effect.fn(
     )
   );
   const noNamespacePackages = rows.filter(row =>
-    Option.isNone(trimmedNamespace(row.SubscriberPackage.NamespacePrefix))
+    trimmedNamespace(row.SubscriberPackage.NamespacePrefix).pipe(Option.isNone)
   );
 
   const entries = [...classIdToNamespace.entries()];
