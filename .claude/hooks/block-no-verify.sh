@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-# Block git with --no-verify. PreToolUse hook (matcher: Bash).
-# Reads tool input on stdin and inspects the .command field.
-# https://code.claude.com/docs/en/hooks.md
-source "$(dirname "${BASH_SOURCE[0]}")/lib/bash-hook-preamble.sh"
-[[ "$command" =~ git.*--no-verify ]] && cat <<'EOF'
-{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"git with --no-verify is blocked. Run without --no-verify so hooks run."}}
-EOF
-exit 0
+# Claude adapter for the repository-owned safeguard engine.
+ROOT="${CLAUDE_PROJECT_DIR:-${CURSOR_PROJECT_DIR:-$(git rev-parse --show-toplevel)}}"
+exec node "$ROOT/scripts/ai-safeguards-cli.mjs" block-no-verify

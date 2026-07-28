@@ -62,6 +62,7 @@ export default [
       '**/jest.config.js',
       '**/jest.integration.config.js',
       '**/.wireit/**',
+      '.opencode/**',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
