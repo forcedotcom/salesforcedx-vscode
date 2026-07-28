@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { type Command, GlobalCliEnvironment, TELEMETRY_HEADER } from '@salesforce/salesforcedx-utils';
+import { type Command, TELEMETRY_HEADER } from '@salesforce/salesforcedx-utils';
 import * as cross_spawn from 'cross-spawn';
 import { CliCommandExecution } from '../../../src/core/cliCommandExecution';
 import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
@@ -27,38 +27,23 @@ describe('CliCommandExecutor Unit Tests.', () => {
     timeout: 2000
   };
 
-  const globalKey = 'globalKey';
-  const globalValue = 'totallyTrue';
-
-  beforeEach(() => {
-    // Add a global value to the GCE option for processing during creation.
-    GlobalCliEnvironment.environmentVariables.set(globalKey, globalValue);
+  const patchedOptions = expect.objectContaining({
+    timeout: options.timeout,
+    env: expect.objectContaining({ TEST_ENV: options.env.TEST_ENV, SFDX_TOOL: TELEMETRY_HEADER })
   });
 
-  it('Should be able to create an instance.', () => {
-    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options, false);
+  it('Should be able to create an instance with the env patched.', () => {
+    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options);
     expect(cliCommandExecutor).toBeInstanceOf(CliCommandExecutor);
-  });
-
-  it('Should be able to include global env.', () => {
-    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options, true);
-    const populatedOptions = (cliCommandExecutor as any).options;
-    expect(populatedOptions.env).toEqual(
-      expect.objectContaining({
-        globalKey: globalValue,
-        TEST_ENV: options.env.TEST_ENV,
-        SFDX_TOOL: TELEMETRY_HEADER
-      })
-    );
-    expect(populatedOptions.timeout).toEqual(options.timeout);
+    expect((cliCommandExecutor as any).options).toEqual(patchedOptions);
   });
 
   it('Should be able to execute the command.', () => {
     const fakeChildProcess = {};
     crossSpawnMocked.mockReturnValue(fakeChildProcess as any);
-    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options, false);
+    const cliCommandExecutor = new CliCommandExecutor(fakeCommand, options);
     cliCommandExecutor.execute();
-    expect(crossSpawnMocked).toHaveBeenCalledWith(fakeCommand.command, fakeCommand.args, options);
+    expect(crossSpawnMocked).toHaveBeenCalledWith(fakeCommand.command, fakeCommand.args, patchedOptions);
     expect(CliCommandExecutorMock).toHaveBeenCalledWith(fakeCommand, fakeChildProcess, undefined);
   });
 });

@@ -344,6 +344,24 @@
             "error"
           ],
           "description": "%configuration.logLevel.description%"
+        },
+        "salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS": {
+          "type": "string",
+          "default": null,
+          "description": "%configuration.NODE_EXTRA_CA_CERTS.description%"
+        },
+        "salesforcedx-vscode-core.SF_LOG_LEVEL": {
+          "type": "string",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal"
+          ],
+          "default": "fatal",
+          "description": "%configuration.SF_LOG_LEVEL.description%"
         }
       }
     },

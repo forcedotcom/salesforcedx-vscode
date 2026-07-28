@@ -39,6 +39,7 @@ const mockConfigService = (targetOrg: string | undefined = ALIAS): Layer.Layer<C
       invalidateConfigAggregator: () => Effect.void,
       getTargetOrg: () => Effect.succeed(targetOrg),
       getTargetDevHub: () => Effect.succeed(undefined),
+      isCliTelemetryDisabled: () => Effect.succeed(false),
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),
       unsetTargetOrg: () => Effect.void,

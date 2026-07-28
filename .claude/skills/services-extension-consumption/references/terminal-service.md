@@ -20,7 +20,13 @@ simpleExec(args: {
 - `timeout` optional `Duration.DurationInput` (default 30 s); pass a larger Duration for long-running commands (e.g. org delete)
 - `env` optional — overrides/augments child process environment (merged over `process.env`)
 - `cwd` optional — sets child working directory (omitted → uses extension-host process.cwd())
-- `sf ` commands auto-inject `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` + `SFDX_TOOL='salesforce-vscode-extensions'` (caller `env` overrides win)
+- `sf ` commands get an env assembled at exec time, lowest precedence first:
+  - `SF_LOG_LEVEL` from `salesforcedx-vscode-core.SF_LOG_LEVEL` (default `fatal`)
+  - `NODE_EXTRA_CA_CERTS` from `salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS`, falling back to the ambient env var; omitted entirely when neither is set
+  - `SF_DISABLE_TELEMETRY=true` when telemetry is opted out (`telemetry.telemetryLevel: off`, `salesforcedx-vscode-core.telemetry.enabled: false`, or the CLI's `disable-telemetry` config)
+  - `SF_JSON_TO_STDOUT=true` + `FORCE_COLOR=0` + `SFDX_TOOL='salesforce-vscode-extensions'`
+  - then the caller's `env` merges over all of it, so an explicit override always wins (including for the six keys above)
+- settings are read per exec, so changing one takes effect on the next command with no window reload — don't thread these yourself
 - Traced with `TerminalService.simpleExec` span (`command` attribute)
 - On web: immediate `TerminalServiceError` (no exec attempted)
 

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, OrgConfigProperties } from '@salesforce/core';
+import { Config, OrgConfigProperties, SfConfigProperties } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Effect from 'effect/Effect';
 import { ConfigService, ConfigWriteError } from '../../../src/core/configService';
@@ -136,5 +136,58 @@ describe('ConfigService.getTargetDevHub', () => {
     const value = await Effect.runPromise(ConfigService.getTargetDevHub().pipe(Effect.provide(ConfigService.Default)));
 
     expect(value).toBeUndefined();
+  });
+});
+
+const DISABLE_TELEMETRY_KEY: string = SfConfigProperties.DISABLE_TELEMETRY;
+
+describe('ConfigService.isCliTelemetryDisabled', () => {
+  const getPropertyValueMock = jest.fn();
+
+  beforeEach(() => {
+    getPropertyValueMock.mockReset();
+    const agg = {
+      getPropertyValue: getPropertyValueMock,
+      getConfig: () => ({}),
+      reload: () => Promise.resolve(agg)
+    } as unknown as ConfigAggregator;
+    aggregatorCreateMock.mockReset().mockResolvedValue(agg);
+    vscode.workspace.workspaceFolders = [
+      {
+        uri: { scheme: 'file', fsPath: '/mock/workspace', toString: (): string => 'file:///mock/workspace' },
+        name: 'mock-workspace',
+        index: 0
+      }
+    ];
+  });
+
+  it('treats the string "true" as disabled', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === DISABLE_TELEMETRY_KEY ? 'true' : undefined));
+
+    const disabled = await Effect.runPromise(
+      ConfigService.isCliTelemetryDisabled().pipe(Effect.provide(ConfigService.Default))
+    );
+
+    expect(disabled).toBe(true);
+  });
+
+  it('treats a boolean true as disabled', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === DISABLE_TELEMETRY_KEY ? true : undefined));
+
+    const disabled = await Effect.runPromise(
+      ConfigService.isCliTelemetryDisabled().pipe(Effect.provide(ConfigService.Default))
+    );
+
+    expect(disabled).toBe(true);
+  });
+
+  it('returns false when disable-telemetry is unset', async () => {
+    getPropertyValueMock.mockReturnValue(undefined);
+
+    const disabled = await Effect.runPromise(
+      ConfigService.isCliTelemetryDisabled().pipe(Effect.provide(ConfigService.Default))
+    );
+
+    expect(disabled).toBe(false);
   });
 });

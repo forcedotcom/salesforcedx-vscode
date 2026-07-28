@@ -32,12 +32,11 @@ const workspaceLayer = (uri: URI | undefined) =>
     } as unknown as WorkspaceService)
   );
 
-const layerFor = (uri: URI | undefined) => Layer.provide(ProjectService.DefaultWithoutDependencies, workspaceLayer(uri));
+const layerFor = (uri: URI | undefined) =>
+  Layer.provide(ProjectService.DefaultWithoutDependencies, workspaceLayer(uri));
 
 const pathOf = (folder: 'getStateFolder' | 'getDebugLogsFolder' | 'getApexTestResultsFolder', uri: URI) =>
-  Effect.runPromise(
-    Effect.map(ProjectService[folder](), result => result.path).pipe(Effect.provide(layerFor(uri)))
-  );
+  Effect.runPromise(Effect.map(ProjectService[folder](), result => result.path).pipe(Effect.provide(layerFor(uri))));
 
 describe('ProjectService folder URIs', () => {
   const workspace = URI.file('/project');
@@ -66,9 +65,9 @@ describe('ProjectService folder URIs', () => {
       const exit = await Effect.runPromiseExit(ProjectService[folder]().pipe(Effect.provide(layerFor(undefined))));
 
       expect(Exit.isFailure(exit)).toBe(true);
-      expect(
-        Exit.isFailure(exit) ? Option.getOrUndefined(Cause.failureOption(exit.cause)) : undefined
-      ).toBeInstanceOf(NoWorkspaceOpenError);
+      expect(Exit.isFailure(exit) ? Option.getOrUndefined(Cause.failureOption(exit.cause)) : undefined).toBeInstanceOf(
+        NoWorkspaceOpenError
+      );
     }
   );
 });

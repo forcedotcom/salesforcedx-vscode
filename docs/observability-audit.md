@@ -86,7 +86,7 @@ ApplicationInsightsNodeExporter.export() batches spans
 ### Log Level Control
 
 - VS Code setting: `salesforcedx-vscode-salesforcedx.logLevel` (default: `error`)
-- Env var fallback: `SF_LOG_LEVEL` (fatal→error mapping)
+- No env var fallback: nothing writes `SF_LOG_LEVEL` into the extension-host process, and the setting's manifest default (`error`) masks the code's `SF_LOG_LEVEL` read
 - Applied via `Logger.minimumLogLevel(getLogLevel())`
 
 ### Web: Span export to customEvents

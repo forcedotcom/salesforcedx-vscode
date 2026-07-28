@@ -17,5 +17,4 @@ export { TELEMETRY_HEADER } from './constants';
 // CLI
 export { CommandBuilder } from './cli/commandBuilder';
 export { CommandOutput } from './cli/commandOutput';
-export { GlobalCliEnvironment } from './cli/globalCliEnvironment';
 export { SfCommandBuilder } from './cli/sfCommandBuilder';

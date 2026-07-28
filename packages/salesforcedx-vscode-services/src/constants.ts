@@ -10,6 +10,10 @@ export const sampleProjectName = 'dx-project';
 // VS Code settings sections and keys used across services and tests
 export const CODE_BUILDER_WEB_SECTION = 'salesforce-web-console';
 export const SALESFORCE_DX_SECTION = 'salesforcedx-vscode-salesforcedx';
+/** The core extension's settings namespace. Services owns the CLI-env settings (NODE_EXTRA_CA_CERTS /
+ * SF_LOG_LEVEL) and core's telemetry.enabled, but their keys stay under core's section so existing user
+ * settings.json entries keep working. */
+export const SFDX_CORE_SECTION = 'salesforcedx-vscode-core';
 export const INSTANCE_URL_KEY = 'instanceUrl';
 export const ACCESS_TOKEN_KEY = 'accessToken';
 export const API_VERSION_KEY = 'apiVersion';

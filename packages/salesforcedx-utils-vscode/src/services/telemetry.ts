@@ -27,7 +27,7 @@ import {
 } from '../constants';
 import { shapeFrom } from '../context/workspaceOrgShape';
 import { errorToString } from '../helpers/errorUtils';
-import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
+import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
 import { LogStream } from '../telemetry/reporters/logStream';
@@ -182,13 +182,10 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
-    await this.checkCliTelemetry()
-      .then(cliEnabled => {
-        this.setCliTelemetryEnabled(this.isTelemetryExtensionConfigurationEnabled() && cliEnabled);
-      })
-      .catch(error => {
-        console.log(`Error initializing telemetry service: ${errorToString(error)}`);
-      });
+    // prime the memoized CLI opt-out lookup so the reporter checks below don't pay for it during activation
+    await this.checkCliTelemetry().catch(error => {
+      console.log(`Error initializing telemetry service: ${errorToString(error)}`);
+    });
 
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       const { cliId, webUserId } = await this.getIdentityFromServices();
@@ -298,6 +295,9 @@ export class TelemetryService implements TelemetryServiceInterface {
     return await this.cliAllowsTelemetryPromise;
   }
 
+  /** Duplicated by necessity in vscode-services (salesforcedx-vscode-services/src/terminal/terminalService.ts
+   * `isVscodeTelemetryOff`, which gates SF_DISABLE_TELEMETRY for `sf ` execs) because that package cannot depend
+   * on utils-vscode — keep the two settings checked here in sync with it. */
   public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
       workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
@@ -305,11 +305,9 @@ export class TelemetryService implements TelemetryServiceInterface {
     );
   }
 
-  public setCliTelemetryEnabled(isEnabled: boolean): void {
-    if (!isEnabled) {
-      disableCLITelemetry();
-    }
-  }
+  /** No-op: exists only to satisfy the external TelemetryServiceInterface contract. The CLI telemetry
+   * opt-out is computed per-exec in TerminalService (vscode-services), so nothing is pushed from here. */
+  public setCliTelemetryEnabled(_isEnabled: boolean): void {}
 
   public sendActivationEventInfo(activationInfo: ActivationInfo) {
     this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, {

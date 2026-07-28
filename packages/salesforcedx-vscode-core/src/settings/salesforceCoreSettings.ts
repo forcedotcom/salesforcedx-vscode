@@ -7,13 +7,7 @@
 
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import {
-  ALL_EXCEPTION_CATCHER_ENABLED,
-  ENV_NODE_EXTRA_CA_CERTS,
-  ENV_SF_LOG_LEVEL,
-  INTERNAL_DEVELOPMENT_FLAG,
-  TELEMETRY_ENABLED
-} from '../constants';
+import { ALL_EXCEPTION_CATCHER_ENABLED, INTERNAL_DEVELOPMENT_FLAG, TELEMETRY_ENABLED } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
  */
@@ -48,14 +42,6 @@ export class SalesforceCoreSettings {
 
   public getInternalDev(): boolean {
     return this.getConfigValue(INTERNAL_DEVELOPMENT_FLAG, false);
-  }
-
-  public getNodeExtraCaCerts(): string {
-    return this.getConfigValue(ENV_NODE_EXTRA_CA_CERTS, process.env.NODE_EXTRA_CA_CERTS ?? '');
-  }
-
-  public getSfLogLevel(): string {
-    return this.getConfigValue(ENV_SF_LOG_LEVEL, process.env.SF_LOG_LEVEL ?? 'fatal');
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
