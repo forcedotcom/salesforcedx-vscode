@@ -118,7 +118,8 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
-        "package*.json"
+        "package*.json",
+        "../../.github/**"
       ],
       "output": []
     },
