@@ -128,6 +128,49 @@ a content check can prove *the bytes under test are the bytes intended*.
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+The same split as a component view — note every arrow crosses the boundary **downward**
+(the repo layer depends on the package, never the reverse), and everything docker-facing
+funnels through the runner seam:
+
+```mermaid
+flowchart TB
+    subgraph REPO["REPO ORCHESTRATOR LAYER (repo-specific, NOT in package)"]
+        direction TB
+        SRC["VSIX sourcing<br/>build-from-tree | download-by-runId"]
+        DEDUP["VSIX selection / dedup<br/>modern vs legacy 67.x"]
+        LOCAL["local command<br/>test:container:local"]
+        CI["CI workflow<br/>codeBuilderE2E.yml"]
+        WIRE["wiring: publisher prefix,<br/>image ref, org alias, fixture path"]
+    end
+
+    subgraph PKG["PACKAGE @salesforce/code-builder-e2e (generic CB-image toolkit)"]
+        direction TB
+        LIFE["Lifecycle<br/>pull / run / restart / teardown"]
+        AUTH["Auth<br/>resolveOrgBootEnv (opt, sf-aware)"]
+        SWAP["Swap<br/>wipe + install + emit Manifest"]
+        SEED["Seed<br/>coder.json + trust writes"]
+        VERIFY["Verify<br/>pure content + version assertion"]
+        DIGEST(["Digest core<br/>entrypoint resolver + composite digest"])
+        RUNNER{{"Runner seam<br/>injected fn (+ Effect adapter)"}}
+
+        SWAP --> DIGEST
+        VERIFY --> DIGEST
+        SWAP --> RUNNER
+        VERIFY --> RUNNER
+        LIFE --> RUNNER
+        SEED --> RUNNER
+        AUTH --> RUNNER
+    end
+
+    REPO ==>|imports & composes| PKG
+    RUNNER -.->|execFileSync docker ...| DOCKER[("docker / CB image")]
+
+    classDef repo fill:#eef6ff,stroke:#4a90d9,color:#123;
+    classDef pkg fill:#f3fbef,stroke:#5aa457,color:#123;
+    class SRC,DEDUP,LOCAL,CI,WIRE repo;
+    class LIFE,AUTH,SWAP,SEED,VERIFY,DIGEST,RUNNER pkg;
+```
+
 ### 3.2 The two spine objects
 
 Everything threads through two typed objects (both **Effect Schema** — §4, §12):
@@ -154,9 +197,91 @@ Everything threads through two typed objects (both **Effect Schema** — §4, §
   Repo orchestrator (§7) composes all of the above
 ```
 
+As a dependency graph (edge = "depends on / consumes"; the shaded node is the first
+externally-shippable brick):
+
+```mermaid
+flowchart LR
+    DIGEST(["Digest core (M1)"])
+    MAN(["Manifest schema (M1)"])
+    VERIFY["Verify (M2)"]
+    SWAP["Swap (M3)"]
+    LIFE["Lifecycle (M4)"]
+    AUTH["Auth / BootEnv (M5)"]
+    SEED["Seed (M5)"]
+    ORCH{{"Repo orchestrator + CI (M6)"}}
+
+    DIGEST --> VERIFY
+    DIGEST --> SWAP
+    MAN --> SWAP
+    MAN --> VERIFY
+    SWAP -->|emits| MAN
+    LIFE -->|ContainerHandle| SWAP
+    LIFE -->|ContainerHandle| SEED
+    LIFE -->|ContainerHandle| VERIFY
+    AUTH -->|BootEnv| LIFE
+    VERIFY --> ORCH
+    SWAP --> ORCH
+    LIFE --> ORCH
+    AUTH --> ORCH
+    SEED --> ORCH
+
+    classDef first fill:#fff3cd,stroke:#d9a441,color:#123,stroke-width:2px;
+    class VERIFY first;
+```
+
 Verify ships first because it is independently useful (assert correctness after a *manual*
 swap) **and** it is the brick carrying the known correctness risk — getting its contract
 right de-risks everything downstream.
+
+### 3.4 Runtime pipeline (end-to-end sequence)
+
+How the composed system runs one e2e pass. The orchestrator (repo layer) drives; every
+docker action goes through the package's runner seam. Note the **restart between swap and
+verify** — that is the single lever that both re-scans the overrides *and* re-runs org auth
+(§7.1), and verify only ever sees a fully-booted, swapped host.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant O as Orchestrator (repo)
+    participant A as Auth (resolveOrgBootEnv)
+    participant L as Lifecycle
+    participant S as Seed
+    participant W as Swap
+    participant V as Verify
+    participant D as docker / CB image
+    participant P as Playwright specs
+
+    O->>A: resolveOrgBootEnv(alias)
+    A->>A: sf org auth show-access-token (NOT org display)
+    A-->>O: BootEnv { accessToken, instanceUrl }
+    O->>L: pull(imageRef)
+    L->>D: docker pull
+    O->>L: run({ bootEnv, mount, readiness })
+    L->>D: docker run -e … -v fixture:/…
+    L->>D: poll workbench URL until healthy
+    L-->>O: ContainerHandle { name, url, … }
+    O->>S: seedWorkspace(handle, fixturePath)
+    S->>D: docker exec: write coder.json + trust setting
+    O->>W: swap(handle, vsixPaths[], { publisherPrefix })
+    W->>D: wipe {prefix}.* override dirs + runtime symlinks
+    W->>W: host-side unpack + digest each VSIX
+    W->>D: docker cp extracted trees into /base/extension-overrides
+    W-->>O: Manifest (name→version→digests)
+    O->>O: persist manifest.json (provenance)
+    O->>L: restart(handle)
+    L->>D: docker restart (re-scan overrides + re-run org auth)
+    L->>D: poll workbench URL until healthy
+    O->>V: verify(handle, Manifest)
+    V->>D: docker cp override dirs OUT to host
+    V->>V: recompute digests, assert 1 dir/ext + digests match
+    V-->>O: pass / fail-loud
+    O->>P: run specs (browser → container URL)
+    P-->>O: results
+    O->>L: teardown(handle)
+    L->>D: docker rm -f
+```
 
 ---
 
@@ -176,6 +301,35 @@ and the two sides are **not the same bytes**:
 So `sha256(the .vsix)` is meaningless to verify. The digest is defined over content that
 **survives unpacking**, and is computed on the **extracted tree** on both sides (swap
 extracts host-side before install; verify copies the extracted dir back out — §5, §6).
+
+The two sides must arrive at the *same* digest through different paths — this is the crux
+that forces swap and verify to share one digest core (§4.4):
+
+```mermaid
+flowchart TB
+    subgraph SWAPSIDE["SWAP side (pre-install)"]
+        Z[".vsix (zip archive)"] -->|host-side unpack| ET1["extracted tree (host)"]
+        ET1 --> DC1(["digest core"])
+        DC1 --> M["Manifest entry<br/>{ pkgJsonDigest, bundleDigest }"]
+    end
+
+    subgraph VERIFYSIDE["VERIFY side (post-install)"]
+        OD["/base/extension-overrides/<br/>{prefix}.name-version/ (in container)"]
+        OD -->|docker cp OUT| ET2["extracted tree (host temp)"]
+        ET2 --> DC2(["digest core (SAME code)"])
+        DC2 --> RD["recomputed digest"]
+    end
+
+    M -.->|must equal| RD
+    RD --> CMP{"match?"}
+    CMP -->|yes| PASS["✓ intended bytes installed"]
+    CMP -->|no| FAIL["✗ fail loud: swap didn't take"]
+
+    classDef ok fill:#f3fbef,stroke:#5aa457,color:#123;
+    classDef bad fill:#fdecea,stroke:#d9534f,color:#123;
+    class PASS ok;
+    class FAIL bad;
+```
 
 ### 4.2 The composite digest (the contract)
 
@@ -249,6 +403,29 @@ verify(handle: ContainerHandle, expected: Manifest): assertion
    dir) — a mismatch means *the swap didn't take*, not a test bug (surface this in the message,
    per the skill doc's existing framing).
 
+The per-extension assertion, as a decision flow (all four gates must pass; any failure is
+loud, never green):
+
+```mermaid
+flowchart TD
+    START["for each Manifest entry"] --> COUNT{"exactly 1 override<br/>dir at id-version?"}
+    COUNT -->|0 dirs| F1["✗ missing — swap didn't install"]
+    COUNT -->|"2+ dirs"| F2["✗ duplicate — stale dir survived (false-green averted)"]
+    COUNT -->|1 dir| CP["docker cp dir OUT → host temp"]
+    CP --> PKG{"pkgJsonDigest<br/>matches?"}
+    PKG -->|no| F3["✗ package.json differs"]
+    PKG -->|yes| HASBUNDLE{"manifest has<br/>bundleDigest?"}
+    HASBUNDLE -->|"null (declarative ext)"| PASS["✓ pass (package.json-only)"]
+    HASBUNDLE -->|"present"| BUN{"bundleDigest<br/>matches?"}
+    BUN -->|no| F4["✗ bundle bytes differ"]
+    BUN -->|yes| PASS
+
+    classDef bad fill:#fdecea,stroke:#d9534f,color:#123;
+    classDef ok fill:#f3fbef,stroke:#5aa457,color:#123;
+    class F1,F2,F3,F4 bad;
+    class PASS ok;
+```
+
 **Standalone usefulness:** valuable even with nothing else built — hand-swap extensions,
 hand-write a manifest (or reuse one swap emitted), and assert correctness. It is also the
 foundation the CI gate step calls.
@@ -292,6 +469,27 @@ swap(handle: ContainerHandle, vsixPaths: string[], opts: { publisherPrefix | pre
 **Note:** swap **mutates** but does **not** restart — applying the swap (re-scan + activation)
 is `restart`'s job (§7). Sequence stays: `swap → restart → verify`.
 
+Swap as a flow — the wipe clears **both** locations before any install, so nothing stale can
+survive into verify:
+
+```mermaid
+flowchart TD
+    IN["swap(handle, vsixPaths[], { publisherPrefix })"] --> WIPE1["wipe /base/extension-overrides/{prefix}.*"]
+    WIPE1 --> WIPE2["wipe runtime symlinks<br/>~/.local/share/code-server/extensions/{prefix}.*"]
+    WIPE2 --> LOOP{"for each VSIX<br/>in explicit list"}
+    LOOP -->|next| UNPACK["host-side unpack"]
+    UNPACK --> DIG["digest core → { pkgJsonDigest, bundleDigest }"]
+    DIG --> CP["docker cp extracted tree →<br/>/base/extension-overrides/{prefix}.name-version/"]
+    CP --> LOOP
+    LOOP -->|done| MAN["return Manifest (what was installed)"]
+
+    note["Why wipe BOTH: start.sh re-links an override only if strictly-newer<br/>semver. Equal/lower pre-release version would never re-link<br/>unless the runtime symlink is also cleared."]
+    WIPE2 -.- note
+
+    classDef n fill:#fffbe6,stroke:#d9a441,color:#333,font-size:11px;
+    class note n;
+```
+
 **Recycled from #7718:** the unpack-into-`{prefix}.<name>-<version>/` layout, the runtime
 symlink clearing, the `execFileSync` arg-array idiom.
 **Redesigned:** wipe becomes **unconditional-by-publisher-glob** (was per-id `rm -rf`);
@@ -322,6 +520,25 @@ teardown(handle): void
 - **The fixture bind-mount is a `run` param** (mount happens at `docker run`), not a seed
   concern. Mount target `/home/codebuilder/fixture-project` (**not** the `SFDX_COBU_*` path —
   that collides with the first-boot generate, ADR 0022).
+
+Container states — readiness is a self-transition inside `run`/`restart`, so a handle only
+ever escapes into a `Healthy` state:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pulled: pull(imageRef)
+    Pulled --> Booting: run(spec)
+    Booting --> Healthy: workbench URL answers (poll inside run)
+    Booting --> Failed: readiness timeout → docker logs + throw
+    Healthy --> Seeded: seedWorkspace (coder.json + trust)
+    Seeded --> Swapped: swap (wipe + install), still pre-restart
+    Swapped --> Rebooting: restart(handle)
+    Rebooting --> Healthy: re-scan overrides + re-run org auth, URL answers
+    Rebooting --> Failed: readiness timeout
+    Healthy --> Verified: verify passes
+    Verified --> [*]: teardown
+    Failed --> [*]: teardown (always, if: always())
+```
 
 ### 7.2 Auth / BootEnv (generic-but-Salesforce, opt-in `sf`)
 
@@ -375,6 +592,24 @@ Each milestone is independently useful and independently testable (§12).
 
 M2 (verify) ships first per the Q3 decision. M1 is a prerequisite of M2, so it is the literal
 first code, but verify is the first **externally meaningful** brick.
+
+Milestone ordering and what unblocks what (M4 lifecycle runs in parallel with the
+M1→M2→M3 content track; both converge at M6):
+
+```mermaid
+flowchart LR
+    M1["M1 Digest core<br/>+ Manifest"] --> M2["M2 Verify<br/>(first shippable)"]
+    M2 --> M3["M3 Swap"]
+    M1 --> M3
+    M4["M4 Lifecycle"] --> M5["M5 Auth + Seed"]
+    M2 --> M6["M6 Orchestrator + CI"]
+    M3 --> M6
+    M4 --> M6
+    M5 --> M6
+
+    classDef ship fill:#fff3cd,stroke:#d9a441,color:#123,stroke-width:2px;
+    class M2 ship;
+```
 
 ---
 
@@ -452,6 +687,38 @@ coder.json, boot-env keys, digest reconciliation) is **inside the package**. No 
   honest — a team **not** on Effect can still use every brick — while this Effect-native repo
   wraps it as a layer. `Manifest`/`ContainerHandle` are Effect Schema regardless (validation
   at boundaries), which does not force Effect on the *runner*.
+
+The two test layers and what each covers (fast/hermetic on the left, high-fidelity on the
+right; the same brick code runs under both, differing only in which runner is injected):
+
+```mermaid
+flowchart LR
+    subgraph UNIT["Unit layer (no docker, fast)"]
+        FAKE{{"fake runner<br/>(records argv)"}}
+        T1["digest math / strictness cases"]
+        T2["manifest parse ↔ serialize"]
+        T3["argv correctness<br/>(e.g. swap issues correct docker cp)"]
+        FAKE --> T3
+    end
+
+    subgraph INTEG["Integration layer (real docker)"]
+        REAL{{"real execFileSync runner"}}
+        I1["swap → restart → verify vs real image"]
+        I2["override dirs, restart-rescan, coder.json, boot login"]
+        REAL --> I1
+        REAL --> I2
+    end
+
+    BRICKS(["same brick code<br/>(swap / verify / lifecycle / seed)"])
+    BRICKS --> FAKE
+    BRICKS --> REAL
+    INTEG -.->|"≈ the repo orchestrator itself"| ORCH["test:container:local"]
+
+    classDef unit fill:#eef6ff,stroke:#4a90d9,color:#123;
+    classDef integ fill:#f3fbef,stroke:#5aa457,color:#123;
+    class FAKE,T1,T2,T3 unit;
+    class REAL,I1,I2 integ;
+```
 
 ---
 
