@@ -9,6 +9,7 @@ This extension provides core services for Salesforce development in VS Code.
 - Integration with Salesforce CLI
 - Template generation through `@salesforce/templates`
 - Virtual FS provider (`src/virtualFsProvider`) — memfs, IndexedDB storage for web
+- Org metadata VFS (`src/orgVfs`) — a read-only `sf-org-data` virtual filesystem of org-derived metadata with a canonical presence/resolution layer (`OrgMetadataResolver`) that consuming extensions use to discover, badge, and open components without their own fetch or presence code
 - Observability (`src/observability`) — OpenTelemetry spans, App Insights, O11y. See [observability README](src/observability/README.md)
 
 ## Requirements

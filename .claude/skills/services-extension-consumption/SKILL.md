@@ -240,6 +240,38 @@ Ref behavior (concise):
 - `TargetOrgRef` snapshot without username: optional `ConfigUtil.getUsername()` (project default) before treating as no target org.
 - `TargetOrgRef` value is always an object (never `undefined`); only fields like `orgId` within it are optional.
 
+## Org Metadata VFS (`sf-org-data`)
+
+Services owns a read-only virtual filesystem of org-derived metadata. Consume it via `api.services.OrgMetadataResolver` — never re-implement per-node presence/fetch.
+
+- canonical URI = the key per component: `sf-org-data:/orgs/<orgKey>/org-metadata/<xmlName>/<fullName>`; `orgKey` = target org `orgId`
+- build it: `api.services.orgMetadataUri({ orgKey, xmlName, fullName })` — never hand-concat paths
+- entries hold the UNION of org + workspace presence: `PresenceState { inOrg, inWorkspace, workspaceUri?, ephemeralContent? }`
+- provider is READ-ONLY; edit via the `file:` URI (`getUriForFile`/`download`), never the `sf-org-data:` URI
+
+`OrgMetadataResolver` accessors (all take/return `vscode-uri` `URI`, run in Effect):
+
+| method | purpose |
+| --- | --- |
+| `stat(uri)` / `readDirectory(uri)` / `readFile(uri)` | FS-shaped, location-agnostic reads (org-only → lazy fetch + ephemeral; in-workspace → read `file:`) |
+| `getPresence(uri)` | full `PresenceState` for one component |
+| `isInWorkspace(uri)` | boolean — component has workspace source |
+| `getUriForFile(uri)` | `workspaceUri` if present, else the canonical `sf-org-data:` URI (use to open) |
+| `hasWorkspaceComponents(typeUri)` | boolean — any component of that type in workspace (pass a type-root URI, no `fullName`) |
+| `getWorkspaceMetadataTypes(rootUri)` | `Set<xmlName>` present in workspace (pass the org root URI) |
+| `download(uri)` | retrieve org-only component into workspace, invalidate, return the `file:` URI |
+| `invalidate()` | clear presence caches (call on org/workspace change before re-reading) |
+
+React to presence changes: `api.services.OrgMetadataChangePubSub` publishes canonical owner-root `URI`s after each invalidation — subscribe like any other PubSub (see Watchers).
+
+```typescript
+const resolver = yield* api.services.OrgMetadataResolver;
+const uri = api.services.orgMetadataUri({ orgKey, xmlName: member.type, fullName: member.fullName });
+yield* resolver.invalidate();
+const target = yield* resolver.getUriForFile(uri); // file: if local, sf-org-data: if org-only
+yield* (yield* api.services.FsService).showTextDocument(target);
+```
+
 ## Complete Example Pattern
 
 ```typescript

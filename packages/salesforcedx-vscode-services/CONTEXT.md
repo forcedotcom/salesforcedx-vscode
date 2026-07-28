@@ -16,6 +16,16 @@
 - error display belongs here, not inside the Effect pipeline — the pipeline should let failures propagate through the channel
 - contrast: an **imperative core** is an `async` function that sits inside the boundary but hasn't been fully Effect-ified — it handles some errors internally via try/catch, leaving others to escape unhandled; this is a partially migrated state, not the target pattern
 
+### Org metadata VFS
+
+- read-only `sf-org-data` virtual filesystem of org-derived metadata; services owns provider + lifecycle (`src/orgVfs`)
+- **canonical URI** = key per component: `sf-org-data:/orgs/<orgKey>/org-metadata/<xmlName>/<fullName>`; `orgKey` = target org `orgId`; build via `orgMetadataUri`, never hand-concat
+- **presence** = union of org + workspace: `PresenceState { inOrg, inWorkspace, workspaceUri?, ephemeralContent? }`
+- `OrgMetadataResolver` = the presence/resolution layer consumers read (`stat`/`readDirectory`/`readFile`/`getPresence`/`isInWorkspace`/`getUriForFile`/`download`/`invalidate`); reads location-agnostic (org-only → lazy fetch + ephemeral; in-workspace → `file:`)
+- provider stays READ-ONLY — edit via the `file:` URI, never the `sf-org-data:` URI
+- consumer API on `api.services.*`: `OrgMetadataResolver`, `orgMetadataUri`, `OrgMetadataChangePubSub`; see the services-extension-consumption skill
+- _Avoid_: "apex-testing scheme"/"apex-testing owner" (collapsed into `org-metadata` — an Apex class IS the `ApexClass` type)
+
 ### HashableUri
 
 - structural wrapper around `vscode-uri` `URI` adding Effect `Hash`/`Equal` symbols
