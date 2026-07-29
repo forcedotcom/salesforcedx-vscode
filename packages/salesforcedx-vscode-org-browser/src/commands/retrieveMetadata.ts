@@ -10,7 +10,8 @@ import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-ret
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
-import { messages, nls } from '../messages';
+import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
