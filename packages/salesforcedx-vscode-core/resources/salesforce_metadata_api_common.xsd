@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-07-19T13:38:48.014Z
+Generated on: 2026-07-26T13:38:50.325Z
 Total metadata types: 1590
 -->
 <xsd:schema
@@ -43417,6 +43417,12 @@ Total metadata types: 1590
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="overridable" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the prompt template can be overridden when part of a managed package.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="relatedEntity" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The Salesforce record type that the prompt template is associated with.</xsd:documentation>
@@ -43500,6 +43506,18 @@ Total metadata types: 1590
      <xsd:element name="definition" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The URI definition of the data provider, such as flow://ns__CallToActionFlow.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Description of the data provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. A user-friendly name for GenAiPromptTemplateDataProvider, which is defined when the GenAiPromptTemplateDataProvider is created.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -43645,6 +43663,12 @@ Total metadata types: 1590
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="fileDroppingStrategy" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Defines the strategy for managing attached files when context limits are exceeded.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="generationTemplateConfigs" minOccurs="0" maxOccurs="unbounded" type="GenAiPromptTemplateGenerationConfig">
       <xsd:annotation>
        <xsd:documentation>Reference to the policies for the prompt template version.</xsd:documentation>
@@ -43657,10 +43681,28 @@ Total metadata types: 1590
        <xsd:appinfo>Type: GenAiPromptTemplateInput[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="isCitationEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether citations are included in generated responses.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="outputSchema" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Defines the expected JSON schema structure for the generated output.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="primaryModel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The model associated with the prompt template version.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="responseFormat" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Defines the response format. Values are: HTML JSON MarkDown</xsd:documentation>
+       <xsd:appinfo>Type: GenAiPromptTemplateResponseFormat (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="status" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -52948,7 +52990,7 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="emailSenderAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Email address from which emails are sent.You can&apos;t update this field via Metadata API. Instead, you can edit the Email Address field on the Emails page of the site&apos;s Administration workspace.</xsd:documentation>
+       <xsd:documentation>Required. Email address from which emails are sent.You can add the sender email address via the emailSenderAddress field only when you deploy Network for the first time to create a new Experience Cloud site. You must verify that email address before you can use it as the sender email address. You can&apos;t update this field via Metadata API. If you attempt to update this field via Metadata API, your changes are ignored and Salesforce doesn’t show an error. To update the email address in this field, go to the site’s Administration workspace, select Emails, and then edit the Email Address field.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -53156,6 +53198,12 @@ Total metadata types: 1590
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="pendingSecondaryEmailAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The secondary sender email address that’s pending verification. Salesforce doesn’t send emails from this address until it’s verified. Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="pwdlessRegEmailTemplate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The email template used when a user registers without a password. Instead of a password,they use an identity verification method, such as a verification code or link, which the user completes to finalize the registration or login process.Lightning email templates aren’t packageable. We recommend using a Classic email template.</xsd:documentation>
@@ -53190,6 +53238,12 @@ Total metadata types: 1590
       <xsd:annotation>
        <xsd:documentation>The points members accrue when they perform certain defined actions.</xsd:documentation>
        <xsd:appinfo>Type: ReputationPointsRules</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="secondaryEmailSenderEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether email messages that contain sensitive data are sent from a secondary sender email address (true), instead of via email relay (false). The default value is false. Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="selfRegMicroBatchSubErrorEmailTemplate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -62580,7 +62634,7 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="crossFilters" minOccurs="0" maxOccurs="unbounded" type="ReportCrossFilter">
       <xsd:annotation>
-       <xsd:documentation>Defines a cross filter&apos;s object, related object, and condition (WITH or WITHOUT). This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:documentation>Defines a cross filter&apos;s object, related object, and condition (WITH or WITHOUT). This field is available in API version 67.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ReportCrossFilter[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -70888,7 +70942,7 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="eventName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Used in Real-Time Event Monitoring only. Indicates the name of the event the policy monitors. This field is available in API 45.0 and later. Valid values are: ApiEvent—Tracks these user-initiated read-only API calls: query(), queryMore(), and count(). Captures API requests through SOAP API and Bulk API for the Enterprise and Partner WSDLs. Tooling API calls and API calls originating from a Salesforce mobile app aren’t captured. ApiAnomalyEventStore—Tracks anomalies in how users make API calls. ApiAnomalyEventStore is an object that stores the event data of ApiAnomalyEvent. This object is available in API version 50.0 and later. BulkApiResultEventStore—Tracks when a user downloads the results of a Bulk API request. BulkApiResultEventStore is a big object that stores the event data of BulkApiResultEvent. This object is available in API version 50.0 and later. CredentialStuffingEventStore—Tracks when a user successfully logs into Salesforce during an identified credential stuffing attack. Credential stuffing refers to large-scale automated login requests using stolen user credentials.This value is available in API version 49.0 and later. FileEventStore (beta)—Tracks when a user downloads, previews, or uploads a file. FileEventStore is a big object that stores the event data of FileEvent. This object is available in API version 57.0 and later. GuestUserAnomalyEventStore—Tracks data access anomalies that are caused by guest user permission misconfiguration. This object is available in API version 60.0 and later. ListViewEvent—Tracks when users access data with list views using Lightning Experience, Salesforce Classic, or the API. It doesn’t track list views of Setup entities. LoginAsEvent—Tracks the login activity of admins who log in to Salesforce as other users. This object is available in API version 46.0 and later. LoginEvent—LoginEvent tracks the login activity of users who log in to Salesforce. PermissionSetEventStore —Tracks changes to permission sets and permission set groups. ReportAnomalyEventStore— This value is available in API version 49.0 and later. ReportEvent—Tracks when reports are run in your org. SessionHijackingEventStore—Tracks when unauthorized users gain ownership of a Salesforce user’s session with a stolen session identifier. To detect such an event, Salesforce evaluates how significantly a user’s current browser fingerprint diverges from the previously known fingerprint using a probabilistically inferred significance of change. Available in API version 49.0 and later.</xsd:documentation>
+       <xsd:documentation>Used in Real-Time Event Monitoring only. Indicates the name of the event the policy monitors. This field is available in API 45.0 and later. Valid values are: AdminSetupEvent ApiAnomalyEventStore—Tracks anomalies in how users make API calls. ApiAnomalyEventStore is an object that stores the event data of ApiAnomalyEvent. This object is available in API version 50.0 and later. ApiEvent—Tracks these user-initiated read-only API calls: query(), queryMore(), and count(). Captures API requests through SOAP API and Bulk API for the Enterprise and Partner WSDLs. Tooling API calls and API calls originating from a Salesforce mobile app aren’t captured. BulkApiResultEventStore—Tracks when a user downloads the results of a Bulk API request. BulkApiResultEventStore is a big object that stores the event data of BulkApiResultEvent. This object is available in API version 50.0 and later. CredentialStuffingEventStore—Tracks when a user successfully logs into Salesforce during an identified credential stuffing attack. Credential stuffing refers to large-scale automated login requests using stolen user credentials.This value is available in API version 49.0 and later. FileEventStore —Tracks when a user downloads, previews, or uploads a file. FileEventStore is a big object that stores the event data of FileEvent. This object is available in API version 57.0 and later. GuestUserAnomalyEventStore—Tracks data access anomalies that are caused by guest user permission misconfiguration. This object is available in API version 60.0 and later. ListViewEvent—Tracks when users access data with list views using Lightning Experience, Salesforce Classic, or the API. It doesn’t track list views of Setup entities. LoginAnomalyEventStore LoginAsEvent—Tracks the login activity of admins who log in to Salesforce as other users. This object is available in API version 46.0 and later. LoginEvent—LoginEvent tracks the login activity of users who log in to Salesforce. PermissionSetEventStore —Tracks changes to permission sets and permission set groups. ReportAnomalyEventStore— This value is available in API version 49.0 and later. ReportEvent—Tracks when reports are run in your org. SessionHijackingEventStore—Tracks when unauthorized users gain ownership of a Salesforce user’s session with a stolen session identifier. To detect such an event, Salesforce evaluates how significantly a user’s current browser fingerprint diverges from the previously known fingerprint using a probabilistically inferred significance of change. Available in API version 49.0 and later. UniversalAnomalyEventStore</xsd:documentation>
        <xsd:appinfo>Type: TransactionSecurityEventName (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>

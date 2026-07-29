@@ -18,10 +18,10 @@ export const openLogsFolderCommand = Effect.fn('ApexLog.Command.openLogsFolder')
   yield* api.services.FsService.createDirectory(dir);
   yield* Effect.tryPromise({
     try: () => vscode.commands.executeCommand('revealInExplorer', dir),
-    catch: (e: unknown) =>
+    catch: (error: unknown) =>
       new OpenLogsFolderError({
         message: 'Failed to reveal logs folder in explorer',
-        cause: isError(e) ? e : new Error(String(e))
+        cause: isError(error) ? error : new Error(String(error))
       })
   });
 });

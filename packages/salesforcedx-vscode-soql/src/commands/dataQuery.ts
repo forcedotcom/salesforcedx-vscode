@@ -7,8 +7,9 @@
 import type { QueryResult } from '../types';
 import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import { isRecord } from 'effect/Predicate';
+import { isNullable, isRecord, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { stripAllRows } from '../editor/allRows';
@@ -63,7 +64,7 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   }
 });
 
-const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
+export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
@@ -71,9 +72,7 @@ const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string,
     yield* channelService.clearChannel;
   }
 
-  const vscChannel = yield* channelService.getChannel;
-
-  try {
+  yield* Effect.gen(function* () {
     const queryResult = yield* runSoqlQuery(query, queryApi === 'TOOLING');
     const truncated = queryResult.records.length > 0 && queryResult.totalSize > queryResult.records.length;
     const statusMessage = truncated
@@ -85,19 +84,29 @@ const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string,
           queryResult.records.length
         )
       : nls.localize('data_query_complete', queryResult.totalSize);
+    // showChannel runs concurrently, not after: saveResultsToCSV awaits a
+    // showInformationMessage prompt that never resolves without user action,
+    // so gating show behind this Effect.all (e.g. via ensuring) never reveals
+    // the panel.
     yield* Effect.all(
       [
         displayTableResults(queryResult),
         channelService.appendToChannel(statusMessage),
         saveResultsToCSV(queryResult),
-        Effect.sync(() => vscChannel.show())
+        channelService.showChannel
       ],
       { concurrency: 'unbounded' }
     );
-  } catch (error) {
-    yield* channelService.appendToChannel(formatErrorMessage(error));
-    vscChannel.show();
-  }
+  }).pipe(
+    Effect.catchAllCause(cause =>
+      cause.pipe(
+        Cause.squash,
+        formatErrorMessage,
+        channelService.appendToChannel,
+        Effect.andThen(channelService.showChannel)
+      )
+    )
+  );
 });
 
 export const dataQuery = Effect.fn('sf.data.query')(function* () {
@@ -450,7 +459,7 @@ const getSubQueryKeyPrefixesFromRecords = (records: Record<string, unknown>[]): 
   return [...prefixes];
 };
 
-const isEmptyCsvCell = (value: unknown): boolean => value === undefined || value === null || value === '';
+const isEmptyCsvCell = (value: unknown): boolean => isNullable(value) || value === '';
 
 /**
  * Within one parent record's flattened rows, repeat parent-column values on sub-query overflow rows
@@ -501,7 +510,7 @@ export const escapeCSVField = (field: string): string =>
 
 /** Formats a field value for CSV export */
 export const formatFieldValue = (value: unknown): string => {
-  if (value === null || value === undefined) {
+  if (isNullable(value)) {
     return '';
   }
   if (typeof value === 'object') {
@@ -520,7 +529,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
   if (value === null) {
     return 'null';
   }
-  if (value === undefined) {
+  if (isUndefined(value)) {
     return 'undefined';
   }
   if (value instanceof Date) {
@@ -548,7 +557,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
 
 /** Formats a field value for table display (recurses into nested plain objects). */
 export const formatFieldValueForDisplay = (value: unknown, depthRemaining = DISPLAY_OBJECT_MAX_DEPTH): string => {
-  if (value === null || value === undefined) {
+  if (isNullable(value)) {
     return '';
   }
   return formatNestedDisplayValue(value, depthRemaining);

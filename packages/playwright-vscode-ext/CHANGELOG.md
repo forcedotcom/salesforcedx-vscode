@@ -1,3 +1,30 @@
+## [1.3.9](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.8...playwright-vscode-ext-v1.3.9) (2026-07-29)
+
+
+### Bug Fixes
+
+* **playwright:** support renamed macOS VS Code executable - W-23630140 ([#7916](https://github.com/forcedotcom/salesforcedx-vscode/issues/7916)) ([86836b0](https://github.com/forcedotcom/salesforcedx-vscode/commit/86836b0fea50c58edd23220de7bc85885db3b7a3))
+
+
+
+## [1.3.8](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.7...playwright-vscode-ext-v1.3.8) (2026-07-28)
+
+
+### Bug Fixes
+
+* **services:** TerminalService gathers the sf CLI env at exec time - W-23480631 ([#7899](https://github.com/forcedotcom/salesforcedx-vscode/issues/7899)) ([f843901](https://github.com/forcedotcom/salesforcedx-vscode/commit/f8439018f051101ad7ef39ab548c5a9b10307fc0))
+
+
+
+## [1.3.7](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.6...playwright-vscode-ext-v1.3.7) (2026-07-27)
+
+
+### Bug Fixes
+
+* **apex-testing:** reload suite tree on suite deletion - W-23275541 ([#7661](https://github.com/forcedotcom/salesforcedx-vscode/issues/7661)) ([cebc0d8](https://github.com/forcedotcom/salesforcedx-vscode/commit/cebc0d80bac946491f747b5153483cc3da613e94))
+
+
+
 ## [1.3.6](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.5...playwright-vscode-ext-v1.3.6) (2026-07-20)
 
 

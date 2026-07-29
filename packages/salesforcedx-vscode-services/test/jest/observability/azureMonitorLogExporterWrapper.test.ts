@@ -40,8 +40,7 @@ const injectLogSender = (wrapper: AzureMonitorLogExporterWrapper, sender: LocalE
 };
 
 const baseType = (e: unknown): unknown => (e as { data?: { baseType?: unknown } }).data?.baseType;
-const eventName = (e: unknown): unknown =>
-  (e as { data?: { baseData?: { name?: unknown } } }).data?.baseData?.name;
+const eventName = (e: unknown): unknown => (e as { data?: { baseData?: { name?: unknown } } }).data?.baseData?.name;
 
 describe('AzureMonitorLogExporterWrapper', () => {
   it('routes a LogRecord to the private _sender as an EventData Breeze envelope', async () => {

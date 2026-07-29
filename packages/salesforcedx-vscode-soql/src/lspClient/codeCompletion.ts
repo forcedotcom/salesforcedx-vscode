@@ -200,7 +200,7 @@ const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | unde
       const metadataDescribeService = yield* api.services.MetadataDescribeService;
       return yield* metadataDescribeService.describeCustomObject(sobjectName).pipe(
         Effect.flatMap(raw => api.services.TransmogrifierService.toMinimalSObject(raw)),
-        Effect.catchAll(() => Effect.succeed<SObject | undefined>(undefined))
+        Effect.orElseSucceed(() => undefined)
       );
     })
   );

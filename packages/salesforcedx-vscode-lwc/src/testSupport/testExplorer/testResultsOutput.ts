@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
@@ -75,8 +76,14 @@ export const appendTestResultsOutput = (
     run.appendOutput(toCrlf(`${fileBadge(fileResult)}  ${formatPrettyPath(relPath)}${durationSuffix}`));
 
     const fileItem = lookup.findFileItem(testUri);
-    const tree = buildDescribeTree(fileResult.assertionResults);
-    renderDescribeNode(run, testUri, tree, 1, fileItem, lookup);
+
+    // When assertionResults is empty but message exists, show the runtime error
+    if (fileResult.assertionResults.length === 0 && fileResult.message) {
+      run.appendOutput(toCrlf(`  ${fileResult.message}`), undefined, fileItem);
+    } else {
+      const tree = buildDescribeTree(fileResult.assertionResults);
+      renderDescribeNode(run, testUri, tree, 1, fileItem, lookup);
+    }
     run.appendOutput('\r\n');
   }
 
@@ -141,7 +148,7 @@ const assertionGlyph = (status: string): string => {
 
 const formatAssertionLabel = (title: string, status: string, duration: number | undefined): string => {
   const name = status === 'failed' ? `${ANSI.red}${title}${ANSI.reset}` : title;
-  if (duration != null && duration >= 1) {
+  if (isNotUndefined(duration) && duration >= 1) {
     return `${name} ${ANSI.gray}(${formatDuration(duration)})${ANSI.reset}`;
   }
   return name;

@@ -1,6 +1,7 @@
 ---
 name: release
 description: Run the VS Code extension release workflow end-to-end. Use when publishing a release, running prerelease, verifying the release branch, polishing changelog for release, or installing release vsixes for verification.
+review: never
 ---
 
 # Release Workflow
@@ -73,7 +74,7 @@ git fetch origin && git checkout <currentRelease> && git pull
 
 Read and follow [.claude/skills/changelog/SKILL.md](../changelog/SKILL.md) to polish `packages/salesforcedx-vscode/CHANGELOG.md`.
 
-**Verify the release date.** The auto-generated header uses `today + 2 days` (see `scripts/change-log-generator-utils.js` `getReleaseDate`). This assumes a Monday branch-cut → Wednesday release. Releases always ship on Wednesday, even for re-runs or patches. If the header date is not the upcoming Wednesday, fix it and confirm the target date with the user before committing.
+**Verify release date.** Auto-generated header uses `today + 2 days` (see `scripts/change-log-generator-utils.ts` `getReleaseDate`). Assumes Monday branch-cut → Wednesday release. Always Wednesday, even for re-runs/patches. If not upcoming Wednesday, fix and confirm date with user before commit.
 
 Show `git diff packages/salesforcedx-vscode/CHANGELOG.md` to user.
 

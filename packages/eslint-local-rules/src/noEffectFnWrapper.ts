@@ -38,15 +38,6 @@ const getBodyExpression = (body: TSESTree.ArrowFunctionExpression['body']): TSES
   return undefined;
 };
 
-const unwrapInvokedEffectFn = (
-  node: TSESTree.CallExpression
-): { effectFnCall: TSESTree.CallExpression; trailingInvoke: boolean } | undefined => {
-  const callee = node.callee;
-  if (callee.type !== AST_NODE_TYPES.CallExpression) return undefined;
-  const gen = isEffectFnCall(callee);
-  return gen !== undefined ? { effectFnCall: callee, trailingInvoke: true } : undefined;
-};
-
 export const noEffectFnWrapper = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
@@ -63,22 +54,12 @@ export const noEffectFnWrapper = RuleCreator.withoutDocs({
   defaultOptions: [],
   create: context => ({
     ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
-      const bodyExpr = getBodyExpression(node.body);
-      if (!bodyExpr) return;
+      const effectFnCall = getBodyExpression(node.body);
+      if (!effectFnCall) return;
 
-      let effectFnCall: TSESTree.CallExpression;
-      let trailingInvoke = false;
-
-      const innerGen = isEffectFnCall(bodyExpr);
-      if (innerGen !== undefined) {
-        effectFnCall = bodyExpr;
-      } else {
-        const unwrapped = unwrapInvokedEffectFn(bodyExpr);
-        if (!unwrapped) return;
-        effectFnCall = unwrapped.effectFnCall;
-        trailingInvoke = unwrapped.trailingInvoke;
-      }
-
+      // Only a body that IS the Effect.fn call matches. An immediately-invoked one
+      // (`() => Effect.fn(n)(function* () {})()`) belongs to the Effect LS rule `effectFnIife`,
+      // enforced via config/effect-diagnostics.json, which rewrites it to Effect.gen.
       const gen = isEffectFnCall(effectFnCall);
       if (!gen) return;
 
@@ -103,9 +84,7 @@ export const noEffectFnWrapper = RuleCreator.withoutDocs({
               ? node.params.map(p => sourceCode.getText(p)).join(', ')
               : gen.params.map(p => sourceCode.getText(p)).join(', ');
           const newGen = `function* (${paramsText}) {${genBody}}`;
-          const newEffectFnCall = `Effect.fn(${fnName})(${newGen})`;
-          const suffix = trailingInvoke ? '()' : '';
-          return fixer.replaceTextRange(node.range, `${newEffectFnCall}${suffix}`);
+          return fixer.replaceTextRange(node.range, `Effect.fn(${fnName})(${newGen})`);
         }
       });
     }

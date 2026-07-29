@@ -9,13 +9,14 @@ import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { randomUUID } from 'node:crypto';
 import { writeAsyncResultsToFile, ApexTestResultOutcome, TestResult } from '../../src';
 
 describe('writeAsyncResultsToFile', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = join(tmpdir(), `apex-async-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+    tempDir = join(tmpdir(), `apex-async-test-${Date.now()}-${randomUUID()}`);
     await mkdir(tempDir, { recursive: true });
   });
 
@@ -255,7 +256,7 @@ describe('writeAsyncResultsToFile', () => {
           namespacePrefix: null as unknown as string,
           fullName: `TestClass${i}`
         },
-        runTime: Math.floor(Math.random() * 1000),
+        runTime: i % 1000,
         testTimestamp: '2023-01-01T00:00:00.000Z',
         fullName: `TestClass${i}.testMethod${i}`
       }))

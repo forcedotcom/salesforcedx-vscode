@@ -9,6 +9,7 @@ import type { FileStat } from '../src/types/fileSystemTypes';
 import * as fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import * as os from 'node:os';
+import { randomUUID } from 'node:crypto';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -22,7 +23,7 @@ describe('findNamespaceRoots', () => {
   let fileSystemAccessor: LspFileSystemAccessor;
 
   beforeEach(() => {
-    const uniqueName = `namespace-test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    const uniqueName = `namespace-test-${Date.now()}-${randomUUID()}`;
     tempDir = path.join(os.tmpdir(), uniqueName);
     fs.mkdirSync(tempDir, { recursive: true });
     normTempDir = normalizePath(tempDir);

@@ -36,7 +36,8 @@ const findJsonEnd = (str: string, start: number): number | undefined => {
 };
 
 const extractJsonObjects = (str: string): string[] => {
-  const jsonStartPattern = /\{"name"/g;
+  // OTEL spans: {"name",...}; legacy O11yService.logEvent: {"eventName",...} or {"message",...}
+  const jsonStartPattern = /\{"(name|eventName|message)"/g;
   const allMatchIndices: number[] = [];
   const pattern = new RegExp(jsonStartPattern.source, jsonStartPattern.flags);
 

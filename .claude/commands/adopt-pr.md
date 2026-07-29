@@ -124,13 +124,13 @@ sf data query --query "SELECT Name FROM ADM_Work__c WHERE Id='<id>'" -o gus --re
 
 Capture `W-XXXXXXXX`.
 
-8c. Details via `--flags-dir` (`-v` + `--flags-dir` don't combine on create):
+8c. Details via `--flags-dir` (`-v` + `--flags-dir` don't combine on create). `--flags-dir` reads EVERY file in the dir as a flag — use a values-only subdir so nothing else (e.g. the step 11 `body` file) leaks as a bogus flag:
 
 ```
-mkdir -p /tmp/adopt-pr-<PR#>
+mkdir -p /tmp/adopt-pr-<PR#>/vals
 ```
 
-`/tmp/adopt-pr-<PR#>/values` (single line):
+`/tmp/adopt-pr-<PR#>/vals/values` (single line):
 
 ```
 Details__c='<p><strong>Adopted from:</strong> <a href="https://github.com/forcedotcom/salesforcedx-vscode/pull/<PR#>">#<PR#></a> by @<author.login></p><p><strong>Original body:</strong></p><blockquote><ESCAPED_BODY></blockquote>'
@@ -139,7 +139,7 @@ Details__c='<p><strong>Adopted from:</strong> <a href="https://github.com/forced
 Escape body: `& → &amp;`, `< → &lt;`, `> → &gt;`, `' → &apos;`.
 
 ```
-sf data update record -s ADM_Work__c -i <id> -o gus --flags-dir /tmp/adopt-pr-<PR#>
+sf data update record -s ADM_Work__c -i <id> -o gus --flags-dir /tmp/adopt-pr-<PR#>/vals
 ```
 
 ### 9. Amend fix commit (if step 7 ran)
@@ -195,8 +195,8 @@ Capture URL + number.
 
 1. Query existing `Details__c`.
 2. Append: `<p><strong>Adopt PR:</strong> <a href="<newPrUrl>">#<newPrNumber></a></p>`
-3. Overwrite `/tmp/adopt-pr-<PR#>/values`.
-4. `sf data update record -s ADM_Work__c -i <id> -o gus --flags-dir /tmp/adopt-pr-<PR#>`
+3. Overwrite `/tmp/adopt-pr-<PR#>/vals/values`.
+4. `sf data update record -s ADM_Work__c -i <id> -o gus --flags-dir /tmp/adopt-pr-<PR#>/vals`
 5. Re-query, verify "Adopted from" + "Adopt PR" both present.
 
 ### 13. Close original

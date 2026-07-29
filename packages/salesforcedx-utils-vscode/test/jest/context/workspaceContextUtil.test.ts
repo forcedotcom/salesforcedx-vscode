@@ -7,12 +7,14 @@
 
 import { StateAggregator } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ConfigUtil } from '../../../src/config/configUtil';
 import { WorkspaceContextUtil, WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages/messages';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
 import { TelemetryService } from '../../../src/services/telemetry';
+import { workspaceUtils } from '../../../src/workspaces/workspaceUtils';
 
 // getConnection delegates to ConnectionService via getServicesApi; the mock (below) supplies an api whose
 // getConnection succeeds with a mock connection and whose reauth check is a no-op.
@@ -120,6 +122,21 @@ describe('WorkspaceContextUtil', () => {
     expect(workspaceContextUtil).toHaveProperty('onOrgChangeEmitter');
     expect(workspaceContextUtil).toHaveProperty('cliConfigWatcher', mockWatcher);
     expect(mockFileSystemWatcher).toHaveBeenCalled();
+  });
+
+  it('watches sfdx-config.json in the workspace state folder', () => {
+    // mockRestore (not just reset) so the real getRootWorkspacePath is back for the other tests' beforeEach
+    const getRootWorkspacePathSpy = jest
+      .spyOn(workspaceUtils, 'getRootWorkspacePath')
+      .mockReturnValue(path.join(path.sep, 'fake', 'root'));
+    mockFileSystemWatcher.mockClear();
+
+    WorkspaceContextUtil.getInstance(true);
+
+    expect(mockFileSystemWatcher).toHaveBeenCalledWith(
+      path.join(path.sep, 'fake', 'root', '.sfdx', 'sfdx-config.json')
+    );
+    getRootWorkspacePathSpy.mockRestore();
   });
 
   it('should return workspace context util instance', () => {
@@ -307,7 +324,7 @@ describe('WorkspaceContextUtil', () => {
       // Act/Assert
       await expect(async () => {
         await workspaceContextUtil.getConnection();
-      }).rejects.toThrowError(message);
+      }).rejects.toThrow(message);
     });
   });
 });

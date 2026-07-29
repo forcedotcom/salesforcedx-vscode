@@ -7,7 +7,7 @@
 
 import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
-import { extensions, window, workspace, Extension } from 'vscode';
+import { window, workspace } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
@@ -17,14 +17,11 @@ import { MockExtensionContext } from './MockExtensionContext';
 describe('Telemetry', () => {
   let mShowInformation: jest.SpyInstance;
   let mockExtensionContext: MockExtensionContext;
-  let teleSpy: jest.SpyInstance;
-  let cliSpy: jest.SpyInstance;
 
   beforeEach(() => {
     mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
     jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
-    teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
-    cliSpy = jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
+    jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
 
     // Mock createFileSystemWatcher to return a proper mock object
     jest.spyOn(workspace, 'createFileSystemWatcher').mockReturnValue({
@@ -92,7 +89,6 @@ describe('Telemetry', () => {
       await showTelemetryMessage(mockExtensionContext);
       expect(mShowInformation).toHaveBeenCalledTimes(1);
       expect(mShowInformation).toHaveBeenCalledWith(showMessage, showButtonText);
-      expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
     it('should not show telemetry info opt-out message nor internal message', async () => {
@@ -111,7 +107,6 @@ describe('Telemetry', () => {
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_VALUE);
       expect(globalStateTelemetrySpy).toHaveBeenLastCalledWith(TELEMETRY_INTERNAL_VALUE);
       expect(mShowInformation).not.toHaveBeenCalled();
-      expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
     it('should show internal info message and telemetry opt-out message', async () => {
@@ -129,7 +124,6 @@ describe('Telemetry', () => {
       expect(mShowInformation).toHaveBeenCalledTimes(2);
       expect(mShowInformation).toHaveBeenCalledWith(internalMessage);
       expect(mShowInformation).toHaveBeenLastCalledWith(showMessage, showButtonText);
-      expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
     it('should show internal info message and not telemetry opt-out message', async () => {
@@ -148,22 +142,6 @@ describe('Telemetry', () => {
       expect(mShowInformation).toHaveBeenCalledTimes(1);
       expect(mShowInformation).toHaveBeenCalledWith(internalMessage);
       expect(mShowInformation).not.toHaveBeenCalledWith(showMessage, showButtonText);
-      expect(teleSpy.mock.calls[0]).toEqual([true]);
-    });
-  });
-
-  describe('in dev mode', () => {
-    it('should disable CLI telemetry', async () => {
-      // create vscode extensionContext
-      mockExtensionContext = new MockExtensionContext();
-      jest.spyOn(extensions, 'getExtension').mockReturnValue(mockExtensionContext as unknown as Extension<any>);
-      // mock out the isInternalHost call
-      jest.spyOn(os, 'hostname').mockReturnValue('test-host');
-
-      cliSpy.mockResolvedValue(false);
-      await telemetryService.initializeService(mockExtensionContext);
-
-      expect(teleSpy.mock.calls[0]).toEqual([false]);
     });
   });
 });

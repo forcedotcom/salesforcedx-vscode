@@ -227,7 +227,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
               function: 'safeDelete',
               filePath: isString(filePath) ? filePath : filePath.toString()
             })
-        }).pipe(Effect.catchAll(() => Effect.succeed(undefined))),
+        }).pipe(Effect.catchAll(() => Effect.void)),
       rename: (oldPath: string, newPath: string) =>
         Effect.tryPromise({
           try: async () => {

@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
-import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
+import { code2ProtocolConverter, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Scope from 'effect/Scope';
 import type * as Tracer from 'effect/Tracer';
@@ -143,7 +143,7 @@ const protocol2CodeConverter = (value: string) => URI.parse(value);
 // One long-lived ROOT span per client lifetime. `apexLSPLog` is high-volume; per ADR-0002 we write
 // attrs onto this single span, not N top-level spans. Held in a Ref<Option> (Effect primitive for
 // shared mutable state) with its child scope so a restart can flush the prior span before the next.
-const clientSpanRef = Effect.runSync(Ref.make(Option.none<{ scope: Scope.CloseableScope; span: Tracer.Span }>()));
+const clientSpanRef = Option.none<{ scope: Scope.CloseableScope; span: Tracer.Span }>().pipe(Ref.make, Effect.runSync);
 
 // Runs on first activation AND every restart: close the prior child scope (flushes prior span) before
 // forking the next — exactly ONE live client span (ADR-0002). Forked from the extension scope so
@@ -194,7 +194,7 @@ export const createLanguageServer = async (
 };
 
 const buildClientOptions = async (outputChannel?: vscode.OutputChannel): Promise<ApexLanguageClientOptions> => {
-  const soqlExtensionInstalled = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql') !== undefined;
+  const soqlExtensionInstalled = isNotUndefined(vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql'));
   const lspParityCapabilities = vscode.workspace
     .getConfiguration()
     .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);

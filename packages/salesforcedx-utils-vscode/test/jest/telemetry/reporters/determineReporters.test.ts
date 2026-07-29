@@ -86,6 +86,16 @@ describe('determineReporters', () => {
       expect(reporters).toHaveLength(1);
       expect(reporters[0]).toBeInstanceOf(TelemetryFile);
     });
+
+    it('should return empty reporters when O11Y_ENDPOINT is set but O11yReporter not initialized', () => {
+      const prev = process.env.O11Y_ENDPOINT;
+      process.env.O11Y_ENDPOINT = 'http://localhost:3002';
+      try {
+        expect(determineReporters(config)).toHaveLength(0);
+      } finally {
+        prev === undefined ? delete process.env.O11Y_ENDPOINT : (process.env.O11Y_ENDPOINT = prev);
+      }
+    });
   });
 
   describe('not in dev mode', () => {
@@ -195,5 +205,26 @@ describe('initializeO11yReporter', () => {
     const reporters = reImportedDetermineReporters(config);
     // Should include the O11yReporter instance
     expect(reporters.some((r: any) => r?.initialize === initializeMock)).toBe(true);
+  });
+
+  it('should include the initialized O11yReporter in dev mode when O11Y_ENDPOINT is set', async () => {
+    const { initializeO11yReporter, determineReporters: reImportedDetermineReporters } =
+      await import('../../../../src/telemetry/reporters/determineReporters');
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, 'test-webUserId');
+    const prev = process.env.O11Y_ENDPOINT;
+    process.env.O11Y_ENDPOINT = 'http://localhost:3002';
+    try {
+      const reporters = reImportedDetermineReporters({
+        extName,
+        version,
+        aiKey: 'ai-key',
+        userId,
+        reporterName: 'test-reporter',
+        isDevMode: true
+      });
+      expect(reporters.some((r: any) => r?.initialize === initializeMock)).toBe(true);
+    } finally {
+      prev === undefined ? delete process.env.O11Y_ENDPOINT : (process.env.O11Y_ENDPOINT = prev);
+    }
   });
 });

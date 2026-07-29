@@ -7,8 +7,11 @@
 
 import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Order from 'effect/Order';
+import { isUndefined, not } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -29,23 +32,29 @@ class SuiteMembershipDeleteError extends Schema.TaggedError<SuiteMembershipDelet
   }
 ) {}
 
-const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(function* () {
-  const result = yield* discoverTests();
-  return result.classes
-    .filter(cls => !isFlowTest(cls))
-    .map(
-      (cls): ApexTestQuickPickItem => ({
-        label: cls.name,
-        description: Option.getOrUndefined(cls.namespacePrefix),
-        type: 'Class',
-        fullClassName: getFullClassName(cls)
-      })
-    )
-    .toSorted((a, b): number => {
-      const byLabel = a.label.localeCompare(b.label);
-      return byLabel !== 0 ? byLabel : (a.fullClassName ?? '').localeCompare(b.fullClassName ?? '');
-    });
-});
+/** Sort by label, tie-break on fully-qualified name — case-insensitive so `zebraTest` doesn't follow every PascalCase name */
+const byClassName = Order.combine(
+  Order.mapInput(Order.string, (item: ApexTestQuickPickItem) => item.label.toLowerCase()),
+  Order.mapInput(Order.string, (item: ApexTestQuickPickItem) => (item.fullClassName ?? '').toLowerCase())
+);
+
+const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(() =>
+  discoverTests().pipe(
+    Effect.map(result => result.classes),
+    Effect.map(Arr.filter(not(isFlowTest))),
+    Effect.map(
+      Arr.map(
+        (cls): ApexTestQuickPickItem => ({
+          label: cls.name,
+          description: Option.getOrUndefined(cls.namespacePrefix),
+          type: 'Class',
+          fullClassName: getFullClassName(cls)
+        })
+      )
+    ),
+    Effect.map(Arr.sortBy(byClassName))
+  )
+);
 
 const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -137,7 +146,8 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
   const membershipByClassId = new Map(memberships.records.map(r => [r.ApexClassId, r.Id]));
 
   // Query ApexClass IDs for all classes to match against membership records
-  const classNames = allClasses.map(cls => `'${(cls.fullClassName ?? cls.label).replaceAll("'", "''")}'`).join(',');
+  // Use cls.label (= ApexClass.Name, without namespace) not fullClassName — the Name column never contains the namespace prefix
+  const classNames = allClasses.map(cls => `'${cls.label.replaceAll("'", "''")}'`).join(',');
   const classIdResult = yield* Effect.tryPromise(() =>
     connection.tooling.query<{ Id: string; Name: string; NamespacePrefix?: string | null }>(
       `SELECT Id, Name, NamespacePrefix FROM ApexClass WHERE Name IN (${classNames})`
@@ -169,7 +179,7 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
     vscode.window.showQuickPick<EditableSuiteClassItem>(editableItems, { canPickMany: true })
   );
   // undefined means dismissed (click outside / Escape) — cancel without modifying the suite
-  if (selection === undefined) {
+  if (isUndefined(selection)) {
     return yield* new api.services.UserCancellationError();
   }
   if (selection.length === 0) {
@@ -235,7 +245,7 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
 
   const applyEffect = Effect.all(
     [
-      toAdd.length > 0 ? Effect.promise(() => testService.buildSuite(suitename, toAdd)) : Effect.succeed(undefined),
+      toAdd.length > 0 ? Effect.promise(() => testService.buildSuite(suitename, toAdd)) : Effect.void,
       toRemove.length > 0
         ? Effect.tryPromise(() =>
             Promise.all(toRemove.map(id => connection.tooling.delete('TestSuiteMembership', id)))
@@ -252,7 +262,7 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
               return Effect.succeed(results);
             })
           )
-        : Effect.succeed(undefined)
+        : Effect.void
     ],
     { concurrency: 'unbounded' }
   );

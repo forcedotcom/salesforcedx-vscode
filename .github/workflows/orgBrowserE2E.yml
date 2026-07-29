@@ -25,6 +25,10 @@ on:
       - 'contributing/**'
       - 'CONTRIBUTING.md'
       - 'docs/**'
+      - 'CONTEXT.md'
+      - 'CONTEXT-MAP.md'
+      - '**/CONTEXT.md'
+      - '**/docs/**/*.md'
       - '**/README*'
       - 'SECURITY*'
       - 'CODE_OF_CONDUCT*'
@@ -54,7 +58,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -76,7 +80,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-org-browser -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-org-browser
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - uses: ./.github/actions/cache-vscode-web
@@ -136,7 +140,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-org-browser -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-org-browser
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -146,7 +150,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-org-browser -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-org-browser -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -162,6 +166,7 @@ jobs:
           name: playwright-report
           path: packages/salesforcedx-vscode-org-browser/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'
@@ -200,7 +205,7 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -223,7 +228,7 @@ jobs:
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w
-          salesforcedx-vscode-org-browser -- --reporter=html
+          salesforcedx-vscode-org-browser
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - uses: ./.github/actions/cache-vscode-desktop
@@ -284,7 +289,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w
-          salesforcedx-vscode-org-browser -- --reporter=html
+          salesforcedx-vscode-org-browser
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -295,7 +300,7 @@ jobs:
           VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
         run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w
-          salesforcedx-vscode-org-browser -- --last-failed --reporter=html
+          salesforcedx-vscode-org-browser -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -311,6 +316,7 @@ jobs:
           name: playwright-report-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-org-browser/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -319,6 +325,7 @@ jobs:
           name: playwright-test-results-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-org-browser/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'

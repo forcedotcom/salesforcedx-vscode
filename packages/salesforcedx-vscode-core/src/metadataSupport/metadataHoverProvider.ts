@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { MetadataDocumentationService } from './metadataDocumentationService';
 
@@ -95,47 +96,6 @@ export const extractMetadataType = (
   // Also check if the word itself is a valid metadata type
   if (documentationService.isValidMetadataType(word)) {
     return word;
-  }
-
-  return null;
-};
-
-/**
- * Find the parent metadata type by scanning upward from current line
- */
-export const findParentMetadataType = (
-  document: vscode.TextDocument,
-  startLine: number,
-  documentationService: MetadataDocumentationService
-): string | null => {
-  for (let i = startLine; i >= 0; i--) {
-    const line = document.lineAt(i).text;
-    const xmlElementRegex = /<([\w:]+)(\s|>)/g;
-    let match;
-
-    while ((match = xmlElementRegex.exec(line)) !== null) {
-      const elementName = match[1];
-      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-      // Check if this is a valid Salesforce metadata type
-      if (documentationService.isValidMetadataType(cleanElementName)) {
-        return cleanElementName;
-      }
-    }
-
-    // Also check for multi-line elements (when closing > is on next line)
-    const multiLineElementRegex = /<([\w:]+)$/g;
-    let multiLineMatch;
-
-    while ((multiLineMatch = multiLineElementRegex.exec(line)) !== null) {
-      const elementName = multiLineMatch[1];
-      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-      // Check if this is a valid Salesforce metadata type
-      if (documentationService.isValidMetadataType(cleanElementName)) {
-        return cleanElementName;
-      }
-    }
   }
 
   return null;
@@ -406,7 +366,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
           markdownContent.appendMarkdown(`\n\n**Type:** \`${fieldDocumentation.type}\``);
         }
 
-        if (fieldDocumentation.required !== undefined) {
+        if (isNotUndefined(fieldDocumentation.required)) {
           markdownContent.appendMarkdown(`\n**Required:** ${fieldDocumentation.required ? 'Yes' : 'No'}`);
         }
 

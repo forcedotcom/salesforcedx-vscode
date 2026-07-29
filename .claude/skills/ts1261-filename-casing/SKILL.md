@@ -1,6 +1,7 @@
 ---
 name: ts1261-filename-casing
 description: Fix TS1261 when TypeScript reports two paths that differ only in casing (import vs include vs git index). Use when compile shows error 1261 or "Already included file name ... differs from file name ... only in casing".
+review: never
 ---
 
 # TS1261 (filename casing)

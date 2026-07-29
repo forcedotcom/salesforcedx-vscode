@@ -282,6 +282,10 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   // set sf:internal_dev context so internal commands are visible in explorer menus when enabled
   const internalDev = yield* SettingsService.getInternalDev();
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
+  // set sf:code_builder_enabled context so Code Builder-only commands are visible on web
+  yield* Effect.promise(() =>
+    vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', process.env.CODE_BUILDER === 'true')
+  );
 });
 
 /**
@@ -338,7 +342,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
   // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
   // fails fast until this is set, so it never blocks activation waiting on it.
-  setServicesRuntime(ManagedRuntime.make(Layer.succeedContext(builtContext)));
+  builtContext.pipe(Layer.succeedContext, ManagedRuntime.make, setServicesRuntime);
 
   await activationEffect(context).pipe(
     Effect.provide(builtContext),

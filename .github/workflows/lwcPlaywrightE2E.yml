@@ -25,6 +25,10 @@ on:
       - 'contributing/**'
       - 'CONTRIBUTING.md'
       - 'docs/**'
+      - 'CONTEXT.md'
+      - 'CONTEXT-MAP.md'
+      - '**/CONTEXT.md'
+      - '**/docs/**/*.md'
       - '**/README*'
       - 'SECURITY*'
       - 'CODE_OF_CONDUCT*'
@@ -50,7 +54,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -71,7 +75,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc
 
       - uses: ./.github/actions/cache-vscode-web
         if: steps.try-run.outcome == 'failure'
@@ -93,7 +97,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
@@ -101,7 +105,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-lwc -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-lwc -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -117,6 +121,7 @@ jobs:
           name: playwright-report-lwc-web
           path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -125,6 +130,7 @@ jobs:
           name: playwright-test-results-lwc-web
           path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
   # ─── Desktop: LSP / headless specs ───────────────────────────────────────────────────────
 
@@ -153,7 +159,7 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -170,7 +176,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html headless
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- headless
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -191,14 +197,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html headless
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- headless
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html headless
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed headless
 
       - name: Copy span files to test-results
         if: always()
@@ -214,6 +220,7 @@ jobs:
           name: playwright-report-lwc-desktop-lsp-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -222,6 +229,7 @@ jobs:
           name: playwright-test-results-lwc-desktop-lsp-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
   # ─── Desktop: Run Tests ───────────────────────────────────────────────────────────────────
 
@@ -250,7 +258,7 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -267,7 +275,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- lwcRunTests
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -288,14 +296,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- lwcRunTests
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html lwcRunTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed lwcRunTests
 
       - name: Copy span files to test-results
         if: always()
@@ -311,6 +319,7 @@ jobs:
           name: playwright-report-lwc-desktop-run-tests-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -319,6 +328,7 @@ jobs:
           name: playwright-test-results-lwc-desktop-run-tests-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
   # ─── Desktop: Debug Tests ─────────────────────────────────────────────────────────────────
 
@@ -347,7 +357,7 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -364,7 +374,7 @@ jobs:
         env:
           CI: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- lwcDebugTests
 
       - uses: ./.github/actions/cache-vscode-desktop
         if: steps.try-run.outcome == 'failure'
@@ -385,14 +395,14 @@ jobs:
         continue-on-error: true
         env:
           CI: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --reporter=html lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- lwcDebugTests
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome == 'failure'
         env:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed --reporter=html lwcDebugTests
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-lwc -- --last-failed lwcDebugTests
 
       - name: Copy span files to test-results
         if: always()
@@ -408,6 +418,7 @@ jobs:
           name: playwright-report-lwc-desktop-debug-tests-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -416,3 +427,4 @@ jobs:
           name: playwright-test-results-lwc-desktop-debug-tests-${{ matrix.os }}
           path: packages/salesforcedx-vscode-lwc/test-results
           if-no-files-found: ignore
+          retention-days: 14
