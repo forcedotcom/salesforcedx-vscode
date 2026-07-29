@@ -137,6 +137,12 @@ export const getInternalMode = (
   );
 };
 
+const applyForceShow = (mode: ProgressAndSuccessMode): ProgressAndSuccessMode => {
+  if (mode === 'progressToastSuccessOff') return 'progressToastSuccessToast';
+  if (mode === 'progressStatusBarSuccessOff') return 'progressStatusBarSuccessStatusBar';
+  return mode;
+};
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 /**
@@ -188,18 +194,23 @@ export const NotificationModeServiceLayer = (
       const hideTimerRef = yield* Ref.make<Option.Option<Fiber.RuntimeFiber<void, never>>>(Option.none());
       const runtime = yield* Effect.runtime<never>();
 
+      const showToastWithActions = (message: string, actions: ToastAction[]) =>
+        Effect.gen(function* () {
+          const labels = actions.map(a => a.label);
+          const selection = yield* Effect.promise(() => vscode.window.showInformationMessage(message, ...labels));
+          if (selection)
+            yield* Effect.tryPromise({
+              try: () => actions.find(a => a.label === selection)?.run() ?? Promise.resolve(),
+              catch: e => new ToastActionError({ cause: e })
+            }).pipe(Effect.catchAll(e => Effect.sync(() => void vscode.window.showErrorMessage(String(e.cause)))));
+        });
+
       const commandId = `${statusBarId}.showToast`;
       const commandDisposable = yield* Effect.sync(() =>
         vscode.commands.registerCommand(commandId, async () => {
           const pending = Runtime.runSync(runtime)(pendingToastRef.pipe(Ref.get));
           if (!pending) return;
-          const { message, actions } = pending;
-          const labels = actions.map(a => a.label);
-          const selection = await vscode.window.showInformationMessage(message, ...labels);
-          if (selection)
-            await (actions.find(a => a.label === selection)?.run() ?? Promise.resolve()).catch(
-              (e: unknown) => void vscode.window.showErrorMessage(String(e))
-            );
+          await Runtime.runPromise(runtime)(showToastWithActions(pending.message, pending.actions));
         })
       );
 
@@ -234,25 +245,9 @@ export const NotificationModeServiceLayer = (
       return new NotificationModeService({
         showSuccessNotification: (command: string, message: string, forceShow = false, actions: ToastAction[] = []) => {
           const mode = getInternalMode(extensionSection, commandLevelSection, command);
-          const effectiveMode =
-            forceShow && mode === 'progressToastSuccessOff'
-              ? 'progressToastSuccessToast'
-              : forceShow && mode === 'progressStatusBarSuccessOff'
-                ? 'progressStatusBarSuccessStatusBar'
-                : mode;
-          if (effectiveMode === 'progressStatusBarSuccessStatusBar') {
-            return showTransient(message, actions);
-          } else if (effectiveMode === 'progressToastSuccessToast') {
-            return Effect.gen(function* () {
-              const labels = actions.map(a => a.label);
-              const selection = yield* Effect.promise(() => vscode.window.showInformationMessage(message, ...labels));
-              if (selection)
-                yield* Effect.tryPromise({
-                  try: () => actions.find(a => a.label === selection)?.run() ?? Promise.resolve(),
-                  catch: e => new ToastActionError({ cause: e })
-                }).pipe(Effect.catchAll(e => Effect.sync(() => void vscode.window.showErrorMessage(String(e.cause)))));
-            });
-          }
+          const effectiveMode = forceShow ? applyForceShow(mode) : mode;
+          if (effectiveMode === 'progressStatusBarSuccessStatusBar') return showTransient(message, actions);
+          if (effectiveMode === 'progressToastSuccessToast') return showToastWithActions(message, actions);
           return Effect.void;
         },
         getProgressLocation: (command: string) =>
