@@ -1,6 +1,7 @@
 ---
 name: i18n-messages
 description: Editing extension i18n message files and their consumers. Use when editing packages/*/src/messages/i18n.ts, adding/changing nls.localize strings, or choosing placeholder tokens (%s/%d/...).
+review: always
 ---
 
 # i18n Messages

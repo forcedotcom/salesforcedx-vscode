@@ -1,6 +1,7 @@
 ---
 name: core-extension-api
 description: Public API exported by salesforcedx-vscode-core activate(). Use when modifying SalesforceVSCodeCoreApi, the api object in activate(), exports from core index.ts, services sub-object, or evaluating whether a change to core is breaking. Also use when someone asks "does anything use X" for a core export.
+review: never
 ---
 
 # Core Extension Public API

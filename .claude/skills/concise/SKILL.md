@@ -1,6 +1,7 @@
 ---
 name: concise
 description: Writing style for AI-consumed docs. Proactively apply when creating or editing any md file in .claude/skills/ or .claude/rules/ or .cursor/rules/ or .claude/plans/.
+review: always
 disable-model-invocation: false
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: lsp-custom-requests
 description: Serialize URIs correctly across LSP custom requests. Use when defining custom LSP requests/notifications with URI params, sending a `URI` over `Connection.sendRequest`, or debugging `[object Object]` / `EntryNotFound` / `workspace/stat`/`readFile`/`readDirectory` failures.
+review: never
 ---
 
 # LSP Custom Requests — URI Wire Format

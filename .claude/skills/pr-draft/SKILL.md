@@ -1,6 +1,7 @@
 ---
 name: pr-draft
 description: Draft PRs with trailing " - W-XXXXXXXX" in titles, conventional commit-style before it, GUS refs in body. Use when drafting PRs, PR titles, PR descriptions, opening PRs, or Git2Gus workflows.
+review: never
 ---
 
 # PR Draft

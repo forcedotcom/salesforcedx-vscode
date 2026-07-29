@@ -1,6 +1,7 @@
 ---
 name: vscode-window-messages
 description: Guidelines for using vscode.window.show*Message methods. Use when working with showInformationMessage, showWarningMessage, showErrorMessage.
+review: always
 version: 1.1.0
 ---
 

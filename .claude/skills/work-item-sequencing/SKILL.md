@@ -1,6 +1,7 @@
 ---
 name: work-item-sequencing
 description: Numbering convention for ordering GUS work items within an epic. Numeric prefixes in Subject__c express sequencing (do X before Y) and parallelism. Use when planning an epic, when the user states a dependency between work items, or when asked what's unblocked/ready in an epic.
+review: never
 ---
 
 # Work Item Sequencing

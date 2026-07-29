@@ -1,6 +1,7 @@
 ---
 name: ts4023-effect-errors
 description: Fix TS4023 errors when exporting Effect-based functions. Use when TypeScript reports "has or is using name 'X' from external module but cannot be named" for Effect error types, or when knip flags error type exports as unused.
+review: never
 ---
 
 # TS4023 with Effect Error Types
