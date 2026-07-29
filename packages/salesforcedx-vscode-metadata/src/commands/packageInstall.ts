@@ -205,11 +205,9 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
       yield* getProgressLocation(COMMAND)
     ),
     Effect.tap(() => showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))),
-    // custom message to make it clear how cancellation works
+    // custom message to make it clear how cancellation works; forceShow so it's never suppressed
     Effect.tapErrorTag('UserCancellationError', () =>
-      Effect.sync(() =>
-        vscode.window.showInformationMessage(nls.localize('package_install_cancelled_message', requestId))
-      )
+      showSuccessNotification(COMMAND, nls.localize('package_install_cancelled_message', requestId), true)
     )
   );
 });
