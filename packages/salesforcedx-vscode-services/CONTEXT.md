@@ -28,3 +28,11 @@
 - consumers: import value+type from `salesforcedx-vscode-services` (root)
 - `Utils.*` (vscode-uri) and `uriToPath` need plain `URI` — pass `hashable.uri`, not `hashable`
 - vscode RPC (e.g. `vscode.diff`, `showTextDocument`) — pass `hashable.uri`, not `hashable`
+
+### Org metadata catalog
+
+- `OrgMetadataCatalog` is the services-owned read model for active-org metadata inventory, workspace presence, and lazily resolved source.
+- Consumers own projections such as Test Explorer and Org Browser; they do not write catalog state.
+- Ephemeral source is exposed through the read-only `sf-org-metadata:` `TextDocumentContentProvider`.
+- The scheme is a document integration point, not a filesystem: there is no `FileSystemProvider`, public write API, or consumer registration.
+- Services owns cache invalidation on workspace/default-org changes and closes documents belonging to an inactive org.

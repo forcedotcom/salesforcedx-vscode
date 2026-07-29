@@ -36,8 +36,8 @@ import {
 } from '../helpers/testExplorerHelpers';
 
 // "Org-only" = the class exists in the org but NOT in local source. The retrieve flow
-// (testController.ts retrieveOrgOnlyClassFromUri -> MetadataRetrieveService.retrieve ->
-// getRetrievedFileUri) only fires on the `apex-testing:` virtual doc, which requires the
+// (testController.ts retrieveOrgOnlyClassFromUri -> OrgMetadataCatalog.download)
+// only fires on the `sf-org-metadata:` document, which requires the
 // Apex language client (no "browser" bundle). Desktop only — `workspaceDir` (real disk) is
 // also needed to make the class org-only and to assert the retrieved `.cls` lands on disk.
 const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_text;
@@ -81,14 +81,14 @@ public class ${className} {
     await test.step('discover and open the org-only class virtual doc', async () => {
       // `createApexClass` (setup) left the on-disk `.cls` open in a preview editor; deleting the
       // file does not close that tab. A leftover active editor keeps the test-item click from
-      // navigating to the `apex-testing:` virtual doc, so close all editors first.
+      // navigating to the catalog document, so close all editors first.
       await closeAllEditors(page);
       const panel = await openTestExplorerAndDiscover(page);
       const classItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(className, 'i') });
       await classItem.first().waitFor({ state: 'visible', timeout: 60_000 });
       // A single click only selects a row; it never opens the editor. Expand the class to reveal its
       // leaf method, then double-click the method row — only a leaf with a range triggers VS Code's
-      // "go to test" navigation, which opens the method's `apex-testing:` virtual doc (the one place
+      // "go to test" navigation, which opens the method's catalog document (the one place
       // the retrieve code lens renders).
       await classItem.first().locator('.monaco-tl-twistie').click({ force: true });
       const methodItem = findTestExplorerItem(page, 'retrievedFromOrg');
@@ -96,7 +96,7 @@ public class ${className} {
       await methodItem.dblclick();
       // Assert the virtual doc actually opened before clicking the code lens, so a broken
       // open-on-click wiring surfaces here instead of as an opaque codelens-not-found timeout.
-      await expect(page.locator(`${EDITOR_WITH_URI}[data-uri^="apex-testing:"]`).first()).toBeVisible({
+      await expect(page.locator(`${EDITOR_WITH_URI}[data-uri^="sf-org-metadata:"]`).first()).toBeVisible({
         timeout: 60_000
       });
       await saveScreenshot(page, 'step.virtual-doc-opened.png');

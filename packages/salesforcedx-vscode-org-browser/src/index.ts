@@ -103,7 +103,7 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
   // Resolve services once for reuse in commit
   const svcProvider = yield* ExtensionProviderService;
   const api = yield* svcProvider.getServicesApi;
-  const metadataDescribeService = yield* api.services.MetadataDescribeService;
+  const orgMetadataCatalog = yield* api.services.OrgMetadataCatalog;
 
   const runtime = yield* Effect.runtime();
   const run = Runtime.runFork(runtime);
@@ -137,8 +137,13 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
       const userApprovedBroadFetch =
         componentFilter && componentFilter !== '' && typeFilter
           ? yield* Effect.gen(function* () {
-              const types = yield* metadataDescribeService.describe();
-              const matchedCount = types.filter(t => matchesPattern(t.xmlName, typeFilter, typeIsRegex)).length;
+              const types = yield* orgMetadataCatalog.getChildren();
+              const matchedCount = types.filter(
+                entry =>
+                  entry.kind === 'type' &&
+                  entry.reference.xmlName &&
+                  matchesPattern(entry.reference.xmlName, typeFilter, typeIsRegex)
+              ).length;
 
               if (matchedCount > MAX_TYPES_FOR_COMPONENT_PREFETCH) {
                 return yield* Effect.promise(async () => {
@@ -257,6 +262,14 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const treeProvider = new MetadataTypeTreeProvider();
   // Register the tree provider
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
+  const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
+  const extensionScope = yield* getExtensionScope();
+  yield* Effect.forkIn(
+    Stream.fromPubSub(orgMetadataChanges).pipe(
+      Stream.runForEach(() => Effect.sync(() => treeProvider.fireChangeEvent()))
+    ),
+    extensionScope
+  );
 
   // --- Filter state: persistence, migration, and initial context keys ---
   // Legacy migration: convert old viewMode to boolean flags

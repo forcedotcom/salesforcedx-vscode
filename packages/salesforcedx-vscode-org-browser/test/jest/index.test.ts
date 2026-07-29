@@ -63,6 +63,7 @@ import { SettingsService, SettingsError } from 'salesforcedx-vscode-services/src
 import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
 import { SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
+import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
@@ -234,6 +235,7 @@ const mockServicesApi = {
     MetadataDeployService: {} as typeof MetadataDeployService,
     MetadataRegistryService: {} as typeof MetadataRegistryService,
     MetadataRetrieveService: {} as typeof MetadataRetrieveService,
+    OrgMetadataCatalogChangePubSub,
     ProjectService: {} as typeof ProjectService,
     registerCommandWithLayer: () => () => Effect.void,
     SdkLayerFor: {} as typeof SdkLayerFor,
@@ -274,6 +276,7 @@ describe.skip('Extension', () => {
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,
             MockSourceTrackingServiceLayer,
+            OrgMetadataCatalogChangePubSub.Default,
             MockOrgBrowserRetrieveServiceLayer
           )
         )

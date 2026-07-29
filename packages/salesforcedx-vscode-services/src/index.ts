@@ -42,6 +42,10 @@ import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
+import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
+import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
+import { runOrgMetadataDocumentProvider } from './orgCatalog/orgMetadataDocumentProvider';
+import { ORG_METADATA_SCHEME } from './orgCatalog/orgMetadataReference';
 import { globalLayers } from './servicesLayers';
 import { disposeServicesRuntime, setServicesRuntime } from './servicesRuntime';
 import { TerminalService } from './terminal/terminalService';
@@ -92,6 +96,8 @@ export type SalesforceVSCodeServicesApi = {
       | MetadataDeleteService
       | MetadataDeployService
       | MetadataDescribeService
+      | OrgMetadataCatalog
+      | OrgMetadataCatalogChangePubSub
       | PromptService
       | MetadataRegistryService
       | MetadataRetrieveService
@@ -130,6 +136,9 @@ export type SalesforceVSCodeServicesApi = {
     MetadataChangeNotificationService: typeof MetadataChangeNotificationService;
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
+    OrgMetadataCatalog: typeof OrgMetadataCatalog;
+    OrgMetadataCatalogChangePubSub: typeof OrgMetadataCatalogChangePubSub;
+    ORG_METADATA_SCHEME: typeof ORG_METADATA_SCHEME;
     MetadataDeployService: typeof MetadataDeployService;
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
@@ -189,6 +198,19 @@ export type {
 } from './core/connectionService';
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
+export {
+  OrgMetadataCatalogError,
+  type OrgMetadataCatalog,
+  type OrgMetadataCatalogEntry,
+  type OrgMetadataEntryKind,
+  type OrgMetadataFieldDetails,
+  type OrgMetadataPresence
+} from './orgCatalog/orgMetadataCatalog';
+export type {
+  OrgMetadataComponentReference,
+  OrgMetadataDocumentLocation,
+  OrgMetadataReference
+} from './orgCatalog/orgMetadataReference';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
 export type {
   MetadataDescribeError,
@@ -266,7 +288,9 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       // watch alias.json for changes and refresh defaultOrgRef.aliases accordingly
       Effect.forkIn(watchAliasFile(), scope),
       // watch sfdx-project.json for changes and invalidate the SfProject cache (fresh sourceApiVersion)
-      Effect.forkIn(watchSfProjectFile(), scope)
+      Effect.forkIn(watchSfProjectFile(), scope),
+      // expose catalog content as read-only VS Code text documents (not a filesystem)
+      Effect.forkIn(Effect.scoped(runOrgMetadataDocumentProvider()), scope)
     ],
     {
       concurrency: 'unbounded'
@@ -380,6 +404,9 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataChangeNotificationService,
       MetadataDeleteService,
       MetadataDescribeService,
+      OrgMetadataCatalog,
+      OrgMetadataCatalogChangePubSub,
+      ORG_METADATA_SCHEME,
       MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
@@ -429,6 +456,7 @@ export { type ErrorHandlerService } from './vscode/errorHandlerService';
 export { type ExtensionContextService, type ExtensionContextServiceLayer } from './vscode/extensionContextService';
 export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';
 export { type FileChangePubSub, type FileChangeEvent } from './vscode/fileChangePubSub';
+export { type OrgMetadataCatalogChange } from './orgCatalog/orgMetadataCatalogChangePubSub';
 export { type FsService } from './vscode/fsService';
 export {
   MetadataDeleteService,

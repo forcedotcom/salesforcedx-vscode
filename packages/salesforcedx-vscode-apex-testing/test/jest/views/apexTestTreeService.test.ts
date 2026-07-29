@@ -57,19 +57,6 @@ jest.mock('../../../src/utils/testUtils', () => {
     getMethodLocationsFromSymbols: () => Promise.resolve(new Map())
   };
 });
-const mockSaveDiscoveredClasses = jest.fn();
-jest.mock('../../../src/discoveryVfs/apexTestDiscoveryService', () => {
-  const EffectLib = jest.requireActual('effect/Effect');
-  return {
-    ApexTestDiscoveryService: {
-      saveDiscoveredClasses: (...args: unknown[]) => {
-        mockSaveDiscoveredClasses(...args);
-        return EffectLib.void;
-      }
-    }
-  };
-});
-
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
@@ -113,6 +100,28 @@ const mockServicesApi = {
   services: {
     SettingsService: Effect.succeed(mockSettingsService),
     ConnectionService: mockConnectionService,
+    OrgMetadataCatalog: Effect.succeed({
+      getPresence: (reference: { fullName: string }) => {
+        if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
+        const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
+        const workspaceUri = mockClassNameToUri.get(baseName);
+        return Effect.succeed({
+          inOrg: true,
+          inWorkspace: Boolean(workspaceUri),
+          workspaceUri
+        });
+      },
+      getDocumentUri: (reference: { fullName: string }) => {
+        if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
+        const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
+        return Effect.succeed(
+          mockClassNameToUri.get(baseName) ??
+            jest
+              .requireActual('vscode-uri')
+              .URI.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`)
+        );
+      }
+    }),
     TargetOrgRef: () => SubscriptionRef.make(mockOrgInfo)
   }
 };
@@ -589,24 +598,6 @@ describe('ApexTestTreeService', () => {
           expect(map.has('LEAK')).toBe(false);
         })
       );
-    });
-  });
-
-  describe('persistDiscoveredClasses (best-effort)', () => {
-    it('skips persistence when there is no default org', async () => {
-      mockOrgInfo = {};
-      const { ctx } = makeMutationContext();
-      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('C', ['t'])] }));
-      await run(ApexTestTreeService.incrementalUpdate(ctx, new Map([['C', 'created']]), false));
-      expect(mockSaveDiscoveredClasses).not.toHaveBeenCalled();
-    });
-
-    it('persists discovered apex classes when an org is present', async () => {
-      getConnectionImpl = () => Effect.succeed({ tooling: { query: () => Promise.resolve({ records: [] }) } });
-      const { ctx } = makeMutationContext();
-      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('C', ['t'])] }));
-      await run(ApexTestTreeService.incrementalUpdate(ctx, new Map([['C', 'created']]), false));
-      expect(mockSaveDiscoveredClasses).toHaveBeenCalledWith('org123', expect.any(Array), expect.any(Map));
     });
   });
 
