@@ -98,7 +98,7 @@ export const createTraceFlagStatusBar = () =>
           // so the footer clears within a minute of expiry without a manual toggle or reload. Unlike the
           // cleanup scheduler (which hits the org), this is a cheap local re-render, so it is NOT gated on
           // window.state.active — the footer must clear at expiry even while the window is unfocused.
-          Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(Stream.as(undefined))
+          Schedule.fixed(Duration.minutes(1)).pipe(Stream.fromSchedule, Stream.as(undefined))
         ],
         {
           concurrency: 'unbounded'

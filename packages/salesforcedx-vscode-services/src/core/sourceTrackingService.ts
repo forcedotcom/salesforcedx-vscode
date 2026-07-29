@@ -281,60 +281,56 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       function* () {
         const tracking = yield* getOrCreateTracking();
 
-        return yield* localSemaphore.withPermits(1)(
-          remoteSemaphore.withPermits(1)(
-            Effect.gen(function* () {
-              yield* rereadBoth(tracking);
+        return yield* Effect.gen(function* () {
+          yield* rereadBoth(tracking);
 
-              // Get all remote deletes as ChangeResult before applying — works even when local files don't exist
-              const allRemoteDeletes = yield* Effect.tryPromise({
-                try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
-                catch: toSourceTrackingError
-              });
+          // Get all remote deletes as ChangeResult before applying — works even when local files don't exist
+          const allRemoteDeletes = yield* Effect.tryPromise({
+            try: () => tracking.getChanges({ origin: 'remote', state: 'delete', format: 'ChangeResult' }),
+            catch: toSourceTrackingError
+          });
 
-              const result = yield* Effect.tryPromise({
-                try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
-                catch: toSourceTrackingError
-              }).pipe(Effect.withSpan('STL.MaybeApplyRemoteDeletesToLocal'));
+          const result = yield* Effect.tryPromise({
+            try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
+            catch: toSourceTrackingError
+          }).pipe(Effect.withSpan('STL.MaybeApplyRemoteDeletesToLocal'));
 
-              // STL only calls updateRemoteTracking for deletes it could resolve to local files.
-              // For deletes with no local file, manually acknowledge them so they leave tracking.
-              const handledTypeNames = HashSet.fromIterable(
-                result.fileResponsesFromDelete.map(r => Data.struct({ type: r.type, fullName: r.fullName }))
-              );
+          // STL only calls updateRemoteTracking for deletes it could resolve to local files.
+          // For deletes with no local file, manually acknowledge them so they leave tracking.
+          const handledTypeNames = HashSet.fromIterable(
+            result.fileResponsesFromDelete.map(r => Data.struct({ type: r.type, fullName: r.fullName }))
+          );
 
-              const unhandled = allRemoteDeletes
-                .filter(isResolvedChangeResult)
-                .filter(c => !HashSet.has(handledTypeNames, Data.struct({ type: c.type, fullName: c.name })));
+          const unhandled = allRemoteDeletes
+            .filter(isResolvedChangeResult)
+            .filter(c => !HashSet.has(handledTypeNames, Data.struct({ type: c.type, fullName: c.name })));
 
-              if (unhandled.length > 0) {
-                yield* Effect.tryPromise({
-                  try: () =>
-                    tracking.updateRemoteTracking(
-                      unhandled.map(c => ({ type: c.type, fullName: c.name, state: ComponentStatus.Deleted })),
-                      true // skipPolling — same as STL's deleteFilesAndUpdateTracking
-                    ),
-                  catch: toSourceTrackingError
-                }).pipe(Effect.withSpan('STL.AcknowledgeUnhandledRemoteDeletes'));
-              }
+          if (unhandled.length > 0) {
+            yield* Effect.tryPromise({
+              try: () =>
+                tracking.updateRemoteTracking(
+                  unhandled.map(c => ({ type: c.type, fullName: c.name, state: ComponentStatus.Deleted })),
+                  true // skipPolling — same as STL's deleteFilesAndUpdateTracking
+                ),
+              catch: toSourceTrackingError
+            }).pipe(Effect.withSpan('STL.AcknowledgeUnhandledRemoteDeletes'));
+          }
 
-              // Surface unhandled deletes as synthetic FileResponse entries so the output channel
-              // shows them even when there was no local file to delete.
-              // filePath is empty string (falsy) so formatRetrieveOutput falls back to fullName for display.
-              const syntheticDeletes: FileResponse[] = unhandled.map(c => ({
-                type: c.type,
-                fullName: c.name,
-                state: ComponentStatus.Deleted,
-                filePath: ''
-              }));
+          // Surface unhandled deletes as synthetic FileResponse entries so the output channel
+          // shows them even when there was no local file to delete.
+          // filePath is empty string (falsy) so formatRetrieveOutput falls back to fullName for display.
+          const syntheticDeletes: FileResponse[] = unhandled.map(c => ({
+            type: c.type,
+            fullName: c.name,
+            state: ComponentStatus.Deleted,
+            filePath: ''
+          }));
 
-              return {
-                componentSetFromNonDeletes: result.componentSetFromNonDeletes,
-                fileResponsesFromDelete: [...result.fileResponsesFromDelete, ...syntheticDeletes]
-              };
-            })
-          )
-        );
+          return {
+            componentSetFromNonDeletes: result.componentSetFromNonDeletes,
+            fileResponsesFromDelete: [...result.fileResponsesFromDelete, ...syntheticDeletes]
+          };
+        }).pipe(remoteSemaphore.withPermits(1), localSemaphore.withPermits(1));
       }
     );
 
@@ -342,17 +338,13 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     const getConflicts = Effect.fn('SourceTrackingService.getConflicts')(function* () {
       const tracking = yield* getOrCreateTracking();
 
-      return yield* localSemaphore.withPermits(1)(
-        remoteSemaphore.withPermits(1)(
-          Effect.gen(function* () {
-            yield* rereadBoth(tracking);
-            return yield* Effect.tryPromise({
-              try: () => tracking.getConflicts(),
-              catch: toSourceTrackingError
-            }).pipe(Effect.withSpan('STL.GetConflicts'));
-          })
-        )
-      );
+      return yield* Effect.gen(function* () {
+        yield* rereadBoth(tracking);
+        return yield* Effect.tryPromise({
+          try: () => tracking.getConflicts(),
+          catch: toSourceTrackingError
+        }).pipe(Effect.withSpan('STL.GetConflicts'));
+      }).pipe(remoteSemaphore.withPermits(1), localSemaphore.withPermits(1));
     });
 
     /** Check for conflicts and display them in the channel, failing if conflicts are found (both tracking files) */
@@ -394,16 +386,14 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
         }
 
         const tracking = yield* getOrCreateTracking();
-        return yield* localSemaphore.withPermits(1)(
-          remoteSemaphore.withPermits(1)(
-            Effect.tryPromise({
-              try: () => tracking.updateTrackingFromRetrieve(result),
-              catch: toSourceTrackingError
-            }).pipe(
-              Effect.withSpan('STL.UpdateTrackingFromRetrieve'),
-              Effect.tapError(error => Effect.logError(error))
-            )
-          )
+        return yield* Effect.tryPromise({
+          try: () => tracking.updateTrackingFromRetrieve(result),
+          catch: toSourceTrackingError
+        }).pipe(
+          Effect.withSpan('STL.UpdateTrackingFromRetrieve'),
+          Effect.tapError(error => Effect.logError(error)),
+          remoteSemaphore.withPermits(1),
+          localSemaphore.withPermits(1)
         );
       }
     );
@@ -421,16 +411,14 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       const tracking = yield* getOrCreateTracking();
       return yield* Effect.all(
         [
-          localSemaphore.withPermits(1)(
-            remoteSemaphore.withPermits(1)(
-              Effect.tryPromise({
-                try: () => tracking.updateTrackingFromDeploy(result),
-                catch: toSourceTrackingError
-              }).pipe(
-                Effect.withSpan('STL.UpdateTrackingFromDeploy'),
-                Effect.tapError(error => Effect.logError(error))
-              )
-            )
+          Effect.tryPromise({
+            try: () => tracking.updateTrackingFromDeploy(result),
+            catch: toSourceTrackingError
+          }).pipe(
+            Effect.withSpan('STL.UpdateTrackingFromDeploy'),
+            Effect.tapError(error => Effect.logError(error)),
+            remoteSemaphore.withPermits(1),
+            localSemaphore.withPermits(1)
           ),
           Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) })
         ],

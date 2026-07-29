@@ -398,7 +398,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // reauth cache) instead of Effect.provide(ConnectionService.Default), which builds a private
   // ConnectionService with its own reauth cache (a duplicate reauth modal on desktop). The exporter
   // fails fast until this is set, so it never blocks activation waiting on it.
-  const servicesRuntime = ManagedRuntime.make(Layer.succeedContext(builtContext));
+  const servicesRuntime = builtContext.pipe(Layer.succeedContext, ManagedRuntime.make);
   setServicesRuntime(servicesRuntime);
   context.subscriptions.push(
     orgDataProvider.registerOwnerHandler('org-metadata', {

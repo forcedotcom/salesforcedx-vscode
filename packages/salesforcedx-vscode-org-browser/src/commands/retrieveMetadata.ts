@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
+import { isNotUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
@@ -46,7 +47,7 @@ const getRetrieveMembers = (node: OrgBrowserTreeItem, treeProvider: MetadataType
   Match.value(node).pipe(
     Match.when(
       (n): n is OrgBrowserTreeItem & { componentName: string } =>
-        (n.kind === 'component' || n.kind === 'customObject') && n.componentName !== undefined,
+        (n.kind === 'component' || n.kind === 'customObject') && isNotUndefined(n.componentName),
       n => Effect.succeed([{ type: n.xmlName, fullName: n.componentName }])
     ),
     Match.when({ kind: 'type' }, n =>

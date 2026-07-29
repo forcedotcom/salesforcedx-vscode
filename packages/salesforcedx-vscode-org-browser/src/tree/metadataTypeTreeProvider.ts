@@ -9,6 +9,7 @@ import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { OrgMetadataInventoryEntry } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -138,7 +139,7 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
 });
 
 export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
-  if (provider.typeFilter === undefined) return true;
+  if (isUndefined(provider.typeFilter)) return true;
   return matchesPattern(node.xmlName, provider.typeFilter, provider.typeIsRegex);
 };
 

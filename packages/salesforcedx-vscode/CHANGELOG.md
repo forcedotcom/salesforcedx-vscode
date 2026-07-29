@@ -1,33 +1,36 @@
-# 67.6.0 - July 22, 2026
+# 67.7.1 - July 29, 2026
 
 ## Added
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-core
 
-- We replaced the **SFDX: Add Tests to Apex Test Suite** command with a new **SFDX: Edit Apex Test Suite** command. A single multi-select picker shows all your test classes with the current suite members pre-checked, so you can add and remove tests in one step. ([PR #7672](https://github.com/forcedotcom/salesforcedx-vscode/pull/7672))
+- We added support for Japanese localization. If your VS Code display language is set to Japanese, you'll now see Japanese translations in the Salesforce extensions. ([PR #7803](https://github.com/forcedotcom/salesforcedx-vscode/pull/7803))
 
-#### salesforcedx-vscode-org-browser
+#### salesforcedx-vscode-metadata
 
-- The Org Browser now has independent **show local** and **show org** toolbar toggles for filtering metadata types, plus a text filter in the type/component quick pick. ([PR #7679](https://github.com/forcedotcom/salesforcedx-vscode/pull/7679))
+- When you run **SFDX: Create Project**, you can now select **Angular** as a framework option for Experience Cloud sites. ([PR #7864](https://github.com/forcedotcom/salesforcedx-vscode/pull/7864))
 
 ## Fixed
 
+#### salesforcedx-vscode-apex-debugger
+
+- We fixed a bug where **SFDX: Stop Apex Debugger Session** showed a "No target org configured" error instead of stopping the current ISV Debugger session. ([PR #7815](https://github.com/forcedotcom/salesforcedx-vscode/pull/7815))
+
 #### salesforcedx-vscode-apex-testing
 
-- We fixed a bug where discovering Apex tests failed with a 400 error against orgs on API version 68.0 or later. ([PR #7805](https://github.com/forcedotcom/salesforcedx-vscode/pull/7805))
+- When you delete an Apex test suite with **SFDX: Delete Apex Test Suite**, the suite now correctly disappears from the **Testing** sidebar. ([PR #7661](https://github.com/forcedotcom/salesforcedx-vscode/pull/7661))
+
+- We fixed a bug in **SFDX: Edit Apex Test Suite** where test classes with namespaces weren't being correctly selected when editing an existing suite. ([PR #7831](https://github.com/forcedotcom/salesforcedx-vscode/pull/7831))
+
+#### salesforcedx-vscode-lwc
+
+- When Jest fails to run tests due to module resolution errors or syntax errors, the **Test Results** panel now displays the actual error message instead of "test case did not report any output". ([PR #7845](https://github.com/forcedotcom/salesforcedx-vscode/pull/7845), [ISSUE #7788](https://github.com/forcedotcom/salesforcedx-vscode/issues/7788))
 
 #### salesforcedx-vscode-org
 
-- We fixed a bug where the background "orgs expiring soon" check could steal focus and dismiss an open quick pick, such as the org picker. The warning now offers a **Show Output** button instead of automatically revealing the panel. ([PR #7749](https://github.com/forcedotcom/salesforcedx-vscode/pull/7749))
-
-#### salesforcedx-vscode-services
-
-- We fixed the **Salesforce Extensions** services package failing to publish on Open VSX Registry, which had left it stuck at an older version. ([PR #7756](https://github.com/forcedotcom/salesforcedx-vscode/pull/7756))
-
-#### salesforcedx-vscode-visualforce
-
-- We fixed a bug where hovering over mixed-case Visualforce tags such as `apex:pageBlock` and `apex:outputField` showed no hover information. ([PR #7781](https://github.com/forcedotcom/salesforcedx-vscode/pull/7781))
+- You can now use hyphens in org aliases when authorizing orgs or creating scratch orgs (for example, `my-scratch-org`). ([PR #7866](https://github.com/forcedotcom/salesforcedx-vscode/pull/7866), [ISSUE #7794](https://github.com/forcedotcom/salesforcedx-vscode/issues/7794))
 
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #7777](https://github.com/forcedotcom/salesforcedx-vscode/pull/7777), [PR #7806](https://github.com/forcedotcom/salesforcedx-vscode/pull/7806), [PR #7778](https://github.com/forcedotcom/salesforcedx-vscode/pull/7778), [PR #7753](https://github.com/forcedotcom/salesforcedx-vscode/pull/7753), [PR #7746](https://github.com/forcedotcom/salesforcedx-vscode/pull/7746))
+- We made some under the hood changes. ([PR #7659](https://github.com/forcedotcom/salesforcedx-vscode/pull/7659), [PR #7797](https://github.com/forcedotcom/salesforcedx-vscode/pull/7797), [PR #7810](https://github.com/forcedotcom/salesforcedx-vscode/pull/7810), [PR #7822](https://github.com/forcedotcom/salesforcedx-vscode/pull/7822), [PR #7856](https://github.com/forcedotcom/salesforcedx-vscode/pull/7856), [PR #7862](https://github.com/forcedotcom/salesforcedx-vscode/pull/7862), [PR #7876](https://github.com/forcedotcom/salesforcedx-vscode/pull/7876), [PR #7883](https://github.com/forcedotcom/salesforcedx-vscode/pull/7883), [PR #7893](https://github.com/forcedotcom/salesforcedx-vscode/pull/7893), [PR #7898](https://github.com/forcedotcom/salesforcedx-vscode/pull/7898))
+

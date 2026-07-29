@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
@@ -54,10 +54,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
     config.logFile = config.logFile ?? '${command:AskForLogFileName}';
-    if (config.stopOnEntry === undefined) {
+    if (isUndefined(config.stopOnEntry)) {
       config.stopOnEntry = true;
     }
-    if (config.trace === undefined) {
+    if (isUndefined(config.trace)) {
       config.trace = true;
     }
 
@@ -154,15 +154,16 @@ const readLogFile = Effect.fn('ApexReplayDebugger.readLogFile')(function* (fileP
 const resolveHeapDumpResults = (logFileContents: string): Promise<HeapDumpResult[]> => {
   // Org/connection resolution failures keep the localized org-info label; a HeapDumpOverlayFetchError
   // is a batch-request failure, so it surfaces its own message rather than being mislabeled as org-info.
-  const orgInfoError = (error: unknown): HeapDumpResult[] => [
-    { heapDumpId: '', error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}` }
-  ];
+  const orgInfoError = (error: unknown): Effect.Effect<HeapDumpResult[]> =>
+    Effect.succeed([
+      { heapDumpId: '', error: `${nls.localize('unable_to_retrieve_org_info')} : ${errorToString(error)}` }
+    ]);
   return fetchHeapDumpOverlayResults(logFileContents).pipe(
     Effect.catchTag('HeapDumpOverlayFetchError', error =>
       Effect.succeed<HeapDumpResult[]>([{ heapDumpId: '', error: errorToString(error) }])
     ),
     // Everything else (org/connection resolution failures) keeps the localized org-info label.
-    Effect.catchAll(error => Effect.succeed(orgInfoError(error))),
+    Effect.catchAll(orgInfoError),
     getRuntime().runPromise
   );
 };

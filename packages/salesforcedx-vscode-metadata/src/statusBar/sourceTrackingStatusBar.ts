@@ -117,13 +117,12 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollingIntervalSeconds()));
 
   // Watch setting changes to update poll frequency dynamically
-  yield* Effect.fork(
-    Stream.fromPubSub(settingsChangePubSub).pipe(
-      Stream.filter(event =>
-        event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds')
-      ),
-      Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollingIntervalSeconds())))
-    )
+  yield* Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event =>
+      event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds')
+    ),
+    Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollingIntervalSeconds()))),
+    Effect.fork
   );
 
   // Watch conflict detection setting changes to trigger immediate refresh
@@ -152,7 +151,11 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   const dynamicPollStream = pollIntervalRef.changes.pipe(
     Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
     Stream.flatMap(
-      interval => Stream.fromSchedule(Schedule.fixed(interval)).pipe(Stream.filter(() => vscode.window.state.active)),
+      interval =>
+        Schedule.fixed(interval).pipe(
+          Stream.fromSchedule,
+          Stream.filter(() => vscode.window.state.active)
+        ),
       { switch: true } // Restart schedule when interval changes
     )
   );
