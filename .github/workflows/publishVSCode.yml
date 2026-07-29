@@ -87,6 +87,17 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Verify release exists
+        env:
+          RELEASE_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release view v$RELEASE_VERSION &> /dev/null; then
+            echo "::error::Release v$RELEASE_VERSION does not exist. Cannot proceed with publish."
+            echo "::notice::If triggered manually via workflow_dispatch, ensure the release has been created by testBuildAndRelease.yml first."
+            exit 1
+          fi
+          echo "Release v$RELEASE_VERSION exists, proceeding with download..."
       - name: Download VSIXs from release
         env:
           RELEASE_VERSION: ${{ needs.prepare-environment-from-main.outputs.RELEASE_VERSION }}
@@ -127,7 +138,7 @@ jobs:
 
   # Validate VSIX files before publishing
   validate-vsix:
-    needs: [prepare-environment-from-main]
+    needs: [prepare-environment-from-main, build-extension-list]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -173,7 +184,7 @@ jobs:
 
   ctcCloseFail:
     needs: [ctc-open, publish]
-    if: always() && needs.ctc-open.result == 'success' && needs.ctc-open.outputs.changeCaseId && (needs.ctc-open.result == 'success' && needs.publish.result != 'success')
+    if: always() && needs.ctc-open.result == 'success' && needs.ctc-open.outputs.changeCaseId && needs.publish.result != 'success'
     uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:

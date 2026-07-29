@@ -28,6 +28,8 @@ gh workflow run nightly.yml -f dry-run=true
 - Returns comma-separated list (sorted)
 - Auto-included without workflow changes
 
+For published releases, `scripts/parse-extension-names.js` dynamically extracts extension names from VSIX filenames in release artifacts. Supports both stable (`-1.2.3.vsix`) and prerelease (`-1.2.3-beta.vsix`, `-1.2.3-nightly.1.vsix`) version formats.
+
 ## Architecture
 
 `nightly.yml` delegates to shared reusable workflow:

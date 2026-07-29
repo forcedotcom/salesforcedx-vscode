@@ -76,10 +76,13 @@ Merge to `main` triggers [testBuildAndRelease](https://github.com/forcedotcom/sa
 - Create git tag + GitHub release
 
 Then triggers `publishVSCode.yml`:
+- Verify release exists (required for manual workflow_dispatch triggers)
 - Download VSIX files; validate ≥1 present, exit if missing
 - Upload as artifact for validation
 - Validate VSIX OPC Part URIs (via artifact)
 - Send approval notification
+
+**Manual workflow_dispatch triggers:** If manually triggering `publishVSCode.yml`, ensure `testBuildAndRelease.yml` has already created the GitHub release with VSIX artifacts. The workflow validates the release exists before attempting downloads and will fail early with a clear error if the release is missing.
 
 Before approving marketplace publish, download VSIX files, install locally, verify functionality.
 
