@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -13,10 +13,10 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
-import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = messages.deploy_this_source_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.deploy_this_source_text;
 
 // shared logic for both the editor command and the uri command
 const deployUris = Effect.fn('deploySourcePath.deployUris')(
@@ -47,9 +47,7 @@ export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiv
     return yield* deployUris(new Set([activeEditorUri]));
   },
   Effect.tap(() =>
-    Effect.sync(() =>
-      showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
-    )
+    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
   ),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
@@ -77,8 +75,6 @@ export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySource
     return yield* deployUris(urisSet);
   },
   Effect.tap(() =>
-    Effect.sync(() =>
-      showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
-    )
+    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
   )
 );

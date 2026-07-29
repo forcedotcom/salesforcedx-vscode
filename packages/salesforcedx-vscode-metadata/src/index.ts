@@ -6,7 +6,12 @@
  */
 
 import type { SObjectRefreshSource } from './sobjects/types/general';
-import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import {
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope,
+  NotificationModeService
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -42,12 +47,10 @@ import {
   setAllServicesLayer
 } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
-import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  context.subscriptions.push(notificationModeDisposable);
   await getMetadataRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
@@ -58,6 +61,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
+  const notifSvc = yield* NotificationModeService;
+  yield* Effect.sync(() => context.subscriptions.push({ dispose: () => notifSvc.runDispose() }));
 
   // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);

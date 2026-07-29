@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, FileResponse } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { maybeStoreRetrieveResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
-import { type CommandKey, getProgressLocation } from '../../utils/notificationMode';
+import { type CommandKey } from '../../utils/notificationMode';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
 import { retrieveHasErrors, RetrieveCompletedWithErrorsError } from './retrieveOutcome';
 
@@ -29,7 +29,7 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   const componentCount = componentSet.size;
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
 
-  const progressLocation = command ? getProgressLocation(command) : vscode.ProgressLocation.Notification;
+  const progressLocation = command ? yield* getProgressLocation(command) : vscode.ProgressLocation.Notification;
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, {
     ignoreConflicts,
     progressLocation

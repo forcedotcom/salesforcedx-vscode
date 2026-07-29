@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope, NotificationModeService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -21,15 +21,9 @@ import * as vscode from 'vscode';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { nls } from './messages';
-import {
-  AllServicesLayer,
-  buildAllServicesLayer,
-  getOrgBrowserRuntime,
-  setAllServicesLayer
-} from './services/extensionProvider';
+import { buildAllServicesLayer, getOrgBrowserRuntime, setAllServicesLayer } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
-import { disposable as notificationModeDisposable } from './utils/notificationMode';
 import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from './utils/wildcardPattern';
 
 /**
@@ -235,18 +229,18 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context));
-  await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
+  await getOrgBrowserRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
+export const deactivate = async (): Promise<void> => getOrgBrowserRuntime().runPromise(deactivateEffect());
 
 // export for testing
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
-  yield* Effect.sync(() => context.subscriptions.push(notificationModeDisposable));
+  const notifSvc = yield* NotificationModeService;
+  yield* Effect.sync(() => context.subscriptions.push({ dispose: () => notifSvc.runDispose() }));
 
   // get a connection to initiate the ref
   yield* api.services.ConnectionService.getConnection();

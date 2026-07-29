@@ -8,6 +8,7 @@
 import {
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
+  NotificationModeServiceLayer,
   getServicesApi,
   type ExtensionPackageJson
 } from '@salesforce/effect-ext-utils';
@@ -49,7 +50,12 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         errorHandlerWithChannel,
         api.services.ExtensionContextServiceLayer(context),
         api.services.SdkLayerFor(context),
-        channelLayer
+        channelLayer,
+        NotificationModeServiceLayer(
+          'salesforcedx-vscode-metadata',
+          'sf-metadata-notifications',
+          'Salesforce: Metadata Notifications'
+        )
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );

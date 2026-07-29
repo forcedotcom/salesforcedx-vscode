@@ -6,20 +6,20 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as effectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { debuggerStop, DebuggerSessionQueryError } from '../../../src/commands/debuggerStop';
-import * as notificationMode from '../../../src/utils/notificationMode';
 
 jest.mock('@salesforce/core', () => ({
   AuthInfo: { create: jest.fn() },
   Connection: { create: jest.fn() }
 }));
 
-jest.mock('../../../src/utils/notificationMode', () => ({
-  getProgressLocation: jest.fn(() => 15 /* vscode.ProgressLocation.Notification */),
+jest.mock('@salesforce/effect-ext-utils', () => ({
+  ...jest.requireActual('@salesforce/effect-ext-utils'),
+  getProgressLocation: jest.fn(),
   showSuccessNotification: jest.fn()
 }));
 
@@ -39,9 +39,9 @@ const makeConfigService = (isvSid?: string, isvUrl?: string) => ({
     })
 });
 
-// Provide the real ExtensionProviderService tag with a mock services api.
+// Provide the real effectExtUtils.ExtensionProviderService tag with a mock services api.
 const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
-  Layer.succeed(ExtensionProviderService, {
+  Layer.succeed(effectExtUtils.ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
         ProjectService: { getSfProject: () => Effect.void },
@@ -56,7 +56,7 @@ const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
         })
       }
     })
-  } as unknown as ExtensionProviderService);
+  } as unknown as effectExtUtils.ExtensionProviderService);
 
 // providerLayer satisfies ConnectionService/ChannelService at runtime, but the api's typed accessors re-add
 // them to the effect's R channel; cast R away since the layer fully provides them.
@@ -73,14 +73,18 @@ const runFlipped = (conn: unknown) =>
 describe('debuggerStop', () => {
   beforeEach(() => {
     (vscode.window.showInformationMessage as jest.Mock) = jest.fn();
-    (notificationMode.showSuccessNotification as jest.Mock).mockClear();
+    (effectExtUtils.showSuccessNotification as jest.Mock).mockClear();
+    (effectExtUtils.getProgressLocation as jest.Mock).mockReturnValue(
+      Effect.succeed(15 /* vscode.ProgressLocation.Notification */)
+    );
+    (effectExtUtils.showSuccessNotification as jest.Mock).mockReturnValue(Effect.void);
   });
 
   it('shows "none found" and does NOT update when the query returns 0 records', async () => {
     const { conn, update } = makeConnection(() => Promise.resolve({ records: [] }));
     await run(conn);
     expect(update).not.toHaveBeenCalled();
-    expect(notificationMode.showSuccessNotification).toHaveBeenCalledWith(
+    expect(effectExtUtils.showSuccessNotification).toHaveBeenCalledWith(
       'SFDX: Stop Apex Debugger Session',
       'No Apex Debugger session found.',
       false
@@ -93,7 +97,7 @@ describe('debuggerStop', () => {
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledTimes(1);
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000001', Status: 'Detach' });
-    expect(notificationMode.showSuccessNotification).toHaveBeenCalledWith(
+    expect(effectExtUtils.showSuccessNotification).toHaveBeenCalledWith(
       'SFDX: Stop Apex Debugger Session',
       'Apex Debugger session stopped.',
       false
@@ -126,7 +130,7 @@ describe('debuggerStop', () => {
     expect(Connection.create).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000002', Status: 'Detach' });
-    expect(notificationMode.showSuccessNotification).toHaveBeenCalledWith(
+    expect(effectExtUtils.showSuccessNotification).toHaveBeenCalledWith(
       'SFDX: Stop Apex Debugger Session',
       'Apex Debugger session stopped.',
       false

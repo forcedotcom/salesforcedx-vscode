@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { format } from 'node:util';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
-import { CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
 
@@ -91,11 +91,15 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
   return yield* launchReplayDebugger(logFilePath, logBody ?? undefined);
 });
 
-const COMMAND: CommandKey = 'Debug Anonymous Apex';
+const COMMAND: ProgressAndSuccessCommandKey = 'Debug Anonymous Apex';
 
 export const anonApexDebug = async (): Promise<void> => {
   const success = await vscode.window.withProgress(
-    { location: getProgressLocation(COMMAND), title: nls.localize('apex_execute_text'), cancellable: false },
+    {
+      location: getRuntime().runSync(getProgressLocation(COMMAND)),
+      title: nls.localize('apex_execute_text'),
+      cancellable: false
+    },
     () =>
       getRuntime()
         .runPromise(executeAnonApexDebug())
@@ -104,6 +108,6 @@ export const anonApexDebug = async (): Promise<void> => {
         })
   );
   if (success) {
-    void showSuccessNotification(COMMAND, nls.localize('apex_execute_debug_success'), false);
+    void getRuntime().runPromise(showSuccessNotification(COMMAND, nls.localize('apex_execute_debug_success'), false));
   }
 };

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -13,10 +13,10 @@ import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFl
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
-import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = messages.retrieve_this_source_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.retrieve_this_source_text;
 
 /** Retrieve source paths from the default org */
 // When a single file is selected and "Retrieve Source from Org" is executed,
@@ -61,11 +61,6 @@ export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand'
     })
   ),
   Effect.tap(() =>
-    Effect.sync(() =>
-      showSuccessNotification(
-        COMMAND,
-        nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text'))
-      )
-    )
+    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('retrieve_this_source_text')))
   )
 );

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -25,7 +25,7 @@ import {
   sanitizeDeveloperName
 } from '../../traceFlags/traceFlagJsonSync';
 import { createTraceFlagsUri } from '../../traceFlags/traceFlagsContentProvider';
-import { type SuccessOnlyCommandKey, showSuccessNotification } from '../../utils/notificationMode';
+import { type SuccessOnlyCommandKey } from '../../utils/notificationMode';
 
 const noOrgWarning = () => Effect.promise(() => vscode.window.showWarningMessage(nls.localize('trace_flags_no_org')));
 
@@ -81,16 +81,15 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
     const traceFlagService = yield* api.services.TraceFlagService;
     const existing = yield* traceFlagService.getTraceFlagForUser(userId!);
     if (Option.isNone(existing)) {
-      yield* Effect.sync(() =>
-        showSuccessNotification('SFDX: Remove Trace Flag for Current User', nls.localize('trace_flags_none_active'))
+      yield* showSuccessNotification(
+        'SFDX: Remove Trace Flag for Current User',
+        nls.localize('trace_flags_none_active')
       );
       return;
     }
     yield* traceFlagService.deleteTraceFlag(existing.value.id);
     yield* refreshTraceFlagsView(orgId);
-    yield* Effect.sync(() =>
-      showSuccessNotification('SFDX: Remove Trace Flag for Current User', nls.localize('trace_flag_deleted'))
-    );
+    yield* showSuccessNotification('SFDX: Remove Trace Flag for Current User', nls.localize('trace_flag_deleted'));
   }
 );
 
@@ -202,7 +201,7 @@ const promptForActiveTraceFlagId = Effect.fn('ApexLog.promptForActiveTraceFlagId
 ) {
   const active = flags.filter(isTraceFlagActive);
   if (active.length === 0) {
-    yield* Effect.sync(() => showSuccessNotification(command, nls.localize('trace_flags_none_active')));
+    yield* showSuccessNotification(command, nls.localize('trace_flags_none_active'));
     return undefined;
   }
   return yield* pickTraceFlag(active);
@@ -222,7 +221,7 @@ export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTrac
   if (!resolvedId) return;
   yield* traceFlagService.deleteTraceFlag(resolvedId);
   yield* refreshTraceFlagsView(orgId);
-  yield* Effect.sync(() => showSuccessNotification('SFDX: Remove Trace Flag', nls.localize('trace_flag_deleted')));
+  yield* showSuccessNotification('SFDX: Remove Trace Flag', nls.localize('trace_flag_deleted'));
 });
 
 /** Change trace flag debug level via QuickPick, refresh virtual doc. */
@@ -244,7 +243,7 @@ const promptForDebugLevelId = Effect.fn('ApexLog.promptForDebugLevelId')(functio
   command: SuccessOnlyCommandKey
 ) {
   if (levels.length === 0) {
-    yield* Effect.sync(() => showSuccessNotification(command, nls.localize('trace_flags_no_debug_levels')));
+    yield* showSuccessNotification(command, nls.localize('trace_flags_no_debug_levels'));
     return undefined;
   }
   return yield* pickDebugLevelToRemove(levels);
@@ -264,5 +263,5 @@ export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDeb
   if (!resolvedId) return;
   yield* traceFlagService.deleteDebugLevel(resolvedId);
   yield* refreshTraceFlagsView(orgId);
-  yield* Effect.sync(() => showSuccessNotification('SFDX: Remove Debug Level', nls.localize('debug_level_deleted')));
+  yield* showSuccessNotification('SFDX: Remove Debug Level', nls.localize('debug_level_deleted'));
 });

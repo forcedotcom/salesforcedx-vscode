@@ -5,20 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
+export type ProgressAndSuccessCommandKey = 'Debug Apex Test Class' | 'Debug Anonymous Apex';
 
-type ProgressAndSuccessCommandKey = 'Debug Apex Test Class' | 'Debug Anonymous Apex';
-
-type ProgressOnlyCommandKey = 'Update Checkpoints in Org';
-
-export type CommandKey = ProgressAndSuccessCommandKey | ProgressOnlyCommandKey;
-
-export const { showSuccessNotification, getProgressLocation, disposable } = createNotificationModeApi<
-  ProgressAndSuccessCommandKey,
-  never,
-  ProgressOnlyCommandKey
->(
-  'salesforcedx-vscode-apex-replay-debugger',
-  'sf-apex-replay-debugger-notifications',
-  'Salesforce: Apex Replay Debugger Notifications'
-);
+export type ProgressOnlyCommandKey = 'Update Checkpoints in Org';

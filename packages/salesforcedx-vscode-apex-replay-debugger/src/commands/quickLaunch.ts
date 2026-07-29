@@ -13,7 +13,7 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -21,11 +21,11 @@ import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpoin
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
 import { getRuntime } from '../services/runtime';
-import { CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { retrieveTestCodeCoverage } from '../utils/settings';
 import { launchFromLogFile } from './launchFromLogFile';
 
-const COMMAND: CommandKey = 'Debug Apex Test Class';
+const COMMAND: ProgressAndSuccessCommandKey = 'Debug Apex Test Class';
 
 const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass: string, testName?: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -83,7 +83,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
 export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const success = await vscode.window.withProgress(
     {
-      location: getProgressLocation(COMMAND),
+      location: getRuntime().runSync(getProgressLocation(COMMAND)),
       title: `Running ${nls.localize('debug_test_exec_name')}`,
       cancellable: false
     },
@@ -95,6 +95,6 @@ export const setupAndDebugTests = async (className: string, methodName?: string)
         })
   );
   if (success) {
-    void showSuccessNotification(COMMAND, nls.localize('debug_test_success'), false);
+    void getRuntime().runPromise(showSuccessNotification(COMMAND, nls.localize('debug_test_success'), false));
   }
 };

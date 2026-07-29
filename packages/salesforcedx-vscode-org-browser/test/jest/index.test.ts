@@ -42,6 +42,7 @@ jest.mock('vscode', () => ({
 
 import {
   ExtensionProviderService,
+  NotificationModeService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
 import * as vscode from 'vscode';
@@ -273,7 +274,8 @@ describe.skip('Extension', () => {
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,
             MockSourceTrackingServiceLayer,
-            MockOrgBrowserRetrieveServiceLayer
+            MockOrgBrowserRetrieveServiceLayer,
+            NotificationModeService.Default
           )
         )
       )

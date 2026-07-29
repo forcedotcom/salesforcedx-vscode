@@ -23,28 +23,30 @@ import { ExtensionContextService } from './extensionContextService';
  * yield* registerCommand('sf.my.command', myCommandEffect);
  */
 export const registerCommandWithLayer =
-  <LayerR, LayerE>(layer: Layer.Layer<LayerR, LayerE, never>) =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- This really is that generic, Effect will handle the param stuff
-  <E, A>(command: string, f: (...args: any[]) => Effect.Effect<A, E | UserCancellationError, LayerR>) =>
-    Effect.gen(function* () {
-      const contextService = yield* ExtensionContextService;
-      const context = yield* contextService.getContext;
-      const errorHandler = yield* ErrorHandlerService;
-      const runtime = yield* Effect.runtime();
-      context.subscriptions.push(
-        vscode.commands.registerCommand(command, (...args) =>
-          Runtime.runFork(runtime)(
-            f(...args).pipe(
-              // root: true ensures proper trace root (not orphaned child of activation)
-              Effect.withSpan(command, { attributes: { command, args }, root: true }),
-              Effect.catchTag('UserCancellationError', () => Effect.void),
-              Effect.catchAllCause(cause => errorHandler.handleCause(cause)),
-              Effect.provide(layer)
+  // _layer: phantom parameter for LayerR type inference; runtime captured from ambient context
+  <LayerR, LayerE>(_layer: Layer.Layer<LayerR, LayerE, never>) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- This really is that generic, Effect will handle the param stuff
+    <E, A>(command: string, f: (...args: any[]) => Effect.Effect<A, E | UserCancellationError, LayerR>) =>
+      Effect.gen(function* () {
+        const contextService = yield* ExtensionContextService;
+        const context = yield* contextService.getContext;
+        const errorHandler = yield* ErrorHandlerService;
+        // Capture ambient runtime. Effect.runtime<LayerR>() avoids re-providing the layer on each invocation,
+        // which would rebuild Layer.effect resources (e.g., re-registering VS Code commands).
+        const runtime = yield* Effect.runtime<LayerR>();
+        context.subscriptions.push(
+          vscode.commands.registerCommand(command, (...args) =>
+            Runtime.runFork(runtime)(
+              f(...args).pipe(
+                // root: true ensures proper trace root (not orphaned child of activation)
+                Effect.withSpan(command, { attributes: { command, args }, root: true }),
+                Effect.catchTag('UserCancellationError', () => Effect.void),
+                Effect.catchAllCause(cause => errorHandler.handleCause(cause))
+              )
             )
           )
-        )
-      );
-    }).pipe(Effect.withSpan(`registerCommand:${command}`));
+        );
+      }).pipe(Effect.withSpan(`registerCommand:${command}`));
 
 /**
  * Factory that creates a registerCommand function pre-loaded with a ManagedRuntime.

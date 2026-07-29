@@ -8,6 +8,7 @@
 import {
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
+  NotificationModeServiceLayer,
   type ExtensionPackageJson,
   getServicesApi
 } from '@salesforce/effect-ext-utils';
@@ -46,12 +47,17 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.ExtensionContextServiceLayer(context),
         api.services.SdkLayerFor(context),
         channelLayer,
-        errorHandlerWithChannel
+        errorHandlerWithChannel,
+        NotificationModeServiceLayer(
+          'salesforcedx-vscode-soql',
+          'sf-soql-notifications',
+          'Salesforce: SOQL Notifications'
+        )
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))
   );
 
-export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;

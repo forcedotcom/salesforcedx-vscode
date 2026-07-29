@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -16,11 +16,11 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
-import { type CommandKey, getProgressLocation } from '../../utils/notificationMode';
+import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
 import { MissingDefaultOrgError } from './diffErrors';
 import { createDiffFilePair, type DiffFilePair } from './diffTypes';
 
-const COMMAND: CommandKey = 'SFDX: Diff Source Against Org';
+const COMMAND: ProgressOnlyCommandKey = 'SFDX: Diff Source Against Org';
 
 export const sourceComponentToPaths = (component: SourceComponent) =>
   [component.content, component.xml, ...component.walkContent()].filter(isString);
@@ -56,7 +56,7 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
     componentSet,
     cacheDirUri,
-    { progressLocation: getProgressLocation(COMMAND) }
+    { progressLocation: yield* getProgressLocation(COMMAND) }
   );
 
   return result;

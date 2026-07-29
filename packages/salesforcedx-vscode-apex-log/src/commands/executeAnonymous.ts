@@ -5,18 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { type EditorService } from 'salesforcedx-vscode-services';
 import { ExecAnonCompileError } from '../errors/commandErrors';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
-import {
-  type ProgressAndSuccessCommandKey,
-  getProgressLocation,
-  showSuccessNotification
-} from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 type EditorContext = Effect.Effect.Success<ReturnType<EditorService['getActiveEditorContext']>>;
 
@@ -62,16 +58,14 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
   // progress dismisses once execution+save resolve; success toast + open-log handled after so the spinner doesn't linger on user interaction
   yield* api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(
     Effect.flatMap(executeAnonymous),
-    promptService.withProgress(nls.localize('exec_anon_progress_title'), getProgressLocation(command)),
+    promptService.withProgress(nls.localize('exec_anon_progress_title'), yield* getProgressLocation(command)),
     Effect.tap(logUri =>
-      Effect.sync(() => {
-        showSuccessNotification(command, nls.localize('exec_anon_success'), false, [
-          {
-            label: nls.localize('open_log'),
-            run: () => void getRuntime().runPromise(api.services.FsService.showTextDocument(logUri))
-          }
-        ]);
-      })
+      showSuccessNotification(command, nls.localize('exec_anon_success'), false, [
+        {
+          label: nls.localize('open_log'),
+          run: () => void getRuntime().runPromise(api.services.FsService.showTextDocument(logUri))
+        }
+      ])
     )
   );
 });

@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import { NotificationModeService } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -43,9 +43,8 @@ import {
   LIVESHARE_DEBUGGER_TYPE
 } from './debuggerConstants';
 import { nls } from './messages';
-import { setAllServicesLayer } from './services/extensionProvider';
+import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
-import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 export enum VSCodeWindowTypeEnum {
   Error = 1,
@@ -206,6 +205,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     await setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method);
   });
 
+  const notifSvc = yield* NotificationModeService;
   extensionContext.subscriptions.push(
     debuggerChannel,
     commands,
@@ -215,7 +215,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     breakpointsSub,
     debugTests,
     debugTest,
-    notificationModeDisposable
+    { dispose: () => notifSvc.runDispose() }
   );
 
   // Telemetry

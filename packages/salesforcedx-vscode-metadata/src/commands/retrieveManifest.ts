@@ -5,18 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
-import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 import { ManifestSelectionRequiredError } from './manifestErrors';
 
-const COMMAND: CommandKey = messages.retrieve_in_manifest_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.retrieve_in_manifest_text;
 
 /** Retrieve from the default org using a manifest file */
 export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
@@ -45,11 +45,6 @@ export const retrieveManifestCommand = Effect.fn('retrieveManifestCommand')(
     })
   ),
   Effect.tap(() =>
-    Effect.sync(() =>
-      showSuccessNotification(
-        COMMAND,
-        nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text'))
-      )
-    )
+    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('retrieve_in_manifest_text')))
   )
 );

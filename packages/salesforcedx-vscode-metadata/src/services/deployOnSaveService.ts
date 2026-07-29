@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
@@ -23,9 +23,9 @@ import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { DeployCompletedWithErrorsError } from '../shared/deploy/deployErrors';
-import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
-const COMMAND: CommandKey = 'Deploy on Save';
+const COMMAND: ProgressAndSuccessCommandKey = 'Deploy on Save';
 
 const ENQUEUE_DELAY_MS = 1000;
 
@@ -87,9 +87,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
   }
 
   const result = yield* deployComponentSet({ componentSet, command: COMMAND });
-  yield* Effect.sync(() =>
-    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text')))
-  );
+  yield* showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text')));
   return result;
 });
 

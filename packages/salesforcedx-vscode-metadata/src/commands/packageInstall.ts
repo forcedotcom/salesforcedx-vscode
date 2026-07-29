@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
@@ -18,9 +18,9 @@ import * as Str from 'effect/String';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
-import { type CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
-const COMMAND: CommandKey = messages.package_install_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.package_install_text;
 
 const PKG_ID_PREFIX = '04t';
 
@@ -176,10 +176,11 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
 
+  const verifyProgressLocation = yield* getProgressLocation(COMMAND);
   const packageId = yield* gatherPackageId().pipe(
     Effect.flatMap(id =>
       verifyPackageAvailable(id).pipe(
-        promptService.withProgress(nls.localize('package_install_verifying_progress', id), getProgressLocation(COMMAND))
+        promptService.withProgress(nls.localize('package_install_verifying_progress', id), verifyProgressLocation)
       )
     ),
     Effect.tap(id => Effect.annotateCurrentSpan('packageId', id))
@@ -194,20 +195,16 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const requestId = yield* submitInstallRequest({ packageId, installationKey });
 
   if (!shouldPoll) {
-    yield* Effect.sync(() =>
-      showSuccessNotification(COMMAND, nls.localize('package_install_submitted_message', requestId), true)
-    );
+    yield* showSuccessNotification(COMMAND, nls.localize('package_install_submitted_message', requestId), true);
     return;
   }
 
   yield* pollUntilComplete(requestId).pipe(
     promptService.withCancellableProgress(
       nls.localize('package_install_polling_progress', packageId),
-      getProgressLocation(COMMAND)
+      yield* getProgressLocation(COMMAND)
     ),
-    Effect.tap(() =>
-      Effect.sync(() => showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId)))
-    ),
+    Effect.tap(() => showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))),
     // custom message to make it clear how cancellation works
     Effect.tapErrorTag('UserCancellationError', () =>
       Effect.sync(() =>

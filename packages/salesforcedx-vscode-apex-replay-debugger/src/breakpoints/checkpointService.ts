@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import type { Connection } from '@salesforce/core';
-import { code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { code2ProtocolConverter, ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
@@ -21,9 +21,9 @@ import { ActionScriptType, CHECKPOINT, FIELD_INTEGRITY_EXCEPTION, MAX_ALLOWED_CH
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
-import { CommandKey, getProgressLocation } from '../utils/notificationMode';
+import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 
-const COMMAND: CommandKey = 'Update Checkpoints in Org';
+const COMMAND: ProgressOnlyCommandKey = 'Update Checkpoints in Org';
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -565,7 +565,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
           writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
           await vscode.window.withProgress(
             {
-              location: getProgressLocation(COMMAND),
+              location: getRuntime().runSync(getProgressLocation(COMMAND)),
               title: localizedProgressMessage,
               cancellable: false
             },

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import { SF_CONFIG_ISV_DEBUGGER_SID, SF_CONFIG_ISV_DEBUGGER_URL } from '@salesforce/salesforcedx-apex-debugger';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
@@ -13,7 +13,7 @@ import * as Option from 'effect/Option';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { nls } from '../messages';
-import { CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 /**
  * Raised when the `ApexDebuggerSession` tooling query fails. Previously the executor swallowed this in a
@@ -46,7 +46,7 @@ export class DebuggerSessionUpdateError extends Schema.TaggedError<DebuggerSessi
  * check needed. A single progress notification wraps the whole command; query/update failures surface as
  * tagged errors (rendered by ErrorHandlerService) rather than being swallowed.
  */
-const COMMAND: CommandKey = 'SFDX: Stop Apex Debugger Session';
+const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Stop Apex Debugger Session';
 
 export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -74,29 +74,24 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
     : api.services.ConnectionService.getConnection();
 
   // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
-  yield* Effect.tryPromise({
+  const stopped = yield* Effect.tryPromise({
     try: () => conn.tooling.query<{ Id: string }>("SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"),
     catch: e => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) })
   }).pipe(
     Effect.flatMap(({ records }) =>
       Option.match(Array.head(records), {
-        onNone: () =>
-          Effect.sync(
-            () => void showSuccessNotification(COMMAND, nls.localize('debugger_stop_none_found_text'), false)
-          ),
+        onNone: () => Effect.succeed(false as const),
         onSome: ({ Id }) =>
           Effect.tryPromise({
             try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
             catch: e => new DebuggerSessionUpdateError({ message: isError(e) ? e.message : String(e) })
-          }).pipe(
-            Effect.tap(() =>
-              Effect.sync(
-                () => void showSuccessNotification(COMMAND, nls.localize('debugger_stop_success_text'), false)
-              )
-            )
-          )
+          }).pipe(Effect.as(true as const))
       })
     ),
-    promptService.withProgress(nls.localize('debugger_stop_text'), getProgressLocation(COMMAND))
+    promptService.withProgress(nls.localize('debugger_stop_text'), yield* getProgressLocation(COMMAND))
   );
+
+  yield* stopped
+    ? showSuccessNotification(COMMAND, nls.localize('debugger_stop_success_text'), false)
+    : showSuccessNotification(COMMAND, nls.localize('debugger_stop_none_found_text'), false);
 });

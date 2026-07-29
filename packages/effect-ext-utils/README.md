@@ -34,48 +34,56 @@ yield * annotateRootSpan({ orgId, featureFlag: 'enabled' });
 
 Signature mirrors `Effect.annotateCurrentSpan` — both `(key, value)` and record overloads. The helper walks `Span.parent` to find the trace root, no-ops with a debug log if there is no current span or the chain dead-ends at a non-Effect (External) span.
 
-### createNotificationModeApi
+### NotificationModeService
 
 ```typescript
-import { createNotificationModeApi } from '@salesforce/effect-ext-utils';
+import { NotificationModeService, NotificationModeServiceLayer, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 
-const { showSuccessNotification, getProgressLocation, disposable } = createNotificationModeApi(
+// Create layer in extension activate()
+const layer = NotificationModeServiceLayer(
   'my-extension-section',
   'my-extension.statusBar',
   'My Extension Status'
 );
 
-// Push disposable to context.subscriptions in activate() to clean up on deactivation
-context.subscriptions.push(disposable);
+// Use in Effect code
+const program = Effect.gen(function* () {
+  // Get progress location for commands with a progress phase
+  const location = yield* getProgressLocation('progressCommandKey');
 
-// Get progress location for commands with a progress phase
-const location = getProgressLocation('progressCommandKey');
+  // Show success notification (works for both progress+success and success-only commands)
+  yield* showSuccessNotification('commandKey', 'Done!');
 
-// Show success notification (works for both progress+success and success-only commands)
-showSuccessNotification('commandKey', 'Done!');
+  // Show success with action buttons
+  yield* showSuccessNotification('commandKey', 'Success!', false, [
+    { label: 'Open', run: () => { /* action handler */ } }
+  ]);
 
-// Show success with action buttons
-showSuccessNotification('commandKey', 'Success!', false, [
-  { label: 'Open', run: () => { /* action handler */ } }
-]);
+  // Override success-off modes for critical info
+  yield* showSuccessNotification('commandKey', 'Success with ID: 12345', true);
+});
 
-// Override success-off modes for critical info
-showSuccessNotification('commandKey', 'Success with ID: 12345', true);
+// Run with the layer
+yield* program.pipe(Effect.provide(layer));
 ```
 
-Creates a notification API that auto-detects the command type (progress+success, success-only, or progress-only) from stored settings. The factory takes three arguments: `extensionSection`, `statusBarId`, and `statusBarName`. Type parameters control which command keys use which notification shapes — no 4th argument needed.
+Service for reading notification mode settings & showing success notifications. Auto-detects command type from settings.
 
-Returns API with:
-- `showSuccessNotification(command, message, forceShow?, actions?)` — accepts progress+success and success-only command keys
-- `getProgressLocation(command)` — accepts progress+success and progress-only command keys
-- `disposable` — manages status bar item and command registration lifecycle; push to `context.subscriptions` in `activate()` to dispose on deactivation/reload
+**Factory args:** `extensionSection`, `statusBarId`, `statusBarName`.
+
+**Shared helpers** (use instead of per-extension wrappers):
+- `getProgressLocation(command)` — returns Effect; works w/ progress+success & progress-only command keys
+- `showSuccessNotification(command, message, forceShow?, actions?)` — returns Effect; works w/ progress+success & success-only command keys
+
+Disposable resources (status bar item, command registration) managed by Layer — disposed on scope close (extension deactivation).
 
 Mode values (auto-detected from settings):
 - **Progress+Success**: `progressToastSuccessToast`, `progressToastSuccessOff`, `progressStatusBarSuccessStatusBar`, `progressStatusBarSuccessOff`
 - **Success-only**: `successToast`, `successStatusBar`, `successOff`
 - **Progress-only**: `progressToast`, `progressStatusBar`
 
-Use `forceShow: true` to override `*SuccessOff`/`successOff` modes when the message contains critical info (e.g., a request ID). Action buttons appear in toasts and on status bar item click.
+Use `forceShow: true` to override `*SuccessOff`/`successOff` for critical info (e.g., request ID). Action buttons in toast or on status bar click.
 
 ## License
 

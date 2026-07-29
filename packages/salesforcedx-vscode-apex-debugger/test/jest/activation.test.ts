@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, NotificationModeService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
@@ -32,11 +32,10 @@ const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vs
 
 const runActivate = () =>
   Effect.runPromise(
-    activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer())) as Effect.Effect<
-      void,
-      unknown,
-      never
-    >
+    activateEffect(extensionContext).pipe(
+      Effect.provide(extensionProviderLayer()),
+      Effect.provide(NotificationModeService.Default)
+    ) as Effect.Effect<void, unknown, never>
   );
 
 describe('activateEffect', () => {

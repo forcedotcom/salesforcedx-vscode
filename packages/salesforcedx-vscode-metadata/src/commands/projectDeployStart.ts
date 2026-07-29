@@ -5,16 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
-import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = messages.project_deploy_start_default_org_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.project_deploy_start_default_org_text;
 
 const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreConflicts: boolean) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -36,19 +36,17 @@ export const projectDeployStartCommand = (ignoreConflicts = false) =>
       })
     ),
     Effect.tap(() =>
-      Effect.sync(() =>
-        showSuccessNotification(
-          COMMAND,
-          nls.localize(
-            'command_succeeded_text',
-            ignoreConflicts
-              ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
-              : nls.localize('project_deploy_start_default_org_text')
-          )
+      showSuccessNotification(
+        COMMAND,
+        nls.localize(
+          'command_succeeded_text',
+          ignoreConflicts
+            ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
+            : nls.localize('project_deploy_start_default_org_text')
         )
       )
     ),
     Effect.catchTag('EmptyComponentSetError', () =>
-      Effect.sync(() => showSuccessNotification(COMMAND, nls.localize('no_local_changes_to_deploy')))
+      showSuccessNotification(COMMAND, nls.localize('no_local_changes_to_deploy'))
     )
   );

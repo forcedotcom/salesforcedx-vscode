@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';
-import { type CommandKey, getProgressLocation } from '../../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../../utils/notificationMode';
 import { applyDeployDiagnostics, clearDeployDiagnostics } from './deployDiagnostics';
 import { DeployCompletedWithErrorsError } from './deployErrors';
 import { formatDeployOutput } from './formatDeployOutput';
@@ -21,7 +21,7 @@ import { getMergedDeployFailures } from './getMergedDeployFailures';
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const deployComponentSet = Effect.fn('deployComponentSet')(function* (options: {
   componentSet: NonEmptyComponentSet;
-  command?: CommandKey;
+  command?: ProgressAndSuccessCommandKey;
 }) {
   const { componentSet, command } = options;
   clearDeployDiagnostics();
@@ -30,7 +30,7 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel('Starting metadata deployment...');
 
-  const progressLocation = command ? getProgressLocation(command) : vscode.ProgressLocation.Notification;
+  const progressLocation = command ? yield* getProgressLocation(command) : vscode.ProgressLocation.Notification;
   const result = yield* api.services.MetadataDeployService.deploy(componentSet, { progressLocation });
 
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));

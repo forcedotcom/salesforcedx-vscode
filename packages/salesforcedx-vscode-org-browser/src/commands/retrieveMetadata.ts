@@ -5,16 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import { messages, nls } from '../messages';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
-import { type CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
-const COMMAND: CommandKey = messages.retrieve_metadata_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.retrieve_metadata_text;
 
 export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(function* (
   node: OrgBrowserTreeItem,
@@ -33,7 +33,7 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
   yield* confirmOverwrite(projectComponentSet, members);
 
   return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1, {
-    progressLocation: getProgressLocation(COMMAND)
+    progressLocation: yield* getProgressLocation(COMMAND)
   }).pipe(
     Effect.tap(() =>
       Match.value(node.kind).pipe(
@@ -47,12 +47,7 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
       )
     ),
     Effect.tap(() =>
-      Effect.sync(() => {
-        showSuccessNotification(
-          COMMAND,
-          nls.localize('command_succeeded_text', nls.localize('retrieve_metadata_text'))
-        );
-      })
+      showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('retrieve_metadata_text')))
     )
   );
 });

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -15,10 +15,10 @@ import { messages } from '../messages/i18n';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
-import { type CommandKey, showSuccessNotification } from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { withPreparationProgress } from '../utils/withPreparationProgress';
 
-const COMMAND: CommandKey = messages.delete_source_text;
+const COMMAND: ProgressAndSuccessCommandKey = messages.delete_source_text;
 
 /** throws the standard UserCancellationError if the user cancels the deletion */
 const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () {
@@ -78,9 +78,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
     );
   },
   Effect.tap(() =>
-    Effect.sync(() =>
-      showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('delete_source_text')))
-    )
+    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('delete_source_text')))
   ),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.sync(() => {

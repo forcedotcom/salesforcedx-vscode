@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer as buildSharedServicesLayer } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer as buildSharedServicesLayer,
+  NotificationModeServiceLayer
+} from '@salesforce/effect-ext-utils';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
@@ -16,10 +19,18 @@ import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
  * OrgBrowserRetrieveService (which needs only ExtensionProviderService, present in the shared build).
  */
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.merge(buildSharedServicesLayer(context, 'Salesforce Org Browser'), OrgBrowserRetrieveService.Default);
+  Layer.mergeAll(
+    buildSharedServicesLayer(context, 'Salesforce Org Browser'),
+    OrgBrowserRetrieveService.Default,
+    NotificationModeServiceLayer(
+      'salesforcedx-vscode-org-browser',
+      'sf-org-browser-notifications',
+      'Salesforce: Org Browser Notifications'
+    )
+  );
 
 // eslint-disable-next-line functional/no-let
-export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
   AllServicesLayer = layer;

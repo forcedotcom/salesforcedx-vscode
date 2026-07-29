@@ -9,6 +9,7 @@ import {
   closeExtensionScope,
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
+  NotificationModeService,
   type ExtensionPackageJson,
   getExtensionScope
 } from '@salesforce/effect-ext-utils';
@@ -43,12 +44,10 @@ import { createTraceFlagStatusBar } from './statusBar/traceFlagStatusBar';
 import { traceFlagCleanupScheduler } from './traceFlagCleanupScheduler';
 import { registerTraceFlagsCodeLensProvider } from './traceFlags/traceFlagsCodeLensProvider';
 import { SCHEME as TRACE_FLAGS_SCHEME, TraceFlagsContentProviderService } from './traceFlags/traceFlagsContentProvider';
-import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context, 'Salesforce Apex Log'));
-  context.subscriptions.push(notificationModeDisposable);
   await getRuntime().runPromise(activation(context).pipe(Scope.extend(extensionScope)));
 };
 
@@ -64,6 +63,8 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   yield* api.services.ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension activating`))
   );
+  const notifSvc = yield* NotificationModeService;
+  yield* Effect.sync(() => context.subscriptions.push({ dispose: () => notifSvc.runDispose() }));
 
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   const scope = yield* getExtensionScope();

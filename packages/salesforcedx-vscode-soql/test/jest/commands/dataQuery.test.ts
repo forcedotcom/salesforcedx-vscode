@@ -21,7 +21,7 @@ const mockExtensionProvider = {
 
 jest.mock('@salesforce/effect-ext-utils', () => jest.requireActual('@salesforce/effect-ext-utils'));
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, NotificationModeService } from '@salesforce/effect-ext-utils';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
 import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
 import { FsService } from 'salesforcedx-vscode-services/out/src/vscode/fsService';
@@ -753,7 +753,8 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
-          Effect.provideService(PromptService, mockPromptService)
+          Effect.provideService(PromptService, mockPromptService),
+          Effect.provide(NotificationModeService.Default)
         )
       );
       expect(restQuery).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: true }));
@@ -766,7 +767,8 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
-          Effect.provideService(PromptService, mockPromptService)
+          Effect.provideService(PromptService, mockPromptService),
+          Effect.provide(NotificationModeService.Default)
         )
       );
       expect(toolingQuery).toHaveBeenCalledWith('SELECT Id FROM ApexClass', expect.objectContaining({ scanAll: true }));
@@ -779,7 +781,8 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
-          Effect.provideService(PromptService, mockPromptService)
+          Effect.provideService(PromptService, mockPromptService),
+          Effect.provide(NotificationModeService.Default)
         )
       );
       expect(restQuery).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: false }));
@@ -1018,7 +1021,8 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
           Effect.provideService(FsService, {} as unknown as FsService),
           Effect.provideService(WorkspaceService, {} as unknown as WorkspaceService),
-          Effect.provideService(PromptService, noopPromptService)
+          Effect.provideService(PromptService, noopPromptService),
+          Effect.provide(NotificationModeService.Default)
         )
       ).then(() => ({ show, appendToChannel }));
     };

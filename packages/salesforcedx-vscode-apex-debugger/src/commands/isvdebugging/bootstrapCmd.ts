@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Global } from '@salesforce/core/global';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
 import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -18,9 +18,9 @@ import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instr
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
-import { CommandKey, getProgressLocation } from '../../utils/notificationMode';
+import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
 
-const COMMAND: CommandKey = 'SFDX: Create and Set Up Project for ISV Debugging';
+const COMMAND: ProgressOnlyCommandKey = 'SFDX: Create and Set Up Project for ISV Debugging';
 
 type InstalledPackageInfo = {
   id: string;
@@ -222,7 +222,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   // interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child process.
   yield* promptService.withCancellableProgressReporting(
     nls.localize('isv_debug_bootstrap_progress_title'),
-    getProgressLocation(COMMAND)
+    yield* getProgressLocation(COMMAND)
   )(progress =>
     Effect.gen(function* () {
       const report = (message: string) => Effect.sync(() => progress.report({ message }));

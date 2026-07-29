@@ -8,7 +8,7 @@
 // not going to change anything since this is going away
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { buildAllServicesLayer, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, NotificationModeService } from '@salesforce/effect-ext-utils';
 import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
@@ -33,10 +33,9 @@ import { debuggerStop } from './commands/debuggerStop';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
 import { nls } from './messages';
-import { AllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { getTelemetryService } from './utils/coreExtensionUtils';
-import { disposable as notificationModeDisposable } from './utils/notificationMode';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
 
@@ -242,6 +241,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
+  const notifSvc = yield* NotificationModeService;
   yield* Effect.sync(() => {
     const commands = registerCommands();
     const debugHandlers = registerDebugHandlers();
@@ -251,7 +251,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
       fileWatchers,
       debugHandlers,
       vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider()),
-      notificationModeDisposable
+      { dispose: () => notifSvc.runDispose() }
     );
   });
 

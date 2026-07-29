@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -13,7 +13,7 @@ import * as Runtime from 'effect/Runtime';
 import type { NonEmptyComponentSet, UserCancellationError } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { type CommandKey, getProgressLocation } from './notificationMode';
+import { type CommandKey } from './notificationMode';
 
 type OperationType = 'deploy' | 'retrieve' | 'delete';
 
@@ -87,7 +87,7 @@ export const withPreparationProgress =
         const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
           Effect.raceFirst(effect, Deferred.await(cancelDeferred));
 
-        const progressLocation = command ? getProgressLocation(command) : vscode.ProgressLocation.Notification;
+        const progressLocation = command ? yield* getProgressLocation(command) : vscode.ProgressLocation.Notification;
         return yield* Effect.async<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
           void vscode.window.withProgress(
             {

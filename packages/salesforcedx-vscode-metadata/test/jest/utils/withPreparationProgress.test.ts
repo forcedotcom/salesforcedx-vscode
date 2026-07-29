@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, NotificationModeService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
@@ -30,13 +30,17 @@ const createMockExtensionProvider = () =>
   }) as unknown as ExtensionProviderService;
 
 const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) =>
-  e.pipe(Effect.provideService(ExtensionProviderService, createMockExtensionProvider()));
+  e.pipe(
+    Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
+    Effect.provide(NotificationModeService.Default)
+  );
 
-const runWithServices = <A>(effect: Effect.Effect<A, unknown, ExtensionProviderService>) =>
+const runWithServices = <A>(effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>) =>
   Effect.runPromise(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
 
-const runWithServicesExit = <A>(effect: Effect.Effect<A, unknown, ExtensionProviderService>) =>
-  Effect.runPromiseExit(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
+const runWithServicesExit = <A>(
+  effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>
+) => Effect.runPromiseExit(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
 
 /** Make withProgress call the task callback immediately, returning a controllable token */
 const setupWithProgress = () => {

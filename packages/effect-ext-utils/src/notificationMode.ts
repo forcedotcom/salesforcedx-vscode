@@ -5,61 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
+import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
+import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
 
+const STATUS_BAR_VISIBLE_MS = 5000;
+
 /** An action button shown in a success toast, or when a status bar success notification is clicked. */
 export type ToastAction = { label: string; run: () => void | Promise<void> };
-
-type TransientState = {
-  item: vscode.StatusBarItem;
-  commandDisposable: vscode.Disposable;
-  timeout: ReturnType<typeof setTimeout> | undefined;
-  pendingToast: { message: string; actions: ToastAction[] } | undefined;
-};
-
-const transientItems = new Map<string, TransientState>();
-
-const getTransientStatusBar = (statusBarId: string, statusBarName: string): vscode.StatusBarItem => {
-  const existing = transientItems.get(statusBarId);
-  if (existing) return existing.item;
-
-  const item = vscode.window.createStatusBarItem(statusBarId, vscode.StatusBarAlignment.Left, 44);
-  item.name = statusBarName;
-
-  const commandId = `${statusBarId}.showToast`;
-  const commandDisposable = vscode.commands.registerCommand(commandId, async () => {
-    const state = transientItems.get(statusBarId);
-    if (!state?.pendingToast) return;
-    const { message, actions } = state.pendingToast;
-    const labels = actions.map(a => a.label);
-    const selection = await vscode.window.showInformationMessage(message, ...labels);
-    if (selection) await actions.find(a => a.label === selection)?.run();
-  });
-
-  item.command = commandId;
-  transientItems.set(statusBarId, { item, commandDisposable, timeout: undefined, pendingToast: undefined });
-  return item;
-};
-
-const showTransientStatusBarMessage = (
-  statusBarId: string,
-  statusBarName: string,
-  message: string,
-  actions: ToastAction[] = []
-): void => {
-  const item = getTransientStatusBar(statusBarId, statusBarName);
-  item.text = `$(check) ${message}`;
-  item.show();
-  const state = transientItems.get(statusBarId)!;
-  state.pendingToast = { message, actions };
-  if (state.timeout) clearTimeout(state.timeout);
-  state.timeout = setTimeout(() => {
-    item.hide();
-    state.timeout = undefined;
-  }, 5000);
-};
 
 const COMMAND_LEVEL_KEY = 'commandLevelNotifications';
 const EXTENSION_LEVEL_KEY = 'extensionLevelNotifications';
@@ -157,92 +117,149 @@ const getInternalMode = (
   );
 };
 
-// ─── API type ─────────────────────────────────────────────────────────────────
-
-type NotificationModeApi<CommandKey extends string> = {
-  /** Show a success notification for `command`.
-   * `forceShow` overrides `*SuccessOff` modes: toast-progress modes show a toast,
-   * status-bar-progress modes show in the status bar. Use only when the message
-   * contains information the user must see (e.g. a request ID).
-   * `actions` are shown as buttons in the toast; in status bar mode they appear when the item is clicked. */
-  showSuccessNotification: (command: CommandKey, message: string, forceShow?: boolean, actions?: ToastAction[]) => void;
-  getProgressLocation: (command: CommandKey) => vscode.ProgressLocation;
-};
+// ─── Service ──────────────────────────────────────────────────────────────────
 
 /**
- * The combined API returned by `createNotificationModeApi`.
+ * Per-extension service for reading notification mode settings and showing success notifications.
+ * `showSuccessNotification` and `getProgressLocation` return Effects.
  *
- * - `showSuccessNotification` accepts PAS + SuccessOnly keys (not ProgressOnly — no success phase).
- * - `getProgressLocation` accepts PAS + ProgressOnly keys (not SuccessOnly — no progress phase).
- * - `disposable` must be pushed to `context.subscriptions` in the extension's `activate` function to dispose the status bar item and command registration on deactivation/reload.
+ * Provide via `NotificationModeServiceLayer(extensionSection, statusBarId, statusBarName)`.
+ * In `activateEffect`, push `{ dispose: () => void notifSvc.runDispose() }` to `context.subscriptions`.
  */
-export type CombinedNotificationModeApi<
-  ProgressAndSuccessKey extends string = never,
-  SuccessOnlyKey extends string = never,
-  ProgressOnlyKey extends string = never
-> = {
-  showSuccessNotification: NotificationModeApi<ProgressAndSuccessKey | SuccessOnlyKey>['showSuccessNotification'];
-  getProgressLocation: NotificationModeApi<ProgressAndSuccessKey | ProgressOnlyKey>['getProgressLocation'];
-  disposable: vscode.Disposable;
-};
-
-// ─── Factory ──────────────────────────────────────────────────────────────────
+export class NotificationModeService extends Effect.Service<NotificationModeService>()('NotificationModeService', {
+  // Stub implementation — TypeScript infers the service shape from this.
+  // At runtime only NotificationModeServiceLayer is used; this stub is never reached.
+  sync: () => ({
+    showSuccessNotification: (_command: string, _message: string, _forceShow = false, _actions: ToastAction[] = []) =>
+      Effect.void,
+    getProgressLocation: (_command: string) => Effect.succeed(vscode.ProgressLocation.Notification),
+    /** Disposes the status bar item and command registration. Call from context.subscriptions. */
+    runDispose: (): void => {}
+  })
+}) {}
 
 /**
- * Creates the notification API bound to an extension's settings section and status bar item.
+ * Factory for a Layer that provides a `NotificationModeService` for the given extension.
  *
- * Three type parameters control which keys map to which user-facing setting shape:
- * - `ProgressAndSuccessKey` — 4-option setting; `showSuccessNotification` + `getProgressLocation`
- * - `SuccessOnlyKey`        — 3-option setting (`successToast | successStatusBar | successOff`); `showSuccessNotification` only
- * - `ProgressOnlyKey`       — 2-option setting (`progressToast | progressStatusBar`); `getProgressLocation` only
+ * Creates a status bar item and registers the click-to-toast command as owned resources.
+ * In `activateEffect`, call `yield* NotificationModeService` and push
+ * `{ dispose: () => void notifSvc.runDispose() }` to `context.subscriptions` so resources
+ * are released on extension deactivation.
  *
- * All three mode value sets are disjoint, so the factory auto-detects the mode type from the
- * raw stored setting string — no runtime key arrays needed.
+ * @param extensionSection - VS Code settings section prefix (e.g. `'salesforcedx-vscode-metadata'`)
+ * @param statusBarId - Unique stable ID for the StatusBarItem (e.g. `'sf-metadata-notifications'`)
+ * @param statusBarName - Human-readable name for the StatusBarItem (e.g. `'Salesforce: Metadata Notifications'`)
  */
-export const createNotificationModeApi = <
-  ProgressAndSuccessKey extends string = never,
-  SuccessOnlyKey extends string = never,
-  ProgressOnlyKey extends string = never
->(
+export const NotificationModeServiceLayer = (
   extensionSection: string,
   statusBarId: string,
   statusBarName: string
-): CombinedNotificationModeApi<ProgressAndSuccessKey, SuccessOnlyKey, ProgressOnlyKey> => {
-  const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
+): Layer.Layer<NotificationModeService> =>
+  Layer.effect(
+    NotificationModeService,
+    Effect.gen(function* () {
+      const item = yield* Effect.sync(() =>
+        vscode.window.createStatusBarItem(statusBarId, vscode.StatusBarAlignment.Left, 44)
+      );
 
-  return {
-    showSuccessNotification: (command, message, forceShow = false, actions: ToastAction[] = []): void => {
-      const mode = getInternalMode(extensionSection, commandLevelSection, command);
-      const effectiveMode =
-        forceShow && mode === 'progressToastSuccessOff'
-          ? 'progressToastSuccessToast'
-          : forceShow && mode === 'progressStatusBarSuccessOff'
-            ? 'progressStatusBarSuccessStatusBar'
-            : mode;
-      if (effectiveMode === 'progressStatusBarSuccessStatusBar') {
-        showTransientStatusBarMessage(statusBarId, statusBarName, message, actions);
-      } else if (effectiveMode === 'progressToastSuccessToast') {
-        const labels = actions.map(a => a.label);
-        void vscode.window.showInformationMessage(message, ...labels).then(selection => {
-          if (selection) void actions.find(a => a.label === selection)?.run();
+      item.name = statusBarName;
+
+      const pendingToastRef = yield* Ref.make<{ message: string; actions: ToastAction[] } | undefined>(undefined);
+      const hideTimerRef = yield* Ref.make<Option.Option<Fiber.RuntimeFiber<void, never>>>(Option.none());
+      const runtime = yield* Effect.runtime<never>();
+
+      const commandId = `${statusBarId}.showToast`;
+      const commandDisposable = yield* Effect.sync(() =>
+        vscode.commands.registerCommand(commandId, async () => {
+          const pending = Runtime.runSync(runtime)(Ref.get(pendingToastRef));
+          if (!pending) return;
+          const { message, actions } = pending;
+          const labels = actions.map(a => a.label);
+          const selection = await vscode.window.showInformationMessage(message, ...labels);
+          if (selection) await actions.find(a => a.label === selection)?.run();
+        })
+      );
+
+      item.command = commandId;
+
+      const showTransient = Effect.fn('NotificationModeService.showTransient')(function* (
+        message: string,
+        actions: ToastAction[]
+      ) {
+        yield* Effect.sync(() => {
+          item.text = `$(check) ${message}`;
+          item.show();
         });
-      }
-    },
-    getProgressLocation: (command): vscode.ProgressLocation => {
-      const mode = getInternalMode(extensionSection, commandLevelSection, command);
-      return mode === 'progressToastSuccessToast' || mode === 'progressToastSuccessOff'
-        ? vscode.ProgressLocation.Notification
-        : vscode.ProgressLocation.Window;
-    },
-    disposable: {
-      dispose: () => {
-        const state = transientItems.get(statusBarId);
-        if (state) {
-          state.commandDisposable.dispose();
-          state.item.dispose();
-          transientItems.delete(statusBarId);
+        yield* Ref.set(pendingToastRef, { message, actions });
+        // Interrupt any running hide timer before starting a new one
+        const existing = yield* Ref.get(hideTimerRef);
+        yield* Option.match(existing, {
+          onNone: () => Effect.void,
+          onSome: fiber => Fiber.interrupt(fiber)
+        });
+        const newFiber = yield* Effect.sleep(Duration.millis(STATUS_BAR_VISIBLE_MS)).pipe(
+          Effect.andThen(Effect.sync(() => item.hide())),
+          Effect.andThen(Ref.set(hideTimerRef, Option.none())),
+          Effect.interruptible,
+          Effect.forkDaemon
+        );
+        yield* Ref.set(hideTimerRef, Option.some(newFiber));
+      });
+
+      const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
+
+      return new NotificationModeService({
+        showSuccessNotification: (command: string, message: string, forceShow = false, actions: ToastAction[] = []) => {
+          const mode = getInternalMode(extensionSection, commandLevelSection, command);
+          const effectiveMode =
+            forceShow && mode === 'progressToastSuccessOff'
+              ? 'progressToastSuccessToast'
+              : forceShow && mode === 'progressStatusBarSuccessOff'
+                ? 'progressStatusBarSuccessStatusBar'
+                : mode;
+          if (effectiveMode === 'progressStatusBarSuccessStatusBar') {
+            return showTransient(message, actions);
+          } else if (effectiveMode === 'progressToastSuccessToast') {
+            return Effect.gen(function* () {
+              const labels = actions.map(a => a.label);
+              const selection = yield* Effect.promise(() => vscode.window.showInformationMessage(message, ...labels));
+              if (selection)
+                yield* Effect.promise(() => actions.find(a => a.label === selection)?.run() ?? Promise.resolve());
+            });
+          }
+          return Effect.void;
+        },
+        getProgressLocation: (command: string) =>
+          Effect.sync(() => {
+            const mode = getInternalMode(extensionSection, commandLevelSection, command);
+            return mode === 'progressToastSuccessToast' || mode === 'progressToastSuccessOff'
+              ? vscode.ProgressLocation.Notification
+              : vscode.ProgressLocation.Window;
+          }),
+        runDispose: (): void => {
+          // Interrupt any active hide timer (fire-and-forget — we're deactivating)
+          void Runtime.runPromise(runtime)(
+            Ref.get(hideTimerRef).pipe(
+              Effect.flatMap(opt => (Option.isSome(opt) ? Effect.forkDaemon(Fiber.interrupt(opt.value)) : Effect.void))
+            )
+          );
+          commandDisposable.dispose();
+          item.dispose();
         }
-      }
-    }
-  };
-};
+      });
+    })
+  );
+
+// ─── Shared per-package helpers ───────────────────────────────────────────────
+
+/** Returns an Effect that resolves to the VS Code ProgressLocation for a given command key. */
+export const getProgressLocation = (command: string) =>
+  Effect.flatMap(NotificationModeService, svc => svc.getProgressLocation(command));
+
+/** Returns an Effect that shows a success notification (toast or status bar) for a given command key. */
+export const showSuccessNotification = (
+  command: string,
+  message: string,
+  forceShow = false,
+  actions: ToastAction[] = []
+) => Effect.flatMap(NotificationModeService, svc => svc.showSuccessNotification(command, message, forceShow, actions));

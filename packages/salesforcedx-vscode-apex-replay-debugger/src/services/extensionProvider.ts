@@ -5,8 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer as buildBaseServicesLayer,
+  NotificationModeServiceLayer
+} from '@salesforce/effect-ext-utils';
 import * as Layer from 'effect/Layer';
+import type { ExtensionContext } from 'vscode';
+
+export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
+  Layer.merge(
+    buildBaseServicesLayer(context, fallbackDisplayName),
+    NotificationModeServiceLayer(
+      'salesforcedx-vscode-apex-replay-debugger',
+      'sf-apex-replay-debugger-notifications',
+      'Salesforce: Apex Replay Debugger Notifications'
+    )
+  );
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- any for services avoids circular type dep; never for errors prevents type poisoning through Effect.provide
 type OpaqueServicesLayer = Layer.Layer<any, never>;

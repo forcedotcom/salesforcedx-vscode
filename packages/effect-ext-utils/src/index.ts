@@ -21,7 +21,12 @@ export { createTable } from './table';
 export type { Column, Row } from './table';
 
 export { sfProjectPreconditionChecker } from './preconditionCheckers';
-export { createNotificationModeApi } from './notificationMode';
+export {
+  NotificationModeService,
+  NotificationModeServiceLayer,
+  getProgressLocation,
+  showSuccessNotification
+} from './notificationMode';
 export type { ProgressAndSuccessMode, ProgressOnlyMode, SuccessOnlyMode, ToastAction } from './notificationMode';
 
 export {

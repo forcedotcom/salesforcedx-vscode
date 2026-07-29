@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer as buildBaseServicesLayer } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer as buildBaseServicesLayer,
+  NotificationModeServiceLayer
+} from '@salesforce/effect-ext-utils';
 import * as HashSet from 'effect/HashSet';
 import * as Layer from 'effect/Layer';
 import * as Ref from 'effect/Ref';
@@ -27,4 +30,12 @@ const apexLogServicesLayer = Layer.mergeAll(
 );
 
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
-  Layer.merge(buildBaseServicesLayer(context, fallbackDisplayName), apexLogServicesLayer);
+  Layer.mergeAll(
+    buildBaseServicesLayer(context, fallbackDisplayName),
+    apexLogServicesLayer,
+    NotificationModeServiceLayer(
+      'salesforcedx-vscode-apex-log',
+      'sf-apex-log-notifications',
+      'Salesforce: Apex Log Notifications'
+    )
+  );

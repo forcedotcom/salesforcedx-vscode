@@ -75,7 +75,7 @@ Legacy inline pattern (still present in `metadata`, `org`, `org-browser`, `light
 - **Do**: Build `ManagedRuntime.make(AllServicesLayer)` and export `getRuntime()`.
 - **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
 - **Don't**: Use `Effect.provide(AllServicesLayer)` at call sites — use the runtime instead.
-- **Exception**: `registerCommandWithLayer(AllServicesLayer)` — keep passing the Layer; it internally uses provide.
+- **Exception**: `registerCommandWithLayer(AllServicesLayer)` — pass the Layer; runtime captured at registration time (avoids re-providing on each invocation).
 
 ## Registering Commands
 
@@ -159,7 +159,7 @@ Accessor pattern: call methods directly, don't assign to variable first.
 - [EditorService](references/editor-service.md) - Active editor changes and current URI
 - [Prompts](references/prompts.md) - QuickPick, InputBox, and UserCancellationError handling
 - [TerminalService](references/terminal-service.md) - Run shell commands (desktop-only)
-- [NotificationModeApi](references/notification-mode-api.md) - Configurable success notifications
+- [NotificationModeService](references/notification-mode-api.md) - Configurable success notifications
 
 ## Watchers
 

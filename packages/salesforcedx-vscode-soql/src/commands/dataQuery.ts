@@ -5,7 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { QueryResult } from '../types';
-import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/effect-ext-utils';
+import {
+  Column,
+  createTable,
+  ExtensionProviderService,
+  getProgressLocation,
+  Row,
+  showSuccessNotification
+} from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
@@ -16,11 +23,7 @@ import { stripAllRows } from '../editor/allRows';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import {
-  type ProgressAndSuccessCommandKey,
-  getProgressLocation,
-  showSuccessNotification
-} from '../utils/notificationMode';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { formatErrorMessage, getDocumentQueryAndApiInputs, getQueryAndApiInputs } from './queryUtils';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text;
@@ -50,7 +53,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
     useTooling
       ? connection.tooling.query(soql, { autoFetch: true, maxFetch, scanAll })
       : connection.query(soql, { autoFetch: true, maxFetch, scanAll })
-  ).pipe(promptService.withProgress(nls.localize('progress_running_query'), getProgressLocation(COMMAND)));
+  ).pipe(promptService.withProgress(nls.localize('progress_running_query'), yield* getProgressLocation(COMMAND)));
 });
 
 const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonMap>) {
@@ -64,14 +67,12 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   yield* api.services.FsService.writeFile(fileUri, csvContent);
 
   const successMessage = nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath);
-  yield* Effect.sync(() =>
-    showSuccessNotification(COMMAND, successMessage, true, [
-      {
-        label: nls.localize('data_query_open_file'),
-        run: () => void getSoqlRuntime().runPromise(api.services.FsService.showTextDocument(fileUri))
-      }
-    ])
-  );
+  yield* showSuccessNotification(COMMAND, successMessage, true, [
+    {
+      label: nls.localize('data_query_open_file'),
+      run: () => void getSoqlRuntime().runPromise(api.services.FsService.showTextDocument(fileUri))
+    }
+  ]);
 });
 
 export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {

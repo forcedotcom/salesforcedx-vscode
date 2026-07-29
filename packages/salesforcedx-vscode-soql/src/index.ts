@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import {
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope,
+  NotificationModeService
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -17,22 +22,14 @@ import { soqlOpenNewBuilder, soqlOpenNewTextEditor } from './commands/soqlFileCr
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
-import {
-  AllServicesLayer,
-  buildAllServicesLayer,
-  getSoqlRuntime,
-  setAllServicesLayer
-} from './services/extensionProvider';
-import { disposable as notificationModeDisposable } from './utils/notificationMode';
+import { buildAllServicesLayer, getSoqlRuntime, setAllServicesLayer } from './services/extensionProvider';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-soql';
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  await Effect.runPromise(
-    activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope))
-  );
+  await getSoqlRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
 };
 
 export const deactivate = async (): Promise<void> => getSoqlRuntime().runPromise(deactivateEffect());
@@ -42,8 +39,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
 
+  const notifSvc = yield* NotificationModeService;
   yield* Effect.sync(() => {
-    context.subscriptions.push(SOQLEditorProvider.register(context), notificationModeDisposable);
+    context.subscriptions.push(SOQLEditorProvider.register(context), { dispose: () => notifSvc.runDispose() });
     QueryDataViewService.register(context);
     registerSoqlCodeLensProvider(context);
   });
