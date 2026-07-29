@@ -1,6 +1,7 @@
 ---
 name: feature-branch
 description: Create feature branches for all work. Use when creating branches, checking out, or pushing. Prevents accidental pushes to protected branches.
+review: never
 ---
 
 # Feature Branch
