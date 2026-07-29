@@ -37,18 +37,24 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
     return yield* new NoFilesRetrievedError({ message: 'No files retrieved' });
   }
 
+  const [catalog, resolver] = yield* Effect.all([api.services.OrgMetadataCatalog, api.services.OrgMetadataResolver], {
+    concurrency: 'unbounded'
+  });
+  yield* Effect.all([catalog.invalidate(), resolver.invalidate()], {
+    concurrency: 'unbounded',
+    discard: true
+  });
+
   if (openInEditor) {
     const fsService = yield* api.services.FsService;
     const member = members[0];
     const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
     if (member && orgId) {
-      const resolver = yield* api.services.OrgMetadataResolver;
       const canonicalUri = api.services.orgMetadataUri({
         orgKey: orgId,
         xmlName: member.type,
         fullName: member.fullName
       });
-      yield* resolver.invalidate();
       const targetUri = yield* resolver.getUriForFile(canonicalUri);
       yield* fsService
         .showTextDocument(targetUri)
