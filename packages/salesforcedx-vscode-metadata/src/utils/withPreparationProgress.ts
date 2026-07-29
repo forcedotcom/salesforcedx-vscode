@@ -49,6 +49,7 @@ const titleKey = (op: OperationType) =>
  *
  * @param operationType - Determines the initial notification title.
  * @param detectConflictsFn - Optional conflict detection effect to run after the prepare phase. When omitted (e.g. when `ignoreConflicts` is true), both the conflict phase and its "Checking for conflicts..." message update are skipped.
+ * @param command - Optional command key used to resolve the VS Code progress location (toast vs. status bar) via `NotificationModeService`.
  *
  * @example
  * Deploy with conflict detection:
