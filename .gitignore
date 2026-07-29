@@ -157,3 +157,4 @@ npm-packages-offline-cache/
 .claude/scheduled_tasks.lock
 .claude/auto-build-wi.lock
 .claude/backlog-grooming-*.md
+/.fastcontext
