@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@playwright/test": "^1.60.0",
-    "@vscode/test-electron": "2.5.2",
+    "@vscode/test-electron": "3.1.0",
     "@vscode/test-web": "^0.0.81"
   },
   "devDependencies": {
