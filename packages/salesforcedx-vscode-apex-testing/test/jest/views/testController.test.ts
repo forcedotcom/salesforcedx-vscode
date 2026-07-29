@@ -15,14 +15,14 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const { URI: UriClass } = jest.requireActual('vscode-uri');
   const { HashableUri } = jest.requireActual('salesforcedx-vscode-services/src/vscode/hashableUri');
   const { orgDataSegments, orgDataUri } = jest.requireActual('salesforcedx-vscode-services/src/orgVfs/orgDataUris');
-  const { orgMetadataUri } = jest.requireActual('salesforcedx-vscode-services/src/orgVfs/orgMetadataResolver');
+  const { orgMetadataUri } = jest.requireActual('salesforcedx-vscode-services/src/orgVfs/orgMetadataUris');
 
   let mockConnectionRef: any;
   let mockClassNameToUri = new Map<string, unknown>();
   let mockReadFileResult = '';
   const mockReadFile = jest.fn(() => EffectLib.succeed(mockReadFileResult));
   const mockMetadataRetrieve: jest.Mock = jest.fn(() => EffectLib.succeed({ getFileResponses: () => [] }));
-  const mockOrgMetadataResolver = {
+  const mockOrgMetadataCatalog = {
     getPresence: (uri: { path: string }) => {
       const fullName = decodeURIComponent(uri.path.split('/').at(-1) ?? '');
       const workspaceUri = mockClassNameToUri.get(fullName);
@@ -32,6 +32,9 @@ jest.mock('../../../src/services/extensionProvider', () => {
         workspaceUri
       });
     },
+    invalidate: () => EffectLib.void
+  };
+  const mockOrgMetadataResolver = {
     invalidate: () => EffectLib.void,
     download: (uri: { path: string }) => {
       const fullName = decodeURIComponent(uri.path.split('/').at(-1) ?? '');
@@ -74,6 +77,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
       orgDataSegments,
       orgDataUri,
       orgMetadataUri,
+      OrgMetadataCatalog: EffectLib.succeed(mockOrgMetadataCatalog),
       OrgMetadataResolver: EffectLib.succeed(mockOrgMetadataResolver),
       // closeEditorTabByUri (retrieve flow) delegates to api.services.closeMatchingTabs; no tabs to reap in tests.
       closeMatchingTabs: () => EffectLib.void,

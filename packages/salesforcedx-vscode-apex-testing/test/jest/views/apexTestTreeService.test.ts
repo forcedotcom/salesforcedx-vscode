@@ -68,7 +68,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { orgDataUri } from 'salesforcedx-vscode-services/src/orgVfs/orgDataUris';
-import { orgMetadataUri } from 'salesforcedx-vscode-services/src/orgVfs/orgMetadataResolver';
+import { orgMetadataUri } from 'salesforcedx-vscode-services/src/orgVfs/orgMetadataUris';
 import { nls } from '../../../src/messages';
 import {
   ApexTestTreeService,
@@ -104,7 +104,7 @@ const mockServicesApi = {
     ConnectionService: mockConnectionService,
     orgDataUri,
     orgMetadataUri,
-    OrgMetadataResolver: Effect.succeed({
+    OrgMetadataCatalog: Effect.succeed({
       getPresence: (uri: URI) => {
         const fullName = decodeURIComponent(uri.path.split('/').at(-1) ?? '');
         const workspaceUri = mockClassNameToUri.get(fullName);

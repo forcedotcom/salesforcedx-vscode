@@ -87,7 +87,13 @@ export class ApexTestController {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         // Drop the shared cached connection so the next getConnection() reloads AuthInfo from disk.
         yield* api.services.ConnectionService.invalidateCachedConnections();
-        yield* (yield* api.services.OrgMetadataResolver).invalidate();
+        yield* Effect.all(
+          [
+            (yield* api.services.OrgMetadataCatalog).invalidate(),
+            (yield* api.services.OrgMetadataResolver).invalidate()
+          ],
+          { discard: true }
+        );
         yield* ApexTestTreeService.clearRestoredResults();
       })
     );

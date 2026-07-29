@@ -242,33 +242,57 @@ Ref behavior (concise):
 
 ## Org Metadata VFS (`sf-org-data`)
 
-Services owns a read-only virtual filesystem of org-derived metadata. Consume it via `api.services.OrgMetadataResolver` — never re-implement per-node presence/fetch.
+Services owns a read-only virtual filesystem of org-derived metadata, split across two services — never re-implement per-node presence/fetch.
 
+- `OrgMetadataCatalog` — discovery, presence, inventory (list children, badge nodes)
+- `OrgMetadataResolver` — content + FS projection (stat/read/open/download)
 - canonical URI = the key per component: `sf-org-data:/orgs/<orgKey>/org-metadata/<xmlName>/<fullName>`; `orgKey` = target org `orgId`
 - build it: `api.services.orgMetadataUri({ orgKey, xmlName, fullName })` — never hand-concat paths
-- entries hold the UNION of org + workspace presence: `PresenceState { inOrg, inWorkspace, workspaceUri?, ephemeralContent? }`
+- entries hold the UNION of org + workspace presence: `PresenceState { inOrg, inWorkspace, workspaceUri? }`
 - provider is READ-ONLY; edit via the `file:` URI (`getUriForFile`/`download`), never the `sf-org-data:` URI
 - populating a VFS owner (rare) → `FsService` org-data writers (`writeOrgData` etc.), see [fs-service](references/fs-service.md); most consumers only read
 
-`OrgMetadataResolver` accessors (all take/return `vscode-uri` `URI`, run in Effect):
+`OrgMetadataCatalog` — discovery/presence (all take/return `vscode-uri` `URI`, run in Effect):
 
 | method | purpose |
 | --- | --- |
-| `stat(uri)` / `readDirectory(uri)` / `readFile(uri)` | FS-shaped, location-agnostic reads (org-only → lazy fetch + ephemeral; in-workspace → read `file:`) |
+| `getChildren(uri)` | `OrgMetadataInventoryEntry[]` for a root/type/folder URI — union of org + workspace; the API for tree providers |
+| `getChildrenCached(uri)` | cached-only `getChildren` (no fetch) — `undefined` if not yet loaded |
+| `getEntry(uri)` | single `OrgMetadataInventoryEntry` for a component/type URI, else `undefined` |
 | `getPresence(uri)` | full `PresenceState` for one component |
 | `isInWorkspace(uri)` | boolean — component has workspace source |
-| `getUriForFile(uri)` | `workspaceUri` if present, else the canonical `sf-org-data:` URI (use to open) |
 | `hasWorkspaceComponents(typeUri)` | boolean — any component of that type in workspace (pass a type-root URI, no `fullName`) |
 | `getWorkspaceMetadataTypes(rootUri)` | `Set<xmlName>` present in workspace (pass the org root URI) |
+| `refresh(uri?)` | invalidate the underlying describe/list caches for that node (or all), then clear catalog caches |
+| `invalidate()` | clear catalog presence/inventory caches |
+
+`OrgMetadataResolver` — content/FS (all take/return `URI`, run in Effect):
+
+| method | purpose |
+| --- | --- |
+| `stat(uri)` / `readDirectory(uri)` / `readFile(uri)` | FS-shaped, location-agnostic reads (org-only → lazy fetch + cache; in-workspace → read `file:`); delegate discovery to the catalog |
+| `getUriForFile(uri)` | `workspaceUri` if present, else the canonical `sf-org-data:` URI (use to open) |
 | `download(uri)` | retrieve org-only component into workspace, invalidate, return the `file:` URI |
-| `invalidate()` | clear presence caches (call on org/workspace change before re-reading) |
+| `invalidate()` | clear the resolver's fetched-content cache |
+
+`OrgMetadataInventoryEntry` (from `getChildren`/`getEntry`) = `PresenceState & { uri, name, xmlName, fullName?, kind: 'type'|'folder'|'component', namespacePrefix?, manageableState?, field? }`; `field` (`OrgMetadataFieldDetails`) populated only for `CustomField` entries under a `CustomObject`.
+
+On org/workspace change, invalidate BOTH caches before re-reading:
+
+```typescript
+yield* Effect.all(
+  [(yield* api.services.OrgMetadataCatalog).invalidate(), (yield* api.services.OrgMetadataResolver).invalidate()],
+  { discard: true }
+);
+```
 
 React to presence changes: `api.services.OrgMetadataChangePubSub` publishes canonical owner-root `URI`s after each invalidation — subscribe like any other PubSub (see Watchers).
 
 ```typescript
+const catalog = yield* api.services.OrgMetadataCatalog;
 const resolver = yield* api.services.OrgMetadataResolver;
 const uri = api.services.orgMetadataUri({ orgKey, xmlName: member.type, fullName: member.fullName });
-yield* resolver.invalidate();
+const present = yield* catalog.isInWorkspace(uri); // presence from the catalog
 const target = yield* resolver.getUriForFile(uri); // file: if local, sf-org-data: if org-only
 yield* (yield* api.services.FsService).showTextDocument(target);
 ```

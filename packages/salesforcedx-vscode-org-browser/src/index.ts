@@ -103,7 +103,7 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
   // Resolve services once for reuse in commit
   const svcProvider = yield* ExtensionProviderService;
   const api = yield* svcProvider.getServicesApi;
-  const metadataDescribeService = yield* api.services.MetadataDescribeService;
+  const orgMetadataCatalog = yield* api.services.OrgMetadataCatalog;
 
   const runtime = yield* Effect.runtime();
   const run = Runtime.runFork(runtime);
@@ -137,8 +137,15 @@ const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(functi
       const userApprovedBroadFetch =
         componentFilter && componentFilter !== '' && typeFilter
           ? yield* Effect.gen(function* () {
-              const types = yield* metadataDescribeService.describe();
-              const matchedCount = types.filter(t => matchesPattern(t.xmlName, typeFilter, typeIsRegex)).length;
+              const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+              const types = orgId
+                ? yield* orgMetadataCatalog.getChildren(
+                    api.services.orgDataOwnerRoot({ orgKey: orgId, owner: 'org-metadata' })
+                  )
+                : [];
+              const matchedCount = types.filter(
+                entry => entry.kind === 'type' && matchesPattern(entry.xmlName, typeFilter, typeIsRegex)
+              ).length;
 
               if (matchedCount > MAX_TYPES_FOR_COMPONENT_PREFETCH) {
                 return yield* Effect.promise(async () => {

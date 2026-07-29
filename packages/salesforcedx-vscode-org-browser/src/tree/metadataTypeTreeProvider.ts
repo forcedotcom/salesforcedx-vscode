@@ -10,19 +10,12 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { OrgMetadataInventoryEntry } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import type { URI } from 'vscode-uri';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from '../utils/wildcardPattern';
 import { createCustomFieldNode } from './customField';
-import {
-  isCustomObjectNode,
-  isFolderListingNode,
-  isFolderNode,
-  isFolderType,
-  OrgBrowserTreeItem
-} from './orgBrowserNode';
-import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
+import { isFolderListingNode, isFolderNode, isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserTreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserTreeItem | undefined | void> = new vscode.EventEmitter();
@@ -122,21 +115,26 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBrowserTreeItem) {
   const svcProvider = yield* ExtensionProviderService;
   const api = yield* svcProvider.getServicesApi;
-  const metadataDescribeService = yield* api.services.MetadataDescribeService;
-  const resolver = yield* api.services.OrgMetadataResolver;
-  const describeInvalidation = Match.value(node).pipe(
-    Match.when(Match.undefined, () => metadataDescribeService.invalidateDescribe()),
-    Match.when({ kind: 'type' }, n => metadataDescribeService.invalidateListMetadata(n.xmlName)),
-    Match.when({ kind: 'folderType' }, n => metadataDescribeService.invalidateListMetadata(`${n.xmlName}Folder`)),
-    Match.when(isFolderNode, n => metadataDescribeService.invalidateListMetadata(`${n.xmlName}Folder`, n.folderName)),
-    Match.when(isCustomObjectNode, n =>
-      metadataDescribeService.invalidateSObjectDescribe(
-        n.namespace ? `${n.namespace}__${n.componentName}` : n.componentName
-      )
+  const catalog = yield* api.services.OrgMetadataCatalog;
+  const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+  if (!orgId) return;
+  const uri = Match.value(node).pipe(
+    Match.when(Match.undefined, () => api.services.orgDataOwnerRoot({ orgKey: orgId, owner: 'org-metadata' })),
+    Match.when(isFolderNode, n =>
+      api.services.orgMetadataUri({ orgKey: orgId, xmlName: n.xmlName, fullName: n.folderName })
     ),
-    Match.orElse(() => Effect.void)
+    Match.when(
+      n => n?.kind === 'customObject' || n?.kind === 'component',
+      n =>
+        api.services.orgMetadataUri({
+          orgKey: orgId,
+          xmlName: n!.xmlName,
+          fullName: n!.componentName ?? ''
+        })
+    ),
+    Match.orElse(n => api.services.orgMetadataUri({ orgKey: orgId, xmlName: n?.xmlName ?? '', fullName: '' }))
   );
-  yield* Effect.all([describeInvalidation, resolver.invalidate()], { concurrency: 'unbounded', discard: true });
+  yield* catalog.refresh(uri);
 });
 
 export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {
@@ -156,8 +154,8 @@ export const applyViewModeChildFilter = (
     if (provider.showLocal && !provider.showOrg) {
       return nodes.filter(n => n.filePresent === true);
     }
-    // orgOnly: show all components from org (inclusive - whether or not they also exist locally)
-    return nodes;
+    // orgOnly: include org components whether or not they also exist locally.
+    return nodes.filter(n => n.orgPresent === true);
   })();
 
   if (!provider.componentFilter || provider.componentFilter === '') return viewModeFiltered;
@@ -167,25 +165,23 @@ export const applyViewModeChildFilter = (
   );
 };
 
-/** Resolve MetadataDescribeService through the extension's services API. */
-const getMetadataDescribeService = ExtensionProviderService.pipe(
-  Effect.flatMap(svc => svc.getServicesApi),
-  Effect.flatMap(api => api.services.MetadataDescribeService)
-);
-
-/** For folder types, list the folders themselves (e.g. ReportFolder, EmailTemplateFolder); otherwise the type. */
-const typeToListName = (typeNode: OrgBrowserTreeItem): string =>
-  typeNode.kind === 'folderType' ? `${typeNode.xmlName}Folder` : typeNode.xmlName;
+const inventoryEntryMatchesViewMode = (
+  entry: OrgMetadataInventoryEntry,
+  provider: MetadataTypeTreeProvider
+): boolean =>
+  provider.showLocal && provider.showOrg
+    ? true
+    : provider.showLocal
+      ? entry.inWorkspace
+      : provider.showOrg && entry.inOrg;
 
 const typeNodeToItem = (typeNode: OrgBrowserTreeItem): OrgBrowserTreeItem =>
   new OrgBrowserTreeItem({ kind: typeNode.kind, xmlName: typeNode.xmlName, label: typeNode.xmlName });
 
-const readOrgMetadataDirectory = (uri: URI) => Effect.promise(() => vscode.workspace.fs.readDirectory(uri));
-
 /** ≥1 component's fullName matches the active component filter. */
 const hasMatchingComponent =
   (provider: MetadataTypeTreeProvider) =>
-  (components: MetadataListResultItem[]): boolean =>
+  (components: readonly OrgMetadataInventoryEntry[]): boolean =>
     components.some(
       c => c.fullName && matchesPattern(c.fullName, provider.componentFilter!, provider.componentIsRegex)
     );
@@ -198,10 +194,13 @@ const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatchingComp
   typeNodes: OrgBrowserTreeItem[],
   provider: MetadataTypeTreeProvider
 ) {
-  const metadataDescribeService = yield* getMetadataDescribeService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const catalog = yield* api.services.OrgMetadataCatalog;
+  const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+  if (!orgId) return [];
   return yield* Effect.all(
     typeNodes.map(typeNode =>
-      metadataDescribeService.listMetadata(typeToListName(typeNode)).pipe(
+      catalog.getChildren(api.services.orgMetadataUri({ orgKey: orgId, xmlName: typeNode.xmlName, fullName: '' })).pipe(
         Effect.map(hasMatchingComponent(provider)),
         Effect.map(hasMatch => (hasMatch ? Option.some(typeNodeToItem(typeNode)) : Option.none<OrgBrowserTreeItem>()))
       )
@@ -218,17 +217,21 @@ const filterTypesWithCachedComponents = Effect.fn('filterTypesWithCachedComponen
   typeNodes: OrgBrowserTreeItem[],
   provider: MetadataTypeTreeProvider
 ) {
-  const metadataDescribeService = yield* getMetadataDescribeService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const catalog = yield* api.services.OrgMetadataCatalog;
+  const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+  if (!orgId) return [];
   return yield* Effect.all(
     typeNodes.map(typeNode =>
-      metadataDescribeService.listMetadataCached(typeToListName(typeNode)).pipe(
-        // None → not cached → excluded (strict); Some → keep the type only if a component matches
-        Effect.map(
-          Option.flatMap(components =>
-            hasMatchingComponent(provider)(components) ? Option.some(typeNodeToItem(typeNode)) : Option.none()
+      catalog
+        .getChildrenCached(api.services.orgMetadataUri({ orgKey: orgId, xmlName: typeNode.xmlName, fullName: '' }))
+        .pipe(
+          Effect.map(components =>
+            components && hasMatchingComponent(provider)(components)
+              ? Option.some(typeNodeToItem(typeNode))
+              : Option.none()
           )
         )
-      )
     ),
     { concurrency: 'unbounded' } // no API calls, just cache reads
   ).pipe(Effect.map(Arr.getSomes));
@@ -251,8 +254,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
   Effect.gen(function* () {
     const svcProvider = yield* ExtensionProviderService;
     const api = yield* svcProvider.getServicesApi;
-    const metadataDescribeService = yield* api.services.MetadataDescribeService;
-    const orgMetadataResolver = yield* api.services.OrgMetadataResolver;
+    const orgMetadataCatalog = yield* api.services.OrgMetadataCatalog;
     // this could be the initial load, before the org is set.  Prevents duplication loads of root
     const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
     if (!orgId) {
@@ -268,19 +270,17 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       }
 
       const metadataRoot = api.services.orgDataOwnerRoot({ orgKey: orgId, owner: 'org-metadata' });
-      const typeEntries = yield* readOrgMetadataDirectory(metadataRoot);
+      const typeEntries = yield* orgMetadataCatalog.getChildren(metadataRoot);
       const allNodes = typeEntries
-        .filter(([, fileType]) => fileType === vscode.FileType.Directory)
-        .map(([xmlName]) => mdapiDescribeToOrgBrowserNode({ xmlName }))
+        .filter(entry => entry.kind === 'type')
+        .map(entry => mdapiDescribeToOrgBrowserNode({ xmlName: entry.xmlName }))
         .toSorted((a, b) => a.xmlName.localeCompare(b.xmlName));
 
       // localOnly (showLocal && !showOrg): keep only types with local source files.
-      const workspaceTypes = provider.showOrg
-        ? Option.none<ReadonlySet<string>>()
-        : Option.some(yield* orgMetadataResolver.getWorkspaceMetadataTypes(metadataRoot));
-      const presenceFilteredNodes = allNodes.filter(node =>
-        Option.match(workspaceTypes, { onNone: () => true, onSome: types => types.has(node.xmlName) })
-      );
+      const presenceFilteredNodes = allNodes.filter(node => {
+        const entry = typeEntries.find(candidate => candidate.xmlName === node.xmlName);
+        return entry ? inventoryEntryMatchesViewMode(entry, provider) : false;
+      });
       const typeFilteredNodes = presenceFilteredNodes.filter(node => passesTypeFilter(node, provider));
       const result = yield* applyComponentFilter(typeFilteredNodes, provider);
 
@@ -291,65 +291,26 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
     }
     return yield* Match.value(element).pipe(
       Match.when({ kind: 'customObject' }, el =>
-        // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
         Effect.gen(function* () {
-          const result = yield* metadataDescribeService.describeCustomObject(
-            el.namespace ? `${el.namespace}__${el.componentName!}` : el.componentName!
-          );
-          return yield* Effect.all(
-            result.fields
-              // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-              .filter(f => f.custom)
-              .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-              .map(
-                createCustomFieldNode(fullName =>
-                  orgMetadataResolver.isInWorkspace(canonicalUri('CustomField', fullName))
-                )(el)
-              ),
-            { concurrency: 'unbounded' }
-          );
+          const fields = yield* orgMetadataCatalog.getChildren(canonicalUri('CustomObject', el.componentName!));
+          return fields.filter(isCustomFieldEntry).map(createCustomFieldNode);
         })
       ),
       Match.when(isFolderListingNode, el =>
-        readOrgMetadataDirectory(canonicalUri(el.xmlName)).pipe(
+        orgMetadataCatalog.getChildren(canonicalUri(el.xmlName)).pipe(
           Effect.map(entries =>
             entries
-              .filter(([, fileType]) => fileType === vscode.FileType.Directory)
-              .map(([folderName]) => listMetadataToFolder(el)({ fullName: folderName, type: `${el.xmlName}Folder` }))
+              .filter(isFolderEntry)
+              .filter(entry => inventoryEntryMatchesViewMode(entry, provider))
+              .map(listMetadataToFolder(el))
           )
         )
       ),
       Match.when({ kind: 'type' }, el =>
-        Effect.gen(function* () {
-          const [entries, orgComponents] = yield* Effect.all(
-            [readOrgMetadataDirectory(canonicalUri(el.xmlName)), metadataDescribeService.listMetadata(el.xmlName)],
-            { concurrency: 'unbounded' }
-          );
-          const orgByFullName = new Map(orgComponents.map(component => [component.fullName, component]));
-          const nodes = yield* Effect.forEach(
-            entries.filter(([, fileType]) => fileType === vscode.FileType.File),
-            ([fullName]) => {
-              const orgComponent = orgByFullName.get(fullName);
-              if (orgComponent && !globalMetadataFilter(orgComponent)) {
-                return Effect.succeed(Option.none<OrgBrowserTreeItem>());
-              }
-              return orgMetadataResolver.isInWorkspace(canonicalUri(el.xmlName, fullName)).pipe(
-                Effect.map(filePresent =>
-                  Option.some(
-                    listMetadataToComponent(el)({
-                      fullName,
-                      type: el.xmlName,
-                      namespacePrefix: orgComponent?.namespacePrefix,
-                      filePresent
-                    })
-                  )
-                )
-              );
-            },
-            { concurrency: 'unbounded' }
-          ).pipe(Effect.map(Arr.getSomes));
-          return applyViewModeChildFilter(nodes, provider);
-        })
+        orgMetadataCatalog.getChildren(canonicalUri(el.xmlName)).pipe(
+          Effect.map(entries => entries.filter(isVisibleComponentEntry).map(listMetadataToComponent(el))),
+          Effect.map(nodes => applyViewModeChildFilter(nodes, provider))
+        )
       ),
       Match.when(isFolderNode, el =>
         // Metadata API bug: listMetadata({type: 'ReportFolder', folder: X}) ignores
@@ -357,40 +318,10 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
         // To avoid infinite nesting we call listMetadata(xmlName, folderName) instead
         // (e.g. type:'Report', folder:'unfiled$public') which correctly returns only
         // the components inside that specific folder.
-        Effect.gen(function* () {
-          const [entries, orgComponents] = yield* Effect.all(
-            [
-              readOrgMetadataDirectory(canonicalUri(el.xmlName, el.folderName)),
-              metadataDescribeService.listMetadata(el.xmlName, el.folderName)
-            ],
-            { concurrency: 'unbounded' }
-          );
-          const orgByFullName = new Map(orgComponents.map(component => [component.fullName, component]));
-          const nodes = yield* Effect.forEach(
-            entries.filter(([, fileType]) => fileType === vscode.FileType.File),
-            ([name]) => {
-              const fullName = `${el.folderName}/${name}`;
-              const orgComponent = orgByFullName.get(fullName);
-              if (orgComponent && !globalMetadataFilter(orgComponent)) {
-                return Effect.succeed(Option.none<OrgBrowserTreeItem>());
-              }
-              return orgMetadataResolver.isInWorkspace(canonicalUri(el.xmlName, fullName)).pipe(
-                Effect.map(filePresent =>
-                  Option.some(
-                    listMetadataToFolderItem(el)({
-                      fullName,
-                      type: el.xmlName,
-                      namespacePrefix: orgComponent?.namespacePrefix,
-                      filePresent
-                    })
-                  )
-                )
-              );
-            },
-            { concurrency: 'unbounded' }
-          ).pipe(Effect.map(Arr.getSomes));
-          return applyViewModeChildFilter(nodes, provider);
-        })
+        orgMetadataCatalog.getChildren(canonicalUri(el.xmlName, el.folderName)).pipe(
+          Effect.map(entries => entries.filter(isVisibleComponentEntry).map(listMetadataToFolderItem(el))),
+          Effect.map(nodes => applyViewModeChildFilter(nodes, provider))
+        )
       ),
       Match.when({ kind: 'folder' }, () => Effect.succeed<OrgBrowserTreeItem[]>([])),
       Match.when({ kind: 'component' }, () => Effect.succeed<OrgBrowserTreeItem[]>([])),
@@ -400,19 +331,20 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
 
 const listMetadataToComponent =
   (element: OrgBrowserTreeItem) =>
-  (c: MetadataListResultItem & { filePresent: boolean }): OrgBrowserTreeItem =>
+  (c: OrgMetadataInventoryEntry & { readonly fullName: string }): OrgBrowserTreeItem =>
     new OrgBrowserTreeItem({
       kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
       namespace: c.namespacePrefix,
       xmlName: element.xmlName,
       componentName: c.fullName,
       label: c.fullName,
-      filePresent: c.filePresent
+      filePresent: c.inWorkspace,
+      orgPresent: c.inOrg
     });
 
 const listMetadataToFolder =
   (element: OrgBrowserTreeItem) =>
-  (c: MetadataListResultItem): OrgBrowserTreeItem =>
+  (c: OrgMetadataInventoryEntry & { readonly fullName: string }): OrgBrowserTreeItem =>
     new OrgBrowserTreeItem({
       kind: 'folder',
       xmlName: element.xmlName,
@@ -423,7 +355,7 @@ const listMetadataToFolder =
 
 const listMetadataToFolderItem =
   (element: OrgBrowserTreeItem) =>
-  (c: MetadataListResultItem & { filePresent: boolean }): OrgBrowserTreeItem =>
+  (c: OrgMetadataInventoryEntry & { readonly fullName: string }): OrgBrowserTreeItem =>
     new OrgBrowserTreeItem({
       kind: 'component',
       namespace: c.namespacePrefix,
@@ -431,10 +363,11 @@ const listMetadataToFolderItem =
       folderName: element.folderName,
       componentName: c.fullName,
       label: c.fullName,
-      filePresent: c.filePresent
+      filePresent: c.inWorkspace,
+      orgPresent: c.inOrg
     });
 
-const mdapiDescribeToOrgBrowserNode = (t: Pick<MetadataDescribeResultItem, 'xmlName'>): OrgBrowserTreeItem =>
+const mdapiDescribeToOrgBrowserNode = (t: { readonly xmlName: string }): OrgBrowserTreeItem =>
   new OrgBrowserTreeItem({
     kind: isFolderType(t.xmlName) ? 'folderType' : 'type',
     xmlName: t.xmlName,
@@ -442,8 +375,20 @@ const mdapiDescribeToOrgBrowserNode = (t: Pick<MetadataDescribeResultItem, 'xmlN
   });
 
 /** applies to all listMetadata calls */
-const globalMetadataFilter = (i: MetadataListResultItem): boolean => hasFullName(i) && isSupportedManageableState(i);
+const globalMetadataFilter = (i: OrgMetadataInventoryEntry): i is OrgMetadataInventoryEntry & { fullName: string } =>
+  hasFullName(i) && isSupportedManageableState(i);
 
-const hasFullName = (i: MetadataListResultItem): boolean => Boolean(i.fullName);
-const isSupportedManageableState = (i: MetadataListResultItem): boolean =>
+const hasFullName = (i: OrgMetadataInventoryEntry): i is OrgMetadataInventoryEntry & { fullName: string } =>
+  Boolean(i.fullName);
+const isFolderEntry = (i: OrgMetadataInventoryEntry): i is OrgMetadataInventoryEntry & { fullName: string } =>
+  i.kind === 'folder' && hasFullName(i);
+const isVisibleComponentEntry = (i: OrgMetadataInventoryEntry): i is OrgMetadataInventoryEntry & { fullName: string } =>
+  i.kind === 'component' && globalMetadataFilter(i);
+const isCustomFieldEntry = (
+  i: OrgMetadataInventoryEntry
+): i is OrgMetadataInventoryEntry & {
+  fullName: string;
+  field: NonNullable<OrgMetadataInventoryEntry['field']>;
+} => i.kind === 'component' && hasFullName(i) && Boolean(i.field);
+const isSupportedManageableState = (i: OrgMetadataInventoryEntry): boolean =>
   !i.manageableState || ['unmanaged', 'installedEditable', 'deprecatedEditable'].includes(i.manageableState);

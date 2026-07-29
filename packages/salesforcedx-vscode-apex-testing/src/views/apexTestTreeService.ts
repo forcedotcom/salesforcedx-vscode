@@ -450,14 +450,14 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       orgKey: string
     ) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const resolver = yield* api.services.OrgMetadataResolver;
+      const catalog = yield* api.services.OrgMetadataCatalog;
       const entries = yield* Effect.forEach(
         classes,
         cls =>
           Effect.gen(function* () {
             const fullClassName = getFullClassName(cls);
             const canonicalUri = apexClassUri(api, orgKey, fullClassName);
-            const presence = yield* resolver.getPresence(canonicalUri);
+            const presence = yield* catalog.getPresence(canonicalUri);
             return [
               fullClassName,
               {

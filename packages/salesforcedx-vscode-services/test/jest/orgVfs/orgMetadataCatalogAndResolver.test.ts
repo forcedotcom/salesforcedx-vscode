@@ -17,7 +17,9 @@ import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { MetadataDescribeService } from '../../../src/core/metadataDescribeService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
-import { mergePresence, OrgMetadataResolver, orgMetadataUri } from '../../../src/orgVfs/orgMetadataResolver';
+import { mergePresence, OrgMetadataCatalog } from '../../../src/orgVfs/orgMetadataCatalog';
+import { OrgMetadataResolver } from '../../../src/orgVfs/orgMetadataResolver';
+import { orgMetadataUri } from '../../../src/orgVfs/orgMetadataUris';
 import { ChannelService } from '../../../src/vscode/channelService';
 import { FsService } from '../../../src/vscode/fsService';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
@@ -30,18 +32,21 @@ type Connections = Context.Tag.Service<typeof ConnectionService>;
 type FileSystem = Context.Tag.Service<typeof FsService>;
 type Workspace = Context.Tag.Service<typeof WorkspaceService>;
 
-const apexType = { name: 'ApexClass' };
-const sourceComponent = (fullName: string, content: string) => ({
+const sourceComponent = (fullName: string, content: string, typeName = 'ApexClass') => ({
   fullName,
   name: fullName,
   content,
-  type: apexType
+  type: { name: typeName }
 });
 
 const makeResolverLayer = ({
   orgNames,
   workspaceComponents,
   listMetadata = jest.fn(),
+  describeCustomObject = jest.fn(),
+  invalidateDescribe = jest.fn(() => Effect.void),
+  invalidateListMetadata = jest.fn(() => Effect.void),
+  invalidateSObjectDescribe = jest.fn(() => Effect.void),
   toolingQuery = jest.fn(),
   retrieveToDirectory = jest.fn(() => Effect.die('not implemented in this test')),
   safeDelete = jest.fn(() => Effect.void),
@@ -50,6 +55,10 @@ const makeResolverLayer = ({
   orgNames: string[];
   workspaceComponents: ReturnType<typeof sourceComponent>[];
   listMetadata?: jest.Mock;
+  describeCustomObject?: jest.Mock;
+  invalidateDescribe?: jest.Mock;
+  invalidateListMetadata?: jest.Mock;
+  invalidateSObjectDescribe?: jest.Mock;
   toolingQuery?: jest.Mock;
   retrieveToDirectory?: jest.Mock;
   safeDelete?: jest.Mock;
@@ -60,6 +69,10 @@ const makeResolverLayer = ({
   }
   const describeService = {
     describe: () => Effect.succeed([{ xmlName: 'ApexClass' }]),
+    describeCustomObject,
+    invalidateDescribe,
+    invalidateListMetadata,
+    invalidateSObjectDescribe,
     listMetadata
   } as unknown as DescribeService;
   const retrieveService = {
@@ -110,17 +123,19 @@ const makeResolverLayer = ({
     Layer.succeed(ProjectService, projectService),
     Layer.succeed(WorkspaceService, workspaceService)
   );
-  return Layer.merge(
-    Layer.provide(OrgMetadataResolver.DefaultWithoutDependencies, dependencies),
-    ChannelService.Default
+  const catalogLayer = Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, dependencies);
+  const resolverLayer = Layer.provide(
+    OrgMetadataResolver.DefaultWithoutDependencies,
+    Layer.merge(dependencies, catalogLayer)
   );
+  return Layer.mergeAll(catalogLayer, resolverLayer, ChannelService.Default);
 };
 
 const seedOrg = Effect.gen(function* () {
   yield* SubscriptionRef.set(yield* getDefaultOrgRef(), { orgId: '00DTEST' });
 });
 
-describe('OrgMetadataResolver', () => {
+describe('OrgMetadataCatalog and OrgMetadataResolver', () => {
   it('merges org and workspace presence across all four states', () => {
     const localUri = URI.file('/workspace/Local.cls');
     const bothUri = URI.file('/workspace/Both.cls');
@@ -152,15 +167,16 @@ describe('OrgMetadataResolver', () => {
     const result = await Effect.runPromise(
       Effect.gen(function* () {
         yield* seedOrg;
+        const catalog = yield* OrgMetadataCatalog;
         const resolver = yield* OrgMetadataResolver;
         const typeUri = orgMetadataUri({ orgKey: '00DTEST', xmlName: 'ApexClass', fullName: '' });
         const localUri = orgMetadataUri({ orgKey: '00DTEST', xmlName: 'ApexClass', fullName: 'LocalOnly' });
         const bothUri = orgMetadataUri({ orgKey: '00DTEST', xmlName: 'ApexClass', fullName: 'Both' });
         return {
           entries: yield* resolver.readDirectory(typeUri),
-          presence: yield* resolver.getPresence(localUri),
+          presence: yield* catalog.getPresence(localUri),
           openUri: yield* resolver.getUriForFile(localUri),
-          bothPresence: yield* resolver.getPresence(bothUri)
+          bothPresence: yield* catalog.getPresence(bothUri)
         };
       }).pipe(Effect.provide(layer))
     );
@@ -186,12 +202,12 @@ describe('OrgMetadataResolver', () => {
     await Effect.runPromise(
       Effect.gen(function* () {
         yield* seedOrg;
-        const resolver = yield* OrgMetadataResolver;
+        const catalog = yield* OrgMetadataCatalog;
         const firstUri = orgMetadataUri({ orgKey: '00DTEST', xmlName: 'ApexClass', fullName: 'First' });
-        expect((yield* resolver.getPresence(firstUri)).inOrg).toBe(true);
-        expect((yield* resolver.getPresence(firstUri)).inOrg).toBe(true);
-        yield* resolver.invalidate();
-        expect((yield* resolver.getPresence(firstUri)).inOrg).toBe(true);
+        expect((yield* catalog.getPresence(firstUri)).inOrg).toBe(true);
+        expect((yield* catalog.getPresence(firstUri)).inOrg).toBe(true);
+        yield* catalog.invalidate();
+        expect((yield* catalog.getPresence(firstUri)).inOrg).toBe(true);
       }).pipe(Effect.provide(layer))
     );
 
@@ -350,5 +366,125 @@ describe('OrgMetadataResolver', () => {
     ]);
     expect(result.reports).toEqual([['Sales', vscode.FileType.File]]);
     expect(listMetadata).toHaveBeenCalledWith('Report', 'unfiled$public');
+  });
+
+  it('preserves metadata attributes and presence in inventory helpers', async () => {
+    const listMetadata = jest.fn(() =>
+      Effect.succeed([
+        {
+          fullName: 'ManagedClass',
+          namespacePrefix: 'pkg',
+          manageableState: 'installedEditable',
+          type: 'ApexClass'
+        }
+      ])
+    );
+    const layer = makeResolverLayer({
+      orgNames: [],
+      workspaceComponents: [sourceComponent('ManagedClass', '/workspace/ManagedClass.cls')],
+      listMetadata
+    });
+
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        yield* seedOrg;
+        const catalog = yield* OrgMetadataCatalog;
+        const typeUri = orgMetadataUri({ orgKey: '00DTEST', xmlName: 'ApexClass', fullName: '' });
+        const componentUri = orgMetadataUri({
+          orgKey: '00DTEST',
+          xmlName: 'ApexClass',
+          fullName: 'ManagedClass'
+        });
+        const children = yield* catalog.getChildren(typeUri);
+        return {
+          children,
+          cached: yield* catalog.getChildrenCached(typeUri),
+          entry: yield* catalog.getEntry(componentUri)
+        };
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(result.children).toHaveLength(1);
+    expect(result.children[0]).toMatchObject({
+      fullName: 'ManagedClass',
+      namespacePrefix: 'pkg',
+      manageableState: 'installedEditable',
+      inOrg: true,
+      inWorkspace: true
+    });
+    expect(result.cached).toEqual(result.children);
+    expect(result.entry).toEqual(result.children[0]);
+  });
+
+  it('exposes CustomObject to CustomField relationships through inventory helpers', async () => {
+    const listMetadata = jest.fn((type: string) => {
+      if (type === 'CustomObject') {
+        return Effect.succeed([{ fullName: 'Invoice__c', namespacePrefix: 'pkg', type }]);
+      }
+      if (type === 'CustomField') {
+        return Effect.succeed([{ fullName: 'Invoice__c.Amount__c', namespacePrefix: 'pkg', type }]);
+      }
+      return Effect.succeed([]);
+    });
+    const describeCustomObject = jest.fn(() =>
+      Effect.succeed({
+        fields: [
+          {
+            custom: true,
+            name: 'pkg__Amount__c',
+            type: 'currency',
+            scale: 2,
+            precision: 18
+          },
+          { custom: false, name: 'Id', type: 'id' }
+        ]
+      })
+    );
+    const invalidateListMetadata = jest.fn(() => Effect.void);
+    const invalidateSObjectDescribe = jest.fn(() => Effect.void);
+    const layer = makeResolverLayer({
+      orgNames: [],
+      workspaceComponents: [
+        sourceComponent(
+          'Invoice__c.Amount__c',
+          '/workspace/objects/Invoice__c/fields/Amount__c.field-meta.xml',
+          'CustomField'
+        )
+      ],
+      listMetadata,
+      describeCustomObject,
+      invalidateListMetadata,
+      invalidateSObjectDescribe
+    });
+
+    const fields = await Effect.runPromise(
+      Effect.gen(function* () {
+        yield* seedOrg;
+        const catalog = yield* OrgMetadataCatalog;
+        const objectUri = orgMetadataUri({
+          orgKey: '00DTEST',
+          xmlName: 'CustomObject',
+          fullName: 'Invoice__c'
+        });
+        const result = yield* catalog.getChildren(objectUri);
+        yield* catalog.refresh(objectUri);
+        return result;
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(describeCustomObject).toHaveBeenCalledWith('pkg__Invoice__c');
+    expect(invalidateListMetadata).toHaveBeenCalledWith('CustomObject');
+    expect(invalidateListMetadata).toHaveBeenCalledWith('CustomField');
+    expect(invalidateSObjectDescribe).toHaveBeenCalledWith('pkg__Invoice__c');
+    expect(fields).toHaveLength(1);
+    expect(fields[0]).toMatchObject({
+      xmlName: 'CustomField',
+      fullName: 'Invoice__c.Amount__c',
+      name: 'Amount__c',
+      namespacePrefix: 'pkg',
+      inOrg: true,
+      inWorkspace: true,
+      field: { name: 'Amount__c', type: 'currency', scale: 2, precision: 18 }
+    });
   });
 });

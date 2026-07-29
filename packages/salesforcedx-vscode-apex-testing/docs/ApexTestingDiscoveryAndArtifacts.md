@@ -51,7 +51,8 @@ This note documents how Apex Testing currently handles test discovery data and t
 - Apex Testing resolves each discovered class through the services-owned metadata VFS:
   - Canonical keys use `sf-org-data:/orgs/<orgKey>/org-metadata/ApexClass/<fullName>`.
   - Workspace classes resolve to their source URI; org-only classes retain the canonical read-only URI.
-  - Org-only source bodies are fetched lazily by `OrgMetadataResolver.readFile`; discovery does not eagerly query or persist bodies.
+  - Presence is read from `OrgMetadataCatalog.getPresence`; org-only source bodies are fetched lazily by `OrgMetadataResolver.readFile`. Discovery does not eagerly query or persist bodies.
   - Download delegates to `OrgMetadataResolver.download`, so Test Explorer and Org Browser observe the same presence state.
+  - Org change invalidates both `OrgMetadataCatalog` and `OrgMetadataResolver` caches.
 - Metadata XML files (e.g. `-meta.xml` in source-formatted projects) are **not** part of the org-data VFS.
 - Org-data cleanup (removal on org change/logout) managed by services lifecycle watchers.

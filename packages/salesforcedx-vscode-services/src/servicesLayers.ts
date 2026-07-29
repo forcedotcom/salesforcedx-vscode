@@ -25,6 +25,7 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
+import { OrgMetadataCatalog } from './orgVfs/orgMetadataCatalog';
 import { OrgMetadataChangePubSub } from './orgVfs/orgMetadataChangePubSub';
 import { OrgMetadataResolver } from './orgVfs/orgMetadataResolver';
 import { TerminalService } from './terminal/terminalService';
@@ -73,6 +74,7 @@ export const makeGlobalLayers = (providerRegistry: Context.Tag.Service<typeof Fi
     PromptService.Default,
     MetadataRegistryService.Default,
     MetadataRetrieveService.Default,
+    OrgMetadataCatalog.Default,
     OrgMetadataChangePubSub.Default,
     OrgMetadataResolver.Default,
     ProjectService.Default,

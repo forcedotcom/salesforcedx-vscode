@@ -20,10 +20,13 @@
 
 - read-only `sf-org-data` virtual filesystem of org-derived metadata; services owns provider + lifecycle (`src/orgVfs`)
 - **canonical URI** = key per component: `sf-org-data:/orgs/<orgKey>/org-metadata/<xmlName>/<fullName>`; `orgKey` = target org `orgId`; build via `orgMetadataUri`, never hand-concat
-- **presence** = union of org + workspace: `PresenceState { inOrg, inWorkspace, workspaceUri?, ephemeralContent? }`
-- `OrgMetadataResolver` = the presence/resolution layer consumers read (`stat`/`readDirectory`/`readFile`/`getPresence`/`isInWorkspace`/`getUriForFile`/`download`/`invalidate`); reads location-agnostic (org-only → lazy fetch + ephemeral; in-workspace → `file:`)
+- **presence** = union of org + workspace: `PresenceState { inOrg, inWorkspace, workspaceUri? }`
+- split into two services (both on `api.services.*`):
+  - `OrgMetadataCatalog` = discovery/presence/inventory (`getChildren`/`getChildrenCached`/`getEntry`/`getPresence`/`isInWorkspace`/`hasWorkspaceComponents`/`getWorkspaceMetadataTypes`/`refresh`/`invalidate`); owns the `listMetadata` ⊕ workspace-scan cache; `getChildren`/`getEntry` return `OrgMetadataInventoryEntry` (kind `type`/`folder`/`component`, presence, optional `field` for `CustomField`)
+  - `OrgMetadataResolver` = content + FS projection only (`stat`/`readDirectory`/`readFile`/`getUriForFile`/`download`/`invalidate`); delegates discovery to the catalog, caches fetched bodies; reads location-agnostic (org-only → lazy fetch; in-workspace → `file:`)
+- URI/location helpers (`orgMetadataUri`, `getOrgMetadataLocation`) live in `orgMetadataUris.ts`, not the resolver
 - provider stays READ-ONLY — edit via the `file:` URI, never the `sf-org-data:` URI
-- consumer API on `api.services.*`: `OrgMetadataResolver`, `orgMetadataUri`, `OrgMetadataChangePubSub`; see the services-extension-consumption skill
+- consumer API on `api.services.*`: `OrgMetadataCatalog`, `OrgMetadataResolver`, `orgMetadataUri`, `OrgMetadataChangePubSub`; see the services-extension-consumption skill
 - _Avoid_: "apex-testing scheme"/"apex-testing owner" (collapsed into `org-metadata` — an Apex class IS the `ApexClass` type)
 
 ### HashableUri

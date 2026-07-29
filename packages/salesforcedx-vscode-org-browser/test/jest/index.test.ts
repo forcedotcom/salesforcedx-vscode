@@ -234,6 +234,7 @@ const mockServicesApi = {
     MetadataDeployService: {} as typeof MetadataDeployService,
     MetadataRegistryService: {} as typeof MetadataRegistryService,
     MetadataRetrieveService: {} as typeof MetadataRetrieveService,
+    OrgMetadataCatalog: {},
     OrgMetadataChangePubSub,
     ProjectService: {} as typeof ProjectService,
     registerCommandWithLayer: () => () => Effect.void,

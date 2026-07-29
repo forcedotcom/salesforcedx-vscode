@@ -125,4 +125,31 @@ describe('applyViewModeChildFilter with component filter', () => {
     const nodes = [componentNode('ApexClass', 'FooBar'), componentNode('ApexClass', 'Baz')];
     expect(applyViewModeChildFilter(nodes, provider)).toEqual(nodes);
   });
+
+  it('uses independent org and workspace presence for view modes', () => {
+    const localOnly = new OrgBrowserTreeItem({
+      kind: 'component',
+      xmlName: 'ApexClass',
+      componentName: 'LocalOnly',
+      label: 'LocalOnly',
+      orgPresent: false
+    });
+    Object.defineProperty(localOnly, 'filePresent', { value: true });
+    const orgOnly = new OrgBrowserTreeItem({
+      kind: 'component',
+      xmlName: 'ApexClass',
+      componentName: 'OrgOnly',
+      label: 'OrgOnly',
+      orgPresent: true
+    });
+    Object.defineProperty(orgOnly, 'filePresent', { value: false });
+    const provider = new MetadataTypeTreeProvider();
+
+    provider.setShowOrg(false);
+    expect(applyViewModeChildFilter([localOnly, orgOnly], provider)).toEqual([localOnly]);
+
+    provider.setShowOrg(true);
+    provider.setShowLocal(false);
+    expect(applyViewModeChildFilter([localOnly, orgOnly], provider)).toEqual([orgOnly]);
+  });
 });

@@ -13,13 +13,13 @@ import type { URI } from 'vscode-uri';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { FileChangePubSub } from '../vscode/fileChangePubSub';
 import { orgDataOwnerRoot } from './orgDataUris';
+import { OrgMetadataCatalog } from './orgMetadataCatalog';
 import { OrgMetadataChangePubSub } from './orgMetadataChangePubSub';
 import { OrgMetadataResolver } from './orgMetadataResolver';
 
-export const watchOrgMetadataResolver = Effect.fn('watchOrgMetadataResolver')(function* (
-  notifyChanged: (uri: URI) => void
-) {
-  const [resolver, fileChanges, metadataChanges, defaultOrgRef] = yield* Effect.all([
+export const watchOrgMetadata = Effect.fn('watchOrgMetadata')(function* (notifyChanged: (uri: URI) => void) {
+  const [catalog, resolver, fileChanges, metadataChanges, defaultOrgRef] = yield* Effect.all([
+    OrgMetadataCatalog,
     OrgMetadataResolver,
     FileChangePubSub,
     OrgMetadataChangePubSub,
@@ -32,7 +32,7 @@ export const watchOrgMetadataResolver = Effect.fn('watchOrgMetadataResolver')(fu
   ).pipe(
     Stream.runForEach(() =>
       Effect.gen(function* () {
-        yield* resolver.invalidate();
+        yield* Effect.all([catalog.invalidate(), resolver.invalidate()], { discard: true });
         const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
         if (orgId) {
           const uri = orgDataOwnerRoot({ orgKey: orgId, owner: 'org-metadata' });

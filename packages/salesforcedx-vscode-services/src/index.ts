@@ -53,10 +53,12 @@ import {
   orgDataUri,
   orgRoot
 } from './orgVfs/orgDataUris';
+import { OrgMetadataCatalog } from './orgVfs/orgMetadataCatalog';
 import { OrgMetadataChangePubSub } from './orgVfs/orgMetadataChangePubSub';
 import { registerOrgMetadataCodeLensProvider } from './orgVfs/orgMetadataCodeLensProvider';
-import { OrgMetadataResolver, orgMetadataUri } from './orgVfs/orgMetadataResolver';
-import { watchOrgMetadataResolver } from './orgVfs/orgMetadataWatcher';
+import { OrgMetadataResolver } from './orgVfs/orgMetadataResolver';
+import { orgMetadataUri } from './orgVfs/orgMetadataUris';
+import { watchOrgMetadata } from './orgVfs/orgMetadataWatcher';
 import { makeGlobalLayers } from './servicesLayers';
 import { disposeServicesRuntime, setServicesRuntime } from './servicesRuntime';
 import { TerminalService } from './terminal/terminalService';
@@ -116,6 +118,7 @@ export type SalesforceVSCodeServicesApi = {
       | PromptService
       | MetadataRegistryService
       | MetadataRetrieveService
+      | OrgMetadataCatalog
       | OrgMetadataChangePubSub
       | OrgMetadataResolver
       | ProjectService
@@ -164,6 +167,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     OrgMetadataChangePubSub: typeof OrgMetadataChangePubSub;
+    OrgMetadataCatalog: typeof OrgMetadataCatalog;
     OrgMetadataResolver: typeof OrgMetadataResolver;
     orgMetadataUri: typeof orgMetadataUri;
     ProjectService: typeof ProjectService;
@@ -296,7 +300,7 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
       Effect.forkIn(watchOrgDataLifecycle(), scope),
       // invalidate canonical metadata presence when the org or workspace changes
       Effect.forkIn(
-        watchOrgMetadataResolver(uri => orgDataProvider.notifyOwnerChanged(uri)),
+        watchOrgMetadata(uri => orgDataProvider.notifyOwnerChanged(uri)),
         scope
       ),
       // watch active editor to activate LWC/Aura extensions on demand
@@ -406,7 +410,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   registerOrgMetadataCodeLensProvider(
     context,
     uri => servicesRuntime.runPromise(OrgMetadataResolver.download(uri)),
-    uri => servicesRuntime.runPromise(OrgMetadataResolver.isInWorkspace(uri)),
+    uri => servicesRuntime.runPromise(OrgMetadataCatalog.isInWorkspace(uri)),
     uri => servicesRuntime.runPromise(closeMatchingTabs(tabUri => tabUri.toString() === uri.toString()))
   );
 
@@ -456,6 +460,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataRegistryService,
       MetadataRetrieveService,
       OrgMetadataChangePubSub,
+      OrgMetadataCatalog,
       OrgMetadataResolver,
       orgMetadataUri,
       ProjectService,
@@ -525,11 +530,14 @@ export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type OrgMetadataChangePubSub } from './orgVfs/orgMetadataChangePubSub';
 export {
-  OrgMetadataResolutionError,
-  OrgMetadataResolver,
-  orgMetadataUri,
+  type OrgMetadataEntryKind,
+  type OrgMetadataFieldDetails,
+  type OrgMetadataInventoryEntry,
   type PresenceState
-} from './orgVfs/orgMetadataResolver';
+} from './orgVfs/orgMetadataCatalog';
+export { OrgMetadataResolutionError, OrgMetadataResolver } from './orgVfs/orgMetadataResolver';
+export { OrgMetadataCatalog } from './orgVfs/orgMetadataCatalog';
+export { orgMetadataUri, type OrgMetadataLocation } from './orgVfs/orgMetadataUris';
 export { type ProjectService } from './core/projectService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';

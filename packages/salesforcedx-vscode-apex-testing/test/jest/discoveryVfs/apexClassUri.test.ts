@@ -8,7 +8,7 @@
 import type { SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import { URI } from 'vscode-uri';
 import { orgDataSegments } from 'salesforcedx-vscode-services/src/orgVfs/orgDataUris';
-import { orgMetadataUri } from 'salesforcedx-vscode-services/src/orgVfs/orgMetadataResolver';
+import { orgMetadataUri } from 'salesforcedx-vscode-services/src/orgVfs/orgMetadataUris';
 import { apexClassName, apexClassUri } from '../../../src/discoveryVfs/apexClassUri';
 
 const api = {

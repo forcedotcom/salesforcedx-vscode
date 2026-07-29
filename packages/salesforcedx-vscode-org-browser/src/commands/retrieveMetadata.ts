@@ -65,11 +65,11 @@ const confirmOverwrite = Effect.fn('confirmRetrieveOverwrite')(function* (member
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
   if (!orgId) return;
-  const resolver = yield* api.services.OrgMetadataResolver;
+  const catalog = yield* api.services.OrgMetadataCatalog;
   const present = yield* Effect.forEach(
     members,
     member =>
-      resolver.isInWorkspace(
+      catalog.isInWorkspace(
         api.services.orgMetadataUri({
           orgKey: orgId,
           xmlName: member.type,
