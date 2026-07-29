@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -14,6 +15,8 @@ import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+
+class ToastActionError extends Data.TaggedError('ToastActionError')<{ cause: unknown }> {}
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
 
@@ -193,7 +196,10 @@ export const NotificationModeServiceLayer = (
           const { message, actions } = pending;
           const labels = actions.map(a => a.label);
           const selection = await vscode.window.showInformationMessage(message, ...labels);
-          if (selection) await actions.find(a => a.label === selection)?.run();
+          if (selection)
+            await (actions.find(a => a.label === selection)?.run() ?? Promise.resolve()).catch(
+              (e: unknown) => void vscode.window.showErrorMessage(String(e))
+            );
         })
       );
 
@@ -241,7 +247,10 @@ export const NotificationModeServiceLayer = (
               const labels = actions.map(a => a.label);
               const selection = yield* Effect.promise(() => vscode.window.showInformationMessage(message, ...labels));
               if (selection)
-                yield* Effect.promise(() => actions.find(a => a.label === selection)?.run() ?? Promise.resolve());
+                yield* Effect.tryPromise({
+                  try: () => actions.find(a => a.label === selection)?.run() ?? Promise.resolve(),
+                  catch: e => new ToastActionError({ cause: e })
+                }).pipe(Effect.catchAll(e => Effect.sync(() => void vscode.window.showErrorMessage(String(e.cause)))));
             });
           }
           return Effect.void;
