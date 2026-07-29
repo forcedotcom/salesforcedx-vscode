@@ -1,6 +1,7 @@
 ---
 name: release
 description: Run the VS Code extension release workflow end-to-end. Use when publishing a release, running prerelease, verifying the release branch, polishing changelog for release, or installing release vsixes for verification.
+review: never
 ---
 
 # Release Workflow

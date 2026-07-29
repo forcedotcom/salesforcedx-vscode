@@ -1,6 +1,7 @@
 ---
 name: verification
 description: Verification steps for code changes. Use after ANY code change to ensure quality, or when creating plans because those should include verification steps.
+review: never
 ---
 
 # Verification

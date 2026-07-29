@@ -1,6 +1,7 @@
 ---
 name: query-app-insights
 description: Query Azure Application Insights telemetry data for command usage, extension activity, and performance metrics
+review: never
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: changelog
 description: Polish the automated CHANGELOG for a release branch. Removes GUS refs, categorizes under-the-cover changes, improves customer-facing descriptions. Use when preparing/reviewing the changelog on a release branch, or when user mentions changelog quality.
+review: never
 ---
 
 # Changelog Polish
