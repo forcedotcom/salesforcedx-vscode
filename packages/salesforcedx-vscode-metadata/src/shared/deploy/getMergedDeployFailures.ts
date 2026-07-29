@@ -8,11 +8,12 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { DeployMessage, DeployResult, FileResponseFailure } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
+import { isUndefined } from 'effect/Predicate';
 
 const makeKey = (type: string, name: string): string => `${type}#${name}`;
 
 const toDeployMessageArray = (raw: DeployMessage | DeployMessage[] | undefined): DeployMessage[] => {
-  if (raw === undefined) return [];
+  if (isUndefined(raw)) return [];
   return Array.isArray(raw) ? raw : [raw];
 };
 

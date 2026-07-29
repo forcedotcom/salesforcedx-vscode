@@ -152,7 +152,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       )
     );
 
-    await Effect.runPromise(Effect.scoped(program));
+    await program.pipe(Effect.scoped, Effect.runPromise);
 
     emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }

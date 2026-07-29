@@ -13,8 +13,6 @@ export const ALL_EXCEPTION_CATCHER_ENABLED = 'allExceptionCatcherEnabled';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-startup';
-export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
-export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
 
 export const APEX_FILE_NAME_EXTENSION = '.apex';
 export const SOQL_FILE_NAME_EXTENSION = '.soql';

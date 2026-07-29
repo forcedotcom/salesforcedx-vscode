@@ -8,6 +8,7 @@
 
 import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
@@ -289,7 +290,7 @@ export const diagnoseIneligibility = (context: ApexClassOASGatherContextResponse
  */
 export const isValidRegistrationProviderType = (providerType: string | undefined): boolean => {
   const validProviderTypes = ['Custom', 'ApexRest', 'AuraEnabled'];
-  return providerType !== undefined && validProviderTypes.includes(providerType);
+  return isNotUndefined(providerType) && validProviderTypes.includes(providerType);
 };
 
 /**

@@ -14,6 +14,7 @@ import {
   type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Match from 'effect/Match';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 
 export const MetadataChangeType = Schema.Literal('created', 'changed', 'unchanged', 'deleted');
@@ -33,7 +34,7 @@ export const isSDRFailure = (fileResponse: FileResponse): fileResponse is FileRe
 
 export const fileResponseHasPath = (
   fileResponse: FileResponseSuccess
-): fileResponse is FileResponseSuccess & { filePath: string } => fileResponse.filePath !== undefined;
+): fileResponse is FileResponseSuccess & { filePath: string } => isNotUndefined(fileResponse.filePath);
 
 export const toComponentStatusChangeType = (
   state: Exclude<ComponentStatus, ComponentStatus.Failed>
@@ -62,5 +63,5 @@ export const makeFileResponseFailure = (fields: {
   state: ComponentStatus.Failed,
   error: fields.error,
   problemType: fields.problemType ?? 'Error',
-  ...(fields.filePath !== undefined ? { filePath: fields.filePath } : {})
+  ...(isNotUndefined(fields.filePath) ? { filePath: fields.filePath } : {})
 });

@@ -8,6 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import { nls } from '../messages';
 import { separateChanges } from '../statusBar/helpers';
 
@@ -26,7 +27,7 @@ const rowToLine = (row: StatusOutputRow): string =>
 
 /** Format section: returns empty string when undefined (not requested), otherwise always shows header */
 const formatChanges = (changes: StatusOutputRow[] | undefined, sectionTitle: string): string =>
-  changes !== undefined ? [...getTitle(changes, sectionTitle), ...changes.map(rowToLine)].join('\n') : '';
+  isNotUndefined(changes) ? [...getTitle(changes, sectionTitle), ...changes.map(rowToLine)].join('\n') : '';
 
 export const viewChangesCommand = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

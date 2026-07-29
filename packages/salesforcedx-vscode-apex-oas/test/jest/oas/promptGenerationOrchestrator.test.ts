@@ -52,19 +52,17 @@ describe('promptGenerationOrchestrator pure helpers', () => {
 
     it('fails when all zero', async () => {
       await expect(
-        Effect.runPromise(
-          getLeastCallsStrategy(
-            buildBids([
-              ['ApexRest', 0],
-              ['AuraEnabled', 0]
-            ])
-          )
-        )
+        getLeastCallsStrategy(
+          buildBids([
+            ['ApexRest', 0],
+            ['AuraEnabled', 0]
+          ])
+        ).pipe(Effect.runPromise)
       ).rejects.toBeDefined();
     });
 
     it('fails for empty bids', async () => {
-      await expect(Effect.runPromise(getLeastCallsStrategy(new Map()))).rejects.toBeDefined();
+      await expect(getLeastCallsStrategy(new Map()).pipe(Effect.runPromise)).rejects.toBeDefined();
     });
   });
 
@@ -83,14 +81,12 @@ describe('promptGenerationOrchestrator pure helpers', () => {
 
     it('fails when all zero', async () => {
       await expect(
-        Effect.runPromise(
-          getMostCallsStrategy(
-            buildBids([
-              ['ApexRest', 0],
-              ['AuraEnabled', 0]
-            ])
-          )
-        )
+        getMostCallsStrategy(
+          buildBids([
+            ['ApexRest', 0],
+            ['AuraEnabled', 0]
+          ])
+        ).pipe(Effect.runPromise)
       ).rejects.toBeDefined();
     });
   });

@@ -6,7 +6,6 @@
  */
 import { Global } from '@salesforce/core/global';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -184,7 +183,7 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
  *
  * Gathers the forceide:// URL + project name/folder, then drives the CLI (project generate, config set,
  * namespace query, org/package source retrieve, package list) via TerminalService at the project-scoped
- * `cwd`, threading `GlobalCliEnvironment` (NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY) into
+ * `cwd`; TerminalService supplies the CLI env (NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY) to
  * each call. The CLI/fs sequence runs under a cancellable progress notification (each step reports its label);
  * Cancel interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child. All fs steps go
  * through FsService (URI-native), whose FsServiceError surfaces to ErrorHandlerService instead of being
@@ -209,14 +208,11 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const projectInstalledPackagesUri = Utils.joinPath(projectUri, relativeInstalledPackagesPath());
   const salesforceProjectJsonUri = Utils.joinPath(projectUri, 'sfdx-project.json');
 
-  // Thread the GlobalCliEnvironment map (NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY) into every
-  // bootstrap sf call so corp-proxy CA certs and CLI env survive — bootstrap previously opted out of process.env
-  // inheritance but still got this Map via patchEnv. simpleExec merges this over process.env; the auto-injected
-  // SF_JSON_TO_STDOUT/FORCE_COLOR still apply.
-  const env = Object.fromEntries(GlobalCliEnvironment.environmentVariables);
-
+  // No env here: simpleExec gathers NODE_EXTRA_CA_CERTS / SF_LOG_LEVEL / SF_DISABLE_TELEMETRY (plus
+  // SF_JSON_TO_STDOUT / FORCE_COLOR / SFDX_TOOL) for every `sf ` command at exec time, so corp-proxy CA certs
+  // and CLI env reach these bootstrap children without being threaded through.
   const runSf = (command: string, cwd: string) =>
-    terminalService.simpleExec({ command, parse: identity, env, cwd, timeout: CLI_TIMEOUT });
+    terminalService.simpleExec({ command, parse: identity, cwd, timeout: CLI_TIMEOUT });
 
   // Drive the whole bootstrap under a cancellable progress notification (each step reports its label). Cancel
   // interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child process.

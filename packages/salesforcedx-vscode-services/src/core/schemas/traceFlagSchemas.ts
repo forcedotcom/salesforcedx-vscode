@@ -22,6 +22,9 @@ const ToolingTraceFlagDebugLevel = Schema.Struct({
   DeveloperName: Schema.optional(NullableString)
 });
 
+/** DebugLevel relationship is null when the referenced DebugLevel is missing/inaccessible. */
+const NullableToolingTraceFlagDebugLevel = Schema.NullOr(ToolingTraceFlagDebugLevel);
+
 /** Tooling API record shape from TraceFlag query. TracedEntityName is injected by getTraceFlags when resolving entity names. */
 const ToolingTraceFlagRecordSchema = Schema.Struct({
   Id: Schema.String,
@@ -29,7 +32,7 @@ const ToolingTraceFlagRecordSchema = Schema.Struct({
   StartDate: Schema.optional(NullableString),
   ExpirationDate: Schema.String,
   DebugLevelId: Schema.optional(NullableString),
-  DebugLevel: Schema.optional(Schema.NullOr(ToolingTraceFlagDebugLevel)),
+  DebugLevel: Schema.optional(NullableToolingTraceFlagDebugLevel),
   TracedEntityId: Schema.optional(NullableString),
   TracedEntityName: Schema.optional(NullableString)
 });

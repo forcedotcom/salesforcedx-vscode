@@ -56,7 +56,7 @@ const runCommand = (source?: Parameters<typeof refreshSObjectsCommand>[0]) =>
     refreshSObjectsCommand(source).pipe(
       Effect.catchTag('UserCancellationError', () => Effect.void),
       Effect.catchAllCause(cause =>
-        Effect.sync(() => void vscode.window.showErrorMessage(getErrorMessage(Cause.squash(cause))))
+        Effect.sync(() => void vscode.window.showErrorMessage(cause.pipe(Cause.squash, getErrorMessage)))
       ),
       Effect.provideService(ExtensionProviderService, createMockExtensionProvider())
     ) as Effect.Effect<unknown, never, never>

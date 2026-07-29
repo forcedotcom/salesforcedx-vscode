@@ -7,6 +7,8 @@
 
 import { defineConfig } from '@playwright/test';
 
+import { createReporter } from './createReporter';
+
 type DesktopConfigOptions = {
   /** Test directory relative to the config file (e.g. './specs') */
   testDir: string;
@@ -27,9 +29,7 @@ export const createDesktopConfig = (options: DesktopConfigOptions) => {
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
     ...(workers ? { workers } : {}),
-    reporter: process.env.CI
-      ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit-desktop.xml' }]]
-      : [['html', { open: 'never' }], ['list']],
+    reporter: createReporter('test-results/junit-desktop.xml'),
     use: {
       trace: 'on',
       screenshot: 'on',
