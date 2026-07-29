@@ -1,5 +1,6 @@
 ---
 description: Resolve merge conflicts in package.json, package-lock.json, SHA256.md following project conventions
+review: never
 trigger: Use when resolving merge conflicts in version-controlled files, particularly during git merge, rebase, or pull operations
 ---
 

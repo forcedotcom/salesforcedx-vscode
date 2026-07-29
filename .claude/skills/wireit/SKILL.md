@@ -1,6 +1,7 @@
 ---
 name: wireit
 description: Author and use Wireit scripts for npm. Use when working with Wireit configuration, npm scripts, build pipelines, or when the user mentions Wireit.
+review: always
 ---
 
 # Wireit
