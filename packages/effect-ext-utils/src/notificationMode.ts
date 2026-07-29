@@ -12,6 +12,7 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
@@ -62,33 +63,50 @@ export type SuccessOnlyMode = 'successToast' | 'successStatusBar' | 'successOff'
 
 // ─── Internal normalization ───────────────────────────────────────────────────
 
+const AnyModeSchema = Schema.Union(
+  Schema.Literal(
+    'progressToastSuccessToast',
+    'progressToastSuccessOff',
+    'progressStatusBarSuccessStatusBar',
+    'progressStatusBarSuccessOff'
+  ),
+  Schema.Literal('progressToast', 'progressStatusBar'),
+  Schema.Literal('successToast', 'successStatusBar', 'successOff')
+);
+type AnyMode = Schema.Schema.Type<typeof AnyModeSchema>;
+
+const ProgressAndSuccessModeSchema = Schema.Literal(
+  'progressToastSuccessToast',
+  'progressToastSuccessOff',
+  'progressStatusBarSuccessStatusBar',
+  'progressStatusBarSuccessOff'
+);
+
+const decodeAnyMode = Schema.decodeUnknownOption(AnyModeSchema);
+const decodeProgressAndSuccessMode = Schema.decodeUnknownOption(ProgressAndSuccessModeSchema);
+
 /**
- * Normalizes any user-facing mode string to an internal `ProgressAndSuccessMode`.
- * The three mode type value sets are disjoint, so the raw string alone identifies the mode type —
+ * Normalizes any validated user-facing mode to an internal `ProgressAndSuccessMode`.
+ * The three mode type value sets are disjoint, so the value alone identifies the mode type —
  * no runtime key-type tagging needed.
  */
-const normalizeToInternal = (raw: string | undefined): ProgressAndSuccessMode | undefined => {
+const normalizeToInternal = (raw: AnyMode): ProgressAndSuccessMode => {
   switch (raw) {
-    // ProgressAndSuccessMode — pass through
     case 'progressToastSuccessToast':
     case 'progressToastSuccessOff':
     case 'progressStatusBarSuccessStatusBar':
     case 'progressStatusBarSuccessOff':
       return raw;
-    // ProgressOnlyMode — map to equivalent with success suppressed
     case 'progressToast':
       return 'progressToastSuccessOff';
     case 'progressStatusBar':
       return 'progressStatusBarSuccessOff';
-    // SuccessOnlyMode — map to equivalent with progress as toast (location irrelevant)
     case 'successToast':
       return 'progressToastSuccessToast';
     case 'successStatusBar':
       return 'progressStatusBarSuccessStatusBar';
     case 'successOff':
       return 'progressToastSuccessOff';
-    default:
-      return undefined;
   }
 };
 
@@ -97,23 +115,22 @@ const getInternalMode = (
   commandLevelSection: string,
   command: string
 ): ProgressAndSuccessMode => {
-  // Command-level: raw value may be any of the three mode types; normalizeToInternal handles all
-  const raw = vscode.workspace.getConfiguration(commandLevelSection).inspect<string>(command);
+  // Command-level: any of the three mode types; Schema rejects unknown strings before normalizing
+  const raw = vscode.workspace.getConfiguration(commandLevelSection).inspect<unknown>(command);
   const cmdExplicit = raw?.workspaceFolderValue ?? raw?.workspaceValue ?? raw?.globalValue;
-  const fromCmd = normalizeToInternal(cmdExplicit);
-  if (fromCmd) return fromCmd;
+  const fromCmd = Option.map(decodeAnyMode(cmdExplicit), normalizeToInternal);
+  if (Option.isSome(fromCmd)) return fromCmd.value;
 
   // Extension-level (always stores ProgressAndSuccessMode)
-  const extCfg = vscode.workspace
-    .getConfiguration(extensionSection)
-    .inspect<ProgressAndSuccessMode>(EXTENSION_LEVEL_KEY);
+  const extCfg = vscode.workspace.getConfiguration(extensionSection).inspect<unknown>(EXTENSION_LEVEL_KEY);
   const extExplicit = extCfg?.workspaceFolderValue ?? extCfg?.workspaceValue ?? extCfg?.globalValue;
-  if (extExplicit) return extExplicit;
+  const fromExt = decodeProgressAndSuccessMode(extExplicit);
+  if (Option.isSome(fromExt)) return fromExt.value;
 
   // Global fallback (also ProgressAndSuccessMode)
-  return (
-    vscode.workspace.getConfiguration(GLOBAL_SECTION).get<ProgressAndSuccessMode>(GLOBAL_KEY) ??
-    'progressToastSuccessToast'
+  return Option.getOrElse(
+    decodeProgressAndSuccessMode(vscode.workspace.getConfiguration(GLOBAL_SECTION).get<unknown>(GLOBAL_KEY)),
+    () => 'progressToastSuccessToast' as const
   );
 };
 
