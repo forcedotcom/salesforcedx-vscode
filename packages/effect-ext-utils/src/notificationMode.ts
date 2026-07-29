@@ -93,7 +93,7 @@ const decodeProgressAndSuccessMode = Schema.decodeUnknownOption(ProgressAndSucce
  * The three mode type value sets are disjoint, so the value alone identifies the mode type —
  * no runtime key-type tagging needed.
  */
-const normalizeToInternal = (raw: AnyMode): ProgressAndSuccessMode => {
+export const normalizeToInternal = (raw: AnyMode): ProgressAndSuccessMode => {
   switch (raw) {
     case 'progressToastSuccessToast':
     case 'progressToastSuccessOff':
@@ -113,7 +113,7 @@ const normalizeToInternal = (raw: AnyMode): ProgressAndSuccessMode => {
   }
 };
 
-const getInternalMode = (
+export const getInternalMode = (
   extensionSection: string,
   commandLevelSection: string,
   command: string
