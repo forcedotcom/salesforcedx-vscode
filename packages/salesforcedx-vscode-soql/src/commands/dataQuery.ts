@@ -16,7 +16,7 @@ import {
 import type { JsonMap } from '@salesforce/ts-types';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import { isRecord } from 'effect/Predicate';
+import { isNullable, isRecord, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { stripAllRows } from '../editor/allRows';
@@ -110,9 +110,12 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: 
     );
   }).pipe(
     Effect.catchAllCause(cause =>
-      channelService
-        .appendToChannel(formatErrorMessage(Cause.squash(cause)))
-        .pipe(Effect.andThen(channelService.showChannel))
+      cause.pipe(
+        Cause.squash,
+        formatErrorMessage,
+        channelService.appendToChannel,
+        Effect.andThen(channelService.showChannel)
+      )
     )
   );
 });
@@ -467,7 +470,7 @@ const getSubQueryKeyPrefixesFromRecords = (records: Record<string, unknown>[]): 
   return [...prefixes];
 };
 
-const isEmptyCsvCell = (value: unknown): boolean => value === undefined || value === null || value === '';
+const isEmptyCsvCell = (value: unknown): boolean => isNullable(value) || value === '';
 
 /**
  * Within one parent record's flattened rows, repeat parent-column values on sub-query overflow rows
@@ -518,7 +521,7 @@ export const escapeCSVField = (field: string): string =>
 
 /** Formats a field value for CSV export */
 export const formatFieldValue = (value: unknown): string => {
-  if (value === null || value === undefined) {
+  if (isNullable(value)) {
     return '';
   }
   if (typeof value === 'object') {
@@ -537,7 +540,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
   if (value === null) {
     return 'null';
   }
-  if (value === undefined) {
+  if (isUndefined(value)) {
     return 'undefined';
   }
   if (value instanceof Date) {
@@ -565,7 +568,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
 
 /** Formats a field value for table display (recurses into nested plain objects). */
 export const formatFieldValueForDisplay = (value: unknown, depthRemaining = DISPLAY_OBJECT_MAX_DEPTH): string => {
-  if (value === null || value === undefined) {
+  if (isNullable(value)) {
     return '';
   }
   return formatNestedDisplayValue(value, depthRemaining);

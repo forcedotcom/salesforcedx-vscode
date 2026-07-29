@@ -58,7 +58,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -80,7 +80,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-soql -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-soql
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -128,7 +128,7 @@ jobs:
           CI: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:web -w salesforcedx-vscode-soql -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-soql
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -138,7 +138,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-soql -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-soql -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -154,6 +154,7 @@ jobs:
           name: playwright-report-soql-web
           path: packages/salesforcedx-vscode-soql/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -162,6 +163,7 @@ jobs:
           name: playwright-test-results-soql-web
           path: packages/salesforcedx-vscode-soql/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'
@@ -197,7 +199,7 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -220,7 +222,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-soql -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-soql
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -269,7 +271,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
         run: |
-          npm run test:desktop -w salesforcedx-vscode-soql -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-soql
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -280,7 +282,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-soql -- --last-failed --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-soql -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -296,6 +298,7 @@ jobs:
           name: playwright-report-soql-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-soql/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -304,6 +307,7 @@ jobs:
           name: playwright-test-results-soql-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-soql/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch org
         if: always() && steps.try-run.outcome == 'failure'

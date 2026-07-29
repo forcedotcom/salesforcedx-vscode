@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isString } from 'effect/Predicate';
+import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
@@ -75,7 +75,9 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
                 metadataType: r.type,
                 fullName: r.fullName,
                 changeType: toComponentStatusChangeType(r.state),
-                fileUri: Option.fromNullable(r.filePath !== undefined ? yield* fsService.toUri(r.filePath) : undefined)
+                fileUri: Option.fromNullable(
+                  isNotUndefined(r.filePath) ? yield* fsService.toUri(r.filePath) : undefined
+                )
               };
             })
           ),
@@ -174,7 +176,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
 
 const getDeployMessage = (components: ComponentSet): string => {
   const byType = Map.groupBy(components.getSourceComponents().toArray(), c =>
-    !c.isMarkedForDelete() || c.getDestructiveChangesType() === undefined ? 'deploy' : 'delete'
+    !c.isMarkedForDelete() || isUndefined(c.getDestructiveChangesType()) ? 'deploy' : 'delete'
   );
   const deployMsg = Match.value(byType.get('deploy')?.length ?? 0).pipe(
     Match.when(0, () => undefined),

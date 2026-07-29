@@ -191,7 +191,7 @@ export const NotificationModeServiceLayer = (
       const commandId = `${statusBarId}.showToast`;
       const commandDisposable = yield* Effect.sync(() =>
         vscode.commands.registerCommand(commandId, async () => {
-          const pending = Runtime.runSync(runtime)(Ref.get(pendingToastRef));
+          const pending = Runtime.runSync(runtime)(pendingToastRef.pipe(Ref.get));
           if (!pending) return;
           const { message, actions } = pending;
           const labels = actions.map(a => a.label);
@@ -265,8 +265,11 @@ export const NotificationModeServiceLayer = (
         runDispose: (): void => {
           // Interrupt any active hide timer (fire-and-forget — we're deactivating)
           void Runtime.runPromise(runtime)(
-            Ref.get(hideTimerRef).pipe(
-              Effect.flatMap(opt => (Option.isSome(opt) ? Effect.forkDaemon(Fiber.interrupt(opt.value)) : Effect.void))
+            hideTimerRef.pipe(
+              Ref.get,
+              Effect.flatMap(opt =>
+                Option.isSome(opt) ? Effect.forkDaemon(opt.value.pipe(Fiber.interrupt)) : Effect.void
+              )
             )
           );
           commandDisposable.dispose();

@@ -5,14 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils';
 import { ConfigUtil } from '../config/configUtil';
-
-const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
-
-export const disableCLITelemetry = () => {
-  GlobalCliEnvironment.environmentVariables.set(ENV_SF_DISABLE_TELEMETRY, 'true');
-};
 
 export const isCLITelemetryAllowed = async (): Promise<boolean> => {
   // In web mode, ConfigAggregator may not work correctly, so default to allowing telemetry

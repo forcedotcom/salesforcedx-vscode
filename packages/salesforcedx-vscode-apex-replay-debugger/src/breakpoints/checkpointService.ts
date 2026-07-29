@@ -12,7 +12,7 @@ import { code2ProtocolConverter, ExtensionProviderService, getProgressLocation }
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import { isError, isNotUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
@@ -424,55 +424,43 @@ const lock = Effect.runSync(Effect.makeSemaphore(1));
 export const processBreakpointChangedForCheckpoints = (
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
 ): void => {
-  Effect.runSync(
-    lock.withPermits(1)(
-      Effect.sync(() => {
-        breakpointsChangedEvent.removed
-          .filter(isSourceBreakpoint)
-          .filter(isCheckpoint)
-          .map(bp => checkpointService.deleteCheckpointNodeIfExists(bp.id));
-      })
-    )
-  );
+  Effect.sync(() => {
+    breakpointsChangedEvent.removed
+      .filter(isSourceBreakpoint)
+      .filter(isCheckpoint)
+      .map(bp => checkpointService.deleteCheckpointNodeIfExists(bp.id));
+  }).pipe(lock.withPermits(1), Effect.runSync);
 
-  Effect.runSync(
-    lock.withPermits(1)(
-      Effect.sync(() => {
-        const sourceBreakpoints = breakpointsChangedEvent.changed.filter(isSourceBreakpoint);
-        sourceBreakpoints.filter(isCheckpoint).map(bp => {
-          const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
-          const uri = code2ProtocolConverter(bp.location.uri);
-          const filename = uri.substring(uri.lastIndexOf('/') + 1);
-          const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(bp.id);
-          if (theNode) {
-            theNode.updateCheckpoint(bp.enabled, uri, filename, checkpointOverlayAction);
-          } else {
-            // else if the node didn't exist then create it
-            checkpointService.createCheckpointNode(bp.id, bp.enabled, uri, filename, checkpointOverlayAction);
-          }
-        });
-        // The breakpoint is no longer a SourceBreakpoint or is no longer a checkpoint. Call to delete it if it exists
-        sourceBreakpoints.filter(isNotCheckpoint).map(bp => checkpointService.deleteCheckpointNodeIfExists(bp.id));
-      })
-    )
-  );
+  Effect.sync(() => {
+    const sourceBreakpoints = breakpointsChangedEvent.changed.filter(isSourceBreakpoint);
+    sourceBreakpoints.filter(isCheckpoint).map(bp => {
+      const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
+      const uri = code2ProtocolConverter(bp.location.uri);
+      const filename = uri.substring(uri.lastIndexOf('/') + 1);
+      const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(bp.id);
+      if (theNode) {
+        theNode.updateCheckpoint(bp.enabled, uri, filename, checkpointOverlayAction);
+      } else {
+        // else if the node didn't exist then create it
+        checkpointService.createCheckpointNode(bp.id, bp.enabled, uri, filename, checkpointOverlayAction);
+      }
+    });
+    // The breakpoint is no longer a SourceBreakpoint or is no longer a checkpoint. Call to delete it if it exists
+    sourceBreakpoints.filter(isNotCheckpoint).map(bp => checkpointService.deleteCheckpointNodeIfExists(bp.id));
+  }).pipe(lock.withPermits(1), Effect.runSync);
 
-  Effect.runSync(
-    lock.withPermits(1)(
-      Effect.sync(() => {
-        breakpointsChangedEvent.added
-          .filter(isSourceBreakpoint)
-          .filter(isCheckpoint)
-          .map(bp => {
-            const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
+  Effect.sync(() => {
+    breakpointsChangedEvent.added
+      .filter(isSourceBreakpoint)
+      .filter(isCheckpoint)
+      .map(bp => {
+        const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
 
-            const uri = code2ProtocolConverter(bp.location.uri);
-            const filename = uri.substring(uri.lastIndexOf('/') + 1);
-            checkpointService.createCheckpointNode(bp.id, bp.enabled, uri, filename, checkpointOverlayAction);
-          });
-      })
-    )
-  );
+        const uri = code2ProtocolConverter(bp.location.uri);
+        const filename = uri.substring(uri.lastIndexOf('/') + 1);
+        checkpointService.createCheckpointNode(bp.id, bp.enabled, uri, filename, checkpointOverlayAction);
+      });
+  }).pipe(lock.withPermits(1), Effect.runSync);
 };
 
 const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint): ApexExecutionOverlayAction => {
@@ -559,105 +547,101 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
   try {
     // The lock is necessary here to prevent the user from deleting the underlying breakpoint
     // attached to the checkpoint while they're being uploaded into the org.
-    await Effect.runPromise(
-      lock.withPermits(1)(
-        Effect.promise(async () => {
-          writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
-          await vscode.window.withProgress(
-            {
-              location: getRuntime().runSync(getProgressLocation(COMMAND)),
-              title: localizedProgressMessage,
-              cancellable: false
-            },
+    await Effect.promise(async () => {
+      writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
+      await vscode.window.withProgress(
+        {
+          location: getRuntime().runSync(getProgressLocation(COMMAND)),
+          title: localizedProgressMessage,
+          cancellable: false
+        },
 
-            async (progress, _token) => {
-              writeToDebuggerOutputWindow(
-                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_org_info')}`
-              );
-              progress.report({
-                increment: 0,
-                message: localizedProgressMessage
-              });
-              const connection = await getConnection();
-              if (!connection) {
-                updateError = true;
-                return false;
-              }
-
-              writeToDebuggerOutputWindow(
-                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_source_line_info')}`
-              );
-              progress.report({
-                increment: 20,
-                message: localizedProgressMessage
-              });
-              const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
-              // If we didn't get the source line information that'll be reported at that time, just return
-              if (!sourceLineInfoRetrieved) {
-                updateError = true;
-                return false;
-              }
-
-              // There can be a max of five active checkpoints
-              if (!checkpointService.hasFiveOrLessActiveCheckpoints()) {
-                updateError = true;
-                return false;
-              }
-
-              writeToDebuggerOutputWindow(
-                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_setting_typeref')}`
-              );
-              progress.report({
-                increment: 50,
-                message: localizedProgressMessage
-              });
-              // For the active checkpoints set the typeRefs using the source/line info
-              if (!setTypeRefsForEnabledCheckpoints()) {
-                updateError = true;
-                return false;
-              }
-
-              writeToDebuggerOutputWindow(
-                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_clearing_existing_checkpoints')}`
-              );
-              progress.report({
-                increment: 50,
-                message: localizedProgressMessage
-              });
-              // remove any existing checkpoints on the server
-              const allRemoved: boolean = await clearExistingCheckpoints();
-              if (!allRemoved) {
-                updateError = true;
-                return false;
-              }
-
-              writeToDebuggerOutputWindow(
-                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_uploading_checkpoints')}`
-              );
-              progress.report({
-                increment: 70,
-                message: localizedProgressMessage
-              });
-              updateError = (
-                await Promise.allSettled(
-                  (checkpointService.getChildren() as CheckpointNode[])
-                    .filter(cpNode => cpNode.isCheckpointEnabled())
-                    .map(cpNode => executeCreateApexExecutionOverlayActionCommand(cpNode))
-                )
-              ).some(promise => promise.status === 'rejected');
-
-              progress.report({
-                increment: 100,
-                message: localizedProgressMessage
-              });
-              writeToDebuggerOutputWindow(
-                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_processing_complete_success')}`
-              );
-            }
+        async (progress, _token) => {
+          writeToDebuggerOutputWindow(
+            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_org_info')}`
           );
-        })
-      )
-    );
+          progress.report({
+            increment: 0,
+            message: localizedProgressMessage
+          });
+          const connection = await getConnection();
+          if (!connection) {
+            updateError = true;
+            return false;
+          }
+
+          writeToDebuggerOutputWindow(
+            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_source_line_info')}`
+          );
+          progress.report({
+            increment: 20,
+            message: localizedProgressMessage
+          });
+          const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
+          // If we didn't get the source line information that'll be reported at that time, just return
+          if (!sourceLineInfoRetrieved) {
+            updateError = true;
+            return false;
+          }
+
+          // There can be a max of five active checkpoints
+          if (!checkpointService.hasFiveOrLessActiveCheckpoints()) {
+            updateError = true;
+            return false;
+          }
+
+          writeToDebuggerOutputWindow(
+            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_setting_typeref')}`
+          );
+          progress.report({
+            increment: 50,
+            message: localizedProgressMessage
+          });
+          // For the active checkpoints set the typeRefs using the source/line info
+          if (!setTypeRefsForEnabledCheckpoints()) {
+            updateError = true;
+            return false;
+          }
+
+          writeToDebuggerOutputWindow(
+            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_clearing_existing_checkpoints')}`
+          );
+          progress.report({
+            increment: 50,
+            message: localizedProgressMessage
+          });
+          // remove any existing checkpoints on the server
+          const allRemoved: boolean = await clearExistingCheckpoints();
+          if (!allRemoved) {
+            updateError = true;
+            return false;
+          }
+
+          writeToDebuggerOutputWindow(
+            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_uploading_checkpoints')}`
+          );
+          progress.report({
+            increment: 70,
+            message: localizedProgressMessage
+          });
+          updateError = (
+            await Promise.allSettled(
+              (checkpointService.getChildren() as CheckpointNode[])
+                .filter(cpNode => cpNode.isCheckpointEnabled())
+                .map(cpNode => executeCreateApexExecutionOverlayActionCommand(cpNode))
+            )
+          ).some(promise => promise.status === 'rejected');
+
+          progress.report({
+            increment: 100,
+            message: localizedProgressMessage
+          });
+          writeToDebuggerOutputWindow(
+            `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_processing_complete_success')}`
+          );
+        }
+      );
+    }).pipe(lock.withPermits(1), Effect.runPromise);
   } finally {
     writeToDebuggerOutputWindow(`${nls.localize('long_command_end')} ${localizedProgressMessage}`);
     let errorMsg = '';
@@ -695,7 +679,7 @@ export const sfToggleCheckpoint = () => {
   const uri = checkpointUtils.fetchActiveEditorUri();
   const lineNumber = checkpointUtils.fetchActiveSelectionLineNumber();
 
-  if (uri && lineNumber !== undefined) {
+  if (uri && isNotUndefined(lineNumber)) {
     // While selection could be passed directly into the location instead of creating
     // a new range, it ends up creating a weird secondary icon on the line with the
     // breakpoint which is due to the start/end characters being non-zero.

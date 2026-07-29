@@ -71,6 +71,9 @@ export {
 
 export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';
 
+export { SPANS_DIR, readAllSpanRows, waitForSpanRows } from './utils/spanFiles';
+export type { SpanRow } from './utils/spanFiles';
+
 export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
 export { createThrowawayOrg, THROWAWAY_ORG_ALIAS } from './orgs/logoutThrowawayOrgSetup';

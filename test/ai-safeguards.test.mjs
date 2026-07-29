@@ -1,0 +1,297 @@
+import assert from 'node:assert/strict';
+import { mkdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import test from 'node:test';
+import {
+  NO_VERIFY_REASON,
+  commandDenial,
+  editedPaths,
+  verifyCompletion,
+  verifyCompletionAsync,
+  verifyEdit,
+  verifyEditAsync
+} from '../scripts/ai-safeguards.mjs';
+import safeguardsPlugin from '../.opencode/plugins/safeguards.ts';
+
+const temporaryDirectory = async callback => {
+  const directory = await mkdtemp(resolve(tmpdir(), 'ai-safeguards-'));
+  try {
+    return await callback(directory);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+};
+
+const fakeRun = responses => {
+  const calls = [];
+  const run = input => {
+    calls.push(input);
+    return responses.shift() ?? { ok: true, output: '' };
+  };
+  return { calls, run };
+};
+
+test('denies git --no-verify', () => {
+  assert.equal(commandDenial({ command: 'git commit --no-verify', cwd: '/tmp' }), NO_VERIFY_REASON);
+  assert.equal(commandDenial({ command: 'git commit --no\\\n-verify', cwd: '/tmp' }), NO_VERIFY_REASON);
+  assert.equal(commandDenial({ command: 'git commit --no-veri\\fy', cwd: '/tmp' }), NO_VERIFY_REASON);
+  assert.equal(commandDenial({ command: 'git commit --no-veri""fy', cwd: '/tmp' }), NO_VERIFY_REASON);
+});
+
+test('denies dynamically assembled Git safeguards', () => {
+  assert.match(commandDenial({ command: 'x=; git p${x}ush', cwd: '/tmp' }), /shell expansion/);
+  assert.match(commandDenial({ command: 'x=; git commit --no-veri${x}fy', cwd: '/tmp' }), /shell expansion/);
+  assert.match(commandDenial({ command: 'g=git; $g push', cwd: '/tmp' }), /shell expansion/);
+  assert.match(commandDenial({ command: 'g=git; $g commit --no-verify', cwd: '/tmp' }), /shell expansion/);
+});
+
+test('allows literal shell characters in single-quoted Git arguments', () => {
+  assert.equal(commandDenial({ command: "git commit -m 'cost $5 `literal`'", cwd: '/tmp' }), undefined);
+});
+
+test('inspects nested shell and eval Git commands', async () =>
+  temporaryDirectory(root => {
+    const commands = [
+      "bash -c 'git commit --no-verify'",
+      "bash -lc 'git commit --no-verify'",
+      "bash -c 'git push'",
+      'sh -c "git push"',
+      "eval 'git push'",
+      'eval "bash -c \'git commit --no-verify\'"'
+    ];
+    commands.forEach(command => {
+      const { run } = fakeRun([{ ok: true, output: root }]);
+      assert.ok(commandDenial({ command, cwd: root, run }));
+    });
+  }));
+
+test('allows commands that only print Git text', () => {
+  assert.equal(commandDenial({ command: 'echo git --no-verify', cwd: '/tmp' }), undefined);
+  assert.equal(commandDenial({ command: "printf '%s' git push", cwd: '/tmp' }), undefined);
+});
+
+test('supports known executable wrappers', async () =>
+  temporaryDirectory(root => {
+    [
+      'command git push',
+      'command -p git push',
+      'env FOO=bar git push',
+      'sudo -u root git push',
+      'command env git push',
+      'sudo env git push',
+      'sudo command git push',
+      "env bash -lc 'git push'"
+    ].forEach(command => {
+      const { run } = fakeRun([{ ok: true, output: root }]);
+      assert.match(commandDenial({ command, cwd: root, run }), /node_modules missing/);
+    });
+    assert.match(commandDenial({ command: 'env -S "git push"', cwd: root }), /shell expansion/);
+  }));
+
+test('denies push when repository dependencies are absent', async () =>
+  temporaryDirectory(root => {
+    const { run } = fakeRun([{ ok: true, output: root }]);
+    assert.match(commandDenial({ command: 'git push', cwd: root, run }), /node_modules missing/);
+  }));
+
+test('allows push when node_modules is a symlink', async () =>
+  temporaryDirectory(root => {
+    const dependencies = resolve(root, 'dependencies');
+    mkdirSync(dependencies);
+    symlinkSync(dependencies, resolve(root, 'node_modules'));
+    const { run } = fakeRun([{ ok: true, output: root }]);
+    assert.equal(commandDenial({ command: 'git push', cwd: root, run }), undefined);
+  }));
+
+test('tracks cd before a bare push', async () =>
+  temporaryDirectory(root => {
+    const nested = resolve(root, 'nested');
+    mkdirSync(nested);
+    const { calls, run } = fakeRun([{ ok: true, output: nested }]);
+    commandDenial({ command: 'cd nested && git push', cwd: root, run });
+    assert.equal(calls[0].args[1], nested);
+  }));
+
+test('checks quoted git -C paths', async () =>
+  temporaryDirectory(root => {
+    const repository = resolve(root, 'repo with spaces');
+    mkdirSync(repository);
+    const { calls, run } = fakeRun([{ ok: true, output: repository }]);
+    assert.match(commandDenial({ command: `git -C "${repository}" push`, cwd: root, run }), /node_modules missing/);
+    assert.equal(calls[0].args[1], repository);
+  }));
+
+test('preserves Windows separators in quoted git -C paths', () => {
+  const repository = String.raw`C:\Users\runner\repo with spaces`;
+  const { calls, run } = fakeRun([{ ok: true, output: repository }]);
+  assert.match(commandDenial({ command: `git -C "${repository}" push`, cwd: repository, run }), /node_modules missing/);
+  assert.equal(calls[0].args[1], repository);
+});
+
+test('does not split shell metacharacters inside quoted paths', async () =>
+  temporaryDirectory(root => {
+    const repository = resolve(root, 'repo;name');
+    mkdirSync(repository);
+    const { calls, run } = fakeRun([{ ok: true, output: repository }]);
+    assert.match(commandDenial({ command: `git -C "${repository}" push`, cwd: root, run }), /node_modules missing/);
+    assert.equal(calls[0].args[1], repository);
+  }));
+
+test('resolves git -C after cd and Git global options', async () =>
+  temporaryDirectory(root => {
+    const nested = resolve(root, 'nested');
+    const repository = resolve(nested, 'repo with spaces');
+    mkdirSync(repository, { recursive: true });
+    const { calls, run } = fakeRun([{ ok: true, output: repository }]);
+    const command = 'cd nested && git --no-pager -C "repo with spaces" push';
+    assert.match(commandDenial({ command, cwd: root, run }), /node_modules missing/);
+    assert.equal(calls[0].args[1], repository);
+  }));
+
+test('checks push split over a shell line continuation', async () =>
+  temporaryDirectory(root => {
+    const { run } = fakeRun([{ ok: true, output: root }]);
+    assert.match(commandDenial({ command: 'git \\\npush', cwd: root, run }), /node_modules missing/);
+  }));
+
+test('checks escaped and quote-concatenated push subcommands', async () =>
+  temporaryDirectory(root => {
+    const { run } = fakeRun([
+      { ok: true, output: root },
+      { ok: true, output: root }
+    ]);
+    assert.match(commandDenial({ command: 'git p\\ush', cwd: root, run }), /node_modules missing/);
+    assert.match(commandDenial({ command: 'git p""ush', cwd: root, run }), /node_modules missing/);
+  }));
+
+test('denies push with attached repository directory options', () => {
+  assert.match(
+    commandDenial({ command: 'git --git-dir=/target/.git --work-tree=/target push', cwd: '/tmp' }),
+    /Use git -C/
+  );
+  assert.match(
+    commandDenial({ command: 'git --git-dir /target/.git --work-tree /target push', cwd: '/tmp' }),
+    /Use git -C/
+  );
+});
+
+test('extracts and deduplicates apply_patch paths', () => {
+  const patchText = `*** Begin Patch
+*** Update File: src/a.ts
+*** Move to: src/b.ts
+*** Update File: src/a.ts
+*** End Patch`;
+  assert.deepEqual(editedPaths('apply_patch', { patchText }), ['src/a.ts', 'src/b.ts']);
+});
+
+test('edit verification stops after compile failure', () => {
+  const { calls, run } = fakeRun([{ ok: false, output: 'compile failed' }]);
+  const result = verifyEdit({ root: '/tmp', files: ['/tmp/a.ts'], run });
+  assert.equal(result.step, 'compile');
+  assert.equal(calls.length, 1);
+});
+
+test('completion verification runs checks in order', () => {
+  const { calls, run } = fakeRun(Array.from({ length: 8 }, () => ({ ok: true, output: '' })));
+  assert.equal(verifyCompletion({ root: '/tmp', run }).ok, true);
+  assert.deepEqual(
+    calls.filter(call => call.command === 'npm').map(call => call.args[1]),
+    ['compile', 'lint', 'test', 'vscode:bundle', 'check:knip']
+  );
+});
+
+test('async verification awaits nonblocking runners in order', async () => {
+  const calls = [];
+  const run = async input => {
+    calls.push(input);
+    await new Promise(resolveRun => setTimeout(resolveRun, 0));
+    return { ok: true, output: '' };
+  };
+  assert.equal((await verifyEditAsync({ root: '/tmp', files: [], run })).ok, true);
+  assert.equal((await verifyCompletionAsync({ root: '/tmp', run })).ok, true);
+  assert.deepEqual(
+    calls.filter(call => call.command === 'npm').map(call => call.args[1]),
+    ['compile', 'compile', 'lint', 'test', 'vscode:bundle', 'check:knip']
+  );
+});
+
+test('OpenCode blocks unsafe Bash before execution', async () => {
+  const hooks = await safeguardsPlugin({ client: {}, worktree: '/tmp' });
+  await assert.rejects(
+    hooks['tool.execute.before'](
+      { tool: 'bash', sessionID: 'session', callID: 'call' },
+      { args: { command: 'git commit --no-verify' } }
+    ),
+    /--no-verify is blocked/
+  );
+});
+
+test('OpenCode appends edit failures and continues the same session once', async () =>
+  temporaryDirectory(async root => {
+    const file = resolve(root, 'file.ts');
+    writeFileSync(file, 'export {};');
+    const prompts = [];
+    const client = {
+      session: {
+        promptAsync: async request => {
+          prompts.push(request);
+          return { data: true };
+        }
+      }
+    };
+    const hooks = await safeguardsPlugin(
+      { client, worktree: root },
+      {
+        edit: () => ({ ok: false, step: 'compile', output: 'bad edit' }),
+        completion: () => ({ ok: false, step: 'lint', output: 'bad completion' })
+      }
+    );
+    const output = { title: 'edit', output: 'edited', metadata: {} };
+    await hooks['tool.execute.after'](
+      { tool: 'edit', sessionID: 'session', callID: 'call', args: { filePath: file } },
+      output
+    );
+    assert.match(output.output, /bad edit/);
+    const event = { event: { type: 'session.idle', properties: { sessionID: 'session' } } };
+    await hooks.event(event);
+    await hooks.event(event);
+    assert.equal(prompts.length, 1);
+    assert.equal(prompts[0].path.id, 'session');
+  }));
+
+test('OpenCode preserves edits made during completion verification', async () =>
+  temporaryDirectory(async root => {
+    const file = resolve(root, 'file.ts');
+    writeFileSync(file, 'export {};');
+    let finishVerification;
+    let verifications = 0;
+    const hooks = await safeguardsPlugin(
+      { client: { session: {} }, worktree: root },
+      {
+        edit: () => ({ ok: true, step: 'edit verification' }),
+        completion: () => {
+          verifications += 1;
+          return new Promise(resolveVerification => {
+            finishVerification = () => resolveVerification({ ok: true, step: 'completion verification' });
+          });
+        }
+      }
+    );
+    const edit = () =>
+      hooks['tool.execute.after'](
+        { tool: 'edit', sessionID: 'session', callID: 'call', args: { filePath: file } },
+        { title: 'edit', output: 'edited', metadata: {} }
+      );
+    await edit();
+    const event = { event: { type: 'session.idle', properties: { sessionID: 'session' } } };
+    const firstIdle = hooks.event(event);
+    await edit();
+    finishVerification();
+    await firstIdle;
+    const secondIdle = hooks.event(event);
+    finishVerification();
+    await secondIdle;
+    assert.equal(verifications, 2);
+  }));

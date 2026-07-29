@@ -52,7 +52,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -120,6 +120,7 @@ jobs:
           name: playwright-report-web
           path: packages/playwright-vscode-ext/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -128,6 +129,7 @@ jobs:
           name: playwright-test-results-web
           path: packages/playwright-vscode-ext/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
   e2e-desktop:
     runs-on: ${{ matrix.os }}
@@ -155,7 +157,7 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -224,6 +226,7 @@ jobs:
           name: playwright-report-desktop-${{ matrix.os }}
           path: packages/playwright-vscode-ext/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright test results
         if: always()
@@ -232,3 +235,4 @@ jobs:
           name: playwright-test-results-desktop-${{ matrix.os }}
           path: packages/playwright-vscode-ext/test-results
           if-no-files-found: ignore
+          retention-days: 14

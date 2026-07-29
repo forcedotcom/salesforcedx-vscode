@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError, isString } from 'effect/Predicate';
+import { isError, isString, isUndefined } from 'effect/Predicate';
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -395,7 +395,7 @@ export abstract class BaseWorkspaceContext {
               nls.localize(
                 'workspaceRoots_0_required_message',
                 this.workspaceRoots?.[0] ?? 'undefined',
-                String(this.workspaceRoots?.[0] === undefined)
+                String(isUndefined(this.workspaceRoots?.[0]))
               )
             );
           }
@@ -431,7 +431,7 @@ export abstract class BaseWorkspaceContext {
               nls.localize(
                 'workspaceRoots_0_required_message',
                 this.workspaceRoots?.[0] ?? 'undefined',
-                String(this.workspaceRoots?.[0] === undefined)
+                String(isUndefined(this.workspaceRoots?.[0]))
               )
             );
           }
