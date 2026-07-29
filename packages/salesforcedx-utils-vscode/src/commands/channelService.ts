@@ -7,6 +7,7 @@
 
 import { stripAnsi } from '@salesforce/effect-ext-utils';
 import type { CommandExecution } from '@salesforce/salesforcedx-utils';
+import { isNotNullable, isNotUndefined } from 'effect/Predicate';
 import { OutputChannel, window } from 'vscode';
 import { nls } from '../messages/messages';
 import { SettingsService } from '../settings/settingsService';
@@ -53,7 +54,7 @@ export class ChannelService {
       this.channel.append(' ');
       // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
       const exitCode = Array.isArray(data) ? data[0] : data;
-      if (exitCode !== undefined && exitCode !== null) {
+      if (isNotNullable(exitCode)) {
         this.channel.appendLine(nls.localize('channel_end_with_exit_code', String(exitCode)));
       } else {
         this.channel.appendLine(nls.localize('channel_end'));
@@ -65,7 +66,7 @@ export class ChannelService {
       this.showCommandWithTimestamp(execution.command.toCommand());
 
       this.channel.append(' ');
-      if (data !== undefined) {
+      if (isNotUndefined(data)) {
         if (/sfdx.*ENOENT/.test(data.message)) {
           this.channel.appendLine(nls.localize('channel_end_with_sfdx_not_found'));
         } else {

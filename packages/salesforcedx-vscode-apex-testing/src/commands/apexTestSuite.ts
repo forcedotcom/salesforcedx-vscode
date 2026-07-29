@@ -11,7 +11,7 @@ import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
-import { not } from 'effect/Predicate';
+import { isUndefined, not } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -179,7 +179,7 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
     vscode.window.showQuickPick<EditableSuiteClassItem>(editableItems, { canPickMany: true })
   );
   // undefined means dismissed (click outside / Escape) — cancel without modifying the suite
-  if (selection === undefined) {
+  if (isUndefined(selection)) {
     return yield* new api.services.UserCancellationError();
   }
   if (selection.length === 0) {

@@ -1,5 +1,5 @@
 ---
-description: Resolve merge conflicts in package.json, package-lock.json, CHANGELOG.md, and SHA256.md following project conventions
+description: Resolve merge conflicts in package.json, package-lock.json, SHA256.md following project conventions
 trigger: Use when resolving merge conflicts in version-controlled files, particularly during git merge, rebase, or pull operations
 ---
 
@@ -17,6 +17,6 @@ After all package.json conflicts are fixed, run `npm install` to fix the conflic
 
 ## Misc other files
 
-For these files, **always take the incoming changes**:
-- CHANGELOG.md
+Always take incoming changes:
 - SHA256.md
+- `packages/salesforcedx-vscode/CHANGELOG.md` and root `CHANGELOG.md` rarely conflict (different content: release notes vs. full history). If conflict: keep incoming, re-run merge workflow.

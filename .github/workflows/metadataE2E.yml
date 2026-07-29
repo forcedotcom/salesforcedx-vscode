@@ -60,7 +60,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -84,7 +84,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -154,7 +154,7 @@ jobs:
           NON_TRACKING_ORG_ALIAS: hub
           CI: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -166,7 +166,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+          npm run test:web -w salesforcedx-vscode-metadata -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -182,6 +182,7 @@ jobs:
           name: playwright-report-web
           path: packages/salesforcedx-vscode-metadata/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -190,6 +191,7 @@ jobs:
           name: playwright-test-results-web
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'
@@ -232,7 +234,7 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -256,7 +258,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -339,7 +341,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -351,7 +353,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-metadata -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -367,6 +369,7 @@ jobs:
           name: playwright-report-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-metadata/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -375,6 +378,7 @@ jobs:
           name: playwright-test-results-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'
@@ -400,7 +404,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -418,7 +422,7 @@ jobs:
           CI: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web:conflicts -w salesforcedx-vscode-metadata
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -458,7 +462,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+          npm run test:web:conflicts -w salesforcedx-vscode-metadata
 
       - name: Retry failed conflicts tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -467,7 +471,7 @@ jobs:
           CI: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+          npm run test:web:conflicts -w salesforcedx-vscode-metadata -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -483,6 +487,7 @@ jobs:
           name: playwright-report-conflicts-web
           path: packages/salesforcedx-vscode-metadata/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -491,6 +496,7 @@ jobs:
           name: playwright-test-results-conflicts-web
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'
@@ -531,7 +537,7 @@ jobs:
         run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22.22.3'
           cache: 'npm'
@@ -551,7 +557,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata
 
       - name: Install Salesforce CLI
         if: steps.try-run.outcome == 'failure'
@@ -605,7 +611,7 @@ jobs:
           VSCODE_DESKTOP: 1
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata
 
       - name: Retry failed conflicts tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -616,7 +622,7 @@ jobs:
           MINIMAL_ORG_ALIAS: minimalTestOrg
           NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
           PLAYWRIGHT_WORKERS: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --last-failed --reporter=html
+        run: ${{ matrix.test_runner_prefix }}npm run test:desktop:conflicts -w salesforcedx-vscode-metadata -- --last-failed
 
       - name: Copy span files to test-results
         if: always()
@@ -632,6 +638,7 @@ jobs:
           name: playwright-report-conflicts-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-metadata/playwright-report
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload Playwright Test Results
         if: always()
@@ -640,6 +647,7 @@ jobs:
           name: playwright-test-results-conflicts-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
+          retention-days: 14
 
       - name: Cleanup scratch orgs
         if: always() && steps.try-run.outcome == 'failure'

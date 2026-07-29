@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
-import { isString } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
@@ -26,11 +26,14 @@ const isAfterTraceFlagStart =
   (startDateByUser: Map<string, Date>) =>
   (log: { LogUserId?: string; StartTime?: Date | string }): boolean => {
     const uid = log.LogUserId;
-    const st =
-      log.StartTime === undefined ? undefined : log.StartTime instanceof Date ? log.StartTime : new Date(log.StartTime);
+    const st = isUndefined(log.StartTime)
+      ? undefined
+      : log.StartTime instanceof Date
+        ? log.StartTime
+        : new Date(log.StartTime);
     if (!uid || !st) return true;
     const userStart = startDateByUser.get(uid);
-    return userStart === undefined || st >= userStart;
+    return isUndefined(userStart) || st >= userStart;
   };
 
 const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
@@ -121,13 +124,12 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(pollIntervalSeconds));
 
   // watch the setting to update poll freq
-  yield* Effect.fork(
-    Stream.fromPubSub(settingsChangePubSub).pipe(
-      Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')),
-      Stream.runForEach(() =>
-        getPollIntervalSeconds().pipe(Effect.flatMap(s => SubscriptionRef.set(pollIntervalRef, Duration.seconds(s))))
-      )
-    )
+  yield* Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')),
+    Stream.runForEach(() =>
+      getPollIntervalSeconds().pipe(Effect.flatMap(s => SubscriptionRef.set(pollIntervalRef, Duration.seconds(s))))
+    ),
+    Effect.fork
   );
 
   // when the org changes, clear the knownIds
@@ -143,7 +145,11 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const dynamicPollStream = pollIntervalRef.changes.pipe(
     Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
     Stream.flatMap(
-      interval => Stream.fromSchedule(Schedule.spaced(interval)).pipe(Stream.filter(() => vscode.window.state.active)),
+      interval =>
+        Schedule.spaced(interval).pipe(
+          Stream.fromSchedule,
+          Stream.filter(() => vscode.window.state.active)
+        ),
       // With switch: true: When the interval changes, the previous schedule stream is interrupted and a new one starts.
       // So changing the poll interval immediately replaces the old schedule with the new one instead of stacking them.
       { switch: true }

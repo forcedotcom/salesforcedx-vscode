@@ -18,6 +18,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 
 - The PostToolUse `verify-on-edit.sh` hook auto-runs `--file <edited>` on every `.ts` Edit/Write and surfaces output as `followup_message`. Address what it reports.
 - **Address warnings AND messages, not just errors.** `references/diagnostics-findings.md` maps each common finding to its fix; `config/effect-diagnostics.json` `enforcedRules` is the build gate.
+- Enforcing a rule takes two edits, not just an `enforcedRules` entry — see `references/diagnostics-findings.md`.
 - After a batch of edits, run `--project tsconfig.json` for the affected package to catch cross-file issues.
 - `effect-language-service quickfixes` shows proposed code changes.
 
@@ -44,6 +45,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Atom Updates      | `useAtomSet` in React components                         | `Atom.update` imperatively from React                            |
 | Atom Cleanup      | `get.addFinalizer()` for side effects                    | Missing cleanup for event listeners                              |
 | Atom Results      | `Result.builder` with `onErrorTag`                       | Ignoring loading/error states                                    |
+| Grouping          | `Arr.groupBy` (effect/Array)                             | `Object.groupBy`, whose `Partial<Record>` forces a filter        |
 
 ## Service Definition Pattern
 
@@ -370,6 +372,22 @@ ref.changes.pipe(...)
 ```
 
 To skip the initial snapshot (e.g. avoid a spurious refresh on activation), use `Stream.drop(1)`.
+
+## Grouping
+
+`Object.groupBy` is typed `Partial<Record<K, V[]>>`, so every consumer filters or defaults the `undefined`. `Arr.groupBy` returns `Record<K, NonEmptyArray<V>>` — total, so `Object.entries` needs no guard.
+
+```typescript
+import * as Arr from 'effect/Array';
+
+const grouped = Arr.groupBy(ids, id => id.slice(0, 3)); // Record<string, NonEmptyArray<string>>
+Object.entries(grouped).map(([prefix, group]) => query(prefix, group));
+
+// vs Object.groupBy, where the same line needs:
+//   .filter((entry): entry is [string, string[]] => isNotUndefined(entry[1]))
+```
+
+Keep `Object.groupBy` only when the `Partial` is load-bearing — e.g. destructuring absent keys with defaults, `const { deploys = [], deleted = [] } = ...`.
 
 ## Anti-Patterns (Forbidden)
 

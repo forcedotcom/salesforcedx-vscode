@@ -9,6 +9,7 @@ import { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { OrgUserInfo, WorkspaceContextUtil, refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
@@ -68,7 +69,7 @@ export class WorkspaceContext {
 
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
     const { username } = orgInfo;
-    if (username !== undefined) {
+    if (isNotUndefined(username)) {
       const orgShape = await getOrgShape(username);
       if (orgShape !== 'Undefined') {
         WorkspaceContextUtil.getInstance().orgShape = orgShape;

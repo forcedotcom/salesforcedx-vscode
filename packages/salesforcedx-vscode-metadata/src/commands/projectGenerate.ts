@@ -8,6 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ProjectOptions } from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -77,7 +78,7 @@ const promptForTemplate = Effect.fn('projectGenerate.promptForTemplate')(functio
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   return yield* (
-    initialTemplate !== undefined
+    isNotUndefined(initialTemplate)
       ? Effect.succeed(initialTemplate)
       : Effect.promise(() => vscode.window.showQuickPick(templateItems)).pipe(
           Effect.map(selection =>

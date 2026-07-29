@@ -1,3 +1,12 @@
+## [1.3.8](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.7...playwright-vscode-ext-v1.3.8) (2026-07-28)
+
+
+### Bug Fixes
+
+* **services:** TerminalService gathers the sf CLI env at exec time - W-23480631 ([#7899](https://github.com/forcedotcom/salesforcedx-vscode/issues/7899)) ([f843901](https://github.com/forcedotcom/salesforcedx-vscode/commit/f8439018f051101ad7ef39ab548c5a9b10307fc0))
+
+
+
 ## [1.3.7](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.6...playwright-vscode-ext-v1.3.7) (2026-07-27)
 
 

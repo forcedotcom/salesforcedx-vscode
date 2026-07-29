@@ -25,7 +25,26 @@ Organized by branch and run ID.
 - `gh run list -b <branch> --limit 50 --json databaseId,status,conclusion,workflowName,createdAt,headBranch` - List runs
 - `gh run watch <run-id>` - Monitor until completion
 - `gh run download <run-id> -D <directory>` - Download artifacts
-- `gh run view <run-id> --web` - Open in browser
+- `gh run view <run-id> --web` - Open in browser; run summary page also renders annotations
+- `gh run view <run-id> --log-failed` - Failing-step log, includes `::error file=…,line=…` + `🎭 Playwright Run Summary`
+- `gh run view <run-id> --log` - Full log; fallback when there are no annotations (infra/setup failure, config error)
+
+## Annotations first (before downloading)
+
+Playwright runs with the `github` reporter on GHA — config `packages/playwright-vscode-ext/src/config/createReporter.ts` → failure message + file + line are already in the job log and as run annotations. Read those first; download artifacts only for traces/videos/spans/html report.
+
+Workflows must not pass `--reporter=` at all: a CLI list replaces the config list wholesale, and any list without a stdio reporter (`line`) makes playwright inject `dot`, whose newline-less `·`/`F` prefixes the `::error` commands (`F::error file=…`) so GitHub drops every failure annotation.
+
+Annotations only, all failed checks of a commit (paginate — PR head commits routinely have >30 check runs, so an unpaginated call silently misses the failing one):
+
+```bash
+gh api --paginate -X GET repos/forcedotcom/salesforcedx-vscode/commits/$(git rev-parse HEAD)/check-runs -f per_page=100 \
+  --jq '.check_runs[] | select(.conclusion=="failure") | .id' |
+  xargs -I{} gh api --paginate repos/forcedotcom/salesforcedx-vscode/check-runs/{}/annotations \
+    --jq '.[] | "\(.path):\(.start_line) \(.annotation_level): \(.message)"'
+```
+
+E2E artifacts expire 14 days after the run (see `retention-days` in the workflows) — nothing to download from older runs.
 
 ## Artifact location (mandatory)
 

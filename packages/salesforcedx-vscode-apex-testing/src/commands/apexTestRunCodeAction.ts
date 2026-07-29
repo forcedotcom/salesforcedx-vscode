@@ -9,6 +9,7 @@ import { type NamedPackageDir } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -62,7 +63,7 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
   );
 
   yield* channelService.showChannel;
-  if (result === undefined) {
+  if (isUndefined(result)) {
     notificationService.showFailedExecution(executionName);
     return;
   }

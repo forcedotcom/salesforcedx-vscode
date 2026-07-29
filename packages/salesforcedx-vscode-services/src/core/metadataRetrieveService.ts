@@ -142,7 +142,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
             async (_, token) => {
               token.onCancellationRequested(async () => {
                 await retrieveOperation.cancel();
-                await Runtime.runPromise(runtime)(Fiber.interrupt(retrieveFiber));
+                await Fiber.interrupt(retrieveFiber).pipe(Runtime.runPromise(runtime));
               });
               await retrieveOperation.start();
               return await retrieveOperation.pollStatus();
