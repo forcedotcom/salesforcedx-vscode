@@ -35,7 +35,8 @@ import {
   readJsonlFiles,
   parseJsonlLines,
   EDITOR_WITH_URI,
-  QUICK_INPUT_WIDGET
+  QUICK_INPUT_WIDGET,
+  type SpanRow
 } from '@salesforce/playwright-vscode-ext';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -46,7 +47,6 @@ const SPANS_DIR = path.join(os.homedir(), '.sf', 'vscode-spans');
 const APPINSIGHTS_DIR = path.join(os.homedir(), '.sf', 'vscode-appinsights');
 const REDACTED = '<REDACTED ACCESS TOKEN>';
 
-type SpanRow = { kind?: string; name?: string; attributes?: Record<string, unknown> };
 type Envelope = { data?: { baseData?: { properties?: Record<string, unknown> } } };
 
 test('redact: planted access token -> <REDACTED ACCESS TOKEN> in span + AppInsights files', async ({ page }) => {
