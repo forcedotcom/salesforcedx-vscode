@@ -22,4 +22,4 @@ git checkout -b sm/W-XXXXX-short-description origin/develop --no-track
 git push -u origin sm/W-XXXXX-short-description
 ```
 
-Never omit `--no-track` when branching from `origin/develop`: bare `git push` could push to `develop`.
+Never omit `--no-track` off `origin/develop` — bare `git push` could push `develop`.

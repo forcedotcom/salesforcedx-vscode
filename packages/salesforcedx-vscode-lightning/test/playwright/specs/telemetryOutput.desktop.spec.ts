@@ -50,6 +50,8 @@ import {
   waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady,
+  readJsonlFiles,
+  parseJsonlLines,
   EDITOR_WITH_URI,
   QUICK_INPUT_WIDGET
 } from '@salesforce/playwright-vscode-ext';
@@ -72,21 +74,8 @@ type SpanRow = { kind?: string; name?: string; attributes?: Record<string, unkno
 // timestamped {SPANS_DIR}/*.jsonl. And BatchSpanProcessor buffers — a root command span isn't on
 // disk until an interval flush or (reliably) window reload/deactivate. So: reload first, then read
 // the UNION of all span files rather than guessing a single newest one.
-const readAllSpanRows = async (): Promise<SpanRow[]> => {
-  const entries = await fs.readdir(SPANS_DIR).catch(() => [] as string[]);
-  const files = entries.filter(name => name.endsWith('.jsonl'));
-  const perFile = await Promise.all(
-    files.map(async file => {
-      const contents = await fs.readFile(path.join(SPANS_DIR, file), 'utf-8').catch(() => '');
-      return contents
-        .split('\n')
-        .filter(Boolean)
-        .map(line => JSON.parse(line) as SpanRow)
-        .filter(row => row.kind === 'span');
-    })
-  );
-  return perFile.flat();
-};
+const readAllSpanRows = async (): Promise<SpanRow[]> =>
+  parseJsonlLines<SpanRow>(await readJsonlFiles(SPANS_DIR)).filter(row => row.kind === 'span');
 
 class NotReadyError extends Data.TaggedError('NotReadyError')<{ readonly message: string }> {}
 

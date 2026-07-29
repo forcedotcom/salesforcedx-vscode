@@ -7,11 +7,9 @@
 import type { AttributeValue, Attributes, SpanStatus } from '@opentelemetry/api';
 import { NoopSpanProcessor, type Span } from '@opentelemetry/sdk-trace-base';
 import { isNotUndefined, isString } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import { redactSecrets } from './redactSecrets';
 
-const NullishStringArray = Schema.String.pipe(Schema.NullishOr, Schema.Array, Schema.mutable);
-type NullishStringArray = Schema.Schema.Type<typeof NullishStringArray>;
+type NullishStringArray = (string | null | undefined)[];
 
 /** redact each element of a string-valued attribute array, keeping the original array when nothing changed */
 const redactStringArray = (value: NullishStringArray): NullishStringArray => {
@@ -19,7 +17,8 @@ const redactStringArray = (value: NullishStringArray): NullishStringArray => {
   return redacted.some((element, index) => element !== value[index]) ? redacted : value;
 };
 
-const isStringArray = Schema.is(NullishStringArray);
+const isStringArray = (value: AttributeValue): value is NullishStringArray =>
+  Array.isArray(value) && value.every(element => element === null || element === undefined || isString(element));
 
 const redactAttributeValue = (value: AttributeValue): AttributeValue =>
   isString(value) ? redactSecrets(value) : isStringArray(value) ? redactStringArray(value) : value;
