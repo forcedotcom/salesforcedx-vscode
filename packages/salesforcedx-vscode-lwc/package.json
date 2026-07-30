@@ -281,7 +281,7 @@
       "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
       "dependencies": [
         "vscode:bundle",
-        "../salesforcedx-vscode-core:vscode:package:legacy"
+        "../salesforcedx-vscode-core:vscode:package:legacy:prerelease"
       ],
       "env": {
         "VSCE_PRE_RELEASE": "true"

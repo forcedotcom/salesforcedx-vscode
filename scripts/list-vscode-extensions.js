@@ -45,7 +45,7 @@ for (const dir of packageDirs) {
       extensions.push(pkg.name);
     }
   } catch (err) {
-    console.error(`Warning: Failed to parse ${packageJsonPath}: ${err.message}`, { file: process.stderr });
+    console.error(`Warning: Failed to parse ${packageJsonPath}: ${err.message}`);
   }
 }
 
