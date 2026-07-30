@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
-import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
@@ -29,13 +29,14 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
 
   yield* Effect.annotateCurrentSpan({ memberCount: members.length });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
 
   const projectComponentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
 
   yield* confirmOverwrite(projectComponentSet, members);
 
   return yield* OrgBrowserRetrieveService.retrieve(members, members.length === 1, {
-    progressLocation: yield* getProgressLocation(COMMAND)
+    progressLocation: yield* notificationMode.getProgressLocation(COMMAND)
   }).pipe(
     Effect.tap(() =>
       Match.value(node.kind).pipe(
@@ -49,7 +50,10 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
       )
     ),
     Effect.tap(() =>
-      showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('retrieve_metadata_text')))
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize('command_succeeded_text', nls.localize('retrieve_metadata_text'))
+      )
     )
   );
 });

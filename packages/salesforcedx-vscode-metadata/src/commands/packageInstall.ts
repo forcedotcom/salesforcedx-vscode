@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
@@ -175,8 +175,9 @@ const pollUntilComplete = Effect.fn('packageInstall.pollUntilComplete')(function
 export const packageInstallCommand = Effect.fn('packageInstallCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
 
-  const verifyProgressLocation = yield* getProgressLocation(COMMAND);
+  const verifyProgressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const packageId = yield* gatherPackageId().pipe(
     Effect.flatMap(id =>
       verifyPackageAvailable(id).pipe(
@@ -195,19 +196,29 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const requestId = yield* submitInstallRequest({ packageId, installationKey });
 
   if (!shouldPoll) {
-    yield* showSuccessNotification(COMMAND, nls.localize('package_install_submitted_message', requestId), true);
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('package_install_submitted_message', requestId),
+      true
+    );
     return;
   }
 
   yield* pollUntilComplete(requestId).pipe(
     promptService.withCancellableProgress(
       nls.localize('package_install_polling_progress', packageId),
-      yield* getProgressLocation(COMMAND)
+      yield* notificationMode.getProgressLocation(COMMAND)
     ),
-    Effect.tap(() => showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))),
+    Effect.tap(() =>
+      notificationMode.showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))
+    ),
     // custom message to make it clear how cancellation works; forceShow so it's never suppressed
     Effect.tapErrorTag('UserCancellationError', () =>
-      showSuccessNotification(COMMAND, nls.localize('package_install_cancelled_message', requestId), true)
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize('package_install_cancelled_message', requestId),
+        true
+      )
     )
   );
 });

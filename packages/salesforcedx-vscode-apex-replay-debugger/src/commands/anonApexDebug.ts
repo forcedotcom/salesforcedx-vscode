@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { format } from 'node:util';
 import * as vscode from 'vscode';
@@ -72,6 +72,7 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
   if (!ctx) return false;
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const code = ctx.kind === 'code' ? ctx.apexCode : yield* api.services.FsService.readFile(ctx.filePath);
   if (!code) return false;
 
@@ -88,26 +89,33 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
     yield* api.services.ProjectService.getDebugLogsFolder(),
     `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
   );
-  return yield* launchReplayDebugger(logFilePath, logBody ?? undefined);
+  const success = yield* launchReplayDebugger(logFilePath, logBody ?? undefined);
+  if (success) {
+    yield* notificationMode.showSuccessNotification(COMMAND, nls.localize('apex_execute_debug_success'), false);
+  }
+  return success;
 });
 
 const COMMAND: ProgressAndSuccessCommandKey = 'Debug Anonymous Apex';
 
 export const anonApexDebug = async (): Promise<void> => {
-  const success = await vscode.window.withProgress(
-    {
-      location: getRuntime().runSync(getProgressLocation(COMMAND)),
-      title: nls.localize('apex_execute_text'),
-      cancellable: false
-    },
-    () =>
-      getRuntime()
-        .runPromise(executeAnonApexDebug())
-        .catch((error: unknown) => {
-          void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
-        })
+  const progressLocation = await getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const notificationMode = yield* api.services.NotificationModeService;
+      return yield* notificationMode.getProgressLocation(COMMAND);
+    })
   );
-  if (success) {
-    void getRuntime().runPromise(showSuccessNotification(COMMAND, nls.localize('apex_execute_debug_success'), false));
+  try {
+    await vscode.window.withProgress(
+      {
+        location: progressLocation,
+        title: nls.localize('apex_execute_text'),
+        cancellable: false
+      },
+      () => getRuntime().runPromise(executeAnonApexDebug())
+    );
+  } catch (error) {
+    void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
   }
 };

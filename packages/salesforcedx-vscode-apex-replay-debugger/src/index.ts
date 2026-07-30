@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { NotificationModeService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -177,6 +177,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-replay-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const commands = yield* Effect.promise(() => registerCommands(extensionContext));
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
@@ -205,7 +206,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     await setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method);
   });
 
-  const notifSvc = yield* NotificationModeService;
+  const notificationMode = yield* api.services.NotificationModeService;
   extensionContext.subscriptions.push(
     debuggerChannel,
     commands,
@@ -215,7 +216,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     breakpointsSub,
     debugTests,
     debugTest,
-    { dispose: () => notifSvc.runDispose() }
+    { dispose: () => notificationMode.runDispose() }
   );
 
   // Telemetry

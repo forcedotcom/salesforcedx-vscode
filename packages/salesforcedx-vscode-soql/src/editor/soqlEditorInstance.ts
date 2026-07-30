@@ -7,7 +7,7 @@
 
 import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
-import { ExtensionProviderService, getProgressLocation, getServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as debounce from 'debounce';
 import * as Cause from 'effect/Cause';
@@ -93,7 +93,9 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
   }
   const queryText = document.getText();
   const conn = yield* Effect.promise(() => getConnection());
-  const progressLocation = yield* getProgressLocation('SOQL Builder Run Query');
+  const api = yield* getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation('SOQL Builder Run Query');
   const queryData = yield* Effect.promise(() =>
     vscode.window.withProgress(
       {

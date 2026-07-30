@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  closeExtensionScope,
-  ExtensionProviderService,
-  getExtensionScope,
-  NotificationModeService
-} from '@salesforce/effect-ext-utils';
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -39,9 +34,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
 
-  const notifSvc = yield* NotificationModeService;
+  const notificationMode = yield* api.services.NotificationModeService;
   yield* Effect.sync(() => {
-    context.subscriptions.push(SOQLEditorProvider.register(context), { dispose: () => notifSvc.runDispose() });
+    context.subscriptions.push(SOQLEditorProvider.register(context), { dispose: () => notificationMode.runDispose() });
     QueryDataViewService.register(context);
     registerSoqlCodeLensProvider(context);
   });

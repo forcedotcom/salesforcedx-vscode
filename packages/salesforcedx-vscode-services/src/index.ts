@@ -63,6 +63,7 @@ import { FileChangePubSub } from './vscode/fileChangePubSub';
 import { FileWatcherLayer } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { MediaService } from './vscode/mediaService';
+import { NotificationModeService } from './vscode/notificationModeService';
 import { PromptService, UserCancellationError } from './vscode/prompts/promptService';
 import { registerCommandWithLayer, registerCommandWithRuntime } from './vscode/registerCommand';
 import { runWebAuthEffect } from './vscode/runWebAuth';
@@ -134,6 +135,7 @@ export type SalesforceVSCodeServicesApi = {
     PromptService: typeof PromptService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
+    NotificationModeService: typeof NotificationModeService;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
     SdkLayerFor: typeof SdkLayerFor;
@@ -224,6 +226,13 @@ export type { FsServiceError } from './vscode/fsService';
 export { ICONS } from './vscode/mediaService';
 export type { IconId, MediaService } from './vscode/mediaService';
 export type { SettingsError } from './vscode/settingsService';
+export {
+  NotificationModeService,
+  type ProgressAndSuccessMode,
+  type ProgressOnlyMode,
+  type SuccessOnlyMode,
+  type ToastAction
+} from './vscode/notificationModeService';
 
 /** Effect that runs when the extension is activated after FS setup */
 const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
@@ -383,6 +392,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
+      NotificationModeService,
       ProjectService,
       getSdkLayerConfigFromContext,
       SdkLayerFor,

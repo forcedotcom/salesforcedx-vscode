@@ -21,13 +21,14 @@ const mockExtensionProvider = {
 
 jest.mock('@salesforce/effect-ext-utils', () => jest.requireActual('@salesforce/effect-ext-utils'));
 
-import { ExtensionProviderService, NotificationModeService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
 import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
 import { FsService } from 'salesforcedx-vscode-services/out/src/vscode/fsService';
 import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/out/src/vscode/workspaceService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {
@@ -41,6 +42,12 @@ import {
   executeDataQuery,
   runSoqlQuery
 } from '../../../src/commands/dataQuery';
+
+const notificationMode = {
+  getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+  showSuccessNotification: () => Effect.void,
+  runDispose: jest.fn()
+} as unknown as NotificationModeService;
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
 import { nls } from '../../../src/messages';
 import { messages } from '../../../src/messages/i18n';
@@ -734,7 +741,8 @@ describe('DataQuery Pure Functions', () => {
           services: {
             ConnectionService: { getConnection: () => Effect.succeed(connection) },
             ChannelService: Effect.succeed(mockChannel),
-            PromptService: Effect.succeed(mockPromptService)
+            PromptService: Effect.succeed(mockPromptService),
+            NotificationModeService
           }
         } as unknown as SalesforceVSCodeServicesApi)
       };
@@ -754,7 +762,7 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
-          Effect.provide(NotificationModeService.Default)
+          Effect.provideService(NotificationModeService, notificationMode)
         )
       );
       expect(restQuery).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: true }));
@@ -768,7 +776,7 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
-          Effect.provide(NotificationModeService.Default)
+          Effect.provideService(NotificationModeService, notificationMode)
         )
       );
       expect(toolingQuery).toHaveBeenCalledWith('SELECT Id FROM ApexClass', expect.objectContaining({ scanAll: true }));
@@ -782,7 +790,7 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
           Effect.provideService(PromptService, mockPromptService),
-          Effect.provide(NotificationModeService.Default)
+          Effect.provideService(NotificationModeService, notificationMode)
         )
       );
       expect(restQuery).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: false }));
@@ -1005,7 +1013,8 @@ describe('DataQuery Pure Functions', () => {
             ChannelService: Effect.succeed(channel),
             WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/ws') }) },
             FsService: { writeFile: () => Effect.void, showTextDocument: () => Effect.void },
-            PromptService: Effect.succeed(noopPromptService)
+            PromptService: Effect.succeed(noopPromptService),
+            NotificationModeService
           }
         } as unknown as SalesforceVSCodeServicesApi)
       };
@@ -1022,7 +1031,7 @@ describe('DataQuery Pure Functions', () => {
           Effect.provideService(FsService, {} as unknown as FsService),
           Effect.provideService(WorkspaceService, {} as unknown as WorkspaceService),
           Effect.provideService(PromptService, noopPromptService),
-          Effect.provide(NotificationModeService.Default)
+          Effect.provideService(NotificationModeService, notificationMode)
         )
       ).then(() => ({ show, appendToChannel }));
     };

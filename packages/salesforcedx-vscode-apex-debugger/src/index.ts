@@ -8,7 +8,7 @@
 // not going to change anything since this is going away
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { ExtensionProviderService, NotificationModeService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
@@ -241,7 +241,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-debugger')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  const notifSvc = yield* NotificationModeService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   yield* Effect.sync(() => {
     const commands = registerCommands();
     const debugHandlers = registerDebugHandlers();
@@ -251,11 +252,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
       fileWatchers,
       debugHandlers,
       vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider()),
-      { dispose: () => notifSvc.runDispose() }
+      { dispose: () => notificationMode.runDispose() }
     );
   });
 
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   // Register Effect-based commands with AllServicesLayer for tracing + global error/cancellation handling
   const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
   yield* registerCommand('sf.debugger.stop', debuggerStop);

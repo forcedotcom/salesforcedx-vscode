@@ -2,18 +2,21 @@
 
 Configurable success notifications & progress location detection. Auto-detects command type from settings.
 
-Provided via `NotificationModeServiceLayer` from `@salesforce/effect-ext-utils`:
+Get the class and per-extension layer factory from the services API:
 
 ```typescript
-import { NotificationModeService, NotificationModeServiceLayer, type ToastAction } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ToastAction } from 'salesforcedx-vscode-services';
 import * as Effect from 'effect/Effect';
 
 const program = Effect.gen(function* () {
-  const service = yield* NotificationModeService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const service = yield* api.services.NotificationModeService;
   // use service.showSuccessNotification, service.getProgressLocation
 });
 
-const layer = NotificationModeServiceLayer(
+const api = yield* (yield* ExtensionProviderService).getServicesApi;
+const layer = api.services.NotificationModeService.Default(
   'my-extension-section',
   'my-extension.statusBar',
   'My Extension Status'
@@ -22,7 +25,7 @@ const layer = NotificationModeServiceLayer(
 yield* program.pipe(Effect.provide(layer));
 ```
 
-Factory args: `extensionSection`, `statusBarId`, `statusBarName`. Returns `Layer<NotificationModeService>`; manages status bar & command lifecycle.
+`Default(extensionSection, statusBarId, statusBarName)` returns the per-extension layer. Add its service disposal to the extension context subscriptions.
 
 ## showSuccessNotification
 
@@ -69,7 +72,7 @@ const location = yield* service.getProgressLocation(commandKey);
 
 ## Lifecycle
 
-Auto-disposed when layer scope closes (extension deactivation). No manual cleanup needed.
+Yield the service during activation and add `{ dispose: service.runDispose }` to `context.subscriptions`.
 
 ## Mode types
 
@@ -93,12 +96,12 @@ Auto-disposed when layer scope closes (extension deactivation). No manual cleanu
 ## Example
 
 ```typescript
-import { NotificationModeService, NotificationModeServiceLayer } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 
 const deployCommand = Effect.fn('deploy')(function* () {
-  const service = yield* NotificationModeService;
   const extensionApi = yield* (yield* ExtensionProviderService).getServicesApi;
+  const service = yield* extensionApi.services.NotificationModeService;
   const promptService = yield* extensionApi.services.PromptService;
   const location = yield* service.getProgressLocation('deploy');
 
@@ -113,7 +116,8 @@ const deployCommand = Effect.fn('deploy')(function* () {
 });
 
 // In extension activate():
-const layer = NotificationModeServiceLayer(
+const extensionApi = yield* (yield* ExtensionProviderService).getServicesApi;
+const layer = extensionApi.services.NotificationModeService.Default(
   'salesforcedx-vscode-metadata',
   'metadata.deploy.progress',
   'Metadata Deployment'

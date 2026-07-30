@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { detectConflicts, handleConflictWithRetry } from '../conflict/conflictFlow';
 import { nls } from '../messages';
@@ -27,26 +27,30 @@ const deployEffect = Effect.fn('projectDeploy.deployEffect')(function* (ignoreCo
 
 /** Deploy local changes to the default org */
 export const projectDeployStartCommand = (ignoreConflicts = false) =>
-  deployEffect(ignoreConflicts).pipe(
-    Effect.catchTag('ConflictsDetectedError', err =>
-      handleConflictWithRetry({
-        pairs: err.pairs,
-        operationType: err.operationType,
-        retryOperation: deployEffect(true)
-      })
-    ),
-    Effect.tap(() =>
-      showSuccessNotification(
-        COMMAND,
-        nls.localize(
-          'command_succeeded_text',
-          ignoreConflicts
-            ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
-            : nls.localize('project_deploy_start_default_org_text')
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const notificationMode = yield* api.services.NotificationModeService;
+    return yield* deployEffect(ignoreConflicts).pipe(
+      Effect.catchTag('ConflictsDetectedError', err =>
+        handleConflictWithRetry({
+          pairs: err.pairs,
+          operationType: err.operationType,
+          retryOperation: deployEffect(true)
+        })
+      ),
+      Effect.tap(() =>
+        notificationMode.showSuccessNotification(
+          COMMAND,
+          nls.localize(
+            'command_succeeded_text',
+            ignoreConflicts
+              ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
+              : nls.localize('project_deploy_start_default_org_text')
+          )
         )
+      ),
+      Effect.catchTag('EmptyComponentSetError', () =>
+        notificationMode.showSuccessNotification(COMMAND, nls.localize('no_local_changes_to_deploy'))
       )
-    ),
-    Effect.catchTag('EmptyComponentSetError', () =>
-      showSuccessNotification(COMMAND, nls.localize('no_local_changes_to_deploy'))
-    )
-  );
+    );
+  });

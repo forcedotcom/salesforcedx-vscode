@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -82,13 +82,16 @@ export const withPreparationProgress =
     <E, R>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const notificationMode = yield* api.services.NotificationModeService;
         const runtime = yield* Effect.runtime<R | ConflictsR>();
         const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
 
         const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
           Effect.raceFirst(effect, Deferred.await(cancelDeferred));
 
-        const progressLocation = command ? yield* getProgressLocation(command) : vscode.ProgressLocation.Notification;
+        const progressLocation = command
+          ? yield* notificationMode.getProgressLocation(command)
+          : vscode.ProgressLocation.Notification;
         return yield* Effect.async<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
           void vscode.window.withProgress(
             {

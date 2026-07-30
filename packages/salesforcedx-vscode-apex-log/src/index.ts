@@ -9,7 +9,6 @@ import {
   closeExtensionScope,
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
-  NotificationModeService,
   type ExtensionPackageJson,
   getExtensionScope
 } from '@salesforce/effect-ext-utils';
@@ -63,8 +62,8 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   yield* api.services.ChannelService.pipe(
     Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension activating`))
   );
-  const notifSvc = yield* NotificationModeService;
-  yield* Effect.sync(() => context.subscriptions.push({ dispose: () => notifSvc.runDispose() }));
+  const notificationMode = yield* api.services.NotificationModeService;
+  yield* Effect.sync(() => context.subscriptions.push({ dispose: () => notificationMode.runDispose() }));
 
   const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
   const scope = yield* getExtensionScope();

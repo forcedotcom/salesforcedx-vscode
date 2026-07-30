@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getProgressLocation, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { type EditorService } from 'salesforcedx-vscode-services';
 import { ExecAnonCompileError } from '../errors/commandErrors';
@@ -52,18 +52,25 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
   yield* Effect.annotateCurrentSpan({ selectionOnly });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
   const command: ProgressAndSuccessCommandKey = selectionOnly
     ? "SFDX: Execute Anonymous Apex with Editor's Selected Text"
     : 'SFDX: Execute Anonymous Apex with Currently Open Editor';
   // progress dismisses once execution+save resolve; success toast + open-log handled after so the spinner doesn't linger on user interaction
   yield* api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(
     Effect.flatMap(executeAnonymous),
-    promptService.withProgress(nls.localize('exec_anon_progress_title'), yield* getProgressLocation(command)),
+    promptService.withProgress(
+      nls.localize('exec_anon_progress_title'),
+      yield* notificationMode.getProgressLocation(command)
+    ),
     Effect.tap(logUri =>
-      showSuccessNotification(command, nls.localize('exec_anon_success'), false, [
+      notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, [
         {
           label: nls.localize('open_log'),
-          run: () => void getRuntime().runPromise(api.services.FsService.showTextDocument(logUri))
+          run: () =>
+            getRuntime()
+              .runPromise(api.services.FsService.showTextDocument(logUri))
+              .then(() => undefined)
         }
       ])
     )

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getExtensionScope, NotificationModeService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -238,8 +238,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
-  const notifSvc = yield* NotificationModeService;
-  yield* Effect.sync(() => context.subscriptions.push({ dispose: () => notifSvc.runDispose() }));
+  const notificationMode = yield* api.services.NotificationModeService;
+  yield* Effect.sync(() => context.subscriptions.push({ dispose: () => notificationMode.runDispose() }));
 
   // get a connection to initiate the ref
   yield* api.services.ConnectionService.getConnection();

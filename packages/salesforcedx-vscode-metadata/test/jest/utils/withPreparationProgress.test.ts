@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, NotificationModeService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import { withPreparationProgress } from '../../../src/utils/withPreparationProgress';
 import { ConflictsDetectedError } from '../../../src/conflict/conflictErrors';
 
@@ -20,7 +22,8 @@ const mockUserCancellationError = UserCancellationError;
 
 const createMockServicesApi = () => ({
   services: {
-    UserCancellationError: mockUserCancellationError
+    UserCancellationError: mockUserCancellationError,
+    NotificationModeService
   }
 });
 
@@ -29,10 +32,20 @@ const createMockExtensionProvider = () =>
     getServicesApi: Effect.succeed(createMockServicesApi())
   }) as unknown as ExtensionProviderService;
 
+const notificationMode = {
+  getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+  showSuccessNotification: () => Effect.void,
+  runDispose: jest.fn()
+} as unknown as NotificationModeService;
+
 const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) =>
   e.pipe(
-    Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
-    Effect.provide(NotificationModeService.Default)
+    Effect.provide(
+      Layer.mergeAll(
+        Layer.succeed(ExtensionProviderService, createMockExtensionProvider()),
+        Layer.succeed(NotificationModeService, notificationMode)
+      )
+    )
   );
 
 const runWithServices = <A>(effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>) =>
