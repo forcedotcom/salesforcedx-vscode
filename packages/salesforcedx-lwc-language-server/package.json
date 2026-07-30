@@ -80,7 +80,7 @@
   "dependencies": {
     "@lwc/compiler": "9.0.3",
     "@lwc/errors": "9.0.3",
-    "@lwc/metadata": "13.1.0",
+    "@lwc/metadata": "13.3.30",
     "@lwc/template-compiler": "9.3.4",
     "@salesforce/apex": "^0.0.21",
     "@salesforce/label": "^0.0.21",
