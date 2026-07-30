@@ -46,7 +46,7 @@ import { SCHEME as TRACE_FLAGS_SCHEME, TraceFlagsContentProviderService } from '
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
-  setAllServicesLayer(buildAllServicesLayer(context));
+  setAllServicesLayer(buildAllServicesLayer(context, 'Salesforce Apex Log'));
   await getRuntime().runPromise(activation(context).pipe(Scope.extend(extensionScope)));
 };
 

@@ -1,6 +1,7 @@
 ---
 name: effect-best-practices
 description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
+review: always
 version: 1.5.0
 ---
 
@@ -17,7 +18,8 @@ npx effect-language-service diagnostics --project tsconfig.json
 ```
 
 - The PostToolUse `verify-on-edit.sh` hook auto-runs `--file <edited>` on every `.ts` Edit/Write and surfaces output as `followup_message`. Address what it reports.
-- **Address warnings AND messages, not just errors.** Common findings: `effectFnOpportunity` (gen→fn), `unnecessaryFailYieldableError` (yield error directly), `effectSucceedWithVoid` (`Effect.succeed(undefined)` → `Effect.void`), `globalErrorInEffectCatch`/`Failure` (use tagged error, not `new Error`; both config-enforced — see `references/anti-patterns.md`); `tryCatchInEffectGen` (config-enforced; try/catch in `Effect.gen` → `catchAllCause`+`Cause.squash`/`catchTag`).
+- **Address warnings AND messages, not just errors.** `references/diagnostics-findings.md` maps each common finding to its fix; `config/effect-diagnostics.json` `enforcedRules` is the build gate.
+- Enforcing a rule takes two edits, not just an `enforcedRules` entry — see `references/diagnostics-findings.md`.
 - After a batch of edits, run `--project tsconfig.json` for the affected package to catch cross-file issues.
 - `effect-language-service quickfixes` shows proposed code changes.
 
@@ -44,6 +46,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Atom Updates      | `useAtomSet` in React components                         | `Atom.update` imperatively from React                            |
 | Atom Cleanup      | `get.addFinalizer()` for side effects                    | Missing cleanup for event listeners                              |
 | Atom Results      | `Result.builder` with `onErrorTag`                       | Ignoring loading/error states                                    |
+| Grouping          | `Arr.groupBy` (effect/Array)                             | `Object.groupBy`, whose `Partial<Record>` forces a filter        |
 
 ## Service Definition Pattern
 
@@ -256,6 +259,16 @@ const findByIdBad = (id: UserId) =>
     yield* repo.findById(id); // id from closure
   });
 
+// WRONG - Effect.fn invoked immediately (config-enforced effectFnIife). Effect.fn builds a reusable
+// function; for one-shot use write Effect.gen and keep the span with a piped withSpan.
+const opened = Effect.fn('FsService.open')(function* () {
+  yield* fs.showTextDocument(uri);
+})();
+// CORRECT
+const openedOk = Effect.gen(function* () {
+  yield* fs.showTextDocument(uri);
+}).pipe(Effect.withSpan('FsService.open'));
+
 // Naming: Don't append Effect. For commands use FooCommand; for helpers/lifecycle use domain names.
 // WRONG: logGetEffect, executeAnonymousDocumentEffect, activateEffect
 // CORRECT: logGetCommand, executeAnonymousCommand, executeAnonymous (helper), activation (lifecycle)
@@ -361,10 +374,81 @@ ref.changes.pipe(...)
 
 To skip the initial snapshot (e.g. avoid a spurious refresh on activation), use `Stream.drop(1)`.
 
+## Grouping
+
+`Object.groupBy` is typed `Partial<Record<K, V[]>>`, so every consumer filters or defaults the `undefined`. `Arr.groupBy` returns `Record<K, NonEmptyArray<V>>` — total, so `Object.entries` needs no guard.
+
+```typescript
+import * as Arr from 'effect/Array';
+
+const grouped = Arr.groupBy(ids, id => id.slice(0, 3)); // Record<string, NonEmptyArray<string>>
+Object.entries(grouped).map(([prefix, group]) => query(prefix, group));
+
+// vs Object.groupBy, where the same line needs:
+//   .filter((entry): entry is [string, string[]] => isNotUndefined(entry[1]))
+```
+
+Keep `Object.groupBy` only when the `Partial` is load-bearing — e.g. destructuring absent keys with defaults, `const { deploys = [], deleted = [] } = ...`.
+
 ## Anti-Patterns (Forbidden)
 
 The DON'T column above names each forbidden pattern. `references/anti-patterns.md`
 has the complete list — each with rationale and the correct alternative.
+
+## Emptiness Guards: match the declared type
+
+`== null` / `!= null` are banned in effect packages (`noNullCompare` in `eslint.config.mjs`).
+Pick the `effect/Predicate` guard by what the declared type actually admits — one guard per
+union shape, no exceptions:
+
+| declared type          | guard                      |
+| ---------------------- | -------------------------- |
+| `T \| undefined`       | `isUndefined` / `isNotUndefined` |
+| `T \| null`            | `isNull` / `isNotNull`     |
+| `T \| null \| undefined` | `isNullable` / `isNotNullable` |
+
+```typescript
+import { isNotNull, isNotUndefined, isNullable, isUndefined } from 'effect/Predicate';
+
+// T | undefined — the common case (Optional<T>, optional props, ?? sources)
+if (isUndefined(maybeValue)) return;
+Effect.filterOrFail(isNotUndefined, () => new NotFoundError({ message: '...' }));
+
+// T | null — e.g. RegExp.exec, JSON payload fields
+const match = scriptRegex.exec(html);
+if (isNotNull(match)) { … }
+
+// T | null | undefined — e.g. `exclude?: vscode.GlobPattern | null` (optional AND nullable)
+const arr = isNullable(exclude) ? undefined : [exclude];
+```
+
+Runtime semantics: `isUndefined` is `x === undefined`, `isNull` is `x === null`, `isNullable`
+is either (`node_modules/effect/src/Predicate.ts:611,649,925`). A wider guard than the type
+needs still compiles — it just implies a case the type can't produce, so it reads as a lie
+about the value. Note `typeof x === 'object' && x !== null` object-narrowing stays as-is;
+that's a structural check, not an emptiness check.
+
+## Point-free Predicates in Filters
+
+Use `Predicate.not()` for filter negations; combines point-free and readability.
+
+```typescript
+import { not } from 'effect/Predicate';
+
+// CORRECT — point-free negation
+arr.filter(not(isFlowTest))
+
+// AVOID — arrow wrapper around negation
+arr.filter(x => !isFlowTest(x))
+```
+
+Works with any predicate — built-in (`isString`, `isError`, `isNotUndefined`, `isNotNullable`) or
+custom. Only the wrapped predicate can be receiver-sensitive: `not(obj.method)`
+detaches the receiver, so verify the impl uses no `this` first (see
+[composition-style](./references/composition-style.md#point-free-terminal-step-safe-only-when-impl-doesnt-use-this)).
+
+Keep `!` where the predicate isn't element-level (`!isCollectionType(decl.type)`)
+unless a named element predicate already exists or is worth adding.
 
 ## Imports: Prefer Deep Imports from @effect/platform
 
@@ -417,4 +501,5 @@ For detailed patterns, consult these reference files in the `references/` direct
 - `rpc-cluster-patterns.md` - RpcGroup, Workflow, Activity patterns
 - `effect-atom-patterns.md` - Atom, families, React hooks, Result handling
 - `anti-patterns.md` - Complete list of forbidden patterns
+- `diagnostics-findings.md` - Effect LS finding → fix, per rule
 - `observability-patterns.md` - Logging, metrics, config patterns

@@ -125,7 +125,7 @@ jest.mock('../../../src/utils/testUtils', () => {
   return {
     ...actual,
     buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
-    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(undefined),
+    getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(new Map()),
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
 });
@@ -208,6 +208,7 @@ const runClose = (orgKey: string | undefined): Promise<void> =>
 const mockTestController = {
   items: {
     add: jest.fn(),
+    delete: jest.fn(),
     replace: jest.fn(),
     values: jest.fn().mockReturnValue([])
   } as unknown as vscode.TestItemCollection,
@@ -288,7 +289,7 @@ describe('ApexTestController', () => {
     (extensionProvider as any).__setMockConnection?.(mockConnection);
 
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
-    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(undefined);
+    (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     const Effect = jest.requireActual('effect/Effect');
     discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
 
@@ -625,17 +626,12 @@ describe('ApexTestController', () => {
           createdItemsMap.set(id, item);
           // Return a proxy that allows setting tags and preserves uri
           return new Proxy(item, {
-            set(target, prop, value) {
+            set: (target, prop, value) => {
               target[prop] = value;
               return true;
             },
-            get(target, prop) {
-              // Ensure uri is always returned correctly
-              if (prop === 'uri') {
-                return target.uri;
-              }
-              return target[prop];
-            }
+            // Ensure uri is always returned correctly
+            get: (target, prop) => (prop === 'uri' ? target.uri : target[prop])
           }) as unknown as vscode.TestItem;
         }
       );
@@ -914,7 +910,9 @@ describe('ApexTestController', () => {
         label: 'OrgOnlyClass',
         uri: URI.parse('apex-testing:/orgs/org123/classes/OrgOnlyClass.cls'),
         children: {
-          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem)
+          forEach: (cb: (item: vscode.TestItem) => void) => cb(methodItem),
+          // Real TestItemCollection is Iterable<[id, TestItem]> (vscode.d.ts)
+          [Symbol.iterator]: () => [[methodItem.id, methodItem] as const][Symbol.iterator]()
         }
       } as unknown as vscode.TestItem;
 
@@ -1078,24 +1076,22 @@ describe('ApexTestController', () => {
       expect(discoverTestsSpyLocal).toHaveBeenCalled();
     });
 
-    it('should call clearAllSuiteChildren when includesSuiteChange is true', async () => {
+    it('should refresh suite items when includesSuiteChange is true', async () => {
       const changes = new Map([['SomeClass', 'deleted']]);
 
-      // Add a suite item to verify it gets cleared
       const suiteItem = {
         id: 'suite:MySuite',
         label: 'MySuite',
-        children: {
-          replace: jest.fn(),
-          size: 1
-        } as unknown as vscode.TestItemCollection
+        children: { replace: jest.fn(), size: 1 } as unknown as vscode.TestItemCollection
       } as unknown as vscode.TestItem;
 
       treeMap('getSuiteItems').set('MySuite', suiteItem);
 
       await controller.incrementalUpdate(changes, true);
 
-      expect(suiteItem.children.replace).toHaveBeenCalledWith([]);
+      // Suite parent deleted from controller and suiteItems Ref cleared (populateSuiteItems re-adds nothing
+      // because retrieveAllSuites returns [] from the mock).
+      expect(mockTestController.items.delete).toHaveBeenCalledWith('apex-test-suites-parent');
     });
 
     // Diff internals (add/diff/remove class, invalidateTestResults, removeEmptyAncestors) moved into

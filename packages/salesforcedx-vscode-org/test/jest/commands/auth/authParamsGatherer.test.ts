@@ -11,6 +11,7 @@ import {
 } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import {
@@ -18,9 +19,8 @@ import {
   gatherAccessTokenParams,
   gatherAuthParams
 } from '../../../../src/commands/auth/authParamsGatherer';
-import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
+import { getOrgRuntime, resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
 import { nls } from '../../../../src/messages';
-import { runGatherer } from '../../../../src/parameterGatherers/runGatherer';
 import {
   considerUndefinedAsCancellation,
   makeConfirmOrThrow,
@@ -60,35 +60,31 @@ describe('AuthParamsGatherer', () => {
     const instanceUrl = 'https://demo.my.salesforce.com';
 
     it('uses reauthAliasOrUsername for --alias when provided', async () => {
-      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: 'demoOrg' }));
-      expect(result).toEqual({
-        type: 'CONTINUE',
-        data: { alias: 'demoOrg', loginUrl: instanceUrl }
-      });
+      const exit = await getOrgRuntime().runPromiseExit(
+        gatherAuthParams({ instanceUrl, reauthAliasOrUsername: 'demoOrg' })
+      );
+      expect(exit).toStrictEqual(Exit.succeed({ alias: 'demoOrg', loginUrl: instanceUrl }));
     });
 
     it('trims reauthAliasOrUsername', async () => {
-      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '  demoOrg  ' }));
-      expect(result).toEqual({
-        type: 'CONTINUE',
-        data: { alias: 'demoOrg', loginUrl: instanceUrl }
-      });
+      const exit = await getOrgRuntime().runPromiseExit(
+        gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '  demoOrg  ' })
+      );
+      expect(exit).toStrictEqual(Exit.succeed({ alias: 'demoOrg', loginUrl: instanceUrl }));
     });
 
     it('falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is omitted', async () => {
-      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: undefined }));
-      expect(result).toEqual({
-        type: 'CONTINUE',
-        data: { alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }
-      });
+      const exit = await getOrgRuntime().runPromiseExit(
+        gatherAuthParams({ instanceUrl, reauthAliasOrUsername: undefined })
+      );
+      expect(exit).toStrictEqual(Exit.succeed({ alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }));
     });
 
     it('falls back to reauth-{DEFAULT_ALIAS} when reauthAliasOrUsername is blank', async () => {
-      const result = await runGatherer(gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '   ' }));
-      expect(result).toEqual({
-        type: 'CONTINUE',
-        data: { alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }
-      });
+      const exit = await getOrgRuntime().runPromiseExit(
+        gatherAuthParams({ instanceUrl, reauthAliasOrUsername: '   ' })
+      );
+      expect(exit).toStrictEqual(Exit.succeed({ alias: `reauth-${DEFAULT_ALIAS}`, loginUrl: instanceUrl }));
     });
   });
 
@@ -103,9 +99,9 @@ describe('AuthParamsGatherer', () => {
         .mockResolvedValueOnce('myAlias')
         .mockResolvedValueOnce(accessToken);
 
-      const result = await runGatherer(gatherAccessTokenParams());
+      const exit = await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
-      expect(result).toEqual({ type: 'CONTINUE', data: { alias: 'myAlias', instanceUrl, accessToken } });
+      expect(exit).toStrictEqual(Exit.succeed({ alias: 'myAlias', instanceUrl, accessToken }));
     });
 
     it('empty-string alias defaults to DEFAULT_ALIAS', async () => {
@@ -115,25 +111,27 @@ describe('AuthParamsGatherer', () => {
         .mockResolvedValueOnce('')
         .mockResolvedValueOnce(accessToken);
 
-      const result = await runGatherer(gatherAccessTokenParams());
+      const exit = await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
-      expect(result).toEqual({ type: 'CONTINUE', data: { alias: DEFAULT_ALIAS, instanceUrl, accessToken } });
+      expect(exit).toStrictEqual(Exit.succeed({ alias: DEFAULT_ALIAS, instanceUrl, accessToken }));
     });
 
-    it('CANCEL when instance URL prompt is dismissed (undefined)', async () => {
+    it('cancels with UserCancellationError when instance URL prompt is dismissed (undefined)', async () => {
       jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(undefined);
 
-      const result = await runGatherer(gatherAccessTokenParams());
+      const exit = await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
-      expect(result).toEqual({ type: 'CANCEL' });
+      expect(Exit.isFailure(exit)).toBe(true);
+      if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     });
 
-    it('CANCEL when alias prompt is dismissed (undefined)', async () => {
+    it('cancels with UserCancellationError when alias prompt is dismissed (undefined)', async () => {
       jest.spyOn(vscode.window, 'showInputBox').mockResolvedValueOnce(instanceUrl).mockResolvedValueOnce(undefined);
 
-      const result = await runGatherer(gatherAccessTokenParams());
+      const exit = await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
-      expect(result).toEqual({ type: 'CANCEL' });
+      expect(Exit.isFailure(exit)).toBe(true);
+      if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     });
 
     it('wires validateInput on the instance-url and alias prompts', async () => {
@@ -143,17 +141,18 @@ describe('AuthParamsGatherer', () => {
         .mockResolvedValueOnce('myAlias')
         .mockResolvedValueOnce(accessToken);
 
-      await runGatherer(gatherAccessTokenParams());
+      await getOrgRuntime().runPromiseExit(gatherAccessTokenParams());
 
       // first prompt = instance URL: rejects shell metachars, accepts a valid https url
       const validateUrl = spy.mock.calls[0][0]?.validateInput?.bind(undefined);
       expect(validateUrl?.('https://x.com; touch /tmp/pwned')).toBe(nls.localize('auth_invalid_url'));
       expect(validateUrl?.('https://my.salesforce.com')).toBeUndefined();
 
-      // second prompt = alias: rejects shell metachars, accepts alphanumeric and empty (use default)
+      // second prompt = alias: rejects shell metachars, accepts alphanumeric, hyphens, and empty (use default)
       const validateAlias = spy.mock.calls[1][0]?.validateInput?.bind(undefined);
       expect(validateAlias?.('bad;alias')).toBe(nls.localize('error_invalid_org_alias'));
       expect(validateAlias?.('GoodAlias')).toBeUndefined();
+      expect(validateAlias?.('my-scratch-org')).toBeUndefined();
       expect(validateAlias?.('')).toBeUndefined();
     });
   });

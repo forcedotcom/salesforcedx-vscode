@@ -6,7 +6,9 @@
  *
  */
 
-import { Effect, Stream, SubscriptionRef } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { AndOr } from '@salesforce/soql-model';
 import { JsonMap } from '@salesforce/ts-types';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';

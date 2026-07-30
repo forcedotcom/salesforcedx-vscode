@@ -12,21 +12,28 @@ runs until a runner (`runPromise`/`runSync`/`yield*`). 3 consequences shape ever
 call site:
 
 1. **Build the whole thing as one flat `.pipe` chain**, ops top-to-bottom.
-2. **Make execution the terminal step**, not a wrapper around the expression.
+2. **Make execution the terminal step**, not a wrapper around the expression —
+   config-enforced by `missedPipeableOpportunity`.
 3. **Bail conditions and dispatch are separate** — guard clauses up top, the pipe
    handles real variance.
 4. **No single-use intermediate vars.** A value read once is a pipe step, not a
-   `const`. Plain value (not yet an Effect) → seed a standalone `pipe(value, …)`;
-   don't bury it as a nested call arg (`f(g(x))`) — that hides the step. Keep the
-   `const` only when the value is read ≥2×.
+   `const`; keep the `const` only when read ≥2×. Plain value (not yet an Effect) →
+   seed a standalone `pipe(value, …)`. The nested-call-arg half (`f(g(x))`) is
+   config-enforced by `missedPipeableOpportunity`, which fires at ≥2 pipeable
+   call-kind transformations; judgment remains for what the pipe's subject should
+   be — hoist a named `const` over inverting a reused schema combinator
+   (`Schema.optional(Schema.Array(x))` stays a call; the repo has 0
+   `X.pipe(Schema.optional)` sites).
 
 Rest is application of these to specific combinators.
 
 ## Build effect as flat pipe, run it as terminal step
 
 `pipe(value, f, g, h)` = `h(g(f(value)))`
-([docs](https://effect.website/docs/getting-started/building-pipelines/#pipe)).
-Make "run it" the last pipe entry instead of wrapping the whole expression in
+([docs](https://effect.website/docs/getting-started/building-pipelines/#pipe)) —
+so steps apply **inner-first**: unwrapping `outer(inner(x))` gives
+`x.pipe(inner, outer)`. Config-enforced by `missedPipeableOpportunity`. Make
+"run it" the last pipe entry instead of wrapping the whole expression in
 `runPromise(...)`.
 
 ```typescript
@@ -46,10 +53,11 @@ await getApexTestingRuntime().runPromise(
 );
 ```
 
-Identical behavior. First reads top-to-bottom as a pipeline ending in execution;
-second forces paren-matching across the block to find the effect. Same logic for
-any terminal combinator — `Effect.runFork`, a `provide` + run, etc.: put it last
-in the pipe.
+Identical behavior. Same for any terminal combinator — `Effect.runFork`,
+`Effect.fork`, `Effect.exit`, a `provide` + run, an outer `semaphore.withPermits`:
+put it last. Nested wrappers unwrap inner-first, so
+`a.withPermits(1)(b.withPermits(1)(X))` → `X.pipe(b.withPermits(1), a.withPermits(1))`
+— order inverts, permit nesting is preserved.
 
 ### Point-free terminal step safe ONLY when impl doesn't use `this`
 
@@ -102,8 +110,7 @@ yield* channelService.showChannel;
 return result;
 ```
 
-Wrap synchronous side effects in `Effect.sync` inside the tap. The `return yield*`
-the whole pipe — don't bind to a local just to return it.
+Wrap synchronous side effects in `Effect.sync` inside the tap.
 
 ### Watch success-value vs failure-channel distinction
 
@@ -263,16 +270,18 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 
 | Situation | Do | Don't |
 | --- | --- | --- |
-| Build any multi-op effect | one flat `.pipe(...)` chain | nested `f(g(h(x)))` calls |
-| Run a built effect | `effect.pipe(..., runtime.runPromise)` as last step | wrap whole expr in `runPromise(effect.pipe(...))` |
+| Build any multi-op effect | one flat `.pipe(...)` chain — merged steps as siblings, dropping any the merge makes dead; config-enforced by `unnecessaryPipeChain`, which fires wherever a pipe's subject is itself a pipe — method or function form, callbacks included; only a nested pipe over a *different* subject stays judgment | `x.pipe(a).pipe(b)`, `pipe(pipe(x, a), b)` |
+| Run a built effect / any nested `f(g(pipeable))` | `pipeable.pipe(g, f)` — inner-first, terminal step last; config-enforced by `missedPipeableOpportunity` at ≥2 pipeable transformations | wrap whole expr in `runPromise(effect.pipe(...))` |
+| Nested reused schema combinator (`Schema.optional(Schema.Array(x))`) | hoist a named `const` for the inner schema | invert to `x.pipe(Schema.Array, Schema.optional)` — 0 repo precedent |
 | Point-free terminal step | bare `Effect.runPromise` always; methods only when closure-based (e.g. `ManagedRuntime.runPromise`) | point-free any `this`-bound method |
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |
 | Sync side effect inside a tap | wrap in `Effect.sync(() => ...)` | — |
-| Return the run's value | `return yield* effect.pipe(...)` | bind to a local just to `return` it |
+| Return the run's value | `return yield* effect.pipe(...)`; config-enforced by `returnEffectInGen` for a raw `return effect` (missing `yield*`). Binding the *yielded* value and returning it stays judgment (return expression isn't an Effect, so no rule fires); returning a local that still holds an un-run Effect does fire | bind to a local just to `return` it |
 | 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)` | nested ternary |
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
 | Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
+| `Effect.gen` body is only `yield* X` | `X` itself — or `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void; config-enforced by `unnecessaryEffectGen`, which matches `Effect.gen` only (an `Effect.fn` wrapper keeps its span) | `Effect.gen` wrapper around one `yield*` |
 | Point-free pipe seed | `.pipe(...)` on an existing Effect/Tag; standalone `pipe(value, ...)` only when the seed isn't an Effect yet | standalone `pipe(someEffect, ...)` when `someEffect.pipe(...)` works |
 | Throwing step inside a point-free pipe (parse, FFI) | lift with `Effect.try`/`Effect.tryPromise` | bare `JSON.parse(...)`/throwing call as a pipe step |
 | Callback does `pure(x).pipe(step)` | split: pure part as `Effect.map`, effectful part as sibling `Effect.flatMap` (point-free) | one `flatMap` whose callback opens a nested `.pipe` |

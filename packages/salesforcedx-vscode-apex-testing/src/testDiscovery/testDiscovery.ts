@@ -8,7 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import { isError, isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { nls } from '../messages';
 import {
@@ -66,7 +66,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
       partialResult: false
     };
     const { classes, partialResult } = yield* Effect.iterate(initialState, {
-      while: (state): state is typeof state & { nextUrl: string } => state.nextUrl !== undefined,
+      while: (state): state is typeof state & { nextUrl: string } => isNotUndefined(state.nextUrl),
       body: state =>
         Effect.gen(function* () {
           const urlToFetch = state.nextUrl;

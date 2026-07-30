@@ -1,6 +1,7 @@
 ---
 name: services-extension-consumption
 description: Consume the salesforcedx-vscode-services extension API. Use when an extension depends on salesforcedx-vscode-services and you are registering commands, calling its services (Workspace, Connection, Project, Settings, FS, Channel, Media, prompts), watching files/config/target-org, or wiring the AllServicesLayer/runtime in extensionProvider.ts.
+review: always
 ---
 
 # Consuming salesforcedx-vscode-services
@@ -237,7 +238,7 @@ yield *
 Ref behavior (concise):
 
 - Default-org update: username from User SOQL when present; else AuthInfo login username on the connection.
-- `TargetOrgRef` snapshot without username: optional `ConfigUtil.getUsername()` (project default) before treating as no target org — see `salesforcedx-vscode-org` `orgDisplay`.
+- `TargetOrgRef` snapshot without username: optional `ConfigUtil.getUsername()` (project default) before treating as no target org.
 - `TargetOrgRef` value is always an object (never `undefined`); only fields like `orgId` within it are optional.
 
 ## Complete Example Pattern

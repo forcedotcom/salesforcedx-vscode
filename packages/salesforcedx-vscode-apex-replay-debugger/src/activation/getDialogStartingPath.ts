@@ -6,7 +6,6 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { projectPaths, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -21,23 +20,26 @@ export const getDialogStartingPath = Effect.fn('ApexReplayDebugger.getDialogStar
   // If the user has already selected a document through getLogFileName then
   // use that path if it still exists.
   const pathToLastOpenedLogFolder = getLastOpenedLogFolder(extContext);
-  if (pathToLastOpenedLogFolder && (yield* Effect.promise(() => fileOrFolderExists(pathToLastOpenedLogFolder)))) {
-    return getUriFor(pathToLastOpenedLogFolder);
+  if (pathToLastOpenedLogFolder && (yield* api.services.FsService.fileOrFolderExists(pathToLastOpenedLogFolder))) {
+    return URI.file(pathToLastOpenedLogFolder);
   }
   // If lastOpenedLogFolder isn't defined or doesn't exist then use the
   // same directory that the SFDX download logs command would download to
   // if it exists.
-  const pathToWorkspaceLogsFolder = projectPaths.debugLogsFolder();
-  if (yield* Effect.promise(() => fileOrFolderExists(pathToWorkspaceLogsFolder))) {
-    return getUriFor(pathToWorkspaceLogsFolder);
+  // The workspace folders are re-read on every ProjectService call, so they can go away between the isEmpty
+  // check above and these calls (this runs during activation). A closed workspace means "no starting path",
+  // not a failed activation.
+  const logsFolder = yield* api.services.ProjectService.getDebugLogsFolder().pipe(
+    Effect.orElseSucceed(() => undefined)
+  );
+  if (logsFolder && (yield* api.services.FsService.fileOrFolderExists(logsFolder))) {
+    return logsFolder;
   }
   // If all else fails, fallback to the .sfdx directory in the workspace
-  return getUriFor(projectPaths.stateFolder());
+  return yield* api.services.ProjectService.getStateFolder().pipe(Effect.orElseSucceed(() => undefined));
 });
 
 const getLastOpenedLogFolder = (extContext: vscode.ExtensionContext): string | undefined => {
   const pathToLastOpenedLogFolder = extContext.workspaceState.get<string>(LAST_OPENED_LOG_FOLDER_KEY);
   return pathToLastOpenedLogFolder;
 };
-
-const getUriFor = (path: string): URI => URI.file(path);

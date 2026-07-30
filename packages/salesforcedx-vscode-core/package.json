@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.6.0",
+  "version": "67.7.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -31,10 +31,9 @@
     "@salesforce/core": "^8.32.2",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.5",
-    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.37.2",
-    "@salesforce/templates": "^66.13.0",
+    "@salesforce/templates": "^66.13.3",
     "@salesforce/ts-types": "^2.0.12",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -94,7 +93,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
@@ -189,7 +187,8 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
-        "package*.json"
+        "package*.json",
+        "../../.github/**"
       ],
       "output": []
     },
@@ -264,24 +263,6 @@
           "type": "boolean",
           "default": false,
           "description": "%enable_sobject_refresh_on_startup_description%"
-        },
-        "salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS": {
-          "type": "string",
-          "default": null,
-          "description": "%node_extra_ca_certs_description%"
-        },
-        "salesforcedx-vscode-core.SF_LOG_LEVEL": {
-          "type": "string",
-          "enum": [
-            "trace",
-            "debug",
-            "info",
-            "warn",
-            "error",
-            "fatal"
-          ],
-          "default": "fatal",
-          "description": "%sf_log_level_description%"
         },
         "salesforcedx-vscode-core.telemetry-tag": {
           "type": "string",

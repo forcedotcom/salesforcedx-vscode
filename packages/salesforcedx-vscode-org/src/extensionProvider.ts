@@ -26,7 +26,7 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Built once on first use to avoid rebuilding services across commands.
  */
 /** Services provided by the org runtime (the `R` channel an Effect may require when run via {@link getOrgRuntime}). */
-export type OrgRuntimeContext = Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
+type OrgRuntimeContext = Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
 
 type OrgRuntime = ManagedRuntime.ManagedRuntime<
   OrgRuntimeContext,

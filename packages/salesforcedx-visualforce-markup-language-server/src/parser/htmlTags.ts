@@ -1180,7 +1180,11 @@ export function getValuesDefault(
     });
   const tagAttributes = tag && tagSet[tag] && tagSet[tag].attributes ? tagSet[tag].attributes : [];
   const customTagAttributes = customTags && customTags[tag] ? customTags[tag] : [];
-  return [...processAttributes(tagAttributes), ...processAttributes(globalAttributes), ...processAttributes(customTagAttributes)];
+  return [
+    ...processAttributes(tagAttributes),
+    ...processAttributes(globalAttributes),
+    ...processAttributes(customTagAttributes)
+  ];
 }
 /*!
 END THIRD PARTY

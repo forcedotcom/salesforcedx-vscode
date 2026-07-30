@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 
 type OrgBrowserTreeItemKind =
@@ -58,7 +59,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     this.filePresent = inputs.filePresent;
 
     // not defined intentionally results in no icon.
-    if (inputs.filePresent !== undefined) {
+    if (isNotUndefined(inputs.filePresent)) {
       this.iconPath = getIconPath(inputs.filePresent);
     }
 
@@ -70,6 +71,20 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
 }
 export const getIconPath = (filePresent: boolean): vscode.ThemeIcon =>
   filePresent ? new vscode.ThemeIcon('pass-filled') : new vscode.ThemeIcon('circle-large-outline');
+
+/** folder node with the fields needed to list its components */
+export const isFolderNode = (
+  n: OrgBrowserTreeItem
+): n is OrgBrowserTreeItem & { xmlName: string; folderName: string } =>
+  n.kind === 'folder' && Boolean(n.xmlName) && Boolean(n.folderName);
+
+/** customObject node with the componentName needed to describe it */
+export const isCustomObjectNode = (n: OrgBrowserTreeItem): n is OrgBrowserTreeItem & { componentName: string } =>
+  n.kind === 'customObject' && Boolean(n.componentName);
+
+/** node whose children are folders (a folderType, or a type that happens to be a folder type) */
+export const isFolderListingNode = (n: OrgBrowserTreeItem): boolean =>
+  n.kind === 'folderType' || (n.kind === 'type' && isFolderType(n.xmlName));
 
 const calculateId = (inputs: OrgBrowserTreeItemInputs): string => {
   // top-level types

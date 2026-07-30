@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { and, isUndefined, not } from 'effect/Predicate';
 import { window } from 'vscode';
 import { nls } from '../messages';
 import { discoverTests } from '../testDiscovery/testDiscovery';
@@ -18,6 +20,9 @@ import { notificationService } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
+
+/** Apex classes worth offering in the quick pick: not a Flow test, and has at least one test method */
+const isRunnableTestClass = and(not(isFlowTest), (cls: ToolingTestClass) => (cls.testMethods?.length ?? 0) > 0);
 
 /** Prompt the user to pick a test target (suite, class, or all). Fails with UserCancellationError on dismiss. */
 const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
@@ -40,16 +45,14 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
         }),
         classItems: discoverTests().pipe(
           Effect.map(discoveryResult =>
-            discoveryResult.classes
-              .filter(cls => !isFlowTest(cls) && (cls.testMethods?.length ?? 0) > 0)
-              .map(
-                (cls): ApexTestQuickPickItem => ({
-                  label: cls.name,
-                  description: Option.getOrUndefined(cls.namespacePrefix),
-                  type: 'Class' as const,
-                  fullClassName: getFullClassName(cls)
-                })
-              )
+            discoveryResult.classes.filter(isRunnableTestClass).map(
+              (cls): ApexTestQuickPickItem => ({
+                label: cls.name,
+                description: Option.getOrUndefined(cls.namespacePrefix),
+                type: 'Class' as const,
+                fullClassName: getFullClassName(cls)
+              })
+            )
           )
         )
       },
@@ -130,7 +133,7 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     Effect.tap(() => channelService.showChannel),
     Effect.tap(result =>
       Effect.sync(() =>
-        (result === undefined ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
+        (isUndefined(result) ? notificationService.showFailedExecution : notificationService.showSuccessfulExecution)(
           executionName
         )
       )

@@ -9,6 +9,10 @@ on:
       - 'contributing/**'
       - 'CONTRIBUTING.md'
       - 'docs/**'
+      - 'CONTEXT.md'
+      - 'CONTEXT-MAP.md'
+      - '**/CONTEXT.md'
+      - '**/docs/**/*.md'
       - '**/README*'
       - 'SECURITY*'
       - 'CODE_OF_CONDUCT*'
@@ -22,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
@@ -32,10 +36,11 @@ jobs:
       - name: Lint
         run: npm run lint
   validate-actions:
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
@@ -43,10 +48,11 @@ jobs:
       - name: Validate GitHub Actions
         run: npm run check:actions
   check-knip:
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
@@ -59,7 +65,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm

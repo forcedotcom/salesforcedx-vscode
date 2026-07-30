@@ -15,6 +15,7 @@ import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-comm
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { ExtensionContext, workspace } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { channelAdapter } from './channel';
@@ -29,6 +30,10 @@ import { setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { telemetryService } from './telemetry';
 import { startLwcFileWatcher } from './util/lwcFileWatcher';
+
+class LwcLanguageServerError extends Schema.TaggedError<LwcLanguageServerError>()('LwcLanguageServerError', {
+  message: Schema.String
+}) {}
 
 export const activate = async (extensionContext: ExtensionContext) => {
   // Initialize services layer first so ChannelService and other services are available throughout activation.
@@ -87,7 +92,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
 
   const client = yield* Effect.tryPromise({
     try: () => createLanguageClient(extensionContext.extensionUri, { workspaceType, sfdxTypingsDir }),
-    catch: e => e
+    catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
   }).pipe(
     Effect.tapError(error =>
       channelSvc.appendToChannel(
@@ -111,7 +116,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
   registerWorkspaceReadFileHandler(client, channelAdapter);
 
-  yield* Effect.tryPromise({ try: () => client.start(), catch: e => e }).pipe(
+  yield* Effect.tryPromise({
+    try: () => client.start(),
+    catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+  }).pipe(
     Effect.tapError(startError =>
       channelSvc.appendToChannel(
         nls.localize(

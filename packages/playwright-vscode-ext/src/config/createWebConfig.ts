@@ -7,6 +7,8 @@
 
 import { defineConfig, devices } from '@playwright/test';
 
+import { createReporter } from './createReporter';
+
 type WebConfigOptions = {
   /** Test directory relative to the config file (e.g. './specs') */
   testDir: string;
@@ -25,9 +27,7 @@ export const createWebConfig = (options: WebConfigOptions) =>
     fullyParallel: options.fullyParallel ?? true,
     forbidOnly: !!process.env.CI,
     ...(options.workers ? { workers: options.workers } : {}),
-    reporter: process.env.CI
-      ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit.xml' }]]
-      : [['html', { open: 'never' }], ['list']],
+    reporter: createReporter('test-results/junit.xml'),
     use: {
       viewport: { width: 1920, height: 1080 },
       baseURL: 'http://localhost:3001',

@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.6.0",
+  "version": "67.7.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -67,7 +67,7 @@
     "@salesforce/ts-types": "^2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "jest-environment-jsdom": "^29.0.0",
+    "jest-environment-jsdom": "^30.4.1",
     "rollup": "^4.0.0",
     "salesforcedx-vscode-services": "*"
   },
@@ -264,7 +264,8 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
-        "package*.json"
+        "package*.json",
+        "../../.github/**"
       ],
       "output": []
     },
@@ -287,7 +288,8 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
-        "package*.json"
+        "package*.json",
+        "../../.github/**"
       ],
       "output": []
     },

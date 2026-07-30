@@ -129,7 +129,7 @@ describe('Custom Select', () => {
       const searchBar = getInputSearchBar();
       searchBar.click();
       return Promise.resolve().then(() => {
-        expect(handler).toBeCalled();
+        expect(handler).toHaveBeenCalled();
         expect(handler.mock.calls[0][0].detail.target).toEqual(searchBar);
       });
     });

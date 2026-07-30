@@ -27,13 +27,12 @@ export const watchSettingsService = Effect.fn('watchSettingsService')(function* 
   });
 
   // watches auth settings
-  yield* Effect.fork(
-    Stream.fromPubSub(settingsChangePubSub).pipe(
-      Stream.filter(event => authSettings.some(s => event.affectsConfiguration(s))),
-      Stream.debounce(Duration.millis(100)),
-      Stream.tap(() => channelService.appendToChannel('ConfigChanged: Web Auth')),
-      Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void))) // it's possible for the connection to fail and that's ok.  Some other event will try to get a connection and display a real error
-    )
+  yield* Stream.fromPubSub(settingsChangePubSub).pipe(
+    Stream.filter(event => authSettings.some(s => event.affectsConfiguration(s))),
+    Stream.debounce(Duration.millis(100)),
+    Stream.tap(() => channelService.appendToChannel('ConfigChanged: Web Auth')),
+    Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void))), // it's possible for the connection to fail and that's ok.  Some other event will try to get a connection and display a real error
+    Effect.fork
   );
 
   // watch retrieveOnLoad setting

@@ -44,6 +44,12 @@ const noInstanceofError = {
   selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
   message: "Use isError(x) from 'effect/Predicate' instead of x instanceof Error."
 };
+const noNullCompare = {
+  // loose `== null` / `!= null` only (the regex is anchored, so `===`/`!==` don't match)
+  selector: "BinaryExpression[operator=/^[=!]=$/]:matches([left.raw='null'], [right.raw='null'])",
+  message:
+    "Do not use x == null / x != null. Use the 'effect/Predicate' guard matching the declared type: T | undefined -> isUndefined / isNotUndefined; T | null -> isNull / isNotNull; T | null | undefined -> isNullable / isNotNullable."
+};
 
 export default [
   {
@@ -56,6 +62,7 @@ export default [
       '**/jest.config.js',
       '**/jest.integration.config.js',
       '**/.wireit/**',
+      '.opencode/**',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'packages/salesforcedx-aura-language-server/src/tern/**',
       'packages/salesforcedx-vscode-lightning/tern/**',
@@ -550,7 +557,8 @@ export default [
     }
   },
   {
-    // Opt-in: steer `x instanceof Error` to isError(x) from effect/Predicate.
+    // Opt-in: steer `x instanceof Error` to isError(x) and `x == null` to the matching
+    // isUndefined/isNull/isNullable guard, all from effect/Predicate.
     // Scoped to effect-enabled packages only — non-effect packages can't import
     // effect/Predicate, so applying it there would point at an unimportable API.
     files: [
@@ -583,7 +591,7 @@ export default [
     ],
     rules: {
       // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
-      'no-restricted-syntax': ['error', noHrtime, noInstanceofError]
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
     }
   },
   {
@@ -728,12 +736,15 @@ export default [
   },
   {
     // Effect-specific rules for new Effect services-based packages
+    // apex-testing is folded in here (8.13 / W-23354498): the same functional set now applies to its src,
+    // and no-loop-statements (below) is enforced across the package.
     files: [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
+      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/effect-ext-utils/**/*.ts'
@@ -795,6 +806,16 @@ export default [
     }
   },
   {
+    // Enforce effect deep-imports (no barrel) on vscode-org + vscode-soql to keep esbuild tree-shaking (W-23443764).
+    // Only this rule — those packages aren't ready for the full functional/* set above.
+    // NOTE: soql-builder-ui/**/*.ts is globally ignored (see ignores above), so these webview LWC files
+    // are NOT enforced here — their effect imports were deep-imported manually and stay unenforced.
+    files: ['packages/salesforcedx-vscode-org/**/*.ts', 'packages/salesforcedx-vscode-soql/**/*.ts'],
+    rules: {
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }]
+    }
+  },
+  {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
     files: ['packages/effect-ext-utils/**/*.ts'],
     rules: {
@@ -806,13 +827,8 @@ export default [
   },
   {
     // class-methods-use-this for packages not yet using Effect
-    // (apex-oas omitted: covered by the Effect-services block above, which sets both rules)
-    files: [
-      'packages/salesforcedx-vscode-apex-testing/**/*.ts',
-      'packages/salesforcedx-vscode-soql/**/*.ts',
-      'packages/soql-common/**/*.ts',
-      'packages/soql-model/**/*.ts'
-    ],
+    // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
+    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
@@ -850,29 +866,6 @@ export default [
     ],
     rules: {
       'barrel-files/avoid-barrel-files': 'off'
-    }
-  },
-  {
-    // no-explicit-any (W-23354483), consistent-type-definitions type (W-23354484),
-    // and prefer-property-signatures (W-23354485) enforced for apex-testing src.
-    // Scoped to src/** so the later test-files block keeps them off for tests.
-    files: ['packages/salesforcedx-vscode-apex-testing/src/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-      'functional/no-let': 'error',
-      'functional/no-throw-statements': 'error',
-      'functional/no-try-statements': 'error',
-      'functional/prefer-property-signatures': 'error',
-      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
-      'prefer-arrow/prefer-arrow-functions': [
-        'error',
-        {
-          disallowPrototype: true,
-          singleReturnOnly: false,
-          classPropertiesAllowed: false
-        }
-      ]
     }
   },
   {

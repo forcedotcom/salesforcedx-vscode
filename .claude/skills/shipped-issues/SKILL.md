@@ -1,6 +1,7 @@
 ---
 name: shipped-issues
 description: Find open GitHub issues whose linked GUS work item is closed AND whose issue number appears in CHANGELOG.md, then close them. Use when user invokes /shipped-issues or asks to clean up shipped issues.
+review: never
 ---
 
 # Shipped Issues

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`createTable should align columns correctly with emoji in first column 1`] = `
 "    Type     Alias               Username                     

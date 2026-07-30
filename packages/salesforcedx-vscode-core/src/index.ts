@@ -26,7 +26,6 @@ import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
@@ -71,8 +70,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   setCoreChannel(coreChannel);
   extensionContext.subscriptions.push(coreChannel);
 
-  setNodeExtraCaCerts();
-  setSfLogLevel();
   yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
   void showTelemetryMessage(extensionContext);
 
@@ -87,10 +84,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
 
   // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
   const salesforceProjectOpened = yield* servicesApi.services.ProjectService.isSalesforceProject();
-
-  // Set Code Builder context
-  const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
-  void vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled);
 
   if (salesforceProjectOpened) {
     yield* Effect.promise(() => initializeProject(extensionContext));

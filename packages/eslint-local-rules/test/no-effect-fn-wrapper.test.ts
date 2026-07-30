@@ -38,6 +38,15 @@ const createNode = (projectComponentSet: unknown) => (element: { name: string })
     return \`\${element.name}.\${field.id}\`;
   });`,
       filename: 'packages/salesforcedx-vscode-org-browser/src/tree/customField.ts'
+    },
+    {
+      // Immediately-invoked Effect.fn belongs to the Effect LS rule `effectFnIife`, not this rule.
+      code: `import * as Effect from 'effect/Effect';
+const getText = (sel: boolean) =>
+  Effect.fn('EditorService.getText')(function* () {
+    return sel;
+  })();`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts'
     }
   ],
   invalid: [
@@ -59,19 +68,6 @@ const findById = (id: string) =>
 const findById = Effect.fn('UserService.findById')(function* (id: string) {
     return id;
   });`,
-      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
-      errors: [{ messageId: 'noEffectFnWrapper' }]
-    },
-    {
-      code: `import * as Effect from 'effect/Effect';
-const getText = (sel: boolean) =>
-  Effect.fn('EditorService.getText')(function* () {
-    return sel;
-  })();`,
-      output: `import * as Effect from 'effect/Effect';
-const getText = Effect.fn('EditorService.getText')(function* (sel: boolean) {
-    return sel;
-  })();`,
       filename: 'packages/salesforcedx-vscode-services/src/test.ts',
       errors: [{ messageId: 'noEffectFnWrapper' }]
     }

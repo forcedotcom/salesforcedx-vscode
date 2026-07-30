@@ -21,6 +21,7 @@ import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/consta
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { randomUUID } from 'node:crypto';
 
 type HelperProject = (name: string, content: string) => Promise<void>;
 
@@ -29,7 +30,7 @@ export const webTrackingConflictTest = webTest.extend<{
   statusBarPage: SourceTrackingStatusBarPage;
 }>({
   helperProject: async ({}, use) => {
-    const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${Math.random()}`);
+    const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${randomUUID()}`);
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(
       path.join(dir, 'sfdx-project.json'),

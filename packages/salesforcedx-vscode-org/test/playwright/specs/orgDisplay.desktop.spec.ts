@@ -6,7 +6,6 @@
  */
 
 import {
-  clickModalDialogButton,
   closeWelcomeTabs,
   createMinimalOrg,
   ensureSecondarySideBarHidden,
@@ -17,14 +16,14 @@ import {
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { nls } from '../../../src/messages';
 import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
 
 // e2e-COVERED: SFDX: Display Org Details for Default Org against a real scratch default org.
-// Unlike orgOpen (which shells out to sf), this path goes through ConnectionService.getConnection(),
-// which resolves TARGET_ORG from the project `.sfdx/config.json` the orgAlias fixture writes — so a
-// live, queryable default org is required. The table output proves getConnection + Organization SOQL +
-// table render end-to-end; jest only covers the dispatch/guards with mocks.
+// Like orgOpen, this path shells out to `sf org display --target-org <default> --json` via
+// TerminalService.simpleExec, with the username coming from TargetOrgRef (seeded from the project
+// `.sfdx/config.json` the orgAlias fixture writes) — so a live, authed default org is required. The
+// table output proves the CLI round-trip + JSON decode + table render end-to-end; jest only covers
+// the dispatch/guards with mocks.
 test('org extension: SFDX: Display Org Details for Default Org logs the org table to the output channel', async ({
   page
 }) => {
@@ -47,15 +46,10 @@ test('org extension: SFDX: Display Org Details for Default Org logs the org tabl
     await executeCommandWithCommandPalette(page, packageNls.org_display_default_text);
   });
 
-  await test.step('confirm the sensitive-info modal', async () => {
-    // the sensitive-info modal now gates the table; confirm it (Continue) so the table is written.
-    await clickModalDialogButton(page, nls.localize('org_display_continue_label'), 10_000);
-  });
-
   await test.step('assert org table in output channel', async () => {
     await selectOutputChannel(page, 'Salesforce Org Management');
-    // 'Connected Status' is an unconditional row of formatOrgInfoAsTable; its presence proves
-    // getConnection + Organization SOQL + table render completed against the live default org.
+    // 'Connected Status' is an unconditional row of formatOrgInfoAsTable; its presence proves the
+    // `sf org display --json` round-trip + table render completed against the live default org.
     await waitForOutputChannelText(page, { expectedText: 'Connected Status', timeout: 60_000 });
   });
 });

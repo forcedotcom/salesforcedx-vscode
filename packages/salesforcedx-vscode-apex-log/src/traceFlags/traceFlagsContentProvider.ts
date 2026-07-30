@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -42,7 +43,7 @@ const groupByLogType = (items: TraceFlagItem[]): TraceFlagsByLogType => {
  * Operate on an already-enriched item (one whose debugLevelName has been populated by enrichTraceFlags).
  */
 export const isOrphanedTraceFlag = (tf: TraceFlagItem): boolean =>
-  tf.debugLevelId !== undefined && tf.debugLevelName === undefined;
+  isNotUndefined(tf.debugLevelId) && isUndefined(tf.debugLevelName);
 
 /**
  * Resolves each trace flag's debug level name, preferring the name carried on the trace flag
@@ -119,12 +120,11 @@ class TraceFlagsContentProviderClass implements vscode.TextDocumentContentProvid
     const orgId = extractOrgIdFromUri(uri);
     if (!orgId) return JSON.stringify({ error: 'Invalid trace flags URI: orgId missing' });
 
-    return getRuntime().runPromise(
-      fetchTraceFlagsContent().pipe(
-        Effect.catchAll((e: unknown) =>
-          Effect.succeed(JSON.stringify({ error: `Failed to fetch trace flags: ${String(e)}` }, undefined, 2))
-        )
-      )
+    return fetchTraceFlagsContent().pipe(
+      Effect.catchAll((e: unknown) =>
+        Effect.succeed(JSON.stringify({ error: `Failed to fetch trace flags: ${String(e)}` }, undefined, 2))
+      ),
+      getRuntime().runPromise
     );
   }
 

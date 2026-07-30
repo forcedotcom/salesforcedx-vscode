@@ -8,6 +8,7 @@
 import type { ResolvedPackageInfo, ToolingTestClass } from '../testDiscovery/schemas';
 import * as Array from 'effect/Array';
 import * as Option from 'effect/Option';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { LOCAL_NAMESPACE_KEY, UNPACKAGED_PACKAGE_ID, UNPACKAGED_PACKAGE_KEY } from '../constants';
@@ -76,31 +77,31 @@ export const buildNamespacePackageStructure = (
     list.push({ fullClassName, entries });
   };
 
-  for (const cls of apexClasses) {
+  apexClasses.forEach(cls => {
     const fullClassName = getFullClassName(cls);
     const namespaceKey = Option.match(cls.namespacePrefix, { onNone: () => LOCAL_NAMESPACE_KEY, onSome: ns => ns });
     const pkgInfo = Option.match(cls.id, { onNone: () => undefined, onSome: id => classIdToPackage.get(id) });
     const pkgKey = pkgInfo?.package2Id ?? (Option.isSome(cls.namespacePrefix) ? '1gp' : UNPACKAGED_PACKAGE_KEY);
     addToPackage(namespaceKey, pkgKey, fullClassName, Array.make(cls));
-  }
+  });
 
   // Merge duplicate fullClassName within same package (e.g. from multiple discovery entries)
-  for (const pkMap of structure.values()) {
-    for (const [pkgKey, list] of pkMap) {
+  structure.forEach(pkMap =>
+    pkMap.forEach((list, pkgKey) => {
       const byFullName = new Map<string, ToolingTestClass[]>();
-      for (const { fullClassName, entries } of list) {
+      list.forEach(({ fullClassName, entries }) => {
         const existing = byFullName.get(fullClassName) ?? [];
         existing.push(...entries);
         byFullName.set(fullClassName, existing);
-      }
+      });
       pkMap.set(
         pkgKey,
         [...byFullName.entries()].flatMap(([fullClassName, entries]) =>
           Array.isNonEmptyArray(entries) ? [{ fullClassName, entries }] : []
         )
       );
-    }
-  }
+    })
+  );
 
   return structure;
 };
@@ -126,7 +127,7 @@ export const getPackageKeysOrdered = (nsKey: string, packageKeys: string[]): str
  * so getPackageLabelAndId's classEntriesList[0].entries[0] is safe.
  */
 export const isNonEmptyClassEntriesList = (list: ClassEntry[] | undefined): list is Array.NonEmptyArray<ClassEntry> =>
-  list !== undefined && Array.isNonEmptyArray(list) && Array.isNonEmptyArray(list[0].entries);
+  isNotUndefined(list) && Array.isNonEmptyArray(list) && Array.isNonEmptyArray(list[0].entries);
 
 /**
  * Resolves package info for an Option-wrapped class id against the id→package map.
@@ -211,8 +212,7 @@ export const createClassAndMethodsFactory = (
     }
     classItems.set(fullClassName, classItem);
 
-    const methodNames = new Set(classEntries.flatMap(entry => (entry.testMethods ?? []).map(m => m.name)));
-    for (const methodName of methodNames) {
+    Array.dedupe(classEntries.flatMap(entry => (entry.testMethods ?? []).map(m => m.name))).forEach(methodName => {
       const methodId = `${fullClassName}.${methodName}`;
       const line = classEntries[0].testMethods?.find(m => m.name === methodName)?.line ?? 0;
       const column = classEntries[0].testMethods?.find(m => m.name === methodName)?.column ?? 0;
@@ -227,7 +227,7 @@ export const createClassAndMethodsFactory = (
       }
       methodItems.set(methodId, methodItem);
       classItem.children.add(methodItem);
-    }
+    });
     return classItem;
   };
 };

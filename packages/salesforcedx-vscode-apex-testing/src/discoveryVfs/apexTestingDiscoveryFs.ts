@@ -10,6 +10,7 @@
  * metadata XML (e.g. `-meta.xml` in a source-formatted project) is not necessarily represented here.
  */
 
+import { isUndefined } from 'effect/Predicate';
 import { URI, Utils } from 'vscode-uri';
 
 export const APEX_TESTING_SCHEME = 'apex-testing';
@@ -54,8 +55,8 @@ export const isForeignOrgClassUri = (uri: URI, currentOrgKey: string | undefined
     return false;
   }
   const [root, orgDirName] = uri.path.split('/').filter(Boolean);
-  if (root !== ORGS_ROOT || orgDirName === undefined) {
+  if (root !== ORGS_ROOT || isUndefined(orgDirName)) {
     return false;
   }
-  return currentOrgKey === undefined || orgDirName !== sanitizeOrgKey(currentOrgKey);
+  return isUndefined(currentOrgKey) || orgDirName !== sanitizeOrgKey(currentOrgKey);
 };

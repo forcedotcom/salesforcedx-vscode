@@ -55,7 +55,7 @@ public void myMethod() {
     `;
     const methodsDocSymbolMap = new Map<string, DocumentSymbol>();
     await expect(
-      Effect.runPromise(getMethodImplementation(methodName, doc, methodsDocSymbolMap))
+      getMethodImplementation(methodName, doc, methodsDocSymbolMap).pipe(Effect.runPromise)
     ).rejects.toBeDefined();
   });
 });

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.6.0",
+  "version": "67.7.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -44,7 +44,7 @@
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/source-deploy-retrieve": "^12.37.2",
     "@salesforce/source-tracking": "^7.8.16",
-    "@salesforce/templates": "^66.13.0",
+    "@salesforce/templates": "^66.13.3",
     "@salesforce/vscode-i18n": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.21.2",
@@ -236,7 +236,8 @@
       ],
       "files": [
         "test/playwright/**/*.ts",
-        "package*.json"
+        "package*.json",
+        "../../.github/**"
       ],
       "output": []
     },
@@ -344,6 +345,24 @@
             "error"
           ],
           "description": "%configuration.logLevel.description%"
+        },
+        "salesforcedx-vscode-core.NODE_EXTRA_CA_CERTS": {
+          "type": "string",
+          "default": null,
+          "description": "%configuration.NODE_EXTRA_CA_CERTS.description%"
+        },
+        "salesforcedx-vscode-core.SF_LOG_LEVEL": {
+          "type": "string",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal"
+          ],
+          "default": "fatal",
+          "description": "%configuration.SF_LOG_LEVEL.description%"
         }
       }
     },

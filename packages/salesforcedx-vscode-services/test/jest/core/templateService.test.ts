@@ -40,6 +40,7 @@ const createMockConfigService = (templateDir?: string): Layer.Layer<ConfigServic
       invalidateConfigAggregator: () => Effect.void,
       getTargetOrg: () => Effect.succeed(undefined),
       getTargetDevHub: () => Effect.succeed(undefined),
+      isCliTelemetryDisabled: () => Effect.succeed(false),
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),
       unsetTargetOrg: () => Effect.void,
@@ -61,6 +62,7 @@ const createFailingConfigService = (): Layer.Layer<ConfigService> =>
       invalidateConfigAggregator: () => Effect.void,
       getTargetOrg: () => Effect.succeed(undefined),
       getTargetDevHub: () => Effect.succeed(undefined),
+      isCliTelemetryDisabled: () => Effect.succeed(false),
       isCurrentTargetOrg: () => Effect.succeed(false),
       isCurrentTargetDevHub: () => Effect.succeed(false),
       unsetTargetOrg: () => Effect.void,
@@ -86,7 +88,10 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
       getFauxClassesPath: () => Effect.succeed(URI.file('/test/faux')),
       getFauxStandardObjectsPath: () => Effect.succeed(URI.file('/test/faux/std')),
       getFauxCustomObjectsPath: () => Effect.succeed(URI.file('/test/faux/custom')),
-      getTypingsPath: () => Effect.succeed(URI.file('/test/.sfdx/typings'))
+      getTypingsPath: () => Effect.succeed(URI.file('/test/.sfdx/typings')),
+      getStateFolder: () => Effect.succeed(URI.file('/test/.sfdx')),
+      getDebugLogsFolder: () => Effect.succeed(URI.file('/test/.sfdx/tools/debug/logs')),
+      getApexTestResultsFolder: () => Effect.succeed(URI.file('/test/.sfdx/tools/testresults/apex'))
     })
   );
 };
