@@ -236,6 +236,46 @@ describe('languageServerOrphanHandler', () => {
     expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
   });
 
+  it('orphan disappears on re-check → no prompt, no kill', async () => {
+    let psCallCount = 0;
+    const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
+    const statefulSimpleExec = ({
+      command,
+      parse = (s: string) => s
+    }: {
+      command: string;
+      parse?: (stdout: string) => unknown;
+      timeout?: unknown;
+    }) => {
+      if (command.includes('ps -e')) {
+        psCallCount++;
+        const stdout = psCallCount === 1 ? ORPHAN_LIST : '';
+        return Effect.succeed(parse(stdout.trim()));
+      }
+      return Effect.die(new Error(`unexpected command: ${command}`));
+    };
+    const api = {
+      services: {
+        TerminalService: Effect.succeed({ simpleExec: statefulSimpleExec }),
+        PromptService: Effect.succeed(makePromptService()),
+        SettingsService: Effect.succeed(makeSettingsService(makeSettingsStub())),
+        ChannelService: Effect.succeed({
+          showChannel: Effect.void,
+          appendToChannel: (_message: string) => Effect.void,
+          getChannel: Effect.succeed(undefined),
+          clearChannel: Effect.void
+        })
+      }
+    };
+    await Effect.runPromise(
+      checkAndResolveOrphanedLanguageServers().pipe(
+        Effect.provideService(Provider, { getServicesApi: Effect.succeed(api) } as unknown as ExtensionProviderService)
+      ) as Effect.Effect<void>
+    );
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+    expect(killSpy).not.toHaveBeenCalled();
+  });
+
   it('user dismisses prompt → UserCancellationError caught → no kill', async () => {
     setWarningChoices({ warning: [undefined] });
     await run([{ match: 'ps -e', result: ORPHAN_LIST }]);

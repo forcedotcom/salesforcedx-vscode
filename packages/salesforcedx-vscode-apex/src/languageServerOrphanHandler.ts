@@ -131,9 +131,8 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
   );
 });
 
-export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* () {
-  // Services extension unavailable → can't check; record on root span, treat as no orphans.
-  const orphanedProcesses = yield* findOrphanedProcesses().pipe(
+const findOrphanedProcessesSafe = Effect.fn('apex.orphan.findOrphanedSafe')(function* () {
+  return yield* findOrphanedProcesses().pipe(
     Effect.catchTags({
       ServicesExtensionNotFoundError: e =>
         annotateRootSpan('orphanCheckError', String(e)).pipe(Effect.as<ProcessDetail[]>([])),
@@ -141,11 +140,22 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
         annotateRootSpan('orphanCheckError', e.cause?.message ?? String(e)).pipe(Effect.as<ProcessDetail[]>([]))
     })
   );
-  yield* annotateRootSpan('orphanCount', orphanedProcesses.length);
+});
 
-  if (orphanedProcesses.length === 0) {
-    return;
+export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
+  numTries = 3
+) {
+  // Check up to numTries times: processes may self-exit between checks
+  // (e.g. a previous session's LSP completing its own graceful shutdown).
+  let confirmedOrphans: ProcessDetail[] = [];
+  for (let i = 1; i <= numTries; i++) {
+    confirmedOrphans = yield* findOrphanedProcessesSafe();
+    if (confirmedOrphans.length === 0) {
+      yield* annotateRootSpan('orphanCount', 0);
+      return;
+    }
   }
+  yield* annotateRootSpan('orphanCount', confirmedOrphans.length);
 
   // When auto-terminate is enabled, silently kill orphans without prompting.
   const autoTerminate = yield* Effect.gen(function* () {
@@ -166,11 +176,11 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
 
   if (autoTerminate) {
     yield* annotateRootSpan('didTerminate', 1);
-    yield* Effect.forEach(orphanedProcesses, killOne, { concurrency: 1 });
+    yield* Effect.forEach(confirmedOrphans, killOne, { concurrency: 1 });
     return;
   }
 
-  const shouldTerminate = yield* getResolutionForOrphanProcesses(orphanedProcesses).pipe(
+  const shouldTerminate = yield* getResolutionForOrphanProcesses(confirmedOrphans).pipe(
     Effect.catchTag('UserCancellationError', () => Effect.succeed(false))
   );
 
@@ -180,7 +190,7 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
     return;
   }
 
-  yield* Effect.forEach(orphanedProcesses, killOne, { concurrency: 1 });
+  yield* Effect.forEach(confirmedOrphans, killOne, { concurrency: 1 });
 });
 
 /** 'continue' = re-prompt (user asked to view the process table); boolean = terminal decision */
