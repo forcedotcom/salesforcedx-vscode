@@ -1,6 +1,7 @@
 ---
 name: icons-src
 description: Add custom SVG icons to salesforcedx-vscode-services for font generation. Use when adding new icons to media/icons-src, creating SVG icons for VS Code extension, or defining font-based icons.
+review: always
 ---
 
 # Icons-src: Adding Custom Font Icons
