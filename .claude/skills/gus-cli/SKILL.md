@@ -1,6 +1,7 @@
 ---
 name: gus-cli
 description: Interact with the Gus Salesforce org via CLI (sf). Query, create, update work items; query team epics. Use when user mentions Gus, work items, epics, or GUS/Git2Gus workflows.
+review: never
 ---
 
 # Gus CLI
