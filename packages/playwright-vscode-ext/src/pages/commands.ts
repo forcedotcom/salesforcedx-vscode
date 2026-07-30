@@ -148,6 +148,16 @@ export const executeCommandWithCommandPalette = async (
   }).toPass({ timeout: 30_000 });
 };
 
+/** Execute a registered command by ID without requiring a visible command-palette contribution. */
+export const executeCommandById = async (page: Page, commandId: string): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Preferences: Open Keyboard Shortcuts (JSON)');
+  await page.keyboard.press('Control+a');
+  await page.keyboard.insertText(JSON.stringify([{ key: 'ctrl+shift+alt+f9', command: commandId }]));
+  await page.keyboard.press('Control+s');
+  await page.keyboard.press('Control+w');
+  await page.keyboard.press('Control+Shift+Alt+F9');
+};
+
 /** Shared helper: closes command palette */
 const closeCommandPalette = async (page: Page, widget: ReturnType<Page['locator']>): Promise<void> => {
   await page.keyboard.press('Escape');

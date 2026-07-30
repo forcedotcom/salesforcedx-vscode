@@ -10,7 +10,7 @@ import {
   closeAllEditors,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
+  executeCommandById,
   selectOutputChannel,
   verifyCommandExists,
   waitForNotification,
@@ -29,7 +29,7 @@ test('tagged command errors include the tag only in channel output', async ({ pa
   await verifyCommandExists(page, packageNls.deploy_in_manifest_text, 60_000);
   await closeAllEditors(page);
 
-  await executeCommandWithCommandPalette(page, packageNls.deploy_in_manifest_text);
+  await executeCommandById(page, 'sf.metadata.deploy.in.manifest');
 
   const notification = await waitForNotification(page, new RegExp(`^${messages.deploy_select_manifest}$`));
   await expect(notification, 'Error notification should remain unprefixed').toHaveText(messages.deploy_select_manifest);
