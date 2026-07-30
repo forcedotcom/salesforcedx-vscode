@@ -18,6 +18,10 @@ updates:
       day: 'wednesday'
       time: '06:00'
       timezone: 'America/Los_Angeles'
+    groups:
+      eslint-tooling:
+        patterns: ['@typescript-eslint/*', 'eslint', 'eslint-plugin-*']
+        update-types: ['minor', 'patch']
     ignore:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
