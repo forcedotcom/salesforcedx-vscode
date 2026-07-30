@@ -152,10 +152,10 @@ export const executeCommandWithCommandPalette = async (
 export const executeCommandById = async (page: Page, commandId: string): Promise<void> => {
   await executeCommandWithCommandPalette(page, 'Preferences: Open Keyboard Shortcuts (JSON)');
   await page.keyboard.press('Control+a');
-  await page.keyboard.insertText(JSON.stringify([{ key: 'ctrl+shift+alt+f9', command: commandId }]));
-  await page.keyboard.press('Control+s');
-  await page.keyboard.press('Control+w');
-  await page.keyboard.press('Control+Shift+Alt+F9');
+  await page.keyboard.insertText(JSON.stringify([{ key: 'ctrl+shift+9', command: commandId }]));
+  await executeCommandWithCommandPalette(page, 'File: Save');
+  await executeCommandWithCommandPalette(page, 'View: Close Editor');
+  await page.keyboard.press('Control+Shift+9');
 };
 
 /** Shared helper: closes command palette */

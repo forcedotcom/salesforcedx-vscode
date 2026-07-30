@@ -26,7 +26,7 @@ test('tagged command errors include the tag only in channel output', async ({ pa
   await waitForVSCodeWorkbench(page);
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
-  await verifyCommandExists(page, packageNls.deploy_in_manifest_text, 60_000);
+  await verifyCommandExists(page, packageNls.project_info_text, 60_000);
   await closeAllEditors(page);
 
   await executeCommandById(page, 'sf.metadata.deploy.in.manifest');
