@@ -142,23 +142,9 @@ const findOrphanedProcessesSafe = Effect.fn('apex.orphan.findOrphanedSafe')(func
   );
 });
 
-export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
-  numTries = 3
-) {
-  // Check up to numTries times: processes may self-exit between checks
-  // (e.g. a previous session's LSP completing its own graceful shutdown).
-  let confirmedOrphans: ProcessDetail[] = [];
-  for (let i = 1; i <= numTries; i++) {
-    confirmedOrphans = yield* findOrphanedProcessesSafe();
-    if (confirmedOrphans.length === 0) {
-      yield* annotateRootSpan('orphanCount', 0);
-      return;
-    }
-  }
-  yield* annotateRootSpan('orphanCount', confirmedOrphans.length);
-
-  // When auto-terminate is enabled, silently kill orphans without prompting.
-  const autoTerminate = yield* Effect.gen(function* () {
+/** Read the auto-terminate setting; any failure (missing setting / services unavailable) degrades to false. */
+const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(function* () {
+  return yield* Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     return yield* (yield* api.services.SettingsService).getValue<boolean>(
       APEX_SETTINGS_SECTION,
@@ -173,24 +159,41 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
       InvalidServicesApiError: () => Effect.succeed(false)
     })
   );
+});
 
-  if (autoTerminate) {
-    yield* annotateRootSpan('didTerminate', 1);
-    yield* Effect.forEach(confirmedOrphans, killOne, { concurrency: 1 });
-    return;
+export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
+  numTries = 3,
+  delayBetweenTriesMs = 2000
+) {
+  // Check up to numTries times, pausing between checks: a process may self-exit between checks
+  // (e.g. a previous session's LSP completing its own graceful shutdown, which can take a second
+  // or more). The delay gives that shutdown time to finish so an already-exiting server isn't
+  // mistaken for a confirmed orphan. Runs on a background fiber, so the wait never blocks activation.
+  let confirmedOrphans: ProcessDetail[] = [];
+  for (let i = 1; i <= numTries; i++) {
+    if (i > 1) {
+      yield* Effect.sleep(delayBetweenTriesMs);
+    }
+    confirmedOrphans = yield* findOrphanedProcessesSafe();
+    if (confirmedOrphans.length === 0) {
+      yield* annotateRootSpan('orphanCount', 0);
+      return;
+    }
   }
+  yield* annotateRootSpan('orphanCount', confirmedOrphans.length);
 
-  const shouldTerminate = yield* getResolutionForOrphanProcesses(confirmedOrphans).pipe(
-    Effect.catchTag('UserCancellationError', () => Effect.succeed(false))
-  );
+  // When auto-terminate is enabled, kill silently; otherwise ask the user.
+  const shouldTerminate = (yield* isAutoTerminateEnabled())
+    ? true
+    : yield* getResolutionForOrphanProcesses(confirmedOrphans).pipe(
+        Effect.catchTag('UserCancellationError', () => Effect.succeed(false))
+      );
 
   yield* annotateRootSpan('didTerminate', shouldTerminate ? 1 : 0);
 
-  if (!shouldTerminate) {
-    return;
+  if (shouldTerminate) {
+    yield* Effect.forEach(confirmedOrphans, killOne, { concurrency: 1 });
   }
-
-  yield* Effect.forEach(confirmedOrphans, killOne, { concurrency: 1 });
 });
 
 /** 'continue' = re-prompt (user asked to view the process table); boolean = terminal decision */
@@ -295,12 +298,18 @@ const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTermina
   if (choice !== nls.localize('confirm')) {
     return false;
   }
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  // Intentional: swallow MissingSettingsError after recording telemetry — graceful degradation
-  // ensures the kill still proceeds even if the setting write fails to persist.
-  yield* (yield* api.services.SettingsService)
-    .setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)
-    .pipe(Effect.catchTag('MissingSettingsError', e => annotateRootSpan('settingsWriteError', e.message)));
+  // Persist the setting, then kill. Any failure — write error or services unavailable — is recorded
+  // but non-fatal: the user already confirmed, so the kill proceeds regardless of whether the write stuck.
+  yield* Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    yield* (yield* api.services.SettingsService).setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true);
+  }).pipe(
+    Effect.catchTags({
+      MissingSettingsError: e => annotateRootSpan('settingsWriteError', e.message),
+      ServicesExtensionNotFoundError: e => annotateRootSpan('settingsWriteError', String(e)),
+      InvalidServicesApiError: e => annotateRootSpan('settingsWriteError', e.cause?.message ?? String(e))
+    })
+  );
   return true;
 });
 
