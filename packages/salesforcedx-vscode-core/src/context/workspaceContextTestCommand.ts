@@ -10,6 +10,7 @@ import { WorkspaceContext } from './workspaceContext';
 
 const TEST_COMMAND = 'sf.internal.workspaceContext.capture';
 const STATE_FILE = '.workspace-context-state.json';
+const E2E_TELEMETRY_TAG = 'e2e-test';
 
 type WorkspaceContextTestState = {
   eventCount: number;
@@ -24,8 +25,12 @@ const writeState = (state: WorkspaceContextTestState): Thenable<void> => {
     : Promise.resolve();
 };
 
-export const registerWorkspaceContextTestCommand = (extensionContext: vscode.ExtensionContext): void => {
-  if (extensionContext.extensionMode !== vscode.ExtensionMode.Development) return;
+export const startWorkspaceContextTestCapture = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+  if (
+    extensionContext.extensionMode !== vscode.ExtensionMode.Development ||
+    vscode.workspace.getConfiguration('salesforcedx-vscode-core').get<string>('telemetry-tag') !== E2E_TELEMETRY_TAG
+  )
+    return;
 
   extensionContext.subscriptions.push(
     vscode.commands.registerCommand(TEST_COMMAND, async () => {
@@ -54,7 +59,5 @@ export const registerWorkspaceContextTestCommand = (extensionContext: vscode.Ext
       await writeState(state);
     })
   );
+  await vscode.commands.executeCommand(TEST_COMMAND);
 };
-
-export const startWorkspaceContextTestCapture = async (): Promise<void> =>
-  vscode.commands.executeCommand(TEST_COMMAND);

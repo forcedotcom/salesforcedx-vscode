@@ -68,7 +68,6 @@ describe('WorkspaceContext', () => {
     context.onOrgChange(listener);
 
     await context.initialize(coreContext as never);
-    await flushEffects();
 
     expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: 'initial@example.com',

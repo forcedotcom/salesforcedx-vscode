@@ -8,7 +8,9 @@
 import { Connection } from '@salesforce/core';
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { OrgUserInfo, refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
+import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as MutableRef from 'effect/MutableRef';
 import * as Stream from 'effect/Stream';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
@@ -70,11 +72,16 @@ export class WorkspaceContext {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const targetOrgRef = yield* api.services.TargetOrgRef();
     const extensionScope = yield* getExtensionScope();
+    const initialSnapshotReady = yield* Deferred.make<void>();
 
     yield* targetOrgRef.changes.pipe(
       Stream.map(({ username, alias, orgId }) => ({ username, alias, orgId })),
       Stream.changesWith(sameIdentity),
-      Stream.tap(identity => Effect.sync(() => MutableRef.set(workspaceOrgIdentity, identity))),
+      Stream.tap(identity =>
+        Effect.sync(() => MutableRef.set(workspaceOrgIdentity, identity)).pipe(
+          Effect.zipRight(Deferred.succeed(initialSnapshotReady, undefined))
+        )
+      ),
       Stream.drop(1),
       Stream.runForEach(identity =>
         Effect.promise(async () => {
@@ -84,8 +91,11 @@ export class WorkspaceContext {
           }
         })
       ),
+      Effect.onExit(exit => Deferred.done(initialSnapshotReady, Exit.asVoid(exit))),
       Effect.forkIn(extensionScope)
     );
+
+    yield* Deferred.await(initialSnapshotReady);
   });
 
   public get username(): string | undefined {
