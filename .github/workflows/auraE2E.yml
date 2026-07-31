@@ -164,6 +164,8 @@ jobs:
         run: |
           mkdir -p packages/${{ matrix.package }}/test-results/spans
           cp -r ~/.sf/vscode-spans/. packages/${{ matrix.package }}/test-results/spans/ 2>/dev/null || true
+          mkdir -p packages/${{ matrix.package }}/test-results/appinsights
+          cp -r ~/.sf/vscode-appinsights/. packages/${{ matrix.package }}/test-results/appinsights/ 2>/dev/null || true
 
       - name: Upload Playwright HTML report
         if: always()
