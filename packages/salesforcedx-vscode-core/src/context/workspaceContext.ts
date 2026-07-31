@@ -27,7 +27,7 @@ const getConnection = Effect.fn('workspaceContext.getConnection')(function* () {
 });
 
 const sameIdentity = (previous: WorkspaceOrgIdentity, current: WorkspaceOrgIdentity): boolean =>
-  previous.username === current.username && previous.alias === current.alias && previous.orgId === current.orgId;
+  previous.username === current.username && previous.alias === current.alias;
 
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
@@ -85,12 +85,12 @@ export class WorkspaceContext {
 
     const fiber = yield* targetOrgRef.changes.pipe(
       Stream.map(({ username, alias, orgId }) => ({ username, alias, orgId })),
-      Stream.changesWith(sameIdentity),
       Stream.tap(identity =>
         Effect.sync(() => MutableRef.set(this.workspaceOrgIdentity, identity)).pipe(
           Effect.zipRight(Deferred.succeed(initialSnapshotReady, undefined))
         )
       ),
+      Stream.changesWith(sameIdentity),
       Stream.drop(1),
       Stream.runForEach(identity =>
         Effect.promise(async () => {

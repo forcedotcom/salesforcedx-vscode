@@ -96,6 +96,21 @@ describe('WorkspaceContext', () => {
     expect(refreshAllExtensionReporters).toHaveBeenCalledWith(coreContext);
   });
 
+  it('updates orgId without firing when the configured org is unchanged', async () => {
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial' });
+    const context = WorkspaceContext.getInstance(true);
+    const listener = jest.fn();
+    context.onOrgChange(listener);
+    await context.initialize(coreContext as never);
+
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
+    await flushEffects();
+
+    expect(context.orgId).toBe('00Dinitial');
+    expect(listener).not.toHaveBeenCalled();
+    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+  });
+
   it('normalizes no-org values to undefined', async () => {
     await setTargetOrg({ username: 'before@example.com', alias: 'before', orgId: '00Dbefore' });
     const context = WorkspaceContext.getInstance(true);

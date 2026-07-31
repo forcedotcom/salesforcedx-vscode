@@ -126,6 +126,8 @@ type CreateDesktopTestOptions = {
   emptyWorkspace?: boolean;
   /** Additional extension directory names to load (ex: ['salesforcedx-vscode-metadata'] for apex-testing "SFDX: Create Apex Class") */
   additionalExtensionDirs?: string[];
+  /** Test-only extension paths, relative to the calling package, loaded as development extensions in all modes. */
+  testExtensionPaths?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
@@ -298,6 +300,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     orgAlias,
     emptyWorkspace = false,
     additionalExtensionDirs = [],
+    testExtensionPaths = [],
     marketplaceExtensions = [],
     disableOtherExtensions = true,
     userSettings
@@ -389,6 +392,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       }
 
       const packageRoot = path.resolve(fixturesDir, '..', '..', '..');
+      const testExtensionArgs = testExtensionPaths.map(
+        extensionPath => `--extensionDevelopmentPath=${path.resolve(packageRoot, extensionPath)}`
+      );
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
       await fs.mkdir(videosDir, { recursive: true });
 
@@ -423,6 +429,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           // VSIX mode: extensions installed into hash-keyed cache dir; no dev path needed
           `--user-data-dir=${userDataDir}`,
           `--extensions-dir=${installedExtensionsDir}`,
+          ...testExtensionArgs,
           ...disabledBuiltins,
           ...startupArgs
         ]
@@ -444,6 +451,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             `--user-data-dir=${userDataDir}`,
             `--extensions-dir=${extensionsDir}`,
             ...extensionArgs,
+            ...testExtensionArgs,
             ...(disableOtherExtensions ? ['--disable-extensions'] : []),
             ...disabledBuiltins,
             ...startupArgs

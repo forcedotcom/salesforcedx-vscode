@@ -18,7 +18,6 @@ import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocume
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
-import { startWorkspaceContextTestCapture } from './context/workspaceContextTestCommand';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
@@ -113,7 +112,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   }
 
   yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
-  yield* Effect.promise(() => startWorkspaceContextTestCapture(extensionContext));
 
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();

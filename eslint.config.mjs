@@ -618,7 +618,7 @@ export default [
       'packages/salesforcedx-apex/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
-    ignores: ['**/locators.ts'],
+    ignores: ['**/locators.ts', '**/fixtureExtensions/**'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
       jest: eslintPluginJest,
@@ -674,6 +674,21 @@ export default [
     },
     rules: {
       'local/no-runtime-vscode-import': 'error'
+    }
+  },
+  {
+    // Playwright fixture extensions execute as plain CommonJS in the VS Code extension host.
+    files: ['packages/*/test/playwright/fixtureExtensions/**/*.js'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/require-await': 'off',
+      'local/no-runtime-vscode-import': 'off'
     }
   },
   {

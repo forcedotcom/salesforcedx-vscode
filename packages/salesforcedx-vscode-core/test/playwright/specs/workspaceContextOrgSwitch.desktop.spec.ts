@@ -20,8 +20,8 @@ import {
   selectOrgInPicker,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import packageNls from '../../../package.nls.json';
-import { desktopTest as test } from '../fixtures/desktopFixtures';
+import packageNls from '../fixtureExtensions/workspaceContext/package.nls.json';
+import { workspaceContextDesktopTest as test } from '../fixtures/workspaceContextDesktopFixtures';
 
 const STATE_FILE = '.workspace-context-state.json';
 
@@ -31,7 +31,7 @@ type CapturedState = {
   getters: { username?: string; alias?: string; orgId?: string };
 };
 
-type OrgIdentity = { username: string; orgId: string };
+type OrgIdentity = { username: string; id: string };
 
 const readState = async (workspaceDir: string): Promise<CapturedState> =>
   JSON.parse(await readFile(join(workspaceDir, STATE_FILE), 'utf8')) as CapturedState;
@@ -46,7 +46,7 @@ const getOrgIdentity = async (): Promise<OrgIdentity> => {
 test('WorkspaceContext tracks real default-org picker switches', async ({ page, workspaceDir }) => {
   test.setTimeout(120_000);
   await createMinimalOrg();
-  const { username, orgId } = await getOrgIdentity();
+  const { username, id: orgId } = await getOrgIdentity();
 
   await test.step('capture the activation snapshot without an event', async () => {
     await waitForVSCodeWorkbench(page);
