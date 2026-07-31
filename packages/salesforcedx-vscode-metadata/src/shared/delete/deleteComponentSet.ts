@@ -8,7 +8,6 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { formatDeployOutput } from '../deploy/formatDeployOutput';
 import { DeleteSourceFailedError } from './deleteErrors';
@@ -29,26 +28,21 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
-  const result = yield* api.services.MetadataDeployService.deploy(deleteSet);
-
   const { isSDRFailure } = componentSetService;
-
-  if (result.getFileResponses().some(isSDRFailure)) {
-    return yield* new DeleteSourceFailedError({
-      cause: new Error(
-        nls.localize('delete_source_operation_failed', result.response?.errorMessage ?? 'Unknown error')
-      ),
-      result
-    });
-  }
+  const result = yield* api.services.MetadataDeployService.deploy(deleteSet).pipe(
+    Effect.filterOrFail(
+      deployResult => !deployResult.getFileResponses().some(isSDRFailure),
+      deployResult =>
+        new DeleteSourceFailedError({
+          cause: new Error(
+            nls.localize('delete_source_operation_failed', deployResult.response?.errorMessage ?? 'Unknown error')
+          ),
+          result: deployResult
+        })
+    )
+  );
 
   // Delete local files after successful deploy
   yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet);
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
-
-  if (result.getFileResponses().some(isSDRFailure)) {
-    yield* Effect.sync(() => {
-      void vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message'));
-    });
-  }
 });

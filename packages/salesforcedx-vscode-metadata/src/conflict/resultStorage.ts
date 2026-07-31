@@ -14,6 +14,7 @@ import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -69,10 +70,13 @@ const getFileResponsesDirUri = Effect.fn('resultStorage.getFileResponsesDirUri')
     [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), Effect.succeed(api.services.TargetOrgRef)],
     { concurrency: 'unbounded' }
   );
-  const orgId = (yield* SubscriptionRef.get(yield* defaultOrgRef())).orgId;
-  if (!orgId) {
-    return yield* new MissingDefaultOrgError({ message: nls.localize('missing_default_org') });
-  }
+  const orgId = yield* SubscriptionRef.get(yield* defaultOrgRef()).pipe(
+    Effect.map(orgInfo => orgInfo.orgId),
+    Effect.filterOrFail(
+      isNotUndefined,
+      () => new MissingDefaultOrgError({ message: nls.localize('missing_default_org') })
+    )
+  );
   return Utils.joinPath(workspaceInfo.uri, '.sfdx', 'fileResponses', orgId);
 });
 
