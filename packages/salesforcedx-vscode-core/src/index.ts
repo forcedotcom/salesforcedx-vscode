@@ -78,6 +78,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
+  yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
 
   if (internalDev) {
     console.log('SF CLI Extension Activated (internal dev mode)');
@@ -113,8 +114,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     );
   }
 
-  yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
-
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
 });
@@ -139,6 +138,7 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
 export const deactivate = async (): Promise<void> => {
   console.log('SF CLI Extension Deactivated');
 
+  WorkspaceContext.disposeInstance();
   await getRuntime().runPromise(closeExtensionScope());
 
   // Send metric data.

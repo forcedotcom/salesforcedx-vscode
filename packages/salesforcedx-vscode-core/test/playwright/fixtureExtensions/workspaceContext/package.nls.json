@@ -1,3 +1,4 @@
 {
-  "workspace_context_set_username_test_text": "SFDX Internal: Set Target Org to Username"
+  "workspace_context_set_username_test_text": "SFDX Internal: Set Target Org to Username",
+  "workspace_context_select_org_test_text": "SFDX Internal: Select Target Org"
 }

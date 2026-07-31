@@ -121,7 +121,8 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:schemas"
+        "copy:schemas",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",

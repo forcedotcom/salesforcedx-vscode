@@ -463,7 +463,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       alias,
       ...(isString(cliId) ? { cliId } : {}),
       ...(isString(orgEdition) ? { orgEdition } : {})
-    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
+    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([key, value]) => key === 'alias' || isNotUndefined(value))
   );
 
   const updated = Object.fromEntries(

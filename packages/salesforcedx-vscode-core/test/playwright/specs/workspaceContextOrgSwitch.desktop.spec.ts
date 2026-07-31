@@ -7,8 +7,8 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect } from '@playwright/test';
+import * as Schema from 'effect/Schema';
 import {
-  clickOrgPickerStatusBar,
   closeWelcomeTabs,
   createMinimalOrg,
   ensureSecondarySideBarHidden,
@@ -25,21 +25,27 @@ import { workspaceContextDesktopTest as test } from '../fixtures/workspaceContex
 
 const STATE_FILE = '.workspace-context-state.json';
 
-type CapturedState = {
-  eventCount: number;
-  event?: { username?: string; alias?: string; orgId?: string };
-  getters: { username?: string; alias?: string; orgId?: string };
-};
+const OrgIdentity = Schema.Struct({ username: Schema.String, id: Schema.String });
+const WorkspaceIdentity = Schema.Struct({
+  username: Schema.optional(Schema.String),
+  alias: Schema.optional(Schema.String),
+  orgId: Schema.optional(Schema.String)
+});
+const CapturedState = Schema.Struct({
+  eventCount: Schema.Number,
+  event: Schema.optional(WorkspaceIdentity),
+  getters: WorkspaceIdentity,
+  transitionComplete: Schema.optional(Schema.Boolean)
+});
+const OrgDisplayResult = Schema.Struct({ result: OrgIdentity });
 
-type OrgIdentity = { username: string; id: string };
+const readState = async (workspaceDir: string): Promise<typeof CapturedState.Type> =>
+  Schema.decodeUnknownSync(CapturedState)(JSON.parse(await readFile(join(workspaceDir, STATE_FILE), 'utf8')));
 
-const readState = async (workspaceDir: string): Promise<CapturedState> =>
-  JSON.parse(await readFile(join(workspaceDir, STATE_FILE), 'utf8')) as CapturedState;
-
-const getOrgIdentity = async (): Promise<OrgIdentity> => {
-  const result = JSON.parse((await execAsync(`sf org display -o ${MINIMAL_ORG_ALIAS} --json`, { env })).stdout) as {
-    result: OrgIdentity;
-  };
+const getOrgIdentity = async (): Promise<typeof OrgIdentity.Type> => {
+  const result = Schema.decodeUnknownSync(OrgDisplayResult)(
+    JSON.parse((await execAsync(`sf org display -o ${MINIMAL_ORG_ALIAS} --json`, { env })).stdout)
+  );
   return result.result;
 };
 
@@ -72,10 +78,11 @@ test('WorkspaceContext tracks real default-org picker switches', async ({ page, 
   });
 
   await test.step('switch back to alias and capture exactly one more event', async () => {
-    await clickOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
+    await executeCommandWithCommandPalette(page, packageNls.workspace_context_select_org_test_text);
     await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
     await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
-    await expect.poll(() => readState(workspaceDir)).toMatchObject({
+    await expect.poll(() => readState(workspaceDir)).toMatchObject({ transitionComplete: true });
+    expect(await readState(workspaceDir)).toMatchObject({
       eventCount: 2,
       event: { username, alias: MINIMAL_ORG_ALIAS },
       getters: { username, alias: MINIMAL_ORG_ALIAS, orgId }

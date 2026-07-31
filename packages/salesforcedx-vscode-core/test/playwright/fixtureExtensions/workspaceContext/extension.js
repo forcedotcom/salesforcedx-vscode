@@ -12,6 +12,7 @@ const vscode = require('vscode');
 const CORE_EXTENSION_ID = 'salesforce.salesforcedx-vscode-core';
 const SERVICES_EXTENSION_ID = 'salesforce.salesforcedx-vscode-services';
 const SET_USERNAME_COMMAND = 'sf.internal.workspaceContext.setTargetOrgToUsername';
+const SELECT_ORG_COMMAND = 'sf.internal.workspaceContext.selectOrg';
 const STATE_FILE = '.workspace-context-state.json';
 
 const getExtensionApi = async id => {
@@ -36,7 +37,11 @@ const activate = async extensionContext => {
   );
 
   const stateUri = vscode.Uri.joinPath(workspace.uri, STATE_FILE);
-  const writeState = state => vscode.workspace.fs.writeFile(stateUri, Buffer.from(JSON.stringify(state)));
+  let stateWrite = Promise.resolve();
+  const writeState = state => {
+    const bytes = Buffer.from(JSON.stringify(state));
+    stateWrite = stateWrite.then(() => vscode.workspace.fs.writeFile(stateUri, bytes));
+  };
   let state = {
     eventCount: 0,
     getters: {
@@ -48,7 +53,7 @@ const activate = async extensionContext => {
 
   extensionContext.subscriptions.push(
     workspaceContext.onOrgChange(event => {
-      state = {
+      const nextState = {
         eventCount: state.eventCount + 1,
         event,
         getters: {
@@ -57,7 +62,8 @@ const activate = async extensionContext => {
           orgId: workspaceContext.orgId
         }
       };
-      return writeState(state);
+      state = nextState;
+      writeState(nextState);
     }),
     vscode.commands.registerCommand(SET_USERNAME_COMMAND, async () => {
       const username = workspaceContext.username;
@@ -73,10 +79,18 @@ const activate = async extensionContext => {
             Effect.zipRight(connectionService.getConnection())
           )
       );
+    }),
+    vscode.commands.registerCommand(SELECT_ORG_COMMAND, async () => {
+      await vscode.commands.executeCommand('sf.set.default.org');
+      await stateWrite;
+      state = { ...state, transitionComplete: true };
+      writeState(state);
+      await stateWrite;
     })
   );
 
-  await writeState(state);
+  writeState(state);
+  await stateWrite;
 };
 
 module.exports = { activate };

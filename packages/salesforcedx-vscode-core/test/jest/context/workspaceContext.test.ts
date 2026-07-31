@@ -10,6 +10,7 @@ import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import { WorkspaceContext } from '../../../src/context';
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
@@ -31,8 +32,10 @@ const providerLayer = Layer.succeed(ExtensionProviderService, {
 } as never);
 const runPromise = <A, E, R>(effect: Effect.Effect<A, E, R>, options?: { signal?: AbortSignal }): Promise<A> =>
   Effect.runPromise(effect.pipe(Effect.provide(providerLayer as Layer.Layer<R>)), options);
-const runCallback = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
-  effect.pipe(Effect.provide(providerLayer as Layer.Layer<R>), Effect.runCallback);
+const runCallback = <A, E, R>(
+  effect: Effect.Effect<A, E, R>,
+  options?: Parameters<typeof Effect.runCallback<A, E>>[1]
+) => effect.pipe(Effect.provide(providerLayer as Layer.Layer<R>), provided => Effect.runCallback(provided, options));
 
 jest.mock('../../../src/services/runtime', () => ({
   getRuntime: () => ({ runPromise, runCallback })
@@ -49,15 +52,7 @@ const replayContext = {
 
 const flushEffects = () => new Promise(resolve => setImmediate(resolve));
 
-const setTargetOrg = (identity: {
-  username?: string;
-  alias?: string;
-  orgId?: string;
-  isScratch?: boolean;
-  isSandbox?: boolean;
-  devHubOrgId?: string;
-  orgEdition?: string;
-}) =>
+const setTargetOrg = (identity: typeof DefaultOrgInfoSchema.Type) =>
   Effect.runPromise(SubscriptionRef.set(targetOrgRef, identity));
 
 describe('WorkspaceContext', () => {
@@ -217,6 +212,34 @@ describe('WorkspaceContext', () => {
 
     expect(firstListener).not.toHaveBeenCalled();
     expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+  });
+
+  it('stops watching when VS Code disposes the extension subscriptions', async () => {
+    const context = WorkspaceContext.getInstance(true);
+    const listener = jest.fn();
+    context.onOrgChange(listener);
+    await context.initialize(coreContext as never);
+
+    coreContext.subscriptions.forEach(subscription => (subscription as { dispose: () => void }).dispose());
+    await setTargetOrg({ username: 'after-disposal@example.com', orgId: '00Ddisposed' });
+    await flushEffects();
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+  });
+
+  it('retries initialization after a transient startup failure', async () => {
+    getTargetOrgRef = jest
+      .fn()
+      .mockReturnValueOnce(Effect.fail(new Error('TargetOrgRef unavailable')))
+      .mockReturnValue(Effect.succeed(targetOrgRef));
+    const context = WorkspaceContext.getInstance(true);
+
+    await expect(context.initialize(coreContext as never)).rejects.toThrow('TargetOrgRef unavailable');
+    await context.initialize(coreContext as never);
+
+    expect(context.username).toBeUndefined();
+    expect(getTargetOrgRef).toHaveBeenCalledTimes(2);
   });
 
   it('preserves legacy org metadata accessors', async () => {

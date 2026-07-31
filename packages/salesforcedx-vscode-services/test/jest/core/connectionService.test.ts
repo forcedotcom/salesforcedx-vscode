@@ -378,6 +378,27 @@ describe('ConnectionService.getConnection (desktop)', () => {
     expect(Option.getOrUndefined(await aliasUpdate)?.alias).toBe('configuredAlias');
   });
 
+  it('clears a stale alias when the target org is changed to its username', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) =>
+      prop === TARGET_ORG_KEY ? 'configuredAlias' : undefined
+    );
+    getUsernameFromAliasMock.mockReturnValue(Effect.succeed(Option.some('default@example.com')));
+    connectionCreateMock.mockResolvedValue(makeDesktopConn('default@example.com'));
+    await run(ConnectionService.getConnection());
+
+    getPropertyValueMock.mockImplementation((prop: string) =>
+      prop === TARGET_ORG_KEY ? 'default@example.com' : undefined
+    );
+    getUsernameFromAliasMock.mockReturnValue(Effect.succeed(Option.none()));
+    connectionCreateMock.mockResolvedValue(makeDesktopConn('default@example.com'));
+    await run(ConnectionService.invalidateCachedConnections());
+    await run(ConnectionService.getConnection());
+    await new Promise(resolve => setImmediate(resolve));
+
+    const orgInfo = await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
+    expect(orgInfo.alias).toBeUndefined();
+  });
+
   it('no-arg path with no configured target-org fails with NoTargetOrgConfiguredError', async () => {
     getPropertyValueMock.mockReturnValue(undefined);
 

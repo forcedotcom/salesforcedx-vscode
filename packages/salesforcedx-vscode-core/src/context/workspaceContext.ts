@@ -13,10 +13,12 @@ import {
   refreshAllExtensionReporters,
   shapeFrom
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as MutableRef from 'effect/MutableRef';
+import type * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -35,18 +37,54 @@ const getConnection = Effect.fn('workspaceContext.getConnection')(function* () {
 const sameIdentity = (previous: WorkspaceOrgIdentity, current: WorkspaceOrgIdentity): boolean =>
   previous.username === current.username && previous.alias === current.alias && previous.orgId === current.orgId;
 
-class WorkspaceContextService extends Effect.Service<WorkspaceContextService>()('WorkspaceContextService', {
-  accessors: true,
-  effect: Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const targetOrgRef = yield* api.services.TargetOrgRef();
+/**
+ * Manages the context of a workspace during a session with an open SFDX Project.
+ */
+export class WorkspaceContext {
+  protected static instance?: WorkspaceContext;
+  private initializationPromise?: Promise<void>;
+  private stopWatcher?: Runtime.Cancel<unknown, unknown>;
+  private readonly orgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
+  private readonly workspaceOrgIdentity = MutableRef.make<WorkspaceOrgIdentity>({});
 
-    const watch = Effect.fn('WorkspaceContextService.watch')(function* (
-      extensionContext: vscode.ExtensionContext,
-      orgChangeEmitter: vscode.EventEmitter<OrgUserInfo>,
-      workspaceOrgIdentity: MutableRef.MutableRef<WorkspaceOrgIdentity>,
-      initialSnapshotReady: Deferred.Deferred<void>
-    ) {
+  public readonly onOrgChange = this.orgChangeEmitter.event;
+
+  protected constructor() {}
+
+  public async initialize(extensionContext: vscode.ExtensionContext) {
+    if (this.initializationPromise) return this.initializationPromise;
+
+    const initialization = this._doInitialize(extensionContext);
+    this.initializationPromise = initialization;
+    try {
+      await initialization;
+    } catch (error) {
+      if (this.initializationPromise === initialization) this.initializationPromise = undefined;
+      throw error;
+    }
+  }
+
+  private async _doInitialize(extensionContext: vscode.ExtensionContext) {
+    extensionContext.subscriptions.push(this);
+    const runtime = getRuntime();
+    const initialSnapshotReady = Effect.runSync(Deferred.make<void, unknown>());
+    const watcherExit = new Promise<void>((resolve, reject) => {
+      this.stopWatcher = runtime.runCallback(this.watch(extensionContext, initialSnapshotReady), {
+        onExit: Exit.match({
+          onFailure: cause => reject(Cause.squash(cause)),
+          onSuccess: resolve
+        })
+      });
+    });
+    await Promise.race([runtime.runPromise(Deferred.await(initialSnapshotReady)), watcherExit]);
+  }
+
+  private watch(extensionContext: vscode.ExtensionContext, initialSnapshotReady: Deferred.Deferred<void, unknown>) {
+    const orgChangeEmitter = this.orgChangeEmitter;
+    const workspaceOrgIdentity = this.workspaceOrgIdentity;
+    return Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const targetOrgRef = yield* api.services.TargetOrgRef();
       yield* targetOrgRef.changes.pipe(
         Stream.map(({ username, alias, orgId, isScratch, isSandbox, devHubOrgId, orgEdition }) => ({
           username,
@@ -71,52 +109,18 @@ class WorkspaceContextService extends Effect.Service<WorkspaceContextService>()(
             if (extensionContext.extension.id === 'salesforce.salesforcedx-vscode-core') {
               await refreshAllExtensionReporters(extensionContext);
             }
-          })
-        ),
-        Effect.onExit(exit => Deferred.done(initialSnapshotReady, Exit.asVoid(exit)))
+          }).pipe(
+            Effect.withSpan('WorkspaceContext.onTargetOrgChange', {
+              attributes: {
+                hasTargetOrg: Boolean(identity.username ?? identity.orgId),
+                isScratch: identity.isScratch ?? false,
+                isSandbox: identity.isSandbox ?? false
+              }
+            })
+          )
+        )
       );
-    });
-
-    return { watch };
-  })
-}) {}
-
-/**
- * Manages the context of a workspace during a session with an open SFDX Project.
- */
-export class WorkspaceContext {
-  protected static instance?: WorkspaceContext;
-  private initializationPromise?: Promise<void>;
-  private initializationAbortController?: AbortController;
-  private stopWatcher?: () => void;
-  private readonly orgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
-  private readonly workspaceOrgIdentity = MutableRef.make<WorkspaceOrgIdentity>({});
-
-  public readonly onOrgChange = this.orgChangeEmitter.event;
-
-  protected constructor() {}
-
-  public async initialize(extensionContext: vscode.ExtensionContext) {
-    this.initializationPromise ??= this._doInitialize(extensionContext);
-    return this.initializationPromise;
-  }
-
-  private async _doInitialize(extensionContext: vscode.ExtensionContext) {
-    extensionContext.subscriptions.push(this.orgChangeEmitter);
-    const runtime = getRuntime();
-    const initialSnapshotReady = Effect.runSync(Deferred.make<void>());
-    this.initializationAbortController = new AbortController();
-    this.stopWatcher = runtime.runCallback(
-      Effect.flatMap(WorkspaceContextService, service =>
-        service.watch(extensionContext, this.orgChangeEmitter, this.workspaceOrgIdentity, initialSnapshotReady)
-      ).pipe(
-        Effect.provide(WorkspaceContextService.Default)
-      )
-    );
-    await runtime.runPromise(Deferred.await(initialSnapshotReady), {
-      signal: this.initializationAbortController.signal
-    });
-    this.initializationAbortController = undefined;
+    }).pipe(Effect.onExit(exit => Deferred.done(initialSnapshotReady, Exit.asVoid(exit))));
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {
@@ -127,6 +131,11 @@ export class WorkspaceContext {
     return this.instance;
   }
 
+  public static disposeInstance(): void {
+    this.instance?.dispose();
+    this.instance = undefined;
+  }
+
   // @deprecated. Use getConnection from the Services extension.
   // maintained for backward compatibility for 2PP using vscode-core API
   public async getConnection(): Promise<Connection> {
@@ -134,8 +143,10 @@ export class WorkspaceContext {
   }
 
   public dispose(): void {
-    this.initializationAbortController?.abort();
-    this.stopWatcher?.();
+    this.stopWatcher?.(undefined, {
+      onExit: () => undefined
+    });
+    this.stopWatcher = undefined;
     this.orgChangeEmitter.dispose();
   }
 
