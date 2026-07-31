@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { OrgMetadataComponentReference } from './orgMetadataReference';
+import type { MetadataOperationEvent } from '../core/metadataChangeNotificationService';
 import type { FileChangeEvent } from '../vscode/fileChangePubSub';
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
@@ -12,11 +14,20 @@ import * as PubSub from 'effect/PubSub';
 export type OrgMetadataCatalogChange =
   | {
       readonly kind: 'workspace';
-      readonly event: FileChangeEvent;
+      readonly events: readonly FileChangeEvent[];
     }
   | {
       readonly kind: 'org';
       readonly orgId: string | undefined;
+    }
+  | {
+      readonly kind: 'operation';
+      readonly event: MetadataOperationEvent;
+    }
+  | {
+      readonly kind: 'tracking';
+      readonly orgId: string;
+      readonly references: readonly OrgMetadataComponentReference[];
     };
 
 /** Signals why consumers should re-query their view of the org catalog. */

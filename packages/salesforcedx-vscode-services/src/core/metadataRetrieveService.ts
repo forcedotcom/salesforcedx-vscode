@@ -18,7 +18,9 @@ import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import * as Option from 'effect/Option';
 import * as Runtime from 'effect/Runtime';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { uriToPath } from '../vscode/paths';
@@ -28,8 +30,11 @@ import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRe
 import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
+import { getDefaultOrgRef } from './defaultOrgRef';
+import { dedupeMetadataChanges, MetadataChangeNotificationService } from './metadataChangeNotificationService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
+import { isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
 import { SourceTrackingService, type SourceTrackingOptions } from './sourceTrackingService';
 
@@ -61,7 +66,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     SourceTrackingService.Default,
     MetadataRegistryService.Default,
     ProjectService.Default,
-    ConfigService.Default
+    ConfigService.Default,
+    MetadataChangeNotificationService.Default
   ],
   effect: Effect.gen(function* () {
     const workspaceService = yield* WorkspaceService;
@@ -70,6 +76,35 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     const projectService = yield* ProjectService;
     const configService = yield* ConfigService;
     const metadataRegistryService = yield* MetadataRegistryService;
+    const notificationService = yield* MetadataChangeNotificationService;
+    const defaultOrgRef = yield* getDefaultOrgRef();
+
+    const publishRetrieveNotifications = Effect.fn('MetadataRetrieveService.publishRetrieveNotifications')(function* (
+      retrieveOutcome: Awaited<ReturnType<MetadataApiRetrieve['pollStatus']>>
+    ) {
+      const successfulResponses = retrieveOutcome.getFileResponses().filter(isSDRSuccess);
+      const changes = dedupeMetadataChanges(
+        successfulResponses.map(response => ({
+          metadataType: response.type,
+          fullName: response.fullName,
+          changeType: toComponentStatusChangeType(response.state),
+          fileUri: Option.fromNullable(response.filePath ? URI.file(response.filePath) : undefined)
+        }))
+      );
+      if (changes.length === 0) return;
+      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
+      yield* Effect.annotateCurrentSpan({
+        rawFileResponseCount: successfulResponses.length,
+        uniqueComponentCount: changes.length,
+        affectedMetadataTypeCount: new Set(changes.map(change => change.metadataType)).size
+      });
+      yield* notificationService.publishOperation({
+        ...(orgId ? { orgId } : {}),
+        operation: 'retrieve',
+        completedAt: new Date().toISOString(),
+        changes: [...changes]
+      });
+    });
 
     const buildComponentSet = Effect.fn('MetadataRetrieveService.buildComponentSet')(function* (
       members: MetadataMember[]
@@ -170,9 +205,15 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       });
       // only do tracking in the case where we retrieve to project
       if (input.merge) {
-        yield* sourceTrackingService
-          .maybeUpdateTrackingFromRetrieve(retrieveOutcome)
-          .pipe(Effect.withSpan('MetadataRetrieveService.maybeUpdateTrackingFromRetrieve'));
+        yield* Effect.all(
+          [
+            sourceTrackingService
+              .maybeUpdateTrackingFromRetrieve(retrieveOutcome)
+              .pipe(Effect.withSpan('MetadataRetrieveService.maybeUpdateTrackingFromRetrieve')),
+            publishRetrieveNotifications(retrieveOutcome)
+          ],
+          { concurrency: 'unbounded', discard: true }
+        );
       }
 
       return retrieveOutcome;

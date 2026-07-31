@@ -9,7 +9,9 @@ import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Runtime from 'effect/Runtime';
 import * as Scope from 'effect/Scope';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
 import { getActiveMetadataOperationRef } from './core/activeMetadataOperationRef';
@@ -38,12 +40,14 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService, TemplateType } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
+import { nls } from './messages';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
+import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
 import { runOrgMetadataDocumentProvider } from './orgCatalog/orgMetadataDocumentProvider';
 import { ORG_METADATA_SCHEME } from './orgCatalog/orgMetadataReference';
 import { globalLayers } from './servicesLayers';
@@ -135,7 +139,6 @@ export type SalesforceVSCodeServicesApi = {
     MediaService: typeof MediaService;
     MetadataChangeNotificationService: typeof MetadataChangeNotificationService;
     MetadataDeleteService: typeof MetadataDeleteService;
-    MetadataDescribeService: typeof MetadataDescribeService;
     OrgMetadataCatalog: typeof OrgMetadataCatalog;
     OrgMetadataCatalogChangePubSub: typeof OrgMetadataCatalogChangePubSub;
     ORG_METADATA_SCHEME: typeof ORG_METADATA_SCHEME;
@@ -152,7 +155,6 @@ export type SalesforceVSCodeServicesApi = {
     ActiveMetadataOperationRef: typeof getActiveMetadataOperationRef;
     TargetOrgRef: typeof getDefaultOrgRef;
     TerminalService: typeof TerminalService;
-    TransmogrifierService: typeof TransmogrifierService;
     TraceFlagItemStruct: typeof TraceFlagItemStruct;
     TraceFlagService: typeof TraceFlagService;
     WorkspaceService: typeof WorkspaceService;
@@ -199,12 +201,22 @@ export type {
 export type { MetadataDeployError } from './core/metadataDeployService';
 export type { MetadataRetrieveError } from './core/metadataRetrieveService';
 export {
+  OrgCatalogObservationSchema,
   OrgMetadataCatalogError,
+  OrgMetadataChangeStatusSchema,
+  OrgSObjectDescriptionSchema,
+  OrgSObjectSummarySchema,
+  type KnownOrgMetadataComponentResolution,
+  type OrgCatalogObservation,
   type OrgMetadataCatalog,
   type OrgMetadataCatalogEntry,
+  type OrgMetadataConsistency,
+  type OrgMetadataChangeStatus,
   type OrgMetadataEntryKind,
   type OrgMetadataFieldDetails,
-  type OrgMetadataPresence
+  type OrgMetadataPresence,
+  type OrgSObjectDescription,
+  type OrgSObjectSummary
 } from './orgCatalog/orgMetadataCatalog';
 export type {
   OrgMetadataComponentReference,
@@ -249,12 +261,46 @@ export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated after FS setup */
 const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
-  _context: vscode.ExtensionContext
+  context: vscode.ExtensionContext
 ) {
   yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
   // seed populates defaultOrgRef.cliId + webUserId before connectionService and core can read it
   yield* seedTelemetryIdentities();
   const scope = yield* getExtensionScope();
+  const runtime = yield* Effect.runtime();
+  const [catalogStore, fsService] = yield* Effect.all([OrgMetadataCatalogStore, FsService]);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sf.internal.showOrgMetadataCatalogState', () =>
+      Runtime.runPromise(runtime)(
+        Effect.gen(function* () {
+          const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+          if (!orgId) {
+            yield* Effect.promise(() =>
+              vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_no_default_org'))
+            );
+            return;
+          }
+          const snapshotUri = yield* catalogStore.getSnapshotUri(orgId);
+          if (!(yield* fsService.fileOrFolderExists(snapshotUri))) {
+            yield* Effect.promise(() =>
+              vscode.window.showInformationMessage(nls.localize('org_metadata_catalog_state_missing'))
+            );
+            return;
+          }
+          yield* fsService.showTextDocument(snapshotUri, { preview: false });
+        }).pipe(
+          Effect.withSpan('OrgMetadataCatalog.showPersistedState'),
+          Effect.catchAll(error =>
+            Effect.promise(() =>
+              vscode.window.showErrorMessage(
+                nls.localize('org_metadata_catalog_state_open_failed', getErrorMessage(error))
+              )
+            )
+          )
+        )
+      )
+    )
+  );
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // auth settings go before other things so retrieveOnLoad can use them
@@ -403,7 +449,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MediaService,
       MetadataChangeNotificationService,
       MetadataDeleteService,
-      MetadataDescribeService,
       OrgMetadataCatalog,
       OrgMetadataCatalogChangePubSub,
       ORG_METADATA_SCHEME,
@@ -419,7 +464,6 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ActiveMetadataOperationRef: getActiveMetadataOperationRef,
       TargetOrgRef: getDefaultOrgRef,
       TerminalService,
-      TransmogrifierService,
       TraceFlagItemStruct,
       TraceFlagService,
       WorkspaceService,
@@ -465,9 +509,12 @@ export {
 export { type ApexLogListItem, type ApexLogService, type ListLogsOptions } from './core/apexLogService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
 export {
+  dedupeMetadataChanges,
   MetadataChangeNotificationService,
   MetadataChangeEvent,
-  type MetadataChangeEvent as MetadataChangeEventType
+  MetadataOperationEvent,
+  type MetadataChangeEvent as MetadataChangeEventType,
+  type MetadataOperationEvent as MetadataOperationEventType
 } from './core/metadataChangeNotificationService';
 export type { MetadataChangeType, RequestStatusValue } from './core/sdrGuards';
 export {

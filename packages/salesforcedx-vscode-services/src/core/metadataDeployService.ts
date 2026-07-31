@@ -14,8 +14,7 @@ import * as Option from 'effect/Option';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
-import * as Sink from 'effect/Sink';
-import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { FsService } from '../vscode/fsService';
@@ -23,7 +22,8 @@ import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { ConnectionService } from './connectionService';
-import { MetadataChangeNotificationService } from './metadataChangeNotificationService';
+import { getDefaultOrgRef } from './defaultOrgRef';
+import { dedupeMetadataChanges, MetadataChangeNotificationService } from './metadataChangeNotificationService';
 import { ProjectService } from './projectService';
 import { isSDRSuccess, toComponentStatusChangeType } from './sdrGuards';
 import { unknownToErrorCause } from './shared';
@@ -51,6 +51,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     const workspaceService = yield* WorkspaceService;
     const projectService = yield* ProjectService;
     const notificationService = yield* MetadataChangeNotificationService;
+    const defaultOrgRef = yield* getDefaultOrgRef();
 
     /** Get ComponentSet of local changes for deploy */
     const getComponentSetForDeploy = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(function* () {
@@ -67,25 +68,41 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       return localComponentSets[0] ?? new ComponentSet();
     });
 
-    const publishDeployNotifications = Effect.fn('MetadataDeployService.publishDeployNotifications')(
-      (deployOutcome: DeployResult) =>
-        Stream.fromIterable(deployOutcome.getFileResponses()).pipe(
-          Stream.filter(isSDRSuccess),
-          Stream.mapEffect(r =>
+    const publishDeployNotifications = Effect.fn('MetadataDeployService.publishDeployNotifications')(function* (
+      deployOutcome: DeployResult
+    ) {
+      const successfulResponses = deployOutcome.getFileResponses().filter(isSDRSuccess);
+      const changes = dedupeMetadataChanges(
+        yield* Effect.forEach(
+          successfulResponses,
+          response =>
             Effect.gen(function* () {
               return {
-                metadataType: r.type,
-                fullName: r.fullName,
-                changeType: toComponentStatusChangeType(r.state),
+                metadataType: response.type,
+                fullName: response.fullName,
+                changeType: toComponentStatusChangeType(response.state),
                 fileUri: Option.fromNullable(
-                  isNotUndefined(r.filePath) ? yield* fsService.toUri(r.filePath) : undefined
+                  isNotUndefined(response.filePath) ? yield* fsService.toUri(response.filePath) : undefined
                 )
               };
-            })
-          ),
-          Stream.run(Sink.fromPubSub(notificationService.pubsub))
+            }),
+          { concurrency: 'unbounded' }
         )
-    );
+      );
+      if (changes.length === 0) return;
+      const { orgId } = yield* SubscriptionRef.get(defaultOrgRef);
+      yield* Effect.annotateCurrentSpan({
+        rawFileResponseCount: successfulResponses.length,
+        uniqueComponentCount: changes.length,
+        affectedMetadataTypeCount: new Set(changes.map(change => change.metadataType)).size
+      });
+      yield* notificationService.publishOperation({
+        ...(orgId ? { orgId } : {}),
+        operation: changes.every(change => change.changeType === 'deleted') ? 'delete' : 'deploy',
+        completedAt: new Date().toISOString(),
+        changes: [...changes]
+      });
+    });
 
     /** Deploy metadata to the default org */
     const deploy = Effect.fn('MetadataDeployService.deploy')(function* (components: ComponentSet) {

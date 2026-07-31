@@ -34,7 +34,7 @@ export const viewChangesCommand = Effect.fn('viewChanges')(function* (options: V
   const channelService = yield* api.services.ChannelService;
   const channel = yield* channelService.getChannel;
 
-  const status = yield* api.services.SourceTrackingService.getStatus(options);
+  const status = yield* api.services.OrgMetadataCatalog.getChangeStatus(options);
   const { localChanges: allLocalChanges, remoteChanges: allRemoteChanges, conflicts } = separateChanges(status);
 
   const remoteChanges = options.remote ? allRemoteChanges : undefined;

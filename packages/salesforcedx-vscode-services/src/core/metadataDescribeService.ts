@@ -306,6 +306,13 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       yield* listMetadataCache.invalidate(key);
     });
 
+    const invalidateAllListMetadata = Effect.fn('MetadataDescribeService.invalidateAllListMetadata')(function* () {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      if (!orgId) return;
+      const { listMetadataCache } = yield* orgCacheRegistry.get(orgId);
+      yield* listMetadataCache.invalidateAll;
+    });
+
     const invalidateSObjectDescribe = Effect.fn('MetadataDescribeService.invalidateSObjectDescribe')(function* (
       objectName: string
     ) {
@@ -313,6 +320,24 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       if (!orgId) return;
       const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId);
       yield* sobjectDescribeCache.invalidate(objectName);
+    });
+
+    const invalidateSObjectDescribes = Effect.fn('MetadataDescribeService.invalidateSObjectDescribes')(function* (
+      objectNames?: readonly string[]
+    ) {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      if (!orgId) return;
+      const { sobjectDescribeCache } = yield* orgCacheRegistry.get(orgId);
+      yield* objectNames
+        ? Effect.forEach(objectNames, objectName => sobjectDescribeCache.invalidate(objectName), { discard: true })
+        : sobjectDescribeCache.invalidateAll;
+    });
+
+    const invalidateListSObjects = Effect.fn('MetadataDescribeService.invalidateListSObjects')(function* () {
+      const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+      if (!orgId) return;
+      const { listSObjectsCache } = yield* orgCacheRegistry.get(orgId);
+      yield* listSObjectsCache.invalidate('global');
     });
 
     const describe = Effect.fn('MetadataDescribeService.describe')(function* () {
@@ -428,10 +453,16 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     return {
       /** Clears the cached Metadata API describe result for the current org. */
       invalidateDescribe,
+      /** Clears all cached listMetadata entries for the current org. */
+      invalidateAllListMetadata,
       /** Clears a single cached listMetadata entry (by type+folder) for the current org. */
       invalidateListMetadata,
       /** Clears a single cached SObject describe entry (by name) for the current org. */
       invalidateSObjectDescribe,
+      /** Clears selected or all cached SObject describe entries for the current org. */
+      invalidateSObjectDescribes,
+      /** Clears the cached global SObject listing for the current org. */
+      invalidateListSObjects,
       /**
        * Performs a Metadata API describe and returns the result.
        */

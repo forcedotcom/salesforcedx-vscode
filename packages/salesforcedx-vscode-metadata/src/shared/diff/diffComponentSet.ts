@@ -13,8 +13,7 @@ import * as Stream from 'effect/Stream';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { formatRetrieveOutput } from '../retrieve/formatRetrieveOutput';
-import { filesAreNotIdentical, matchUrisToComponents, retrieveToCacheDirectory } from './diffHelpers';
+import { filesAreNotIdentical, materializeRemoteComponents } from './diffHelpers';
 
 /** Diff ComponentSet - retrieve to cache and show diffs. Returns pairs that were diffed (non-identical). */
 export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options: {
@@ -29,24 +28,7 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
     `Retrieving ${componentSet.size} component${componentSet.size === 1 ? '' : 's'} for diff...`
   );
 
-  const retrieveResult = yield* retrieveToCacheDirectory(componentSet);
-
-  if (!retrieveResult) {
-    return yield* new api.services.UserCancellationError();
-  }
-
-  yield* channelService.appendToChannel(yield* formatRetrieveOutput(retrieveResult));
-
-  if (retrieveResult.components.getSourceComponents().toArray().length === 0) {
-    yield* channelService.appendToChannel('No components retrieved from org');
-    yield* Effect.sync(() => {
-      void vscode.window.showWarningMessage(nls.localize('source_diff_no_results'));
-    });
-    return [];
-  }
-
-  // Match URIs to components using ComponentSet identity — local dir name is irrelevant
-  const pairsSet = yield* matchUrisToComponents(componentSet, retrieveResult.components, localUriFilter);
+  const pairsSet = yield* materializeRemoteComponents(componentSet, localUriFilter, undefined, 'refresh');
 
   if (HashSet.size(pairsSet) === 0) {
     yield* channelService.appendToChannel('No matching files found to diff');

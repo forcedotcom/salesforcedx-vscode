@@ -228,11 +228,9 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
               filePath: isString(filePath) ? filePath : filePath.toString()
             })
         }).pipe(Effect.catchAll(() => Effect.void)),
-      rename: (oldPath: string, newPath: string) =>
+      rename: (oldPath: string, newPath: string, options?: { readonly overwrite?: boolean }) =>
         Effect.tryPromise({
-          try: async () => {
-            await vscode.workspace.fs.rename(toUri(oldPath), toUri(newPath));
-          },
+          try: async () => vscode.workspace.fs.rename(toUri(oldPath), toUri(newPath), options),
           catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'rename', filePath: oldPath })
         }),
       readJSON: <A>(filePath: string, schema: S.Schema<A>) =>

@@ -132,7 +132,7 @@ export const isNonEmptyClassEntriesList = (list: ClassEntry[] | undefined): list
  * Resolves package info for an Option-wrapped class id against the id→package map.
  * `none` id or missing map entry → `undefined`.
  */
-export const resolvePackageInfoForClassId = (
+const resolvePackageInfoForClassId = (
   id: Option.Option<string>,
   classIdToPackage: Map<string, ResolvedPackageInfo>
 ): ResolvedPackageInfo | undefined =>

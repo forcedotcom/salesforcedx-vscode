@@ -39,9 +39,9 @@ jest.mock('../../../src/services/extensionProvider', () => ({
 }));
 
 // Tree-mutation methods (incrementalUpdate/resolveSuiteChildren) read the org key inline via the Services
-// TargetOrgRef seam (see mockServicesApi below) and PackageResolutionService.resolve / buildClassToUriIndex
-// for placement. Controllable per test; defaults give a valid org + empty package/URI maps so addClassToTree
-// exercises the namespace/package build path.
+// TargetOrgRef seam (see mockServicesApi below), PackageResolutionService.resolve for placement, and the
+// catalog resolver for document URIs. Controllable per test; defaults give a valid org + empty package/URI
+// maps so addClassToTree exercises the namespace/package build path.
 let mockOrgInfo: { orgId?: string; username?: string } = { orgId: 'org123', username: 'user@example.com' };
 jest.mock('../../../src/testDiscovery/packageResolution', () => {
   const EffectLib = jest.requireActual('effect/Effect');
@@ -53,7 +53,6 @@ jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
   return {
     ...actual,
-    buildClassToUriIndex: () => Promise.resolve(mockClassNameToUri),
     getMethodLocationsFromSymbols: () => Promise.resolve(new Map())
   };
 });
@@ -66,7 +65,7 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import type { URI } from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
 import {
   ApexTestTreeService,
@@ -101,6 +100,25 @@ const mockServicesApi = {
     SettingsService: Effect.succeed(mockSettingsService),
     ConnectionService: mockConnectionService,
     OrgMetadataCatalog: Effect.succeed({
+      resolveKnownOrgComponents: (references: readonly { xmlName: string; fullName: string }[]) => {
+        if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
+        return Effect.succeed(
+          references.map(reference => {
+            const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
+            const workspaceUri = mockClassNameToUri.get(baseName);
+            return {
+              reference,
+              documentUri:
+                workspaceUri ??
+                jest
+                  .requireActual('vscode-uri')
+                  .URI.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`),
+              inWorkspace: Boolean(workspaceUri),
+              workspaceUri
+            };
+          })
+        );
+      },
       getPresence: (reference: { fullName: string }) => {
         if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
         const baseName = reference.fullName.split('.').at(-1) ?? reference.fullName;
@@ -439,6 +457,93 @@ describe('ApexTestTreeService', () => {
       );
       // A namespace node was created under controller.items for the added class.
       expect(topItems.size).toBeGreaterThan(0);
+    });
+
+    it('replaces an org-only class when download creates its local source', async () => {
+      withTooling();
+      const localUri = URI.file('/workspace/classes/FooTest.cls');
+      mockClassNameToUri.set('FooTest', localUri);
+      const inWorkspaceTag = { id: 'in-workspace' } as vscode.TestTag;
+      const { ctx, topItems } = makeMutationContext({ inWorkspaceTag });
+      const namespaceItem = richTestItem('namespace:local', '(Local Namespace)');
+      const packageItem = richTestItem('package:local:unpackaged', '(Unpackaged Metadata)');
+      const orgOnlyClass = richTestItem(
+        'class:FooTest',
+        'FooTest',
+        URI.parse('sf-org-metadata:/orgs/org123/ApexClass/FooTest.cls')
+      );
+      orgOnlyClass.children.add(richTestItem('method:FooTest.testNothing', 'testNothing', orgOnlyClass.uri));
+      packageItem.children.add(orgOnlyClass);
+      namespaceItem.children.add(packageItem);
+      ctx.controller.items.add(namespaceItem);
+      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('FooTest', ['testNothing'])] }));
+
+      await run(
+        Effect.gen(function* () {
+          const classItems = yield* ApexTestTreeService.getClassItems();
+          const methodItems = yield* ApexTestTreeService.getMethodItems();
+          const classToParent = yield* ApexTestTreeService.getClassToParentItem();
+          classItems.set('FooTest', orgOnlyClass);
+          methodItems.set('FooTest.testNothing', [...orgOnlyClass.children][0][1]);
+          classToParent.set('FooTest', packageItem);
+
+          yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['FooTest', 'created']]), false);
+
+          const replacement = classItems.get('FooTest');
+          expect(replacement).not.toBe(orgOnlyClass);
+          expect(replacement?.uri).toBe(localUri);
+          expect(replacement?.tags).toEqual([inWorkspaceTag]);
+          expect(methodItems.get('FooTest.testNothing')?.uri).toBe(localUri);
+        })
+      );
+
+      const namespaces = [...topItems.values()];
+      expect(namespaces).toHaveLength(1);
+      const packages = [...namespaces[0].children].map(([, item]) => item);
+      expect(packages).toHaveLength(1);
+      expect(packages[0].id).toBe('package:local:unpackaged');
+      expect(packages[0].label).toBe('(Unpackaged Metadata)');
+      expect([...packages[0].children]).toHaveLength(1);
+    });
+
+    it('replaces a local class with an org-only class when its workspace source is deleted', async () => {
+      withTooling();
+      const localUri = URI.file('/workspace/classes/FooTest.cls');
+      const remoteUri = URI.parse('sf-org-metadata:/orgs/org123/ApexClass/FooTest.cls');
+      const orgOnlyTag = { id: 'org-only' } as vscode.TestTag;
+      const inWorkspaceTag = { id: 'in-workspace' } as vscode.TestTag;
+      const { ctx } = makeMutationContext({ inWorkspaceTag, orgOnlyTag });
+      const namespaceItem = richTestItem('namespace:local', '(Local Namespace)');
+      const packageItem = richTestItem('package:local:unpackaged', '(Unpackaged Metadata)');
+      const localClass = richTestItem('class:FooTest', 'FooTest', localUri);
+      localClass.tags = [inWorkspaceTag];
+      const localMethod = richTestItem('method:FooTest.testNothing', 'testNothing', localUri);
+      localMethod.tags = [inWorkspaceTag];
+      localClass.children.add(localMethod);
+      packageItem.children.add(localClass);
+      namespaceItem.children.add(packageItem);
+      ctx.controller.items.add(namespaceItem);
+      mockDiscoverTests.mockReturnValue(Effect.succeed({ classes: [toolingClass('FooTest', ['testNothing'])] }));
+
+      await run(
+        Effect.gen(function* () {
+          const classItems = yield* ApexTestTreeService.getClassItems();
+          const methodItems = yield* ApexTestTreeService.getMethodItems();
+          const classToParent = yield* ApexTestTreeService.getClassToParentItem();
+          classItems.set('FooTest', localClass);
+          methodItems.set('FooTest.testNothing', localMethod);
+          classToParent.set('FooTest', packageItem);
+
+          yield* ApexTestTreeService.incrementalUpdate(ctx, new Map([['FooTest', 'workspacePresence']]), false);
+
+          const replacement = classItems.get('FooTest');
+          expect(replacement).not.toBe(localClass);
+          expect(replacement?.uri).toEqual(remoteUri);
+          expect(replacement?.tags).toEqual([orgOnlyTag]);
+          expect(methodItems.get('FooTest.testNothing')?.uri).toEqual(remoteUri);
+          expect(methodItems.get('FooTest.testNothing')?.tags).toEqual([orgOnlyTag]);
+        })
+      );
     });
 
     it('diffs a changed class (invalidates results, replaces method children)', async () => {

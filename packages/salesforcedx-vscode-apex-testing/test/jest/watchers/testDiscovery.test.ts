@@ -38,9 +38,11 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
 
   const refresh = jest.fn<Promise<void>, []>(() => Promise.resolve());
   const clearAllTestItems = jest.fn<Promise<void>, []>(() => Promise.resolve());
+  const incrementalUpdate = jest.fn<Promise<void>, [Map<string, string>, boolean]>(() => Promise.resolve());
   const testController = {
     refresh,
-    clearAllTestItems
+    clearAllTestItems,
+    incrementalUpdate
   } as unknown as ReturnType<typeof getTestController>;
 
   const appendToChannel = jest.fn(() => Effect.void);
@@ -69,7 +71,7 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
     )
   );
 
-  return { targetOrgRef, catalogChanges, refresh, clearAllTestItems };
+  return { targetOrgRef, catalogChanges, refresh, clearAllTestItems, incrementalUpdate };
 });
 
 // No debounce in the watcher; advance virtual time to let the forked fiber process the latest emission.
@@ -128,49 +130,115 @@ describe('initializeTestDiscovery', () => {
       })
     ));
 
-  it('refreshes when an Apex class is created or deleted in the workspace', () =>
+  it('incrementally updates when an Apex class is created or deleted in the workspace', () =>
     runTest(
       Effect.gen(function* () {
-        const { catalogChanges, refresh } = yield* setupHarness({ orgId: 'someOrg' });
+        const { catalogChanges, refresh, incrementalUpdate } = yield* setupHarness({ orgId: 'someOrg' });
         yield* settle;
         expect(refresh).toHaveBeenCalledTimes(1);
 
         yield* PubSub.publish(catalogChanges, {
           kind: 'workspace',
-          event: {
-            type: 'delete',
-            uri: URI.file('/workspace/force-app/main/default/classes/MyTest.cls')
-          }
+          events: [
+            {
+              type: 'delete',
+              uri: URI.file('/workspace/force-app/main/default/classes/MyTest.cls')
+            }
+          ]
         });
         yield* settle;
 
-        expect(refresh).toHaveBeenCalledTimes(2);
+        expect(refresh).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).toHaveBeenCalledWith(new Map([['MyTest', 'workspacePresence']]), false);
       })
     ));
 
-  it('does not refresh for workspace changes that cannot alter Apex class presence', () =>
+  it('coalesces relevant workspace events into one targeted update', () =>
     runTest(
       Effect.gen(function* () {
-        const { catalogChanges, refresh } = yield* setupHarness({ orgId: 'someOrg' });
+        const { catalogChanges, incrementalUpdate } = yield* setupHarness({ orgId: 'someOrg' });
         yield* settle;
 
         yield* PubSub.publish(catalogChanges, {
           kind: 'workspace',
-          event: {
-            type: 'change',
-            uri: URI.file('/workspace/force-app/main/default/classes/MyTest.cls')
-          }
+          events: [
+            {
+              type: 'create',
+              uri: URI.file('/workspace/force-app/main/default/classes/FooTest.cls')
+            },
+            {
+              type: 'create',
+              uri: URI.file('/workspace/force-app/main/default/classes/FooTest.cls-meta.xml')
+            },
+            {
+              type: 'delete',
+              uri: URI.file('/workspace/force-app/main/default/classes/OldTest.cls')
+            }
+          ]
+        });
+        yield* settle;
+
+        expect(incrementalUpdate).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).toHaveBeenCalledWith(
+          new Map([
+            ['FooTest', 'workspacePresence'],
+            ['OldTest', 'workspacePresence']
+          ]),
+          false
+        );
+      })
+    ));
+
+  it('reconciles Apex class presence when only its sidecar notification is observed', () =>
+    runTest(
+      Effect.gen(function* () {
+        const { catalogChanges, incrementalUpdate } = yield* setupHarness({ orgId: 'someOrg' });
+        yield* settle;
+
+        yield* PubSub.publish(catalogChanges, {
+          kind: 'workspace',
+          events: [
+            {
+              type: 'delete',
+              uri: URI.file('/workspace/force-app/main/default/classes/MyTest.cls-meta.xml')
+            }
+          ]
+        });
+        yield* settle;
+
+        expect(incrementalUpdate).toHaveBeenCalledWith(new Map([['MyTest', 'workspacePresence']]), false);
+      })
+    ));
+
+  it('does not update for workspace changes that cannot alter Apex class presence', () =>
+    runTest(
+      Effect.gen(function* () {
+        const { catalogChanges, refresh, incrementalUpdate } = yield* setupHarness({ orgId: 'someOrg' });
+        yield* settle;
+
+        yield* PubSub.publish(catalogChanges, {
+          kind: 'workspace',
+          events: [
+            {
+              type: 'change',
+              uri: URI.file('/workspace/force-app/main/default/classes/MyTest.cls')
+            }
+          ]
         });
         yield* PubSub.publish(catalogChanges, {
           kind: 'workspace',
-          event: {
-            type: 'delete',
-            uri: URI.file('/workspace/force-app/main/default/objects/Account.object-meta.xml')
-          }
+          events: [
+            {
+              type: 'delete',
+              uri: URI.file('/workspace/force-app/main/default/objects/Account.object-meta.xml')
+            }
+          ]
         });
         yield* settle;
 
         expect(refresh).toHaveBeenCalledTimes(1);
+        expect(incrementalUpdate).not.toHaveBeenCalled();
       })
     ));
 });

@@ -15,7 +15,8 @@ import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
 import {
   MetadataChangeNotificationService,
-  type MetadataChangeEvent as MetadataChangeEventType
+  type MetadataChangeEvent as MetadataChangeEventType,
+  type MetadataOperationEvent as MetadataOperationEventType
 } from 'salesforcedx-vscode-services/src/core/metadataChangeNotificationService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { URI } from 'vscode-uri';
@@ -28,11 +29,17 @@ const DEBOUNCE_PLUS_MARGIN = '1100 millis';
 
 const makeEvent = (
   overrides: Partial<MetadataChangeEventType> & Pick<MetadataChangeEventType, 'metadataType'>
-): MetadataChangeEventType => ({
-  metadataType: overrides.metadataType,
-  fullName: overrides.fullName ?? 'MyClass',
-  changeType: overrides.changeType ?? 'changed',
-  fileUri: overrides.fileUri ?? Option.some(URI.file('/tmp/MyClass.cls'))
+): MetadataOperationEventType => ({
+  operation: 'deploy',
+  completedAt: new Date(0).toISOString(),
+  changes: [
+    {
+      metadataType: overrides.metadataType,
+      fullName: overrides.fullName ?? 'MyClass',
+      changeType: overrides.changeType ?? 'changed',
+      fileUri: overrides.fileUri ?? Option.some(URI.file('/tmp/MyClass.cls'))
+    }
+  ]
 });
 
 /**
@@ -41,7 +48,7 @@ const makeEvent = (
  * `TestClock.adjust` runs actions scheduled on or before the adjusted time.
  */
 const setupHarness = Effect.fn('setupHarness')(function* (readFileResponses: Map<string, string> = new Map()) {
-  const pubsub = yield* PubSub.unbounded<MetadataChangeEventType>({ replay: 16 });
+  const pubsub = yield* PubSub.unbounded<MetadataOperationEventType>({ replay: 16 });
   const incrementalUpdate = jest.fn<Promise<void>, [Map<string, string>, boolean]>(() => Promise.resolve());
   const testController = { incrementalUpdate } as unknown as Parameters<typeof setupApexMetadataChangeWatcher>[0];
 

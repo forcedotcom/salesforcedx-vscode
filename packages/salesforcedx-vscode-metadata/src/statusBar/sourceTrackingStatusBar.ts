@@ -22,9 +22,9 @@ import { buildCombinedHoverText } from './hover';
 const refresh = Effect.fn('statusBarRefresh', { root: true, attributes: { telemetryIgnore: true } })(
   function* (statusBarItem: vscode.StatusBarItem) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const sourceTrackingService = yield* api.services.SourceTrackingService;
+    const catalog = yield* api.services.OrgMetadataCatalog;
 
-    const hasTracking = yield* sourceTrackingService.hasTracking();
+    const hasTracking = yield* catalog.hasChangeTracking();
 
     if (!hasTracking) {
       statusBarItem.hide();
@@ -39,7 +39,7 @@ const refresh = Effect.fn('statusBarRefresh', { root: true, attributes: { teleme
       return;
     }
 
-    const status = yield* sourceTrackingService.getStatus({ local: true, remote: true });
+    const status = yield* catalog.refreshChangeStatus({ local: true, remote: true });
     updateDisplay(statusBarItem)(dedupeStatus(status));
   },
   Effect.catchAll(() => Effect.void) // ignore errors in refresh

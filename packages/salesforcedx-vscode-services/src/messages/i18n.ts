@@ -46,7 +46,11 @@ export const messages = {
   error_access_token_expired_detail:
     'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.  See the output channel for more details on the auth error',
   error_access_token_expired_login_button: 'Login',
-  error_access_token_refresh_failed: 'Unable to refresh your access token.  Please login again.'
+  error_access_token_refresh_failed: 'Unable to refresh your access token.  Please login again.',
+  org_metadata_catalog_no_default_org: 'No default org is configured.',
+  org_metadata_catalog_state_missing:
+    'No persisted OrgMetadataCatalog state exists yet. Use Org Browser, Apex Tests, SOQL, or Refresh SObject Definitions first.',
+  org_metadata_catalog_state_open_failed: 'Failed to open persisted OrgMetadataCatalog state: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

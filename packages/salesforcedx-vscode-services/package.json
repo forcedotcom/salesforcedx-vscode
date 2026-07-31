@@ -366,7 +366,20 @@
         }
       }
     },
-    "commands": [],
+    "commands": [
+      {
+        "command": "sf.internal.showOrgMetadataCatalogState",
+        "title": "%orgMetadataCatalog.showState%"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.internal.showOrgMetadataCatalogState",
+          "when": "sf:internal_dev"
+        }
+      ]
+    },
     "icons": {
       "sf-org-leaf": {
         "description": "Leaf icon for default scratch org",

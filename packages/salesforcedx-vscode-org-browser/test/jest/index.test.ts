@@ -52,7 +52,6 @@ import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connect
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
 import { MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
 import { MetadataDeployService } from 'salesforcedx-vscode-services/src/core/metadataDeployService';
-import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
 import { MetadataRegistryService } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
 import { MetadataRetrieveService } from 'salesforcedx-vscode-services/src/core/metadataRetrieveService';
 import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
@@ -231,7 +230,6 @@ const mockServicesApi = {
     EditorService: {} as typeof EditorService,
     FsService: {} as typeof FsService,
     MetadataDeleteService: {} as typeof MetadataDeleteService,
-    MetadataDescribeService: {} as typeof MetadataDescribeService,
     MetadataDeployService: {} as typeof MetadataDeployService,
     MetadataRegistryService: {} as typeof MetadataRegistryService,
     MetadataRetrieveService: {} as typeof MetadataRetrieveService,

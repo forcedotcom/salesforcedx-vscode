@@ -15,7 +15,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import { isError } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import type { DescribeSObjectResult } from 'salesforcedx-vscode-services';
+import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
 import { nls } from '../messages';
@@ -32,10 +32,10 @@ const appendToChannel = (message: string) =>
     Effect.flatMap(svc => svc.appendToChannel(message))
   );
 
-const retrieveSObjectRawEffect = Effect.fn('retrieveSObjectRawEffect')(function* (sobjectName: string) {
+const retrieveSObjectEffect = Effect.fn('retrieveSObjectEffect')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const metadataDescribeService = yield* api.services.MetadataDescribeService;
-  return yield* metadataDescribeService.describeCustomObject(sobjectName).pipe(Effect.orElseSucceed(() => undefined));
+  const catalog = yield* api.services.OrgMetadataCatalog;
+  return yield* catalog.describeSObject(sobjectName).pipe(Effect.orElseSucceed(() => undefined));
 });
 
 // TODO: This should be exported from soql-builder-ui
@@ -58,7 +58,7 @@ type SoqlEditorEvent =
     }
   | {
       type: 'sobject_metadata_response';
-      payload: DescribeSObjectResult;
+      payload: SObject;
     }
   | {
       type: 'sobjects_request';
@@ -132,7 +132,7 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected sendMessageToUi(type: MessageType, payload?: string | string[] | DescribeSObjectResult) {
+  protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject) {
     return Effect.promise<boolean>(() => this.webviewPanel.webview.postMessage({ type, payload })).pipe(
       Effect.asVoid,
       Effect.catchAllCause(cause =>
@@ -157,7 +157,7 @@ export class SOQLEditorInstance {
     return this.sendMessageToUi('sobjects_response', sobjectNames);
   }
 
-  protected updateSObjectMetadata(sobject: DescribeSObjectResult) {
+  protected updateSObjectMetadata(sobject: SObject) {
     return this.sendMessageToUi('sobject_metadata_response', sobject);
   }
 
@@ -197,7 +197,7 @@ export class SOQLEditorInstance {
       }
 
       case 'sobject_metadata_request':
-        return retrieveSObjectRawEffect(event.payload).pipe(
+        return retrieveSObjectEffect(event.payload).pipe(
           Effect.flatMap(sobject => (sobject ? this.updateSObjectMetadata(sobject) : Effect.void)),
           Effect.catchAll(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
           Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })

@@ -10,7 +10,26 @@ import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
+import { type URI, Utils } from 'vscode-uri';
 import { getTestController } from '../views/testController';
+
+const apexClassName = (uri: URI): string | undefined => {
+  const basename = Utils.basename(uri);
+  const lower = basename.toLowerCase();
+  if (lower.endsWith('.cls-meta.xml')) return basename.slice(0, -'.cls-meta.xml'.length);
+  if (lower.endsWith('.cls')) return basename.slice(0, -'.cls'.length);
+  return undefined;
+};
+
+const toApexClassChanges = (change: Extract<OrgMetadataCatalogChange, { kind: 'workspace' }>): Map<string, string> =>
+  new Map(
+    change.events
+      .filter(event => event.type === 'create' || event.type === 'delete')
+      .flatMap(event => {
+        const className = apexClassName(event.uri);
+        return className ? [[className, 'workspacePresence'] as const] : [];
+      })
+  );
 
 /** Initialize test discovery when an org is available, and clear/re-discover on org changes. */
 export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDiscovery')(function* (
@@ -39,12 +58,11 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
         catalogChanges.pipe(
           Stream.fromPubSub<OrgMetadataCatalogChange>,
           Stream.filter(
-            change =>
-              change.kind === 'workspace' &&
-              (change.event.type === 'create' || change.event.type === 'delete') &&
-              change.event.uri.path.toLowerCase().endsWith('.cls')
+            (change): change is Extract<OrgMetadataCatalogChange, { kind: 'workspace' }> => change.kind === 'workspace'
           ),
-          Stream.runForEach(() => Effect.promise(() => testController.refresh()))
+          Stream.map(toApexClassChanges),
+          Stream.filter(changes => changes.size > 0),
+          Stream.runForEach(changes => Effect.promise(() => testController.incrementalUpdate(changes, false)))
         )
       )
     ],

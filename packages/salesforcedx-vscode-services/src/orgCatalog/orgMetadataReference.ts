@@ -5,42 +5,50 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 
 export const ORG_METADATA_SCHEME = 'sf-org-metadata';
 
-export type OrgMetadataReference = {
-  readonly xmlName?: string;
-  readonly fullName?: string;
-};
+const NonEmptyString = Schema.String.pipe(Schema.minLength(1));
 
-export type OrgMetadataComponentReference = {
-  readonly xmlName: string;
-  readonly fullName: string;
-};
+export const OrgMetadataReference = Schema.Struct({
+  xmlName: Schema.optional(Schema.String),
+  fullName: Schema.optional(Schema.String)
+});
+export type OrgMetadataReference = typeof OrgMetadataReference.Type;
 
-export type OrgMetadataDocumentLocation = OrgMetadataComponentReference & {
-  readonly orgId: string;
-};
+export const OrgMetadataComponentReference = Schema.Struct({
+  xmlName: NonEmptyString,
+  fullName: NonEmptyString
+});
+export type OrgMetadataComponentReference = typeof OrgMetadataComponentReference.Type;
 
-const documentExtension = (xmlName: string): string => {
-  switch (xmlName) {
-    case 'ApexClass':
-      return '.cls';
-    case 'ApexTrigger':
-      return '.trigger';
-    default:
-      return '.xml';
-  }
+export const OrgMetadataDocumentLocation = Schema.Struct({
+  ...OrgMetadataComponentReference.fields,
+  orgId: NonEmptyString
+});
+export type OrgMetadataDocumentLocation = typeof OrgMetadataDocumentLocation.Type;
+
+const documentExtension = (registryAccess: RegistryAccess, xmlName: string): string => {
+  // Metadata API describe can return types that are not present in the
+  // installed SDR registry. They must remain navigable in catalog inventory.
+  const metadataType = Option.getOrUndefined(Option.liftThrowable(() => registryAccess.getTypeByName(xmlName))());
+  return `.${metadataType?.suffix ?? 'xml'}`;
 };
 
 const encodedSegments = (value: string): string[] => value.split('/').map(encodeURIComponent);
 
-export const orgMetadataDocumentUri = ({ orgId, xmlName, fullName }: OrgMetadataDocumentLocation): URI => {
+export const orgMetadataDocumentUri = (
+  registryAccess: RegistryAccess,
+  { orgId, xmlName, fullName }: OrgMetadataDocumentLocation
+): URI => {
   const segments = encodedSegments(fullName);
   const finalSegment = segments.at(-1);
   if (finalSegment) {
-    segments[segments.length - 1] = `${finalSegment}${documentExtension(xmlName)}`;
+    segments[segments.length - 1] = `${finalSegment}${documentExtension(registryAccess, xmlName)}`;
   }
   return URI.from({
     scheme: ORG_METADATA_SCHEME,
@@ -48,12 +56,15 @@ export const orgMetadataDocumentUri = ({ orgId, xmlName, fullName }: OrgMetadata
   });
 };
 
-export const parseOrgMetadataDocumentUri = (uri: URI): OrgMetadataDocumentLocation | undefined => {
+export const parseOrgMetadataDocumentUri = (
+  registryAccess: RegistryAccess,
+  uri: URI
+): OrgMetadataDocumentLocation | undefined => {
   if (uri.scheme !== ORG_METADATA_SCHEME) return undefined;
   const [, root, encodedOrgId, encodedXmlName, ...encodedFullName] = uri.path.split('/');
   if (root !== 'orgs' || !encodedOrgId || !encodedXmlName || encodedFullName.length === 0) return undefined;
   const xmlName = decodeURIComponent(encodedXmlName);
-  const extension = documentExtension(xmlName);
+  const extension = documentExtension(registryAccess, xmlName);
   const finalSegment = encodedFullName.at(-1);
   if (!finalSegment?.endsWith(extension)) return undefined;
   const fullNameSegments = [...encodedFullName];
@@ -65,10 +76,4 @@ export const parseOrgMetadataDocumentUri = (uri: URI): OrgMetadataDocumentLocati
   };
 };
 
-export const isOrgMetadataComponentReference = (
-  reference: OrgMetadataReference
-): reference is OrgMetadataComponentReference =>
-  typeof reference.xmlName === 'string' &&
-  reference.xmlName.length > 0 &&
-  typeof reference.fullName === 'string' &&
-  reference.fullName.length > 0;
+export const isOrgMetadataComponentReference = Schema.is(OrgMetadataComponentReference);

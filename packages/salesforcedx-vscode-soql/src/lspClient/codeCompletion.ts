@@ -197,11 +197,8 @@ const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | unde
   return getSoqlRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const metadataDescribeService = yield* api.services.MetadataDescribeService;
-      return yield* metadataDescribeService.describeCustomObject(sobjectName).pipe(
-        Effect.flatMap(raw => api.services.TransmogrifierService.toMinimalSObject(raw)),
-        Effect.orElseSucceed(() => undefined)
-      );
+      const catalog = yield* api.services.OrgMetadataCatalog;
+      return yield* catalog.describeSObject(sobjectName).pipe(Effect.orElseSucceed(() => undefined));
     })
   );
 };

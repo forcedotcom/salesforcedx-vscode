@@ -46,7 +46,6 @@ import {
   getPackageKeysOrdered,
   getPackageLabelAndId,
   isNonEmptyClassEntriesList,
-  resolvePackageInfoForClassId,
   sortNamespaceKeys
 } from './orgTestItems';
 
@@ -435,19 +434,19 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
     ) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const catalog = yield* api.services.OrgMetadataCatalog;
-      const entries = yield* Effect.forEach(
-        classes,
-        cls =>
-          Effect.gen(function* () {
-            const fullClassName = getFullClassName(cls);
-            const reference = { xmlName: 'ApexClass', fullName: fullClassName } as const;
-            const presence = yield* catalog.getPresence(reference);
-            const uri = yield* catalog.getDocumentUri(reference);
-            return [fullClassName, { uri, inWorkspace: presence.inWorkspace } satisfies ApexClassResolution] as const;
-          }),
-        { concurrency: 10 }
+      const classNames = classes.map(getFullClassName);
+      const resolutions = yield* catalog.resolveKnownOrgComponents(
+        classNames.map(fullName => ({ xmlName: 'ApexClass', fullName }))
       );
-      return new Map(entries);
+      return new Map(
+        resolutions.map((resolution, index) => [
+          classNames[index],
+          {
+            uri: resolution.documentUri,
+            inWorkspace: resolution.inWorkspace
+          } satisfies ApexClassResolution
+        ])
+      );
     });
 
     /**
@@ -837,6 +836,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       yield* Effect.sync(() => {
         structure.forEach((pkMap, nsKey) => {
           pkMap.forEach((classEntriesList, pkgKey) => {
+            if (!isNonEmptyClassEntriesList(classEntriesList)) {
+              return;
+            }
+            const { packageLabel, packageId } = getPackageLabelAndId(nsKey, pkgKey, classEntriesList, classIdToPackage);
             classEntriesList.forEach(({ fullClassName: fcn, entries }) => {
               const nsId = createNamespaceId(nsKey);
               const namespaceItem = findOrCreateChild(
@@ -845,14 +848,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
                 () => ctx.controller.createTestItem(nsId, getNamespaceDisplayLabel(nsKey), undefined)
               );
 
-              const classEntry = classEntriesList[0];
-              const info = resolvePackageInfoForClassId(classEntry.entries[0].id, classIdToPackage);
-              const packageLabel = info?.packageName ?? pkgKey;
-              const pkgNodeId = `${nsKey}/${pkgKey}`;
               const packageItem = findOrCreateChild(
                 namespaceItem.children,
-                item => item.id === pkgNodeId || item.label === packageLabel,
-                () => ctx.controller.createTestItem(pkgNodeId, packageLabel, undefined)
+                item => item.id === packageId,
+                () => ctx.controller.createTestItem(packageId, packageLabel, undefined)
               );
 
               const classItem = createClassAndMethods(fcn, entries);
@@ -975,8 +974,15 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
             const discoveredClass = discoveryMap.get(fullName);
             const existingClassItem = currentClassItems.get(fullName);
 
-            if (changeType === 'created' || (!existingClassItem && discoveredClass)) {
+            if (
+              changeType === 'created' ||
+              changeType === 'workspacePresence' ||
+              (!existingClassItem && discoveredClass)
+            ) {
               if (discoveredClass) {
+                if (existingClassItem) {
+                  yield* removeClassFromTree(ctx, fullName);
+                }
                 yield* addClassToTree(ctx, discoveredClass, classResolutions);
               }
             } else if (changeType === 'changed' && existingClassItem && discoveredClass) {

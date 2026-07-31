@@ -87,7 +87,6 @@ export class ApexTestController {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         // Drop the shared cached connection so the next getConnection() reloads AuthInfo from disk.
         yield* api.services.ConnectionService.invalidateCachedConnections();
-        yield* (yield* api.services.OrgMetadataCatalog).invalidate();
         yield* ApexTestTreeService.clearRestoredResults();
       })
     );
@@ -252,6 +251,8 @@ export class ApexTestController {
     await this.retrieveOrgOnlyClassFromUri(URI.revive(test.uri));
   }
 
+  // Public command boundary retained for callers that retrieve directly from a virtual document URI.
+  // eslint-disable-next-line class-methods-use-this
   public async retrieveOrgOnlyClassFromUri(uri: URI): Promise<void> {
     const reference = await getApexTestingRuntime().runPromise(getApexClassReference(uri));
     if (!reference) {
@@ -259,7 +260,7 @@ export class ApexTestController {
     }
     const executionName = nls.localize('apex_test_retrieve_org_only_class_text');
     await getApexTestingRuntime().runPromise(
-      retrieveOrgOnlyClass(uri, reference, executionName, () => this.refresh()).pipe(
+      retrieveOrgOnlyClass(uri, reference, executionName).pipe(
         // Cancellation gets its own informational notification (fire-and-forget → Effect.sync, no response awaited).
         Effect.catchTag('UserCancellationError', () =>
           Effect.sync(
@@ -359,15 +360,14 @@ const augmentMethodPositionsFromSymbols = async (classItem: vscode.TestItem): Pr
     });
 };
 
-// Retrieve an org-only Apex class into the workspace, open it, and refresh the tree. The refresh step
-// recovers in place (non-fatal logWarning) so a refresh failure never bubbles to the caller's failed-notify
-// branch. Retrieve/open failures propagate on the error channel for the boundary to map (cancellation →
-// canceled notification, everything else → showFailedExecution).
+// Retrieve an org-only Apex class into the workspace and open it. MetadataRetrieveService publishes the
+// successful operation; apexMetadataChangeWatcher applies the targeted tree update without collapsing
+// unrelated Test Explorer nodes. Retrieve/open failures propagate on the error channel for the boundary
+// to map (cancellation → canceled notification, everything else → showFailedExecution).
 const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassFromUri')(function* (
   uri: URI,
   reference: OrgMetadataComponentReference,
-  executionName: string,
-  refresh: () => Promise<void>
+  executionName: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const catalog = yield* api.services.OrgMetadataCatalog;
@@ -378,13 +378,6 @@ const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassF
         viewColumn: vscode.ViewColumn.Active,
         preserveFocus: false
       }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
-    ),
-    // Refresh failure stays non-fatal and must never reach the outer failed-notify branch.
-    Effect.tap(() =>
-      Effect.tryPromise(() => refresh()).pipe(
-        Effect.tapError(error => Effect.logWarning('Failed to refresh Apex tests after retrieve', { error })),
-        Effect.ignore
-      )
     ),
     Effect.tap(() => Effect.sync(() => notificationService.showSuccessfulExecution(executionName)))
   );

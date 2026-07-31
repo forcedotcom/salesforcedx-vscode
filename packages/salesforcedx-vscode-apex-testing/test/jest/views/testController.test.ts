@@ -17,11 +17,26 @@ jest.mock('../../../src/services/extensionProvider', () => {
 
   let mockConnectionRef: any;
   let mockReadFileResult = '';
+  let mockWorkspaceUris = new Map<string, InstanceType<typeof UriClass>>();
   const mockReadFile = jest.fn(() => EffectLib.succeed(mockReadFileResult));
   const mockMetadataRetrieve = jest.fn((_members: unknown, _options: unknown) =>
     EffectLib.succeed({ getFileResponses: () => [] })
   );
+  const mockCatalogInvalidate = jest.fn(() => EffectLib.void);
   const mockOrgMetadataCatalog = {
+    resolveKnownOrgComponents: (references: readonly { xmlName: string; fullName: string }[]) =>
+      EffectLib.succeed(
+        references.map(reference => {
+          const workspaceUri = mockWorkspaceUris.get(reference.fullName);
+          return {
+            reference,
+            documentUri:
+              workspaceUri ?? UriClass.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`),
+            inWorkspace: workspaceUri !== undefined,
+            ...(workspaceUri ? { workspaceUri } : {})
+          };
+        })
+      ),
     getPresence: () => EffectLib.succeed({ inOrg: true, inWorkspace: false }),
     getDocumentUri: (reference: { fullName: string }) =>
       EffectLib.succeed(UriClass.parse(`sf-org-metadata:/orgs/org123/ApexClass/${reference.fullName}.cls`)),
@@ -43,7 +58,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
           return UriClass.file(filePath ?? `/workspace/${reference.fullName}.cls`);
         })
       ),
-    invalidate: () => EffectLib.void
+    invalidate: mockCatalogInvalidate
   };
   const MockConnectionService = {
     getConnection: () => EffectLib.succeed(mockConnectionRef),
@@ -135,9 +150,13 @@ jest.mock('../../../src/services/extensionProvider', () => {
     __setMockReadFileResult: (s: string) => {
       mockReadFileResult = s;
     },
+    __setMockWorkspaceUris: (uris: Map<string, InstanceType<typeof UriClass>>) => {
+      mockWorkspaceUris = uris;
+    },
     __mockFsServiceReadFile: mockReadFile,
     __mockAppendToChannel: mockAppendToChannel,
     __mockMetadataRetrieve: mockMetadataRetrieve,
+    __mockCatalogInvalidate: mockCatalogInvalidate,
     // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
     __resetTree: () => {
       ensureRuntime();
@@ -151,7 +170,6 @@ jest.mock('../../../src/utils/testUtils', () => {
   const actual = jest.requireActual('../../../src/utils/testUtils');
   return {
     ...actual,
-    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
     getMethodLocationsFromSymbols: jest.fn().mockResolvedValue(new Map()),
     readTestRunIdFile: jest.fn().mockResolvedValue(undefined)
   };
@@ -291,7 +309,6 @@ describe('ApexTestController', () => {
 
     (extensionProvider as any).__setMockConnection?.(mockConnection);
 
-    (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     (testUtils.getMethodLocationsFromSymbols as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     const Effect = jest.requireActual('effect/Effect');
     discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
@@ -302,8 +319,9 @@ describe('ApexTestController', () => {
     jest.clearAllMocks();
     mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
     mockTestServiceMethods.getTestsInSuite.mockResolvedValue([]);
-    // Restore buildClassToUriIndex default after clearing
-    (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
+    (
+      extensionProvider as unknown as { __setMockWorkspaceUris: (uris: Map<string, URI>) => void }
+    ).__setMockWorkspaceUris(new Map());
 
     // Ensure vscode.Uri.parse has its default implementation (from setup-jest.ts)
     // It should already have it, but let's make sure it's working
@@ -545,7 +563,9 @@ describe('ApexTestController', () => {
 
       const Effect = jest.requireActual('effect/Effect');
       discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: mockClasses }));
-      (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(
+      (
+        extensionProvider as unknown as { __setMockWorkspaceUris: (uris: Map<string, URI>) => void }
+      ).__setMockWorkspaceUris(
         new Map([
           ['TestClass1', URI.file('/workspace/TestClass1.cls')],
           ['TestClass2', URI.file('/workspace/TestClass2.cls')]
@@ -593,9 +613,7 @@ describe('ApexTestController', () => {
 
       const Effect = jest.requireActual('effect/Effect');
       discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: mockClasses }));
-      // OrgOnlyClass does not exist locally, so buildClassToUriIndex returns empty map
-      (testUtils.buildClassToUriIndex as jest.Mock).mockReset();
-      (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
+      // OrgOnlyClass does not exist locally, so the catalog resolver returns the remote document URI.
       const createdItemsMap = new Map<string, any>();
       (mockTestController.createTestItem as jest.Mock).mockImplementation(
         (id: string, label: string, uri?: URI): vscode.TestItem => {
@@ -754,6 +772,9 @@ describe('ApexTestController', () => {
 
       expect(mockTestController.items.replace).toHaveBeenCalledWith([]);
       expect(discoverTestsSpy).toHaveBeenCalled();
+      expect(
+        (extensionProvider as unknown as { __mockCatalogInvalidate: jest.Mock }).__mockCatalogInvalidate
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -791,35 +812,8 @@ describe('ApexTestController', () => {
         expect.objectContaining({ fsPath: orgOnlyClassFileUri.fsPath }),
         expect.anything()
       );
-      expect(refreshSpy).toHaveBeenCalled();
+      expect(refreshSpy).not.toHaveBeenCalled();
       expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
-    });
-
-    it('keeps a refresh failure non-fatal: still shows success, never failed', async () => {
-      const classTestItem = {
-        id: 'class:OrgOnlyClass',
-        label: 'OrgOnlyClass',
-        uri: URI.parse('sf-org-metadata:/orgs/org123/ApexClass/OrgOnlyClass.cls')
-      } as unknown as vscode.TestItem;
-
-      notificationService.showSuccessfulExecution = jest.fn();
-      notificationService.showFailedExecution = jest.fn();
-      (extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }).__mockMetadataRetrieve.mockClear();
-      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue({});
-      (
-        extensionProvider as unknown as { __mockMetadataRetrieve: jest.Mock }
-      ).__mockMetadataRetrieve.mockReturnValueOnce(
-        jest.requireActual('effect/Effect').succeed({
-          getFileResponses: () => [{ filePath: '/workspace/force-app/main/default/classes/OrgOnlyClass.cls' }]
-        })
-      );
-      // refresh rejects — must be swallowed (logWarning), not flipped to failed-execution.
-      jest.spyOn(controller, 'refresh').mockRejectedValue(new Error('refresh boom'));
-
-      await controller.retrieveOrgOnlyClass(classTestItem);
-
-      expect(notificationService.showSuccessfulExecution).toHaveBeenCalled();
-      expect(notificationService.showFailedExecution).not.toHaveBeenCalled();
     });
 
     it('shows the canceled notification when retrieve is cancelled (UserCancellationError)', async () => {
