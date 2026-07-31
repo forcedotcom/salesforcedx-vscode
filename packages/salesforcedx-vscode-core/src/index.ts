@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { buildAllServicesLayer, getServicesApi } from '@salesforce/effect-ext-utils';
+import { buildAllServicesLayer, closeExtensionScope, getServicesApi } from '@salesforce/effect-ext-utils';
 import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
@@ -18,6 +18,10 @@ import { aliasListCommand, configListCommand, initSObjectDefinitions, openDocume
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
+import {
+  registerWorkspaceContextTestCommand,
+  startWorkspaceContextTestCapture
+} from './context/workspaceContextTestCommand';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
@@ -111,9 +115,12 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     );
   }
 
-  setImmediate(() => {
-    void WorkspaceContext.getInstance().initialize(extensionContext);
-  });
+  yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
+
+  registerWorkspaceContextTestCommand(extensionContext);
+  if (extensionContext.extensionMode === vscode.ExtensionMode.Development) {
+    yield* Effect.promise(startWorkspaceContextTestCapture);
+  }
 
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
@@ -136,8 +143,10 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   );
 };
 
-export const deactivate = (): void => {
+export const deactivate = async (): Promise<void> => {
   console.log('SF CLI Extension Deactivated');
+
+  await getRuntime().runPromise(closeExtensionScope());
 
   // Send metric data.
   telemetryService.sendExtensionDeactivationEvent();

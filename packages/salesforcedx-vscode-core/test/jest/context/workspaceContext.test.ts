@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  OrgUserInfo,
-  OrgShape,
-  WorkspaceContextUtil,
-  refreshAllExtensionReporters
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService, closeExtensionScope } from '@salesforce/effect-ext-utils';
+import { refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { WorkspaceContext } from '../../../src/context';
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
@@ -17,227 +16,115 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   refreshAllExtensionReporters: jest.fn().mockResolvedValue(undefined)
 }));
 
-const refreshAllExtensionReportersMock = refreshAllExtensionReporters as jest.Mock;
+const targetOrgRef = Effect.runSync(SubscriptionRef.make({}));
+const connection = { getAuthInfoFields: () => ({ orgId: '00D' }) };
+const servicesApi = {
+  services: {
+    ConnectionService: { getConnection: () => Effect.succeed(connection) },
+    TargetOrgRef: () => Effect.succeed(targetOrgRef)
+  }
+};
+const providerLayer = Layer.succeed(ExtensionProviderService, {
+  getServicesApi: Effect.succeed(servicesApi)
+} as never);
+const runPromise = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
+  Effect.runPromise(effect.pipe(Effect.provide(providerLayer as Layer.Layer<R>)));
 
-const mockRunPromise = jest.fn();
 jest.mock('../../../src/services/runtime', () => ({
-  getRuntime: () => ({ runPromise: mockRunPromise })
+  getRuntime: () => ({ runPromise })
 }));
 
-const getOrgShapeMock = jest.fn();
-jest.mock('../../../src/context/workspaceOrgShape', () => ({
-  getOrgShape: (...args: any[]) => getOrgShapeMock(...args)
-}));
+const coreContext = {
+  extension: { id: 'salesforce.salesforcedx-vscode-core' },
+  subscriptions: []
+};
+const replayContext = {
+  extension: { id: 'salesforce.salesforcedx-vscode-apex-replay-debugger' },
+  subscriptions: []
+};
 
-const makeWorkspaceContextUtilStub = () => ({
-  onOrgChange: jest.fn(),
-  initialize: jest.fn().mockResolvedValue(undefined)
-});
+const flushEffects = () => new Promise(resolve => setImmediate(resolve));
 
-describe('workspaceContext', () => {
-  describe('handleOrgShapeChange', () => {
-    const mockOrgUserInfo: OrgUserInfo = { username: 'test-username' };
-    let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
+const setTargetOrg = (identity: { username?: string; alias?: string; orgId?: string }) =>
+  Effect.runPromise(SubscriptionRef.set(targetOrgRef, identity));
 
-    const mockConnection = {
-      getAuthInfoFields: jest.fn()
-    };
-
-    const mockWorkspaceContextUtil = {
-      onOrgChange: jest.fn(),
-      orgShape: undefined as OrgShape | undefined,
-      devHubId: undefined as string | undefined,
-      orgEdition: undefined as string | undefined,
-      username: 'mock-username',
-      alias: 'mock-alias',
-      orgId: 'mock-org-id'
-    };
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      workspaceContextUtilGetInstanceSpy = jest
-        .spyOn(WorkspaceContextUtil, 'getInstance')
-        .mockReturnValue(mockWorkspaceContextUtil as any);
-
-      getOrgShapeMock.mockResolvedValue('Undefined');
-
-      mockConnection.getAuthInfoFields.mockReturnValue({ orgId: '000', orgEdition: 'Developer Edition' });
-      // orgEdition now flows through the services runtime (ConnectionService), not the utils facade
-      mockRunPromise.mockResolvedValue(mockConnection);
-    });
-
-    it('should set orgShape and devHubId to undefined if orgShape is Undefined', async () => {
-      getOrgShapeMock.mockResolvedValue('Undefined');
-      const workspaceContext = WorkspaceContext.getInstance();
-
-      await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
-
-      expect(getOrgShapeMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
-      expect(mockWorkspaceContextUtil.orgShape).toBeUndefined();
-      expect(mockWorkspaceContextUtil.devHubId).toBeUndefined();
-    });
-
-    it('should set orgShape if it is not Undefined and not set devHubId if not Scratch', async () => {
-      getOrgShapeMock.mockResolvedValue('Sandbox');
-      const workspaceContext = WorkspaceContext.getInstance();
-
-      await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
-
-      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
-      expect(getOrgShapeMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
-      expect(mockWorkspaceContextUtil.orgShape).toBe('Sandbox');
-      expect(mockWorkspaceContextUtil.devHubId).toBeUndefined();
-    });
-
-    it('should set orgShape and devHubId if orgShape is Scratch', async () => {
-      getOrgShapeMock.mockResolvedValue('Scratch');
-      // first runPromise resolves the connection (orgEdition), second resolves the devHubId
-      mockRunPromise.mockResolvedValueOnce(mockConnection).mockResolvedValueOnce('test-dev-hub-id');
-      const workspaceContext = WorkspaceContext.getInstance();
-
-      await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
-
-      expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
-      expect(getOrgShapeMock).toHaveBeenCalledWith(mockOrgUserInfo.username);
-      expect(mockWorkspaceContextUtil.orgShape).toBe('Scratch');
-      expect(mockWorkspaceContextUtil.devHubId).toBe('test-dev-hub-id');
-    });
-
-    it('should set orgEdition from auth fields when orgShape is not Undefined', async () => {
-      getOrgShapeMock.mockResolvedValue('Production');
-      mockRunPromise.mockResolvedValue(mockConnection);
-      const workspaceContext = WorkspaceContext.getInstance();
-
-      await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
-
-      expect(mockWorkspaceContextUtil.orgEdition).toBe('Developer Edition');
-    });
-
-    it('should not set orgEdition if getConnection fails', async () => {
-      mockWorkspaceContextUtil.orgEdition = undefined;
-      getOrgShapeMock.mockResolvedValue('Production');
-      mockRunPromise.mockRejectedValue(new Error('connection failed'));
-      const workspaceContext = WorkspaceContext.getInstance();
-
-      await (workspaceContext as any).handleOrgShapeChange(mockOrgUserInfo);
-
-      expect(mockWorkspaceContextUtil.orgShape).toBe('Production');
-      expect(mockWorkspaceContextUtil.orgEdition).toBeUndefined();
-    });
+describe('WorkspaceContext', () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    coreContext.subscriptions.length = 0;
+    replayContext.subscriptions.length = 0;
+    await runPromise(closeExtensionScope());
+    await setTargetOrg({});
   });
 
-  describe('orgId', () => {
-    const dummyOrgId = '000dummyOrgId';
-    let getInstanceMock: jest.SpyInstance;
-
-    beforeEach(() => {
-      getInstanceMock = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
-        orgId: dummyOrgId
-      } as any);
-    });
-
-    it('should get the orgId from WorkspaceContextUtil', () => {
-      const orgId = WorkspaceContext.getInstance().orgId;
-
-      expect(getInstanceMock).toHaveBeenCalled();
-      expect(orgId).not.toBeNull();
-    });
+  afterEach(async () => {
+    await runPromise(closeExtensionScope());
   });
 
-  describe('initialization promise logic', () => {
-    let mockWorkspaceContextUtil: any;
-    let mockExtensionContext: any;
-    const mockConnection = { getAuthInfoFields: () => ({ orgId: '000' }) };
+  it('seeds synchronous getters from the initial snapshot without firing an event', async () => {
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
+    const context = WorkspaceContext.getInstance(true);
+    const listener = jest.fn();
+    context.onOrgChange(listener);
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockWorkspaceContextUtil = makeWorkspaceContextUtilStub();
-      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(mockWorkspaceContextUtil);
-      mockRunPromise.mockResolvedValue(mockConnection);
+    await context.initialize(coreContext as never);
+    await flushEffects();
 
-      mockExtensionContext = {
-        extension: { id: 'salesforce.salesforcedx-vscode-core' },
-        subscriptions: []
-      };
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: 'initial@example.com',
+      alias: 'initial',
+      orgId: '00Dinitial'
     });
-
-    it('should store initialization promise on first initialize() call', async () => {
-      const workspaceContext = WorkspaceContext.getInstance(true);
-
-      const promise = workspaceContext.initialize(mockExtensionContext);
-
-      expect(promise).toBeInstanceOf(Promise);
-      await promise;
-      expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
-    });
-
-    it('should only initialize once on multiple initialize() calls', async () => {
-      const workspaceContext = WorkspaceContext.getInstance(true);
-
-      const promise1 = workspaceContext.initialize(mockExtensionContext);
-      const promise2 = workspaceContext.initialize(mockExtensionContext);
-      const promise3 = workspaceContext.initialize(mockExtensionContext);
-
-      await Promise.all([promise1, promise2, promise3]);
-
-      expect(mockWorkspaceContextUtil.initialize).toHaveBeenCalledTimes(1);
-    });
-
-    it('should delegate getConnection() to the services runtime', async () => {
-      const workspaceContext = WorkspaceContext.getInstance(true);
-
-      const conn = await workspaceContext.getConnection();
-
-      expect(conn).toBe(mockConnection);
-      expect(mockRunPromise).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle multiple concurrent getConnection() calls', async () => {
-      const workspaceContext = WorkspaceContext.getInstance(true);
-
-      const [conn1, conn2, conn3] = await Promise.all([
-        workspaceContext.getConnection(),
-        workspaceContext.getConnection(),
-        workspaceContext.getConnection()
-      ]);
-
-      expect(conn1).toBe(mockConnection);
-      expect(conn2).toBe(mockConnection);
-      expect(conn3).toBe(mockConnection);
-      expect(mockRunPromise).toHaveBeenCalledTimes(3);
-    });
+    expect(listener).not.toHaveBeenCalled();
+    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
   });
 
-  describe('handleTelemetryUpdate telemetry refresh on org change', () => {
-    const coreCtx = { extension: { id: 'salesforce.salesforcedx-vscode-core' }, subscriptions: [] } as any;
-    const replayCtx = {
-      extension: { id: 'salesforce.salesforcedx-vscode-apex-replay-debugger' },
-      subscriptions: []
-    } as any;
+  it('fires once per distinct identity after updating getters and refreshes telemetry', async () => {
+    const context = WorkspaceContext.getInstance(true);
+    const observedGetters: object[] = [];
+    context.onOrgChange(() =>
+      observedGetters.push({ username: context.username, alias: context.alias, orgId: context.orgId })
+    );
+    await context.initialize(coreContext as never);
+    await flushEffects();
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-      jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue(makeWorkspaceContextUtilStub() as any);
+    const switched = { username: 'switched@example.com', alias: 'configured', orgId: '00Dswitched' };
+    await setTargetOrg(switched);
+    await setTargetOrg({ ...switched });
+    await flushEffects();
+
+    expect(observedGetters).toEqual([switched]);
+    expect(refreshAllExtensionReporters).toHaveBeenCalledWith(coreContext);
+  });
+
+  it('normalizes no-org values to undefined', async () => {
+    await setTargetOrg({ username: 'before@example.com', alias: 'before', orgId: '00Dbefore' });
+    const context = WorkspaceContext.getInstance(true);
+    await context.initialize(replayContext as never);
+    await flushEffects();
+
+    const changed = new Promise<void>(resolve => context.onOrgChange(() => resolve()));
+    await setTargetOrg({});
+    await changed;
+
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: undefined,
+      alias: undefined,
+      orgId: undefined
     });
+    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+  });
 
-    // documents _doInitialize id-gating: core ctx → coreExtensionContext set → refreshers run.
-    it('refreshes all extension reporters when initialized with core context', async () => {
-      const workspaceContext = WorkspaceContext.getInstance(true);
-      await workspaceContext.initialize(coreCtx);
+  it('initializes once and keeps connection delegation unchanged', async () => {
+    const context = WorkspaceContext.getInstance(true);
 
-      await (workspaceContext as any).handleTelemetryUpdate();
+    await Promise.all([
+      context.initialize(coreContext as never),
+      context.initialize(coreContext as never),
+      context.initialize(coreContext as never)
+    ]);
 
-      expect(refreshAllExtensionReportersMock).toHaveBeenCalledWith(coreCtx);
-    });
-
-    // non-core ctx → coreExtensionContext stays unset → refreshers no-op.
-    it('does not refresh reporters when initialized with a non-core (replay) context', async () => {
-      const workspaceContext = WorkspaceContext.getInstance(true);
-      await workspaceContext.initialize(replayCtx);
-
-      await (workspaceContext as any).handleTelemetryUpdate();
-
-      expect(refreshAllExtensionReportersMock).not.toHaveBeenCalled();
-    });
+    expect(await context.getConnection()).toBe(connection);
+    expect(coreContext.subscriptions).toHaveLength(1);
   });
 });
