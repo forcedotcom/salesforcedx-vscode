@@ -42,13 +42,15 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
     confirmLabel: nls.localize('org_delete_default_text')
   });
 
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
   // Defensive guard: the UI when-clause (sf:default_org_deletable) hides this command for
   // non-scratch/non-sandbox orgs, but it remains callable via executeCommand. Without this
   // check a production default org would fall through to `org delete scratch`.
-  if (orgInfo.isScratch !== true && orgInfo.isSandbox !== true) {
-    return yield* new OrgNotDeletableError({ message: nls.localize('org_delete_default_not_deletable') });
-  }
+  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef()).pipe(
+    Effect.filterOrFail(
+      org => org.isScratch === true || org.isSandbox === true,
+      () => new OrgNotDeletableError({ message: nls.localize('org_delete_default_not_deletable') })
+    )
+  );
   const deleteSubcommand = orgInfo.isSandbox === true ? 'org delete sandbox' : 'org delete scratch';
 
   // pass --target-org so the delete resolves the default org by username rather than depending on
@@ -132,9 +134,13 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
   // unconditional, after the loop: reflect whatever was actually deleted in the picker/cache even on partial failure
   yield* Effect.promise(() => updateConfigAndStateAggregators());
 
-  if (failed.length > 0) {
-    return yield* new OrgDeleteFailedError({
-      message: nls.localize('org_delete_failed_summary', failed.map(org => org.username).join(', '))
-    });
-  }
+  yield* Effect.succeed(failed).pipe(
+    Effect.filterOrFail(
+      failures => failures.length === 0,
+      failures =>
+        new OrgDeleteFailedError({
+          message: nls.localize('org_delete_failed_summary', failures.map(org => org.username).join(', '))
+        })
+    )
+  );
 });
