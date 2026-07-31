@@ -6,6 +6,7 @@
  */
 const Context = require('effect/Context');
 const Effect = require('effect/Effect');
+const Stream = require('effect/Stream');
 const vscode = require('vscode');
 
 const CORE_EXTENSION_ID = 'salesforce.salesforcedx-vscode-core';
@@ -25,6 +26,14 @@ const activate = async extensionContext => {
   const workspaceContext = coreApi.services.WorkspaceContext.getInstance();
   const workspace = vscode.workspace.workspaceFolders?.[0];
   if (!workspace) throw new Error('Workspace Context Playwright requires an open workspace');
+
+  const targetOrgRef = await Effect.runPromise(servicesApi.services.TargetOrgRef());
+  await Effect.runPromise(
+    targetOrgRef.changes.pipe(
+      Stream.filter(identity => Boolean(identity.username)),
+      Stream.runHead
+    )
+  );
 
   const stateUri = vscode.Uri.joinPath(workspace.uri, STATE_FILE);
   const writeState = state => vscode.workspace.fs.writeFile(stateUri, Buffer.from(JSON.stringify(state)));
@@ -59,7 +68,10 @@ const activate = async extensionContext => {
       await Effect.runPromise(
         configService
           .setTargetOrg(username)
-          .pipe(Effect.zipRight(connectionService.invalidateCachedConnections()), Effect.zipRight(connectionService.getConnection()))
+          .pipe(
+            Effect.zipRight(connectionService.invalidateCachedConnections()),
+            Effect.zipRight(connectionService.getConnection())
+          )
       );
     })
   );

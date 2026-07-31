@@ -45,7 +45,15 @@ const replayContext = {
 
 const flushEffects = () => new Promise(resolve => setImmediate(resolve));
 
-const setTargetOrg = (identity: { username?: string; alias?: string; orgId?: string }) =>
+const setTargetOrg = (identity: {
+  username?: string;
+  alias?: string;
+  orgId?: string;
+  isScratch?: boolean;
+  isSandbox?: boolean;
+  devHubOrgId?: string;
+  orgEdition?: string;
+}) =>
   Effect.runPromise(SubscriptionRef.set(targetOrgRef, identity));
 
 describe('WorkspaceContext', () => {
@@ -96,7 +104,7 @@ describe('WorkspaceContext', () => {
     expect(refreshAllExtensionReporters).toHaveBeenCalledWith(coreContext);
   });
 
-  it('updates orgId without firing when the configured org is unchanged', async () => {
+  it('fires when orgId changes and suppresses an exact duplicate snapshot', async () => {
     await setTargetOrg({ username: 'initial@example.com', alias: 'initial' });
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
@@ -104,11 +112,12 @@ describe('WorkspaceContext', () => {
     await context.initialize(coreContext as never);
 
     await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
     await flushEffects();
 
     expect(context.orgId).toBe('00Dinitial');
-    expect(listener).not.toHaveBeenCalled();
-    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
   });
 
   it('normalizes no-org values to undefined', async () => {
@@ -142,7 +151,7 @@ describe('WorkspaceContext', () => {
     expect(coreContext.subscriptions).toHaveLength(1);
   });
 
-  it('disposes the replaced singleton watcher and retains each instance identity', async () => {
+  it('disposes the replaced singleton watcher and shares identity across instances', async () => {
     await setTargetOrg({ username: 'first@example.com', alias: 'first', orgId: '00Dfirst' });
     const first = WorkspaceContext.getInstance(true);
     const firstListener = jest.fn();
@@ -150,6 +159,11 @@ describe('WorkspaceContext', () => {
     await first.initialize(coreContext as never);
 
     const replacement = WorkspaceContext.getInstance(true);
+    expect({ username: replacement.username, alias: replacement.alias, orgId: replacement.orgId }).toEqual({
+      username: 'first@example.com',
+      alias: 'first',
+      orgId: '00Dfirst'
+    });
     const replacementListener = jest.fn();
     replacement.onOrgChange(replacementListener);
     await replacement.initialize(coreContext as never);
@@ -162,11 +176,34 @@ describe('WorkspaceContext', () => {
     expect(firstListener).not.toHaveBeenCalled();
     expect(replacementListener).toHaveBeenCalledTimes(1);
     expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
-    expect({ username: first.username, alias: first.alias, orgId: first.orgId }).toEqual({
-      username: 'first@example.com',
-      alias: 'first',
-      orgId: '00Dfirst'
-    });
+    expect({ username: first.username, alias: first.alias, orgId: first.orgId }).toEqual(switched);
     expect({ username: replacement.username, alias: replacement.alias, orgId: replacement.orgId }).toEqual(switched);
+  });
+
+  it('preserves legacy org metadata accessors', async () => {
+    await setTargetOrg({
+      username: 'scratch@example.com',
+      alias: 'scratch',
+      isScratch: true,
+      devHubOrgId: '00Ddevhub',
+      orgEdition: 'Developer'
+    });
+    const context = WorkspaceContext.getInstance(true);
+    await context.initialize(coreContext as never);
+
+    expect({ orgShape: context.orgShape, devHubId: context.devHubId, orgEdition: context.orgEdition }).toEqual({
+      orgShape: 'Scratch',
+      devHubId: '00Ddevhub',
+      orgEdition: 'Developer'
+    });
+
+    context.orgShape = 'Sandbox';
+    context.devHubId = '00Dother';
+    context.orgEdition = 'Enterprise';
+    expect({ orgShape: context.orgShape, devHubId: context.devHubId, orgEdition: context.orgEdition }).toEqual({
+      orgShape: 'Sandbox',
+      devHubId: '00Dother',
+      orgEdition: 'Enterprise'
+    });
   });
 });
