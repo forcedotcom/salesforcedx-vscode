@@ -1,6 +1,7 @@
 ---
 name: packageJson
 description: package.json conventions for this repo. Use when editing/reviewing a package.json — name, types, browser, files, dependencies, devDependencies, packaging, scripts, or vscode contributes.
+review: always
 ---
 
 ## name
