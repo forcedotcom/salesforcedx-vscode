@@ -126,4 +126,32 @@ describe('WorkspaceContext', () => {
     expect(await context.getConnection()).toBe(connection);
     expect(coreContext.subscriptions).toHaveLength(1);
   });
+
+  it('disposes the replaced singleton watcher and retains each instance identity', async () => {
+    await setTargetOrg({ username: 'first@example.com', alias: 'first', orgId: '00Dfirst' });
+    const first = WorkspaceContext.getInstance(true);
+    const firstListener = jest.fn();
+    first.onOrgChange(firstListener);
+    await first.initialize(coreContext as never);
+
+    const replacement = WorkspaceContext.getInstance(true);
+    const replacementListener = jest.fn();
+    replacement.onOrgChange(replacementListener);
+    await replacement.initialize(coreContext as never);
+    jest.clearAllMocks();
+
+    const switched = { username: 'second@example.com', alias: 'second', orgId: '00Dsecond' };
+    await setTargetOrg(switched);
+    await flushEffects();
+
+    expect(firstListener).not.toHaveBeenCalled();
+    expect(replacementListener).toHaveBeenCalledTimes(1);
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
+    expect({ username: first.username, alias: first.alias, orgId: first.orgId }).toEqual({
+      username: 'first@example.com',
+      alias: 'first',
+      orgId: '00Dfirst'
+    });
+    expect({ username: replacement.username, alias: replacement.alias, orgId: replacement.orgId }).toEqual(switched);
+  });
 });

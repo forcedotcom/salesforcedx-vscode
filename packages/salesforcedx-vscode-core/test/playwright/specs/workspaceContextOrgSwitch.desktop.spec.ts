@@ -13,12 +13,14 @@ import {
   createMinimalOrg,
   ensureSecondarySideBarHidden,
   env,
+  executeCommandWithCommandPalette,
   execAsync,
   expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   selectOrgInPicker,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
+import packageNls from '../../../package.nls.json';
 import { desktopTest as test } from '../fixtures/desktopFixtures';
 
 const STATE_FILE = '.workspace-context-state.json';
@@ -57,10 +59,9 @@ test('WorkspaceContext tracks real default-org picker switches', async ({ page, 
     });
   });
 
-  await test.step('switch to username and capture one synchronous event', async () => {
-    await clickOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
-    await selectOrgInPicker(page, username);
-    await expectOrgPickerStatusBar(page, username);
+  await test.step('configure the username and capture one synchronous event', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.workspace_context_set_username_test_text);
+    await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
     await expect.poll(() => readState(workspaceDir)).toMatchObject({
       eventCount: 1,
       event: { username },
@@ -71,7 +72,7 @@ test('WorkspaceContext tracks real default-org picker switches', async ({ page, 
   });
 
   await test.step('switch back to alias and capture exactly one more event', async () => {
-    await clickOrgPickerStatusBar(page, username);
+    await clickOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
     await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
     await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
     await expect.poll(() => readState(workspaceDir)).toMatchObject({

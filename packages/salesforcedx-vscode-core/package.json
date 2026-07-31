@@ -224,6 +224,10 @@
         {
           "command": "sf.alias.list",
           "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
+          "command": "sf.internal.workspaceContext.setTargetOrgToUsername",
+          "when": "config.salesforcedx-vscode-core.telemetry-tag == e2e-test"
         }
       ]
     },
@@ -239,6 +243,10 @@
       {
         "command": "sf.alias.list",
         "title": "%alias_list_text%"
+      },
+      {
+        "command": "sf.internal.workspaceContext.setTargetOrgToUsername",
+        "title": "%workspace_context_set_username_test_text%"
       }
     ],
     "configuration": {

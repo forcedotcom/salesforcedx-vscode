@@ -11,6 +11,8 @@ import { OrgUserInfo, refreshAllExtensionReporters } from '@salesforce/salesforc
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as Fiber from 'effect/Fiber';
+import * as FiberId from 'effect/FiberId';
 import * as MutableRef from 'effect/MutableRef';
 import * as Stream from 'effect/Stream';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
@@ -18,8 +20,6 @@ import * as vscode from 'vscode';
 import { getRuntime } from '../services/runtime';
 
 type WorkspaceOrgIdentity = Pick<typeof DefaultOrgInfoSchema.Type, 'username' | 'alias' | 'orgId'>;
-
-const workspaceOrgIdentity = MutableRef.make<WorkspaceOrgIdentity>({});
 
 const getConnection = Effect.fn('workspaceContext.getConnection')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -36,6 +36,9 @@ export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
   private coreExtensionContext?: vscode.ExtensionContext;
   private initializationPromise?: Promise<void>;
+  private watcherFiber?: Fiber.RuntimeFiber<void>;
+  private disposed = false;
+  private readonly workspaceOrgIdentity = MutableRef.make<WorkspaceOrgIdentity>({});
   private readonly orgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
 
   public readonly onOrgChange = this.orgChangeEmitter.event;
@@ -52,11 +55,17 @@ export class WorkspaceContext {
       this.coreExtensionContext = extensionContext;
     }
     extensionContext.subscriptions.push(this.orgChangeEmitter);
-    await getRuntime().runPromise(this.watchTargetOrg());
+    const watcherFiber = await getRuntime().runPromise(this.watchTargetOrg());
+    if (this.disposed) {
+      watcherFiber.unsafeInterruptAsFork(FiberId.none);
+    } else {
+      this.watcherFiber = watcherFiber;
+    }
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {
     if (!this.instance || forceNew) {
+      this.instance?.dispose();
       this.instance = new WorkspaceContext();
     }
     return this.instance;
@@ -74,11 +83,11 @@ export class WorkspaceContext {
     const extensionScope = yield* getExtensionScope();
     const initialSnapshotReady = yield* Deferred.make<void>();
 
-    yield* targetOrgRef.changes.pipe(
+    const fiber = yield* targetOrgRef.changes.pipe(
       Stream.map(({ username, alias, orgId }) => ({ username, alias, orgId })),
       Stream.changesWith(sameIdentity),
       Stream.tap(identity =>
-        Effect.sync(() => MutableRef.set(workspaceOrgIdentity, identity)).pipe(
+        Effect.sync(() => MutableRef.set(this.workspaceOrgIdentity, identity)).pipe(
           Effect.zipRight(Deferred.succeed(initialSnapshotReady, undefined))
         )
       ),
@@ -96,17 +105,25 @@ export class WorkspaceContext {
     );
 
     yield* Deferred.await(initialSnapshotReady);
+    return fiber;
   });
 
+  public dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.watcherFiber?.unsafeInterruptAsFork(FiberId.none);
+    this.orgChangeEmitter.dispose();
+  }
+
   public get username(): string | undefined {
-    return MutableRef.get(workspaceOrgIdentity).username;
+    return MutableRef.get(this.workspaceOrgIdentity).username;
   }
 
   public get alias(): string | undefined {
-    return MutableRef.get(workspaceOrgIdentity).alias;
+    return MutableRef.get(this.workspaceOrgIdentity).alias;
   }
 
   public get orgId(): string | undefined {
-    return MutableRef.get(workspaceOrgIdentity).orgId;
+    return MutableRef.get(this.workspaceOrgIdentity).orgId;
   }
 }

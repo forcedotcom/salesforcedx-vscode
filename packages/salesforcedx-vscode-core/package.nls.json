@@ -8,6 +8,7 @@
   "telemetry_tag_description": "Specifies the tag to include in telemetry data sent to Salesforce.",
   "show_cli_success_msg_description": "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
   "telemetry_enabled_description": "Specifies whether to enable Salesforce telemetry. Even when enabled, still abides by the overall `telemetry.enableTelemetry` vscode setting.",
+  "workspace_context_set_username_test_text": "SFDX Internal: Set Target Org to Username",
   "connected_org_walkthrough_title": "Connected Org",
   "connected_org_walkthrough_description": "Connect to and manage your Salesforce orgs. Learn about default org concepts and management.",
   "connected_org_walkthrough_understand_title": "Understanding Your Default Org",
