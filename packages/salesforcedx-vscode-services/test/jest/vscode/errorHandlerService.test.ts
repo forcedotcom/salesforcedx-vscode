@@ -9,6 +9,7 @@ import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { ChannelService } from '../../../src/vscode/channelService';
 import { ErrorHandlerService } from '../../../src/vscode/errorHandlerService';
@@ -194,36 +195,32 @@ describe('ErrorHandlerService', () => {
       });
     });
 
-    describe('Effect TaggedError with cause', () => {
-      it('should handle TaggedError with cause', async () => {
-        class TestTaggedError extends Data.TaggedError('TestTaggedError')<{
-          readonly cause: unknown;
-        }> {}
+    describe('Effect tagged errors', () => {
+      class TestTaggedError extends Schema.TaggedError<TestTaggedError>()('TestTaggedError', {
+        message: Schema.String,
+        actions: Schema.optional(Schema.Array(Schema.String))
+      }) {}
 
-        const innerError = new Error('Inner error from TaggedError');
-        const taggedError = new TestTaggedError({ cause: innerError });
+      it('should prefix channel output with the error tag', async () => {
+        const taggedError = new TestTaggedError({ message: 'Tagged error' });
         const cause = Cause.fail(taggedError);
 
         await Effect.runPromise(errorHandler.handleCause(cause));
 
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error from TaggedError');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Inner error from TaggedError');
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Tagged error');
+        expect(mockChannel.appendLine).toHaveBeenCalledWith('[TestTaggedError] Tagged error');
       });
 
-      it('should handle TaggedError with cause and actions', async () => {
-        class TestTaggedError extends Data.TaggedError('TestTaggedError')<{
-          readonly cause: unknown;
-        }> {}
-
-        const innerError = new Error('Inner error') as Error & { actions: string[] };
-        innerError.actions = ['Action from cause'];
-        const taggedError = new TestTaggedError({ cause: innerError });
+      it('should prefix channel output with the error tag when actions are present', async () => {
+        const taggedError = new TestTaggedError({ message: 'Tagged error', actions: ['Action 1', 'Action 2'] });
         const cause = Cause.fail(taggedError);
 
         await Effect.runPromise(errorHandler.handleCause(cause));
 
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error', 'View Suggestions');
-        expect(mockChannel.appendLine).toHaveBeenCalledWith('Error: Inner error\n\nAction from cause');
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Tagged error', 'View Suggestions');
+        expect(mockChannel.appendLine).toHaveBeenCalledWith(
+          '[TestTaggedError] Error: Tagged error\n\nAction 1\nAction 2'
+        );
       });
     });
 
