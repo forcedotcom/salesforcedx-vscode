@@ -55,12 +55,6 @@ For published releases, `scripts/parse-extension-names.js` dynamically extracts 
   - Modern extensions: adds `--pre-release` flag to vsce
   - Legacy extensions: sets `VSCE_PRE_RELEASE=true` env var
 
-## Packaging Workflows
-
-`package.yml` (reusable workflow) respects `pre-release` input:
-- `pre-release=true` → `npm run vscode:package:prerelease`
-- `pre-release=false` (default) → `npm run vscode:package`
-
 ## Implementation Details
 
 See:

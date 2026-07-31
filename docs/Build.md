@@ -129,7 +129,7 @@ This will generate vsix. Use those for manual QA and for your end-to-end tests t
 
 ## Checksums & Artifacts
 
-**Checksum generation:** `.github/workflows/package.yml` generates MD5 checksums for vsix files and publishes them to GitHub releases (via `SHA256.md` and `SHA256` files). JSON construction uses `jq` with proper error handling — if `jq` fails, workflow exits with error rather than silently continuing.
+**Checksum generation:** The shared `vscode-publish-extensions.yml` workflow generates MD5 checksums for vsix files and publishes them to GitHub releases (via `SHA256.md` and `SHA256` files). JSON construction uses `jq` with proper error handling — if `jq` fails, workflow exits with error rather than silently continuing.
 
 **Artifact retention:** Nightly builds retain artifacts for 30 days (vs. 5 days for PR builds). Raises retention to allow prerelease promotion workflows to access the build artifacts for stability verification.
 
