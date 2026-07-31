@@ -95,6 +95,19 @@ const vscode = {
       this.end = end;
     }
   },
+  Location: class {
+    constructor(uri, rangeOrPosition) {
+      this.uri = uri;
+      this.range = rangeOrPosition;
+    }
+  },
+  TestMessage: class {
+    constructor(message) {
+      this.message = message;
+      this.actualOutput = undefined;
+      this.location = undefined;
+    }
+  },
 
   // Enums
   ProgressLocation: {
@@ -170,6 +183,46 @@ const vscode = {
     },
     createStatusBarItem: jest.fn(),
     createTextEditorDecorationType: jest.fn()
+  },
+
+  // Tasks API
+  tasks: {
+    executeTask: jest.fn().mockResolvedValue({}),
+    onDidEndTaskProcess: jest.fn(() => ({ dispose: jest.fn() })),
+    onDidStartTask: jest.fn(() => ({ dispose: jest.fn() })),
+    onDidEndTask: jest.fn(() => ({ dispose: jest.fn() }))
+  },
+
+  // Task-related classes
+  Task: class {
+    constructor(definition, scope, name, source, execution, problemMatchers) {
+      this.definition = definition;
+      this.scope = scope;
+      this.name = name;
+      this.source = source;
+      this.execution = execution;
+      this.problemMatchers = problemMatchers;
+      this.presentationOptions = {};
+    }
+  },
+  CustomExecution: class {
+    constructor(callback) {
+      this.callback = callback;
+    }
+  },
+  TaskScope: {
+    Global: 1,
+    Workspace: 2
+  },
+  TaskRevealKind: {
+    Always: 1,
+    Silent: 2,
+    Never: 3
+  },
+  TaskPanelKind: {
+    Shared: 1,
+    Dedicated: 2,
+    New: 3
   },
 
   // Workspace with real file system operations

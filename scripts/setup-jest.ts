@@ -483,10 +483,17 @@ const getMockVSCode = () => {
         this.problemMatchers = problemMatchers || [];
       }
     },
+    CustomExecution: class {
+      public callback: any;
+      constructor(callback: any) {
+        this.callback = callback;
+      }
+    },
     tasks: {
       executeTask: jest.fn(),
       onDidStartTask: jest.fn(() => ({ dispose: jest.fn() })),
-      onDidEndTask: jest.fn(() => ({ dispose: jest.fn() }))
+      onDidEndTask: jest.fn(() => ({ dispose: jest.fn() })),
+      onDidEndTaskProcess: jest.fn(() => ({ dispose: jest.fn() }))
     }
   };
 

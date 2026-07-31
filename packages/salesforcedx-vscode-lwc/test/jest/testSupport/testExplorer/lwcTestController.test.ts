@@ -630,19 +630,36 @@ describe('LwcTestController public run API', () => {
     // Fake task that ends right after execute resolves, so awaitTaskEnd resolves. The real SfTask fires onDidEnd
     // asynchronously via the task-end event; fire on the next tick here too, otherwise awaitTaskEnd's
     // endDisposable isn't assigned yet when the handler runs (its .dispose() would throw).
+    // Also mock onDidEndTaskProcess to fire the callback with the task execution info.
+    let taskEndProcessCallback: ((e: any) => void) | undefined;
+    const mockOnDidEndTaskProcess = jest.fn((cb: (e: any) => void) => {
+      taskEndProcessCallback = cb;
+      return { dispose: jest.fn() };
+    });
+    const vscodeMock = require('vscode');
+    vscodeMock.tasks.onDidEndTaskProcess = mockOnDidEndTaskProcess;
+
     const taskServiceModule = require('../../../../src/testSupport/testRunner/taskService');
     jest.spyOn(taskServiceModule.taskService, 'createTask').mockImplementation(() => {
       let endCb: (() => void) | undefined;
+      const mockTaskExecution = { id: 'mock-task-exec' };
       return {
         onDidEnd: (cb: () => void) => {
           endCb = cb;
           return { dispose: jest.fn() };
         },
-        execute: jest.fn().mockImplementation(() => {
-          setImmediate(() => endCb?.());
+        execute: jest.fn().mockImplementation(function (this: any) {
+          this.taskExecution = mockTaskExecution;
+          // Fire onDidEndTaskProcess with exit code 0 (success)
+          setImmediate(() => {
+            taskEndProcessCallback?.({ execution: mockTaskExecution, exitCode: 0 });
+            endCb?.();
+          });
           return Promise.resolve();
         }),
-        terminate: jest.fn()
+        terminate: jest.fn(),
+        taskExecution: undefined,
+        pseudoterminal: undefined
       };
     });
 

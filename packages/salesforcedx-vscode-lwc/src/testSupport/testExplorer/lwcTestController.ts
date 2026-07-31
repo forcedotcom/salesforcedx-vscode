@@ -524,6 +524,9 @@ class LwcTestController {
       }
 
       const { command, args, workspaceFolder, testResultFsPath } = shellInfo;
+      console.log(`[LWC Test] Executing command: ${command}`);
+      console.log(`[LWC Test] Args: ${JSON.stringify(args)}`);
+      console.log(`[LWC Test] Expected result file: ${testResultFsPath}`);
 
       if (isDebug) {
         await vscode.debug.startDebugging(workspaceFolder, {
@@ -542,9 +545,8 @@ class LwcTestController {
         });
         await waitForResultFile(testResultFsPath, token);
       } else {
-        // Results surface in the Test Results tab. The Task API always allocates a terminal for a
-        // ShellExecution; createTask's default presentation (reveal:Never, shared panel) keeps it
-        // hidden and reused across runs rather than spawning a new terminal each run.
+        // Results surface in the Test Results tab. CustomExecution wraps a pseudoterminal
+        // that captures output for error reporting. Default presentation keeps terminal hidden.
         const sfTask = taskService.createTask(
           globalThis.crypto.randomUUID(),
           nls.localize('run_test_task_name'),
@@ -554,10 +556,55 @@ class LwcTestController {
         );
         const ended = awaitTaskEnd(sfTask, token);
         await sfTask.execute();
-        await ended;
+        console.log('[LWC Test] Task started, waiting for completion...');
+        const { exitCode } = await ended;
+        console.log(`[LWC Test] Task completed with exit code: ${exitCode}`);
+
+        // If Jest crashed (non-zero exit), it won't have created the output file.
+        // Extract error from captured output and show in Test Explorer.
+        if (exitCode !== undefined && exitCode !== 0) {
+          let errorMessage = `Jest test suite failed to run (exit code ${exitCode})`;
+          let errorDetail = 'The test suite crashed before producing results.';
+
+          if (sfTask.pseudoterminal) {
+            const capturedError = sfTask.pseudoterminal.extractErrorSummary();
+            if (capturedError) {
+              errorMessage = 'Jest test suite failed to run';
+              errorDetail = capturedError;
+              console.log('[LWC Test] Extracted error:', capturedError);
+            }
+          }
+
+          if (sourceItem) {
+            const message = new vscode.TestMessage(errorDetail);
+            message.actualOutput = errorMessage;
+            run.failed(sourceItem, message);
+            sourceItem.children.forEach(child => {
+              run.failed(child, message);
+            });
+            // Append error message header
+            appendLine(run, errorMessage);
+            appendLine(run, '');
+            // Split multi-line error detail into individual lines for proper formatting
+            const errorLines = errorDetail.split('\n');
+            errorLines.forEach(line => appendLine(run, line));
+          }
+          return;
+        }
       }
 
       if (token.isCancellationRequested) {
+        console.log('[LWC Test] Cancelled before reading results');
+        return;
+      }
+
+      console.log(`[LWC Test] Reading results from: ${testResultFsPath}`);
+      // Jest may not have flushed the output file to disk immediately when the task completes.
+      // Poll for the file's existence with a short timeout before attempting to read.
+      await waitForResultFile(testResultFsPath, token);
+
+      if (token.isCancellationRequested) {
+        console.log('[LWC Test] Cancelled after waiting for result file');
         return;
       }
 
@@ -602,10 +649,27 @@ class LwcTestController {
         // Strip ANSI escape codes from Jest's error message
         const cleanMessage = fileResult.message.replaceAll(/\x1b\[[0-9;]*m/g, '');
         const errorMessage = new vscode.TestMessage(cleanMessage);
-        run.errored(fileItem, errorMessage);
-        // Mark all child test items as errored since the suite failed to run
+
+        // Extract error location from stack trace in message for red highlight
+        const stackTracePattern = /at (?:.*?\()?(.*?):(\d+):(\d+)\)?/;
+        const match = cleanMessage.match(stackTracePattern);
+        if (match && fileItem.uri) {
+          const [, file, lineStr, columnStr] = match;
+          const errorUri = URI.file(file);
+          const position = new vscode.Position(
+            Math.max(0, parseInt(lineStr, 10) - 1),
+            Math.max(0, parseInt(columnStr, 10) - 1)
+          );
+          errorMessage.location = new vscode.Location(errorUri, position);
+          console.log(`[LWC Test] Runtime error location: ${file}:${lineStr}:${columnStr}`);
+        } else {
+          console.log('[LWC Test] Could not extract runtime error location from message');
+        }
+
+        run.failed(fileItem, errorMessage);
+        // Mark all child test items as failed since the suite failed to run
         fileItem.children.forEach(child => {
-          run.errored(child, errorMessage);
+          run.failed(child, errorMessage);
         });
         continue;
       }
@@ -648,21 +712,35 @@ class LwcTestController {
   };
 }
 
-const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<void> =>
-  new Promise<void>(resolve => {
+const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<{ exitCode?: number }> =>
+  new Promise<{ exitCode?: number }>(resolve => {
+    const endHandler = vscode.tasks.onDidEndTaskProcess(e => {
+      if (e.execution === sfTask.taskExecution) {
+        endHandler.dispose();
+        endDisposable.dispose();
+        cancelDisposable.dispose();
+        resolve({ exitCode: e.exitCode });
+      }
+    });
     const endDisposable = sfTask.onDidEnd(() => {
-      endDisposable.dispose();
-      cancelDisposable.dispose();
-      resolve();
+      // Fallback if onDidEndTaskProcess doesn't fire quickly
+      setTimeout(() => {
+        endHandler.dispose();
+        endDisposable.dispose();
+        cancelDisposable.dispose();
+        resolve({});
+      }, 100);
     });
     const cancelDisposable = token.onCancellationRequested(() => {
       sfTask.terminate();
+      endHandler.dispose();
+      endDisposable.dispose();
     });
   });
 
 /**
- * Waits for the jest test-result file to appear on disk, signaling the debug run has finished writing output.
- * Jest debug runs don't emit task end events, so we poll the file system with vscode.workspace.fs.
+ * Waits for the jest test-result file to appear on disk before reading.
+ * Jest may not flush output immediately after task completion, so we poll the file system.
  */
 const waitForResultFile = async (filePath: string, token: vscode.CancellationToken): Promise<void> => {
   const uri = URI.file(filePath);
