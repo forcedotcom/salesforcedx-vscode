@@ -1,6 +1,7 @@
 ---
 name: services-extension-consumption
 description: Consume the salesforcedx-vscode-services extension API. Use when an extension depends on salesforcedx-vscode-services and you are registering commands, calling its services (Workspace, Connection, Project, Settings, FS, Channel, Media, prompts), watching files/config/target-org, or wiring the AllServicesLayer/runtime in extensionProvider.ts.
+review: always
 ---
 
 # Consuming salesforcedx-vscode-services
