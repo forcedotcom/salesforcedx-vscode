@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   OrgShape,
   OrgUserInfo,
@@ -16,9 +16,7 @@ import {
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import * as Fiber from 'effect/Fiber';
 import * as MutableRef from 'effect/MutableRef';
-import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -28,8 +26,6 @@ type WorkspaceOrgIdentity = Pick<
   typeof DefaultOrgInfoSchema.Type,
   'username' | 'alias' | 'orgId' | 'isScratch' | 'isSandbox' | 'devHubOrgId' | 'orgEdition'
 > & { orgShape?: OrgShape };
-
-const workspaceOrgIdentity = MutableRef.make<WorkspaceOrgIdentity>({});
 
 const getConnection = Effect.fn('workspaceContext.getConnection')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -47,13 +43,11 @@ class WorkspaceContextService extends Effect.Service<WorkspaceContextService>()(
 
     const watch = Effect.fn('WorkspaceContextService.watch')(function* (
       extensionContext: vscode.ExtensionContext,
-      orgChangeEmitter: vscode.EventEmitter<OrgUserInfo>
+      orgChangeEmitter: vscode.EventEmitter<OrgUserInfo>,
+      workspaceOrgIdentity: MutableRef.MutableRef<WorkspaceOrgIdentity>,
+      initialSnapshotReady: Deferred.Deferred<void>
     ) {
-      const extensionScope = yield* getExtensionScope();
-      const initialSnapshotReady = yield* Deferred.make<void>();
-      const runtime = yield* Effect.runtime();
-
-      const fiber = yield* targetOrgRef.changes.pipe(
+      yield* targetOrgRef.changes.pipe(
         Stream.map(({ username, alias, orgId, isScratch, isSandbox, devHubOrgId, orgEdition }) => ({
           username,
           alias,
@@ -79,12 +73,8 @@ class WorkspaceContextService extends Effect.Service<WorkspaceContextService>()(
             }
           })
         ),
-        Effect.onExit(exit => Deferred.done(initialSnapshotReady, Exit.asVoid(exit))),
-        Effect.forkIn(extensionScope)
+        Effect.onExit(exit => Deferred.done(initialSnapshotReady, Exit.asVoid(exit)))
       );
-
-      yield* Deferred.await(initialSnapshotReady);
-      return () => fiber.pipe(Fiber.interrupt, Runtime.runFork(runtime));
     });
 
     return { watch };
@@ -97,8 +87,10 @@ class WorkspaceContextService extends Effect.Service<WorkspaceContextService>()(
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
   private initializationPromise?: Promise<void>;
+  private initializationAbortController?: AbortController;
   private stopWatcher?: () => void;
   private readonly orgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
+  private readonly workspaceOrgIdentity = MutableRef.make<WorkspaceOrgIdentity>({});
 
   public readonly onOrgChange = this.orgChangeEmitter.event;
 
@@ -111,11 +103,20 @@ export class WorkspaceContext {
 
   private async _doInitialize(extensionContext: vscode.ExtensionContext) {
     extensionContext.subscriptions.push(this.orgChangeEmitter);
-    this.stopWatcher = await getRuntime().runPromise(
-      Effect.flatMap(WorkspaceContextService, service => service.watch(extensionContext, this.orgChangeEmitter)).pipe(
+    const runtime = getRuntime();
+    const initialSnapshotReady = Effect.runSync(Deferred.make<void>());
+    this.initializationAbortController = new AbortController();
+    this.stopWatcher = runtime.runCallback(
+      Effect.flatMap(WorkspaceContextService, service =>
+        service.watch(extensionContext, this.orgChangeEmitter, this.workspaceOrgIdentity, initialSnapshotReady)
+      ).pipe(
         Effect.provide(WorkspaceContextService.Default)
       )
     );
+    await runtime.runPromise(Deferred.await(initialSnapshotReady), {
+      signal: this.initializationAbortController.signal
+    });
+    this.initializationAbortController = undefined;
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {
@@ -133,43 +134,44 @@ export class WorkspaceContext {
   }
 
   public dispose(): void {
+    this.initializationAbortController?.abort();
     this.stopWatcher?.();
     this.orgChangeEmitter.dispose();
   }
 
   public get username(): string | undefined {
-    return MutableRef.get(workspaceOrgIdentity).username;
+    return MutableRef.get(this.workspaceOrgIdentity).username;
   }
 
   public get alias(): string | undefined {
-    return MutableRef.get(workspaceOrgIdentity).alias;
+    return MutableRef.get(this.workspaceOrgIdentity).alias;
   }
 
   public get orgId(): string | undefined {
-    return MutableRef.get(workspaceOrgIdentity).orgId;
+    return MutableRef.get(this.workspaceOrgIdentity).orgId;
   }
 
   public get orgShape(): OrgShape | undefined {
-    return MutableRef.get(workspaceOrgIdentity).orgShape;
+    return MutableRef.get(this.workspaceOrgIdentity).orgShape;
   }
 
   public set orgShape(orgShape: OrgShape | undefined) {
-    MutableRef.update(workspaceOrgIdentity, identity => ({ ...identity, orgShape }));
+    MutableRef.update(this.workspaceOrgIdentity, identity => ({ ...identity, orgShape }));
   }
 
   public get devHubId(): string | undefined {
-    return MutableRef.get(workspaceOrgIdentity).devHubOrgId;
+    return MutableRef.get(this.workspaceOrgIdentity).devHubOrgId;
   }
 
   public set devHubId(devHubOrgId: string | undefined) {
-    MutableRef.update(workspaceOrgIdentity, identity => ({ ...identity, devHubOrgId }));
+    MutableRef.update(this.workspaceOrgIdentity, identity => ({ ...identity, devHubOrgId }));
   }
 
   public get orgEdition(): string | undefined {
-    return MutableRef.get(workspaceOrgIdentity).orgEdition;
+    return MutableRef.get(this.workspaceOrgIdentity).orgEdition;
   }
 
   public set orgEdition(orgEdition: string | undefined) {
-    MutableRef.update(workspaceOrgIdentity, identity => ({ ...identity, orgEdition }));
+    MutableRef.update(this.workspaceOrgIdentity, identity => ({ ...identity, orgEdition }));
   }
 }
