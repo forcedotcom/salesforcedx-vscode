@@ -1,6 +1,7 @@
 ---
 name: external-consumers
 description: Known external consumers of APIs from this monorepo's extensions. Use when changing public API surfaces (activate return types, exported types, services sub-objects), evaluating breaking changes, removing exports, or checking if anything uses a given API member.
+review: always
 ---
 
 # External Consumers

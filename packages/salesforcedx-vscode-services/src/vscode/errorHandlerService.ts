@@ -75,9 +75,11 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
           const error = Cause.squash(cause);
           const baseMessage = getBaseMessage(error);
           const actions = getActions(error);
+          const tag = isRecord(error) && '_tag' in error ? Reflect.get(error, '_tag') : undefined;
+          const channelPrefix = isString(tag) ? `[${tag}] ` : '';
 
           if (actions.length > 0) {
-            const fullMessage = `Error: ${baseMessage}\n\n${actions.join('\n')}`;
+            const fullMessage = `${channelPrefix}Error: ${baseMessage}\n\n${actions.join('\n')}`;
             yield* channelService.appendToChannel(fullMessage);
             const channel = yield* channelService.getChannel;
             const viewSuggestions = nls.localize('view_suggestions');
@@ -85,7 +87,7 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
             if (selection === viewSuggestions) channel.show();
           } else {
             if (!isMetadataCompletedWithErrorsSummaryError(error)) {
-              yield* channelService.appendToChannel(baseMessage);
+              yield* channelService.appendToChannel(`${channelPrefix}${baseMessage}`);
             }
             yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));
           }

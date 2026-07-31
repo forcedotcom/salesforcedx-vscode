@@ -1,3 +1,21 @@
+## [1.3.10](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.9...playwright-vscode-ext-v1.3.10) (2026-07-31)
+
+
+### Bug Fixes
+
+* **services:** tag channel errors by type - W-23557549 ([#7920](https://github.com/forcedotcom/salesforcedx-vscode/issues/7920)) ([bdfb515](https://github.com/forcedotcom/salesforcedx-vscode/commit/bdfb51514ee92c669242332569e8bfe442586454))
+
+
+
+## [1.3.9](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.8...playwright-vscode-ext-v1.3.9) (2026-07-29)
+
+
+### Bug Fixes
+
+* **playwright:** support renamed macOS VS Code executable - W-23630140 ([#7916](https://github.com/forcedotcom/salesforcedx-vscode/issues/7916)) ([86836b0](https://github.com/forcedotcom/salesforcedx-vscode/commit/86836b0fea50c58edd23220de7bc85885db3b7a3))
+
+
+
 ## [1.3.8](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.3.7...playwright-vscode-ext-v1.3.8) (2026-07-28)
 
 
