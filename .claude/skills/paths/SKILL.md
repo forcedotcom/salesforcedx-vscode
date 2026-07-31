@@ -1,6 +1,7 @@
 ---
 name: paths
 description: Prefer vscode-uri over node:path. Use when .ts files in /src import node:path or use path.join/basename/dirname/resolve, URI.file, or memfs paths.
+review: always
 ---
 
 # Paths
