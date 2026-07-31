@@ -1,6 +1,7 @@
 ---
 name: span-file-export
 description: Use file-based span/log export for AI consumption. Where it lives, how to enable/clear, record format for Node and Web. Use when enabling span file dump, debugging traces for AI, or configuring local observability.
+review: never
 ---
 
 # Span & Log File Export
