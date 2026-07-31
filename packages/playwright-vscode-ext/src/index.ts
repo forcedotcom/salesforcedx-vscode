@@ -51,6 +51,8 @@ export {
   createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
+export { readJsonlFiles, parseJsonlLines } from './utils/jsonl';
+
 export {
   WORKBENCH,
   EDITOR,
