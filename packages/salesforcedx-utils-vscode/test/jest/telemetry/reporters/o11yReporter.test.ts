@@ -169,6 +169,17 @@ describe('O11yReporter', () => {
 
       expect(sendMock).not.toHaveBeenCalled();
     });
+
+    it('should not throw when logEvent fails', () => {
+      const error = new Error('send failed');
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      sendMock.mockImplementation(() => {
+        throw error;
+      });
+
+      expect(() => o11yReporter.sendTelemetryEvent('testEvent')).not.toThrow();
+      expect(consoleErrorSpy).toHaveBeenCalledWith('O11yReporter logEvent failed:', error);
+    });
   });
 
   describe('sendExceptionEvent', () => {
@@ -202,11 +213,31 @@ describe('O11yReporter', () => {
 
       expect(sendMock).not.toHaveBeenCalled();
     });
+
+    it('should not throw when logEvent fails', () => {
+      const error = new Error('send failed');
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      sendMock.mockImplementation(() => {
+        throw error;
+      });
+
+      expect(() => o11yReporter.sendExceptionEvent('TestException', 'Something went wrong')).not.toThrow();
+      expect(consoleErrorSpy).toHaveBeenCalledWith('O11yReporter logEvent(exception) failed:', error);
+    });
   });
 
   describe('dispose', () => {
     it('should resolve without errors', async () => {
       await expect(o11yReporter.dispose()).resolves.not.toThrow();
+    });
+
+    it('should resolve when forceFlush fails', async () => {
+      const error = new Error('flush failed');
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      forceFlushMock.mockRejectedValue(error);
+
+      await expect(o11yReporter.dispose()).resolves.toBeUndefined();
+      expect(consoleErrorSpy).toHaveBeenCalledWith('O11yReporter forceFlush failed:', error);
     });
   });
 
