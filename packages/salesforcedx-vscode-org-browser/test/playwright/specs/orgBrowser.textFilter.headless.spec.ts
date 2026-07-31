@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { test } from '../fixtures';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   activeQuickInputTextField,
@@ -17,6 +17,12 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 test.setTimeout(600_000);
+
+const fillFilterInput = async (page: Page, value: string) => {
+  const input = activeQuickInputTextField(page);
+  await input.waitFor({ state: 'attached' });
+  await input.fill(value, { force: true });
+};
 
 test.beforeEach(async ({ page }) => {
   const createResult = await createDreamhouseOrg();
@@ -37,7 +43,7 @@ test('Org Browser - text filter: toolbar icon visible and swaps to filled state 
   });
 
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
+  await fillFilterInput(page, 'ApexClass');
   await page.keyboard.press('Enter');
 
   const activeFilterButton = page.locator('[aria-label="Edit Filter (active)"]').first();
@@ -56,7 +62,7 @@ test('Org Browser - text filter: exact type name filters tree on commit', async 
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
+  await fillFilterInput(page, 'ApexClass');
   await page.keyboard.press('Enter');
 
   const narrowedItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
@@ -71,7 +77,7 @@ test('Org Browser - text filter: Type:component filters expanded children', asyn
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass:');
+  await fillFilterInput(page, 'ApexClass:');
   await page.keyboard.press('Enter');
 
   await orgBrowserPage.expandFolder('ApexClass');
@@ -82,7 +88,7 @@ test('Org Browser - text filter: Type:component filters expanded children', asyn
 
   const secondFilterButton = page.locator('[aria-label="Edit Filter (active)"]').first();
   await secondFilterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass:Broker');
+  await fillFilterInput(page, 'ApexClass:Broker');
   await page.keyboard.press('Enter');
 
   const componentsAfter = orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 });
@@ -97,7 +103,7 @@ test('Org Browser - text filter: unresolved type name empties the tree', async (
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('NotARealType:Whatever');
+  await fillFilterInput(page, 'NotARealType:Whatever');
 
   await expect(orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 })).toHaveCount(0, { timeout: 10_000 });
 
@@ -114,7 +120,7 @@ test('Org Browser - text filter: Escape cancels without applying filter', async 
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
+  await fillFilterInput(page, 'ApexClass');
   await page.keyboard.press('Escape');
 
   // Tree should remain unfiltered since we cancelled
@@ -134,14 +140,14 @@ test('Org Browser - text filter: clearing the text and pressing Enter clears the
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
+  await fillFilterInput(page, 'ApexClass');
   await page.keyboard.press('Enter');
 
   const activeFilterButton = page.locator('[aria-label="Edit Filter (active)"]').first();
   await expect(activeFilterButton).toBeVisible({ timeout: 10_000 });
 
   await activeFilterButton.click();
-  await activeQuickInputTextField(page).fill('');
+  await fillFilterInput(page, '');
   await page.keyboard.press('Enter');
 
   await expect(page.locator('[aria-label="Filter by Type/Component"]').first()).toBeVisible({ timeout: 10_000 });
@@ -161,7 +167,7 @@ test('Org Browser - text filter: composes with an active showLocal/showOrg toggl
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass');
+  await fillFilterInput(page, 'ApexClass');
   await page.keyboard.press('Enter');
 
   const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
@@ -179,7 +185,7 @@ test('Org Browser - text filter: wildcard type pattern Apex* matches multiple ty
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('Apex*');
+  await fillFilterInput(page, 'Apex*');
   await page.keyboard.press('Enter');
 
   const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
@@ -202,7 +208,7 @@ test('Org Browser - text filter: wildcard component pattern *Test* filters child
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('ApexClass:*Test*');
+  await fillFilterInput(page, 'ApexClass:*Test*');
   await page.keyboard.press('Enter');
 
   await orgBrowserPage.expandFolder('ApexClass');
@@ -225,7 +231,7 @@ test('Org Browser - text filter: combined wildcard *Class:*Broker* works', async
 
   const filterButton = page.locator('[aria-label="Filter by Type/Component"]').first();
   await filterButton.click();
-  await activeQuickInputTextField(page).fill('*Class:*Broker*');
+  await fillFilterInput(page, '*Class:*Broker*');
   await page.keyboard.press('Enter');
 
   // Should see types ending with "Class"
