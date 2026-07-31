@@ -58,12 +58,17 @@ export const buildTestPayload = Effect.fn('buildTestPayload')(function* (
     }).pipe(Effect.filterOrFail(payload => !!payload, payloadBuildError));
 
   if (allSuites) {
-    const suiteNames = suites.map(item => extractSuiteName(item.id)).filter((name): name is string => !!name);
-    if (suiteNames.length === 0) {
-      return yield* new SuiteNameUnresolvedError({
-        message: nls.localize('apex_test_suite_name_not_determined_message')
-      });
-    }
+    const suiteNames = yield* Effect.succeed(
+      suites.map(item => extractSuiteName(item.id)).filter((name): name is string => !!name)
+    ).pipe(
+      Effect.filterOrFail(
+        names => names.some(() => true),
+        () =>
+          new SuiteNameUnresolvedError({
+            message: nls.localize('apex_test_suite_name_not_determined_message')
+          })
+      )
+    );
     const suiteParam = suiteNames.length === 1 ? suiteNames[0] : suiteNames.join(',');
     const payload = yield* build({ suiteName: suiteParam });
     return { payload, hasSuite: true, hasClass: false } satisfies PayloadBuildResult;

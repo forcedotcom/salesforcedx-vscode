@@ -201,13 +201,15 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
         perFileItems.flat().map(item => [item.name, item] as const)
       );
 
-      if (coverageByName.size === 0) {
-        return yield* new StaleResultsError({
-          message: nls.localize('colorizer_no_code_coverage_in_recent_results')
-        });
-      }
-
-      return [...coverageByName.values()];
+      return yield* Effect.succeed([...coverageByName.values()]).pipe(
+        Effect.filterOrFail(
+          coverageEntries => coverageEntries.some(() => true),
+          () =>
+            new StaleResultsError({
+              message: nls.localize('colorizer_no_code_coverage_in_recent_results')
+            })
+        )
+      );
     });
 
     const computeRanges = Effect.fn('CodeCoverageService.computeRanges')(function* (document: TextDocument) {
