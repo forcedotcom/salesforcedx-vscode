@@ -25,7 +25,6 @@
     "Programming Languages"
   ],
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-services"
   ],
   "activationEvents": [],
