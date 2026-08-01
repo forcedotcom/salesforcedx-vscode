@@ -10,9 +10,8 @@ import * as Arr from 'effect/Array';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import * as path from 'node:path';
 import type { ApexClassOASEligibleRequest, ApexOASEligiblePayload } from 'salesforcedx-vscode-apex';
-import type { URI } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { ApexLspRequestFailed } from '../errors';
 import { nls } from '../messages/nls';
 import { ApexMetadataService } from '../services/apexMetadataService';
@@ -114,14 +113,14 @@ export const validateMetadata = Effect.fn('ApexOas.Metadata.validate')(function*
         new ClassNotEligible({
           message: nls.localize(
             'apex_class_not_valid',
-            first.resourceUri?.fsPath ? path.basename(first.resourceUri.fsPath, '.cls') : 'unknown'
+            first.resourceUri ? Utils.basename(first.resourceUri).replace(/\.cls$/, '') || 'unknown' : 'unknown'
           )
         })
     ),
     Effect.filterOrFail(
       first => (first.symbols ?? []).some(s => s.isApexOasEligible || s.isEligible),
       first => {
-        const className = path.basename(first.resourceUri.fsPath, '.cls');
+        const className = Utils.basename(first.resourceUri).replace(/\.cls$/, '');
         // Name the ineligible methods so the user knows which symbols to annotate/adjust, instead of a bare class name.
         const ineligibleNames = (first.symbols ?? [])
           .filter(s => !s.isApexOasEligible && !s.isEligible)

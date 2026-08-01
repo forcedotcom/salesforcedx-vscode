@@ -117,8 +117,11 @@ export const registerWorkspaceReadFileHandler = (
 
   const handleFindFiles = Effect.fn('WorkspaceHandler.findFiles')(function* (params: WorkspaceFindFilesParams) {
     const { baseFolderUri, pattern } = params;
-    const baseUri = URI.parse(baseFolderUri);
-    yield* logTo(log, `[findFiles] request baseFolderUri=${baseFolderUri} pattern=${pattern} scheme=${baseUri.scheme}`);
+    const baseUri = URI.revive(baseFolderUri);
+    yield* logTo(
+      log,
+      `[findFiles] request baseFolderUri=${baseUri.toString()} pattern=${pattern} scheme=${baseUri.scheme}`
+    );
     const fs = yield* getFs;
     const uris = yield* fs.findFiles(new vscode.RelativePattern(baseUri, pattern));
     const urisStr = uris.map((u: URI) => u.toString());
@@ -127,11 +130,11 @@ export const registerWorkspaceReadFileHandler = (
   });
 
   const handleDeleteFile = Effect.fn('WorkspaceHandler.deleteFile')(function* (params: WorkspaceDeleteFileParams) {
-    const { uri } = params;
-    yield* logTo(log, `[deleteFile] request uri=${uri}`);
+    const uri = URI.revive(params.uri);
+    yield* logTo(log, `[deleteFile] request uri=${uri.toString()}`);
     const fs = yield* getFs;
-    yield* fs.deleteFile(uri);
-    yield* logTo(log, `[deleteFile] success uri=${uri}`);
+    yield* fs.deleteFile(uri.toString());
+    yield* logTo(log, `[deleteFile] success uri=${uri.toString()}`);
     return {};
   });
 

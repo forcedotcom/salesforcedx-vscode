@@ -16,6 +16,7 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
+  channel_name: 'Aura Components',
   client_name: 'Aura Language Server',
   aura_language_server_loading: 'Indexing Aura files. Hold tight, almost ready… $(sync~spin)',
   aura_language_server_loaded: 'Indexing complete $(check)',

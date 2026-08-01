@@ -42,11 +42,15 @@ const MockConfigServiceLayer = Layer.succeed(
 
 // Swap the ChildProcess seam via the Effect layer instead of mocking node:child_process. This keeps
 // ts-jest on isolatedModules:true for the whole package (no commonjs downlevel needed for this suite).
-const withExec = (exec: (command: string, options: ExecOptions) => Promise<ExecResult>) =>
+const withExec = (
+  exec: (command: string, options: ExecOptions) => Promise<ExecResult>,
+  execFile: (file: string, args: string[], options: ExecOptions) => Promise<ExecResult> = (file, args, options) =>
+    exec([file, ...args].join(' '), options)
+) =>
   TerminalService.DefaultWithoutDependencies.pipe(
     Layer.provide(
       Layer.mergeAll(
-        Layer.succeed(ChildProcess, ChildProcess.make({ exec })),
+        Layer.succeed(ChildProcess, ChildProcess.make({ exec, execFile })),
         MockSettingsServiceLayer,
         MockConfigServiceLayer
       )
@@ -111,6 +115,35 @@ describe('TerminalService.simpleExec', () => {
 
     expect(parse).toHaveBeenCalledWith('hello world');
     expect(result).toBe('HELLO WORLD');
+  });
+
+  it('passes argv values directly to execFile without shell interpolation', async () => {
+    const exec = jest.fn<Promise<ExecResult>, [string, ExecOptions]>();
+    const execFile = jest.fn<Promise<ExecResult>, [string, string[], ExecOptions]>(() =>
+      Promise.resolve({ stdout: ' deleted ', stderr: '' })
+    );
+    const username = 'user@example.com; rm -rf /';
+
+    const result = await run(
+      TerminalService.pipe(
+        Effect.flatMap(terminal =>
+          terminal.simpleExecFile({
+            file: 'sf',
+            args: ['org', 'delete', 'scratch', '--target-org', username, '--no-prompt'],
+            parse: s => s
+          })
+        )
+      ),
+      withExec(exec, execFile)
+    );
+
+    expect(result).toBe('deleted');
+    expect(exec).not.toHaveBeenCalled();
+    expect(execFile).toHaveBeenCalledWith(
+      'sf',
+      ['org', 'delete', 'scratch', '--target-org', username, '--no-prompt'],
+      expect.objectContaining({ timeout: 30_000 })
+    );
   });
 
   it('passes the timeout through to exec', async () => {

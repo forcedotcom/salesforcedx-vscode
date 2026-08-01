@@ -243,7 +243,7 @@ export class LspFileSystemAccessor {
   public async findFilesWithGlobAsync(pattern: string, basePath: NormalizedPath): Promise<NormalizedPath[]> {
     if (!this.connection) return [];
     try {
-      const baseFolderUri = getFileUriForPath(basePath, this.workspaceFolderUri);
+      const baseFolderUri = URI.parse(getFileUriForPath(basePath, this.workspaceFolderUri));
       const params: WorkspaceFindFilesParams = { baseFolderUri, pattern };
       const findFilesRequestPromise = this.connection.sendRequest<WorkspaceFindFilesResult>(
         WORKSPACE_FIND_FILES_REQUEST,
@@ -269,7 +269,7 @@ export class LspFileSystemAccessor {
     if (this.connection) {
       const key = normalizePath(pathOrUri);
       const fileUri = key.includes('://') ? key : getFileUriForPath(key, this.workspaceFolderUri);
-      const deleteParams: WorkspaceDeleteFileParams = { uri: fileUri };
+      const deleteParams: WorkspaceDeleteFileParams = { uri: URI.parse(fileUri) };
       const result = await this.connection.sendRequest<WorkspaceDeleteFileResult>(
         WORKSPACE_DELETE_FILE_REQUEST,
         deleteParams

@@ -37,6 +37,11 @@ export class ChildProcess extends Effect.Service<ChildProcess>()('ChildProcess',
       const { exec } = await import('node:child_process');
       const { promisify } = await import('node:util');
       return promisify(exec)(command, resolveExecOptions(options));
+    },
+    execFile: async (file: string, args: string[], options: ExecOptions): Promise<ExecResult> => {
+      const { execFile } = await import('node:child_process');
+      const { promisify } = await import('node:util');
+      return promisify(execFile)(file, args, resolveExecOptions(options));
     }
   })
 }) {}

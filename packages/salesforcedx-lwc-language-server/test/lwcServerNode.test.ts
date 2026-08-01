@@ -111,7 +111,10 @@ import {
   LWC_SERVER_READY_NOTIFICATION,
   WORKSPACE_FIND_FILES_REQUEST,
   WORKSPACE_READ_FILE_REQUEST,
-  WORKSPACE_STAT_REQUEST
+  WORKSPACE_STAT_REQUEST,
+  type WorkspaceFindFilesParams,
+  type WorkspaceReadFileParams,
+  type WorkspaceStatParams
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   createMockWorkspaceFindFilesConnection,
@@ -281,26 +284,23 @@ const setupServerForTest = async (
   (testServer.connection as any).sendRequest = jest.fn(
     async (
       method: string | { method?: string },
-      params: {
-        uri?: string;
-        baseFolderUri?: string;
-        pattern?: string;
+      params: Partial<WorkspaceReadFileParams & WorkspaceStatParams & WorkspaceFindFilesParams> & {
         edit?: { documentChanges?: { textDocument?: { uri: string }; edits?: { newText: string }[] }[] };
       }
     ) => {
       const methodStr = getMethodStr(method);
       if (methodStr === WORKSPACE_READ_FILE_REQUEST && params?.uri) {
-        const key = provider.uriToNormalizedPath(params.uri);
+        const key = provider.uriToNormalizedPath(URI.revive(params.uri).toString());
         const content = mockFileContents.get(key);
         return { content: content ?? '' };
       }
       if (methodStr === WORKSPACE_STAT_REQUEST && params?.uri) {
-        const key = provider.uriToNormalizedPath(params.uri);
+        const key = provider.uriToNormalizedPath(URI.revive(params.uri).toString());
         const stat = mockFileStats.get(key);
         return stat ? { stat } : { error: 'File not found' };
       }
       if (methodStr === WORKSPACE_FIND_FILES_REQUEST && params?.baseFolderUri != null && params?.pattern != null) {
-        return mockFindFilesConnection.sendRequest(methodStr, params as { baseFolderUri: string; pattern: string });
+        return mockFindFilesConnection.sendRequest(methodStr, params);
       }
       if (methodStr === 'workspace/applyEdit' && params?.edit?.documentChanges) {
         for (const change of params.edit.documentChanges) {

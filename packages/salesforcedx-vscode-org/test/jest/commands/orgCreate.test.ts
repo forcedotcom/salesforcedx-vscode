@@ -117,7 +117,6 @@ describe('orgCreateCommand', () => {
     showQuickPick = vscode.window.showQuickPick as unknown as jest.Mock;
     showInputBox = vscode.window.showInputBox as unknown as jest.Mock;
     showErrorMessage = vscode.window.showErrorMessage as unknown as jest.Mock;
-    // handleSuccess wraps showInformationMessage in Effect.promise, so the mock must return a thenable
     showInformationMessage = vscode.window.showInformationMessage as unknown as jest.Mock;
     showInformationMessage.mockResolvedValue(undefined);
     findFiles = vscode.workspace.findFiles as unknown as jest.Mock;

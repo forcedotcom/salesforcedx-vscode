@@ -118,8 +118,10 @@ const readResult = Effect.fn('CodeCoverageService.readResult')(function* (apexTe
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const uri = Utils.joinPath(apexTestResultsUri, name);
   const content = yield* api.services.FsService.readFile(uri);
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
-  const testResult = JSON.parse(content) as TestResultWithCoverage;
+  const testResult = yield* Effect.try(
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
+    () => JSON.parse(content) as TestResultWithCoverage
+  );
   return testResult.codecoverage ?? testResult.coverage?.coverage ?? [];
 });
 
@@ -178,36 +180,28 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
         return yield* noCoverage();
       }
 
-      // Sort oldest-first by mtime (see sortByMtimeAscending): last-write-wins aggregation
-      // and the .at(-1) fallback below both depend on chronological order.
-      const sortedEntries = sortByMtimeAscending(recentEntries);
-
-      // When restore-previous-results is disabled, only use the most recent file
-      const restorePrevious =
-        (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'restore-previous-results', true)) ?? true;
-      const filesToRead = restorePrevious ? sortedEntries.map(e => e.name) : [sortedEntries.at(-1)!.name];
-
-      // concurrency: 1 (sequential) is required — last-write-wins aggregation depends on chronological
-      // (sortByMtimeAscending) order; unbounded concurrency would race the per-file results.
-      const perFileItems = yield* Effect.forEach(
-        filesToRead,
-        // skip files we can't read or parse
-        name => readResult(apexTestResultsUri, name).pipe(Effect.catchAll(() => Effect.succeed([]))),
-        { concurrency: 1 }
+      return yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'restore-previous-results', true).pipe(
+        Effect.map(restorePrevious => {
+          const sortedEntries = sortByMtimeAscending(recentEntries);
+          return (restorePrevious ?? true) ? sortedEntries : sortedEntries.slice(-1);
+        }),
+        Effect.flatMap(
+          Effect.partition(({ name }) => readResult(apexTestResultsUri, name), { concurrency: 'unbounded' })
+        ),
+        Effect.map(([, perFileItems]) => perFileItems.flat()),
+        // Effect collection combinators preserve input order, so newer coverage remains last.
+        Effect.map(
+          items => new Map<string, CoverageItem | CodeCoverageResult>(items.map(item => [item.name, item] as const))
+        ),
+        Effect.map(coverageByName => [...coverageByName.values()]),
+        Effect.filterOrFail(
+          coverage => coverage.length > 0,
+          () =>
+            new StaleResultsError({
+              message: nls.localize('colorizer_no_code_coverage_in_recent_results')
+            })
+        )
       );
-
-      // last-write-wins: later (newer) files overwrite earlier entries for the same class name.
-      const coverageByName = new Map<string, CoverageItem | CodeCoverageResult>(
-        perFileItems.flat().map(item => [item.name, item] as const)
-      );
-
-      if (coverageByName.size === 0) {
-        return yield* new StaleResultsError({
-          message: nls.localize('colorizer_no_code_coverage_in_recent_results')
-        });
-      }
-
-      return [...coverageByName.values()];
     });
 
     const computeRanges = Effect.fn('CodeCoverageService.computeRanges')(function* (document: TextDocument) {

@@ -51,6 +51,8 @@ export {
   createAndDeployApexTestClass
 } from './utils/fileHelpers';
 
+export { readJsonlFiles, parseJsonlLines } from './utils/jsonl';
+
 export {
   WORKBENCH,
   EDITOR,
@@ -91,6 +93,7 @@ export { execAsync, env } from './orgs/shared';
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
 
 export {
+  executeCommandById,
   executeCommandWithCommandPalette,
   openCommandPalette,
   verifyCommandDoesNotExist,

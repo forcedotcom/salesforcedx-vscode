@@ -177,9 +177,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
     yield* channel.showChannel;
     // in-layer channel already revealed above, so the toast's "Show" button is redundant — emit a plain
     // information toast directly via vscode.window (no legacy NotificationService / ../channels singleton).
-    yield* Effect.promise(() => vscode.window.showInformationMessage(nls.localize('org_create_successfully_ran'))).pipe(
-      Effect.ignore
-    );
+    yield* Effect.sync(() => void vscode.window.showInformationMessage(nls.localize('org_create_successfully_ran')));
   });
 
   // failure branch: sf prints `{ status, message }` — surface the message to the channel (no aggregator refresh).

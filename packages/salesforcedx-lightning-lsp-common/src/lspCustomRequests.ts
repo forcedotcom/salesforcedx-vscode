@@ -77,7 +77,7 @@ export const WORKSPACE_FIND_FILES_REQUEST = 'workspace/findFiles' as const;
 
 export interface WorkspaceFindFilesParams {
   /** Base folder URI (file:// or memfs://) to search under. */
-  baseFolderUri: string;
+  baseFolderUri: UriComponents;
   /** Glob pattern relative to base folder. */
   pattern: string;
 }
@@ -94,7 +94,7 @@ export const WORKSPACE_DELETE_FILE_REQUEST = 'workspace/deleteFile' as const;
 
 export interface WorkspaceDeleteFileParams {
   /** File URI to delete (file:// or memfs://). */
-  uri: string;
+  uri: UriComponents;
 }
 
 export interface WorkspaceDeleteFileResult {

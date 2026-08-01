@@ -14,6 +14,7 @@ import { GatedSpanExporter } from './gatedSpanExporter';
 import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
+import { RedactingSpanProcessor } from './redactingSpanProcessor';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
 export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
@@ -30,6 +31,9 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
       }
     },
     spanProcessor: [
+      // first and unconditional: rewrites secret-shaped text during onEnding, which MultiSpanProcessor
+      // runs on every processor before any onEnd, so every sink below receives redacted spans
+      new RedactingSpanProcessor(),
       ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor(new ConsoleSpanExporter())] : []),
       // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export (mid-session toggle)
       new SpanTransformProcessor(

@@ -14,7 +14,7 @@ import { Minimatch } from 'minimatch';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
-import { WORKSPACE_FIND_FILES_REQUEST } from '../lspCustomRequests';
+import { WORKSPACE_FIND_FILES_REQUEST, type WorkspaceFindFilesParams } from '../lspCustomRequests';
 
 /** Normalize path to forward slashes for consistent glob matching. */
 const toForwardSlashes = (p: string): string => p.replaceAll('\\', '/');
@@ -67,7 +67,7 @@ export const createMockWorkspaceFindFilesConnection = (
 ) => ({
   sendRequest: (
     method: string,
-    params: { baseFolderUri?: string; pattern?: string },
+    params: Partial<WorkspaceFindFilesParams>,
     _token?: unknown
   ): Promise<{ uris?: string[]; error?: string }> => {
     if (method !== WORKSPACE_FIND_FILES_REQUEST) {
@@ -79,7 +79,7 @@ export const createMockWorkspaceFindFilesConnection = (
       return Promise.resolve({ error: 'Missing baseFolderUri or pattern' });
     }
     try {
-      const basePath = path.resolve(URI.parse(baseFolderUri).fsPath);
+      const basePath = path.resolve(URI.revive(baseFolderUri).fsPath);
       const normalizedPattern = toForwardSlashes(pattern);
       let files: string[];
       if (options.relativePaths && options.relativePaths.length > 0) {

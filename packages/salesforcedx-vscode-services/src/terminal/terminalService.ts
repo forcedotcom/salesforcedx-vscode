@@ -137,6 +137,47 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
       });
       return parse(result.stdout.trim());
     });
-    return { simpleExec };
+
+    /** Execute a program with an argv array, bypassing shell parsing. */
+    const simpleExecFile = Effect.fn('TerminalService.simpleExecFile')(function* <A>({
+      file,
+      args,
+      parse,
+      timeout = Duration.millis(30_000),
+      env,
+      cwd
+    }: {
+      file: string;
+      args: string[];
+      parse: (stdout: string) => A;
+      timeout?: Duration.DurationInput;
+      env?: Record<string, string>;
+      cwd?: string;
+    }) {
+      const command = [file, ...args].join(' ');
+      yield* Effect.annotateCurrentSpan('command', command);
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        return yield* new TerminalServiceError({ message: 'Not available on web', command });
+      }
+      const sfEnv =
+        file === 'sf'
+          ? {
+              ...(yield* sfCliSettingsEnv()),
+              ...((yield* isTelemetryDisabled()) ? { SF_DISABLE_TELEMETRY: 'true' } : {}),
+              SF_JSON_TO_STDOUT: 'true',
+              FORCE_COLOR: '0',
+              SFDX_TOOL: 'salesforce-vscode-extensions'
+            }
+          : undefined;
+      const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
+      if (mergedEnv) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
+      const result = yield* Effect.tryPromise({
+        try: signal =>
+          childProcess.execFile(file, args, { timeout: Duration.toMillis(timeout), signal, env: mergedEnv, cwd }),
+        catch: e => new TerminalServiceError({ message: execErrorMessage(e), command })
+      });
+      return parse(result.stdout.trim());
+    });
+    return { simpleExec, simpleExecFile };
   })
 }) {}

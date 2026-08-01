@@ -63,6 +63,13 @@ export {
   WORKSPACE_FIND_FILES_REQUEST,
   WORKSPACE_DELETE_FILE_REQUEST
 } from './lspCustomRequests';
+export type {
+  WorkspaceReadFileParams,
+  WorkspaceStatParams,
+  WorkspaceReadDirectoryParams,
+  WorkspaceFindFilesParams,
+  WorkspaceDeleteFileParams
+} from './lspCustomRequests';
 
 // Re-export from file system providers
 export { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
