@@ -10,7 +10,6 @@ import { expect } from '@playwright/test';
 import * as Schema from 'effect/Schema';
 import {
   closeWelcomeTabs,
-  createMinimalOrg,
   ensureSecondarySideBarHidden,
   env,
   executeCommandWithCommandPalette,
@@ -51,7 +50,6 @@ const getOrgIdentity = async (): Promise<typeof OrgIdentity.Type> => {
 
 test('WorkspaceContext tracks real default-org picker switches', async ({ page, workspaceDir }) => {
   test.setTimeout(120_000);
-  await createMinimalOrg();
   const { username, id: orgId } = await getOrgIdentity();
 
   await test.step('capture the activation snapshot without an event', async () => {

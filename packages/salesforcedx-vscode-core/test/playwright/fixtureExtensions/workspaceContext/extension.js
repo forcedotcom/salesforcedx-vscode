@@ -23,6 +23,8 @@ const getExtensionApi = async id => {
 
 const activate = async extensionContext => {
   const coreApi = await getExtensionApi(CORE_EXTENSION_ID);
+  const projectConfig = coreApi.services.SalesforceProjectConfig.getInstance();
+  if (!projectConfig) throw new Error('Core API did not provide SalesforceProjectConfig');
   const servicesApi = await getExtensionApi(SERVICES_EXTENSION_ID);
   const workspaceContext = coreApi.services.WorkspaceContext.getInstance();
   const workspace = vscode.workspace.workspaceFolders?.[0];
@@ -81,7 +83,16 @@ const activate = async extensionContext => {
       );
     }),
     vscode.commands.registerCommand(SELECT_ORG_COMMAND, async () => {
+      const orgChange = new Promise(resolve => {
+        const subscription = workspaceContext.onOrgChange(event => {
+          if (event.alias) {
+            subscription.dispose();
+            resolve();
+          }
+        });
+      });
       await vscode.commands.executeCommand('sf.set.default.org');
+      await orgChange;
       await stateWrite;
       state = { ...state, transitionComplete: true };
       writeState(state);

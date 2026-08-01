@@ -29,6 +29,8 @@ export const messages = {
   telemetry_internal_user_message:
     "We're collecting information on the usage of our extensions and sending it to AppInsights to help us understand how our internal developers use them. We want to gather data on developer adoption to improve our products and services. Thanks for being a part of this process!",
   error_parsing_sfdx_project_file: "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
+  error_no_target_org:
+    'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
 
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',

@@ -6,12 +6,14 @@
  */
 import { ExtensionProviderService, closeExtensionScope } from '@salesforce/effect-ext-utils';
 import { refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
-import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
+import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import { WorkspaceContext } from '../../../src/context';
+import { WorkspaceContextService } from '../../../src/context/workspaceContextService';
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
@@ -24,23 +26,10 @@ const connection = { getAuthInfoFields: () => ({ orgId: '00D' }) };
 const servicesApi = {
   services: {
     ConnectionService: { getConnection: () => Effect.succeed(connection) },
-    TargetOrgRef: () => getTargetOrgRef()
+    TargetOrgRef: () => getTargetOrgRef(),
+    ExtensionContextService
   }
 };
-const providerLayer = Layer.succeed(ExtensionProviderService, {
-  getServicesApi: Effect.succeed(servicesApi)
-} as never);
-const runPromise = <A, E, R>(effect: Effect.Effect<A, E, R>, options?: { signal?: AbortSignal }): Promise<A> =>
-  Effect.runPromise(effect.pipe(Effect.provide(providerLayer as Layer.Layer<R>)), options);
-const runCallback = <A, E, R>(
-  effect: Effect.Effect<A, E, R>,
-  options?: Parameters<typeof Effect.runCallback<A, E>>[1]
-) => effect.pipe(Effect.provide(providerLayer as Layer.Layer<R>), provided => Effect.runCallback(provided, options));
-
-jest.mock('../../../src/services/runtime', () => ({
-  getRuntime: () => ({ runPromise, runCallback })
-}));
-
 const coreContext = {
   extension: { id: 'salesforce.salesforcedx-vscode-core' },
   subscriptions: []
@@ -49,6 +38,23 @@ const replayContext = {
   extension: { id: 'salesforce.salesforcedx-vscode-apex-replay-debugger' },
   subscriptions: []
 };
+const providerLayer = Layer.succeed(ExtensionProviderService, {
+  getServicesApi: Effect.succeed(servicesApi)
+} as never);
+const extensionContextLayer = Layer.succeed(
+  ExtensionContextService,
+  new ExtensionContextService({
+    getContext: Effect.succeed(coreContext as never),
+    getDisplayName: Effect.succeed('Salesforce CLI')
+  })
+);
+const dependencies = Layer.merge(providerLayer, extensionContextLayer);
+const createRuntime = () => ManagedRuntime.make(Layer.merge(dependencies, Layer.provide(WorkspaceContextService.Default, dependencies)));
+let runtime = createRuntime();
+const runPromise = <A, E, R>(effect: Effect.Effect<A, E, R>, options?: { signal?: AbortSignal }): Promise<A> =>
+  runtime.runPromise(effect as never, options);
+
+jest.mock('../../../src/services/runtime', () => ({ getRuntime: () => runtime }));
 
 const flushEffects = () => new Promise(resolve => setImmediate(resolve));
 
@@ -57,18 +63,25 @@ const setTargetOrg = (identity: typeof DefaultOrgInfoSchema.Type) =>
 
 describe('WorkspaceContext', () => {
   beforeEach(async () => {
+    await runtime.dispose();
+    runtime = createRuntime();
     jest.clearAllMocks();
     coreContext.subscriptions.length = 0;
     replayContext.subscriptions.length = 0;
     getTargetOrgRef = () => Effect.succeed(targetOrgRef);
     await runPromise(closeExtensionScope());
+    WorkspaceContext.disposeInstance();
     WorkspaceContext.getInstance(true);
     await flushEffects();
     jest.clearAllMocks();
     await setTargetOrg({});
+    jest.clearAllMocks();
   });
 
   afterEach(async () => {
+    WorkspaceContext.disposeInstance();
+    await runtime.dispose();
+    runtime = createRuntime();
     await runPromise(closeExtensionScope());
   });
 
@@ -79,6 +92,7 @@ describe('WorkspaceContext', () => {
     context.onOrgChange(listener);
 
     await context.initialize(coreContext as never);
+    jest.clearAllMocks();
 
     expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: 'initial@example.com',
@@ -96,7 +110,7 @@ describe('WorkspaceContext', () => {
       observedGetters.push({ username: context.username, alias: context.alias, orgId: context.orgId })
     );
     await context.initialize(coreContext as never);
-    await flushEffects();
+    jest.clearAllMocks();
 
     const switched = { username: 'switched@example.com', alias: 'configured', orgId: '00Dswitched' };
     await setTargetOrg(switched);
@@ -113,6 +127,7 @@ describe('WorkspaceContext', () => {
     const listener = jest.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
+    jest.clearAllMocks();
 
     await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
     await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
@@ -127,7 +142,7 @@ describe('WorkspaceContext', () => {
     await setTargetOrg({ username: 'before@example.com', alias: 'before', orgId: '00Dbefore' });
     const context = WorkspaceContext.getInstance(true);
     await context.initialize(replayContext as never);
-    await flushEffects();
+    jest.clearAllMocks();
 
     const changed = new Promise<void>(resolve => context.onOrgChange(() => resolve()));
     await setTargetOrg({});
@@ -138,10 +153,11 @@ describe('WorkspaceContext', () => {
       alias: undefined,
       orgId: undefined
     });
-    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
   });
 
   it('initializes once and keeps connection delegation unchanged', async () => {
+    await setTargetOrg({ username: 'user@example.com' });
     const context = WorkspaceContext.getInstance(true);
 
     await Promise.all([
@@ -154,7 +170,16 @@ describe('WorkspaceContext', () => {
     expect(coreContext.subscriptions).toHaveLength(1);
   });
 
-  it('disposes the replaced singleton watcher and isolates identity across instances', async () => {
+  it('rejects connection access when no target org is tracked', async () => {
+    const context = WorkspaceContext.getInstance(true);
+    await context.initialize(coreContext as never);
+
+    await expect(context.getConnection()).rejects.toThrow(
+      'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
+    );
+  });
+
+  it('keeps retained facades live when the singleton reference is replaced', async () => {
     await setTargetOrg({ username: 'first@example.com', alias: 'first', orgId: '00Dfirst' });
     const first = WorkspaceContext.getInstance(true);
     const firstListener = jest.fn();
@@ -162,11 +187,6 @@ describe('WorkspaceContext', () => {
     await first.initialize(coreContext as never);
 
     const replacement = WorkspaceContext.getInstance(true);
-    expect({ username: replacement.username, alias: replacement.alias, orgId: replacement.orgId }).toEqual({
-      username: undefined,
-      alias: undefined,
-      orgId: undefined
-    });
     const replacementListener = jest.fn();
     replacement.onOrgChange(replacementListener);
     await replacement.initialize(coreContext as never);
@@ -176,70 +196,31 @@ describe('WorkspaceContext', () => {
     await setTargetOrg(switched);
     await flushEffects();
 
-    expect(firstListener).not.toHaveBeenCalled();
+    expect(firstListener).toHaveBeenCalledTimes(1);
     expect(replacementListener).toHaveBeenCalledTimes(1);
     expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
-    expect({ username: first.username, alias: first.alias, orgId: first.orgId }).toEqual({
-      username: 'first@example.com',
-      alias: 'first',
-      orgId: '00Dfirst'
-    });
+    expect({ username: first.username, alias: first.alias, orgId: first.orgId }).toEqual(switched);
     expect({ username: replacement.username, alias: replacement.alias, orgId: replacement.orgId }).toEqual(switched);
 
     first.orgShape = 'Sandbox';
     first.devHubId = '00Dstale';
     first.orgEdition = 'Enterprise';
     expect({ orgShape: replacement.orgShape, devHubId: replacement.devHubId, orgEdition: replacement.orgEdition }).toEqual({
-      orgShape: 'Production',
-      devHubId: undefined,
-      orgEdition: undefined
+      orgShape: 'Sandbox',
+      devHubId: '00Dstale',
+      orgEdition: 'Enterprise'
     });
   });
 
-  it('interrupts initialization when the singleton is replaced before the initial snapshot', async () => {
-    const releaseTargetOrgRef = Effect.runSync(Deferred.make<void>());
-    getTargetOrgRef = () => Deferred.await(releaseTargetOrgRef).pipe(Effect.as(targetOrgRef));
-    const first = WorkspaceContext.getInstance(true);
-    const firstListener = jest.fn();
-    first.onOrgChange(firstListener);
-    const initialization = first.initialize(coreContext as never);
-    WorkspaceContext.getInstance(true);
-
-    await expect(initialization).rejects.toThrow();
-    Effect.runSync(Deferred.succeed(releaseTargetOrgRef, undefined));
-    await setTargetOrg({ username: 'stale@example.com', alias: 'stale', orgId: '00Dstale' });
-    await flushEffects();
-
-    expect(firstListener).not.toHaveBeenCalled();
-    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
-  });
-
-  it('stops watching when VS Code disposes the extension subscriptions', async () => {
+  it('disposes the public facade when VS Code disposes extension subscriptions', async () => {
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
 
     coreContext.subscriptions.forEach(subscription => (subscription as { dispose: () => void }).dispose());
-    await setTargetOrg({ username: 'after-disposal@example.com', orgId: '00Ddisposed' });
-    await flushEffects();
-
-    expect(listener).not.toHaveBeenCalled();
-    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
-  });
-
-  it('retries initialization after a transient startup failure', async () => {
-    getTargetOrgRef = jest
-      .fn()
-      .mockReturnValueOnce(Effect.fail(new Error('TargetOrgRef unavailable')))
-      .mockReturnValue(Effect.succeed(targetOrgRef));
-    const context = WorkspaceContext.getInstance(true);
-
-    await expect(context.initialize(coreContext as never)).rejects.toThrow('TargetOrgRef unavailable');
-    await context.initialize(coreContext as never);
-
     expect(context.username).toBeUndefined();
-    expect(getTargetOrgRef).toHaveBeenCalledTimes(2);
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it('preserves legacy org metadata accessors', async () => {

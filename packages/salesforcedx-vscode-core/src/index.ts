@@ -22,7 +22,7 @@ import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { SalesforceProjectConfig } from './salesforceProject/salesforceProjectConfig';
-import { setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
+import { buildCoreServicesLayer, setAllServicesLayer, AllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { salesforceCoreSettings } from './settings';
@@ -39,7 +39,9 @@ const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Di
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   // Initialize services layer first so getRuntime() can use it.
-  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
+  setAllServicesLayer(
+    buildAllServicesLayer(extensionContext, nls.localize('channel_name')).pipe(buildCoreServicesLayer)
+  );
 
   await getRuntime().runPromise(activateEffect(extensionContext));
 

@@ -134,6 +134,8 @@ type CreateDesktopTestOptions = {
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
   userSettings?: Record<string, unknown>;
+  /** Optional setup that must complete before the configured workspace is created and VS Code launches. */
+  beforeLaunch?: () => Promise<unknown>;
   /**
    * When true, install VSIXs and launch VS Code with --extensions-dir instead of --extensionDevelopmentPath.
    * Exercises the real shipping artifact (bundled dist/, packageUpdates, .vscodeignore).
@@ -303,7 +305,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     testExtensionPaths = [],
     marketplaceExtensions = [],
     disableOtherExtensions = true,
-    userSettings
+    userSettings,
+    beforeLaunch
   } = options;
 
   const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
@@ -349,6 +352,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
 
     // Create workspace directory (shared with electronApp so tests can access path)
     workspaceDir: async ({}, use): Promise<void> => {
+      await beforeLaunch?.();
       const dir = emptyWorkspace ? await createEmptyTestWorkspace() : await createTestWorkspace(orgAlias);
       await use(dir);
     },

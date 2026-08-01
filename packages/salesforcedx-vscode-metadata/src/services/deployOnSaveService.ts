@@ -15,7 +15,7 @@ import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { detectConflictsFromTracking } from '../conflict/conflictDetection';
 import { getConflictStateRef } from '../conflict/conflictTreeProvider';
 import { conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
@@ -29,16 +29,16 @@ const ENQUEUE_DELAY_MS = 1000;
 /** File filtering - exclude files that shouldn't be deployed */
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [workspaceInfo, fsService] = yield* Effect.all(
-    [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), api.services.FsService],
-    { concurrency: 'unbounded' }
-  );
-  const [uriPath, workspacePath] = yield* Effect.all(
-    [fsService.uriToPath(uri), fsService.uriToPath(workspaceInfo.uri)],
-    { concurrency: 'unbounded' }
-  );
-  if (!uriPath.startsWith(workspacePath)) return false;
-  const basename = uriPath.split(/[/\\]/).pop() ?? '';
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const workspaceUri = workspaceInfo.uri;
+  const workspacePath = workspaceUri.path.replace(/\/+$/, '');
+  if (
+    uri.scheme !== workspaceUri.scheme ||
+    uri.authority !== workspaceUri.authority ||
+    (uri.path !== workspacePath && !uri.path.startsWith(`${workspacePath}/`))
+  )
+    return false;
+  const basename = Utils.basename(uri);
 
   // Exclude dot files
   if (basename.startsWith('.')) return false;
