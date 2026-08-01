@@ -9,6 +9,21 @@
 - invariant: **always single-org** — only the org it started in, no cross-org switch (why the org extension is excluded)
 - _Avoid_: "web extension" (ambiguous), "vscode.dev mode", "browser mode"
 
+### egress sink vs local sink
+
+- **egress sink**: span destination that leaves the machine — App Insights (Azure Breeze), O11y
+- **local sink**: span destination staying on the machine — console, `~/.sf/vscode-spans/*.jsonl` (`enableFileTraces`), local OTLP collector (`enableLocalTraces`)
+- redaction (`RedactingSpanProcessor`) hits BOTH: it runs in `onEnding`, before any exporter
+- consequence: a token planted for debugging is unrecoverable from the local span files
+- _Avoid_: "exporter" as a synonym — both kinds are exporters; the split is where the bytes end up
+
+### redaction vs Redacted
+
+- **redaction** here = string scrubbing of span attributes / `status.message` / event attributes by `redactSecrets` (`observability/redactSecrets.ts`), replacing matched shapes with `<REDACTED … TOKEN>` labels
+- pattern-based and lossy: no way back to the original value, no wrapper type
+- **`Redacted`** = Effect's module for values that are secret by construction (`Redacted.make`/`Redacted.value`, `toString` prints `<redacted>`); not used anywhere in this repo today
+- _Avoid_: calling `redactSecrets` output "a Redacted" — different mechanism, different guarantees
+
 ### Effect boundary
 
 - the exported `async` function that calls `getRuntime().runPromise(effectFn())` and owns all user-facing error display for that command
