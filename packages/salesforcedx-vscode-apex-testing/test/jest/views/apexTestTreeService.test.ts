@@ -80,6 +80,7 @@ import * as Ref from 'effect/Ref';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
+import { orgDataUri } from 'salesforcedx-vscode-services/src/orgVfs/orgDataUris';
 import { nls } from '../../../src/messages';
 import {
   ApexTestTreeService,
@@ -113,6 +114,7 @@ const mockServicesApi = {
   services: {
     SettingsService: Effect.succeed(mockSettingsService),
     ConnectionService: mockConnectionService,
+    orgDataUri,
     TargetOrgRef: () => SubscriptionRef.make(mockOrgInfo)
   }
 };

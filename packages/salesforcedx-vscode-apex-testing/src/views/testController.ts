@@ -12,7 +12,7 @@ import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { APEX_TESTING_SCHEME, isForeignOrgClassUri } from '../discoveryVfs/apexTestingDiscoveryFs';
+import { apexTestingClassName } from '../discoveryVfs/apexTestingClassUri';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { notificationService } from '../utils/notificationHelpers';
@@ -257,7 +257,7 @@ export class ApexTestController {
   }
 
   public async retrieveOrgOnlyClassFromUri(uri: URI): Promise<void> {
-    const className = getClassNameFromApexTestingUri(uri);
+    const className = await getApexTestingRuntime().runPromise(getClassNameFromOrgDataUri(uri));
     if (!className) {
       return;
     }
@@ -418,54 +418,22 @@ const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
   }
 };
 
-const getClassNameFromApexTestingUri = (uri: URI): string | undefined => {
-  if (uri.scheme !== APEX_TESTING_SCHEME) {
-    return undefined;
-  }
-  const classesMarker = '/classes/';
-  const markerIndex = uri.path.indexOf(classesMarker);
-  if (markerIndex < 0) {
-    return undefined;
-  }
-  const classPath = uri.path.slice(markerIndex + classesMarker.length);
-  if (!classPath.endsWith('.cls')) {
-    return undefined;
-  }
-  return classPath.slice(0, -4).replaceAll('/', '.');
-};
+const getClassNameFromOrgDataUri = Effect.fn('ApexTesting.getClassNameFromOrgDataUri')(function* (uri: URI) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return apexTestingClassName(api, uri);
+});
 
 const getRetrievedFileUri = (result: RetrieveResult): Option.Option<URI> =>
   Option.fromNullable(
     result.getFileResponses().find(r => isString(r.filePath) && r.filePath.length > 0)?.filePath
   ).pipe(Option.map(URI.file));
 
-// Batch-close text-input tabs matching predicate. No-op on web (tabGroups absent).
-const closeMatchingTabs = Effect.fn('ApexTesting.closeMatchingTabs')(function* (predicate: (uri: URI) => boolean) {
-  const tabGroupsApi = vscode.window.tabGroups;
-  if (!tabGroupsApi) {
-    return;
-  }
-  const tabsToClose = tabGroupsApi.all.flatMap(group =>
-    group.tabs.filter(tab => tab.input instanceof vscode.TabInputText && predicate(tab.input.uri))
-  );
-  if (tabsToClose.length > 0) {
-    yield* Effect.promise(() => tabGroupsApi.close(tabsToClose, true));
-  }
-});
-
-// Close every `apex-testing:` class tab whose org differs from `currentOrgKey`. On a default-org change
-// the consumer passes the new orgId, closing the previous org's now-stale tabs; on logout it passes
-// `undefined`, so all org tabs are foreign and close. Replaces the old close-all class method so the
-// org-change and logout paths share one consumer-driven entry point.
-export const closeForeignApexTestingTabs = (currentOrgKey: string | undefined) =>
-  closeMatchingTabs(uri => isForeignOrgClassUri(uri, currentOrgKey));
-
 const closeEditorTabByUri = Effect.fn('ApexTesting.closeEditorTabByUri')(function* (uri: URI) {
   // Compare via FsService.HashableUri (structural Equal) rather than hand-rolled toString().
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const HashableUri = yield* api.services.FsService.HashableUri;
   const target = HashableUri.fromUri(uri);
-  yield* closeMatchingTabs(tabUri => Equal.equals(HashableUri.fromUri(tabUri), target));
+  yield* api.services.closeMatchingTabs(tabUri => Equal.equals(HashableUri.fromUri(tabUri), target));
 });
 
 // eslint-disable-next-line functional/no-let -- module-level lazy singleton, assigned once via ??= in getTestController

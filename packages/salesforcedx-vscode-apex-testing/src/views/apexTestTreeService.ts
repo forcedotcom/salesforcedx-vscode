@@ -20,6 +20,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { ApexTestDiscoveryService } from '../discoveryVfs/apexTestDiscoveryService';
+import { apexTestingClassUri } from '../discoveryVfs/apexTestingClassUri';
 import { nls } from '../messages';
 import { PackageResolutionService } from '../testDiscovery/packageResolution';
 import { discoverTests } from '../testDiscovery/testDiscovery';
@@ -471,6 +472,8 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       ).pipe(Effect.mapError(e => new PackageResolutionError({ message: getMessageFromError(e) })));
 
       const structure = buildNamespacePackageStructure(apexClasses, classIdToPackage);
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const orgOnlyClassUri = (fullClassName: string): URI => apexTestingClassUri(api, orgKey, fullClassName);
       const currentClassItems = yield* Ref.get(classItems);
       const currentMethodItems = yield* Ref.get(methodItems);
       const currentClassToParent = yield* Ref.get(classToParentItem);
@@ -479,7 +482,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         classItems: currentClassItems,
         methodItems: currentMethodItems,
         classNameToUri,
-        orgKey,
+        orgOnlyClassUri,
         orgOnlyTag: ctx.orgOnlyTag,
         inWorkspaceTag: ctx.inWorkspaceTag
       });
@@ -584,7 +587,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         yield* ApexTestDiscoveryService.saveDiscoveredClasses(orgId, apexClasses, classBodiesByFullName);
       }).pipe(
         Effect.catchTags({
-          DiscoveryClearError: logPersistWarning,
+          FsServiceError: logPersistWarning,
           ServicesExtensionNotFoundError: logPersistWarning,
           InvalidServicesApiError: logPersistWarning
         })
@@ -900,12 +903,14 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
         Ref.get(classToParentItem)
       ]);
       const structure = buildNamespacePackageStructure([cls], classIdToPackage);
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const orgOnlyClassUri = (fullClassName: string): URI => apexTestingClassUri(api, orgKey, fullClassName);
       const createClassAndMethods = createClassAndMethodsFactory({
         controller: ctx.controller,
         classItems: currentClassItems,
         methodItems: currentMethodItems,
         classNameToUri,
-        orgKey,
+        orgOnlyClassUri,
         orgOnlyTag: ctx.orgOnlyTag,
         inWorkspaceTag: ctx.inWorkspaceTag
       });

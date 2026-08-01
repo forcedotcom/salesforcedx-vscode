@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Context from 'effect/Context';
 import * as Layer from 'effect/Layer';
 import { AliasService } from './core/alias';
 import { ApexLogService } from './core/apexLogService';
@@ -25,6 +26,10 @@ import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { TerminalService } from './terminal/terminalService';
+import {
+  FileSystemProviderRegistry,
+  makeFileSystemProviderRegistry
+} from './virtualFsProvider/fileSystemProviderRegistry';
 import { EditorService } from './vscode/editorService';
 import { ExtensionContextService } from './vscode/extensionContextService';
 import { ExtensionsService } from './vscode/extensionsService';
@@ -40,34 +45,41 @@ import { WorkspaceService } from './vscode/workspaceService';
  * Global service Defaults (same for all extensions). Leaf module to avoid circular dependency
  * when deriving runtime type from `typeof globalLayers`.
  */
-export const globalLayers = Layer.mergeAll(
-  AliasService.Default,
-  TemplateService.Default,
-  ExtensionContextService.Default,
-  ExecuteAnonymousService.Default,
-  ExtensionsService.Default,
-  FileChangePubSub.Default,
-  ApexLogService.Default,
-  ComponentSetService.Default,
-  LightningComponentService.Default,
-  ConfigService.Default,
-  ConnectionService.Default,
-  EditorService.Default,
-  FsService.Default,
-  MediaService.Default,
-  MetadataChangeNotificationService.Default,
-  MetadataDescribeService.Default,
-  MetadataDeleteService.Default,
-  MetadataDeployService.Default,
-  PromptService.Default,
-  MetadataRegistryService.Default,
-  MetadataRetrieveService.Default,
-  ProjectService.Default,
-  SettingsService.Default,
-  SettingsChangePubSub.Default,
-  SourceTrackingService.Default,
-  TerminalService.Default,
-  TransmogrifierService.Default,
-  TraceFlagService.Default,
-  WorkspaceService.Default
-);
+export const makeGlobalLayers = (providerRegistry: Context.Tag.Service<typeof FileSystemProviderRegistry>) => {
+  const providerRegistryLayer = Layer.succeed(FileSystemProviderRegistry, providerRegistry);
+  const fsServiceLayer = FsService.Default.pipe(Layer.provide(providerRegistryLayer));
+  return Layer.mergeAll(
+    AliasService.Default,
+    TemplateService.Default,
+    ExtensionContextService.Default,
+    ExecuteAnonymousService.Default,
+    ExtensionsService.Default,
+    FileChangePubSub.Default,
+    ApexLogService.Default,
+    ComponentSetService.Default,
+    LightningComponentService.Default,
+    ConfigService.Default,
+    ConnectionService.Default,
+    EditorService.Default,
+    providerRegistryLayer,
+    fsServiceLayer,
+    MediaService.Default,
+    MetadataChangeNotificationService.Default,
+    MetadataDescribeService.Default,
+    MetadataDeleteService.Default,
+    MetadataDeployService.Default,
+    PromptService.Default,
+    MetadataRegistryService.Default,
+    MetadataRetrieveService.Default,
+    ProjectService.Default,
+    SettingsService.Default,
+    SettingsChangePubSub.Default,
+    SourceTrackingService.Default,
+    TerminalService.Default,
+    TransmogrifierService.Default,
+    TraceFlagService.Default,
+    WorkspaceService.Default
+  );
+};
+
+export const globalLayers = makeGlobalLayers(makeFileSystemProviderRegistry());

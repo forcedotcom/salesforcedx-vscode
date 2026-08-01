@@ -18,9 +18,9 @@ describe('orgOnlyRetrieveCodeLensProvider', () => {
       jest.fn(() => ({ dispose: jest.fn() }));
   });
 
-  it('provides a retrieve codelens for apex-testing documents', () => {
+  it('provides a retrieve codelens for org-data documents', () => {
     const document = {
-      uri: URI.parse('apex-testing:/orgs/org123/classes/ns/MyClass.cls')
+      uri: URI.parse('sf-org-data:/orgs/org123/apex-testing/classes/ns/MyClass.cls')
     } as unknown as vscode.TextDocument;
 
     const lenses = provideOrgOnlyRetrieveCodeLenses(document);
@@ -29,19 +29,17 @@ describe('orgOnlyRetrieveCodeLensProvider', () => {
     expect(lenses[0].command?.arguments).toEqual([document.uri]);
   });
 
-  it('registers codelens provider with apex-testing apex selector', () => {
+  it('registers the supplied owner-scoped selector', () => {
     const context = {
       subscriptions: [] as vscode.Disposable[]
     } as unknown as vscode.ExtensionContext;
 
-    registerOrgOnlyRetrieveCodeLensProvider(context);
+    const selector = { language: 'apex', scheme: 'sf-org-data', pattern: '/orgs/*/apex-testing/**' };
+    registerOrgOnlyRetrieveCodeLensProvider(context, selector);
 
     expect(
       (vscode.languages as typeof vscode.languages & { registerCodeLensProvider: jest.Mock }).registerCodeLensProvider
-    ).toHaveBeenCalledWith(
-      { language: 'apex', scheme: 'apex-testing' },
-      expect.objectContaining({ provideCodeLenses: expect.any(Function) })
-    );
+    ).toHaveBeenCalledWith(selector, expect.objectContaining({ provideCodeLenses: expect.any(Function) }));
     expect(context.subscriptions).toHaveLength(1);
   });
 });

@@ -225,6 +225,7 @@ describe('Extension', () => {
     ];
     // Mock the updateWorkspaceFolders method that's called in the index.ts
     vscode.workspace.updateWorkspaceFolders = jest.fn();
+    vscode.window.registerFileDecorationProvider = jest.fn().mockReturnValue({ dispose: jest.fn() });
   });
 
   it('should activate successfully', async () => {

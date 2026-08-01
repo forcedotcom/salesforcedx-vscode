@@ -21,7 +21,7 @@
 
 ### discovery VFS
 
-- `apex-testing:` scheme; `/orgs/<orgKey>/classes/<FullName>.cls`
+- `sf-org-data:` scheme (managed by services); `/orgs/<orgKey>/apex-testing/classes/<FullName>.cls`
 - read-only virtual editor backing org-only classes
 
 ### delegate command

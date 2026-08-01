@@ -8,11 +8,6 @@
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-const ORG_ONLY_APEX_SELECTOR: vscode.DocumentSelector = {
-  language: 'apex',
-  scheme: 'apex-testing'
-};
-
 export const provideOrgOnlyRetrieveCodeLenses = (document: vscode.TextDocument): vscode.CodeLens[] => {
   const title = nls.localize('apex_test_retrieve_org_only_class_codelens_text');
   const codeLens = new vscode.CodeLens(new vscode.Range(0, 0, 0, 0));
@@ -25,9 +20,12 @@ export const provideOrgOnlyRetrieveCodeLenses = (document: vscode.TextDocument):
   return [codeLens];
 };
 
-export const registerOrgOnlyRetrieveCodeLensProvider = (context: vscode.ExtensionContext): void => {
+export const registerOrgOnlyRetrieveCodeLensProvider = (
+  context: vscode.ExtensionContext,
+  selector: vscode.DocumentSelector
+): void => {
   context.subscriptions.push(
-    vscode.languages.registerCodeLensProvider(ORG_ONLY_APEX_SELECTOR, {
+    vscode.languages.registerCodeLensProvider(selector, {
       provideCodeLenses: document => provideOrgOnlyRetrieveCodeLenses(document)
     })
   );

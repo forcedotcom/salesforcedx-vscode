@@ -11,6 +11,7 @@ import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { ProjectService } from '../core/projectService';
+import { orgDataOwner } from '../orgVfs/orgDataUris';
 import { EditorService } from './editorService';
 
 const setInPackageDirectoriesContext = (value: boolean) =>
@@ -18,6 +19,9 @@ const setInPackageDirectoriesContext = (value: boolean) =>
 
 const setApexTestContext = (value: boolean) =>
   Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:current_file_is_apex_test', value));
+
+const setOrgDataOwnerContext = (value: string | undefined) =>
+  Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgDataOwner', value));
 
 const IS_TEST_REG_EXP = /@isTest/i;
 
@@ -54,4 +58,20 @@ export const watchApexTestContext = Effect.fn('watchApexTestContext')(function* 
     Stream.fromEffect(Effect.sync(() => isApexTestFile(vscode.window.activeTextEditor))),
     Stream.fromPubSub(editorService.pubsub).pipe(Stream.map(isApexTestFile))
   ).pipe(Stream.debounce(Duration.millis(50)), Stream.changes, Stream.runForEach(setApexTestContext));
+});
+
+/** Update VS Code context with the active org-data owner, or unset it for other editors. */
+export const watchOrgDataOwnerContext = Effect.fn('watchOrgDataOwnerContext')(function* () {
+  const editorService = yield* EditorService;
+  yield* Stream.merge(
+    Stream.fromEffect(
+      editorService.getActiveEditorUri().pipe(Effect.catchTag('NoActiveEditorError', () => Effect.void))
+    ),
+    Stream.fromPubSub(editorService.pubsub).pipe(Stream.map(editor => editor?.document.uri))
+  ).pipe(
+    Stream.map(uri => (uri ? orgDataOwner(uri) : undefined)),
+    Stream.debounce(Duration.millis(50)),
+    Stream.changes,
+    Stream.runForEach(setOrgDataOwnerContext)
+  );
 });
