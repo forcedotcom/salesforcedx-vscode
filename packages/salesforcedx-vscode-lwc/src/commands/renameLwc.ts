@@ -52,12 +52,16 @@ export const renameLwcCommand = Effect.fn('renameLwcCommand')(function* (
       ),
     onSome: Effect.succeed
   });
-  if (getBundleKind(bundleUri) !== 'lwc') {
-    return yield* new NotInBundleError({
-      sourceUri: resolvedSource.toString(),
-      message: 'Source path is not within an lwc bundle'
-    });
-  }
+  yield* Effect.succeed(getBundleKind(bundleUri)).pipe(
+    Effect.filterOrFail(
+      kind => kind === 'lwc',
+      () =>
+        new NotInBundleError({
+          sourceUri: resolvedSource.toString(),
+          message: 'Source path is not within an lwc bundle'
+        })
+    )
+  );
 
   const oldName = Utils.basename(bundleUri);
 
