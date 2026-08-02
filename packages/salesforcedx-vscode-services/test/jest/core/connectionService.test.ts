@@ -364,4 +364,22 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
     expect(error._tag).toBe('NoTargetOrgConfiguredError');
   });
+
+  it('empty explicit username fails with NoTargetOrgConfiguredError before lookup', async () => {
+    const error = await run(ConnectionService.getConnection('').pipe(Effect.flip));
+
+    expect(error._tag).toBe('NoTargetOrgConfiguredError');
+    expect(getUsernameFromAliasMock).not.toHaveBeenCalled();
+    expect(authInfoCreateMock).not.toHaveBeenCalled();
+  });
+
+  it('empty configured target-org fails with NoTargetOrgConfiguredError before lookup', async () => {
+    getPropertyValueMock.mockReturnValue('');
+
+    const error = await run(ConnectionService.getConnection().pipe(Effect.flip));
+
+    expect(error._tag).toBe('NoTargetOrgConfiguredError');
+    expect(getUsernameFromAliasMock).not.toHaveBeenCalled();
+    expect(authInfoCreateMock).not.toHaveBeenCalled();
+  });
 });

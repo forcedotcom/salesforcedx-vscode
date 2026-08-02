@@ -54,8 +54,8 @@ export const messages = {
   apex_testing_discovery_source_api_description: 'Use the Tooling API Test Discovery endpoint for discovery.',
   apex_test_suite_debug_not_supported_message:
     'Test suites cannot be debugged. Please debug individual test classes or methods.',
-  apex_test_payload_build_failed_message: 'Failed to build test payload',
-  apex_test_suite_name_not_determined_message: 'Suite name could not be determined for suite execution',
+  apex_test_payload_build_failed_message: 'Failed to build test payload.',
+  apex_test_suite_name_not_determined_message: 'Suite name could not be determined for suite execution.',
   apex_test_suite_empty_message_notification:
     'The following test suite(s) are empty and cannot be run: %s. Add test classes to the suite before running.',
   apex_test_suite_empty_message:

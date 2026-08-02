@@ -199,6 +199,16 @@ describe('payloadBuilder', () => {
       await expect(buildTestPayload(mockTestService, [suiteItem], ['InvalidSuite'], false)).rejects.toThrow();
     });
 
+    it('should throw error if any suite name cannot be determined', async () => {
+      const validSuite = createMockTestItem('suite:MySuite', 'MySuite');
+      const invalidSuite = createMockTestItem('suite:', 'InvalidSuite');
+
+      await expect(
+        buildTestPayload(mockTestService, [validSuite, invalidSuite], ['MySuite', 'InvalidSuite'], false)
+      ).rejects.toThrow();
+      expect(mockTestService.buildAsyncPayload).not.toHaveBeenCalled();
+    });
+
     it('should throw error if payload is not built', async () => {
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(undefined);
 

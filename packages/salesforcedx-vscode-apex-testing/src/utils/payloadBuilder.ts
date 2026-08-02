@@ -6,7 +6,7 @@
  */
 import { AsyncTestConfiguration, AsyncTestArrayConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
 import * as Effect from 'effect/Effect';
-import { isTruthy } from 'effect/Predicate';
+import { isNotUndefined, isTruthy } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { PayloadBuildError, SuiteNameUnresolvedError } from './apexTestExecutionErrors';
@@ -56,17 +56,18 @@ export const buildTestPayload = Effect.fn('buildTestPayload')(function* (
     Effect.tryPromise({
       try: () => buildPayload(testService, options, skipCodeCoverage),
       catch: payloadBuildError
-    }).pipe(Effect.filterOrFail(payload => !!payload, payloadBuildError));
+    }).pipe(Effect.filterOrFail(isNotUndefined, payloadBuildError));
 
   if (allSuites) {
-    return yield* Effect.succeed(suites.map(item => extractSuiteName(item.id)).filter(isTruthy)).pipe(
+    return yield* Effect.succeed(suites.map(item => extractSuiteName(item.id))).pipe(
       Effect.filterOrFail(
-        suiteNames => suiteNames.length > 0,
+        suiteNames => suiteNames.every(isTruthy),
         () =>
           new SuiteNameUnresolvedError({
             message: nls.localize('apex_test_suite_name_not_determined_message')
           })
       ),
+      Effect.map(suiteNames => suiteNames.filter(isTruthy)),
       Effect.map(suiteNames => ({ suiteName: suiteNames.join(',') })),
       Effect.flatMap(build),
       Effect.map(payload => ({ payload, hasSuite: true, hasClass: false }) satisfies PayloadBuildResult)

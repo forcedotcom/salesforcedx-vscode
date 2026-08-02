@@ -12,7 +12,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
-import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isString, isTruthy, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -304,15 +304,17 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
-            const usernameOrAlias =
+            const usernameOrAlias = yield* Effect.succeed(
               username ??
-              (yield* configService.getConfigAggregator().pipe(
-                Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
-                Effect.filterOrFail(
-                  isNotUndefined,
-                  () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
-                )
-              ));
+                (yield* configService
+                  .getConfigAggregator()
+                  .pipe(Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG))))
+            ).pipe(
+              Effect.filterOrFail(
+                (value): value is string => isTruthy(value),
+                () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
+              )
+            );
             const resolved = yield* aliasService
               .getUsernameFromAlias(usernameOrAlias)
               .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
