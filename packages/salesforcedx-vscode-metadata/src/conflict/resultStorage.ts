@@ -70,7 +70,8 @@ const getFileResponsesDirUri = Effect.fn('resultStorage.getFileResponsesDirUri')
     [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), Effect.succeed(api.services.TargetOrgRef)],
     { concurrency: 'unbounded' }
   );
-  const orgId = yield* SubscriptionRef.get(yield* defaultOrgRef()).pipe(
+  const orgId = yield* defaultOrgRef().pipe(
+    Effect.flatMap(SubscriptionRef.get),
     Effect.map(orgInfo => orgInfo.orgId),
     Effect.filterOrFail(
       isNotUndefined,
