@@ -20,10 +20,11 @@ if (!dir) {
   process.exit(1);
 }
 
-// Match a dash followed by a semver (digits.digits.digits) at the end of the
-// filename before .vsix. This strips the version suffix while preserving any
-// digits that are part of the extension name itself (e.g. "vscode-i18n").
-const VSIX_VERSION_SUFFIX = /-\d+\.\d+\.\d+\.vsix$/;
+// Match a dash followed by a semver (digits.digits.digits) with optional prerelease
+// tag (e.g., -beta, -nightly.1) at the end of the filename before .vsix. This strips
+// the version suffix while preserving any digits that are part of the extension name
+// itself (e.g. "vscode-i18n").
+const VSIX_VERSION_SUFFIX = /-\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?\.vsix$/;
 
 const names = [
   ...new Set(

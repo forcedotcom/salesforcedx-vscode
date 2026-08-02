@@ -85,7 +85,8 @@
     "test": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "vscode:package:legacy:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -203,6 +204,15 @@
         "test/tsconfig.json"
       ],
       "output": []
+    },
+    "vscode:package:legacy:prerelease": {
+      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "env": {
+        "VSCE_PRE_RELEASE": "true"
+      }
     }
   },
   "activationEvents": [

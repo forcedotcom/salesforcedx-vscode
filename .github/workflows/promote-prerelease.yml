@@ -1,0 +1,41 @@
+name: Promote Nightly to Pre-release
+
+on:
+  schedule:
+    # Wednesdays at 7 AM UTC
+    # Rationale: Weekly promotion on Wed gives 7+ days of nightly testing
+    # before weekend/Monday releases, aligning with team review cycles
+    # Stability criteria: nightly tag ≥7 days old + all CI checks passed on the tag's commit
+    - cron: '0 7 * * 3'
+  workflow_dispatch:
+    inputs:
+      min-tag-age-days:
+        description: 'Minimum nightly age in days before eligible for promotion (default: 7)'
+        required: false
+        default: '7'
+        type: string
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing or tagging)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: promote-prerelease
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  promote:
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
+    with:
+      min-tag-age-days: ${{ inputs.min-tag-age-days || '7' }}
+      vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
+      exclude-web-vsix: 'false'
+      extension-name: 'salesforcedx-vscode'
+      dry-run: ${{ inputs.dry-run || false }}
+    secrets: inherit
