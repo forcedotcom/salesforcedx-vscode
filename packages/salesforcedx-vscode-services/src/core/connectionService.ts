@@ -323,14 +323,13 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return desktopConn;
           });
 
-      // update the org ref in the background — ONLY for the default org (no explicit username)
+      // Update the org ref only for the default org (no explicit username).
       if (isUndefined(username)) {
         const targetOrg = yield* configService.getTargetOrg();
         yield* maybeUpdateDefaultOrgRef(conn, targetOrg).pipe(
           Effect.provideService(AliasService, aliasService),
           Effect.tapError(e => Effect.logWarning(String(e))),
-          Effect.catchAll(() => Effect.void),
-          Effect.forkDaemon
+          Effect.catchAll(() => Effect.void)
         );
       }
       return conn;

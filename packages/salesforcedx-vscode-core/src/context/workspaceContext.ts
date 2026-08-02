@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
+import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { OrgShape } from '@salesforce/salesforcedx-utils-vscode';
+import type { OrgShape } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import * as MutableRef from 'effect/MutableRef';
+import * as Fiber from 'effect/Fiber';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
@@ -22,6 +23,7 @@ export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
   private initializationPromise?: Promise<void>;
   private registered = false;
+  private disposed = false;
   private service?: WorkspaceContextService;
   private serviceSubscription?: vscode.Disposable;
   private readonly orgChangeEmitter = new vscode.EventEmitter<{ username?: string; alias?: string }>();
@@ -42,17 +44,27 @@ export class WorkspaceContext {
     try {
       await initialization;
     } catch (error) {
-      if (this.initializationPromise === initialization) this.initializationPromise = undefined;
+      if (this.initializationPromise === initialization) {
+        this.serviceSubscription?.dispose();
+        this.serviceSubscription = undefined;
+        this.initializationPromise = undefined;
+      }
       throw error;
     }
   }
 
   private async _doInitialize(_extensionContext: vscode.ExtensionContext) {
     const runtime = getRuntime();
-    this.service = await runtime.runPromise(WorkspaceContextService);
-    const subscription = this.service.onOrgChange(event => this.orgChangeEmitter.fire(event));
-    this.serviceSubscription = subscription instanceof vscode.Disposable ? subscription : undefined;
-    await runtime.runPromise(this.service.initialized);
+    const service = await runtime.runPromise(WorkspaceContextService);
+    if (this.disposed) throw new Error('WorkspaceContext was disposed during initialization');
+    this.service = service;
+    const subscriptionFiber = runtime.runFork(
+      Stream.fromPubSub(service.orgChanges).pipe(
+        Stream.runForEach(event => Effect.sync(() => this.orgChangeEmitter.fire(event)))
+      )
+    );
+    this.serviceSubscription = { dispose: () => runtime.runFork(Fiber.interrupt(subscriptionFiber)) };
+    await runtime.runPromise(service.initialized);
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {
@@ -80,6 +92,7 @@ export class WorkspaceContext {
   }
 
   public dispose(): void {
+    this.disposed = true;
     this.serviceSubscription?.dispose();
     this.serviceSubscription = undefined;
     this.orgChangeEmitter.dispose();
@@ -87,38 +100,38 @@ export class WorkspaceContext {
   }
 
   public get username(): string | undefined {
-    return this.service ? MutableRef.get(this.service.identityRef).username : undefined;
+    return this.service?.getUsername();
   }
 
   public get alias(): string | undefined {
-    return this.service ? MutableRef.get(this.service.identityRef).alias : undefined;
+    return this.service?.getAlias();
   }
 
   public get orgId(): string | undefined {
-    return this.service ? MutableRef.get(this.service.identityRef).orgId : undefined;
+    return this.service?.getOrgId();
   }
 
   public get orgShape(): OrgShape | undefined {
-    return this.service ? MutableRef.get(this.service.identityRef).orgShape : undefined;
+    return this.service?.getOrgShape();
   }
 
   public set orgShape(orgShape: OrgShape | undefined) {
-    if (this.service) MutableRef.update(this.service.identityRef, identity => ({ ...identity, orgShape }));
+    this.service?.setOrgShape(orgShape);
   }
 
   public get devHubId(): string | undefined {
-    return this.service ? MutableRef.get(this.service.identityRef).devHubOrgId : undefined;
+    return this.service?.getDevHubOrgId();
   }
 
   public set devHubId(devHubOrgId: string | undefined) {
-    if (this.service) MutableRef.update(this.service.identityRef, identity => ({ ...identity, devHubOrgId }));
+    this.service?.setDevHubOrgId(devHubOrgId);
   }
 
   public get orgEdition(): string | undefined {
-    return this.service ? MutableRef.get(this.service.identityRef).orgEdition : undefined;
+    return this.service?.getOrgEdition();
   }
 
   public set orgEdition(orgEdition: string | undefined) {
-    if (this.service) MutableRef.update(this.service.identityRef, identity => ({ ...identity, orgEdition }));
+    this.service?.setOrgEdition(orgEdition);
   }
 }

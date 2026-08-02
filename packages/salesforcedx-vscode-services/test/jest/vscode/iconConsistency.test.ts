@@ -29,6 +29,7 @@ const contributedIcons: Record<string, { description: string; default: { fontPat
 
 const contributedIds = new Set(Object.keys(contributedIcons));
 const manifestEntries = Object.entries(manifest);
+const manifestEntriesWithCodePoints = manifestEntries.map((entry, index) => [...entry, 57_345 + index] as const);
 const manifestById = new Map(manifestEntries.map(([svgName, { id }]) => [id, svgName]));
 
 /** Custom icon IDs are those contributed by this extension (font-based, not codicons). */
@@ -96,16 +97,14 @@ describe('Icon consistency', () => {
     });
   });
 
-  describe('contributes.icons font characters are unique and sequential', () => {
+  describe('contributes.icons font characters follow manifest order', () => {
     it('all font characters are unique', () => {
       const chars = Object.values(contributedIcons).map(e => e.default.fontCharacter);
       expect(new Set(chars).size).toBe(chars.length);
     });
 
-    it('font characters are valid unicode escapes', () => {
-      for (const entry of Object.values(contributedIcons)) {
-        expect(entry.default.fontCharacter).toMatch(/^\\[0-9A-F]{4,}$/);
-      }
+    it.each(manifestEntriesWithCodePoints)('%s has its stable manifest code point', (_name, { id }, codePoint) => {
+      expect(contributedIcons[id].default.fontCharacter).toBe(`\\${codePoint.toString(16).toUpperCase()}`);
     });
   });
 });

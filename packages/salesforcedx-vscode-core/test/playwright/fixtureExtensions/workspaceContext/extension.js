@@ -6,7 +6,6 @@
  */
 const Context = require('effect/Context');
 const Effect = require('effect/Effect');
-const Stream = require('effect/Stream');
 const vscode = require('vscode');
 
 const CORE_EXTENSION_ID = 'salesforce.salesforcedx-vscode-core';
@@ -23,20 +22,10 @@ const getExtensionApi = async id => {
 
 const activate = async extensionContext => {
   const coreApi = await getExtensionApi(CORE_EXTENSION_ID);
-  const projectConfig = coreApi.services.SalesforceProjectConfig.getInstance();
-  if (!projectConfig) throw new Error('Core API did not provide SalesforceProjectConfig');
   const servicesApi = await getExtensionApi(SERVICES_EXTENSION_ID);
   const workspaceContext = coreApi.services.WorkspaceContext.getInstance();
   const workspace = vscode.workspace.workspaceFolders?.[0];
   if (!workspace) throw new Error('Workspace Context Playwright requires an open workspace');
-
-  const targetOrgRef = await Effect.runPromise(servicesApi.services.TargetOrgRef());
-  await Effect.runPromise(
-    targetOrgRef.changes.pipe(
-      Stream.filter(identity => Boolean(identity.username)),
-      Stream.runHead
-    )
-  );
 
   const stateUri = vscode.Uri.joinPath(workspace.uri, STATE_FILE);
   let stateWrite = Promise.resolve();

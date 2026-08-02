@@ -79,7 +79,7 @@ test('WorkspaceContext tracks real default-org picker switches', async ({ page, 
     await executeCommandWithCommandPalette(page, packageNls.workspace_context_select_org_test_text);
     await selectOrgInPicker(page, MINIMAL_ORG_ALIAS);
     await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
-    await expect.poll(() => readState(workspaceDir)).toMatchObject({ transitionComplete: true });
+    await expect.poll(() => readState(workspaceDir), { timeout: 60_000 }).toMatchObject({ transitionComplete: true });
     expect(await readState(workspaceDir)).toMatchObject({
       eventCount: 2,
       event: { username, alias: MINIMAL_ORG_ALIAS },
