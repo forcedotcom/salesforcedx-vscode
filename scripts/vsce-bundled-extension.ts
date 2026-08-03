@@ -157,7 +157,11 @@ for (const vsixFile of existingVsixFiles) {
 
 // Run the vsce package command
 logger(`Execute vsce from ${cwd}`);
-execSync('vsce package --allow-package-all-secrets', { stdio: 'inherit', cwd });
+const preReleaseFlag = process.env.VSCE_PRE_RELEASE === 'true' ? '--pre-release' : '';
+const vsceCommand = `vsce package --allow-package-all-secrets ${preReleaseFlag}`.trim();
+// Safe to log: only public flags, no tokens/secrets in this command
+logger(`Running: ${vsceCommand}`);
+execSync(vsceCommand, { stdio: 'inherit', cwd });
 
 // copy the vsix back to the extension directory
 logger('copy vsix back to extension directory');
