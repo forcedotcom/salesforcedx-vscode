@@ -37,7 +37,6 @@ const activate = async extensionContext => {
     eventCount: 0,
     getters: {
       username: workspaceContext.username,
-      alias: workspaceContext.alias,
       orgId: workspaceContext.orgId
     }
   };
@@ -49,7 +48,6 @@ const activate = async extensionContext => {
         event,
         getters: {
           username: workspaceContext.username,
-          alias: workspaceContext.alias,
           orgId: workspaceContext.orgId
         }
       };

@@ -7,7 +7,6 @@
 
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { OrgShape } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
@@ -26,7 +25,7 @@ export class WorkspaceContext {
   private disposed = false;
   private service?: WorkspaceContextService;
   private serviceSubscription?: vscode.Disposable;
-  private readonly orgChangeEmitter = new vscode.EventEmitter<{ username?: string; alias?: string }>();
+  private readonly orgChangeEmitter = new vscode.EventEmitter<{ username?: string }>();
 
   public readonly onOrgChange = this.orgChangeEmitter.event;
 
@@ -103,35 +102,7 @@ export class WorkspaceContext {
     return this.service?.getUsername();
   }
 
-  public get alias(): string | undefined {
-    return this.service?.getAlias();
-  }
-
   public get orgId(): string | undefined {
     return this.service?.getOrgId();
-  }
-
-  public get orgShape(): OrgShape | undefined {
-    return this.service?.getOrgShape();
-  }
-
-  public set orgShape(orgShape: OrgShape | undefined) {
-    this.service?.setOrgShape(orgShape);
-  }
-
-  public get devHubId(): string | undefined {
-    return this.service?.getDevHubOrgId();
-  }
-
-  public set devHubId(devHubOrgId: string | undefined) {
-    this.service?.setDevHubOrgId(devHubOrgId);
-  }
-
-  public get orgEdition(): string | undefined {
-    return this.service?.getOrgEdition();
-  }
-
-  public set orgEdition(orgEdition: string | undefined) {
-    this.service?.setOrgEdition(orgEdition);
   }
 }

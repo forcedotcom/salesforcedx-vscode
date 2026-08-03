@@ -6,12 +6,7 @@
  */
 
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
-import {
-  type OrgShape,
-  type OrgUserInfo,
-  refreshAllExtensionReporters,
-  shapeFrom
-} from '@salesforce/salesforcedx-utils-vscode';
+import { type OrgUserInfo, refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as MutableRef from 'effect/MutableRef';
@@ -21,13 +16,11 @@ import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 
 type WorkspaceOrgIdentity = Pick<
   typeof DefaultOrgInfoSchema.Type,
-  'username' | 'alias' | 'orgId' | 'isScratch' | 'isSandbox' | 'devHubOrgId' | 'orgEdition'
-> & { orgShape?: OrgShape };
-
-type MetadataOverrides = Partial<Pick<WorkspaceOrgIdentity, 'orgShape' | 'devHubOrgId' | 'orgEdition'>>;
+  'username' | 'orgId' | 'isScratch' | 'isSandbox'
+>;
 
 const sameIdentity = (previous: WorkspaceOrgIdentity, current: WorkspaceOrgIdentity): boolean =>
-  previous.username === current.username && previous.alias === current.alias && previous.orgId === current.orgId;
+  previous.username === current.username && previous.orgId === current.orgId;
 
 const transitionAttributes = (identity: WorkspaceOrgIdentity) => ({
   hasTargetOrg: Boolean(identity.username ?? identity.orgId),
@@ -42,7 +35,6 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
     const extensionContext = yield* (yield* api.services.ExtensionContextService).getContext;
     const targetOrgRef = yield* api.services.TargetOrgRef();
     const identityRef = MutableRef.make<WorkspaceOrgIdentity>({});
-    const metadataOverridesRef = MutableRef.make<MetadataOverrides>({});
     const orgChanges = yield* PubSub.sliding<OrgUserInfo>(1);
     const initialSnapshotReady = yield* Deferred.make<void>();
     const extensionScope = yield* getExtensionScope();
@@ -58,22 +50,14 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
 
     const watch = Effect.fnUntraced(function* () {
       yield* targetOrgRef.changes.pipe(
-        Stream.map(({ username, alias, orgId, isScratch, isSandbox, devHubOrgId, orgEdition }) => ({
+        Stream.map(({ username, orgId, isScratch, isSandbox }) => ({
           username,
-          alias,
           orgId,
           isScratch,
-          isSandbox,
-          devHubOrgId,
-          orgEdition,
-          orgShape: shapeFrom({ username, alias, isScratch, isSandbox })
+          isSandbox
         })),
         Stream.tap(identity => {
-          const previous = MutableRef.get(identityRef);
-          return Effect.sync(() => {
-            MutableRef.set(identityRef, identity);
-            if (!sameIdentity(previous, identity)) MutableRef.set(metadataOverridesRef, {});
-          }).pipe(
+          return Effect.sync(() => MutableRef.set(identityRef, identity)).pipe(
             Effect.zipRight(Deferred.succeed(initialSnapshotReady, undefined)),
             Effect.withSpan('WorkspaceContext.updateTargetOrgState', {
               attributes: transitionAttributes(identity)
@@ -83,7 +67,7 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
         Stream.changesWith(sameIdentity),
         Stream.drop(1),
         Stream.runForEach(identity =>
-          PubSub.publish(orgChanges, { username: identity.username, alias: identity.alias }).pipe(
+          PubSub.publish(orgChanges, { username: identity.username }).pipe(
             Effect.zipRight(refreshReporters()),
             Effect.withSpan('WorkspaceContext.onTargetOrgChange', {
               attributes: transitionAttributes(identity)
@@ -100,24 +84,10 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
 
     const getIdentityValue = <K extends keyof WorkspaceOrgIdentity>(key: K): WorkspaceOrgIdentity[K] =>
       MutableRef.get(identityRef)[key];
-    const getMetadataValue = <K extends keyof MetadataOverrides>(key: K): MetadataOverrides[K] => {
-      const overrides = MutableRef.get(metadataOverridesRef);
-      return Object.hasOwn(overrides, key) ? overrides[key] : MutableRef.get(identityRef)[key];
-    };
-    const setMetadataValue = <K extends keyof MetadataOverrides>(key: K, value: MetadataOverrides[K]): void => {
-      MutableRef.update(metadataOverridesRef, overrides => ({ ...overrides, [key]: value }));
-    };
 
     return {
       getUsername: () => getIdentityValue('username'),
-      getAlias: () => getIdentityValue('alias'),
       getOrgId: () => getIdentityValue('orgId'),
-      getOrgShape: () => getMetadataValue('orgShape'),
-      setOrgShape: (value: OrgShape | undefined) => setMetadataValue('orgShape', value),
-      getDevHubOrgId: () => getMetadataValue('devHubOrgId'),
-      setDevHubOrgId: (value: string | undefined) => setMetadataValue('devHubOrgId', value),
-      getOrgEdition: () => getMetadataValue('orgEdition'),
-      setOrgEdition: (value: string | undefined) => setMetadataValue('orgEdition', value),
       orgChanges,
       initialized: Deferred.await(initialSnapshotReady)
     };

@@ -57,22 +57,24 @@ test('WorkspaceContext tracks real default-org picker switches', async ({ page, 
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
     await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS, { timeout: 60_000 });
-    await expect.poll(() => readState(workspaceDir)).toMatchObject({
-      eventCount: 0,
-      getters: { username, alias: MINIMAL_ORG_ALIAS, orgId }
-    });
+    await expect
+      .poll(() => readState(workspaceDir))
+      .toMatchObject({
+        eventCount: 0,
+        getters: { username, orgId }
+      });
   });
 
   await test.step('configure the username and capture one synchronous event', async () => {
     await executeCommandWithCommandPalette(page, packageNls.workspace_context_set_username_test_text);
     await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
-    await expect.poll(() => readState(workspaceDir)).toMatchObject({
-      eventCount: 1,
-      event: { username },
-      getters: { username, orgId }
-    });
-    expect((await readState(workspaceDir)).event?.alias).toBeUndefined();
-    expect((await readState(workspaceDir)).getters.alias).toBeUndefined();
+    await expect
+      .poll(() => readState(workspaceDir))
+      .toMatchObject({
+        eventCount: 1,
+        event: { username },
+        getters: { username, orgId }
+      });
   });
 
   await test.step('switch back to alias and capture exactly one more event', async () => {
@@ -82,8 +84,8 @@ test('WorkspaceContext tracks real default-org picker switches', async ({ page, 
     await expect.poll(() => readState(workspaceDir), { timeout: 60_000 }).toMatchObject({ transitionComplete: true });
     expect(await readState(workspaceDir)).toMatchObject({
       eventCount: 2,
-      event: { username, alias: MINIMAL_ORG_ALIAS },
-      getters: { username, alias: MINIMAL_ORG_ALIAS, orgId }
+      event: { username },
+      getters: { username, orgId }
     });
   });
 });

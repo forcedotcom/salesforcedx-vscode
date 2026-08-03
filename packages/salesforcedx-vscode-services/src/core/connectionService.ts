@@ -325,8 +325,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
       // Update the org ref only for the default org (no explicit username).
       if (isUndefined(username)) {
-        const targetOrg = yield* configService.getTargetOrg();
-        yield* maybeUpdateDefaultOrgRef(conn, targetOrg).pipe(
+        yield* maybeUpdateDefaultOrgRef(conn).pipe(
           Effect.provideService(AliasService, aliasService),
           Effect.tapError(e => Effect.logWarning(String(e))),
           Effect.catchAll(() => Effect.void)
@@ -389,10 +388,7 @@ const getTracksSourceFromOrg = (conn: Connection) =>
   );
 
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (
-  conn: Connection,
-  targetOrg: string | undefined
-) {
+const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection) {
   const aliasService = yield* AliasService;
   const { orgId, devHubUsername, isScratch, isSandbox, tracksSource, orgEdition } = conn.getAuthInfoFields();
   const defaultOrgRef = yield* getDefaultOrgRef();
@@ -420,7 +416,6 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const authUsername = resolveUsername(conn);
   const username = queriedUsername ?? authUsername ?? undefined;
   const userId = queriedUserId;
-  const alias = targetOrg && targetOrg !== username ? targetOrg : undefined;
 
   const aliases =
     username && (orgIdChanged || existingOrgInfo.username !== username)
@@ -459,10 +454,9 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       webUserId,
       aliases,
       username,
-      alias,
       ...(isString(cliId) ? { cliId } : {}),
       ...(isString(orgEdition) ? { orgEdition } : {})
-    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([key, value]) => key === 'alias' || isNotUndefined(value))
+    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
   );
 
   const updated = Object.fromEntries(
