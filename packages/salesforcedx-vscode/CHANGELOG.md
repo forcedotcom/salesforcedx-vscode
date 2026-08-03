@@ -2,17 +2,11 @@
 
 ## Fixed
 
-#### docs
-
-- TerminalService gathers the sf CLI env at exec time - W-23480631 ([PR #7899](https://github.com/forcedotcom/salesforcedx-vscode/pull/7899))
-
 #### salesforcedx-vscode-core
 
-- Bump @salesforce/templates to ^66.15.3 to prevent malicious templates - W-23595931 ([PR #7935](https://github.com/forcedotcom/salesforcedx-vscode/pull/7935))
+- We updated a dependency to fix a security vulnerability that could allow malicious project templates. ([PR #7935](https://github.com/forcedotcom/salesforcedx-vscode/pull/7935))
 
-- TerminalService gathers the sf CLI env at exec time - W-23480631 ([PR #7899](https://github.com/forcedotcom/salesforcedx-vscode/pull/7899))
+## Under the Hood
 
-#### salesforcedx-vscode-services
-
-- Tag channel errors by type - W-23557549 ([PR #7920](https://github.com/forcedotcom/salesforcedx-vscode/pull/7920))
+- We made some under the hood changes. ([PR #7899](https://github.com/forcedotcom/salesforcedx-vscode/pull/7899), [PR #7916](https://github.com/forcedotcom/salesforcedx-vscode/pull/7916), [PR #7920](https://github.com/forcedotcom/salesforcedx-vscode/pull/7920), [PR #7941](https://github.com/forcedotcom/salesforcedx-vscode/pull/7941))
 
