@@ -29,7 +29,7 @@ describe('ErrorHandlerService', () => {
     mockChannelService = new ChannelService({
       getChannel: Effect.sync(() => mockChannel),
       showChannel: Effect.void,
-      clearChannel: Effect.succeed(undefined),
+      clearChannel: Effect.void,
       appendToChannel: (message: string) =>
         Effect.sync(() => {
           mockChannel.appendLine(message);
@@ -198,7 +198,7 @@ describe('ErrorHandlerService', () => {
     describe('Effect tagged errors', () => {
       class TestTaggedError extends Schema.TaggedError<TestTaggedError>()('TestTaggedError', {
         message: Schema.String,
-        actions: Schema.optional(Schema.Array(Schema.String))
+        actions: Schema.String.pipe(Schema.Array, Schema.optional)
       }) {}
 
       it('should prefix channel output with the error tag', async () => {
