@@ -14,10 +14,7 @@ import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 
-type WorkspaceOrgIdentity = Pick<
-  typeof DefaultOrgInfoSchema.Type,
-  'username' | 'orgId' | 'isScratch' | 'isSandbox'
->;
+type WorkspaceOrgIdentity = Pick<typeof DefaultOrgInfoSchema.Type, 'username' | 'orgId' | 'isScratch' | 'isSandbox'>;
 
 const sameIdentity = (previous: WorkspaceOrgIdentity, current: WorkspaceOrgIdentity): boolean =>
   previous.username === current.username && previous.orgId === current.orgId;
@@ -56,14 +53,14 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
           isScratch,
           isSandbox
         })),
-        Stream.tap(identity => {
-          return Effect.sync(() => MutableRef.set(identityRef, identity)).pipe(
+        Stream.tap(identity =>
+          Effect.sync(() => MutableRef.set(identityRef, identity)).pipe(
             Effect.zipRight(Deferred.succeed(initialSnapshotReady, undefined)),
             Effect.withSpan('WorkspaceContext.updateTargetOrgState', {
               attributes: transitionAttributes(identity)
             })
-          );
-        }),
+          )
+        ),
         Stream.changesWith(sameIdentity),
         Stream.drop(1),
         Stream.runForEach(identity =>
