@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.7.1",
+  "version": "67.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,11 +25,25 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js"
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:package:prerelease": "wireit"
   },
   "wireit": {
     "vscode:package": {
       "command": "vsce package --no-dependencies",
+      "files": [
+        "package.json",
+        "images/**",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    },
+    "vscode:package:prerelease": {
+      "command": "vsce package --no-dependencies --pre-release",
       "files": [
         "package.json",
         "images/**",
