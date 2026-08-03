@@ -12,7 +12,7 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
-import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { ConnectionService, NoTargetOrgConfiguredError } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { WorkspaceContextService } from '../../../src/context/workspaceContextService';
@@ -22,10 +22,16 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   refreshAllExtensionReporters: jest.fn().mockResolvedValue(undefined)
 }));
 
-const targetOrgRef = Effect.runSync(SubscriptionRef.make({}));
+const targetOrgRef = Effect.runSync(SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
 let getTargetOrgRef = () => Effect.succeed(targetOrgRef);
 const connection = { getAuthInfoFields: () => ({ orgId: '00D' }) };
-let getConnection = () => Effect.succeed(connection);
+const connectDefaultOrg = () =>
+  SubscriptionRef.update(targetOrgRef, current => ({
+    ...current,
+    username: current.username ?? 'default@example.com',
+    orgId: current.orgId ?? '00D'
+  })).pipe(Effect.as(connection));
+let getConnection: () => Effect.Effect<typeof connection, NoTargetOrgConfiguredError> = connectDefaultOrg;
 const servicesApi = {
   services: {
     ConnectionService: { getConnection: () => getConnection() },
@@ -73,7 +79,7 @@ describe('WorkspaceContext', () => {
     coreContext.subscriptions.length = 0;
     replayContext.subscriptions.length = 0;
     getTargetOrgRef = () => Effect.succeed(targetOrgRef);
-    getConnection = () => Effect.succeed(connection);
+    getConnection = connectDefaultOrg;
     WorkspaceContext.disposeInstance();
     WorkspaceContext.getInstance(true);
     await flushEffects();
@@ -104,6 +110,31 @@ describe('WorkspaceContext', () => {
     });
     expect(listener).not.toHaveBeenCalled();
     expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+  });
+
+  it('waits for the default-org stream to provide the complete workspace identity', async () => {
+    const getConnectionMock = jest.fn(() => Effect.succeed(connection));
+    getConnection = getConnectionMock;
+    const context = WorkspaceContext.getInstance(true);
+    const initialization = context.initialize(coreContext as never);
+    const initialized = jest.fn();
+    void initialization.then(initialized);
+
+    await flushEffects();
+    expect(getConnectionMock).toHaveBeenCalledTimes(1);
+    expect(initialized).not.toHaveBeenCalled();
+
+    await setTargetOrg({ username: 'initial@example.com' });
+    await flushEffects();
+    expect(initialized).not.toHaveBeenCalled();
+
+    await setTargetOrg({ username: 'initial@example.com', orgId: '00Dinitial' });
+    await initialization;
+
+    expect({ username: context.username, orgId: context.orgId }).toEqual({
+      username: 'initial@example.com',
+      orgId: '00Dinitial'
+    });
   });
 
   it('fires once per distinct identity after updating getters and refreshes telemetry', async () => {
@@ -190,13 +221,27 @@ describe('WorkspaceContext', () => {
     expect(coreContext.subscriptions).toHaveLength(1);
   });
 
-  it('rejects connection access when no target org is tracked', async () => {
+  it('rejects connection access after the tracked target org is cleared', async () => {
     const context = WorkspaceContext.getInstance(true);
     await context.initialize(coreContext as never);
+    await setTargetOrg({});
+    await flushEffects();
 
     await expect(context.getConnection()).rejects.toThrow(
       'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
     );
+  });
+
+  it('initializes with empty identity when no target org is configured', async () => {
+    getConnection = () => Effect.fail(new NoTargetOrgConfiguredError({ message: 'No target org configured' }));
+    const context = WorkspaceContext.getInstance(true);
+
+    await context.initialize(coreContext as never);
+
+    expect({ username: context.username, orgId: context.orgId }).toEqual({
+      username: undefined,
+      orgId: undefined
+    });
   });
 
   it('keeps retained facades live when the singleton reference is replaced', async () => {
