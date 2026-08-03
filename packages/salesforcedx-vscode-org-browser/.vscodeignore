@@ -22,6 +22,7 @@ junit*
 .gitignore
 esbuild.config.mjs
 jest.config.js
+jest.org-browser-ui.config.js
 tsconfig.json
 .eslint.json
 

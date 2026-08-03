@@ -26,25 +26,25 @@ test.beforeEach(async ({ page }) => {
   await ensureSecondarySideBarHidden(page);
 });
 
-test('Org Browser - filter toggles: toolbar buttons visible with correct icons', async ({ page }) => {
+test('Org Browser - filter toggles: webview controls are visible and enabled', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
     await orgBrowserPage.openOrgBrowser();
   });
 
-  await test.step('showLocal toggle button is visible (off command shown when active)', async () => {
-    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
-    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
+  await test.step('Local presence toggle is visible and checked', async () => {
+    await expect(orgBrowserPage.showLocalToggle).toBeVisible({ timeout: 10_000 });
+    await expect(orgBrowserPage.showLocalToggle).toBeChecked();
   });
 
-  await test.step('showOrg toggle button is visible without requiring type expansion', async () => {
-    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
-    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
+  await test.step('Org presence toggle is visible without requiring type expansion', async () => {
+    await expect(orgBrowserPage.showOrgToggle).toBeVisible({ timeout: 10_000 });
+    await expect(orgBrowserPage.showOrgToggle).toBeChecked();
   });
 });
 
-test('Org Browser - filter toggles: icon swap on toggle', async ({ page }) => {
+test('Org Browser - filter toggles: checked state changes on toggle', async ({ page }) => {
   const orgBrowserPage = new OrgBrowserPage(page);
 
   await test.step('open Org Browser', async () => {
@@ -52,13 +52,9 @@ test('Org Browser - filter toggles: icon swap on toggle', async ({ page }) => {
   });
 
   await test.step('click showLocal toggle and verify icon changes', async () => {
-    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
-    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
-    await hideLocalButton.click();
-
-    // After clicking off, the "on" button should appear (state is now inactive)
-    const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
-    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
+    await expect(orgBrowserPage.showLocalToggle).toBeChecked();
+    await orgBrowserPage.showLocalToggle.click();
+    await expect(orgBrowserPage.showLocalToggle).not.toBeChecked();
   });
 });
 
@@ -70,11 +66,9 @@ test('Org Browser - filter toggles: org toggle works before any type is expanded
   });
 
   await test.step('toggle showOrg OFF without expanding any type first', async () => {
-    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
-    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
-    await hideOrgButton.click();
-    const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
-    await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
+    await expect(orgBrowserPage.showOrgToggle).toBeChecked();
+    await orgBrowserPage.showOrgToggle.click();
+    await expect(orgBrowserPage.showOrgToggle).not.toBeChecked();
   });
 });
 
@@ -88,36 +82,27 @@ test('Org Browser - filter toggles: both toggles work independently', async ({ p
   const allItemsCount = await test.step('count all tree items', async () => orgBrowserPage.getStableRootTypeCount());
 
   await test.step('toggle showLocal OFF and verify tree filters', async () => {
-    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
-    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
-    await hideLocalButton.click();
-    const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
-    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
+    await orgBrowserPage.showLocalToggle.click();
+    await expect(orgBrowserPage.showLocalToggle).not.toBeChecked();
 
     // showLocal OFF + showOrg ON (default) = orgOnly mode: root shows all types, child-level shows all org components
     await orgBrowserPage.waitForRootTypeCount(allItemsCount);
   });
 
   await test.step('toggle showOrg OFF independently — both filters OFF yields empty tree', async () => {
-    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
-    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
-    await hideOrgButton.click();
-    const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
-    await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
+    await orgBrowserPage.showOrgToggle.click();
+    await expect(orgBrowserPage.showOrgToggle).not.toBeChecked();
 
     // With both OFF, tree is empty
     await orgBrowserPage.waitForRootTypeCount(0);
   });
 
   await test.step('toggle showLocal back ON without affecting showOrg', async () => {
-    const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
-    await showLocalButton.click();
-    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
-    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
+    await orgBrowserPage.showLocalToggle.click();
+    await expect(orgBrowserPage.showLocalToggle).toBeChecked();
 
     // showOrg should still be OFF
-    const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
-    await expect(showOrgButton).toBeVisible();
+    await expect(orgBrowserPage.showOrgToggle).not.toBeChecked();
   });
 });
 
@@ -132,11 +117,8 @@ test('Org Browser - filter toggles: orgOnly mode (showLocal OFF) shows all types
     orgBrowserPage.getStableRootTypeCount());
 
   await test.step('toggle showLocal OFF to enter orgOnly mode', async () => {
-    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
-    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
-    await hideLocalButton.click();
-    const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
-    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
+    await orgBrowserPage.showLocalToggle.click();
+    await expect(orgBrowserPage.showLocalToggle).not.toBeChecked();
   });
 
   await test.step('verify all types still visible at root level', async () => {
@@ -163,11 +145,8 @@ test.skip('Org Browser - filter toggles: localOnly mode (showOrg OFF) shows only
     orgBrowserPage.getStableRootTypeCount());
 
   await test.step('toggle showOrg OFF to enter localOnly mode', async () => {
-    const hideOrgButton = page.locator('[aria-label="Hide Org Types"]').first();
-    await expect(hideOrgButton).toBeVisible({ timeout: 10_000 });
-    await hideOrgButton.click();
-    const showOrgButton = page.locator('[aria-label="Show Org Types"]').first();
-    await expect(showOrgButton).toBeVisible({ timeout: 10_000 });
+    await orgBrowserPage.showOrgToggle.click();
+    await expect(orgBrowserPage.showOrgToggle).not.toBeChecked();
   });
 
   await test.step('verify only local types remain visible', async () => {
@@ -188,8 +167,7 @@ test('Org Browser - filter toggles: legacy viewMode migration', async ({ page })
   });
 
   await test.step('verify both toggles are in default ON state', async () => {
-    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
-    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
+    await expect(orgBrowserPage.showLocalToggle).toBeChecked();
   });
 
   await test.step('verify tree renders metadata types', async () => {

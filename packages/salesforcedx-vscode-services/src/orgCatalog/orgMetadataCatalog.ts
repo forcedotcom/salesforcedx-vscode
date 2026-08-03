@@ -480,8 +480,13 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
         { type: xmlName, fullName: '*' }
       ]);
       return [...componentSet.getSourceComponents()].reduce((workspaceUris, component) => {
-        if (component.type.name !== xmlName || !component.content) return workspaceUris;
-        const candidate = URI.file(component.content);
+        if (component.type.name !== xmlName) return workspaceUris;
+        // Decomposed child metadata (for example CustomField) has an XML source file but no
+        // `content` path. Treat the XML path as its workspace artifact so local presence is not
+        // lost merely because the registry represents the component as a child of its container.
+        const sourcePath = component.content ?? component.xml;
+        if (!sourcePath) return workspaceUris;
+        const candidate = URI.file(sourcePath);
         const existing = workspaceUris.get(component.fullName);
         if (!existing || candidate.path.length < existing.path.length) {
           workspaceUris.set(component.fullName, candidate);
@@ -665,6 +670,19 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       return description;
     });
 
+    const reacquireSObjectDescription = Effect.fn('OrgMetadataCatalog.reacquireSObjectDescription')(function* (
+      apiName: string
+    ) {
+      const orgId = yield* getActiveOrgId();
+      yield* metadataDescribeService.invalidateSObjectDescribe(apiName);
+      yield* Ref.update(sobjectDescriptionCache, current => {
+        const next = new Map(current);
+        next.delete(sobjectDescriptionKey(orgId, apiName));
+        return next;
+      });
+      return yield* describeSObject(apiName);
+    });
+
     const describeSObjects = Effect.fn('OrgMetadataCatalog.describeSObjects')(function* (apiNames: readonly string[]) {
       const orgId = yield* getActiveOrgId();
       yield* ensureHydrated(orgId);
@@ -702,21 +720,68 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       const objectApiName = objectEntry.namespacePrefix
         ? `${objectEntry.namespacePrefix}__${objectEntry.reference.fullName}`
         : objectEntry.reference.fullName;
-      const describedObject = yield* describeSObject(objectApiName);
       const fieldInventory = yield* loadType('CustomField');
-      return describedObject.fields
-        .filter(field => field.custom)
-        .map(field => {
-          const unqualifiedName = objectEntry.namespacePrefix
-            ? field.name.replace(`${objectEntry.namespacePrefix}__`, '')
-            : field.name;
-          const candidates = [
-            `${objectEntry.reference.fullName}.${field.name}`,
-            `${objectEntry.reference.fullName}.${unqualifiedName}`
-          ];
-          const fullName = candidates.find(candidate => fieldInventory.components.has(candidate)) ?? candidates[0];
-          const existing = fieldInventory.components.get(fullName);
-          return {
+      const cachedDescription = yield* describeSObject(objectApiName);
+      const describedObject =
+        Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
+          ? yield* reacquireSObjectDescription(objectApiName).pipe(
+              Effect.catchAll(error =>
+                Effect.logWarning('Failed to refresh stale SObject description', error).pipe(
+                  Effect.as(cachedDescription)
+                )
+              )
+            )
+          : cachedDescription;
+      const parentNames = new Set([objectEntry.reference.fullName, objectApiName]);
+      const inventoryFields = [...fieldInventory.components.values()].filter(entry => {
+        if (!isOrgMetadataComponentReference(entry.reference)) return false;
+        const separator = entry.reference.fullName.lastIndexOf('.');
+        return separator > 0 && parentNames.has(entry.reference.fullName.slice(0, separator));
+      });
+      const describedFields = describedObject.fields.filter(field => field.custom);
+      const describedByName = new Map<string, (typeof describedFields)[number]>();
+      describedFields.forEach(field => {
+        describedByName.set(field.name, field);
+        if (objectEntry.namespacePrefix) {
+          describedByName.set(field.name.replace(`${objectEntry.namespacePrefix}__`, ''), field);
+        }
+      });
+      const toFieldDetails = (field: (typeof describedFields)[number], name: string) => ({
+        name,
+        type: field.type,
+        length: field.length,
+        relationshipName: field.relationshipName,
+        scale: field.scale,
+        precision: field.precision
+      });
+      const inventoryEntries = inventoryFields.map(entry => {
+        const fullName = entry.reference.fullName!;
+        const fieldName = fullName.slice(fullName.lastIndexOf('.') + 1);
+        const unqualifiedName = objectEntry.namespacePrefix
+          ? fieldName.replace(`${objectEntry.namespacePrefix}__`, '')
+          : fieldName;
+        const described = describedByName.get(fieldName) ?? describedByName.get(unqualifiedName);
+        return {
+          ...entry,
+          name: unqualifiedName,
+          namespacePrefix: objectEntry.namespacePrefix,
+          ...(described ? { field: toFieldDetails(described, unqualifiedName) } : {})
+        } satisfies OrgMetadataCatalogEntry;
+      });
+      const inventoriedFullNames = new Set(inventoryFields.map(entry => entry.reference.fullName));
+      const describedOnlyEntries = describedFields.flatMap(field => {
+        const unqualifiedName = objectEntry.namespacePrefix
+          ? field.name.replace(`${objectEntry.namespacePrefix}__`, '')
+          : field.name;
+        const candidates = [
+          `${objectEntry.reference.fullName}.${field.name}`,
+          `${objectEntry.reference.fullName}.${unqualifiedName}`
+        ];
+        const fullName = candidates.find(candidate => fieldInventory.components.has(candidate)) ?? candidates[0];
+        if (inventoriedFullNames.has(fullName)) return [];
+        const existing = fieldInventory.components.get(fullName);
+        return [
+          {
             ...(existing ?? {
               orgId,
               observedAt: new Date().toISOString(),
@@ -729,17 +794,13 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
             }),
             name: unqualifiedName,
             namespacePrefix: objectEntry.namespacePrefix,
-            field: {
-              name: unqualifiedName,
-              type: field.type,
-              length: field.length,
-              relationshipName: field.relationshipName,
-              scale: field.scale,
-              precision: field.precision
-            }
-          } satisfies OrgMetadataCatalogEntry;
-        })
-        .toSorted((left, right) => left.name.localeCompare(right.name));
+            field: toFieldDetails(field, unqualifiedName)
+          } satisfies OrgMetadataCatalogEntry
+        ];
+      });
+      return [...inventoryEntries, ...describedOnlyEntries].toSorted((left, right) =>
+        left.name.localeCompare(right.name)
+      );
     });
 
     const getChildren = Effect.fn('OrgMetadataCatalog.getChildren')(function* (reference: OrgMetadataReference = {}) {
@@ -1584,16 +1645,8 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
     });
 
     const refreshSObject = Effect.fn('OrgMetadataCatalog.refreshSObject')(function* (apiName: string) {
-      const orgId = yield* getActiveOrgId();
-      yield* ensureHydrated(orgId);
-      yield* metadataDescribeService.invalidateSObjectDescribe(apiName);
-      yield* Ref.update(sobjectDescriptionCache, current => {
-        const next = new Map(current);
-        next.delete(sobjectDescriptionKey(orgId, apiName));
-        return next;
-      });
-      yield* persistOrg(orgId);
-      return yield* describeSObject(apiName);
+      yield* ensureHydrated(yield* getActiveOrgId());
+      return yield* reacquireSObjectDescription(apiName);
     });
 
     const listMetadataTypes = Effect.fn('OrgMetadataCatalog.listMetadataTypes')(function* () {

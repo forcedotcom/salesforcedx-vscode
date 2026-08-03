@@ -18,6 +18,9 @@
     "packages/salesforcedx-vscode-soql": {
       "entry": ["src/index.ts", "src/soql-builder-ui/index.ts", "src/soql-builder-ui/modules/querybuilder/app/app.ts"]
     },
+    "packages/salesforcedx-vscode-org-browser": {
+      "entry": ["src/index.ts", "src/org-browser-ui/index.tsx"]
+    },
     "packages/salesforcedx-aura-language-server": {
       "entry": ["src/index.ts", "src/server.ts"]
     },

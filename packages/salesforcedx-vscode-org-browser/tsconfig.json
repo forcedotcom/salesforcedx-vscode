@@ -1,8 +1,10 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
+    "isolatedModules": true,
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/org-browser-ui"]
 }

@@ -7,7 +7,7 @@
 import { build } from 'esbuild';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
-import { writeFile } from 'fs/promises';
+import { cp, writeFile } from 'fs/promises';
 
 const nodeBuild = await build({
   ...nodeConfig,
@@ -28,3 +28,4 @@ const browserBuild = await build({
 
 await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
 await writeFile('dist/browser-metafile.json', JSON.stringify(browserBuild.metafile, null, 2));
+await cp('src/org-browser-ui/dist', 'dist/org-browser-ui', { recursive: true });

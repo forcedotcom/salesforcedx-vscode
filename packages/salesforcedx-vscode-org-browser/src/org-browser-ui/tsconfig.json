@@ -1,0 +1,10 @@
+{
+  "extends": "../../../../tsconfig.common.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "isolatedModules": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "noEmit": true
+  },
+  "include": ["./**/*.ts", "./**/*.tsx", "../browser/protocol.ts"]
+}

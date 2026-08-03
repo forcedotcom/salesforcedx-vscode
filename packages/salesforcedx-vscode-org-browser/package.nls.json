@@ -12,8 +12,6 @@
   "orgBrowser.command.showOrg.off": "Hide Org Types",
   "orgBrowser.command.filterText": "Filter by Type/Component",
   "orgBrowser.command.filterText.active": "Edit Filter (active)",
-  "org_browser_filters_all_off": "Both filters are off.\n\nEnable **Show Local Types** or **Show Org Types** in the toolbar above to view metadata.",
-  "org_browser_filters_empty": "No metadata types match your current filters.\n\nCheck the **Show Local Types**, **Show Org Types**, or **Filter by Type/Component** ($(filter-filled)) controls in the toolbar above.",
   "org_browser_walkthrough_open_command": "Open Org Browser Walkthrough",
   "org_browser_walkthrough_title": "Org Browser",
   "org_browser_walkthrough_description": "Browse and retrieve your org's metadata types and components using the Org Browser.",

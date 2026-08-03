@@ -404,7 +404,9 @@
         "packages/*/package.json",
         "tsconfig*.json",
         "packages/*/tsconfig*.json",
-        "packages/*/src/**/*.ts"
+        "packages/*/src/**/*.ts",
+        "packages/*/src/**/*.tsx",
+        "packages/*/src/**/tsconfig.json"
       ],
       "output": []
     },

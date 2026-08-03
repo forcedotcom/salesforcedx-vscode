@@ -61,6 +61,7 @@ type WorkspaceComponent = {
   readonly type: { readonly name: string };
   readonly fullName: string;
   readonly content?: string;
+  readonly xml?: string;
 };
 
 type HarnessOptions = {
@@ -81,6 +82,27 @@ const emptySObject = (name: string): SObject => ({
   queryable: true,
   fields: [],
   childRelationships: []
+});
+
+const customStringField = (name: string): SObject['fields'][number] => ({
+  aggregatable: true,
+  custom: true,
+  defaultValue: null,
+  extraTypeInfo: null,
+  filterable: true,
+  groupable: true,
+  inlineHelpText: null,
+  label: name,
+  length: 80,
+  name,
+  nillable: true,
+  picklistValues: [],
+  precision: 0,
+  referenceTo: [],
+  relationshipName: null,
+  scale: 0,
+  sortable: true,
+  type: 'string'
 });
 
 const makeHarness = (options: HarnessOptions = {}) => {
@@ -881,6 +903,94 @@ describe('OrgMetadataCatalog contract', () => {
       inWorkspace: false,
       field: { name: 'RuntimeOnly__c', type: 'textarea' }
     });
+  });
+
+  it('uses Custom Field inventory when the SObject description has no matching fields', async () => {
+    const { layer } = makeHarness({
+      metadataByType: {
+        CustomObject: [{ fullName: 'Broker__c' }],
+        CustomField: [{ fullName: 'Broker__c.Email__c' }]
+      },
+      workspaceComponents: [
+        {
+          type: { name: 'CustomField' },
+          fullName: 'Broker__c.Email__c',
+          xml: '/workspace/force-app/main/default/objects/Broker__c/fields/Email__c.field-meta.xml'
+        }
+      ],
+      descriptions: { Broker__c: emptySObject('Broker__c') }
+    });
+
+    const children = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ xmlName: 'CustomObject', fullName: 'Broker__c' })
+    );
+
+    expect(children).toEqual([
+      expect.objectContaining({
+        name: 'Email__c',
+        reference: { xmlName: 'CustomField', fullName: 'Broker__c.Email__c' },
+        inOrg: true,
+        inWorkspace: true,
+        workspaceUri: URI.file('/workspace/force-app/main/default/objects/Broker__c/fields/Email__c.field-meta.xml')
+      })
+    ]);
+  });
+
+  it('reacquires a persisted SObject description older than Custom Field inventory', async () => {
+    const staleDescription = {
+      ...emptySObject('Broker__c'),
+      orgId: 'org-one',
+      observedAt: '2026-07-31T17:07:00.000Z',
+      provenance: 'rest-api' as const
+    };
+    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>([
+      [
+        'org-one',
+        {
+          version: 1,
+          orgId: 'org-one',
+          writtenAt: '2026-08-03T13:35:00.000Z',
+          generation: 1,
+          inventory: [
+            {
+              xmlName: 'CustomObject',
+              observedAt: '2026-08-03T13:34:00.000Z',
+              components: [{ fullName: 'Broker__c' }],
+              folders: []
+            },
+            {
+              xmlName: 'CustomField',
+              observedAt: '2026-08-03T13:35:00.000Z',
+              components: [{ fullName: 'Broker__c.Email__c' }],
+              folders: []
+            }
+          ],
+          sobjects: { descriptions: [staleDescription] },
+          tracking: []
+        }
+      ]
+    ]);
+    const freshDescription = {
+      ...emptySObject('Broker__c'),
+      fields: [customStringField('Email__c')]
+    };
+    const { layer, mocks } = makeHarness({
+      catalogSnapshots,
+      descriptions: { Broker__c: freshDescription }
+    });
+
+    const children = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ xmlName: 'CustomObject', fullName: 'Broker__c' })
+    );
+
+    expect(mocks.invalidateSObjectDescribe).toHaveBeenCalledWith('Broker__c');
+    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Broker__c');
+    expect(children).toEqual([
+      expect.objectContaining({
+        name: 'Email__c',
+        field: expect.objectContaining({ name: 'Email__c', type: 'string', length: 80 })
+      })
+    ]);
   });
 
   it('partitions cached inventory and document identities by org', async () => {

@@ -1,0 +1,202 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+:root {
+  color-scheme: light dark;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background: var(--vscode-sideBar-background);
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#main {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+button,
+input {
+  color: inherit;
+  font: inherit;
+}
+button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+button:hover:not(:disabled) {
+  background: var(--vscode-toolbar-hoverBackground);
+}
+button:focus-visible,
+input:focus-visible,
+.tree-row:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 3px 4px;
+}
+.toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.toolbar > button {
+  width: 26px;
+  height: 26px;
+}
+.filter-box {
+  display: flex;
+  flex: 1;
+  min-width: 80px;
+  border: 1px solid var(--vscode-input-border, transparent);
+  background: var(--vscode-input-background);
+}
+.filter-box:focus-within {
+  border-color: var(--vscode-focusBorder);
+}
+.filter-box input {
+  width: 100%;
+  min-width: 0;
+  height: 24px;
+  padding: 2px 5px;
+  border: 0;
+  outline: 0;
+  color: var(--vscode-input-foreground);
+  background: transparent;
+}
+.filter-box button {
+  width: 24px;
+}
+.filter-box button:disabled {
+  visibility: hidden;
+}
+.message {
+  padding: 12px 8px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.4;
+  white-space: pre-line;
+}
+.message.error {
+  color: var(--vscode-errorForeground);
+  white-space: pre-wrap;
+}
+.tree {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  outline: 0;
+}
+.tree-window {
+  position: relative;
+  width: 100%;
+}
+.tree-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-right: 3px;
+  cursor: default;
+  user-select: none;
+}
+.tree-row:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+.tree-row.selected {
+  color: var(--vscode-list-activeSelectionForeground);
+  background: var(--vscode-list-activeSelectionBackground);
+}
+.twistie {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+  height: 22px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+.busy-indicator {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--vscode-progressBar-background);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: busy-spin 800ms linear infinite;
+}
+@keyframes busy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .busy-indicator {
+    animation: none;
+    border-right-color: var(--vscode-progressBar-background);
+  }
+}
+.presence-accessible {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.node-label {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.node-label.is-org-only {
+  font-style: italic;
+}
+.row-actions {
+  display: none;
+  align-items: center;
+  margin-left: auto;
+}
+.tree-row:hover .row-actions,
+.tree-row:focus-within .row-actions {
+  display: inline-flex;
+}
+.row-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
+.row-action-icon,
+.toolbar-action-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
