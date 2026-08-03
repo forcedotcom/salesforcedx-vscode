@@ -112,7 +112,7 @@ jobs:
 
   nightly-release:
     needs: build-extension-list
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@feat/configurable-git-identity
     with:
       branch: ${{ github.event.inputs.branch || 'develop' }}
       extensions: ${{ needs.build-extension-list.outputs.extensions }}
