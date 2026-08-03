@@ -26,7 +26,6 @@ import {
   type OrgBrowserViewState,
   type OrgBrowserWebviewMessage
 } from './protocol';
-import { restoreExpandedProjection } from './restoreExpandedProjection';
 
 const VIEW_STATE_KEY = 'orgBrowser.webviewState';
 type OrgBrowserServices = Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
@@ -124,7 +123,7 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
       return;
     }
     this.catalogRefreshInFlight = true;
-    this.run(this.initialize(true).pipe(Effect.ensuring(Effect.sync(() => this.completeCatalogRefresh()))));
+    this.run(this.initialize().pipe(Effect.ensuring(Effect.sync(() => this.completeCatalogRefresh()))));
   }
 
   public collapseAll(): void {
@@ -172,7 +171,7 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
   private completeCatalogRefresh(): void {
     if (this.catalogRefreshPending) {
       this.catalogRefreshPending = false;
-      this.run(this.initialize(true).pipe(Effect.ensuring(Effect.sync(() => this.completeCatalogRefresh()))));
+      this.run(this.initialize().pipe(Effect.ensuring(Effect.sync(() => this.completeCatalogRefresh()))));
       return;
     }
     this.catalogRefreshInFlight = false;
@@ -191,11 +190,8 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
   }
 
   // Effect.fn supplies the provider-operation span while retaining this provider instance.
-
-  private initialize = Effect.fn('OrgBrowserWebviewProvider.initialize')(function* (
-    this: OrgBrowserWebviewProvider,
-    restoreExpanded = false
-  ) {
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  private initialize = Effect.fn('OrgBrowserWebviewProvider.initialize')(function* (this: OrgBrowserWebviewProvider) {
     const orgId = yield* this.model.getActiveOrgId();
     if (!orgId) return;
     const roots = yield* this.model.getRoots();
@@ -204,29 +200,6 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
     this.generation += 1;
     const states = this.context.workspaceState.get<Record<string, OrgBrowserViewState>>(VIEW_STATE_KEY) ?? {};
     const viewState = states[orgId];
-    if (!restoreExpanded || !viewState) {
-      this.post({
-        type: 'initialize',
-        generation: this.generation,
-        orgId,
-        labels,
-        filter: this.model.getFilter(),
-        roots,
-        ...(viewState ? { viewState } : {})
-      });
-      return;
-    }
-    const restored = yield* restoreExpandedProjection(roots, viewState.expandedIds, node =>
-      this.model.getChildren(node)
-    );
-    restored.nodes.forEach(node => this.nodes.set(node.id, node));
-    const restoredState: OrgBrowserViewState = {
-      version: 1,
-      expandedIds: restored.expandedIds,
-      scrollTop: viewState.scrollTop,
-      ...(viewState.selectedId && this.nodes.has(viewState.selectedId) ? { selectedId: viewState.selectedId } : {}),
-      ...(viewState.focusedId && this.nodes.has(viewState.focusedId) ? { focusedId: viewState.focusedId } : {})
-    };
     this.post({
       type: 'initialize',
       generation: this.generation,
@@ -234,22 +207,20 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
       labels,
       filter: this.model.getFilter(),
       roots,
-      children: [...restored.children].map(([parentId, nodes]) => ({ parentId, nodes })),
-      viewState: restoredState
+      ...(viewState ? { viewState } : {})
     });
-    yield* Effect.promise(() =>
-      this.context.workspaceState.update(VIEW_STATE_KEY, { ...states, [orgId]: restoredState })
-    );
   });
 
   // Effect.fn supplies the protocol-handling span while retaining this provider instance.
-  // eslint-disable-next-line unicorn/consistent-function-scoping
   private handleMessage = Effect.fn('OrgBrowserWebviewProvider.handleMessage')(function* (
     this: OrgBrowserWebviewProvider,
     input: unknown
   ) {
     const decoded = decodeOrgBrowserWebviewMessage(input);
-    if (Either.isLeft(decoded)) return;
+    if (Either.isLeft(decoded)) {
+      yield* Effect.logWarning('Invalid webview message', { input, error: decoded.left });
+      return;
+    }
     yield* this.dispatch(decoded.right);
   });
 
@@ -266,7 +237,7 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
       case 'requestInitialData':
         if (this.initialLoadStarted) return;
         this.initialLoadStarted = true;
-        yield* this.initialize(true).pipe(
+        yield* this.initialize().pipe(
           Effect.ensuring(Effect.sync(() => this.post({ type: 'loading', requestId: 0, loading: false })))
         );
         return;
@@ -302,7 +273,7 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
             loading: true
           });
           yield* this.model.refresh(node);
-          yield* this.initialize(true);
+          yield* this.initialize();
           this.post({
             type: 'loading',
             requestId: message.requestId,
@@ -317,7 +288,7 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
         if (!node) return;
         const members = yield* this.model.getRetrieveMembers(node);
         yield* retrieveMembersEffect([...members]);
-        yield* this.initialize(true);
+        yield* this.initialize();
         return;
       }
       case 'setViewState': {
@@ -338,17 +309,16 @@ export class OrgBrowserWebviewProvider implements vscode.WebviewViewProvider, vs
   ) {
     const filter = makeFilterState(showLocal, showOrg, text);
     this.model.setFilter(filter);
-    yield* Effect.all(
-      [
-        Effect.promise(() => this.context.workspaceState.update('orgBrowser.showLocal', showLocal)),
-        Effect.promise(() => this.context.workspaceState.update('orgBrowser.showOrg', showOrg)),
-        Effect.promise(() => this.context.workspaceState.update('orgBrowser.typeFilter', filter.typeFilter)),
-        Effect.promise(() => this.context.workspaceState.update('orgBrowser.componentFilter', filter.componentFilter)),
-        Effect.promise(() => this.context.workspaceState.update('orgBrowser.typeIsRegex', filter.typeIsRegex)),
-        Effect.promise(() => this.context.workspaceState.update('orgBrowser.componentIsRegex', filter.componentIsRegex))
-      ],
-      { concurrency: 'unbounded', discard: true }
-    );
-    yield* this.initialize(true);
+    // Write filter state atomically to avoid partial state during concurrent updates
+    const filterState = {
+      showLocal,
+      showOrg,
+      typeFilter: filter.typeFilter,
+      componentFilter: filter.componentFilter,
+      typeIsRegex: filter.typeIsRegex,
+      componentIsRegex: filter.componentIsRegex
+    };
+    yield* Effect.promise(() => this.context.workspaceState.update('orgBrowser.filterState', filterState));
+    yield* this.initialize();
   });
 }

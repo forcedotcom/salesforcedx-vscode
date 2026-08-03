@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { StoredViewState } from './types';
 import type {
   OrgBrowserFilterState,
   OrgBrowserHostMessage,
@@ -13,7 +12,8 @@ import type {
   OrgBrowserNode,
   OrgBrowserViewState
 } from '../browser/protocol';
-import { type ChangeEvent, type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, type ReactElement, useCallback, useEffect } from 'react';
+import { useOrgBrowserState } from './useOrgBrowserState';
 import { VirtualTree } from './virtualTree';
 import { vscode } from './vscode';
 
@@ -49,11 +49,6 @@ const DEFAULT_LABELS: OrgBrowserLabels = {
   presenceOrg: 'Present only in the org'
 };
 
-const readStoredState = (): StoredViewState => {
-  const stored = vscode.getState();
-  return stored?.version === 1 ? stored : { version: 1, byOrg: {} };
-};
-
 const CollapseAllIcon = (): ReactElement => (
   <svg aria-hidden="true" className="toolbar-action-icon" viewBox="0 0 16 16">
     <path d="M14 4.27051C14.5999 4.62053 15 5.26009 15 6V11C15 13.21 13.21 15 11 15H6C5.26009 15 4.62053 14.5999 4.27051 14H11C12.65 14 14 12.65 14 11V4.27051Z" />
@@ -67,64 +62,39 @@ const CollapseAllIcon = (): ReactElement => (
 );
 
 export const App = (): ReactElement => {
-  const [orgId, setOrgId] = useState('');
-  const [roots, setRoots] = useState<readonly OrgBrowserNode[]>([]);
-  const [children, setChildren] = useState<ReadonlyMap<string, readonly OrgBrowserNode[]>>(new Map());
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
-  const [loading, setLoading] = useState<ReadonlySet<string>>(new Set());
-  const [globalLoading, setGlobalLoading] = useState(true);
-  const [selectedId, setSelectedId] = useState<string>();
-  const [focusedId, setFocusedId] = useState<string>();
-  const [scrollTop, setScrollTop] = useState(0);
-  const [filter, setFilter] = useState(EMPTY_FILTER);
-  const [labels, setLabels] = useState(DEFAULT_LABELS);
-  const [filterText, setFilterText] = useState('');
-  const [error, setError] = useState<string>();
-  const requestId = useRef(0);
-  const generationReference = useRef(0);
-  const expandedReference = useRef<ReadonlySet<string>>(new Set());
-  const selectedReference = useRef<string | undefined>(undefined);
-  const focusedReference = useRef<string | undefined>(undefined);
-  const scrollReference = useRef(0);
-  const filterTimer = useRef<ReturnType<typeof globalThis.setTimeout> | undefined>(undefined);
-  const stateTimer = useRef<ReturnType<typeof globalThis.setTimeout> | undefined>(undefined);
-  const initialPaintFrame = useRef<number | undefined>(undefined);
-  const initialDataFrame = useRef<number | undefined>(undefined);
-  const initialDataRequested = useRef(false);
-  const persistStateReference = useRef<(overrides?: Partial<OrgBrowserViewState>, debounce?: boolean) => void>(
-    () => {}
-  );
-
-  const nextRequestId = (): number => {
-    requestId.current += 1;
-    return requestId.current;
-  };
-
-  const persistState = useCallback(
-    (overrides: Partial<OrgBrowserViewState> = {}, debounce = false): void => {
-      if (!orgId) return;
-      const viewState: OrgBrowserViewState = {
-        version: 1,
-        expandedIds: [...expandedReference.current],
-        selectedId: selectedReference.current,
-        focusedId: focusedReference.current,
-        scrollTop: scrollReference.current,
-        ...overrides
-      };
-      const stored = readStoredState();
-      vscode.setState({ ...stored, byOrg: { ...stored.byOrg, [orgId]: viewState } });
-      if (stateTimer.current) globalThis.clearTimeout(stateTimer.current);
-      if (!debounce) {
-        vscode.postMessage({ type: 'setViewState', generation: generationReference.current, orgId, state: viewState });
-        return;
-      }
-      stateTimer.current = globalThis.setTimeout(() => {
-        vscode.postMessage({ type: 'setViewState', generation: generationReference.current, orgId, state: viewState });
-      }, 100);
-    },
-    [orgId]
-  );
-  persistStateReference.current = persistState;
+  const { state, actions, persistence, timers, refs } = useOrgBrowserState(DEFAULT_LABELS, EMPTY_FILTER);
+  const {
+    roots,
+    children,
+    expanded,
+    loading,
+    globalLoading,
+    selectedId,
+    focusedId,
+    scrollTop,
+    filter,
+    labels,
+    filterText,
+    error
+  } = state;
+  const {
+    setOrgId,
+    setRoots,
+    setChildren,
+    setExpanded,
+    setLoading,
+    setGlobalLoading,
+    setSelectedId,
+    setFocusedId,
+    setScrollTop,
+    setFilter,
+    setLabels,
+    setFilterText,
+    setError
+  } = actions;
+  const { persistState, nextRequestId } = persistence;
+  const { filterTimer, initialPaintFrame, initialDataFrame, initialDataRequested } = timers;
+  const { generationReference, expandedReference, selectedReference, focusedReference, scrollReference } = refs;
 
   useEffect(() => {
     const listener = (event: MessageEvent<OrgBrowserHostMessage>): void => {
@@ -142,15 +112,18 @@ export const App = (): ReactElement => {
           }
           return;
         case 'initialize': {
-          const restored = message.viewState ?? readStoredState().byOrg[message.orgId];
+          const stored = vscode.getState();
+          const storedState = stored?.version === 1 ? stored : { version: 1 as const, byOrg: {} };
+          const byOrg: Record<string, OrgBrowserViewState> = storedState.byOrg;
+          const restored = message.viewState ?? byOrg[message.orgId];
           setOrgId(message.orgId);
           generationReference.current = message.generation;
           setFilter(message.filter);
           setLabels(message.labels);
           setFilterText(message.filter.text);
           setRoots(message.roots);
-          setChildren(new Map((message.children ?? []).map(child => [child.parentId, child.nodes])));
-          const restoredExpanded = new Set(restored?.expandedIds);
+          setChildren(() => new Map((message.children ?? []).map(child => [child.parentId, child.nodes])));
+          const restoredExpanded = new Set<string>(restored?.expandedIds);
           expandedReference.current = restoredExpanded;
           selectedReference.current = restored?.selectedId;
           focusedReference.current = restored?.focusedId;
@@ -162,15 +135,30 @@ export const App = (): ReactElement => {
           setGlobalLoading(false);
           setError(undefined);
           if (message.viewState) {
-            const stored = readStoredState();
-            vscode.setState({ ...stored, byOrg: { ...stored.byOrg, [message.orgId]: message.viewState } });
+            vscode.setState({
+              version: 1 as const,
+              byOrg: { ...storedState.byOrg, [message.orgId]: message.viewState }
+            });
+          }
+          // Auto-expand restored nodes on next tick to allow UI to render first
+          if (restoredExpanded.size > 0) {
+            globalThis.setTimeout(() => {
+              restoredExpanded.forEach(nodeId => {
+                vscode.postMessage({
+                  type: 'expand',
+                  generation: message.generation,
+                  requestId: nextRequestId(),
+                  nodeId
+                });
+              });
+            }, 0);
           }
           return;
         }
         case 'roots':
           if (message.generation !== generationReference.current) return;
           setRoots(message.nodes);
-          setChildren(new Map());
+          setChildren(() => new Map());
           setFilter(message.filter);
           return;
         case 'children':
@@ -190,14 +178,14 @@ export const App = (): ReactElement => {
           });
           return;
         case 'error':
-          setLoading(new Set());
+          setLoading(() => new Set());
           setGlobalLoading(false);
           setError(message.message);
           return;
         case 'collapseAll':
           expandedReference.current = new Set();
           setExpanded(new Set());
-          persistStateReference.current({ expandedIds: [] });
+          persistState({ expandedIds: [] });
           return;
         case 'focusFilter':
           document.querySelector<HTMLInputElement>('[data-filter-input]')?.focus();
@@ -207,16 +195,6 @@ export const App = (): ReactElement => {
     vscode.postMessage({ type: 'ready' });
     return () => globalThis.removeEventListener('message', listener);
   }, []);
-
-  useEffect(
-    () => () => {
-      if (filterTimer.current) globalThis.clearTimeout(filterTimer.current);
-      if (stateTimer.current) globalThis.clearTimeout(stateTimer.current);
-      if (initialPaintFrame.current !== undefined) globalThis.cancelAnimationFrame(initialPaintFrame.current);
-      if (initialDataFrame.current !== undefined) globalThis.cancelAnimationFrame(initialDataFrame.current);
-    },
-    []
-  );
 
   const sendFilter = (showLocal: boolean, showOrg: boolean, text: string): void => {
     vscode.postMessage({
@@ -239,14 +217,14 @@ export const App = (): ReactElement => {
   const togglePresence = (kind: 'local' | 'org', checked: boolean): void => {
     const nextShowLocal = kind === 'local' ? checked : filter.showLocal;
     const nextShowOrg = kind === 'org' ? checked : filter.showOrg;
-    setFilter(current => ({ ...current, showLocal: nextShowLocal, showOrg: nextShowOrg }));
+    setFilter({ ...filter, showLocal: nextShowLocal, showOrg: nextShowOrg });
     sendFilter(nextShowLocal, nextShowOrg, filterText);
   };
 
   const toggleNode = useCallback(
     (node: OrgBrowserNode): void => {
-      setExpanded(current => {
-        const next = new Set(current);
+      setExpanded((current: ReadonlySet<string>) => {
+        const next = new Set<string>(current);
         if (next.has(node.id)) next.delete(node.id);
         else {
           next.add(node.id);
@@ -262,7 +240,7 @@ export const App = (): ReactElement => {
         return next;
       });
     },
-    [persistState]
+    [persistState, nextRequestId]
   );
 
   const selectNode = (nodeId: string): void => {
