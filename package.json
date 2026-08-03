@@ -394,7 +394,7 @@
       "output": []
     },
     "check:knip": {
-      "command": "npx knip --include exports,types,nsExports,nsTypes --no-config-hints",
+      "command": "npx knip --include files,exports,types,nsExports,nsTypes --no-config-hints",
       "dependencies": [
         "compile"
       ],

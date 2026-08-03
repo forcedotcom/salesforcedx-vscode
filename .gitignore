@@ -135,6 +135,7 @@ test-resources/
 **/.wireit
 **/playwright-report/
 jscpd-report/
+**/graphify-out/
 
 # Generated from Effect Schema (compile for apex-log)
 packages/salesforcedx-vscode-apex-log/resources/traceFlags.schema.json

@@ -13,6 +13,27 @@
     "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/error/errorModel.ts",
     "packages/salesforcedx-apex/src/utils/fileSystemHandler.ts"
   ],
+  "ignoreFiles": [
+    ".claude/**",
+    ".github/**",
+    "config/**",
+    "graphify-out/**",
+    "packages/*/graphify-out/**",
+    "packages/*/jest*.js",
+    "packages/*/scripts/**",
+    "packages/*/test/**",
+    "packages/salesforcedx-lightning-lsp-common/jest.setup.js",
+    "packages/salesforcedx-vscode-i18n/tsPlugin.js",
+    "scripts/**",
+    "test-workspaces/**",
+    "packages/salesforcedx-vscode-lightning/src/resources/**",
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/.eslintrc.js",
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/jest.config.js",
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/jestSetup/**",
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/{fields,from,header,limit,messages,orderBy,queryPreview,whereModifierGroup}/**",
+    "packages/salesforcedx-vscode-soql/src/soql-builder-ui/rollup.config.mjs",
+    "packages/salesforcedx-vscode-soql/src/soql-data-view/*.js"
+  ],
   "tags": ["-ExportTaggedError"],
   "workspaces": {
     "packages/salesforcedx-vscode-soql": {
@@ -30,6 +51,12 @@
         "src/testSupport/testUtils.ts",
         "src/testSupport/mockWorkspaceFindFiles.ts"
       ]
+    },
+    "packages/salesforcedx-visualforce-language-server": {
+      "entry": ["src/visualforceServer.ts"]
+    },
+    "packages/salesforcedx-vscode-visualforce": {
+      "entry": ["src/extension.ts"]
     }
   }
 }
