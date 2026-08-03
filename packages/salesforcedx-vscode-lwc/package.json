@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.7.1",
+  "version": "67.8.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -67,7 +67,8 @@
     "test:web:debug": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "wireit",
-    "test:e2e": "wireit"
+    "test:e2e": "wireit",
+    "vscode:package:legacy:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -275,6 +276,16 @@
         "vscode:bundle",
         "../salesforcedx-vscode-core:vscode:package:legacy"
       ]
+    },
+    "vscode:package:legacy:prerelease": {
+      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-core:vscode:package:legacy:prerelease"
+      ],
+      "env": {
+        "VSCE_PRE_RELEASE": "true"
+      }
     }
   },
   "packaging": {
