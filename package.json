@@ -69,17 +69,17 @@
     "esbuild-plugin-polyfill-node": "0.3.0",
     "esbuild-plugin-transform": "0.5.0",
     "esbuild-plugins-node-modules-polyfill": "1.8.2",
-    "eslint": "^10.5.0",
+    "eslint": "^10.8.0",
     "eslint-config-prettier": "10.1.5",
     "eslint-plugin-barrel-files": "^3.0.1",
-    "eslint-plugin-eslint-plugin": "7.2.0",
-    "eslint-plugin-functional": "9.0.3",
-    "eslint-plugin-import-x": "4.16.2",
-    "eslint-plugin-jest": "29.15.2",
+    "eslint-plugin-eslint-plugin": "7.6.0",
+    "eslint-plugin-functional": "9.0.5",
+    "eslint-plugin-import-x": "4.17.1",
+    "eslint-plugin-jest": "29.16.0",
     "eslint-plugin-jest-formatting": "3.1.0",
-    "eslint-plugin-jsdoc": "63.0.2",
+    "eslint-plugin-jsdoc": "63.3.2",
     "eslint-plugin-local-rules": "3.0.2",
-    "eslint-plugin-playwright": "2.10.4",
+    "eslint-plugin-playwright": "2.11.0",
     "eslint-plugin-prefer-arrow": "1.2.3",
     "eslint-plugin-unicorn": "68.0.0",
     "eslint-plugin-workspaces": "0.12.1",
@@ -146,6 +146,11 @@
     "vscode:package": "wireit",
     "vscode:package:modern": "wireit",
     "vscode:package:legacy": "wireit",
+    "vscode:package:prerelease": "wireit",
+    "vscode:package:modern:prerelease": "wireit",
+    "vscode:package:legacy:prerelease": "wireit",
+    "package:packages": "npm run vscode:package",
+    "package:packages:prerelease": "npm run vscode:package:prerelease",
     "run:web": "wireit",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
@@ -307,6 +312,15 @@
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy"
       ]
     },
+    "vscode:package:legacy:prerelease": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode-core:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-lwc:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-lightning:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy:prerelease",
+        "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy:prerelease"
+      ]
+    },
     "vscode:package:modern": {
       "dependencies": [
         "./packages/salesforcedx-vscode:vscode:package",
@@ -323,6 +337,22 @@
         "./packages/salesforcedx-vscode-metadata:vscode:package"
       ]
     },
+    "vscode:package:modern:prerelease": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-expanded:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-log:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-apex-testing:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-visualforce:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-soql:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-org:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-services:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-org-browser:vscode:package:prerelease",
+        "./packages/salesforcedx-vscode-metadata:vscode:package:prerelease"
+      ]
+    },
     "vscode:package": {
       "command": "npm run vscode:package:legacy",
       "env": {
@@ -331,6 +361,15 @@
       "dependencies": [
         "vscode:package:modern"
       ]
+    },
+    "vscode:package:prerelease": {
+      "dependencies": [
+        "vscode:package:modern:prerelease",
+        "vscode:package:legacy:prerelease"
+      ],
+      "env": {
+        "WIREIT_PARALLEL": "1"
+      }
     },
     "run:web": {
       "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --open-devtools --port 3001 --quality stable --verbose --printServerLog",

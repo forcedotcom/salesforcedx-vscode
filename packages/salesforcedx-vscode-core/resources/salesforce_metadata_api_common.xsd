@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-07-26T13:38:50.325Z
+Generated on: 2026-08-02T13:39:14.109Z
 Total metadata types: 1590
 -->
 <xsd:schema
@@ -11343,7 +11343,7 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The name used as a unique identifier for API access. This field is inherited from the Metadata component, but the string it contains is created differently than the fullName strings for other types. For a fullName string BusinessProcess, the fullName is created combining the Entity Name and Business Process Name. For example, for a business process called “Bulk Orders” for opportunities, the fullName would be Opportunity.Bulk Orders.</xsd:documentation>
+       <xsd:documentation>Required. The name used as a unique identifier for API access. This field is inherited from the Metadata component, but the string it contains is created differently than the fullName strings for other types. For a fullName string BusinessProcess, the fullName is created combining the Entity Name and Business Process Name. For example, for a business process called “Bulk Orders” for opportunities, the fullName would be Opportunity.Bulk Orders. Use the object-qualified form (Opportunity. Bulk Orders) for API addressing, such as in a package.xml member in metadata retrieve results. When creating a business process in a CustomObject definition, use the bare process name (Bulk Orders) for the nested &lt;businessProcesses&gt;&lt;fullName&gt; value. The enclosing object already supplies the entity context.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -20012,7 +20012,7 @@ Total metadata types: 1590
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
- <xsd:complexType name="CustomNotificationActionGroup_Beta">
+ <xsd:complexType name="CustomNotificationActionGroup">
   <xsd:annotation>
    <xsd:documentation>CustomNotificationActionGroup represents the action group.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customnotificationtype.htm</xsd:appinfo>
@@ -20045,9 +20045,9 @@ Total metadata types: 1590
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="actionGroups_Beta" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="actionGroups_Beta" minOccurs="0" maxOccurs="unbounded" type="CustomNotificationActionGroup">
       <xsd:annotation>
-       <xsd:documentation>Optional. Indicates whether mobile action groups are enabled, allowing users to take actions directly from mobile notifications.actionGroups is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
+       <xsd:documentation>Optional. Indicates whether mobile action groups are enabled, allowing users to take actions directly from mobile notifications.</xsd:documentation>
        <xsd:appinfo>Type: CustomNotificationActionGroup[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -24918,7 +24918,7 @@ Total metadata types: 1590
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableALMDevopsCorePref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the next-generation DevOps Center (Beta) is enabled: true or false. When enabled, you can access the AI-powered, next-generation DevOps Center for change and release management in the org.Available in API version 65.0 and later. enableALMDevopsCorePref is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
+       <xsd:documentation>Indicates whether the next-generation DevOps Center is enabled: true or false. When enabled, you can access the AI-powered, next-generation DevOps Center for change and release management in the org.Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -24930,13 +24930,19 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="enableALMSimpleDeployDataPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether configuration data migration to a target org is enabled: true or false. When enabled, you can migrate configuration data from a Salesforce org to a target org.To enable enableALMSimpleDeployDataPref, first enable enableALMSimpleDeployPref. Available in API version 65.0 and later. enableALMSimpleDeployDataPref is available as a developer preview. Feature isn’t generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. All commands, parameters, and other features are subject to change or deprecation at any time, with or without notice. Don&apos;t implement functionality developed with these commands or tools.</xsd:documentation>
+       <xsd:documentation>Indicates whether configuration data migration to a target org is enabled: true or false. When enabled, you can migrate configuration data from a Salesforce org to a target org.To enable enableALMSimpleDeployDataPref, first enable enableALMSimpleDeployPref. Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="enableALMSimpleDeployPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether metadata deployment to a target org is enabled: true or false. When enabled, you can deploy the metadata from a Salesforce org to a target org.Available in API version 65.0 and later. enableALMSimpleDeployPref is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
+       <xsd:documentation>Indicates whether metadata deployment to a target org is enabled: true or false. When enabled, you can deploy the metadata from a Salesforce org to a target org.Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableDevopsCenterMigrationPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether migration from the DevOps Center managed package to the next-generation DevOps Center is enabled: true or false. When enabled, you can migrate projects from the DevOps Center managed package to the next-generation DevOps Center in the org.Available in API version 67.0 and later. enableDevopsCenterMigrationPref is available as a developer preview. Feature isn’t generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. All commands, parameters, and other features are subject to change or deprecation at any time, with or without notice. Don&apos;t implement functionality developed with these commands or tools.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -62044,7 +62050,7 @@ Total metadata types: 1590
      </xsd:element>
      <xsd:element name="businessProcess" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The fullName of the business process associated with the record type. This field is required in record types for lead, opportunity, solution, and case, and not allowed otherwise. See BusinessProcess.This field is available in API version 17.0 and later.</xsd:documentation>
+       <xsd:documentation>The name of the business process associated with the record type, specified as the bare process name. (For example, Bulk Orders), not object-qualified. As the record type is already defined within the object, don&apos;t prefix the object name (Opportunity. Bulk Orders). This field is required in record types for lead, opportunity, solution, and case, and not allowed otherwise. See BusinessProcess.This field is available in API version 17.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -75977,7 +75983,7 @@ Total metadata types: 1590
  <xsd:element name="CustomMetadata" type="CustomMetadata"/>
  <xsd:element name="CustomMetadataValue" type="CustomMetadataValue"/>
  <xsd:element name="CustomNotificationActionDefinition" type="CustomNotificationActionDefinition"/>
- <xsd:element name="CustomNotificationActionGroup_Beta" type="CustomNotificationActionGroup_Beta"/>
+ <xsd:element name="CustomNotificationActionGroup" type="CustomNotificationActionGroup"/>
  <xsd:element name="CustomNotificationType" type="CustomNotificationType"/>
  <xsd:element name="CustomObject" type="CustomObject"/>
  <xsd:element name="CustomObjectCriteriaBasedSharingRule" type="CustomObjectCriteriaBasedSharingRule"/>
