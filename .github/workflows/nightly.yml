@@ -120,4 +120,6 @@ jobs:
       pre-release: 'true'
       version-bump: 'auto'
       dry-run: ${{ github.event.inputs.dry-run || false }}
+      git-user-name: 'Release Bot'
+      git-user-email: 'svc_idee_bot@salesforce.com'
     secrets: inherit
