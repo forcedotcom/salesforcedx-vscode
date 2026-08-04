@@ -32,12 +32,12 @@ Files: `src/testSupport/codeLens/provideLwcTestCodeLens.ts`, `src/testSupport/co
 
 ## Part B — Suppress the redundant run terminal
 
-Files: `src/testSupport/testRunner/taskService.ts`, `src/testSupport/testExplorer/lwcTestController.ts`.
+Files: `src/testSupport/testRunner/taskService.ts`, `src/testSupport/testExplorer/lwcTestController.ts`, `src/testSupport/testRunner/jestPseudoterminal.ts`.
 
 - Keep the `vscode.Task` (writes the JSON result file the controller reads). Hide its terminal.
-- Add an OPTIONAL presentation parameter to `taskService.createTask` (default preserves current behavior, so the WATCH caller is unaffected). The controller run path passes a "hidden terminal" presentation.
-- First attempt: presentation with `reveal: Never` (already), `panel: TaskPanelKind.Dedicated`, `echo: false`, `focus: false`, `showReuseMessage: false`, `clear: true`.
-- Contingency if VS Code still surfaces a visible terminal: use a `CustomExecution` with a no-output pseudoterminal (still task-based, web-safe). Document if used.
+- Use `CustomExecution` with `JestPseudoterminal` to capture Jest stdout/stderr (hidden terminal). Enables error extraction when Jest crashes before JSON output.
+- Presentation: `reveal: Never`, `panel: Shared`, `echo: false`, `focus: false`, `showReuseMessage: false`, `clear: true`.
+- `JestPseudoterminal` exposes `extractErrorSummary()` for Test Explorer error reporting.
 
 ## Testing
 

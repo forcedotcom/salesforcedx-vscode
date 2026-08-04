@@ -64,6 +64,7 @@ Best Practices around the mocked vscode modules.
 - If you find a property that is not currently available in the mock please add it.
 - The mocked module should only mock the high level properties. Resolving/returning values should be left to the individual test suite setup so that we can avoid having to adhere to particular behavior across tests.
 - Be aware that the mock call is only executed once during test execution and then resolves for all imports executed during the test run. Individual mocked properties on the module are reset after each test.
+- Use proper VS Code types when creating mock objects (e.g., `vscode.TaskExecution`, `vscode.TaskProcessEndEvent`). This ensures type safety and prevents `any` types from hiding issues. Cast mock properties using `as` where needed (e.g., `task: {} as vscode.Task`).
 
 #### Singleton Test Isolation
 

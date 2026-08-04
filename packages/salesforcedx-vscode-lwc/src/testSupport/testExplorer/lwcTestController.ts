@@ -24,7 +24,7 @@ import {
   TestResultStatus,
   isTestCaseInfo
 } from '../types';
-import { LWC_TEST_RUN_LOG_NAME } from '../types/constants';
+import { LWC_TEST_RUN_LOG_NAME, JEST_STACK_TRACE_PATTERN } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import { workspace, workspaceService } from '../workspace';
@@ -524,9 +524,6 @@ class LwcTestController {
       }
 
       const { command, args, workspaceFolder, testResultFsPath } = shellInfo;
-      console.log(`[LWC Test] Executing command: ${command}`);
-      console.log(`[LWC Test] Args: ${JSON.stringify(args)}`);
-      console.log(`[LWC Test] Expected result file: ${testResultFsPath}`);
 
       if (isDebug) {
         await vscode.debug.startDebugging(workspaceFolder, {
@@ -556,9 +553,7 @@ class LwcTestController {
         );
         const ended = awaitTaskEnd(sfTask, token);
         await sfTask.execute();
-        console.log('[LWC Test] Task started, waiting for completion...');
         const { exitCode } = await ended;
-        console.log(`[LWC Test] Task completed with exit code: ${exitCode}`);
 
         // If Jest crashed (non-zero exit), it won't have created the output file.
         // Extract error from captured output and show in Test Explorer.
@@ -571,7 +566,6 @@ class LwcTestController {
             if (capturedError) {
               errorMessage = 'Jest test suite failed to run';
               errorDetail = capturedError;
-              console.log('[LWC Test] Extracted error:', capturedError);
             }
           }
 
@@ -582,7 +576,6 @@ class LwcTestController {
             sourceItem.children.forEach(child => {
               run.failed(child, message);
             });
-            // Append error message header
             appendLine(run, errorMessage);
             appendLine(run, '');
             // Split multi-line error detail into individual lines for proper formatting
@@ -594,17 +587,13 @@ class LwcTestController {
       }
 
       if (token.isCancellationRequested) {
-        console.log('[LWC Test] Cancelled before reading results');
         return;
       }
-
-      console.log(`[LWC Test] Reading results from: ${testResultFsPath}`);
       // Jest may not have flushed the output file to disk immediately when the task completes.
       // Poll for the file's existence with a short timeout before attempting to read.
       await waitForResultFile(testResultFsPath, token);
 
       if (token.isCancellationRequested) {
-        console.log('[LWC Test] Cancelled after waiting for result file');
         return;
       }
 
@@ -651,8 +640,7 @@ class LwcTestController {
         const errorMessage = new vscode.TestMessage(cleanMessage);
 
         // Extract error location from stack trace in message for red highlight
-        const stackTracePattern = /at (?:.*?\()?(.*?):(\d+):(\d+)\)?/;
-        const match = cleanMessage.match(stackTracePattern);
+        const match = cleanMessage.match(JEST_STACK_TRACE_PATTERN);
         if (match && fileItem.uri) {
           const [, file, lineStr, columnStr] = match;
           const errorUri = URI.file(file);
@@ -661,9 +649,6 @@ class LwcTestController {
             Math.max(0, parseInt(columnStr, 10) - 1)
           );
           errorMessage.location = new vscode.Location(errorUri, position);
-          console.log(`[LWC Test] Runtime error location: ${file}:${lineStr}:${columnStr}`);
-        } else {
-          console.log('[LWC Test] Could not extract runtime error location from message');
         }
 
         run.failed(fileItem, errorMessage);
@@ -728,7 +713,7 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
         endHandler.dispose();
         endDisposable.dispose();
         cancelDisposable.dispose();
-        resolve({});
+        resolve({ exitCode: undefined });
       }, 100);
     });
     const cancelDisposable = token.onCancellationRequested(() => {

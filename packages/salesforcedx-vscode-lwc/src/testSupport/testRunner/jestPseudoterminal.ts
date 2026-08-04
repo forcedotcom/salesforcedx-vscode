@@ -34,6 +34,8 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
     let spawnArgs = this.args;
     const isWin32 = process.platform.startsWith('win32');
 
+    // Windows: Prepend cmd.exe (/d /c) to bypass Git Bash issues (GH#2097).
+    // Non-Windows: Use shell: true for PATH resolution.
     if (isWin32 && this.options.shellOptions) {
       spawnCmd = this.options.shellOptions.executable;
       spawnArgs = [...this.options.shellOptions.shellArgs, this.command, ...this.args];
@@ -118,14 +120,11 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
-      // Match specific error types with stack traces
       if (/^(TypeError|ReferenceError|SyntaxError|Error):/i.test(line.trim())) {
         errorLines.push(line.trim());
-        // Include stack trace lines (up to 30 lines or until we hit summary section)
         let blankLineCount = 0;
         for (let j = 1; j <= 30 && i + j < lines.length; j++) {
           const nextLine = lines[i + j].trim();
-          // Stop at Jest summary section
           if (
             nextLine.startsWith('Test Suites:') ||
             nextLine.startsWith('Tests:') ||
@@ -133,11 +132,10 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
           ) {
             break;
           }
-          // Allow blank lines but stop if we get too many consecutive blank lines
           if (!nextLine) {
             blankLineCount++;
             if (blankLineCount >= 2) {
-              break; // Stop at 2 consecutive blank lines
+              break;
             }
           } else {
             blankLineCount = 0;
@@ -147,14 +145,11 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
         break;
       }
 
-      // Match Jest FAIL or "Test suite failed to run" and capture subsequent error details
       if (line.includes('FAIL ') || line.includes('Test suite failed to run')) {
         errorLines.push(line.trim());
-        // Continue capturing error details after FAIL line
         let blankLineCount = 0;
         for (let j = 1; j <= 50 && i + j < lines.length; j++) {
           const nextLine = lines[i + j].trim();
-          // Stop at Jest summary section
           if (
             nextLine.startsWith('Test Suites:') ||
             nextLine.startsWith('Tests:') ||
@@ -162,11 +157,10 @@ export class JestPseudoterminal implements vscode.Pseudoterminal {
           ) {
             break;
           }
-          // Allow blank lines but stop if we get too many consecutive blank lines
           if (!nextLine) {
             blankLineCount++;
             if (blankLineCount >= 2) {
-              break; // Stop at 2 consecutive blank lines
+              break;
             }
           } else {
             blankLineCount = 0;

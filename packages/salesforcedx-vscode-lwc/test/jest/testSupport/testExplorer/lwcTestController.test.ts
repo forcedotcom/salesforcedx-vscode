@@ -631,8 +631,8 @@ describe('LwcTestController public run API', () => {
     // asynchronously via the task-end event; fire on the next tick here too, otherwise awaitTaskEnd's
     // endDisposable isn't assigned yet when the handler runs (its .dispose() would throw).
     // Also mock onDidEndTaskProcess to fire the callback with the task execution info.
-    let taskEndProcessCallback: ((e: any) => void) | undefined;
-    const mockOnDidEndTaskProcess = jest.fn((cb: (e: any) => void) => {
+    let taskEndProcessCallback: ((e: vscode.TaskProcessEndEvent) => void) | undefined;
+    const mockOnDidEndTaskProcess = jest.fn((cb: (e: vscode.TaskProcessEndEvent) => void) => {
       taskEndProcessCallback = cb;
       return { dispose: jest.fn() };
     });
@@ -642,7 +642,10 @@ describe('LwcTestController public run API', () => {
     const taskServiceModule = require('../../../../src/testSupport/testRunner/taskService');
     jest.spyOn(taskServiceModule.taskService, 'createTask').mockImplementation(() => {
       let endCb: (() => void) | undefined;
-      const mockTaskExecution = { id: 'mock-task-exec' };
+      const mockTaskExecution: vscode.TaskExecution = {
+        task: {} as vscode.Task,
+        terminate: jest.fn()
+      } as vscode.TaskExecution;
       return {
         onDidEnd: (cb: () => void) => {
           endCb = cb;

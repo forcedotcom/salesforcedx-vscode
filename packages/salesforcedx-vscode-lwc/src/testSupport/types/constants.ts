@@ -42,3 +42,9 @@ export const LWC_TEST_WATCH_LOG_NAME = 'lwc_test_watch_action';
  * GlobalState key for dismissing the Jest Runner duplicate code lens notification
  */
 export const LWC_JEST_RUNNER_DUPLICATE_LENS_NOTICE_DISMISSED = 'lwc.jestRunnerDuplicateLensNoticeDismissed';
+
+/**
+ * Pattern to extract file location from Jest stack traces.
+ * Matches lines like "at SomeFunction (/path/to/file.js:123:45)" or "at /path/to/file.js:123:45"
+ */
+export const JEST_STACK_TRACE_PATTERN = /at (?:.*?\()?(.*?):(\d+):(\d+)\)?/;
