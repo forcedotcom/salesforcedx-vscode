@@ -34,7 +34,11 @@ const makeSimpleExec =
       : Effect.fail({ _tag: 'TerminalServiceError', message: hit.result.fail, command });
   };
 
-type Choices = { warning?: string[]; confirm?: string[] };
+type Choices = {
+  warning?: (string | undefined)[];
+  confirm?: (string | undefined)[];
+  autoTerminateConfirm?: (string | undefined)[];
+};
 
 /** PromptService stub mirroring considerUndefinedAsCancellation (undefined/'' → UserCancellationError by tag). */
 const makePromptService = () => ({
@@ -44,10 +48,39 @@ const makePromptService = () => ({
       : Effect.succeed(value)
 });
 
-const makeApi = (responses: { match: string; result: ExecResult }[]) => ({
+type SettingsStub = {
+  getValueCalls: { section: string; key: string; defaultValue: unknown }[];
+  setValueCalls: { section: string; key: string; value: unknown }[];
+  getValueResult: unknown;
+  setValueFail: boolean;
+};
+
+const makeSettingsStub = (opts: { getValueResult?: unknown; setValueFail?: boolean } = {}): SettingsStub => ({
+  getValueCalls: [],
+  setValueCalls: [],
+  getValueResult: opts.getValueResult ?? false,
+  setValueFail: opts.setValueFail ?? false
+});
+
+const makeSettingsService = (stub: SettingsStub) => ({
+  getValue: (section: string, key: string, defaultValue?: unknown) => {
+    stub.getValueCalls.push({ section, key, defaultValue });
+    return Effect.succeed(stub.getValueResult);
+  },
+  setValue: (section: string, key: string, value: unknown) => {
+    stub.setValueCalls.push({ section, key, value });
+    if (stub.setValueFail) {
+      return Effect.fail({ _tag: 'MissingSettingsError', message: 'write failed', key, section, cause: undefined });
+    }
+    return Effect.succeed(undefined);
+  }
+});
+
+const makeApi = (responses: { match: string; result: ExecResult }[], settingsStub?: SettingsStub) => ({
   services: {
     TerminalService: Effect.succeed({ simpleExec: makeSimpleExec(responses) }),
     PromptService: Effect.succeed(makePromptService()),
+    SettingsService: Effect.succeed(makeSettingsService(settingsStub ?? makeSettingsStub())),
     ChannelService: Effect.succeed({
       showChannel: Effect.void,
       appendToChannel: (_message: string) => Effect.void,
@@ -87,11 +120,15 @@ const loadHandler = (platform: NodeJS.Platform) => {
 };
 
 const provide =
-  (Provider: typeof ExtensionProviderService, responses: { match: string; result: ExecResult }[]) =>
+  (
+    Provider: typeof ExtensionProviderService,
+    responses: { match: string; result: ExecResult }[],
+    settingsStub?: SettingsStub
+  ) =>
   (effect: Effect.Effect<unknown, unknown, unknown>) =>
     effect.pipe(
       Effect.provideService(Provider, {
-        getServicesApi: Effect.succeed(makeApi(responses))
+        getServicesApi: Effect.succeed(makeApi(responses, settingsStub))
       } as unknown as ExtensionProviderService)
     );
 
@@ -102,12 +139,18 @@ const captureRoot = (holder: { root?: Tracer.Span }) => (effect: Effect.Effect<v
     return yield* effect;
   }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
 
-const run = (responses: { match: string; result: ExecResult }[], holder: { root?: Tracer.Span } = {}) => {
+const run = (
+  responses: { match: string; result: ExecResult }[],
+  holder: { root?: Tracer.Span } = {},
+  settingsStub?: SettingsStub
+) => {
   const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
   return Effect.runPromise(
-    (checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)) as Effect.Effect<void>).pipe(
-      captureRoot(holder)
-    )
+    (
+      checkAndResolveOrphanedLanguageServers(3, 0).pipe(
+        provide(Provider, responses, settingsStub)
+      ) as Effect.Effect<void>
+    ).pipe(captureRoot(holder))
   );
 };
 
@@ -123,24 +166,42 @@ const KILL_RETRY_TOTAL_SECONDS = Array.from(
 ).reduce((sum, s) => sum + s, 0);
 
 /** Run on the TestClock, advancing past the (bounded) kill-retry backoff so scheduled retries fire without real waits. */
-const runWithClock = (responses: { match: string; result: ExecResult }[], holder: { root?: Tracer.Span } = {}) => {
+const runWithClock = (
+  responses: { match: string; result: ExecResult }[],
+  holder: { root?: Tracer.Span } = {},
+  settingsStub?: SettingsStub
+) => {
   const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
   return Effect.runPromise(
     Effect.gen(function* () {
       holder.root = yield* Effect.currentSpan;
-      const fiber = yield* Effect.fork(checkAndResolveOrphanedLanguageServers().pipe(provide(Provider, responses)));
+      const fiber = yield* Effect.fork(
+        checkAndResolveOrphanedLanguageServers(3, 0).pipe(provide(Provider, responses, settingsStub))
+      );
       yield* TestClock.adjust(Duration.seconds(KILL_RETRY_TOTAL_SECONDS + 1));
       return yield* Fiber.join(fiber);
     }).pipe(Effect.withSpan('test-root'), Effect.provide(TestContext.TestContext)) as Effect.Effect<void>
   );
 };
 
-const setWarningChoices = ({ warning = [], confirm = [] }: Choices) => {
+const setWarningChoices = ({ warning = [], confirm = [], autoTerminateConfirm = [] }: Choices) => {
   const queue = [...warning];
   const confirmQueue = [...confirm];
-  (vscode.window.showWarningMessage as jest.Mock).mockImplementation((message: string) =>
-    Promise.resolve(message.includes('Terminate them?') ? confirmQueue.shift() : queue.shift())
-  );
+  const autoTerminateConfirmQueue = [...autoTerminateConfirm];
+  (vscode.window.showWarningMessage as jest.Mock).mockImplementation((message: string, ...args: unknown[]) => {
+    // Route based on message content and modal option presence.
+    // Use detail text as discriminator for the auto-terminate confirmation modal (unique substring).
+    const modalOpts = args.find(
+      (a): a is { modal: boolean; detail?: string } => typeof a === 'object' && a !== null && 'modal' in a
+    );
+    if (message.includes('Terminate them?')) {
+      return Promise.resolve(confirmQueue.shift());
+    }
+    if (modalOpts?.modal && modalOpts.detail?.includes(nls.localize('auto_terminate_confirm_modal'))) {
+      return Promise.resolve(autoTerminateConfirmQueue.shift());
+    }
+    return Promise.resolve(queue.shift());
+  });
 };
 
 describe('languageServerOrphanHandler', () => {
@@ -177,8 +238,48 @@ describe('languageServerOrphanHandler', () => {
     expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
   });
 
+  it('orphan disappears on re-check → no prompt, no kill', async () => {
+    let psCallCount = 0;
+    const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
+    const statefulSimpleExec = ({
+      command,
+      parse = (s: string) => s
+    }: {
+      command: string;
+      parse?: (stdout: string) => unknown;
+      timeout?: unknown;
+    }) => {
+      if (command.includes('ps -e')) {
+        psCallCount++;
+        const stdout = psCallCount === 1 ? ORPHAN_LIST : '';
+        return Effect.succeed(parse(stdout.trim()));
+      }
+      return Effect.die(new Error(`unexpected command: ${command}`));
+    };
+    const api = {
+      services: {
+        TerminalService: Effect.succeed({ simpleExec: statefulSimpleExec }),
+        PromptService: Effect.succeed(makePromptService()),
+        SettingsService: Effect.succeed(makeSettingsService(makeSettingsStub())),
+        ChannelService: Effect.succeed({
+          showChannel: Effect.void,
+          appendToChannel: (_message: string) => Effect.void,
+          getChannel: Effect.succeed(undefined),
+          clearChannel: Effect.void
+        })
+      }
+    };
+    await Effect.runPromise(
+      checkAndResolveOrphanedLanguageServers(3, 0).pipe(
+        Effect.provideService(Provider, { getServicesApi: Effect.succeed(api) } as unknown as ExtensionProviderService)
+      ) as Effect.Effect<void>
+    );
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+    expect(killSpy).not.toHaveBeenCalled();
+  });
+
   it('user dismisses prompt → UserCancellationError caught → no kill', async () => {
-    setWarningChoices({ warning: [undefined as unknown as string] });
+    setWarningChoices({ warning: [undefined] });
     await run([{ match: 'ps -e', result: ORPHAN_LIST }]);
     expect(killSpy).not.toHaveBeenCalled();
   });
@@ -213,6 +314,67 @@ describe('languageServerOrphanHandler', () => {
     await run([{ match: 'ps -e', result: { fail: 'Not available on web' } }]);
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(killSpy).not.toHaveBeenCalled();
+  });
+
+  describe('autoTerminateOrphanedProcesses setting', () => {
+    it('setting true + orphans found → kills without prompt', async () => {
+      const stub = makeSettingsStub({ getValueResult: true });
+      const holder: { root?: Tracer.Span } = {};
+      await run([{ match: 'ps -e', result: ORPHAN_LIST }], holder, stub);
+      expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+      expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+      expect(holder.root?.attributes.get('didTerminate')).toBe(1);
+      expect(stub.getValueCalls).toEqual([
+        { section: 'salesforcedx-vscode-apex', key: 'autoTerminateOrphanedProcesses', defaultValue: false }
+      ]);
+    });
+
+    it('setting false + user clicks "Always Auto-Terminate" + confirms modal → setValue called + kills', async () => {
+      const stub = makeSettingsStub({ getValueResult: false });
+      setWarningChoices({
+        warning: [nls.localize('always_auto_terminate')],
+        autoTerminateConfirm: [nls.localize('confirm')]
+      });
+      await run([{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
+      expect(stub.setValueCalls).toEqual([
+        { section: 'salesforcedx-vscode-apex', key: 'autoTerminateOrphanedProcesses', value: true }
+      ]);
+      expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+    });
+
+    it('setting false + user clicks "Always Auto-Terminate" + cancels modal → no kill, setValue not called', async () => {
+      const stub = makeSettingsStub({ getValueResult: false });
+      setWarningChoices({
+        warning: [nls.localize('always_auto_terminate')],
+        autoTerminateConfirm: [undefined]
+      });
+      await run([{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
+      expect(stub.setValueCalls).toEqual([]);
+      expect(killSpy).not.toHaveBeenCalled();
+    });
+
+    it('setting false + existing flows unchanged (terminate, show, dismiss)', async () => {
+      const stub = makeSettingsStub({ getValueResult: false });
+      setWarningChoices({
+        warning: [nls.localize('terminate_processes')],
+        confirm: [nls.localize('yes')]
+      });
+      await run([{ match: 'ps -e', result: ORPHAN_LIST }], {}, stub);
+      expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+      expect(stub.setValueCalls).toEqual([]);
+    });
+
+    it('SettingsService.setValue failure → span annotation recorded, kill still proceeds', async () => {
+      const stub = makeSettingsStub({ getValueResult: false, setValueFail: true });
+      const holder: { root?: Tracer.Span } = {};
+      setWarningChoices({
+        warning: [nls.localize('always_auto_terminate')],
+        autoTerminateConfirm: [nls.localize('confirm')]
+      });
+      await run([{ match: 'ps -e', result: ORPHAN_LIST }], holder, stub);
+      expect(holder.root?.attributes.get('settingsWriteError')).toBe('write failed');
+      expect(killSpy).toHaveBeenCalledWith(1234, 'SIGKILL');
+    });
   });
 });
 
