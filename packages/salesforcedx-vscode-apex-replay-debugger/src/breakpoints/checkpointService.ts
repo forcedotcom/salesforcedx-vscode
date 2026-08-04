@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import type { Connection } from '@salesforce/core';
-import { code2ProtocolConverter, ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
+import { code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
@@ -543,6 +543,13 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
   // The status message isn't changing, call to localize it once and use the localized string in the
   // progress report.
   const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
+  const progressLocation = getRuntime().runSync(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const notificationMode = yield* api.services.NotificationModeService;
+      return yield* notificationMode.getProgressLocation(COMMAND);
+    })
+  );
   // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
   try {
     // The lock is necessary here to prevent the user from deleting the underlying breakpoint
@@ -551,7 +558,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
       writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
       await vscode.window.withProgress(
         {
-          location: getRuntime().runSync(getProgressLocation(COMMAND)),
+          location: progressLocation,
           title: localizedProgressMessage,
           cancellable: false
         },

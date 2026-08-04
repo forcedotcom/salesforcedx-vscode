@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
@@ -87,7 +87,11 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
   }
 
   const result = yield* deployComponentSet({ componentSet, command: COMMAND });
-  yield* showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text')));
+  const notificationMode = yield* api.services.NotificationModeService;
+  yield* notificationMode.showSuccessNotification(
+    COMMAND,
+    nls.localize('command_succeeded_text', nls.localize('deploy_on_save_text'))
+  );
   return result;
 });
 

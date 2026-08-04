@@ -8,7 +8,6 @@
 import {
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
-  NotificationModeServiceLayer,
   getServicesApi,
   type ExtensionPackageJson
 } from '@salesforce/effect-ext-utils';
@@ -51,7 +50,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.ExtensionContextServiceLayer(context),
         api.services.SdkLayerFor(context),
         channelLayer,
-        NotificationModeServiceLayer(
+        api.services.NotificationModeService.Default(
           'salesforcedx-vscode-metadata',
           'sf-metadata-notifications',
           'Salesforce: Metadata Notifications'

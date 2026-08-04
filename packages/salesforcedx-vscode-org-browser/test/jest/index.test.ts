@@ -42,9 +42,9 @@ jest.mock('vscode', () => ({
 
 import {
   ExtensionProviderService,
-  NotificationModeService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import { activateEffect, deactivateEffect } from '../../src/index';
@@ -276,7 +276,11 @@ describe.skip('Extension', () => {
             MockMetadataRegistryServiceLayer,
             MockSourceTrackingServiceLayer,
             MockOrgBrowserRetrieveServiceLayer,
-            NotificationModeService.Default
+            Layer.succeed(NotificationModeService, {
+              getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+              showSuccessNotification: () => Effect.void,
+              runDispose: jest.fn()
+            } as unknown as NotificationModeService)
           )
         )
       )

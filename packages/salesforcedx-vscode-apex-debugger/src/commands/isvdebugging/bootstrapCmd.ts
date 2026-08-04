@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Global } from '@salesforce/core/global';
-import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -193,6 +193,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const terminalService = yield* api.services.TerminalService;
   const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
   const fs = api.services.FsService;
 
   const { loginUrl, sessionId, orgName } = yield* gatherForceIdeUri();
@@ -218,7 +219,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   // interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child process.
   yield* promptService.withCancellableProgressReporting(
     nls.localize('isv_debug_bootstrap_progress_title'),
-    yield* getProgressLocation(COMMAND)
+    yield* notificationMode.getProgressLocation(COMMAND)
   )(progress =>
     Effect.gen(function* () {
       const report = (message: string) => Effect.sync(() => progress.report({ message }));

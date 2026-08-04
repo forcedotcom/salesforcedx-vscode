@@ -8,7 +8,6 @@
 import {
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
-  NotificationModeServiceLayer,
   type ExtensionPackageJson,
   getServicesApi
 } from '@salesforce/effect-ext-utils';
@@ -48,7 +47,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.SdkLayerFor(context),
         channelLayer,
         errorHandlerWithChannel,
-        NotificationModeServiceLayer(
+        api.services.NotificationModeService.Default(
           'salesforcedx-vscode-soql',
           'sf-soql-notifications',
           'Salesforce: SOQL Notifications'

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
@@ -27,10 +27,13 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   clearDeployDiagnostics();
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel('Starting metadata deployment...');
 
-  const progressLocation = command ? yield* getProgressLocation(command) : vscode.ProgressLocation.Notification;
+  const progressLocation = command
+    ? yield* notificationMode.getProgressLocation(command)
+    : vscode.ProgressLocation.Notification;
   const result = yield* api.services.MetadataDeployService.deploy(componentSet, { progressLocation });
 
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));

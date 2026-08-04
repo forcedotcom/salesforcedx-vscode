@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -21,6 +21,7 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 }) {
   const { componentSet, command } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const [channelService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
@@ -31,7 +32,9 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
-  const progressLocation = command ? yield* getProgressLocation(command) : vscode.ProgressLocation.Notification;
+  const progressLocation = command
+    ? yield* notificationMode.getProgressLocation(command)
+    : vscode.ProgressLocation.Notification;
   const result = yield* api.services.MetadataDeployService.deploy(deleteSet, { progressLocation });
 
   const { isSDRFailure } = componentSetService;

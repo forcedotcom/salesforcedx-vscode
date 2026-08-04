@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, NotificationModeService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { activateEffect } from '../../src/index';
 import * as coreExtensionUtils from '../../src/utils/coreExtensionUtils';
@@ -18,24 +19,33 @@ jest.mock('../../src/utils/coreExtensionUtils', () => ({
 }));
 
 const registerCommandWithLayer = jest.fn();
+const notificationMode = {
+  getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
+  showSuccessNotification: () => Effect.void,
+  runDispose: jest.fn()
+} as unknown as NotificationModeService;
 
 const extensionProviderLayer = () =>
-  Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({
-      services: {
-        registerCommandWithLayer: () => registerCommandWithLayer
-      }
-    })
-  } as unknown as ExtensionProviderService);
+  Layer.mergeAll(
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed({
+        services: {
+          registerCommandWithLayer: () => registerCommandWithLayer,
+          NotificationModeService
+        }
+      })
+    } as unknown as ExtensionProviderService),
+    Layer.succeed(NotificationModeService, notificationMode)
+  );
 
 const extensionContext = { subscriptions: { push: jest.fn() } } as unknown as vscode.ExtensionContext;
-
 const runActivate = () =>
   Effect.runPromise(
-    activateEffect(extensionContext).pipe(
-      Effect.provide(extensionProviderLayer()),
-      Effect.provide(NotificationModeService.Default)
-    ) as Effect.Effect<void, unknown, never>
+    activateEffect(extensionContext).pipe(Effect.provide(extensionProviderLayer())) as Effect.Effect<
+      void,
+      unknown,
+      never
+    >
   );
 
 describe('activateEffect', () => {

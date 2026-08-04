@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getProgressLocation } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -49,6 +49,7 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
   componentSet: NonEmptyComponentSet
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   const cacheDirUri = yield* getCacheDirectoryUri();
 
   yield* api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
@@ -56,7 +57,7 @@ export const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(fu
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(
     componentSet,
     cacheDirUri,
-    { progressLocation: yield* getProgressLocation(COMMAND) }
+    { progressLocation: yield* notificationMode.getProgressLocation(COMMAND) }
   );
 
   return result;

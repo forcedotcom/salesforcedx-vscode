@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -43,12 +43,15 @@ const deployUris = Effect.fn('deploySourcePath.deployUris')(
 export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiveEditor')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const notificationMode = yield* api.services.NotificationModeService;
     const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
-    return yield* deployUris(new Set([activeEditorUri]));
+    const result = yield* deployUris(new Set([activeEditorUri]));
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))
+    );
+    return result;
   },
-  Effect.tap(() =>
-    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
-  ),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
       Effect.as(undefined)
@@ -68,13 +71,18 @@ export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiv
 // sourceUri is passed, but uris is undefined.
 
 /** Deploy source paths to the default org */
-export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySourcePaths')(
-  function* (sourceUri: URI, uris: URI[] = []) {
-    yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-    const urisSet = new Set([sourceUri, ...uris]);
-    return yield* deployUris(urisSet);
-  },
-  Effect.tap(() =>
-    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text')))
-  )
-);
+export const deploySourcePathsCommand = Effect.fn('deploySourcePath.deploySourcePaths')(function* (
+  sourceUri: URI,
+  uris: URI[] = []
+) {
+  yield* Effect.annotateCurrentSpan({ sourceUri, uris });
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const urisSet = new Set([sourceUri, ...uris]);
+  const result = yield* deployUris(urisSet);
+  yield* notificationMode.showSuccessNotification(
+    COMMAND,
+    nls.localize('command_succeeded_text', nls.localize('deploy_this_source_text'))
+  );
+  return result;
+});

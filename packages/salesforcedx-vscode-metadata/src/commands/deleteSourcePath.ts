@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, showSuccessNotification } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -48,6 +48,7 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
     yield* Effect.annotateCurrentSpan({ sourceUri, uris });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
+    const notificationMode = yield* api.services.NotificationModeService;
 
     // Resolve source URI from parameter or active editor
     const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
@@ -76,10 +77,11 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
         ])
       )
     );
+    yield* notificationMode.showSuccessNotification(
+      COMMAND,
+      nls.localize('command_succeeded_text', nls.localize('delete_source_text'))
+    );
   },
-  Effect.tap(() =>
-    showSuccessNotification(COMMAND, nls.localize('command_succeeded_text', nls.localize('delete_source_text')))
-  ),
   Effect.catchTag('NoActiveEditorError', () =>
     Effect.sync(() => {
       void vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'));
