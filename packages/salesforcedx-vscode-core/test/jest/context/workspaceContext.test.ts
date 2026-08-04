@@ -128,6 +128,30 @@ describe('WorkspaceContext', () => {
     });
   });
 
+  it('waits for a complete initial org identity without emitting setup changes', async () => {
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial' });
+    const context = WorkspaceContext.getInstance(true);
+    const listener = jest.fn();
+    context.onOrgChange(listener);
+    const initialization = context.initialize(coreContext as never);
+    const initialized = jest.fn();
+    void initialization.then(initialized);
+
+    await flushEffects();
+    expect(initialized).not.toHaveBeenCalled();
+
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
+    await initialization;
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: 'initial@example.com',
+      alias: 'initial',
+      orgId: '00Dinitial'
+    });
+  });
+
   it('fires once per distinct identity after updating getters and refreshes telemetry', async () => {
     const context = WorkspaceContext.getInstance(true);
     const observedGetters: object[] = [];
