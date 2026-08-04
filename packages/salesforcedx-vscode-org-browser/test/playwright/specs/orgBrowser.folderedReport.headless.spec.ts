@@ -45,12 +45,13 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
   await test.step('find Report type, download not available', async () => {
     const locator = await orgBrowserPage.findMetadataType(reportType);
     await locator.hover();
-    // Foldered metadata type rows expose refresh but not retrieve.
+    // Expected structure: treeitem at level 1 with accessible name containing "Report",
+    // toolbar containing Refresh Type button only (Retrieve Metadata button is hidden for folder types)
     await expect(locator).toHaveRole('treeitem');
     await expect(locator).toHaveAttribute('aria-level', '1');
     await expect(locator).toHaveAccessibleName(/Report/);
-    await expect(OrgBrowserPage.getRefreshButton(locator)).toBeVisible();
-    await expect(OrgBrowserPage.getRetrieveButton(locator)).toHaveCount(0);
+    await expect(locator.locator('[aria-label="Refresh Type"]')).toBeVisible();
+    await expect(locator.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
   });
 
   const folderName = 'unfiled$public';
@@ -60,7 +61,7 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
     await orgBrowserPage.expandFolder(reportType);
     const folder = await orgBrowserPage.getMetadataItem('Report', folderName, 2);
     await expect(folder).toBeVisible();
-    await expect(OrgBrowserPage.getRetrieveButton(folder)).toHaveCount(0);
+    await expect(folder.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
     await orgBrowserPage.expandFolder(folderName, 2);
   });
 
@@ -73,10 +74,10 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
     const txt = (await level3.textContent())?.trim() ?? '';
     reportName = txt.split('/').pop();
     await level3.hover({ timeout: 500 });
-    // Report component rows expose retrieve.
+    // Expected structure: treeitem at level 3 (nested under folder) with toolbar containing Retrieve Metadata button
     await expect(level3).toHaveRole('treeitem');
     await expect(level3).toHaveAttribute('aria-level', '3');
-    await expect(OrgBrowserPage.getRetrieveButton(level3)).toBeVisible();
+    await expect(level3.locator('[aria-label="Retrieve Metadata"]')).toBeVisible();
     return level3;
   });
 

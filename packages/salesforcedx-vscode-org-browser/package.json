@@ -30,20 +30,13 @@
   "dependencies": {
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/vscode-i18n": "*",
-    "@tanstack/react-virtual": "3.14.8",
     "effect": "^3.21.2",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.32.2",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/source-deploy-retrieve": "^12.37.2",
-    "@testing-library/react": "16.3.2",
-    "@types/react": "19.2.17",
-    "@types/react-dom": "19.2.3",
-    "jest-environment-jsdom": "30.4.1",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -64,44 +57,13 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
-    "compile:org-browser-ui": "wireit",
-    "build:org-browser-ui": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist src/org-browser-ui/dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit",
-    "test:org-browser-ui": "wireit",
     "test:compile": "wireit",
     "vscode:package:prerelease": "wireit"
   },
   "wireit": {
-    "compile:org-browser-ui": {
-      "command": "tsc -p src/org-browser-ui/tsconfig.json --pretty",
-      "files": [
-        "src/org-browser-ui/**/*.ts",
-        "src/org-browser-ui/**/*.tsx",
-        "src/browser/protocol.ts",
-        "src/org-browser-ui/tsconfig.json",
-        "../../tsconfig.common.json"
-      ],
-      "output": []
-    },
-    "build:org-browser-ui": {
-      "command": "node ./src/org-browser-ui/esbuild.config.mjs",
-      "dependencies": [
-        "compile:org-browser-ui"
-      ],
-      "files": [
-        "src/org-browser-ui/**/*.ts",
-        "src/org-browser-ui/**/*.tsx",
-        "src/org-browser-ui/**/*.css",
-        "src/browser/protocol.ts",
-        "src/org-browser-ui/esbuild.config.mjs",
-        "package.json"
-      ],
-      "output": [
-        "src/org-browser-ui/dist/**"
-      ]
-    },
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
@@ -129,7 +91,6 @@
       ],
       "files": [
         "test/**/*.ts",
-        "test/**/*.tsx",
         "test/tsconfig.json"
       ],
       "output": []
@@ -137,7 +98,6 @@
     "vscode:bundle:local": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
-        "build:org-browser-ui",
         "compile",
         "../salesforcedx-vscode-services:vscode:bundle:local"
       ],
@@ -145,7 +105,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "src/org-browser-ui/dist/**",
         "out/**"
       ],
       "output": [
@@ -155,7 +114,6 @@
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
-        "build:org-browser-ui",
         "compile",
         "../salesforcedx-vscode-services:vscode:bundle"
       ],
@@ -163,7 +121,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "src/org-browser-ui/dist/**",
         "out/**"
       ],
       "output": [
@@ -173,8 +130,7 @@
     "test": {
       "command": "jest",
       "dependencies": [
-        "test:compile",
-        "test:org-browser-ui"
+        "test:compile"
       ],
       "files": [
         "test/**/*.ts",
@@ -185,21 +141,6 @@
         "coverage"
       ]
     },
-    "test:org-browser-ui": {
-      "command": "jest --config jest.org-browser-ui.config.js",
-      "dependencies": [
-        "compile:org-browser-ui"
-      ],
-      "files": [
-        "src/org-browser-ui/**/*.ts",
-        "src/org-browser-ui/**/*.tsx",
-        "src/browser/protocol.ts",
-        "test/jest/org-browser-ui/**",
-        "jest.org-browser-ui.config.js",
-        "../../config/jest.base.config.js"
-      ],
-      "output": []
-    },
     "check:circular-deps": {
       "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
       "dependencies": [
@@ -207,7 +148,6 @@
       ],
       "files": [
         "src/**/*.ts",
-        "src/**/*.tsx",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
@@ -224,9 +164,7 @@
       ],
       "files": [
         "src/**/*.ts",
-        "src/**/*.tsx",
         "test/**/*.ts",
-        "test/**/*.tsx",
         "../../eslint.config.mjs",
         ".vscodeignore",
         "package.json",
@@ -245,7 +183,6 @@
         "README.md",
         "CHANGELOG.md",
         "LICENSE.txt",
-        ".vscodeignore",
         "images/**",
         "resources/**"
       ],
@@ -384,6 +321,23 @@
         ]
       }
     ],
+    "viewsWelcome": [
+      {
+        "view": "sfdxOrgBrowser",
+        "contents": "%org_browser_filters_all_off%",
+        "when": "sf:orgBrowser.showLocal == false && sf:orgBrowser.showOrg == false"
+      },
+      {
+        "view": "sfdxOrgBrowser",
+        "contents": "%org_browser_filters_empty%",
+        "when": "(sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty)"
+      },
+      {
+        "view": "sfdxOrgBrowser",
+        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type.",
+        "when": "sf:orgBrowser.showOrg == true && sf:orgBrowser.treeEmpty == false"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -398,7 +352,6 @@
         {
           "id": "sfdxOrgBrowser",
           "name": "%orgBrowser.view.name%",
-          "type": "webview",
           "when": "sf:has_target_org"
         }
       ]
@@ -473,6 +426,48 @@
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "command": "sfdxOrgBrowser.showLocal.on",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showLocal == false",
+          "group": "navigation@0"
+        },
+        {
+          "command": "sfdxOrgBrowser.showLocal.off",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showLocal == true",
+          "group": "navigation@0"
+        },
+        {
+          "command": "sfdxOrgBrowser.showOrg.on",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == false",
+          "group": "navigation@1"
+        },
+        {
+          "command": "sfdxOrgBrowser.showOrg.off",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.showOrg == true",
+          "group": "navigation@1"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == false",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.filterText.active",
+          "when": "view == sfdxOrgBrowser && sf:orgBrowser.textFilterActive == true",
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser",
+          "group": "navigation@3"
+        },
+        {
+          "command": "sfdxOrgBrowser.collapseAll",
+          "when": "view == sfdxOrgBrowser",
+          "group": "navigation@4"
+        }
+      ],
       "commandPalette": [
         {
           "command": "sf.org-browser.walkthrough.open",
@@ -501,18 +496,18 @@
         {
           "command": "sfdxOrgBrowser.filterText.active",
           "when": "false"
-        },
+        }
+      ],
+      "view/item/context": [
         {
           "command": "sfdxOrgBrowser.refreshType",
-          "when": "false"
+          "when": "view == sfdxOrgBrowser && (viewItem == type || viewItem == customObject || viewItem == folderType || viewItem == folder)",
+          "group": "inline"
         },
         {
           "command": "sfdxOrgBrowser.retrieveMetadata",
-          "when": "false"
-        },
-        {
-          "command": "sfdxOrgBrowser.collapseAll",
-          "when": "false"
+          "when": "view == sfdxOrgBrowser && (viewItem == type || viewItem == customObject || viewItem == component)",
+          "group": "inline"
         }
       ]
     }

@@ -39,9 +39,11 @@ test('Org Browser - filter toggles: filter state persists across reload', async 
   });
 
   await test.step('toggle showLocal OFF', async () => {
-    await expect(orgBrowserPage.showLocalToggle).toBeChecked();
-    await orgBrowserPage.showLocalToggle.click();
-    await expect(orgBrowserPage.showLocalToggle).not.toBeChecked();
+    const hideLocalButton = page.locator('[aria-label="Hide Local Types"]').first();
+    await expect(hideLocalButton).toBeVisible({ timeout: 10_000 });
+    await hideLocalButton.click();
+    const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
+    await expect(showLocalButton).toBeVisible({ timeout: 10_000 });
   });
 
   await test.step('reload window', async () => {
@@ -52,6 +54,7 @@ test('Org Browser - filter toggles: filter state persists across reload', async 
   await test.step('verify showLocal remains OFF after reload', async () => {
     const orgBrowserPageAfter = new OrgBrowserPage(page);
     await orgBrowserPageAfter.openOrgBrowser();
-    await expect(orgBrowserPageAfter.showLocalToggle).not.toBeChecked({ timeout: 15_000 });
+    const showLocalButton = page.locator('[aria-label="Show Local Types"]').first();
+    await expect(showLocalButton).toBeVisible({ timeout: 15_000 });
   });
 });

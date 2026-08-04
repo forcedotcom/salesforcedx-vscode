@@ -15,12 +15,6 @@ const extractViewIds = (ast: ValueNode): Set<string> => {
   return new Set(
     viewContainerNodes
       .filter((node): node is ValueNode & { type: 'Object' } => node.type === 'Object')
-      // Webview views are referenced by registerWebviewViewProvider in extension code and
-      // intentionally need no tree menu or viewsWelcome contribution.
-      .filter(node => {
-        const typeMember = node.members.find(m => m.name.type === 'String' && m.name.value === 'type');
-        return typeMember?.value.type !== 'String' || typeMember.value.value !== 'webview';
-      })
       .map(node => {
         const idMember = node.members.find(m => m.name.type === 'String' && m.name.value === 'id');
         return idMember?.value.type === 'String' ? idMember.value.value : undefined;

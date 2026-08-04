@@ -60,23 +60,6 @@ describe('package-json-view-refs', () => {
       expect(errors).toHaveLength(0);
     });
 
-    it('should pass for a webview view registered by an extension host provider', () => {
-      const code = JSON.stringify(
-        {
-          name: 'test',
-          contributes: {
-            views: {
-              explorer: [{ id: 'myWebview', name: 'My Webview', type: 'webview' }]
-            }
-          }
-        },
-        null,
-        2
-      );
-
-      expect(filterByRule(lintJson(code), RULE_NAME)).toHaveLength(0);
-    });
-
     it('should error when view is defined but never referenced (orphaned)', () => {
       const code = JSON.stringify(
         {

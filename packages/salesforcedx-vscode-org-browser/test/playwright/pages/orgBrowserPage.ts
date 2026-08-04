@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Page, Locator, expect, type FrameLocator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { saveScreenshot, typingSpeed, waitForWorkspaceReady, TAB } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
@@ -24,52 +24,16 @@ export class OrgBrowserPage {
   // Core elements
   public readonly page: Page;
   public readonly activityBarItem: Locator;
-  public readonly sidebar: FrameLocator;
+  public readonly sidebar: Locator;
 
   constructor(page: Page) {
     this.page = page;
 
     // Core UI elements
     this.activityBarItem = page.locator('.activitybar a[aria-label*="Org Browser"]');
-    this.sidebar = page.locator('iframe.webview.ready').last().contentFrame().locator('#active-frame').contentFrame();
-  }
-
-  public get showLocalToggle(): Locator {
-    return this.sidebar.locator('#org-browser-show-local');
-  }
-
-  public get showOrgToggle(): Locator {
-    return this.sidebar.locator('#org-browser-show-org');
-  }
-
-  public get filterInput(): Locator {
-    return this.sidebar.locator('#org-browser-filter');
-  }
-
-  public get clearFilterButton(): Locator {
-    return this.sidebar.locator('#org-browser-clear-filter');
-  }
-
-  public get refreshAllButton(): Locator {
-    return this.sidebar.locator('#org-browser-refresh-all');
-  }
-
-  public get collapseAllButton(): Locator {
-    return this.sidebar.locator('#org-browser-collapse-all');
-  }
-
-  public get tree(): Locator {
-    return this.sidebar.locator('#org-browser-tree');
-  }
-
-  /** Return the node-scoped refresh action exposed by the React tree. */
-  public static getRefreshButton(item: Locator): Locator {
-    return item.locator('[data-action="refresh"]');
-  }
-
-  /** Return the node-scoped retrieve action exposed by the React tree. */
-  public static getRetrieveButton(item: Locator): Locator {
-    return item.locator('[data-action="retrieve"]');
+    this.sidebar = page.locator(
+      '.sidebar, #workbench\\.parts\\.sidebar, [role="complementary"], .part.sidebar, .monaco-sidebar'
+    );
   }
 
   /** Wait for the project file system to be loaded in Explorer */
@@ -87,7 +51,7 @@ export class OrgBrowserPage {
     // Trigger navigation to Org Browser and wait for the types response
     await Promise.all([
       this.activityBarItem.click(),
-      expect(this.sidebar.locator('#main'), 'Org Browser webview should be visible').toBeVisible({ timeout: 10_000 }),
+      expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10_000 }),
       //  assert at least 5 top-level items are present
       expect(
         this.sidebar.getByRole('treeitem', { level: 1 }).nth(4),
@@ -131,18 +95,56 @@ export class OrgBrowserPage {
 
   public async expandFolder(folderName: string, level?: number): Promise<void> {
     const folderItem = level
-      ? this.sidebar.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
-      : this.sidebar.getByRole('treeitem', { name: exactTreeItemName(folderName) });
-    if ((await folderItem.getAttribute('aria-expanded')) !== 'true') await folderItem.click({ timeout: 5000 });
-    await expect(folderItem, 'Folder should show expanded state after metadata response').toHaveAttribute(
-      'aria-expanded',
-      'true',
-      { timeout: 60_000 }
+      ? this.page.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
+      : this.page.getByRole('treeitem', { name: exactTreeItemName(folderName) });
+    const twistie = folderItem.locator('.monaco-tl-twistie');
+    await Promise.all([
+      folderItem.click({ timeout: 5000, delay: 100 }),
+      // we need it to go from loading to expanded state
+      [
+        expect(twistie, 'Went to loading state')
+          .toContainClass('codicon-tree-item-loading', { timeout: 2000 })
+          .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
+      ]
+    ]);
+    // ensure it's done loading
+    await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
+    if (await twistie.evaluate(el => el.classList.contains('collapsed'))) {
+      await folderItem.click();
+    }
+    await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
+
+    await expect(twistie, 'Folder twistie should show expanded state after metadata response').toContainClass(
+      'codicon-tree-item-expanded',
+      { timeout: 6000 }
     );
-    await expect(folderItem, 'Folder should finish loading').not.toHaveAttribute('aria-busy', 'true', {
-      timeout: 60_000
-    });
-    await saveScreenshot(this.page, `expandFolder.${await folderItem.textContent()}.png`, true);
+
+    // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
+    await this.page.mouse.wheel(0, 50);
+    await this.page.waitForTimeout(50);
+
+    // locators get messed up because of the scroll
+    const folderItemAgain = level
+      ? this.page.getByRole('treeitem', { name: exactTreeItemName(folderName), level })
+      : this.page.getByRole('treeitem', { name: exactTreeItemName(folderName) });
+    const twistieAgain = folderItemAgain.locator('.monaco-tl-twistie');
+
+    // tapping to refocus;  But that also closes it.  So we need to tap twice to reopen and ensure it's open
+    await Promise.all([
+      folderItemAgain.click(),
+      expect(twistieAgain, 'should be collapsed after scrolling').toContainClass('collapsed')
+    ]);
+
+    await expect(twistieAgain, 'should not be loading after collapse loading').not.toContainClass(
+      'codicon-tree-item-loading'
+    );
+
+    await Promise.all([
+      folderItemAgain.click(),
+      expect(twistieAgain, 'should not be collapssed').not.toContainClass('collapsed')
+    ]);
+
+    await saveScreenshot(this.page, `expandFolder.${await folderItemAgain.textContent()}.png`, true);
   }
 
   /**
@@ -227,7 +229,7 @@ export class OrgBrowserPage {
     await item.hover();
 
     // Find the retrieve button within this specific row
-    const retrieveButton = OrgBrowserPage.getRetrieveButton(item).first();
+    const retrieveButton = item.locator('.action-label[aria-label="Retrieve Metadata"]').first();
 
     await expect(retrieveButton, 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
     await saveScreenshot(this.page, 'clickRetrieveButton.png', true);

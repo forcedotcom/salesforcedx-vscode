@@ -2,14 +2,6 @@
 
 ## Development
 
-### Architecture
-
-**State Management:** React state consolidated via `useOrgBrowserState` hook. Handles all UI state (expanded, loading, selection) and persistence of view state per org.
-
-**Message Flow:** Expansion restored via normal `expand` messages sent on next tick after initial render, allowing UI layout before async operations. Filter persistence atomic in single workspace state write.
-
-**Protocol:** Webview communication schema-validated with logging of decode failures for debugging.
-
 ### Testing
 
 This extension includes comprehensive Playwright tests for both web and desktop (Electron) environments with shared test logic.
