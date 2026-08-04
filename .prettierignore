@@ -17,7 +17,6 @@ packages/salesforcedx-lwc-language-server/typings/**
 packages/salesforcedx-visualforce-markup-language-server/src/beautify/
 packages/salesforcedx-vscode-core/resources/
 packages/salesforcedx-vscode-core/metadata_types_map_scraped.json
-packages/salesforcedx-utils-vscode/test/jest/telemetry/reporters/o11yReporter.test.ts
 packages/salesforcedx-vscode-lightning/src/resources/
 packages/salesforcedx-vscode-lwc/resources/
 packages/salesforcedx-vscode-metadata/src/sobjects/resources/
