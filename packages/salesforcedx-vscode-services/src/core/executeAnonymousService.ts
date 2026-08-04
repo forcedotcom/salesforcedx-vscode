@@ -35,18 +35,16 @@ const escapeXml = (data: string): string => data.replaceAll(/[<>&'"]/g, char => 
 const buildSoapBody = (accessToken: string, apexCode: string): string => {
   const escaped = escapeXml(apexCode);
   return `<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
-xmlns:cmd="http://soap.sforce.com/2006/08/apex"
-xmlns:apex="http://soap.sforce.com/2006/08/apex">
-    <env:Header>
-        <cmd:SessionHeader>
-            <cmd:sessionId>${accessToken}</cmd:sessionId>
-        </cmd:SessionHeader>
-        <apex:DebuggingHeader>
-            <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
-            <apex:categories><apex:category>Visualforce</apex:category><apex:level>Finer</apex:level></apex:categories>
-            <apex:categories><apex:category>Apex_profiling</apex:category><apex:level>Info</apex:level></apex:categories>
-        </apex:DebuggingHeader>
+xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+    <env:Header xmlns="http://soap.sforce.com/2006/08/apex">
+        <SessionHeader>
+            <sessionId>${accessToken}</sessionId>
+        </SessionHeader>
+        <DebuggingHeader>
+            <categories><category>Apex_code</category><level>Finest</level></categories>
+            <categories><category>Visualforce</category><level>Finer</level></categories>
+            <categories><category>Apex_profiling</category><level>Info</level></categories>
+        </DebuggingHeader>
     </env:Header>
     <env:Body>
         <executeAnonymous xmlns="http://soap.sforce.com/2006/08/apex">
