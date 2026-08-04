@@ -198,7 +198,7 @@ describe('ErrorHandlerService', () => {
     describe('Effect tagged errors', () => {
       class TestTaggedError extends Schema.TaggedError<TestTaggedError>()('TestTaggedError', {
         message: Schema.String,
-        actions: Schema.Array(Schema.String).pipe(Schema.optional)
+        actions: Schema.String.pipe(Schema.Array, Schema.optional)
       }) {}
 
       it('should prefix channel output with the error tag', async () => {
