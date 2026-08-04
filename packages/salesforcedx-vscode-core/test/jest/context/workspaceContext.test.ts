@@ -12,7 +12,7 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
-import { ConnectionService, NoTargetOrgConfiguredError } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { WorkspaceContextService } from '../../../src/context/workspaceContextService';
@@ -31,7 +31,7 @@ const connectDefaultOrg = () =>
     username: current.username ?? 'default@example.com',
     orgId: current.orgId ?? '00D'
   })).pipe(Effect.as(connection));
-let getConnection: () => Effect.Effect<typeof connection, NoTargetOrgConfiguredError> = connectDefaultOrg;
+let getConnection: () => Effect.Effect<typeof connection> = connectDefaultOrg;
 const servicesApi = {
   services: {
     ConnectionService: { getConnection: () => getConnection() },
@@ -104,43 +104,36 @@ describe('WorkspaceContext', () => {
     await context.initialize(coreContext as never);
     jest.clearAllMocks();
 
-    expect({ username: context.username, orgId: context.orgId }).toEqual({
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: 'initial@example.com',
+      alias: 'initial',
       orgId: '00Dinitial'
     });
     expect(listener).not.toHaveBeenCalled();
     expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
   });
 
-  it('waits for the default-org stream to provide the complete workspace identity', async () => {
+  it('does not require a connection to initialize from an empty target-org snapshot', async () => {
     const getConnectionMock = jest.fn(() => Effect.succeed(connection));
     getConnection = getConnectionMock;
     const context = WorkspaceContext.getInstance(true);
-    const initialization = context.initialize(coreContext as never);
-    const initialized = jest.fn();
-    void initialization.then(initialized);
 
-    await flushEffects();
-    expect(getConnectionMock).toHaveBeenCalledTimes(1);
-    expect(initialized).not.toHaveBeenCalled();
+    await context.initialize(coreContext as never);
 
-    await setTargetOrg({ username: 'initial@example.com' });
-    await flushEffects();
-    expect(initialized).not.toHaveBeenCalled();
-
-    await setTargetOrg({ username: 'initial@example.com', orgId: '00Dinitial' });
-    await initialization;
-
-    expect({ username: context.username, orgId: context.orgId }).toEqual({
-      username: 'initial@example.com',
-      orgId: '00Dinitial'
+    expect(getConnectionMock).not.toHaveBeenCalled();
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
+      username: undefined,
+      alias: undefined,
+      orgId: undefined
     });
   });
 
   it('fires once per distinct identity after updating getters and refreshes telemetry', async () => {
     const context = WorkspaceContext.getInstance(true);
     const observedGetters: object[] = [];
-    context.onOrgChange(() => observedGetters.push({ username: context.username, orgId: context.orgId }));
+    context.onOrgChange(() =>
+      observedGetters.push({ username: context.username, alias: context.alias, orgId: context.orgId })
+    );
     await context.initialize(coreContext as never);
     jest.clearAllMocks();
 
@@ -149,7 +142,7 @@ describe('WorkspaceContext', () => {
     await setTargetOrg({ ...switched });
     await flushEffects();
 
-    expect(observedGetters).toEqual([{ username: switched.username, orgId: switched.orgId }]);
+    expect(observedGetters).toEqual([{ username: switched.username, alias: switched.alias, orgId: switched.orgId }]);
     expect(refreshAllExtensionReporters).toHaveBeenCalledWith(coreContext);
   });
 
@@ -190,6 +183,22 @@ describe('WorkspaceContext', () => {
     expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
   });
 
+  it('fires when only the configured alias changes', async () => {
+    await setTargetOrg({ username: 'initial@example.com', alias: 'first', orgId: '00Dinitial' });
+    const context = WorkspaceContext.getInstance(true);
+    const listener = jest.fn();
+    context.onOrgChange(listener);
+    await context.initialize(coreContext as never);
+    jest.clearAllMocks();
+
+    await setTargetOrg({ username: 'initial@example.com', alias: 'second', orgId: '00Dinitial' });
+    await flushEffects();
+
+    expect(context.alias).toBe('second');
+    expect(listener).toHaveBeenCalledWith({ username: 'initial@example.com', alias: 'second' });
+    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
+  });
+
   it('normalizes no-org values to undefined', async () => {
     await setTargetOrg({ username: 'before@example.com', alias: 'before', orgId: '00Dbefore' });
     const context = WorkspaceContext.getInstance(true);
@@ -200,8 +209,9 @@ describe('WorkspaceContext', () => {
     await setTargetOrg({});
     await changed;
 
-    expect({ username: context.username, orgId: context.orgId }).toEqual({
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: undefined,
+      alias: undefined,
       orgId: undefined
     });
     expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
@@ -221,25 +231,14 @@ describe('WorkspaceContext', () => {
     expect(coreContext.subscriptions).toHaveLength(1);
   });
 
-  it('rejects connection access after the tracked target org is cleared', async () => {
-    const context = WorkspaceContext.getInstance(true);
-    await context.initialize(coreContext as never);
-    await setTargetOrg({});
-    await flushEffects();
-
-    await expect(context.getConnection()).rejects.toThrow(
-      'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
-    );
-  });
-
   it('initializes with empty identity when no target org is configured', async () => {
-    getConnection = () => Effect.fail(new NoTargetOrgConfiguredError({ message: 'No target org configured' }));
     const context = WorkspaceContext.getInstance(true);
 
     await context.initialize(coreContext as never);
 
-    expect({ username: context.username, orgId: context.orgId }).toEqual({
+    expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: undefined,
+      alias: undefined,
       orgId: undefined
     });
   });
@@ -264,12 +263,14 @@ describe('WorkspaceContext', () => {
     expect(firstListener).toHaveBeenCalledTimes(1);
     expect(replacementListener).toHaveBeenCalledTimes(1);
     expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
-    expect({ username: first.username, orgId: first.orgId }).toEqual({
+    expect({ username: first.username, alias: first.alias, orgId: first.orgId }).toEqual({
       username: switched.username,
+      alias: switched.alias,
       orgId: switched.orgId
     });
-    expect({ username: replacement.username, orgId: replacement.orgId }).toEqual({
+    expect({ username: replacement.username, alias: replacement.alias, orgId: replacement.orgId }).toEqual({
       username: switched.username,
+      alias: switched.alias,
       orgId: switched.orgId
     });
   });

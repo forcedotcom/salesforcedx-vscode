@@ -11,7 +11,6 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
 import { WorkspaceContextService } from './workspaceContextService';
 
@@ -25,7 +24,7 @@ export class WorkspaceContext {
   private disposed = false;
   private service?: WorkspaceContextService;
   private serviceSubscription?: vscode.Disposable;
-  private readonly orgChangeEmitter = new vscode.EventEmitter<{ username?: string }>();
+  private readonly orgChangeEmitter = new vscode.EventEmitter<{ username?: string; alias?: string }>();
 
   public readonly onOrgChange = this.orgChangeEmitter.event;
 
@@ -81,7 +80,6 @@ export class WorkspaceContext {
   // @deprecated. Use getConnection from the Services extension.
   // maintained for backward compatibility for 2PP using vscode-core API
   public async getConnection(): Promise<Connection> {
-    if (!this.username) throw new Error(nls.localize('error_no_target_org'));
     return getRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -100,6 +98,10 @@ export class WorkspaceContext {
 
   public get username(): string | undefined {
     return this.service?.getUsername();
+  }
+
+  public get alias(): string | undefined {
+    return this.service?.getAlias();
   }
 
   public get orgId(): string | undefined {

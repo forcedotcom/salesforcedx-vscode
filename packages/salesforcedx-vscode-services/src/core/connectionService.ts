@@ -327,6 +327,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       if (isUndefined(username)) {
         yield* maybeUpdateDefaultOrgRef(conn).pipe(
           Effect.provideService(AliasService, aliasService),
+          Effect.provideService(ConfigService, configService),
           Effect.tapError(e => Effect.logWarning(String(e))),
           Effect.catchAll(() => Effect.void)
         );
@@ -390,6 +391,7 @@ const getTracksSourceFromOrg = (conn: Connection) =>
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
 const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (conn: Connection) {
   const aliasService = yield* AliasService;
+  const configService = yield* ConfigService;
   const { orgId, devHubUsername, isScratch, isSandbox, tracksSource, orgEdition } = conn.getAuthInfoFields();
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
@@ -416,6 +418,8 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const authUsername = resolveUsername(conn);
   const username = queriedUsername ?? authUsername ?? undefined;
   const userId = queriedUserId;
+  const targetOrg = yield* configService.getTargetOrg();
+  const alias = targetOrg && targetOrg !== username ? targetOrg : undefined;
 
   const aliases =
     username && (orgIdChanged || existingOrgInfo.username !== username)
@@ -429,6 +433,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     isSandbox,
     tracksSource,
     username,
+    alias,
     userId,
     devHubOrgId,
     aliases
@@ -454,6 +459,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       webUserId,
       aliases,
       username,
+      alias,
       ...(isString(cliId) ? { cliId } : {}),
       ...(isString(orgEdition) ? { orgEdition } : {})
     } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))

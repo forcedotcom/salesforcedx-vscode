@@ -23,6 +23,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
+
   aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
   soql_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',

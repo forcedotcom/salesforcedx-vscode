@@ -234,6 +234,7 @@ const TARGET_ORG_KEY: string = OrgConfigProperties.TARGET_ORG;
 
 // The desktop getConnection path reads target-org off the config aggregator; spy on it.
 const getPropertyValueMock = jest.fn();
+const getTargetOrgMock = jest.fn();
 const getUsernameFromAliasMock = jest.fn();
 
 // A connection whose getAuthInfoFields returns enough for maybeUpdateDefaultOrgRef to run without a network call.
@@ -253,7 +254,7 @@ const MockConfigServiceLayer = Layer.succeed(
     getConfigAggregator: () =>
       Effect.succeed({ getPropertyValue: getPropertyValueMock } as unknown as ConfigAggregator),
     invalidateConfigAggregator: () => Effect.void,
-    getTargetOrg: () => Effect.succeed(undefined),
+    getTargetOrg: () => Effect.succeed(getTargetOrgMock()),
     getTargetDevHub: () => Effect.succeed(undefined),
     isCurrentTargetOrg: () => Effect.succeed(false),
     isCurrentTargetDevHub: () => Effect.succeed(false),
@@ -286,6 +287,7 @@ const run = <A, E>(prog: Effect.Effect<A, E, ConnectionService>): Promise<A> =>
 describe('ConnectionService.getConnection (desktop)', () => {
   beforeEach(async () => {
     getPropertyValueMock.mockReset();
+    getTargetOrgMock.mockReset().mockReturnValue(undefined);
     getUsernameFromAliasMock.mockReset().mockReturnValue(Effect.succeed(Option.none()));
     authInfoCreateMock.mockReset().mockResolvedValue({ getFields: () => ({}) } as unknown as AuthInfo);
     connectionCreateMock.mockReset();
@@ -355,6 +357,18 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
     expect(getPropertyValueMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
     expect(authInfoCreateMock).toHaveBeenCalledWith({ username: 'default@example.com' });
+  });
+
+  it('caches the configured alias with the resolved default-org identity', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? ALIAS : undefined));
+    getTargetOrgMock.mockReturnValue(ALIAS);
+    getUsernameFromAliasMock.mockReturnValue(Effect.succeed(Option.some(USERNAME)));
+    connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME));
+
+    await run(ConnectionService.getConnection());
+
+    const orgInfo = await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
+    expect(orgInfo).toMatchObject({ username: USERNAME, alias: ALIAS, orgId: '00Dxx' });
   });
 
   it('no-arg path with no configured target-org fails with NoTargetOrgConfiguredError', async () => {

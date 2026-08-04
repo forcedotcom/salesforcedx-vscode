@@ -10,18 +10,17 @@ import { type OrgUserInfo, refreshAllExtensionReporters } from '@salesforce/sale
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as MutableRef from 'effect/MutableRef';
-import { isNotUndefined } from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 
-type WorkspaceOrgIdentity = Pick<typeof DefaultOrgInfoSchema.Type, 'username' | 'orgId' | 'isScratch' | 'isSandbox'>;
+type WorkspaceOrgIdentity = Pick<
+  typeof DefaultOrgInfoSchema.Type,
+  'username' | 'alias' | 'orgId' | 'isScratch' | 'isSandbox'
+>;
 
 const sameIdentity = (previous: WorkspaceOrgIdentity, current: WorkspaceOrgIdentity): boolean =>
-  previous.username === current.username && previous.orgId === current.orgId;
-
-const hasWorkspaceIdentity = (identity: WorkspaceOrgIdentity): boolean =>
-  isNotUndefined(identity.username) && isNotUndefined(identity.orgId);
+  previous.username === current.username && previous.alias === current.alias && previous.orgId === current.orgId;
 
 const transitionAttributes = (identity: WorkspaceOrgIdentity) => ({
   hasTargetOrg: Boolean(identity.username ?? identity.orgId),
@@ -47,26 +46,18 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
       );
     });
 
-    const requiresWorkspaceIdentity = yield* api.services.ConnectionService.getConnection().pipe(
-      Effect.as(true),
-      Effect.catchTag('NoTargetOrgConfiguredError', () => Effect.succeed(false))
-    );
-
     const watch = Effect.fnUntraced(function* () {
       yield* targetOrgRef.changes.pipe(
-        Stream.map(({ username, orgId, isScratch, isSandbox }) => ({
+        Stream.map(({ username, alias, orgId, isScratch, isSandbox }) => ({
           username,
+          alias,
           orgId,
           isScratch,
           isSandbox
         })),
         Stream.tap(identity =>
           Effect.sync(() => MutableRef.set(identityRef, identity)).pipe(
-            Effect.zipRight(
-              !requiresWorkspaceIdentity || hasWorkspaceIdentity(identity)
-                ? Deferred.succeed(initialIdentityReady, undefined)
-                : Effect.void
-            ),
+            Effect.zipRight(Deferred.succeed(initialIdentityReady, undefined)),
             Effect.withSpan('WorkspaceContext.updateTargetOrgState', {
               attributes: transitionAttributes(identity)
             })
@@ -75,7 +66,7 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
         Stream.changesWith(sameIdentity),
         Stream.drop(1),
         Stream.runForEach(identity =>
-          PubSub.publish(orgChanges, { username: identity.username }).pipe(
+          PubSub.publish(orgChanges, { username: identity.username, alias: identity.alias }).pipe(
             Effect.zipRight(refreshReporters()),
             Effect.withSpan('WorkspaceContext.onTargetOrgChange', {
               attributes: transitionAttributes(identity)
@@ -95,6 +86,7 @@ export class WorkspaceContextService extends Effect.Service<WorkspaceContextServ
 
     return {
       getUsername: () => getIdentityValue('username'),
+      getAlias: () => getIdentityValue('alias'),
       getOrgId: () => getIdentityValue('orgId'),
       orgChanges,
       initialized: Deferred.await(initialIdentityReady)
