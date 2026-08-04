@@ -29,6 +29,7 @@ const activate = async extensionContext => {
 
   const stateUri = vscode.Uri.joinPath(workspace.uri, STATE_FILE);
   let stateWrite = Promise.resolve();
+  let capturing = false;
   const writeState = state => {
     const bytes = Buffer.from(JSON.stringify(state));
     stateWrite = stateWrite.then(() => vscode.workspace.fs.writeFile(stateUri, bytes));
@@ -44,6 +45,7 @@ const activate = async extensionContext => {
 
   extensionContext.subscriptions.push(
     workspaceContext.onOrgChange(event => {
+      if (!capturing) return;
       const nextState = {
         eventCount: state.eventCount + 1,
         event,
@@ -57,6 +59,7 @@ const activate = async extensionContext => {
       writeState(nextState);
     }),
     vscode.commands.registerCommand(SET_USERNAME_COMMAND, async () => {
+      capturing = true;
       const username = workspaceContext.username;
       if (!username) throw new Error('WorkspaceContext has no username');
       const dependencies = servicesApi.services.prebuiltServicesDependencies;
@@ -72,6 +75,7 @@ const activate = async extensionContext => {
       );
     }),
     vscode.commands.registerCommand(SELECT_ORG_COMMAND, async () => {
+      capturing = true;
       const orgChange = new Promise(resolve => {
         const subscription = workspaceContext.onOrgChange(event => {
           if (event.alias) {

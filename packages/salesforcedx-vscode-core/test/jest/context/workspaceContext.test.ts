@@ -191,18 +191,18 @@ describe('WorkspaceContext', () => {
   });
 
   it('fires when orgId changes and suppresses an exact duplicate snapshot', async () => {
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
     const context = WorkspaceContext.getInstance(true);
     const listener = jest.fn();
     context.onOrgChange(listener);
     await context.initialize(coreContext as never);
     jest.clearAllMocks();
 
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
-    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dinitial' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dchanged' });
+    await setTargetOrg({ username: 'initial@example.com', alias: 'initial', orgId: '00Dchanged' });
     await flushEffects();
 
-    expect(context.orgId).toBe('00Dinitial');
+    expect(context.orgId).toBe('00Dchanged');
     expect(listener).toHaveBeenCalledTimes(1);
     expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
   });
@@ -242,7 +242,7 @@ describe('WorkspaceContext', () => {
   });
 
   it('initializes once and keeps connection delegation unchanged', async () => {
-    await setTargetOrg({ username: 'user@example.com' });
+    await setTargetOrg({ username: 'user@example.com', orgId: '00Duser' });
     const context = WorkspaceContext.getInstance(true);
 
     await Promise.all([
