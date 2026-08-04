@@ -281,6 +281,17 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       )
     );
 
+    const getBuiltInTemplateNames = Effect.fn('TemplateService.getBuiltInTemplateNames')(function* (
+      templateDir: string,
+      filetype: RegExp
+    ) {
+      const { templatesRootPath } = yield* getTemplatesRootCached;
+      yield* ensureTemplatesInFsOnce;
+      return yield* Effect.try(() =>
+        SfTemplates.CreateUtil.getCommandTemplatesForFiletype(filetype, templateDir, nodeFs, templatesRootPath)
+      );
+    });
+
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
       const { templatesRootPath } = yield* getTemplatesRootCached;
       yield* ensureTemplatesInFsOnce;
@@ -301,6 +312,6 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
         templateService.create(params.templateType, templateOptions, customTemplatesPath)
       );
     });
-    return { create };
+    return { create, getBuiltInTemplateNames };
   })
 }) {}

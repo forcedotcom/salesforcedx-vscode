@@ -13,11 +13,15 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForApexTypeName } from './sfTemplateProjectHelpers';
 
-const DEFAULT_APEX_CLASS_TEMPLATES = [
-  { label: 'DefaultApexClass', description: nls.localize('apex_class_default_template_description') },
-  { label: 'ApexException', description: nls.localize('apex_class_exception_template_description') },
-  { label: 'InboundEmailService', description: nls.localize('apex_class_inbound_email_template_description') }
-];
+const APEX_CLASS_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
+  DefaultApexClass: nls.localize('apex_class_default_template_description'),
+  ApexException: nls.localize('apex_class_exception_template_description'),
+  InboundEmailService: nls.localize('apex_class_inbound_email_template_description'),
+  ApexUnitTest: nls.localize('apex_class_unit_test_template_description'),
+  BasicUnitTest: nls.localize('apex_class_basic_unit_test_template_description'),
+  Batchable: nls.localize('apex_class_batchable_template_description'),
+  Queueable: nls.localize('apex_class_queueable_template_description')
+};
 
 const UriSchema = Schema.Unknown.pipe(Schema.filter((u): u is URI => URI.isUri(u), { message: () => 'Expected URI' }));
 
@@ -31,6 +35,13 @@ type CreateApexClassParams = Schema.Schema.Type<typeof CreateApexClassParams>;
 const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+
+  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('apexclass', /.cls$/);
+  const sortedNames = ['DefaultApexClass', ...builtInNames.filter((n: string) => n !== 'DefaultApexClass')];
+  const builtInItems = sortedNames.map((label: string) => ({
+    label,
+    description: APEX_CLASS_TEMPLATE_DESCRIPTIONS[label] ?? ''
+  }));
 
   const configService = yield* api.services.ConfigService;
   const agg = yield* configService.getConfigAggregator();
@@ -55,11 +66,11 @@ const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
     customItems.length > 0
       ? [
           builtInSeparator,
-          ...DEFAULT_APEX_CLASS_TEMPLATES,
+          ...builtInItems,
           { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('apex_class_custom_templates_label') },
           ...customItems
         ]
-      : [...DEFAULT_APEX_CLASS_TEMPLATES];
+      : [...builtInItems];
 
   return yield* Effect.promise(() =>
     vscode.window.showQuickPick<vscode.QuickPickItem>(items, {
