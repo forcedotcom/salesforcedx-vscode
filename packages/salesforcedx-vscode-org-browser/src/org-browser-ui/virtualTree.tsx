@@ -153,6 +153,7 @@ export const VirtualTree = (properties: VirtualTreeProperties): ReactElement => 
     <div
       aria-label={properties.labels.tree}
       className="tree"
+      id="org-browser-tree"
       onScroll={event => properties.onScroll(event.currentTarget.scrollTop)}
       ref={viewportRef}
       role="tree"
@@ -206,6 +207,7 @@ export const VirtualTree = (properties: VirtualTreeProperties): ReactElement => 
                 {node.actions.includes('refresh') && (
                   <button
                     aria-label={`${properties.labels.refresh} ${node.label}`}
+                    data-action="refresh"
                     onClick={event => {
                       event.stopPropagation();
                       properties.onRefresh(node.id);
@@ -219,6 +221,7 @@ export const VirtualTree = (properties: VirtualTreeProperties): ReactElement => 
                 {node.actions.includes('retrieve') && (
                   <button
                     aria-label={`${properties.labels.retrieve} ${node.label}`}
+                    data-action="retrieve"
                     onClick={event => {
                       event.stopPropagation();
                       properties.onRetrieve(node.id);

@@ -273,6 +273,7 @@ export const App = (): ReactElement => {
         <label>
           <input
             checked={filter.showLocal}
+            id="org-browser-show-local"
             onChange={event => togglePresence('local', event.currentTarget.checked)}
             type="checkbox"
           />{' '}
@@ -281,6 +282,7 @@ export const App = (): ReactElement => {
         <label>
           <input
             checked={filter.showOrg}
+            id="org-browser-show-org"
             onChange={event => togglePresence('org', event.currentTarget.checked)}
             type="checkbox"
           />{' '}
@@ -290,6 +292,7 @@ export const App = (): ReactElement => {
           <input
             aria-label={labels.filter}
             data-filter-input
+            id="org-browser-filter"
             onChange={changeFilterText}
             placeholder={labels.filterPlaceholder}
             title={labels.filterPlaceholder}
@@ -299,6 +302,7 @@ export const App = (): ReactElement => {
           <button
             aria-label={labels.clearFilter}
             disabled={!filterText}
+            id="org-browser-clear-filter"
             onClick={() => {
               setFilterText('');
               sendFilter(filter.showLocal, filter.showOrg, '');
@@ -312,6 +316,7 @@ export const App = (): ReactElement => {
         <button
           aria-label={labels.refreshAll}
           disabled={globalLoading}
+          id="org-browser-refresh-all"
           onClick={() =>
             vscode.postMessage({ type: 'refresh', generation: generationReference.current, requestId: nextRequestId() })
           }
@@ -322,6 +327,7 @@ export const App = (): ReactElement => {
         </button>
         <button
           aria-label={labels.collapseAll}
+          id="org-browser-collapse-all"
           onClick={() => {
             expandedReference.current = new Set();
             setExpanded(new Set());

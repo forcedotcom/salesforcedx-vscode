@@ -87,10 +87,17 @@ describe('Org Browser React app', () => {
     });
     expect(screen.getByRole<HTMLInputElement>('checkbox', { name: 'Local' }).checked).toBe(true);
     expect(screen.getByRole<HTMLInputElement>('checkbox', { name: 'Org' }).checked).toBe(true);
+    expect(document.querySelector('#org-browser-show-local')).not.toBeNull();
+    expect(document.querySelector('#org-browser-show-org')).not.toBeNull();
     const search = screen.getByRole<HTMLInputElement>('searchbox', { name: 'Filter metadata' });
+    expect(search.id).toBe('org-browser-filter');
+    expect(screen.getByRole('button', { name: 'Clear filter' }).id).toBe('org-browser-clear-filter');
     expect(search.placeholder).toContain('/Apex.*/:/.*(Test|Spec)/ (regex)');
     expect(search.title).toBe(search.placeholder);
     const collapseButton = screen.getByRole('button', { name: 'Collapse All' });
+    expect(collapseButton.id).toBe('org-browser-collapse-all');
+    expect(screen.getByRole('button', { name: 'Refresh All' }).id).toBe('org-browser-refresh-all');
+    expect(screen.getByRole('tree').id).toBe('org-browser-tree');
     expect(collapseButton.querySelector('svg.toolbar-action-icon')).not.toBeNull();
     expect(collapseButton.textContent).not.toContain('⇤');
   });
@@ -202,6 +209,8 @@ describe('Org Browser React app', () => {
     expect(row.getAttribute('aria-posinset')).toBe('1');
     expect(row.getAttribute('aria-setsize')).toBe('1');
     const retrieveButton = screen.getByRole('button', { name: 'Retrieve ApexClass' });
+    expect(retrieveButton.getAttribute('data-action')).toBe('retrieve');
+    expect(screen.getByRole('button', { name: 'Refresh ApexClass' }).getAttribute('data-action')).toBe('refresh');
     expect(retrieveButton.querySelector('svg.row-action-icon')).not.toBeNull();
     expect(retrieveButton.textContent).not.toContain('⇩');
     fireEvent.click(retrieveButton);

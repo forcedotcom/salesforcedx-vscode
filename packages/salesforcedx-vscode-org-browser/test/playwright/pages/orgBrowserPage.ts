@@ -35,15 +35,41 @@ export class OrgBrowserPage {
   }
 
   public get showLocalToggle(): Locator {
-    return this.sidebar.getByRole('checkbox', { name: 'Local' });
+    return this.sidebar.locator('#org-browser-show-local');
   }
 
   public get showOrgToggle(): Locator {
-    return this.sidebar.getByRole('checkbox', { name: 'Org' });
+    return this.sidebar.locator('#org-browser-show-org');
   }
 
   public get filterInput(): Locator {
-    return this.sidebar.getByRole('searchbox', { name: 'Filter metadata' });
+    return this.sidebar.locator('#org-browser-filter');
+  }
+
+  public get clearFilterButton(): Locator {
+    return this.sidebar.locator('#org-browser-clear-filter');
+  }
+
+  public get refreshAllButton(): Locator {
+    return this.sidebar.locator('#org-browser-refresh-all');
+  }
+
+  public get collapseAllButton(): Locator {
+    return this.sidebar.locator('#org-browser-collapse-all');
+  }
+
+  public get tree(): Locator {
+    return this.sidebar.locator('#org-browser-tree');
+  }
+
+  /** Return the node-scoped refresh action exposed by the React tree. */
+  public static getRefreshButton(item: Locator): Locator {
+    return item.locator('[data-action="refresh"]');
+  }
+
+  /** Return the node-scoped retrieve action exposed by the React tree. */
+  public static getRetrieveButton(item: Locator): Locator {
+    return item.locator('[data-action="retrieve"]');
   }
 
   /** Wait for the project file system to be loaded in Explorer */
@@ -201,7 +227,7 @@ export class OrgBrowserPage {
     await item.hover();
 
     // Find the retrieve button within this specific row
-    const retrieveButton = item.getByRole('button', { name: /^Retrieve / }).first();
+    const retrieveButton = OrgBrowserPage.getRetrieveButton(item).first();
 
     await expect(retrieveButton, 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
     await saveScreenshot(this.page, 'clickRetrieveButton.png', true);

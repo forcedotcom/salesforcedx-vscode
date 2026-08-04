@@ -40,7 +40,7 @@ test('Org Browser - exact type filter and clear', async ({ page }) => {
   await browser.waitForRootTypeCount(1);
   await expect(browser.sidebar.getByRole('treeitem', { level: 1 })).toHaveAccessibleName('ApexClass');
 
-  await browser.sidebar.getByRole('button', { name: 'Clear filter' }).click();
+  await browser.clearFilterButton.click();
   await browser.waitForRootTypeCount(before);
 });
 
