@@ -152,6 +152,7 @@ packages/salesforcedx-vscode-services/resources/
 .edit-marker
 npm-packages-offline-cache/
 .prettier-cache
+graphify-out/
 
 # Claude Code worktrees
 .claude/worktrees/
