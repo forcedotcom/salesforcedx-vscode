@@ -11,7 +11,7 @@ import { URI } from 'vscode-uri';
 import { getProjectRoot } from '../../../src/virtualFsProvider/projectRoot';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
-const run = (folderUri?: string): Promise<{ fsPath: string; uri: URI }> => {
+const run = (folderUri?: string): Promise<{ fsPath: string; uri: string }> => {
   const uri = folderUri === undefined ? URI.parse('') : URI.parse(folderUri);
   const info = {
     uri,
@@ -33,42 +33,22 @@ const describeSkipWindows = process.platform === 'win32' ? describe.skip : descr
 
 describeSkipWindows('getProjectRoot', () => {
   it('falls back to /dx-project when no workspace folder is open', async () => {
-    const root = await run();
-    expect({ fsPath: root.fsPath, uri: root.uri.toString() }).toEqual({
-      fsPath: '/dx-project',
-      uri: 'memfs:/dx-project'
-    });
+    expect(await run()).toEqual({ fsPath: '/dx-project', uri: 'memfs:/dx-project' });
   });
 
   it('derives from the host-opened memfs folder (the CBW per-org path)', async () => {
-    const root = await run('memfs:/org-alpha');
-    expect({ fsPath: root.fsPath, uri: root.uri.toString() }).toEqual({
-      fsPath: '/org-alpha',
-      uri: 'memfs:/org-alpha'
-    });
+    expect(await run('memfs:/org-alpha')).toEqual({ fsPath: '/org-alpha', uri: 'memfs:/org-alpha' });
   });
 
   it('strips a trailing slash so consumers never build a double slash', async () => {
-    const root = await run('memfs:/org-alpha/');
-    expect({ fsPath: root.fsPath, uri: root.uri.toString() }).toEqual({
-      fsPath: '/org-alpha',
-      uri: 'memfs:/org-alpha'
-    });
+    expect(await run('memfs:/org-alpha/')).toEqual({ fsPath: '/org-alpha', uri: 'memfs:/org-alpha' });
   });
 
   it('falls back for a non-memfs folder (e.g. file: scheme)', async () => {
-    const root = await run('file:///Users/me/project');
-    expect({ fsPath: root.fsPath, uri: root.uri.toString() }).toEqual({
-      fsPath: '/dx-project',
-      uri: 'memfs:/dx-project'
-    });
+    expect(await run('file:///Users/me/project')).toEqual({ fsPath: '/dx-project', uri: 'memfs:/dx-project' });
   });
 
   it('falls back when the memfs folder path is empty/root', async () => {
-    const root = await run('memfs:/');
-    expect({ fsPath: root.fsPath, uri: root.uri.toString() }).toEqual({
-      fsPath: '/dx-project',
-      uri: 'memfs:/dx-project'
-    });
+    expect(await run('memfs:/')).toEqual({ fsPath: '/dx-project', uri: 'memfs:/dx-project' });
   });
 });

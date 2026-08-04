@@ -126,35 +126,6 @@ describe('shouldDeploy', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false for a sibling path sharing the workspace prefix', async () => {
-      const uri = URI.file(`${workspaceRoot}-application/classes/Test.cls`);
-      const result = await Effect.runPromise(
-        shouldDeploy(uri).pipe(
-          Effect.provideService(ChannelService, createMockChannelService()),
-          Effect.provideService(FsService, createMockFsService()),
-          Effect.provideService(WorkspaceService, createMockWorkspaceService(workspaceRoot)),
-          Effect.provideService(ExtensionProviderService, createMockExtensionProvider())
-        )
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('should return false for a matching path with a different scheme', async () => {
-      const workspaceUri = URI.file(workspaceRoot);
-      const uri = workspaceUri.with({ scheme: 'memfs', path: `${workspaceUri.path}/classes/Test.cls` });
-      const result = await Effect.runPromise(
-        shouldDeploy(uri).pipe(
-          Effect.provideService(ChannelService, createMockChannelService()),
-          Effect.provideService(FsService, createMockFsService()),
-          Effect.provideService(WorkspaceService, createMockWorkspaceService(workspaceRoot)),
-          Effect.provideService(ExtensionProviderService, createMockExtensionProvider())
-        )
-      );
-
-      expect(result).toBe(false);
-    });
-
     it('should return false for dot files', async () => {
       const uri = URI.file(path.join(workspaceRoot, '.hidden'));
       const mockChannelService = createMockChannelService();

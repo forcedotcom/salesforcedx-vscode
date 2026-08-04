@@ -12,7 +12,7 @@ import * as Stream from 'effect/Stream';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { ChannelService } from '../vscode/channelService';
 import { IndexedDBStorageService } from './indexedDbStorage';
 import { getProjectRoot } from './projectRoot';
@@ -29,7 +29,7 @@ const updateIDB = (storage: IndexedDBStorageService) =>
 
     const { fsPath, uri: rootUri } = yield* getProjectRoot();
     const fullPath = `${fsPath}/${event.filename}`;
-    const uri = Utils.joinPath(rootUri, event.filename);
+    const uri = URI.parse(`${rootUri}/${event.filename}`);
 
     if (event.eventType === 'rename') {
       if (fs.existsSync(fullPath)) {

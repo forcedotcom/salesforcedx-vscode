@@ -63,6 +63,12 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
     getUsernameFor: jest.fn()
   }
 }));
+jest.mock('../../../src/telemetry', () => ({
+  telemetryService: {
+    sendException: jest.fn()
+  }
+}));
+
 // Seed ExtensionProviderService with the mocked ConnectionService.listAllAuthorizations (an Effect),
 // a ConfigService whose default-org lookups resolve to undefined, and a ChannelService whose
 // appendToChannel/showChannel are jest mocks so we can assert channel output.

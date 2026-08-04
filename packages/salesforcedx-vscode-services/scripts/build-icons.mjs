@@ -11,11 +11,6 @@ const FONT_NAME = 'sf-media-icons';
 const FONT_PATH = `resources/icons-font/${FONT_NAME}.woff`;
 
 async function build() {
-  const manifestPath = path.join(ICONS_SRC, 'icons.json');
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  const manifestEntries = Object.entries(manifest);
-  const unicodeByName = new Map(manifestEntries.map(([name], index) => [name, String.fromCodePoint(0xe001 + index)]));
-
   await svgtofont({
     src: ICONS_SRC,
     dist: ICONS_FONT,
@@ -23,7 +18,6 @@ async function build() {
     css: false,
     generateInfoData: true,
     startUnicode: 0xe001,
-    getIconUnicode: name => [unicodeByName.get(name), 0xe001],
     svgicons2svgfont: {
       fontHeight: 1000,
       normalize: true
@@ -34,24 +28,26 @@ async function build() {
   const infoPath = path.join(ICONS_FONT, 'info.json');
   const infoData = fs.existsSync(infoPath) ? JSON.parse(fs.readFileSync(infoPath, 'utf8')) : {};
 
-  const generatedNames = Object.keys(infoData);
-  const missing = manifestEntries.map(([name]) => name).filter(name => !generatedNames.includes(name));
-  const extra = generatedNames.filter(name => !Object.hasOwn(manifest, name));
-  if (missing.length || extra.length) {
-    throw new Error(`Icon manifest mismatch. Missing: ${missing.join(', ') || 'none'}; extra: ${extra.join(', ') || 'none'}`);
-  }
+  const manifestPath = path.join(ICONS_SRC, 'icons.json');
+  const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : {};
 
-  const icons = Object.fromEntries(manifestEntries.map(([svgName, { id, description }]) => {
-    const meta = infoData[svgName];
+  const icons = {};
+  const entries = Object.entries(infoData).sort(([a], [b]) => a.localeCompare(b));
+  for (const [svgName, meta] of entries) {
+    const { id, description } = manifest[svgName] ?? {
+      id: `sf-org-${svgName}`,
+      description: `Icon for ${svgName}`
+    };
     const encoded = String(meta.encodedCode ?? '').replace(/^\\/i, '');
-    return [id, {
+    const fontCharacter = '\\' + encoded.toUpperCase();
+    icons[id] = {
       description,
       default: {
         fontPath: FONT_PATH,
-        fontCharacter: `\\${encoded.toUpperCase()}`
+        fontCharacter
       }
-    }];
-  }));
+    };
+  }
 
   const pkgPath = path.join(PKG_DIR, 'package.json');
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));

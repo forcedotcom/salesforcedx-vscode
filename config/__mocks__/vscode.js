@@ -8,14 +8,7 @@ class EventEmitter {
   constructor() {
     this.listeners = [];
   }
-  event = listener => {
-    this.listeners.push(listener);
-    return {
-      dispose: () => {
-        this.listeners = this.listeners.filter(candidate => candidate !== listener);
-      }
-    };
-  };
+  event = listener => this.listeners.push(listener);
   dispose = jest.fn();
   fire = e => this.listeners.forEach(listener => listener(e));
 }

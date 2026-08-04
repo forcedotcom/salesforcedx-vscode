@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  buildAllServicesLayer,
-  closeExtensionScope,
-  ExtensionProviderService,
-  getExtensionScope
-} from '@salesforce/effect-ext-utils';
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { AURA_SERVER_READY_NOTIFICATION, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ApplyWorkspaceEditRequest,
@@ -38,8 +33,7 @@ import { createAuraEventCommand } from './commands/createAuraEvent';
 import { createAuraInterfaceCommand } from './commands/createAuraInterface';
 import { renameAuraCommand } from './commands/renameAura';
 import { nls } from './messages';
-import { setAllServicesLayer } from './services/extensionProvider';
-import { getRuntime } from './services/runtime';
+import { buildAllServicesLayer, getRuntime, setAllServicesLayer } from './services/extensionProvider';
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
@@ -74,7 +68,7 @@ const activateCommands = Effect.fn('aura:activateCommands')(function* () {
 });
 
 export const activate = async (extensionContext: ExtensionContext) => {
-  setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
+  setAllServicesLayer(buildAllServicesLayer(extensionContext));
   await getRuntime().runPromise(activateEffect(extensionContext));
 };
 

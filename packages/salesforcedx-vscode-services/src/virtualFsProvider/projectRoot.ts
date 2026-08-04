@@ -6,7 +6,6 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { URI } from 'vscode-uri';
 import { sampleProjectName } from '../constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { fsPrefix } from './constants';
@@ -22,7 +21,9 @@ import { fsPrefix } from './constants';
  */
 export const getProjectRoot = Effect.fn('getProjectRoot')(function* () {
   const { isEmpty, uri, fsPath } = yield* WorkspaceService.getWorkspaceInfo();
+  // consumers build `${fsPath}/${filename}`; strip trailing slash so `memfs:/dx-project/`
+  // can't yield a double slash.
   const hostPath = isEmpty || uri.scheme !== fsPrefix ? undefined : fsPath.replace(/\/+$/, '') || undefined;
   const path = hostPath ?? `/${sampleProjectName}`;
-  return { fsPath: path, uri: URI.from({ scheme: fsPrefix, path }) };
+  return { fsPath: path, uri: `${fsPrefix}:${path}` };
 });

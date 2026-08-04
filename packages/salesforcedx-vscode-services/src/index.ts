@@ -177,7 +177,7 @@ export type {
 export { HashableUri } from './vscode/hashableUri';
 export type { FailedToResolveSfProjectError, NotInPackageDirectoryError } from './core/projectService';
 export type { NoWorkspaceOpenError } from './vscode/workspaceService';
-export type { ConfigWriteError, FailedToCreateConfigAggregatorError } from './core/configService';
+export type { FailedToCreateConfigAggregatorError } from './core/configService';
 export type {
   FailedToCreateAuthInfoError,
   FailedToSaveAuthInfoError,
