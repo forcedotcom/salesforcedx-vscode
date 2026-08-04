@@ -10,6 +10,9 @@ import { format } from 'node:util';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
+import { getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
+
+const COMMAND = 'Debug Anonymous Apex' as const;
 
 export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
 
@@ -55,11 +58,11 @@ export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.Command.anonAp
       yield* launchReplayDebugger(logFilePath, logBody);
     }
     return result;
-  }).pipe(promptService.withProgress(nls.localize('apex_execute_text')));
+  }).pipe(promptService.withProgress(nls.localize('apex_execute_text'), getProgressLocation(COMMAND)));
 
   yield* Effect.sync(() => {
     if (executionResult.compiled && executionResult.success) {
-      void vscode.window.showInformationMessage(nls.localize('apex_execute_debug_success'));
+      void showSuccessNotification(COMMAND, nls.localize('apex_execute_debug_success'));
     }
   });
 });
