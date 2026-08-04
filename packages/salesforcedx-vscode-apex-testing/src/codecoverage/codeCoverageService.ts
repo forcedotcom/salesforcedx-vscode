@@ -9,6 +9,7 @@ import { CodeCoverageResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Record from 'effect/Record';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import { FileType, Range, TextDocument, window } from 'vscode';
@@ -224,15 +225,11 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
       }
 
       if (isCodeCoverageItem(codeCovItem)) {
-        const lines = Object.entries(codeCovItem.lines);
+        const [uncovered, covered] = Record.partition(codeCovItem.lines, value => value === 1);
         return {
-          coveredLines: yield* Effect.forEach(
-            lines.filter(([, value]) => value === 1),
-            ([key]) => getLineRange(document, Number(key))
-          ),
-          uncoveredLines: yield* Effect.forEach(
-            lines.filter(([, value]) => value !== 1),
-            ([key]) => getLineRange(document, Number(key))
+          coveredLines: yield* Effect.forEach(Object.entries(covered), ([key]) => getLineRange(document, Number(key))),
+          uncoveredLines: yield* Effect.forEach(Object.entries(uncovered), ([key]) =>
+            getLineRange(document, Number(key))
           )
         };
       }

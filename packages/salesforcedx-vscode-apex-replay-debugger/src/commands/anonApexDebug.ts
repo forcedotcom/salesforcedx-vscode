@@ -10,8 +10,6 @@ import { format } from 'node:util';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { getRuntime } from '../services/runtime';
-import { CommandKey, getProgressLocation, showSuccessNotification } from '../utils/notificationMode';
 
 export const makeDoubleDigit = (currentDigit: number): string => format('%d', currentDigit).padStart(2, '0');
 
@@ -28,82 +26,40 @@ export const getYYYYMMddHHmmssDateFormat = (localUTCDate: Date): string => {
 /** safeWriteFile creates the parent directory, so no separate createDirectory call is needed. */
 const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger')(function* (
   logFilePath: URI,
-  logs?: string
+  logs: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  if (!logs) return false;
   yield* api.services.FsService.safeWriteFile(logFilePath, logs);
   yield* Effect.promise(() =>
     vscode.commands.executeCommand('sf.launch.replay.debugger.logfile.path', logFilePath.fsPath)
   );
-  return true;
 });
 
-type AnonApexContext =
-  | { kind: 'code'; apexCode: string; selectionRange?: vscode.Range; documentUri: URI }
-  | { kind: 'file'; filePath: string; documentUri: URI };
-
-const getAnonApexContext = Effect.fn('ApexReplayDebugger.getAnonApexContext')(function* () {
+export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.Command.anonApexDebug')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
-  if (isEmpty) return undefined;
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) return undefined;
-  const document = editor.document;
-  if (!editor.selection.isEmpty || document.isUntitled || document.isDirty) {
-    return {
-      kind: 'code',
-      apexCode: !editor.selection.isEmpty ? document.getText(editor.selection) : document.getText(),
-      selectionRange: !editor.selection.isEmpty
-        ? new vscode.Range(editor.selection.start, editor.selection.end)
-        : undefined,
-      documentUri: URI.parse(document.uri.toString())
-    } satisfies AnonApexContext;
-  }
-  return {
-    kind: 'file',
-    filePath: document.uri.fsPath,
-    documentUri: URI.file(document.uri.fsPath)
-  } satisfies AnonApexContext;
+  const promptService = yield* api.services.PromptService;
+  const context = yield* api.services.EditorService.getActiveEditorContext(true);
+  const executionResult = yield* Effect.gen(function* () {
+    const { result, logBody } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(context.text);
+    yield* api.services.ExecuteAnonymousService.reportExecResult(
+      result,
+      context.documentUri,
+      context.selectionRange?.startLine
+    );
+
+    if (result.compiled && result.success) {
+      const logFilePath = Utils.joinPath(
+        yield* api.services.ProjectService.getDebugLogsFolder(),
+        `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
+      );
+      yield* launchReplayDebugger(logFilePath, logBody);
+    }
+    return result;
+  }).pipe(promptService.withProgress(nls.localize('apex_execute_text')));
+
+  yield* Effect.sync(() => {
+    if (executionResult.compiled && executionResult.success) {
+      void vscode.window.showInformationMessage(nls.localize('apex_execute_debug_success'));
+    }
+  });
 });
-
-const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug')(function* () {
-  const ctx = yield* getAnonApexContext();
-  if (!ctx) return false;
-
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const code = ctx.kind === 'code' ? ctx.apexCode : yield* api.services.FsService.readFile(ctx.filePath);
-  if (!code) return false;
-
-  const { result, logBody } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(code);
-  yield* api.services.ExecuteAnonymousService.reportExecResult(
-    result,
-    ctx.documentUri,
-    ctx.kind === 'code' ? ctx.selectionRange?.start.line : undefined
-  );
-
-  if (!result.compiled || !result.success) return false;
-
-  const logFilePath = Utils.joinPath(
-    yield* api.services.ProjectService.getDebugLogsFolder(),
-    `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
-  );
-  return yield* launchReplayDebugger(logFilePath, logBody ?? undefined);
-});
-
-const COMMAND: CommandKey = 'Debug Anonymous Apex';
-
-export const anonApexDebug = async (): Promise<void> => {
-  const success = await vscode.window.withProgress(
-    { location: getProgressLocation(COMMAND), title: nls.localize('apex_execute_text'), cancellable: false },
-    () =>
-      getRuntime()
-        .runPromise(executeAnonApexDebug())
-        .catch((error: unknown) => {
-          void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
-        })
-  );
-  if (success) {
-    void showSuccessNotification(COMMAND, nls.localize('apex_execute_debug_success'), false);
-  }
-};
