@@ -83,16 +83,16 @@ const gatherPollChoice = Effect.fn('packageInstall.gatherPollChoice')(function* 
 const verifyPackageAvailable = Effect.fn('packageInstall.verifyPackageAvailable')(function* (packageId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const conn = yield* api.services.ConnectionService.getConnection();
-  const result = yield* Effect.tryPromise({
+  return yield* Effect.tryPromise({
     try: () => conn.tooling.query<{ Id: string }>(`SELECT Id FROM SubscriberPackageVersion WHERE Id ='${packageId}'`),
     catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
-  });
-  if (result.records.length === 0) {
-    return yield* new PackageInstallFailedError({
-      message: nls.localize('package_install_not_found', packageId)
-    });
-  }
-  return packageId;
+  }).pipe(
+    Effect.filterOrFail(
+      result => result.records.length > 0,
+      () => new PackageInstallFailedError({ message: nls.localize('package_install_not_found', packageId) })
+    ),
+    Effect.as(packageId)
+  );
 });
 
 const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(function* (params: {
@@ -114,17 +114,17 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
       onSome: (key: string) => ({ Password: key })
     })
   };
-  const result = yield* Effect.tryPromise({
+  return yield* Effect.tryPromise({
     try: () => conn.tooling.create('PackageInstallRequest', body),
     catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
-  });
-  const single = Array.isArray(result) ? result[0] : result;
-  if (!single?.success) {
-    return yield* new PackageInstallFailedError({
-      message: `Submit failed: ${JSON.stringify(single?.errors ?? [])}`
-    });
-  }
-  return single.id;
+  }).pipe(
+    Effect.map(result => (Array.isArray(result) ? result[0] : result)),
+    Effect.filterOrFail(
+      single => single?.success === true,
+      single => new PackageInstallFailedError({ message: `Submit failed: ${JSON.stringify(single?.errors ?? [])}` })
+    ),
+    Effect.map(single => single.id)
+  );
 });
 
 const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(function* (requestId: string) {
@@ -143,12 +143,12 @@ const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(functi
       ),
       times: 5
     }),
-    Effect.flatMap(result =>
-      Option.match(Arr.head(result.records), {
-        onNone: () => new PackageInstallFailedError({ message: `Request ${requestId} not found` }),
-        onSome: Effect.succeed
-      })
-    )
+    Effect.map(result => Arr.head(result.records)),
+    Effect.filterOrFail(
+      Option.isSome,
+      () => new PackageInstallFailedError({ message: `Request ${requestId} not found` })
+    ),
+    Effect.map(record => record.value)
   );
 });
 

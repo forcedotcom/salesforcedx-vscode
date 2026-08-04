@@ -10,7 +10,7 @@ import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-re
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
-import { isString } from 'effect/Predicate';
+import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
@@ -35,11 +35,14 @@ const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
     }
   );
 
-  const orgId = (yield* SubscriptionRef.get(yield* defaultOrgRef())).orgId;
-
-  if (!orgId) {
-    return yield* new MissingDefaultOrgError({ message: nls.localize('missing_default_org') });
-  }
+  const orgId = yield* defaultOrgRef().pipe(
+    Effect.flatMap(SubscriptionRef.get),
+    Effect.map(orgInfo => orgInfo.orgId),
+    Effect.filterOrFail(
+      isNotUndefined,
+      () => new MissingDefaultOrgError({ message: nls.localize('missing_default_org') })
+    )
+  );
 
   return Utils.joinPath(workspaceInfo.uri, '.sf', 'orgs', orgId, 'remoteMetadata');
 });
