@@ -13,6 +13,7 @@ import {
   executeCommandWithCommandPalette,
   QUICK_INPUT_WIDGET,
   saveScreenshot,
+  selectQuickInputOption,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
@@ -47,8 +48,7 @@ test('Create Apex Class via command palette', async ({ page }) => {
   });
 
   await test.step('select template in QuickPick', async () => {
-    await waitForQuickInputFirstOption(page);
-    await page.keyboard.press('Enter');
+    await selectQuickInputOption(page, 'DefaultApexClass');
     await saveScreenshot(page, 'step.template-selected.png');
   });
 
