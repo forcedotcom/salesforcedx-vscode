@@ -7,11 +7,16 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
+// Bundled at build time; the services extension remains an extensionDependency plus devDependency.
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { IdentifierSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const DEFAULT_MANIFEST = 'package.xml';
+const isIdentifier = Schema.is(IdentifierSchema);
 
 const toManifestBaseName = (input: string): string => input.trim().replace(/\.xml$/i, '');
 
@@ -27,7 +32,7 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
     validateInput: (value: string) => {
       const baseName = toManifestBaseName(value);
       if (!baseName) return nls.localize('manifest_file_name_empty_error');
-      if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(baseName)) return nls.localize('manifest_file_name_format_error');
+      if (!isIdentifier(baseName)) return nls.localize('manifest_file_name_format_error');
       return undefined;
     }
   };

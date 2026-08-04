@@ -7,9 +7,15 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
+// Bundled at build time; the services extension remains an extensionDependency plus devDependency.
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { IdentifierSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
+
+const isIdentifier = Schema.is(IdentifierSchema);
 
 const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -21,7 +27,7 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
       validateInput: (value: string) => {
         const normalized = value.trim();
         if (!normalized) return nls.localize('create_script_name_empty_error');
-        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(normalized)) return nls.localize('create_script_name_format_error');
+        if (!isIdentifier(normalized)) return nls.localize('create_script_name_format_error');
         return undefined;
       }
     })

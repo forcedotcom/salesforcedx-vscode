@@ -39,6 +39,10 @@ ruleTester.run('no-direct-services-imports', noDirectServicesImports, {
     {
       code: `import { ICONS, type DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';`,
       filename: 'packages/salesforcedx-vscode-org/src/test.ts'
+    },
+    {
+      code: `import { IdentifierSchema, LowercaseFirstIdentifierSchema } from 'salesforcedx-vscode-services';`,
+      filename: 'packages/salesforcedx-vscode-metadata/src/test.ts'
     }
   ],
   invalid: [

@@ -17,15 +17,13 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-const PKG_ID_PREFIX = '04t';
+const PackageIdSchema = Schema.String.pipe(Schema.pattern(/^04t(?:[A-Za-z0-9]{12}|[A-Za-z0-9]{15})$/));
+const isPackageId = Schema.is(PackageIdSchema);
 
 // Live tooling API returns Status as uppercase (e.g. 'SUCCESS'); @salesforce/types' enum casing is wrong.
 // Verified against live record 0HfE2000005KJObKAO; matches @salesforce/packaging which polls on ['SUCCESS','ERROR'].
 type RuntimeInstallStatus = 'IN_PROGRESS' | 'SUCCESS' | 'ERROR' | 'CANCELED' | 'UNKNOWN';
 type PackageInstallRequest = Omit<ToolingPackageInstallRequest, 'Status'> & { Status?: RuntimeInstallStatus };
-
-const isValidPackageId = (value: string): boolean =>
-  (value.length === 15 || value.length === 18) && value.startsWith(PKG_ID_PREFIX) && /^[A-Za-z0-9]+$/.test(value);
 
 class PackageInstallFailedError extends Schema.TaggedError<PackageInstallFailedError>()('PackageInstallFailedError', {
   message: Schema.String
@@ -40,7 +38,7 @@ const gatherPackageId = Effect.fn('packageInstall.gatherPackageId')(function* ()
       placeHolder: nls.localize('package_install_id_placeholder'),
       ignoreFocusOut: true,
       validateInput: value =>
-        value === '' || isValidPackageId(value) ? null : nls.localize('package_install_id_validation')
+        value === '' || isPackageId(value) ? undefined : nls.localize('package_install_id_validation')
     })
   );
   return yield* promptService.considerUndefinedAsCancellation(result);

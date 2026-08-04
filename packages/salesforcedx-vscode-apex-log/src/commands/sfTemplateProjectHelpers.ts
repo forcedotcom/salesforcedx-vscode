@@ -7,10 +7,15 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
+// Bundled at build time; the services extension remains an extensionDependency plus devDependency.
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { IdentifierSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 const APEX_NAME_MAX_LENGTH = 40;
+const isIdentifier = Schema.is(IdentifierSchema);
 
 type ApexTypeNameMessages = {
   readonly empty: string;
@@ -34,7 +39,7 @@ const validateApexTypeName = (
   const maxLen = options?.maxLength ?? APEX_NAME_MAX_LENGTH;
   if (!value || value.trim().length === 0) return messages.empty;
   if (value.toLowerCase() === 'default') return messages.reservedDefault;
-  if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(value)) return messages.invalidFormat;
+  if (!isIdentifier(value)) return messages.invalidFormat;
   return value.length > maxLen ? messages.maxLength : undefined;
 };
 
