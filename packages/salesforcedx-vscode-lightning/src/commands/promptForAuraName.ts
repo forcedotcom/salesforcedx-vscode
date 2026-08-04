@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, IdentifierSchema } from '@salesforce/effect-ext-utils';
 import { hasFileNameCollision } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { IdentifierSchema } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';

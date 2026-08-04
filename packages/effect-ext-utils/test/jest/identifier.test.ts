@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { IdentifierSchema, LowercaseFirstIdentifierSchema } from '../../../../src/core/schemas/identifier';
+import { IdentifierSchema, LowercaseFirstIdentifierSchema } from '../../src/identifier';
 
 describe('identifier schemas', () => {
   const isIdentifier = Schema.is(IdentifierSchema);

@@ -151,7 +151,6 @@ export type SalesforceVSCodeServicesApi = {
   };
 };
 export type { AliasService } from './core/alias';
-export { IdentifierSchema, LowercaseFirstIdentifierSchema } from './core/schemas/identifier';
 export {
   TemplateService,
   type CreateOutput,

@@ -32,3 +32,4 @@ export {
 } from './utils';
 
 export { annotateRootSpan } from './annotateRootSpan';
+export { IdentifierSchema, LowercaseFirstIdentifierSchema } from './identifier';

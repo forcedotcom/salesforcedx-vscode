@@ -30,7 +30,6 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/types": "^1.8.0",
     "@salesforce/vscode-i18n": "*",
-    "@salesforce/vscode-services": "*",
     "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },

@@ -34,7 +34,6 @@
     "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/vscode-i18n": "*",
-    "@salesforce/vscode-services": "*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
