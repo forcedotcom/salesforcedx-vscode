@@ -371,6 +371,22 @@ describe('ConnectionService.getConnection (desktop)', () => {
     expect(orgInfo).toMatchObject({ username: USERNAME, alias: ALIAS, orgId: '00Dxx' });
   });
 
+  it('clears a cached alias when target-org is configured as the username', async () => {
+    await Effect.runPromise(
+      getDefaultOrgRef().pipe(
+        Effect.flatMap(ref => SubscriptionRef.set(ref, { username: USERNAME, alias: ALIAS, orgId: '00Dxx' }))
+      )
+    );
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
+    getTargetOrgMock.mockReturnValue(USERNAME);
+    connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME));
+
+    await run(ConnectionService.getConnection());
+
+    const orgInfo = await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
+    expect(orgInfo.alias).toBeUndefined();
+  });
+
   it('no-arg path with no configured target-org fails with NoTargetOrgConfiguredError', async () => {
     getPropertyValueMock.mockReturnValue(undefined);
 

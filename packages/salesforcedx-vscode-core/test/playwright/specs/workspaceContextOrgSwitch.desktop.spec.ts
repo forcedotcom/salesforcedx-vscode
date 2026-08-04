@@ -60,8 +60,9 @@ test('WorkspaceContext tracks real default-org picker switches', async ({ page, 
     await expect
       .poll(() => readState(workspaceDir))
       .toMatchObject({
-        eventCount: 0,
-        getters: { username, alias: MINIMAL_ORG_ALIAS, orgId }
+        eventCount: 1,
+        event: { username },
+        getters: { username, orgId }
       });
   });
 
@@ -71,9 +72,8 @@ test('WorkspaceContext tracks real default-org picker switches', async ({ page, 
     await expect
       .poll(() => readState(workspaceDir))
       .toMatchObject({
-        eventCount: 1,
-        event: { username },
-        getters: { username, orgId }
+        eventCount: 0,
+        getters: { username, alias: MINIMAL_ORG_ALIAS, orgId }
       });
   });
 
