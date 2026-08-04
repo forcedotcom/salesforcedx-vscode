@@ -14,6 +14,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   focusOnFilesExplorer,
+  openFileFromExplorerTree,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -72,13 +73,10 @@ test('EditorWatcher: deploy commands show/hide based on active editor location',
   });
 
   await test.step('open sfdx-project.json (not in package directory)', async () => {
-    // Focus explorer and click on sfdx-project.json to open it
+    // The expanded metadata tree pushes root files outside the virtualized DOM.
     await focusOnFilesExplorer(page);
-
-    // Find and click the sfdx-project.json file in the explorer tree
-    const projectFile = page.getByRole('treeitem', { name: /sfdx-project\.json/ });
-    await projectFile.waitFor({ state: 'visible', timeout: 10_000 });
-    await projectFile.dblclick();
+    await page.keyboard.press('End');
+    await openFileFromExplorerTree(page, 'sfdx-project.json');
 
     // Verify it's the active editor
     const editor = page.locator(EDITOR_WITH_URI).first();

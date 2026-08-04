@@ -18,7 +18,9 @@ import {
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden,
   saveScreenshot,
+  activeQuickInputTextField,
   activeQuickInputWidget,
+  selectQuickInputOption,
   NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
@@ -52,14 +54,19 @@ test('Install Package: posts PackageInstallRequest and polls until success', asy
   await test.step('skip installation key', async () => {
     const keyInput = activeQuickInputWidget(page);
     await keyInput.waitFor({ state: 'visible', timeout: 30_000 });
-    await page.keyboard.press('Enter');
+    await expect(page.getByRole('progressbar')).not.toBeVisible({ timeout: 30_000 });
+    await activeQuickInputTextField(page).press('Enter');
+    await keyInput.getByRole('option', { name: messages.package_install_poll_yes }).waitFor({
+      state: 'visible',
+      timeout: 30_000
+    });
     await saveScreenshot(page, 'step2.after-key.png');
   });
 
   await test.step('select Yes to wait for completion', async () => {
-    const pollPick = activeQuickInputWidget(page);
-    await pollPick.waitFor({ state: 'visible', timeout: 30_000 });
-    await pollPick.getByRole('option', { name: messages.package_install_poll_yes }).first().click();
+    await selectQuickInputOption(page, messages.package_install_poll_yes, {
+      quickInputVisibleTimeout: 30_000
+    });
     await saveScreenshot(page, 'step3.after-poll-choice.png');
   });
 

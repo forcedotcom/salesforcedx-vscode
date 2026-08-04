@@ -9,7 +9,6 @@ import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { anonApexDebug } from './anonApexDebug';
 
 export const launchApexReplayDebuggerWithCurrentFile = async () => {
   const editor = vscode.window.activeTextEditor;
@@ -62,7 +61,7 @@ const getApexTestClassName = (document: vscode.TextDocument): string | undefined
 
 const launchAnonymousApexReplayDebugger = async () => {
   if (!(await sfProjectPreconditionChecker.check())) return;
-  await anonApexDebug();
+  await vscode.commands.executeCommand('sf.anon.apex.debug.delegate');
 };
 
 const launchApexReplayDebugger = async (apexTestClassName: string) => {

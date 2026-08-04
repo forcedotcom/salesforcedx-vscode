@@ -15,6 +15,8 @@ import {
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   createApexClass,
+  focusOnFilesExplorer,
+  openFileFromExplorerTree,
   openFileByName,
   executeCommandWithCommandPalette,
   activeQuickInputWidget,
@@ -54,10 +56,9 @@ const projectJson = (sourceApiVersion: string): string =>
 
 /** Open sfdx-project.json from the Explorer and overwrite its full contents with `sourceApiVersion`, then save. */
 const writeProjectApiVersion = async (page: Page, sourceApiVersion: string) => {
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-  const projectFile = page.getByRole('treeitem', { name: /sfdx-project\.json/ });
-  await projectFile.waitFor({ state: 'visible', timeout: 10_000 });
-  await projectFile.dblclick();
+  await focusOnFilesExplorer(page);
+  await page.keyboard.press('End');
+  await openFileFromExplorerTree(page, 'sfdx-project.json');
 
   const editor = page.locator(`${EDITOR}[data-uri$="sfdx-project.json"]`).first();
   await editor.waitFor({ state: 'visible', timeout: 10_000 });
