@@ -13,39 +13,58 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForApexTypeName } from './sfTemplateProjectHelpers';
 
-const ApexClassTemplate = Schema.Literal('DefaultApexClass', 'ApexException', 'InboundEmailService');
-type ApexClassTemplate = Schema.Schema.Type<typeof ApexClassTemplate>;
+const DEFAULT_APEX_CLASS_TEMPLATES = [
+  { label: 'DefaultApexClass', description: nls.localize('apex_class_default_template_description') },
+  { label: 'ApexException', description: nls.localize('apex_class_exception_template_description') },
+  { label: 'InboundEmailService', description: nls.localize('apex_class_inbound_email_template_description') }
+];
 
 const UriSchema = Schema.Unknown.pipe(Schema.filter((u): u is URI => URI.isUri(u), { message: () => 'Expected URI' }));
 
 const CreateApexClassParams = Schema.Struct({
   name: Schema.optional(Schema.String),
   outputDir: Schema.optional(UriSchema),
-  template: Schema.optional(ApexClassTemplate)
+  template: Schema.optional(Schema.String)
 });
 type CreateApexClassParams = Schema.Schema.Type<typeof CreateApexClassParams>;
 
 const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
+
+  const configService = yield* api.services.ConfigService;
+  const agg = yield* configService.getConfigAggregator();
+  const customPath = agg.getPropertyValue<string>('org-custom-metadata-templates') ?? undefined;
+
+  const fsService = yield* api.services.FsService;
+  const apexclassDir = customPath ? Utils.joinPath(URI.file(customPath), 'apexclass') : undefined;
+  const isDir = apexclassDir ? yield* fsService.isDirectory(apexclassDir) : false;
+  const entries =
+    isDir && apexclassDir
+      ? yield* fsService.readDirectoryWithTypes(apexclassDir).pipe(Effect.orElseSucceed(() => []))
+      : [];
+  const customItems = entries
+    .filter(({ uri }) => Utils.basename(uri).endsWith('.cls'))
+    .map(({ uri }) => ({ label: Utils.basename(uri).replace(/\.cls$/, ''), description: '' }));
+
+  const builtInSeparator: vscode.QuickPickItem = {
+    kind: vscode.QuickPickItemKind.Separator,
+    label: nls.localize('apex_class_builtin_templates_label')
+  };
+  const items: vscode.QuickPickItem[] =
+    customItems.length > 0
+      ? [
+          builtInSeparator,
+          ...DEFAULT_APEX_CLASS_TEMPLATES,
+          { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('apex_class_custom_templates_label') },
+          ...customItems
+        ]
+      : [...DEFAULT_APEX_CLASS_TEMPLATES];
+
   return yield* Effect.promise(() =>
-    vscode.window.showQuickPick<{ label: ApexClassTemplate; description: string }>(
-      [
-        {
-          label: 'DefaultApexClass',
-          description: nls.localize('apex_class_default_template_description')
-        },
-        {
-          label: 'ApexException',
-          description: nls.localize('apex_class_exception_template_description')
-        },
-        {
-          label: 'InboundEmailService',
-          description: nls.localize('apex_class_inbound_email_template_description')
-        }
-      ],
-      { placeHolder: nls.localize('template_type_prompt') }
-    )
+    vscode.window.showQuickPick<vscode.QuickPickItem>(items, {
+      placeHolder: nls.localize('template_type_prompt')
+    })
   ).pipe(
     Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)),
     Effect.map(selected => selected.label)

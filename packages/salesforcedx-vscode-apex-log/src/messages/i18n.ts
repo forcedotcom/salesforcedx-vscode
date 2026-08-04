@@ -16,6 +16,8 @@ export const messages = {
   apex_class_default_template_description: 'Standard Apex class with constructor',
   apex_class_exception_template_description: 'Custom exception class',
   apex_class_inbound_email_template_description: 'Inbound email service handler',
+  apex_class_builtin_templates_label: 'Built-In Templates',
+  apex_class_custom_templates_label: 'Custom Templates',
   apex_generate_class_success: 'Apex class created successfully',
   apex_trigger_name_prompt: 'Enter Apex trigger name',
   apex_generate_trigger_success: 'Apex trigger created successfully',

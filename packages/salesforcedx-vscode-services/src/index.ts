@@ -153,6 +153,7 @@ export type SalesforceVSCodeServicesApi = {
 export type { AliasService } from './core/alias';
 export {
   TemplateService,
+  type ApexClassCreateOptions,
   type CreateOutput,
   type CreateParams,
   type TemplateOptionsFor,

@@ -43,7 +43,7 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
   T extends SfTemplates.TemplateType.AnalyticsTemplate
     ? SfTemplates.AnalyticsTemplateOptions
     : T extends SfTemplates.TemplateType.ApexClass
-      ? SfTemplates.ApexClassOptions
+      ? ApexClassCreateOptions
       : T extends SfTemplates.TemplateType.ApexTrigger
         ? SfTemplates.ApexTriggerOptions
         : T extends SfTemplates.TemplateType.LightningApp
@@ -74,6 +74,16 @@ export type CreateParams<T extends SfTemplates.TemplateType = SfTemplates.Templa
   readonly templateType: T;
   readonly outputdir?: URI;
   readonly options: TemplateOptionsFor<T>;
+};
+
+/** Apex class options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type ApexClassCreateOptions = {
+  readonly template: string;
+  readonly classname: string;
+  readonly apiversion?: string;
+  readonly outputdir?: string;
+  readonly sobjecttype?: string;
 };
 
 export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<TemplatesRootPathNotAvailableError>()(
