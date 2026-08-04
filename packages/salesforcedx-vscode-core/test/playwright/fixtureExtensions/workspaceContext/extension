@@ -45,15 +45,20 @@ const activate = async extensionContext => {
 
   extensionContext.subscriptions.push(
     workspaceContext.onOrgChange(event => {
-      if (!capturing) return;
+      const getters = {
+        username: workspaceContext.username,
+        alias: workspaceContext.alias,
+        orgId: workspaceContext.orgId
+      };
+      if (!capturing) {
+        state = { eventCount: 0, getters };
+        writeState(state);
+        return;
+      }
       const nextState = {
         eventCount: state.eventCount + 1,
         event,
-        getters: {
-          username: workspaceContext.username,
-          alias: workspaceContext.alias,
-          orgId: workspaceContext.orgId
-        }
+        getters
       };
       state = nextState;
       writeState(nextState);
