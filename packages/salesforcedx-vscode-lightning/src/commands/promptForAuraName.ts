@@ -7,11 +7,9 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { hasFileNameCollision } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { IdentifierSchema } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-// Bundled at build time; the services extension remains an extensionDependency plus devDependency.
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { IdentifierSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 

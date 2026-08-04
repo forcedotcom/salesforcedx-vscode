@@ -41,6 +41,7 @@
     "@salesforce/soql-model": "*",
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-services": "*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "papaparse": "^5.3.0",

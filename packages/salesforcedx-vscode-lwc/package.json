@@ -32,6 +32,7 @@
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-lwc-language-server": "*",
     "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-services": "*",
     "effect": "^3.21.2",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
