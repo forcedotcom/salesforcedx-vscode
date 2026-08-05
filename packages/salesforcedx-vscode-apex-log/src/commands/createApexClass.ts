@@ -58,6 +58,9 @@ const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
     .filter(({ uri }) => Utils.basename(uri).endsWith('.cls'))
     .map(({ uri }) => ({ label: Utils.basename(uri).replace(/\.cls$/, ''), description: '' }));
 
+  const customNames = new Set(customItems.map(item => item.label));
+  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNames.has(item.label));
+
   const builtInSeparator: vscode.QuickPickItem = {
     kind: vscode.QuickPickItemKind.Separator,
     label: nls.localize('apex_class_builtin_templates_label')
@@ -66,7 +69,7 @@ const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
     customItems.length > 0
       ? [
           builtInSeparator,
-          ...builtInItems,
+          ...nonOverriddenBuiltInItems,
           { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('apex_class_custom_templates_label') },
           ...customItems
         ]
