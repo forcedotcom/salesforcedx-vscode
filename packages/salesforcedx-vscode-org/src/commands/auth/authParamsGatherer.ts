@@ -62,6 +62,17 @@ const inputAccessToken = async (): Promise<string | undefined> =>
 const validateUrl = (url: string): string | undefined =>
   /^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/.test(url) ? undefined : nls.localize('auth_invalid_url');
 
+const normalizeUrl = (value: string): string | undefined => {
+  if (isNotUndefined(validateUrl(value))) return undefined;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> =>
   Object.fromEntries(
     Object.entries({
@@ -163,5 +174,14 @@ const getProjectLoginUrl = Effect.fn('AuthParamsGatherer.getProjectLoginUrl')(fu
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const project = yield* api.services.ProjectService.getSfProject();
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
-  return projectJson.get('sfdcLoginUrl');
+  const projectUrl = projectJson.get('sfdcLoginUrl');
+  if (isUndefined(projectUrl)) return undefined;
+
+  const normalizedUrl = normalizeUrl(projectUrl);
+  if (isUndefined(normalizedUrl)) {
+    yield* Effect.sync(() => {
+      void vscode.window.showWarningMessage(nls.localize('auth_invalid_project_url', projectUrl));
+    });
+  }
+  return normalizedUrl;
 });

@@ -7,6 +7,7 @@
 
 export const messages = {
   auth_invalid_url: 'URL must begin with http:// or https://.',
+  auth_invalid_project_url: 'The sfdcLoginUrl value "%s" in sfdx-project.json is invalid and will not be used.',
   auth_project_detail: 'Use login URL defined in sfdx-project.json',
   auth_project_label: 'Project Default',
   auth_prod_detail: 'Production or Developer org',
