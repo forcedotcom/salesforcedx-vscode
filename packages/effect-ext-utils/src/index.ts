@@ -32,4 +32,5 @@ export {
 } from './utils';
 
 export { annotateRootSpan } from './annotateRootSpan';
-export { IdentifierSchema, LowercaseFirstIdentifierSchema } from './identifier';
+export { LetterStartNameSchema } from './letterStartName';
+export { SalesforceIdSchema } from './salesforceId';

@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, IdentifierSchema } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 const APEX_NAME_MAX_LENGTH = 40;
-const isIdentifier = Schema.is(IdentifierSchema);
 
 type ApexTypeNameMessages = {
   readonly empty: string;
@@ -36,7 +35,7 @@ const validateApexTypeName = (
   const maxLen = options?.maxLength ?? APEX_NAME_MAX_LENGTH;
   if (!value || value.trim().length === 0) return messages.empty;
   if (value.toLowerCase() === 'default') return messages.reservedDefault;
-  if (!isIdentifier(value)) return messages.invalidFormat;
+  if (!Schema.is(LetterStartNameSchema)(value)) return messages.invalidFormat;
   return value.length > maxLen ? messages.maxLength : undefined;
 };
 

@@ -7,6 +7,4 @@
 
 import * as Schema from 'effect/Schema';
 
-export const IdentifierSchema = Schema.String.pipe(Schema.pattern(/^[A-Za-z][A-Za-z0-9_]*$/));
-
-export const LowercaseFirstIdentifierSchema = Schema.String.pipe(Schema.pattern(/^[a-z][A-Za-z0-9_]*$/));
+export const LetterStartNameSchema = Schema.String.pipe(Schema.pattern(/^[A-Za-z][A-Za-z0-9_]*$/));

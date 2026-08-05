@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, IdentifierSchema } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -13,7 +13,6 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 const DEFAULT_MANIFEST = 'package.xml';
-const isIdentifier = Schema.is(IdentifierSchema);
 
 const toManifestBaseName = (input: string): string => input.trim().replace(/\.xml$/i, '');
 
@@ -29,7 +28,7 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
     validateInput: (value: string) => {
       const baseName = toManifestBaseName(value);
       if (!baseName) return nls.localize('manifest_file_name_empty_error');
-      if (!isIdentifier(baseName)) return nls.localize('manifest_file_name_format_error');
+      if (!Schema.is(LetterStartNameSchema)(baseName)) return nls.localize('manifest_file_name_format_error');
       return undefined;
     }
   };

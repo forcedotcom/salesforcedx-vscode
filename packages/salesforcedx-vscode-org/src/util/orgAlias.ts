@@ -8,17 +8,7 @@
 import * as Schema from 'effect/Schema';
 import { nls } from '../messages';
 
-const AlphaNumSpaceString = Schema.String.pipe(
-  Schema.pattern(/^\w+( *\w*)*$/),
-  Schema.brand('@salesforce/salesforcedx-vscode-org/AlphaNumSpaceString')
-);
-const OrgAlias = Schema.String.pipe(
-  Schema.pattern(/^[\w-]+( *[\w-]*)*$/),
-  Schema.brand('@salesforce/salesforcedx-vscode-org/OrgAlias')
-);
-
-/** Org alias must be underscores, spaces, and alphanumerics only — rejects shell metachars, keeping CLI alias args injection-safe. */
-export const isAlphaNumSpaceString = Schema.is(AlphaNumSpaceString);
+const OrgAlias = Schema.String.pipe(Schema.pattern(/^[\w-]+( *[\w-]*)*$/));
 
 /**
  * Org alias validator: underscores, hyphens, spaces, and alphanumerics only. Hyphens are common in org

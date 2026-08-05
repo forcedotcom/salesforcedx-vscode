@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, IdentifierSchema } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { nls } from '../messages';
-
-const isIdentifier = Schema.is(IdentifierSchema);
 
 const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -24,7 +22,7 @@ const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function
       validateInput: (value: string) => {
         const normalized = value.trim();
         if (!normalized) return nls.localize('soql_file_name_empty_error');
-        if (!isIdentifier(normalized)) return nls.localize('soql_file_name_format_error');
+        if (!Schema.is(LetterStartNameSchema)(normalized)) return nls.localize('soql_file_name_format_error');
         return undefined;
       }
     })

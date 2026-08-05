@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, LowercaseFirstIdentifierSchema } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { hasFileNameCollision } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-const isLowercaseFirstIdentifier = Schema.is(LowercaseFirstIdentifierSchema);
+const LwcComponentNameSchema = Schema.String.pipe(Schema.pattern(/^[a-z][A-Za-z0-9_]*$/));
 
 export type PromptForLwcNameOptions = {
   /** Project-wide LWC + Aura component names (lowercase) for cross-bundle collision detection. */
@@ -34,7 +34,7 @@ export const promptForLwcName = Effect.fn('promptForLwcName')(function* (opts: P
       validateInput: (value: string) => {
         const trimmed = value?.trim();
         if (!trimmed) return nls.localize('lwc_component_name_empty_error');
-        if (!isLowercaseFirstIdentifier(trimmed)) return nls.localize('lwc_component_name_format_error');
+        if (!Schema.is(LwcComponentNameSchema)(trimmed)) return nls.localize('lwc_component_name_format_error');
         if (opts.existingNames.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
         if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
           return nls.localize('rename_component_input_dup_file_name_error');
