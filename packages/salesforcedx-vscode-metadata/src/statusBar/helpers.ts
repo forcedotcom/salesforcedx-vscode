@@ -6,6 +6,7 @@
  */
 
 import type { StatusOutputRow } from '@salesforce/source-tracking';
+import * as Arr from 'effect/Array';
 import * as Order from 'effect/Order';
 import * as vscode from 'vscode';
 
@@ -60,7 +61,7 @@ const classifyRow = (row: StatusOutputRow): keyof SourceTrackingDetails =>
   row.conflict ? 'conflicts' : row.origin === 'local' ? 'localChanges' : 'remoteChanges';
 
 const separateChangesByOriginAndConflict = (status: StatusOutputRow[]): SourceTrackingDetails => {
-  const grouped = Object.groupBy(status, classifyRow);
+  const grouped = Arr.groupBy(status, classifyRow);
   return {
     localChanges: grouped.localChanges ?? [],
     remoteChanges: grouped.remoteChanges ?? [],
