@@ -110,9 +110,21 @@ jobs:
 
           echo "extensions=$EXTENSIONS" >> $GITHUB_OUTPUT
 
+  get-git-identity:
+    runs-on: ubuntu-latest
+    outputs:
+      username: ${{ steps.github-user-info.outputs.username }}
+      email: ${{ steps.github-user-info.outputs.email }}
+    steps:
+      - name: Get Github user info
+        id: github-user-info
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        with:
+          SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+
   nightly-release:
-    needs: build-extension-list
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@feat/configurable-git-identity
+    needs: [build-extension-list, get-git-identity]
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-extensions.yml@main
     with:
       branch: ${{ github.event.inputs.branch || 'develop' }}
       extensions: ${{ needs.build-extension-list.outputs.extensions }}
@@ -120,6 +132,6 @@ jobs:
       pre-release: 'true'
       version-bump: 'auto'
       dry-run: ${{ github.event.inputs.dry-run || false }}
-      git-user-name: 'Release Bot'
-      git-user-email: 'svc_idee_bot@salesforce.com'
+      git-user-name: ${{ needs.get-git-identity.outputs.username }}
+      git-user-email: ${{ needs.get-git-identity.outputs.email }}
     secrets: inherit
